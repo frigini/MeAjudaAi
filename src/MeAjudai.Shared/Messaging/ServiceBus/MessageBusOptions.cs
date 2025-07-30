@@ -1,0 +1,18 @@
+﻿namespace MeAjudai.Shared.Messaging.ServiceBus;
+
+public class MessageBusOptions
+{
+    public TimeSpan DefaultTimeToLive { get; set; } = TimeSpan.FromDays(1);
+    public int MaxConcurrentCalls { get; set; } = 1;
+    public int MaxDeliveryCount { get; set; } = 10;
+    public TimeSpan LockDuration { get; set; } = TimeSpan.FromMinutes(5);
+
+    public Func<Type, string> QueueNamingConvention { get; set; } =
+        type => type.Name.ToLowerInvariant();
+
+    public Func<Type, string> TopicNamingConvention { get; set; } =
+        type => $"{type.Namespace?.Split('.').Last()?.ToLowerInvariant()}.events";
+
+    public Func<Type, string> SubscriptionNamingConvention { get; set; } =
+        type => Environment.MachineName.ToLowerInvariant();
+}
