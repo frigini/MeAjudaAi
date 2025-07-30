@@ -1,5 +1,6 @@
 ﻿using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Common;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;
@@ -18,7 +19,8 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddLogging();
+        services.AddStructuredLogging();
+        services.AddValidation();
         services.AddErrorHandling();
         services.AddCommands();
         services.AddQueries();
