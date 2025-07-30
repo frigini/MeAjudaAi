@@ -1,6 +1,6 @@
-﻿using MeAjudai.Shared.Events;
+﻿using MeAjudaAi.Shared.Events;
 
-namespace MeAjudai.Shared.Common;
+namespace MeAjudaAi.Shared.Common;
 
 public abstract class BaseEntity
 {

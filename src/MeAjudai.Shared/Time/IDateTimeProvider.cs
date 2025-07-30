@@ -1,4 +1,4 @@
-﻿namespace MeAjudai.Shared.Time;
+﻿namespace MeAjudaAi.Shared.Time;
 
 public interface IDateTimeProvider
 {

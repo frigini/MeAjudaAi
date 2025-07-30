@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
-namespace MeAjudai.Shared.Common;
+namespace MeAjudaAi.Shared.Common;
 
 public static class Extensions
 {

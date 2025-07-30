@@ -1,4 +1,4 @@
-﻿namespace MeAjudai.Shared.Commands;
+﻿namespace MeAjudaAi.Shared.Commands;
 
 public interface ICommandDispatcher
 {

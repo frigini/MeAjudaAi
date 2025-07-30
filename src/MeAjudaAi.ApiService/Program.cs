@@ -1,4 +1,4 @@
-using MeAjudai.Shared.Extensions;
+using MeAjudaAi.Shared.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 

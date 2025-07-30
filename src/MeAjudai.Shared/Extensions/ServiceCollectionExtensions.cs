@@ -1,16 +1,16 @@
-﻿using MeAjudai.Shared.Caching;
-using MeAjudai.Shared.Commands;
-using MeAjudai.Shared.Database;
-using MeAjudai.Shared.Events;
-using MeAjudai.Shared.Exceptions;
-using MeAjudai.Shared.Messaging;
-using MeAjudai.Shared.Queries;
-using MeAjudai.Shared.Time;
+﻿using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Time;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudai.Shared.Extensions;
+namespace MeAjudaAi.Shared.Extensions;
 
 public static class ServiceCollectionExtensions
 {

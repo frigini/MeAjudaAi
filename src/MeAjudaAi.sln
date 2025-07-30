@@ -10,7 +10,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.ApiService", "MeA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Tests", "MeAjudaAi.Tests\MeAjudaAi.Tests.csproj", "{C55820DF-E45F-B7D3-3787-5A9B19C05C64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudai.Shared", "MeAjudai.Shared\MeAjudai.Shared.csproj", "{01972159-9760-6FC2-9FB8-DC494D10FD56}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Shared", "MeAjudai.Shared\MeAjudaAi.Shared.csproj", "{01972159-9760-6FC2-9FB8-DC494D10FD56}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

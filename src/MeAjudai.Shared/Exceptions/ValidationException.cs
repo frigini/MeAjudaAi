@@ -1,6 +1,6 @@
 ﻿using FluentValidation.Results;
 
-namespace MeAjudai.Shared.Exceptions;
+namespace MeAjudaAi.Shared.Exceptions;
 
 public class ValidationException : Exception
 {

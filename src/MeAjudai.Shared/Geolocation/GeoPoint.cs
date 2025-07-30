@@ -1,4 +1,4 @@
-﻿namespace MeAjudai.Shared.Geolocation;
+﻿namespace MeAjudaAi.Shared.Geolocation;
 
 public record GeoPoint(double Latitude, double Longitude)
 {

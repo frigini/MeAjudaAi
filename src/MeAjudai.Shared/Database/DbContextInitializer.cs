@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudai.Shared.Database;
+namespace MeAjudaAi.Shared.Database;
 
 public sealed class DbContextInitializer(IServiceProvider serviceProvider, ILogger<DbContextInitializer> logger) : IHostedService
 {

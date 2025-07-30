@@ -1,12 +1,12 @@
 ﻿using Azure.Messaging.ServiceBus;
-using MeAjudai.Shared.Messaging.Messages;
-using MeAjudai.Shared.Messaging.ServiceBus;
+using MeAjudaAi.Shared.Messaging.Messages;
+using MeAjudaAi.Shared.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Rebus.Config;
 using Rebus.Routing.TypeBased;
 
-namespace MeAjudai.Shared.Messaging;
+namespace MeAjudaAi.Shared.Messaging;
 
 internal static class Extensions
 {

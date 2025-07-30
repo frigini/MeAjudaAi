@@ -1,4 +1,4 @@
-﻿namespace MeAjudai.Shared.Queries;
+﻿namespace MeAjudaAi.Shared.Queries;
 
 public abstract record Query<TResult> : IQuery<TResult>
 {

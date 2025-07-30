@@ -1,4 +1,4 @@
-﻿namespace MeAjudai.Shared.Database;
+﻿namespace MeAjudaAi.Shared.Database;
 
 internal sealed class PostgresOptions
 {

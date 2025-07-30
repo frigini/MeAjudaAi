@@ -1,11 +1,11 @@
 ﻿using Azure.Messaging.ServiceBus;
-using MeAjudai.Shared.Events;
+using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace MeAjudai.Shared.Messaging.ServiceBus;
+namespace MeAjudaAi.Shared.Messaging.ServiceBus;
 
 public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
 {

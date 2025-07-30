@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudai.Shared.Caching;
+namespace MeAjudaAi.Shared.Caching;
 
 internal static class Extensions
 {
@@ -24,7 +24,7 @@ internal static class Extensions
         services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = configuration.GetConnectionString("Redis");
-            options.InstanceName = "MeAjudai";
+            options.InstanceName = "MeAjudaAi";
         });
 
         // Registra o serviço

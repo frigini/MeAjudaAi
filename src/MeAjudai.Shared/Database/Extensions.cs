@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
-namespace MeAjudai.Shared.Database;
+namespace MeAjudaAi.Shared.Database;
 
 public static class Extensions
 {

@@ -1,6 +1,6 @@
-﻿using MeAjudai.Shared.Events;
+﻿using MeAjudaAi.Shared.Events;
 
-namespace MeAjudai.Shared.Messaging.Messages;
+namespace MeAjudaAi.Shared.Messaging.Messages;
 
 public record ServiceProviderRegistered(
     Guid ProviderId,

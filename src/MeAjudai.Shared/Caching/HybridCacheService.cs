@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudai.Shared.Caching;
+namespace MeAjudaAi.Shared.Caching;
 
 public class HybridCacheService : ICacheService
 {

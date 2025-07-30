@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudai.Shared.Queries;
+namespace MeAjudaAi.Shared.Queries;
 
 internal static class Extensions
 {

@@ -1,4 +1,4 @@
-﻿namespace MeAjudai.Shared.Common;
+﻿namespace MeAjudaAi.Shared.Common;
 
 public class Result<T>
 {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudai.Shared.Exceptions;
+namespace MeAjudaAi.Shared.Exceptions;
 
 internal static class Extensions
 {

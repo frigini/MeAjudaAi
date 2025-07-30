@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudai.Shared.Commands;
+namespace MeAjudaAi.Shared.Commands;
 
 public class CommandDispatcher(IServiceProvider serviceProvider, ILogger<CommandDispatcher> logger) : ICommandDispatcher
 {

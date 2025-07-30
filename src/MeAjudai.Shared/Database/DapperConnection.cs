@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
 
-namespace MeAjudai.Shared.Database;
+namespace MeAjudaAi.Shared.Database;
 
 public class DapperConnection(IConfiguration configuration) : IDapperConnection
 {

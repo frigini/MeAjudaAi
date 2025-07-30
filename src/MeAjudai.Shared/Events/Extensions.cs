@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudai.Shared.Events;
+namespace MeAjudaAi.Shared.Events;
 
 internal static class Extensions
 {

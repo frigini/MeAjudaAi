@@ -1,4 +1,4 @@
-﻿namespace MeAjudai.Shared.Queries;
+﻿namespace MeAjudaAi.Shared.Queries;
 
 public interface IQueryHandler<in TQuery, TResult> where TQuery : IQuery<TResult>
 {

@@ -1,4 +1,4 @@
-﻿namespace MeAjudai.Shared.Events;
+﻿namespace MeAjudaAi.Shared.Events;
 
 public abstract record IntegrationEvent(
     string Source

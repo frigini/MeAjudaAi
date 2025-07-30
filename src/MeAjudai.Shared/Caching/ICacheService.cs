@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Hybrid;
 
-namespace MeAjudai.Shared.Caching;
+namespace MeAjudaAi.Shared.Caching;
 
 public interface ICacheService
 {

@@ -1,4 +1,4 @@
-﻿namespace MeAjudai.Shared.Exceptions;
+﻿namespace MeAjudaAi.Shared.Exceptions;
 
 public class ForbiddenAccessException : Exception
 {

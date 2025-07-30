@@ -1,4 +1,4 @@
-﻿namespace MeAjudai.Shared.Messaging;
+﻿namespace MeAjudaAi.Shared.Messaging;
 
 public interface IMessageBus
 {

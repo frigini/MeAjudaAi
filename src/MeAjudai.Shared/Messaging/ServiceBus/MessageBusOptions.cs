@@ -1,4 +1,4 @@
-﻿namespace MeAjudai.Shared.Messaging.ServiceBus;
+﻿namespace MeAjudaAi.Shared.Messaging.ServiceBus;
 
 public class MessageBusOptions
 {

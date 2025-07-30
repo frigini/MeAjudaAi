@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace MeAjudai.Shared.Common;
+namespace MeAjudaAi.Shared.Common;
 
 public record PagedResponse<TData> : Response<TData>
 {
