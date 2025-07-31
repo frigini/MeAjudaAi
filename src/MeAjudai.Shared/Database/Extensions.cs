@@ -8,13 +8,11 @@ namespace MeAjudaAi.Shared.Database;
 
 public static class Extensions
 {
-    private const string SectionName = "Postgres";
-
     public static IServiceCollection AddPostgres(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<PostgresOptions>(configuration.GetSection(SectionName));
+        services.Configure<PostgresOptions>(configuration.GetSection(PostgresOptions.SectionName));
         services.AddHostedService<DbContextInitializer>();
 
         // Fix para EF Core timestamp behavior
@@ -70,15 +68,14 @@ public static class Extensions
         }
 
         var postgresOptions = new PostgresOptions();
-        configuration.GetSection(SectionName).Bind(postgresOptions);
+        configuration.GetSection(PostgresOptions.SectionName).Bind(postgresOptions);
 
         if (!string.IsNullOrEmpty(postgresOptions.ConnectionString))
         {
             return postgresOptions.ConnectionString;
         }
 
-        return configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("No connection string found");
+        throw new InvalidOperationException("PostgreSQL connection string not found. Configure 'Postgres:ConnectionString' in appsettings.json");
     }
 
     private static void ConfigureNpgsql(NpgsqlDbContextOptionsBuilder npgsqlOptions)

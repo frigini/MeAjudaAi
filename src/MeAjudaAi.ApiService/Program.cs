@@ -1,5 +1,6 @@
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 

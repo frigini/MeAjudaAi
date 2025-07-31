@@ -1,13 +1,12 @@
 ﻿using Dapper;
-using Microsoft.Extensions.Configuration;
 using Npgsql;
-using System.Data;
 
 namespace MeAjudaAi.Shared.Database;
 
-public class DapperConnection(IConfiguration configuration) : IDapperConnection
+public class DapperConnection(PostgresOptions postgresOptions) : IDapperConnection
 {
-    private readonly string _connectionString = configuration.GetConnectionString("DefaultConnection")!;
+    private readonly string _connectionString = postgresOptions?.ConnectionString
+            ?? throw new InvalidOperationException("PostgreSQL connection string not found. Configure 'Postgres:ConnectionString' in appsettings.json");
 
     public async Task<IEnumerable<T>> QueryAsync<T>(string sql, object? param = null)
     {

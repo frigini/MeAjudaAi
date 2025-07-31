@@ -1,6 +1,7 @@
 ﻿namespace MeAjudaAi.Shared.Database;
 
-internal sealed class PostgresOptions
+public sealed class PostgresOptions
 {
+    public const string SectionName = "Postgres";
     public string ConnectionString { get; set; } = string.Empty;
 }

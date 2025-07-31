@@ -1,35 +1,36 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Infrastructure
 var postgres = builder.AddPostgres("postgres")
     .WithDataVolume()
-    .WithPgAdmin();
+    .WithPgAdmin()
+    .WithEnvironment("POSTGRES_DB", "meajudaai")
+    .WithEnvironment("POSTGRES_USER", "postgres")
+    .WithEnvironment("POSTGRES_PASSWORD", "dev123");
 
-//var redis = builder.AddRedis("redis")
-//    .WithDataVolume();
+var redis = builder.AddRedis("redis")
+    .WithDataVolume()
+    .WithRedisCommander();
 
 var serviceBus = builder.AddAzureServiceBus("messaging");
 
-// Databases por módulo
-var userDb = postgres.AddDatabase("userdb", "users");
-//var providerDb = postgres.AddDatabase("providerdb", "providers");
-//var catalogDb = postgres.AddDatabase("catalogdb", "catalog");
-//var searchDb = postgres.AddDatabase("searchdb", "search");
-//var bookingDb = postgres.AddDatabase("bookingdb", "bookings");
-//var reviewDb = postgres.AddDatabase("reviewdb", "reviews");
-//var paymentDb = postgres.AddDatabase("paymentdb", "payments");
+var keycloak = builder.AddKeycloak("keycloak", port: 8080)
+    .WithDataVolume();
 
-// Main API Gateway
+var meajudaaiDb = postgres.AddDatabase("meajudaai-db", "meajudaai");
+
+// Main API (monolito modular)
 var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
-    //.WithReference(redis)
+    .WithReference(meajudaaiDb)
+    .WithReference(redis)
     .WithReference(serviceBus)
-    .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development");
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
 // Module APIs (podem rodar como serviços separados ou integrados)
 //var userApi = builder.AddProject<Projects.ServiceMarketplace_UserManagement_Api>("user-api")
 //    .WithReference(userDb)
 //    .WithReference(redis)
-//    .WithReference(serviceBus);
+//    .WithReference(serviceBus)
+//    .WithReference(keycloak);
 
 //var providerApi = builder.AddProject<Projects.ServiceMarketplace_ProviderManagement_Api>("provider-api")
 //    .WithReference(providerDb)
