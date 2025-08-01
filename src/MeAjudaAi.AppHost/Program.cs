@@ -18,7 +18,6 @@ var keycloak = builder.AddKeycloak("keycloak", port: 8080)
 
 var meajudaaiDb = postgres.AddDatabase("meajudaai-db", "meajudaai");
 
-// Main API (monolito modular)
 var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
     .WithReference(meajudaaiDb)
     .WithReference(redis)

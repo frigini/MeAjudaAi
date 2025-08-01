@@ -6,6 +6,11 @@ public sealed class MessageBusOptions
     public int MaxConcurrentCalls { get; set; } = 1;
     public int MaxDeliveryCount { get; set; } = 10;
     public TimeSpan LockDuration { get; set; } = TimeSpan.FromMinutes(5);
+    public bool EnableAutoDiscovery { get; set; } = true;
+    public string[] AssemblyPrefixes { get; set; } = { "MeAjudaAi" };
+
+    // Estratégia de tópicos: Single vs Multiple
+    public ETopicStrategy Strategy { get; set; } = ETopicStrategy.SingleWithFilters;
 
     public Func<Type, string> QueueNamingConvention { get; set; } =
         type => type.Name.ToLowerInvariant();

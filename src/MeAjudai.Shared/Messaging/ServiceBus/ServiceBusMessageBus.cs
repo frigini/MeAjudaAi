@@ -13,15 +13,18 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
     private readonly Dictionary<string, ServiceBusSender> _senders = [];
     private readonly Dictionary<string, ServiceBusProcessor> _processors = [];
     private readonly MessageBusOptions _options;
+    private readonly ITopicStrategySelector _topicStrategySelector;
     private readonly ILogger<ServiceBusMessageBus> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
 
     public ServiceBusMessageBus(
         ServiceBusClient client,
+        ITopicStrategySelector topicStrategySelector,
         IOptions<MessageBusOptions> options,
         ILogger<ServiceBusMessageBus> logger)
     {
         _client = client;
+        _topicStrategySelector = topicStrategySelector;
         _options = options.Value;
         _logger = logger;
         _jsonOptions = new JsonSerializerOptions
@@ -162,12 +165,15 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
             TimeToLive = _options.DefaultTimeToLive
         };
 
-        // Adicionar metadata se for um evento
-        if (message is IEvent @event)
+        // Adicionar propriedades para filtros
+        serviceBusMessage.ApplicationProperties["MessageType"] = typeof(T).Name;
+
+        if (message is IIntegrationEvent integrationEvent)
         {
-            serviceBusMessage.ApplicationProperties["EventId"] = @event.Id;
-            serviceBusMessage.ApplicationProperties["EventType"] = @event.EventType;
-            serviceBusMessage.ApplicationProperties["OccurredAt"] = @event.OccurredAt;
+            serviceBusMessage.ApplicationProperties["Source"] = integrationEvent.Source;
+            serviceBusMessage.ApplicationProperties["EventId"] = integrationEvent.Id;
+            serviceBusMessage.ApplicationProperties["EventType"] = integrationEvent.EventType;
+            serviceBusMessage.ApplicationProperties["OccurredAt"] = integrationEvent.OccurredAt;
         }
 
         return serviceBusMessage;
@@ -184,8 +190,8 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
     }
 
     private string GetQueueName<T>() => _options.QueueNamingConvention(typeof(T));
-    private string GetTopicName<T>() => _options.TopicNamingConvention(typeof(T));
     private string GetSubscriptionName<T>() => _options.SubscriptionNamingConvention(typeof(T));
+    private string GetTopicName<T>() => _topicStrategySelector.SelectTopicForEvent<T>();
 
     public async ValueTask DisposeAsync()
     {

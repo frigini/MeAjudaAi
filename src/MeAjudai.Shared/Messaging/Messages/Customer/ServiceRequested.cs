@@ -1,6 +1,6 @@
 ﻿using MeAjudaAi.Shared.Events;
 
-namespace MeAjudaAi.Shared.Messaging.Messages;
+namespace MeAjudaAi.Shared.Messaging.Messages.Customer;
 
 public record ServiceRequested(
     Guid RequestId,
