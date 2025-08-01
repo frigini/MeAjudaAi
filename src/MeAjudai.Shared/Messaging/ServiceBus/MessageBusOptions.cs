@@ -1,6 +1,6 @@
 ﻿namespace MeAjudaAi.Shared.Messaging.ServiceBus;
 
-public class MessageBusOptions
+public sealed class MessageBusOptions
 {
     public TimeSpan DefaultTimeToLive { get; set; } = TimeSpan.FromDays(1);
     public int MaxConcurrentCalls { get; set; } = 1;

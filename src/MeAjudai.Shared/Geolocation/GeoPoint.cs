@@ -1,7 +1,21 @@
 ﻿namespace MeAjudaAi.Shared.Geolocation;
 
-public record GeoPoint(double Latitude, double Longitude)
+public record GeoPoint
 {
+    public double Latitude { get; }
+    public double Longitude { get; }
+
+    public GeoPoint(double latitude, double longitude)
+    {
+        if (latitude is < -90 or > 90)
+            throw new ArgumentOutOfRangeException(nameof(latitude), "Latitude deve estar entre -90 e 90");
+        if (longitude is < -180 or > 180)
+            throw new ArgumentOutOfRangeException(nameof(longitude), "Longitude deve estar entre -180 e 180");
+
+        Latitude = latitude;
+        Longitude = longitude;
+    }
+
     public double DistanceTo(GeoPoint other)
     {
         // Haversine formula implementation

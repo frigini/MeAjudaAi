@@ -1,10 +1,17 @@
-﻿namespace MeAjudaAi.ApiService.Extensions;
+﻿using MeAjudaAi.ApiService.Options;
+using Microsoft.Extensions.Options;
+
+namespace MeAjudaAi.ApiService.Extensions;
 
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApiServices(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
+        services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitOptions.SectionName));
+        services.AddSingleton(sp => sp.GetRequiredService<IOptions<RateLimitOptions>>().Value);
+
         services.AddDocumentation();
         services.AddCorsPolicy();
         services.AddMemoryCache();

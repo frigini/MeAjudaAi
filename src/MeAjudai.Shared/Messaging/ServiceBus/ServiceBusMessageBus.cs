@@ -10,8 +10,8 @@ namespace MeAjudaAi.Shared.Messaging.ServiceBus;
 public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
 {
     private readonly ServiceBusClient _client;
-    private readonly Dictionary<string, ServiceBusSender> _senders = new();
-    private readonly Dictionary<string, ServiceBusProcessor> _processors = new();
+    private readonly Dictionary<string, ServiceBusSender> _senders = [];
+    private readonly Dictionary<string, ServiceBusProcessor> _processors = [];
     private readonly MessageBusOptions _options;
     private readonly ILogger<ServiceBusMessageBus> _logger;
     private readonly JsonSerializerOptions _jsonOptions;

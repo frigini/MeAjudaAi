@@ -1,6 +1,4 @@
 ﻿using MeAjudaAi.ServiceDefaults.HealthChecks;
-using MeAjudaAi.Shared.Database;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
@@ -15,28 +13,17 @@ public static class HealthCheckExtensions
         builder.Services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
-        builder.Services.AddDatabaseHealthCheck(builder.Configuration);
+        builder.Services.AddDatabaseHealthCheck();
         builder.Services.AddExternalServicesHealthCheck();
-        builder.Services.AddCacheHealthCheck(builder.Configuration);
+        builder.Services.AddCacheHealthCheck();
 
         return builder;
     }
 
-    private static IHealthChecksBuilder AddDatabaseHealthCheck(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    private static IHealthChecksBuilder AddDatabaseHealthCheck(this IServiceCollection services)
     {
-        var postgresOptions = configuration
-            .GetSection(PostgresOptions.SectionName)
-            .Get<PostgresOptions>();
-
-        if (!string.IsNullOrEmpty(postgresOptions?.ConnectionString))
-        {
-            return services.AddHealthChecks()
-                .AddNpgSql(postgresOptions.ConnectionString, tags: ["ready", "database"]);
-        }
-
-        return services.AddHealthChecks();
+        return services.AddHealthChecks()
+            .AddCheck<PostgresHealthCheck>("postgres", tags: ["ready", "database"]);
     }
 
     private static IHealthChecksBuilder AddExternalServicesHealthCheck(
@@ -49,8 +36,7 @@ public static class HealthCheckExtensions
     }
 
     private static IHealthChecksBuilder AddCacheHealthCheck(
-        this IServiceCollection services,
-        IConfiguration configuration)
+        this IServiceCollection services)
     {
         return services.AddHealthChecks();
     }

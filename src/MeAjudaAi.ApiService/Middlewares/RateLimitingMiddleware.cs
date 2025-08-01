@@ -1,6 +1,5 @@
 ﻿using MeAjudaAi.ApiService.Options;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace MeAjudaAi.ApiService.Middlewares;
@@ -8,11 +7,11 @@ namespace MeAjudaAi.ApiService.Middlewares;
 public class RateLimitingMiddleware(
     RequestDelegate next,
     IMemoryCache cache,
-    IOptions<RateLimitOptions> options)
+    RateLimitOptions options)
 {
     private readonly RequestDelegate _next = next;
     private readonly IMemoryCache _cache = cache;
-    private readonly RateLimitOptions _options = options.Value;
+    private readonly RateLimitOptions _options = options;
     private readonly Serilog.ILogger _logger = Log.ForContext<RateLimitingMiddleware>();
 
     public async Task InvokeAsync(HttpContext context)

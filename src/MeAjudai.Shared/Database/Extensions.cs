@@ -13,6 +13,8 @@ public static class Extensions
         IConfiguration configuration)
     {
         services.Configure<PostgresOptions>(configuration.GetSection(PostgresOptions.SectionName));
+        services.AddSingleton(sp => sp.GetRequiredService<IOptions<PostgresOptions>>().Value);
+
         services.AddHostedService<DbContextInitializer>();
 
         // Fix para EF Core timestamp behavior
@@ -21,35 +23,10 @@ public static class Extensions
         return services;
     }
 
-    public static IServiceCollection AddPostgresContext<TContext>(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        string? connectionStringKey = null)
+    public static IServiceCollection AddPostgresContext<TContext>(this IServiceCollection services)
         where TContext : DbContext
     {
-        var connectionString = GetConnectionString(configuration, connectionStringKey);
-
-        services.AddDbContext<TContext>(options =>
-        {
-            options.UseNpgsql(connectionString, ConfigureNpgsql);
-            ConfigureDbContext(options);
-        });
-
-        return services;
-    }
-
-    public static IServiceCollection AddPostgresContext<TContext>(
-        this IServiceCollection services)
-        where TContext : DbContext
-    {
-        services.AddDbContext<TContext>((serviceProvider, options) =>
-        {
-            var postgresOptions = serviceProvider.GetRequiredService<IOptions<PostgresOptions>>().Value;
-
-            options.UseNpgsql(postgresOptions.ConnectionString, ConfigureNpgsql);
-            ConfigureDbContext(options);
-        });
-
+        services.AddDbContext<TContext>(ConfigureWithPostgresOptions);
         return services;
     }
 
@@ -59,23 +36,26 @@ public static class Extensions
         return services;
     }
 
-    private static string GetConnectionString(IConfiguration configuration, string? key)
+    private static void ConfigureWithPostgresOptions(IServiceProvider serviceProvider, DbContextOptionsBuilder options)
     {
-        if (key != null)
-        {
-            return configuration.GetConnectionString(key)
-                ?? throw new InvalidOperationException($"Connection string '{key}' not found");
-        }
+        var postgresOptions = serviceProvider.GetRequiredService<PostgresOptions>();
+        var connectionString = GetPostgresConnectionStringOrThrow(postgresOptions);
 
-        var postgresOptions = new PostgresOptions();
-        configuration.GetSection(PostgresOptions.SectionName).Bind(postgresOptions);
+        ConfigurePostgresContext(options, connectionString);
+    }
 
-        if (!string.IsNullOrEmpty(postgresOptions.ConnectionString))
-        {
-            return postgresOptions.ConnectionString;
-        }
+    private static string GetPostgresConnectionStringOrThrow(PostgresOptions options)
+    {
+        return !string.IsNullOrEmpty(options.ConnectionString)
+            ? options.ConnectionString
+            : throw new InvalidOperationException(
+                "PostgreSQL connection string not found. Configure 'Postgres:ConnectionString' in appsettings.json");
+    }
 
-        throw new InvalidOperationException("PostgreSQL connection string not found. Configure 'Postgres:ConnectionString' in appsettings.json");
+    private static void ConfigurePostgresContext(DbContextOptionsBuilder options, string connectionString)
+    {
+        options.UseNpgsql(connectionString, ConfigureNpgsql);
+        ConfigureDbContext(options);
     }
 
     private static void ConfigureNpgsql(NpgsqlDbContextOptionsBuilder npgsqlOptions)
