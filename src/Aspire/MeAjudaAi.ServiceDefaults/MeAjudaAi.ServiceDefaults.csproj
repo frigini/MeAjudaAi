@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
+    <ProjectReference Include="..\..\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
   </ItemGroup>
 
 </Project>

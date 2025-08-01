@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
 
@@ -12,10 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.4.0" />
     <PackageReference Include="Aspire.Hosting.Azure.ServiceBus" Version="9.4.0" />
     <PackageReference Include="Aspire.Hosting.Keycloak" Version="9.4.0-preview.1.25378.8" />
@@ -23,6 +19,10 @@
     <PackageReference Include="Aspire.Hosting.Redis" Version="9.4.0" />
     <PackageReference Include="Aspire.Hosting.Seq" Version="9.4.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
   </ItemGroup>
 
 </Project>

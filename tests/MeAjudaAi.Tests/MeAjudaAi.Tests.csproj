@@ -17,8 +17,9 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
 
+
   <ItemGroup>
-    <ProjectReference Include="..\MeAjudaAi.AppHost\MeAjudaAi.AppHost.csproj" />
+    <ProjectReference Include="..\..\src\Aspire\MeAjudaAi.AppHost\MeAjudaAi.AppHost.csproj" />
   </ItemGroup>
 
   <ItemGroup>

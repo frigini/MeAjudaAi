@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -7,16 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MeAjudaAi.ServiceDefaults\MeAjudaAi.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Aspire\MeAjudaAi.ServiceDefaults\MeAjudaAi.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
   </ItemGroup>
 
 </Project>

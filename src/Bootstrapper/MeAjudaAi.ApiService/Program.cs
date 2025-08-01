@@ -10,6 +10,8 @@ builder.Services.AddApiServices(builder.Configuration);
 
 var app = builder.Build();
 
+app.MapDefaultEndpoints();
+
 app.UseSharedServices();
 app.UseApiServices(app.Environment);
 app.MapAllEndpoints();
