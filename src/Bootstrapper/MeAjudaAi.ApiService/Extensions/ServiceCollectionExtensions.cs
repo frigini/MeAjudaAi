@@ -1,5 +1,4 @@
 ﻿using MeAjudaAi.ApiService.Options;
-using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
@@ -9,8 +8,13 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitOptions.SectionName));
-        services.AddSingleton(sp => sp.GetRequiredService<IOptions<RateLimitOptions>>().Value);
+        services.AddOptions<RateLimitOptions>()
+            .Configure(opts => configuration.GetSection(RateLimitOptions.SectionName).Bind(opts))
+            .Validate(opts => opts.DefaultRequestsPerMinute > 0, "DefaultRequestsPerMinute must be greater than zero")
+            .Validate(opts => opts.AuthRequestsPerMinute > 0, "AuthRequestsPerMinute must be greater than zero")
+            .Validate(opts => opts.SearchRequestsPerMinute > 0, "SearchRequestsPerMinute must be greater than zero")
+            .Validate(opts => opts.WindowInSeconds > 0, "WindowInSeconds must be greater than zero")
+            .ValidateOnStart();
 
         services.AddDocumentation();
         services.AddCorsPolicy();

@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace MeAjudaAi.Shared.Database;
@@ -12,8 +11,11 @@ public static class Extensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<PostgresOptions>(configuration.GetSection(PostgresOptions.SectionName));
-        services.AddSingleton(sp => sp.GetRequiredService<IOptions<PostgresOptions>>().Value);
+        services.AddOptions<PostgresOptions>()
+            .Configure(opts => configuration.GetSection(PostgresOptions.SectionName).Bind(opts))
+            .Validate(opts => !string.IsNullOrEmpty(opts.ConnectionString),
+                "PostgreSQL connection string not found. Configure 'Postgres:ConnectionString' in appsettings.json")
+            .ValidateOnStart();
 
         services.AddHostedService<DbContextInitializer>();
 
@@ -39,17 +41,9 @@ public static class Extensions
     private static void ConfigureWithPostgresOptions(IServiceProvider serviceProvider, DbContextOptionsBuilder options)
     {
         var postgresOptions = serviceProvider.GetRequiredService<PostgresOptions>();
-        var connectionString = GetPostgresConnectionStringOrThrow(postgresOptions);
+        var connectionString = postgresOptions.ConnectionString;
 
         ConfigurePostgresContext(options, connectionString);
-    }
-
-    private static string GetPostgresConnectionStringOrThrow(PostgresOptions options)
-    {
-        return !string.IsNullOrEmpty(options.ConnectionString)
-            ? options.ConnectionString
-            : throw new InvalidOperationException(
-                "PostgreSQL connection string not found. Configure 'Postgres:ConnectionString' in appsettings.json");
     }
 
     private static void ConfigurePostgresContext(DbContextOptionsBuilder options, string connectionString)

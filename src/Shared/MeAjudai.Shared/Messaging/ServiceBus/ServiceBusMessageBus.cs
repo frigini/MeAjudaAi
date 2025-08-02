@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;

@@ -24,6 +24,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.AppHost", "src\As
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.ServiceDefaults", "src\Aspire\MeAjudaAi.ServiceDefaults\MeAjudaAi.ServiceDefaults.csproj", "{E2B155C0-DC26-1F78-B7E9-B4B1524A9902}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Users", "Users", "{C0DDB0A1-0AF4-4914-AB78-34E34FEFBF22}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infrastructure", "infrastructure", "{82F49BCF-FBCA-44AD-84E5-AA53DEE4EA8E}"
+	ProjectSection(SolutionItems) = preProject
+		infrastructure\main.bicep = infrastructure\main.bicep
+		infrastructure\servicebus.bicep = infrastructure\servicebus.bicep
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +72,7 @@ Global
 		{9E8191C1-8216-B109-888B-6E4663C2CD53} = {295C5E9A-20BC-48E8-B3B9-2BC329DCD3B7}
 		{464E05CB-AA53-B1B2-CC71-6ABB65F2C62C} = {D5751A7E-1F4F-4D53-8623-FD882A8653B0}
 		{E2B155C0-DC26-1F78-B7E9-B4B1524A9902} = {D5751A7E-1F4F-4D53-8623-FD882A8653B0}
+		{C0DDB0A1-0AF4-4914-AB78-34E34FEFBF22} = {D55DFAF4-45A1-4C45-AA54-8CE46F0AFB1F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {391B5342-8EC5-4DF0-BCDA-6D73F87E8751}

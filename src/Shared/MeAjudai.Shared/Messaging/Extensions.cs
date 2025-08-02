@@ -1,7 +1,10 @@
 ﻿using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
+using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Rebus.Config;
 using Rebus.Routing;
@@ -24,7 +27,8 @@ internal static class Extensions
             .Validate(opts => !string.IsNullOrWhiteSpace(opts.ConnectionString),
                 "ServiceBus connection string not found. Configure 'Messaging:ServiceBus:ConnectionString' in appsettings.json")
             .Validate(opts => !string.IsNullOrWhiteSpace(opts.DefaultTopicName),
-                "ServiceBus topic name not found. Configure 'Messaging:ServiceBus:TopicName' in appsettings.json");
+                "ServiceBus topic name not found. Configure 'Messaging:ServiceBus:TopicName' in appsettings.json")
+            .ValidateOnStart();
 
         services.Configure<MessageBusOptions>(_ => { });
         if (configureOptions != null)
@@ -64,7 +68,22 @@ internal static class Extensions
 
         services.AddSingleton<IMessageBus, ServiceBusMessageBus>();
 
+        services.AddSingleton(serviceProvider =>
+        {
+            var serviceBusOptions = serviceProvider.GetRequiredService<IOptions<ServiceBusOptions>>().Value;
+            return new ServiceBusAdministrationClient(serviceBusOptions.ConnectionString);
+        });
+
+        services.AddSingleton<IServiceBusTopicManager, ServiceBusTopicManager>();
+
         return services;
+    }
+
+    public static async Task EnsureServiceBusTopicsAsync(this IHost host)
+    {
+        using var scope = host.Services.CreateScope();
+        var topicManager = scope.ServiceProvider.GetRequiredService<IServiceBusTopicManager>();
+        await topicManager.EnsureTopicsExistAsync();
     }
 
     private static void ConfigureTransport(

@@ -5,7 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Database;
 
-public sealed class DbContextInitializer(IServiceProvider serviceProvider, ILogger<DbContextInitializer> logger) : IHostedService
+public sealed class DbContextInitializer(
+    IServiceProvider serviceProvider, 
+    ILogger<DbContextInitializer> logger) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {

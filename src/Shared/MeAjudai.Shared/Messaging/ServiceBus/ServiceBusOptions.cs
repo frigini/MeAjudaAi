@@ -1,4 +1,6 @@
-﻿namespace MeAjudaAi.Shared.Messaging.ServiceBus;
+﻿using MeAjudaAi.Shared.Messaging.Strategy;
+
+namespace MeAjudaAi.Shared.Messaging.ServiceBus;
 
 public sealed class ServiceBusOptions
 {
@@ -6,14 +8,15 @@ public sealed class ServiceBusOptions
 
     public string ConnectionString { get; set; } = string.Empty;
     public string DefaultTopicName { get; set; } = "meajudaai-events";
-    public ETopicStrategy Strategy { get; set; } = ETopicStrategy.SingleWithFilters; // SingleWithFilters, MultipleByDomain, Hybrid
+    public ETopicStrategy Strategy { get; set; } = ETopicStrategy.Hybrid; // SingleWithFilters, MultipleByDomain, Hybrid
 
     public Dictionary<string, string> DomainTopics { get; set; } = new()
     {
-        ["ServiceProvider"] = "serviceprovider-events",
-        ["Customer"] = "customer-events",
-        ["Billing"] = "billing-events",
-        ["Notification"] = "notification-events"
+        ["Users"] = "users-events"
+        //["ServiceProvider"] = "serviceprovider-events",
+        //["Customer"] = "customer-events",
+        //["Billing"] = "billing-events",
+        //["Notification"] = "notification-events"
     };
 
     public string GetTopicForDomain(string domain)
