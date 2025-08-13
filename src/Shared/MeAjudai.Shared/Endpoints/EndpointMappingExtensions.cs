@@ -1,7 +1,7 @@
-﻿using MeAjudaAi.ApiService.Endpoints;
+﻿using Microsoft.AspNetCore.Routing;
 using System.Reflection;
 
-namespace MeAjudaAi.ApiService.Extensions;
+namespace MeAjudaAi.Shared.Endpoints;
 
 public static class EndpointMappingExtensions
 {

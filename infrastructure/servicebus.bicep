@@ -1,5 +1,5 @@
 @description('Service Bus Namespace name')
-param serviceBusNamespaceName string = 'sb-meajudaai-${uniqueString(resourceGroup().id)}'
+param serviceBusNamespaceName string = 'sb-MeAjudaAi-${uniqueString(resourceGroup().id)}'
 
 @description('Location for all resources')
 param location string = resourceGroup().location
@@ -22,7 +22,7 @@ resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2022-10-01-preview
   }
 }
 
-// Shared Access Policy para gerenciamento (criação de tópicos)
+// Shared Access Policy para gerenciamento (criaÃ§Ã£o de tÃ³picos)
 resource managementPolicy 'Microsoft.ServiceBus/namespaces/authorizationRules@2022-10-01-preview' = {
   parent: serviceBusNamespace
   name: 'ManagementPolicy'
@@ -35,7 +35,7 @@ resource managementPolicy 'Microsoft.ServiceBus/namespaces/authorizationRules@20
   }
 }
 
-// Shared Access Policy apenas para envio/recebimento (para produção)
+// Shared Access Policy apenas para envio/recebimento (para produÃ§Ã£o)
 resource applicationPolicy 'Microsoft.ServiceBus/namespaces/authorizationRules@2022-10-01-preview' = {
   parent: serviceBusNamespace
   name: 'ApplicationPolicy'
@@ -48,6 +48,6 @@ resource applicationPolicy 'Microsoft.ServiceBus/namespaces/authorizationRules@2
 }
 
 output serviceBusNamespaceName string = serviceBusNamespace.name
-output managementConnectionString string = managementPolicy.listKeys().primaryConnectionString
-output applicationConnectionString string = applicationPolicy.listKeys().primaryConnectionString
+output managementPolicyName string = managementPolicy.name
+output applicationPolicyName string = applicationPolicy.name
 output serviceBusEndpoint string = serviceBusNamespace.properties.serviceBusEndpoint

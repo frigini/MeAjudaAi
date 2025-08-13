@@ -7,7 +7,7 @@ public sealed class ServiceBusOptions
     public const string SectionName = "Messaging:ServiceBus";
 
     public string ConnectionString { get; set; } = string.Empty;
-    public string DefaultTopicName { get; set; } = "meajudaai-events";
+    public string DefaultTopicName { get; set; } = "MeAjudaAi-events";
     public ETopicStrategy Strategy { get; set; } = ETopicStrategy.Hybrid; // SingleWithFilters, MultipleByDomain, Hybrid
 
     public Dictionary<string, string> DomainTopics { get; set; } = new()

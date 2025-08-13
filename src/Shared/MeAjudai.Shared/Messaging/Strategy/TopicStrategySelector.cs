@@ -1,9 +1,8 @@
 ﻿using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
-using MeAjudaAi.Shared.Messaging.Strategy;
 using System.Reflection;
 
-namespace MeAjudaAi.Shared.Messaging;
+namespace MeAjudaAi.Shared.Messaging.Strategy;
 
 public class TopicStrategySelector(ServiceBusOptions serviceBusOptions) : ITopicStrategySelector
 {
@@ -34,7 +33,7 @@ public class TopicStrategySelector(ServiceBusOptions serviceBusOptions) : ITopic
     private static string GetDomainFromEventType(Type eventType)
     {
         var namespaceParts = eventType.Namespace?.Split('.') ?? [];
-        return namespaceParts.Length > 2 ? namespaceParts[1] : "Shared";
+        return namespaceParts.Length > 3 ? namespaceParts[2] : "Shared";
     }
 
     private static bool IsHighVolumeOrCritical(Type eventType) =>

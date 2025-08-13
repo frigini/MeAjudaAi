@@ -1,9 +1,11 @@
 ﻿using Asp.Versioning;
 using Asp.Versioning.Builder;
-using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Shared.Common;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 
-namespace MeAjudaAi.ApiService.Endpoints;
+namespace MeAjudaAi.Shared.Endpoints;
 
 public abstract class BaseEndpoint : IEndpoint
 {

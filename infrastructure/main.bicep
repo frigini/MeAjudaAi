@@ -10,11 +10,13 @@ param location string = resourceGroup().location
 module serviceBus 'servicebus.bicep' = {
   name: 'servicebus-deployment'
   params: {
-    serviceBusNamespaceName: 'sb-meajudaai-${environmentName}'
+    serviceBusNamespaceName: 'sb-MeAjudaAi-${environmentName}'
     location: location
     skuName: 'Standard'
   }
 }
 
-output serviceBusConnectionString string = serviceBus.outputs.managementConnectionString
 output serviceBusNamespace string = serviceBus.outputs.serviceBusNamespaceName
+output managementPolicyName string = serviceBus.outputs.managementPolicyName
+output applicationPolicyName string = serviceBus.outputs.applicationPolicyName
+output serviceBusEndpoint string = serviceBus.outputs.serviceBusEndpoint

@@ -1,4 +1,6 @@
-﻿namespace MeAjudaAi.ApiService.Endpoints;
+﻿using Microsoft.AspNetCore.Routing;
+
+namespace MeAjudaAi.Shared.Endpoints;
 
 public interface IEndpoint
 {

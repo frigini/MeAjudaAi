@@ -101,8 +101,9 @@ internal static class Extensions
         ITopicStrategySelector topicSelector)
     {
         var routingConfig = routing.TypeBased();
+        var eventTypes = await eventRegistry.GetAllEventTypesAsync();
 
-        foreach (var eventType in await eventRegistry.GetAllEventTypesAsync())
+        foreach (var eventType in eventTypes)
         {
             var topicName = topicSelector.SelectTopicForEvent(eventType);
             routingConfig.Map(eventType, topicName);

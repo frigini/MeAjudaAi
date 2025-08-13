@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
+<!-- This project file is for the MeAjudaAi.Modules.Users.Application module, which is part of the MeAjudaAi system. -->

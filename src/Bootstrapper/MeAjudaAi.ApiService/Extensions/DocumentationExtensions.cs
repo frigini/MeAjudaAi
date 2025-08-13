@@ -20,7 +20,7 @@ public static class DocumentationExtensions
                 Contact = new OpenApiContact
                 {
                     Name = "MeAjudaAi Team",
-                    Email = "contato@meajudaai.com"
+                    Email = "contato@MeAjudaAi.com"
                 }
             });
 

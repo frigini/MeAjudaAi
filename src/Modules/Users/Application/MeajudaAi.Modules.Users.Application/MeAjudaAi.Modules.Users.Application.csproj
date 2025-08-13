@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
+    <ProjectReference Include="..\..\Domain\MeAjudaAi.Modules.Users.Domain\MeAjudaAi.Modules.Users.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
+<!-- This project file is for the Users application layer of the MeAjudaAi application. It references the domain layer and shared components, enabling the application to handle user-related operations. -->

@@ -3,7 +3,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var postgres = builder.AddPostgres("postgres")
     .WithDataVolume()
     .WithPgAdmin()
-    .WithEnvironment("POSTGRES_DB", "meajudaai")
+    .WithEnvironment("POSTGRES_DB", "MeAjudaAi")
     .WithEnvironment("POSTGRES_USER", "postgres")
     .WithEnvironment("POSTGRES_PASSWORD", "dev123");
 
@@ -14,18 +14,19 @@ var redis = builder.AddRedis("redis")
 var serviceBus = builder.AddAzureServiceBus("messaging");
 
 var keycloak = builder.AddKeycloak("keycloak", port: 8080)
-    .WithDataVolume();
+    .WithDataVolume()
+    .WithRealmImport("");
 
-var meajudaaiDb = postgres.AddDatabase("meajudaai-db", "meajudaai");
+var MeAjudaAiDb = postgres.AddDatabase("MeAjudaAi-db", "MeAjudaAi");
 
 var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
-    .WithReference(meajudaaiDb)
+    .WithReference(MeAjudaAiDb)
     .WithReference(redis)
     .WithReference(serviceBus)
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
 // Module APIs (podem rodar como serviços separados ou integrados)
-//var userApi = builder.AddProject<Projects.ServiceMarketplace_UserManagement_Api>("user-api")
+//var userApi = builder.AddProject<Projects>("user-api")
 //    .WithReference(userDb)
 //    .WithReference(redis)
 //    .WithReference(serviceBus)

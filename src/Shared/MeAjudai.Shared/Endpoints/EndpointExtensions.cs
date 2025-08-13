@@ -1,6 +1,7 @@
 ﻿using MeAjudaAi.Shared.Common;
+using Microsoft.AspNetCore.Http;
 
-namespace MeAjudaAi.ApiService.Extensions;
+namespace MeAjudaAi.Shared.Endpoints;
 
 public static class EndpointExtensions
 {
