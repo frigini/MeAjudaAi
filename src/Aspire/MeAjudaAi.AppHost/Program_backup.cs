@@ -12,8 +12,7 @@ var redis = builder.AddRedis("redis")
     .WithRedisCommander();
 
 var serviceBus = builder.AddAzureServiceBus("servicebus");
-var rabbitMq = builder.AddRabbitMQ("rabbitmq")
-    .WithManagementPlugin();
+var rabbitMq = builder.AddRabbitMQ("rabbitmq");
 
 var keycloak = builder.AddKeycloak("keycloak", port: 8080)
     .WithDataVolume()
@@ -28,7 +27,7 @@ var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
     .WithReference(rabbitMq)
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
-// Module APIs (podem rodar como serviÃ§os separados ou integrados)
+// Module APIs (podem rodar como serviços separados ou integrados)
 //var userApi = builder.AddProject<Projects>("user-api")
 //    .WithReference(userDb)
 //    .WithReference(redis)

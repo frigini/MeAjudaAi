@@ -44,4 +44,17 @@ public static class ServiceCollectionExtensions
 
         return app;
     }
+
+    public static async Task<IApplicationBuilder> UseSharedServicesAsync(this IApplicationBuilder app)
+    {
+        app.UseErrorHandling();
+        
+        // Ensure messaging infrastructure is created
+        if (app is WebApplication webApp)
+        {
+            await webApp.EnsureMessagingInfrastructureAsync();
+        }
+
+        return app;
+    }
 }
