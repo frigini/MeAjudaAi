@@ -1,5 +1,3 @@
-using MeAjudaAi.Modules.Users.Application.Services;
-using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Users.Application;
@@ -8,11 +6,10 @@ public static class Extensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        services.AddScoped<IKeycloakService, KeycloakService>();
-        //services.AddScoped<IUserManagementService, UserManagementService>();
-        //services.AddScoped<IKeycloakAdminService, KeycloakAdminService>();
-        //services.AddScoped<ITokenValidationService, TokenValidationService>();
-
+        // Application layer only contains interfaces and DTOs
+        // Actual service implementations are in Infrastructure layer to avoid circular dependencies
+        // Domain event handlers are automatically registered by the shared Events extension
+        
         return services;
     }
 }

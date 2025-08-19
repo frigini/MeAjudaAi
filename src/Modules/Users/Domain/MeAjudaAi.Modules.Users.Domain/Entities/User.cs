@@ -16,6 +16,10 @@ public class User : AggregateRoot<UserId>
     public DateTime? LastLoginAt { get; private set; }
     public List<string> Roles { get; private set; } = [];
 
+    // ServiceProvider relationship
+    public ServiceProvider? ServiceProvider { get; private set; }
+    public bool IsServiceProvider => ServiceProvider is not null;
+
     private User() { } // EF Constructor
 
     public User(UserId id, Email email, UserProfile profile, string keycloakId)
@@ -80,5 +84,34 @@ public class User : AggregateRoot<UserId>
         Status = EUserStatus.Active;
         _version++;
         MarkAsUpdated();
+    }
+
+    public void Deactivate(string reason)
+    {
+        Status = EUserStatus.Inactive;
+        _version++;
+        MarkAsUpdated();
+
+        AddDomainEvent(new UserDeactivatedDomainEvent(
+            Id.Value,
+            _version,
+            reason
+        ));
+    }
+
+    public void BecomeServiceProvider(string companyName, string? taxId = null, EServiceProviderTier tier = EServiceProviderTier.Standard)
+    {
+        if (IsServiceProvider)
+            throw new InvalidOperationException("User is already a service provider");
+
+        ServiceProvider = new ServiceProvider(
+            new UserId(Guid.NewGuid()),
+            Id,
+            companyName,
+            taxId,
+            tier
+        );
+
+        AssignRole(EUserRole.ServiceProvider.ToString());
     }
 }

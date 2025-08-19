@@ -1,14 +1,19 @@
 ﻿namespace MeAjudaAi.Modules.Users.Application.DTOs;
 
-public record UserDto
+public record UserDto(
+    Guid Id,
+    string Email,
+    string FirstName,
+    string LastName,
+    string? PhoneNumber,
+    string Status,
+    string KeycloakId,
+    List<string> Roles,
+    DateTime? LastLoginAt,
+    bool IsServiceProvider,
+    DateTime CreatedAt,
+    DateTime? UpdatedAt
+)
 {
-    public Guid Id { get; init; }
-    public string Email { get; init; } = string.Empty;
-    public string FirstName { get; init; } = string.Empty;
-    public string LastName { get; init; } = string.Empty;
-    public string FullName { get; init; } = string.Empty;
-    public string Status { get; init; } = string.Empty;
-    public List<string> Roles { get; init; } = [];
-    public DateTime CreatedAt { get; init; }
-    public DateTime? LastLoginAt { get; init; }
+    public string FullName => $"{FirstName} {LastName}";
 }

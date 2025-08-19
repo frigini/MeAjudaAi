@@ -7,3 +7,11 @@ public enum EUserRole
     Admin = 3,
     SuperAdmin = 4
 }
+
+public enum EServiceProviderTier
+{
+    Standard = 1,
+    Silver = 2,
+    Gold = 3,
+    Platinum = 4
+}
