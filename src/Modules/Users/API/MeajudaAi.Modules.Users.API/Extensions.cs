@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using MeAjudaAi.Modules.Users.API.Endpoints;
+using MeAjudaAi.Modules.Users.Application;
+using MeAjudaAi.Modules.Users.Infrastructure;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,8 +17,10 @@ public static class Extensions
         return services;
     }
 
-    public static IApplicationBuilder UseUsersModule(this IApplicationBuilder app)
+    public static WebApplication UseUsersModule(this WebApplication app)
     {
+        app.MapUsersEndpoints();
+
         return app;
     }
 }

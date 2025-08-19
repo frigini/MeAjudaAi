@@ -2,7 +2,7 @@
 
 namespace MeAjudaAi.Modules.Users.Domain.ValuleObjects;
 
-public record PhoneNumber : ValueObject
+public class PhoneNumber : ValueObject
 {
     public string Number { get; }
     public string CountryCode { get; }

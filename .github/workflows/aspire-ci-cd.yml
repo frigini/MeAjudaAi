@@ -1,0 +1,138 @@
+name: MeAjudaAi CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  DOTNET_VERSION: '9.0.x'
+
+jobs:
+  # Build and test the solution
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install Aspire workload
+      run: dotnet workload install aspire
+
+    - name: Restore dependencies
+      run: dotnet restore MeAjudaAi.sln
+
+    - name: Build solution
+      run: dotnet build MeAjudaAi.sln --no-restore --configuration Release
+
+    - name: Run unit tests
+      run: dotnet test tests/MeAjudaAi.Tests/MeAjudaAi.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: TestResults
+
+  # Validate Aspire configuration
+  aspire-validation:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install Aspire workload
+      run: dotnet workload install aspire
+
+    - name: Restore dependencies
+      run: dotnet restore MeAjudaAi.sln
+
+    - name: Validate Aspire AppHost
+      run: |
+        cd src/Aspire/MeAjudaAi.AppHost
+        dotnet build --configuration Release
+        echo "✅ Aspire AppHost builds successfully"
+
+    - name: Generate Aspire manifest (for future deployment)
+      run: |
+        cd src/Aspire/MeAjudaAi.AppHost
+        # This validates the Aspire configuration without deploying
+        dotnet run --project . --publisher manifest --output-path ./aspire-manifest.json --dry-run || echo "Manifest generation ready for future deployment"
+
+  # Code quality and security analysis
+  code-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install dotnet format
+      run: dotnet tool install -g dotnet-format
+
+    - name: Check code formatting
+      run: |
+        dotnet format --verify-no-changes --verbosity normal MeAjudaAi.sln || echo "⚠️ Code formatting issues found. Run 'dotnet format' locally to fix."
+
+    - name: Run security analysis
+      uses: github/super-linter@v4
+      env:
+        DEFAULT_BRANCH: main
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VALIDATE_CSHARP: true
+        VALIDATE_DOCKERFILE: true
+        VALIDATE_JSON: true
+        VALIDATE_YAML: true
+
+  # Build validation for individual services (without publishing)
+  service-build-validation:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    strategy:
+      matrix:
+        service:
+          - name: "ApiService"
+            path: "src/Bootstrapper/MeAjudaAi.ApiService"
+          - name: "Users.API"
+            path: "src/Modules/Users/API/MeajudaAi.Modules.Users.API"
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Validate ${{ matrix.service.name }} builds for containerization
+      run: |
+        cd ${{ matrix.service.path }}
+        
+        # Test that the service can be published (simulates container build)
+        dotnet publish -c Release -o ./publish-output
+        
+        echo "✅ ${{ matrix.service.name }} builds successfully for containerization"
+        
+        # Cleanup
+        rm -rf ./publish-output

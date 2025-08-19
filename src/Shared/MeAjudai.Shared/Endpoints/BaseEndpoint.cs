@@ -7,10 +7,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace MeAjudaAi.Shared.Endpoints;
 
-public abstract class BaseEndpoint : IEndpoint
+public abstract class BaseEndpoint
 {
-    public static void Map(IEndpointRouteBuilder app) { }
-
     protected static RouteGroupBuilder CreateGroup(
         IEndpointRouteBuilder app,
         string prefix,
@@ -62,6 +60,7 @@ public abstract class BaseEndpoint : IEndpoint
         EndpointExtensions.HandleCreatedResult(result, routeName, routeValues);
 
     protected static IResult NoContent(Result result) => EndpointExtensions.HandleNoContentResult(result);
+    protected static IResult NoContent<T>(Result<T> result) => EndpointExtensions.HandleNoContentResult(result);
 
     protected static IResult Paged<T>(Result<IEnumerable<T>> result, int total, int page, int size) =>
         EndpointExtensions.HandlePagedResult(result, total, page, size);

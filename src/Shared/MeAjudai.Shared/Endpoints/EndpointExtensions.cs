@@ -45,6 +45,14 @@ public static class EndpointExtensions
         return CreateErrorResponse<object>(result.Error);
     }
 
+    public static IResult HandleNoContentResult<T>(Result<T> result)
+    {
+        if (result.IsSuccess)
+            return TypedResults.NoContent();
+
+        return CreateErrorResponse<T>(result.Error);
+    }
+
     public static IResult HandleCreatedResult<T>(
         Result<T> result,
         string routeName,

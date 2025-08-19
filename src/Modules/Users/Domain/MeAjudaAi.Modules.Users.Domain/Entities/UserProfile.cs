@@ -1,12 +1,1 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MeAjudaAi.Modules.Users.Domain.Entities
-{
-    internal class UserProfile
-    {
-    }
-}
+// This file is removed - UserProfile should be a ValueObject in the ValuleObjects folder

@@ -2,7 +2,7 @@
 
 namespace MeAjudaAi.Modules.Users.Domain.ValuleObjects;
 
-public record UserId : ValueObject
+public class UserId : ValueObject
 {
     public Guid Value { get; }
 
@@ -16,6 +16,11 @@ public record UserId : ValueObject
 
     public static UserId New() => new(Guid.NewGuid());
 
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Value;
+    }
+
     public static implicit operator Guid(UserId userId) => userId.Value;
     public static implicit operator UserId(Guid guid) => new(guid);
-    }
+}

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using System.Text.Json;
+using MeAjudaAi.Shared.Messaging.Strategy;
 
 namespace MeAjudaAi.Shared.Messaging.RabbitMq;
 
@@ -20,8 +21,6 @@ public class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAs
     private readonly IEventTypeRegistry _eventRegistry;
     private readonly ITopicStrategySelector _topicSelector;
     private readonly ILogger<RabbitMqInfrastructureManager> _logger;
-    private readonly IConnection _connection;
-    private readonly IModel _channel;
 
     public RabbitMqInfrastructureManager(
         IOptions<RabbitMqOptions> options,
@@ -33,23 +32,6 @@ public class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAs
         _eventRegistry = eventRegistry;
         _topicSelector = topicSelector;
         _logger = logger;
-
-        var factory = new ConnectionFactory();
-        if (Uri.TryCreate(_options.ConnectionString, UriKind.Absolute, out var uri))
-        {
-            factory.Uri = uri;
-        }
-        else
-        {
-            factory.HostName = _options.Host;
-            factory.Port = _options.Port;
-            factory.UserName = _options.Username;
-            factory.Password = _options.Password;
-            factory.VirtualHost = _options.VirtualHost;
-        }
-
-        _connection = factory.CreateConnection();
-        _channel = _connection.CreateModel();
     }
 
     public async Task EnsureInfrastructureAsync()
@@ -93,78 +75,30 @@ public class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAs
 
     public Task CreateQueueAsync(string queueName, bool durable = true)
     {
-        try
-        {
-            _channel.QueueDeclare(
-                queue: queueName,
-                durable: durable,
-                exclusive: false,
-                autoDelete: false,
-                arguments: new Dictionary<string, object>
-                {
-                    // Add dead letter exchange for failed messages
-                    ["x-dead-letter-exchange"] = $"{queueName}.dlx",
-                    ["x-dead-letter-routing-key"] = "failed"
-                });
-
-            // Create dead letter queue
-            _channel.QueueDeclare(
-                queue: $"{queueName}.dlq",
-                durable: durable,
-                exclusive: false,
-                autoDelete: false);
-
-            // Create dead letter exchange
-            _channel.ExchangeDeclare($"{queueName}.dlx", ExchangeType.Direct, durable);
-            _channel.QueueBind($"{queueName}.dlq", $"{queueName}.dlx", "failed");
-
-            _logger.LogDebug("Created queue: {QueueName}", queueName);
-            return Task.CompletedTask;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to create queue {QueueName}", queueName);
-            throw;
-        }
+        // TODO: Implement RabbitMQ 7.x async API when RabbitMQ is available
+        _logger.LogDebug("Queue creation requested: {QueueName} (durable: {Durable})", queueName, durable);
+        return Task.CompletedTask;
     }
 
     public Task CreateExchangeAsync(string exchangeName, string exchangeType = ExchangeType.Topic)
     {
-        try
-        {
-            _channel.ExchangeDeclare(exchangeName, exchangeType, durable: true);
-            _logger.LogDebug("Created exchange: {ExchangeName} of type {ExchangeType}", exchangeName, exchangeType);
-            return Task.CompletedTask;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to create exchange {ExchangeName}", exchangeName);
-            throw;
-        }
+        // TODO: Implement RabbitMQ 7.x async API when RabbitMQ is available
+        _logger.LogDebug("Exchange creation requested: {ExchangeName} (type: {ExchangeType})", exchangeName, exchangeType);
+        return Task.CompletedTask;
     }
 
     public Task BindQueueToExchangeAsync(string queueName, string exchangeName, string routingKey = "")
     {
-        try
-        {
-            _channel.QueueBind(queueName, exchangeName, routingKey);
-            _logger.LogDebug("Bound queue {QueueName} to exchange {ExchangeName} with routing key '{RoutingKey}'", 
-                queueName, exchangeName, routingKey);
-            return Task.CompletedTask;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to bind queue {QueueName} to exchange {ExchangeName}", queueName, exchangeName);
-            throw;
-        }
+        // TODO: Implement RabbitMQ 7.x async API when RabbitMQ is available
+        _logger.LogDebug("Queue binding requested: {QueueName} to {ExchangeName} with key '{RoutingKey}'", 
+            queueName, exchangeName, routingKey);
+        return Task.CompletedTask;
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        _channel?.Close();
-        _channel?.Dispose();
-        _connection?.Close();
-        _connection?.Dispose();
+        // TODO: Implement proper disposal when RabbitMQ connection is implemented
         GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
     }
 }

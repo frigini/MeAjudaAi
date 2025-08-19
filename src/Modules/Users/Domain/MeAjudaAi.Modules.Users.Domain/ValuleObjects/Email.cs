@@ -2,7 +2,7 @@
 
 namespace MeAjudaAi.Modules.Users.Domain.ValuleObjects;
 
-public record Email : ValueObject
+public class Email : ValueObject
 {
     public string Value { get; }
 
@@ -28,6 +28,11 @@ public record Email : ValueObject
         {
             return false;
         }
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Value;
     }
 
     public static implicit operator string(Email email) => email.Value;

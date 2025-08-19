@@ -7,9 +7,9 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 
 public class UserRepository : IUserRepository
 {
-    private readonly AuthenticationDbContext _context;
+    private readonly UsersDbContext _context;
 
-    public UserRepository(AuthenticationDbContext context)
+    public UserRepository(UsersDbContext context)
     {
         _context = context;
     }

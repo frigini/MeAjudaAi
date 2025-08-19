@@ -6,13 +6,18 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Services;
 
-public class KeycloakService(
-    ICacheService _cache,
-    ILogger<KeycloakService> logger) : IKeycloakService
+public class KeycloakService : IKeycloakService
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<KeycloakService> _logger; // Do Shared
-    private readonly ICacheService _cache; // Do Shared
+    private readonly ICacheService _cache;
+    private readonly ILogger<KeycloakService> _logger;
+
+    public KeycloakService(
+        ICacheService cache,
+        ILogger<KeycloakService> logger)
+    {
+        _cache = cache;
+        _logger = logger;
+    }
 
     public Task<Result<bool>> AssignRoleAsync(string userId, string roleName, CancellationToken cancellationToken = default)
     {
