@@ -38,7 +38,7 @@ public sealed class UserRegisteredDomainEventHandler : IEventHandler<UserRegiste
                 return;
             }
 
-            var integrationEvent = new UserRegistered(
+            var integrationEvent = new Shared.Messaging.Messages.Users.IntegrationEvent(
                 user.Id.Value,
                 user.Email.Value,
                 user.Profile.FirstName,
@@ -88,7 +88,7 @@ public sealed class UserProfileUpdatedDomainEventHandler : IEventHandler<UserPro
                 return;
             }
 
-            var integrationEvent = new UserProfileUpdated(
+            var integrationEvent = new UserProfileUpdatedIntegrationEvent(
                 user.Id.Value,
                 user.Email.Value,
                 user.Profile.FirstName,
@@ -136,7 +136,7 @@ public sealed class UserDeactivatedDomainEventHandler : IEventHandler<UserDeacti
                 return;
             }
 
-            var integrationEvent = new UserDeactivated(
+            var integrationEvent = new UserDeactivatedIntegrationEvent(
                 user.Id.Value,
                 user.Email.Value,
                 domainEvent.Reason,
@@ -154,7 +154,7 @@ public sealed class UserDeactivatedDomainEventHandler : IEventHandler<UserDeacti
     }
 }
 
-public sealed class UserRoleChangedDomainEventHandler : IEventHandler<UserRoleChangedDomainEvent>
+public sealed class UserRoleChangedDomainEventHandler : IEventHandler<UserRoleAssignedDomainEvent>
 {
     private readonly IMessageBus _messageBus;
     private readonly UsersDbContext _context;
@@ -170,7 +170,7 @@ public sealed class UserRoleChangedDomainEventHandler : IEventHandler<UserRoleCh
         _logger = logger;
     }
 
-    public async Task HandleAsync(UserRoleChangedDomainEvent domainEvent, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(UserRoleAssignedDomainEvent domainEvent, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -183,7 +183,7 @@ public sealed class UserRoleChangedDomainEventHandler : IEventHandler<UserRoleCh
                 return;
             }
 
-            var integrationEvent = new UserRoleChanged(
+            var integrationEvent = new UserRoleChangedIntegrationEvent(
                 user.Id.Value,
                 user.Email.Value,
                 domainEvent.PreviousRoles,

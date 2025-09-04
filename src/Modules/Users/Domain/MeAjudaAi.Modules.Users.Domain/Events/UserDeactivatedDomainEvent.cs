@@ -2,6 +2,9 @@
 
 namespace MeAjudaAi.Modules.Users.Domain.Events;
 
+/// <summary>
+/// Published when a user account is deactivated
+/// </summary>
 public record UserDeactivatedDomainEvent
 (
     Guid AggregateId,

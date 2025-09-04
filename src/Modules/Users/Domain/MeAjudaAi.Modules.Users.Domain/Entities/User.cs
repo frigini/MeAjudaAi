@@ -63,7 +63,7 @@ public class User : AggregateRoot<UserId>
             _version++;
             MarkAsUpdated();
 
-            AddDomainEvent(new UserRoleChangedDomainEvent(
+            AddDomainEvent(new UserRoleAssignedDomainEvent(
                 Id.Value,
                 _version,
                 previousRoles,

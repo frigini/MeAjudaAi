@@ -3,11 +3,11 @@
 namespace MeAjudaAi.Modules.Users.Domain.Events;
 
 /// <summary>
-/// Domain event emitted when a user's profile is updated
+/// Published when a user's role is assigned or changed
 /// </summary>
-public record UserProfileUpdatedDomainEvent(
+public record UserRoleAssignedDomainEvent(
     Guid AggregateId,
     int Version,
-    string FirstName,
-    string LastName
+    Guid RoleId,
+    Guid? TierId
 ) : DomainEvent(AggregateId, Version);

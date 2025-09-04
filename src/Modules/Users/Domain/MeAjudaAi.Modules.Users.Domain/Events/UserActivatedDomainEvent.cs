@@ -3,11 +3,10 @@
 namespace MeAjudaAi.Modules.Users.Domain.Events;
 
 /// <summary>
-/// Domain event emitted when a user's profile is updated
+/// Published when a user account is activated
 /// </summary>
-public record UserProfileUpdatedDomainEvent(
+public sealed record UserActivatedDomainEvent(
     Guid AggregateId,
     int Version,
-    string FirstName,
-    string LastName
+    string ActivatedBy // who activated (admin, system, self)
 ) : DomainEvent(AggregateId, Version);

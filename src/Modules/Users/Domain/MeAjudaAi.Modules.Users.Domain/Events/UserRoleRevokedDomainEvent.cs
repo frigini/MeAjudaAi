@@ -2,10 +2,11 @@
 
 namespace MeAjudaAi.Modules.Users.Domain.Events;
 
-public record UserRoleChangedDomainEvent(
+/// <summary>
+/// Published when a role is revoked from a user
+/// </summary>
+public sealed record UserRoleRevokedDomainEvent(
     Guid AggregateId,
     int Version,
-    string PreviousRoles,
-    string NewRole,
-    string ChangedBy
+    Guid RoleId
 ) : DomainEvent(AggregateId, Version);
