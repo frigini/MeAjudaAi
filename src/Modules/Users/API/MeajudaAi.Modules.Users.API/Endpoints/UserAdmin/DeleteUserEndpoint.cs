@@ -1,4 +1,6 @@
-﻿using MeAjudaAi.Modules.Users.Application.Interfaces;
+﻿using MeAjudaAi.Modules.Users.Application.Commands;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Common;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -9,19 +11,22 @@ namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 public class DeleteUserEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapDelete("/api/v1/users/{id:guid}", DeleteUserAsync)
+        => app.MapDelete("/{id:guid}", DeleteUserAsync)
             .WithName("DeleteUser")
             .WithSummary("Delete user")
-            .WithDescription("Removes a user from the system")
+            .WithDescription("Soft deletes a user from the system")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 
     private static async Task<IResult> DeleteUserAsync(
         Guid id,
-        IUserManagementService userService,
+        ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
-        var result = await userService.DeleteUserAsync(id, cancellationToken);
-        return NoContent(result);
+        var command = new DeleteUserCommand(id);
+        var result = await commandDispatcher.SendAsync<DeleteUserCommand, Result>(
+            command, cancellationToken);
+
+        return Handle(result);
     }
 }

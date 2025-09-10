@@ -4,10 +4,11 @@ using MeAjudaAi.Shared.Common;
 
 namespace MeAjudaAi.Modules.Users.Application.Commands;
 
-public sealed record UpdateUserProfileCommand(
-    Guid UserId,
+public sealed record CreateUserCommand(
+    string Username,
+    string Email,
     string FirstName,
     string LastName,
-    string Email,
-    string? UpdatedBy = null
+    string Password,
+    IEnumerable<string> Roles
 ) : Command<Result<UserDto>>;

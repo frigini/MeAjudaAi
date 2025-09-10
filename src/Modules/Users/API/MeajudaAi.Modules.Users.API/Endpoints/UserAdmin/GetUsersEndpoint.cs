@@ -1,8 +1,9 @@
 ﻿using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
-using MeAjudaAi.Modules.Users.Application.Interfaces;
+using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Shared.Common;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -21,17 +22,17 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
 
     private static async Task<IResult> GetUsersAsync(
         [AsParameters] GetUsersRequest request,
-        IUserManagementService userService,
+        IQueryDispatcher queryDispatcher,
         CancellationToken cancellationToken)
     {
-        var result = await userService.GetUsersAsync(request, cancellationToken);
-        if (result.IsFailure)
-            return Ok(result);
+        var query = new GetUsersQuery(
+            request.PageNumber,
+            request.PageSize,
+            request.SearchTerm);
 
-        var totalCountResult = await userService.GetTotalUsersCountAsync(cancellationToken);
-        if (totalCountResult.IsFailure)
-            return Ok(totalCountResult);
+        var result = await queryDispatcher.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
+            query, cancellationToken);
 
-        return Paged(result, totalCountResult.Value, request.PageNumber, request.PageSize);
+        return HandlePagedResult(result);
     }
 }

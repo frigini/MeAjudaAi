@@ -120,7 +120,7 @@ public sealed class UserService : IUserService
         }
     }
 
-    public async Task<Result<UserDto>> UpdateUserAsync(Guid id, UpdateUserRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<UserDto>> UpdateUserAsync(Guid id, UpdateUserProfileRequest request, CancellationToken cancellationToken = default)
     {
         try
         {

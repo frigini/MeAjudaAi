@@ -1,6 +1,7 @@
-﻿using MeAjudaAi.Modules.Users.Application.DTOs;
+﻿using MeAjudaAi.Modules.Users.Application.Commands;
+using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
-using MeAjudaAi.Modules.Users.Application.Interfaces;
+using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Common;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
@@ -13,7 +14,7 @@ namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 public class CreateUserEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/api/v1/users", CreateUserAsync)
+        => app.MapPost("/", CreateUserAsync)
             .WithName("CreateUser")
             .WithSummary("Create new user")
             .WithDescription("Creates a new user in the system")
@@ -22,10 +23,21 @@ public class CreateUserEndpoint : BaseEndpoint, IEndpoint
 
     private static async Task<IResult> CreateUserAsync(
         [FromBody] CreateUserRequest request,
-        IUserManagementService userService,
+        ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
-        var result = await userService.CreateUserAsync(request, cancellationToken);
-        return Created(result, "GetUser", new { id = result.Value?.Id });
+        var command = new CreateUserCommand(
+            request.Username,
+            request.Email,
+            request.FirstName,
+            request.LastName,
+            request.Password,
+            request.Roles ?? []
+        );
+
+        var result = await commandDispatcher.SendAsync<CreateUserCommand, Result<UserDto>>(
+            command, cancellationToken);
+
+        return Handle(result, "CreateUser", new { id = result.Value?.Id });
     }
 }
