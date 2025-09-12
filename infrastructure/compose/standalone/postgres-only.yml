@@ -1,0 +1,27 @@
+# Standalone PostgreSQL for development
+# Basic PostgreSQL setup for when you only need the database
+# Usage: docker compose -f standalone/postgres-only.yml up -d
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: meajudaai-postgres-standalone
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-MeAjudaAi}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev123}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_standalone_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_standalone_data:
+    name: meajudaai-postgres-standalone-data

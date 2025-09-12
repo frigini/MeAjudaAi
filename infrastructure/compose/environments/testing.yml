@@ -1,0 +1,80 @@
+# Testing environment for MeAjudaAi
+# Lightweight setup for running tests
+# Usage: docker compose -f environments/testing.yml up -d
+
+services:
+  # Test database
+  postgres-test:
+    image: postgres:16
+    container_name: meajudaai-postgres-test
+    environment:
+      POSTGRES_DB: MeAjudaAi_Test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - meajudaai-test-network
+    command: ["postgres", "-c", "fsync=off", "-c", "synchronous_commit=off", "-c", "full_page_writes=off"]
+
+  # Test Redis
+  redis-test:
+    image: redis:7-alpine
+    container_name: meajudaai-redis-test
+    ports:
+      - "6380:6379"
+    networks:
+      - meajudaai-test-network
+    command: ["redis-server", "--save", ""]
+
+  # Keycloak for integration tests
+  keycloak-test-db:
+    image: postgres:16
+    container_name: meajudaai-keycloak-db-test
+    environment:
+      POSTGRES_DB: keycloak_test
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - keycloak_test_db_data:/var/lib/postgresql/data
+    networks:
+      - meajudaai-test-network
+
+  keycloak-test:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: meajudaai-keycloak-test
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-test-db:5432/keycloak_test
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "8081:8080"
+    volumes:
+      - keycloak_test_data:/opt/keycloak/data
+      - ../../keycloak/config/realm-import:/opt/keycloak/data/import
+    depends_on:
+      - keycloak-test-db
+    networks:
+      - meajudaai-test-network
+
+volumes:
+  postgres_test_data:
+    name: meajudaai-postgres-data-test
+  keycloak_test_db_data:
+    name: meajudaai-keycloak-db-data-test
+  keycloak_test_data:
+    name: meajudaai-keycloak-data-test
+
+networks:
+  meajudaai-test-network:
+    name: meajudaai-network-test
+    driver: bridge

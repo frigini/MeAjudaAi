@@ -1,0 +1,25 @@
+# Standalone Keycloak for development
+# Minimal setup with embedded H2 database for quick testing
+# Usage: docker compose -f standalone/keycloak-only.yml up -d
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: meajudaai-keycloak-standalone
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - keycloak_standalone_data:/opt/keycloak/data
+      - ../../keycloak/config/realm-import:/opt/keycloak/data/import
+    restart: unless-stopped
+
+volumes:
+  keycloak_standalone_data:
+    name: meajudaai-keycloak-standalone-data

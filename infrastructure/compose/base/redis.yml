@@ -1,0 +1,29 @@
+# Redis cache service
+# Use with: docker compose -f base/redis.yml up
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: meajudaai-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - meajudaai-network
+
+volumes:
+  redis_data:
+    name: meajudaai-redis-data
+
+networks:
+  meajudaai-network:
+    name: meajudaai-network
+    driver: bridge

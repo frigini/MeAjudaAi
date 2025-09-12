@@ -11,10 +11,10 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
         SelfOrAdminRequirement requirement)
     {
         var userIdClaim = context.User.FindFirst("sub")?.Value;
-        var roles = context.User.FindAll("role").Select(c => c.Value);
+        var roles = context.User.FindAll("roles").Select(c => c.Value);
 
         // Check if user is admin
-        if (roles.Any(r => r == "Admin" || r == "SuperAdmin"))
+        if (roles.Any(r => r == "admin" || r == "super-admin"))
         {
             context.Succeed(requirement);
             return Task.CompletedTask;

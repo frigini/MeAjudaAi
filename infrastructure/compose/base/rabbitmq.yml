@@ -1,0 +1,32 @@
+# RabbitMQ message broker service
+# Use with: docker compose -f base/rabbitmq.yml up
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: meajudaai-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - meajudaai-network
+
+volumes:
+  rabbitmq_data:
+    name: meajudaai-rabbitmq-data
+
+networks:
+  meajudaai-network:
+    name: meajudaai-network
+    driver: bridge
