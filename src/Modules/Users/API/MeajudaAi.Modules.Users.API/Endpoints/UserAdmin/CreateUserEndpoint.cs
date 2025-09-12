@@ -18,6 +18,7 @@ public class CreateUserEndpoint : BaseEndpoint, IEndpoint
             .WithName("CreateUser")
             .WithSummary("Create new user")
             .WithDescription("Creates a new user in the system")
+            .RequireAuthorization("AdminOnly")
             .Produces<Response<UserDto>>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
 

@@ -16,6 +16,7 @@ public class GetUserByEmailEndpoint : BaseEndpoint, IEndpoint
             .WithName("GetUserByEmail")
             .WithSummary("Get user by email")
             .WithDescription("Retrieves a specific user by their email address")
+            .RequireAuthorization("AdminOnly")
             .Produces<Response<UserDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 

@@ -9,11 +9,11 @@ public static class UsersModuleEndpoints
 {
     public static void MapUsersEndpoints(this WebApplication app)
     {
-        var endpoints = app.MapGroup("/api");
-
-        endpoints.MapGroup("v1/users")
+        var endpoints = app.MapGroup("/api/v1/users")
             .WithTags("Users")
-            .MapEndpoint<CreateUserEndpoint>()
+            .RequireAuthorization(); // Base auth requirement
+
+        endpoints.MapEndpoint<CreateUserEndpoint>()
             .MapEndpoint<DeleteUserEndpoint>()
             .MapEndpoint<GetUserByEmailEndpoint>()
             .MapEndpoint<GetUserByIdEndpoint>()

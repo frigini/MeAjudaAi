@@ -15,6 +15,7 @@ public class DeleteUserEndpoint : BaseEndpoint, IEndpoint
             .WithName("DeleteUser")
             .WithSummary("Delete user")
             .WithDescription("Soft deletes a user from the system")
+            .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 

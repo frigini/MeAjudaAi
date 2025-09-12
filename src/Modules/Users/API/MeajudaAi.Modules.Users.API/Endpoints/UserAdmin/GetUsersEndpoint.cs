@@ -17,6 +17,7 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
             .WithName("GetUsers")
             .WithSummary("Get paginated users")
             .WithDescription("Retrieves a paginated list of users")
+            .RequireAuthorization("UserManagement")
             .Produces<PagedResponse<IEnumerable<UserDto>>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
 
