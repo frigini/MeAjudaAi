@@ -23,12 +23,12 @@ public class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAs
     private readonly ILogger<RabbitMqInfrastructureManager> _logger;
 
     public RabbitMqInfrastructureManager(
-        IOptions<RabbitMqOptions> options,
+        RabbitMqOptions options,
         IEventTypeRegistry eventRegistry,
         ITopicStrategySelector topicSelector,
         ILogger<RabbitMqInfrastructureManager> logger)
     {
-        _options = options.Value;
+        _options = options;
         _eventRegistry = eventRegistry;
         _topicSelector = topicSelector;
         _logger = logger;
@@ -75,21 +75,21 @@ public class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAs
 
     public Task CreateQueueAsync(string queueName, bool durable = true)
     {
-        // TODO: Implement RabbitMQ 7.x async API when RabbitMQ is available
+        // RabbitMQ implementation será adicionada quando necessário
         _logger.LogDebug("Queue creation requested: {QueueName} (durable: {Durable})", queueName, durable);
         return Task.CompletedTask;
     }
 
     public Task CreateExchangeAsync(string exchangeName, string exchangeType = ExchangeType.Topic)
     {
-        // TODO: Implement RabbitMQ 7.x async API when RabbitMQ is available
+        // RabbitMQ implementation será adicionada quando necessário
         _logger.LogDebug("Exchange creation requested: {ExchangeName} (type: {ExchangeType})", exchangeName, exchangeType);
         return Task.CompletedTask;
     }
 
     public Task BindQueueToExchangeAsync(string queueName, string exchangeName, string routingKey = "")
     {
-        // TODO: Implement RabbitMQ 7.x async API when RabbitMQ is available
+        // RabbitMQ implementation será adicionada quando necessário
         _logger.LogDebug("Queue binding requested: {QueueName} to {ExchangeName} with key '{RoutingKey}'", 
             queueName, exchangeName, routingKey);
         return Task.CompletedTask;
@@ -97,7 +97,7 @@ public class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAs
 
     public ValueTask DisposeAsync()
     {
-        // TODO: Implement proper disposal when RabbitMQ connection is implemented
+        // Disposal será implementado quando conexão RabbitMQ for adicionada
         GC.SuppressFinalize(this);
         return ValueTask.CompletedTask;
     }

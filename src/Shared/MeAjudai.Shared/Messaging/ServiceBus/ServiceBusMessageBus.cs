@@ -21,12 +21,12 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
     public ServiceBusMessageBus(
         ServiceBusClient client,
         ITopicStrategySelector topicStrategySelector,
-        IOptions<MessageBusOptions> options,
+        MessageBusOptions options,
         ILogger<ServiceBusMessageBus> logger)
     {
         _client = client;
         _topicStrategySelector = topicStrategySelector;
-        _options = options.Value;
+        _options = options;
         _logger = logger;
         _jsonOptions = new JsonSerializerOptions
         {

@@ -1,5 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
+using MeAjudaAi.Shared.Messaging.Factory;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging.Strategy;
@@ -23,73 +24,111 @@ internal static class Extensions
         IConfiguration configuration,
         Action<MessageBusOptions>? configureOptions = null)
     {
-        // Configure Azure Service Bus options
-        services.AddOptions<ServiceBusOptions>()
-            .Configure(opts => ConfigureServiceBusOptions(opts, configuration))
-            .Validate(opts => !string.IsNullOrWhiteSpace(opts.DefaultTopicName),
-                "ServiceBus topic name not found. Configure 'Messaging:ServiceBus:TopicName' in appsettings.json")
-            .Validate(opts => 
-            {
-                // For now, we'll just check if the connection string is not empty
-                // In a real scenario, you might want to validate this differently
-                return !string.IsNullOrWhiteSpace(opts.ConnectionString) || !string.IsNullOrWhiteSpace(opts.DefaultTopicName);
-            }, "ServiceBus connection string not found. Configure 'Messaging:ServiceBus:ConnectionString' in appsettings.json or ensure Aspire servicebus connection is available")
-            .ValidateOnStart();
-
-        // Configure RabbitMQ options for development
-        services.AddOptions<RabbitMqOptions>()
-            .Configure(opts => ConfigureRabbitMqOptions(opts, configuration))
-            .Validate(opts => !string.IsNullOrWhiteSpace(opts.ConnectionString),
-                "RabbitMQ connection string not found. Ensure Aspire rabbitmq connection is available or configure 'Messaging:RabbitMQ:ConnectionString' in appsettings.json");
-
-        services.Configure<MessageBusOptions>(_ => { });
-        if (configureOptions != null)
+        // Check if messaging is enabled
+        var isEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
+        if (!isEnabled)
         {
-            services.Configure(configureOptions);
+            // Register a no-op message bus if messaging is disabled
+            services.AddSingleton<IMessageBus, NoOpMessageBus>();
+            return services;
         }
+
+        // Registro direto das configurações do Service Bus
+        services.AddSingleton<ServiceBusOptions>(provider =>
+        {
+            var options = new ServiceBusOptions();
+            ConfigureServiceBusOptions(options, configuration);
+            
+            // Validações manuais
+            if (string.IsNullOrWhiteSpace(options.DefaultTopicName))
+                throw new InvalidOperationException("ServiceBus topic name not found. Configure 'Messaging:ServiceBus:TopicName' in appsettings.json");
+                
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+            if (environment != "Development" && environment != "Testing" && string.IsNullOrWhiteSpace(options.ConnectionString))
+                throw new InvalidOperationException("ServiceBus connection string not found. Configure 'Messaging:ServiceBus:ConnectionString' in appsettings.json or ensure Aspire servicebus connection is available");
+                
+            return options;
+        });
+
+        // Registro direto das configurações do RabbitMQ
+        services.AddSingleton<RabbitMqOptions>(provider =>
+        {
+            var options = new RabbitMqOptions();
+            ConfigureRabbitMqOptions(options, configuration);
+            
+            // Validação manual
+            if (string.IsNullOrWhiteSpace(options.ConnectionString))
+                throw new InvalidOperationException("RabbitMQ connection string not found. Ensure Aspire rabbitmq connection is available or configure 'Messaging:RabbitMQ:ConnectionString' in appsettings.json");
+                
+            return options;
+        });
+
+        // Registro direto das configurações do MessageBus
+        services.AddSingleton<MessageBusOptions>(provider =>
+        {
+            var options = new MessageBusOptions();
+            configureOptions?.Invoke(options);
+            return options;
+        });
 
         services.AddSingleton(serviceProvider =>
         {
-            var serviceBusOptions = serviceProvider.GetRequiredService<IOptions<ServiceBusOptions>>().Value;
+            var serviceBusOptions = serviceProvider.GetRequiredService<ServiceBusOptions>();
             return new ServiceBusClient(serviceBusOptions.ConnectionString);
         });
 
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
         services.AddSingleton<ITopicStrategySelector, TopicStrategySelector>();
 
-        services.AddRebus((configure, serviceProvider) =>
+        // Registrar implementações específicas do MessageBus
+        services.AddSingleton<ServiceBusMessageBus>();
+        services.AddSingleton<RabbitMqMessageBus>();
+        services.AddSingleton<NoOp.NoOpMessageBus>();
+        
+        // Registrar o factory e o IMessageBus baseado no ambiente
+        services.AddSingleton<IMessageBusFactory, EnvironmentBasedMessageBusFactory>();
+        services.AddSingleton<IMessageBus>(serviceProvider =>
         {
-            var serviceBusOptions = serviceProvider.GetRequiredService<IOptions<ServiceBusOptions>>().Value;
-            var rabbitMqOptions = serviceProvider.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
-            var messageBusOptions = serviceProvider.GetRequiredService<IOptions<MessageBusOptions>>().Value;
-            var eventRegistry = serviceProvider.GetRequiredService<IEventTypeRegistry>();
-            var topicSelector = serviceProvider.GetRequiredService<ITopicStrategySelector>();
-            var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
-
-            return configure
-                .Transport(t => ConfigureTransport(t, serviceBusOptions, rabbitMqOptions, environment))
-                .Routing(async r => await ConfigureRoutingAsync(r, eventRegistry, topicSelector))
-                .Options(o =>
-                {
-                    o.SetNumberOfWorkers(messageBusOptions.MaxConcurrentCalls);
-                    o.SetMaxParallelism(messageBusOptions.MaxConcurrentCalls);
-                })
-                .Serialization(s => s.UseSystemTextJson(new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                }));
+            var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();
+            return factory.CreateMessageBus();
         });
-
-        services.AddSingleton<IMessageBus, ServiceBusMessageBus>();
 
         services.AddSingleton(serviceProvider =>
         {
-            var serviceBusOptions = serviceProvider.GetRequiredService<IOptions<ServiceBusOptions>>().Value;
+            var serviceBusOptions = serviceProvider.GetRequiredService<ServiceBusOptions>();
             return new ServiceBusAdministrationClient(serviceBusOptions.ConnectionString);
         });
 
         services.AddSingleton<IServiceBusTopicManager, ServiceBusTopicManager>();
         services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
+
+        // Only configure Rebus if not in Testing environment
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        if (environment != "Testing")
+        {
+            services.AddRebus((configure, serviceProvider) =>
+            {
+                var serviceBusOptions = serviceProvider.GetRequiredService<ServiceBusOptions>();
+                var rabbitMqOptions = serviceProvider.GetRequiredService<RabbitMqOptions>();
+                var messageBusOptions = serviceProvider.GetRequiredService<MessageBusOptions>();
+                var eventRegistry = serviceProvider.GetRequiredService<IEventTypeRegistry>();
+                var topicSelector = serviceProvider.GetRequiredService<ITopicStrategySelector>();
+                var hostEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
+
+                return configure
+                    .Transport(t => ConfigureTransport(t, serviceBusOptions, rabbitMqOptions, hostEnvironment))
+                    .Routing(async r => await ConfigureRoutingAsync(r, eventRegistry, topicSelector))
+                    .Options(o =>
+                    {
+                        o.SetNumberOfWorkers(messageBusOptions.MaxConcurrentCalls);
+                        o.SetMaxParallelism(messageBusOptions.MaxConcurrentCalls);
+                    })
+                    .Serialization(s => s.UseSystemTextJson(new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    }));
+            });
+        }
 
         return services;
     }
@@ -129,10 +168,27 @@ internal static class Extensions
     private static void ConfigureServiceBusOptions(ServiceBusOptions options, IConfiguration configuration)
     {
         configuration.GetSection(ServiceBusOptions.SectionName).Bind(options);
+        
         // Try to get connection string from Aspire first
         if (string.IsNullOrWhiteSpace(options.ConnectionString))
         {
             options.ConnectionString = configuration.GetConnectionString("servicebus") ?? string.Empty;
+        }
+        
+        // For development/testing environments, provide default values even if no connection string
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        if (environment == "Development" || environment == "Testing")
+        {
+            // Provide defaults for development to avoid dependency injection issues
+            if (string.IsNullOrWhiteSpace(options.ConnectionString))
+            {
+                options.ConnectionString = "Endpoint=sb://localhost/;SharedAccessKeyName=default;SharedAccessKey=default";
+            }
+            
+            if (string.IsNullOrWhiteSpace(options.DefaultTopicName))
+            {
+                options.DefaultTopicName = "MeAjudaAi-events";
+            }
         }
     }
 
@@ -152,7 +208,13 @@ internal static class Extensions
         RabbitMqOptions rabbitMqOptions,
         IHostEnvironment environment)
     {
-        if (environment.IsDevelopment())
+        if (environment.EnvironmentName == "Testing")
+        {
+            // For testing, use RabbitMQ with minimal configuration
+            // This will fail gracefully and not block the application startup
+            transport.UseRabbitMq("amqp://localhost", "test-queue");
+        }
+        else if (environment.IsDevelopment())
         {
             transport.UseRabbitMq(
                 rabbitMqOptions.ConnectionString,

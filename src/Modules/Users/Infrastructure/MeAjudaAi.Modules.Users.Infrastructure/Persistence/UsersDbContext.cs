@@ -1,23 +1,36 @@
 ﻿using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 
-public class UsersDbContext(DbContextOptions<UsersDbContext> options) : DbContext(options)
+public class  UsersDbContext : BaseDbContext
 {
     public DbSet<User> Users => Set<User>();
+
+    // Construtor para design-time (migrations)
+    public UsersDbContext(DbContextOptions<UsersDbContext> options) : base(options)
+    {
+    }
+    
+    // Construtor para runtime com DI
+    public UsersDbContext(DbContextOptions<UsersDbContext> options, IDomainEventProcessor domainEventProcessor) : base(options, domainEventProcessor)
+    {
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("users");
+        
+        // Apply configurations from assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         base.OnModelCreating(modelBuilder);
     }
 
-    public async Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
+    protected override async Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
     {
         var domainEvents = ChangeTracker
             .Entries<User>()
@@ -28,7 +41,7 @@ public class UsersDbContext(DbContextOptions<UsersDbContext> options) : DbContex
         return await Task.FromResult(domainEvents);
     }
 
-    public void ClearDomainEvents()
+    protected override void ClearDomainEvents()
     {
         var entities = ChangeTracker
             .Entries<User>()

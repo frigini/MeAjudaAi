@@ -1,6 +1,8 @@
-﻿namespace MeAjudaAi.Shared.Queries;
+﻿using MeAjudaAi.Shared.Common;
 
-public interface IQuery<TResult>
+namespace MeAjudaAi.Shared.Queries;
+
+public interface IQuery<TResult> : IRequest<TResult>
 {
     Guid CorrelationId { get; }
 }

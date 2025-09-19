@@ -1,7 +1,6 @@
 ﻿using MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 
 namespace MeAjudaAi.Modules.Users.API.Endpoints;
 
@@ -9,9 +8,9 @@ public static class UsersModuleEndpoints
 {
     public static void MapUsersEndpoints(this WebApplication app)
     {
-        var endpoints = app.MapGroup("/api/v1/users")
-            .WithTags("Users")
-            .RequireAuthorization(); // Base auth requirement
+        // Use the unified versioning system via BaseEndpoint
+        var endpoints = BaseEndpoint.CreateVersionedGroup(app, "users", "Users")
+            .RequireAuthorization(); // Apply global authorization
 
         endpoints.MapEndpoint<CreateUserEndpoint>()
             .MapEndpoint<DeleteUserEndpoint>()

@@ -1,53 +1,121 @@
+using MeAjudaAi.AppHost.Extensions;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
-var postgres = builder.AddPostgres("postgres")
-    .WithDataVolume()
-    .WithPgAdmin()
-    .WithEnvironment("POSTGRES_DB", "MeAjudaAi")
-    .WithEnvironment("POSTGRES_USER", "postgres")
-    .WithEnvironment("POSTGRES_PASSWORD", "dev123");
+// Simplified environment detection
+var isTesting = builder.Environment.EnvironmentName == "Testing";
 
-var redis = builder.AddRedis("redis")
-    .WithDataVolume()
-    .WithRedisCommander();
+Console.WriteLine($"[AppHost] Environment: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"[AppHost] IsTesting: {isTesting}");
 
-var serviceBus = builder.AddAzureServiceBus("servicebus");
-var rabbitMq = builder.AddRabbitMQ("rabbitmq")
-    .WithManagementPlugin();
+if (isTesting)
+{
+    // Testing environment - minimal setup for faster tests
+    Console.WriteLine("[AppHost] Configurando ambiente de teste simplificado...");
+    
+    var postgresql = builder.AddMeAjudaAiPostgreSQL(options =>
+    {
+        options.IsTestEnvironment = true;
+        options.MainDatabase = "meajudaai";
+        options.Username = "postgres";
+        options.Password = "dev123";
+    });
 
-var keycloak = builder.AddKeycloak("keycloak", port: 8080)
-    .WithDataVolume()
-    .WithRealmImport("");
+    // TODO: Redis configuration simplificada temporariamente
+    var redis = builder.AddRedis("redis");
 
-var MeAjudaAiDb = postgres.AddDatabase("MeAjudaAi-db", "MeAjudaAi");
+    var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
+        .WithReference((IResourceBuilder<IResourceWithConnectionString>)postgresql.MainDatabase, "DefaultConnection")
+        .WithReference(redis)
+        .WaitFor(redis)
+        .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Testing")
+        .WithEnvironment("Logging:LogLevel:Default", "Information")
+        .WithEnvironment("Logging:LogLevel:Microsoft.EntityFrameworkCore", "Warning")
+        .WithEnvironment("Logging:LogLevel:Microsoft.Hosting.Lifetime", "Information")
+        // Desabilitar features que podem causar problemas em testes
+        .WithEnvironment("Keycloak:Enabled", "false")
+        .WithEnvironment("RabbitMQ:Enabled", "false")
+        .WithEnvironment("HealthChecks:Timeout", "30");
 
-var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
-    .WithReference(MeAjudaAiDb)
-    .WithReference(redis)
-    .WithReference(serviceBus)
-    .WithReference(rabbitMq)
-    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
+    Console.WriteLine("[AppHost] ✅ Configuração de teste concluída");
+}
+else if (builder.Environment.EnvironmentName == "Development")
+{
+    // Development environment - full-featured setup
+    Console.WriteLine("[AppHost] Configurando ambiente de desenvolvimento...");
+    
+    var postgresql = builder.AddMeAjudaAiPostgreSQL(options =>
+    {
+        options.MainDatabase = "meajudaai";
+        options.Username = "postgres";
+        options.Password = "dev123";
+        options.IncludePgAdmin = true;
+    });
 
-// Module APIs (podem rodar como serviços separados ou integrados)
-//var userApi = builder.AddProject<Projects>("user-api")
-//    .WithReference(userDb)
-//    .WithReference(redis)
-//    .WithReference(serviceBus)
-//    .WithReference(keycloak);
+    var redis = builder.AddRedis("redis");
 
-//var providerApi = builder.AddProject<Projects.ServiceMarketplace_ProviderManagement_Api>("provider-api")
-//    .WithReference(providerDb)
-//    .WithReference(redis)
-//    .WithReference(serviceBus);
+    var rabbitMq = builder.AddRabbitMQ("rabbitmq");
 
-//var searchApi = builder.AddProject<Projects.ServiceMarketplace_SearchDiscovery_Api>("search-api")
-//    .WithReference(searchDb)
-//    .WithReference(redis)
-//    .WithReference(serviceBus);
+    var keycloak = builder.AddMeAjudaAiKeycloak(options =>
+    {
+        options.AdminUsername = "admin";
+        options.AdminPassword = "admin123";
+        options.DatabaseHost = "postgres-local";
+        options.DatabasePort = "5432";
+        options.DatabaseName = "meajudaai";
+        options.DatabaseSchema = "identity";
+        options.DatabaseUsername = "postgres";
+        options.DatabasePassword = "dev123";
+        options.ExposeHttpEndpoint = true;
+    });
 
-//// Notification Service (background service)
-//builder.AddProject<Projects.ServiceMarketplace_Notifications_Api>("notification-service")
-//    .WithReference(redis)
-//    .WithReference(serviceBus);
+    var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
+        .WithReference((IResourceBuilder<IResourceWithConnectionString>)postgresql.MainDatabase, "DefaultConnection")
+        .WithReference(redis)
+        .WaitFor(redis)
+        .WithReference(rabbitMq)
+        .WaitFor(rabbitMq)
+        .WithReference(keycloak.Keycloak)
+        .WaitFor(keycloak.Keycloak)
+        .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
+
+    Console.WriteLine("[AppHost] ✅ Configuração de desenvolvimento concluída");
+}
+else
+{
+    // Production environment - Azure resources
+    Console.WriteLine("[AppHost] Configurando ambiente de produção...");
+    
+    var postgresql = builder.AddMeAjudaAiAzurePostgreSQL(options =>
+    {
+        options.MainDatabase = "meajudaai";
+        options.Username = "postgres";
+    });
+
+    var redis = builder.AddRedis("redis");
+
+    var serviceBus = builder.AddAzureServiceBus("servicebus");
+
+    var keycloak = builder.AddMeAjudaAiKeycloakProduction(options =>
+    {
+        options.AdminUsername = "admin";
+        options.DatabaseUsername = "postgres";
+        options.ExposeHttpEndpoint = true;
+    });
+
+    builder.AddAzureContainerAppEnvironment("cae");
+
+    var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
+        .WithReference((IResourceBuilder<IResourceWithConnectionString>)postgresql.MainDatabase, "DefaultConnection")
+        .WithReference(redis)
+        .WaitFor(redis)
+        .WithReference(serviceBus)
+        .WaitFor(serviceBus)
+        .WithReference(keycloak.Keycloak)
+        .WaitFor(keycloak.Keycloak)
+        .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
+
+    Console.WriteLine("[AppHost] ✅ Configuração de produção concluída");
+}
 
 builder.Build().Run();

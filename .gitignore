@@ -107,3 +107,5 @@ secrets.json
 # Project specific
 init-scripts/
 postgres_data/
+logs/
+*.log

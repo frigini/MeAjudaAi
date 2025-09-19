@@ -1,75 +1,80 @@
-﻿using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Caching.Memory;
-using Serilog;
+using System.Text.Json;
 
 namespace MeAjudaAi.ApiService.Middlewares;
 
-public class RateLimitingMiddleware(
-    RequestDelegate next,
-    IMemoryCache cache,
-    RateLimitOptions options)
+/// <summary>
+/// Middleware de Rate Limiting com suporte a usuários autenticados
+/// </summary>
+public class RateLimitingMiddleware
 {
-    private readonly RequestDelegate _next = next;
-    private readonly IMemoryCache _cache = cache;
-    private readonly RateLimitOptions _options = options;
-    private readonly Serilog.ILogger _logger = Log.ForContext<RateLimitingMiddleware>();
+    private readonly RequestDelegate _next;
+    private readonly IMemoryCache _cache;
+    private readonly RateLimitOptions _options;
+    private readonly ILogger<RateLimitingMiddleware> _logger;
+
+    public RateLimitingMiddleware(
+        RequestDelegate next,
+        IMemoryCache cache,
+        RateLimitOptions options,
+        ILogger<RateLimitingMiddleware> logger)
+    {
+        _next = next;
+        _cache = cache;
+        _options = options;
+        _logger = logger;
+    }
 
     public async Task InvokeAsync(HttpContext context)
     {
         var clientIp = GetClientIpAddress(context);
-        var endpoint = $"{context.Request.Method}:{context.Request.Path}";
-        var key = $"rate_limit_{clientIp}_{endpoint}";
-
-        var config = GetRateLimitConfig(context);
-
+        var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
+        
+        var limit = isAuthenticated ? _options.Authenticated.RequestsPerMinute : _options.Anonymous.RequestsPerMinute;
+        
+        var key = $"rate_limit:{clientIp}:{context.Request.Path}";
+        
         if (!_cache.TryGetValue(key, out int requestCount))
         {
             requestCount = 0;
         }
 
-        if (requestCount >= config.RequestsPerWindow)
+        if (requestCount >= limit)
         {
-            _logger.Warning(
-                "Rate limit exceeded for {ClientIp} on {Endpoint}. Count: {RequestCount}/{Limit}",
-                clientIp, endpoint, requestCount, config.RequestsPerWindow);
-
-            context.Response.StatusCode = 429;
-            context.Response.Headers.Append("Retry-After", config.WindowInSeconds.ToString());
-
-            await context.Response.WriteAsync("Rate limit exceeded. Try again later.");
+            await HandleRateLimitExceeded(context, limit);
             return;
         }
 
-        _cache.Set(key, requestCount + 1, TimeSpan.FromSeconds(config.WindowInSeconds));
-
-        context.Response.Headers.Append("X-RateLimit-Limit", config.RequestsPerWindow.ToString());
-        context.Response.Headers.Append("X-RateLimit-Remaining", (config.RequestsPerWindow - requestCount - 1).ToString());
-
+        _cache.Set(key, requestCount + 1, TimeSpan.FromMinutes(1));
         await _next(context);
     }
 
-    private static string GetClientIpAddress(HttpContext context)
+    private string GetClientIpAddress(HttpContext context)
     {
-        var xForwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        if (!string.IsNullOrEmpty(xForwardedFor))
-            return xForwardedFor.Split(',')[0].Trim();
-
         return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
 
-    private RateLimitConfig GetRateLimitConfig(HttpContext context)
+    private async Task HandleRateLimitExceeded(HttpContext context, int limit)
     {
-        var path = context.Request.Path.Value?.ToLowerInvariant();
+        context.Response.StatusCode = 429;
+        context.Response.Headers.Append("Retry-After", "60");
+        context.Response.ContentType = "application/json";
 
-        return path switch
+        var errorResponse = new 
         {
-            var p when p?.Contains("/auth/") == true =>
-                new RateLimitConfig(_options.AuthRequestsPerMinute, _options.WindowInSeconds),
-            var p when p?.Contains("/search") == true =>
-                new RateLimitConfig(_options.SearchRequestsPerMinute, _options.WindowInSeconds),
-            _ => new RateLimitConfig(_options.DefaultRequestsPerMinute, _options.WindowInSeconds)
+            Error = "RateLimitExceeded",
+            Message = "Rate limit exceeded. Please try again later.",
+            Details = new Dictionary<string, object>
+            {
+                ["limit"] = limit,
+                ["retryAfterSeconds"] = 60
+            }
         };
-    }
 
-    private record RateLimitConfig(int RequestsPerWindow, int WindowInSeconds);
+        var json = JsonSerializer.Serialize(errorResponse, SerializationDefaults.Api);
+
+        await context.Response.WriteAsync(json);
+    }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.Metrics;
 
 namespace MeAjudaAi.Shared.Caching;
 
@@ -23,12 +24,20 @@ internal static class Extensions
         // Redis como distributed cache (HybridCache usa automaticamente)
         services.AddStackExchangeRedisCache(options =>
         {
-            options.Configuration = configuration.GetConnectionString("Redis");
+            // Try multiple Redis connection string sources in order of preference
+            options.Configuration = 
+                configuration.GetConnectionString("redis") ??          // Aspire naming
+                configuration.GetConnectionString("Redis") ??          // Manual configuration
+                "localhost:6379";                                       // Fallback for testing
             options.InstanceName = "MeAjudaAi";
         });
 
-        // Registra o serviço
-        services.AddScoped<ICacheService, HybridCacheService>();
+        // Registra métricas de cache
+        services.AddSingleton<CacheMetrics>();
+        
+        // Registra serviços de cache
+        services.AddSingleton<ICacheService, HybridCacheService>();
+        services.AddSingleton<ICacheWarmupService, CacheWarmupService>();
 
         return services;
     }

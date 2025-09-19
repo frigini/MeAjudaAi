@@ -9,6 +9,37 @@ namespace MeAjudaAi.Shared.Endpoints;
 
 public abstract class BaseEndpoint
 {
+    /// <summary>
+    /// Creates a versioned group using unified Asp.Versioning with URL segments only
+    /// Pattern: /api/v{version:apiVersion}/{module} (e.g., /api/v1/users)
+    /// This approach is explicit, clear, and avoids complexity of multiple versioning methods
+    /// </summary>
+    /// <param name="app">Endpoint route builder</param>
+    /// <param name="module">Module name (e.g., "users", "services")</param>
+    /// <param name="tag">OpenAPI tag (defaults to module name)</param>
+    /// <returns>Configured route group builder for endpoint registration</returns>
+    public static RouteGroupBuilder CreateVersionedGroup(
+        IEndpointRouteBuilder app,
+        string module,
+        string? tag = null)
+    {
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1, 0))
+            .ReportApiVersions()
+            .Build();
+
+        // Use URL segment pattern only: /api/v1/users
+        // This is the most explicit and clear versioning approach
+        return app.MapGroup($"/api/v{{version:apiVersion}}/{module}")
+            .WithApiVersionSet(versionSet)
+            .WithTags(tag ?? char.ToUpper(module[0]) + module[1..])
+            .WithOpenApi();
+    }
+
+    /// <summary>
+    /// Creates a legacy versioned group (for backward compatibility)
+    /// </summary>
+    [Obsolete("Use CreateVersionedGroup(app, module, tag) instead")]
     protected static RouteGroupBuilder CreateGroup(
         IEndpointRouteBuilder app,
         string prefix,
@@ -26,6 +57,11 @@ public abstract class BaseEndpoint
                 .WithApiVersionSet(apiVersionSet)
                 .WithOpenApi();
     }
+
+    /// <summary>
+    /// Creates a legacy versioned group with specific version (for backward compatibility)
+    /// </summary>
+    [Obsolete("Use CreateVersionedGroup(app, module, tag) instead")]
 
     protected static RouteGroupBuilder CreateVersionedGroup(
         IEndpointRouteBuilder app,

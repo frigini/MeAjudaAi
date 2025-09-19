@@ -17,7 +17,7 @@ services:
       - "8080:8080"
     volumes:
       - keycloak_standalone_data:/opt/keycloak/data
-      - ../../keycloak/config/realm-import:/opt/keycloak/data/import
+      - ../../keycloak/realms:/opt/keycloak/data/import
     restart: unless-stopped
 
 volumes:

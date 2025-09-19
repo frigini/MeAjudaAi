@@ -28,4 +28,10 @@ public static class SerializationDefaults
         WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.Never
     };
+
+    public static JsonSerializerOptions HealthChecks(bool isDevelopment = false) => new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = isDevelopment
+    };
 }

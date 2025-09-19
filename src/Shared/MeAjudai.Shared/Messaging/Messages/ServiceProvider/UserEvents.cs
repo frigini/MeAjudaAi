@@ -5,7 +5,7 @@ namespace MeAjudaAi.Shared.Messaging.Messages.ServiceProvider;
 /// <summary>
 /// Published when a user becomes a service provider
 /// </summary>
-public record ServiceProviderCreated(
+public record ServiceProviderCreatedIntegrationEvent(
     Guid UserId,
     Guid ServiceProviderId,
     string CompanyName,
@@ -16,7 +16,7 @@ public record ServiceProviderCreated(
 /// <summary>
 /// Published when a service provider's tier changes
 /// </summary>
-public record ServiceProviderTierChanged(
+public record ServiceProviderTierChangedIntegrationEvent(
     Guid UserId,
     Guid ServiceProviderId,
     string CompanyName,
@@ -29,7 +29,7 @@ public record ServiceProviderTierChanged(
 /// <summary>
 /// Published when a service provider gets verified
 /// </summary>
-public record ServiceProviderVerified(
+public record ServiceProviderVerifiedIntegrationEvent(
     Guid UserId,
     Guid ServiceProviderId,
     string CompanyName,
@@ -40,7 +40,7 @@ public record ServiceProviderVerified(
 /// <summary>
 /// Published when a service provider's subscription status changes
 /// </summary>
-public record ServiceProviderSubscriptionUpdated(
+public record ServiceProviderSubscriptionUpdatedIntegrationEvent(
     Guid UserId,
     Guid ServiceProviderId,
     string SubscriptionId,

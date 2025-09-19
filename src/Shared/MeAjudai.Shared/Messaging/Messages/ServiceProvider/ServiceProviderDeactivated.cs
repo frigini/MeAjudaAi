@@ -2,7 +2,7 @@
 
 namespace MeAjudaAi.Shared.Messaging.Messages.ServiceProvider;
 
-public record ServiceProviderDeactivated(
+public record ServiceProviderDeactivatedIntegrationEvent(
     Guid ProviderId,
     string Reason,
     DateTime DeactivatedAt

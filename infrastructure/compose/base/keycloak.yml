@@ -41,7 +41,7 @@ services:
       - "${KEYCLOAK_PORT:-8080}:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
-      - ../../keycloak/config/realm-import:/opt/keycloak/data/import
+      - ../../keycloak/realms:/opt/keycloak/data/import
     depends_on:
       keycloak-db:
         condition: service_healthy

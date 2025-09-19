@@ -1,0 +1,63 @@
+meta {
+  name: Get User by ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/{{userId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Get User by ID
+  
+  Busca um usuário específico pelo ID.
+  
+  ## Autorização
+  - **Política**: SelfOrAdmin
+  - **Requer token**: Sim
+  
+  ## Path Parameters
+  - `id` (uuid, required): ID único do usuário
+  
+  ## Instruções
+  1. Substitua `{{userId}}` por um ID válido
+  2. Ou configure a variável `userId` na collection
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "firstName": "John",
+      "lastName": "Doe",
+      "username": "johndoe",
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00Z",
+      "lastLoginAt": "2025-01-01T12:00:00Z",
+      "roles": ["User"]
+    },
+    "message": "User retrieved successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **401**: Token inválido
+  - **403**: Sem permissão
+  - **404**: Usuário não encontrado
+}

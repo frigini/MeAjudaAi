@@ -2,7 +2,7 @@
 
 namespace MeAjudaAi.Shared.Messaging.Messages.ServiceProvider;
 
-public record ServiceProviderRegistered(
+public record ServiceProviderRegisteredIntegrationEvent(
     Guid ProviderId,
     string Name,
     string Email,

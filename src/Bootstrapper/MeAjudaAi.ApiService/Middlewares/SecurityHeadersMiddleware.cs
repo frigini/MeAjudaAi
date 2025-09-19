@@ -1,45 +1,57 @@
-﻿namespace MeAjudaAi.ApiService.Middlewares;
+namespace MeAjudaAi.ApiService.Middlewares;
 
+/// <summary>
+/// Middleware para adicionar cabeçalhos de segurança com impacto mínimo na performance
+/// </summary>
 public class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment environment)
 {
     private readonly RequestDelegate _next = next;
-    private readonly IWebHostEnvironment _environment = environment;
+    private readonly bool _isDevelopment = environment.IsDevelopment();
+    
+    // Valores de cabeçalho pré-computados para evitar concatenação de strings a cada requisição
+    private static readonly KeyValuePair<string, string>[] StaticHeaders = 
+    [
+        new("X-Content-Type-Options", "nosniff"),
+        new("X-Frame-Options", "DENY"),
+        new("X-XSS-Protection", "1; mode=block"),
+        new("Referrer-Policy", "strict-origin-when-cross-origin"),
+        new("Permissions-Policy", "geolocation=(), microphone=(), camera=()"),
+        new("Content-Security-Policy", 
+            "default-src 'self'; " +
+            "script-src 'self' 'unsafe-inline'; " +
+            "style-src 'self' 'unsafe-inline'; " +
+            "img-src 'self' data: https:; " +
+            "font-src 'self'; " +
+            "connect-src 'self'; " +
+            "frame-ancestors 'none';")
+    ];
+
+    private const string HstsHeader = "max-age=31536000; includeSubDomains";
+    
+    // Cabeçalhos para remover - usando array para iteração mais rápida
+    private static readonly string[] HeadersToRemove = ["Server", "X-Powered-By", "X-AspNet-Version"];
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Adiciona headers de segurança - usando Append para evitar ASP0019
-        context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-        context.Response.Headers.Append("X-Frame-Options", "DENY");
-        context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
-        context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
-        context.Response.Headers.Append("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
-
-        // HSTS apenas em produção e HTTPS
-        if (context.Request.IsHttps && !_environment.IsDevelopment())
+        var headers = context.Response.Headers;
+        
+        // Adiciona cabeçalhos de segurança estáticos eficientemente
+        foreach (var header in StaticHeaders)
         {
-            context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+            headers.Append(header.Key, header.Value);
         }
 
-        // CSP básico - ajuste conforme necessário
-        var csp = "default-src 'self'; " +
-                  "script-src 'self' 'unsafe-inline'; " +
-                  "style-src 'self' 'unsafe-inline'; " +
-                  "img-src 'self' data: https:; " +
-                  "font-src 'self'; " +
-                  "connect-src 'self'; " +
-                  "frame-ancestors 'none';";
+        // HSTS apenas em produção e HTTPS - usando verificação de ambiente em cache
+        if (context.Request.IsHttps && !_isDevelopment)
+        {
+            headers.Append("Strict-Transport-Security", HstsHeader);
+        }
 
-        context.Response.Headers.Append("Content-Security-Policy", csp);
-
-        // Remove headers que expõem informações - usando TryGetValue para evitar warnings
-        if (context.Response.Headers.TryGetValue("Server", out _))
-            context.Response.Headers.Remove("Server");
-
-        if (context.Response.Headers.TryGetValue("X-Powered-By", out _))
-            context.Response.Headers.Remove("X-Powered-By");
-
-        if (context.Response.Headers.TryGetValue("X-AspNet-Version", out _))
-            context.Response.Headers.Remove("X-AspNet-Version");
+        // Remove cabeçalhos de exposição de informações eficientemente
+        foreach (var headerName in HeadersToRemove)
+        {
+            headers.Remove(headerName);
+        }
 
         await _next(context);
     }

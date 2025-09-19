@@ -1,0 +1,95 @@
+﻿using MeAjudaAi.Modules.Users.Domain.Events;
+using MeAjudaAi.Modules.Users.Domain.Repositories;
+using MeAjudaAi.Modules.Users.Domain.Services;
+using MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
+using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Modules.Users.Infrastructure.Services;
+using MeAjudaAi.Shared.Events;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace MeAjudaAi.Modules.Users.Infrastructure;
+
+public static class Extensions
+{
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddPersistence(configuration);
+        services.AddKeycloak(configuration);
+        services.AddDomainServices();
+        services.AddEventHandlers();
+
+        return services;
+    }
+
+    private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Use PostgreSQL for all environments (TestContainers will provide test database)
+        var connectionString = configuration.GetConnectionString("Users") 
+                              ?? configuration.GetConnectionString("meajudaai-db");
+
+        services.AddDbContext<UsersDbContext>(options =>
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
+                
+                // PERFORMANCE: Timeout mais longo para permitir criação de database
+                npgsqlOptions.CommandTimeout(60);
+            })
+            .UseSnakeCaseNamingConvention()
+            // LAZY INITIALIZATION: Database será criado quando necessário
+            .EnableServiceProviderCaching(false)); // Desabilita cache para evitar problemas em testes
+
+        // AUTO-MIGRATION: Configura factory para auto-criar database quando necessário
+        services.AddScoped<Func<UsersDbContext>>(provider => () =>
+        {
+            var context = provider.GetRequiredService<UsersDbContext>();
+            // Garante que database existe - LAZY APPROACH
+            context.Database.EnsureCreated();
+            return context;
+        });
+
+        // Register domain event processor (direct dependency injection approach)
+        services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
+
+        services.AddScoped<IUserRepository, UserRepository>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddKeycloak(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Registro direto da configuração do Keycloak
+        services.AddSingleton(provider =>
+        {
+            var options = new KeycloakOptions();
+            configuration.GetSection(KeycloakOptions.SectionName).Bind(options);
+            return options;
+        });
+        services.AddHttpClient<IKeycloakService, KeycloakService>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddDomainServices(this IServiceCollection services)
+    {
+        services.AddScoped<IUserDomainService, KeycloakUserDomainService>();
+        services.AddScoped<IAuthenticationDomainService, KeycloakAuthenticationDomainService>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddEventHandlers(this IServiceCollection services)
+    {
+        // Register domain event handlers
+        services.AddScoped<IEventHandler<UserRegisteredDomainEvent>, UserRegisteredDomainEventHandler>();
+        services.AddScoped<IEventHandler<UserProfileUpdatedDomainEvent>, UserProfileUpdatedDomainEventHandler>();
+        services.AddScoped<IEventHandler<UserDeletedDomainEvent>, UserDeletedDomainEventHandler>();
+
+        return services;
+    }
+}

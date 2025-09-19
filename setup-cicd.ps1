@@ -86,7 +86,7 @@ Write-Host "5. Value: Copy the JSON content from above" -ForegroundColor White
 Write-Host ""
 Write-Host "6. Create GitHub Environments:" -ForegroundColor White
 Write-Host "   - Settings > Environments > New environment" -ForegroundColor White
-Write-Host "   - Create: development, staging, production" -ForegroundColor White
+Write-Host "   - Create: development, production" -ForegroundColor White
 Write-Host ""
 Write-Host "7. Push your code to trigger the pipeline!" -ForegroundColor White
 
@@ -96,7 +96,7 @@ Write-Host "==============================" -ForegroundColor Blue
 Write-Host "Development:  meajudaai-dev      (auto-deploy from 'develop' branch or manual)" -ForegroundColor Green
 Write-Host ""
 Write-Host "💡 This is a dev-only setup optimized for local development." -ForegroundColor Cyan
-Write-Host "   You can add staging/production environments later when needed." -ForegroundColor Cyan
+Write-Host "   You can add production environments later when needed." -ForegroundColor Cyan
 
 # Cost reminder
 Write-Host "`n💰 Cost Reminder:" -ForegroundColor Blue

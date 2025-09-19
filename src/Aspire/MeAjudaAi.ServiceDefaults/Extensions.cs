@@ -1,16 +1,17 @@
 ﻿using Azure.Monitor.OpenTelemetry.AspNetCore;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using System.Text.Json;
-using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.ServiceDefaults;
 
@@ -90,19 +91,27 @@ public static class Extensions
     {
         var config = builder.Configuration;
 
-        var useOtlpExporter = !string.IsNullOrWhiteSpace(config["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+        // OTEL Configuration via Environment Variables
+        var otlpEndpoint = config["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? 
+                          Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+        
+        var applicationInsightsConnectionString = config["APPLICATIONINSIGHTS_CONNECTION_STRING"] ??
+                                                Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+
+        // Use OTLP Exporter if endpoint is configured
+        var useOtlpExporter = !string.IsNullOrWhiteSpace(otlpEndpoint);
 
         if (useOtlpExporter)
         {
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
-        var appInsightsConnectionString = config["APPLICATIONINSIGHTS_CONNECTION_STRING"];
-        if (!string.IsNullOrEmpty(appInsightsConnectionString))
+        // Use Azure Monitor if Application Insights is configured
+        if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
         {
             builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
             {
-                options.ConnectionString = appInsightsConnectionString;
+                options.ConnectionString = applicationInsightsConnectionString;
             });
         }
 
@@ -111,7 +120,7 @@ public static class Extensions
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Testing")
         {
             app.MapHealthChecks("/health", new HealthCheckOptions
             {
@@ -170,11 +179,7 @@ public static class Extensions
                 exception = entry.Value.Exception?.Message,
                 data = entry.Value.Data.Count > 0 ? entry.Value.Data : null
             }).ToArray()
-        }, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = isDevelopment
-        });
+        }, SerializationDefaults.HealthChecks(isDevelopment));
 
         context.Response.ContentType = "application/json";
         context.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";

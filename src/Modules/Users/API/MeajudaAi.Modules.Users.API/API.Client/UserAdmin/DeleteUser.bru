@@ -1,0 +1,58 @@
+meta {
+  name: Delete User
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/users/{{userId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Delete User
+  
+  Remove um usuário do sistema (soft delete).
+  
+  ## Autorização
+  - **Política**: AdminOnly
+  - **Requer token**: Sim (admin)
+  
+  ## Path Parameters
+  - `id` (uuid, required): ID do usuário a ser removido
+  
+  ## Instruções
+  1. Configure a variável `userId` com um ID válido
+  2. ⚠️ **CUIDADO**: Esta operação remove o usuário
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": null,
+    "message": "User deleted successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **204**: Removido com sucesso (No Content)
+  - **401**: Token inválido
+  - **403**: Sem permissão de admin
+  - **404**: Usuário não encontrado
+  
+  ## Observações
+  - Esta é uma operação de **soft delete**
+  - O usuário não é removido fisicamente do banco
+  - O usuário fica inativo mas os dados são preservados
+}

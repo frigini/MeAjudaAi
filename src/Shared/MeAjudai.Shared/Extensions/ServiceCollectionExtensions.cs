@@ -4,13 +4,18 @@ using MeAjudaAi.Shared.Common;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Logging;
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Monitoring;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Time;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Extensions;
 
@@ -18,15 +23,28 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddSharedServices(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddCustomSerialization();
-        services.AddStructuredLogging();
+        // Serilog configurado no Program.cs do ApiService
 
         services.AddPostgres(configuration);
         services.AddCaching(configuration);
-        services.AddMessaging(configuration);
+        
+        // Only add messaging if not in Testing environment
+        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        if (envName != "Testing")
+        {
+            services.AddMessaging(configuration);
+        }
+        else
+        {
+            // Register no-op messaging for testing
+            services.AddSingleton<IMessageBus, NoOpMessageBus>();
+            services.AddSingleton<MeAjudaAi.Shared.Messaging.ServiceBus.IServiceBusTopicManager, NoOpServiceBusTopicManager>();
+        }
         
         services.AddValidation();
         services.AddErrorHandling();
@@ -38,9 +56,52 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddSharedServices(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment)
+    {
+        // Cast para IWebHostEnvironment se possível, senão usar apenas a configuração básica
+        if (environment is IWebHostEnvironment webHostEnv)
+        {
+            services.AddSharedServices(configuration, webHostEnv);
+        }
+        else
+        {
+            // Fallback para configuração básica sem IWebHostEnvironment
+            services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+            services.AddCustomSerialization();
+            services.AddPostgres(configuration);
+            services.AddCaching(configuration);
+            
+            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+            if (envName != "Testing")
+            {
+                services.AddMessaging(configuration);
+            }
+            else
+            {
+                services.AddSingleton<IMessageBus, NoOpMessageBus>();
+                services.AddSingleton<MeAjudaAi.Shared.Messaging.ServiceBus.IServiceBusTopicManager, NoOpServiceBusTopicManager>();
+            }
+            
+            services.AddValidation();
+            services.AddErrorHandling();
+            services.AddCommands();
+            services.AddQueries();
+            services.AddEvents();
+        }
+        
+        // Adicionar monitoramento avançado complementar ao Aspire
+        services.AddAdvancedMonitoring(environment);
+
+        return services;
+    }
+
     public static IApplicationBuilder UseSharedServices(this IApplicationBuilder app)
     {
         app.UseErrorHandling();
+        app.UseAdvancedMonitoring(); // Adicionar middleware de métricas
 
         return app;
     }
@@ -49,10 +110,37 @@ public static class ServiceCollectionExtensions
     {
         app.UseErrorHandling();
         
-        // Ensure messaging infrastructure is created
-        if (app is WebApplication webApp)
+        // Ensure messaging infrastructure is created (skip in Testing environment or when disabled)
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        if (app is WebApplication webApp && environment != "Testing")
         {
-            await webApp.EnsureMessagingInfrastructureAsync();
+            var configuration = webApp.Services.GetRequiredService<IConfiguration>();
+            var isMessagingEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
+            
+            if (isMessagingEnabled)
+            {
+                await webApp.EnsureMessagingInfrastructureAsync();
+            }
+            
+            // Cache warmup em background para não bloquear startup
+            var isCacheWarmupEnabled = configuration.GetValue<bool>("Cache:WarmupEnabled", true);
+            if (isCacheWarmupEnabled)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        using var scope = webApp.Services.CreateScope();
+                        var warmupService = scope.ServiceProvider.GetRequiredService<ICacheWarmupService>();
+                        await warmupService.WarmupAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = webApp.Services.GetRequiredService<ILogger<ICacheWarmupService>>();
+                        logger.LogError(ex, "Cache warmup failed during startup");
+                    }
+                });
+            }
         }
 
         return app;

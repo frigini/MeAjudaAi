@@ -3,7 +3,6 @@ using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
 using MeAjudaAi.Shared.Common;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
 using System.Text;
@@ -13,10 +12,10 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 
 public class KeycloakService(
     HttpClient httpClient,
-    IOptions<KeycloakOptions> options,
+    KeycloakOptions options,
     ILogger<KeycloakService> logger) : IKeycloakService
 {
-    private readonly KeycloakOptions _options = options.Value;
+    private readonly KeycloakOptions _options = options;
     private string? _adminToken;
     private DateTime _adminTokenExpiry = DateTime.MinValue;
 
@@ -159,7 +158,7 @@ public class KeycloakService(
         }
     }
 
-    public async Task<Result<TokenValidationResult>> ValidateTokenAsync(
+    public Task<Result<TokenValidationResult>> ValidateTokenAsync(
         string token,
         CancellationToken cancellationToken = default)
     {
@@ -168,13 +167,13 @@ public class KeycloakService(
             var tokenHandler = new JwtSecurityTokenHandler();
 
             if (!tokenHandler.CanReadToken(token))
-                return Result<TokenValidationResult>.Failure("Invalid token format");
+                return Task.FromResult(Result<TokenValidationResult>.Failure("Invalid token format"));
 
             var jwt = tokenHandler.ReadJwtToken(token);
 
             // Check if token is expired
             if (jwt.ValidTo < DateTime.UtcNow)
-                return Result<TokenValidationResult>.Failure("Token has expired");
+                return Task.FromResult(Result<TokenValidationResult>.Failure("Token has expired"));
 
             var userId = jwt.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
             var roles = jwt.Claims.Where(c => c.Type == "realm_access" || c.Type == "resource_access")
@@ -185,7 +184,7 @@ public class KeycloakService(
             var claims = jwt.Claims.ToDictionary(c => c.Type, c => (object)c.Value);
 
             if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
-                return Result<TokenValidationResult>.Failure("Invalid user ID in token");
+                return Task.FromResult(Result<TokenValidationResult>.Failure("Invalid user ID in token"));
 
             var validationResult = new TokenValidationResult(
                 userGuid,
@@ -193,12 +192,12 @@ public class KeycloakService(
                 claims
             );
 
-            return Result<TokenValidationResult>.Success(validationResult);
+            return Task.FromResult(Result<TokenValidationResult>.Success(validationResult));
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Exception occurred during token validation");
-            return Result<TokenValidationResult>.Failure($"Token validation failed: {ex.Message}");
+            return Task.FromResult(Result<TokenValidationResult>.Failure($"Token validation failed: {ex.Message}"));
         }
     }
 

@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Users.Application.Caching;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -23,6 +24,9 @@ public static class Extensions
         services.AddScoped<IQueryHandler<GetUserByIdQuery, Result<UserDto>>, GetUserByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>, GetUserByEmailQueryHandler>();
         services.AddScoped<IQueryHandler<GetUsersQuery, Result<PagedResult<UserDto>>>, GetUsersQueryHandler>();
+
+        // Cache Services
+        services.AddScoped<IUsersCacheService, UsersCacheService>();
 
         return services;
     }

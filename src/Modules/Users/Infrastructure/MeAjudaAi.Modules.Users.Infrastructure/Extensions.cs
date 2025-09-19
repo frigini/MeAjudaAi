@@ -1,9 +1,13 @@
-﻿using MeAjudaAi.Modules.Users.Domain.Repositories;
+﻿using MeAjudaAi.Modules.Users.Domain.Events;
+using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
+using MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Users.Infrastructure.Services;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,16 +21,54 @@ public static class Extensions
         services.AddPersistence(configuration);
         services.AddKeycloak(configuration);
         services.AddDomainServices();
+        services.AddEventHandlers();
 
         return services;
     }
 
     private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("meajudaai-db");
+        // Use PostgreSQL for all environments (TestContainers will provide test database)
+        var connectionString = configuration.GetConnectionString("DefaultConnection") 
+                              ?? configuration.GetConnectionString("Users")
+                              ?? configuration.GetConnectionString("meajudaai-db");
 
-        services.AddDbContext<UsersDbContext>(options =>
-            options.UseNpgsql(connectionString, b => b.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure")));
+        services.AddDbContext<UsersDbContext>((serviceProvider, options) =>
+        {
+            // Obter interceptor de métricas se disponível
+            var metricsInterceptor = serviceProvider.GetService<DatabaseMetricsInterceptor>();
+            
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
+                
+                // PERFORMANCE: Timeout mais longo para permitir criação de database
+                npgsqlOptions.CommandTimeout(60);
+            })
+            .UseSnakeCaseNamingConvention()
+            // Configurações consistentes para evitar problemas com compiled queries
+            .EnableServiceProviderCaching()
+            .EnableSensitiveDataLogging(false);
+            
+            // Adiciona interceptor de métricas se disponível
+            if (metricsInterceptor != null)
+            {
+                options.AddInterceptors(metricsInterceptor);
+            }
+        });
+
+        // AUTO-MIGRATION: Configura factory para auto-criar database quando necessário
+        services.AddScoped<Func<UsersDbContext>>(provider => () =>
+        {
+            var context = provider.GetRequiredService<UsersDbContext>();
+            // Garante que database existe - LAZY APPROACH
+            context.Database.EnsureCreated();
+            return context;
+        });
+
+        // Register domain event processor (direct dependency injection approach)
+        services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
         services.AddScoped<IUserRepository, UserRepository>();
 
@@ -35,7 +77,13 @@ public static class Extensions
 
     private static IServiceCollection AddKeycloak(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<KeycloakOptions>(configuration.GetSection(KeycloakOptions.SectionName));
+        // Registro direto da configuração do Keycloak
+        services.AddSingleton(provider =>
+        {
+            var options = new KeycloakOptions();
+            configuration.GetSection(KeycloakOptions.SectionName).Bind(options);
+            return options;
+        });
         services.AddHttpClient<IKeycloakService, KeycloakService>();
 
         return services;
@@ -45,6 +93,16 @@ public static class Extensions
     {
         services.AddScoped<IUserDomainService, KeycloakUserDomainService>();
         services.AddScoped<IAuthenticationDomainService, KeycloakAuthenticationDomainService>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddEventHandlers(this IServiceCollection services)
+    {
+        // Register domain event handlers
+        services.AddScoped<IEventHandler<UserRegisteredDomainEvent>, UserRegisteredDomainEventHandler>();
+        services.AddScoped<IEventHandler<UserProfileUpdatedDomainEvent>, UserProfileUpdatedDomainEventHandler>();
+        services.AddScoped<IEventHandler<UserDeletedDomainEvent>, UserDeletedDomainEventHandler>();
 
         return services;
     }
