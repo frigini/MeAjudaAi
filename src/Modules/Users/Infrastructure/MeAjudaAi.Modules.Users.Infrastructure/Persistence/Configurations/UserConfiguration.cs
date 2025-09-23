@@ -77,7 +77,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnType("timestamp with time zone")
             .IsRequired(false);
 
-        //Indexes - Performance Optimization
         // Índices únicos para campos de busca primários
         builder.HasIndex(u => u.Email)
             .HasDatabaseName("ix_users_email")

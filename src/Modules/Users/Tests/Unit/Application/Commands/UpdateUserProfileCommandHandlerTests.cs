@@ -1,17 +1,11 @@
 using MeAjudaAi.Modules.Users.Application.Caching;
 using MeAjudaAi.Modules.Users.Application.Commands;
-using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
-using MeAjudaAi.Shared.Common;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 

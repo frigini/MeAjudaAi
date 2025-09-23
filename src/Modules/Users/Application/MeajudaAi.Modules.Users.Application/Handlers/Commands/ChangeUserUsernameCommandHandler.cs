@@ -4,7 +4,8 @@ using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -32,9 +33,11 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// - Possível necessidade de período de carência entre mudanças
 /// </remarks>
 /// <param name="userRepository">Repositório para operações de usuário</param>
+/// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
 /// <param name="logger">Logger estruturado para auditoria detalhada</param>
 internal sealed class ChangeUserUsernameCommandHandler(
     IUserRepository userRepository,
+    IDateTimeProvider dateTimeProvider,
     ILogger<ChangeUserUsernameCommandHandler> logger
 ) : ICommandHandler<ChangeUserUsernameCommand, Result<UserDto>>
 {
@@ -83,51 +86,24 @@ internal sealed class ChangeUserUsernameCommandHandler(
 
         try
         {
-            // Busca o usuário pelo ID
-            logger.LogDebug("Fetching user {UserId} for username change", command.UserId);
-            var user = await userRepository.GetByIdAsync(
-                new UserId(command.UserId), cancellationToken);
+            // Buscar e validar usuário
+            var userResult = await GetAndValidateUserAsync(command, cancellationToken);
+            if (userResult.IsFailure)
+                return Result<UserDto>.Failure(userResult.Error);
 
-            if (user == null)
-            {
-                logger.LogWarning("Username change failed: User {UserId} not found", command.UserId);
-                return Result<UserDto>.Failure("User not found");
-            }
-
-            // Verifica se já existe usuário com o novo username
-            logger.LogDebug("Checking username uniqueness for {NewUsername}", command.NewUsername);
-            var existingUserWithUsername = await userRepository.GetByUsernameAsync(
-                new Username(command.NewUsername), cancellationToken);
-
-            if (existingUserWithUsername != null && existingUserWithUsername.Id != user.Id)
-            {
-                logger.LogWarning("Username change failed: Username {NewUsername} already in use by user {ExistingUserId}", 
-                    command.NewUsername, existingUserWithUsername.Id);
-                return Result<UserDto>.Failure("Username is already taken by another user");
-            }
-
+            var user = userResult.Value;
             var oldUsername = user.Username.Value;
-            
-            // Verificar rate limiting para mudanças de username
-            if (!command.BypassRateLimit && !user.CanChangeUsername())
-            {
-                logger.LogWarning("Username change rate limit exceeded for user {UserId}. Last change: {LastChange}", 
-                    command.UserId, user.LastUsernameChangeAt);
-                return Result<UserDto>.Failure("Username can only be changed once per month");
-            }
 
-            // Aplica a alteração através do método de domínio
-            logger.LogDebug("Applying username change from {OldUsername} to {NewUsername} for user {UserId}", 
-                oldUsername, command.NewUsername, command.UserId);
-            
-            user.ChangeUsername(command.NewUsername);
+            // Validar rate limiting
+            var rateLimitResult = ValidateRateLimit(command, user);
+            if (rateLimitResult.IsFailure)
+                return Result<UserDto>.Failure(rateLimitResult.Error);
 
-            // Persiste as alterações
-            var persistenceStart = stopwatch.ElapsedMilliseconds;
-            await userRepository.UpdateAsync(user, cancellationToken);
-            
-            logger.LogDebug("Username change persistence completed in {ElapsedMs}ms", 
-                stopwatch.ElapsedMilliseconds - persistenceStart);
+            // Aplicar mudança de username
+            ApplyUsernameChange(command, user, oldUsername);
+
+            // Persistir alterações
+            await PersistUsernameChangeAsync(user, stopwatch, cancellationToken);
 
             stopwatch.Stop();
             logger.LogInformation(
@@ -145,5 +121,79 @@ internal sealed class ChangeUserUsernameCommandHandler(
             
             return Result<UserDto>.Failure($"Failed to change username: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Busca o usuário e valida unicidade do novo username.
+    /// </summary>
+    private async Task<Result<Domain.Entities.User>> GetAndValidateUserAsync(
+        ChangeUserUsernameCommand command,
+        CancellationToken cancellationToken)
+    {
+        // Busca o usuário pelo ID
+        logger.LogDebug("Fetching user {UserId} for username change", command.UserId);
+        var user = await userRepository.GetByIdAsync(
+            new UserId(command.UserId), cancellationToken);
+
+        if (user == null)
+        {
+            logger.LogWarning("Username change failed: User {UserId} not found", command.UserId);
+            return Result<Domain.Entities.User>.Failure("User not found");
+        }
+
+        // Verifica se já existe usuário com o novo username
+        logger.LogDebug("Checking username uniqueness for {NewUsername}", command.NewUsername);
+        var existingUserWithUsername = await userRepository.GetByUsernameAsync(
+            new Username(command.NewUsername), cancellationToken);
+
+        if (existingUserWithUsername != null && existingUserWithUsername.Id != user.Id)
+        {
+            logger.LogWarning("Username change failed: Username {NewUsername} already in use by user {ExistingUserId}", 
+                command.NewUsername, existingUserWithUsername.Id);
+            return Result<Domain.Entities.User>.Failure("Username is already taken by another user");
+        }
+
+        return Result<Domain.Entities.User>.Success(user);
+    }
+
+    /// <summary>
+    /// Valida regras de rate limiting para mudança de username.
+    /// </summary>
+    private Result<Unit> ValidateRateLimit(ChangeUserUsernameCommand command, Domain.Entities.User user)
+    {
+        if (!command.BypassRateLimit && !user.CanChangeUsername(dateTimeProvider))
+        {
+            logger.LogWarning("Username change rate limit exceeded for user {UserId}. Last change: {LastChange}", 
+                command.UserId, user.LastUsernameChangeAt);
+            return Result<Unit>.Failure("Username can only be changed once per month");
+        }
+
+        return Result<Unit>.Success(Unit.Value);
+    }
+
+    /// <summary>
+    /// Aplica a mudança de username usando o método de domínio.
+    /// </summary>
+    private void ApplyUsernameChange(ChangeUserUsernameCommand command, Domain.Entities.User user, string oldUsername)
+    {
+        logger.LogDebug("Applying username change from {OldUsername} to {NewUsername} for user {UserId}", 
+            oldUsername, command.NewUsername, command.UserId);
+        
+        user.ChangeUsername(command.NewUsername, dateTimeProvider);
+    }
+
+    /// <summary>
+    /// Persiste as alterações de username no repositório.
+    /// </summary>
+    private async Task PersistUsernameChangeAsync(
+        Domain.Entities.User user,
+        System.Diagnostics.Stopwatch stopwatch,
+        CancellationToken cancellationToken)
+    {
+        var persistenceStart = stopwatch.ElapsedMilliseconds;
+        await userRepository.UpdateAsync(user, cancellationToken);
+        
+        logger.LogDebug("Username change persistence completed in {ElapsedMs}ms", 
+            stopwatch.ElapsedMilliseconds - persistenceStart);
     }
 }

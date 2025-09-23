@@ -41,7 +41,7 @@ public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
     /// <summary>
     /// Cria connection string para o usuário específico do módulo Users
     /// </summary>
-    public string CreateUsersModuleConnectionString(
+    public static string CreateUsersModuleConnectionString(
         string baseConnectionString,
         string usersRolePassword = "users_secret")
     {
@@ -95,7 +95,7 @@ public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
         await ExecuteSqlAsync(connection, sql);
     }
 
-    private string GetCreateRolesScript(string usersPassword, string appPassword) => $"""
+    private static string GetCreateRolesScript(string usersPassword, string appPassword) => $"""
         -- Create dedicated role for users module
         DO $$
         BEGIN
@@ -118,7 +118,7 @@ public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
         GRANT users_role TO meajudaai_app_role;
         """;
 
-    private string GetGrantPermissionsScript() => """
+    private static string GetGrantPermissionsScript() => """
         -- Grant permissions for users module
         GRANT USAGE ON SCHEMA users TO users_role;
         GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA users TO users_role;
@@ -149,14 +149,14 @@ public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
         GRANT CREATE ON SCHEMA public TO meajudaai_app_role;
         """;
 
-    private async Task ExecuteSqlAsync(NpgsqlConnection connection, string sql)
+    private static async Task ExecuteSqlAsync(NpgsqlConnection connection, string sql)
     {
         using var command = connection.CreateCommand();
         command.CommandText = sql;
         await command.ExecuteNonQueryAsync();
     }
 
-    private async Task<T> ExecuteScalarAsync<T>(NpgsqlConnection connection, string sql)
+    private static async Task<T> ExecuteScalarAsync<T>(NpgsqlConnection connection, string sql)
     {
         using var command = connection.CreateCommand();
         command.CommandText = sql;

@@ -16,14 +16,14 @@ public class CorsOptions
     public List<string> AllowedHeaders { get; set; } = [];
 
     /// <summary>
-    /// Whether to allow credentials in CORS requests.
-    /// Defaults to false for security.
+    /// Indica se deve permitir credenciais em requisições CORS.
+    /// Padrão é false por segurança.
     /// </summary>
     public bool AllowCredentials { get; set; } = false;
 
     /// <summary>
-    /// Maximum age for preflight cache in seconds.
-    /// Defaults to 1 hour (3600 seconds).
+    /// Tempo máximo do cache do preflight em segundos.
+    /// Padrão é 1 hora (3600 segundos).
     /// </summary>
     public int PreflightMaxAge { get; set; } = 3600;
 
@@ -38,7 +38,7 @@ public class CorsOptions
         if (!AllowedHeaders.Any())
             throw new InvalidOperationException("At least one allowed header must be configured for CORS.");
 
-        // Validate origins format
+        // Validação do formato das origens
         foreach (var origin in AllowedOrigins)
         {
             if (string.IsNullOrWhiteSpace(origin))
@@ -48,7 +48,7 @@ public class CorsOptions
                 throw new InvalidOperationException($"Invalid CORS origin format: {origin}");
         }
 
-        // Security validation: warn if using wildcard in production-like settings
+        // Validação de segurança: alerta se usar coringa em ambientes de produção
         if (AllowedOrigins.Contains("*") && AllowCredentials)
             throw new InvalidOperationException("Cannot use wildcard origin (*) with credentials enabled for security reasons.");
     }

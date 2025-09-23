@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -78,43 +78,19 @@ internal sealed class ChangeUserEmailCommandHandler(
 
         try
         {
-            // Busca o usuário pelo ID
-            logger.LogDebug("Fetching user {UserId} for email change", command.UserId);
-            var user = await userRepository.GetByIdAsync(
-                new UserId(command.UserId), cancellationToken);
+            // Buscar e validar usuário
+            var userResult = await GetAndValidateUserAsync(command, cancellationToken);
+            if (userResult.IsFailure)
+                return Result<UserDto>.Failure(userResult.Error);
 
-            if (user == null)
-            {
-                logger.LogWarning("Email change failed: User {UserId} not found", command.UserId);
-                return Result<UserDto>.Failure("User not found");
-            }
-
-            // Verifica se já existe usuário com o novo email
-            logger.LogDebug("Checking email uniqueness for {NewEmail}", command.NewEmail);
-            var existingUserWithEmail = await userRepository.GetByEmailAsync(
-                new Email(command.NewEmail), cancellationToken);
-
-            if (existingUserWithEmail != null && existingUserWithEmail.Id != user.Id)
-            {
-                logger.LogWarning("Email change failed: Email {NewEmail} already in use by user {ExistingUserId}", 
-                    command.NewEmail, existingUserWithEmail.Id);
-                return Result<UserDto>.Failure("Email address is already in use by another user");
-            }
-
+            var user = userResult.Value;
             var oldEmail = user.Email.Value;
-            
-            // Aplica a alteração através do método de domínio
-            logger.LogDebug("Applying email change from {OldEmail} to {NewEmail} for user {UserId}", 
-                oldEmail, command.NewEmail, command.UserId);
-            
-            user.ChangeEmail(command.NewEmail);
 
-            // Persiste as alterações
-            var persistenceStart = stopwatch.ElapsedMilliseconds;
-            await userRepository.UpdateAsync(user, cancellationToken);
-            
-            logger.LogDebug("Email change persistence completed in {ElapsedMs}ms", 
-                stopwatch.ElapsedMilliseconds - persistenceStart);
+            // Aplicar mudança de email
+            ApplyEmailChange(command, user, oldEmail);
+
+            // Persistir alterações
+            await PersistEmailChangeAsync(user, stopwatch, cancellationToken);
 
             stopwatch.Stop();
             logger.LogInformation(
@@ -132,5 +108,64 @@ internal sealed class ChangeUserEmailCommandHandler(
             
             return Result<UserDto>.Failure($"Failed to change user email: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Busca o usuário e valida unicidade do novo email.
+    /// </summary>
+    private async Task<Result<Domain.Entities.User>> GetAndValidateUserAsync(
+        ChangeUserEmailCommand command,
+        CancellationToken cancellationToken)
+    {
+        // Busca o usuário pelo ID
+        logger.LogDebug("Fetching user {UserId} for email change", command.UserId);
+        var user = await userRepository.GetByIdAsync(
+            new UserId(command.UserId), cancellationToken);
+
+        if (user == null)
+        {
+            logger.LogWarning("Email change failed: User {UserId} not found", command.UserId);
+            return Result<Domain.Entities.User>.Failure("User not found");
+        }
+
+        // Verifica se já existe usuário com o novo email
+        logger.LogDebug("Checking email uniqueness for {NewEmail}", command.NewEmail);
+        var existingUserWithEmail = await userRepository.GetByEmailAsync(
+            new Email(command.NewEmail), cancellationToken);
+
+        if (existingUserWithEmail != null && existingUserWithEmail.Id != user.Id)
+        {
+            logger.LogWarning("Email change failed: Email {NewEmail} already in use by user {ExistingUserId}", 
+                command.NewEmail, existingUserWithEmail.Id);
+            return Result<Domain.Entities.User>.Failure("Email address is already in use by another user");
+        }
+
+        return Result<Domain.Entities.User>.Success(user);
+    }
+
+    /// <summary>
+    /// Aplica a mudança de email usando o método de domínio.
+    /// </summary>
+    private void ApplyEmailChange(ChangeUserEmailCommand command, Domain.Entities.User user, string oldEmail)
+    {
+        logger.LogDebug("Applying email change from {OldEmail} to {NewEmail} for user {UserId}", 
+            oldEmail, command.NewEmail, command.UserId);
+        
+        user.ChangeEmail(command.NewEmail);
+    }
+
+    /// <summary>
+    /// Persiste as alterações de email no repositório.
+    /// </summary>
+    private async Task PersistEmailChangeAsync(
+        Domain.Entities.User user,
+        System.Diagnostics.Stopwatch stopwatch,
+        CancellationToken cancellationToken)
+    {
+        var persistenceStart = stopwatch.ElapsedMilliseconds;
+        await userRepository.UpdateAsync(user, cancellationToken);
+        
+        logger.LogDebug("Email change persistence completed in {ElapsedMs}ms", 
+            stopwatch.ElapsedMilliseconds - persistenceStart);
     }
 }

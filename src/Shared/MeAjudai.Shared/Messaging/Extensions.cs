@@ -7,7 +7,6 @@ using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Rebus.Config;
 using Rebus.Routing;
 using Rebus.Routing.TypeBased;
@@ -24,17 +23,17 @@ internal static class Extensions
         IConfiguration configuration,
         Action<MessageBusOptions>? configureOptions = null)
     {
-        // Check if messaging is enabled
+        // Verifica se o messaging está habilitado
         var isEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
         if (!isEnabled)
         {
-            // Register a no-op message bus if messaging is disabled
+            // Registra um message bus no-op se o messaging estiver desabilitado
             services.AddSingleton<IMessageBus, NoOpMessageBus>();
             return services;
         }
 
         // Registro direto das configurações do Service Bus
-        services.AddSingleton<ServiceBusOptions>(provider =>
+        services.AddSingleton(provider =>
         {
             var options = new ServiceBusOptions();
             ConfigureServiceBusOptions(options, configuration);
@@ -51,7 +50,7 @@ internal static class Extensions
         });
 
         // Registro direto das configurações do RabbitMQ
-        services.AddSingleton<RabbitMqOptions>(provider =>
+        services.AddSingleton(provider =>
         {
             var options = new RabbitMqOptions();
             ConfigureRabbitMqOptions(options, configuration);
@@ -64,7 +63,7 @@ internal static class Extensions
         });
 
         // Registro direto das configurações do MessageBus
-        services.AddSingleton<MessageBusOptions>(provider =>
+        services.AddSingleton(provider =>
         {
             var options = new MessageBusOptions();
             configureOptions?.Invoke(options);
@@ -87,7 +86,7 @@ internal static class Extensions
         
         // Registrar o factory e o IMessageBus baseado no ambiente
         services.AddSingleton<IMessageBusFactory, EnvironmentBasedMessageBusFactory>();
-        services.AddSingleton<IMessageBus>(serviceProvider =>
+        services.AddSingleton(serviceProvider =>
         {
             var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();
             return factory.CreateMessageBus();
@@ -102,7 +101,7 @@ internal static class Extensions
         services.AddSingleton<IServiceBusTopicManager, ServiceBusTopicManager>();
         services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
 
-        // Only configure Rebus if not in Testing environment
+        // Só configura o Rebus se não estiver em ambiente de teste
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
         if (environment != "Testing")
         {
@@ -148,7 +147,7 @@ internal static class Extensions
     }
 
     /// <summary>
-    /// Ensures messaging infrastructure for the appropriate transport (RabbitMQ in dev, Azure Service Bus in prod)
+    /// Garante a infraestrutura de messaging para o transporte apropriado (RabbitMQ em dev, Azure Service Bus em prod)
     /// </summary>
     public static async Task EnsureMessagingInfrastructureAsync(this IHost host)
     {
@@ -169,17 +168,17 @@ internal static class Extensions
     {
         configuration.GetSection(ServiceBusOptions.SectionName).Bind(options);
         
-        // Try to get connection string from Aspire first
+        // Tenta obter a connection string do Aspire primeiro
         if (string.IsNullOrWhiteSpace(options.ConnectionString))
         {
             options.ConnectionString = configuration.GetConnectionString("servicebus") ?? string.Empty;
         }
         
-        // For development/testing environments, provide default values even if no connection string
+        // Para ambientes de desenvolvimento/teste, fornece valores padrão mesmo sem connection string
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
         if (environment == "Development" || environment == "Testing")
         {
-            // Provide defaults for development to avoid dependency injection issues
+            // Fornece padrões para desenvolvimento para evitar problemas de injeção de dependência
             if (string.IsNullOrWhiteSpace(options.ConnectionString))
             {
                 options.ConnectionString = "Endpoint=sb://localhost/;SharedAccessKeyName=default;SharedAccessKey=default";
@@ -195,7 +194,7 @@ internal static class Extensions
     private static void ConfigureRabbitMqOptions(RabbitMqOptions options, IConfiguration configuration)
     {
         configuration.GetSection(RabbitMqOptions.SectionName).Bind(options);
-        // Try to get connection string from Aspire first
+        // Tenta obter a connection string do Aspire primeiro
         if (string.IsNullOrWhiteSpace(options.ConnectionString))
         {
             options.ConnectionString = configuration.GetConnectionString("rabbitmq") ?? options.BuildConnectionString();
@@ -210,8 +209,8 @@ internal static class Extensions
     {
         if (environment.EnvironmentName == "Testing")
         {
-            // For testing, use RabbitMQ with minimal configuration
-            // This will fail gracefully and not block the application startup
+            // Para testes, usa RabbitMQ com configuração mínima
+            // Isso irá falhar de forma controlada e não bloqueará o startup da aplicação
             transport.UseRabbitMq("amqp://localhost", "test-queue");
         }
         else if (environment.IsDevelopment())

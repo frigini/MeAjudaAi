@@ -45,7 +45,23 @@ jobs:
       run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
 
     - name: Run tests
-      run: dotnet test MeAjudaAi.sln --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults
+      run: |
+        echo "🧪 Executando todos os testes com reorganização de namespaces..."
+        
+        # Validar namespace reorganization primeiro
+        echo "🔍 Validando reorganização de namespaces..."
+        if find src/ -name "*.cs" -exec grep -l "using MeAjudaAi\.Shared\.Common;" {} \; 2>/dev/null | head -1; then
+          echo "❌ ERRO: Encontradas referências ao namespace antigo MeAjudaAi.Shared.Common"
+          exit 1
+        fi
+        echo "✅ Namespaces validados"
+        
+        # Executar testes por projeto
+        dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Shared
+        dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Architecture
+        ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Integration
+        
+        echo "✅ Todos os testes executados com sucesso"
 
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool

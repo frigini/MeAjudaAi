@@ -33,40 +33,40 @@ public static class SecurityExtensions
     }
 
     /// <summary>
-    /// Validates all security-related configurations to prevent misconfiguration in production.
+    /// Valida todas as configurações relacionadas à segurança para evitar erros em produção.
     /// </summary>
-    /// <param name="configuration">Application configuration</param>
-    /// <param name="environment">Hosting environment</param>
-    /// <exception cref="InvalidOperationException">Thrown when security configuration is invalid</exception>
+    /// <param name="configuration">Configuração da aplicação</param>
+    /// <param name="environment">Ambiente de hospedagem</param>
+    /// <exception cref="InvalidOperationException">Lançada quando a configuração de segurança é inválida</exception>
     public static void ValidateSecurityConfiguration(IConfiguration configuration, IWebHostEnvironment environment)
     {
         var errors = new List<string>();
 
-        // Validate CORS configuration
+        // Valida configuração de CORS
         try
         {
             var corsOptions = configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>() ?? new CorsOptions();
             corsOptions.Validate();
 
-            // Additional production-specific CORS validations
+            // Validações adicionais específicas para produção
             if (environment.IsProduction())
             {
                 if (corsOptions.AllowedOrigins.Contains("*"))
-                    errors.Add("Wildcard CORS origin (*) is not allowed in production environment");
+                    errors.Add("Origem CORS coringa (*) não é permitida em ambiente de produção");
 
                 if (corsOptions.AllowedOrigins.Any(o => o.StartsWith("http://", StringComparison.OrdinalIgnoreCase)))
-                    errors.Add("HTTP origins are not recommended in production environment - use HTTPS");
+                    errors.Add("Origens HTTP não são recomendadas em produção - use HTTPS");
 
                 if (corsOptions.AllowCredentials && corsOptions.AllowedOrigins.Count > 5)
-                    errors.Add("Having many allowed origins with credentials enabled increases security risk");
+                    errors.Add("Muitas origens permitidas com credenciais habilitadas aumentam o risco de segurança");
             }
         }
         catch (Exception ex)
         {
-            errors.Add($"CORS configuration error: {ex.Message}");
+            errors.Add($"Erro na configuração do CORS: {ex.Message}");
         }
 
-        // Validate Keycloak configuration (if not in Testing environment)
+        // Valida configuração do Keycloak (se não estiver em ambiente de teste)
         if (!environment.IsEnvironment("Testing"))
         {
             try
@@ -74,26 +74,26 @@ public static class SecurityExtensions
                 var keycloakOptions = configuration.GetSection(KeycloakOptions.SectionName).Get<KeycloakOptions>() ?? new KeycloakOptions();
                 ValidateKeycloakOptions(keycloakOptions);
 
-                // Additional production-specific validations
+                // Validações adicionais específicas para produção
                 if (environment.IsProduction())
                 {
                     if (!keycloakOptions.RequireHttpsMetadata)
-                        errors.Add("RequireHttpsMetadata should be true in production environment");
+                        errors.Add("RequireHttpsMetadata deve ser true em ambiente de produção");
 
                     if (keycloakOptions.BaseUrl?.StartsWith("http://", StringComparison.OrdinalIgnoreCase) == true)
-                        errors.Add("Keycloak BaseUrl should use HTTPS in production environment");
+                        errors.Add("Keycloak BaseUrl deve usar HTTPS em ambiente de produção");
 
                     if (keycloakOptions.ClockSkew.TotalMinutes > 5)
-                        errors.Add("Keycloak ClockSkew should be minimal (≤5 minutes) in production for better security");
+                        errors.Add("Keycloak ClockSkew deve ser mínimo (≤5 minutos) em produção para maior segurança");
                 }
             }
             catch (Exception ex)
             {
-                errors.Add($"Keycloak configuration error: {ex.Message}");
+                errors.Add($"Erro na configuração do Keycloak: {ex.Message}");
             }
         }
 
-        // Validate Rate Limiting configuration
+        // Valida configuração de Rate Limiting
         try
         {
             var rateLimitSection = configuration.GetSection("AdvancedRateLimit");
@@ -108,10 +108,10 @@ public static class SecurityExtensions
                     var anonHour = anonymousLimits.GetValue<int>("RequestsPerHour");
                     
                     if (anonMinute <= 0 || anonHour <= 0)
-                        errors.Add("Anonymous rate limits must be positive values");
+                        errors.Add("Limites de requisições anônimas devem ser valores positivos");
 
                     if (environment.IsProduction() && anonMinute > 100)
-                        errors.Add("Anonymous rate limits should be conservative in production (≤100 req/min)");
+                        errors.Add("Limites de requisições anônimas devem ser conservadores em produção (≤100 req/min)");
                 }
 
                 if (authenticatedLimits.Exists())
@@ -120,32 +120,32 @@ public static class SecurityExtensions
                     var authHour = authenticatedLimits.GetValue<int>("RequestsPerHour");
 
                     if (authMinute <= 0 || authHour <= 0)
-                        errors.Add("Authenticated rate limits must be positive values");
+                        errors.Add("Limites de requisições autenticadas devem ser valores positivos");
                 }
             }
         }
         catch (Exception ex)
         {
-            errors.Add($"Rate limiting configuration error: {ex.Message}");
+            errors.Add($"Erro na configuração de rate limiting: {ex.Message}");
         }
 
-        // Validate HTTPS redirection in production
+        // Valida redirecionamento HTTPS em produção
         if (environment.IsProduction())
         {
             var httpsRedirection = configuration.GetValue<bool?>("HttpsRedirection:Enabled");
             if (httpsRedirection == false)
-                errors.Add("HTTPS redirection should be enabled in production environment");
+                errors.Add("Redirecionamento HTTPS deve estar habilitado em ambiente de produção");
         }
 
-        // Validate AllowedHosts
+        // Valida AllowedHosts
         var allowedHosts = configuration.GetValue<string>("AllowedHosts");
         if (environment.IsProduction() && allowedHosts == "*")
-            errors.Add("AllowedHosts should be restricted to specific domains in production (not '*')");
+            errors.Add("AllowedHosts deve ser restrito a domínios específicos em produção (não '*')");
 
-        // Throw aggregated errors if any
+        // Lança erros agregados se houver
         if (errors.Any())
         {
-            var errorMessage = "Security configuration validation failed:\n" + string.Join("\n", errors.Select(e => $"- {e}"));
+            var errorMessage = "Falha na validação da configuração de segurança:\n" + string.Join("\n", errors.Select(e => $"- {e}"));
             throw new InvalidOperationException(errorMessage);
         }
     }
@@ -155,7 +155,7 @@ public static class SecurityExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
-        // Register CORS options using AddOptions<>()
+        // Registra opções de CORS usando AddOptions<>()
         services.AddOptions<CorsOptions>()
             .Configure<IConfiguration>((opts, config) =>
             {
@@ -163,7 +163,7 @@ public static class SecurityExtensions
             })
             .ValidateOnStart();
 
-        // Get CORS options for immediate use in policy configuration
+        // Obtém opções de CORS para uso imediato na configuração da política
         var corsOptions = configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>() ?? new CorsOptions();
         corsOptions.Validate();
 
@@ -171,17 +171,17 @@ public static class SecurityExtensions
         {
             options.AddPolicy("DefaultPolicy", policy =>
             {
-                // Configure allowed origins
+                // Configura origens permitidas
                 if (corsOptions.AllowedOrigins.Contains("*"))
                 {
-                    // Only allow wildcard in development
+                    // Só permite coringa em desenvolvimento
                     if (environment.IsDevelopment())
                     {
                         policy.AllowAnyOrigin();
                     }
                     else
                     {
-                        throw new InvalidOperationException("Wildcard CORS origin (*) is not allowed in production environments for security reasons.");
+                        throw new InvalidOperationException("Origem CORS coringa (*) não é permitida em ambientes de produção por motivos de segurança.");
                     }
                 }
                 else
@@ -189,7 +189,7 @@ public static class SecurityExtensions
                     policy.WithOrigins(corsOptions.AllowedOrigins.ToArray());
                 }
 
-                // Configure allowed methods
+                // Configura métodos permitidos
                 if (corsOptions.AllowedMethods.Contains("*"))
                 {
                     policy.AllowAnyMethod();
@@ -199,7 +199,7 @@ public static class SecurityExtensions
                     policy.WithMethods(corsOptions.AllowedMethods.ToArray());
                 }
 
-                // Configure allowed headers
+                // Configura cabeçalhos permitidos
                 if (corsOptions.AllowedHeaders.Contains("*"))
                 {
                     policy.AllowAnyHeader();
@@ -209,13 +209,13 @@ public static class SecurityExtensions
                     policy.WithHeaders(corsOptions.AllowedHeaders.ToArray());
                 }
 
-                // Configure credentials (only if explicitly enabled)
+                // Configura credenciais (apenas se explicitamente habilitado)
                 if (corsOptions.AllowCredentials)
                 {
                     policy.AllowCredentials();
                 }
 
-                // Set preflight cache max age
+                // Define tempo máximo de cache do preflight
                 policy.SetPreflightMaxAge(TimeSpan.FromSeconds(corsOptions.PreflightMaxAge));
             });
         });
@@ -249,7 +249,7 @@ public static class SecurityExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
-        // Register KeycloakOptions using AddOptions<>()
+        // Registra KeycloakOptions usando AddOptions<>()
         services.AddOptions<KeycloakOptions>()
             .Configure<IConfiguration>((opts, config) =>
             {
@@ -257,10 +257,10 @@ public static class SecurityExtensions
             })
             .ValidateOnStart();
 
-        // Get KeycloakOptions for immediate use in configuration
+        // Obtém KeycloakOptions para uso imediato na configuração
         var keycloakOptions = configuration.GetSection(KeycloakOptions.SectionName).Get<KeycloakOptions>() ?? new KeycloakOptions();
 
-        // Validate Keycloak configuration
+        // Valida configuração do Keycloak
         ValidateKeycloakOptions(keycloakOptions);
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -270,7 +270,7 @@ public static class SecurityExtensions
                 options.Audience = keycloakOptions.ClientId;
                 options.RequireHttpsMetadata = keycloakOptions.RequireHttpsMetadata;
                     
-                    // Enhanced token validation parameters
+                    // Parâmetros aprimorados de validação do token
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = keycloakOptions.ValidateIssuer,
@@ -278,11 +278,11 @@ public static class SecurityExtensions
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         ClockSkew = keycloakOptions.ClockSkew,
-                        RoleClaimType = "roles", // Keycloak uses 'roles' claim
-                        NameClaimType = "preferred_username" // Keycloak preferred username claim
+                        RoleClaimType = "roles", // Keycloak usa o claim 'roles'
+                        NameClaimType = "preferred_username" // Claim de usuário preferencial do Keycloak
                     };
 
-                    // Add events for logging authentication issues
+                    // Adiciona eventos para log de problemas de autenticação
                     options.Events = new JwtBearerEvents
                     {
                         OnAuthenticationFailed = context =>
@@ -308,7 +308,7 @@ public static class SecurityExtensions
                     };
                 });
 
-            // Log the effective Keycloak configuration (without secrets)
+            // Loga a configuração efetiva do Keycloak (sem segredos)
             using var serviceProvider = services.BuildServiceProvider();
             var logger = serviceProvider.GetRequiredService<ILogger<JwtBearerHandler>>();
             logger.LogInformation("Keycloak authentication configured - Authority: {Authority}, ClientId: {ClientId}, ValidateIssuer: {ValidateIssuer}", 
@@ -336,7 +336,7 @@ public static class SecurityExtensions
             .AddPolicy("SelfOrAdmin", policy =>
                 policy.AddRequirements(new SelfOrAdminRequirement()));
 
-        // Register authorization handlers
+        // Registra handlers de autorização
         services.AddScoped<IAuthorizationHandler, SelfOrAdminHandler>();
 
         return services;

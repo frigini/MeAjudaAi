@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -55,30 +55,20 @@ internal sealed class UpdateUserProfileCommandHandler(
 
         try
         {
-            // Busca o usuário pelo ID fornecido
-            var user = await userRepository.GetByIdAsync(
-                new UserId(command.UserId), cancellationToken);
+            // Buscar e validar usuário
+            var userResult = await GetAndValidateUserAsync(command, cancellationToken);
+            if (userResult.IsFailure)
+                return Result<UserDto>.Failure(userResult.Error);
 
-            if (user == null)
-            {
-                logger.LogWarning("User profile update failed: User {UserId} not found", command.UserId);
-                return Result<UserDto>.Failure(Error.NotFound("User not found"));
-            }
+            var user = userResult.Value;
 
-            logger.LogDebug("Updating profile for user {UserId}: FirstName={FirstName}, LastName={LastName}", 
-                command.UserId, command.FirstName, command.LastName);
+            // Aplicar atualização do perfil
+            ApplyProfileUpdate(command, user);
 
-            // Atualiza o perfil através do método de domínio
-            user.UpdateProfile(command.FirstName, command.LastName);
-
-            // Persiste as alterações no repositório
-            await userRepository.UpdateAsync(user, cancellationToken);
-
-            // Invalida cache relacionado ao usuário atualizado
-            await usersCacheService.InvalidateUserAsync(command.UserId, user.Email.Value, cancellationToken);
+            // Persistir alterações e invalidar cache
+            await PersistAndInvalidateCacheAsync(command, user, cancellationToken);
 
             logger.LogInformation("User profile updated successfully for user {UserId} - cache invalidated", command.UserId);
-
             return Result<UserDto>.Success(user.ToDto());
         }
         catch (Exception ex)
@@ -86,5 +76,56 @@ internal sealed class UpdateUserProfileCommandHandler(
             logger.LogError(ex, "Unexpected error updating user profile for user {UserId}", command.UserId);
             return Result<UserDto>.Failure($"Failed to update user profile: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Busca e valida a existência do usuário.
+    /// </summary>
+    private async Task<Result<Domain.Entities.User>> GetAndValidateUserAsync(
+        UpdateUserProfileCommand command,
+        CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Fetching user {UserId} for profile update", command.UserId);
+        
+        var user = await userRepository.GetByIdAsync(
+            new UserId(command.UserId), cancellationToken);
+
+        if (user == null)
+        {
+            logger.LogWarning("User profile update failed: User {UserId} not found", command.UserId);
+            return Result<Domain.Entities.User>.Failure(Error.NotFound("User not found"));
+        }
+
+        return Result<Domain.Entities.User>.Success(user);
+    }
+
+    /// <summary>
+    /// Aplica a atualização do perfil usando o método de domínio.
+    /// </summary>
+    private void ApplyProfileUpdate(UpdateUserProfileCommand command, Domain.Entities.User user)
+    {
+        logger.LogDebug("Updating profile for user {UserId}: FirstName={FirstName}, LastName={LastName}", 
+            command.UserId, command.FirstName, command.LastName);
+        
+        user.UpdateProfile(command.FirstName, command.LastName);
+    }
+
+    /// <summary>
+    /// Persiste as alterações e invalida o cache relacionado.
+    /// </summary>
+    private async Task PersistAndInvalidateCacheAsync(
+        UpdateUserProfileCommand command,
+        Domain.Entities.User user,
+        CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Persisting profile changes for user {UserId}", command.UserId);
+        
+        // Persiste as alterações no repositório
+        await userRepository.UpdateAsync(user, cancellationToken);
+
+        // Invalida cache relacionado ao usuário atualizado
+        await usersCacheService.InvalidateUserAsync(command.UserId, user.Email.Value, cancellationToken);
+        
+        logger.LogDebug("Profile persistence and cache invalidation completed for user {UserId}", command.UserId);
     }
 }

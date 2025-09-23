@@ -7,26 +7,16 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// <summary>
 /// Serviço em background para coletar métricas periódicas
 /// </summary>
-public class MetricsCollectorService : BackgroundService
+public class MetricsCollectorService(
+    BusinessMetrics businessMetrics,
+    IServiceProvider serviceProvider,
+    ILogger<MetricsCollectorService> logger) : BackgroundService
 {
-    private readonly BusinessMetrics _businessMetrics;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<MetricsCollectorService> _logger;
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // Coleta a cada minuto
-
-    public MetricsCollectorService(
-        BusinessMetrics businessMetrics,
-        IServiceProvider serviceProvider,
-        ILogger<MetricsCollectorService> logger)
-    {
-        _businessMetrics = businessMetrics;
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Metrics collector service started");
+        logger.LogInformation("Metrics collector service started");
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -36,35 +26,35 @@ public class MetricsCollectorService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error collecting metrics");
+                logger.LogError(ex, "Error collecting metrics");
             }
 
             await Task.Delay(_interval, stoppingToken);
         }
 
-        _logger.LogInformation("Metrics collector service stopped");
+        logger.LogInformation("Metrics collector service stopped");
     }
 
     private async Task CollectMetrics(CancellationToken cancellationToken)
     {
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = serviceProvider.CreateScope();
         
         try
         {
             // Coletar métricas de usuários ativos
             var activeUsers = await GetActiveUsersCount(scope);
-            _businessMetrics.UpdateActiveUsers(activeUsers);
+            businessMetrics.UpdateActiveUsers(activeUsers);
 
             // Coletar métricas de solicitações pendentes
             var pendingRequests = await GetPendingHelpRequestsCount(scope);
-            _businessMetrics.UpdatePendingHelpRequests(pendingRequests);
+            businessMetrics.UpdatePendingHelpRequests(pendingRequests);
 
-            _logger.LogDebug("Metrics collected: {ActiveUsers} active users, {PendingRequests} pending requests",
+            logger.LogDebug("Metrics collected: {ActiveUsers} active users, {PendingRequests} pending requests",
                 activeUsers, pendingRequests);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to collect some metrics");
+            logger.LogWarning(ex, "Failed to collect some metrics");
         }
     }
 
@@ -81,7 +71,7 @@ public class MetricsCollectorService : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to get active users count");
+            logger.LogWarning(ex, "Failed to get active users count");
             return 0;
         }
     }
@@ -98,22 +88,8 @@ public class MetricsCollectorService : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to get pending help requests count");
+            logger.LogWarning(ex, "Failed to get pending help requests count");
             return 0;
         }
-    }
-}
-
-/// <summary>
-/// Extension methods para registrar o serviço de coleta de métricas
-/// </summary>
-public static class MetricsCollectorExtensions
-{
-    /// <summary>
-    /// Adiciona o serviço de coleta de métricas
-    /// </summary>
-    public static IServiceCollection AddMetricsCollector(this IServiceCollection services)
-    {
-        return services.AddHostedService<MetricsCollectorService>();
     }
 }

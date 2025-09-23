@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Common;
+﻿using MeAjudaAi.Shared.Mediator;
 
 namespace MeAjudaAi.Shared.Queries;
 

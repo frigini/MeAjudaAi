@@ -57,8 +57,8 @@ public class UpdateUserProfileRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("A")] // Too short
-    [InlineData("ThisIsAVeryLongFirstNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem")] // Too long
+    [InlineData("A")] // Muito curto
+    [InlineData("ThisIsAVeryLongFirstNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem")] // Muito longo
     public void Validate_InvalidFirstNameLength_ShouldHaveValidationError(string firstName)
     {
         // Arrange
@@ -78,10 +78,10 @@ public class UpdateUserProfileRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("João123")] // Numbers not allowed
-    [InlineData("João@")] // Special characters not allowed
-    [InlineData("João-")] // Hyphens not allowed
-    [InlineData("João_")] // Underscores not allowed
+    [InlineData("João123")] // Números não permitidos
+    [InlineData("João@")] // Caracteres especiais não permitidos
+    [InlineData("João-")] // Hífens não permitidos
+    [InlineData("João_")] // Underline não permitidos
     public void Validate_InvalidFirstNameFormat_ShouldHaveValidationError(string firstName)
     {
         // Arrange
@@ -147,8 +147,8 @@ public class UpdateUserProfileRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("S")] // Too short
-    [InlineData("ThisIsAVeryLongLastNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem")] // Too long
+    [InlineData("S")] // Muito curto
+    [InlineData("ThisIsAVeryLongLastNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem")] // Muito longo
     public void Validate_InvalidLastNameLength_ShouldHaveValidationError(string lastName)
     {
         // Arrange
@@ -168,10 +168,10 @@ public class UpdateUserProfileRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("Silva123")] // Numbers not allowed
-    [InlineData("Silva@")] // Special characters not allowed
-    [InlineData("Silva-")] // Hyphens not allowed
-    [InlineData("Silva_")] // Underscores not allowed
+    [InlineData("Silva123")] // Números não permitidos
+    [InlineData("Silva@")] // Caracteres especiais não permitidos
+    [InlineData("Silva-")] // Hífens não permitidos
+    [InlineData("Silva_")] // Underline não permitidos
     public void Validate_InvalidLastNameFormat_ShouldHaveValidationError(string lastName)
     {
         // Arrange
@@ -263,7 +263,7 @@ public class UpdateUserProfileRequestValidatorTests
     public void Validate_EmailTooLong_ShouldHaveValidationError()
     {
         // Arrange
-        var longEmail = string.Concat(Enumerable.Repeat("a", 250)) + "@example.com"; // Over 255 characters
+        var longEmail = string.Concat(Enumerable.Repeat("a", 250)) + "@example.com"; // Mais de 255 caracteres
         var request = new UpdateUserProfileRequest
         {
             FirstName = "João",

@@ -271,7 +271,88 @@ run_unit_tests() {
     fi
 }
 
-# === Testes de Integração ===
+# === Validação de Namespaces ===
+validate_namespace_reorganization() {
+    print_header "Validando Reorganização de Namespaces"
+    
+    print_info "Verificando conformidade com a reorganização de namespaces..."
+    
+    # Verificar se não há referências ao namespace antigo
+    if find src/ -name "*.cs" -exec grep -l "using MeAjudaAi\.Shared\.Common;" {} \; 2>/dev/null | head -1; then
+        print_error "❌ Encontradas referências ao namespace antigo MeAjudaAi.Shared.Common"
+        print_error "   Use os novos namespaces específicos:"
+        print_error "   - MeAjudaAi.Shared.Functional (Result, Error, Unit)"
+        print_error "   - MeAjudaAi.Shared.Domain (BaseEntity, AggregateRoot, ValueObject)"
+        print_error "   - MeAjudaAi.Shared.Contracts (Request, Response, PagedRequest, PagedResponse)"
+        print_error "   - MeAjudaAi.Shared.Mediator (IRequest, IPipelineBehavior)"
+        print_error "   - MeAjudaAi.Shared.Security (UserRoles)"
+        return 1
+    fi
+    
+    # Verificar se os novos namespaces estão sendo usados
+    local functional_count=$(find src/ -name "*.cs" -exec grep -l "MeAjudaAi\.Shared\.Functional" {} \; 2>/dev/null | wc -l)
+    local domain_count=$(find src/ -name "*.cs" -exec grep -l "MeAjudaAi\.Shared\.Domain" {} \; 2>/dev/null | wc -l)
+    local contracts_count=$(find src/ -name "*.cs" -exec grep -l "MeAjudaAi\.Shared\.Contracts" {} \; 2>/dev/null | wc -l)
+    
+    print_info "Estatísticas de uso dos novos namespaces:"
+    print_info "- Functional: $functional_count arquivos"
+    print_info "- Domain: $domain_count arquivos"
+    print_info "- Contracts: $contracts_count arquivos"
+    
+    print_info "✅ Reorganização de namespaces validada com sucesso!"
+    return 0
+}
+
+# === Testes Específicos por Projeto ===
+run_specific_project_tests() {
+    print_header "Executando Testes por Projeto"
+    
+    local failed_projects=0
+    
+    # Testes do Shared
+    print_info "Executando testes MeAjudaAi.Shared.Tests..."
+    if dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --no-build --configuration Release --logger "console;verbosity=minimal"; then
+        print_info "✅ MeAjudaAi.Shared.Tests passou"
+    else
+        print_error "❌ MeAjudaAi.Shared.Tests falhou"
+        failed_projects=$((failed_projects + 1))
+    fi
+    
+    # Testes de Arquitetura
+    print_info "Executando testes MeAjudaAi.Architecture.Tests..."
+    if dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --no-build --configuration Release --logger "console;verbosity=minimal"; then
+        print_info "✅ MeAjudaAi.Architecture.Tests passou"
+    else
+        print_error "❌ MeAjudaAi.Architecture.Tests falhou"
+        failed_projects=$((failed_projects + 1))
+    fi
+    
+    # Testes de Integração
+    print_info "Executando testes MeAjudaAi.Integration.Tests..."
+    if ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --no-build --configuration Release --logger "console;verbosity=minimal"; then
+        print_info "✅ MeAjudaAi.Integration.Tests passou"
+    else
+        print_error "❌ MeAjudaAi.Integration.Tests falhou"
+        failed_projects=$((failed_projects + 1))
+    fi
+    
+    # Testes E2E
+    print_info "Executando testes MeAjudaAi.E2E.Tests..."
+    if ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj --no-build --configuration Release --logger "console;verbosity=minimal"; then
+        print_info "✅ MeAjudaAi.E2E.Tests passou"
+    else
+        print_error "❌ MeAjudaAi.E2E.Tests falhou"
+        failed_projects=$((failed_projects + 1))
+    fi
+    
+    if [ "$failed_projects" -eq 0 ]; then
+        print_info "✅ Todos os projetos de teste passaram!"
+        return 0
+    else
+        print_error "❌ $failed_projects projeto(s) de teste falharam"
+        return 1
+    fi
+}
 run_integration_tests() {
     print_header "Executando Testes de Integração"
     
@@ -392,6 +473,9 @@ main() {
     apply_optimizations
     build_solution
     
+    # Validar reorganização de namespaces primeiro
+    validate_namespace_reorganization || failed_tests=$((failed_tests + 1))
+    
     # Executar testes baseado nas opções
     if [ "$UNIT_ONLY" = true ]; then
         run_unit_tests || failed_tests=$((failed_tests + 1))
@@ -400,10 +484,8 @@ main() {
     elif [ "$E2E_ONLY" = true ]; then
         run_e2e_tests || failed_tests=$((failed_tests + 1))
     else
-        # Executar todos os tipos de teste
-        run_unit_tests || failed_tests=$((failed_tests + 1))
-        run_integration_tests || failed_tests=$((failed_tests + 1))
-        run_e2e_tests || failed_tests=$((failed_tests + 1))
+        # Executar todos os tipos de teste com projetos específicos
+        run_specific_project_tests || failed_tests=$((failed_tests + 1))
     fi
     
     generate_coverage_report

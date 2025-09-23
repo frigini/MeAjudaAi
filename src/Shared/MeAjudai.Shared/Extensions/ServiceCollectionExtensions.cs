@@ -1,10 +1,9 @@
 ﻿using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Mediator;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;
-using MeAjudaAi.Shared.Logging;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Monitoring;
 using MeAjudaAi.Shared.Queries;
@@ -23,8 +22,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddSharedServices(
         this IServiceCollection services,
-        IConfiguration configuration,
-        IWebHostEnvironment environment)
+        IConfiguration configuration)
     {
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddCustomSerialization();
@@ -33,7 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddPostgres(configuration);
         services.AddCaching(configuration);
         
-        // Only add messaging if not in Testing environment
+        // Só adiciona messaging se não estiver em ambiente de teste
         var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
         if (envName != "Testing")
         {
@@ -41,7 +39,7 @@ public static class ServiceCollectionExtensions
         }
         else
         {
-            // Register no-op messaging for testing
+            // Registra messaging no-op para testes
             services.AddSingleton<IMessageBus, NoOpMessageBus>();
             services.AddSingleton<MeAjudaAi.Shared.Messaging.ServiceBus.IServiceBusTopicManager, NoOpServiceBusTopicManager>();
         }
@@ -82,7 +80,7 @@ public static class ServiceCollectionExtensions
             else
             {
                 services.AddSingleton<IMessageBus, NoOpMessageBus>();
-                services.AddSingleton<MeAjudaAi.Shared.Messaging.ServiceBus.IServiceBusTopicManager, NoOpServiceBusTopicManager>();
+                services.AddSingleton<MeAjudaAi.Shared.Messaging.Service.Bus.IServiceBusTopicManager, NoOpServiceBusTopicManager>();
             }
             
             services.AddValidation();
@@ -92,7 +90,7 @@ public static class ServiceCollectionExtensions
             services.AddEvents();
         }
         
-        // Adicionar monitoramento avançado complementar ao Aspire
+        // Adiciona monitoramento avançado complementar ao Aspire
         services.AddAdvancedMonitoring(environment);
 
         return services;
@@ -101,7 +99,7 @@ public static class ServiceCollectionExtensions
     public static IApplicationBuilder UseSharedServices(this IApplicationBuilder app)
     {
         app.UseErrorHandling();
-        app.UseAdvancedMonitoring(); // Adicionar middleware de métricas
+        app.UseAdvancedMonitoring(); // Adiciona middleware de métricas
 
         return app;
     }
@@ -110,7 +108,7 @@ public static class ServiceCollectionExtensions
     {
         app.UseErrorHandling();
         
-        // Ensure messaging infrastructure is created (skip in Testing environment or when disabled)
+        // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
         if (app is WebApplication webApp && environment != "Testing")
         {
@@ -137,7 +135,7 @@ public static class ServiceCollectionExtensions
                     catch (Exception ex)
                     {
                         var logger = webApp.Services.GetRequiredService<ILogger<ICacheWarmupService>>();
-                        logger.LogError(ex, "Cache warmup failed during startup");
+                        logger.LogError(ex, "Falha ao aquecer o cache durante a inicialização");
                     }
                 });
             }

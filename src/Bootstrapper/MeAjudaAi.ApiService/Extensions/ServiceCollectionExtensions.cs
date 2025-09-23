@@ -1,6 +1,5 @@
 ﻿using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Middlewares;
-using MeAjudaAi.Shared.Common;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
@@ -11,7 +10,7 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
-        // Validate security configuration early in startup
+        // Valida a configuração de segurança logo no início do startup
         SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
 
         // Registro da configuração de Rate Limit com validação
@@ -32,11 +31,11 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddDocumentation();
-        services.AddApiVersioning(); // Adicionar versionamento de API
+        services.AddApiVersioning(); // Adiciona versionamento de API
         services.AddCorsPolicy(configuration, environment);
         services.AddMemoryCache();
         
-        // Adicionar serviços de autenticação básica (required for middleware)
+        // Adiciona serviços de autenticação básica (necessário para o middleware)
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = "Bearer";
@@ -45,7 +44,7 @@ public static class ServiceCollectionExtensions
             })
             .AddJwtBearer("Bearer", options =>
             {
-                // Configure basic JWT settings - can be enhanced later
+                // Configuração básica do JWT - pode ser aprimorada depois
                 options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                 {
                     ValidateIssuer = false,
@@ -60,13 +59,13 @@ public static class ServiceCollectionExtensions
                 {
                     OnTokenValidated = context =>
                     {
-                        // Basic token validation logic can be added here
+                        // Lógica básica de validação do token pode ser adicionada aqui
                         return Task.CompletedTask;
                     }
                 };
             });
         
-        // Adicionar serviços de autorização
+        // Adiciona serviços de autorização
         services.AddAuthorizationPolicies();
         
         // Otimizações de performance

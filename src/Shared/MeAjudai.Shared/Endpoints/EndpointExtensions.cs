@@ -1,4 +1,5 @@
-﻿using MeAjudaAi.Shared.Common;
+﻿using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Http;
 
 namespace MeAjudaAi.Shared.Endpoints;
@@ -6,8 +7,8 @@ namespace MeAjudaAi.Shared.Endpoints;
 public static class EndpointExtensions
 {
     /// <summary>
-    /// Universal method to handle any Result type and return appropriate HTTP response
-    /// Supports Ok, Created, NotFound, BadRequest, and other error responses automatically
+    /// Método universal para manipular qualquer tipo Result e retornar a resposta HTTP apropriada
+    /// Suporta Ok, Created, NotFound, BadRequest e outras respostas de erro automaticamente
     /// </summary>
     public static IResult Handle<T>(Result<T> result, string? createdRoute = null, object? routeValues = null)
     {
@@ -26,7 +27,7 @@ public static class EndpointExtensions
     }
 
     /// <summary>
-    /// Handle Result (non-generic) with automatic response determination
+    /// Manipula Result (não genérico) com determinação automática da resposta
     /// </summary>
     public static IResult Handle(Result result)
     {
@@ -37,7 +38,7 @@ public static class EndpointExtensions
     }
 
     /// <summary>
-    /// Handle paged results with automatic response formatting
+    /// Manipula resultados paginados com formatação automática da resposta
     /// </summary>
     public static IResult HandlePaged<T>(Result<IEnumerable<T>> result, int totalCount, int currentPage, int pageSize)
     {
@@ -56,7 +57,7 @@ public static class EndpointExtensions
     }
 
     /// <summary>
-    /// Handle PagedResult directly - extracts pagination info automatically
+    /// Manipula PagedResult diretamente - extrai informações de paginação automaticamente
     /// </summary>
     public static IResult HandlePagedResult<T>(Result<PagedResult<T>> result)
     {
@@ -64,10 +65,10 @@ public static class EndpointExtensions
         {
             var pagedData = result.Value;
             var pagedResponse = new PagedResponse<IEnumerable<T>>(
-                pagedData.Items,          // data
+                pagedData.Items,          // dados
                 pagedData.TotalCount,     // totalCount
-                pagedData.Page,           // currentPage
-                pagedData.PageSize        // pageSize
+                pagedData.Page,           // página atual
+                pagedData.PageSize        // tamanho da página
             );
 
             return TypedResults.Ok(pagedResponse);
@@ -77,7 +78,7 @@ public static class EndpointExtensions
     }
 
     /// <summary>
-    /// Handle results that should return NoContent on success
+    /// Manipula resultados que devem retornar NoContent em caso de sucesso
     /// </summary>
     public static IResult HandleNoContent<T>(Result<T> result)
     {
@@ -88,7 +89,7 @@ public static class EndpointExtensions
     }
 
     /// <summary>
-    /// Handle results that should return NoContent on success (non-generic)
+    /// Manipula resultados que devem retornar NoContent em caso de sucesso (não genérico)
     /// </summary>
     public static IResult HandleNoContent(Result result)
     {

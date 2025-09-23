@@ -3,7 +3,7 @@
 namespace MeAjudaAi.Shared.Messaging.Messages.Users;
 
 /// <summary>
-/// Published when a user is deleted (soft delete)
+/// Publicado quando um usuário é excluído (soft delete)
 /// </summary>
 public sealed record UserDeletedIntegrationEvent
 (

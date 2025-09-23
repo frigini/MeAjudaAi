@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Shared.Time;
 using MeAjudaAi.Shared.Tests.Builders;
 
 namespace MeAjudaAi.Modules.Users.Tests.Builders;
@@ -30,10 +31,7 @@ public class UserBuilder : BuilderBase<User>
                 if (_id.HasValue)
                 {
                     var idField = typeof(User).GetField("_id", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    if (idField != null)
-                    {
-                        idField.SetValue(user, new UserId(_id.Value));
-                    }
+                    idField?.SetValue(user, new UserId(_id.Value));
                 }
 
                 return user;
@@ -97,7 +95,9 @@ public class UserBuilder : BuilderBase<User>
 
     public UserBuilder AsDeleted()
     {
-        WithCustomAction(user => user.MarkAsDeleted());
+        var mockDateTimeProvider = new Mock<IDateTimeProvider>();
+        mockDateTimeProvider.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
+        WithCustomAction(user => user.MarkAsDeleted(mockDateTimeProvider.Object));
         return this;
     }
 }

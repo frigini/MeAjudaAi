@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace MeAjudaAi.Shared.Common;
+namespace MeAjudaAi.Shared.Contracts;
 
 public record Response<TData>
 {

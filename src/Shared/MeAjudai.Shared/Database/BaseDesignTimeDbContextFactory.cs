@@ -1,39 +1,38 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.Reflection;
 
 namespace MeAjudaAi.Shared.Database;
 
 /// <summary>
-/// Base class for design-time DbContext factories across modules
-/// Automatically detects module name from namespace
+/// Classe base para fábricas de DbContext em tempo de design em todos os módulos
+/// Detecta automaticamente o nome do módulo a partir do namespace
 /// </summary>
-/// <typeparam name="TContext">The DbContext type</typeparam>
+/// <typeparam name="TContext">O tipo do DbContext</typeparam>
 public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbContextFactory<TContext>
     where TContext : DbContext
 {
     /// <summary>
-    /// Gets the module name automatically from the derived class namespace
-    /// Expected namespace pattern: MeAjudaAi.Modules.{ModuleName}.Infrastructure.Persistence
+    /// Obtém o nome do módulo automaticamente a partir do namespace da classe derivada
+    /// Padrão de namespace esperado: MeAjudaAi.Modules.{ModuleName}.Infrastructure.Persistence
     /// </summary>
     protected virtual string GetModuleName()
     {
         var derivedType = GetType();
         var namespaceParts = derivedType.Namespace?.Split('.') ?? Array.Empty<string>();
         
-        // Look for pattern: MeAjudaAi.Modules.{ModuleName}.Infrastructure
+        // Procura pelo padrão: MeAjudaAi.Modules.{ModuleName}.Infrastructure
         for (int i = 0; i < namespaceParts.Length - 1; i++)
         {
             if (namespaceParts[i] == "MeAjudaAi" && 
                 i + 2 < namespaceParts.Length && 
                 namespaceParts[i + 1] == "Modules")
             {
-                return namespaceParts[i + 2]; // Return the module name
+                return namespaceParts[i + 2]; // Retorna o nome do módulo
             }
         }
         
-        // Fallback: extract from class name if it follows pattern {ModuleName}DbContextFactory
+        // Alternativa: extrai do nome da classe se seguir o padrão {ModuleName}DbContextFactory
         var className = derivedType.Name;
         if (className.EndsWith("DbContextFactory"))
         {
@@ -41,18 +40,18 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
         }
         
         throw new InvalidOperationException(
-            $"Cannot determine module name from namespace '{derivedType.Namespace}' or class name '{className}'. " +
-            "Expected namespace pattern: 'MeAjudaAi.Modules.{{ModuleName}}.Infrastructure.Persistence' " +
-            "or class name pattern: '{{ModuleName}}DbContextFactory'");
+            $"Não foi possível determinar o nome do módulo a partir do namespace '{derivedType.Namespace}' ou do nome da classe '{className}'. " +
+            "Padrão de namespace esperado: 'MeAjudaAi.Modules.{ModuleName}.Infrastructure.Persistence' " +
+            "ou padrão de nome de classe: '{ModuleName}DbContextFactory'");
     }
     
     /// <summary>
-    /// Gets the connection string for design time operations
-    /// Can be overridden to provide custom logic
+    /// Obtém a string de conexão para operações em tempo de design
+    /// Pode ser sobrescrito para lógica personalizada
     /// </summary>
     protected virtual string GetDesignTimeConnectionString()
     {
-        // Try to get from configuration first
+        // Tenta obter da configuração primeiro
         var configuration = BuildConfiguration();
         var connectionString = configuration.GetConnectionString("DefaultConnection");
         
@@ -61,12 +60,12 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
             return connectionString;
         }
         
-        // Fallback to default local development connection
+        // Alternativa para conexão local padrão de desenvolvimento
         return GetDefaultConnectionString();
     }
     
     /// <summary>
-    /// Gets the migrations assembly name based on module name
+    /// Obtém o nome do assembly de migrations com base no nome do módulo
     /// </summary>
     protected virtual string GetMigrationsAssembly()
     {
@@ -74,7 +73,7 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
     }
     
     /// <summary>
-    /// Gets the schema name for migrations history table based on module name
+    /// Obtém o nome do schema da tabela de histórico de migrations com base no nome do módulo
     /// </summary>
     protected virtual string GetMigrationsHistorySchema()
     {
@@ -82,7 +81,7 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
     }
     
     /// <summary>
-    /// Gets the default connection string for local development
+    /// Obtém a string de conexão padrão para desenvolvimento local
     /// </summary>
     protected virtual string GetDefaultConnectionString()
     {
@@ -91,7 +90,7 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
     }
     
     /// <summary>
-    /// Builds configuration from appsettings files
+    /// Constrói a configuração a partir dos arquivos appsettings
     /// </summary>
     protected virtual IConfiguration BuildConfiguration()
     {
@@ -106,41 +105,41 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
     }
     
     /// <summary>
-    /// Configure additional options for the DbContext
+    /// Configura opções adicionais para o DbContext
     /// </summary>
-    /// <param name="optionsBuilder">The options builder</param>
+    /// <param name="optionsBuilder">O builder de opções</param>
     protected virtual void ConfigureAdditionalOptions(DbContextOptionsBuilder<TContext> optionsBuilder)
     {
-        // Override in derived classes if needed
+        // Sobrescreva em classes derivadas se necessário
     }
 
     /// <summary>
-    /// Creates the DbContext instance for design time operations
+    /// Cria a instância do DbContext para operações em tempo de design
     /// </summary>
-    /// <param name="args">Command line arguments</param>
-    /// <returns>The configured DbContext instance</returns>
+    /// <param name="args">Argumentos de linha de comando</param>
+    /// <returns>Instância configurada do DbContext</returns>
     public TContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<TContext>();
         
-        // Configure PostgreSQL with migrations settings
+        // Configura PostgreSQL com opções de migrations
         optionsBuilder.UseNpgsql(GetDesignTimeConnectionString(), options =>
         {
             options.MigrationsAssembly(GetMigrationsAssembly());
             options.MigrationsHistoryTable("__EFMigrationsHistory", GetMigrationsHistorySchema());
         });
         
-        // Allow derived classes to configure additional options
+        // Permite que classes derivadas configurem opções adicionais
         ConfigureAdditionalOptions(optionsBuilder);
 
         return CreateDbContextInstance(optionsBuilder.Options);
     }
     
     /// <summary>
-    /// Creates the actual DbContext instance
-    /// Override this method to provide custom constructor logic
+    /// Cria a instância real do DbContext
+    /// Sobrescreva este método para lógica personalizada de construtor
     /// </summary>
-    /// <param name="options">The configured options</param>
-    /// <returns>The DbContext instance</returns>
+    /// <param name="options">As opções configuradas</param>
+    /// <returns>Instância do DbContext</returns>
     protected abstract TContext CreateDbContextInstance(DbContextOptions<TContext> options);
 }

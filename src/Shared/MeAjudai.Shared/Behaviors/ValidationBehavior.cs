@@ -1,5 +1,5 @@
 using FluentValidation;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Mediator;
 
 namespace MeAjudaAi.Shared.Behaviors;
 
@@ -9,19 +9,13 @@ namespace MeAjudaAi.Shared.Behaviors;
 /// </summary>
 /// <typeparam name="TRequest">Tipo da requisição (Command/Query)</typeparam>
 /// <typeparam name="TResponse">Tipo da resposta</typeparam>
-public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+/// <remarks>
+/// Inicializa uma nova instância do ValidationBehavior.
+/// </remarks>
+/// <param name="validators">Coleção de validadores para o tipo de request</param>
+public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    private readonly IEnumerable<IValidator<TRequest>> _validators;
-
-    /// <summary>
-    /// Inicializa uma nova instância do ValidationBehavior.
-    /// </summary>
-    /// <param name="validators">Coleção de validadores para o tipo de request</param>
-    public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
-    {
-        _validators = validators;
-    }
 
     /// <summary>
     /// Executa a validação antes de chamar o próximo handler na pipeline.
@@ -33,7 +27,7 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
     /// <exception cref="MeAjudaAi.Shared.Exceptions.ValidationException">Lançada quando há erros de validação</exception>
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        if (!_validators.Any())
+        if (!validators.Any())
         {
             return await next();
         }
@@ -41,7 +35,7 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
         var context = new ValidationContext<TRequest>(request);
 
         var validationResults = await Task.WhenAll(
-            _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+            validators.Select(v => v.ValidateAsync(context, cancellationToken)));
 
         var failures = validationResults
             .SelectMany(r => r.Errors)

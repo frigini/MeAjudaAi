@@ -62,9 +62,9 @@ public class CreateUserRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("ab")] // Too short
-    [InlineData("a")] // Too short
-    [InlineData("this_is_a_very_long_username_that_exceeds_fifty_chars")] // Too long
+    [InlineData("ab")] // Muito curto
+    [InlineData("a")] // Muito curto
+    [InlineData("this_is_a_very_long_username_that_exceeds_fifty_chars")] // Muito longo
     public void Validate_InvalidUsernameLength_ShouldHaveValidationError(string username)
     {
         // Arrange
@@ -86,10 +86,10 @@ public class CreateUserRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("user@name")] // Invalid character
-    [InlineData("user name")] // Space not allowed
-    [InlineData("user#name")] // Invalid character
-    [InlineData("user%name")] // Invalid character
+    [InlineData("user@name")] // Caractere inválido
+    [InlineData("user name")] // Espaço não permitido
+    [InlineData("user#name")] // Caractere inválido
+    [InlineData("user%name")] // Caractere inválido
     public void Validate_InvalidUsernameFormat_ShouldHaveValidationError(string username)
     {
         // Arrange
@@ -188,7 +188,7 @@ public class CreateUserRequestValidatorTests
     public void Validate_EmailTooLong_ShouldHaveValidationError()
     {
         // Arrange
-        var longEmail = string.Concat(Enumerable.Repeat("a", 250)) + "@example.com"; // Over 255 characters
+        var longEmail = string.Concat(Enumerable.Repeat("a", 250)) + "@example.com"; // Mais de 255 caracteres
         var request = new CreateUserRequest
         {
             Username = "testuser",
@@ -231,7 +231,7 @@ public class CreateUserRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("1234567")] // Too short
+    [InlineData("1234567")] // Muito curta
     [InlineData("short")]
     public void Validate_PasswordTooShort_ShouldHaveValidationError(string password)
     {
@@ -254,10 +254,10 @@ public class CreateUserRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("password123")] // No uppercase
-    [InlineData("PASSWORD123")] // No lowercase
-    [InlineData("PasswordABC")] // No number
-    [InlineData("12345678")] // No letters
+    [InlineData("password123")] // Sem maiúscula
+    [InlineData("PASSWORD123")] // Sem minúscula
+    [InlineData("PasswordABC")] // Sem número
+    [InlineData("12345678")] // Sem letras
     public void Validate_PasswordMissingRequiredCharacters_ShouldHaveValidationError(string password)
     {
         // Arrange
@@ -303,8 +303,8 @@ public class CreateUserRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("A")] // Too short
-    [InlineData("ThisIsAVeryLongFirstNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem")] // Too long
+    [InlineData("A")] // Muito curto
+    [InlineData("ThisIsAVeryLongFirstNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem")] // Muito longo
     public void Validate_InvalidFirstNameLength_ShouldHaveValidationError(string firstName)
     {
         // Arrange
@@ -326,9 +326,9 @@ public class CreateUserRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("John123")] // Numbers not allowed
-    [InlineData("John@")] // Special characters not allowed
-    [InlineData("John-")] // Hyphens not allowed
+    [InlineData("John123")] // Números não permitidos
+    [InlineData("John@")]
+    [InlineData("John-")]
     public void Validate_InvalidFirstNameFormat_ShouldHaveValidationError(string firstName)
     {
         // Arrange

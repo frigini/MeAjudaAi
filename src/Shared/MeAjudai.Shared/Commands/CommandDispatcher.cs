@@ -1,4 +1,5 @@
-﻿using MeAjudaAi.Shared.Common;
+﻿using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +13,7 @@ public class CommandDispatcher(IServiceProvider serviceProvider, ILogger<Command
         logger.LogInformation("Executing command {CommandType} with correlation {CorrelationId}",
             typeof(TCommand).Name, command.CorrelationId);
 
-        await ExecuteWithPipeline<TCommand, Unit>(command, async () =>
+        await ExecuteWithPipeline(command, async () =>
         {
             var handler = serviceProvider.GetRequiredService<ICommandHandler<TCommand>>();
             await handler.HandleAsync(command, cancellationToken);
@@ -26,7 +27,7 @@ public class CommandDispatcher(IServiceProvider serviceProvider, ILogger<Command
         logger.LogInformation("Executing command {CommandType} with correlation {CorrelationId}",
             typeof(TCommand).Name, command.CorrelationId);
 
-        return await ExecuteWithPipeline<TCommand, TResult>(command, async () =>
+        return await ExecuteWithPipeline(command, async () =>
         {
             var handler = serviceProvider.GetRequiredService<ICommandHandler<TCommand, TResult>>();
             return await handler.HandleAsync(command, cancellationToken);

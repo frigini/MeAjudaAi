@@ -3,8 +3,9 @@ using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -66,14 +67,10 @@ public class CreateUserEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
-        // Use mapper extension to create command from request
         var command = request.ToCommand();
-
-        // Envia comando através do dispatcher CQRS
         var result = await commandDispatcher.SendAsync<CreateUserCommand, Result<UserDto>>(
             command, cancellationToken);
 
-        // Processa resultado e retorna resposta HTTP apropriada
         return Handle(result, "CreateUser", new { id = result.Value?.Id });
     }
 }

@@ -2,7 +2,7 @@
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Services;
 

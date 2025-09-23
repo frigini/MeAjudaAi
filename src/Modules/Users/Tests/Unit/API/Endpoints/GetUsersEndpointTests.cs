@@ -36,15 +36,15 @@ public class GetUsersEndpointTests
     public void ToUsersQuery_WithDefaultValues_ShouldCreateQueryWithDefaults()
     {
         // Arrange
-        var request = new GetUsersRequest(); // Default values
+        var request = new GetUsersRequest(); // Valores padrão
 
         // Act
         var query = request.ToUsersQuery();
 
         // Assert
         query.Should().NotBeNull();
-        query.Page.Should().Be(1); // Default page
-        query.PageSize.Should().Be(10); // Default page size
+        query.Page.Should().Be(1); // Página padrão
+        query.PageSize.Should().Be(10); // Tamanho de página padrão
         query.SearchTerm.Should().BeNull();
         query.Should().BeOfType<GetUsersQuery>();
     }
@@ -75,10 +75,10 @@ public class GetUsersEndpointTests
     }
 
     [Theory]
-    [InlineData(0, 10)] // Invalid page
-    [InlineData(-1, 10)] // Negative page
-    [InlineData(1, 0)] // Invalid page size
-    [InlineData(1, -5)] // Negative page size
+    [InlineData(0, 10)] // Página inválida
+    [InlineData(-1, 10)] // Página negativa
+    [InlineData(1, 0)] // Tamanho de página inválido
+    [InlineData(1, -5)] // Tamanho de página negativo
     public void ToUsersQuery_WithInvalidPaginationValues_ShouldStillCreateQuery(int page, int pageSize)
     {
         // Arrange
@@ -96,7 +96,7 @@ public class GetUsersEndpointTests
         query.Page.Should().Be(page);
         query.PageSize.Should().Be(pageSize);
         
-        // Note: Validation should happen at domain level or in the request validator
+        // Nota: A validação deve ocorrer na camada de domínio ou no validador da requisição
     }
 
     [Theory]
@@ -137,12 +137,12 @@ public class GetUsersEndpointTests
         query.SearchTerm.Should().Be(searchTerm);
         query.CorrelationId.Should().NotBeEmpty();
         
-        // Verify property equality even with different CorrelationId
+        // Verifica igualdade das propriedades mesmo com CorrelationId diferente
         var query2 = new GetUsersQuery(page, pageSize, searchTerm);
         query.Page.Should().Be(query2.Page);
         query.PageSize.Should().Be(query2.PageSize);
         query.SearchTerm.Should().Be(query2.SearchTerm);
-        query.CorrelationId.Should().NotBe(query2.CorrelationId); // Different instances have different CorrelationIds
+        query.CorrelationId.Should().NotBe(query2.CorrelationId); // Instâncias diferentes têm CorrelationIds diferentes
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public class GetUsersEndpointTests
             PageSize = 10
         };
 
-        // Act & Assert - Testing that the extension method is available
+        // Act & Assert - Testa se o método de extensão está disponível
         var action = () => request.ToUsersQuery();
         action.Should().NotThrow();
         

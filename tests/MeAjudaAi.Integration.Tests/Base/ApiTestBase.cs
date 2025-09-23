@@ -12,7 +12,7 @@ using MeAjudaAi.Shared.Tests.Mocks.Messaging;
 using MeAjudaAi.ApiService.Handlers;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
 
 namespace MeAjudaAi.Integration.Tests.Base;
@@ -88,8 +88,8 @@ public abstract class ApiTestBase : DatabaseTestBase, IAsyncLifetime
                     if (keycloakDescriptor != null)
                         services.Remove(keycloakDescriptor);
 
-                    // Adiciona mock do IKeycloakService para testes
-                    services.AddSingleton<IKeycloakService>(provider => new MockKeycloakService());
+                    // Adiciona mock do IKeycloakService para testes usando a implementação da Infrastructure
+                    services.AddScoped<IKeycloakService, MockKeycloakService>();
 
                     // Remove a autenticação JWT configurada em produção
                     var authDescriptors = services.Where(d => d.ServiceType == typeof(IAuthenticationSchemeProvider)).ToList();
@@ -158,49 +158,5 @@ public abstract class ApiTestBase : DatabaseTestBase, IAsyncLifetime
         Client?.Dispose();
         Factory?.Dispose();
         await base.DisposeAsync();
-    }
-}
-
-/// <summary>
-/// Mock do IKeycloakService para testes de integração
-/// </summary>
-public class MockKeycloakService : IKeycloakService
-{
-    public Task<Result<string>> CreateUserAsync(string username, string email, string firstName, string lastName, 
-        string password, IEnumerable<string> roles, CancellationToken cancellationToken = default)
-    {
-        // Simula criação bem-sucedida retornando um ID de usuário fictício
-        var keycloakId = Guid.NewGuid().ToString();
-        return Task.FromResult(Result<string>.Success(keycloakId));
-    }
-
-    public Task<Result<AuthenticationResult>> AuthenticateAsync(string usernameOrEmail, string password, 
-        CancellationToken cancellationToken = default)
-    {
-        // Para testes, sempre retorna autenticação bem-sucedida
-        var authResult = new AuthenticationResult
-        {
-            AccessToken = "fake-access-token",
-            RefreshToken = "fake-refresh-token",
-            UserId = Guid.NewGuid()
-        };
-        return Task.FromResult(Result<AuthenticationResult>.Success(authResult));
-    }
-
-    public Task<Result<TokenValidationResult>> ValidateTokenAsync(string token, 
-        CancellationToken cancellationToken = default)
-    {
-        // Para testes, sempre retorna token válido
-        var validationResult = new TokenValidationResult
-        {
-            UserId = Guid.NewGuid()
-        };
-        return Task.FromResult(Result<TokenValidationResult>.Success(validationResult));
-    }
-
-    public Task<Result> DeactivateUserAsync(string keycloakId, CancellationToken cancellationToken = default)
-    {
-        // Para testes, sempre retorna desativação bem-sucedida
-        return Task.FromResult(Result.Success());
     }
 }

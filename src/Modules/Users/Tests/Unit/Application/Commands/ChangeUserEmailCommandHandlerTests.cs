@@ -150,7 +150,7 @@ public class ChangeUserEmailCommandHandlerTests
 
         _userRepositoryMock
             .Setup(x => x.GetByEmailAsync(It.Is<Email>(e => e.Value == newEmail), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user); // Same user
+            .ReturnsAsync(user); // Mesmo usuário
 
         _userRepositoryMock
             .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))

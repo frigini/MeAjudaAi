@@ -4,17 +4,8 @@ using System.Data.Common;
 
 namespace MeAjudaAi.Shared.Database;
 
-public class DatabaseMetricsInterceptor : DbCommandInterceptor
+public class DatabaseMetricsInterceptor(DatabaseMetrics metrics, ILogger<DatabaseMetricsInterceptor> logger) : DbCommandInterceptor
 {
-    private readonly DatabaseMetrics _metrics;
-    private readonly ILogger<DatabaseMetricsInterceptor> _logger;
-
-    public DatabaseMetricsInterceptor(DatabaseMetrics metrics, ILogger<DatabaseMetricsInterceptor> logger)
-    {
-        _metrics = metrics;
-        _logger = logger;
-    }
-
     public override async ValueTask<DbDataReader> ReaderExecutedAsync(
         DbCommand command,
         CommandExecutedEventData eventData,
@@ -40,11 +31,11 @@ public class DatabaseMetricsInterceptor : DbCommandInterceptor
         var duration = eventData.Duration;
         var queryType = GetQueryType(command.CommandText);
 
-        _metrics.RecordQuery(queryType, duration);
+        metrics.RecordQuery(queryType, duration);
 
-        if (duration.TotalMilliseconds > 1000) // Slow query threshold
+        if (duration.TotalMilliseconds > 1000) // Limite de consulta lenta
         {
-            _logger.LogWarning("Slow query: {Duration}ms - {QueryType}", duration.TotalMilliseconds, queryType);
+            logger.LogWarning("Slow query: {Duration}ms - {QueryType}", duration.TotalMilliseconds, queryType);
         }
     }
 

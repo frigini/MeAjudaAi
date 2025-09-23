@@ -3,7 +3,7 @@ using MeAjudaAi.Shared.Events;
 namespace MeAjudaAi.Shared.Messaging.Messages.Users;
 
 /// <summary>
-/// Published when a user updates their profile information
+/// Publicado quando um usuário atualiza suas informações de perfil
 /// </summary>
 public sealed record UserProfileUpdatedIntegrationEvent(
     string Source,

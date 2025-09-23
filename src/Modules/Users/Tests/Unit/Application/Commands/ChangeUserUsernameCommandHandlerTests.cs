@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
@@ -14,14 +15,17 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 public class ChangeUserUsernameCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
     private readonly Mock<ILogger<ChangeUserUsernameCommandHandler>> _loggerMock;
     private readonly ChangeUserUsernameCommandHandler _handler;
 
     public ChangeUserUsernameCommandHandlerTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
+        _dateTimeProviderMock = new Mock<IDateTimeProvider>();
+        _dateTimeProviderMock.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
         _loggerMock = new Mock<ILogger<ChangeUserUsernameCommandHandler>>();
-        _handler = new ChangeUserUsernameCommandHandler(_userRepositoryMock.Object, _loggerMock.Object);
+        _handler = new ChangeUserUsernameCommandHandler(_userRepositoryMock.Object, _dateTimeProviderMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -150,7 +154,7 @@ public class ChangeUserUsernameCommandHandlerTests
 
         _userRepositoryMock
             .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == newUsername), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user); // Same user
+            .ReturnsAsync(user); // Mesmo usuário
 
         _userRepositoryMock
             .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
@@ -184,7 +188,9 @@ public class ChangeUserUsernameCommandHandlerTests
 
         // Simular que o usuário mudou o username recentemente através do método ChangeUsername
         // Isso irá definir LastUsernameChangeAt para o momento atual
-        recentUser.ChangeUsername("tempusername"); // Simula mudança recente
+        var mockDateTimeProvider = new Mock<IDateTimeProvider>();
+        mockDateTimeProvider.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
+        recentUser.ChangeUsername("tempusername", mockDateTimeProvider.Object); // Simula mudança recente
 
         _userRepositoryMock
             .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))
@@ -221,7 +227,9 @@ public class ChangeUserUsernameCommandHandlerTests
             .Build();
 
         // Simular mudança recente
-        recentUser.ChangeUsername("tempusername");
+        var mockDateTimeProvider2 = new Mock<IDateTimeProvider>();
+        mockDateTimeProvider2.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
+        recentUser.ChangeUsername("tempusername", mockDateTimeProvider2.Object);
 
         _userRepositoryMock
             .Setup(x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()))

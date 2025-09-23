@@ -33,6 +33,7 @@
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="8.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.9" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.7.0" />
     
     <!-- Additional packages for Infrastructure and Aspire testing -->
     <PackageReference Include="Bogus" Version="35.6.3" />

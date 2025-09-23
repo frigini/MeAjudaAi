@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.Users.Application.Commands;
 

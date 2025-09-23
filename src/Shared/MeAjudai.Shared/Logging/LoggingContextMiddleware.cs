@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Serilog;
 using Serilog.Context;
 using System.Diagnostics;
 
@@ -10,17 +9,8 @@ namespace MeAjudaAi.Shared.Logging;
 /// <summary>
 /// Middleware para adicionar correlation ID e contexto enriquecido aos logs
 /// </summary>
-public class LoggingContextMiddleware
+public class LoggingContextMiddleware(RequestDelegate next, ILogger<LoggingContextMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<LoggingContextMiddleware> _logger;
-
-    public LoggingContextMiddleware(RequestDelegate next, ILogger<LoggingContextMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
         // Gerar ou usar correlation ID existente
@@ -41,14 +31,14 @@ public class LoggingContextMiddleware
             
             try
             {
-                _logger.LogInformation("Request started {Method} {Path}", 
+                logger.LogInformation("Request started {Method} {Path}", 
                     context.Request.Method, context.Request.Path);
 
-                await _next(context);
+                await next(context);
 
                 stopwatch.Stop();
                 
-                _logger.LogInformation("Request completed {Method} {Path} - {StatusCode} in {ElapsedMilliseconds}ms",
+                logger.LogInformation("Request completed {Method} {Path} - {StatusCode} in {ElapsedMilliseconds}ms",
                     context.Request.Method, 
                     context.Request.Path, 
                     context.Response.StatusCode,
@@ -58,7 +48,7 @@ public class LoggingContextMiddleware
             {
                 stopwatch.Stop();
                 
-                _logger.LogError(ex, "Request failed {Method} {Path} - {StatusCode} in {ElapsedMilliseconds}ms",
+                logger.LogError(ex, "Request failed {Method} {Path} - {StatusCode} in {ElapsedMilliseconds}ms",
                     context.Request.Method, 
                     context.Request.Path, 
                     context.Response.StatusCode,
@@ -119,18 +109,11 @@ public static class LoggingExtensions
 /// <summary>
 /// Classe helper para gerenciar múltiplos disposables
 /// </summary>
-internal class CompositeDisposable : IDisposable
+internal class CompositeDisposable(List<IDisposable> disposables) : IDisposable
 {
-    private readonly List<IDisposable> _disposables;
-
-    public CompositeDisposable(List<IDisposable> disposables)
-    {
-        _disposables = disposables;
-    }
-
     public void Dispose()
     {
-        foreach (var disposable in _disposables)
+        foreach (var disposable in disposables)
         {
             disposable?.Dispose();
         }

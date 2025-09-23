@@ -10,7 +10,7 @@ public static class VersioningExtensions
         {
             options.DefaultApiVersion = new ApiVersion(1, 0);
             options.AssumeDefaultVersionWhenUnspecified = true;
-            // Use only URL segment versioning for simplicity and clarity
+            // Use apenas versionamento por segmento de URL para simplicidade e clareza
             options.ApiVersionReader = new UrlSegmentApiVersionReader(); // /api/v1/users
         }).AddApiExplorer(options =>
         {

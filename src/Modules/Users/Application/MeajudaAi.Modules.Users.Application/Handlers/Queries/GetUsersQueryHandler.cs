@@ -2,7 +2,8 @@
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
@@ -59,34 +60,19 @@ internal sealed class GetUsersQueryHandler(
 
         try
         {
-            // Validação básica dos parâmetros
-            if (query.Page < 1 || query.PageSize < 1 || query.PageSize > 100)
-            {
-                logger.LogWarning("Invalid pagination parameters: Page={Page}, PageSize={PageSize}", 
-                    query.Page, query.PageSize);
-                return Result<PagedResult<UserDto>>.Failure("Invalid pagination parameters");
-            }
+            // Validar parâmetros de paginação
+            var validationResult = ValidatePaginationParameters(query);
+            if (validationResult.IsFailure)
+                return Result<PagedResult<UserDto>>.Failure(validationResult.Error);
 
-            logger.LogDebug("Executing repository query for users");
-            
-            // Busca os usuários de forma paginada do repositório
-            var repositoryStart = stopwatch.ElapsedMilliseconds;
-            var (users, totalCount) = await userRepository.GetPagedAsync(
-                query.Page, query.PageSize, cancellationToken);
+            // Executar consulta paginada
+            var (users, totalCount) = await ExecutePagedQueryAsync(query, stopwatch, cancellationToken);
 
-            logger.LogDebug("Repository query completed in {ElapsedMs}ms, found {TotalCount} total users", 
-                stopwatch.ElapsedMilliseconds - repositoryStart, totalCount);
+            // Mapear entidades para DTOs
+            var userDtos = MapUsersToDto(users, stopwatch);
 
-            // Converte as entidades de usuário para DTOs
-            var mappingStart = stopwatch.ElapsedMilliseconds;
-            var userDtos = users.Select(u => u.ToDto()).ToList().AsReadOnly();
-            
-            logger.LogDebug("DTO mapping completed in {ElapsedMs}ms for {UserCount} users", 
-                stopwatch.ElapsedMilliseconds - mappingStart, userDtos.Count);
-
-            // Cria o resultado paginado com metadados
-            var pagedResult = PagedResult<UserDto>.Create(
-                userDtos, query.Page, query.PageSize, totalCount);
+            // Criar resultado paginado
+            var pagedResult = CreatePagedResult(userDtos, query, totalCount);
 
             stopwatch.Stop();
             logger.LogInformation(
@@ -104,5 +90,68 @@ internal sealed class GetUsersQueryHandler(
             
             return Result<PagedResult<UserDto>>.Failure($"Failed to retrieve users: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Valida os parâmetros de paginação fornecidos na consulta.
+    /// </summary>
+    private Result<Unit> ValidatePaginationParameters(GetUsersQuery query)
+    {
+        if (query.Page < 1 || query.PageSize < 1 || query.PageSize > 100)
+        {
+            logger.LogWarning("Invalid pagination parameters: Page={Page}, PageSize={PageSize}", 
+                query.Page, query.PageSize);
+            return Result<Unit>.Failure("Invalid pagination parameters");
+        }
+
+        return Result<Unit>.Success(Unit.Value);
+    }
+
+    /// <summary>
+    /// Executa a consulta paginada no repositório.
+    /// </summary>
+    private async Task<(IReadOnlyList<Domain.Entities.User> users, int totalCount)> ExecutePagedQueryAsync(
+        GetUsersQuery query,
+        System.Diagnostics.Stopwatch stopwatch,
+        CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Executing repository query for users");
+        
+        var repositoryStart = stopwatch.ElapsedMilliseconds;
+        var (users, totalCount) = await userRepository.GetPagedAsync(
+            query.Page, query.PageSize, cancellationToken);
+
+        logger.LogDebug("Repository query completed in {ElapsedMs}ms, found {TotalCount} total users", 
+            stopwatch.ElapsedMilliseconds - repositoryStart, totalCount);
+
+        return (users, totalCount);
+    }
+
+    /// <summary>
+    /// Mapeia as entidades de usuário para DTOs.
+    /// </summary>
+    private IReadOnlyList<UserDto> MapUsersToDto(
+        IReadOnlyList<Domain.Entities.User> users,
+        System.Diagnostics.Stopwatch stopwatch)
+    {
+        var mappingStart = stopwatch.ElapsedMilliseconds;
+        var userDtos = users.Select(u => u.ToDto()).ToList().AsReadOnly();
+        
+        logger.LogDebug("DTO mapping completed in {ElapsedMs}ms for {UserCount} users", 
+            stopwatch.ElapsedMilliseconds - mappingStart, userDtos.Count);
+
+        return userDtos;
+    }
+
+    /// <summary>
+    /// Cria o resultado paginado com metadados.
+    /// </summary>
+    private PagedResult<UserDto> CreatePagedResult(
+        IReadOnlyList<UserDto> userDtos,
+        GetUsersQuery query,
+        int totalCount)
+    {
+        return PagedResult<UserDto>.Create(
+            userDtos, query.Page, query.PageSize, totalCount);
     }
 }

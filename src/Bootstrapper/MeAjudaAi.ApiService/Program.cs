@@ -25,8 +25,7 @@ try
 
     // Configurações via ServiceDefaults e Shared (sem duplicar Serilog)
     builder.AddServiceDefaults();
-    builder.Services.AddSharedServices(builder.Configuration, builder.Environment);
-    builder.Services.AddDatabaseInitialization(builder.Configuration);
+    builder.Services.AddSharedServices(builder.Configuration);
     builder.Services.AddApiServices(builder.Configuration, builder.Environment);
     builder.Services.AddUsersModule(builder.Configuration);
 

@@ -13,14 +13,14 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
         var userIdClaim = context.User.FindFirst("sub")?.Value;
         var roles = context.User.FindAll("roles").Select(c => c.Value);
 
-        // Check if user is admin
+        // Verifica se o usuário é admin
         if (roles.Any(r => r == "admin" || r == "super-admin"))
         {
             context.Succeed(requirement);
             return Task.CompletedTask;
         }
 
-        // Check if accessing own resource
+        // Verifica se está acessando o próprio recurso
         if (context.Resource is HttpContext httpContext)
         {
             var routeUserId = httpContext.GetRouteValue("id")?.ToString();

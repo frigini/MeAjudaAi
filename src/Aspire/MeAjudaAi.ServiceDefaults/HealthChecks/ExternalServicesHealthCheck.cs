@@ -3,6 +3,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.ServiceDefaults.HealthChecks;
 
+/// <summary>
+/// Health check para verificar a conectividade com serviços externos
+/// </summary>
 public class ExternalServicesHealthCheck(
     HttpClient httpClient, 
     ExternalServicesOptions externalServicesOptions,
@@ -16,25 +19,25 @@ public class ExternalServicesHealthCheck(
 
         try
         {
-            // Check Keycloak if enabled
+            // Verifica o Keycloak se estiver habilitado
             if (externalServicesOptions.Keycloak.Enabled)
             {
                 var (IsHealthy, Error)= await CheckKeycloakAsync(cancellationToken);
                 results.Add(("Keycloak", IsHealthy, Error));
             }
 
-            // Check external payment APIs (future implementation)
+            // Verifica APIs de pagamento externas (implementação futura)
             if (externalServicesOptions.PaymentGateway.Enabled)
             {
                 var (IsHealthy, Error)= await CheckPaymentGatewayAsync(cancellationToken);
-                results.Add(("Payment Gateway", IsHealthy, Error));
+                results.Add(("Gateway de Pagamento", IsHealthy, Error));
             }
 
-            // Check geolocation services (future implementation)
+            // Verifica serviços de geolocalização (implementação futura)
             if (externalServicesOptions.Geolocation.Enabled)
             {
                 var (IsHealthy, Error)= await CheckGeolocationAsync(cancellationToken);
-                results.Add(("Geolocation Service", IsHealthy, Error));
+                results.Add(("Serviço de Geolocalização", IsHealthy, Error));
             }
 
             var healthyCount = results.Count(r => r.IsHealthy);
@@ -42,27 +45,27 @@ public class ExternalServicesHealthCheck(
 
             if (totalCount == 0)
             {
-                return HealthCheckResult.Healthy("No external services configured");
+                return HealthCheckResult.Healthy("Nenhum serviço externo configurado");
             }
 
             if (healthyCount == totalCount)
             {
-                return HealthCheckResult.Healthy($"All {totalCount} external services are healthy");
+                return HealthCheckResult.Healthy($"Todos os {totalCount} serviços externos estão saudáveis");
             }
 
             if (healthyCount == 0)
             {
                 var errors = string.Join("; ", results.Where(r => !r.IsHealthy).Select(r => $"{r.Service}: {r.Error}"));
-                return HealthCheckResult.Unhealthy($"All external services are down: {errors}");
+                return HealthCheckResult.Unhealthy($"Todos os serviços externos estão fora: {errors}");
             }
 
             var partialErrors = string.Join("; ", results.Where(r => !r.IsHealthy).Select(r => $"{r.Service}: {r.Error}"));
-            return HealthCheckResult.Degraded($"{healthyCount}/{totalCount} services healthy. Issues: {partialErrors}");
+            return HealthCheckResult.Degraded($"{healthyCount}/{totalCount} serviços saudáveis. Problemas: {partialErrors}");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error during external services health check");
-            return HealthCheckResult.Unhealthy("Health check failed with unexpected error", ex);
+            logger.LogError(ex, "Erro inesperado durante o health check de serviços externos");
+            return HealthCheckResult.Unhealthy("Health check falhou com erro inesperado", ex);
         }
     }
 
@@ -81,11 +84,11 @@ public class ExternalServicesHealthCheck(
         }
         catch (HttpRequestException ex)
         {
-            return (false, $"Connection failed: {ex.Message}");
+            return (false, $"Falha na conexão: {ex.Message}");
         }
         catch (TaskCanceledException)
         {
-            return (false, "Request timeout");
+            return (false, "Tempo limite da requisição");
         }
     }
 
@@ -93,9 +96,9 @@ public class ExternalServicesHealthCheck(
     {
         try
         {
-            // Placeholder for payment gateway health check
-            // Implementation depends on the specific payment provider (PagSeguro, Stripe, etc.)
-            await Task.Delay(10, cancellationToken); // Simulate API call
+            // Placeholder para health check do gateway de pagamento
+            // Implementação depende do provedor específico (PagSeguro, Stripe, etc.)
+            await Task.Delay(10, cancellationToken); // Simula chamada à API
             return (true, null);
         }
         catch (Exception ex)
@@ -108,8 +111,8 @@ public class ExternalServicesHealthCheck(
     {
         try
         {
-            // Placeholder for geolocation service health check (Google Maps, HERE, etc.)
-            await Task.Delay(10, cancellationToken); // Simulate API call
+            // Placeholder para health check do serviço de geolocalização (Google Maps, HERE, etc.)
+            await Task.Delay(10, cancellationToken); // Simula chamada à API
             return (true, null);
         }
         catch (Exception ex)
@@ -120,7 +123,7 @@ public class ExternalServicesHealthCheck(
 }
 
 /// <summary>
-/// Configuration options for external services health checks
+/// Opções de configuração para health checks de serviços externos
 /// </summary>
 public class ExternalServicesOptions
 {
@@ -131,6 +134,9 @@ public class ExternalServicesOptions
     public GeolocationHealthOptions Geolocation { get; set; } = new();
 }
 
+/// <summary>
+/// Opções de configuração para health check do Keycloak
+/// </summary>
 public class KeycloakHealthOptions
 {
     public bool Enabled { get; set; } = true;
@@ -138,6 +144,9 @@ public class KeycloakHealthOptions
     public int TimeoutSeconds { get; set; } = 5;
 }
 
+/// <summary>
+/// Opções de configuração para health check do gateway de pagamento
+/// </summary>
 public class PaymentGatewayHealthOptions
 {
     public bool Enabled { get; set; } = false;
@@ -145,6 +154,9 @@ public class PaymentGatewayHealthOptions
     public int TimeoutSeconds { get; set; } = 10;
 }
 
+/// <summary>
+/// Opções de configuração para health check do serviço de geolocalização
+/// </summary>
 public class GeolocationHealthOptions
 {
     public bool Enabled { get; set; } = false;

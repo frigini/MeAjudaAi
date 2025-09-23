@@ -6,8 +6,7 @@ using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
-using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,7 +54,7 @@ public static class TestInfrastructureExtensions
         TestDatabaseOptions options)
     {
         // Configurar TestContainer para PostgreSQL
-        services.AddSingleton<PostgreSqlContainer>(provider =>
+        services.AddSingleton(provider =>
         {
             var container = new PostgreSqlBuilder()
                 .WithImage(options.PostgresImage)
@@ -159,7 +158,7 @@ internal class MockAuthenticationDomainService : IAuthenticationDomainService
                 AccessToken: $"mock_token_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}",
                 RefreshToken: $"mock_refresh_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}",
                 ExpiresAt: DateTime.UtcNow.AddHours(1),
-                Roles: new[] { "customer" }
+                Roles: ["customer"]
             );
             return Task.FromResult(Result<AuthenticationResult>.Success(result));
         }
@@ -176,7 +175,7 @@ internal class MockAuthenticationDomainService : IAuthenticationDomainService
         {
             var result = new TokenValidationResult(
                 UserId: Guid.NewGuid(),
-                Roles: new[] { "customer" },
+                Roles: ["customer"],
                 Claims: new Dictionary<string, object> { ["sub"] = Guid.NewGuid().ToString() }
             );
             return Task.FromResult(Result<TokenValidationResult>.Success(result));
@@ -184,8 +183,8 @@ internal class MockAuthenticationDomainService : IAuthenticationDomainService
         
         var invalidResult = new TokenValidationResult(
             UserId: null,
-            Roles: Array.Empty<string>(),
-            Claims: new Dictionary<string, object>()
+            Roles: [],
+            Claims: []
         );
         return Task.FromResult(Result<TokenValidationResult>.Success(invalidResult));
     }

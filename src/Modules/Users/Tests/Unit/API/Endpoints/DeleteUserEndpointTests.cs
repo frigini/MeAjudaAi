@@ -68,10 +68,10 @@ public class DeleteUserEndpointTests
         command.UserId.Should().Be(userId);
         command.CorrelationId.Should().NotBeEmpty();
         
-        // Verify UserId equality even with different CorrelationId
+        // Verifica igualdade do UserId mesmo com CorrelationId diferente
         var command2 = new DeleteUserCommand(userId);
         command.UserId.Should().Be(command2.UserId);
-        command.CorrelationId.Should().NotBe(command2.CorrelationId); // Different instances have different CorrelationIds
+        command.CorrelationId.Should().NotBe(command2.CorrelationId); // Instâncias diferentes têm CorrelationIds diferentes
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class DeleteUserEndpointTests
         // Arrange
         var userId = Guid.NewGuid();
 
-        // Act & Assert - Testing that the extension method is available
+        // Act & Assert - Testa se o método de extensão está disponível
         var action = () => userId.ToDeleteCommand();
         action.Should().NotThrow();
         

@@ -2,8 +2,9 @@
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.API.Mappers;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Models;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
@@ -140,7 +141,6 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
         IQueryDispatcher queryDispatcher = null!,
         CancellationToken cancellationToken = default)
     {
-        // Cria request object com os parâmetros
         var request = new GetUsersRequest
         {
             PageNumber = pageNumber,
@@ -148,14 +148,10 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
             SearchTerm = searchTerm
         };
 
-        // Cria query usando o mapper ToUsersQuery
         var query = request.ToUsersQuery();
-
-        // Envia query através do dispatcher CQRS
         var result = await queryDispatcher.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
             query, cancellationToken);
 
-        // Processa resultado paginado e retorna resposta HTTP estruturada
         return HandlePagedResult(result);
     }
 }

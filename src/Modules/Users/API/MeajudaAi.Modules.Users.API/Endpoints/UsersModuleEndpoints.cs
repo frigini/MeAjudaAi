@@ -8,9 +8,9 @@ public static class UsersModuleEndpoints
 {
     public static void MapUsersEndpoints(this WebApplication app)
     {
-        // Use the unified versioning system via BaseEndpoint
+        // Usa o sistema unificado de versionamento via BaseEndpoint
         var endpoints = BaseEndpoint.CreateVersionedGroup(app, "users", "Users")
-            .RequireAuthorization(); // Apply global authorization
+            .RequireAuthorization(); // Aplica autorização global
 
         endpoints.MapEndpoint<CreateUserEndpoint>()
             .MapEndpoint<DeleteUserEndpoint>()

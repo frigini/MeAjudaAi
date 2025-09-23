@@ -1,6 +1,6 @@
 ﻿using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.Users.Domain.Services;
 

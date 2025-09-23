@@ -125,13 +125,13 @@ public static class PostgreSqlExtensions
         IDistributedApplicationBuilder builder, 
         MeAjudaAiPostgreSqlOptions options)
     {
-        // Use consistent naming with integration tests - they expect "postgres-local"
+        // Usa nomenclatura consistente com testes de integração - eles esperam "postgres-local"
         var postgres = builder.AddPostgres("postgres-local")
-            .WithImageTag("13-alpine") // Use PostgreSQL 13 for better compatibility
+            .WithImageTag("13-alpine") // Usa PostgreSQL 13 para melhor compatibilidade
             .WithEnvironment("POSTGRES_DB", options.MainDatabase)
             .WithEnvironment("POSTGRES_USER", options.Username)
             .WithEnvironment("POSTGRES_PASSWORD", options.Password)
-            .WithEnvironment("POSTGRES_HOST_AUTH_METHOD", "trust"); // Trust authentication for tests
+            .WithEnvironment("POSTGRES_HOST_AUTH_METHOD", "trust"); // Autenticação trust para testes
 
         var mainDb = postgres.AddDatabase("meajudaai-db-local", options.MainDatabase);
 
@@ -146,7 +146,7 @@ public static class PostgreSqlExtensions
         IDistributedApplicationBuilder builder, 
         MeAjudaAiPostgreSqlOptions options)
     {
-        // Full-featured development setup
+        // Setup completo de desenvolvimento
         var postgresBuilder = builder.AddPostgres("postgres-local")
             .WithDataVolume()
             .WithEnvironment("POSTGRES_DB", options.MainDatabase)
@@ -161,11 +161,11 @@ public static class PostgreSqlExtensions
 
         var mainDb = postgresBuilder.AddDatabase("meajudaai-db-local", options.MainDatabase);
         
-        // Single database approach - all modules use the same database with different schemas
-        // - users schema (Users module)
-        // - identity schema (Keycloak) 
-        // - public schema (shared/common tables)
-        // - future modules will get their own schemas
+        // Abordagem de banco único - todos os módulos usam o mesmo banco com schemas diferentes
+        // - schema users (módulo de usuários)
+        // - schema identity (Keycloak)
+        // - schema public (tabelas compartilhadas/comuns)
+        // - módulos futuros terão seus próprios schemas
 
         return new MeAjudaAiPostgreSqlResult
         {
@@ -175,7 +175,7 @@ public static class PostgreSqlExtensions
 
     private static void ApplyEnvironmentVariables(MeAjudaAiPostgreSqlOptions options)
     {
-        // Apply environment variable overrides
+        // Aplica sobrescritas de variáveis de ambiente
         if (Environment.GetEnvironmentVariable("POSTGRES_USER") is string user && !string.IsNullOrEmpty(user))
             options.Username = user;
             

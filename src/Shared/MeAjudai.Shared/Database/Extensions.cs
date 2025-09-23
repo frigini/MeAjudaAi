@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
-using System.Diagnostics.Metrics;
 
 namespace MeAjudaAi.Shared.Database;
 
@@ -25,10 +24,6 @@ public static class Extensions
             .Validate(opts => !string.IsNullOrEmpty(opts.ConnectionString),
                 "PostgreSQL connection string not found. Configure connection string via Aspire, 'Postgres:ConnectionString' in appsettings.json, or as ConnectionStrings:meajudaai-db")
             .ValidateOnStart();
-
-        // TEMPORARIAMENTE DESABILITADO - Overengineering na inicialização DB
-        // services.AddHostedService<ModularDatabaseSetupService>();
-        // services.AddHostedService<DbContextInitializer>();
 
         // Database monitoring essencial
         services.AddDatabaseMonitoring();

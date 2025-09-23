@@ -1,6 +1,7 @@
 ﻿using MeAjudaAi.Modules.Users.Domain.Services.Models;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
@@ -19,11 +20,8 @@ public class KeycloakService(
     private string? _adminToken;
     private DateTime _adminTokenExpiry = DateTime.MinValue;
     
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
+    // Usando configurações padrão de serialização do projeto
+    private static readonly JsonSerializerOptions JsonOptions = SerializationDefaults.Api;
 
     public async Task<Result<string>> CreateUserAsync(
         string username,

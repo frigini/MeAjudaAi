@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Diagnostics.Metrics;
 
 namespace MeAjudaAi.Shared.Monitoring;
@@ -108,6 +107,7 @@ public class BusinessMetrics : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         _meter.Dispose();
     }
 }

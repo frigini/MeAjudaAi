@@ -8,29 +8,18 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// <summary>
 /// Middleware para capturar métricas customizadas de negócio
 /// </summary>
-public class BusinessMetricsMiddleware
+public class BusinessMetricsMiddleware(
+    RequestDelegate next,
+    BusinessMetrics businessMetrics,
+    ILogger<BusinessMetricsMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly BusinessMetrics _businessMetrics;
-    private readonly ILogger<BusinessMetricsMiddleware> _logger;
-
-    public BusinessMetricsMiddleware(
-        RequestDelegate next, 
-        BusinessMetrics businessMetrics,
-        ILogger<BusinessMetricsMiddleware> logger)
-    {
-        _next = next;
-        _businessMetrics = businessMetrics;
-        _logger = logger;
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
         var stopwatch = Stopwatch.StartNew();
         
         try
         {
-            await _next(context);
+            await next(context);
         }
         finally
         {
@@ -41,7 +30,7 @@ public class BusinessMetricsMiddleware
             var method = context.Request.Method;
             var statusCode = context.Response.StatusCode;
             
-            _businessMetrics.RecordApiCall(endpoint, method, statusCode);
+            businessMetrics.RecordApiCall(endpoint, method, statusCode);
             
             // Log para endpoints específicos de negócio
             LogBusinessEvents(context, stopwatch.Elapsed);
@@ -60,31 +49,31 @@ public class BusinessMetricsMiddleware
             // Registros de usuário
             if (path.Contains("/users") && method == "POST" && statusCode is >= 200 and < 300)
             {
-                _businessMetrics.RecordUserRegistration("api");
-                _logger.LogInformation("User registration completed via API");
+                businessMetrics.RecordUserRegistration("api");
+                logger.LogInformation("User registration completed via API");
             }
 
             // Logins
             if (path.Contains("/auth/login") && method == "POST" && statusCode is >= 200 and < 300)
             {
                 var userId = context.User?.FindFirst("sub")?.Value ?? "unknown";
-                _businessMetrics.RecordUserLogin(userId, "password");
-                _logger.LogInformation("User login completed: {UserId}", userId);
+                businessMetrics.RecordUserLogin(userId, "password");
+                logger.LogInformation("User login completed: {UserId}", userId);
             }
 
             // Solicitações de ajuda
             if (path.Contains("/help-requests") && method == "POST" && statusCode is >= 200 and < 300)
             {
                 // Extrair categoria e urgência dos headers ou do corpo da requisição se necessário
-                _businessMetrics.RecordHelpRequestCreated("general", "normal");
-                _logger.LogInformation("Help request created");
+                businessMetrics.RecordHelpRequestCreated("general", "normal");
+                logger.LogInformation("Help request created");
             }
 
             // Conclusão de ajuda
             if (path.Contains("/help-requests") && path.Contains("/complete") && method == "POST" && statusCode is >= 200 and < 300)
             {
-                _businessMetrics.RecordHelpRequestCompleted("general", elapsed);
-                _logger.LogInformation("Help request completed in {ElapsedMs}ms", elapsed.TotalMilliseconds);
+                businessMetrics.RecordHelpRequestCompleted("general", elapsed);
+                logger.LogInformation("Help request completed in {ElapsedMs}ms", elapsed.TotalMilliseconds);
             }
         }
     }

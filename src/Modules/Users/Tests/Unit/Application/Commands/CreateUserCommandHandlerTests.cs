@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Tests.Builders;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
@@ -15,7 +15,6 @@ public class CreateUserCommandHandlerTests
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<ILogger<CreateUserCommandHandler>> _loggerMock;
     private readonly CreateUserCommandHandler _handler;
-    private readonly Fixture _fixture;
 
     public CreateUserCommandHandlerTests()
     {
@@ -23,7 +22,6 @@ public class CreateUserCommandHandlerTests
         _userRepositoryMock = new Mock<IUserRepository>();
         _loggerMock = new Mock<ILogger<CreateUserCommandHandler>>();
         _handler = new CreateUserCommandHandler(_userDomainServiceMock.Object, _userRepositoryMock.Object, _loggerMock.Object);
-        _fixture = new Fixture();
     }
 
     [Fact]

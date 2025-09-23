@@ -1,8 +1,8 @@
 ﻿using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Common;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -77,7 +77,6 @@ public class DeleteUserEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
-        // Cria command usando o mapper ToDeleteCommand
         var command = id.ToDeleteCommand();
         var result = await commandDispatcher.SendAsync<DeleteUserCommand, Result>(
             command, cancellationToken);

@@ -1,5 +1,5 @@
 ﻿using MeAjudaAi.Modules.Users.Domain.Services.Models;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 

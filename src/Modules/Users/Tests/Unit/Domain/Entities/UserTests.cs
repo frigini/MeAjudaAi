@@ -1,11 +1,19 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Domain.Entities;
 
 public class UserTests
 {
+    private static IDateTimeProvider CreateMockDateTimeProvider(DateTime? fixedDate = null)
+    {
+        var mock = new Mock<IDateTimeProvider>();
+        mock.Setup(x => x.CurrentDate()).Returns(fixedDate ?? DateTime.UtcNow);
+        return mock.Object;
+    }
+
     [Fact]
     public void Constructor_WithValidParameters_ShouldCreateUser()
     {
@@ -87,7 +95,7 @@ public class UserTests
     {
         // Arrange
         var user = CreateTestUser("John", "Doe");
-        user.ClearDomainEvents(); // Clear constructor events
+        user.ClearDomainEvents(); // Limpa eventos do construtor
         var newFirstName = "Jane";
         var newLastName = "Smith";
 
@@ -112,7 +120,7 @@ public class UserTests
     {
         // Arrange
         var user = CreateTestUser("John", "Doe");
-        user.ClearDomainEvents(); // Clear constructor events
+        user.ClearDomainEvents(); // Limpa eventos do construtor
         var originalUpdatedAt = user.UpdatedAt;
 
         // Act
@@ -130,10 +138,11 @@ public class UserTests
     {
         // Arrange
         var user = CreateTestUser();
-        user.ClearDomainEvents(); // Clear constructor events
+        user.ClearDomainEvents(); // Limpa eventos do construtor
+        var dateTimeProvider = CreateMockDateTimeProvider();
 
         // Act
-        user.MarkAsDeleted();
+        user.MarkAsDeleted(dateTimeProvider);
 
         // Assert
         user.IsDeleted.Should().BeTrue();
@@ -153,13 +162,14 @@ public class UserTests
     {
         // Arrange
         var user = CreateTestUser();
-        user.MarkAsDeleted();
+        var dateTimeProvider = CreateMockDateTimeProvider();
+        user.MarkAsDeleted(dateTimeProvider);
         var originalDeletedAt = user.DeletedAt;
         var originalUpdatedAt = user.UpdatedAt;
-        user.ClearDomainEvents(); // Clear previous events
+        user.ClearDomainEvents(); // Limpa eventos anteriores
 
         // Act
-        user.MarkAsDeleted();
+        user.MarkAsDeleted(dateTimeProvider);
 
         // Assert
         user.IsDeleted.Should().BeTrue();

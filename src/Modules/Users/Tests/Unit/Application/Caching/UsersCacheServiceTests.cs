@@ -172,7 +172,7 @@ public class UsersCacheServiceTests
         // Act
         await _usersCacheService.InvalidateUserAsync(userId, email, _cancellationToken);
 
-        // Assert - whitespace is not considered empty by string.IsNullOrEmpty()
+        // Assert - espaços em branco não são considerados vazios por string.IsNullOrEmpty()
         _cacheServiceMock.Verify(
             x => x.RemoveAsync(UsersCacheKeys.UserByEmail(email), _cancellationToken),
             Times.Once);
@@ -184,12 +184,12 @@ public class UsersCacheServiceTests
         // Arrange
         var userId = Guid.NewGuid();
 
-        // Act & Assert - should not throw
+        // Act & Assert - não deve lançar exceção
         await _usersCacheService.InvalidateUserAsync(userId, "", _cancellationToken);
         await _usersCacheService.InvalidateUserAsync(userId, null, _cancellationToken);
         await _usersCacheService.InvalidateUserAsync(userId, "   ", _cancellationToken);
 
-        // Verify basic cache removal was called for each test
+        // Verifica se a remoção básica do cache foi chamada para cada teste
         _cacheServiceMock.Verify(
             x => x.RemoveAsync(UsersCacheKeys.UserById(userId), _cancellationToken),
             Times.Exactly(3));
@@ -211,7 +211,7 @@ public class UsersCacheServiceTests
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null
         );
-        Func<CancellationToken, ValueTask<UserDto?>> factory = ct => ValueTask.FromResult<UserDto?>(userData);
+        ValueTask<UserDto?> factory(CancellationToken ct) => ValueTask.FromResult<UserDto?>(userData);
 
         // Act
         await _usersCacheService.GetOrCacheUserByIdAsync(userId, factory, _cancellationToken);

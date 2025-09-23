@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Common;
+﻿using MeAjudaAi.Shared.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +12,7 @@ public class QueryDispatcher(IServiceProvider serviceProvider, ILogger<QueryDisp
         logger.LogInformation("Executing query {QueryType} with correlation {CorrelationId}",
             typeof(TQuery).Name, query.CorrelationId);
 
-        return await ExecuteWithPipeline<TQuery, TResult>(query, async () =>
+        return await ExecuteWithPipeline(query, async () =>
         {
             var handler = serviceProvider.GetRequiredService<IQueryHandler<TQuery, TResult>>();
             return await handler.HandleAsync(query, cancellationToken);

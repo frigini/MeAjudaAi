@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -64,64 +64,24 @@ internal sealed class CreateUserCommandHandler(
 
         try
         {
-            // Verifica se já existe usuário com o email informado
-            logger.LogDebug("Checking email uniqueness for {Email}", command.Email);
-            var existingByEmail = await userRepository.GetByEmailAsync(
-                new Email(command.Email), cancellationToken);
-            if (existingByEmail != null)
-            {
-                logger.LogWarning("User creation failed: Email {Email} already exists", command.Email);
-                return Result<UserDto>.Failure("User with this email already exists");
-            }
+            // Verificar duplicidade de email e username
+            var uniquenessResult = await ValidateUniquenessAsync(command, cancellationToken);
+            if (uniquenessResult.IsFailure)
+                return Result<UserDto>.Failure(uniquenessResult.Error);
 
-            // Verifica se já existe usuário com o username informado
-            logger.LogDebug("Checking username uniqueness for {Username}", command.Username);
-            var existingByUsername = await userRepository.GetByUsernameAsync(
-                new Username(command.Username), cancellationToken);
-            if (existingByUsername != null)
-            {
-                logger.LogWarning("User creation failed: Username {Username} already exists", command.Username);
-                return Result<UserDto>.Failure("Username already taken");
-            }
-
-            logger.LogDebug("Creating user domain entity for email {Email}, username {Username}", 
-                command.Email, command.Username);
-
-            // Cria o usuário através do serviço de domínio
-            var userCreationStart = stopwatch.ElapsedMilliseconds;
-            var userResult = await userDomainService.CreateUserAsync(
-                new Username(command.Username),
-                new Email(command.Email),
-                command.FirstName,
-                command.LastName,
-                command.Password,
-                command.Roles,
-                cancellationToken);
-
-            logger.LogDebug("User domain service completed in {ElapsedMs}ms", 
-                stopwatch.ElapsedMilliseconds - userCreationStart);
-
+            // Criar usuário através do serviço de domínio
+            var userResult = await CreateUserAsync(command, stopwatch, cancellationToken);
             if (userResult.IsFailure)
-            {
-                logger.LogError("User creation failed for email {Email}: {Error}", command.Email, userResult.Error);
                 return Result<UserDto>.Failure(userResult.Error);
-            }
 
-            var user = userResult.Value;
-
-            // Persiste o usuário no repositório
-            logger.LogDebug("Persisting user {UserId} to repository", user.Id);
-            var persistenceStart = stopwatch.ElapsedMilliseconds;
-            await userRepository.AddAsync(user, cancellationToken);
-            
-            logger.LogDebug("User persistence completed in {ElapsedMs}ms", 
-                stopwatch.ElapsedMilliseconds - persistenceStart);
+            // Persistir usuário no repositório
+            await PersistUserAsync(userResult.Value, stopwatch, cancellationToken);
 
             stopwatch.Stop();
             logger.LogInformation("User {UserId} created successfully for email {Email} in {ElapsedMs}ms", 
-                user.Id, command.Email, stopwatch.ElapsedMilliseconds);
+                userResult.Value.Id, command.Email, stopwatch.ElapsedMilliseconds);
 
-            return Result<UserDto>.Success(user.ToDto());
+            return Result<UserDto>.Success(userResult.Value.ToDto());
         }
         catch (Exception ex)
         {
@@ -130,5 +90,83 @@ internal sealed class CreateUserCommandHandler(
                 command.Email, stopwatch.ElapsedMilliseconds);
             return Result<UserDto>.Failure($"Failed to create user: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Valida se o email e username são únicos no sistema.
+    /// </summary>
+    private async Task<Result<Unit>> ValidateUniquenessAsync(
+        CreateUserCommand command, 
+        CancellationToken cancellationToken)
+    {
+        // Verifica se já existe usuário com o email informado
+        logger.LogDebug("Checking email uniqueness for {Email}", command.Email);
+        var existingByEmail = await userRepository.GetByEmailAsync(
+            new Email(command.Email), cancellationToken);
+        if (existingByEmail != null)
+        {
+            logger.LogWarning("User creation failed: Email {Email} already exists", command.Email);
+            return Result<Unit>.Failure("User with this email already exists");
+        }
+
+        // Verifica se já existe usuário com o username informado
+        logger.LogDebug("Checking username uniqueness for {Username}", command.Username);
+        var existingByUsername = await userRepository.GetByUsernameAsync(
+            new Username(command.Username), cancellationToken);
+        if (existingByUsername != null)
+        {
+            logger.LogWarning("User creation failed: Username {Username} already exists", command.Username);
+            return Result<Unit>.Failure("Username already taken");
+        }
+
+        return Result<Unit>.Success(Unit.Value);
+    }
+
+    /// <summary>
+    /// Cria o usuário através do serviço de domínio.
+    /// </summary>
+    private async Task<Result<Domain.Entities.User>> CreateUserAsync(
+        CreateUserCommand command,
+        System.Diagnostics.Stopwatch stopwatch,
+        CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Creating user domain entity for email {Email}, username {Username}", 
+            command.Email, command.Username);
+
+        var userCreationStart = stopwatch.ElapsedMilliseconds;
+        var userResult = await userDomainService.CreateUserAsync(
+            new Username(command.Username),
+            new Email(command.Email),
+            command.FirstName,
+            command.LastName,
+            command.Password,
+            command.Roles,
+            cancellationToken);
+
+        logger.LogDebug("User domain service completed in {ElapsedMs}ms", 
+            stopwatch.ElapsedMilliseconds - userCreationStart);
+
+        if (userResult.IsFailure)
+        {
+            logger.LogError("User creation failed for email {Email}: {Error}", command.Email, userResult.Error);
+        }
+
+        return userResult;
+    }
+
+    /// <summary>
+    /// Persiste o usuário no repositório.
+    /// </summary>
+    private async Task PersistUserAsync(
+        Domain.Entities.User user,
+        System.Diagnostics.Stopwatch stopwatch,
+        CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Persisting user {UserId} to repository", user.Id);
+        var persistenceStart = stopwatch.ElapsedMilliseconds;
+        await userRepository.AddAsync(user, cancellationToken);
+        
+        logger.LogDebug("User persistence completed in {ElapsedMs}ms", 
+            stopwatch.ElapsedMilliseconds - persistenceStart);
     }
 }

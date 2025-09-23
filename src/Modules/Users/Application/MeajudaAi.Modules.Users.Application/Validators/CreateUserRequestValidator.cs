@@ -1,11 +1,11 @@
 using FluentValidation;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Security;
 
 namespace MeAjudaAi.Modules.Users.Application.Validators;
 
 /// <summary>
-/// Validator for CreateUserRequest
+/// Validator para CreateUserRequest
 /// </summary>
 public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 {

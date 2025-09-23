@@ -33,7 +33,43 @@ jobs:
       run: dotnet build MeAjudaAi.sln --no-restore --configuration Release
 
     - name: Run unit tests
-      run: dotnet test tests/MeAjudaAi.Tests/MeAjudaAi.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults
+      run: |
+        echo "🧪 Executando testes unitários..."
+        dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Shared
+        
+        echo "🏗️ Executando testes de arquitetura..."
+        dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Architecture
+        
+        echo "🔗 Executando testes de integração..."
+        dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Integration --environment ASPNETCORE_ENVIRONMENT=Testing
+        
+        echo "✅ Todos os testes executados com sucesso"
+
+    - name: Validate namespace reorganization
+      run: |
+        echo "🔍 Validando reorganização de namespaces..."
+        
+        # Verificar se não há referências ao namespace antigo
+        if grep -r "MeAjudaAi\.Shared\.Common" src/ --include="*.cs" --exclude-dir=bin --exclude-dir=obj; then
+          echo "❌ Encontradas referências ao namespace antigo MeAjudaAi.Shared.Common"
+          exit 1
+        fi
+        
+        # Verificar se os novos namespaces estão sendo usados
+        echo "Verificando novos namespaces..."
+        if ! grep -r "MeAjudaAi\.Shared\.Functional" src/ --include="*.cs" --exclude-dir=bin --exclude-dir=obj; then
+          echo "⚠️ Namespace MeAjudaAi.Shared.Functional não encontrado em uso"
+        fi
+        
+        if ! grep -r "MeAjudaAi\.Shared\.Domain" src/ --include="*.cs" --exclude-dir=bin --exclude-dir=obj; then
+          echo "⚠️ Namespace MeAjudaAi.Shared.Domain não encontrado em uso"
+        fi
+        
+        if ! grep -r "MeAjudaAi\.Shared\.Contracts" src/ --include="*.cs" --exclude-dir=bin --exclude-dir=obj; then
+          echo "⚠️ Namespace MeAjudaAi.Shared.Contracts não encontrado em uso"
+        fi
+        
+        echo "✅ Validação de namespaces concluída"
 
     - name: Upload test results
       uses: actions/upload-artifact@v4

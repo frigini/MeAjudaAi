@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics.Metrics;
 
 namespace MeAjudaAi.Shared.Caching;
 

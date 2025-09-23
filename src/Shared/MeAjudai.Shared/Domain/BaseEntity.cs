@@ -1,6 +1,6 @@
 ﻿using MeAjudaAi.Shared.Events;
 
-namespace MeAjudaAi.Shared.Common;
+namespace MeAjudaAi.Shared.Domain;
 
 public abstract class BaseEntity
 {

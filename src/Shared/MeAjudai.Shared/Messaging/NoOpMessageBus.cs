@@ -1,5 +1,3 @@
-using MeAjudaAi.Shared.Events;
-
 namespace MeAjudaAi.Shared.Messaging;
 
 /// <summary>

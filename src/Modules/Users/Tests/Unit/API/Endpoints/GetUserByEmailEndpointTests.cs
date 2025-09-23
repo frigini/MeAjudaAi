@@ -57,7 +57,7 @@ public class GetUserByEmailEndpointTests
         query.Email.Should().Be(invalidEmail);
         query.Should().BeOfType<GetUserByEmailQuery>();
         
-        // Note: Email validation should happen at domain level, not in mapper
+        // Nota: A validação do email deve ocorrer na camada de domínio, não no mapper
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class GetUserByEmailEndpointTests
 
         // Assert
         query.Should().NotBeNull();
-        query.Email.Should().Be(string.Empty); // Null is converted to empty string
+        query.Email.Should().Be(string.Empty); // Null é convertido para string vazia
         query.Should().BeOfType<GetUserByEmailQuery>();
     }
 
@@ -86,10 +86,10 @@ public class GetUserByEmailEndpointTests
         query.Email.Should().Be(email);
         query.CorrelationId.Should().NotBeEmpty();
         
-        // Verify Email equality even with different CorrelationId
+        // Verifica igualdade do Email mesmo com CorrelationId diferente
         var query2 = new GetUserByEmailQuery(email);
         query.Email.Should().Be(query2.Email);
-        query.CorrelationId.Should().NotBe(query2.CorrelationId); // Different instances have different CorrelationIds
+        query.CorrelationId.Should().NotBe(query2.CorrelationId); // Instâncias diferentes têm CorrelationIds diferentes
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public class GetUserByEmailEndpointTests
         query.Email.Should().Be(email);
         query.Email.Should().NotBe(email.ToLower());
         
-        // Note: Email normalization should happen at domain level
+        // Nota: Normalização do email deve ocorrer na camada de domínio
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class GetUserByEmailEndpointTests
         // Arrange
         var email = "test@example.com";
 
-        // Act & Assert - Testing that the extension method is available
+        // Act & Assert - Testa se o método de extensão está disponível
         var action = () => email.ToEmailQuery();
         action.Should().NotThrow();
         

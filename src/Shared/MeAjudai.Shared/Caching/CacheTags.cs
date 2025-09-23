@@ -56,6 +56,6 @@ public static class CacheTags
             tags.Add(UserEmailTag(email));
         }
         
-        return tags.ToArray();
+        return [.. tags];
     }
 }

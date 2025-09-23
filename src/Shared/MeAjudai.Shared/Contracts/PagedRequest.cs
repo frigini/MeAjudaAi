@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Common;
+﻿namespace MeAjudaAi.Shared.Contracts;
 
 public abstract record PagedRequest : Request
 {

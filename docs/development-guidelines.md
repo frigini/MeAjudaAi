@@ -105,6 +105,92 @@ Module/
 - **Variables**: camelCase (e.g., `var userName = "test"`)
 - **Constants**: PascalCase (e.g., `public const string ApiVersion`)
 
+### Shared Library Namespaces
+
+The `MeAjudaAi.Shared` library is organized by functional responsibility:
+
+```csharp
+// Functional programming types
+using MeAjudaAi.Shared.Functional;     // Result<T>, Error, Unit
+
+// Domain-driven design patterns  
+using MeAjudaAi.Shared.Domain;         // BaseEntity, AggregateRoot, ValueObject
+
+// API contracts
+using MeAjudaAi.Shared.Contracts;      // Request, Response<T>, PagedRequest, PagedResponse<T>
+
+// CQRS/Mediator patterns
+using MeAjudaAi.Shared.Mediator;       // IRequest<T>, IPipelineBehavior
+
+// Security and authorization
+using MeAjudaAi.Shared.Security;       // UserRoles
+
+// Infrastructure concerns
+using MeAjudaAi.Shared.Endpoints;      // BaseEndpoint
+using MeAjudaAi.Shared.Database;       // Database utilities
+using MeAjudaAi.Shared.Caching;        // Cache services
+```
+
+### Module Template Structure
+
+When creating new modules, follow this standardized structure:
+
+```
+src/Modules/[ModuleName]/
+├── Domain/                           # Domain layer
+│   ├── Entities/                     # Domain entities
+│   ├── ValueObjects/                 # Value objects  
+│   ├── Events/                       # Domain events
+│   ├── Repositories/                 # Repository interfaces
+│   └── Services/                     # Domain service interfaces
+├── Application/                      # Application layer
+│   ├── Commands/                     # CQRS commands
+│   ├── Queries/                      # CQRS queries
+│   ├── Handlers/                     # Command/query handlers
+│   ├── DTOs/                         # Data transfer objects
+│   ├── Mappers/                      # Object mapping extensions
+│   └── Validators/                   # Request validators
+├── Infrastructure/                   # Infrastructure layer
+│   ├── Persistence/                  # EF Core configurations
+│   ├── Repositories/                 # Repository implementations
+│   └── Services/                     # External service implementations
+├── API/                             # Presentation layer
+│   ├── Endpoints/                    # Minimal API endpoints
+│   └── Mappers/                      # Request/response mappers
+└── Tests/                           # Test projects
+    ├── Unit/                        # Unit tests
+    └── Integration/                 # Integration tests
+```
+
+### Required Imports by Layer
+
+**Domain Layer:**
+```csharp
+using MeAjudaAi.Shared.Domain;        // BaseEntity, AggregateRoot, ValueObject
+using MeAjudaAi.Shared.Events;        // IDomainEvent
+```
+
+**Application Layer:**
+```csharp
+using MeAjudaAi.Shared.Mediator;      // IRequest<T>, IPipelineBehavior
+using MeAjudaAi.Shared.Functional;    // Result<T>, Error, Unit
+using MeAjudaAi.Shared.Contracts;     // Request, Response<T>
+```
+
+**Infrastructure Layer:**
+```csharp
+using MeAjudaAi.Shared.Domain;        // For repositories
+using MeAjudaAi.Shared.Functional;    // Result<T> for services
+using MeAjudaAi.Shared.Database;      // Database utilities
+```
+
+**API Layer:**
+```csharp
+using MeAjudaAi.Shared.Endpoints;     // BaseEndpoint
+using MeAjudaAi.Shared.Contracts;     // Response<T>, Request
+using MeAjudaAi.Shared.Functional;    // Result<T>
+```
+
 ## Coding Standards
 
 ### General Principles
@@ -338,6 +424,92 @@ Use the built-in health checks and metrics:
 - **Branch naming**: `feature/user-authentication`, `bugfix/login-issue`
 - **Commit messages**: Use conventional commits format
   ```
+  feat: add user authentication
+  fix: resolve login timeout issue
+  docs: update API documentation
+  refactor: reorganize shared namespaces
+  ```
+
+## Namespace Migration Guide
+
+### Breaking Changes (September 2025)
+
+The `MeAjudaAi.Shared.Common` namespace has been eliminated and reorganized into specific functional namespaces.
+
+### Migration Steps
+
+1. **Remove old imports:**
+   ```csharp
+   // ❌ Remove this
+   using MeAjudaAi.Shared.Common;
+   ```
+
+2. **Add specific imports:**
+   ```csharp
+   // ✅ Add specific namespaces based on usage
+   using MeAjudaAi.Shared.Functional;   // For Result<T>, Error, Unit
+   using MeAjudaAi.Shared.Domain;       // For BaseEntity, ValueObject
+   using MeAjudaAi.Shared.Contracts;    // For Request, Response<T>
+   using MeAjudaAi.Shared.Mediator;     // For IRequest<T>
+   using MeAjudaAi.Shared.Security;     // For UserRoles
+   ```
+
+### Type Mapping
+
+| Type | Old Namespace | New Namespace |
+|------|---------------|---------------|
+| `Result<T>`, `Result` | `MeAjudaAi.Shared.Common` | `MeAjudaAi.Shared.Functional` |
+| `Error`, `Unit` | `MeAjudaAi.Shared.Common` | `MeAjudaAi.Shared.Functional` |
+| `BaseEntity<TId>` | `MeAjudaAi.Shared.Common` | `MeAjudaAi.Shared.Domain` |
+| `AggregateRoot<TId>` | `MeAjudaAi.Shared.Common` | `MeAjudaAi.Shared.Domain` |
+| `ValueObject` | `MeAjudaAi.Shared.Common` | `MeAjudaAi.Shared.Domain` |
+| `Request`, `Response<T>` | `MeAjudaAi.Shared.Common` | `MeAjudaAi.Shared.Contracts` |
+| `PagedRequest`, `PagedResponse<T>` | `MeAjudaAi.Shared.Common` | `MeAjudaAi.Shared.Contracts` |
+| `IRequest<TResponse>` | `MeAjudaAi.Shared.Common` | `MeAjudaAi.Shared.Mediator` |
+| `IPipelineBehavior<TRequest, TResponse>` | `MeAjudaAi.Shared.Common` | `MeAjudaAi.Shared.Mediator` |
+| `UserRoles` | `MeAjudaAi.Shared.Common` | `MeAjudaAi.Shared.Security` |
+
+### Common Migration Patterns
+
+**Command Handlers:**
+```csharp
+// Before
+using MeAjudaAi.Shared.Common;
+
+// After  
+using MeAjudaAi.Shared.Functional;  // Result<T>
+using MeAjudaAi.Shared.Mediator;    // IRequest<T>
+```
+
+**Domain Entities:**
+```csharp
+// Before
+using MeAjudaAi.Shared.Common;
+
+// After
+using MeAjudaAi.Shared.Domain;      // BaseEntity, ValueObject
+```
+
+**API Endpoints:**
+```csharp
+// Before
+using MeAjudaAi.Shared.Common;
+
+// After
+using MeAjudaAi.Shared.Functional;  // Result<T>
+using MeAjudaAi.Shared.Contracts;   // Response<T>
+using MeAjudaAi.Shared.Endpoints;   // BaseEndpoint
+```
+
+### Validation
+
+After migration, ensure:
+- ✅ All projects compile without errors
+- ✅ All unit tests pass (389 tests validated)
+- ✅ All architecture tests pass (29 tests validated)
+- ✅ No references to `MeAjudaAi.Shared.Common` remain
+
+For detailed migration information, see [shared-namespace-reorganization.md](shared-namespace-reorganization.md).
   feat: add user authentication endpoints
   fix: resolve null reference in user service
   docs: update API documentation

@@ -3,8 +3,9 @@ using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -71,14 +72,10 @@ public class UpdateUserProfileEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
-        // Cria comando usando o mapper ToCommand
         var command = request.ToCommand(id);
-        
-        // Envia comando através do dispatcher CQRS
         var result = await commandDispatcher.SendAsync<UpdateUserProfileCommand, Result<UserDto>>(
             command, cancellationToken);
 
-        // Processa resultado e retorna resposta HTTP apropriada
         return Handle(result);
     }
 }

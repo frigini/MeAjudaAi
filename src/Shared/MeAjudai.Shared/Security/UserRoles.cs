@@ -1,87 +1,87 @@
-namespace MeAjudaAi.Shared.Common;
+namespace MeAjudaAi.Shared.Security;
 
 /// <summary>
-/// System roles for authorization and access control
+/// Papéis do sistema para autorização e controle de acesso
 /// </summary>
 public static class UserRoles
 {
     /// <summary>
-    /// Regular user with basic permissions
+    /// Usuário comum com permissões básicas
     /// </summary>
     public const string User = "user";
     
     /// <summary>
-    /// Administrator with elevated permissions
+    /// Administrador com permissões elevadas
     /// </summary>
     public const string Admin = "admin";
     
     /// <summary>
-    /// Super administrator with full system access
+    /// Super administrador com acesso total ao sistema
     /// </summary>
     public const string SuperAdmin = "super-admin";
     
     /// <summary>
-    /// Service provider role for business accounts
+    /// Papel de prestador de serviço para contas empresariais
     /// </summary>
     public const string ServiceProvider = "service-provider";
     
     /// <summary>
-    /// Customer role for client accounts
+    /// Papel de cliente para contas de usuário final
     /// </summary>
     public const string Customer = "customer";
     
     /// <summary>
-    /// Moderator role for content management (future use)
+    /// Papel de moderador para gestão de conteúdo (uso futuro)
     /// </summary>
     public const string Moderator = "moderator";
 
     /// <summary>
-    /// Gets all available roles in the system
+    /// Obtém todos os papéis disponíveis no sistema
     /// </summary>
     public static readonly string[] AllRoles = 
-    {
+    [
         User,
         Admin,
         SuperAdmin,
         ServiceProvider,
         Customer,
         Moderator
-    };
+    ];
 
     /// <summary>
-    /// Gets roles that have administrative privileges
+    /// Obtém papéis que possuem privilégios administrativos
     /// </summary>
     public static readonly string[] AdminRoles = 
-    {
+    [
         Admin,
         SuperAdmin
-    };
+    ];
 
     /// <summary>
-    /// Gets roles available for regular user creation
+    /// Obtém papéis disponíveis para criação de usuário comum
     /// </summary>
     public static readonly string[] BasicRoles = 
-    {
+    [
         User,
         Customer,
         ServiceProvider
-    };
+    ];
 
     /// <summary>
-    /// Validates if a role is valid in the system
+    /// Valida se um papel é válido no sistema
     /// </summary>
-    /// <param name="role">Role to validate</param>
-    /// <returns>True if role is valid, false otherwise</returns>
+    /// <param name="role">Papel a ser validado</param>
+    /// <returns>True se o papel for válido, false caso contrário</returns>
     public static bool IsValidRole(string role)
     {
         return AllRoles.Contains(role, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
-    /// Validates if a role has administrative privileges
+    /// Valida se um papel possui privilégios administrativos
     /// </summary>
-    /// <param name="role">Role to check</param>
-    /// <returns>True if role is admin-level, false otherwise</returns>
+    /// <param name="role">Papel a ser verificado</param>
+    /// <returns>True se o papel for de nível admin, false caso contrário</returns>
     public static bool IsAdminRole(string role)
     {
         return AdminRoles.Contains(role, StringComparer.OrdinalIgnoreCase);

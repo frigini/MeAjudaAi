@@ -37,7 +37,7 @@ public class CacheWarmupService : ICacheWarmupService
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
-        _warmupStrategies = new Dictionary<string, Func<IServiceProvider, CancellationToken, Task>>();
+        _warmupStrategies = [];
         
         // Registrar estratégias de warmup por módulo
         RegisterWarmupStrategies();
@@ -132,7 +132,7 @@ public class CacheWarmupService : ICacheWarmupService
                     return new { MaxUsersPerPage = 50, DefaultUserRole = "Customer" };
                 },
                 TimeSpan.FromHours(6),
-                tags: new[] { CacheTags.Configuration, CacheTags.Users },
+                tags: [CacheTags.Configuration, CacheTags.Users],
                 cancellationToken: cancellationToken);
                 
             _logger.LogDebug("User system configurations warmed up");

@@ -1,7 +1,9 @@
 using FluentAssertions;
-using MeAjudaAi.Integration.Tests.E2E;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Integration.Tests.Aspire;
 using System.Net;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace MeAjudaAi.Integration.Tests.Versioning;
 

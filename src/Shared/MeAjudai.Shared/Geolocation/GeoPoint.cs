@@ -18,8 +18,8 @@ public record GeoPoint
 
     public double DistanceTo(GeoPoint other)
     {
-        // Haversine formula implementation
-        var R = 6371; // Earth's radius in km
+        // Implementação da fórmula de Haversine
+        var R = 6371; // Raio da Terra em km
         var dLat = ToRadians(other.Latitude - Latitude);
         var dLon = ToRadians(other.Longitude - Longitude);
 

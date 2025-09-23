@@ -25,7 +25,7 @@ public class UsernameTests
     public void Constructor_WithExactly30Characters_ShouldCreateUsername()
     {
         // Arrange
-        var thirtyCharUsername = "a".PadRight(30, '1'); // Exactly 30 characters
+        var thirtyCharUsername = "a".PadRight(30, '1'); // Exatamente 30 caracteres
 
         // Act
         var username = new Username(thirtyCharUsername);
@@ -61,7 +61,7 @@ public class UsernameTests
     public void Constructor_WithTooLongUsername_ShouldThrowArgumentException()
     {
         // Arrange
-        var longUsername = new string('a', 31); // 31 characters
+        var longUsername = new string('a', 31); // 31 caracteres
 
         // Act & Assert
         var act = () => new Username(longUsername);
@@ -70,31 +70,31 @@ public class UsernameTests
     }
 
     [Theory]
-    [InlineData("user name")] // Space
-    [InlineData("user@name")] // Special character
-    [InlineData("user#name")] // Special character
-    [InlineData("user$name")] // Special character
-    [InlineData("user%name")] // Special character
-    [InlineData("user&name")] // Special character
-    [InlineData("user+name")] // Special character
-    [InlineData("user=name")] // Special character
-    [InlineData("user!name")] // Special character
-    [InlineData("user?name")] // Special character
-    [InlineData("user/name")] // Special character
-    [InlineData("user\\name")] // Special character
-    [InlineData("user|name")] // Special character
-    [InlineData("user<name")] // Special character
-    [InlineData("user>name")] // Special character
-    [InlineData("user:name")] // Special character
-    [InlineData("user;name")] // Special character
-    [InlineData("user'name")] // Special character
-    [InlineData("user\"name")] // Special character
-    [InlineData("user[name")] // Special character
-    [InlineData("user]name")] // Special character
-    [InlineData("user{name")] // Special character
-    [InlineData("user}name")] // Special character
-    [InlineData("user`name")] // Special character
-    [InlineData("user~name")] // Special character
+    [InlineData("user name")] // Espaço
+    [InlineData("user@name")] // Caractere especial
+    [InlineData("user#name")] // Caractere especial
+    [InlineData("user$name")] // Caractere especial
+    [InlineData("user%name")] // Caractere especial
+    [InlineData("user&name")] // Caractere especial
+    [InlineData("user+name")] // Caractere especial
+    [InlineData("user=name")] // Caractere especial
+    [InlineData("user!name")] // Caractere especial
+    [InlineData("user?name")] // Caractere especial
+    [InlineData("user/name")] // Caractere especial
+    [InlineData("user\\name")] // Caractere especial
+    [InlineData("user|name")] // Caractere especial
+    [InlineData("user<name")] // Caractere especial
+    [InlineData("user>name")] // Caractere especial
+    [InlineData("user:name")] // Caractere especial
+    [InlineData("user;name")] // Caractere especial
+    [InlineData("user'name")] // Caractere especial
+    [InlineData("user\"name")] // Caractere especial
+    [InlineData("user[name")] // Caractere especial
+    [InlineData("user]name")] // Caractere especial
+    [InlineData("user{name")] // Caractere especial
+    [InlineData("user}name")] // Caractere especial
+    [InlineData("user`name")] // Caractere especial
+    [InlineData("user~name")] // Caractere especial
     public void Constructor_WithInvalidCharacters_ShouldThrowArgumentException(string invalidUsername)
     {
         // Act & Assert

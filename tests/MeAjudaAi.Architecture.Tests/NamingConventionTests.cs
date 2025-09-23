@@ -12,7 +12,7 @@ public class NamingConventionTests
     private static readonly Assembly ApplicationAssembly = typeof(MeAjudaAi.Modules.Users.Application.Extensions).Assembly;
     private static readonly Assembly InfrastructureAssembly = typeof(MeAjudaAi.Modules.Users.Infrastructure.Mappers.DomainEventMapperExtensions).Assembly;
     private static readonly Assembly ApiAssembly = typeof(MeAjudaAi.Modules.Users.API.Mappers.RequestMapperExtensions).Assembly;
-    private static readonly Assembly SharedAssembly = typeof(MeAjudaAi.Shared.Common.Result).Assembly;
+    private static readonly Assembly SharedAssembly = typeof(MeAjudaAi.Shared.Functional.Result).Assembly;
 
     [Fact]
     public void Domain_Events_ShouldHaveCorrectSuffix()

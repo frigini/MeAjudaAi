@@ -1,10 +1,10 @@
-namespace MeAjudaAi.Shared.Common;
+namespace MeAjudaAi.Shared.Functional;
 
 /// <summary>
 /// Representa um tipo que não retorna valor útil.
 /// Usado para padronizar interfaces que podem ou não retornar valores.
 /// </summary>
-public struct Unit : IEquatable<Unit>
+public readonly struct Unit : IEquatable<Unit>
 {
     /// <summary>
     /// Instância padrão do Unit.

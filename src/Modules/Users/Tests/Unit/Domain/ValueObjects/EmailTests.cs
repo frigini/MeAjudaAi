@@ -37,7 +37,7 @@ public class EmailTests
     public void Constructor_WithTooLongEmail_ShouldThrowArgumentException()
     {
         // Arrange
-        var longEmail = new string('a', 250) + "@example.com"; // Total > 254 characters
+        var longEmail = new string('a', 250) + "@example.com"; // Total > 254 caracteres
 
         // Act & Assert
         var act = () => new Email(longEmail);

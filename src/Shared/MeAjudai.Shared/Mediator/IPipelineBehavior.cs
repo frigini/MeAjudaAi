@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Common;
+namespace MeAjudaAi.Shared.Mediator;
 
 /// <summary>
 /// Interface base para todas as requisições no sistema CQRS.

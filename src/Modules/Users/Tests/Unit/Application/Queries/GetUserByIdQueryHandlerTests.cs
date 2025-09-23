@@ -192,7 +192,7 @@ public class GetUserByIdQueryHandlerTests
         // Assert
         _usersCacheServiceMock.Verify(
             x => x.GetOrCacheUserByIdAsync(
-                userId, // Verify correct userId is passed
+                userId, // Verifica se o userId correto foi passado
                 It.IsAny<Func<CancellationToken, ValueTask<UserDto?>>>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -211,7 +211,7 @@ public class GetUserByIdQueryHandlerTests
             .WithLastName("User")
             .Build();
 
-        // Setup cache service to call the factory function (simulating cache miss)
+        // Configura o serviço de cache para chamar a função de fábrica (simulando cache miss)
         _usersCacheServiceMock
             .Setup(x => x.GetOrCacheUserByIdAsync(
                 userId,

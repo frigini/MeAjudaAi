@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Common;
+﻿namespace MeAjudaAi.Shared.Functional;
 
 public record Error(string Message, int StatusCode = 400)
 {

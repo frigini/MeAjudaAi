@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
-using MeAjudaAi.Shared.Common;
+using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;

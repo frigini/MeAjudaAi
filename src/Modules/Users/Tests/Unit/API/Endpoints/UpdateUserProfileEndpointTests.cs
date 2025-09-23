@@ -19,7 +19,7 @@ public class UpdateUserProfileEndpointTests
         {
             FirstName = "John",
             LastName = "Doe",
-            Email = "john.doe@example.com" // Email is in request but not mapped to command
+            Email = "john.doe@example.com" // Email está na requisição mas não é mapeado para o command
         };
 
         // Act
@@ -31,7 +31,7 @@ public class UpdateUserProfileEndpointTests
         command.FirstName.Should().Be("John");
         command.LastName.Should().Be("Doe");
         command.Should().BeOfType<UpdateUserProfileCommand>();
-        // Note: Email is not part of UpdateUserProfileCommand by design
+        // Nota: Email não faz parte do UpdateUserProfileCommand por design
     }
 
     [Theory]
@@ -46,7 +46,7 @@ public class UpdateUserProfileEndpointTests
         {
             FirstName = firstName,
             LastName = lastName,
-            Email = "email@test.com" // Email is ignored in command mapping
+            Email = "email@test.com" // Email é ignorado no mapeamento do command
         };
 
         // Act
@@ -68,7 +68,7 @@ public class UpdateUserProfileEndpointTests
         {
             FirstName = "Test",
             LastName = "User",
-            Email = "test@example.com" // Email is in request but not mapped
+            Email = "test@example.com" // Email está na requisição mas não é mapeado
         };
 
         // Act
@@ -93,7 +93,7 @@ public class UpdateUserProfileEndpointTests
         {
             FirstName = firstName,
             LastName = lastName,
-            Email = "test@example.com" // Email present in request but not used in command
+            Email = "test@example.com" // Email presente na requisição mas não usado no command
         };
 
         // Act
@@ -116,7 +116,7 @@ public class UpdateUserProfileEndpointTests
         {
             FirstName = firstName,
             LastName = lastName,
-            Email = "email@test.com" // Email present but not mapped to command
+            Email = "email@test.com" // Email presente mas não mapeado para o command
         };
 
         // Act
@@ -127,7 +127,7 @@ public class UpdateUserProfileEndpointTests
         command.FirstName.Should().Be(firstName);
         command.LastName.Should().Be(lastName);
         
-        // Note: Trimming should happen at domain level or validation
+        // Nota: O trim deve ocorrer na camada de domínio ou validação
     }
 
     [Fact]
@@ -145,12 +145,12 @@ public class UpdateUserProfileEndpointTests
         command.LastName.Should().Be(lastName);
         command.CorrelationId.Should().NotBeEmpty();
         
-        // Verify property equality even with different CorrelationId
+        // Verifica igualdade das propriedades mesmo com CorrelationId diferente
         var command2 = new UpdateUserProfileCommand(userId, firstName, lastName);
         command.UserId.Should().Be(command2.UserId);
         command.FirstName.Should().Be(command2.FirstName);
         command.LastName.Should().Be(command2.LastName);
-        command.CorrelationId.Should().NotBe(command2.CorrelationId); // Different instances have different CorrelationIds
+        command.CorrelationId.Should().NotBe(command2.CorrelationId); // Instâncias diferentes têm CorrelationIds diferentes
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class UpdateUserProfileEndpointTests
             Email = "test@example.com"
         };
 
-        // Act & Assert - Testing that the extension method is available
+        // Act & Assert - Testa se o método de extensão está disponível
         var action = () => request.ToCommand(userId);
         action.Should().NotThrow();
         
@@ -251,7 +251,7 @@ public class UpdateUserProfileEndpointTests
         {
             FirstName = firstName,
             LastName = lastName,
-            Email = "test@example.com" // Email present but not mapped
+            Email = "test@example.com" // Email presente mas não mapeado
         };
 
         // Act
@@ -261,6 +261,6 @@ public class UpdateUserProfileEndpointTests
         command.FirstName.Should().Be(firstName);
         command.LastName.Should().Be(lastName);
         
-        // Note: Case normalization should happen at domain level
+        // Nota: Normalização de caixa deve ocorrer na camada de domínio
     }
 }

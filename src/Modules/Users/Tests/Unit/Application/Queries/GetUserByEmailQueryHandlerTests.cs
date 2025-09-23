@@ -160,7 +160,7 @@ public class GetUserByEmailQueryHandlerTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
 
-        // Verify that the repository was called with normalized email
+        // Verifica se o repositório foi chamado com o email normalizado
         _userRepositoryMock.Verify(x => x.GetByEmailAsync(normalizedEmail, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -168,7 +168,7 @@ public class GetUserByEmailQueryHandlerTests
     public async Task HandleAsync_LongEmail_ShouldReturnFailure()
     {
         // Arrange
-        var longEmail = new string('a', 250) + "@example.com"; // Email longer than typical limit
+        var longEmail = new string('a', 250) + "@example.com"; // Email maior que o limite típico
         var query = new GetUserByEmailQuery(longEmail);
 
         // Act

@@ -6,19 +6,19 @@ public static class MiddlewareExtensions
 {
     public static IApplicationBuilder UseApiMiddlewares(this IApplicationBuilder app)
     {
-        // Security headers (early in pipeline)
+        // Cabeçalhos de segurança (no início do pipeline)
         app.UseMiddleware<SecurityHeadersMiddleware>();
         
-        // Response compression
+        // Compressão de resposta
         app.UseResponseCompression();
         
-        // Static files with caching
+        // Arquivos estáticos com cache
         app.UseMiddleware<StaticFilesMiddleware>();
         
-        // Request logging
+        // Log de requisições
         app.UseMiddleware<RequestLoggingMiddleware>();
         
-        // Rate limiting
+        // Limitação de taxa (rate limiting)
         app.UseMiddleware<RateLimitingMiddleware>();
 
         return app;

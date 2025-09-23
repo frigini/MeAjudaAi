@@ -5,15 +5,15 @@ using MeAjudaAi.Modules.Users.Application.Queries;
 namespace MeAjudaAi.Modules.Users.API.Mappers;
 
 /// <summary>
-/// Extension methods for mapping DTOs to Commands and Queries
+/// Métodos de extensão para mapear DTOs para Commands e Queries
 /// </summary>
 public static class RequestMapperExtensions
 {
     /// <summary>
-    /// Maps CreateUserRequest to CreateUserCommand
+    /// Mapeia CreateUserRequest para CreateUserCommand
     /// </summary>
-    /// <param name="request">The user creation request</param>
-    /// <returns>CreateUserCommand with mapped properties</returns>
+    /// <param name="request">Requisição de criação de usuário</param>
+    /// <returns>CreateUserCommand com propriedades mapeadas</returns>
     public static CreateUserCommand ToCommand(this CreateUserRequest request)
     {
         return new CreateUserCommand(
@@ -27,56 +27,56 @@ public static class RequestMapperExtensions
     }
 
     /// <summary>
-    /// Maps UpdateUserProfileRequest to UpdateUserProfileCommand
+    /// Mapeia UpdateUserProfileRequest para UpdateUserProfileCommand
     /// </summary>
-    /// <param name="request">The profile update request</param>
-    /// <param name="userId">The ID of the user to update</param>
-    /// <returns>UpdateUserProfileCommand with mapped properties</returns>
+    /// <param name="request">Requisição de atualização de perfil</param>
+    /// <param name="userId">ID do usuário a ser atualizado</param>
+    /// <returns>UpdateUserProfileCommand com propriedades mapeadas</returns>
     public static UpdateUserProfileCommand ToCommand(this UpdateUserProfileRequest request, Guid userId)
     {
         return new UpdateUserProfileCommand(
             UserId: userId,
             FirstName: request.FirstName,
             LastName: request.LastName
-            // Note: Email is not included as per command design - use separate command for email updates
+            // Observação: Email não está incluído conforme design do comando - use comando separado para atualização de email
         );
     }
 
     /// <summary>
-    /// Maps user ID to DeleteUserCommand
+    /// Mapeia o ID do usuário para DeleteUserCommand
     /// </summary>
-    /// <param name="userId">The ID of the user to delete</param>
-    /// <returns>DeleteUserCommand with the specified user ID</returns>
+    /// <param name="userId">ID do usuário a ser excluído</param>
+    /// <returns>DeleteUserCommand com o ID especificado</returns>
     public static DeleteUserCommand ToDeleteCommand(this Guid userId)
     {
         return new DeleteUserCommand(userId);
     }
 
     /// <summary>
-    /// Maps user ID to GetUserByIdQuery
+    /// Mapeia o ID do usuário para GetUserByIdQuery
     /// </summary>
-    /// <param name="userId">The ID of the user to retrieve</param>
-    /// <returns>GetUserByIdQuery with the specified user ID</returns>
+    /// <param name="userId">ID do usuário a ser consultado</param>
+    /// <returns>GetUserByIdQuery com o ID especificado</returns>
     public static GetUserByIdQuery ToQuery(this Guid userId)
     {
         return new GetUserByIdQuery(userId);
     }
 
     /// <summary>
-    /// Maps email to GetUserByEmailQuery
+    /// Mapeia o email para GetUserByEmailQuery
     /// </summary>
-    /// <param name="email">The email of the user to retrieve</param>
-    /// <returns>GetUserByEmailQuery with the specified email</returns>
+    /// <param name="email">Email do usuário a ser consultado</param>
+    /// <returns>GetUserByEmailQuery com o email especificado</returns>
     public static GetUserByEmailQuery ToEmailQuery(this string? email)
     {
         return new GetUserByEmailQuery(email ?? string.Empty);
     }
 
     /// <summary>
-    /// Maps GetUsersRequest to GetUsersQuery
+    /// Mapeia GetUsersRequest para GetUsersQuery
     /// </summary>
-    /// <param name="request">The users listing request</param>
-    /// <returns>GetUsersQuery with the specified parameters</returns>
+    /// <param name="request">Requisição de listagem de usuários</param>
+    /// <returns>GetUsersQuery com os parâmetros especificados</returns>
     public static GetUsersQuery ToUsersQuery(this GetUsersRequest request)
     {
         return new GetUsersQuery(
@@ -85,6 +85,4 @@ public static class RequestMapperExtensions
             SearchTerm: request.SearchTerm
         );
     }
-
-
 }

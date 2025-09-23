@@ -1,7 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus.Administration;
 using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.Shared.Messaging.ServiceBus;
 

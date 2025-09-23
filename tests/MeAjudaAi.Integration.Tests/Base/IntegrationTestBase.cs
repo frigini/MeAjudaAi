@@ -1,4 +1,5 @@
 using MeAjudaAi.Integration.Tests.Aspire;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace MeAjudaAi.Integration.Tests.Base;

@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Common;
+﻿namespace MeAjudaAi.Shared.Contracts;
 
 public sealed class PagedResult<T>(IReadOnlyList<T> items, int page, int pageSize, int totalCount)
 {

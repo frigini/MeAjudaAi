@@ -3,7 +3,7 @@ using MeAjudaAi.Shared.Events;
 namespace MeAjudaAi.Shared.Messaging.Messages.Users;
 
 /// <summary>
-/// Published when a new user registers in the system
+/// Publicado quando um novo usuário se registra no sistema
 /// </summary>
 public sealed record UserRegisteredIntegrationEvent(
     string Source,
