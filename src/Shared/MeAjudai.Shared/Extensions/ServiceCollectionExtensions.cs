@@ -1,6 +1,5 @@
 ﻿using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Mediator;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;
@@ -80,7 +79,7 @@ public static class ServiceCollectionExtensions
             else
             {
                 services.AddSingleton<IMessageBus, NoOpMessageBus>();
-                services.AddSingleton<MeAjudaAi.Shared.Messaging.Service.Bus.IServiceBusTopicManager, NoOpServiceBusTopicManager>();
+                services.AddSingleton<MeAjudaAi.Shared.Messaging.ServiceBus.IServiceBusTopicManager, NoOpServiceBusTopicManager>();
             }
             
             services.AddValidation();
