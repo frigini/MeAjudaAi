@@ -1,16 +1,11 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
-using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Shared.Common;
-using AutoFixture;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 
@@ -41,7 +36,7 @@ public class CreateUserCommandHandlerTests
             FirstName: "John",
             LastName: "Doe",
             Password: "password123",
-            Roles: new[] { "Customer" }
+            Roles: ["Customer"]
         );
 
         var user = new UserBuilder()
@@ -96,7 +91,7 @@ public class CreateUserCommandHandlerTests
             FirstName: "John",
             LastName: "Doe",
             Password: "password123",
-            Roles: new[] { "Customer" }
+            Roles: ["Customer"]
         );
 
         var error = Error.BadRequest("Failed to create user");

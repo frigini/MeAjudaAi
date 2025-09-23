@@ -51,16 +51,18 @@ internal sealed class UserRepository : IUserRepository
         {
             var search = searchTerm.Trim().ToLower();
             query = query.Where(u => 
-                u.Email.Value.ToLower().Contains(search) ||
-                u.Username.Value.ToLower().Contains(search) ||
-                u.FirstName.ToLower().Contains(search) ||
-                u.LastName.ToLower().Contains(search));
+                u.Email.Value.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
+                u.Username.Value.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
+                u.FirstName.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
+                u.LastName.Contains(search, StringComparison.CurrentCultureIgnoreCase));
         }
 
         var countTask = query.CountAsync(cancellationToken);
         var usersTask = query.Skip(skip).Take(pageSize).ToListAsync(cancellationToken);
         await Task.WhenAll(countTask, usersTask);
-        return (usersTask.Result, countTask.Result);
+        var totalCount = countTask.Result;
+        var users = usersTask.Result;
+        return (users, totalCount);
     }
 
     public async Task<User?> GetByKeycloakIdAsync(string keycloakId, CancellationToken cancellationToken = default)
@@ -90,7 +92,8 @@ internal sealed class UserRepository : IUserRepository
         var user = await GetByIdAsync(id, cancellationToken);
         if (user != null)
         {
-            _context.Users.Remove(user);
+            user.MarkAsDeleted();
+            _context.Users.Update(user);
         }
     }
 

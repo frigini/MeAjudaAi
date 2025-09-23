@@ -114,7 +114,9 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
     /// <summary>
     /// Processa requisição de consulta de usuários de forma assíncrona.
     /// </summary>
-    /// <param name="request">Parâmetros de paginação e filtros da consulta</param>
+    /// <param name="pageNumber">Número da página (padrão: 1)</param>
+    /// <param name="pageSize">Tamanho da página (padrão: 10)</param>
+    /// <param name="searchTerm">Termo de busca (opcional)</param>
     /// <param name="queryDispatcher">Dispatcher para envio de queries CQRS</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <returns>
@@ -132,10 +134,20 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
     /// Suporta parâmetros: PageNumber, PageSize, SearchTerm
     /// </remarks>
     private static async Task<IResult> GetUsersAsync(
-        [AsParameters] GetUsersRequest request,
-        IQueryDispatcher queryDispatcher,
-        CancellationToken cancellationToken)
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? searchTerm = null,
+        IQueryDispatcher queryDispatcher = null!,
+        CancellationToken cancellationToken = default)
     {
+        // Cria request object com os parâmetros
+        var request = new GetUsersRequest
+        {
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            SearchTerm = searchTerm
+        };
+
         // Cria query usando o mapper ToUsersQuery
         var query = request.ToUsersQuery();
 

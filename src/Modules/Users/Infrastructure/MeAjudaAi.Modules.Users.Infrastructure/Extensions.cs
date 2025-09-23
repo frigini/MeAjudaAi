@@ -28,7 +28,7 @@ public static class Extensions
 
     private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
-        // Use PostgreSQL for all environments (TestContainers will provide test database)
+        // Usa PostgreSQL para todos os ambientes (TestContainers fornecerá database de teste)
         var connectionString = configuration.GetConnectionString("DefaultConnection") 
                               ?? configuration.GetConnectionString("Users")
                               ?? configuration.GetConnectionString("meajudaai-db");
@@ -67,7 +67,7 @@ public static class Extensions
             return context;
         });
 
-        // Register domain event processor (direct dependency injection approach)
+        // Registra processador de eventos de domínio (abordagem de injeção de dependência direta)
         services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
         services.AddScoped<IUserRepository, UserRepository>();
@@ -84,7 +84,19 @@ public static class Extensions
             configuration.GetSection(KeycloakOptions.SectionName).Bind(options);
             return options;
         });
-        services.AddHttpClient<IKeycloakService, KeycloakService>();
+
+        // Verifica se Keycloak está habilitado para usar implementação real ou mock
+        var keycloakEnabledString = configuration["Keycloak:Enabled"];
+        var keycloakEnabled = !string.Equals(keycloakEnabledString, "false", StringComparison.OrdinalIgnoreCase);
+        
+        if (keycloakEnabled)
+        {
+            services.AddHttpClient<IKeycloakService, KeycloakService>();
+        }
+        else
+        {
+            services.AddScoped<IKeycloakService, MockKeycloakService>();
+        }
 
         return services;
     }
@@ -99,7 +111,7 @@ public static class Extensions
 
     private static IServiceCollection AddEventHandlers(this IServiceCollection services)
     {
-        // Register domain event handlers
+        // Registra handlers de eventos de domínio
         services.AddScoped<IEventHandler<UserRegisteredDomainEvent>, UserRegisteredDomainEventHandler>();
         services.AddScoped<IEventHandler<UserProfileUpdatedDomainEvent>, UserProfileUpdatedDomainEventHandler>();
         services.AddScoped<IEventHandler<UserDeletedDomainEvent>, UserDeletedDomainEventHandler>();

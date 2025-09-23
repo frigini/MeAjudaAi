@@ -3,7 +3,7 @@
 namespace MeAjudaAi.Modules.Users.Domain.Events;
 
 /// <summary>
-/// Domain event emitted when a user's profile is updated
+/// Evento de domínio emitido quando o perfil de um usuário é atualizado
 /// </summary>
 public record UserProfileUpdatedDomainEvent(
     Guid AggregateId,

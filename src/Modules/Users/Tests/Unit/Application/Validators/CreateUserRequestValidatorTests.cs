@@ -1,8 +1,6 @@
-using FluentAssertions;
 using FluentValidation.TestHelper;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Validators;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Validators;
 
@@ -29,7 +27,7 @@ public class CreateUserRequestValidatorTests
             Password = "Password123",
             FirstName = "Test",
             LastName = "User",
-            Roles = new[] { "Customer" }
+            Roles = ["Customer"]
         };
 
         // Act

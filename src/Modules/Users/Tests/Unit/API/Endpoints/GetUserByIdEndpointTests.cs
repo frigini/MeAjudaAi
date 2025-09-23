@@ -1,6 +1,3 @@
-using FluentAssertions;
-using Xunit;
-
 namespace MeAjudaAi.Modules.Users.Tests.Unit.API.Endpoints;
 
 /// <summary>

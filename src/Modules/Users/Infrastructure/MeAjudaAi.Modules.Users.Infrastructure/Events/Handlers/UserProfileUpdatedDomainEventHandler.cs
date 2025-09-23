@@ -1,15 +1,15 @@
 using MeAjudaAi.Modules.Users.Domain.Events;
+using MeAjudaAi.Modules.Users.Infrastructure.Mappers;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Messaging.Messages.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
 
 /// <summary>
-/// Handles UserProfileUpdatedDomainEvent and publishes UserProfileUpdatedIntegrationEvent
+/// Manipula UserProfileUpdatedDomainEvent e publica UserProfileUpdatedIntegrationEvent
 /// </summary>
 internal sealed class UserProfileUpdatedDomainEventHandler(
     IMessageBus messageBus,
@@ -22,7 +22,7 @@ internal sealed class UserProfileUpdatedDomainEventHandler(
         {
             logger.LogInformation("Handling UserProfileUpdatedDomainEvent for user {UserId}", domainEvent.AggregateId);
 
-            // Get the user with updated profile information
+            // Busca o usuário com informações atualizadas do perfil
             var user = await context.Users
                 .FirstOrDefaultAsync(u => u.Id == new Domain.ValueObjects.UserId(domainEvent.AggregateId), cancellationToken);
 
@@ -32,15 +32,8 @@ internal sealed class UserProfileUpdatedDomainEventHandler(
                 return;
             }
 
-            // Create integration event
-            var integrationEvent = new UserProfileUpdatedIntegrationEvent(
-                Source: "Users",
-                UserId: domainEvent.AggregateId,
-                Email: user.Email.Value,
-                FirstName: domainEvent.FirstName,
-                LastName: domainEvent.LastName,
-                UpdatedAt: DateTime.UtcNow
-            );
+            // Cria evento de integração usando mapper
+            var integrationEvent = domainEvent.ToIntegrationEvent(user.Email.Value);
 
             await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
 

@@ -1,9 +1,9 @@
 ﻿using MeAjudaAi.Modules.Users.Domain.Services.Models;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
 using MeAjudaAi.Shared.Common;
-using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -18,6 +18,12 @@ public class KeycloakService(
     private readonly KeycloakOptions _options = options;
     private string? _adminToken;
     private DateTime _adminTokenExpiry = DateTime.MinValue;
+    
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false
+    };
 
     public async Task<Result<string>> CreateUserAsync(
         string username,
@@ -34,7 +40,7 @@ public class KeycloakService(
             if (adminToken.IsFailure)
                 return Result<string>.Failure(adminToken.Error);
 
-            // Create user payload
+            // Cria payload do usuário
             var createUserPayload = new KeycloakCreateUserRequest
             {
                 Username = username,
@@ -54,8 +60,8 @@ public class KeycloakService(
                 ]
             };
 
-            var json = JsonSerializer.Serialize(createUserPayload, SerializationDefaults.Api);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var json = JsonSerializer.Serialize(createUserPayload, JsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             httpClient.DefaultRequestHeaders.Clear();
             httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {adminToken.Value}");
@@ -70,21 +76,21 @@ public class KeycloakService(
                 return Result<string>.Failure($"Failed to create user in Keycloak: {response.StatusCode}");
             }
 
-            // Extract user ID from Location header
+            // Extrai ID do usuário do cabeçalho Location
             var locationHeader = response.Headers.Location?.ToString();
             if (string.IsNullOrEmpty(locationHeader))
                 return Result<string>.Failure("Failed to get user ID from Keycloak response");
 
             var keycloakUserId = locationHeader.Split('/').Last();
 
-            // Assign roles if provided
+            // Atribui papéis se fornecidos
             if (roles.Any())
             {
                 var roleAssignResult = await AssignRolesToUserAsync(keycloakUserId, roles, adminToken.Value, cancellationToken);
                 if (roleAssignResult.IsFailure)
                 {
                     logger.LogWarning("User created but role assignment failed: {Error}", roleAssignResult.Error);
-                    // Don't fail user creation, just log the warning
+                    // Não falha na criação do usuário, apenas registra o aviso
                 }
             }
 
@@ -94,7 +100,7 @@ public class KeycloakService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Exception occurred while creating user in Keycloak. Payload: {Payload}",
-                JsonSerializer.Serialize(new { username, email, firstName, lastName }, SerializationDefaults.Logging));
+                JsonSerializer.Serialize(new { username, email, firstName, lastName }, JsonOptions));
             return Result<string>.Failure($"Exception: {ex.Message}");
         }
     }
@@ -171,7 +177,7 @@ public class KeycloakService(
 
             var jwt = tokenHandler.ReadJwtToken(token);
 
-            // Check if token is expired
+            // Verifica se o token expirou
             if (jwt.ValidTo < DateTime.UtcNow)
                 return Task.FromResult(Result<TokenValidationResult>.Failure("Token has expired"));
 
@@ -212,8 +218,8 @@ public class KeycloakService(
                 return adminToken.Error;
 
             var updatePayload = new { enabled = false };
-            var json = JsonSerializer.Serialize(updatePayload, SerializationDefaults.Api);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var json = JsonSerializer.Serialize(updatePayload, JsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             httpClient.DefaultRequestHeaders.Clear();
             httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {adminToken.Value}");
@@ -240,7 +246,7 @@ public class KeycloakService(
 
     private async Task<Result<string>> GetAdminTokenAsync(CancellationToken cancellationToken = default)
     {
-        // Check if we have a valid token
+        // Verifica se temos um token válido
         if (!string.IsNullOrEmpty(_adminToken) && _adminTokenExpiry > DateTime.UtcNow.AddMinutes(5))
             return Result<string>.Success(_adminToken);
 
@@ -266,7 +272,7 @@ public class KeycloakService(
             }
 
             var tokenResponse = await response.Content.ReadFromJsonAsync<KeycloakTokenResponse>(
-                SerializationDefaults.Api, cancellationToken);
+                JsonOptions, cancellationToken);
 
             if (tokenResponse == null || string.IsNullOrEmpty(tokenResponse.AccessToken))
                 return Result<string>.Failure("Invalid admin token response");
@@ -291,18 +297,69 @@ public class KeycloakService(
     {
         try
         {
-            // This is a simplified implementation
-            // In a real scenario, you'd need to:
-            // 1. Get available realm roles
-            // 2. Map role names to role objects
-            // 3. Assign roles to the user
-
-            logger.LogInformation("Role assignment for user {UserId} with roles: {Roles}",
+            logger.LogInformation("Assigning roles to user {UserId} with roles: {Roles}",
                 keycloakUserId, string.Join(", ", roles));
 
-            // Implementation would go here
-            await Task.CompletedTask;
+            // 1. Obter papéis disponíveis do realm
+            var availableRolesRequest = new HttpRequestMessage(HttpMethod.Get, 
+                $"{_options.BaseUrl}/admin/realms/{_options.Realm}/roles");
+            availableRolesRequest.Headers.Authorization = 
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminToken);
 
+            var availableRolesResponse = await httpClient.SendAsync(availableRolesRequest, cancellationToken);
+            if (!availableRolesResponse.IsSuccessStatusCode)
+            {
+                logger.LogError("Failed to get available roles: {StatusCode}", availableRolesResponse.StatusCode);
+                return Result.Failure("Failed to get available roles from Keycloak");
+            }
+
+            var availableRolesJson = await availableRolesResponse.Content.ReadAsStringAsync(cancellationToken);
+            var availableRoles = JsonSerializer.Deserialize<KeycloakRole[]>(availableRolesJson, 
+                JsonOptions) ?? [];
+
+            // 2. Mapear nomes de papéis para objetos de papel
+            var rolesToAssign = new List<KeycloakRole>();
+            foreach (var roleName in roles)
+            {
+                var role = availableRoles.FirstOrDefault(r => 
+                    string.Equals(r.Name, roleName, StringComparison.OrdinalIgnoreCase));
+                
+                if (role != null)
+                {
+                    rolesToAssign.Add(role);
+                }
+                else
+                {
+                    logger.LogWarning("Role '{RoleName}' not found in Keycloak realm", roleName);
+                }
+            }
+
+            if (rolesToAssign.Count == 0)
+            {
+                logger.LogInformation("No valid roles to assign to user {UserId}", keycloakUserId);
+                return Result.Success();
+            }
+
+            // 3. Atribuir papéis ao usuário
+            var assignRolesRequest = new HttpRequestMessage(HttpMethod.Post,
+                $"{_options.BaseUrl}/admin/realms/{_options.Realm}/users/{keycloakUserId}/role-mappings/realm");
+            assignRolesRequest.Headers.Authorization = 
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminToken);
+
+            var rolesJson = JsonSerializer.Serialize(rolesToAssign, JsonOptions);
+            assignRolesRequest.Content = new StringContent(rolesJson, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
+
+            var assignRolesResponse = await httpClient.SendAsync(assignRolesRequest, cancellationToken);
+            if (!assignRolesResponse.IsSuccessStatusCode)
+            {
+                var errorContent = await assignRolesResponse.Content.ReadAsStringAsync(cancellationToken);
+                logger.LogError("Failed to assign roles to user {UserId}: {StatusCode} - {Error}", 
+                    keycloakUserId, assignRolesResponse.StatusCode, errorContent);
+                return Result.Failure($"Failed to assign roles: {assignRolesResponse.StatusCode}");
+            }
+
+            logger.LogInformation("Successfully assigned {RoleCount} roles to user {UserId}", 
+                rolesToAssign.Count, keycloakUserId);
             return Result.Success();
         }
         catch (Exception ex)
@@ -316,13 +373,65 @@ public class KeycloakService(
     {
         try
         {
-            // This is a simplified extraction
-            // Real implementation would parse the JSON structure properly
-            return new List<string>();
+            // Analisa a estrutura JSON dos claims de papel do Keycloak
+            // Os papéis podem vir em diferentes formatos:
+            // 1. realm_access: { "roles": ["role1", "role2"] }
+            // 2. resource_access: { "client1": { "roles": ["role1"] }, "client2": { "roles": ["role2"] } }
+            
+            var roles = new List<string>();
+            
+            using var document = JsonDocument.Parse(claimValue);
+            var root = document.RootElement;
+            
+            // Verifica se é um claim realm_access
+            if (root.TryGetProperty("roles", out var realmRoles) && realmRoles.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var role in realmRoles.EnumerateArray())
+                {
+                    if (role.ValueKind == JsonValueKind.String)
+                    {
+                        var roleValue = role.GetString();
+                        if (!string.IsNullOrEmpty(roleValue))
+                        {
+                            roles.Add(roleValue);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Verifica se é um claim resource_access (papéis de cliente)
+                foreach (var client in root.EnumerateObject())
+                {
+                    if (client.Value.TryGetProperty("roles", out var clientRoles) && 
+                        clientRoles.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var role in clientRoles.EnumerateArray())
+                        {
+                            if (role.ValueKind == JsonValueKind.String)
+                            {
+                                var roleValue = role.GetString();
+                                if (!string.IsNullOrEmpty(roleValue))
+                                {
+                                    // Prefixo com nome do cliente para evitar conflitos
+                                    roles.Add($"{client.Name}:{roleValue}");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return roles.Distinct();
+        }
+        catch (JsonException)
+        {
+            // Se não conseguir analisar como JSON, pode ser um valor simples
+            return string.IsNullOrEmpty(claimValue) ? Enumerable.Empty<string>() : new[] { claimValue };
         }
         catch
         {
-            return Enumerable.Empty<string>();
+            return [];
         }
     }
 }

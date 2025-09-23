@@ -24,7 +24,7 @@ public class  UsersDbContext : BaseDbContext
     {
         modelBuilder.HasDefaultSchema("users");
         
-        // Apply configurations from assembly
+        // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         base.OnModelCreating(modelBuilder);

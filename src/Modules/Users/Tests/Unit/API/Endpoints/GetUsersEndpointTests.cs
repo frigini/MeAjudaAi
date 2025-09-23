@@ -1,8 +1,6 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.API.Endpoints;
 

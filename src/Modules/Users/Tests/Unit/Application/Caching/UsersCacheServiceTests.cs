@@ -1,6 +1,3 @@
-using FluentAssertions;
-using Moq;
-using Xunit;
 using MeAjudaAi.Modules.Users.Application.Caching;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Caching;

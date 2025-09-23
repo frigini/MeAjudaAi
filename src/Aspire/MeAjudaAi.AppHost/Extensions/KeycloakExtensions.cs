@@ -124,22 +124,18 @@ public static class MeAjudaAiKeycloakExtensions
 
         if (options.ExposeHttpEndpoint)
         {
-            keycloak = keycloak.WithHttpEndpoint(targetPort: 8080, name: "http");
+            keycloak = keycloak.WithHttpEndpoint(targetPort: 8080, name: "keycloak-http");
         }
 
-        var authUrl = $"http://localhost:{keycloak.GetEndpoint("http").Port}";
-        var adminUrl = $"{authUrl}/admin";
-
         Console.WriteLine($"[Keycloak] ✅ Keycloak configurado:");
-        Console.WriteLine($"[Keycloak]    Auth URL: {authUrl}");
-        Console.WriteLine($"[Keycloak]    Admin URL: {adminUrl}");
+        Console.WriteLine($"[Keycloak]    Porta HTTP: 8080");
         Console.WriteLine($"[Keycloak]    Schema: {options.DatabaseSchema}");
 
         return new MeAjudaAiKeycloakResult
         {
             Keycloak = keycloak,
-            AuthUrl = authUrl,
-            AdminUrl = adminUrl
+            AuthUrl = "http://localhost:8080",
+            AdminUrl = "http://localhost:8080/admin"
         };
     }
 
@@ -245,9 +241,9 @@ public static class MeAjudaAiKeycloakExtensions
             .WithEnvironment("KC_LOG_LEVEL", "WARN")
             .WithArgs("start-dev", "--db=postgres");
 
-        keycloak = keycloak.WithHttpEndpoint(targetPort: 8080, name: "http");
+        keycloak = keycloak.WithHttpEndpoint(targetPort: 8080, name: "keycloak-test-http");
 
-        var authUrl = $"http://localhost:{keycloak.GetEndpoint("http").Port}";
+        var authUrl = $"http://localhost:{keycloak.GetEndpoint("keycloak-test-http").Port}";
         var adminUrl = $"{authUrl}/admin";
 
         Console.WriteLine($"[Keycloak] ✅ Keycloak teste configurado:");

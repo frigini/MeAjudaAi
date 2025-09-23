@@ -1,6 +1,4 @@
 using MeAjudaAi.Modules.Users.Domain.Events;
-using FluentAssertions;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Domain.Events;
 

@@ -6,11 +6,7 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Shared.Common;
-using AutoFixture;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 
@@ -20,7 +16,6 @@ public class DeleteUserCommandHandlerTests
     private readonly Mock<IUserDomainService> _userDomainServiceMock;
     private readonly Mock<ILogger<DeleteUserCommandHandler>> _loggerMock;
     private readonly DeleteUserCommandHandler _handler;
-    private readonly Fixture _fixture;
 
     public DeleteUserCommandHandlerTests()
     {
@@ -28,7 +23,6 @@ public class DeleteUserCommandHandlerTests
         _userDomainServiceMock = new Mock<IUserDomainService>();
         _loggerMock = new Mock<ILogger<DeleteUserCommandHandler>>();
         _handler = new DeleteUserCommandHandler(_userRepositoryMock.Object, _userDomainServiceMock.Object, _loggerMock.Object);
-        _fixture = new Fixture();
     }
 
     [Fact]

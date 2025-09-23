@@ -1,16 +1,11 @@
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Common;
+using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Handlers.Queries;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
 
 public class GetUsersQueryHandlerTests
 {

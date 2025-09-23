@@ -62,7 +62,7 @@ internal sealed class UpdateUserProfileCommandHandler(
             if (user == null)
             {
                 logger.LogWarning("User profile update failed: User {UserId} not found", command.UserId);
-                return Result<UserDto>.Failure("User not found");
+                return Result<UserDto>.Failure(Error.NotFound("User not found"));
             }
 
             logger.LogDebug("Updating profile for user {UserId}: FirstName={FirstName}, LastName={LastName}", 

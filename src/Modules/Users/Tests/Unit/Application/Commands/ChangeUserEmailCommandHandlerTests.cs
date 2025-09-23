@@ -1,16 +1,10 @@
 using MeAjudaAi.Modules.Users.Application.Commands;
-using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
-using MeAjudaAi.Shared.Common;
-using AutoFixture;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 
@@ -22,14 +16,12 @@ public class ChangeUserEmailCommandHandlerTests
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<ILogger<ChangeUserEmailCommandHandler>> _loggerMock;
     private readonly ChangeUserEmailCommandHandler _handler;
-    private readonly Fixture _fixture;
 
     public ChangeUserEmailCommandHandlerTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
         _loggerMock = new Mock<ILogger<ChangeUserEmailCommandHandler>>();
         _handler = new ChangeUserEmailCommandHandler(_userRepositoryMock.Object, _loggerMock.Object);
-        _fixture = new Fixture();
     }
 
     [Fact]

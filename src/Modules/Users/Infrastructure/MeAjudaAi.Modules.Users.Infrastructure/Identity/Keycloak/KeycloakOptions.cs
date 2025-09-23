@@ -17,6 +17,6 @@ public class KeycloakOptions
     public TimeSpan ClockSkew { get; set; } = TimeSpan.FromMinutes(5);
 
     public string AuthorityUrl => $"{BaseUrl}/realms/{Realm}";
-    public string TokenUrl => $"{BaseUrl}/realms/{Realm}/protocol/openid-connect/token";
+    public string TokenUrl => $"{AuthorityUrl}/protocol/openid-connect/token";
     public string UsersUrl => $"{BaseUrl}/admin/realms/{Realm}/users";
 }

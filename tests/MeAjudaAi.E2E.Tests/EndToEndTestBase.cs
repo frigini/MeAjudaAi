@@ -50,11 +50,11 @@ public abstract class EndToEndTestBase : IAsyncLifetime
         try
         {
             await ResourceNotificationService
-                .WaitForResourceAsync("postgres-test", KnownResourceStates.Running)
+                .WaitForResourceAsync("postgres-local", KnownResourceStates.Running)
                 .WaitAsync(timeout);
             
             await ResourceNotificationService
-                .WaitForResourceAsync("redis-test", KnownResourceStates.Running)
+                .WaitForResourceAsync("redis", KnownResourceStates.Running)
                 .WaitAsync(timeout);
             
             await ResourceNotificationService

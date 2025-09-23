@@ -1,4 +1,3 @@
-using Bogus;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.Builders;
 

@@ -61,7 +61,7 @@ internal sealed class DeleteUserCommandHandler(
             if (user == null)
             {
                 logger.LogWarning("User deletion failed: User {UserId} not found", command.UserId);
-                return Result.Failure("User not found");
+                return Result.Failure(Error.NotFound("User not found"));
             }
 
             logger.LogDebug("Found user {UserId}, proceeding with deletion process", command.UserId);

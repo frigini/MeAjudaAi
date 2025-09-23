@@ -11,7 +11,7 @@ namespace MeAjudaAi.E2E.Tests.Integration;
 /// <summary>
 /// Testes de integração para endpoints do módulo Users
 /// </summary>
-public class UsersModuleTests : IntegrationTestBase
+public class UsersModuleTests : TestContainerTestBase
 {
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -22,7 +22,7 @@ public class UsersModuleTests : IntegrationTestBase
     public async Task GetUsers_ShouldReturnOkWithPaginatedResult()
     {
         // Act
-        var response = await HttpClient.GetAsync("/api/v1/users?page=1&pageSize=10");
+        var response = await ApiClient.GetAsync("/api/v1/users?pageNumber=1&pageSize=10");
 
         // Assert
         response.StatusCode.Should().BeOneOf(
@@ -54,7 +54,7 @@ public class UsersModuleTests : IntegrationTestBase
         };
 
         // Act
-        var response = await HttpClient.PostAsJsonAsync("/api/v1/users", createUserRequest, _jsonOptions);
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, _jsonOptions);
 
         // Assert
         response.StatusCode.Should().BeOneOf(
@@ -87,7 +87,7 @@ public class UsersModuleTests : IntegrationTestBase
         };
 
         // Act
-        var response = await HttpClient.PostAsJsonAsync("/api/v1/users", invalidRequest, _jsonOptions);
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest, _jsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -100,7 +100,7 @@ public class UsersModuleTests : IntegrationTestBase
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var response = await HttpClient.GetAsync($"/api/v1/users/{nonExistentId}");
+        var response = await ApiClient.GetAsync($"/api/v1/users/{nonExistentId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -113,7 +113,7 @@ public class UsersModuleTests : IntegrationTestBase
         var nonExistentEmail = $"nonexistent_{Guid.NewGuid():N}@example.com";
 
         // Act
-        var response = await HttpClient.GetAsync($"/api/v1/users/by-email/{nonExistentEmail}");
+        var response = await ApiClient.GetAsync($"/api/v1/users/by-email/{nonExistentEmail}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -132,7 +132,7 @@ public class UsersModuleTests : IntegrationTestBase
         };
 
         // Act
-        var response = await HttpClient.PutAsJsonAsync($"/api/v1/users/{nonExistentId}", updateRequest, _jsonOptions);
+        var response = await ApiClient.PutAsJsonAsync($"/api/v1/users/{nonExistentId}/profile", updateRequest, _jsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -145,7 +145,7 @@ public class UsersModuleTests : IntegrationTestBase
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var response = await HttpClient.DeleteAsync($"/api/v1/users/{nonExistentId}");
+        var response = await ApiClient.DeleteAsync($"/api/v1/users/{nonExistentId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -154,9 +154,9 @@ public class UsersModuleTests : IntegrationTestBase
     [Fact]
     public async Task UserEndpoints_ShouldHandleInvalidGuids()
     {
-        // Act & Assert
-        var invalidGuidResponse = await HttpClient.GetAsync("/api/v1/users/invalid-guid");
-        invalidGuidResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        // Act & Assert - When GUID constraint doesn't match, route returns 404 
+        var invalidGuidResponse = await ApiClient.GetAsync("/api/v1/users/invalid-guid");
+        invalidGuidResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }
 

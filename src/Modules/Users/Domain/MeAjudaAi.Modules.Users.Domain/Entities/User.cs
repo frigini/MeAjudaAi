@@ -93,7 +93,7 @@ public sealed class User : AggregateRoot<UserId>
         : base(UserId.New())
     {
         // Business rule validations
-        ValidateUserCreation(firstName, lastName, keycloakId);
+        ValidateUserCreation(keycloakId);
 
         Username = username;
         Email = email;
@@ -135,7 +135,7 @@ public sealed class User : AggregateRoot<UserId>
     /// </exception>
     public void UpdateProfile(string firstName, string lastName)
     {
-        ValidateProfileUpdate(firstName, lastName);
+        ValidateProfileUpdate();
         
         if (FirstName == firstName && LastName == lastName)
             return;
@@ -177,118 +177,74 @@ public sealed class User : AggregateRoot<UserId>
     public string GetFullName() => $"{FirstName} {LastName}".Trim();
 
     /// <summary>
-    /// Validates business rules for user creation
+    /// Valida regras de negócio para criação de usuário
     /// </summary>
-    /// <param name="firstName">User's first name</param>
-    /// <param name="lastName">User's last name</param>
-    /// <param name="keycloakId">Keycloak external identifier</param>
-    /// <exception cref="UserDomainException">Thrown when validation fails</exception>
-    private static void ValidateUserCreation(string firstName, string lastName, string keycloakId)
+    /// <param name="keycloakId">Identificador externo do Keycloak</param>
+    /// <exception cref="UserDomainException">Lançada quando a validação falha</exception>
+    private static void ValidateUserCreation(string keycloakId)
     {
-        if (string.IsNullOrWhiteSpace(firstName))
-            throw UserDomainException.ForValidationError(nameof(firstName), firstName, "First name cannot be empty");
-
-        if (string.IsNullOrWhiteSpace(lastName))
-            throw UserDomainException.ForValidationError(nameof(lastName), lastName, "Last name cannot be empty");
-
         if (string.IsNullOrWhiteSpace(keycloakId))
             throw UserDomainException.ForValidationError(nameof(keycloakId), keycloakId, "Keycloak ID is required for user creation");
-
-        if (firstName.Length < 2 || firstName.Length > 100)
-            throw UserDomainException.ForValidationError(nameof(firstName), firstName, "First name must be between 2 and 100 characters");
-
-        if (lastName.Length < 2 || lastName.Length > 100)
-            throw UserDomainException.ForValidationError(nameof(lastName), lastName, "Last name must be between 2 and 100 characters");
     }
 
     /// <summary>
-    /// Validates business rules for profile updates
+    /// Valida regras de negócio para atualizações de perfil
     /// </summary>
-    /// <param name="firstName">New first name</param>
-    /// <param name="lastName">New last name</param>
-    /// <exception cref="UserDomainException">Thrown when validation fails</exception>
-    private void ValidateProfileUpdate(string firstName, string lastName)
+    /// <exception cref="UserDomainException">Lançada quando a validação falha</exception>
+    private void ValidateProfileUpdate()
     {
         if (IsDeleted)
             throw UserDomainException.ForInvalidOperation("UpdateProfile", "user is deleted");
-
-        if (string.IsNullOrWhiteSpace(firstName))
-            throw UserDomainException.ForValidationError(nameof(firstName), firstName, "First name cannot be empty");
-
-        if (string.IsNullOrWhiteSpace(lastName))
-            throw UserDomainException.ForValidationError(nameof(lastName), lastName, "Last name cannot be empty");
-
-        if (firstName.Length < 2 || firstName.Length > 100)
-            throw UserDomainException.ForValidationError(nameof(firstName), firstName, "First name must be between 2 and 100 characters");
-
-        if (lastName.Length < 2 || lastName.Length > 100)
-            throw UserDomainException.ForValidationError(nameof(lastName), lastName, "Last name must be between 2 and 100 characters");
     }
 
     /// <summary>
-    /// Changes the user's email address
+    /// Altera o endereço de email do usuário
     /// </summary>
-    /// <param name="newEmail">New email address</param>
-    /// <exception cref="UserDomainException">Thrown when validation fails</exception>
+    /// <param name="newEmail">Novo endereço de email</param>
+    /// <exception cref="UserDomainException">Lançada quando o usuário está deletado</exception>
     /// <remarks>
-    /// This method should be used carefully as it requires synchronization with Keycloak.
-    /// Consider implementing compensating actions if Keycloak update fails.
+    /// Este método deve ser usado com cuidado, pois requer sincronização com o Keycloak.
+    /// Considere implementar ações compensatórias se a atualização do Keycloak falhar.
     /// </remarks>
     public void ChangeEmail(string newEmail)
     {
         if (IsDeleted)
             throw UserDomainException.ForInvalidOperation("ChangeEmail", "user is deleted");
 
-        if (string.IsNullOrWhiteSpace(newEmail))
-            throw UserDomainException.ForValidationError("email", newEmail, "Email cannot be empty");
-
-        if (newEmail.Length > 255)
-            throw UserDomainException.ForValidationError("email", newEmail, "Email cannot exceed 255 characters");
-
-        if (!IsValidEmail(newEmail))
-            throw UserDomainException.ForInvalidFormat("email", newEmail, "valid email format (example@domain.com)");
-
         if (Email.Equals(newEmail, StringComparison.OrdinalIgnoreCase))
-            return; // No change needed
+            return; // Nenhuma mudança necessária
 
         var oldEmail = Email;
         Email = newEmail;
+        MarkAsUpdated();
         
-        // Add domain event for external system synchronization
+        // Adiciona evento de domínio para sincronização com sistemas externos
         AddDomainEvent(new UserEmailChangedEvent(Id.Value, 1, oldEmail, newEmail));
     }
 
     /// <summary>
-    /// Changes the user's username
+    /// Altera o nome de usuário (username)
     /// </summary>
-    /// <param name="newUsername">New username</param>
-    /// <exception cref="UserDomainException">Thrown when validation fails</exception>
+    /// <param name="newUsername">Novo nome de usuário</param>
+    /// <exception cref="UserDomainException">Lançada quando o usuário está deletado</exception>
     /// <remarks>
-    /// This method should be used carefully as it requires synchronization with Keycloak.
-    /// Username changes may affect authentication and should be validated for uniqueness.
+    /// Este método deve ser usado com cuidado, pois requer sincronização com o Keycloak.
+    /// Mudanças de username podem afetar a autenticação e devem ser validadas quanto à unicidade.
     /// </remarks>
     public void ChangeUsername(string newUsername)
     {
         if (IsDeleted)
             throw UserDomainException.ForInvalidOperation("ChangeUsername", "user is deleted");
 
-        if (string.IsNullOrWhiteSpace(newUsername))
-            throw UserDomainException.ForValidationError("username", newUsername, "Username cannot be empty");
-
-        if (newUsername.Length < 3 || newUsername.Length > 50)
-            throw UserDomainException.ForValidationError("username", newUsername, "Username must be between 3 and 50 characters");
-
-        if (!IsValidUsername(newUsername))
-            throw UserDomainException.ForInvalidFormat("username", newUsername, "letters, numbers, dots, hyphens and underscores only");
-
         if (Username.Equals(newUsername, StringComparison.OrdinalIgnoreCase))
-            return; // No change needed
+            return; // Nenhuma mudança necessária
 
         var oldUsername = Username;
         Username = newUsername;
         LastUsernameChangeAt = DateTime.UtcNow;
+        MarkAsUpdated();
         
-        // Add domain event for external system synchronization
+        // Adiciona evento de domínio para sincronização com sistemas externos
         AddDomainEvent(new UserUsernameChangedEvent(Id.Value, 1, oldUsername, newUsername));
     }
 
@@ -304,27 +260,5 @@ public sealed class User : AggregateRoot<UserId>
             
         var daysSinceLastChange = (DateTime.UtcNow - LastUsernameChangeAt.Value).TotalDays;
         return daysSinceLastChange >= minimumDaysBetweenChanges;
-    }
-
-    /// <summary>
-    /// Validates email format using basic regex pattern
-    /// </summary>
-    /// <param name="email">Email to validate</param>
-    /// <returns>True if email format is valid</returns>
-    private static bool IsValidEmail(string email)
-    {
-        var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-        return System.Text.RegularExpressions.Regex.IsMatch(email, emailPattern);
-    }
-
-    /// <summary>
-    /// Validates username format (alphanumeric, dots, hyphens, underscores)
-    /// </summary>
-    /// <param name="username">Username to validate</param>
-    /// <returns>True if username format is valid</returns>
-    private static bool IsValidUsername(string username)
-    {
-        var usernamePattern = @"^[a-zA-Z0-9._-]+$";
-        return System.Text.RegularExpressions.Regex.IsMatch(username, usernamePattern);
     }
 }

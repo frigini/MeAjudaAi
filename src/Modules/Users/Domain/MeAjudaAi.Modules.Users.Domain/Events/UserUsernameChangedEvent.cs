@@ -4,18 +4,18 @@ using MeAjudaAi.Shared.Events;
 namespace MeAjudaAi.Modules.Users.Domain.Events;
 
 /// <summary>
-/// Domain event triggered when a user's username is changed.
+/// Evento de domínio disparado quando o nome de usuário (username) é alterado.
 /// </summary>
 /// <remarks>
-/// This event is published when a user's username is updated through the ChangeUsername method.
-/// Can be used for synchronization with external systems (like Keycloak),
-/// username uniqueness validation, audit trails, notification services, etc.
-/// Important: Username changes may affect authentication and should be handled carefully.
+/// Este evento é publicado quando o username de um usuário é atualizado através do método ChangeUsername.
+/// Pode ser usado para sincronização com sistemas externos (como Keycloak),
+/// validação de unicidade de username, trilhas de auditoria, serviços de notificação, etc.
+/// Importante: Mudanças de username podem afetar a autenticação e devem ser tratadas com cuidado.
 /// </remarks>
-/// <param name="AggregateId">Unique identifier of the user whose username was changed</param>
-/// <param name="Version">Version of the aggregate when the event occurred</param>
-/// <param name="OldUsername">Previous username</param>
-/// <param name="NewUsername">New username</param>
+/// <param name="AggregateId">Identificador único do usuário cujo username foi alterado</param>
+/// <param name="Version">Versão do agregado quando o evento ocorreu</param>
+/// <param name="OldUsername">Username anterior</param>
+/// <param name="NewUsername">Novo username</param>
 public record UserUsernameChangedEvent(
     Guid AggregateId,
     int Version,

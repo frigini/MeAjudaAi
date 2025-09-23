@@ -189,7 +189,7 @@ public class UpdateUserProfileCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WithEmptyNames_ShouldFailDueToValidation()
+    public async Task HandleAsync_WithEmptyNames_ShouldSucceedAtDomainLevel()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -209,12 +209,16 @@ public class UpdateUserProfileCommandHandlerTests
             .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
+        _userRepositoryMock
+            .Setup(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().NotBeNull();
+        // Domain no longer validates empty fields - that's FluentValidation's responsibility
+        result.IsSuccess.Should().BeTrue();
 
         _userRepositoryMock.Verify(
             x => x.GetByIdAsync(It.Is<UserId>(id => id.Value == userId), It.IsAny<CancellationToken>()),

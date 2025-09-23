@@ -3,13 +3,7 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Users.Tests.Builders;
-using MeAjudaAi.Shared.Tests.Base;
-using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Integration.Infrastructure;
 
@@ -27,40 +21,9 @@ public class UserRepositoryTests : DatabaseTestBase
             .Options;
             
         _context = new UsersDbContext(options);
-        await _context.Database.EnsureCreatedAsync();
+        await _context.Database.MigrateAsync();
         
         _repository = new UserRepository(_context);
-    }
-
-    private async Task DisposeInternalAsync()
-    {
-        await _context.DisposeAsync();
-        await base.DisposeAsync();
-    }
-
-    public override async Task InitializeAsync()
-    {
-        await base.InitializeAsync();
-        await InitializeInternalAsync();
-    }
-
-    public override async Task DisposeAsync()
-    {
-        await DisposeInternalAsync();
-    }
-
-    // Helper method to add user and persist
-    private async Task AddUserAndSaveAsync(User user)
-    {
-        await _repository.AddAsync(user);
-        await _context.SaveChangesAsync();
-    }
-
-    // Helper method to update user and persist
-    private async Task UpdateUserAndSaveAsync(User user)
-    {
-        await _repository.UpdateAsync(user);
-        await _context.SaveChangesAsync();
     }
 
     [Fact]
@@ -229,6 +192,7 @@ public class UserRepositoryTests : DatabaseTestBase
 
         // Act
         await _repository.DeleteAsync(user.Id);
+        await _context.SaveChangesAsync();
 
         // Assert
         // Should not be found by normal queries (soft deleted)
@@ -299,5 +263,36 @@ public class UserRepositoryTests : DatabaseTestBase
         // Assert
         pagedUsers.Should().BeEmpty();
         totalCount.Should().Be(0);
+    }
+
+    public override async Task InitializeAsync()
+    {
+        await base.InitializeAsync();
+        await InitializeInternalAsync();
+    }
+
+    public override async Task DisposeAsync()
+    {
+        await DisposeInternalAsync();
+    }
+
+    private async Task DisposeInternalAsync()
+    {
+        await _context.DisposeAsync();
+        await base.DisposeAsync();
+    }
+
+    // Helper method to add user and persist
+    private async Task AddUserAndSaveAsync(User user)
+    {
+        await _repository.AddAsync(user);
+        await _context.SaveChangesAsync();
+    }
+
+    // Helper method to update user and persist
+    private async Task UpdateUserAndSaveAsync(User user)
+    {
+        await _repository.UpdateAsync(user);
+        await _context.SaveChangesAsync();
     }
 }

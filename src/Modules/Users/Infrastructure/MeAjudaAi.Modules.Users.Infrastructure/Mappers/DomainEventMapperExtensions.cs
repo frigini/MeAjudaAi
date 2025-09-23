@@ -1,19 +1,18 @@
 using MeAjudaAi.Modules.Users.Domain.Events;
-using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Mappers;
 
 /// <summary>
-/// Extension methods for mapping Domain Events to Integration Events
+/// Métodos de extensão para mapeamento de Eventos de Domínio para Eventos de Integração
 /// </summary>
 public static class DomainEventMapperExtensions
 {
     /// <summary>
-    /// Maps UserRegisteredDomainEvent to UserRegisteredIntegrationEvent
+    /// Mapeia UserRegisteredDomainEvent para UserRegisteredIntegrationEvent
     /// </summary>
-    /// <param name="domainEvent">The domain event to map</param>
-    /// <returns>Integration event for cross-module communication</returns>
+    /// <param name="domainEvent">O evento de domínio a ser mapeado</param>
+    /// <returns>Evento de integração para comunicação entre módulos</returns>
     public static UserRegisteredIntegrationEvent ToIntegrationEvent(this UserRegisteredDomainEvent domainEvent)
     {
         return new UserRegisteredIntegrationEvent(
@@ -23,18 +22,18 @@ public static class DomainEventMapperExtensions
             Username: domainEvent.Username.Value,
             FirstName: domainEvent.FirstName,
             LastName: domainEvent.LastName,
-            KeycloakId: string.Empty, // Will be filled by infrastructure layer
-            Roles: Array.Empty<string>(), // Will be filled by infrastructure layer
+            KeycloakId: string.Empty, // Será preenchido pela camada de infraestrutura
+            Roles: Array.Empty<string>(), // Será preenchido pela camada de infraestrutura
             RegisteredAt: DateTime.UtcNow
         );
     }
 
     /// <summary>
-    /// Maps UserProfileUpdatedDomainEvent to UserProfileUpdatedIntegrationEvent
+    /// Mapeia UserProfileUpdatedDomainEvent para UserProfileUpdatedIntegrationEvent
     /// </summary>
-    /// <param name="domainEvent">The domain event to map</param>
-    /// <param name="email">The user's email (must be provided from the user repository)</param>
-    /// <returns>Integration event for cross-module communication</returns>
+    /// <param name="domainEvent">O evento de domínio a ser mapeado</param>
+    /// <param name="email">O email do usuário (deve ser fornecido pelo repositório de usuários)</param>
+    /// <returns>Evento de integração para comunicação entre módulos</returns>
     public static UserProfileUpdatedIntegrationEvent ToIntegrationEvent(this UserProfileUpdatedDomainEvent domainEvent, string email)
     {
         return new UserProfileUpdatedIntegrationEvent(
@@ -48,10 +47,10 @@ public static class DomainEventMapperExtensions
     }
 
     /// <summary>
-    /// Maps UserDeletedDomainEvent to UserDeletedIntegrationEvent
+    /// Mapeia UserDeletedDomainEvent para UserDeletedIntegrationEvent
     /// </summary>
-    /// <param name="domainEvent">The domain event to map</param>
-    /// <returns>Integration event for cross-module communication</returns>
+    /// <param name="domainEvent">O evento de domínio a ser mapeado</param>
+    /// <returns>Evento de integração para comunicação entre módulos</returns>
     public static UserDeletedIntegrationEvent ToIntegrationEvent(this UserDeletedDomainEvent domainEvent)
     {
         return new UserDeletedIntegrationEvent(

@@ -1,13 +1,13 @@
 using MeAjudaAi.Modules.Users.Domain.Events;
+using MeAjudaAi.Modules.Users.Infrastructure.Mappers;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Messaging.Messages.Users;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
 
 /// <summary>
-/// Handles UserDeletedDomainEvent and publishes UserDeletedIntegrationEvent
+/// Manipula UserDeletedDomainEvent e publica UserDeletedIntegrationEvent
 /// </summary>
 internal sealed class UserDeletedDomainEventHandler(
     IMessageBus messageBus,
@@ -19,12 +19,8 @@ internal sealed class UserDeletedDomainEventHandler(
         {
             logger.LogInformation("Handling UserDeletedDomainEvent for user {UserId}", domainEvent.AggregateId);
 
-            // Create integration event to notify other modules
-            var integrationEvent = new UserDeletedIntegrationEvent(
-                Source: "Users",
-                UserId: domainEvent.AggregateId,
-                DeletedAt: DateTime.UtcNow
-            );
+            // Cria evento de integração para notificar outros módulos
+            var integrationEvent = domainEvent.ToIntegrationEvent();
 
             await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
 

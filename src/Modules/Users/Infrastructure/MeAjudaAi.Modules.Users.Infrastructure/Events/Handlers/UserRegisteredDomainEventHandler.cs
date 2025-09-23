@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Users.Domain.Events;
+using MeAjudaAi.Modules.Users.Infrastructure.Mappers;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Messaging.Messages.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -43,18 +43,13 @@ internal sealed class UserRegisteredDomainEventHandler(
                 return;
             }
 
-            // Cria evento de integração para sistemas externos
-            var integrationEvent = new UserRegisteredIntegrationEvent(
-                Source: "Users",
-                UserId: domainEvent.AggregateId,
-                Email: domainEvent.Email,
-                Username: domainEvent.Username.Value,
-                FirstName: domainEvent.FirstName,
-                LastName: domainEvent.LastName,
-                KeycloakId: user.KeycloakId ?? string.Empty, // Será definido após criação no Keycloak
-                Roles: ["customer"], // Papel padrão
-                RegisteredAt: DateTime.UtcNow
-            );
+            // Cria evento de integração para sistemas externos usando mapper
+            var baseEvent = domainEvent.ToIntegrationEvent();
+            var integrationEvent = baseEvent with
+            {
+                KeycloakId = user.KeycloakId ?? string.Empty, // Será definido após criação no Keycloak
+                Roles = ["customer"] // Papel padrão
+            };
 
             await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
 

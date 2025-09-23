@@ -64,10 +64,11 @@ public static class EndpointExtensions
         {
             var pagedData = result.Value;
             var pagedResponse = new PagedResponse<IEnumerable<T>>(
-                pagedData.Items,
-                pagedData.Page,
-                pagedData.PageSize,
-                pagedData.TotalCount);
+                pagedData.Items,          // data
+                pagedData.TotalCount,     // totalCount
+                pagedData.Page,           // currentPage
+                pagedData.PageSize        // pageSize
+            );
 
             return TypedResults.Ok(pagedResponse);
         }

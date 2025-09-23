@@ -2,6 +2,9 @@
 
 namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 
+/// <summary>
+/// Value object representando um número de telefone com código do país.
+/// </summary>
 public class PhoneNumber : ValueObject
 {
     public string Value { get; }
@@ -18,7 +21,7 @@ public class PhoneNumber : ValueObject
         CountryCode = countryCode.Trim();
     }
 
-    public PhoneNumber(string value) : this(value, "BR") // Default to Brazil
+    public PhoneNumber(string value) : this(value, "BR") // Padrão para Brasil
     {
     }
 

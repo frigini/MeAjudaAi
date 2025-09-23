@@ -2,6 +2,9 @@
 
 namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 
+/// <summary>
+/// Value object representando o perfil básico de um usuário.
+/// </summary>
 public class UserProfile : ValueObject
 {
     public string FirstName { get; }

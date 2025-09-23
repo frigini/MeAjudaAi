@@ -3,16 +3,10 @@ using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
-using MeAjudaAi.Shared.Common;
-using AutoFixture;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
 
@@ -25,7 +19,6 @@ public class GetUserByIdQueryHandlerTests
     private readonly Mock<IUsersCacheService> _usersCacheServiceMock;
     private readonly Mock<ILogger<GetUserByIdQueryHandler>> _loggerMock;
     private readonly GetUserByIdQueryHandler _handler;
-    private readonly Fixture _fixture;
 
     public GetUserByIdQueryHandlerTests()
     {
@@ -36,7 +29,6 @@ public class GetUserByIdQueryHandlerTests
             _userRepositoryMock.Object,
             _usersCacheServiceMock.Object,
             _loggerMock.Object);
-        _fixture = new Fixture();
     }
 
     [Fact]

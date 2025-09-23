@@ -3,6 +3,9 @@ using MeAjudaAi.Shared.Common;
 
 namespace MeAjudaAi.Modules.Users.Domain.Services;
 
+/// <summary>
+/// Interface do serviço de domínio para operações de autenticação.
+/// </summary>
 public interface IAuthenticationDomainService
 {
     Task<Result<AuthenticationResult>> AuthenticateAsync(
