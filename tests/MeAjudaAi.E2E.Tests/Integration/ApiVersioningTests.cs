@@ -1,7 +1,4 @@
-using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
-using System.Net;
-using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.Integration;
 
@@ -10,13 +7,13 @@ namespace MeAjudaAi.E2E.Tests.Integration;
 /// Pattern: /api/v{version}/module (e.g., /api/v1/users)
 /// Esta abordagem é explícita, clara e evita a complexidade de múltiplos métodos de versionamento
 /// </summary>
-public class ApiVersioningTests : IntegrationTestBase
+public class ApiVersioningTests : TestContainerTestBase
 {
     [Fact]
     public async Task ApiVersioning_ShouldWork_ViaUrlSegment()
     {
         // Arrange & Act
-        var response = await HttpClient.GetAsync("/api/v1/users");
+        var response = await ApiClient.GetAsync("/api/v1/users");
 
         // Assert
         // Should not be NotFound - indicates URL versioning is recognized and working
@@ -31,9 +28,9 @@ public class ApiVersioningTests : IntegrationTestBase
         // Arrange & Act - Test paths that should NOT work without URL versioning
         var responses = new[]
         {
-            await HttpClient.GetAsync("/api/users"), // No version - should be 404
-            await HttpClient.GetAsync("/users"), // No api prefix - should be 404
-            await HttpClient.GetAsync("/api/v2/users") // Unsupported version - should be 404 or 400
+            await ApiClient.GetAsync("/api/users"), // No version - should be 404
+            await ApiClient.GetAsync("/users"), // No api prefix - should be 404
+            await ApiClient.GetAsync("/api/v2/users") // Unsupported version - should be 404 or 400
         };
 
         // Assert
@@ -50,7 +47,7 @@ public class ApiVersioningTests : IntegrationTestBase
         // Arrange & Act - Test that versioning works for any module pattern
         var responses = new[]
         {
-            await HttpClient.GetAsync("/api/v1/users"),
+            await ApiClient.GetAsync("/api/v1/users"),
             // Add more modules when they exist
             // await HttpClient.GetAsync("/api/v1/services"),
             // await HttpClient.GetAsync("/api/v1/orders"),

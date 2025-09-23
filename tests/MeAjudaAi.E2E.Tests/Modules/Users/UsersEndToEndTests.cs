@@ -3,10 +3,9 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 using System.Text.Json;
 
-namespace MeAjudaAi.E2E.Tests.Users;
+namespace MeAjudaAi.E2E.Tests.Modules.Users;
 
 /// <summary>
 /// Testes E2E para o módulo de usuários usando TestContainers

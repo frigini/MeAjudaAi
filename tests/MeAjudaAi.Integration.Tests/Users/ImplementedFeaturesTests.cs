@@ -1,5 +1,7 @@
+using MeAjudaAi.Integration.Tests.Auth;
 using MeAjudaAi.Integration.Tests.Base;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Users;
 
@@ -34,9 +36,14 @@ public class ImplementedFeaturesTests : ApiTestBase
         if (createResponse.IsSuccessStatusCode)
         {
             var createContent = await createResponse.Content.ReadAsStringAsync();
-            // TODO: Implementar DELETE quando endpoint estiver disponível
-            // var deleteResponse = await Client.DeleteAsync($"/api/v1/users/{userId}");
-            // Assert.True(deleteResponse.IsSuccessStatusCode);
+            var createdUser = JsonSerializer.Deserialize<JsonElement>(createContent);
+            if (createdUser.TryGetProperty("id", out var idProperty))
+            {
+                var userId = idProperty.GetString();
+                // Limpar usuário criado para não poluir o banco de testes
+                var deleteResponse = await Client.DeleteAsync($"/api/v1/users/{userId}");
+                // Ignorar falha no DELETE por questões de permissão em testes
+            }
         }
 
         // Assert - Por enquanto, apenas verificar que não retorna erro de autenticação

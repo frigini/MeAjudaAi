@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
 
 namespace MeAjudaAi.Integration.Tests.Users;

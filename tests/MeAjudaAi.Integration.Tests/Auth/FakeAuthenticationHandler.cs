@@ -9,17 +9,12 @@ namespace MeAjudaAi.Integration.Tests.Auth;
 /// <summary>
 /// Authentication handler para testes que permite configurar usuários fake com claims específicas
 /// </summary>
-public class FakeAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class FakeAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger, UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     public const string SchemeName = "Test";
     
     private static readonly List<Claim> _claims = [];
-
-    public FakeAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger, UrlEncoder encoder) 
-        : base(options, logger, encoder)
-    {
-    }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {

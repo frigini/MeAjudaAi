@@ -1,19 +1,13 @@
+using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Net;
-using FluentAssertions;
 
 namespace MeAjudaAi.Integration.Tests;
 
-public class SimpleHealthTests : IClassFixture<WebApplicationFactory<Program>>
+public class SimpleHealthTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory;
-
-    public SimpleHealthTests(WebApplicationFactory<Program> factory)
-    {
-        _factory = factory.WithWebHostBuilder(builder =>
+    private readonly WebApplicationFactory<Program> _factory = factory.WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Testing");
             builder.ConfigureServices(services =>
@@ -25,7 +19,6 @@ public class SimpleHealthTests : IClassFixture<WebApplicationFactory<Program>>
                 });
             });
         });
-    }
 
     [Fact]
     public async Task HealthEndpoint_ShouldReturnOk()

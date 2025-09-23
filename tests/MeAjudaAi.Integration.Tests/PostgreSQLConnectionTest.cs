@@ -1,9 +1,6 @@
-using Aspire.Hosting.Testing;
-using Aspire.Hosting;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Integration.Tests.EndToEnd;
+namespace MeAjudaAi.Integration.Tests;
 
 /// <summary>
 /// Teste específico para validar conectividade do PostgreSQL

@@ -1,6 +1,5 @@
 using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace MeAjudaAi.Shared.Tests.Mocks.Messaging;
 
@@ -17,7 +16,7 @@ public class MockRabbitMqMessageBus : IMessageBus
     {
         _mockMessageBus = new Mock<IMessageBus>();
         _logger = logger;
-        _publishedMessages = new List<(object, string?, MessageType)>();
+        _publishedMessages = [];
         
         SetupMockBehavior();
     }

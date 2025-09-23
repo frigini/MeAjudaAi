@@ -2,47 +2,38 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Messaging;
 using Azure.Messaging.ServiceBus;
+using System.Reflection;
 
 namespace MeAjudaAi.Shared.Tests.Mocks.Messaging;
 
 /// <summary>
 /// Gerenciador para coordenar todos os mocks de messaging durante os testes
 /// </summary>
-public class MessagingMockManager
+public class MessagingMockManager(
+    MockServiceBusMessageBus serviceBusMock,
+    MockRabbitMqMessageBus rabbitMqMock,
+    ILogger<MessagingMockManager> logger)
 {
-    private readonly MockServiceBusMessageBus _serviceBusMock;
-    private readonly MockRabbitMqMessageBus _rabbitMqMock;
-    private readonly ILogger<MessagingMockManager> _logger;
-
-    public MessagingMockManager(
-        MockServiceBusMessageBus serviceBusMock,
-        MockRabbitMqMessageBus rabbitMqMock,
-        ILogger<MessagingMockManager> logger)
-    {
-        _serviceBusMock = serviceBusMock;
-        _rabbitMqMock = rabbitMqMock;
-        _logger = logger;
-    }
 
     /// <summary>
     /// Mock do Azure Service Bus
     /// </summary>
-    public MockServiceBusMessageBus ServiceBus => _serviceBusMock;
+    public MockServiceBusMessageBus ServiceBus => serviceBusMock;
 
     /// <summary>
     /// Mock do RabbitMQ
     /// </summary>
-    public MockRabbitMqMessageBus RabbitMq => _rabbitMqMock;
+    public MockRabbitMqMessageBus RabbitMq => rabbitMqMock;
 
     /// <summary>
     /// Limpa todas as mensagens publicadas em todos os mocks
     /// </summary>
     public void ClearAllMessages()
     {
-        _logger.LogInformation("Clearing all published messages from messaging mocks");
+        logger.LogInformation("Clearing all published messages from messaging mocks");
         
-        _serviceBusMock.ClearPublishedMessages();
-        _rabbitMqMock.ClearPublishedMessages();
+        serviceBusMock.ClearPublishedMessages();
+        rabbitMqMock.ClearPublishedMessages();
     }
 
     /// <summary>
@@ -50,10 +41,10 @@ public class MessagingMockManager
     /// </summary>
     public void ResetAllMocks()
     {
-        _logger.LogInformation("Resetting all messaging mocks to normal behavior");
+        logger.LogInformation("Resetting all messaging mocks to normal behavior");
         
-        _serviceBusMock.ResetToNormalBehavior();
-        _rabbitMqMock.ResetToNormalBehavior();
+        serviceBusMock.ResetToNormalBehavior();
+        rabbitMqMock.ResetToNormalBehavior();
         
         ClearAllMessages();
     }
@@ -65,9 +56,9 @@ public class MessagingMockManager
     {
         return new MessagingStatistics
         {
-            ServiceBusMessageCount = _serviceBusMock.PublishedMessages.Count,
-            RabbitMqMessageCount = _rabbitMqMock.PublishedMessages.Count,
-            TotalMessageCount = _serviceBusMock.PublishedMessages.Count + _rabbitMqMock.PublishedMessages.Count
+            ServiceBusMessageCount = serviceBusMock.PublishedMessages.Count,
+            RabbitMqMessageCount = rabbitMqMock.PublishedMessages.Count,
+            TotalMessageCount = serviceBusMock.PublishedMessages.Count + rabbitMqMock.PublishedMessages.Count
         };
     }
 
@@ -76,8 +67,8 @@ public class MessagingMockManager
     /// </summary>
     public bool WasMessagePublishedAnywhere<T>(Func<T, bool>? predicate = null) where T : class
     {
-        return _serviceBusMock.WasMessagePublished(predicate) || 
-               _rabbitMqMock.WasMessagePublished(predicate);
+        return serviceBusMock.WasMessagePublished(predicate) || 
+               rabbitMqMock.WasMessagePublished(predicate);
     }
 
     /// <summary>
@@ -85,8 +76,8 @@ public class MessagingMockManager
     /// </summary>
     public IEnumerable<T> GetAllPublishedMessages<T>() where T : class
     {
-        var serviceBusMessages = _serviceBusMock.GetPublishedMessages<T>();
-        var rabbitMqMessages = _rabbitMqMock.GetPublishedMessages<T>();
+        var serviceBusMessages = serviceBusMock.GetPublishedMessages<T>();
+        var rabbitMqMessages = rabbitMqMock.GetPublishedMessages<T>();
         
         return serviceBusMessages.Concat(rabbitMqMessages);
     }
@@ -108,16 +99,24 @@ public class MessagingStatistics
 public static class MessagingMockExtensions
 {
     /// <summary>
-    /// Adiciona os mocks de messaging ao container de DI
+    /// Adiciona os mocks de messaging ao container de DI usando Scrutor onde aplicável
     /// </summary>
     public static IServiceCollection AddMessagingMocks(this IServiceCollection services)
     {
         // Remove implementações reais se existirem
         RemoveRealImplementations(services);
         
-        // Adiciona os mocks
-        services.AddSingleton<MockServiceBusMessageBus>();
-        services.AddSingleton<MockRabbitMqMessageBus>();
+        // Usa Scrutor para registrar automaticamente todos os mocks de messaging do assembly atual
+        services.Scan(scan => scan
+            .FromAssemblies(Assembly.GetExecutingAssembly())
+            .AddClasses(classes => classes
+                .Where(type => type.Namespace != null && 
+                              type.Namespace.Contains("Messaging") &&
+                              type.Name.StartsWith("Mock")))
+            .AsSelf()
+            .WithSingletonLifetime());
+        
+        // Registra específicos que precisam de configuração especial
         services.AddSingleton<MessagingMockManager>();
         
         // Registra os mocks como as implementações do IMessageBus

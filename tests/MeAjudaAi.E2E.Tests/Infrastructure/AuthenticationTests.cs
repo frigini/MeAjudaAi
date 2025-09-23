@@ -1,8 +1,6 @@
 using MeAjudaAi.E2E.Tests.Base;
-using FluentAssertions;
-using System.Net;
 
-namespace MeAjudaAi.E2E.Tests.Auth;
+namespace MeAjudaAi.E2E.Tests.Infrastructure;
 
 /// <summary>
 /// Testes de autenticação e autorização usando TestContainers

@@ -1,109 +1,234 @@
-using System.Reflection;
+using MeAjudaAi.Architecture.Tests.Helpers;
 
 namespace MeAjudaAi.Architecture.Tests;
 
 /// <summary>
-/// Global architecture tests following Milan Jovanovic's recommendations
-/// These tests ensure architectural boundaries are maintained across the entire solution
+/// Testes globais de arquitetura seguindo as recomendações de Milan Jovanovic
+/// Estes testes garantem que os limites arquiteturais sejam mantidos em toda a solução
 /// </summary>
 public class GlobalArchitectureTests
 {
-    // Assembly references for testing
-    private static readonly Assembly DomainAssembly = typeof(MeAjudaAi.Modules.Users.Domain.Entities.User).Assembly;
-    private static readonly Assembly ApplicationAssembly = typeof(MeAjudaAi.Modules.Users.Application.Extensions).Assembly;
-    private static readonly Assembly InfrastructureAssembly = typeof(MeAjudaAi.Modules.Users.Infrastructure.Mappers.DomainEventMapperExtensions).Assembly;
-    private static readonly Assembly ApiAssembly = typeof(MeAjudaAi.Modules.Users.API.Mappers.RequestMapperExtensions).Assembly;
-    private static readonly Assembly SharedAssembly = typeof(MeAjudaAi.Shared.Functional.Result).Assembly;
+    private static readonly IEnumerable<ModuleInfo> AllModules = ModuleDiscoveryHelper.DiscoverModules();
 
     [Fact]
     public void Domain_ShouldNotDependOn_Application()
     {
-        // Domain layer should be completely independent
-        var result = Types.InAssembly(DomainAssembly)
-            .Should()
-            .NotHaveDependencyOn(ApplicationAssembly.GetName().Name)
-            .GetResult();
+        // Camada Domain deve ser completamente independente
+        var failures = new List<string>();
 
-        result.IsSuccessful.Should().BeTrue(
+        foreach (var module in AllModules)
+        {
+            if (module.DomainAssembly == null || module.ApplicationAssembly == null) continue;
+
+            var result = Types.InAssembly(module.DomainAssembly)
+                .Should()
+                .NotHaveDependencyOn(module.ApplicationAssembly.GetName().Name)
+                .GetResult();
+
+            if (!result.IsSuccessful)
+            {
+                failures.AddRange(result.FailingTypes?.Select(t => $"{module.Name}: {t.FullName}") ?? []);
+            }
+        }
+
+        failures.Should().BeEmpty(
             "Domain layer should not depend on Application layer. " +
             "Violations: {0}", 
-            string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? []));
+            string.Join(", ", failures));
     }
 
     [Fact]
     public void Domain_ShouldNotDependOn_Infrastructure()
     {
-        // Domain should never depend on Infrastructure
-        var result = Types.InAssembly(DomainAssembly)
-            .Should()
-            .NotHaveDependencyOn(InfrastructureAssembly.GetName().Name)
-            .GetResult();
+        // Domain nunca deve depender de Infrastructure
+        var failures = new List<string>();
 
-        result.IsSuccessful.Should().BeTrue(
+        foreach (var module in AllModules)
+        {
+            if (module.DomainAssembly == null || module.InfrastructureAssembly == null) continue;
+
+            var result = Types.InAssembly(module.DomainAssembly)
+                .Should()
+                .NotHaveDependencyOn(module.InfrastructureAssembly.GetName().Name)
+                .GetResult();
+
+            if (!result.IsSuccessful)
+            {
+                failures.AddRange(result.FailingTypes?.Select(t => $"{module.Name}: {t.FullName}") ?? []);
+            }
+        }
+
+        failures.Should().BeEmpty(
             "Domain layer should not depend on Infrastructure layer. " +
             "Violations: {0}", 
-            string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? []));
+            string.Join(", ", failures));
     }
 
     [Fact]
     public void Domain_ShouldNotDependOn_API()
     {
-        // Domain should never depend on API/Controllers
-        var result = Types.InAssembly(DomainAssembly)
-            .Should()
-            .NotHaveDependencyOn(ApiAssembly.GetName().Name)
-            .GetResult();
+        // Domain nunca deve depender de API/Controllers
+        var failures = new List<string>();
 
-        result.IsSuccessful.Should().BeTrue(
+        foreach (var module in AllModules)
+        {
+            if (module.DomainAssembly == null || module.ApiAssembly == null) continue;
+
+            var result = Types.InAssembly(module.DomainAssembly)
+                .Should()
+                .NotHaveDependencyOn(module.ApiAssembly.GetName().Name)
+                .GetResult();
+
+            if (!result.IsSuccessful)
+            {
+                failures.AddRange(result.FailingTypes?.Select(t => $"{module.Name}: {t.FullName}") ?? []);
+            }
+        }
+
+        failures.Should().BeEmpty(
             "Domain layer should not depend on API layer. " +
             "Violations: {0}", 
-            string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? []));
+            string.Join(", ", failures));
     }
 
     [Fact]
     public void Application_ShouldNotDependOn_Infrastructure()
     {
-        // Application should only depend on abstractions, not concrete implementations
-        var result = Types.InAssembly(ApplicationAssembly)
-            .Should()
-            .NotHaveDependencyOn(InfrastructureAssembly.GetName().Name)
-            .GetResult();
+        // Application deve depender apenas de abstrações, não de implementações concretas
+        var failures = new List<string>();
 
-        result.IsSuccessful.Should().BeTrue(
+        foreach (var module in AllModules)
+        {
+            if (module.ApplicationAssembly == null || module.InfrastructureAssembly == null) continue;
+
+            var result = Types.InAssembly(module.ApplicationAssembly)
+                .Should()
+                .NotHaveDependencyOn(module.InfrastructureAssembly.GetName().Name)
+                .GetResult();
+
+            if (!result.IsSuccessful)
+            {
+                failures.AddRange(result.FailingTypes?.Select(t => $"{module.Name}: {t.FullName}") ?? []);
+            }
+        }
+
+        failures.Should().BeEmpty(
             "Application layer should not depend on Infrastructure layer. " +
             "Violations: {0}", 
-            string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? []));
+            string.Join(", ", failures));
     }
 
     [Fact]
     public void Application_ShouldNotDependOn_API()
     {
-        // Application should not know about controllers/endpoints
-        var result = Types.InAssembly(ApplicationAssembly)
-            .Should()
-            .NotHaveDependencyOn(ApiAssembly.GetName().Name)
-            .GetResult();
+        // Application não deve conhecer controllers/endpoints
+        var failures = new List<string>();
 
-        result.IsSuccessful.Should().BeTrue(
+        foreach (var module in AllModules)
+        {
+            if (module.ApplicationAssembly == null || module.ApiAssembly == null) continue;
+
+            var result = Types.InAssembly(module.ApplicationAssembly)
+                .Should()
+                .NotHaveDependencyOn(module.ApiAssembly.GetName().Name)
+                .GetResult();
+
+            if (!result.IsSuccessful)
+            {
+                failures.AddRange(result.FailingTypes?.Select(t => $"{module.Name}: {t.FullName}") ?? []);
+            }
+        }
+
+        failures.Should().BeEmpty(
             "Application layer should not depend on API layer. " +
             "Violations: {0}", 
-            string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? []));
+            string.Join(", ", failures));
     }
 
     [Fact]
     public void Controllers_ShouldNotDependOn_Infrastructure()
     {
-        // Controllers should only depend on Application layer, not Infrastructure directly
-        var result = Types.InAssembly(ApiAssembly)
-            .That()
-            .HaveNameEndingWith("Controller")
-            .Should()
-            .NotHaveDependencyOn(InfrastructureAssembly.GetName().Name)
-            .GetResult();
+        // Controllers devem depender apenas da Application layer, não diretamente de Infrastructure
+        var failures = new List<string>();
 
-        result.IsSuccessful.Should().BeTrue(
+        foreach (var module in AllModules)
+        {
+            if (module.ApiAssembly == null || module.InfrastructureAssembly == null) continue;
+
+            var result = Types.InAssembly(module.ApiAssembly)
+                .That()
+                .HaveNameEndingWith("Controller")
+                .Should()
+                .NotHaveDependencyOn(module.InfrastructureAssembly.GetName().Name)
+                .GetResult();
+
+            if (!result.IsSuccessful)
+            {
+                failures.AddRange(result.FailingTypes?.Select(t => $"{module.Name}: {t.FullName}") ?? []);
+            }
+        }
+
+        failures.Should().BeEmpty(
             "Controllers should not depend on Infrastructure layer directly. " +
             "Violations: {0}", 
-            string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? []));
+            string.Join(", ", failures));
+    }
+
+    [Fact]
+    public void Repositories_ShouldBeInInfrastructureLayer_AndFollowConventions()
+    {
+        // ✅ Discovery automático é ideal para encontrar implementações
+        var repositories = ArchitecturalDiscoveryHelper.DiscoverRepositories();
+
+        // Validar convenção de nomenclatura
+        var (isValidNaming, namingViolations) = ArchitecturalDiscoveryHelper.ValidateNamingConvention(
+            repositories,
+            "Repository",
+            "Repositories should end with 'Repository'");
+
+        isValidNaming.Should().BeTrue(
+            "All repositories should follow naming conventions. Violations: {0}",
+            string.Join(", ", namingViolations));
+
+        // Validar que estão na camada correta
+        var repositoriesInWrongLayer = repositories
+            .Where(repo => !repo.Namespace?.Contains(".Infrastructure") == true)
+            .Select(repo => repo.FullName)
+            .ToList();
+
+        repositoriesInWrongLayer.Should().BeEmpty(
+            "All repositories should be in Infrastructure layer. Violations: {0}",
+            string.Join(", ", repositoriesInWrongLayer));
+
+        Console.WriteLine($"✅ Validated {repositories.Count()} repositories");
+    }
+
+    [Fact]
+    public void AllServices_ShouldImplementInterfaces()
+    {
+        // ✅ Discovery automático é ideal para validações customizadas
+        var allApplicationAssemblies = ModuleDiscoveryHelper.GetAllApplicationAssemblies()
+            .Concat(ModuleDiscoveryHelper.GetAllInfrastructureAssemblies());
+        
+        var services = ArchitecturalDiscoveryHelper.DiscoverTypesByConvention(
+            allApplicationAssemblies,
+            type => type.Name.EndsWith("Service") && 
+                   type.IsClass && 
+                   !type.IsAbstract &&
+                   !type.IsInterface);
+
+        // Validar que todos os services implementam pelo menos uma interface
+        var servicesWithoutInterface = services
+            .Where(service => service.GetInterfaces()
+                .Where(i => !i.Namespace?.StartsWith("System") == true)
+                .Count() == 0)
+            .Select(service => service.FullName)
+            .ToList();
+
+        servicesWithoutInterface.Should().BeEmpty(
+            "All services should implement at least one business interface. Violations: {0}",
+            string.Join(", ", servicesWithoutInterface));
+
+        Console.WriteLine($"✅ Validated {services.Count()} services");
     }
 }

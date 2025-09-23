@@ -38,6 +38,7 @@
     <!-- Testes de Banco de Dados -->
     <PackageReference Include="Testcontainers.PostgreSql" Version="4.7.0" />
     <PackageReference Include="Respawn" Version="6.2.1" />
+    <PackageReference Include="Scrutor" Version="6.1.0" />
     <!-- Removed Microsoft.EntityFrameworkCore.InMemory - using real database with TestContainers instead -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
     

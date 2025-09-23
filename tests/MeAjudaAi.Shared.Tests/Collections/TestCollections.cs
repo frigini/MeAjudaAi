@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace MeAjudaAi.Shared.Tests.Collections;
 
 /// <summary>

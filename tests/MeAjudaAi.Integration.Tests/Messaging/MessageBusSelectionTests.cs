@@ -5,7 +5,6 @@ using MeAjudaAi.Shared.Messaging.Factory;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -115,14 +114,9 @@ public class MessageBusSelectionTests : Base.ApiTestBase
 /// <summary>
 /// Host Environment de teste para simular ambientes diferentes
 /// </summary>
-public class TestHostEnvironment : IHostEnvironment
+public class TestHostEnvironment(string environmentName) : IHostEnvironment
 {
-    public TestHostEnvironment(string environmentName)
-    {
-        EnvironmentName = environmentName;
-    }
-
-    public string EnvironmentName { get; set; }
+    public string EnvironmentName { get; set; } = environmentName;
     public string ApplicationName { get; set; } = "Test";
     public string ContentRootPath { get; set; } = "";
     public IFileProvider ContentRootFileProvider { get; set; } = null!;

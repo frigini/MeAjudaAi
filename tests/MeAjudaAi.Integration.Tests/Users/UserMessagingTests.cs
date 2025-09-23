@@ -1,11 +1,8 @@
-using MeAjudaAi.Modules.Users.Domain.Events;
-using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Shared.Messaging.Messages.Users;
-using System.Net;
-using System.Text.Json;
 using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Auth;
+using MeAjudaAi.Shared.Messaging.Messages.Users;
 using System.Net.Http.Json;
-using MeAjudaAi.Integration.Tests.Base;
+using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Users;
 

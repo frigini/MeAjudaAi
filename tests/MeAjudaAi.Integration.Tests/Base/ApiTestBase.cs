@@ -1,19 +1,15 @@
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+using MeAjudaAi.ApiService.Handlers;
+using MeAjudaAi.Integration.Tests.Auth;
+using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Base;
-using MeAjudaAi.Integration.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
-using MeAjudaAi.ApiService.Handlers;
-using MeAjudaAi.Modules.Users.Domain.Services;
-using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
-using MeAjudaAi.Shared.Functional;
-using MeAjudaAi.Modules.Users.Domain.Services.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -98,6 +94,10 @@ public abstract class ApiTestBase : DatabaseTestBase, IAsyncLifetime
                         services.Remove(authDescriptor);
                     }
 
+                    // Adiciona automaticamente todos os authorization handlers específicos para teste
+                    // Nota: Mantemos o registro manual do SelfOrAdminHandler pois vem de outro assembly
+                    services.AddScoped<IAuthorizationHandler, SelfOrAdminHandler>();
+
                     // Configura autenticação de teste como default
                     services.AddAuthentication(defaultScheme: FakeAuthenticationHandler.SchemeName)
                         .AddScheme<AuthenticationSchemeOptions, FakeAuthenticationHandler>(
@@ -119,8 +119,7 @@ public abstract class ApiTestBase : DatabaseTestBase, IAsyncLifetime
                         .AddPolicy("SelfOrAdmin", policy =>
                             policy.AddRequirements(new SelfOrAdminRequirement()));
 
-                    // Register authorization handlers
-                    services.AddScoped<IAuthorizationHandler, SelfOrAdminHandler>();
+                    // O SelfOrAdminHandler já foi registrado acima
                 });
             });
 
@@ -128,6 +127,9 @@ public abstract class ApiTestBase : DatabaseTestBase, IAsyncLifetime
 
         // Aplica migrações e prepara banco
         await EnsureDatabaseAsync();
+
+        // Aguarda um pouco para garantir que as migrações sejam completamente aplicadas
+        await Task.Delay(1000);
 
         // Inicializa Respawner após as migrações
         await InitializeRespawnerAsync();
@@ -151,6 +153,14 @@ public abstract class ApiTestBase : DatabaseTestBase, IAsyncLifetime
     protected async Task CleanDatabaseAsync()
     {
         await ResetDatabaseAsync();
+    }
+
+    /// <summary>
+    /// Sobrescreve os schemas esperados para incluir o schema do módulo Users
+    /// </summary>
+    protected override string[] GetExpectedSchemas()
+    {
+        return ["public", "users"];
     }
 
     async Task IAsyncLifetime.DisposeAsync()

@@ -1,9 +1,4 @@
-using System.Net.Http;
 using Aspire.Hosting;
-using Aspire.Hosting.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Integration.Tests.Aspire;
 

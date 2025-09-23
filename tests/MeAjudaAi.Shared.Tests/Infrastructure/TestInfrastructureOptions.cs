@@ -1,7 +1,7 @@
-namespace MeAjudaAi.Modules.Users.Tests.Infrastructure;
+namespace MeAjudaAi.Shared.Tests.Infrastructure;
 
 /// <summary>
-/// Configurações específicas para infraestrutura de testes do módulo Users
+/// Configurações específicas para infraestrutura de testes (compartilhada entre módulos)
 /// </summary>
 public class TestInfrastructureOptions
 {
@@ -44,7 +44,7 @@ public class TestDatabaseOptions
     public string Password { get; set; } = "test_password";
     
     /// <summary>
-    /// Schema específico do módulo
+    /// Schema específico do módulo (ex: users, providers, services)
     /// </summary>
     public string Schema { get; set; } = "users";
     

@@ -1,20 +1,17 @@
-using FluentAssertions;
-using System.Net;
 using MeAjudaAi.E2E.Tests.Base;
-using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.Integration;
 
 /// <summary>
 /// Testes de integração básicos para saúde da aplicação e conectividade
 /// </summary>
-public class HealthCheckTests : IntegrationTestBase
+public class HealthCheckTests : TestContainerTestBase
 {
     [Fact]
     public async Task HealthCheck_ShouldReturnHealthy()
     {
         // Act
-        var response = await HttpClient.GetAsync("/health");
+        var response = await ApiClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().BeOneOf(
@@ -27,7 +24,7 @@ public class HealthCheckTests : IntegrationTestBase
     public async Task LivenessCheck_ShouldReturnOk()
     {
         // Act
-        var response = await HttpClient.GetAsync("/health/live");
+        var response = await ApiClient.GetAsync("/health/live");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -42,7 +39,7 @@ public class HealthCheckTests : IntegrationTestBase
         
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
-            var response = await HttpClient.GetAsync("/health/ready");
+            var response = await ApiClient.GetAsync("/health/ready");
             
             if (response.StatusCode == HttpStatusCode.OK)
                 return; // Teste passou
@@ -52,7 +49,7 @@ public class HealthCheckTests : IntegrationTestBase
         }
         
         // Tentativa final com asserção
-        var finalResponse = await HttpClient.GetAsync("/health/ready");
+        var finalResponse = await ApiClient.GetAsync("/health/ready");
         finalResponse.StatusCode.Should().Be(HttpStatusCode.OK, 
             "Verificação de prontidão deve eventualmente retornar OK após serviços estarem prontos");
     }

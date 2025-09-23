@@ -1,27 +1,19 @@
-using FluentAssertions;
-using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
-using Xunit;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.E2E.Tests.Integration;
 
 /// <summary>
-/// Testes de integração para pipeline CQRS e manipulação de eventos
+/// Testes de integração para funcionalidades que atravessam múltiplos módulos
+/// Inclui pipeline CQRS, manipulação de eventos e comunicação entre módulos
 /// </summary>
-public class CqrsIntegrationTests : TestContainerTestBase
+public class ModuleIntegrationTests : TestContainerTestBase
 {
-    private readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-
     [Fact]
     public async Task CreateUser_ShouldTriggerDomainEvents()
     {
         // Arrange
-        var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Keep under 30 chars
+        var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Mantem sob 30 caracteres
         var createUserRequest = new
         {
             Username = $"test_{uniqueId}", // test_12345678 = 13 chars
@@ -31,21 +23,21 @@ public class CqrsIntegrationTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, _jsonOptions);
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, JsonOptions);
 
         // Assert
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.Created,
-            HttpStatusCode.Conflict // User might already exist in some test runs
+            HttpStatusCode.Conflict // Usuário pode já existir em algumas execuções de teste
         );
 
         if (response.StatusCode == HttpStatusCode.Created)
         {
-            // Verify the response contains expected data
+            // Verifica se a resposta contém dados esperados
             var content = await response.Content.ReadAsStringAsync();
             content.Should().NotBeNullOrEmpty();
 
-            var result = JsonSerializer.Deserialize<JsonElement>(content, _jsonOptions);
+            var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, JsonOptions);
             result.TryGetProperty("data", out var dataProperty).Should().BeTrue();
             dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
             idProperty.GetGuid().Should().NotBeEmpty();
@@ -66,7 +58,7 @@ public class CqrsIntegrationTests : TestContainerTestBase
         };
 
         // Act 1: Create user
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, _jsonOptions);
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, JsonOptions);
 
         // Assert 1: User created successfully or already exists
         createResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.Conflict);
@@ -74,7 +66,7 @@ public class CqrsIntegrationTests : TestContainerTestBase
         if (createResponse.StatusCode == HttpStatusCode.Created)
         {
             var createContent = await createResponse.Content.ReadAsStringAsync();
-            var createResult = JsonSerializer.Deserialize<JsonElement>(createContent, _jsonOptions);
+            var createResult = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(createContent, JsonOptions);
             createResult.TryGetProperty("data", out var dataProperty).Should().BeTrue();
             dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
             var userId = idProperty.GetGuid();
@@ -87,7 +79,7 @@ public class CqrsIntegrationTests : TestContainerTestBase
                 Email = $"updated_{uniqueId}@example.com"
             };
 
-            var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, _jsonOptions);
+            var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, JsonOptions);
 
             // Assert 2: Update should succeed or return appropriate error
             updateResponse.StatusCode.Should().BeOneOf(
@@ -127,8 +119,8 @@ public class CqrsIntegrationTests : TestContainerTestBase
             content.Should().NotBeNullOrEmpty();
 
             // Verify it's valid JSON with expected structure
-            var jsonDoc = JsonDocument.Parse(content);
-            jsonDoc.RootElement.ValueKind.Should().Be(JsonValueKind.Object);
+            var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
+            jsonDoc.RootElement.ValueKind.Should().Be(System.Text.Json.JsonValueKind.Object);
         }
     }
 
@@ -145,7 +137,7 @@ public class CqrsIntegrationTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest, _jsonOptions);
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest, JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -154,8 +146,8 @@ public class CqrsIntegrationTests : TestContainerTestBase
         content.Should().NotBeNullOrEmpty();
 
         // Verify error response format
-        var errorDoc = JsonDocument.Parse(content);
-        errorDoc.RootElement.ValueKind.Should().Be(JsonValueKind.Object);
+        var errorDoc = System.Text.Json.JsonDocument.Parse(content);
+        errorDoc.RootElement.ValueKind.Should().Be(System.Text.Json.JsonValueKind.Object);
     }
 
     [Fact]
@@ -174,7 +166,7 @@ public class CqrsIntegrationTests : TestContainerTestBase
         // Act: Send multiple concurrent requests
         var tasks = Enumerable.Range(0, 3).Select(async i =>
         {
-            return await ApiClient.PostAsJsonAsync("/api/v1/users", userRequest, _jsonOptions);
+            return await ApiClient.PostAsJsonAsync("/api/v1/users", userRequest, JsonOptions);
         });
 
         var responses = await Task.WhenAll(tasks);

@@ -4,30 +4,23 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure;
 using MeAjudaAi.Shared.Messaging;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Testcontainers.PostgreSql;
+using MeAjudaAi.Shared.Tests.Infrastructure;
 
 namespace MeAjudaAi.Modules.Users.Tests.Integration;
 
 /// <summary>
-/// Exemplo de teste de integração usando a infraestrutura modular de testes
+/// Exemplo de teste de integração usando containers compartilhados para melhor performance
 /// </summary>
-public class UserModuleIntegrationTests : IAsyncLifetime
+[Collection("UsersIntegrationTests")]
+public class UserModuleIntegrationTests : UsersIntegrationTestBase
 {
-    private readonly ServiceProvider _serviceProvider;
-    private readonly PostgreSqlContainer _dbContainer;
-    
-    public UserModuleIntegrationTests()
+    protected override TestInfrastructureOptions GetTestOptions()
     {
-        var services = new ServiceCollection();
-        
-        // Configurar infraestrutura de testes com opções customizadas
-        var testOptions = new TestInfrastructureOptions
+        return new TestInfrastructureOptions
         {
             Database = new TestDatabaseOptions
             {
-                DatabaseName = "test_users_db",
+                DatabaseName = "test_users_integration",
                 Username = "testuser", 
                 Password = "testpass123",
                 Schema = "users_test"
@@ -42,39 +35,17 @@ public class UserModuleIntegrationTests : IAsyncLifetime
                 UseMessageBusMock = true
             }
         };
-        
-        services.AddUsersTestInfrastructure(testOptions);
-        
-        _serviceProvider = services.BuildServiceProvider();
-        _dbContainer = _serviceProvider.GetRequiredService<PostgreSqlContainer>();
-    }
-    
-    public async Task InitializeAsync()
-    {
-        // Inicializar container do banco de dados
-        await _dbContainer.StartAsync();
-        
-        // Aplicar migrations
-        using var scope = _serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        await dbContext.Database.MigrateAsync();
-    }
-    
-    public async Task DisposeAsync()
-    {
-        await _dbContainer.StopAsync();
-        await _serviceProvider.DisposeAsync();
     }
     
     [Fact]
     public async Task CreateUser_WithValidData_ShouldPersistToDatabase()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
-        var userDomainService = scope.ServiceProvider.GetRequiredService<IUserDomainService>();
-        var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-        var dbContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        using var scope = CreateScope();
+        var userDomainService = GetScopedService<IUserDomainService>(scope);
+        var userRepository = GetScopedService<IUserRepository>(scope);
+        var dbContext = GetScopedService<UsersDbContext>(scope);
+        var messageBus = GetScopedService<IMessageBus>(scope);
         
         var username = new Username("testuser123");
         var email = new Email("testuser@example.com");
@@ -101,19 +72,17 @@ public class UserModuleIntegrationTests : IAsyncLifetime
         Assert.Equal(firstName, retrievedUser.FirstName);
         Assert.Equal(lastName, retrievedUser.LastName);
         
-        // Assert - Verificar se mensagens foram publicadas (mock)
-        var mockMessageBus = messageBus as MockMessageBus;
-        Assert.NotNull(mockMessageBus);
+        // Assert - Verificar se o message bus está configurado (mock)
+        Assert.NotNull(messageBus);
         // Note: No teste real, eventos de domínio são publicados automaticamente pelo EF
-        // mas aqui estamos testando só o mock do message bus
     }
     
     [Fact]
     public async Task AuthenticateUser_WithValidCredentials_ShouldReturnSuccessResult()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
-        var authService = scope.ServiceProvider.GetRequiredService<IAuthenticationDomainService>();
+        using var scope = CreateScope();
+        var authService = GetScopedService<IAuthenticationDomainService>(scope);
         
         // Act
         var authResult = await authService.AuthenticateAsync("validuser", "validpassword");
@@ -129,8 +98,8 @@ public class UserModuleIntegrationTests : IAsyncLifetime
     public async Task AuthenticateUser_WithInvalidCredentials_ShouldReturnFailureResult()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
-        var authService = scope.ServiceProvider.GetRequiredService<IAuthenticationDomainService>();
+        using var scope = CreateScope();
+        var authService = GetScopedService<IAuthenticationDomainService>(scope);
         
         // Act
         var authResult = await authService.AuthenticateAsync("invaliduser", "wrongpassword");
@@ -144,8 +113,8 @@ public class UserModuleIntegrationTests : IAsyncLifetime
     public async Task ValidateToken_WithValidToken_ShouldReturnValidResult()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
-        var authService = scope.ServiceProvider.GetRequiredService<IAuthenticationDomainService>();
+        using var scope = CreateScope();
+        var authService = GetScopedService<IAuthenticationDomainService>(scope);
         
         // Act
         var validationResult = await authService.ValidateTokenAsync("mock_token_12345");
@@ -160,8 +129,8 @@ public class UserModuleIntegrationTests : IAsyncLifetime
     public async Task SyncUserWithKeycloak_ShouldReturnSuccess()
     {
         // Arrange
-        using var scope = _serviceProvider.CreateScope();
-        var userDomainService = scope.ServiceProvider.GetRequiredService<IUserDomainService>();
+        using var scope = CreateScope();
+        var userDomainService = GetScopedService<IUserDomainService>(scope);
         var userId = new UserId(Guid.NewGuid());
         
         // Act

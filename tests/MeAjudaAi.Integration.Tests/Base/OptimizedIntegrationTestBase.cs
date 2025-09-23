@@ -7,14 +7,15 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Bogus;
+using MeAjudaAi.Shared.Serialization;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
 /// <summary>
-/// Base class otimizada para testes de integração
-/// Foca em performance e redução de timeouts
+/// Base class focada em performance para testes de integração críticos
+/// Otimizada para reduzir timeouts e acelerar execução
 /// </summary>
-public abstract class OptimizedIntegrationTestBase : IAsyncLifetime
+public abstract class PerformanceTestBase : IAsyncLifetime
 {
     private DistributedApplication _app = null!;
     
@@ -27,11 +28,7 @@ public abstract class OptimizedIntegrationTestBase : IAsyncLifetime
     protected static readonly TimeSpan ResourceTimeout = TimeSpan.FromSeconds(90); // Reduzido de 5 minutos para 90 segundos
     protected static readonly TimeSpan DefaultRequestTimeout = TimeSpan.FromSeconds(30);
 
-    protected JsonSerializerOptions JsonOptions { get; } = new JsonSerializerOptions
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+    protected JsonSerializerOptions JsonOptions { get; } = SerializationDefaults.Api;
 
     public virtual async Task InitializeAsync()
     {
@@ -187,9 +184,9 @@ public abstract class OptimizedIntegrationTestBase : IAsyncLifetime
 }
 
 /// <summary>
-/// Classe de teste ainda mais simples para cenários que não precisam de toda a infraestrutura
+/// Base class básica para testes rápidos que não precisam de toda a infraestrutura
 /// </summary>
-public abstract class SimpleIntegrationTestBase : IAsyncLifetime
+public abstract class BasicTestBase : IAsyncLifetime
 {
     protected HttpClient ApiClient { get; private set; } = null!;
     protected Faker Faker { get; } = new();
@@ -198,11 +195,7 @@ public abstract class SimpleIntegrationTestBase : IAsyncLifetime
     
     protected static readonly TimeSpan SimpleTimeout = TimeSpan.FromSeconds(60);
 
-    protected JsonSerializerOptions JsonOptions { get; } = new JsonSerializerOptions
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+    protected JsonSerializerOptions JsonOptions { get; } = SerializationDefaults.Api;
 
     public virtual async Task InitializeAsync()
     {

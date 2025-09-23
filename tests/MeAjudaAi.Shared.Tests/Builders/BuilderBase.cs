@@ -43,7 +43,7 @@ public abstract class BuilderBase<T> where T : class
     /// <summary>
     /// Constrói uma lista de instâncias
     /// </summary>
-    public virtual List<T> BuildList(int count = 3) => BuildMany(count).ToList();
+    public virtual List<T> BuildList(int count = 3) => [.. BuildMany(count)];
 
     /// <summary>
     /// Adiciona uma ação customizada para ser aplicada após a criação do objeto

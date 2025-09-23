@@ -1,9 +1,8 @@
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
-namespace MeAjudaAi.E2E.Tests.Simple;
+namespace MeAjudaAi.E2E.Tests.Infrastructure;
 
 /// <summary>
 /// Testes de saúde da infraestrutura TestContainers

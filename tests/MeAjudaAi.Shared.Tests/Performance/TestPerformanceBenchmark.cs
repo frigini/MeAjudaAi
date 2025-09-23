@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using Xunit.Abstractions;
 
 namespace MeAjudaAi.Shared.Tests.Performance;
@@ -7,17 +7,9 @@ namespace MeAjudaAi.Shared.Tests.Performance;
 /// <summary>
 /// Utilitário para benchmarking de performance dos testes
 /// </summary>
-public class TestPerformanceBenchmark
+public class TestPerformanceBenchmark(ITestOutputHelper output, ILogger? logger = null)
 {
-    private readonly ITestOutputHelper _output;
-    private readonly ILogger? _logger;
     private readonly Dictionary<string, BenchmarkResult> _results = new();
-    
-    public TestPerformanceBenchmark(ITestOutputHelper output, ILogger? logger = null)
-    {
-        _output = output;
-        _logger = logger;
-    }
 
     /// <summary>
     /// Executa benchmark de uma operação
@@ -77,19 +69,19 @@ public class TestPerformanceBenchmark
     {
         if (!_results.Any())
         {
-            _output.WriteLine("Nenhum benchmark foi executado.");
+            output.WriteLine("Nenhum benchmark foi executado.");
             return;
         }
 
-        _output.WriteLine("\n=== RELATÓRIO DE PERFORMANCE ===");
-        _output.WriteLine($"Total de operações: {_results.Count}");
-        _output.WriteLine($"Tempo total: {_results.Sum(r => r.Value.ElapsedMilliseconds)}ms");
-        _output.WriteLine("");
+        output.WriteLine("\n=== RELATÓRIO DE PERFORMANCE ===");
+        output.WriteLine($"Total de operações: {_results.Count}");
+        output.WriteLine($"Tempo total: {_results.Sum(r => r.Value.ElapsedMilliseconds)}ms");
+        output.WriteLine("");
 
         foreach (var result in _results.Values.OrderByDescending(r => r.ElapsedMilliseconds))
         {
             var status = result.Success ? "✅" : "❌";
-            _output.WriteLine($"{status} {result.OperationName}: {result.ElapsedMilliseconds}ms");
+            output.WriteLine($"{status} {result.OperationName}: {result.ElapsedMilliseconds}ms");
         }
     }
 
@@ -98,7 +90,7 @@ public class TestPerformanceBenchmark
     /// </summary>
     public void CompareWithBaseline(Dictionary<string, long> baselineMs)
     {
-        _output.WriteLine("\n=== COMPARAÇÃO COM BASELINE ===");
+        output.WriteLine("\n=== COMPARAÇÃO COM BASELINE ===");
         
         foreach (var baseline in baselineMs)
         {
@@ -108,15 +100,15 @@ public class TestPerformanceBenchmark
                 var icon = improvement > 0 ? "🚀" : "🐌";
                 var sign = improvement > 0 ? "+" : "";
                 
-                _output.WriteLine($"{icon} {baseline.Key}: {sign}{improvement:F1}%");
+                output.WriteLine($"{icon} {baseline.Key}: {sign}{improvement:F1}%");
             }
         }
     }
 
     private void LogResult(BenchmarkResult result)
     {
-        _output.WriteLine($"⏱️ {result.OperationName}: {result.ElapsedMilliseconds}ms");
-        _logger?.LogInformation($"Benchmark '{result.OperationName}': {result.ElapsedMilliseconds}ms");
+        output.WriteLine($"⏱️ {result.OperationName}: {result.ElapsedMilliseconds}ms");
+        logger?.LogInformation($"Benchmark '{result.OperationName}': {result.ElapsedMilliseconds}ms");
     }
 
     public BenchmarkResult? GetResult(string operationName)

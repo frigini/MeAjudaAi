@@ -1,7 +1,4 @@
-using Aspire.Hosting;
-using Aspire.Hosting.Testing;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure.Basic;
 

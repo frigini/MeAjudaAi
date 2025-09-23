@@ -1,5 +1,4 @@
 using MeAjudaAi.Integration.Tests.Aspire;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace MeAjudaAi.Integration.Tests.Base;
@@ -19,17 +18,11 @@ namespace MeAjudaAi.Integration.Tests.Base;
 /// 
 /// Para testes simples de API, use ApiTestBase (mais rápido).
 /// </summary>
-public abstract class IntegrationTestBase : IClassFixture<AspireIntegrationFixture>, IAsyncLifetime
+public abstract class IntegrationTestBase(AspireIntegrationFixture fixture, ITestOutputHelper output) : IClassFixture<AspireIntegrationFixture>, IAsyncLifetime
 {
-    protected readonly AspireIntegrationFixture _fixture;
-    protected readonly ITestOutputHelper _output;
+    protected readonly AspireIntegrationFixture _fixture = fixture;
+    protected readonly ITestOutputHelper _output = output;
     protected HttpClient HttpClient => _fixture.HttpClient;
-
-    protected IntegrationTestBase(AspireIntegrationFixture fixture, ITestOutputHelper output)
-    {
-        _fixture = fixture;
-        _output = output;
-    }
 
     public virtual Task InitializeAsync()
     {

@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Bogus;
+using MeAjudaAi.Shared.Serialization;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -46,11 +47,7 @@ public class SharedTestFixture : IAsyncLifetime
         }
     }
 
-    public JsonSerializerOptions JsonOptions { get; } = new JsonSerializerOptions
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+    public JsonSerializerOptions JsonOptions { get; } = SerializationDefaults.Api;
 
     public async Task InitializeAsync()
     {
@@ -167,14 +164,16 @@ public class SharedTestFixture : IAsyncLifetime
 
 /// <summary>
 /// Base class ultra-otimizada que usa fixture compartilhado
+/// <summary>
+/// Base class compartilhada para testes de integração com máxima reutilização de recursos
 /// </summary>
-public abstract class UltraOptimizedTestBase : IAsyncLifetime, IClassFixture<SharedTestFixture>
+public abstract class SharedTestBase : IAsyncLifetime, IClassFixture<SharedTestFixture>
 {
     private readonly SharedTestFixture _sharedFixture;
     protected HttpClient ApiClient { get; private set; } = null!;
     protected Faker Faker { get; } = new();
 
-    protected UltraOptimizedTestBase(SharedTestFixture sharedFixture)
+    protected SharedTestBase(SharedTestFixture sharedFixture)
     {
         _sharedFixture = sharedFixture;
     }

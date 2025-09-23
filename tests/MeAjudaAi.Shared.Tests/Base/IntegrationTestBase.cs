@@ -1,0 +1,150 @@
+using MeAjudaAi.Shared.Tests.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace MeAjudaAi.Shared.Tests.Base;
+
+/// <summary>
+/// Classe base genérica para testes de integração com containers compartilhados.
+/// Reduz significativamente o tempo de execução dos testes evitando criação/destruição de containers.
+/// </summary>
+public abstract class IntegrationTestBase : IAsyncLifetime
+{
+    private ServiceProvider? _serviceProvider;
+    private static bool _containersStarted;
+    private static readonly Lock _startupLock = new();
+
+    protected IServiceProvider ServiceProvider => _serviceProvider ?? throw new InvalidOperationException("Service provider not initialized");
+
+    /// <summary>
+    /// Configurações específicas do teste (deve ser implementado pelos módulos)
+    /// </summary>
+    protected abstract TestInfrastructureOptions GetTestOptions();
+
+    /// <summary>
+    /// Configura serviços específicos do módulo (deve ser implementado pelos módulos)
+    /// </summary>
+    protected abstract void ConfigureModuleServices(IServiceCollection services, TestInfrastructureOptions options);
+
+    /// <summary>
+    /// Executa setup específico do módulo após a inicialização (opcional)
+    /// </summary>
+    protected virtual Task OnModuleInitializeAsync(IServiceProvider serviceProvider) => Task.CompletedTask;
+
+    public async Task InitializeAsync()
+    {
+        // Garante que os containers sejam iniciados apenas uma vez (thread-safe)
+        if (!_containersStarted)
+        {
+            await EnsureContainersStartedAsync();
+        }
+
+        // Configura serviços para este teste específico
+        var services = new ServiceCollection();
+        var testOptions = GetTestOptions();
+        
+        // Usa containers compartilhados - adiciona como singletons
+        services.AddSingleton(SharedTestContainers.PostgreSql);
+        
+        // Configurar logging otimizado para testes
+        services.AddLogging(builder =>
+        {
+            var silentMode = Environment.GetEnvironmentVariable("TEST_SILENT_LOGGING");
+            if (!string.IsNullOrEmpty(silentMode) && silentMode.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                builder.ConfigureSilentLogging();
+            }
+            else
+            {
+                builder.ConfigureTestLogging();
+            }
+        });
+
+        // Configura serviços específicos do módulo
+        ConfigureModuleServices(services, testOptions);
+        
+        _serviceProvider = services.BuildServiceProvider();
+
+        // Setup específico do módulo
+        await OnModuleInitializeAsync(_serviceProvider);
+
+        // Aplica automaticamente todas as migrações descobertas
+        await SharedTestContainers.ApplyAllMigrationsAsync(_serviceProvider);
+
+        // Setup adicional específico do teste
+        await OnInitializeAsync();
+    }
+    
+    private static async Task EnsureContainersStartedAsync()
+    {
+        lock (_startupLock)
+        {
+            if (_containersStarted) return;
+            _containersStarted = true;
+        }
+        
+        // Inicia containers fora do lock
+        await SharedTestContainers.StartAllAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        // Cleanup específico do teste
+        await OnDisposeAsync();
+
+        // Limpa dados sem parar containers (muito mais rápido)
+        var testOptions = GetTestOptions();
+        var schema = testOptions.Database?.Schema;
+        await SharedTestContainers.CleanupDataAsync(schema);
+
+        if (_serviceProvider != null)
+        {
+            await _serviceProvider.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Setup adicional específico do teste (sobrescrever se necessário)
+    /// </summary>
+    protected virtual Task OnInitializeAsync() => Task.CompletedTask;
+
+    /// <summary>
+    /// Cleanup específico do teste (sobrescrever se necessário)
+    /// </summary>
+    protected virtual Task OnDisposeAsync() => Task.CompletedTask;
+
+    /// <summary>
+    /// Cria um escopo de serviços para o teste
+    /// </summary>
+    protected IServiceScope CreateScope() => ServiceProvider.CreateScope();
+
+    /// <summary>
+    /// Obtém um serviço específico
+    /// </summary>
+    protected T GetService<T>() where T : notnull => ServiceProvider.GetRequiredService<T>();
+
+    /// <summary>
+    /// Obtém um serviço específico do escopo
+    /// </summary>
+    protected T GetScopedService<T>(IServiceScope scope) where T : notnull => 
+        scope.ServiceProvider.GetRequiredService<T>();
+}
+
+/// <summary>
+/// Finalizador estático para parar containers quando todos os testes terminarem
+/// </summary>
+public static class IntegrationTestCleanup
+{
+    static IntegrationTestCleanup()
+    {
+        AppDomain.CurrentDomain.ProcessExit += async (_, _) => await SharedTestContainers.StopAllAsync();
+        AppDomain.CurrentDomain.DomainUnload += async (_, _) => await SharedTestContainers.StopAllAsync();
+    }
+    
+    /// <summary>
+    /// Força o cleanup dos containers (útil para executar no final de uma suite de testes)
+    /// </summary>
+    public static async Task ForceCleanupAsync()
+    {
+        await SharedTestContainers.StopAllAsync();
+    }
+}

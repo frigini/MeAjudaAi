@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Fixtures;
 
@@ -11,7 +10,7 @@ namespace MeAjudaAi.Shared.Tests.Fixtures;
 /// </summary>
 public class SharedTestFixture : IAsyncLifetime
 {
-    private static readonly object _lock = new();
+    private static readonly Lock _lock = new();
     private static SharedTestFixture? _instance;
     private static int _referenceCount = 0;
     
@@ -25,10 +24,7 @@ public class SharedTestFixture : IAsyncLifetime
     {
         lock (_lock)
         {
-            if (_instance == null)
-            {
-                _instance = new SharedTestFixture();
-            }
+            _instance ??= new SharedTestFixture();
             _referenceCount++;
             return _instance;
         }

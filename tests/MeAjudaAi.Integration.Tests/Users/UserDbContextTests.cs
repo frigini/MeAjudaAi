@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Integration.Tests.Base;
-using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using FluentAssertions;
 

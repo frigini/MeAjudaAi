@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Logging;
-using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
 
 namespace MeAjudaAi.Shared.Tests.Base;
 
 /// <summary>
 /// Classe base para testes de Event Handlers com mocks comuns e configuração.
+/// Fornece configuração consistente do AutoFixture para testes determinísticos.
 /// </summary>
 public abstract class EventHandlerTestBase<THandler>
     where THandler : class
@@ -14,10 +14,18 @@ public abstract class EventHandlerTestBase<THandler>
     protected Mock<ILogger<THandler>> LoggerMock { get; }
     protected Fixture Fixture { get; }
 
+    /// <summary>
+    /// Data/hora base para testes determinísticos
+    /// </summary>
+    protected DateTime BaseDateTime { get; }
+
     protected EventHandlerTestBase()
     {
         MessageBusMock = new Mock<IMessageBus>();
         LoggerMock = new Mock<ILogger<THandler>>();
+        
+        // Define uma data base fixa para testes determinísticos
+        BaseDateTime = new DateTime(2025, 9, 23, 10, 0, 0, DateTimeKind.Utc);
         
         Fixture = new Fixture();
         
@@ -38,9 +46,9 @@ public abstract class EventHandlerTestBase<THandler>
         // Configura para criar Guids realistas
         Fixture.Customize<Guid>(composer => composer.FromFactory(() => Guid.NewGuid()));
         
-        // Configura DateTime para usar datas recentes
+        // Configura DateTime para ser determinístico baseado na data base
         Fixture.Customize<DateTime>(composer => 
-            composer.FromFactory(() => DateTime.UtcNow.AddDays(-Random.Shared.Next(0, 30))));
+            composer.FromFactory(() => BaseDateTime.AddDays(Random.Shared.Next(0, 30))));
     }
 
     /// <summary>

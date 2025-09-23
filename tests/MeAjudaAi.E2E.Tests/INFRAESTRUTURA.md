@@ -26,7 +26,7 @@ TestContainerTestBase (Base sólida)
 ### Principais Componentes
 
 1. **TestContainerTestBase** 
-   - Substitui completamente EndToEndTestBase problemática
+   - Base sólida para testes E2E com TestContainers
    - Containers Docker isolados por classe de teste
    - Configuração automática de banco e cache
 
@@ -78,13 +78,16 @@ public class MeuNovoTeste : TestContainerTestBase
 }
 ```
 
-### Migrar Teste Existente
+### Criar Novo Teste
 ```csharp
-// ANTES (problemático)
-public class MeuTeste : EndToEndTestBase
-
-// DEPOIS (funcionando)  
 public class MeuTeste : TestContainerTestBase
+{
+    [Fact]
+    public async Task DeveTestarFuncionalidade()
+    {
+        // Arrange, Act, Assert
+    }
+}
 ```
 
 ## 📋 Próximos Passos (Opcional)

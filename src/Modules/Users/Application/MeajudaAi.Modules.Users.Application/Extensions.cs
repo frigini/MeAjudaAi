@@ -16,17 +16,12 @@ public static class Extensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        // Command Handlers
-        services.AddScoped<ICommandHandler<CreateUserCommand, Result<UserDto>>, CreateUserCommandHandler>();
-        services.AddScoped<ICommandHandler<UpdateUserProfileCommand, Result<UserDto>>, UpdateUserProfileCommandHandler>();
-        services.AddScoped<ICommandHandler<DeleteUserCommand, Result>, DeleteUserCommandHandler>();
+        // REMOVED: Command/Query Handlers são registrados automaticamente pelo Scrutor no Shared
+        // O Scrutor já faz isso através de:
+        // - services.Scan(...).AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<>)))
+        // - services.Scan(...).AddClasses(classes => classes.AssignableTo(typeof(IQueryHandler<,>)))
 
-        // Query Handlers
-        services.AddScoped<IQueryHandler<GetUserByIdQuery, Result<UserDto>>, GetUserByIdQueryHandler>();
-        services.AddScoped<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>, GetUserByEmailQueryHandler>();
-        services.AddScoped<IQueryHandler<GetUsersQuery, Result<PagedResult<UserDto>>>, GetUsersQueryHandler>();
-
-        // Cache Services
+        // Cache Services específicos do módulo
         services.AddScoped<IUsersCacheService, UsersCacheService>();
 
         return services;

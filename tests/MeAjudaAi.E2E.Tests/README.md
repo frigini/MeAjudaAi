@@ -167,14 +167,10 @@ Os seguintes testes foram migrados do Aspire para TestContainers:
 
 ## Migração de Testes Existentes
 
-Para migrar testes do `EndToEndTestBase` (Aspire) para `TestContainerTestBase`:
+Para criar novos testes E2E, use `TestContainerTestBase`:
 
-1. **Mudar herança**:
+1. **Definir herança**:
    ```csharp
-   // Antes
-   public class MyTests : EndToEndTestBase
-   
-   // Depois  
    public class MyTests : TestContainerTestBase
    ```
 

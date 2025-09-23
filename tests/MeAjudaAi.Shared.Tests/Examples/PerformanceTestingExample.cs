@@ -1,4 +1,3 @@
-using MeAjudaAi.Shared.Tests.Collections;
 using MeAjudaAi.Shared.Tests.Fixtures;
 using MeAjudaAi.Shared.Tests.Performance;
 using Xunit.Abstractions;
@@ -6,21 +5,14 @@ using Xunit.Abstractions;
 namespace MeAjudaAi.Shared.Tests.Examples;
 
 /// <summary>
-/// Exemplo de teste otimizado usando fixtures compartilhados e benchmarking
+/// Exemplo demonstrativo de como implementar testes de performance
+/// usando fixtures compartilhados e benchmarking.
+/// Este arquivo serve como documentação/exemplo - pode ser removido em produção.
 /// </summary>
 [Collection("Parallel")]
-public class OptimizedPerformanceTests : IClassFixture<SharedTestFixture>
+public class PerformanceTestingExample(ITestOutputHelper output)
 {
-    private readonly SharedTestFixture _fixture;
-    private readonly ITestOutputHelper _output;
-    private readonly TestPerformanceBenchmark _benchmark;
-
-    public OptimizedPerformanceTests(SharedTestFixture fixture, ITestOutputHelper output)
-    {
-        _fixture = fixture;
-        _output = output;
-        _benchmark = new TestPerformanceBenchmark(output);
-    }
+    private readonly TestPerformanceBenchmark _benchmark = new(output);
 
     [Fact]
     public async Task FastUnitTest_ShouldCompleteQuickly()
@@ -46,7 +38,7 @@ public class OptimizedPerformanceTests : IClassFixture<SharedTestFixture>
     public async Task ParallelizableTest_ShouldRunInParallel()
     {
         // Este teste pode rodar em paralelo com outros da mesma collection
-        var result = await _output.BenchmarkOperationAsync(
+        var result = await output.BenchmarkOperationAsync(
             "ParallelOperation",
             async () =>
             {

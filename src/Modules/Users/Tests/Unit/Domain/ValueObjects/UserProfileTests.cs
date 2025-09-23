@@ -49,7 +49,7 @@ public class UserProfileTests
         const string lastName = "Silva";
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => new UserProfile(invalidFirstName, lastName));
+        var exception = Assert.Throws<ArgumentException>(() => new UserProfile(invalidFirstName!, lastName));
         exception.Message.Should().Be("First name cannot be empty");
     }
 
@@ -63,7 +63,7 @@ public class UserProfileTests
         const string firstName = "João";
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => new UserProfile(firstName, invalidLastName));
+        var exception = Assert.Throws<ArgumentException>(() => new UserProfile(firstName, invalidLastName!));
         exception.Message.Should().Be("Last name cannot be empty");
     }
 

@@ -1,10 +1,5 @@
-using FluentAssertions;
-using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.Users.Application.DTOs;
-using Xunit;
+using System.Net.Http.Json;
 
 namespace MeAjudaAi.E2E.Tests.Integration;
 
@@ -13,10 +8,6 @@ namespace MeAjudaAi.E2E.Tests.Integration;
 /// </summary>
 public class UsersModuleTests : TestContainerTestBase
 {
-    private readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
 
     [Fact]
     public async Task GetUsers_ShouldReturnOkWithPaginatedResult()
@@ -36,7 +27,7 @@ public class UsersModuleTests : TestContainerTestBase
             content.Should().NotBeNullOrEmpty();
             
             // Verifica se é JSON válido
-            var jsonDocument = JsonDocument.Parse(content);
+            var jsonDocument = System.Text.Json.JsonDocument.Parse(content);
             jsonDocument.Should().NotBeNull();
         }
     }
@@ -54,13 +45,13 @@ public class UsersModuleTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, _jsonOptions);
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, JsonOptions);
 
         // Assert
         response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Created,      // Success
-            HttpStatusCode.Conflict,     // User already exists
-            HttpStatusCode.BadRequest    // Validation error
+            HttpStatusCode.Created,      // Sucesso
+            HttpStatusCode.Conflict,     // Usuário já existe
+            HttpStatusCode.BadRequest    // Erro de validação
         );
 
         if (response.StatusCode == HttpStatusCode.Created)
@@ -68,7 +59,7 @@ public class UsersModuleTests : TestContainerTestBase
             var content = await response.Content.ReadAsStringAsync();
             content.Should().NotBeNullOrEmpty();
             
-            var createdUser = JsonSerializer.Deserialize<CreateUserResponse>(content, _jsonOptions);
+            var createdUser = System.Text.Json.JsonSerializer.Deserialize<CreateUserResponse>(content, JsonOptions);
             createdUser.Should().NotBeNull();
             createdUser!.UserId.Should().NotBeEmpty();
         }
@@ -80,14 +71,14 @@ public class UsersModuleTests : TestContainerTestBase
         // Arrange
         var invalidRequest = new CreateUserRequest
         {
-            Username = "", // Invalid: empty username
-            Email = "invalid-email", // Invalid: malformed email
+            Username = "", // Inválido: username vazio
+            Email = "invalid-email", // Inválido: email mal formatado
             FirstName = "",
             LastName = ""
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest, _jsonOptions);
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest, JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -132,7 +123,7 @@ public class UsersModuleTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PutAsJsonAsync($"/api/v1/users/{nonExistentId}/profile", updateRequest, _jsonOptions);
+        var response = await ApiClient.PutAsJsonAsync($"/api/v1/users/{nonExistentId}/profile", updateRequest, JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -154,14 +145,14 @@ public class UsersModuleTests : TestContainerTestBase
     [Fact]
     public async Task UserEndpoints_ShouldHandleInvalidGuids()
     {
-        // Act & Assert - When GUID constraint doesn't match, route returns 404 
+        // Act & Assert - Quando o constraint de GUID não bate, a rota retorna 404 
         var invalidGuidResponse = await ApiClient.GetAsync("/api/v1/users/invalid-guid");
         invalidGuidResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }
 
 /// <summary>
-/// Simple DTOs for testing (to avoid complex dependencies)
+/// DTOs simples para teste (para evitar dependências complexas)
 /// </summary>
 public record CreateUserRequest
 {

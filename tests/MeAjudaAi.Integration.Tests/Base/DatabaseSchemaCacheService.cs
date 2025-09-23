@@ -163,16 +163,16 @@ public class DatabaseSchemaInfo
 }
 
 /// <summary>
-/// Helper para inicialização otimizada de banco com cache
+/// Helper para inicialização de banco com cache
 /// </summary>
-public class OptimizedDatabaseInitializer
+public class DatabaseInitializer
 {
     private readonly DatabaseSchemaCacheService _cacheService;
-    private readonly ILogger<OptimizedDatabaseInitializer> _logger;
+    private readonly ILogger<DatabaseInitializer> _logger;
 
-    public OptimizedDatabaseInitializer(
+    public DatabaseInitializer(
         DatabaseSchemaCacheService cacheService,
-        ILogger<OptimizedDatabaseInitializer> logger)
+        ILogger<DatabaseInitializer> logger)
     {
         _cacheService = cacheService;
         _logger = logger;

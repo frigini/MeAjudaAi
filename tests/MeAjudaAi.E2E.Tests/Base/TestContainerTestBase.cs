@@ -1,18 +1,14 @@
-using System.Text.Json;
 using Bogus;
-using FluentAssertions;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
-using DotNet.Testcontainers.Configurations;
-using DotNet.Testcontainers.Builders;
 
 namespace MeAjudaAi.E2E.Tests.Base;
 
@@ -29,11 +25,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     protected HttpClient ApiClient { get; private set; } = null!;
     protected Faker Faker { get; } = new();
     
-    protected static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
-    };
+    protected static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
 
     public virtual async Task InitializeAsync()
     {
@@ -183,25 +175,25 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         await context.Database.MigrateAsync();
     }
 
-    // Helper methods
+    // Helper methods usando serialização compartilhada
     protected async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
     {
-        var json = JsonSerializer.Serialize(content, JsonOptions);
-        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
+        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
         return await ApiClient.PostAsync(requestUri, stringContent);
     }
 
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(string requestUri, T content)
     {
-        var json = JsonSerializer.Serialize(content, JsonOptions);
-        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
+        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
         return await ApiClient.PutAsync(requestUri, stringContent);
     }
 
-    protected async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)
+    protected static async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)
     {
         var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<T>(content, JsonOptions);
+        return System.Text.Json.JsonSerializer.Deserialize<T>(content, JsonOptions);
     }
 
     /// <summary>

@@ -1,6 +1,6 @@
-using MeAjudaAi.Integration.Tests.Auth;
+using MeAjudaAi.Integration.Tests.Base;
 
-namespace MeAjudaAi.Integration.Tests.Base;
+namespace MeAjudaAi.Integration.Tests.Auth;
 
 /// <summary>
 /// Extensões para facilitar a configuração de autenticação nos testes

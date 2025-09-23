@@ -1,7 +1,6 @@
 using MeAjudaAi.Integration.Tests.Aspire;
 using MeAjudaAi.Integration.Tests.Base;
 using System.Net.Http.Json;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace MeAjudaAi.Integration.Tests.Examples;

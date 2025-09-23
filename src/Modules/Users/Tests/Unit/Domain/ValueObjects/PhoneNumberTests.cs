@@ -40,7 +40,7 @@ public class PhoneNumberTests
     public void PhoneNumber_WithInvalidValue_ShouldThrowArgumentException(string? invalidValue)
     {
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(invalidValue));
+        var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(invalidValue!));
         exception.Message.Should().Be("Phone number cannot be empty");
     }
 
@@ -54,7 +54,7 @@ public class PhoneNumberTests
         const string value = "(11) 99999-9999";
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value, invalidCountryCode));
+        var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value, invalidCountryCode!));
         exception.Message.Should().Be("Country code cannot be empty");
     }
 
