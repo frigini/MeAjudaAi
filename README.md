@@ -150,6 +150,35 @@ MeAjudaAi/
 - **Payments**: Processamento de pagamentos
 - **Reviews**: Avaliações e feedback
 - **Notifications**: Sistema de notificações
+
+## ⚡ Melhorias Recentes
+
+### 🆔 UUID v7 Implementation
+- **Migração completa** de UUID v4 para UUID v7 (.NET 9)
+- **Performance melhorada** com ordenação temporal nativa
+- **Compatibilidade PostgreSQL 18** para melhor indexação
+- **UuidGenerator centralizado** em `MeAjudaAi.Shared.Time`
+
+### 🔌 Module APIs Pattern  
+- **Comunicação inter-módulos** via interfaces tipadas
+- **In-process performance** sem overhead de rede
+- **Type safety** com compile-time checking
+- **Exemplo**: `IUsersModuleApi` para validação de usuários em outros módulos
+
+```csharp
+// Exemplo de uso da Module API
+public class OrderValidationService
+{
+    private readonly IUsersModuleApi _usersApi;
+    
+    public async Task<bool> ValidateOrder(Guid userId)
+    {
+        var userExists = await _usersApi.UserExistsAsync(userId);
+        return userExists.IsSuccess && userExists.Value;
+    }
+}
+```
+
 ## 🛠️ Desenvolvimento
 
 ### Executar Testes

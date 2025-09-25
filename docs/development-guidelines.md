@@ -92,8 +92,44 @@ Each module follows the Clean Architecture pattern:
 Module/
 ├── API/                          # Controllers, DTOs
 ├── Application/                  # Use cases, CQRS handlers
+│   └── ModuleApi/                # Public API for other modules
 ├── Domain/                       # Entities, aggregates, domain services
 └── Infrastructure/               # Data access, external services
+```
+
+### Module Communication
+
+Modules communicate through **Module APIs** - typed interfaces that provide safe, in-process communication:
+
+```csharp
+// 1. Define contract in Shared/Contracts/Modules/
+public interface IUsersModuleApi
+{
+    Task<Result<ModuleUserDto?>> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Result<bool>> UserExistsAsync(Guid userId, CancellationToken cancellationToken = default);
+}
+
+// 2. Implement in the module
+[ModuleApi("Users", "1.0")]
+public class UsersModuleApi : IUsersModuleApi, IModuleApi
+{
+    // Implementation using internal handlers
+}
+
+// 3. Register in DI
+services.AddScoped<IUsersModuleApi, UsersModuleApi>();
+
+// 4. Consume in other modules
+public class OrderValidationService
+{
+    private readonly IUsersModuleApi _usersApi;
+    
+    public async Task<bool> ValidateOrder(Guid userId)
+    {
+        var userExists = await _usersApi.UserExistsAsync(userId);
+        return userExists.IsSuccess && userExists.Value;
+    }
+}
 ```
 
 ### Naming Conventions
@@ -394,6 +430,25 @@ Configure logging levels in `appsettings.Development.json`:
 1. **Memory Cache**: For frequently accessed, small data
 2. **Distributed Cache (Redis)**: For session data and shared cache
 3. **Response Caching**: For static or semi-static API responses
+
+### ID Generation
+
+The application uses **UUID v7** for all entity identifiers, providing temporal ordering and optimal database performance:
+
+```csharp
+using MeAjudaAi.Shared.Time;
+
+// Generate new IDs
+var id = UuidGenerator.NewId();                    // Returns Guid (UUID v7)
+var idString = UuidGenerator.NewIdString();        // Returns string with hyphens
+var compact = UuidGenerator.NewIdStringCompact();  // Returns string without hyphens
+var isValid = UuidGenerator.IsValid(someGuid);     // Validation helper
+```
+
+**Benefits:**
+- **Performance**: Native PostgreSQL 18 support + better indexing
+- **Ordering**: Natural chronological sorting
+- **Troubleshooting**: Easier log analysis and debugging
 
 ### API Performance
 

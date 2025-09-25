@@ -17,7 +17,7 @@ Se você é novo no projeto, comece por aqui:
 | Documento | Descrição | Para quem |
 |-----------|-----------|-----------|
 | **[🛠️ Guia de Desenvolvimento](./development_guide.md)** | Setup completo, convenções, workflows e debugging | Desenvolvedores novos e experientes |
-| **[� Diretrizes de Desenvolvimento](./development-guidelines.md)** | Padrões de código, estrutura e boas práticas | Desenvolvedores |
+| **[📋 Diretrizes de Desenvolvimento](./development-guidelines.md)** | Padrões de código, estrutura, Module APIs e ID generation | Desenvolvedores |
 | **[�🚀 Infraestrutura](./infrastructure.md)** | Docker, Aspire, Azure e configuração de ambientes | DevOps e desenvolvedores |
 | **[🔄 CI/CD](./ci_cd.md)** | Pipelines, deploy e automação | DevOps e tech leads |
 

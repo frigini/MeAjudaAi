@@ -843,6 +843,209 @@ public sealed class UserEndpointsTests : IntegrationTestBase
 }
 ```
 
+## 🔌 Module APIs - Comunicação Entre Módulos
+
+### **Padrão Module APIs**
+
+O padrão Module APIs é usado para comunicação type-safe entre módulos sem criar dependências diretas. Cada módulo expõe uma API pública através de interfaces bem definidas.
+
+### **Estrutura Recomendada**
+
+```csharp
+/// <summary>
+/// Interface da API pública do módulo Users
+/// Define contratos para comunicação entre módulos
+/// </summary>
+public interface IUsersModuleApi
+{
+    Task<Result<ModuleUserDto?>> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Result<ModuleUserDto?>> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(IReadOnlyList<Guid> userIds, CancellationToken cancellationToken = default);
+    Task<Result<bool>> UserExistsAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Result<bool>> EmailExistsAsync(string email, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Implementação da API do módulo Users
+/// Localizada em: src/Modules/Users/Application/Services/
+/// </summary>
+[ModuleApi("Users", "1.0")]
+public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
+{
+    // Implementação usando handlers internos do módulo
+    // Não expõe detalhes de implementação interna
+}
+```
+
+### **DTOs para Module APIs**
+
+Os DTOs devem ser organizados em arquivos separados dentro de `Shared/Contracts/Modules/{ModuleName}/DTOs/`:
+
+```
+src/Shared/MeAjudaAi.Shared/Contracts/Modules/Users/DTOs/
+├── ModuleUserDto.cs
+├── ModuleUserBasicDto.cs
+├── GetModuleUserRequest.cs
+├── GetModuleUserByEmailRequest.cs
+├── GetModuleUsersBatchRequest.cs
+├── CheckUserExistsRequest.cs
+└── CheckUserExistsResponse.cs
+```
+
+**Exemplo de DTO:**
+
+```csharp
+/// <summary>
+/// DTO simplificado de usuário para comunicação entre módulos
+/// Contém apenas dados essenciais e não expõe estruturas internas
+/// </summary>
+public sealed record ModuleUserDto(
+    Guid Id,
+    string Username,
+    string Email,
+    string FirstName,
+    string LastName,
+    string FullName
+);
+```
+
+### **Registro e Descoberta de Module APIs**
+
+```csharp
+/// <summary>
+/// Registro automático de Module APIs
+/// </summary>
+public static class ModuleApiRegistry
+{
+    public static IServiceCollection AddModuleApis(this IServiceCollection services, params Assembly[] assemblies)
+    {
+        // Descobre automaticamente classes marcadas com [ModuleApi]
+        // Registra interfaces e implementações no container DI
+        return services;
+    }
+}
+
+/// <summary>
+/// Atributo para marcar implementações de Module APIs
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class ModuleApiAttribute : Attribute
+{
+    public string ModuleName { get; }
+    public string ApiVersion { get; }
+    
+    public ModuleApiAttribute(string moduleName, string apiVersion)
+    {
+        ModuleName = moduleName;
+        ApiVersion = apiVersion;
+    }
+}
+```
+
+### **Boas Práticas para Module APIs**
+
+#### ✅ **RECOMENDADO**
+
+1. **DTOs Separados**: Cada DTO em arquivo próprio com namespace `Shared.Contracts.Modules.{Module}.DTOs`
+2. **Contratos Estáveis**: Module APIs devem ter versionamento e compatibilidade
+3. **Operações Batch**: Preferir operações em lote para performance
+4. **Result Pattern**: Usar `Result<T>` para tratamento de erros consistente
+5. **Pasta Services**: Implementações em `{Module}/Application/Services/`
+
+```csharp
+// ✅ Boa prática: Operação batch
+Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(IReadOnlyList<Guid> userIds);
+
+// ✅ Boa prática: Result pattern
+Task<Result<ModuleUserDto?>> GetUserByIdAsync(Guid userId);
+```
+
+#### ❌ **EVITAR**
+
+1. **Exposição de Entidades**: Nunca expor entidades de domínio diretamente
+2. **Dependências Internas**: Module APIs não devem referenciar implementações internas de outros módulos
+3. **DTOs Complexos**: Evitar DTOs com muitos níveis de profundidade
+4. **Operações de Escrita**: Module APIs devem ser principalmente para leitura
+
+```csharp
+// ❌ Ruim: Expor entidade de domínio
+Task<User> GetUserEntityAsync(Guid userId);
+
+// ❌ Ruim: DTO muito complexo
+public record ComplexUserDto(
+    User User,
+    List<Order> Orders,
+    Dictionary<string, object> Metadata
+);
+```
+
+### **Testes para Module APIs**
+
+Module APIs devem ter cobertura completa de testes em múltiplas camadas:
+
+#### **Testes Unitários**
+```csharp
+// Testam a implementação da Module API com handlers mockados
+public class UsersModuleApiTests : TestBase
+{
+    [Fact]
+    public async Task GetUserByIdAsync_ExistingUser_ShouldReturnUser()
+    {
+        // Testa comportamento da API com mocks
+    }
+}
+```
+
+#### **Testes de Integração**
+```csharp
+// Testam a API com banco de dados real
+public class UsersModuleApiIntegrationTests : IntegrationTestBase
+{
+    [Fact]
+    public async Task GetUserByIdAsync_WithRealDatabase_ShouldReturnCorrectUser()
+    {
+        // Testa fluxo completo com persistência
+    }
+}
+```
+
+#### **Testes Arquiteturais**
+```csharp
+// Validam que a estrutura de Module APIs segue padrões
+public class ModuleApiArchitectureTests
+{
+    [Fact]
+    public void ModuleApis_ShouldFollowNamingConventions()
+    {
+        // Valida estrutura e convenções
+    }
+}
+```
+
+#### **Testes E2E** 
+```csharp
+// Simulam consumo real entre módulos
+public class CrossModuleCommunicationE2ETests : IntegrationTestBase
+{
+    [Fact]
+    public async Task OrdersModule_ConsumingUsersApi_ShouldWorkCorrectly()
+    {
+        // Testa cenários reais de uso entre módulos
+    }
+}
+```
+
+### **Evitando Arquivos de Exemplo**
+
+**❌ NÃO CRIAR** arquivos de exemplo nos testes E2E. Em vez disso:
+
+- **Documente** padrões no `architecture.md` (como acima)
+- **Use** testes reais que demonstram os padrões
+- **Mantenha** simplicidade nos exemplos de documentação
+- **Evite** código não executável em projetos de teste
+
+Os testes E2E devem focar em cenários reais e práticos, não em exemplos didáticos que podem ficar obsoletos.
+
 ---
 
 📖 **Próximos Passos**: Este documento serve como base para o desenvolvimento. Consulte também a [documentação de infraestrutura](./infrastructure.md) e [guia de CI/CD](./ci_cd.md) para informações complementares.

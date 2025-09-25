@@ -3,9 +3,11 @@ using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Queries;
+using MeAjudaAi.Modules.Users.Application.ModuleApi;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +32,9 @@ public static class Extensions
 
         // Cache Services específicos do módulo
         services.AddScoped<IUsersCacheService, UsersCacheService>();
+
+        // Module API - interface pública para outros módulos
+        services.AddScoped<IUsersModuleApi, UsersModuleApi>();
 
         return services;
     }
