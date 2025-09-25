@@ -1,13 +1,10 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Integration.Tests.Aspire;
 using MeAjudaAi.Shared.Tests.Auth;
-using Xunit.Abstractions;
 
 namespace MeAjudaAi.Integration.Tests.Versioning;
 
-[Collection("AspireApp")]
-public class ApiVersioningTests(AspireIntegrationFixture fixture, ITestOutputHelper output) : IntegrationTestBase(fixture, output)
+public class ApiVersioningTests : ApiTestBase
 {
     [Fact]
     public async Task ApiVersioning_ShouldWork_ViaUrl()
@@ -17,13 +14,8 @@ public class ApiVersioningTests(AspireIntegrationFixture fixture, ITestOutputHel
         
         // Act - inclui parâmetros de paginação obrigatórios
         var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
-
-        // Debug - log response details 
-        var content = await response.Content.ReadAsStringAsync();
-        _output.WriteLine($"Response Status: {response.StatusCode}");
-        _output.WriteLine($"Response Content: {content}");
-
-        // Assert - ajustando para aceitar BadRequest temporariamente para debug
+        
+        // Assert 
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized, HttpStatusCode.BadRequest);
         // Não deve ser NotFound - indica que versionamento está funcionando
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
@@ -32,6 +24,9 @@ public class ApiVersioningTests(AspireIntegrationFixture fixture, ITestOutputHel
     [Fact]
     public async Task ApiVersioning_ShouldWork_ViaHeader()
     {
+        // Arrange - autentica como admin
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        
         // OBS: Atualmente o sistema usa apenas segmentos de URL (/api/v1/users)
         // Testando se o segmento funciona corretamente
         
@@ -47,6 +42,9 @@ public class ApiVersioningTests(AspireIntegrationFixture fixture, ITestOutputHel
     [Fact]
     public async Task ApiVersioning_ShouldWork_ViaQueryString()
     {
+        // Arrange - autentica como admin
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        
         // OBS: Atualmente o sistema usa apenas segmentos de URL (/api/v1/users)
         // Testando se o segmento funciona corretamente
         

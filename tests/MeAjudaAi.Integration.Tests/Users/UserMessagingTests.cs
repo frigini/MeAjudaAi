@@ -107,7 +107,8 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         MessagingMocks?.ClearAllMessages();
 
         // Configurar autenticação como o usuário criado (para poder atualizar seus próprios dados)
-        ConfigurableTestAuthenticationHandler.ConfigureRegularUser("updateuser", "updateuser", "update@example.com");
+        // Usando o userId real retornado do endpoint de criação
+        ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId.ToString(), "updateuser", "update@example.com");
 
         // Act - Atualizar perfil
         var updateRequest = new

@@ -2,6 +2,8 @@ using Bogus;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Tests.Auth;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +54,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
+                Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
                 
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
@@ -102,6 +105,20 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         services.Remove(keycloakDescriptor);
                     
                     services.AddScoped<IKeycloakService, MockKeycloakService>();
+
+                    // Remove todas as configurações de autenticação existentes
+                    var authDescriptors = services
+                        .Where(d => d.ServiceType.Namespace?.Contains("Authentication") == true)
+                        .ToList();
+                    foreach (var authDescriptor in authDescriptors)
+                    {
+                        services.Remove(authDescriptor);
+                    }
+
+                    // Configura apenas autenticação de teste como esquema padrão
+                    services.AddAuthentication("Test")
+                        .AddScheme<AuthenticationSchemeOptions, ConfigurableTestAuthenticationHandler>(
+                            "Test", options => { });
 
                     // Configurar aplicação automática de migrações apenas para testes
                     services.AddScoped<Func<UsersDbContext>>(provider => () =>
@@ -234,5 +251,29 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         await action(context);
+    }
+
+    /// <summary>
+    /// Configura autenticação como administrador para testes
+    /// </summary>
+    protected static void AuthenticateAsAdmin()
+    {
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+    }
+
+    /// <summary>
+    /// Configura autenticação como usuário regular para testes
+    /// </summary>
+    protected static void AuthenticateAsUser(string userId = "test-user-id", string username = "testuser")
+    {
+        ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);
+    }
+
+    /// <summary>
+    /// Remove autenticação (testes anônimos)
+    /// </summary>
+    protected static void AuthenticateAsAnonymous()
+    {
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 }

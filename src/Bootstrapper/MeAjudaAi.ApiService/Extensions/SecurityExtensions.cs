@@ -52,18 +52,18 @@ public static class SecurityExtensions
             if (environment.IsProduction())
             {
                 if (corsOptions.AllowedOrigins.Contains("*"))
-                    errors.Add("Origem CORS coringa (*) não é permitida em ambiente de produção");
+                    errors.Add("Wildcard CORS origin (*) is not allowed in production environment");
 
                 if (corsOptions.AllowedOrigins.Any(o => o.StartsWith("http://", StringComparison.OrdinalIgnoreCase)))
-                    errors.Add("Origens HTTP não são recomendadas em produção - use HTTPS");
+                    errors.Add("HTTP origins are not recommended in production - use HTTPS");
 
                 if (corsOptions.AllowCredentials && corsOptions.AllowedOrigins.Count > 5)
-                    errors.Add("Muitas origens permitidas com credenciais habilitadas aumentam o risco de segurança");
+                    errors.Add("Too many allowed origins with credentials enabled increases security risk");
             }
         }
         catch (Exception ex)
         {
-            errors.Add($"Erro na configuração do CORS: {ex.Message}");
+            errors.Add($"CORS configuration error: {ex.Message}");
         }
 
         // Valida configuração do Keycloak (se não estiver em ambiente de teste)
@@ -78,18 +78,18 @@ public static class SecurityExtensions
                 if (environment.IsProduction())
                 {
                     if (!keycloakOptions.RequireHttpsMetadata)
-                        errors.Add("RequireHttpsMetadata deve ser true em ambiente de produção");
+                        errors.Add("RequireHttpsMetadata must be true in production environment");
 
                     if (keycloakOptions.BaseUrl?.StartsWith("http://", StringComparison.OrdinalIgnoreCase) == true)
-                        errors.Add("Keycloak BaseUrl deve usar HTTPS em ambiente de produção");
+                        errors.Add("Keycloak BaseUrl must use HTTPS in production environment");
 
                     if (keycloakOptions.ClockSkew.TotalMinutes > 5)
-                        errors.Add("Keycloak ClockSkew deve ser mínimo (≤5 minutos) em produção para maior segurança");
+                        errors.Add("Keycloak ClockSkew should be minimal (≤5 minutes) in production for higher security");
                 }
             }
             catch (Exception ex)
             {
-                errors.Add($"Erro na configuração do Keycloak: {ex.Message}");
+                errors.Add($"Keycloak configuration error: {ex.Message}");
             }
         }
 
@@ -108,10 +108,10 @@ public static class SecurityExtensions
                     var anonHour = anonymousLimits.GetValue<int>("RequestsPerHour");
                     
                     if (anonMinute <= 0 || anonHour <= 0)
-                        errors.Add("Limites de requisições anônimas devem ser valores positivos");
+                        errors.Add("Anonymous request limits must be positive values");
 
                     if (environment.IsProduction() && anonMinute > 100)
-                        errors.Add("Limites de requisições anônimas devem ser conservadores em produção (≤100 req/min)");
+                        errors.Add("Anonymous request limits should be conservative in production (≤100 req/min)");
                 }
 
                 if (authenticatedLimits.Exists())
@@ -120,13 +120,13 @@ public static class SecurityExtensions
                     var authHour = authenticatedLimits.GetValue<int>("RequestsPerHour");
 
                     if (authMinute <= 0 || authHour <= 0)
-                        errors.Add("Limites de requisições autenticadas devem ser valores positivos");
+                        errors.Add("Authenticated request limits must be positive values");
                 }
             }
         }
         catch (Exception ex)
         {
-            errors.Add($"Erro na configuração de rate limiting: {ex.Message}");
+            errors.Add($"Rate limiting configuration error: {ex.Message}");
         }
 
         // Valida redirecionamento HTTPS em produção
@@ -134,18 +134,18 @@ public static class SecurityExtensions
         {
             var httpsRedirection = configuration.GetValue<bool?>("HttpsRedirection:Enabled");
             if (httpsRedirection == false)
-                errors.Add("Redirecionamento HTTPS deve estar habilitado em ambiente de produção");
+                errors.Add("HTTPS redirection must be enabled in production environment");
         }
 
         // Valida AllowedHosts
         var allowedHosts = configuration.GetValue<string>("AllowedHosts");
         if (environment.IsProduction() && allowedHosts == "*")
-            errors.Add("AllowedHosts deve ser restrito a domínios específicos em produção (não '*')");
+            errors.Add("AllowedHosts must be restricted to specific domains in production (not '*')");
 
         // Lança erros agregados se houver
         if (errors.Any())
         {
-            var errorMessage = "Falha na validação da configuração de segurança:\n" + string.Join("\n", errors.Select(e => $"- {e}"));
+            var errorMessage = "Security configuration validation failed:\n" + string.Join("\n", errors.Select(e => $"- {e}"));
             throw new InvalidOperationException(errorMessage);
         }
     }
@@ -196,7 +196,7 @@ public static class SecurityExtensions
                 }
                 else
                 {
-                    policy.WithMethods(corsOptions.AllowedMethods.ToArray());
+                    policy.WithMethods([.. corsOptions.AllowedMethods]);
                 }
 
                 // Configura cabeçalhos permitidos
@@ -206,7 +206,7 @@ public static class SecurityExtensions
                 }
                 else
                 {
-                    policy.WithHeaders(corsOptions.AllowedHeaders.ToArray());
+                    policy.WithHeaders([.. corsOptions.AllowedHeaders]);
                 }
 
                 // Configura credenciais (apenas se explicitamente habilitado)

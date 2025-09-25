@@ -17,6 +17,8 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task CreateUser_Should_Return_Success()
     {
         // Arrange
+        AuthenticateAsAdmin(); // Autentica como admin para criar usuário
+        
         var createUserRequest = new
         {
             Username = Faker.Internet.UserName(),
@@ -46,6 +48,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task GetUsers_Should_Return_Paginated_Results()
     {
         // Arrange - Criar alguns usuários primeiro
+        AuthenticateAsAdmin(); // Autentica como admin para listar usuários
         await CreateTestUsersAsync(3);
 
         // Act

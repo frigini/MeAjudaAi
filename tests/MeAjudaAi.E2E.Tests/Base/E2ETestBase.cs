@@ -1,12 +1,14 @@
 using Bogus;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Serialization;
+using MeAjudaAi.Shared.Tests.Auth;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Json;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
@@ -102,6 +104,7 @@ public abstract class E2ETestBase : IAsyncLifetime
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
+                Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
                 
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
@@ -120,6 +123,11 @@ public abstract class E2ETestBase : IAsyncLifetime
                     {
                         services.Remove(service);
                     }
+
+                    // Configura autenticação de teste
+                    services.AddAuthentication("Test")
+                        .AddScheme<AuthenticationSchemeOptions, ConfigurableTestAuthenticationHandler>(
+                            "Test", options => { });
 
                     // Reconfigura DbContext com connection string do container
                     var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<UsersDbContext>));
@@ -273,5 +281,30 @@ public abstract class E2ETestBase : IAsyncLifetime
     protected static async Task<T?> ReadFromJsonAsync<T>(HttpResponseMessage response)
     {
         return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
+    }
+
+    /// <summary>
+    /// Configura autenticação como usuário administrador
+    /// </summary>
+    protected static void AuthenticateAsAdmin()
+    {
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+    }
+
+    /// <summary>
+    /// Configura autenticação como usuário regular
+    /// </summary>
+    protected static void AuthenticateAsRegularUser(Guid? userId = null)
+    {
+        var userIdStr = (userId ?? Guid.NewGuid()).ToString();
+        ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userIdStr, "testuser", "test@user.com");
+    }
+
+    /// <summary>
+    /// Remove configuração de autenticação (usuário não autenticado)
+    /// </summary>
+    protected static void ClearAuthentication()
+    {
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 }
