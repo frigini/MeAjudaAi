@@ -565,10 +565,6 @@ After migration, ensure:
 - ✅ No references to `MeAjudaAi.Shared.Common` remain
 
 For detailed migration information, see [shared-namespace-reorganization.md](shared-namespace-reorganization.md).
-  feat: add user authentication endpoints
-  fix: resolve null reference in user service
-  docs: update API documentation
-  ```
 
 ## Additional Resources
 
