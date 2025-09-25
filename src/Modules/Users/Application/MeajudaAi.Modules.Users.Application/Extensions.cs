@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Queries;
-using MeAjudaAi.Modules.Users.Application.ModuleApi;
+using MeAjudaAi.Modules.Users.Application.Services;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;

@@ -1,6 +1,9 @@
+using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Base;
 using MeAjudaAi.Shared.Tests.Infrastructure;
+using MeAjudaAi.Shared.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -53,5 +56,30 @@ public abstract class UsersIntegrationTestBase : IntegrationTestBase
         // Qualquer setup específico adicional do módulo Users pode ser feito aqui
         // As migrações são aplicadas automaticamente pelo sistema de auto-descoberta
         await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Cria um usuário para teste e persiste no banco de dados
+    /// </summary>
+    protected async Task<User> CreateUserAsync(
+        string username,
+        string email,
+        string firstName,
+        string lastName,
+        CancellationToken cancellationToken = default)
+    {
+        var usernameVO = new Username(username);
+        var emailVO = new Email(email);
+        var keycloakId = $"keycloak_{UuidGenerator.NewId()}";
+        
+        var user = new User(usernameVO, emailVO, firstName, lastName, keycloakId);
+        
+        // Obter contexto
+        var dbContext = GetService<UsersDbContext>();
+        
+        await dbContext.Users.AddAsync(user, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        
+        return user;
     }
 }

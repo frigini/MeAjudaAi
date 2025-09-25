@@ -1046,6 +1046,181 @@ public class CrossModuleCommunicationE2ETests : IntegrationTestBase
 
 Os testes E2E devem focar em cenários reais e práticos, não em exemplos didáticos que podem ficar obsoletos.
 
+## 📡 API Collections e Documentação
+
+### **Estratégia Multi-Formato**
+
+O projeto utiliza múltiplos formatos de collections para diferentes necessidades:
+
+#### **1. OpenAPI/Swagger (PRINCIPAL)**
+- 🎯 **Documentação oficial** gerada automaticamente do código
+- 🔄 **Sempre atualizada** com o código fonte
+- 🌐 **Padrão da indústria** para APIs REST
+- 📊 **UI interativa** disponível em `/api-docs`
+
+```csharp
+// Endpoints automaticamente documentados
+[HttpPost("register")]
+[ProducesResponseType<RegisterUserResponse>(201)]
+[ProducesResponseType<ApiErrorResponse>(400)]
+public async Task<IActionResult> RegisterUser([FromBody] RegisterUserCommand command)
+{
+    // Implementação...
+}
+```
+
+#### **2. Bruno Collections (.bru) - DESENVOLVIMENTO**
+- ✅ **Controle de versão** no Git
+- ✅ **Leve e eficiente** para desenvolvedores
+- ✅ **Variáveis de ambiente** configuráveis
+- ✅ **Scripts pré/pós-request** em JavaScript
+
+```plaintext
+# Estrutura Bruno
+src/Shared/API.Collections/
+├── Common/
+│   ├── GlobalVariables.bru
+│   ├── StandardHeaders.bru
+│   └── EnvironmentVariables.bru
+├── Setup/
+│   ├── SetupGetKeycloakToken.bru
+│   └── HealthCheckAll.bru
+└── Modules/
+    └── Users/
+        ├── CreateUser.bru
+        ├── GetUsers.bru
+        └── UpdateUser.bru
+```
+
+#### **3. Postman Collections - COLABORAÇÃO**
+- 🤝 **Compartilhamento fácil** com QA, PO, clientes
+- 🔄 **Geração automática** via OpenAPI
+- 🧪 **Testes automáticos** integrados
+- 📊 **Monitoring e reports** nativos
+
+### **Geração Automática de Collections**
+
+#### **Comandos Disponíveis**
+
+```bash
+# Gerar todas as collections
+cd tools/api-collections
+./generate-all-collections.sh        # Linux/Mac
+./generate-all-collections.bat       # Windows
+
+# Apenas Postman
+npm run generate:postman
+
+# Validar collections
+npm run validate
+```
+
+#### **Estrutura de Output**
+
+```
+src/Shared/API.Collections/Generated/
+├── MeAjudaAi-API-Collection.json           # Collection principal
+├── MeAjudaAi-development-Environment.json  # Ambiente desenvolvimento
+├── MeAjudaAi-staging-Environment.json      # Ambiente staging
+├── MeAjudaAi-production-Environment.json   # Ambiente produção
+└── README.md                               # Instruções de uso
+```
+
+### **Configurações Avançadas do Swagger**
+
+#### **Filtros Personalizados**
+
+```csharp
+// Exemplos automáticos baseados em convenções
+options.SchemaFilter<ExampleSchemaFilter>();
+
+// Tags organizadas por módulos
+options.DocumentFilter<ModuleTagsDocumentFilter>();
+
+// Versionamento de API
+options.OperationFilter<ApiVersionOperationFilter>();
+```
+
+#### **Melhorias Implementadas**
+
+- **📝 Exemplos Inteligentes**: Baseados em nomes de propriedades e tipos
+- **🏷️ Tags Organizadas**: Agrupamento lógico por módulos
+- **🔒 Segurança JWT**: Configuração automática de Bearer tokens
+- **📊 Schemas Reutilizáveis**: Componentes comuns (paginação, erros)
+- **🌍 Multi-ambiente**: URLs para dev/staging/production
+
+### **Boas Práticas para Collections**
+
+#### **✅ RECOMENDADO**
+
+1. **Manter OpenAPI como fonte única da verdade**
+2. **Bruno para desenvolvimento diário**
+3. **Postman para colaboração e testes**
+4. **Regenerar collections após mudanças na API**
+5. **Versionar Bruno collections no Git**
+
+#### **❌ EVITAR**
+
+1. **Edição manual de Postman collections geradas**
+2. **Duplicação de documentação entre formatos**
+3. **Collections desatualizadas sem regeneração**
+4. **Hardcoding de URLs nos collections**
+
+### **Workflow Recomendado**
+
+1. **Desenvolver** API com documentação OpenAPI
+2. **Testar** localmente com Bruno collections
+3. **Gerar** Postman collections para colaboração
+4. **Compartilhar** com equipe via Postman workspace
+5. **Regenerar** collections em cada release
+
+### **Exportação OpenAPI para Clientes REST**
+
+#### **Comando Único**
+```bash
+# Gera especificação OpenAPI completa
+.\scripts\export-openapi.ps1 -OutputPath "api-spec.json"
+```
+
+**Características:**
+- ✅ **Funciona offline** (não precisa rodar aplicação)
+- ✅ **Health checks incluídos** (/health, /health/ready, /health/live)  
+- ✅ **Schemas com exemplos** realistas
+- ✅ **Múltiplos ambientes** (dev, staging, production)
+- ⚠️ **Arquivo não versionado** (incluído no .gitignore)
+
+#### **Importar em Clientes de API**
+
+**APIDog**: Import → From File → Selecionar arquivo  
+**Postman**: Import → File → Upload Files → Selecionar arquivo  
+**Insomnia**: Import/Export → Import Data → Selecionar arquivo  
+**Bruno**: Import → OpenAPI → Selecionar arquivo  
+**Thunder Client**: Import → OpenAPI → Selecionar arquivo  
+
+### **Monitoramento e Testes**
+
+Especificação OpenAPI inclui:
+
+- ✅ **Health endpoints** para monitoramento
+- ✅ **Schemas de erro** padronizados  
+- ✅ **Paginação** consistente
+- ✅ **Exemplos realistas** para desenvolvimento
+- ✅ **Documentação rica** com descrições detalhadas
+
+```json
+// Health check response example
+{
+  "status": "Healthy",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "version": "1.0.0",
+  "environment": "Development",
+  "checks": {
+    "database": { "status": "Healthy", "duration": "00:00:00.0123456" },
+    "cache": { "status": "Healthy", "duration": "00:00:00.0087432" }
+  }
+}
+```
+
 ---
 
 📖 **Próximos Passos**: Este documento serve como base para o desenvolvimento. Consulte também a [documentação de infraestrutura](./infrastructure.md) e [guia de CI/CD](./ci_cd.md) para informações complementares.

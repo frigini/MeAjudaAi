@@ -1,0 +1,22 @@
+{
+  "name": "api-collections-generator",
+  "version": "1.0.0",
+  "description": "Gerador de Collections para MeAjudaAi API",
+  "main": "generate-postman-collections.js",
+  "scripts": {
+    "generate": "node generate-postman-collections.js",
+    "generate:postman": "node generate-postman-collections.js",
+    "generate:insomnia": "node generate-insomnia-collections.js",
+    "validate": "node validate-collections.js"
+  },
+  "dependencies": {
+    "swagger-to-postman": "^1.0.0",
+    "openapi-to-postmanv2": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

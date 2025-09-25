@@ -7,21 +7,21 @@ using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Time;
-using NSubstitute;
+using Moq;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.ModuleApi;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Services;
 
 public class UsersModuleApiTests
 {
-    private readonly IQueryHandler<GetUserByIdQuery, Result<UserDto>> _getUserByIdHandler;
-    private readonly IQueryHandler<GetUserByEmailQuery, Result<UserDto>> _getUserByEmailHandler;
+    private readonly Mock<IQueryHandler<GetUserByIdQuery, Result<UserDto>>> _getUserByIdHandler;
+    private readonly Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>> _getUserByEmailHandler;
     private readonly UsersModuleApi _sut;
 
     public UsersModuleApiTests()
     {
-        _getUserByIdHandler = Substitute.For<IQueryHandler<GetUserByIdQuery, Result<UserDto>>>();
-        _getUserByEmailHandler = Substitute.For<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>>();
-        _sut = new UsersModuleApi(_getUserByIdHandler, _getUserByEmailHandler);
+        _getUserByIdHandler = new Mock<IQueryHandler<GetUserByIdQuery, Result<UserDto>>>();
+        _getUserByEmailHandler = new Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>>();
+        _sut = new UsersModuleApi(_getUserByIdHandler.Object, _getUserByEmailHandler.Object);
     }
 
     [Fact]

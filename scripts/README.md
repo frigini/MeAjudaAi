@@ -100,6 +100,40 @@ Script para onboarding de novos desenvolvedores.
 
 ---
 
+### 📋 **export-openapi.ps1** - Gerador OpenAPI
+Script para gerar especificação OpenAPI para clientes REST.
+
+```bash
+# Gerar especificação padrão (api-spec.json na raiz do projeto)
+./scripts/export-openapi.ps1
+
+# Especificar arquivo de saída (sempre relativo à raiz do projeto)
+./scripts/export-openapi.ps1 -OutputPath "minha-api.json"
+./scripts/export-openapi.ps1 -OutputPath "docs/api-spec.json"
+
+# Ajuda
+./scripts/export-openapi.ps1 -Help
+```
+
+**Funcionalidades:**
+- 🚀 **Funciona offline** (não precisa rodar aplicação)
+- 📋 **Health checks incluídos** (health, ready, live)
+- 🎯 **Compatível com todos os clientes** (APIDog, Postman, Insomnia, Bruno, Thunder Client)
+- 🔒 **Arquivos não versionados** (incluídos no .gitignore)
+- ✨ **Schemas com exemplos** realistas para desenvolvimento
+
+**Uso típico:**
+```bash
+# Gerar na raiz do projeto e importar no cliente de API preferido
+./scripts/export-openapi.ps1 -OutputPath "api-spec.json"
+# → Arquivo criado em: C:\Code\MeAjudaAi\api-spec.json
+# → Importar arquivo em APIDog/Postman/Insomnia
+```
+
+**📁 Local de saída:** Arquivos sempre são criados na **raiz do projeto**, não na pasta `scripts`.
+
+---
+
 ### ⚡ **optimize.sh** - Otimizações de Performance
 Script para aplicar otimizações de performance em testes.
 

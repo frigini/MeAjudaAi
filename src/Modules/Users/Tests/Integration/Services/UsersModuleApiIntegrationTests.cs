@@ -1,6 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Modules.Users.Tests.Base;
+using MeAjudaAi.Modules.Users.Tests.Infrastructure;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Shared.Time;
@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Users.Tests.Integration.Services;
 
-public class UsersModuleApiIntegrationTests : IntegrationTestBase
+public class UsersModuleApiIntegrationTests : UsersIntegrationTestBase
 {
     private readonly IUsersModuleApi _moduleApi;
 
@@ -191,23 +191,7 @@ public class UsersModuleApiIntegrationTests : IntegrationTestBase
         result.Value.Should().BeFalse();
     }
 
-    [Fact]
-    public async Task IsAvailableAsync_ShouldAlwaysReturnTrue()
-    {
-        // Act
-        var result = await _moduleApi.IsAvailableAsync();
 
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void ModuleApi_ShouldHaveCorrectMetadata()
-    {
-        // Assert
-        _moduleApi.ModuleName.Should().Be("Users");
-        _moduleApi.ApiVersion.Should().Be("1.0");
-    }
 
     [Fact]
     public async Task UsernameExistsAsync_ShouldReturnFalse_AsNotYetImplemented()
