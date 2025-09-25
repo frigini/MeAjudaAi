@@ -23,7 +23,11 @@ The MeAjudaAi platform uses a dual authentication approach:
 For local development, Keycloak is automatically configured using Docker Compose:
 
 ```bash
-docker-compose -f infrastructure/docker-compose.keycloak.yml up -d
+# Quick setup with standalone Keycloak (H2 embedded database)
+docker compose -f infrastructure/compose/standalone/keycloak-only.yml up -d
+
+# Or use full development environment (includes all services)
+docker compose -f infrastructure/compose/environments/development.yml up -d
 ```
 
 ### Configuration

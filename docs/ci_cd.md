@@ -190,6 +190,26 @@ stages:
             deploy:
               steps:
                 - task: AzureCLI@2
+                  displayName: 'Install Azure Developer CLI'
+                  inputs:
+                    azureSubscription: 'Azure-Connection'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      # Install Azure Developer CLI
+                      echo "Installing Azure Developer CLI..."
+                      curl -fsSL https://aka.ms/install-azd.sh | bash
+                      
+                      # Verify installation
+                      if ! command -v azd &> /dev/null; then
+                        echo "❌ Failed to install Azure Developer CLI"
+                        exit 1
+                      fi
+                      
+                      echo "✅ Azure Developer CLI installed successfully"
+                      azd version
+                
+                - task: AzureCLI@2
                   displayName: 'Deploy Infrastructure'
                   inputs:
                     azureSubscription: 'Azure-Connection'
@@ -222,6 +242,26 @@ stages:
           runOnce:
             deploy:
               steps:
+                - task: AzureCLI@2
+                  displayName: 'Install Azure Developer CLI'
+                  inputs:
+                    azureSubscription: 'Azure-Connection'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      # Install Azure Developer CLI
+                      echo "Installing Azure Developer CLI..."
+                      curl -fsSL https://aka.ms/install-azd.sh | bash
+                      
+                      # Verify installation
+                      if ! command -v azd &> /dev/null; then
+                        echo "❌ Failed to install Azure Developer CLI"
+                        exit 1
+                      fi
+                      
+                      echo "✅ Azure Developer CLI installed successfully"
+                      azd version
+                
                 - task: AzureCLI@2
                   displayName: 'Deploy to Production'
                   inputs:
@@ -423,6 +463,10 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       
+      - name: Install Azure Developer CLI
+        run: |
+          curl -fsSL https://aka.ms/install-azd.sh | bash
+      
       - name: Deploy to Production
         run: |
           azd up --environment production
@@ -504,10 +548,31 @@ if ($IncludeInfrastructure) {
 
 # Configurar secrets
 Write-Host "🔑 Configurando secrets..." -ForegroundColor Yellow
+
+# Generate secure random passwords using .NET cryptography
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+
+# Generate 32 bytes for POSTGRES_PASSWORD
+$postgresBytes = New-Object byte[] 32
+$rng.GetBytes($postgresBytes)
+$postgresPassword = [Convert]::ToBase64String($postgresBytes)
+
+# Generate 32 bytes for KEYCLOAK_ADMIN_PASSWORD  
+$keycloakBytes = New-Object byte[] 32
+$rng.GetBytes($keycloakBytes)
+$keycloakPassword = [Convert]::ToBase64String($keycloakBytes)
+
+# Generate 64 bytes for JWT_SECRET
+$jwtBytes = New-Object byte[] 64
+$rng.GetBytes($jwtBytes)
+$jwtSecret = [Convert]::ToBase64String($jwtBytes)
+
+$rng.Dispose()
+
 $secrets = @{
-    "POSTGRES_PASSWORD" = "$(openssl rand -base64 32)"
-    "KEYCLOAK_ADMIN_PASSWORD" = "$(openssl rand -base64 32)"
-    "JWT_SECRET" = "$(openssl rand -base64 64)"
+    "POSTGRES_PASSWORD" = $postgresPassword
+    "KEYCLOAK_ADMIN_PASSWORD" = $keycloakPassword
+    "JWT_SECRET" = $jwtSecret
 }
 
 foreach ($secret in $secrets.GetEnumerator()) {
@@ -541,9 +606,31 @@ $secrets = @{
     "AZURE_RESOURCE_GROUP" = $ResourceGroup
 }
 
-Write-Host "🔑 Secrets para configurar no GitHub/Azure DevOps:" -ForegroundColor Cyan
-foreach ($secret in $secrets.GetEnumerator()) {
-    Write-Host "$($secret.Key): $($secret.Value)" -ForegroundColor White
+# Save secrets to secure temporary file instead of displaying in console
+$secretsFile = Join-Path $env:TEMP "meajudaai-secrets-$(Get-Date -Format 'yyyyMMdd-HHmmss').json"
+$secrets | ConvertTo-Json | Out-File -FilePath $secretsFile -Encoding UTF8
+
+Write-Host "🔑 Secrets salvos com segurança em: $secretsFile" -ForegroundColor Cyan
+Write-Host "📋 Configure os secrets no GitHub/Azure DevOps:" -ForegroundColor Yellow
+Write-Host "   1. Abra: Settings > Secrets and variables > Actions" -ForegroundColor White
+Write-Host "   2. Para cada secret no arquivo JSON, clique 'New repository secret'" -ForegroundColor White
+Write-Host "   3. Copie o nome e valor do arquivo (não do console)" -ForegroundColor White
+Write-Host "⚠️  Lembre-se de deletar o arquivo após uso: Remove-Item '$secretsFile'" -ForegroundColor Red
+
+# Alternative: Direct GitHub CLI integration (if gh CLI is available)
+if (Get-Command gh -ErrorAction SilentlyContinue) {
+    Write-Host "" -ForegroundColor White
+    Write-Host "💡 Alternativa com GitHub CLI:" -ForegroundColor Cyan
+    
+    # Create individual secret files to avoid credential exposure
+    $azureCredsFile = Join-Path $env:TEMP "azure-creds-$(Get-Date -Format 'yyyyMMdd-HHmmss').json"
+    $secrets['AZURE_CREDENTIALS'] | Out-File -FilePath $azureCredsFile -Encoding UTF8 -NoNewline
+    
+    Write-Host "   # Configure secrets automaticamente (execute uma por vez):" -ForegroundColor Gray
+    Write-Host "   gh secret set AZURE_CREDENTIALS < `"$azureCredsFile`"" -ForegroundColor White
+    Write-Host "   echo '$SubscriptionId' | gh secret set AZURE_SUBSCRIPTION_ID" -ForegroundColor White  
+    Write-Host "   echo '$ResourceGroup' | gh secret set AZURE_RESOURCE_GROUP" -ForegroundColor White
+    Write-Host "   Remove-Item `"$azureCredsFile`" # Limpar depois" -ForegroundColor Yellow
 }
 
 Write-Host "✅ Configuração de CI/CD (apenas setup) concluída!" -ForegroundColor Green

@@ -54,7 +54,7 @@ jobs:
         echo "🔍 Validando conformidade com reorganização de namespaces..."
         
         # Verificar se não há imports do namespace antigo
-        if find src/ -name "*.cs" -exec grep -l "using MeAjudaAi\.Shared\.Common;" {} \; | head -5; then
+        if grep -R -q --include="*.cs" "using MeAjudaAi\.Shared\.Common" src/; then
           echo "❌ ERRO: Encontrados imports do namespace antigo MeAjudaAi.Shared.Common"
           echo "ℹ️ Use os novos namespaces específicos: Functional, Domain, Contracts, Mediator, Security"
           exit 1

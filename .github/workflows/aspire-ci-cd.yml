@@ -33,6 +33,8 @@ jobs:
       run: dotnet build MeAjudaAi.sln --no-restore --configuration Release
 
     - name: Run unit tests
+      env:
+        ASPNETCORE_ENVIRONMENT: Testing
       run: |
         echo "🧪 Executando testes unitários..."
         dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Shared
@@ -41,7 +43,7 @@ jobs:
         dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Architecture
         
         echo "🔗 Executando testes de integração..."
-        dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Integration --environment ASPNETCORE_ENVIRONMENT=Testing
+        dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Integration
         
         echo "✅ Todos os testes executados com sucesso"
 

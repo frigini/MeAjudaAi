@@ -58,7 +58,7 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 ./test.sh coverage
 ```
 
-📖 **[Guia Completo de Desenvolvimento](docs/DEVELOPMENT.md)**
+📖 **[Guia Completo de Desenvolvimento](docs/development_guide.md)**
 
 ### Pré-requisitos
 
@@ -314,9 +314,9 @@ azd provision
 
 - [**Guia de Infraestrutura**](docs/infrastructure.md) - Setup e deploy
 - [**Arquitetura e Padrões**](docs/architecture.md) - Decisões arquiteturais
-- [**Guia de Desenvolvimento**](docs/development.md) - Convenções e práticas
-- [**CI/CD**](docs/ci-cd.md) - Pipeline de integração contínua
-- [**Referência Técnica**](docs/technical-reference.md) - Detalhes de implementação
+- [**Guia de Desenvolvimento**](docs/development_guide.md) - Convenções e práticas
+- [**CI/CD**](docs/ci_cd.md) - Pipeline de integração contínua
+- [**Diretrizes de Desenvolvimento**](docs/development-guidelines.md) - Padrões e boas práticas
 
 ## 🤝 Contribuição
 
@@ -414,7 +414,3 @@ dotnet ef database update --context UsersDbContext
 3. Add tests for new functionality
 4. Update documentation as needed
 5. Open PR to `develop` branch
-
-## 📄 License
-
-This project is proprietary software.

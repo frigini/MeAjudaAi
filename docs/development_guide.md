@@ -65,7 +65,7 @@ dotnet run
 
 ### **Organização de Código**
 
-```
+```text
 src/
 ├── Modules/                           # Módulos de domínio
 │   └── Users/                         # Módulo de usuários
@@ -231,7 +231,7 @@ git commit -m "refactor(users): extract user validation service"
 
 ### **Pirâmide de Testes**
 
-```
+```text
     🔺 E2E Tests (5%)
      Integration Tests (25%)
         Unit Tests (70%)

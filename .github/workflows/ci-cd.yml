@@ -50,7 +50,7 @@ jobs:
         
         # Validar namespace reorganization primeiro
         echo "🔍 Validando reorganização de namespaces..."
-        if find src/ -name "*.cs" -exec grep -l "using MeAjudaAi\.Shared\.Common;" {} \; 2>/dev/null | head -1; then
+        if grep -R -q --include="*.cs" "using MeAjudaAi\.Shared\.Common" src/; then
           echo "❌ ERRO: Encontradas referências ao namespace antigo MeAjudaAi.Shared.Common"
           exit 1
         fi

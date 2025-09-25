@@ -1,6 +1,14 @@
 # Database Scripts Organization
 
-## 📁 Structure Overview
+## � Security Notice
+
+**Important**: Never hardcode passwords in SQL scripts or documentation. All database passwords must be:
+- Retrieved from environment variables
+- Stored in secure configuration providers (Azure Key Vault, AWS Secrets Manager, etc.)
+- Generated using cryptographically secure random generators
+- Rotated regularly according to security policies
+
+## �📁 Structure Overview
 
 ```
 infrastructure/database/
@@ -35,7 +43,8 @@ mkdir infrastructure/database/modules/providers
 ```sql
 -- [MODULE_NAME] Module - Database Roles
 -- Create dedicated role for [module_name] module
-CREATE ROLE [module_name]_role LOGIN PASSWORD '[module_name]_secret';
+-- Note: Replace $PASSWORD with secure password from environment variables or secrets store
+CREATE ROLE [module_name]_role LOGIN PASSWORD '$PASSWORD';
 
 -- Grant [module_name] role to app role for cross-module access
 GRANT [module_name]_role TO meajudaai_app_role;
@@ -75,9 +84,42 @@ Add new methods for each module:
 
 ```csharp
 public async Task EnsureProvidersModulePermissionsAsync(string adminConnectionString,
-    string providersRolePassword = "providers_secret", string appRolePassword = "app_secret")
+    string providersRolePassword, string appRolePassword)
 {
     // Implementation similar to EnsureUsersModulePermissionsAsync
+}
+```
+
+> ⚠️ **SECURITY WARNING**: Never hardcode passwords in method signatures or source code!
+
+**Secure Password Retrieval Pattern:**
+
+```csharp
+// ✅ SECURE: Retrieve passwords from configuration/secrets
+public async Task ConfigureProvidersModule(IConfiguration configuration)
+{
+    var adminConnectionString = configuration.GetConnectionString("AdminPostgres");
+    
+    // Option 1: Environment variables
+    var providersPassword = Environment.GetEnvironmentVariable("PROVIDERS_ROLE_PASSWORD");
+    var appPassword = Environment.GetEnvironmentVariable("APP_ROLE_PASSWORD");
+    
+    // Option 2: Configuration with secret providers (Azure Key Vault, etc.)
+    var providersPassword = configuration["Database:Roles:ProvidersPassword"];
+    var appPassword = configuration["Database:Roles:AppPassword"];
+    
+    // Option 3: Dedicated secrets service
+    var secretsService = serviceProvider.GetRequiredService<ISecretsService>();
+    var providersPassword = await secretsService.GetSecretAsync("db-providers-password");
+    var appPassword = await secretsService.GetSecretAsync("db-app-password");
+    
+    if (string.IsNullOrEmpty(providersPassword) || string.IsNullOrEmpty(appPassword))
+    {
+        throw new InvalidOperationException("Database role passwords must be configured via secrets provider");
+    }
+    
+    await schemaManager.EnsureProvidersModulePermissionsAsync(
+        adminConnectionString, providersPassword, appPassword);
 }
 ```
 
@@ -86,20 +128,60 @@ public async Task EnsureProvidersModulePermissionsAsync(string adminConnectionSt
 In each module's `Extensions.cs`:
 
 ```csharp
-public static async Task<IServiceCollection> AddProvidersModuleWithSchemaIsolationAsync(
+// Option 1: Using IServiceScopeFactory (recommended for extension methods)
+public static IServiceCollection AddProvidersModuleWithSchemaIsolation(
     this IServiceCollection services, IConfiguration configuration)
 {
     var enableSchemaIsolation = configuration.GetValue<bool>("Database:EnableSchemaIsolation", false);
     
     if (enableSchemaIsolation)
     {
-        var schemaManager = services.BuildServiceProvider().GetRequiredService<SchemaPermissionsManager>();
-        var adminConnectionString = configuration.GetConnectionString("AdminPostgres");
-        await schemaManager.EnsureProvidersModulePermissionsAsync(adminConnectionString!);
+        // Register a factory method that will be executed when needed
+        services.AddSingleton<Func<Task>>(provider =>
+        {
+            return async () =>
+            {
+                using var scope = provider.GetRequiredService<IServiceScopeFactory>().CreateScope();
+                var schemaManager = scope.ServiceProvider.GetRequiredService<SchemaPermissionsManager>();
+                var adminConnectionString = configuration.GetConnectionString("AdminPostgres");
+                await schemaManager.EnsureProvidersModulePermissionsAsync(adminConnectionString!);
+            };
+        });
     }
     
     return services;
 }
+
+// Option 2: Using IHostedService (recommended for startup initialization)
+public class DatabaseSchemaInitializationService : IHostedService
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IConfiguration _configuration;
+
+    public DatabaseSchemaInitializationService(IServiceScopeFactory scopeFactory, IConfiguration configuration)
+    {
+        _scopeFactory = scopeFactory;
+        _configuration = configuration;
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        var enableSchemaIsolation = _configuration.GetValue<bool>("Database:EnableSchemaIsolation", false);
+        
+        if (enableSchemaIsolation)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var schemaManager = scope.ServiceProvider.GetRequiredService<SchemaPermissionsManager>();
+            var adminConnectionString = _configuration.GetConnectionString("AdminPostgres");
+            await schemaManager.EnsureProvidersModulePermissionsAsync(adminConnectionString!);
+        }
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+}
+
+// Register the hosted service in Program.cs or Startup.cs:
+// services.AddHostedService<DatabaseSchemaInitializationService>();
 ```
 
 ## 🔧 Naming Conventions
@@ -107,7 +189,7 @@ public static async Task<IServiceCollection> AddProvidersModuleWithSchemaIsolati
 ### Database Objects:
 - **Schema**: `[module_name]` (e.g., `users`, `providers`, `services`)
 - **Role**: `[module_name]_role` (e.g., `users_role`, `providers_role`)
-- **Password**: `[module_name]_secret` (e.g., `users_secret`, `providers_secret`)
+- **Password**: Retrieved from secure configuration (environment variables, Key Vault, or secrets manager)
 
 ### File Names:
 - **Roles**: `00-roles.sql`
@@ -140,7 +222,8 @@ New-Item -ItemType Directory -Path $ModulePath -Force
 $RolesContent = @"
 -- $ModuleName Module - Database Roles
 -- Create dedicated role for $ModuleName module
-CREATE ROLE ${ModuleName}_role LOGIN PASSWORD '${ModuleName}_secret';
+-- Note: Replace `$env:DB_ROLE_PASSWORD with actual environment variable or secure password retrieval
+CREATE ROLE ${ModuleName}_role LOGIN PASSWORD '`$env:DB_ROLE_PASSWORD';
 
 -- Grant $ModuleName role to app role for cross-module access
 GRANT ${ModuleName}_role TO meajudaai_app_role;

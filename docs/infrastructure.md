@@ -180,10 +180,15 @@ O arquivo `infrastructure/keycloak/realms/meajudaai-realm.json` contém:
 - **admin**: Administradores
 - **super-admin**: Super administradores
 
-#### Usuários de Teste
-- **admin** / admin123 (admin, super-admin)
-- **customer1** / customer123 (customer)
-- **provider1** / provider123 (service-provider)
+#### Usuários de Teste (Desenvolvimento Local)
+
+> ⚠️ **AVISO DE SEGURANÇA**: As credenciais abaixo são EXCLUSIVAMENTE para desenvolvimento local. NUNCA utilize essas credenciais em ambientes compartilhados, staging ou produção.
+
+- **admin** / admin123 (admin, super-admin) - **DEV ONLY**
+- **customer1** / customer123 (customer) - **DEV ONLY**
+- **provider1** / provider123 (service-provider) - **DEV ONLY**
+
+**Apenas para desenvolvimento local. Altere imediatamente em ambientes compartilhados/produção.**
 
 ### Configuração de Cliente API
 

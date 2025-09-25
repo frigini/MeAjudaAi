@@ -1,321 +1,431 @@
-# 🗄️ Database Boundaries Strategy - MeAjudaAi Platform# 🗄️ Database Structure - MeAjudaAi Platform
+# 🗄️ Database Boundaries Strategy - MeAjudaAi Platform
 
+Following [Milan Jovanović's approach](https://www.milanjovanovic.tech/blog/how-to-keep-your-data-boundaries-intact-in-a-modular-monolith) for maintaining data boundaries in Modular Monoliths.
 
+## 🎯 Core Principles
 
-Following [Milan Jovanović's approach](https://www.milanjovanovic.tech/blog/how-to-keep-your-data-boundaries-intact-in-a-modular-monolith) for maintaining data boundaries in Modular Monoliths.## 📁 Organização Modular
+### Enforced Boundaries at Database Level
+- ✅ **One schema per module** with dedicated database role
+- ✅ **Role-based permissions** restrict access to module's own schema only
+- ✅ **One DbContext per module** with default schema configuration
+- ✅ **Separate connection strings** using module-specific credentials
+- ✅ **Cross-module access** only through explicit views or APIs
 
+## 📁 File Structure
 
-
-## 🎯 Core Principles```
-
+```text
 infrastructure/database/
+├── 📂 shared/                          # Base platform scripts
+│   ├── 00-create-base-roles.sql        # Shared roles
+│   └── 01-create-base-schemas.sql      # Shared schemas
+│
+├── 📂 modules/                         # Module-specific scripts
+│   ├── 📂 users/                       # Users Module (IMPLEMENTED)
+│   │   ├── 00-create-roles.sql         # Module roles
+│   │   ├── 01-create-schemas.sql       # Module schemas
 
-### **Enforced Boundaries at Database Level**├── 📂 shared/                          # Scripts base da plataforma
+│   │   └── 02-grant-permissions.sql    # Module permissions## 🚀 Adding New Modules
 
-- ✅ **One schema per module** with dedicated database role│   ├── 00-create-base-roles.sql        # Roles compartilhadas
+│   │
 
-- ✅ **Role-based permissions** restrict access to module's own schema only│   └── 01-create-base-schemas.sql      # Schemas compartilhados
+│   ├── 📂 providers/                   # Providers Module (FUTURE)### Step 1: Copy Module Template
 
-- ✅ **One DbContext per module** with default schema configuration│
+│   │   ├── 00-create-roles.sql```bash
 
-- ✅ **Separate connection strings** using module-specific credentials├── 📂 modules/                         # Scripts específicos por módulo
+│   │   ├── 01-create-schemas.sql# Copy template for new module
 
-- ✅ **Cross-module access** only through explicit views or APIs│   ├── 📂 users/                       # Módulo de Usuários (IMPLEMENTADO)
+│   │   └── 02-grant-permissions.sqlcp -r infrastructure/database/modules/users infrastructure/database/modules/providers
 
-│   │   ├── 00-create-roles.sql         # Roles específicas do módulo
+│   │```
 
-## 📁 Structure│   │   ├── 01-create-schemas.sql       # Schemas do módulo
+│   └── 📂 services/                    # Services Module (FUTURE)
 
-│   │   └── 02-grant-permissions.sql    # Permissões do módulo
+│       ├── 00-create-roles.sql### Step 2: Update SQL Scripts
 
-```│   │
+│       ├── 01-create-schemas.sqlReplace `users` with new module name in:
 
-infrastructure/database/│   ├── 📂 providers/                   # Módulo de Prestadores (FUTURO)
+│       └── 02-grant-permissions.sql- `00-create-roles.sql`
 
-├── 📂 setup/                          # Module setup scripts│   │   ├── 00-create-roles.sql
+│- `01-create-schemas.sql` 
 
-│   ├── users-module-setup.sql         # ✅ Users module (IMPLEMENTED)│   │   ├── 01-create-schemas.sql
+├── 📂 views/                          # Cross-cutting queries- `02-grant-permissions.sql`
 
-│   ├── providers-module-setup.sql.template  # 🔄 Template for Providers│   │   └── 02-grant-permissions.sql
+│   └── cross-module-views.sql         # Controlled cross-module access
 
-│   └── services-module-setup.sql.template   # 🔄 Template for Services│   │
+│### Step 3: Create DbContext
 
-││   └── 📂 services/                    # Módulo de Serviços (FUTURO)
+├── 📂 orchestrator/                   # Coordination and control```csharp
 
-├── 📂 views/                          # Cross-cutting queries│       ├── 00-create-roles.sql
+│   └── module-registry.sql            # Registry of installed modulespublic class ProvidersDbContext : DbContext
 
-│   └── cross-module-views.sql         # Controlled cross-module access│       ├── 01-create-schemas.sql
+│{
 
-││       └── 02-grant-permissions.sql
+└── README.md                          # Documentation    protected override void OnModelCreating(ModelBuilder modelBuilder)
 
-└── README.md                          # This documentation│
+```    {
 
-```├── 📂 orchestrator/                    # Coordenação e controle
+        modelBuilder.HasDefaultSchema("providers");
 
-│   └── module-registry.sql             # Registro de módulos instalados
+## 🏗️ Schema Organization        base.OnModelCreating(modelBuilder);
 
-## 🔧 Current Implementation│
+    }
 
-└── 📂 schemas/                         # DEPRECATED - Scripts antigos
+### Database Schema Structure}
 
-### **Users Module (Active)**    ├── 00-create-roles-users-only.sql  # ⚠️ Manter para referência
+```sql```
 
-- **Schema**: `users`    ├── 01-create-schemas-users-only.sql
+-- Database: meajudaai
 
-- **Role**: `users_role` (password: `users_secret`)    └── 02-grant-permissions-users-only.sql
+├── users (schema)         - User management data### Step 4: Register in DI
 
-- **Search Path**: `users, public````
+├── providers (schema)     - Service provider data  ```csharp
 
+├── services (schema)      - Service catalog databuilder.Services.AddDbContext<ProvidersDbContext>(options =>
+
+├── bookings (schema)      - Appointments and reservations    options.UseNpgsql(
+
+├── notifications (schema) - Messaging system        builder.Configuration.GetConnectionString("Providers"), 
+
+└── public (schema)        - Cross-cutting views and shared data        o => o.MigrationsHistoryTable("__EFMigrationsHistory", "providers")));
+
+``````
+
+
+
+## 🔐 Database Roles## 🔄 Migration Commands
+
+
+
+| Role | Schema | Purpose |### Generate Migrations
+
+|------|--------|---------|
+| `users_role` | `users` | User profiles, authentication data |
+| `providers_role` | `providers` | Service provider information |
+| `services_role` | `services` | Service catalog and pricing |
+| `bookings_role` | `bookings` | Appointments and reservations |
+| `notifications_role` | `notifications` | Messaging and alerts |
+| `meajudaai_app_role` | `public` | Cross-module access via views |
+
+
+
+## 🔧 Current Implementation
+
+### Users Module (Active)
+- **Schema**: `users`
+- **Role**: `users_role` 
+- **Search Path**: `users, public`
 - **Permissions**: Full CRUD on users schema, limited access to public for EF migrations
 
----
+### Connection String Configuration
 
-### **Connection String Example**
-
-```json# Database Boundaries Strategy (LEGACY)
-
+```json
 {
-
-  "ConnectionStrings": {Esta documentação descreve a estratégia de boundaries de dados implementada no MeAjudaAi, baseada nas melhores práticas de Milan Jovanovic para Modular Monoliths.
-
-    "Users": "Host=localhost;Database=meajudaai;Username=users_role;Password=users_secret"
-
-  }## 🎯 Estratégia Adotada
-
+  "ConnectionStrings": {
+    "Users": "Host=localhost;Database=meajudaai;Username=users_role;Password=${USERS_ROLE_PASSWORD}",
+    "Providers": "Host=localhost;Database=meajudaai;Username=providers_role;Password=${PROVIDERS_ROLE_PASSWORD}",
+    "DefaultConnection": "Host=localhost;Database=meajudaai;Username=meajudaai_app_role;Password=${APP_ROLE_PASSWORD}"
+  }
 }
-
-```### **Abordagem Híbrida:**
-
-- **Scripts SQL Centralizados**: Para criação de schemas, roles e permissões
-
-### **DbContext Configuration**- **Configuração nos Módulos**: DbContexts individuais com schema dedicado
-
-```csharp- **Connection Strings Separadas**: Cada módulo usa credenciais específicas
-
-public class UsersDbContext : DbContext
-
-{## 🏗️ Estrutura de Schemas
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-
-    {```sql
-
-        // Set default schema for all entities-- Database: meajudaai
-
-        modelBuilder.HasDefaultSchema("users");├── users (schema)       - Users module data
-
-        base.OnModelCreating(modelBuilder);├── providers (schema)   - Service providers data  
-
-    }├── services (schema)    - Service catalog data
-
-}├── bookings (schema)    - Appointments and reservations
-
-├── notifications (schema) - Notification system
-
-// Registration with schema-specific migrations└── public (schema)      - Cross-cutting views
-
-builder.Services.AddDbContext<UsersDbContext>(options =>```
-
-    options.UseNpgsql(connectionString, 
-
-        o => o.MigrationsHistoryTable("__EFMigrationsHistory", "users")));## 🔐 Database Roles
-
 ```
 
-| Role | Schema | Purpose |
+## 🔄 Migration Commands
 
-## 🚀 Adding New Modules|------|--------|---------|
+### Generate Migrations
 
-| `users_role` | `users` | User profiles, authentication data |
+```bash
+# Generate migration for Users module
+dotnet ef migrations add AddUserProfile --context UsersDbContext --output-dir Infrastructure/Persistence/Migrations
 
-### 1. **Copy Template**| `providers_role` | `providers` | Service provider information |
+# Generate migration for Providers module (future)
+dotnet ef migrations add InitialProviders --context ProvidersDbContext --output-dir Infrastructure/Persistence/Migrations
+```
 
-```bash| `services_role` | `services` | Service catalog and pricing |
+### Apply Migrations
 
-cp setup/providers-module-setup.sql.template setup/providers-module-setup.sql| `bookings_role` | `bookings` | Appointments and reservations |
+```bash
+# Apply all migrations for Users module
+dotnet ef database update --context UsersDbContext
 
-```| `notifications_role` | `notifications` | Messaging and alerts |
+# Apply specific migration
+dotnet ef database update AddUserProfile --context UsersDbContext
+```
 
+### Remove Migrations
 
+```bash
+# Remove last migration for Users module
+dotnet ef migrations remove --context UsersDbContext
+```
 
-### 2. **Uncomment and Customize**## 📂 Files Structure
+## 🌐 Cross-Module Access Strategies
 
-- Replace `providers` with your module name
+### Option 1: Database Views (Current)
 
-- Set appropriate password```
+```sql
+CREATE VIEW public.user_bookings_summary AS
+SELECT u.id, u.email, b.booking_date, s.service_name
+FROM users.users u
+JOIN bookings.bookings b ON b.user_id = u.id
+JOIN services.services s ON s.id = b.service_id;
 
-- Adjust permissions if neededinfrastructure/
+GRANT SELECT ON public.user_bookings_summary TO meajudaai_app_role;
+```
 
-└── database/
-
-### 3. **Execute Script**    ├── schemas/
-
-```bash    │   ├── 00-create-roles.sql     # Database roles creation
-
-psql -d meajudaai -f setup/providers-module-setup.sql    │   ├── 01-create-schemas.sql   # Schemas creation
-
-```    │   └── 02-grant-permissions.sql # Permissions setup
-
-    └── views/
-
-### 4. **Configure DbContext**        └── cross-module-views.sql  # Cross-cutting queries
-
-- Create module-specific DbContext
-
-- Set `HasDefaultSchema("[module]")`src/Modules/
-
-- Configure migrations history table└── Users/
-
-- Add connection string with module credentials    └── Infrastructure/
-
-        ├── UsersDbContext.cs       # Schema: "users"
-
-### 5. **Generate Migrations**        └── Extensions.cs           # Connection: "Users"
-
-```bash```
-
-dotnet ef migrations add Initial --context ProvidersDbContext --output-dir Data/Migrations/Providers
-
-```## 🔧 Module Configuration
-
-
-
-## 🛡️ Security Benefits### UsersDbContext Example:
+### Option 2: Module APIs (Recommended)
 
 ```csharp
-
-### **Enforced Isolation**protected override void OnModelCreating(ModelBuilder modelBuilder)
-
-- Users module **cannot** query providers tables directly{
-
-- Database-level security prevents accidental cross-module access    modelBuilder.HasDefaultSchema("users");
-
-- Each module operates in its own security context    modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-
+// Each module exposes a clean API
+public interface IUsersModuleApi
+{
+    Task<UserSummaryDto?> GetUserSummaryAsync(Guid userId);
+    Task<bool> UserExistsAsync(Guid userId);
 }
 
-### **Clear Dependencies**```
+// Implementation uses internal DbContext
+public class UsersModuleApi : IUsersModuleApi
+{
+    private readonly UsersDbContext _context;
+```
+
+## 📁 Module Setup Example
+
+### DbContext Configuration
+
+```csharp
+public class UsersDbContext : DbContext
+{
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Set default schema for all entities
+        modelBuilder.HasDefaultSchema("users");
+        base.OnModelCreating(modelBuilder);
+    }
+}
+
+// Registration with schema-specific migrations
+builder.Services.AddDbContext<UsersDbContext>(options =>
+    options.UseNpgsql(connectionString,
+        o => o.MigrationsHistoryTable("__EFMigrationsHistory", "users")));
+```
+
+## 🚀 Benefits of This Strategy
+
+### Enforceable Boundaries
+- Each module operates in its own security context
 
 - Cross-module data access must be explicit (views or APIs)
+- Dependencies become visible and maintainable
+- Easy to spot boundary violations
 
-- Dependencies become visible and maintainable### Connection String Setup:
+### Future Microservice Extraction
+- Clean boundaries make module extraction straightforward
+- Database can be split along existing schema lines
+- Minimal refactoring required for service separation
 
-- Easy to spot boundary violations```json
+### Key Advantages
 
+1. **🔒 Database-Level Isolation**: Prevents accidental cross-module access
+2. **🎯 Clear Ownership**: Each module owns its schema and data
+3. **📈 Independent Scaling**: Modules can be extracted to separate databases later
+4. **🛡️ Security**: Role-based access control at database level
+5. **🔄 Migration Safety**: Separate migration history per module
+
+```csharp
+    public async Task<UserSummaryDto?> GetUserSummaryAsync(Guid userId)
+    {
+        return await _context.Users
+            .Where(u => u.Id == userId)
+            .Select(u => new UserSummaryDto(u.Id, u.Email, u.FullName))
+            .FirstOrDefaultAsync();
+    }
+}
+
+// Usage in other modules
+public class BookingService
 {
+    private readonly IUsersModuleApi _usersApi;
+    
+    public async Task<BookingDto> CreateBookingAsync(CreateBookingRequest request)
+    {
+        // Validate user exists via API
+        var userExists = await _usersApi.UserExistsAsync(request.UserId);
+        if (!userExists)
+            throw new UserNotFoundException();
+            
+        // Create booking...
+    }
+}
+```
 
-### **Future Microservice Extraction**  "ConnectionStrings": {
+## 🚀 Adding New Modules
 
-- Clean boundaries make module extraction straightforward    "Users": "Host=localhost;Database=meajudaai;Username=users_role;Password=users_secret;Search Path=users"
+### Step 1: Copy Module Template
 
-- Database can be split along existing schema lines  }
+```bash
+# Copy template for new module
+cp -r infrastructure/database/modules/users infrastructure/database/modules/providers
+```
 
-- Minimal refactoring required for service separation}
+### Step 2: Update SQL Scripts
+
+Replace `users` with new module name in:
+- `00-create-roles.sql`
+- `01-create-schemas.sql`
+- `02-grant-permissions.sql`
+
+### Step 3: Create DbContext
+
+```csharp
+public class ProvidersDbContext : DbContext
+{
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasDefaultSchema("providers");
+        base.OnModelCreating(modelBuilder);
+    }
+}
+```
+
+### Step 4: Register in DI
+
+```csharp
+builder.Services.AddDbContext<ProvidersDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("Providers"), 
+        o => o.MigrationsHistoryTable("__EFMigrationsHistory", "providers")));
+```
+
+### Option 3: Event-Driven Read Models (Future)
+
+```csharp
+// Users module publishes events
+public class UserRegisteredEvent
+{
+    public Guid UserId { get; set; }
+    public string Email { get; set; }
+    public DateTime RegisteredAt { get; set; }
+}
+
+// Other modules subscribe and build read models
+public class NotificationEventHandler : INotificationHandler<UserRegisteredEvent>
+{
+    public async Task Handle(UserRegisteredEvent notification, CancellationToken cancellationToken)
+    {
+        // Build notification-specific read model
+        await _notificationContext.UserNotificationPreferences.AddAsync(
+            new UserNotificationPreference 
+            { 
+                UserId = notification.UserId, 
+                EmailEnabled = true 
+            });
+    }
+}
+```
+
+### Generate Migrations
+
+```bash## ⚡ Development Setup
+
+# Generate migration for Users module
+
+dotnet ef migrations add AddUserProfile --context UsersDbContext --output-dir Infrastructure/Persistence/Migrations### Local Development
+
+1. **Aspire**: Automatically creates database and runs initialization scripts
+
+# Generate migration for Providers module (future)2. **Docker**: PostgreSQL container with volume mounts for schema scripts
+
+dotnet ef migrations add InitialProviders --context ProvidersDbContext --output-dir Infrastructure/Persistence/Migrations3. **Migrations**: Each module maintains separate migration history
 
 ```
 
-## 🔍 Cross-Module Queries
+### Production Considerations
 
-## 🚀 Benefits
+### Apply Migrations- Use Azure PostgreSQL with separate schemas
 
-When you need data from multiple modules:
+```bash- Consider read replicas for cross-module views
 
-1. **🔒 Enforceable Boundaries**: Database-level isolation prevents accidental cross-module access
+# Apply all migrations for Users module- Monitor cross-schema queries for performance
 
-### **Option 1: Database Views (Recommended for shared database)**2. **🎯 Clear Ownership**: Each module owns its schema and data
-
-```sql3. **📈 Independent Scaling**: Modules can be extracted to separate databases later
-
-CREATE VIEW public.user_summary AS4. **🛡️ Security**: Role-based access control at database level
-
-SELECT id, username, email, created_at5. **🔄 Migration Safety**: Separate migration history per module
-
-FROM users.users
-
-WHERE is_active = true;## 📋 Migration Commands
+dotnet ef database update --context UsersDbContext- Plan for eventual database splitting if modules need to scale independently
 
 
 
-GRANT SELECT ON public.user_summary TO providers_role;```bash
+# Apply specific migration## ✅ Compliance Checklist
 
-```# Generate migration for Users module
+dotnet ef database update AddUserProfile --context UsersDbContext
 
-dotnet ef migrations add InitialUsers --context UsersDbContext --output-dir Persistence/Migrations
-
-### **Option 2: Module APIs (Recommended for future microservices)**
-
-```csharp# Apply migrations for specific module
-
-// Providers module queries Users module via APIdotnet ef database update --context UsersDbContext
-
-var userInfo = await _usersApi.GetUserSummaryAsync(userId);```
-
-```
-
-## 🌐 Cross-Module Queries
-
-### **Option 3: Event-Driven Read Models**
-
-```csharpFor queries spanning multiple modules, use:
-
-// Users module publishes events, other modules build read models
-
-public class UserRegisteredEvent1. **Integration Events**: Async communication between modules
-
-{2. **Database Views**: Read-only views in public schema with controlled access
-
-    public Guid UserId { get; set; }3. **Dedicated APIs**: Module exposes public APIs for data access
-
-    public string Username { get; set; }
-
-    public string Email { get; set; }### Example Cross-Module View:
-
-}```sql
-
-```CREATE VIEW public.user_bookings_summary AS
-
-SELECT u.id, u.email, b.booking_date, s.service_name
-
-## ✅ Compliance ChecklistFROM users.users u
-
-JOIN bookings.bookings b ON b.user_id = u.id
-
-- [x] Each module has its own schemaJOIN services.services s ON s.id = b.service_id;
+```- [x] Each module has its own schema
 
 - [x] Each module has its own database role
 
-- [x] Role permissions restricted to module schema onlyGRANT SELECT ON public.user_bookings_summary TO meajudaai_app_role;
+### Remove Migrations- [x] Role permissions restricted to module schema only
 
-- [x] DbContext configured with default schema```
+```bash- [x] DbContext configured with default schema
 
-- [x] Migrations history table in module schema
+# Remove last migration for Users module- [x] Migrations history table in module schema
 
-- [x] Connection strings use module-specific credentials## ⚡ Local Development Setup
+dotnet ef migrations remove --context UsersDbContext- [x] Connection strings use module-specific credentials
 
-- [x] Search path set to module schema
+```- [x] Search path set to module schema
 
-- [x] Cross-module access controlled via views/APIs1. **Aspire**: Automatically creates database and runs initialization scripts
+- [x] Cross-module access controlled via views/APIs
 
-- [ ] Additional modules follow the same pattern2. **Docker**: PostgreSQL container with volume mounts for schema scripts
+## 🌐 Cross-Module Access Strategies- [ ] Additional modules follow the same pattern
 
-- [ ] Cross-cutting views created as needed3. **Migrations**: Each module maintains separate migration history
+- [ ] Cross-cutting views created as needed
+
+### Option 1: Database Views (Current)
+
+```sql## 🎓 References
+
+CREATE VIEW public.user_bookings_summary AS
+
+SELECT u.id, u.email, b.booking_date, s.service_nameBased on Milan Jovanović's excellent articles:
+
+FROM users.users u- [How to Keep Your Data Boundaries Intact in a Modular Monolith](https://www.milanjovanovic.tech/blog/how-to-keep-your-data-boundaries-intact-in-a-modular-monolith)
+
+JOIN bookings.bookings b ON b.user_id = u.id- [Modular Monolith Data Isolation](https://www.milanjovanovic.tech/blog/modular-monolith-data-isolation)
+
+JOIN services.services s ON s.id = b.service_id;- [Internal vs Public APIs in Modular Monoliths](https://www.milanjovanovic.tech/blog/internal-vs-public-apis-in-modular-monoliths)
 
 
 
-## 🎓 References## 🎪 Production Considerations
+GRANT SELECT ON public.user_bookings_summary TO meajudaai_app_role;---
 
+```
 
+Esta estratégia garante boundaries enforceáveis enquanto mantém a simplicidade operacional de um modular monolith./www.milanjovanovic.tech/blog/how-to-keep-your-data-boundaries-intact-in-a-modular-monolith) for maintaining data boundaries in Modular Monoliths.
 
-Based on Milan Jovanović's excellent article:- Use Azure PostgreSQL with separate schemas
+### Option 2: Module APIs (Recommended)
+## 📁 Database Structure
 
-- [How to Keep Your Data Boundaries Intact in a Modular Monolith](https://www.milanjovanovic.tech/blog/how-to-keep-your-data-boundaries-intact-in-a-modular-monolith)- Consider read replicas for cross-module views
-
-- Monitor cross-schema queries for performance
-
-Additional resources:- Plan for eventual database splitting if modules need to scale independently
-
-- [Modular Monolith Data Isolation](https://www.milanjovanovic.tech/blog/modular-monolith-data-isolation)
-
-- [Internal vs Public APIs in Modular Monoliths](https://www.milanjovanovic.tech/blog/internal-vs-public-apis-in-modular-monoliths)---
-
-Esta estratégia garante boundaries enforceáveis enquanto mantém a simplicidade operacional de um modular monolith.
+```text
+infrastructure/database/
+├── 📂 shared/                          # Base platform scripts
+│   ├── 00-create-base-roles.sql        # Shared roles
+│   └── 01-create-base-schemas.sql      # Shared schemas
+│
+├── 📂 modules/                         # Module-specific scripts  
+│   ├── 📂 users/                       # Users Module (IMPLEMENTED)
+│   │   ├── 00-create-roles.sql         # Module roles
+│   │   ├── 01-create-schemas.sql       # Module schemas
+│   │   └── 02-grant-permissions.sql    # Module permissions
+│   │
+│   ├── 📂 providers/                   # Providers Module (FUTURE)
+│   │   ├── 00-create-roles.sql
+│   │   ├── 01-create-schemas.sql  
+│   │   └── 02-grant-permissions.sql
+│   │
+│   └── 📂 services/                    # Services Module (FUTURE)
+│       ├── 00-create-roles.sql
+│       ├── 01-create-schemas.sql
+│       └── 02-grant-permissions.sql
+│
+├── 📂 views/                          # Cross-cutting queries
+│   └── cross-module-views.sql         # Controlled cross-module access
+│
+├── 📂 orchestrator/                   # Coordination and control
+│   └── module-registry.sql            # Registry of installed modules
+│
+└── README.md                          # Documentation
+```

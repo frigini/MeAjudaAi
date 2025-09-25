@@ -13,7 +13,7 @@ keycloak/
 
 ## Realm Import
 
-The `meajudaai-realm.json` file contains the MeAjudaAi realm configuration that will be automatically imported when Keycloak starts.
+The `meajudaai-realm.json` file contains the MeAjudaAi realm configuration. To import the realm on startup, start Keycloak with the `--import-realm` flag (e.g., `kc.sh start --optimized --import-realm`). The default import directory is `/opt/keycloak/data/import`.
 
 ### Included Configuration
 
@@ -43,8 +43,8 @@ The `meajudaai-realm.json` file contains the MeAjudaAi realm configuration that 
 #### Web Client (meajudaai-web)  
 - **Client ID**: meajudaai-web
 - **Type**: Public client
-- **Allowed Redirects**: localhost:3000/*, localhost:5000/*
-- **Allowed Origins**: localhost:3000, localhost:5000
+- **Allowed Redirects**: http://localhost:3000/*, http://localhost:5000/*
+- **Allowed Origins**: http://localhost:3000, http://localhost:5000
 
 ### Security Settings
 

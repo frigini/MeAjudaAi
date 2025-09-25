@@ -18,7 +18,7 @@ Se você é novo no projeto, comece por aqui:
 |-----------|-----------|-----------|
 | **[🛠️ Guia de Desenvolvimento](./development_guide.md)** | Setup completo, convenções, workflows e debugging | Desenvolvedores novos e experientes |
 | **[📋 Diretrizes de Desenvolvimento](./development-guidelines.md)** | Padrões de código, estrutura, Module APIs e ID generation | Desenvolvedores |
-| **[�🚀 Infraestrutura](./infrastructure.md)** | Docker, Aspire, Azure e configuração de ambientes | DevOps e desenvolvedores |
+| **[🚀 Infraestrutura](./infrastructure.md)** | Docker, Aspire, Azure e configuração de ambientes | DevOps e desenvolvedores |
 | **[🔄 CI/CD](./ci_cd.md)** | Pipelines, deploy e automação | DevOps e tech leads |
 
 ### **Arquitetura e Design**
@@ -26,35 +26,35 @@ Se você é novo no projeto, comece por aqui:
 | Documento | Descrição | Para quem |
 |-----------|-----------|-----------|
 | **[🏗️ Arquitetura](./architecture.md)** | Clean Architecture, DDD, CQRS e padrões | Arquitetos e desenvolvedores sênior |
-| **[📐 Domain-Driven Design](./architecture.md#-domain-driven-design-ddd)** | Bounded contexts, agregados e eventos | Desenvolvedores de domínio |
-| **[⚡ CQRS](./architecture.md#-cqrs-command-query-responsibility-segregation)** | Commands, queries e handlers | Desenvolvedores backend |
+| **[📐 Domain-Driven Design](./architecture.md#domain-driven-design-ddd)** | Bounded contexts, agregados e eventos | Desenvolvedores de domínio |
+| **[⚡ CQRS](./architecture.md#cqrs-command-query-responsibility-segregation)** | Commands, queries e handlers | Desenvolvedores backend |
 
 ### **Infraestrutura e Deploy**
 
 | Documento | Descrição | Para quem |
 |-----------|-----------|-----------|
-| **[🐳 Containers](./infrastructure.md#-configuração-para-desenvolvimento)** | Docker Compose e Aspire | Desenvolvedores |
-| **[☁️ Azure](./infrastructure.md#-deploy-em-produção)** | Container Apps, Bicep e recursos Azure | DevOps |
-| **[🔐 Keycloak](./infrastructure.md#-configuração-do-keycloak)** | Autenticação e autorização | Desenvolvedores e administradores |
-| **[🗄️ PostgreSQL](./infrastructure.md#-configuração-de-banco-de-dados)** | Schemas, migrations e estratégia de dados | Desenvolvedores backend |
+| **[🐳 Containers](./infrastructure.md#configuracao-para-desenvolvimento)** | Docker Compose e Aspire | Desenvolvedores |
+| **[☁️ Azure](./infrastructure.md#deploy-em-producao)** | Container Apps, Bicep e recursos Azure | DevOps |
+| **[🔐 Keycloak](./infrastructure.md#configuracao-do-keycloak)** | Autenticação e autorização | Desenvolvedores e administradores |
+| **[🗄️ PostgreSQL](./infrastructure.md#configuracao-de-banco-de-dados)** | Schemas, migrations e estratégia de dados | Desenvolvedores backend |
 
 ### **Qualidade e Testes**
 
 | Documento | Descrição | Para quem |
 |-----------|-----------|-----------|
-| **[🧪 Estratégias de Teste](./development_guide.md#-estratégias-de-teste)** | Unit, integration e E2E tests | Desenvolvedores |
-| **[📊 Code Quality](./ci_cd.md#-monitoramento-e-métricas)** | Quality gates, cobertura e métricas | Tech leads |
-| **[🔍 Debugging](./development_guide.md#-debugging-e-troubleshooting)** | Logs, métricas e troubleshooting | Desenvolvedores |
+| **[🧪 Estratégias de Teste](./development_guide.md#estrategias-de-teste)** | Unit, integration e E2E tests | Desenvolvedores |
+| **[📊 Code Quality](./ci_cd.md#monitoramento-e-metricas)** | Quality gates, cobertura e métricas | Tech leads |
+| **[🔍 Debugging](./development_guide.md#debugging-e-troubleshooting)** | Logs, métricas e troubleshooting | Desenvolvedores |
 
 ### **Segurança**
 
 | Documento | Descrição | Para quem |
 |-----------|-----------|-----------|
-| **[� Guia de Autenticação](./authentication.md)** | Keycloak, JWT e configuração completa de auth | Desenvolvedores |
-| **[�🛡️ Autenticação](./architecture.md#-padrões-de-segurança)** | JWT, Keycloak e autorização | Desenvolvedores |
-| **[🔒 Validação](./architecture.md#-validation-pattern)** | FluentValidation e input validation | Desenvolvedores |
+| **[🔐 Guia de Autenticação](./authentication.md)** | Keycloak, JWT e configuração completa de auth | Desenvolvedores |
+| **[🛡️ Autenticação](./architecture.md#padroes-de-seguranca)** | JWT, Keycloak e autorização | Desenvolvedores |
+| **[🔒 Validação](./architecture.md#validation-pattern)** | FluentValidation e input validation | Desenvolvedores |
 | **[🧪 Testes de Autenticação](./testing/)** | TestAuthenticationHandler e exemplos | Desenvolvedores |
-| **[🚨 Security Scan](./ci_cd.md#-configuração-do-azure-devops)** | Análise de segurança e vulnerabilidades | DevOps |
+| **[🚨 Security Scan](./ci_cd.md#configuracao-do-azure-devops)** | Análise de segurança e vulnerabilidades | DevOps |
 
 ## 🔧 Documentação Técnica Avançada
 
@@ -82,7 +82,7 @@ Para implementações específicas e detalhes técnicos:
 
 ### **🏗️ Arquiteto de Software**
 1. Analise a [Arquitetura](./architecture.md) completa
-2. Revise os [padrões DDD](./architecture.md#-domain-driven-design-ddd)
+2. Revise os [padrões DDD](./architecture.md#domain-driven-design-ddd)
 3. Entenda a [estratégia de dados](./technical/database_boundaries.md)
 4. Avalie as [estratégias de messaging](./technical/message_bus_environment_strategy.md)
 
@@ -90,12 +90,12 @@ Para implementações específicas e detalhes técnicos:
 1. Configure a [Infraestrutura](./infrastructure.md)
 2. Implemente os [pipelines CI/CD](./ci_cd.md)
 3. Gerencie os [recursos Azure](./infrastructure.md#recursos-azure)
-4. Configure [monitoramento](./ci_cd.md#-monitoramento-e-métricas)
+4. Configure [monitoramento](./ci_cd.md#monitoramento-e-metricas)
 
 ### **🧪 QA Engineer**
-1. Entenda as [estratégias de teste](./development_guide.md#-estratégias-de-teste)
+1. Entenda as [estratégias de teste](./development_guide.md#estrategias-de-teste)
 2. Configure os [ambientes de teste](./infrastructure.md#testing)
-3. Implemente [testes E2E](./development_guide.md#e2e-tests---api-layer)
+3. Implemente [testes E2E](./development_guide.md#e2e-tests-api-layer)
 4. Use os [mocks disponíveis](./technical/messaging_mocks_implementation.md)
 
 ## 📈 Status da Documentação

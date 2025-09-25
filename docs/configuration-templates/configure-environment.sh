@@ -39,7 +39,7 @@ configure_appsettings() {
     cp "$template_file" "$target_file"
     
     # Substituir variáveis de ambiente se estiverem definidas
-    if [ "$env" != "development" ]; then
+    if [[ "${env,,}" != "development" ]]; then
         echo "🔄 Substituindo variáveis de ambiente..."
         
         # Lista de variáveis esperadas
@@ -86,7 +86,7 @@ validate_config() {
     fi
     
     # Validações específicas por ambiente
-    case $env in
+    case "${env,,}" in
         production)
             # Verificar se ainda há variáveis não substituídas
             if grep -q '\${' "$config_file"; then
@@ -111,7 +111,7 @@ create_env_file() {
     local env=$1
     local env_file="$PROJECT_ROOT/.env.$env"
     
-    if [ "$env" = "development" ]; then
+    if [[ "${env,,}" = "development" ]]; then
         echo "⏭️  Arquivo .env não necessário para development"
         return 0
     fi
