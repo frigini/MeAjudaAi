@@ -85,8 +85,24 @@ public static class DocumentationExtensions
 
             options.EnableAnnotations();
             
+            // Configurações avançadas para melhor documentação
+            options.UseInlineDefinitionsForEnums();
+            options.DescribeAllParametersInCamelCase();
+            options.CustomOperationIds(apiDesc =>
+            {
+                // Gerar IDs únicos para cada operação
+                var controllerName = apiDesc.ActionDescriptor.RouteValues["controller"];
+                var actionName = apiDesc.ActionDescriptor.RouteValues["action"];
+                var httpMethod = apiDesc.HttpMethod;
+                return $"{controllerName}_{actionName}_{httpMethod}";
+            });
+            
+            // Exemplos automáticos baseados em annotations
+            options.SchemaFilter<ExampleSchemaFilter>();
+            
             // Filtros essenciais
             options.OperationFilter<ApiVersionOperationFilter>();
+            options.DocumentFilter<ModuleTagsDocumentFilter>();
         });
 
         return services;
