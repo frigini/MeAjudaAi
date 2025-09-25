@@ -10,6 +10,13 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
         AuthorizationHandlerContext context,
         SelfOrAdminRequirement requirement)
     {
+        // Se o usuário não está autenticado, falha imediatamente
+        if (!context.User.Identity?.IsAuthenticated ?? true)
+        {
+            context.Fail();
+            return Task.CompletedTask;
+        }
+
         var userIdClaim = context.User.FindFirst("sub")?.Value;
         var roles = context.User.FindAll("roles").Select(c => c.Value);
 
@@ -27,9 +34,12 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
             if (userIdClaim == routeUserId)
             {
                 context.Succeed(requirement);
+                return Task.CompletedTask;
             }
         }
 
+        // Se chegou até aqui, o usuário não tem permissão
+        context.Fail();
         return Task.CompletedTask;
     }
 }

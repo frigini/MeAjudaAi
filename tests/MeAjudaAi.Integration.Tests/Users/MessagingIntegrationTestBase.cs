@@ -21,7 +21,7 @@ public abstract class MessagingIntegrationTestBase : Base.ApiTestBase
     /// </summary>
     protected async Task CleanMessagesAsync()
     {
-        await CleanDatabaseAsync();
+        await ResetDatabaseAsync();
         
         // Inicializa o messaging se ainda não foi inicializado
         if (MessagingMocks == null)

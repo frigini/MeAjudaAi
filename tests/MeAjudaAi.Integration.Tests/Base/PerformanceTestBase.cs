@@ -1,13 +1,9 @@
-using Aspire.Hosting.Testing;
 using Aspire.Hosting;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+using Bogus;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using Bogus;
-using MeAjudaAi.Shared.Serialization;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 

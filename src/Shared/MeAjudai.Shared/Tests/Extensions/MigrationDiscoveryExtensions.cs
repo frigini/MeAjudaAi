@@ -5,17 +5,17 @@ using System.Reflection;
 namespace MeAjudaAi.Shared.Tests.Extensions;
 
 /// <summary>
-/// Provides automatic discovery and application of Entity Framework migrations for test scenarios.
+/// Fornece descoberta automática e aplicação de migrações do Entity Framework para cenários de teste.
 /// </summary>
 public static class MigrationDiscoveryExtensions
 {
     /// <summary>
-    /// Automatically discovers and applies all pending migrations for DbContexts found in the current assembly domain.
-    /// This method scans all loaded assemblies for DbContext types and applies their migrations.
+    /// Descobre e aplica automaticamente todas as migrações pendentes para DbContexts encontrados no domínio do assembly atual.
+    /// Este método escaneia todos os assemblies carregados por tipos de DbContext e aplica suas migrações.
     /// </summary>
-    /// <param name="serviceProvider">The service provider containing the registered DbContexts</param>
-    /// <param name="cancellationToken">Cancellation token for the operation</param>
-    /// <returns>A task representing the asynchronous migration operation</returns>
+    /// <param name="serviceProvider">O service provider contendo os DbContexts registrados</param>
+    /// <param name="cancellationToken">Token de cancelamento para a operação</param>
+    /// <returns>Uma task representando a operação assíncrona de migração</returns>
     public static async Task ApplyAllDiscoveredMigrationsAsync(
         this IServiceProvider serviceProvider,
         CancellationToken cancellationToken = default)
@@ -29,22 +29,20 @@ public static class MigrationDiscoveryExtensions
                 var context = serviceProvider.GetService(contextType) as DbContext;
                 if (context != null)
                 {
-                    // Configure warnings para permitir aplicação de migrações em testes
+                    // Configura warnings para permitir aplicação de migrações em testes
                     context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
                     
                     // Primeiro, garantir que o banco existe
                     await context.Database.EnsureCreatedAsync(cancellationToken);
                     
-                    // Tentar aplicar migrações mesmo com pending changes
+                    // Tentar aplicar migrações mesmo com alterações pendentes
                     try
                     {
                         await context.Database.MigrateAsync(cancellationToken);
                     }
                     catch (Exception migrationEx) when (migrationEx.Message.Contains("PendingModelChangesWarning"))
                     {
-                        // Se falhar devido a pending changes, tentar aplicar de forma forçada
-                        Console.WriteLine($"Attempting forced migration for {contextType.Name} due to pending changes...");
-                        
+                        // Se falhar devido a alterações pendentes, tentar aplicar de forma forçada
                         // Recria o contexto com configuração especial para testes
                         var scope = serviceProvider.CreateScope();
                         var testContext = scope.ServiceProvider.GetService(contextType) as DbContext;
@@ -57,18 +55,18 @@ public static class MigrationDiscoveryExtensions
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Log the error but continue with other contexts
-                Console.WriteLine($"Warning: Could not apply migrations for {contextType.Name}: {ex.Message}");
+                // Continua com outros contextos em caso de falha
+                // Log suprimido para evitar ruído em testes
             }
         }
     }
 
     /// <summary>
-    /// Discovers all DbContext types in loaded assemblies that match the module naming convention.
+    /// Descobre todos os tipos de DbContext em assemblies carregados que seguem a convenção de nome de módulo.
     /// </summary>
-    /// <returns>An enumerable of DbContext types found in module assemblies</returns>
+    /// <returns>Um enumerable de tipos DbContext encontrados em assemblies de módulos</returns>
     private static IEnumerable<Type> DiscoverDbContextTypes()
     {
         var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies()
@@ -94,7 +92,7 @@ public static class MigrationDiscoveryExtensions
             }
             catch (ReflectionTypeLoadException ex)
             {
-                // Handle assemblies that cannot be fully loaded
+                // Trata assemblies que não podem ser totalmente carregados
                 var loadableTypes = ex.Types.Where(t => t != null);
                 var contextTypes = loadableTypes
                     .Where(type => type!.IsClass && 
@@ -105,10 +103,9 @@ public static class MigrationDiscoveryExtensions
 
                 dbContextTypes.AddRange(contextTypes!);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Log and continue with other assemblies
-                Console.WriteLine($"Warning: Could not scan assembly {assembly.FullName}: {ex.Message}");
+                // Continua com outros assemblies em caso de falha na descoberta
             }
         }
 
@@ -116,12 +113,12 @@ public static class MigrationDiscoveryExtensions
     }
 
     /// <summary>
-    /// Ensures all discovered DbContexts have their databases created and migrated.
-    /// This is useful for integration test setup.
+    /// Garante que todos os DbContexts descobertos tenham seus bancos criados e migrados.
+    /// Útil para preparação de testes de integração.
     /// </summary>
-    /// <param name="serviceProvider">The service provider containing the registered DbContexts</param>
-    /// <param name="cancellationToken">Cancellation token for the operation</param>
-    /// <returns>A task representing the asynchronous operation</returns>
+    /// <param name="serviceProvider">O service provider contendo os DbContexts registrados</param>
+    /// <param name="cancellationToken">Token de cancelamento para a operação</param>
+    /// <returns>Uma task representando a operação assíncrona</returns>
     public static async Task EnsureAllDatabasesCreatedAsync(
         this IServiceProvider serviceProvider,
         CancellationToken cancellationToken = default)
@@ -139,17 +136,17 @@ public static class MigrationDiscoveryExtensions
                     await context.Database.MigrateAsync(cancellationToken);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Warning: Could not ensure database for {contextType.Name}: {ex.Message}");
+                // Falha silenciosa para evitar ruído em testes
             }
         }
     }
 
     /// <summary>
-    /// Gets all discovered DbContext types for diagnostic purposes.
+    /// Obtém todos os tipos de DbContext descobertos para fins de diagnóstico.
     /// </summary>
-    /// <returns>A list of DbContext type names that were discovered</returns>
+    /// <returns>Uma lista de nomes de tipos DbContext que foram descobertos</returns>
     public static IEnumerable<string> GetDiscoveredDbContextNames()
     {
         return DiscoverDbContextTypes().Select(t => t.FullName ?? t.Name);

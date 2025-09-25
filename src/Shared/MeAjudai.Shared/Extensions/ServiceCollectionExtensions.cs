@@ -107,8 +107,9 @@ public static class ServiceCollectionExtensions
     {
         app.UseErrorHandling();
         
-        // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        
+        // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
         if (app is WebApplication webApp && environment != "Testing")
         {
             var configuration = webApp.Services.GetRequiredService<IConfiguration>();
@@ -128,13 +129,21 @@ public static class ServiceCollectionExtensions
                     try
                     {
                         using var scope = webApp.Services.CreateScope();
-                        var warmupService = scope.ServiceProvider.GetRequiredService<ICacheWarmupService>();
-                        await warmupService.WarmupAsync();
+                        var warmupService = scope.ServiceProvider.GetService<ICacheWarmupService>();
+                        if (warmupService != null)
+                        {
+                            await warmupService.WarmupAsync();
+                        }
+                        else
+                        {
+                            var logger = webApp.Services.GetService<ILogger<ICacheWarmupService>>();
+                            logger?.LogDebug("ICacheWarmupService não registrado - esperado em ambientes de teste");
+                        }
                     }
                     catch (Exception ex)
                     {
                         var logger = webApp.Services.GetRequiredService<ILogger<ICacheWarmupService>>();
-                        logger.LogError(ex, "Falha ao aquecer o cache durante a inicialização");
+                        logger.LogWarning(ex, "Falha ao aquecer o cache durante a inicialização - pode ser esperado em testes");
                     }
                 });
             }

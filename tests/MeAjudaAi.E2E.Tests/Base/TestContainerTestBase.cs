@@ -171,8 +171,10 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     {
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        // Apply all migrations to ensure correct schema
-        await context.Database.MigrateAsync();
+        
+        // Para E2E tests, sempre recriar o banco do zero
+        await context.Database.EnsureDeletedAsync();
+        await context.Database.EnsureCreatedAsync();
     }
 
     // Helper methods usando serialização compartilhada

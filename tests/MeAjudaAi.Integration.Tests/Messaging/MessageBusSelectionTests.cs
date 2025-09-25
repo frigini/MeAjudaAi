@@ -38,6 +38,9 @@ public class MessageBusSelectionTests : Base.ApiTestBase
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
         
+        // Registrar IConfiguration no DI
+        services.AddSingleton<IConfiguration>(configuration);
+        
         // Simular ambiente Development
         services.AddSingleton<IHostEnvironment>(new TestHostEnvironment("Development"));
         services.AddSingleton<ILogger<EnvironmentBasedMessageBusFactory>>(new TestLogger<EnvironmentBasedMessageBusFactory>());
@@ -70,6 +73,9 @@ public class MessageBusSelectionTests : Base.ApiTestBase
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
+        
+        // Registrar IConfiguration no DI
+        services.AddSingleton<IConfiguration>(configuration);
         
         // Simular ambiente Production
         services.AddSingleton<IHostEnvironment>(new TestHostEnvironment("Production"));

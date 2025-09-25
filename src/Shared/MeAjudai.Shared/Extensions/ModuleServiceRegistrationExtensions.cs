@@ -3,10 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Shared.Extensions;
 
 /// <summary>
-/// Extensões do Scrutor para registros de dependências por convenção
-/// Usar este padrão em todos os módulos para manter consistência
+/// Extensões para registro automático de serviços de módulos por convenção
+/// Facilita o registro consistente de services, repositories, validators, etc.
 /// </summary>
-public static class ScrutorExtensions
+public static class ModuleServiceRegistrationExtensions
 {
     /// <summary>
     /// Registra todos os services de um módulo seguindo convenções de nomenclatura

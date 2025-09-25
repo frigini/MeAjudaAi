@@ -2,17 +2,16 @@ using MeAjudaAi.AppHost.Extensions;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Simplified environment detection
-var isTesting = builder.Environment.EnvironmentName == "Testing";
+// Detecção de ambiente de teste
+var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+var builderEnv = builder.Environment.EnvironmentName;
+var isTestingEnv = envName == "Testing" || 
+                  builderEnv == "Testing" || 
+                  Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true";
 
-Console.WriteLine($"[AppHost] Environment: {builder.Environment.EnvironmentName}");
-Console.WriteLine($"[AppHost] IsTesting: {isTesting}");
-
-if (isTesting)
+if (isTestingEnv)
 {
-    // Testing environment - minimal setup for faster tests
-    Console.WriteLine("[AppHost] Configurando ambiente de teste simplificado...");
-    
+    // Ambiente de teste - configuração simplificada para testes mais rápidos
     var postgresql = builder.AddMeAjudaAiPostgreSQL(options =>
     {
         options.IsTestEnvironment = true;
@@ -21,7 +20,6 @@ if (isTesting)
         options.Password = "dev123";
     });
 
-    // TODO: Redis configuration simplificada temporariamente
     var redis = builder.AddRedis("redis");
 
     var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
@@ -32,18 +30,13 @@ if (isTesting)
         .WithEnvironment("Logging:LogLevel:Default", "Information")
         .WithEnvironment("Logging:LogLevel:Microsoft.EntityFrameworkCore", "Warning")
         .WithEnvironment("Logging:LogLevel:Microsoft.Hosting.Lifetime", "Information")
-        // Desabilitar features que podem causar problemas em testes
         .WithEnvironment("Keycloak:Enabled", "false")
         .WithEnvironment("RabbitMQ:Enabled", "false")
         .WithEnvironment("HealthChecks:Timeout", "30");
-
-    Console.WriteLine("[AppHost] ✅ Configuração de teste concluída");
 }
-else if (builder.Environment.EnvironmentName == "Development")
+else if (builderEnv == "Development")
 {
-    // Development environment - full-featured setup
-    Console.WriteLine("[AppHost] Configurando ambiente de desenvolvimento...");
-    
+    // Ambiente de desenvolvimento - configuração completa
     var postgresql = builder.AddMeAjudaAiPostgreSQL(options =>
     {
         options.MainDatabase = "meajudaai";
@@ -78,14 +71,10 @@ else if (builder.Environment.EnvironmentName == "Development")
         .WithReference(keycloak.Keycloak)
         .WaitFor(keycloak.Keycloak)
         .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
-
-    Console.WriteLine("[AppHost] ✅ Configuração de desenvolvimento concluída");
 }
 else
 {
-    // Production environment - Azure resources
-    Console.WriteLine("[AppHost] Configurando ambiente de produção...");
-    
+    // Ambiente de produção - recursos Azure
     var postgresql = builder.AddMeAjudaAiAzurePostgreSQL(options =>
     {
         options.MainDatabase = "meajudaai";
@@ -114,8 +103,6 @@ else
         .WithReference(keycloak.Keycloak)
         .WaitFor(keycloak.Keycloak)
         .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
-
-    Console.WriteLine("[AppHost] ✅ Configuração de produção concluída");
 }
 
 builder.Build().Run();

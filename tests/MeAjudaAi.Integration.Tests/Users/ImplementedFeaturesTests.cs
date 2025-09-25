@@ -1,5 +1,5 @@
-using MeAjudaAi.Integration.Tests.Auth;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Tests.Auth;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -19,7 +19,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task DeleteUser_ShouldUseSoftDelete()
     {
         // Arrange
-        this.AuthenticateAsAdmin();
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
         
         var userData = new
         {
@@ -54,7 +54,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task CreateUser_WithValidation_ShouldWork()
     {
         // Arrange
-        this.AuthenticateAsAdmin();
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
         
         var userData = new
         {
@@ -84,7 +84,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task CreateUser_WithInvalidData_ShouldReturnValidationError()
     {
         // Arrange
-        this.AuthenticateAsAdmin();
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
         
         var invalidUserData = new
         {
@@ -110,7 +110,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task GetUsers_WithDifferentFilters_ShouldWork()
     {
         // Arrange
-        this.AuthenticateAsAdmin();
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act & Assert
         var endpoints = new[]
@@ -122,11 +122,18 @@ public class ImplementedFeaturesTests : ApiTestBase
         foreach (var endpoint in endpoints)
         {
             var response = await Client.GetAsync(endpoint);
+            var content = await response.Content.ReadAsStringAsync();
+            
+            // DEBUG: Ver qual status code está sendo retornado
+            Console.WriteLine($"[FILTER-TEST] Endpoint: {endpoint}");
+            Console.WriteLine($"[FILTER-TEST] Status: {response.StatusCode}");
+            Console.WriteLine($"[FILTER-TEST] Content: {content.Substring(0, Math.Min(200, content.Length))}");
             
             // Deve retornar OK (autenticado) ou específicos códigos de erro esperados
             Assert.True(
                 response.IsSuccessStatusCode || 
-                response.StatusCode == System.Net.HttpStatusCode.BadRequest
+                response.StatusCode == System.Net.HttpStatusCode.BadRequest,
+                $"Unexpected status {response.StatusCode} for endpoint {endpoint}. Content: {content}"
             );
         }
     }

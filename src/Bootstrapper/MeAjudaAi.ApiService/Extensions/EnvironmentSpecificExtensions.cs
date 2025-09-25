@@ -1,5 +1,3 @@
-using MeAjudaAi.ApiService.Handlers;
-
 namespace MeAjudaAi.ApiService.Extensions;
 
 /// <summary>
@@ -15,18 +13,15 @@ public static class EnvironmentSpecificExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
-        // Serviços para desenvolvimento, testes e integração
-        if (environment.IsDevelopment() || 
-            environment.IsEnvironment("Testing") || 
-            environment.IsEnvironment("Integration"))
-        {
-            services.AddDevelopmentServices(configuration, environment);
-        }
-        
         // Serviços apenas para produção
         if (environment.IsProduction())
         {
             services.AddProductionServices();
+        }
+        // Serviços para desenvolvimento
+        else if (environment.IsDevelopment())
+        {
+            services.AddDevelopmentServices();
         }
 
         return services;
@@ -57,19 +52,10 @@ public static class EnvironmentSpecificExtensions
     /// <summary>
     /// Adiciona serviços específicos para ambiente de desenvolvimento
     /// </summary>
-    private static IServiceCollection AddDevelopmentServices(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        IWebHostEnvironment environment)
+    private static IServiceCollection AddDevelopmentServices(this IServiceCollection services)
     {
         // Documentação Swagger verbose apenas em desenvolvimento
         services.AddDevelopmentDocumentation();
-        
-        // TestAuthentication para ambientes de teste
-        if (environment.IsEnvironment("Testing") || environment.IsEnvironment("Integration"))
-        {
-            services.AddTestAuthentication();
-        }
 
         return services;
     }
@@ -137,24 +123,6 @@ public static class EnvironmentSpecificExtensions
     private static IServiceCollection AddDevelopmentDocumentation(this IServiceCollection services)
     {
         // Configurações de documentação específicas para desenvolvimento
-        // Isso poderia incluir exemplos mais detalhados, schemas completos, etc.
-        return services;
-    }
-
-    /// <summary>
-    /// Adiciona autenticação de teste para ambiente de testing
-    /// </summary>
-    private static IServiceCollection AddTestAuthentication(this IServiceCollection services)
-    {
-        services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = "AspireTest";
-                options.DefaultChallengeScheme = "AspireTest";
-                options.DefaultScheme = "AspireTest";
-            })
-            .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, TestAuthenticationHandler>(
-                "AspireTest", options => { });
-        
         return services;
     }
 }

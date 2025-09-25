@@ -14,24 +14,25 @@ public static class Extensions
         services.AddOptions<PostgresOptions>()
             .Configure(opts => 
             {
-                // Try multiple connection string sources in order of preference
+                // Tenta múltiplas fontes de string de conexão em ordem de preferência
                 opts.ConnectionString = 
-                    configuration.GetConnectionString("meajudaai-db-local") ??  // Aspire testing
-                    configuration.GetConnectionString("meajudaai-db") ??        // Aspire development
-                    configuration["Postgres:ConnectionString"] ??              // Manual configuration
+                    configuration.GetConnectionString("DefaultConnection") ??  // Sobrescrita para testes
+                    configuration.GetConnectionString("meajudaai-db-local") ??  // Aspire para testes
+                    configuration.GetConnectionString("meajudaai-db") ??        // Aspire para desenvolvimento
+                    configuration["Postgres:ConnectionString"] ??              // Configuração manual
                     string.Empty;
             })
             .Validate(opts => !string.IsNullOrEmpty(opts.ConnectionString),
                 "PostgreSQL connection string not found. Configure connection string via Aspire, 'Postgres:ConnectionString' in appsettings.json, or as ConnectionStrings:meajudaai-db")
             .ValidateOnStart();
 
-        // Database monitoring essencial
+        // Monitoramento essencial de banco de dados
         services.AddDatabaseMonitoring();
 
-        // Schema permissions manager para isolamento entre módulos
+        // Gerenciador de permissões de schema para isolamento entre módulos
         services.AddSingleton<SchemaPermissionsManager>();
 
-        // Fix para EF Core timestamp behavior
+        // Correção para comportamento de timestamp do EF Core
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         return services;
@@ -47,7 +48,7 @@ public static class Extensions
         string? usersRolePassword = null,
         string? appRolePassword = null)
     {
-        // Obter connection string admin
+        // Obter string de conexão admin
         var adminConnectionString = 
             configuration.GetConnectionString("meajudaai-db-admin") ??
             configuration.GetConnectionString("meajudaai-db") ??
@@ -116,11 +117,11 @@ public static class Extensions
     }
 
     /// <summary>
-    /// Adiciona monitoring essencial de database
+    /// Adiciona monitoramento essencial de banco de dados
     /// </summary>
     public static IServiceCollection AddDatabaseMonitoring(this IServiceCollection services)
     {
-        // Registra métricas de database
+        // Registra métricas de banco de dados
         services.AddSingleton<DatabaseMetrics>();
         
         // Registra interceptor para Entity Framework

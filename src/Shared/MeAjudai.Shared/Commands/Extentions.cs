@@ -9,13 +9,13 @@ internal static class Extensions
         services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
 
         services.Scan(scan => scan
-            .FromAssembliesOf(typeof(ICommand))
+            .FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
             .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<>)))
             .AsImplementedInterfaces()
             .WithScopedLifetime());
 
         services.Scan(scan => scan
-            .FromAssembliesOf(typeof(ICommand))
+            .FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
             .AddClasses(classes => classes.AssignableTo(typeof(ICommandHandler<,>)))
             .AsImplementedInterfaces()
             .WithScopedLifetime());

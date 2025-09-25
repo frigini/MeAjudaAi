@@ -1,5 +1,5 @@
 using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Auth;
+using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -23,12 +23,13 @@ public class UserMessagingTests : MessagingIntegrationTestBase
             await InitializeTestAsync();
         }
     }
+
     [Fact]
     public async Task CreateUser_ShouldPublishUserRegisteredEvent()
     {
         // Preparação
         await CleanMessagesAsync();
-        this.AuthenticateAsAdmin(); // Configura usuário admin para o teste
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Configura usuário admin para o teste
 
         var request = new
         {
@@ -74,7 +75,7 @@ public class UserMessagingTests : MessagingIntegrationTestBase
     {
         // Arrange - Criar usuário primeiro
         await EnsureMessagingInitializedAsync();
-        this.AuthenticateAsAdmin(); // Configura autenticação como admin para criar o usuário
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Configura autenticação como admin para criar o usuário
         
         var createRequest = new
         {
@@ -106,7 +107,7 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         MessagingMocks?.ClearAllMessages();
 
         // Configurar autenticação como o usuário criado (para poder atualizar seus próprios dados)
-        this.AuthenticateAsUser(userId.ToString(), "updateuser", "update@example.com");
+        ConfigurableTestAuthenticationHandler.ConfigureRegularUser("updateuser", "updateuser", "update@example.com");
 
         // Act - Atualizar perfil
         var updateRequest = new
@@ -148,7 +149,7 @@ public class UserMessagingTests : MessagingIntegrationTestBase
     {
         // Arrange - Criar usuário primeiro
         await EnsureMessagingInitializedAsync();
-        this.AuthenticateAsAdmin(); // Configura autenticação como admin ANTES de criar o usuário
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Configura autenticação como admin ANTES de criar o usuário
         
         var createRequest = new
         {
@@ -205,7 +206,7 @@ public class UserMessagingTests : MessagingIntegrationTestBase
     {
         // Arrange
         await EnsureMessagingInitializedAsync();
-        this.AuthenticateAsAdmin(); // Configura usuário admin para o teste
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Configura usuário admin para o teste
         
         var request = new
         {

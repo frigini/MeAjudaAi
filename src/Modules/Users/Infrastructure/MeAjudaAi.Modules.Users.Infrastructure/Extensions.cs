@@ -70,16 +70,8 @@ public static class Extensions
         // Registra processador de eventos de domínio (abordagem de injeção de dependência direta)
         services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
-        // Repositories - atualmente só há um, mas pode ser expandido com Scrutor no futuro
+        // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
-        
-        // Quando houver mais repositories, pode usar Scrutor:
-        // services.Scan(scan => scan
-        //     .FromCallingAssembly()
-        //     .AddClasses(classes => classes.Where(type => 
-        //         type.Name.EndsWith("Repository") && !type.IsInterface))
-        //     .AsImplementedInterfaces()
-        //     .WithScopedLifetime());
 
         return services;
     }
@@ -112,28 +104,20 @@ public static class Extensions
 
     private static IServiceCollection AddDomainServices(this IServiceCollection services)
     {
-        // Registro manual específico para Domain Services que não seguem convenções
+        // Domain Services específicos do módulo Users
         services.AddScoped<IUserDomainService, KeycloakUserDomainService>();
         services.AddScoped<IAuthenticationDomainService, KeycloakAuthenticationDomainService>();
-
-        // Exemplo de como usar Scrutor para registrar serviços por convenção:
-        // services.Scan(scan => scan
-        //     .FromCallingAssembly()
-        //     .AddClasses(classes => classes.Where(type => type.Name.EndsWith("DomainService")))
-        //     .AsImplementedInterfaces()
-        //     .WithScopedLifetime());
 
         return services;
     }
 
     private static IServiceCollection AddEventHandlers(this IServiceCollection services)
     {
-        // REMOVED: Event Handlers são registrados automaticamente pelo Scrutor no Shared
-        // O Scrutor já faz isso através de:
-        // - services.Scan(...).AddClasses(classes => classes.AssignableTo(typeof(IEventHandler<>)))
-        
-        // Se houver Event Handlers específicos que não seguem o padrão, registre-os aqui
-        
+        // Event Handlers específicos do módulo Users
+        services.AddScoped<IEventHandler<UserRegisteredDomainEvent>, UserRegisteredDomainEventHandler>();
+        services.AddScoped<IEventHandler<UserProfileUpdatedDomainEvent>, UserProfileUpdatedDomainEventHandler>();
+        services.AddScoped<IEventHandler<UserDeletedDomainEvent>, UserDeletedDomainEventHandler>();
+
         return services;
     }
 }

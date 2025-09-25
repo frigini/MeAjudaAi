@@ -36,34 +36,45 @@ public static class ServiceCollectionExtensions
         services.AddMemoryCache();
         
         // Adiciona serviços de autenticação básica (necessário para o middleware)
-        services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = "Bearer";
-                options.DefaultChallengeScheme = "Bearer";
-                options.DefaultScheme = "Bearer";
-            })
-            .AddJwtBearer("Bearer", options =>
-            {
-                // Configuração básica do JWT - pode ser aprimorada depois
-                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        // Para testes de integração (INTEGRATION_TESTS=true), não configuramos JWT Bearer
+        // pois será substituído pelo FakeIntegrationAuthenticationHandler
+        if (Environment.GetEnvironmentVariable("INTEGRATION_TESTS") != "true")
+        {
+            services.AddAuthentication(options =>
                 {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = false,
-                    ValidateIssuerSigningKey = false,
-                    RequireExpirationTime = false,
-                    ClockSkew = TimeSpan.Zero
-                };
-                options.RequireHttpsMetadata = false;
-                options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+                    options.DefaultAuthenticateScheme = "Bearer";
+                    options.DefaultChallengeScheme = "Bearer";
+                    options.DefaultScheme = "Bearer";
+                })
+                .AddJwtBearer("Bearer", options =>
                 {
-                    OnTokenValidated = context =>
+                    // Configuração básica do JWT - pode ser aprimorada depois
+                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                     {
-                        // Lógica básica de validação do token pode ser adicionada aqui
-                        return Task.CompletedTask;
-                    }
-                };
-            });
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateLifetime = false,
+                        ValidateIssuerSigningKey = false,
+                        RequireExpirationTime = false,
+                        ClockSkew = TimeSpan.Zero
+                    };
+                    options.RequireHttpsMetadata = false;
+                    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+                    {
+                        OnTokenValidated = context =>
+                        {
+                            // Lógica básica de validação do token pode ser adicionada aqui
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+        }
+        else
+        {
+            // Para testes de integração, configuramos apenas a base da autenticação
+            // O FakeIntegrationAuthenticationHandler será adicionado depois em AddEnvironmentSpecificServices
+            services.AddAuthentication();
+        }
         
         // Adiciona serviços de autorização
         services.AddAuthorizationPolicies();

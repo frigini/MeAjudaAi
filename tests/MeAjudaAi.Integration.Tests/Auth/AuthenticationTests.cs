@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests.Auth;
 
@@ -12,10 +13,18 @@ public class AuthenticationTests : ApiTestBase
     public async Task GetUsers_WithoutAuthentication_ShouldReturnUnauthorized()
     {
         // Arrange - usuário anônimo (sem autenticação)
-        this.AuthenticateAsAnonymous();
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
 
+        // DEBUG: Verificar se ClearConfiguration realmente limpa
+        Console.WriteLine("[AUTH-TEST-DEBUG] Before request - should have no authenticated user");
+        
         // Act - incluir parâmetros de paginação para evitar BadRequest
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
+
+        // DEBUG: Vamos ver o que realmente retornou
+        var content = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"[AUTH-TEST] Status: {response.StatusCode}");
+        Console.WriteLine($"[AUTH-TEST] Content: {content}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -25,7 +34,7 @@ public class AuthenticationTests : ApiTestBase
     public async Task GetUsers_WithAdminAuthentication_ShouldReturnOk()
     {
         // Arrange - usuário administrador
-        this.AuthenticateAsAdmin();
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act - inclui parâmetros de paginação
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
@@ -44,7 +53,7 @@ public class AuthenticationTests : ApiTestBase
     public async Task GetUsers_WithRegularUserAuthentication_ShouldReturnOk()
     {
         // Arrange - usuário regular (se permitido)
-        this.AuthenticateAsUser();
+        ConfigurableTestAuthenticationHandler.ConfigureRegularUser();
 
         // Act
         var response = await Client.GetAsync("/api/v1/users");

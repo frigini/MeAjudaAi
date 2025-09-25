@@ -1,12 +1,13 @@
 using MeAjudaAi.Integration.Tests.Aspire;
+using MeAjudaAi.Shared.Tests.Base;
 using Xunit.Abstractions;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
 /// <summary>
-/// 🔗 BASE PARA TESTES DE INTEGRAÇÃO ENTRE MÓDULOS
+/// 🔗 BASE PARA TESTES DE INTEGRAÇÃO ENTRE MÓDULOS - ASPIRE
 /// 
-/// Use esta classe base para testes que precisam de:
+/// Implementação específica para testes que usam Aspire com:
 /// - RabbitMQ para comunicação entre módulos
 /// - Redis para cache distribuído
 /// - Ambiente completo de integração
@@ -18,53 +19,16 @@ namespace MeAjudaAi.Integration.Tests.Base;
 /// 
 /// Para testes simples de API, use ApiTestBase (mais rápido).
 /// </summary>
-public abstract class IntegrationTestBase(AspireIntegrationFixture fixture, ITestOutputHelper output) : IClassFixture<AspireIntegrationFixture>, IAsyncLifetime
+public abstract class IntegrationTestBase(AspireIntegrationFixture fixture, ITestOutputHelper output) 
+    : SharedIntegrationTestBase(output), IClassFixture<AspireIntegrationFixture>
 {
     protected readonly AspireIntegrationFixture _fixture = fixture;
-    protected readonly ITestOutputHelper _output = output;
-    protected HttpClient HttpClient => _fixture.HttpClient;
 
-    public virtual Task InitializeAsync()
+    protected override async Task InitializeInfrastructureAsync()
     {
-        _output.WriteLine($"🔗 [IntegrationTest] Iniciando teste de integração");
-        return Task.CompletedTask;
-    }
-
-    public virtual Task DisposeAsync()
-    {
-        _output.WriteLine($"🧹 [IntegrationTest] Finalizando teste de integração");
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Helper para aguardar processamento assíncrono de mensagens
-    /// </summary>
-    protected async Task WaitForMessageProcessing(TimeSpan? timeout = null)
-    {
-        timeout ??= TimeSpan.FromSeconds(5);
-        _output.WriteLine($"⏱️ [IntegrationTest] Aguardando processamento de mensagens por {timeout.Value.TotalSeconds}s...");
-        await Task.Delay(timeout.Value);
-    }
-
-    /// <summary>
-    /// Helper para verificar se serviços de integração estão funcionando
-    /// </summary>
-    protected async Task<bool> VerifyIntegrationServices()
-    {
-        try
-        {
-            var healthResponse = await HttpClient.GetAsync("/health");
-            var readyResponse = await HttpClient.GetAsync("/health/ready");
-            
-            var isHealthy = healthResponse.IsSuccessStatusCode && readyResponse.IsSuccessStatusCode;
-            _output.WriteLine($"🏥 [IntegrationTest] Serviços de integração: {(isHealthy ? "✅ Funcionando" : "❌ Com problemas")}");
-            
-            return isHealthy;
-        }
-        catch (Exception ex)
-        {
-            _output.WriteLine($"❌ [IntegrationTest] Erro ao verificar serviços: {ex.Message}");
-            return false;
-        }
+        // Configura HttpClient a partir do fixture Aspire
+        HttpClient = _fixture.HttpClient;
+        _output.WriteLine($"🔗 [IntegrationTest] Aspire HttpClient configurado");
+        await Task.CompletedTask;
     }
 }
