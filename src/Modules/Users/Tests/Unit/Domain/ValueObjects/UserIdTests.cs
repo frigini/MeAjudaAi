@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects;
 
@@ -8,7 +9,7 @@ public class UserIdTests
     public void Constructor_WithValidGuid_ShouldCreateUserId()
     {
         // Arrange
-        var guid = Guid.NewGuid();
+        var guid = UuidGenerator.NewId();
 
         // Act
         var userId = new UserId(guid);
@@ -46,7 +47,7 @@ public class UserIdTests
     public void ImplicitOperator_ToGuid_ShouldReturnGuidValue()
     {
         // Arrange
-        var guid = Guid.NewGuid();
+        var guid = UuidGenerator.NewId();
         var userId = new UserId(guid);
 
         // Act
@@ -60,7 +61,7 @@ public class UserIdTests
     public void ImplicitOperator_FromGuid_ShouldCreateUserId()
     {
         // Arrange
-        var guid = Guid.NewGuid();
+        var guid = UuidGenerator.NewId();
 
         // Act
         UserId userId = guid;
@@ -73,7 +74,7 @@ public class UserIdTests
     public void Equals_WithSameValue_ShouldReturnTrue()
     {
         // Arrange
-        var guid = Guid.NewGuid();
+        var guid = UuidGenerator.NewId();
         var userId1 = new UserId(guid);
         var userId2 = new UserId(guid);
 

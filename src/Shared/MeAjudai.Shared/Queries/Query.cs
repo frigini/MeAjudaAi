@@ -1,6 +1,8 @@
-﻿namespace MeAjudaAi.Shared.Queries;
+﻿using MeAjudaAi.Shared.Time;
+
+namespace MeAjudaAi.Shared.Queries;
 
 public abstract record Query<TResult> : IQuery<TResult>
 {
-    public Guid CorrelationId { get; } = Guid.NewGuid();
+    public Guid CorrelationId { get; } = UuidGenerator.NewId();
 }

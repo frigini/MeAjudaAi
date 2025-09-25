@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.ServiceBus;
+using MeAjudaAi.Shared.Time;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Logging;
@@ -161,7 +162,7 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
         {
             ContentType = "application/json",
             Subject = typeof(T).Name,
-            MessageId = Guid.NewGuid().ToString(),
+            MessageId = UuidGenerator.NewIdString(),
             TimeToLive = _options.DefaultTimeToLive
         };
 

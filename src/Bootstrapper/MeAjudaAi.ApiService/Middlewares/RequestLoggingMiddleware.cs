@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using MeAjudaAi.Shared.Time;
+using System.Diagnostics;
 
 namespace MeAjudaAi.ApiService.Middlewares;
 
@@ -17,7 +18,7 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
         }
 
         var stopwatch = Stopwatch.StartNew();
-        var requestId = Guid.NewGuid().ToString();
+        var requestId = UuidGenerator.NewIdString();
         var clientIp = GetClientIpAddress(context);
         var userAgent = context.Request.Headers.UserAgent.ToString();
         var userId = GetUserId(context);

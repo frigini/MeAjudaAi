@@ -1,10 +1,11 @@
-﻿using MeAjudaAi.Shared.Events;
+﻿using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Shared.Domain;
 
 public abstract class BaseEntity
 {
-    public Guid Id { get; protected set; } = Guid.NewGuid();
+    public Guid Id { get; protected set; } = UuidGenerator.NewId();
     public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; protected set; }
 

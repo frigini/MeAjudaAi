@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Configuration;
@@ -47,7 +48,7 @@ public class CorrelationIdEnricher : ILogEventEnricher
         }
         
         // Gerar novo se não encontrar
-        return Guid.NewGuid().ToString();
+        return UuidGenerator.NewIdString();
     }
 
     private static Microsoft.AspNetCore.Http.IHttpContextAccessor? GetHttpContextAccessor()

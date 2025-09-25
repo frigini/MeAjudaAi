@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;
 using System.Diagnostics;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Shared.Logging;
 
@@ -15,7 +16,7 @@ public class LoggingContextMiddleware(RequestDelegate next, ILogger<LoggingConte
     {
         // Gerar ou usar correlation ID existente
         var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault() 
-                           ?? Guid.NewGuid().ToString();
+                           ?? UuidGenerator.NewIdString();
 
         // Adicionar correlation ID ao response header
         context.Response.Headers.TryAdd("X-Correlation-ID", correlationId);

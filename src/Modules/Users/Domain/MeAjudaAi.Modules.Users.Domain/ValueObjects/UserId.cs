@@ -1,4 +1,5 @@
-﻿using MeAjudaAi.Shared.Domain;
+﻿using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Domain;
 
 namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 
@@ -30,10 +31,9 @@ public class UserId : ValueObject
     }
 
     /// <summary>
-    /// Cria um novo identificador de usuário com um Guid aleatório.
+    /// Cria um novo identificador de usuário
     /// </summary>
-    /// <returns>Nova instância de UserId com um Guid único</returns>
-    public static UserId New() => new(Guid.NewGuid());
+    public static UserId New() => new(UuidGenerator.NewId());
 
     /// <summary>
     /// Fornece os componentes para comparação de igualdade.
