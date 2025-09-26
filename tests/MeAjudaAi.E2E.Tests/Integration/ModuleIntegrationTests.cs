@@ -13,7 +13,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
     public async Task CreateUser_ShouldTriggerDomainEvents()
     {
         // Arrange
-        var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Mantem sob 30 caracteres
+        var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Mantém sob 30 caracteres
         var createUserRequest = new
         {
             Username = $"test_{uniqueId}", // test_12345678 = 13 chars
@@ -26,9 +26,10 @@ public class ModuleIntegrationTests : TestContainerTestBase
         var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, JsonOptions);
 
         // Assert
+        // HttpStatusCode.Conflict pode ocorrer se o usuário já existir em execuções de teste
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.Created,
-            HttpStatusCode.Conflict // Usuário pode já existir em algumas execuções de teste
+            HttpStatusCode.Conflict
         );
 
         if (response.StatusCode == HttpStatusCode.Created)
@@ -48,7 +49,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
     public async Task CreateAndUpdateUser_ShouldMaintainConsistency()
     {
         // Arrange
-        var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Keep under 30 chars  
+        var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Mantém sob 30 caracteres  
         var createUserRequest = new
         {
             Username = $"test_{uniqueId}", // test_12345678 = 13 chars
@@ -60,7 +61,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
         // Act 1: Create user
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, JsonOptions);
 
-        // Assert 1: User created successfully or already exists
+        // Assert 1: Usuário criado com sucesso ou já existente
         createResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.Conflict);
 
         if (createResponse.StatusCode == HttpStatusCode.Created)
@@ -71,7 +72,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
             dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
             var userId = idProperty.GetGuid();
 
-            // Act 2: Update the user
+            // Act 2: Atualiza o usuário
             var updateRequest = new
             {
                 FirstName = "Updated",
@@ -81,20 +82,20 @@ public class ModuleIntegrationTests : TestContainerTestBase
 
             var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, JsonOptions);
 
-            // Assert 2: Update should succeed or return appropriate error
+            // Assert 2: Atualização deve ter sucesso ou retornar erro apropriado
             updateResponse.StatusCode.Should().BeOneOf(
                 HttpStatusCode.OK,
                 HttpStatusCode.NoContent,
-                HttpStatusCode.NotFound // If user was somehow not found
+                HttpStatusCode.NotFound
             );
 
-            // Act 3: Verify user can be retrieved
+            // Act 3: Verifica se o usuário pode ser recuperado
             var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
             
-            // Assert 3: User should be retrievable
+            // Assert 3: Usuário deve ser recuperável
             getResponse.StatusCode.Should().BeOneOf(
                 HttpStatusCode.OK,
-                HttpStatusCode.NotFound // Acceptable if user doesn't exist
+                HttpStatusCode.NotFound
             );
         }
     }
@@ -102,23 +103,23 @@ public class ModuleIntegrationTests : TestContainerTestBase
     [Fact]
     public async Task QueryUsers_ShouldReturnConsistentPagination()
     {
-        // Act 1: Get first page
+        // Act 1: Obtém a primeira página
         var page1Response = await ApiClient.GetAsync("/api/v1/users?pageNumber=1&pageSize=5");
 
-        // Act 2: Get second page  
+        // Act 2: Obtém a segunda página  
         var page2Response = await ApiClient.GetAsync("/api/v1/users?pageNumber=2&pageSize=5");
 
-        // Assert: Both requests should succeed or return not found
+        // Assert: Ambas as requisições devem ter sucesso ou retornar not found
         page1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
         page2Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
 
-        // If data exists, verify pagination structure
+        // Se houver dados, verifica a estrutura da paginação
         if (page1Response.StatusCode == HttpStatusCode.OK)
         {
             var content = await page1Response.Content.ReadAsStringAsync();
             content.Should().NotBeNullOrEmpty();
 
-            // Verify it's valid JSON with expected structure
+            // Verifica se é um JSON válido com a estrutura esperada
             var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
             jsonDoc.RootElement.ValueKind.Should().Be(System.Text.Json.JsonValueKind.Object);
         }
@@ -127,13 +128,13 @@ public class ModuleIntegrationTests : TestContainerTestBase
     [Fact]
     public async Task Command_WithInvalidInput_ShouldReturnValidationErrors()
     {
-        // Arrange: Create request with multiple validation errors
+        // Arrange: Cria requisição com múltiplos erros de validação
         var invalidRequest = new
         {
-            Username = "", // Too short
-            Email = "not-an-email", // Invalid format
-            FirstName = new string('a', 101), // Too long (assuming max 100)
-            LastName = "" // Required field empty
+            Username = "", // Muito curto
+            Email = "not-an-email", // Formato inválido
+            FirstName = new string('a', 101), // Muito longo (assumindo máximo 100)
+            LastName = "" // Campo obrigatório vazio
         };
 
         // Act
@@ -145,7 +146,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
         var content = await response.Content.ReadAsStringAsync();
         content.Should().NotBeNullOrEmpty();
 
-        // Verify error response format
+        // Verifica formato da resposta de erro
         var errorDoc = System.Text.Json.JsonDocument.Parse(content);
         errorDoc.RootElement.ValueKind.Should().Be(System.Text.Json.JsonValueKind.Object);
     }
@@ -156,7 +157,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
         // Arrange - autentica como admin para poder criar usuários
         AuthenticateAsAdmin();
         
-        var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Keep under 30 chars
+        var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Mantém sob 30 caracteres
         var userRequest = new
         {
             Username = $"conc_{uniqueId}", // conc_12345678 = 13 chars
@@ -165,7 +166,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
             LastName = "Test"
         };
 
-        // Act: Send multiple concurrent requests
+        // Act: Envia múltiplas requisições concorrentes
         var tasks = Enumerable.Range(0, 3).Select(async i =>
         {
             return await ApiClient.PostAsJsonAsync("/api/v1/users", userRequest, JsonOptions);
@@ -173,13 +174,13 @@ public class ModuleIntegrationTests : TestContainerTestBase
 
         var responses = await Task.WhenAll(tasks);
 
-        // Assert: Only one should succeed, others should return conflict or validation errors
+        // Assert: Apenas uma deve ter sucesso, as outras devem retornar conflict ou validation errors
         var successCount = responses.Count(r => r.StatusCode == HttpStatusCode.Created);
         var conflictCount = responses.Count(r => r.StatusCode == HttpStatusCode.Conflict);
         var badRequestCount = responses.Count(r => r.StatusCode == HttpStatusCode.BadRequest);
         
-        // Either one succeeds and others fail (conflict or validation), or they all fail
-        // BadRequest is acceptable as a concurrent conflict response (validation errors)
+        // Apenas uma deve ter sucesso e as outras falhar (conflict ou validation), ou todas falharem
+        // BadRequest é aceitável como resposta de conflito concorrente (erros de validação)
         var failureCount = conflictCount + badRequestCount;
         ((successCount == 1 && failureCount == 2) || failureCount == 3)
             .Should().BeTrue("Exactly one request should succeed or all should fail with conflict/validation errors");

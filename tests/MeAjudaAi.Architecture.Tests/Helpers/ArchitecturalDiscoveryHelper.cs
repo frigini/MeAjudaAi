@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using MeAjudaAi.Architecture.Tests.Helpers;
 
 namespace MeAjudaAi.Architecture.Tests.Helpers;
 

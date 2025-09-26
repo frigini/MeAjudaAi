@@ -4,7 +4,6 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure;
 using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Tests.Infrastructure;
 
 namespace MeAjudaAi.Modules.Users.Tests.Integration;
 
@@ -14,7 +13,7 @@ namespace MeAjudaAi.Modules.Users.Tests.Integration;
 [Collection("UsersIntegrationTests")]
 public class UserModuleIntegrationTests : UsersIntegrationTestBase
 {
-    // Remove override to use default SharedTestContainers configuration
+    // Remove override para usar a configuração padrão do SharedTestContainers
     // protected override TestInfrastructureOptions GetTestOptions() - using inherited default
     
     [Fact]

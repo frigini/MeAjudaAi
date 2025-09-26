@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Tests.Auth;
 
-namespace MeAjudaAi.Shared.Tests.Auth;
+namespace MeAjudaAi.Shared.Tests.Extensions;
 
 /// <summary>
 /// Extensões para configurar autenticação em testes

@@ -84,7 +84,7 @@ public class RateLimitingMiddleware(
         {
             var userRoles = context.User.FindAll("role")?.Select(c => c.Value) ?? 
                            context.User.FindAll("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Select(c => c.Value) ??
-                           Enumerable.Empty<string>();
+                           [];
             
             foreach (var role in userRoles)
             {

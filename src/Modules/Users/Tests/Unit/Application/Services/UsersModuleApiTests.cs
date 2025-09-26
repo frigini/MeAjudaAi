@@ -1,13 +1,9 @@
-using FluentAssertions;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Services;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Shared.Contracts.Modules.Users;
-using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Time;
-using Moq;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Services;
 
@@ -15,13 +11,18 @@ public class UsersModuleApiTests
 {
     private readonly Mock<IQueryHandler<GetUserByIdQuery, Result<UserDto>>> _getUserByIdHandler;
     private readonly Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>> _getUserByEmailHandler;
+    private readonly Mock<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>> _getUserByUsernameHandler;
     private readonly UsersModuleApi _sut;
 
     public UsersModuleApiTests()
     {
         _getUserByIdHandler = new Mock<IQueryHandler<GetUserByIdQuery, Result<UserDto>>>();
         _getUserByEmailHandler = new Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>>();
-        _sut = new UsersModuleApi(_getUserByIdHandler.Object, _getUserByEmailHandler.Object);
+        _getUserByUsernameHandler = new Mock<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>>();
+        _sut = new UsersModuleApi(
+            _getUserByIdHandler.Object, 
+            _getUserByEmailHandler.Object, 
+            _getUserByUsernameHandler.Object);
     }
 
     [Fact]
@@ -278,10 +279,13 @@ public class UsersModuleApiTests
     }
 
     [Fact]
-    public async Task UsernameExistsAsync_ShouldReturnFalse_AsNotImplemented()
+    public async Task UsernameExistsAsync_ShouldReturnFalse_WhenUserNotFound()
     {
         // Arrange
         var username = "testuser";
+        _getUserByUsernameHandler
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByUsernameQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Failure("User not found"));
 
         // Act
         var result = await _sut.UsernameExistsAsync(username);
@@ -322,5 +326,79 @@ public class UsersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task UsernameExistsAsync_WhenUserExists_ShouldReturnTrue()
+    {
+        // Arrange
+        var username = "existinguser";
+        var userDto = new UserDto(
+            UuidGenerator.NewId(),
+            username,
+            "test@example.com", 
+            "John",
+            "Doe",
+            "John Doe",
+            UuidGenerator.NewIdString(),
+            DateTime.UtcNow,
+            null);
+
+        _getUserByUsernameHandler
+            .Setup(x => x.HandleAsync(It.Is<GetUserByUsernameQuery>(q => q.Username == username), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(userDto));
+
+        // Act
+        var result = await _sut.UsernameExistsAsync(username);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeTrue();
+        
+        _getUserByUsernameHandler
+            .Verify(x => x.HandleAsync(It.Is<GetUserByUsernameQuery>(q => q.Username == username), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UsernameExistsAsync_WhenUserNotFound_ShouldReturnFalse()
+    {
+        // Arrange
+        var username = "nonexistentuser";
+
+        _getUserByUsernameHandler
+            .Setup(x => x.HandleAsync(It.Is<GetUserByUsernameQuery>(q => q.Username == username), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Failure("User not found"));
+
+        // Act
+        var result = await _sut.UsernameExistsAsync(username);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeFalse();
+        
+        _getUserByUsernameHandler
+            .Verify(x => x.HandleAsync(It.Is<GetUserByUsernameQuery>(q => q.Username == username), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UsernameExistsAsync_WithCancellationToken_ShouldPassTokenToHandler()
+    {
+        // Arrange
+        var username = "testuser";
+        var cancellationToken = new CancellationToken();
+
+        _getUserByUsernameHandler
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByUsernameQuery>(), cancellationToken))
+            .ReturnsAsync(Result<UserDto>.Failure("User not found"));
+
+        // Act
+        var result = await _sut.UsernameExistsAsync(username, cancellationToken);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeFalse();
+        
+        _getUserByUsernameHandler
+            .Verify(x => x.HandleAsync(It.IsAny<GetUserByUsernameQuery>(), cancellationToken), Times.Once);
     }
 }

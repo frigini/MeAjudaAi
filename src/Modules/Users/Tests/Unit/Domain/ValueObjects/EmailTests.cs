@@ -30,7 +30,7 @@ public class EmailTests
         // Act & Assert
         var act = () => new Email(invalidEmail!);
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Email cannot be empty*");
+            .WithMessage("Email não pode ser vazio*");
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class EmailTests
         // Act & Assert
         var act = () => new Email(longEmail);
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Email cannot exceed 254 characters*");
+            .WithMessage("Email não pode ter mais de 254 caracteres*");
     }
 
     [Theory]
@@ -58,7 +58,7 @@ public class EmailTests
         // Act & Assert
         var act = () => new Email(invalidEmail);
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Invalid email format*");
+            .WithMessage("Formato de email inválido*");
     }
 
     [Fact]

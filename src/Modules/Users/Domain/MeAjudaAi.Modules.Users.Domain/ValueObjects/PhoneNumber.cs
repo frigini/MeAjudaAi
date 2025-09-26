@@ -3,7 +3,7 @@
 namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 
 /// <summary>
-/// Value object representando um número de telefone com código do país.
+/// Número de telefone.
 /// </summary>
 public class PhoneNumber : ValueObject
 {
@@ -13,17 +13,14 @@ public class PhoneNumber : ValueObject
     public PhoneNumber(string value, string countryCode = "BR")
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Phone number cannot be empty");
+            throw new ArgumentException("Telefone não pode ser vazio");
         if (string.IsNullOrWhiteSpace(countryCode))
-            throw new ArgumentException("Country code cannot be empty");
-        
+            throw new ArgumentException("Código do país não pode ser vazio");
         Value = value.Trim();
         CountryCode = countryCode.Trim();
     }
 
-    public PhoneNumber(string value) : this(value, "BR") // Padrão para Brasil
-    {
-    }
+    public PhoneNumber(string value) : this(value, "BR") {}
 
     public override string ToString() => $"{CountryCode} {Value}";
 

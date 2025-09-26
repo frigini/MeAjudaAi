@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -10,17 +9,10 @@ namespace MeAjudaAi.Integration.Tests.Base;
 /// Cache inteligente de schema de banco de dados para otimizar testes de integração
 /// Evita recriação desnecessária de estruturas quando o schema não mudou
 /// </summary>
-public class DatabaseSchemaCacheService
+public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logger)
 {
     private static readonly ConcurrentDictionary<string, DatabaseSchemaInfo> SchemaCache = new();
     private static readonly SemaphoreSlim CacheLock = new(1, 1);
-    
-    private readonly ILogger<DatabaseSchemaCacheService> _logger;
-    
-    public DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logger)
-    {
-        _logger = logger;
-    }
 
     /// <summary>
     /// Verifica se o schema atual é o mesmo do cache e se pode reutilizar a estrutura
@@ -40,7 +32,7 @@ public class DatabaseSchemaCacheService
                 
                 if (canReuse)
                 {
-                    _logger.LogInformation("[SchemaCache] Reutilizando schema existente para módulo {Module}", moduleName);
+                    logger.LogInformation("[SchemaCache] Reutilizando schema existente para módulo {Module}", moduleName);
                     return true;
                 }
             }
@@ -53,7 +45,7 @@ public class DatabaseSchemaCacheService
                 ModuleName = moduleName
             };
             
-            _logger.LogInformation("[SchemaCache] Schema atualizado no cache para módulo {Module}", moduleName);
+            logger.LogInformation("[SchemaCache] Schema atualizado no cache para módulo {Module}", moduleName);
             return false;
         }
         finally

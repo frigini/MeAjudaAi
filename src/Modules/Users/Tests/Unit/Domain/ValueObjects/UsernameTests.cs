@@ -43,7 +43,7 @@ public class UsernameTests
         // Act & Assert
         var act = () => new Username(invalidUsername!);
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Username cannot be empty*");
+            .WithMessage("Username não pode ser vazio*");
     }
 
     [Theory]
@@ -54,7 +54,7 @@ public class UsernameTests
         // Act & Assert
         var act = () => new Username(shortUsername);
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Username must be at least 3 characters*");
+            .WithMessage("Username deve ter pelo menos 3 caracteres*");
     }
 
     [Fact]
@@ -66,11 +66,11 @@ public class UsernameTests
         // Act & Assert
         var act = () => new Username(longUsername);
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Username cannot exceed 30 characters*");
+            .WithMessage("Username não pode ter mais de 30 caracteres*");
     }
 
     [Theory]
-    [InlineData("user name")] // Espa�o
+    [InlineData("user name")] // Espa�o
     [InlineData("user@name")] // Caractere especial
     [InlineData("user#name")] // Caractere especial
     [InlineData("user$name")] // Caractere especial
@@ -100,7 +100,7 @@ public class UsernameTests
         // Act & Assert
         var act = () => new Username(invalidUsername);
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Username contains invalid characters*");
+            .WithMessage("Username contém caracteres inválidos*");
     }
 
     [Fact]

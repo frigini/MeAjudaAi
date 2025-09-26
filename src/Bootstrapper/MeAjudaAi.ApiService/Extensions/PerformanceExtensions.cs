@@ -20,15 +20,15 @@ public static class PerformanceExtensions
             options.Providers.Add<SafeBrotliCompressionProvider>();
             
             // Adiciona tipos MIME que devem ser comprimidos
-            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
-            {
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+            [
                 "application/json",
                 "application/xml", 
                 "text/xml",
                 "application/javascript",
                 "text/css",
                 "text/plain"
-            });
+            ]);
         });
 
         services.Configure<GzipCompressionProviderOptions>(options =>

@@ -20,14 +20,14 @@ internal static class Extensions
             };
         });
 
-        // Redis como distributed cache (HybridCache usa automaticamente)
+        // Redis como cache distribuído (HybridCache usa automaticamente)
         services.AddStackExchangeRedisCache(options =>
         {
-            // Try multiple Redis connection string sources in order of preference
+            // Tenta múltiplas fontes de string de conexão Redis em ordem de preferência
             options.Configuration = 
-                configuration.GetConnectionString("redis") ??          // Aspire naming
-                configuration.GetConnectionString("Redis") ??          // Manual configuration
-                "localhost:6379";                                       // Fallback for testing
+                configuration.GetConnectionString("redis") ??          // Nome padrão Aspire
+                configuration.GetConnectionString("Redis") ??          // Configuração manual
+                "localhost:6379";                                      // Fallback para testes
             options.InstanceName = "MeAjudaAi";
         });
 

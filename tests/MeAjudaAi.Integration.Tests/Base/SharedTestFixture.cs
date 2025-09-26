@@ -1,13 +1,8 @@
-using Aspire.Hosting.Testing;
 using Aspire.Hosting;
-using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using Bogus;
-using MeAjudaAi.Shared.Serialization;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -19,7 +14,7 @@ public class SharedTestFixture : IAsyncLifetime
 {
     private static readonly SemaphoreSlim InitializationSemaphore = new(1, 1);
     private static SharedTestFixture? _instance;
-    private static readonly object InstanceLock = new();
+    private static readonly Lock InstanceLock = new();
     
     // Cache de aplicação compartilhada
     private DistributedApplication? _app;
@@ -159,80 +154,5 @@ public class SharedTestFixture : IAsyncLifetime
         }
         
         _isInitialized = false;
-    }
-}
-
-/// <summary>
-/// Base class ultra-otimizada que usa fixture compartilhado
-/// <summary>
-/// Base class compartilhada para testes de integração com máxima reutilização de recursos
-/// </summary>
-public abstract class SharedTestBase : IAsyncLifetime, IClassFixture<SharedTestFixture>
-{
-    private readonly SharedTestFixture _sharedFixture;
-    protected HttpClient ApiClient { get; private set; } = null!;
-    protected Faker Faker { get; } = new();
-
-    protected SharedTestBase(SharedTestFixture sharedFixture)
-    {
-        _sharedFixture = sharedFixture;
-    }
-
-    public virtual async Task InitializeAsync()
-    {
-        // Usa o fixture compartilhado que já está inicializado
-        await _sharedFixture.InitializeAsync();
-        
-        // Reutiliza o client HTTP do fixture
-        ApiClient = _sharedFixture.GetOrCreateHttpClient("apiservice");
-        
-        // Verificação rápida de saúde (opcional, só se necessário)
-        if (!await _sharedFixture.IsApiHealthyAsync())
-        {
-            await Task.Delay(1000); // Aguarda brevemente e tenta novamente
-            if (!await _sharedFixture.IsApiHealthyAsync())
-            {
-                throw new InvalidOperationException("API não está saudável no fixture compartilhado");
-            }
-        }
-    }
-
-    // Métodos helper otimizados
-    protected async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T value, CancellationToken cancellationToken = default)
-    {
-        var json = JsonSerializer.Serialize(value, _sharedFixture.JsonOptions);
-        using var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-        return await ApiClient.PostAsync(requestUri, content, cancellationToken);
-    }
-
-    protected async Task<HttpResponseMessage> PutJsonAsync<T>(string requestUri, T value, CancellationToken cancellationToken = default)
-    {
-        var json = JsonSerializer.Serialize(value, _sharedFixture.JsonOptions);
-        using var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-        return await ApiClient.PutAsync(requestUri, content, cancellationToken);
-    }
-
-    protected async Task<T> ReadJsonAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken = default)
-    {
-        var content = await response.Content.ReadAsStringAsync(cancellationToken);
-        return JsonSerializer.Deserialize<T>(content, _sharedFixture.JsonOptions)!;
-    }
-
-    protected void SetAuthorizationHeader(string token)
-    {
-        ApiClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-    }
-
-    protected void ClearAuthorizationHeader()
-    {
-        ApiClient.DefaultRequestHeaders.Authorization = null;
-    }
-
-    public virtual Task DisposeAsync()
-    {
-        // Não dispose do ApiClient aqui - ele é compartilhado
-        // Apenas limpar headers específicos do teste se necessário
-        ClearAuthorizationHeader();
-        return Task.CompletedTask;
     }
 }

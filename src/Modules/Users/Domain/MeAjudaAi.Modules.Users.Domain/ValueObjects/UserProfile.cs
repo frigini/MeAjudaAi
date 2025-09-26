@@ -3,7 +3,7 @@
 namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 
 /// <summary>
-/// Value object representando o perfil básico de um usuário.
+/// Perfil do usuário.
 /// </summary>
 public class UserProfile : ValueObject
 {
@@ -15,11 +15,9 @@ public class UserProfile : ValueObject
     public UserProfile(string firstName, string lastName, PhoneNumber? phoneNumber = null)
     {
         if (string.IsNullOrWhiteSpace(firstName))
-            throw new ArgumentException("First name cannot be empty");
-
+            throw new ArgumentException("Primeiro nome não pode ser vazio");
         if (string.IsNullOrWhiteSpace(lastName))
-            throw new ArgumentException("Last name cannot be empty");
-
+            throw new ArgumentException("Sobrenome não pode ser vazio");
         FirstName = firstName.Trim();
         LastName = lastName.Trim();
         PhoneNumber = phoneNumber;

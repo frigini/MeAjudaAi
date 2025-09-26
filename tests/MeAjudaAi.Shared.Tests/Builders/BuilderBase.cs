@@ -6,7 +6,7 @@ namespace MeAjudaAi.Shared.Tests.Builders;
 public abstract class BuilderBase<T> where T : class
 {
     protected Faker<T> Faker;
-    private readonly List<Action<T>> _customActions = new();
+    private readonly List<Action<T>> _customActions = [];
 
     protected BuilderBase()
     {

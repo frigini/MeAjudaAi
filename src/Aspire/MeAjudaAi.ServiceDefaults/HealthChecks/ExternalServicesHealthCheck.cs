@@ -30,14 +30,14 @@ public class ExternalServicesHealthCheck(
             if (externalServicesOptions.PaymentGateway.Enabled)
             {
                 var (IsHealthy, Error)= await CheckPaymentGatewayAsync(cancellationToken);
-                results.Add(("Gateway de Pagamento", IsHealthy, Error));
+                results.Add(("Payment Gateway", IsHealthy, Error));
             }
 
             // Verifica serviços de geolocalização (implementação futura)
             if (externalServicesOptions.Geolocation.Enabled)
             {
                 var (IsHealthy, Error)= await CheckGeolocationAsync(cancellationToken);
-                results.Add(("Serviço de Geolocalização", IsHealthy, Error));
+                results.Add(("Geolocation Service", IsHealthy, Error));
             }
 
             var healthyCount = results.Count(r => r.IsHealthy);
@@ -45,26 +45,26 @@ public class ExternalServicesHealthCheck(
 
             if (totalCount == 0)
             {
-                return HealthCheckResult.Healthy("Nenhum serviço externo configurado");
+                return HealthCheckResult.Healthy("No external service configured");
             }
 
             if (healthyCount == totalCount)
             {
-                return HealthCheckResult.Healthy($"Todos os {totalCount} serviços externos estão saudáveis");
+                return HealthCheckResult.Healthy($"All {totalCount} external services are healthy");
             }
 
             if (healthyCount == 0)
             {
                 var errors = string.Join("; ", results.Where(r => !r.IsHealthy).Select(r => $"{r.Service}: {r.Error}"));
-                return HealthCheckResult.Unhealthy($"Todos os serviços externos estão fora: {errors}");
+                return HealthCheckResult.Unhealthy($"All external services are down: {errors}");
             }
 
             var partialErrors = string.Join("; ", results.Where(r => !r.IsHealthy).Select(r => $"{r.Service}: {r.Error}"));
-            return HealthCheckResult.Degraded($"{healthyCount}/{totalCount} serviços saudáveis. Problemas: {partialErrors}");
+            return HealthCheckResult.Degraded($"{healthyCount}/{totalCount} services healthy. Issues: {partialErrors}");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro inesperado durante o health check de serviços externos");
+            logger.LogError(ex, "Unexpected error during external services health check");
             return HealthCheckResult.Unhealthy("Health check falhou com erro inesperado", ex);
         }
     }
@@ -74,7 +74,7 @@ public class ExternalServicesHealthCheck(
         try
         {
             if (string.IsNullOrWhiteSpace(externalServicesOptions.Keycloak.BaseUrl))
-                return (false, "BaseUrl não configurada");
+                return (false, "BaseUrl not configured");
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.Keycloak.TimeoutSeconds));
@@ -92,15 +92,15 @@ public class ExternalServicesHealthCheck(
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return (false, "Tempo limite da requisição");
+            return (false, "Request timeout");
         }
         catch (UriFormatException)
         {
-            return (false, "URL inválida");
+            return (false, "Invalid URL");
         }
         catch (HttpRequestException ex)
         {
-            return (false, $"Falha na conexão: {ex.Message}");
+            return (false, $"Connection failed: {ex.Message}");
         }
     }
 
@@ -109,7 +109,7 @@ public class ExternalServicesHealthCheck(
         try
         {
             if (string.IsNullOrWhiteSpace(externalServicesOptions.PaymentGateway.BaseUrl))
-                return (false, "BaseUrl não configurada");
+                return (false, "BaseUrl not configured");
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.PaymentGateway.TimeoutSeconds));
@@ -127,15 +127,15 @@ public class ExternalServicesHealthCheck(
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return (false, "Tempo limite da requisição");
+            return (false, "Request timeout");
         }
         catch (UriFormatException)
         {
-            return (false, "URL inválida");
+            return (false, "Invalid URL");
         }
         catch (HttpRequestException ex)
         {
-            return (false, $"Falha na conexão: {ex.Message}");
+            return (false, $"Connection failed: {ex.Message}");
         }
     }
 
@@ -144,7 +144,7 @@ public class ExternalServicesHealthCheck(
         try
         {
             if (string.IsNullOrWhiteSpace(externalServicesOptions.Geolocation.BaseUrl))
-                return (false, "BaseUrl não configurada");
+                return (false, "BaseUrl not configured");
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.Geolocation.TimeoutSeconds));
@@ -162,15 +162,15 @@ public class ExternalServicesHealthCheck(
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return (false, "Tempo limite da requisição");
+            return (false, "Request timeout");
         }
         catch (UriFormatException)
         {
-            return (false, "URL inválida");
+            return (false, "Invalid URL");
         }
         catch (HttpRequestException ex)
         {
-            return (false, $"Falha na conexão: {ex.Message}");
+            return (false, $"Connection failed: {ex.Message}");
         }
     }
 }

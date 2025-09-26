@@ -32,7 +32,7 @@ public static class Extensions
         services.AddUsersModule(configuration);
 
         // Configurar permissões de schema (apenas se habilitado)
-        if (configuration.GetValue<bool>("Database:EnableSchemaIsolation", false))
+        if (configuration.GetValue("Database:EnableSchemaIsolation", false))
         {
             await services.EnsureUsersSchemaPermissionsAsync(configuration, usersRolePassword, appRolePassword);
         }

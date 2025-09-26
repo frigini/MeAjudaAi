@@ -211,7 +211,7 @@ public class UpdateUserProfileCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        // Domain no longer validates empty fields - that's FluentValidation's responsibility
+        // O domínio não valida mais campos vazios - isso é responsabilidade do FluentValidation
         result.IsSuccess.Should().BeTrue();
 
         _userRepositoryMock.Verify(

@@ -34,6 +34,7 @@
     <ProjectReference Include="..\..\src\Modules\Users\Domain\MeAjudaAi.Modules.Users.Domain\MeAjudaAi.Modules.Users.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Users\Application\MeajudaAi.Modules.Users.Application\MeAjudaAi.Modules.Users.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Users\Tests\MeAjudaAi.Modules.Users.Tests.csproj" />
     <ProjectReference Include="..\..\src\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
     <ProjectReference Include="..\MeAjudaAi.Shared.Tests\MeAjudaAi.Shared.Tests.csproj" />
   </ItemGroup>

@@ -193,12 +193,12 @@ public static class SecurityExtensions
                     }
                     else
                     {
-                        throw new InvalidOperationException("Origem CORS coringa (*) não é permitida em ambientes de produção por motivos de segurança.");
+                        throw new InvalidOperationException("Wildcard CORS origin (*) is not allowed in production environments for security reasons.");
                     }
                 }
                 else
                 {
-                    policy.WithOrigins(corsOptions.AllowedOrigins.ToArray());
+                    policy.WithOrigins([.. corsOptions.AllowedOrigins]);
                 }
 
                 // Configura métodos permitidos

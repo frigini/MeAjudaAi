@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
 
-namespace MeAjudaAi.Shared.Tests.Mocks.Infrastructure;
+namespace MeAjudaAi.Shared.Tests.Extensions;
 
 /// <summary>
 /// Configurações de infraestrutura mock para testes
@@ -15,7 +15,7 @@ public static class MockInfrastructureExtensions
     /// Adiciona configurações otimizadas de logging para testes
     /// Reduz verbosidade mantendo apenas informações essenciais
     /// </summary>
-    public static IServiceCollection AddTestLogging(this IServiceCollection services)
+    public static IServiceCollection AddMockLogging(this IServiceCollection services)
     {
         services.Configure<LoggerFilterOptions>(options =>
         {
@@ -131,7 +131,7 @@ public static class TestEnvironmentProfiles
     /// </summary>
     public static void ConfigureForUnitTests(IServiceCollection services)
     {
-        services.AddTestLogging();
+        services.AddMockLogging();
         services.RemoveProductionServices();
         
         // Configurações específicas para unit tests
@@ -146,7 +146,7 @@ public static class TestEnvironmentProfiles
     /// </summary>
     public static void ConfigureForIntegrationTests(IServiceCollection services)
     {
-        services.AddTestLogging();
+        services.AddMockLogging();
         services.RemoveProductionServices();
         
         // Add messaging mocks for integration tests
@@ -186,7 +186,7 @@ public static class TestEnvironmentProfiles
     /// </summary>
     public static void ConfigureForE2ETests(IServiceCollection services)
     {
-        services.AddTestLogging();
+        services.AddMockLogging();
         
         // E2E tests podem precisar de mais informações
         services.Configure<LoggerFilterOptions>(options =>

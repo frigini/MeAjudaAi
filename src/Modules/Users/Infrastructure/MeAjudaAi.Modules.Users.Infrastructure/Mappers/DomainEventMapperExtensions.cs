@@ -23,7 +23,7 @@ public static class DomainEventMapperExtensions
             FirstName: domainEvent.FirstName,
             LastName: domainEvent.LastName,
             KeycloakId: string.Empty, // Será preenchido pela camada de infraestrutura
-            Roles: Array.Empty<string>(), // Será preenchido pela camada de infraestrutura
+            Roles: [], // Será preenchido pela camada de infraestrutura
             RegisteredAt: DateTime.UtcNow
         );
     }

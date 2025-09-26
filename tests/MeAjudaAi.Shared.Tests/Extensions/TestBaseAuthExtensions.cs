@@ -1,4 +1,6 @@
-namespace MeAjudaAi.Shared.Tests.Auth;
+using MeAjudaAi.Shared.Tests.Auth;
+
+namespace MeAjudaAi.Shared.Tests.Extensions;
 
 /// <summary>
 /// Extensões para classes de teste facilitar configuração de usuários

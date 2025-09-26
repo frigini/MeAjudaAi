@@ -77,7 +77,7 @@ public class TestCacheService : ICacheService
         if (pattern.Contains('*'))
         {
             var parts = pattern.Split('*', StringSplitOptions.RemoveEmptyEntries);
-            return parts.All(part => key.Contains(part));
+            return parts.All(key.Contains);
         }
         return key.Contains(pattern);
     }

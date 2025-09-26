@@ -3,9 +3,9 @@ using MeAjudaAi.E2E.Tests.Base;
 namespace MeAjudaAi.E2E.Tests.Integration;
 
 /// <summary>
-/// Testes para validar o funcionamento do API Versioning usando URL segments
-/// Pattern: /api/v{version}/module (e.g., /api/v1/users)
-/// Esta abordagem é explícita, clara e evita a complexidade de múltiplos métodos de versionamento
+/// Testes para validar o funcionamento do API Versioning usando segmentos de URL
+/// Padrão: /api/v{version}/module (ex: /api/v1/users)
+/// Essa abordagem é explícita, clara e evita a complexidade de múltiplos métodos de versionamento
 /// </summary>
 public class ApiVersioningTests : TestContainerTestBase
 {
@@ -16,27 +16,27 @@ public class ApiVersioningTests : TestContainerTestBase
         var response = await ApiClient.GetAsync("/api/v1/users");
 
         // Assert
-        // Should not be NotFound - indicates URL versioning is recognized and working
+        // Não deve ser NotFound - indica que o versionamento por URL foi reconhecido e está funcionando
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
-        // Valid responses: 200 (OK), 401 (Unauthorized), or 400 (BadRequest with validation errors)
+        // Respostas válidas: 200 (OK), 401 (Unauthorized) ou 400 (BadRequest com erros de validação)
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized, HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task ApiVersioning_ShouldReturnNotFound_ForInvalidPaths()
     {
-        // Arrange & Act - Test paths that should NOT work without URL versioning
+        // Arrange & Act - Testa caminhos que NÃO devem funcionar sem versionamento na URL
         var responses = new[]
         {
-            await ApiClient.GetAsync("/api/users"), // No version - should be 404
-            await ApiClient.GetAsync("/users"), // No api prefix - should be 404
-            await ApiClient.GetAsync("/api/v2/users") // Unsupported version - should be 404 or 400
+            await ApiClient.GetAsync("/api/users"), // Sem versão - deve ser 404
+            await ApiClient.GetAsync("/users"), // Sem prefixo api - deve ser 404
+            await ApiClient.GetAsync("/api/v2/users") // Versão não suportada - deve ser 404 ou 400
         };
 
         // Assert
         foreach (var response in responses)
         {
-            // These paths should not be found since we only support /api/v1/
+            // Esses caminhos não devem ser encontrados pois só suportamos /api/v1/
             response.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.BadRequest);
         }
     }
@@ -44,11 +44,11 @@ public class ApiVersioningTests : TestContainerTestBase
     [Fact]
     public async Task ApiVersioning_ShouldWork_ForDifferentModules()
     {
-        // Arrange & Act - Test that versioning works for any module pattern
+        // Arrange & Act - Testa se o versionamento funciona para qualquer padrão de módulo
         var responses = new[]
         {
             await ApiClient.GetAsync("/api/v1/users"),
-            // Add more modules when they exist
+            // Adicione mais módulos quando existirem
             // await HttpClient.GetAsync("/api/v1/services"),
             // await HttpClient.GetAsync("/api/v1/orders"),
         };
@@ -56,7 +56,7 @@ public class ApiVersioningTests : TestContainerTestBase
         // Assert
         foreach (var response in responses)
         {
-            // Should recognize the versioned URL pattern
+            // Deve reconhecer o padrão de URL versionada
             response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
             response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized, HttpStatusCode.BadRequest);
         }

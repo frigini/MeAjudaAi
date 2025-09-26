@@ -14,7 +14,8 @@ namespace MeAjudaAi.Modules.Users.Application.Services;
 [ModuleApi("Users", "1.0")]
 public sealed class UsersModuleApi(
     IQueryHandler<GetUserByIdQuery, Result<UserDto>> getUserByIdHandler,
-    IQueryHandler<GetUserByEmailQuery, Result<UserDto>> getUserByEmailHandler) : IUsersModuleApi, IModuleApi
+    IQueryHandler<GetUserByEmailQuery, Result<UserDto>> getUserByEmailHandler,
+    IQueryHandler<GetUserByUsernameQuery, Result<UserDto>> getUserByUsernameHandler) : IUsersModuleApi, IModuleApi
 {
     public string ModuleName => "Users";
     public string ApiVersion => "1.0";
@@ -107,9 +108,11 @@ public sealed class UsersModuleApi(
 
     public async Task<Result<bool>> UsernameExistsAsync(string username, CancellationToken cancellationToken = default)
     {
-        // TODO: Implementar quando houver GetUserByUsernameQuery
-        // Por enquanto, retorna false (não implementado)
-        await Task.CompletedTask;
-        return Result<bool>.Success(false);
+        var query = new GetUserByUsernameQuery(username);
+        var result = await getUserByUsernameHandler.HandleAsync(query, cancellationToken);
+        
+        return result.IsSuccess 
+            ? Result<bool>.Success(true)  // Usuário encontrado = username existe
+            : Result<bool>.Success(false); // Usuário não encontrado = username não existe
     }
 }

@@ -22,6 +22,7 @@ public static class Extensions
         services.AddScoped<IQueryHandler<GetUsersQuery, Result<PagedResult<UserDto>>>, GetUsersQueryHandler>();
         services.AddScoped<IQueryHandler<GetUserByIdQuery, Result<UserDto>>, GetUserByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>, GetUserByEmailQueryHandler>();
+        services.AddScoped<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>, GetUserByUsernameQueryHandler>();
 
         // Command Handlers - registro manual para garantir disponibilidade  
         services.AddScoped<ICommandHandler<CreateUserCommand, Result<UserDto>>, CreateUserCommandHandler>();

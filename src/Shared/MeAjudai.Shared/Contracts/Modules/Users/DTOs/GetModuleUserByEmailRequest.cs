@@ -1,6 +1,8 @@
+using MeAjudaAi.Shared.Contracts;
+
 namespace MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
 
 /// <summary>
 /// Request para buscar usuário por email entre módulos
 /// </summary>
-public sealed record GetModuleUserByEmailRequest(string Email);
+public sealed record GetModuleUserByEmailRequest(string Email) : Request;

@@ -43,7 +43,7 @@ public static class Extensions
                 npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
                 
-                // PERFORMANCE: Timeout mais longo para permitir criação de database
+                // PERFORMANCE: Timeout mais longo para permitir criação do banco de dados
                 npgsqlOptions.CommandTimeout(60);
             })
             .UseSnakeCaseNamingConvention()
@@ -58,11 +58,11 @@ public static class Extensions
             }
         });
 
-        // AUTO-MIGRATION: Configura factory para auto-criar database quando necessário
+        // AUTO-MIGRATION: Configura factory para auto-criar banco de dados quando necessário
         services.AddScoped<Func<UsersDbContext>>(provider => () =>
         {
             var context = provider.GetRequiredService<UsersDbContext>();
-            // Garante que database existe - LAZY APPROACH
+            // Garante que o banco de dados existe - ABORDAGEM PREGUIÇOSA
             context.Database.EnsureCreated();
             return context;
         });
@@ -93,10 +93,6 @@ public static class Extensions
         if (keycloakEnabled)
         {
             services.AddHttpClient<IKeycloakService, KeycloakService>();
-        }
-        else
-        {
-            services.AddScoped<IKeycloakService, MockKeycloakService>();
         }
 
         return services;

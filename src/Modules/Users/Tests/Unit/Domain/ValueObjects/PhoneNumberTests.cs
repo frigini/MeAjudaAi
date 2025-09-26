@@ -41,7 +41,7 @@ public class PhoneNumberTests
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(invalidValue!));
-        exception.Message.Should().Be("Phone number cannot be empty");
+        exception.Message.Should().Be("Telefone não pode ser vazio");
     }
 
     [Theory]
@@ -55,7 +55,7 @@ public class PhoneNumberTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() => new PhoneNumber(value, invalidCountryCode!));
-        exception.Message.Should().Be("Country code cannot be empty");
+        exception.Message.Should().Be("Código do país não pode ser vazio");
     }
 
     [Fact]

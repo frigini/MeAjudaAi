@@ -1,10 +1,6 @@
-using FluentAssertions;
-using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
-using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Shared.Time;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Users.Tests.Integration.Services;
 
@@ -196,7 +192,7 @@ public class UsersModuleApiIntegrationTests : UsersIntegrationTestBase
 
 
     [Fact]
-    public async Task UsernameExistsAsync_ShouldReturnFalse_AsNotYetImplemented()
+    public async Task UsernameExistsAsync_ShouldReturnTrue_WhenUserExists()
     {
         // Arrange
         await CreateUserAsync("usernametest", "usernametest@test.com", "Username", "Test");
@@ -206,7 +202,7 @@ public class UsersModuleApiIntegrationTests : UsersIntegrationTestBase
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeFalse(); // Not implemented yet
+        result.Value.Should().BeTrue(); // Usuário existe, então deve retornar true
     }
 
     [Fact]
@@ -230,7 +226,7 @@ public class UsersModuleApiIntegrationTests : UsersIntegrationTestBase
         var users = new List<Domain.Entities.User>();
         var userIds = new List<Guid>();
 
-        // Create 10 users for batch test
+        // Cria 10 usuários para o teste em lote
         for (int i = 0; i < 10; i++)
         {
             var user = await CreateUserAsync(

@@ -1,5 +1,6 @@
 using Bogus;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
@@ -236,8 +237,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     {
                         services.Remove(desc);
                     }
-                    services.AddScoped<MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.IKeycloakService, 
-                                    MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.MockKeycloakService>();
+                    services.AddScoped<MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.IKeycloakService, MockKeycloakService>();
                     
                     // DEBUG: Vamos ver o que realmente está registrado
                     Console.WriteLine("[TEST-AUTH-DEBUG] Final authentication services:");

@@ -16,7 +16,7 @@ public class UserBuilder : BuilderBase<User>
 
     public UserBuilder()
     {
-        // Configure Faker with specific rules for User domain
+        // Configura o Faker com regras específicas para o domínio User
         Faker = new Faker<User>()
             .CustomInstantiator(f => {
                 var user = new User(

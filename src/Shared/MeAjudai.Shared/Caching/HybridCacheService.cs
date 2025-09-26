@@ -20,7 +20,7 @@ public class HybridCacheService(
                 key,
                 factory: _ => 
                 {
-                    isHit = false; // Factory called = cache miss
+                    isHit = false; // Factory chamado = cache miss
                     return new ValueTask<T>(default(T)!);
                 },
                 cancellationToken: cancellationToken);

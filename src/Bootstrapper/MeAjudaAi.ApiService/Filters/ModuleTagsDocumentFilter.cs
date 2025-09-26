@@ -11,18 +11,18 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
     private readonly Dictionary<string, string> _moduleDescriptions = new()
     {
         ["Users"] = "Gerenciamento de usuários, perfis e autenticação",
-        ["Services"] = "Catálogo de serviços e categorias",
-        ["Bookings"] = "Agendamentos e execução de serviços",
-        ["Notifications"] = "Sistema de notificações e comunicação",
-        ["Reports"] = "Relatórios e analytics do sistema",
-        ["Admin"] = "Funcionalidades administrativas do sistema",
+        //["Services"] = "Catálogo de serviços e categorias",
+        //["Bookings"] = "Agendamentos e execução de serviços",
+        //["Notifications"] = "Sistema de notificações e comunicação",
+        //["Reports"] = "Relatórios e analytics do sistema",
+        //["Admin"] = "Funcionalidades administrativas do sistema",
         ["Health"] = "Monitoramento e health checks dos serviços"
     };
 
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
         // Organizar tags em ordem lógica
-        var orderedTags = new List<string> { "Users", "Services", "Bookings", "Notifications", "Reports", "Admin", "Health" };
+        var orderedTags = new List<string> { "Users",/* "Services", "Bookings", "Notifications", "Reports", "Admin",*/ "Health" };
         
         // Criar tags com descrições
         swaggerDoc.Tags = [];
@@ -83,11 +83,6 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
             {
                 Url = "http://localhost:5000",
                 Description = "Desenvolvimento Local"
-            },
-            new OpenApiServer
-            {
-                Url = "https://api-staging.meajudaai.com",
-                Description = "Ambiente de Staging"
             },
             new OpenApiServer
             {

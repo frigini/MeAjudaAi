@@ -1,5 +1,3 @@
-using Aspire.Hosting.ApplicationModel;
-
 namespace MeAjudaAi.AppHost.Extensions;
 
 /// <summary>
