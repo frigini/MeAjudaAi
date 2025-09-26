@@ -18,7 +18,7 @@ public class UserMessagingTests : MessagingIntegrationTestBase
 
     private async Task EnsureMessagingInitializedAsync()
     {
-        if (MessagingMocks == null)
+        if (ServiceBusMock == null || RabbitMqMock == null)
         {
             await InitializeTestAsync();
         }
@@ -100,11 +100,9 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         var userId = createData.GetProperty("data").GetProperty("id").GetGuid();
 
         // Limpar mensagens da criação (sem limpar banco de dados)
-        if (MessagingMocks == null)
-        {
-            await InitializeTestAsync();
-        }
-        MessagingMocks?.ClearAllMessages();
+        await EnsureMessagingInitializedAsync();
+        ServiceBusMock!.ClearPublishedMessages();
+        RabbitMqMock!.ClearPublishedMessages();
 
         // Configurar autenticação como o usuário criado (para poder atualizar seus próprios dados)
         // Usando o userId real retornado do endpoint de criação
@@ -175,11 +173,9 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         var userId = createData.GetProperty("data").GetProperty("id").GetGuid();
 
         // Limpar mensagens da criação (sem limpar banco de dados)
-        if (MessagingMocks == null)
-        {
-            await InitializeTestAsync();
-        }
-        MessagingMocks?.ClearAllMessages();
+        await EnsureMessagingInitializedAsync();
+        ServiceBusMock!.ClearPublishedMessages();
+        RabbitMqMock!.ClearPublishedMessages();
 
         // Act - Deletar usuário
         var deleteResponse = await Client.DeleteAsync($"/api/v1/users/{userId}");

@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
 
 namespace MeAjudaAi.Integration.Tests.Users;
@@ -7,12 +8,14 @@ namespace MeAjudaAi.Integration.Tests.Users;
 /// </summary>
 public abstract class MessagingIntegrationTestBase : Base.ApiTestBase
 {
-    protected MessagingMockManager MessagingMocks { get; private set; } = null!;
+    protected MockServiceBusMessageBus ServiceBusMock { get; private set; } = null!;
+    protected MockRabbitMqMessageBus RabbitMqMock { get; private set; } = null!;
 
     public Task InitializeTestAsync()
     {
-        // Obtém o gerenciador de mocks de messaging
-        MessagingMocks = Factory.Services.GetRequiredService<MessagingMockManager>();
+        // Obtém os mocks individuais de messaging
+        ServiceBusMock = Factory.Services.GetRequiredService<MockServiceBusMessageBus>();
+        RabbitMqMock = Factory.Services.GetRequiredService<MockRabbitMqMessageBus>();
         return Task.CompletedTask;
     }
 
@@ -24,28 +27,33 @@ public abstract class MessagingIntegrationTestBase : Base.ApiTestBase
         await ResetDatabaseAsync();
         
         // Inicializa o messaging se ainda não foi inicializado
-        if (MessagingMocks == null)
+        if (ServiceBusMock == null || RabbitMqMock == null)
         {
             await InitializeTestAsync();
         }
         
-        MessagingMocks?.ClearAllMessages();
+        // Limpa mensagens de todos os mocks
+        ServiceBusMock?.ClearPublishedMessages();
+        RabbitMqMock?.ClearPublishedMessages();
     }
 
     /// <summary>
-    /// Verifica se uma mensagem específica foi publicada
+    /// Verifica se uma mensagem específica foi publicada em qualquer sistema
     /// </summary>
     protected bool WasMessagePublished<T>(Func<T, bool>? predicate = null) where T : class
     {
-        return MessagingMocks.WasMessagePublishedAnywhere(predicate);
+        return ServiceBusMock.WasMessagePublished(predicate) || 
+               RabbitMqMock.WasMessagePublished(predicate);
     }
 
     /// <summary>
-    /// Obtém todas as mensagens de um tipo específico
+    /// Obtém todas as mensagens de um tipo específico de todos os sistemas
     /// </summary>
     protected IEnumerable<T> GetPublishedMessages<T>() where T : class
     {
-        return MessagingMocks.GetAllPublishedMessages<T>();
+        var serviceBusMessages = ServiceBusMock.GetPublishedMessages<T>();
+        var rabbitMqMessages = RabbitMqMock.GetPublishedMessages<T>();
+        return serviceBusMessages.Concat(rabbitMqMessages);
     }
 
     /// <summary>
@@ -53,6 +61,11 @@ public abstract class MessagingIntegrationTestBase : Base.ApiTestBase
     /// </summary>
     protected MessagingStatistics GetMessagingStatistics()
     {
-        return MessagingMocks.GetStatistics();
+        return new MessagingStatistics
+        {
+            ServiceBusMessageCount = ServiceBusMock.PublishedMessages.Count,
+            RabbitMqMessageCount = RabbitMqMock.PublishedMessages.Count,
+            TotalMessageCount = ServiceBusMock.PublishedMessages.Count + RabbitMqMock.PublishedMessages.Count
+        };
     }
 }

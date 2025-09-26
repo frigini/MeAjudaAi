@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
+using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Events;
 using Microsoft.AspNetCore.Authentication;
@@ -218,7 +219,6 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     // FORÇA registros específicos de messaging que podem não estar sendo detectados pelo Scrutor
                     services.AddSingleton<MeAjudaAi.Shared.Tests.Mocks.Messaging.MockServiceBusMessageBus>();
                     services.AddSingleton<MeAjudaAi.Shared.Tests.Mocks.Messaging.MockRabbitMqMessageBus>();
-                    services.AddSingleton<MeAjudaAi.Shared.Tests.Mocks.Messaging.MessagingMockManager>();
                     
                     // Event Handlers são registrados pelo próprio módulo Users via Extensions.AddEventHandlers()
                     
