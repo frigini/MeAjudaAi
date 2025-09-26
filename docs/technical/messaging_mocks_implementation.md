@@ -21,7 +21,8 @@ Este documento descreve a implementação completa de mocks para Azure Service B
 - `WasMessageSent<T>()` - Verifica se mensagem foi enviada
 - `WasEventPublished<T>()` - Verifica se evento foi publicado
 - `GetSentMessages<T>()` - Obtém mensagens enviadas por tipo
-- `SimulateSendFailure()` - Simula falhas de envio
+- `SimulateSendFailure()` - Simula falhas de envio de mensagens
+- `SimulatePublishFailure()` - Simula falhas de publicação de eventos
 
 ### 2. MockRabbitMqMessageBus
 
@@ -151,8 +152,15 @@ stats.TotalMessageCount.Should().Be(3);
 ### Simulação de Falhas
 
 ```csharp
-MessagingMocks.ServiceBus.SimulatePublishFailure(new Exception("Test failure"));
-// Testar cenário de falha
+// Simular falha em envio de mensagens
+MessagingMocks.ServiceBus.SimulateSendFailure(new Exception("Send failure"));
+
+// Simular falha em publicação de eventos
+MessagingMocks.ServiceBus.SimulatePublishFailure(new Exception("Publish failure"));
+
+// Testar cenários de falha...
+
+// Restaurar comportamento normal
 MessagingMocks.ServiceBus.ResetToNormalBehavior();
 ```
 

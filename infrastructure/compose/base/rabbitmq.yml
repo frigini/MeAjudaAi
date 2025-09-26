@@ -1,13 +1,16 @@
 # RabbitMQ message broker service
 # Use with: docker compose -f base/rabbitmq.yml up
+#
+# Security: RABBITMQ_USER and RABBITMQ_PASS are required via environment variables
+# Set in .env file or via environment - will fail if not provided (no guest defaults)
 
 services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: meajudaai-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?Missing RABBITMQ_USER environment variable}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:?Missing RABBITMQ_PASS environment variable}
     ports:
       - "${RABBITMQ_PORT:-5672}:5672"
       - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"

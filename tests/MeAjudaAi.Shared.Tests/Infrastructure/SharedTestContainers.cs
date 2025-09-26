@@ -45,7 +45,7 @@ public static class SharedTestContainers
         DatabaseName = "test_db",
         Username = "test_user",
         Password = "test_password",
-        Schema = "public"
+        Schema = "users" // Usado como padrão para garantir compatibilidade com UsersModule migrations
     };
 
     /// <summary>
@@ -82,6 +82,40 @@ public static class SharedTestContainers
         EnsureInitialized();
         
         await _postgreSqlContainer!.StartAsync();
+        
+        // Verifica se o container está realmente pronto
+        await ValidateContainerHealthAsync();
+    }
+    
+    /// <summary>
+    /// Valida se o container PostgreSQL está saudável e pronto para conexões
+    /// </summary>
+    private static async Task ValidateContainerHealthAsync()
+    {
+        if (_postgreSqlContainer == null) return;
+        
+        const int maxRetries = 30;
+        const int delayMs = 1000;
+        
+        for (int i = 0; i < maxRetries; i++)
+        {
+            try
+            {
+                // Tenta obter connection string para verificar se as portas estão mapeadas
+                var connectionString = _postgreSqlContainer.GetConnectionString();
+                
+                // Se conseguiu obter, o container está pronto
+                Console.WriteLine($"Container PostgreSQL ready! Connection: {connectionString}");
+                return;
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("not mapped"))
+            {
+                Console.WriteLine($"Container not ready yet (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                await Task.Delay(delayMs);
+            }
+        }
+        
+        throw new InvalidOperationException("PostgreSQL container failed to become ready after maximum retries.");
     }
 
     /// <summary>

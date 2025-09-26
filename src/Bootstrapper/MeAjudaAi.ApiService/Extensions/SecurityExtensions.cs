@@ -3,7 +3,10 @@ using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
@@ -177,7 +180,16 @@ public static class SecurityExtensions
                     // Só permite coringa em desenvolvimento
                     if (environment.IsDevelopment())
                     {
-                        policy.AllowAnyOrigin();
+                        // AllowAnyOrigin() é incompatível com AllowCredentials()
+                        if (corsOptions.AllowCredentials)
+                        {
+                            // Usa SetIsOriginAllowed para permitir qualquer origem com credenciais
+                            policy.SetIsOriginAllowed(_ => true);
+                        }
+                        else
+                        {
+                            policy.AllowAnyOrigin();
+                        }
                     }
                     else
                     {
@@ -278,7 +290,7 @@ public static class SecurityExtensions
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         ClockSkew = keycloakOptions.ClockSkew,
-                        RoleClaimType = "roles", // Keycloak usa o claim 'roles'
+                        RoleClaimType = ClaimTypes.Role,
                         NameClaimType = "preferred_username" // Claim de usuário preferencial do Keycloak
                     };
 
@@ -301,18 +313,36 @@ public static class SecurityExtensions
                         OnTokenValidated = context =>
                         {
                             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
-                            var userId = context.Principal?.FindFirst("sub")?.Value;
+                            var principal = context.Principal!;
+                            var clientId = context.HttpContext.RequestServices.GetRequiredService<IOptions<KeycloakOptions>>().Value.ClientId;
+
+                            // Copy existing claims and add role claims from Keycloak structures
+                            var claims = principal.Claims.ToList();
+                            var json = context.SecurityToken as JwtSecurityToken;
+                            if (json is not null && json.Payload.TryGetValue("realm_access", out var realmObj) && realmObj is IDictionary<string, object> realmDict
+                                && realmDict.TryGetValue("roles", out var realmRoles) && realmRoles is IEnumerable<object> rr)
+                            {
+                                foreach (var r in rr.OfType<string>()) claims.Add(new Claim(ClaimTypes.Role, r));
+                            }
+                            if (json is not null && json.Payload.TryGetValue("resource_access", out var resObj) && resObj is IDictionary<string, object> resDict
+                                && resDict.TryGetValue(clientId, out var clientObj) && clientObj is IDictionary<string, object> clientDict
+                                && clientDict.TryGetValue("roles", out var clientRoles) && clientRoles is IEnumerable<object> cr)
+                            {
+                                foreach (var r in cr.OfType<string>()) claims.Add(new Claim(ClaimTypes.Role, r));
+                            }
+
+                            var identity = new ClaimsIdentity(claims, principal.Identity?.AuthenticationType, "preferred_username", ClaimTypes.Role);
+                            context.Principal = new ClaimsPrincipal(identity);
+
+                            var userId = context.Principal.FindFirst("sub")?.Value;
                             logger.LogDebug("JWT token validated successfully for user: {UserId}", userId);
                             return Task.CompletedTask;
                         }
                     };
                 });
 
-            // Loga a configuração efetiva do Keycloak (sem segredos)
-            using var serviceProvider = services.BuildServiceProvider();
-            var logger = serviceProvider.GetRequiredService<ILogger<JwtBearerHandler>>();
-            logger.LogInformation("Keycloak authentication configured - Authority: {Authority}, ClientId: {ClientId}, ValidateIssuer: {ValidateIssuer}", 
-                keycloakOptions.AuthorityUrl, keycloakOptions.ClientId, keycloakOptions.ValidateIssuer);
+        // Register startup logging service for Keycloak configuration
+        services.AddHostedService<KeycloakConfigurationLogger>();
 
         return services;
     }
@@ -341,4 +371,25 @@ public static class SecurityExtensions
 
         return services;
     }
+}
+
+/// <summary>
+/// Hosted service para logar a configuração do Keycloak durante a inicialização da aplicação
+/// </summary>
+internal sealed class KeycloakConfigurationLogger(
+    IOptions<KeycloakOptions> keycloakOptions,
+    ILogger<KeycloakConfigurationLogger> logger) : IHostedService
+{
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        var options = keycloakOptions.Value;
+        
+        // Loga a configuração efetiva do Keycloak (sem segredos)
+        logger.LogInformation("Keycloak authentication configured - Authority: {Authority}, ClientId: {ClientId}, ValidateIssuer: {ValidateIssuer}", 
+            options.AuthorityUrl, options.ClientId, options.ValidateIssuer);
+            
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

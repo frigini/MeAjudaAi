@@ -1,6 +1,16 @@
 # Complete development environment for MeAjudaAi
 # Includes all necessary services for local development
 # Usage: docker compose -f environments/development.yml up -d
+#
+# SECURITY WARNING: This file contains weak default passwords for local development only.
+# REQUIRED: Set KEYCLOAK_ADMIN_PASSWORD and RABBITMQ_PASS before running
+# Generate passwords with: openssl rand -base64 32
+# For shared, staging, or production environments, set secure passwords using:
+#   POSTGRES_PASSWORD=strong-password
+#   KEYCLOAK_DB_PASSWORD=strong-password  
+#   KEYCLOAK_ADMIN_PASSWORD=strong-password
+#   RABBITMQ_PASS=strong-password
+# See .env.example for complete configuration.
 
 services:
   # Main database
@@ -10,12 +20,12 @@ services:
     environment:
       POSTGRES_DB: MeAjudaAi
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: dev123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev123}  # Use strong password for shared/deployed environments
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init:/docker-entrypoint-initdb.d
+      - ../../database:/docker-entrypoint-initdb.d
     networks:
       - meajudaai-network
 
@@ -26,7 +36,7 @@ services:
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak}  # Use strong password for shared/deployed environments
     volumes:
       - keycloak_db_data:/var/lib/postgresql/data
     networks:
@@ -36,12 +46,12 @@ services:
     image: quay.io/keycloak/keycloak:latest
     container_name: meajudaai-keycloak-dev
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Missing KEYCLOAK_ADMIN_PASSWORD environment variable}
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
       KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak}
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HTTP_ENABLED: true
@@ -72,13 +82,14 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: meajudaai-rabbitmq-dev
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-meajudaai}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:?Missing RABBITMQ_PASS environment variable}
     ports:
       - "5672:5672"
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+      - ../../rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     networks:
       - meajudaai-network
 

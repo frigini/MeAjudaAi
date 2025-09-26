@@ -180,7 +180,7 @@ get_linux_platform_name() {
         fi
     fi
 
-    say_verbose "Linux specific platform name and version could not be detected: UName = $uname"
+    say_verbose "Linux specific platform name and version could not be detected: UName = $(uname)"
     return 1
 }
 
@@ -1169,11 +1169,11 @@ download() {
             exit 1
         fi
 
-        if [ "$failed" = false ] || [ $attempts -ge 3 ] || { [ ! -z $http_code ] && [ $http_code = "404" ]; }; then
+        if [ "$failed" = false ] || [ $attempts -ge 3 ] || { [ -n "${http_code:-}" ] && [ "${http_code:-}" = "404" ]; }; then
             break
         fi
 
-        say "Download attempt #$attempts has failed: $http_code $download_error_msg"
+        say "Download attempt #$attempts has failed: ${http_code:-} $download_error_msg"
         say "Attempt #$((attempts+1)) will start in $((attempts*10)) seconds."
         sleep $((attempts*10))
     done

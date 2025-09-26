@@ -1,3 +1,5 @@
+using Aspire.Hosting.ApplicationModel;
+
 namespace MeAjudaAi.AppHost.Extensions;
 
 /// <summary>
@@ -18,7 +20,7 @@ public sealed class MeAjudaAiPostgreSqlOptions
     /// <summary>
     /// Senha do PostgreSQL
     /// </summary>
-    public string Password { get; set; } = "dev123";
+    public string Password { get; set; } = "";
     
     /// <summary>
     /// Indica se deve habilitar configuração otimizada para testes
@@ -44,7 +46,7 @@ public sealed class MeAjudaAiPostgreSqlResult
     /// <summary>
     /// Referência ao banco de dados principal da aplicação (único para todos os módulos)
     /// </summary>
-    public required object MainDatabase { get; init; }
+    public required IResourceBuilder<IResource> MainDatabase { get; init; }
     
     /// <summary>
     /// String de conexão direta (cenários de teste)
@@ -125,6 +127,9 @@ public static class PostgreSqlExtensions
         IDistributedApplicationBuilder builder, 
         MeAjudaAiPostgreSqlOptions options)
     {
+        if (string.IsNullOrWhiteSpace(options.Password))
+            throw new InvalidOperationException("POSTGRES_PASSWORD must be provided via env var or options for testing.");
+            
         // Usa nomenclatura consistente com testes de integração - eles esperam "postgres-local"
         var postgres = builder.AddPostgres("postgres-local")
             .WithImageTag("13-alpine") // Usa PostgreSQL 13 para melhor compatibilidade
@@ -146,13 +151,16 @@ public static class PostgreSqlExtensions
         IDistributedApplicationBuilder builder, 
         MeAjudaAiPostgreSqlOptions options)
     {
+        if (string.IsNullOrWhiteSpace(options.Password))
+            throw new InvalidOperationException("POSTGRES_PASSWORD must be provided via env var or options for development.");
+            
         // Setup completo de desenvolvimento
         var postgresBuilder = builder.AddPostgres("postgres-local")
             .WithDataVolume()
+            .WithImageTag("13-alpine")
             .WithEnvironment("POSTGRES_DB", options.MainDatabase)
             .WithEnvironment("POSTGRES_USER", options.Username)
-            .WithEnvironment("POSTGRES_PASSWORD", options.Password)
-            .WithEnvironment("PGPASSWORD", options.Password);
+            .WithEnvironment("POSTGRES_PASSWORD", options.Password);
 
         if (options.IncludePgAdmin)
         {

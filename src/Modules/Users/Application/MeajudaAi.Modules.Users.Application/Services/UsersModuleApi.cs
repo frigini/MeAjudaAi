@@ -40,7 +40,9 @@ public sealed class UsersModuleApi(
                     userDto.FirstName,
                     userDto.LastName,
                     userDto.FullName)),
-            onFailure: error => Result<ModuleUserDto?>.Failure(error)
+            onFailure: error => error.StatusCode == 404 
+                ? Result<ModuleUserDto?>.Success(null)  // NotFound -> Success(null)
+                : Result<ModuleUserDto?>.Failure(error) // Outros erros propagam
         );
     }
 
@@ -59,7 +61,9 @@ public sealed class UsersModuleApi(
                     userDto.FirstName,
                     userDto.LastName,
                     userDto.FullName)),
-            onFailure: error => Result<ModuleUserDto?>.Failure(error)
+            onFailure: error => error.StatusCode == 404 
+                ? Result<ModuleUserDto?>.Success(null)  // NotFound -> Success(null)
+                : Result<ModuleUserDto?>.Failure(error) // Outros erros propagam
         );
     }
 

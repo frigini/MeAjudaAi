@@ -1,5 +1,10 @@
 # Keycloak with dedicated PostgreSQL database
 # Use with: docker compose -f base/keycloak.yml up
+# 
+# Version Management:
+# - Keycloak version is pinned via KEYCLOAK_VERSION environment variable
+# - Default: 26.0.2 (production-stable release)
+# - Override via .env file: KEYCLOAK_VERSION=x.y.z
 
 services:
   keycloak-db:
@@ -21,7 +26,7 @@ services:
       - meajudaai-network
 
   keycloak:
-    image: quay.io/keycloak/keycloak:latest
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}
     container_name: meajudaai-keycloak
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}

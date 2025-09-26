@@ -1,29 +1,24 @@
--- Users Module - Permissions
--- Grant permissions for users module
-GRANT USAGE ON SCHEMA users TO users_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA users TO users_role;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA users TO users_role;
+-- PROVIDERS Module - Permissions
+-- Grant permissions for providers module
+GRANT USAGE ON SCHEMA providers TO providers_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA providers TO providers_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA providers TO providers_role;
 
--- Set default privileges for future tables and sequences
-ALTER DEFAULT PRIVILEGES IN SCHEMA users GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO users_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA users GRANT USAGE, SELECT ON SEQUENCES TO users_role;
+-- Set default privileges for future tables and sequences created by providers_role
+ALTER DEFAULT PRIVILEGES FOR ROLE providers_role IN SCHEMA providers GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO providers_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE providers_role IN SCHEMA providers GRANT USAGE, SELECT ON SEQUENCES TO providers_role;
 
--- Set default search path for users_role
-ALTER ROLE users_role SET search_path = users, public;
+-- Set default search path for providers_role
+ALTER ROLE providers_role SET search_path = providers, public;
 
 -- Grant cross-schema permissions to app role
-GRANT USAGE ON SCHEMA users TO meajudaai_app_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA users TO meajudaai_app_role;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA users TO meajudaai_app_role;
+GRANT USAGE ON SCHEMA providers TO meajudaai_app_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA providers TO meajudaai_app_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA providers TO meajudaai_app_role;
 
--- Set default privileges for app role
-ALTER DEFAULT PRIVILEGES IN SCHEMA users GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA users GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
-
--- Set search path for app role
-ALTER ROLE meajudaai_app_role SET search_path = users, public;
+-- Set default privileges for app role on objects created by providers_role
+ALTER DEFAULT PRIVILEGES FOR ROLE providers_role IN SCHEMA providers GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE providers_role IN SCHEMA providers GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
 
 -- Grant permissions on public schema
-GRANT USAGE ON SCHEMA public TO users_role;
-GRANT USAGE ON SCHEMA public TO meajudaai_app_role;
-GRANT CREATE ON SCHEMA public TO meajudaai_app_role;
+GRANT USAGE ON SCHEMA public TO providers_role;

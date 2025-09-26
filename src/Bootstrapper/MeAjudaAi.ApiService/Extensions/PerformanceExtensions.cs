@@ -12,15 +12,18 @@ public static class PerformanceExtensions
     {
         services.AddResponseCompression(options =>
         {
-            options.EnableForHttps = true;
-            options.Providers.Add<GzipCompressionProvider>();
-            options.Providers.Add<BrotliCompressionProvider>();
+            // Usa compressão seletiva para prevenir CRIME/BREACH attacks
+            options.EnableForHttps = false; // Desabilitado globalmente - usaremos lógica customizada
+            
+            // Usa provedores personalizados com verificação de segurança
+            options.Providers.Add<SafeGzipCompressionProvider>();
+            options.Providers.Add<SafeBrotliCompressionProvider>();
             
             // Adiciona tipos MIME que devem ser comprimidos
             options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
             {
                 "application/json",
-                "application/xml",
+                "application/xml", 
                 "text/xml",
                 "application/javascript",
                 "text/css",
@@ -39,6 +42,113 @@ public static class PerformanceExtensions
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// Verifica se a resposta é segura para compressão (previne CRIME/BREACH)
+    /// </summary>
+    public static bool IsSafeForCompression(HttpContext context)
+    {
+        var request = context.Request;
+        var response = context.Response;
+        
+        // Não comprima se há dados de autenticação
+        if (HasAuthenticationData(request, response))
+            return false;
+            
+        // Não comprima endpoints sensíveis
+        if (IsSensitivePath(request.Path))
+            return false;
+            
+        // Não comprima respostas pequenas (< 1KB)
+        if (response.ContentLength.HasValue && response.ContentLength < 1024)
+            return false;
+            
+        // Não comprima content-types que podem conter secrets
+        if (HasSensitiveContentType(response.ContentType))
+            return false;
+            
+        // Não comprima se há cookies de sessão/autenticação
+        if (HasSensitiveCookies(request, response))
+            return false;
+            
+        return true;
+    }
+    
+    private static bool HasAuthenticationData(HttpRequest request, HttpResponse response)
+    {
+        // Verifica headers de autenticação
+        if (request.Headers.ContainsKey("Authorization") || 
+            request.Headers.ContainsKey("X-API-Key") ||
+            response.Headers.ContainsKey("Authorization"))
+            return true;
+            
+        // Verifica se o usuário está autenticado
+        if (request.HttpContext.User?.Identity?.IsAuthenticated == true)
+            return true;
+            
+        return false;
+    }
+    
+    private static bool IsSensitivePath(PathString path)
+    {
+        var sensitivePaths = new[]
+        {
+            "/auth", "/login", "/token", "/refresh", "/logout",
+            "/api/auth", "/api/login", "/api/token", "/api/refresh",
+            "/connect", "/oauth", "/openid", "/identity",
+            "/users/profile", "/users/me", "/account"
+        };
+        
+        return sensitivePaths.Any(sensitive => 
+            path.StartsWithSegments(sensitive, StringComparison.OrdinalIgnoreCase));
+    }
+    
+    private static bool HasSensitiveContentType(string? contentType)
+    {
+        if (string.IsNullOrEmpty(contentType))
+            return false;
+            
+        var sensitiveTypes = new[]
+        {
+            "application/jwt",
+            "application/x-www-form-urlencoded", // Pode conter credenciais
+            "multipart/form-data" // Pode conter uploads sensíveis
+        };
+        
+        return sensitiveTypes.Any(type => 
+            contentType.StartsWith(type, StringComparison.OrdinalIgnoreCase));
+    }
+    
+    private static bool HasSensitiveCookies(HttpRequest request, HttpResponse response)
+    {
+        var sensitiveCookieNames = new[]
+        {
+            "auth", "session", "token", "jwt", "identity", 
+            ".AspNetCore.Identity", ".AspNetCore.Session",
+            "XSRF-TOKEN", "CSRF-TOKEN"
+        };
+        
+        // Verifica cookies na requisição
+        foreach (var cookie in request.Cookies)
+        {
+            if (sensitiveCookieNames.Any(name => 
+                cookie.Key.Contains(name, StringComparison.OrdinalIgnoreCase)))
+                return true;
+        }
+        
+        // Verifica cookies sendo definidos na resposta
+        if (response.Headers.TryGetValue("Set-Cookie", out var setCookies))
+        {
+            foreach (var setCookie in setCookies)
+            {
+                if (setCookie != null && sensitiveCookieNames.Any(name => 
+                    setCookie.Contains(name, StringComparison.OrdinalIgnoreCase)))
+                    return true;
+            }
+        }
+        
+        return false;
     }
 
     /// <summary>
@@ -79,5 +189,43 @@ public static class PerformanceExtensions
         });
 
         return services;
+    }
+}
+
+/// <summary>
+/// Provedor de compressão Gzip seguro que previne CRIME/BREACH
+/// </summary>
+public class SafeGzipCompressionProvider : ICompressionProvider
+{
+    public string EncodingName => "gzip";
+    public bool SupportsFlush => true;
+
+    public Stream CreateStream(Stream outputStream)
+    {
+        return new GZipStream(outputStream, CompressionLevel.Optimal, leaveOpen: false);
+    }
+
+    public bool ShouldCompressResponse(HttpContext context)
+    {
+        return PerformanceExtensions.IsSafeForCompression(context);
+    }
+}
+
+/// <summary>
+/// Provedor de compressão Brotli seguro que previne CRIME/BREACH
+/// </summary>
+public class SafeBrotliCompressionProvider : ICompressionProvider
+{
+    public string EncodingName => "br";
+    public bool SupportsFlush => true;
+
+    public Stream CreateStream(Stream outputStream)
+    {
+        return new BrotliStream(outputStream, CompressionLevel.Optimal, leaveOpen: false);
+    }
+
+    public bool ShouldCompressResponse(HttpContext context)
+    {
+        return PerformanceExtensions.IsSafeForCompression(context);
     }
 }

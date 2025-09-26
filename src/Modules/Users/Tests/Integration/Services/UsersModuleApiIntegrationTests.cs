@@ -8,13 +8,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Users.Tests.Integration.Services;
 
+[Collection("UsersIntegrationTests")]
 public class UsersModuleApiIntegrationTests : UsersIntegrationTestBase
 {
-    private readonly IUsersModuleApi _moduleApi;
+    private IUsersModuleApi _moduleApi = null!;
 
-    public UsersModuleApiIntegrationTests()
+    protected override Task OnModuleInitializeAsync(IServiceProvider serviceProvider)
     {
         _moduleApi = GetService<IUsersModuleApi>();
+        return Task.CompletedTask;
     }
 
     [Fact]

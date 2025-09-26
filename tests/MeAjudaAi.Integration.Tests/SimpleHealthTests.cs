@@ -1,7 +1,11 @@
 using FluentAssertions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.Shared.Tests.Auth;
+using System.Net;
 
 namespace MeAjudaAi.Integration.Tests;
 
@@ -17,6 +21,10 @@ public class SimpleHealthTests(WebApplicationFactory<Program> factory) : IClassF
                 {
                     logging.SetMinimumLevel(LogLevel.Warning);
                 });
+
+                // Configurar autenticação básica para evitar erros de DI
+                services.AddAuthentication("Test")
+                    .AddScheme<AuthenticationSchemeOptions, AspireTestAuthenticationHandler>("Test", options => { });
             });
         });
 

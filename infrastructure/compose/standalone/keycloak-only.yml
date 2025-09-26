@@ -1,14 +1,20 @@
 # Standalone Keycloak for development
 # Minimal setup with embedded H2 database for quick testing
-# Usage: docker compose -f standalone/keycloak-only.yml up -d
+# 
+# REQUIRED: Set KEYCLOAK_ADMIN_PASSWORD before running
+# Usage:
+#   export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
+#   docker compose -f standalone/keycloak-only.yml up -d
+#
+# Or use .env file with secure credentials
 
 services:
   keycloak:
-    image: quay.io/keycloak/keycloak:latest
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}
     container_name: meajudaai-keycloak-standalone
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Missing KEYCLOAK_ADMIN_PASSWORD environment variable}
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HTTP_ENABLED: true

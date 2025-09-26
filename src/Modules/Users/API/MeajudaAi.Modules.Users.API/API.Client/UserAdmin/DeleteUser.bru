@@ -29,21 +29,14 @@ docs {
   - **Requer token**: Sim (admin)
   
   ## Path Parameters
-  - `id` (uuid, required): ID do usuário a ser removido
+  - `userId` (uuid, required): ID do usuário a ser removido
   
   ## Instruções
   1. Configure a variável `userId` com um ID válido
   2. ⚠️ **CUIDADO**: Esta operação remove o usuário
   
   ## Resposta Esperada
-  ```json
-  {
-    "success": true,
-    "data": null,
-    "message": "User deleted successfully",
-    "errors": []
-  }
-  ```
+  - **204 No Content**: Removido com sucesso (sem corpo da resposta)
   
   ## Códigos de Status
   - **204**: Removido com sucesso (No Content)

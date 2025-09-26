@@ -137,14 +137,27 @@ save_current_state() {
     if [ "$RESET" = false ]; then
         print_verbose "Salvando estado atual das variáveis..."
         
-        # Salvar em arquivo temporário
-        local state_file="/tmp/meajudaai_env_backup_$$"
+        # Salvar script de restauração idempotente
+        local state_file
+        state_file="$(mktemp -t meajudaai_env_backup.XXXXXX)"
         {
-            echo "# Backup das variáveis de ambiente - $(date)"
-            echo "ORIGINAL_DOCKER_HOST=${DOCKER_HOST:-}"
-            echo "ORIGINAL_TESTCONTAINERS_RYUK_DISABLED=${TESTCONTAINERS_RYUK_DISABLED:-}"
-            echo "ORIGINAL_DOTNET_RUNNING_IN_CONTAINER=${DOTNET_RUNNING_IN_CONTAINER:-}"
-            echo "ORIGINAL_ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-}"
+            echo "#!/usr/bin/env bash"
+            echo "# Gerado em $(date)"
+            # Lista completa de variáveis que este script muta
+            vars=(DOCKER_HOST TESTCONTAINERS_RYUK_DISABLED TESTCONTAINERS_CHECKS_DISABLE TESTCONTAINERS_WAIT_STRATEGY_RETRIES \
+                  DOTNET_SYSTEM_GLOBALIZATION_INVARIANT DOTNET_SKIP_FIRST_TIME_EXPERIENCE DOTNET_CLI_TELEMETRY_OPTOUT DOTNET_RUNNING_IN_CONTAINER \
+                  ASPNETCORE_ENVIRONMENT COMPlus_EnableDiagnostics COMPlus_TieredCompilation DOTNET_TieredCompilation DOTNET_ReadyToRun DOTNET_TC_QuickJitForLoops \
+                  POSTGRES_SHARED_PRELOAD_LIBRARIES POSTGRES_LOGGING_COLLECTOR POSTGRES_LOG_STATEMENT POSTGRES_LOG_DURATION POSTGRES_LOG_CHECKPOINTS \
+                  POSTGRES_CHECKPOINT_COMPLETION_TARGET POSTGRES_WAL_BUFFERS POSTGRES_SHARED_BUFFERS POSTGRES_EFFECTIVE_CACHE_SIZE \
+                  POSTGRES_MAINTENANCE_WORK_MEM POSTGRES_WORK_MEM POSTGRES_FSYNC POSTGRES_SYNCHRONOUS_COMMIT POSTGRES_FULL_PAGE_WRITES)
+            for v in "${vars[@]}"; do
+                if [ -n "${!v+x}" ]; then
+                    # shell-escaped export da configuração original
+                    printf "export %s=%q\n" "$v" "${!v}"
+                else
+                    printf "unset %s\n" "$v"
+                fi
+            done
         } > "$state_file"
         
         export MEAJUDAAI_ENV_BACKUP="$state_file"
@@ -159,35 +172,9 @@ restore_original_state() {
     if [ -n "${MEAJUDAAI_ENV_BACKUP:-}" ] && [ -f "$MEAJUDAAI_ENV_BACKUP" ]; then
         print_step "Restaurando variáveis originais..."
         
-        # Restaurar variáveis
-        unset DOCKER_HOST
-        unset TESTCONTAINERS_RYUK_DISABLED
-        unset TESTCONTAINERS_CHECKS_DISABLE
-        unset TESTCONTAINERS_WAIT_STRATEGY_RETRIES
-        unset DOTNET_SYSTEM_GLOBALIZATION_INVARIANT
-        unset DOTNET_SKIP_FIRST_TIME_EXPERIENCE
-        unset DOTNET_CLI_TELEMETRY_OPTOUT
-        unset DOTNET_RUNNING_IN_CONTAINER
-        unset ASPNETCORE_ENVIRONMENT
-        unset COMPlus_EnableDiagnostics
-        unset COMPlus_TieredCompilation
-        unset DOTNET_TieredCompilation
-        unset DOTNET_ReadyToRun
-        unset DOTNET_TC_QuickJitForLoops
-        unset POSTGRES_SHARED_PRELOAD_LIBRARIES
-        unset POSTGRES_LOGGING_COLLECTOR
-        unset POSTGRES_LOG_STATEMENT
-        unset POSTGRES_LOG_DURATION
-        unset POSTGRES_LOG_CHECKPOINTS
-        unset POSTGRES_CHECKPOINT_COMPLETION_TARGET
-        unset POSTGRES_WAL_BUFFERS
-        unset POSTGRES_SHARED_BUFFERS
-        unset POSTGRES_EFFECTIVE_CACHE_SIZE
-        unset POSTGRES_MAINTENANCE_WORK_MEM
-        unset POSTGRES_WORK_MEM
-        unset POSTGRES_FSYNC
-        unset POSTGRES_SYNCHRONOUS_COMMIT
-        unset POSTGRES_FULL_PAGE_WRITES
+        # Restaurar variáveis exatamente como estavam
+        # shellcheck disable=SC1090
+        source "$MEAJUDAAI_ENV_BACKUP"
         
         # Limpar arquivo de backup
         rm -f "$MEAJUDAAI_ENV_BACKUP"
@@ -302,15 +289,21 @@ apply_all_optimizations() {
 run_performance_test() {
     print_header "Executando Teste de Performance"
     
-    cd "$PROJECT_ROOT"
+    cd "$PROJECT_ROOT" || { 
+        print_error "Falha ao mudar para diretório do projeto: $PROJECT_ROOT"
+        exit 1
+    }
     
     print_step "Executando testes com otimizações..."
-    local start_time=$(date +%s)
+    local start_time
+    start_time=$(date +%s)
     
     dotnet test --configuration Release --verbosity minimal --nologo --filter "Category!=E2E"
     
-    local end_time=$(date +%s)
-    local duration=$((end_time - start_time))
+    local end_time
+    local duration
+    end_time=$(date +%s)
+    duration=$((end_time - start_time))
     
     print_header "Resultado do Teste de Performance"
     print_info "Tempo de execução: ${duration}s"

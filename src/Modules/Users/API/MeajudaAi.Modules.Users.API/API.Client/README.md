@@ -1,4 +1,8 @@
-# Me## 📁 Estrutura da Collection
+# MeAjudaAi API Client
+
+Esta coleção do Bruno contém todos os endpoints do módulo de usuários da aplicação MeAjudaAi.
+
+## 📁 Estrutura da Collection
 
 ```
 API.Client/
@@ -16,27 +20,9 @@ API.Client/
 **🔗 Recursos Compartilhados (em `src/Shared/API.Collections/`):**
 - `Setup/SetupGetKeycloakToken.bru` - Autenticação Keycloak
 - `Common/GlobalVariables.bru` - Variáveis globais  
-- `Common/StandardHeaders.bru` - Headers padrãoodule - Bruno API Collection
+- `Common/StandardHeaders.bru` - Headers padrão
 
-Esta coleção do Bruno contém todos os endpoints do módulo de usuários da aplicação MeAjudaAi.
-
-## � Estrutura da Collection
-
-```
-API.Client/
-├── collection.bru               # Variáveis globais
-├── README.md                    # Documentação completa  
-├── SetupGetKeycloakToken.bru   # Obter token do Keycloak
-└── UserAdmin/
-    ├── GetUsers.bru            # GET /api/v1/users (paginado)
-    ├── CreateUser.bru          # POST /api/v1/users
-    ├── GetUserById.bru         # GET /api/v1/users/{id}
-    ├── GetUserByEmail.bru      # GET /api/v1/users/by-email/{email}
-    ├── UpdateUser.bru          # PUT /api/v1/users/{id}
-    └── DeleteUser.bru          # DELETE /api/v1/users/{id}
-```
-
-## �🚀 Como usar esta coleção
+## 🚀 Como usar esta coleção
 
 ### 1. Pré-requisitos
 - [Bruno](https://www.usebruno.com/) instalado
@@ -62,9 +48,9 @@ dotnet run --project src/Aspire/MeAjudaAi.AppHost
 ```
 
 #### URLs principais:
-- **API**: http://localhost:5000
-- **Aspire Dashboard**: https://localhost:15888
-- **Keycloak**: http://localhost:8080
+- **API**: [http://localhost:5000](http://localhost:5000)
+- **Aspire Dashboard**: [https://localhost:15888](https://localhost:15888)
+- **Keycloak**: [http://localhost:8080](http://localhost:8080)
 
 ### 3. Executar Endpoints dos Usuários
 
@@ -77,7 +63,7 @@ Uma vez que o token foi obtido na configuração compartilhada, todos os endpoin
 Como a autenticação é gerenciada pelo **Keycloak**, você precisa obter um token válido:
 
 #### Opção A: Via Keycloak Admin Console
-1. Acesse: http://localhost:8080/admin
+1. Acesse: [http://localhost:8080/admin](http://localhost:8080/admin)
 2. Login: `admin` / `admin123`
 3. Vá para: Realm `meajudaai-realm` > Users
 4. Crie ou selecione um usuário
@@ -94,7 +80,7 @@ curl -X POST "http://localhost:8080/realms/meajudaai-realm/protocol/openid-conne
 ```
 
 #### Opção C: Via Aspire Dashboard
-1. Acesse: https://localhost:15888
+1. Acesse: [https://localhost:15888](https://localhost:15888)
 2. Verifique logs do Keycloak
 3. Encontre tokens nos logs de autenticação
 
@@ -174,9 +160,9 @@ testEmail: test@example.com
 
 ## 📚 Documentação Adicional
 
-- **Aspire Dashboard**: https://localhost:15888
-- **Keycloak Admin**: http://localhost:8080/admin
-- **OpenAPI/Swagger**: http://localhost:5000/swagger (se habilitado)
+- **Aspire Dashboard**: [https://localhost:15888](https://localhost:15888)
+- **Keycloak Admin**: [http://localhost:8080/admin](http://localhost:8080/admin)
+- **OpenAPI/Swagger**: [http://localhost:5000/swagger](http://localhost:5000/swagger) (se habilitado)
 
 ## 🎯 Próximos Passos
 

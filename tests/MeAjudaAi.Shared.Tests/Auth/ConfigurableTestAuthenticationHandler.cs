@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
 using System.Text.Encodings.Web;
 
 namespace MeAjudaAi.Shared.Tests.Auth;
@@ -16,14 +17,14 @@ public class ConfigurableTestAuthenticationHandler(
 {
     public const string SchemeName = "TestConfigurable";
     
-    private static readonly Dictionary<string, UserConfig> _userConfigs = [];
-    private static string? _currentConfigKey;
+    private static readonly ConcurrentDictionary<string, UserConfig> _userConfigs = new();
+    private static volatile string? _currentConfigKey;
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         Console.WriteLine($"[ConfigurableTestAuth] HandleAuthenticateAsync called - CurrentKey: {_currentConfigKey}, UserConfigs count: {_userConfigs.Count}");
         
-        if (_currentConfigKey == null || !_userConfigs.ContainsKey(_currentConfigKey))
+        if (_currentConfigKey == null || !_userConfigs.TryGetValue(_currentConfigKey, out _))
         {
             Console.WriteLine("[ConfigurableTestAuth] No config found - FAILING authentication");
             return Task.FromResult(AuthenticateResult.Fail("No test user configured"));

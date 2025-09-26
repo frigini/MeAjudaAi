@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Users.Application;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
@@ -40,6 +41,10 @@ public static class UsersTestInfrastructureExtensions
         services.AddTestLogging();
         services.AddTestCache(options.Cache);
         
+        // Adicionar serviços de cache do Shared (incluindo ICacheService)
+        // Para testes, usar implementação simples sem dependências complexas
+        services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, TestCacheService>();
+        
         // Configurar banco de dados específico do módulo Users
         services.AddTestDatabase<UsersDbContext>(
             options.Database, 
@@ -76,6 +81,9 @@ public static class UsersTestInfrastructureExtensions
         
         // Adicionar repositórios específicos do Users
         services.AddScoped<IUserRepository, UserRepository>();
+        
+        // Adicionar serviços de aplicação (incluindo IUsersModuleApi)
+        services.AddApplication();
         
         return services;
     }

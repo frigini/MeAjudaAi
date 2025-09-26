@@ -32,11 +32,8 @@ public abstract class IntegrationTestBase : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        // Garante que os containers sejam iniciados apenas uma vez (thread-safe)
-        if (!_containersStarted)
-        {
-            await EnsureContainersStartedAsync();
-        }
+        // CRÍTICO: Garante que os containers sejam iniciados ANTES de qualquer configuração de serviços
+        await EnsureContainersStartedAsync();
 
         // Configura serviços para este teste específico
         var services = new ServiceCollection();
@@ -76,14 +73,21 @@ public abstract class IntegrationTestBase : IAsyncLifetime
     
     private static async Task EnsureContainersStartedAsync()
     {
+        // Double-check locking pattern para garantir thread safety
+        if (_containersStarted) return;
+        
         lock (_startupLock)
         {
             if (_containersStarted) return;
             _containersStarted = true;
         }
         
+        Console.WriteLine("Starting shared containers...");
+        
         // Inicia containers fora do lock
         await SharedTestContainers.StartAllAsync();
+        
+        Console.WriteLine("Shared containers started successfully!");
     }
 
     public async Task DisposeAsync()

@@ -70,7 +70,28 @@ public static class TestInfrastructureExtensions
         services.AddDbContext<TDbContext>((serviceProvider, dbOptions) =>
         {
             var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();
-            var connectionString = container.GetConnectionString();
+            
+            string connectionString;
+            try
+            {
+                connectionString = container.GetConnectionString();
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("not mapped"))
+            {
+                // Aguarda um pouco e tenta novamente - o container pode ainda estar iniciando
+                Thread.Sleep(2000);
+                try
+                {
+                    connectionString = container.GetConnectionString();
+                }
+                catch
+                {
+                    throw new InvalidOperationException(
+                        "PostgreSQL container is not running or ports are not mapped. " +
+                        "Container may still be starting up. Please ensure SharedTestContainers.StartAllAsync() " +
+                        "was called and container is fully ready before creating DbContext.", ex);
+                }
+            }
             
             dbOptions.UseNpgsql(connectionString, npgsqlOptions =>
             {

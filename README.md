@@ -67,6 +67,12 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 - [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli) (para deploy em produção)
 - [Git](https://git-scm.com/) para controle de versão
 
+### ⚙️ Configuração de Ambiente
+
+**Para deployments não-desenvolvimento:** Configure as variáveis de ambiente necessárias copiando `infrastructure/.env.example` para `infrastructure/.env` e definindo valores seguros. As seguintes variáveis são obrigatórias:
+- `POSTGRES_PASSWORD` - Senha do banco de dados PostgreSQL
+- `RABBITMQ_USER` e `RABBITMQ_PASS` - Credenciais do RabbitMQ
+
 ### Scripts de Automação
 
 O projeto inclui scripts automatizados na raiz:
@@ -94,6 +100,10 @@ dotnet run
 #### Opção 2: Docker Compose
 
 ```bash
+# PRIMEIRO: Defina as senhas necessárias
+export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
+export RABBITMQ_PASS=$(openssl rand -base64 32)
+
 # Execute usando Docker Compose
 cd infrastructure/compose
 docker compose -f environments/development.yml up -d
@@ -105,10 +115,10 @@ docker compose -f environments/development.yml up -d
 |---------|-----|-------------|
 | **Aspire Dashboard** | https://localhost:15888 | - |
 | **API Service** | https://localhost:7032 | - |
-| **Keycloak Admin** | http://localhost:8080 | admin/admin |
+| **Keycloak Admin** | http://localhost:8080 | admin/[senha gerada] |
 | **PostgreSQL** | localhost:5432 | postgres/dev123 |
 | **Redis** | localhost:6379 | - |
-| **RabbitMQ Management** | http://localhost:15672 | guest/guest |
+| **RabbitMQ Management** | http://localhost:15672 | meajudaai/[senha gerada] |
 
 ## 📁 Estrutura do Projeto
 
@@ -376,6 +386,21 @@ dotnet ef database update --context UsersDbContext
 - **Integration Tests**: API endpoints and database operations
 - **Module Tests**: Cross-boundary communication via events
 - **E2E Tests**: Full user scenarios via API
+
+### Testing Infrastructure
+
+```bash
+# Start testing services (separate from development)
+cd infrastructure/compose
+docker compose -f environments/testing.yml up -d
+
+# Test services run on alternate ports:
+# - PostgreSQL: localhost:5433 (postgres/test123)
+# - Keycloak: localhost:8081 (admin/admin) - version pinned for reproducibility
+# - Redis: localhost:6380 (no auth)
+```
+
+**Reproducible Testing**: All service versions are pinned (no `:latest` tags) to ensure consistent test results across different environments and time periods.
 
 ## 📈 Monitoring & Observability
 

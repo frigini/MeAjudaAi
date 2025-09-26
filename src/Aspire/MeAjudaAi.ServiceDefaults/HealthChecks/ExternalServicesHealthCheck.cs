@@ -73,51 +73,104 @@ public class ExternalServicesHealthCheck(
     {
         try
         {
-            var response = await httpClient.GetAsync($"{externalServicesOptions.Keycloak.BaseUrl}/health", cancellationToken);
-            
+            if (string.IsNullOrWhiteSpace(externalServicesOptions.Keycloak.BaseUrl))
+                return (false, "BaseUrl não configurada");
+
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.Keycloak.TimeoutSeconds));
+
+            var baseUri = externalServicesOptions.Keycloak.BaseUrl.TrimEnd('/');
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}/health");
+            var response = await httpClient
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
+                .ConfigureAwait(false);
+
             if (response.IsSuccessStatusCode)
-            {
                 return (true, null);
-            }
-            
-            return (false, $"HTTP {response.StatusCode}");
+
+            return (false, $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return (false, "Tempo limite da requisição");
+        }
+        catch (UriFormatException)
+        {
+            return (false, "URL inválida");
         }
         catch (HttpRequestException ex)
         {
             return (false, $"Falha na conexão: {ex.Message}");
         }
-        catch (TaskCanceledException)
+    }
+
+    private async Task<(bool IsHealthy, string? Error)> CheckPaymentGatewayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(externalServicesOptions.PaymentGateway.BaseUrl))
+                return (false, "BaseUrl não configurada");
+
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.PaymentGateway.TimeoutSeconds));
+
+            var baseUri = externalServicesOptions.PaymentGateway.BaseUrl.TrimEnd('/');
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}/health");
+            var response = await httpClient
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
+                .ConfigureAwait(false);
+
+            if (response.IsSuccessStatusCode)
+                return (true, null);
+
+            return (false, $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             return (false, "Tempo limite da requisição");
         }
-    }
-
-    private static async Task<(bool IsHealthy, string? Error)> CheckPaymentGatewayAsync(CancellationToken cancellationToken)
-    {
-        try
+        catch (UriFormatException)
         {
-            // Placeholder para health check do gateway de pagamento
-            // Implementação depende do provedor específico (PagSeguro, Stripe, etc.)
-            await Task.Delay(10, cancellationToken); // Simula chamada à API
-            return (true, null);
+            return (false, "URL inválida");
         }
-        catch (Exception ex)
+        catch (HttpRequestException ex)
         {
-            return (false, ex.Message);
+            return (false, $"Falha na conexão: {ex.Message}");
         }
     }
 
-    private static async Task<(bool IsHealthy, string? Error)> CheckGeolocationAsync(CancellationToken cancellationToken)
+    private async Task<(bool IsHealthy, string? Error)> CheckGeolocationAsync(CancellationToken cancellationToken)
     {
         try
         {
-            // Placeholder para health check do serviço de geolocalização (Google Maps, HERE, etc.)
-            await Task.Delay(10, cancellationToken); // Simula chamada à API
-            return (true, null);
+            if (string.IsNullOrWhiteSpace(externalServicesOptions.Geolocation.BaseUrl))
+                return (false, "BaseUrl não configurada");
+
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.Geolocation.TimeoutSeconds));
+
+            var baseUri = externalServicesOptions.Geolocation.BaseUrl.TrimEnd('/');
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}/health");
+            var response = await httpClient
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
+                .ConfigureAwait(false);
+
+            if (response.IsSuccessStatusCode)
+                return (true, null);
+
+            return (false, $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return (false, ex.Message);
+            return (false, "Tempo limite da requisição");
+        }
+        catch (UriFormatException)
+        {
+            return (false, "URL inválida");
+        }
+        catch (HttpRequestException ex)
+        {
+            return (false, $"Falha na conexão: {ex.Message}");
         }
     }
 }

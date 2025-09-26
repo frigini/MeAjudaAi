@@ -1,8 +1,10 @@
 ﻿using MeAjudaAi.ServiceDefaults.HealthChecks;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.ServiceDefaults;
 
@@ -35,6 +37,10 @@ public static class HealthCheckExtensions
 
     private static IHealthChecksBuilder AddDatabaseHealthCheck(this IServiceCollection services)
     {
+        // Registra PostgresOptions como singleton para PostgresHealthCheck
+        services.AddSingleton<PostgresOptions>(serviceProvider =>
+            serviceProvider.GetRequiredService<IOptions<PostgresOptions>>().Value);
+
         // Registra o health check do Postgres
         return services.AddHealthChecks()
             .AddCheck<PostgresHealthCheck>("postgres", tags: ["ready", "database"]);

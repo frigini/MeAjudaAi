@@ -1,6 +1,12 @@
 # Production-ready docker compose
 # This should be used as a reference - real production should use Kubernetes or similar
 # Usage: docker compose -f environments/production.yml --env-file .env.prod up -d
+#
+# Keycloak Configuration Notes:
+# - HTTP is enabled for internal container communication (KC_HTTP_ENABLED=true)
+# - HTTPS enforcement happens at the reverse proxy level (KC_PROXY=edge)
+# - KC_HOSTNAME_STRICT_HTTPS=true ensures external connections use HTTPS
+# - Version pinned for production stability (overrideable via KEYCLOAK_VERSION)
 
 services:
   postgres:
@@ -9,7 +15,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-MeAjudaAi}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD environment variable}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
@@ -54,7 +60,7 @@ services:
         max-file: "3"
 
   keycloak:
-    image: quay.io/keycloak/keycloak:latest
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}
     container_name: meajudaai-keycloak-prod
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
@@ -67,8 +73,8 @@ services:
       KC_HOSTNAME_STRICT: true
       KC_HOSTNAME_STRICT_HTTPS: true
       KC_PROXY: edge
-      KC_HTTP_ENABLED: false
-    command: ["start", "--optimized"]
+      KC_HTTP_ENABLED: true
+    command: ["start", "--optimized", "--import-realm"]
     ports:
       - "${KEYCLOAK_PORT:-8080}:8080"
     volumes:
@@ -101,7 +107,7 @@ services:
       - redis_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -117,14 +123,15 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: meajudaai-rabbitmq-prod
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
-      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?Missing RABBITMQ_USER environment variable}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:?Missing RABBITMQ_PASS environment variable}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Missing RABBITMQ_ERLANG_COOKIE environment variable}
     ports:
       - "${RABBITMQ_PORT:-5672}:5672"
       - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+      - ../../rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]

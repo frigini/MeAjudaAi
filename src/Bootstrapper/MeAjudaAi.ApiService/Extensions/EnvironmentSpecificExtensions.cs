@@ -65,6 +65,14 @@ public static class EnvironmentSpecificExtensions
     /// </summary>
     private static IServiceCollection AddProductionServices(this IServiceCollection services)
     {
+        // Configurações de HSTS para produção
+        services.AddHsts(options =>
+        {
+            options.Preload = true;
+            options.IncludeSubDomains = true;
+            options.MaxAge = TimeSpan.FromDays(365); // 1 ano
+        });
+        
         // Configurações de produção mais restritivas
         services.Configure<SecurityOptions>(options =>
         {
@@ -101,15 +109,39 @@ public static class EnvironmentSpecificExtensions
     /// </summary>
     private static IApplicationBuilder UseProductionMiddlewares(this IApplicationBuilder app)
     {
+        // HSTS (HTTP Strict Transport Security) deve vir antes do redirecionamento HTTPS
+        app.UseHsts();
+        
         // Middleware de redirecionamento HTTPS obrigatório em produção
         app.UseHttpsRedirection();
         
         // Headers de segurança mais restritivos em produção
         app.Use(async (context, next) =>
         {
-            // Headers de segurança adicionais para produção
+            // Remove headers que podem expor informações do servidor
             context.Response.Headers.Remove("Server");
+            
+            // Adiciona headers de segurança essenciais para produção
             context.Response.Headers.Append("X-Production", "true");
+            
+            // Strict-Transport-Security (redundante com UseHsts, mas garante configuração explícita)
+            if (!context.Response.Headers.ContainsKey("Strict-Transport-Security"))
+            {
+                context.Response.Headers.Append("Strict-Transport-Security", 
+                    "max-age=31536000; includeSubDomains; preload");
+            }
+            
+            // X-Content-Type-Options: previne MIME type sniffing
+            context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+            
+            // X-Frame-Options: previne clickjacking
+            context.Response.Headers.Append("X-Frame-Options", "DENY");
+            
+            // Referrer-Policy: controla informações de referrer
+            context.Response.Headers.Append("Referrer-Policy", "no-referrer");
+            
+            // X-XSS-Protection: habilitado em navegadores legados (opcional, mas recomendado)
+            context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
             
             await next();
         });

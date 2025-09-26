@@ -1,6 +1,6 @@
 # Estratégia de MessageBus por Ambiente - Documentação
 
-## ✅ **RESPOSTA À PERGUNTA**: Sim, a implementação garante que RabbitMQ seja usado para dev/testing e Azure Service Bus apenas para produção.
+## ✅ **RESPOSTA À PERGUNTA**: Sim, a implementação garante que RabbitMQ seja usado para desenvolvimento, mocks para testes, e Azure Service Bus apenas para produção.
 
 ## **Implementação Realizada**
 
@@ -13,10 +13,15 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
 {
     public IMessageBus CreateMessageBus()
     {
-        if (_environment.IsDevelopment() || _environment.EnvironmentName == "Testing")
+        if (_environment.IsDevelopment())
         {
-            // DEVELOPMENT/TESTING: RabbitMQ
+            // DEVELOPMENT: RabbitMQ
             return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
+        }
+        else if (_environment.EnvironmentName == "Testing")
+        {
+            // TESTING: Mocks (handled by AddMessagingMocks in test setup)
+            return _serviceProvider.GetRequiredService<MockMessageBus>();
         }
         else
         {
@@ -113,8 +118,8 @@ private static void ConfigureTransport(
 {
     if (environment.EnvironmentName == "Testing")
     {
-        // TESTING: RabbitMQ minimal ou mock
-        transport.UseRabbitMq("amqp://localhost", "test-queue");
+        // TESTING: No transport configured - mocks handle messaging
+        return; // Transport configuration skipped for testing
     }
     else if (environment.IsDevelopment())
     {
@@ -216,9 +221,9 @@ Environment Detection
 
 ✅ **SIM** - A implementação **garante completamente** que:
 
-- **RabbitMQ** é usado exclusivamente para **Development/Testing**
+- **RabbitMQ** é usado exclusivamente para **Development**
 - **Azure Service Bus** é usado exclusivamente para **Production**  
-- **Mocks** são usados automaticamente nos **testes de integração**
+- **Mocks** são usados automaticamente nos **testes de integração (Testing)**
 
 A seleção é feita automaticamente via:
 1. **Environment detection** (`IHostEnvironment`)

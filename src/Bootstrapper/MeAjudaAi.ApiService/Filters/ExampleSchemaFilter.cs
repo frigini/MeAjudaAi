@@ -168,10 +168,42 @@ public class ExampleSchemaFilter : ISchemaFilter
     private static void AddEnumExamples(OpenApiSchema schema, Type enumType)
     {
         var enumValues = Enum.GetValues(enumType);
-        if (enumValues.Length > 0)
+        if (enumValues.Length == 0) return;
+
+        var firstValue = enumValues.GetValue(0);
+        if (firstValue == null) return;
+
+        // Check if schema represents enum as integer or string
+        var isIntegerEnum = schema.Type == "integer" || 
+                           (schema.Enum?.Count > 0 && schema.Enum[0] is OpenApiInteger);
+
+        if (isIntegerEnum)
         {
-            var firstValue = enumValues.GetValue(0);
-            schema.Example = new OpenApiString(firstValue?.ToString());
+            // Try to convert enum to integer representation
+            try
+            {
+                var underlyingType = Enum.GetUnderlyingType(enumType);
+                var numericValue = Convert.ChangeType(firstValue, underlyingType);
+
+                schema.Example = numericValue switch
+                {
+                    long l => new OpenApiLong(l),
+                    int i => new OpenApiInteger(i),
+                    short s => new OpenApiInteger(s),
+                    byte b => new OpenApiInteger(b),
+                    _ => new OpenApiInteger(Convert.ToInt32(numericValue))
+                };
+            }
+            catch
+            {
+                // Fall back to string representation if numeric conversion fails
+                schema.Example = new OpenApiString(firstValue.ToString());
+            }
+        }
+        else
+        {
+            // Use string representation (existing behavior)
+            schema.Example = new OpenApiString(firstValue.ToString());
         }
     }
 

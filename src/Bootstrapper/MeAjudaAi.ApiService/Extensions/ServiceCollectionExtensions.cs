@@ -13,61 +13,37 @@ public static class ServiceCollectionExtensions
         // Valida a configuração de segurança logo no início do startup
         SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
 
-        // Registro da configuração de Rate Limit com validação
-        services.AddSingleton(provider =>
-        {
-            var options = new RateLimitOptions();
-            configuration.GetSection(RateLimitOptions.SectionName).Bind(options);
-            
-            // Validações básicas para a configuração avançada
-            if (options.Anonymous.RequestsPerMinute <= 0)
-                throw new InvalidOperationException("Anonymous RequestsPerMinute must be greater than zero");
-            if (options.Authenticated.RequestsPerMinute <= 0)
-                throw new InvalidOperationException("Authenticated RequestsPerMinute must be greater than zero");
-            if (options.General.WindowInSeconds <= 0)
-                throw new InvalidOperationException("WindowInSeconds must be greater than zero");
-                
-            return options;
-        });
+        // Registro da configuração de Rate Limit com validação usando Options pattern
+        // Suporte tanto para nova seção "AdvancedRateLimit" quanto para legado "RateLimit"
+        services.AddOptions<RateLimitOptions>()
+            .BindConfiguration(RateLimitOptions.SectionName) // "AdvancedRateLimit"
+            .BindConfiguration("RateLimit") // fallback para configuração legada
+            .ValidateDataAnnotations() // Valida atributos [Required] etc.
+            .ValidateOnStart() // Valida na inicialização da aplicação
+            .Validate(options =>
+            {
+                // Validações customizadas para a configuração avançada
+                if (options.Anonymous.RequestsPerMinute <= 0)
+                    return false;
+                if (options.Authenticated.RequestsPerMinute <= 0)
+                    return false;
+                if (options.General.WindowInSeconds <= 0)
+                    return false;
+                return true;
+            }, "Rate limit configuration is invalid. All limits must be greater than zero.");
 
         services.AddDocumentation();
         services.AddApiVersioning(); // Adiciona versionamento de API
         services.AddCorsPolicy(configuration, environment);
         services.AddMemoryCache();
         
-        // Adiciona serviços de autenticação básica (necessário para o middleware)
-        // Para testes de integração (INTEGRATION_TESTS=true), não configuramos JWT Bearer
+        // Adiciona autenticação segura baseada no ambiente
+        // Para testes de integração (INTEGRATION_TESTS=true), não configuramos Keycloak
         // pois será substituído pelo FakeIntegrationAuthenticationHandler
         if (Environment.GetEnvironmentVariable("INTEGRATION_TESTS") != "true")
         {
-            services.AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = "Bearer";
-                    options.DefaultChallengeScheme = "Bearer";
-                    options.DefaultScheme = "Bearer";
-                })
-                .AddJwtBearer("Bearer", options =>
-                {
-                    // Configuração básica do JWT - pode ser aprimorada depois
-                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-                    {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        ValidateLifetime = false,
-                        ValidateIssuerSigningKey = false,
-                        RequireExpirationTime = false,
-                        ClockSkew = TimeSpan.Zero
-                    };
-                    options.RequireHttpsMetadata = false;
-                    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
-                    {
-                        OnTokenValidated = context =>
-                        {
-                            // Lógica básica de validação do token pode ser adicionada aqui
-                            return Task.CompletedTask;
-                        }
-                    };
-                });
+            // Usa a extensão segura do Keycloak com validação completa de tokens
+            services.AddEnvironmentAuthentication(configuration, environment);
         }
         else
         {

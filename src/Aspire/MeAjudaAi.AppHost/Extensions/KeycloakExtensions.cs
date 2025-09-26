@@ -117,10 +117,19 @@ public static class MeAjudaAiKeycloakExtensions
             .WithEnvironment("KC_HOSTNAME_STRICT_HTTPS", "false")
             .WithEnvironment("KC_HTTP_ENABLED", "true")
             .WithEnvironment("KC_HEALTH_ENABLED", "true")
-            .WithEnvironment("KC_METRICS_ENABLED", "true")
-            // Importar realm na inicialização
-            .WithEnvironment("KC_IMPORT", options.ImportRealm ?? "")
-            .WithArgs("start-dev", "--import-realm");
+            .WithEnvironment("KC_METRICS_ENABLED", "true");
+
+        // Importar realm na inicialização (apenas se especificado)
+        if (!string.IsNullOrEmpty(options.ImportRealm))
+        {
+            keycloak = keycloak
+                .WithEnvironment("KC_IMPORT", options.ImportRealm)
+                .WithArgs("start-dev", "--import-realm");
+        }
+        else
+        {
+            keycloak = keycloak.WithArgs("start-dev");
+        }
 
         if (options.ExposeHttpEndpoint)
         {
@@ -176,10 +185,19 @@ public static class MeAjudaAiKeycloakExtensions
             .WithEnvironment("KC_HTTPS_PORT", "8443")
             .WithEnvironment("KC_HEALTH_ENABLED", "true")
             .WithEnvironment("KC_METRICS_ENABLED", "true")
-            .WithEnvironment("KC_PROXY", "edge")
-            // Importar realm na inicialização
-            .WithEnvironment("KC_IMPORT", options.ImportRealm ?? "")
-            .WithArgs("start", "--import-realm", "--optimized");
+            .WithEnvironment("KC_PROXY", "edge");
+
+        // Importar realm na inicialização (apenas se especificado)
+        if (!string.IsNullOrEmpty(options.ImportRealm))
+        {
+            keycloak = keycloak
+                .WithEnvironment("KC_IMPORT", options.ImportRealm)
+                .WithArgs("start", "--import-realm", "--optimized");
+        }
+        else
+        {
+            keycloak = keycloak.WithArgs("start", "--optimized");
+        }
 
         // Em produção, usar HTTPS
         if (options.ExposeHttpEndpoint)

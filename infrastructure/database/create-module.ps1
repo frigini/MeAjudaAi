@@ -1,6 +1,10 @@
 #!/usr/bin/env pwsh
 # create-module.ps1
 # Script para criar estrutura de banco de dados para novos módulos
+#
+# SECURITY NOTE: This script generates SQL templates with password placeholders.
+# Always replace <secure_password> placeholders with strong passwords from secure configuration.
+# Never commit actual passwords to version control.
 
 param(
     [Parameter(Mandatory=$true, HelpMessage="Nome do módulo (ex: providers, services)")]
@@ -24,7 +28,11 @@ Write-Host "🔐 Criando script de roles..." -ForegroundColor Yellow
 $RolesContent = @"
 -- $($ModuleName.ToUpper()) Module - Database Roles
 -- Create dedicated role for $ModuleName module
-CREATE ROLE ${ModuleName}_role LOGIN PASSWORD '${ModuleName}_secret';
+
+-- SECURITY: Replace <secure_password> with a strong, environment-specific secret before applying
+-- Generate with: openssl rand -base64 32
+-- Never commit actual passwords to version control
+CREATE ROLE ${ModuleName}_role LOGIN PASSWORD '<secure_password>';
 
 -- Grant $ModuleName role to app role for cross-module access
 GRANT ${ModuleName}_role TO meajudaai_app_role;
@@ -71,10 +79,11 @@ $ManagerTemplate = @"
 /// <summary>
 /// Garante que as permissões do módulo $($ModuleName.ToUpper()) estejam configuradas
 /// </summary>
+/// <param name="adminConnectionString">Connection string with admin privileges</param>
+/// <param name="${ModuleName}RolePassword">Strong password for ${ModuleName}_role - NEVER use default values in production</param>
 public async Task Ensure$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))ModulePermissionsAsync(
     string adminConnectionString,
-    string ${ModuleName}RolePassword = "${ModuleName}_secret", 
-    string appRolePassword = "app_secret")
+    string ${ModuleName}RolePassword)
 {
     if (await Are$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))PermissionsConfiguredAsync(adminConnectionString))
     {
@@ -91,7 +100,7 @@ public async Task Ensure$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Sub
     {
         // Executar os scripts na ordem correta
         // NOTA: Schema '$ModuleName' será criado automaticamente pelo EF Core durante as migrações
-        await Execute$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))SchemaScript(connection, "00-roles", ${ModuleName}RolePassword, appRolePassword);
+        await Execute$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))SchemaScript(connection, "00-roles", ${ModuleName}RolePassword);
         await Execute$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))SchemaScript(connection, "01-permissions");
 
         logger.LogInformation("✅ Permissões configuradas com sucesso para módulo $($ModuleName.ToUpper())");
@@ -133,7 +142,7 @@ private async Task Execute$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.S
 {
     string sql = scriptType switch
     {
-        "00-roles" => Get$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))CreateRolesScript(parameters[0], parameters[1]),
+        "00-roles" => Get$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))CreateRolesScript(parameters[0]),
         "01-permissions" => Get$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))GrantPermissionsScript(),
         _ => throw new ArgumentException(`$`"Script type '{scriptType}' not recognized for $ModuleName module")
     };
@@ -142,11 +151,13 @@ private async Task Execute$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.S
     await ExecuteSqlAsync(connection, sql);
 }
 
-private string Get$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))CreateRolesScript(string ${ModuleName}Password, string appPassword) => `$`"
+private string Get$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))CreateRolesScript(string ${ModuleName}Password) => `$`"
     -- Create dedicated role for $ModuleName module
+    -- SECURITY: Password provided via secure parameter, never hardcoded
     CREATE ROLE ${ModuleName}_role LOGIN PASSWORD '{${ModuleName}Password}';
 
     -- Grant ${ModuleName} role to app role for cross-module access
+    -- NOTE: Assumes meajudaai_app_role already exists (created during initial setup)
     GRANT ${ModuleName}_role TO meajudaai_app_role;
     `$`";
 
@@ -185,28 +196,91 @@ $ExtensionsTemplate = @"
 // Adicione este método ao Extensions.cs do módulo $($ModuleName.ToUpper()):
 
 /// <summary>
-/// Adiciona o módulo $($ModuleName.ToUpper()) com isolamento de schema opcional
+/// Adiciona o módulo $($ModuleName.ToUpper()) com registro de serviços apenas
+/// A configuração de permissões deve ser feita durante a inicialização da aplicação
 /// </summary>
-public static async Task<IServiceCollection> Add$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))ModuleWithSchemaIsolationAsync(
+public static IServiceCollection Add$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))ModuleWithSchemaIsolation(
     this IServiceCollection services, IConfiguration configuration)
+{
+    // Register module services only - no runtime permission setup here
+    services.Add$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))Module(configuration);
+    
+    // Register schema isolation configuration for later use during startup
+    services.Configure<$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))SchemaOptions>(options =>
+    {
+        options.EnableSchemaIsolation = configuration.GetValue<bool>("Database:EnableSchemaIsolation", false);
+        options.ModuleRolePasswordConfigKey = "Database:$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))RolePassword";
+    });
+    
+    return services;
+}
+
+/// <summary>
+/// Inicializa as permissões do módulo $($ModuleName.ToUpper()) durante o startup da aplicação
+/// Chame este método após o host ser construído, usando app.Services.CreateScope()
+/// </summary>
+public static async Task Initialize$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))SchemaPermissionsAsync(
+    this IServiceProvider serviceProvider, IConfiguration configuration)
 {
     var enableSchemaIsolation = configuration.GetValue<bool>("Database:EnableSchemaIsolation", false);
     
-    if (enableSchemaIsolation)
+    if (!enableSchemaIsolation)
     {
-        var serviceProvider = services.BuildServiceProvider();
-        var schemaManager = serviceProvider.GetRequiredService<SchemaPermissionsManager>();
+        return; // Schema isolation disabled, skip permission setup
+    }
+
+    using var scope = serviceProvider.CreateScope();
+    var scopedServices = scope.ServiceProvider;
+    var logger = scopedServices.GetRequiredService<ILogger<SchemaPermissionsManager>>();
+    
+    try
+    {
+        var schemaManager = scopedServices.GetRequiredService<SchemaPermissionsManager>();
         var adminConnectionString = configuration.GetConnectionString("AdminPostgres");
+        
+        // SECURITY: Get passwords from secure configuration (Azure Key Vault, environment variables, etc.)
+        var ${ModuleName}RolePassword = configuration.GetValue<string>("Database:$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))RolePassword") 
+            ?? throw new InvalidOperationException("$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))RolePassword must be configured in secure configuration");
         
         if (!string.IsNullOrEmpty(adminConnectionString))
         {
-            await schemaManager.Ensure$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))ModulePermissionsAsync(adminConnectionString);
+            await schemaManager.Ensure$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))ModulePermissionsAsync(
+                adminConnectionString, ${ModuleName}RolePassword);
+            
+            logger.LogInformation("✅ Schema permissions initialized for $($ModuleName.ToUpper()) module");
+        }
+        else
+        {
+            logger.LogWarning("⚠️ AdminPostgres connection string not found, skipping $($ModuleName.ToUpper()) schema permission setup");
         }
     }
-    
-    // Continue with regular module registration...
-    return services.Add$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))Module(configuration);
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "❌ Failed to initialize $($ModuleName.ToUpper()) module schema permissions");
+        throw; // Re-throw to prevent application startup with incorrect permissions
+    }
 }
+
+/// <summary>
+/// Configuration options for $($ModuleName.ToUpper()) module schema isolation
+/// </summary>
+public class $($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))SchemaOptions
+{
+    public bool EnableSchemaIsolation { get; set; }
+    public string ModuleRolePasswordConfigKey { get; set; } = string.Empty;
+}
+// USAGE EXAMPLE in Program.cs or Startup:
+// 
+// // 1. During service registration:
+// builder.Services.Add$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))ModuleWithSchemaIsolation(builder.Configuration);
+// 
+// // 2. After building the host, during application startup:
+// var app = builder.Build();
+// 
+// // Initialize schema permissions before starting the application
+// await app.Services.Initialize$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))SchemaPermissionsAsync(app.Configuration);
+// 
+// app.Run();
 "@
 
 $ExtensionsTemplate | Out-File -FilePath "$ModulePath/Extensions-template.cs" -Encoding UTF8
@@ -220,7 +294,9 @@ Write-Host "📋 Próximos passos:" -ForegroundColor White
 Write-Host "1. 📝 Configure o DbContext com: modelBuilder.HasDefaultSchema(`"$ModuleName`")" -ForegroundColor Gray
 Write-Host "2. 🔧 Adicione os métodos do template ao SchemaPermissionsManager.cs" -ForegroundColor Gray
 Write-Host "3. ⚙️ Adicione o método do template ao Extensions.cs do módulo" -ForegroundColor Gray
-Write-Host "4. 🔑 Configure as senhas em production (não usar padrões)" -ForegroundColor Gray
+Write-Host "4. � IMPORTANTE: Substitua <secure_password> no arquivo 00-roles.sql por senha forte" -ForegroundColor Red
+Write-Host "5. �🔑 Configure senhas via Azure Key Vault ou variáveis de ambiente seguras" -ForegroundColor Red
+Write-Host "6. ⚠️  NUNCA comite senhas reais no código fonte" -ForegroundColor Red
 Write-Host ""
 Write-Host "📄 Templates criados:" -ForegroundColor White
 Write-Host "  - $ModulePath/SchemaPermissionsManager-template.cs" -ForegroundColor Gray

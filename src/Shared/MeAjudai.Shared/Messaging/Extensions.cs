@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Rebus.Config;
 using Rebus.Routing;
 using Rebus.Routing.TypeBased;
@@ -38,13 +39,30 @@ internal static class Extensions
             var options = new ServiceBusOptions();
             ConfigureServiceBusOptions(options, configuration);
             
-            // Validações manuais
+            // Validações manuais com mensagens claras
             if (string.IsNullOrWhiteSpace(options.DefaultTopicName))
-                throw new InvalidOperationException("ServiceBus topic name not found. Configure 'Messaging:ServiceBus:TopicName' in appsettings.json");
+                throw new InvalidOperationException("ServiceBus DefaultTopicName is required when messaging is enabled. Configure 'Messaging:ServiceBus:DefaultTopicName' in appsettings.json");
                 
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-            if (environment != "Development" && environment != "Testing" && string.IsNullOrWhiteSpace(options.ConnectionString))
-                throw new InvalidOperationException("ServiceBus connection string not found. Configure 'Messaging:ServiceBus:ConnectionString' in appsettings.json or ensure Aspire servicebus connection is available");
+            
+            // Validação mais rigorosa da connection string
+            if (string.IsNullOrWhiteSpace(options.ConnectionString) || 
+                options.ConnectionString.Contains("${") || // Check for unresolved environment variable placeholder
+                options.ConnectionString.Equals("Endpoint=sb://localhost/;SharedAccessKeyName=default;SharedAccessKey=default")) // Check for dummy connection string
+            {
+                if (environment == "Development" || environment == "Testing")
+                {
+                    // Para desenvolvimento/teste, log warning mas permita continuar
+                    var logger = provider.GetService<Microsoft.Extensions.Logging.ILogger<ServiceBusOptions>>();
+                    logger?.LogWarning("ServiceBus connection string is not configured. Messaging functionality will be limited in {Environment} environment.", environment);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"ServiceBus connection string is required for {environment} environment. " +
+                        "Set the SERVICEBUS_CONNECTION_STRING environment variable or configure 'Messaging:ServiceBus:ConnectionString' in appsettings.json. " +
+                        "If messaging is not needed, set 'Messaging:Enabled' to false.");
+                }
+            }
                 
             return options;
         });

@@ -88,6 +88,7 @@ public class UsersModuleTests : TestContainerTestBase
     public async Task GetUserById_WithNonExistentId_ShouldReturnNotFound()
     {
         // Arrange
+        AuthenticateAsAdmin(); // GetUserById requer autorização "SelfOrAdmin"
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -101,6 +102,7 @@ public class UsersModuleTests : TestContainerTestBase
     public async Task GetUserByEmail_WithNonExistentEmail_ShouldReturnNotFound()
     {
         // Arrange
+        AuthenticateAsAdmin(); // GetUserByEmail requer autorização "AdminOnly"
         var nonExistentEmail = $"nonexistent_{Guid.NewGuid():N}@example.com";
 
         // Act

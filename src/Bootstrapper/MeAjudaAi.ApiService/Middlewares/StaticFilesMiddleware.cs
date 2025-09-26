@@ -1,3 +1,7 @@
+using Microsoft.Net.Http.Headers;
+using System.Security.Cryptography;
+using System.Text;
+
 namespace MeAjudaAi.ApiService.Middlewares;
 
 /// <summary>
@@ -10,7 +14,7 @@ public class StaticFilesMiddleware(RequestDelegate next)
     // Cabeçalhos de cache pré-computados para melhor performance
     private const string LongCacheControl = "public,max-age=2592000,immutable"; // 30 dias
     private const string NoCacheControl = "no-cache,no-store,must-revalidate";
-    private static readonly string LongCacheExpires = DateTime.UtcNow.AddDays(30).ToString("R");
+    private static readonly TimeSpan LongCacheDuration = TimeSpan.FromDays(30);
     
     // Extensões de arquivos estáticos que devem ser cacheados
     private static readonly HashSet<string> CacheableExtensions = new(StringComparer.OrdinalIgnoreCase)
@@ -34,9 +38,9 @@ public class StaticFilesMiddleware(RequestDelegate next)
                 context.Response.OnStarting(() =>
                 {
                     var headers = context.Response.Headers;
-                    headers.CacheControl = LongCacheControl;
-                    headers.Expires = LongCacheExpires;
-                    headers.ETag = GenerateETag(context.Request.Path.Value);
+                    headers[HeaderNames.CacheControl] = LongCacheControl;
+                    headers[HeaderNames.Expires] = DateTimeOffset.UtcNow.Add(LongCacheDuration).ToString("R");
+                    headers[HeaderNames.ETag] = GenerateETag(context.Request.Path.Value);
                     
                     return Task.CompletedTask;
                 });
@@ -46,7 +50,7 @@ public class StaticFilesMiddleware(RequestDelegate next)
                 // Não cacheia tipos de arquivo desconhecidos
                 context.Response.OnStarting(() =>
                 {
-                    context.Response.Headers.CacheControl = NoCacheControl;
+                    context.Response.Headers[HeaderNames.CacheControl] = NoCacheControl;
                     return Task.CompletedTask;
                 });
             }
@@ -60,8 +64,21 @@ public class StaticFilesMiddleware(RequestDelegate next)
         if (string.IsNullOrEmpty(path))
             return "\"default\"";
             
-        // Geração simples de ETag baseada no hash do caminho
-        var hash = path.GetHashCode();
-        return $"\"{hash:x}\"";
+        try
+        {
+            // Geração determinística de ETag baseada no SHA-256 do caminho
+            var pathBytes = Encoding.UTF8.GetBytes(path);
+            var hashBytes = SHA256.HashData(pathBytes);
+            
+            // Converte os bytes do hash para string hexadecimal em minúsculas
+            // Usa apenas os primeiros 16 bytes (32 caracteres hex) para um ETag mais compacto
+            var hexHash = Convert.ToHexString(hashBytes[..16]).ToLowerInvariant();
+            return $"\"{hexHash}\"";
+        }
+        catch
+        {
+            // Em caso de erro no hashing, retorna um ETag fixo para evitar exceções
+            return "\"fallback\"";
+        }
     }
 }

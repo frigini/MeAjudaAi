@@ -1,6 +1,7 @@
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace MeAjudaAi.ApiService.Middlewares;
@@ -11,40 +12,109 @@ namespace MeAjudaAi.ApiService.Middlewares;
 public class RateLimitingMiddleware(
     RequestDelegate next,
     IMemoryCache cache,
-    RateLimitOptions options,
+    IOptionsMonitor<RateLimitOptions> options,
     ILogger<RateLimitingMiddleware> logger)
 {
+    private sealed class Counter { public int Value; }
     public async Task InvokeAsync(HttpContext context)
     {
         var clientIp = GetClientIpAddress(context);
         var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
         
-        var limit = isAuthenticated ? options.Authenticated.RequestsPerMinute : options.Anonymous.RequestsPerMinute;
+        var currentOptions = options.CurrentValue;
+        var effectiveWindow = TimeSpan.FromSeconds(currentOptions.General.WindowInSeconds);
+        
+        // Determine effective limit using priority order
+        var limit = GetEffectiveLimit(context, currentOptions, isAuthenticated);
         
         var key = $"rate_limit:{clientIp}:{context.Request.Path}";
         
-        if (!cache.TryGetValue(key, out int requestCount))
+        var counter = cache.GetOrCreate(key, entry =>
         {
-            requestCount = 0;
-        }
+            entry.AbsoluteExpirationRelativeToNow = effectiveWindow;
+            return new Counter();
+        }) ?? new Counter();
 
-        if (requestCount >= limit)
+        var current = Interlocked.Increment(ref counter.Value);
+
+        if (current > limit)
         {
-            logger.LogWarning("Rate limit exceeded for client {ClientIp} on path {Path}. Limit: {Limit}, Current count: {Count}",
-                clientIp, context.Request.Path, limit, requestCount);
-            await HandleRateLimitExceeded(context, limit);
+            logger.LogWarning("Rate limit exceeded for client {ClientIp} on path {Path}. Limit: {Limit}, Current count: {Count}, Window: {Window}s",
+                clientIp, context.Request.Path, limit, current, currentOptions.General.WindowInSeconds);
+            await HandleRateLimitExceeded(context, limit, currentOptions.General.WindowInSeconds);
             return;
         }
 
-        cache.Set(key, requestCount + 1, TimeSpan.FromMinutes(1));
-        
-        if (requestCount > limit * 0.8) // Log warning when approaching limit (80%)
+        // Counter already incremented; ensure key TTL is set
+        cache.GetOrCreate(key, entry =>
         {
-            logger.LogInformation("Client {ClientIp} approaching rate limit on path {Path}. Current: {Count}/{Limit}",
-                clientIp, context.Request.Path, requestCount + 1, limit);
+            entry.AbsoluteExpirationRelativeToNow = effectiveWindow;
+            return counter;
+        });
+        
+        if (current >= Math.Floor(limit * 0.8)) // Log warning when approaching limit (80%)
+        {
+            logger.LogInformation("Client {ClientIp} approaching rate limit on path {Path}. Current: {Count}/{Limit}, Window: {Window}s",
+                clientIp, context.Request.Path, current, limit, currentOptions.General.WindowInSeconds);
         }
         
         await next(context);
+    }
+
+    private static int GetEffectiveLimit(HttpContext context, RateLimitOptions rateLimitOptions, bool isAuthenticated)
+    {
+        var requestPath = context.Request.Path.Value ?? string.Empty;
+        
+        // 1. Check for endpoint-specific limits first
+        foreach (var endpointLimit in rateLimitOptions.EndpointLimits)
+        {
+            if (IsPathMatch(requestPath, endpointLimit.Value.Pattern))
+            {
+                // Check if this endpoint limit applies to the current user type
+                if ((isAuthenticated && endpointLimit.Value.ApplyToAuthenticated) ||
+                    (!isAuthenticated && endpointLimit.Value.ApplyToAnonymous))
+                {
+                    return endpointLimit.Value.RequestsPerMinute;
+                }
+            }
+        }
+        
+        // 2. Check for role-specific limits (only for authenticated users)
+        if (isAuthenticated)
+        {
+            var userRoles = context.User.FindAll("role")?.Select(c => c.Value) ?? 
+                           context.User.FindAll("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Select(c => c.Value) ??
+                           Enumerable.Empty<string>();
+            
+            foreach (var role in userRoles)
+            {
+                if (rateLimitOptions.RoleLimits.TryGetValue(role, out var roleLimit))
+                {
+                    return roleLimit.RequestsPerMinute;
+                }
+            }
+        }
+        
+        // 3. Fall back to default authenticated/anonymous limits
+        return isAuthenticated ? 
+            rateLimitOptions.Authenticated.RequestsPerMinute : 
+            rateLimitOptions.Anonymous.RequestsPerMinute;
+    }
+    
+    private static bool IsPathMatch(string requestPath, string pattern)
+    {
+        if (string.IsNullOrEmpty(pattern))
+            return false;
+            
+        // Simple wildcard matching - can be enhanced for more complex patterns
+        if (pattern.Contains('*'))
+        {
+            var regexPattern = pattern.Replace("*", ".*");
+            return System.Text.RegularExpressions.Regex.IsMatch(requestPath, regexPattern, 
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        }
+        
+        return string.Equals(requestPath, pattern, StringComparison.OrdinalIgnoreCase);
     }
 
     private static string GetClientIpAddress(HttpContext context)
@@ -52,10 +122,10 @@ public class RateLimitingMiddleware(
         return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
 
-    private static async Task HandleRateLimitExceeded(HttpContext context, int limit)
+    private static async Task HandleRateLimitExceeded(HttpContext context, int limit, int windowInSeconds)
     {
         context.Response.StatusCode = 429;
-        context.Response.Headers.Append("Retry-After", "60");
+        context.Response.Headers.Append("Retry-After", windowInSeconds.ToString());
         context.Response.ContentType = "application/json";
 
         var errorResponse = new 
@@ -65,7 +135,8 @@ public class RateLimitingMiddleware(
             Details = new Dictionary<string, object>
             {
                 ["limit"] = limit,
-                ["retryAfterSeconds"] = 60
+                ["retryAfterSeconds"] = windowInSeconds,
+                ["windowInSeconds"] = windowInSeconds
             }
         };
 

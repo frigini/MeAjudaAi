@@ -173,7 +173,15 @@ apply_optimizations() {
         print_info "Configurando variáveis de ambiente para otimização..."
         
         # Configurações Docker/TestContainers
-        export DOCKER_HOST="npipe://./pipe/docker_engine"
+        # Set DOCKER_HOST only on Windows platforms and only if not already defined
+        if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]] || [[ "${OS:-}" == "Windows_NT" ]]; then
+            if [[ -z "${DOCKER_HOST:-}" ]]; then
+                export DOCKER_HOST="npipe://./pipe/docker_engine"
+                print_verbose "Docker Host configurado para Windows"
+            fi
+        fi
+        
+        # TestContainers optimizations (apply on all platforms)
         export TESTCONTAINERS_RYUK_DISABLED=true
         export TESTCONTAINERS_CHECKS_DISABLE=true
         export TESTCONTAINERS_WAIT_STRATEGY_RETRIES=1
@@ -224,12 +232,12 @@ build_solution() {
     
     print_info "Compilando em modo Release..."
     if [ "$VERBOSE" = true ]; then
-        dotnet build --no-restore --configuration Release --verbosity normal
+        local build_command="dotnet build --no-restore --configuration Release --verbosity normal"
     else
-        dotnet build --no-restore --configuration Release --verbosity minimal
+        local build_command="dotnet build --no-restore --configuration Release --verbosity minimal"
     fi
     
-    if [ $? -eq 0 ]; then
+    if $build_command; then
         print_info "Build concluído com sucesso!"
     else
         print_error "Falha no build. Verifique os erros acima."
@@ -261,9 +269,7 @@ run_unit_tests() {
     fi
     
     print_info "Executando testes unitários..."
-    eval "dotnet test $test_args"
-    
-    if [ $? -eq 0 ]; then
+    if eval "dotnet test $test_args"; then
         print_info "Testes unitários concluídos com sucesso!"
     else
         print_error "Alguns testes unitários falharam."
@@ -278,7 +284,7 @@ validate_namespace_reorganization() {
     print_info "Verificando conformidade com a reorganização de namespaces..."
     
     # Verificar se não há referências ao namespace antigo
-    if find src/ -name "*.cs" -exec grep -l "using MeAjudaAi\.Shared\.Common;" {} \; 2>/dev/null | head -1; then
+    if grep -R -q "using MeAjudaAi\.Shared\.Common;" src/ 2>/dev/null; then
         print_error "❌ Encontradas referências ao namespace antigo MeAjudaAi.Shared.Common"
         print_error "   Use os novos namespaces específicos:"
         print_error "   - MeAjudaAi.Shared.Functional (Result, Error, Unit)"
@@ -378,9 +384,7 @@ run_integration_tests() {
     fi
     
     print_info "Executando testes de integração..."
-    eval "dotnet test $test_args"
-    
-    if [ $? -eq 0 ]; then
+    if eval "dotnet test $test_args"; then
         print_info "Testes de integração concluídos com sucesso!"
     else
         print_error "Alguns testes de integração falharam."
@@ -404,9 +408,7 @@ run_e2e_tests() {
     fi
     
     print_info "Executando testes E2E..."
-    eval "dotnet test $test_args"
-    
-    if [ $? -eq 0 ]; then
+    if eval "dotnet test $test_args"; then
         print_info "Testes E2E concluídos com sucesso!"
     else
         print_error "Alguns testes E2E falharam."
@@ -429,13 +431,11 @@ generate_coverage_report() {
     fi
     
     print_info "Processando arquivos de cobertura..."
-    reportgenerator \
+    if reportgenerator \
         -reports:"$TEST_RESULTS_DIR/**/coverage.cobertura.xml" \
         -targetdir:"$COVERAGE_DIR" \
         -reporttypes:"Html;Cobertura;TextSummary" \
-        -verbosity:Warning
-    
-    if [ $? -eq 0 ]; then
+        -verbosity:Warning; then
         print_info "Relatório de cobertura gerado em: $COVERAGE_DIR"
         print_info "Abra o arquivo index.html no navegador para visualizar."
     else

@@ -9,7 +9,7 @@
 if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing"))
 {
     // ✅ Configuração para desenvolvimento e testes
-    services.AddAuthentication("AspireTest")
+    builder.Services.AddAuthentication("AspireTest")
         .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
             "AspireTest", options => { });
     
@@ -23,7 +23,7 @@ if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Te
 else
 {
     // ✅ Configuração real para outros ambientes
-    services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
             options.Authority = "https://your-keycloak-server/realms/meajudaai";
@@ -37,7 +37,7 @@ else
 
 ```csharp
 // Políticas de autorização funcionam normalmente
-services.AddAuthorization(options =>
+builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy =>
         policy.RequireRole("admin")); // TestHandler sempre fornece role "admin"
@@ -154,7 +154,7 @@ public class CustomTestAuthenticationHandler : TestAuthenticationHandler
 
 ```csharp
 // Para cenários complexos com múltiplos esquemas
-services.AddAuthentication()
+builder.Services.AddAuthentication()
     .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
         "Test-Admin", options => { })
     .AddScheme<AuthenticationSchemeOptions, TestUserAuthenticationHandler>(

@@ -9,18 +9,27 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     // 🚀 Configurar Serilog apenas se NÃO for ambiente de Testing
-    var logger = Log.ForContext<Program>();
     if (!builder.Environment.IsEnvironment("Testing"))
     {
+        // Bootstrap logger for early startup messages
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(builder.Configuration)
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("Application", "MeAjudaAi")
+            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+            .WriteTo.Console(outputTemplate:
+                "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+            .CreateLogger();
+
         builder.Host.UseSerilog((context, services, configuration) => configuration
             .ReadFrom.Configuration(context.Configuration)
             .Enrich.FromLogContext()
             .Enrich.WithProperty("Application", "MeAjudaAi")
             .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
-            .WriteTo.Console(outputTemplate: 
+            .WriteTo.Console(outputTemplate:
                 "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
 
-        logger.Information("🚀 Iniciando MeAjudaAi API Service");
+        Log.Information("🚀 Iniciando MeAjudaAi API Service");
     }
 
     // Configurações via ServiceDefaults e Shared (sem duplicar Serilog)
@@ -40,8 +49,8 @@ try
 
     if (!app.Environment.IsEnvironment("Testing"))
     {
-        var environmentName = app.Environment.IsEnvironment("Integration") ? "Integration Test" : "Production";
-        logger.Information("✅ MeAjudaAi API Service configurado com sucesso - Ambiente: {Environment}", environmentName);
+        var environmentName = app.Environment.IsEnvironment("Integration") ? "Integration Test" : app.Environment.EnvironmentName;
+        Log.Information("✅ MeAjudaAi API Service configurado com sucesso - Ambiente: {Environment}", environmentName);
     }
 
     app.Run();
@@ -50,8 +59,7 @@ catch (Exception ex)
 {
     if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Testing")
     {
-        var errorLogger = Log.ForContext<Program>();
-        errorLogger.Fatal(ex, "❌ Falha crítica ao inicializar MeAjudaAi API Service");
+        Log.Fatal(ex, "❌ Falha crítica ao inicializar MeAjudaAi API Service");
     }
     throw;
 }

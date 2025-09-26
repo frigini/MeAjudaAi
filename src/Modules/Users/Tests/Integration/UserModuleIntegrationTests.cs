@@ -14,28 +14,8 @@ namespace MeAjudaAi.Modules.Users.Tests.Integration;
 [Collection("UsersIntegrationTests")]
 public class UserModuleIntegrationTests : UsersIntegrationTestBase
 {
-    protected override TestInfrastructureOptions GetTestOptions()
-    {
-        return new TestInfrastructureOptions
-        {
-            Database = new TestDatabaseOptions
-            {
-                DatabaseName = "test_users_integration",
-                Username = "testuser", 
-                Password = "testpass123",
-                Schema = "users_test"
-            },
-            Cache = new TestCacheOptions
-            {
-                Enabled = false // Para este teste, não precisamos de cache
-            },
-            ExternalServices = new TestExternalServicesOptions
-            {
-                UseKeycloakMock = true,
-                UseMessageBusMock = true
-            }
-        };
-    }
+    // Remove override to use default SharedTestContainers configuration
+    // protected override TestInfrastructureOptions GetTestOptions() - using inherited default
     
     [Fact]
     public async Task CreateUser_WithValidData_ShouldPersistToDatabase()

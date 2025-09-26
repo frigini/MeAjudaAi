@@ -71,8 +71,8 @@ public class UsersModuleApiTests
             null);
 
         _getUserByIdHandler
-            .HandleAsync(Arg.Any<GetUserByIdQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Success(userDto));
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(userDto));
 
         // Act
         var result = await _sut.GetUserByIdAsync(userId);
@@ -95,8 +95,8 @@ public class UsersModuleApiTests
         var userId = UuidGenerator.NewId();
 
         _getUserByIdHandler
-            .HandleAsync(Arg.Any<GetUserByIdQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Success(null));
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(null!));
 
         // Act
         var result = await _sut.GetUserByIdAsync(userId);
@@ -114,8 +114,8 @@ public class UsersModuleApiTests
         var error = Error.BadRequest("Database error");
 
         _getUserByIdHandler
-            .HandleAsync(Arg.Any<GetUserByIdQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Failure(error));
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Failure(error));
 
         // Act
         var result = await _sut.GetUserByIdAsync(userId);
@@ -142,8 +142,8 @@ public class UsersModuleApiTests
             null);
 
         _getUserByEmailHandler
-            .HandleAsync(Arg.Any<GetUserByEmailQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Success(userDto));
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(userDto));
 
         // Act
         var result = await _sut.GetUserByEmailAsync(email);
@@ -168,12 +168,12 @@ public class UsersModuleApiTests
         var userDto2 = new UserDto(userId2, "user2", "user2@test.com", "User", "Two", "User Two", UuidGenerator.NewIdString(), DateTime.UtcNow, null);
 
         _getUserByIdHandler
-            .HandleAsync(Arg.Is<GetUserByIdQuery>(q => q.UserId == userId1), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Success(userDto1));
+            .Setup(x => x.HandleAsync(It.Is<GetUserByIdQuery>(q => q.UserId == userId1), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(userDto1));
         
         _getUserByIdHandler
-            .HandleAsync(Arg.Is<GetUserByIdQuery>(q => q.UserId == userId2), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Success(userDto2));
+            .Setup(x => x.HandleAsync(It.Is<GetUserByIdQuery>(q => q.UserId == userId2), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(userDto2));
 
         // Act
         var result = await _sut.GetUsersBatchAsync(userIds);
@@ -193,8 +193,8 @@ public class UsersModuleApiTests
         var userDto = new UserDto(userId, "test", "test@test.com", "Test", "User", "Test User", UuidGenerator.NewIdString(), DateTime.UtcNow, null);
 
         _getUserByIdHandler
-            .HandleAsync(Arg.Any<GetUserByIdQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Success(userDto));
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(userDto));
 
         // Act
         var result = await _sut.UserExistsAsync(userId);
@@ -211,8 +211,8 @@ public class UsersModuleApiTests
         var userId = UuidGenerator.NewId();
 
         _getUserByIdHandler
-            .HandleAsync(Arg.Any<GetUserByIdQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Success(null));
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(null!));
 
         // Act
         var result = await _sut.UserExistsAsync(userId);
@@ -229,8 +229,8 @@ public class UsersModuleApiTests
         var userId = UuidGenerator.NewId();
 
         _getUserByIdHandler
-            .HandleAsync(Arg.Any<GetUserByIdQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Failure("Database error"));
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Failure("Database error"));
 
         // Act
         var result = await _sut.UserExistsAsync(userId);
@@ -248,8 +248,8 @@ public class UsersModuleApiTests
         var userDto = new UserDto(UuidGenerator.NewId(), "test", email, "Test", "User", "Test User", UuidGenerator.NewIdString(), DateTime.UtcNow, null);
 
         _getUserByEmailHandler
-            .HandleAsync(Arg.Any<GetUserByEmailQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Success(userDto));
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(userDto));
 
         // Act
         var result = await _sut.EmailExistsAsync(email);
@@ -266,8 +266,8 @@ public class UsersModuleApiTests
         var email = "notfound@example.com";
 
         _getUserByEmailHandler
-            .HandleAsync(Arg.Any<GetUserByEmailQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Success(null));
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(null!));
 
         // Act
         var result = await _sut.EmailExistsAsync(email);
@@ -299,16 +299,15 @@ public class UsersModuleApiTests
     {
         // Arrange
         _getUserByEmailHandler
-            .HandleAsync(Arg.Any<GetUserByEmailQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result<UserDto>.Success(null));
+            .Setup(x => x.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(null!));
 
         // Act
         var result = await _sut.GetUserByEmailAsync(email);
 
         // Assert
-        await _getUserByEmailHandler
-            .Received(1)
-            .HandleAsync(Arg.Is<GetUserByEmailQuery>(q => q.Email == email), Arg.Any<CancellationToken>());
+        _getUserByEmailHandler
+            .Verify(x => x.HandleAsync(It.Is<GetUserByEmailQuery>(q => q.Email == email), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

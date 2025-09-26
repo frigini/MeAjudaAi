@@ -71,9 +71,9 @@ public async Task GetCurrentUser_WithTestAuth_ShouldReturnTestUser()
 // Program.cs para desenvolvimento
 var builder = WebApplication.CreateBuilder(args);
 
-if (builder.Environment.IsDevelopment())
+if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing"))
 {
-    Console.WriteLine("🚨 Running with TestAuthenticationHandler - Development Mode");
+    Console.WriteLine("🚨 Running with TestAuthenticationHandler - Development/Testing Mode");
     
     builder.Services.AddAuthentication("AspireTest")
         .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
@@ -83,7 +83,7 @@ if (builder.Environment.IsDevelopment())
 var app = builder.Build();
 
 // Middleware que mostra quando TestAuth está ativo
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 {
     app.Use(async (context, next) =>
     {
@@ -103,7 +103,7 @@ if (app.Environment.IsDevelopment())
 [HttpGet("debug/auth")]
 public IActionResult GetAuthInfo()
 {
-    if (!_environment.IsDevelopment())
+    if (!_environment.IsDevelopment() && !_environment.IsEnvironment("Testing"))
         return NotFound();
     
     return Ok(new
@@ -268,12 +268,36 @@ public class TestAuthAwareLogger<T> : ILogger<T>
 {
     private readonly ILogger<T> _innerLogger;
     
+    public TestAuthAwareLogger(ILogger<T> innerLogger)
+    {
+        _innerLogger = innerLogger ?? throw new ArgumentNullException(nameof(innerLogger));
+    }
+    
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+    {
+        return _innerLogger.BeginScope(state);
+    }
+    
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return _innerLogger.IsEnabled(logLevel);
+    }
+    
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    {
+        if (!IsEnabled(logLevel))
+            return;
+            
+        var originalMessage = formatter(state, exception);
+        var prefixedMessage = $"[TEST-AUTH] {originalMessage}";
+        
+        _innerLogger.Log(logLevel, eventId, prefixedMessage, exception, (msg, ex) => msg);
+    }
+    
     public void LogInformation(string message, params object[] args)
     {
         _innerLogger.LogInformation($"[TEST-AUTH] {message}", args);
     }
-    
-    // Implementar outros métodos...
 }
 ```
 
