@@ -215,6 +215,15 @@ public static class MeAjudaAiKeycloakExtensions
             .WithEnvironment("KC_METRICS_ENABLED", "true")
             .WithEnvironment("KC_PROXY", "edge");
 
+        // Definir KC_HOSTNAME quando usando hostname estrito (sem endpoint exposto)
+        var resolvedHostname = options.Hostname ?? Environment.GetEnvironmentVariable("KEYCLOAK_HOSTNAME");
+        if (!options.ExposeHttpEndpoint)
+        {
+            if (string.IsNullOrWhiteSpace(resolvedHostname))
+                throw new InvalidOperationException("KEYCLOAK_HOSTNAME (ou options.Hostname) é obrigatório em produção com hostname estrito.");
+            keycloak = keycloak.WithEnvironment("KC_HOSTNAME", resolvedHostname);
+        }
+
         // Importar realm na inicialização (apenas se especificado)
         if (!string.IsNullOrEmpty(options.ImportRealm))
         {

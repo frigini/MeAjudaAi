@@ -49,7 +49,7 @@ docker compose -f postgres-only.yml up -d
 
 - **Security**: Requires explicit password (no unsafe defaults)
 - **Health Checks**: Built-in PostgreSQL readiness checks
-- **Initialization Scripts**: Automatically runs scripts from `../../database/`
+- **Initialization Scripts**: Automatically runs scripts from `postgres/init/`
 - **Data Persistence**: Uses named volumes for data retention
 
 ### Connection Details
@@ -81,7 +81,7 @@ docker compose -f keycloak-only.yml up -d
 ```
 
 **4. Access Keycloak:**
-- **URL**: http://localhost:8080
+- **URL**: <http://localhost:8080>
 - **Username**: `admin` (or custom via `KEYCLOAK_ADMIN`)
 - **Password**: Value from `KEYCLOAK_ADMIN_PASSWORD`
 

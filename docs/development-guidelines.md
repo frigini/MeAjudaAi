@@ -35,9 +35,9 @@ This document provides comprehensive guidelines for developing with the MeAjudaA
    ```
 
 3. **Access the application**:
-   - API: `http://localhost:5000`
-   - Swagger UI: `http://localhost:5000/swagger`
-   - Aspire Dashboard: `http://localhost:15000`
+   - API: `https://localhost:7524` or `http://localhost:5545`
+   - Swagger UI: `https://localhost:7524/swagger` or `http://localhost:5545/swagger`
+   - Aspire Dashboard: `https://localhost:17063` or `http://localhost:15297`
 
 ### Environment Configuration
 
@@ -68,7 +68,7 @@ Key development settings in `appsettings.Development.json`:
 
 ### Solution Organization
 
-```
+```text
 MeAjudaAi/
 ├── src/
 │   ├── Aspire/                    # .NET Aspire orchestration
@@ -88,7 +88,7 @@ MeAjudaAi/
 ### Module Structure (DDD)
 
 Each module follows the Clean Architecture pattern:
-```
+```text
 Module/
 ├── API/                          # Controllers, DTOs
 ├── Application/                  # Use cases, CQRS handlers
@@ -171,7 +171,7 @@ using MeAjudaAi.Shared.Caching;        // Cache services
 
 When creating new modules, follow this standardized structure:
 
-```
+```text
 src/Modules/[ModuleName]/
 ├── Domain/                           # Domain layer
 │   ├── Entities/                     # Domain entities
@@ -371,8 +371,8 @@ See [Testing Documentation](testing/) for detailed testing guidelines.
 
 ### Development Tools
 
-1. **Aspire Dashboard**: Monitor application health and metrics at `http://localhost:15000`
-2. **Swagger UI**: Test API endpoints at `http://localhost:5000/swagger`
+1. **Aspire Dashboard**: Monitor application health and metrics at `https://localhost:17063` or `http://localhost:15297`
+2. **Swagger UI**: Test API endpoints at `https://localhost:7524/swagger` or `http://localhost:5545/swagger`
 3. **Application Logs**: View structured logs in console or log files
 
 ### Common Issues
@@ -478,7 +478,7 @@ Use the built-in health checks and metrics:
 
 - **Branch naming**: `feature/user-authentication`, `bugfix/login-issue`
 - **Commit messages**: Use conventional commits format
-  ```
+  ```text
   feat: add user authentication
   fix: resolve login timeout issue
   docs: update API documentation

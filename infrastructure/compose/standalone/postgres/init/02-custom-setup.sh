@@ -17,6 +17,9 @@ if [ -z "$READONLY_USER_PASSWORD" ]; then
     exit 1
 fi
 
+# Export the variable to ensure it's available for subprocesses
+export READONLY_USER_PASSWORD
+
 # Wait for PostgreSQL to be ready
 until pg_isready -h localhost -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do
   echo "⏳ Waiting for PostgreSQL to be ready..."
@@ -26,7 +29,7 @@ done
 echo "✅ PostgreSQL is ready!"
 
 # Set the password in session configuration for secure access
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c \
+psql -v ON_ERROR_STOP=1 -v READONLY_USER_PASSWORD="$READONLY_USER_PASSWORD" --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c \
     "SELECT set_config('app.readonly_user_password', :'READONLY_USER_PASSWORD', false);" > /dev/null
 
 # Example: Create additional users or perform complex setup

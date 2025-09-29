@@ -93,6 +93,11 @@ public static class PostgreSqlExtensions
         Action<MeAjudaAiPostgreSqlOptions>? configure = null)
     {
         var options = new MeAjudaAiPostgreSqlOptions();
+        
+        // Aplica sobrescritas de variáveis de ambiente primeiro (consistente com o caminho local/test)
+        ApplyEnvironmentVariables(options);
+        
+        // Depois aplica configuração do usuário (pode sobrescrever variáveis de ambiente)
         configure?.Invoke(options);
 
         var postgresUserParam = builder.AddParameter("PostgresUser", options.Username);

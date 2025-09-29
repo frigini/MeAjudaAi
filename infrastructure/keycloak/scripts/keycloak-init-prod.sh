@@ -135,25 +135,84 @@ if [[ -n "${INITIAL_ADMIN_USERNAME:-}" && -n "${INITIAL_ADMIN_PASSWORD:-}" && -n
         -H "Authorization: Bearer ${ADMIN_TOKEN}" | jq length)
     
     if [[ "${USER_EXISTS}" -eq 0 ]]; then
-        # Create user
-        curl -sf -X POST "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/users" \
+        echo "🔄 Step 1: Creating user with basic info..."
+        # Create user with only username, email, and enabled status
+        USER_CREATION_RESPONSE=$(curl -sf -w "%{http_code}" -X POST "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/users" \
             -H "Authorization: Bearer ${ADMIN_TOKEN}" \
             -H "Content-Type: application/json" \
             -d "{
                 \"username\": \"${INITIAL_ADMIN_USERNAME}\",
                 \"email\": \"${INITIAL_ADMIN_EMAIL}\",
-                \"enabled\": true,
-                \"credentials\": [{
-                    \"type\": \"password\",
-                    \"value\": \"${INITIAL_ADMIN_PASSWORD}\",
-                    \"temporary\": true
-                }],
-                \"realmRoles\": [\"admin\", \"super-admin\"]
-            }" || {
-            echo "❌ Failed to create initial admin user"
+                \"enabled\": true
+            }")
+        
+        HTTP_CODE="${USER_CREATION_RESPONSE: -3}"
+        if [[ "${HTTP_CODE}" != "201" ]]; then
+            echo "❌ Failed to create initial admin user (HTTP ${HTTP_CODE})"
             exit 1
-        }
-        echo "✅ Initial admin user created successfully"
+        fi
+        
+        echo "🔄 Step 2: Retrieving created user ID..."
+        # Retrieve the created user's ID
+        USER_ID=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/users?username=${INITIAL_ADMIN_USERNAME}" \
+            -H "Authorization: Bearer ${ADMIN_TOKEN}" | jq -r '.[0].id')
+        
+        if [[ -z "${USER_ID}" || "${USER_ID}" == "null" ]]; then
+            echo "❌ Failed to retrieve created user ID"
+            exit 1
+        fi
+        
+        echo "🔄 Step 3: Setting user password..."
+        # Set user password using the reset-password endpoint
+        PASSWORD_RESPONSE=$(curl -sf -w "%{http_code}" -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/users/${USER_ID}/reset-password" \
+            -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{
+                \"type\": \"password\",
+                \"value\": \"${INITIAL_ADMIN_PASSWORD}\",
+                \"temporary\": true
+            }")
+        
+        HTTP_CODE="${PASSWORD_RESPONSE: -3}"
+        if [[ "${HTTP_CODE}" != "204" ]]; then
+            echo "❌ Failed to set user password (HTTP ${HTTP_CODE})"
+            exit 1
+        fi
+        
+        echo "🔄 Step 4: Fetching realm role representations..."
+        # Fetch admin role representation
+        ADMIN_ROLE=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/roles/admin" \
+            -H "Authorization: Bearer ${ADMIN_TOKEN}")
+        
+        if [[ -z "${ADMIN_ROLE}" || "${ADMIN_ROLE}" == "null" ]]; then
+            echo "❌ Failed to fetch admin role representation"
+            exit 1
+        fi
+        
+        # Fetch super-admin role representation
+        SUPER_ADMIN_ROLE=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/roles/super-admin" \
+            -H "Authorization: Bearer ${ADMIN_TOKEN}")
+        
+        if [[ -z "${SUPER_ADMIN_ROLE}" || "${SUPER_ADMIN_ROLE}" == "null" ]]; then
+            echo "❌ Failed to fetch super-admin role representation"
+            exit 1
+        fi
+        
+        echo "🔄 Step 5: Assigning realm roles..."
+        # Assign realm roles to the user
+        ROLES_PAYLOAD=$(echo "[${ADMIN_ROLE}, ${SUPER_ADMIN_ROLE}]")
+        ROLE_ASSIGNMENT_RESPONSE=$(curl -sf -w "%{http_code}" -X POST "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/users/${USER_ID}/role-mappings/realm" \
+            -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "${ROLES_PAYLOAD}")
+        
+        HTTP_CODE="${ROLE_ASSIGNMENT_RESPONSE: -3}"
+        if [[ "${HTTP_CODE}" != "204" ]]; then
+            echo "❌ Failed to assign realm roles (HTTP ${HTTP_CODE})"
+            exit 1
+        fi
+        
+        echo "✅ Initial admin user created successfully with all roles assigned"
     else
         echo "ℹ️ Initial admin user already exists, skipping creation"
     fi

@@ -111,10 +111,16 @@ docker compose -f environments/development.yml up -d
 
 ### URLs dos Serviços
 
+> **📝 Nota**: As URLs abaixo são baseadas nas configurações em `launchSettings.json` e `docker-compose.yml`. 
+> Para atualizações de portas, consulte:
+> - **Aspire Dashboard**: `src/Aspire/MeAjudaAi.AppHost/Properties/launchSettings.json`
+> - **API Service**: `src/Bootstrapper/MeAjudaAi.ApiService/Properties/launchSettings.json`
+> - **Infraestrutura**: `infrastructure/compose/environments/development.yml`
+
 | Serviço | URL | Credenciais |
 |---------|-----|-------------|
-| **Aspire Dashboard** | https://localhost:15888 | - |
-| **API Service** | https://localhost:7032 | - |
+| **Aspire Dashboard** | https://localhost:17063<br/>http://localhost:15297 | - |
+| **API Service** | https://localhost:7524<br/>http://localhost:5545 | - |
 | **Keycloak Admin** | http://localhost:8080 | admin/[senha gerada] |
 | **PostgreSQL** | localhost:5432 | postgres/dev123 |
 | **Redis** | localhost:6379 | - |

@@ -11,28 +11,45 @@
 ```csharp
 public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
 {
+    private readonly IHostEnvironment _environment;
+    private readonly IConfiguration _configuration;
+    private readonly IServiceProvider _serviceProvider;
+    
+    public EnvironmentBasedMessageBusFactory(
+        IHostEnvironment environment,
+        IConfiguration configuration,
+        IServiceProvider serviceProvider)
+    {
+        _environment = environment;
+        _configuration = configuration;
+        _serviceProvider = serviceProvider;
+    }
+    
     public IMessageBus CreateMessageBus()
     {
-        var rabbitMqEnabled = _configuration.GetValue<bool?>("RabbitMQ:Enabled");
+        var rabbitMqEnabled = _configuration.GetValue<bool?>($"{RabbitMqOptions.SectionName}:Enabled");
         
-        if (_environment.IsDevelopment() || _environment.EnvironmentName == "Testing")
+        if (_environment.IsDevelopment())
         {
-            // DEVELOPMENT/TESTING: RabbitMQ (se habilitado) ou NoOp (se desabilitado)
+            // DEVELOPMENT: RabbitMQ (se habilitado) ou NoOp (se desabilitado)
             if (rabbitMqEnabled != false)
             {
-                try
+                var rabbitMqService = _serviceProvider.GetService<RabbitMqMessageBus>();
+                if (rabbitMqService != null)
                 {
-                    return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
+                    return rabbitMqService;
                 }
-                catch
-                {
-                    return _serviceProvider.GetRequiredService<NoOpMessageBus>(); // Fallback
-                }
+                return _serviceProvider.GetRequiredService<NoOpMessageBus>(); // Fallback
             }
             else
             {
                 return _serviceProvider.GetRequiredService<NoOpMessageBus>();
             }
+        }
+        else if (_environment.IsEnvironment(EnvironmentNames.Testing))
+        {
+            // TESTING: Always NoOp to avoid external dependencies
+            return _serviceProvider.GetRequiredService<NoOpMessageBus>();
         }
         else
         {

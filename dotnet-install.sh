@@ -26,11 +26,16 @@ if [ -t 1 ] && command -v tput > /dev/null; then
     # see if it supports colors
     ncolors=$(tput colors || echo 0)
     if [ -n "$ncolors" ] && [ $ncolors -ge 8 ]; then
+        bold="$(tput bold       || echo)"
         normal="$(tput sgr0     || echo)"
+        black="$(tput setaf 0   || echo)"
         red="$(tput setaf 1     || echo)"
         green="$(tput setaf 2   || echo)"
         yellow="$(tput setaf 3  || echo)"
+        blue="$(tput setaf 4    || echo)"
+        magenta="$(tput setaf 5 || echo)"
         cyan="$(tput setaf 6    || echo)"
+        white="$(tput setaf 7   || echo)"
     fi
 fi
 
@@ -1363,10 +1368,10 @@ generate_download_links() {
 
     # Check other feeds only if we haven't been able to find an aka.ms link.
     if [[ "${#download_links[@]}" -lt 1 ]]; then
-        for feed in ${feeds[@]}
+        for feed in "${feeds[@]}"
         do
             # generate_regular_links may also 'exit' (if the determined version is already installed).
-            generate_regular_links $feed || return
+            generate_regular_links "$feed" || return
         done
     fi
 
@@ -1376,7 +1381,7 @@ generate_download_links() {
     fi
 
     say_verbose "Generated ${#download_links[@]} links."
-    for link_index in ${!download_links[@]}
+    for link_index in "${!download_links[@]}"
     do
         say_verbose "Link $link_index: ${link_types[$link_index]}, ${effective_versions[$link_index]}, ${download_links[$link_index]}"
     done

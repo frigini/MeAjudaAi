@@ -41,7 +41,7 @@ services:
     environment:
       POSTGRES_DB: ${KEYCLOAK_DB:-keycloak}
       POSTGRES_USER: ${KEYCLOAK_DB_USER:-keycloak}
-      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Missing KEYCLOAK_DB_PASSWORD environment variable}
     volumes:
       - keycloak_db_data:/var/lib/postgresql/data
       - ./backups:/backups
@@ -64,12 +64,12 @@ services:
     container_name: meajudaai-keycloak-prod
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Missing KEYCLOAK_ADMIN_PASSWORD environment variable}
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KEYCLOAK_DB:-keycloak}
       KC_DB_USERNAME: ${KEYCLOAK_DB_USER:-keycloak}
-      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
-      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Missing KEYCLOAK_DB_PASSWORD environment variable}
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:?Missing KEYCLOAK_HOSTNAME environment variable}
       KC_HOSTNAME_STRICT: true
       KC_HOSTNAME_STRICT_HTTPS: true
       KC_PROXY: edge
@@ -100,14 +100,14 @@ services:
   redis:
     image: redis:7-alpine
     container_name: meajudaai-redis-prod
-    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    command: ["sh", "-c", "redis-server --requirepass ${REDIS_PASSWORD:?Missing REDIS_PASSWORD environment variable} --appendonly yes"]
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?Missing REDIS_PASSWORD environment variable}", "ping"]
       interval: 30s
       timeout: 10s
       retries: 5

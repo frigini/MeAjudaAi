@@ -49,6 +49,7 @@ FAST_MODE=false
 COVERAGE=false
 SKIP_BUILD=false
 PARALLEL=false
+DOCKER_AVAILABLE=false
 
 # === Cores para output ===
 RED='\033[0;31m'
@@ -165,9 +166,13 @@ setup_test_environment() {
         print_verbose "Verificando Docker para testes de integração..."
         if ! docker info &> /dev/null; then
             print_warning "Docker não está rodando. Testes de integração serão pulados."
+            DOCKER_AVAILABLE=false
         else
             print_info "Docker disponível para testes de integração."
+            DOCKER_AVAILABLE=true
         fi
+        # Export for use in subshells/functions
+        export DOCKER_AVAILABLE
     fi
     
     print_info "Ambiente de testes preparado!"
@@ -326,11 +331,33 @@ run_specific_project_tests() {
     
     local failed_projects=0
     
+    # Build common args array
+    local -a common_args=(
+        --no-build 
+        --configuration "$CONFIG"
+    )
+    
+    # Add coverage collection if enabled
+    if [ "$COVERAGE" = true ]; then
+        common_args+=(--collect:"XPlat Code Coverage")
+    fi
+    
+    # Add parallel execution if enabled
+    if [ "$PARALLEL" = true ]; then
+        common_args+=(--parallel)
+    fi
+    
+    # Set verbosity
+    local verbosity_level="minimal"
+    if [ "$VERBOSE" = true ]; then
+        verbosity_level="normal"
+    fi
+    
     # Testes do Shared
     print_info "Executando testes MeAjudaAi.Shared.Tests..."
     if dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj \
-         --no-build --configuration Release \
-         --logger "console;verbosity=minimal" \
+         "${common_args[@]}" \
+         --logger "console;verbosity=$verbosity_level" \
          --logger "trx;LogFileName=shared-tests.trx" \
          --results-directory "$TEST_RESULTS_DIR"; then
         print_info "✅ MeAjudaAi.Shared.Tests passou"
@@ -342,8 +369,8 @@ run_specific_project_tests() {
     # Testes de Arquitetura
     print_info "Executando testes MeAjudaAi.Architecture.Tests..."
     if dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj \
-         --no-build --configuration Release \
-         --logger "console;verbosity=minimal" \
+         "${common_args[@]}" \
+         --logger "console;verbosity=$verbosity_level" \
          --logger "trx;LogFileName=architecture-tests.trx" \
          --results-directory "$TEST_RESULTS_DIR"; then
         print_info "✅ MeAjudaAi.Architecture.Tests passou"
@@ -352,30 +379,38 @@ run_specific_project_tests() {
         failed_projects=$((failed_projects + 1))
     fi
     
-    # Testes de Integração
-    print_info "Executando testes MeAjudaAi.Integration.Tests..."
-    if ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
-         --no-build --configuration Release \
-         --logger "console;verbosity=minimal" \
-         --logger "trx;LogFileName=integration-per-project-tests.trx" \
-         --results-directory "$TEST_RESULTS_DIR"; then
-        print_info "✅ MeAjudaAi.Integration.Tests passou"
+    # Testes de Integração (conditional on Docker availability)
+    if [ "$DOCKER_AVAILABLE" = true ]; then
+        print_info "Executando testes MeAjudaAi.Integration.Tests..."
+        if ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
+             "${common_args[@]}" \
+             --logger "console;verbosity=$verbosity_level" \
+             --logger "trx;LogFileName=integration-tests.trx" \
+             --results-directory "$TEST_RESULTS_DIR"; then
+            print_info "✅ MeAjudaAi.Integration.Tests passou"
+        else
+            print_error "❌ MeAjudaAi.Integration.Tests falhou"
+            failed_projects=$((failed_projects + 1))
+        fi
     else
-        print_error "❌ MeAjudaAi.Integration.Tests falhou"
-        failed_projects=$((failed_projects + 1))
+        print_warning "⏭️  Pulando MeAjudaAi.Integration.Tests (Docker não disponível)"
     fi
     
-    # Testes E2E
-    print_info "Executando testes MeAjudaAi.E2E.Tests..."
-    if ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
-         --no-build --configuration Release \
-         --logger "console;verbosity=minimal" \
-         --logger "trx;LogFileName=e2e-per-project-tests.trx" \
-         --results-directory "$TEST_RESULTS_DIR"; then
-        print_info "✅ MeAjudaAi.E2E.Tests passou"
+    # Testes E2E (conditional on Docker availability)
+    if [ "$DOCKER_AVAILABLE" = true ]; then
+        print_info "Executando testes MeAjudaAi.E2E.Tests..."
+        if ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
+             "${common_args[@]}" \
+             --logger "console;verbosity=$verbosity_level" \
+             --logger "trx;LogFileName=e2e-tests.trx" \
+             --results-directory "$TEST_RESULTS_DIR"; then
+            print_info "✅ MeAjudaAi.E2E.Tests passou"
+        else
+            print_error "❌ MeAjudaAi.E2E.Tests falhou"
+            failed_projects=$((failed_projects + 1))
+        fi
     else
-        print_error "❌ MeAjudaAi.E2E.Tests falhou"
-        failed_projects=$((failed_projects + 1))
+        print_warning "⏭️  Pulando MeAjudaAi.E2E.Tests (Docker não disponível)"
     fi
     
     if [ "$failed_projects" -eq 0 ]; then

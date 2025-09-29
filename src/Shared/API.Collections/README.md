@@ -121,7 +121,7 @@ Para ver estado do Aspire e serviços:
 
 ## 📚 Documentação Adicional
 
-- **Aspire Dashboard**: https://localhost:15888
+- **Aspire Dashboard**: https://localhost:17063
 - **Keycloak Admin**: http://localhost:8080/admin
 - **API Base**: http://localhost:5000
 

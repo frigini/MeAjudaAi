@@ -48,8 +48,8 @@ dotnet run --project src/Aspire/MeAjudaAi.AppHost
 ```
 
 #### URLs principais:
-- **API**: [http://localhost:5000](http://localhost:5000)
-- **Aspire Dashboard**: [https://localhost:15888](https://localhost:15888)
+- **API**: [http://localhost:5545](http://localhost:5545)
+- **Aspire Dashboard**: [https://localhost:17063](https://localhost:17063)
 - **Keycloak**: [http://localhost:8080](http://localhost:8080)
 
 ### 3. Executar Endpoints dos Usuários
@@ -80,7 +80,7 @@ curl -X POST "http://localhost:8080/realms/meajudaai-realm/protocol/openid-conne
 ```
 
 #### Opção C: Via Aspire Dashboard
-1. Acesse: [https://localhost:15888](https://localhost:15888)
+1. Acesse: [https://localhost:17063](https://localhost:17063)
 2. Verifique logs do Keycloak
 3. Encontre tokens nos logs de autenticação
 
@@ -160,9 +160,9 @@ testEmail: test@example.com
 
 ## 📚 Documentação Adicional
 
-- **Aspire Dashboard**: [https://localhost:15888](https://localhost:15888)
+- **Aspire Dashboard**: [https://localhost:17063](https://localhost:17063)
 - **Keycloak Admin**: [http://localhost:8080/admin](http://localhost:8080/admin)
-- **OpenAPI/Swagger**: [http://localhost:5000/swagger](http://localhost:5000/swagger) (se habilitado)
+- **OpenAPI/Swagger**: [http://localhost:5545/swagger](http://localhost:5545/swagger) (se habilitado)
 
 ## 🎯 Próximos Passos
 

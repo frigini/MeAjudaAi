@@ -26,7 +26,7 @@ BEGIN
         SELECT 1 FROM pg_auth_members m 
         JOIN pg_roles r1 ON m.roleid = r1.oid 
         JOIN pg_roles r2 ON m.member = r2.oid 
-        WHERE r1.rolname = 'meajudaai_app_role' AND r2.rolname = 'providers_role'
+        WHERE r1.rolname = 'providers_role' AND r2.rolname = 'meajudaai_app_role'
     ) THEN
         GRANT providers_role TO meajudaai_app_role;
     END IF;

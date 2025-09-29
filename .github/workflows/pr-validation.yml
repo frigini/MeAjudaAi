@@ -90,17 +90,18 @@ jobs:
         recreate: true
         path: code-coverage-results.md
 
-  # Job 2: Infrastructure Validation
+  # Job 2: Infrastructure Validation (Optional)
   infrastructure-validation:
     name: Infrastructure Validation
     runs-on: ubuntu-latest
+    if: false  # Disabled until Azure credentials are configured
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Login to Azure (for validation only)
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 

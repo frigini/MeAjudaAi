@@ -1368,10 +1368,10 @@ generate_download_links() {
 
     # Check other feeds only if we haven't been able to find an aka.ms link.
     if [[ "${#download_links[@]}" -lt 1 ]]; then
-        for feed in ${feeds[@]}
+        for feed in "${feeds[@]}"
         do
             # generate_regular_links may also 'exit' (if the determined version is already installed).
-            generate_regular_links $feed || return
+            generate_regular_links "$feed" || return
         done
     fi
 
@@ -1381,7 +1381,7 @@ generate_download_links() {
     fi
 
     say_verbose "Generated ${#download_links[@]} links."
-    for link_index in ${!download_links[@]}
+    for link_index in "${!download_links[@]}"
     do
         say_verbose "Link $link_index: ${link_types[$link_index]}, ${effective_versions[$link_index]}, ${download_links[$link_index]}"
     done
