@@ -51,6 +51,10 @@ SKIP_BUILD=false
 PARALLEL=false
 DOCKER_AVAILABLE=false
 
+# === Configuração padrão ===
+# Set default configuration if not provided via environment
+CONFIG=${CONFIG:-Release}
+
 # === Cores para output ===
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -463,6 +467,20 @@ run_integration_tests() {
 # === Testes E2E ===
 run_e2e_tests() {
     print_header "Executando Testes End-to-End"
+    
+    # Check Docker availability for E2E tests
+    print_verbose "Verificando disponibilidade do Docker para testes E2E..."
+    if ! command -v docker &> /dev/null; then
+        print_warning "Docker não está instalado. Pulando testes E2E."
+        return 0
+    fi
+    
+    if ! docker info &> /dev/null; then
+        print_warning "Docker não está rodando ou não está acessível. Pulando testes E2E."
+        return 0
+    fi
+    
+    print_info "Docker disponível. Prosseguindo com testes E2E..."
     
     local -a args=(--no-build --configuration Release \
                    --filter 'Category=E2E' \
