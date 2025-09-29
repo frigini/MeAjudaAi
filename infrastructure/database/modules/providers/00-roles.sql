@@ -1,5 +1,9 @@
 -- PROVIDERS Module - Database Roles (EXAMPLE - Module not implemented yet)
 -- Create dedicated role for providers module (NOLOGIN role for permission grouping)
+--
+-- NOTE: Creating meajudaai_app_role in every module is safe but creates duplication.
+-- Consider centralizing app role creation in a single bootstrap script (e.g., 00-bootstrap.sql)
+-- to reduce redundancy across module initialization files.
 
 -- Create providers module role if it doesn't exist (NOLOGIN, no password in DDL)
 DO $$
@@ -8,7 +12,7 @@ BEGIN
         CREATE ROLE providers_role NOLOGIN;
     END IF;
 END
-$$;
+$$ LANGUAGE plpgsql;
 
 -- Create general application role for cross-cutting operations if it doesn't exist
 DO $$
@@ -17,7 +21,7 @@ BEGIN
         CREATE ROLE meajudaai_app_role NOLOGIN;
     END IF;
 END
-$$;
+$$ LANGUAGE plpgsql;
 
 -- Grant providers role to app role for cross-module access (idempotent)
 DO $$
@@ -31,4 +35,4 @@ BEGIN
         GRANT providers_role TO meajudaai_app_role;
     END IF;
 END
-$$;
+$$ LANGUAGE plpgsql;

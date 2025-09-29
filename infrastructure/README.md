@@ -42,6 +42,16 @@ RABBITMQ_PASS="your-secure-rabbitmq-password-here"
 # Other configuration variables...
 ```
 
+> **Git hygiene: ensure your .env files are ignored.**
+>
+> Add to .gitignore:
+> ```
+> infrastructure/.env
+> infrastructure/compose/environments/.env.*
+> ```
+
+All compose stacks should reference a shared env_file where possible to keep KEYCLOAK_VERSION and credentials consistent.
+
 ### Development vs Production Security
 
 **Development Environment** (`development.yml`):

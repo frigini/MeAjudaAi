@@ -83,17 +83,22 @@ if [[ -z "${API_CLIENT_UUID}" || "${API_CLIENT_UUID}" == "null" ]]; then
     exit 1
 fi
 
-# Fetch current client configuration and update secret
-API_CLIENT_PAYLOAD=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/${API_CLIENT_UUID}" \
-    -H "Authorization: Bearer ${ADMIN_TOKEN}" | jq --arg secret "${API_CLIENT_SECRET}" '.secret=$secret')
-
-curl -sf -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/${API_CLIENT_UUID}" \
+# Generate/rotate client secret using the proper endpoint
+NEW_SECRET_RESPONSE=$(curl -sf -X POST "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/${API_CLIENT_UUID}/client-secret" \
     -H "Authorization: Bearer ${ADMIN_TOKEN}" \
     -H "Content-Type: application/json" \
-    -d "${API_CLIENT_PAYLOAD}" || {
+    -d "$(jq -n --arg value "$API_CLIENT_SECRET" '{value: $value}')")
+
+if [[ $? -ne 0 ]]; then
     echo "❌ Failed to configure API client secret"
     exit 1
-}
+fi
+
+# Extract the configured secret from the response (for verification)
+CONFIGURED_SECRET=$(echo "$NEW_SECRET_RESPONSE" | jq -r '.value // empty')
+if [[ -n "$CONFIGURED_SECRET" && "$CONFIGURED_SECRET" != "$API_CLIENT_SECRET" ]]; then
+    echo "⚠️  Warning: Configured secret differs from expected value"
+fi
 
 # Configure web client redirect URIs and origins
 echo "🌐 Configuring web client redirect URIs and origins..."
@@ -219,6 +224,24 @@ if [[ -n "${INITIAL_ADMIN_USERNAME:-}" && -n "${INITIAL_ADMIN_PASSWORD:-}" && -n
         echo "ℹ️ Initial admin user already exists, skipping creation"
     fi
 fi
+
+# Configure production realm security settings
+echo "🔒 Configuring production security settings..."
+
+# Fetch current realm configuration and apply security settings
+REALM_PAYLOAD=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}" \
+    -H "Authorization: Bearer ${ADMIN_TOKEN}" | \
+    jq '.registrationAllowed=false | .sslRequired="all" | .passwordPolicy="length(12) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1) and notUsername and notEmail"')
+
+curl -sf -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}" \
+    -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d "${REALM_PAYLOAD}" || {
+    echo "❌ Failed to configure realm security settings"
+    exit 1
+}
+
+echo "✅ Production security settings applied"
 
 echo "✅ Keycloak production initialization completed successfully!"
 echo ""

@@ -199,7 +199,6 @@ public static IServiceCollection Add$($ModuleName.Substring(0,1).ToUpper() + $Mo
     services.Configure<$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))SchemaOptions>(options =>
     {
         options.EnableSchemaIsolation = configuration.GetValue<bool>("Database:EnableSchemaIsolation", false);
-        options.ModuleRolePasswordConfigKey = "Database:$($ModuleName.Substring(0,1).ToUpper() + $ModuleName.Substring(1))RolePassword";
     });
     
     return services;
