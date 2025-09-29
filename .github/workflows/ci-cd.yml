@@ -89,7 +89,28 @@ jobs:
         name: test-results
         path: "**/TestResults/**/*"
 
-  # Job 2: Infrastructure Validation (Optional)
+  # Job 2: Markdown Link Validation
+  markdown-link-check:
+    name: Validate Markdown Links
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check markdown links with lychee
+      uses: lycheeverse/lychee-action@v1.10.0
+      with:
+        # Check all markdown files in the repository using config file
+        args: --config lychee.toml --verbose --no-progress "**/*.md"
+        # Fail the job if broken links are found
+        fail: true
+        # Generate job summary
+        jobSummary: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Job 3: Infrastructure Validation (Optional)
   validate-infrastructure:
     name: Validate Infrastructure
     runs-on: ubuntu-latest
@@ -113,7 +134,7 @@ jobs:
           --template-file infrastructure/main.bicep \
           --parameters environmentName=dev location=${{ env.AZURE_LOCATION }} || echo "Resource group might not exist yet"
 
-  # Job 3: Deploy to Development (Optional)
+  # Job 4: Deploy to Development (Optional)
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest

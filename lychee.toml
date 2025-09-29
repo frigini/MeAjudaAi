@@ -1,0 +1,37 @@
+# Lychee configuration file
+# See: https://github.com/lycheeverse/lychee#configuration-file
+
+# Don't check external links to avoid issues with rate limiting and temporary outages
+# Only check local file links to ensure documentation consistency  
+scheme = ["file"]
+
+# Accept these status codes as valid
+accept = [200, 201, 204, 301, 302, 307, 308, 999]
+
+# Maximum number of concurrent requests
+max_concurrency = 10
+
+# Request timeout in seconds
+timeout = 30
+
+# User agent string
+user_agent = "lychee/MeAjudaAi Documentation Link Checker"
+
+# Include links in verbatim/code blocks
+include_verbatim = false
+
+# Exclude these file patterns
+exclude_path = [
+  "target",
+  "node_modules", 
+  ".git",
+  "bin",
+  "obj",
+  "TestResults"
+]
+
+# Base directory for resolving relative file paths
+base = "."
+
+# Check fragments in local files (anchors like #section)
+include_fragments = true

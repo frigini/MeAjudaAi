@@ -156,3 +156,24 @@ jobs:
         else
           echo "✅ No obvious hardcoded secrets detected"
         fi
+
+  # Job 3: Markdown Link Validation  
+  markdown-link-check:
+    name: Validate Markdown Links
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check markdown links with lychee
+      uses: lycheeverse/lychee-action@v1.10.0
+      with:
+        # Check all markdown files in the repository using config file
+        args: --config lychee.toml --verbose --no-progress "**/*.md"
+        # Fail the job if broken links are found
+        fail: true
+        # Only check local file links for now to avoid external link issues
+        jobSummary: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

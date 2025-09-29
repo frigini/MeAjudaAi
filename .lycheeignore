@@ -1,0 +1,33 @@
+# Lychee ignore file - patterns to exclude from link checking
+
+# External URLs that may be temporarily unavailable
+# Uncomment the patterns below if needed for specific external sites
+# https://github.com/*
+# https://example.com/*
+
+# Localhost URLs (for development)
+http://localhost*
+https://localhost*
+
+# Private/internal URLs
+https://dev.azure.com/*
+https://portal.azure.com/*
+
+# Placeholder URLs in documentation
+https://your-keycloak-instance.com/*
+https://your-app-domain.com/*
+http://your-host:*
+
+# Mail links
+mailto:*
+
+# File patterns that should be ignored
+# Binaries and build outputs
+*/bin/*
+*/obj/*
+*/node_modules/*
+*/.git/*
+
+# Temporary files
+*.tmp
+*.temp
