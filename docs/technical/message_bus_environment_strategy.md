@@ -229,7 +229,7 @@ else // Production
 - **Configuration**: `appsettings.Development.json` → "Provider": "RabbitMQ", "RabbitMQ:Enabled": false
 
 ### ✅ **2. Testing Environment**
-- **IMessageBus**: `RabbitMqMessageBus` (se `RabbitMQ:Enabled != false`) OU `NoOpMessageBus` (se desabilitado) OU Mocks (nos testes de integração)
+- **IMessageBus**: `NoOpMessageBus` (ou Mocks para testes de integração)
 - **Transport**: None (Rebus não configurado para Testing)
 - **Infrastructure**: NoOp/Mocks (sem dependências externas)
 - **Configuration**: `appsettings.Testing.json` → "Provider": "Mock", "Enabled": false, "RabbitMQ:Enabled": false
@@ -281,7 +281,8 @@ Environment Detection
 
 ✅ **SIM** - A implementação **garante completamente** que:
 
-- **RabbitMQ** é usado para **Development/Testing** apenas **quando explicitamente habilitado** (`RabbitMQ:Enabled != false`)
+- **RabbitMQ** é usado para **Development** apenas **quando explicitamente habilitado** (`RabbitMQ:Enabled != false`)
+- **Testing** sempre usa **NoOp/Mocks** (sem dependências externas)
 - **NoOp MessageBus** é usado como **fallback seguro** quando RabbitMQ está desabilitado ou indisponível
 - **Azure Service Bus** é usado exclusivamente para **Production**  
 - **Mocks** são usados automaticamente nos **testes de integração** (substituindo implementações reais)
