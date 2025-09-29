@@ -199,12 +199,24 @@ builder.Services.AddAuthentication(options =>
 ### 1. Sempre Verificar Ambiente
 
 ```csharp
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
+using System.Text.Encodings.Web;
+
 // Exemplo usando IHostEnvironment injetado
 public class TestAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     private readonly IHostEnvironment _environment;
     
-    public TestAuthenticationHandler(IHostEnvironment environment, /* outros parâmetros */)
+    public TestAuthenticationHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder,
+        ISystemClock clock,
+        IHostEnvironment environment) 
+        : base(options, logger, encoder, clock)
     {
         _environment = environment;
     }
