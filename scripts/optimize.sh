@@ -170,6 +170,18 @@ restore_original_state() {
     print_header "Restaurando Estado Original"
     
     if [ -n "${MEAJUDAAI_ENV_BACKUP:-}" ] && [ -f "$MEAJUDAAI_ENV_BACKUP" ]; then
+        # Safety checks: only accept files we created under /tmp and not symlinks
+        case "$MEAJUDAAI_ENV_BACKUP" in
+            /tmp/meajudaai_env_backup.*) ;;
+            *)
+                print_error "Caminho de backup inválido: $MEAJUDAAI_ENV_BACKUP"
+                return 1
+                ;;
+        esac
+        if [ -L "$MEAJUDAAI_ENV_BACKUP" ]; then
+            print_error "Backup é um symlink; abortando restauração."
+            return 1
+        fi
         print_step "Restaurando variáveis originais..."
         
         # Restaurar variáveis exatamente como estavam
