@@ -141,7 +141,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # === Navegar para raiz do projeto ===
-cd "$PROJECT_ROOT"
+cd "$PROJECT_ROOT" || { print_error "Falha ao acessar PROJECT_ROOT: $PROJECT_ROOT"; exit 1; }
 
 # === Preparação do Ambiente ===
 setup_test_environment() {
@@ -304,7 +304,7 @@ validate_namespace_reorganization() {
     print_info "Verificando conformidade com a reorganização de namespaces..."
     
     # Verificar se não há referências ao namespace antigo
-    if grep -R -q --include='*.cs' "using MeAjudaAi\.Shared\.Common;" src/ 2>/dev/null; then
+    if grep -R -q --include='*.cs' -E '^[[:space:]]*using[[:space:]]+MeAjudaAi\.Shared\.Common;' src/ 2>/dev/null; then
         print_error "❌ Encontradas referências ao namespace antigo MeAjudaAi.Shared.Common"
         print_error "   Use os novos namespaces específicos:"
         print_error "   - MeAjudaAi.Shared.Functional (Result, Error, Unit)"
