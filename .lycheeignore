@@ -23,10 +23,10 @@ mailto:*
 
 # File patterns that should be ignored
 # Binaries and build outputs
-*/bin/*
-*/obj/*
-*/node_modules/*
-*/.git/*
+**/bin/**
+**/obj/**
+**/node_modules/**
+**/.git/**
 
 # Temporary files
 *.tmp

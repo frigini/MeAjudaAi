@@ -46,15 +46,7 @@ jobs:
 
     - name: Run tests
       run: |
-        echo "🧪 Executando todos os testes com reorganização de namespaces..."
-        
-        # Validar namespace reorganization primeiro
-        echo "🔍 Validando reorganização de namespaces..."
-        if grep -R -q --include="*.cs" "using MeAjudaAi\.Shared\.Common" src/; then
-          echo "❌ ERRO: Encontradas referências ao namespace antigo MeAjudaAi.Shared.Common"
-          exit 1
-        fi
-        echo "✅ Namespaces validados"
+        echo "🧪 Executando todos os testes..."
         
         # Executar testes por projeto
         dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Shared

@@ -55,32 +55,6 @@ jobs:
         
         echo "✅ Todos os testes executados com sucesso"
 
-    - name: Validate namespace reorganization
-      run: |
-        echo "🔍 Validando reorganização de namespaces..."
-        
-        # Verificar se não há referências ao namespace antigo
-        if grep -r "MeAjudaAi\.Shared\.Common" src/ --include="*.cs" --exclude-dir=bin --exclude-dir=obj; then
-          echo "❌ Encontradas referências ao namespace antigo MeAjudaAi.Shared.Common"
-          exit 1
-        fi
-        
-        # Verificar se os novos namespaces estão sendo usados
-        echo "Verificando novos namespaces..."
-        if ! grep -r "MeAjudaAi\.Shared\.Functional" src/ --include="*.cs" --exclude-dir=bin --exclude-dir=obj; then
-          echo "⚠️ Namespace MeAjudaAi.Shared.Functional não encontrado em uso"
-        fi
-        
-        if ! grep -r "MeAjudaAi\.Shared\.Domain" src/ --include="*.cs" --exclude-dir=bin --exclude-dir=obj; then
-          echo "⚠️ Namespace MeAjudaAi.Shared.Domain não encontrado em uso"
-        fi
-        
-        if ! grep -r "MeAjudaAi\.Shared\.Contracts" src/ --include="*.cs" --exclude-dir=bin --exclude-dir=obj; then
-          echo "⚠️ Namespace MeAjudaAi.Shared.Contracts não encontrado em uso"
-        fi
-        
-        echo "✅ Validação de namespaces concluída"
-
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()

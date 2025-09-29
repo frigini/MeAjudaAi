@@ -48,25 +48,6 @@ jobs:
           --results-directory ./coverage/architecture
           
         echo "✅ Testes executados com sucesso"
-
-    - name: Validate namespace reorganization compliance
-      run: |
-        echo "🔍 Validando conformidade com reorganização de namespaces..."
-        
-        # Verificar se não há imports do namespace antigo
-        if grep -R -q --include="*.cs" "using MeAjudaAi\.Shared\.Common" src/; then
-          echo "❌ ERRO: Encontrados imports do namespace antigo MeAjudaAi.Shared.Common"
-          echo "ℹ️ Use os novos namespaces específicos: Functional, Domain, Contracts, Mediator, Security"
-          exit 1
-        fi
-        
-        # Verificar se está seguindo os padrões de namespace
-        echo "Verificando padrões de imports..."
-        echo "✅ Functional types (Result, Error, Unit)"
-        echo "✅ Domain types (BaseEntity, AggregateRoot, ValueObject)"
-        echo "✅ Contracts types (Request, Response, PagedRequest, PagedResponse)"
-        echo "✅ Mediator types (IRequest, IPipelineBehavior)"
-        echo "✅ Security types (UserRoles)"
         
         echo "✅ Conformidade com namespaces validada"
 

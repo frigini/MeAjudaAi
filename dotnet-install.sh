@@ -1587,12 +1587,12 @@ install_dotnet() {
         download "$download_link" "$zip_path" 2>&1 || download_failed=true
 
         if [ "$download_failed" = true ]; then
-            case $http_code in
+            case "${http_code:-}" in
             404)
                 say "The resource at $link_type link '$download_link' is not available."
                 ;;
             *)
-                say "Failed to download $link_type link '$download_link': $http_code $download_error_msg"
+                say "Failed to download $link_type link '$download_link': ${http_code:-unknown} ${download_error_msg:-}"
                 ;;
             esac
             rm -f "$zip_path" 2>&1 && say_verbose "Temporary archive file $zip_path was removed"
@@ -1738,9 +1738,10 @@ do
         --feed-credential|-[Ff]eed[Cc]redential)
             shift
             feed_credential="$1"
-            #feed_credential should start with "?", for it to be added to the end of the link.
-            #adding "?" at the beginning of the feed_credential if needed.
-            [[ -z "$(echo $feed_credential)" ]] || [[ $feed_credential == \?* ]] || feed_credential="?$feed_credential"
+            # Ensure it starts with "?" so it can be appended as a query string.
+            if [ -n "${feed_credential:-}" ] && [[ "$feed_credential" != \?* ]]; then
+                feed_credential="?$feed_credential"
+            fi
             ;;
         --runtime-id|-[Rr]untime[Ii]d)
             shift

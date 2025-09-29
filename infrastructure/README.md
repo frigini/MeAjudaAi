@@ -31,13 +31,21 @@ Copy `.env.example` to `.env` and configure:
 # Keycloak Version (Production Stable)
 KEYCLOAK_VERSION=26.0.2
 
+# Keycloak Admin Configuration (REQUIRED for all environments)
+KEYCLOAK_ADMIN=admin
+KEYCLOAK_ADMIN_PASSWORD="your-secure-admin-password-here"  # REQUIRED
+
 # Database Configuration (REQUIRED for production)
-POSTGRES_PASSWORD="your-secure-password-here"
-KEYCLOAK_DB_PASSWORD="your-secure-keycloak-db-password-here"
+POSTGRES_PASSWORD="your-secure-postgres-password-here"     # REQUIRED for prod
+KEYCLOAK_DB_PASSWORD="your-secure-keycloak-db-password-here"  # REQUIRED for prod
 
 # RabbitMQ Configuration (REQUIRED for production)
 RABBITMQ_USER=meajudaai
-RABBITMQ_PASS="your-secure-rabbitmq-password-here"
+RABBITMQ_PASS="your-secure-rabbitmq-password-here"         # REQUIRED for prod
+
+# Additional production variables
+KEYCLOAK_HOSTNAME="your-keycloak-domain.com"               # REQUIRED for prod
+RABBITMQ_ERLANG_COOKIE="your-secure-erlang-cookie-here"    # REQUIRED for prod
 
 # Other configuration variables...
 ```
@@ -64,7 +72,11 @@ RABBITMQ_PASS="your-secure-rabbitmq-password-here"
 **Important**: Add environment files to your `.gitignore`:
 
 ```gitignore
+# Infrastructure environment files
 infrastructure/.env
+infrastructure/*.env
+infrastructure/*.env.*
+infrastructure/**/.env*
 infrastructure/compose/environments/.env.*
 ```
 
@@ -127,7 +139,7 @@ Individual service configurations for development scenarios where you only need 
 **Features**: PostgreSQL includes automatic database initialization with development schema
 - See `compose/standalone/README.md` for detailed usage instructions
 - Use `compose/standalone/.env.example` as a template for configuration
-- PostgreSQL automatically creates `app` schema with sample data on first startup
+- (dev-only) PostgreSQL automatically creates `app` schema with sample data on first startup
 
 ### Testing Environment
 

@@ -66,25 +66,43 @@ if [[ -z "${API_CLIENT_UUID}" || "${API_CLIENT_UUID}" == "null" ]]; then
     exit 1
 fi
 
-# Rotate client secret and capture the generated value
-NEW_SECRET_RESPONSE=$(curl -sf -X POST \
-    "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/${API_CLIENT_UUID}/client-secret" \
-    -H "Authorization: Bearer ${ADMIN_TOKEN}")
+# Conditionally rotate client secret (only if explicitly requested)
+if [[ "${ROTATE_API_CLIENT_SECRET:-}" == "true" ]]; then
+    echo "🔄 Rotating API client secret..."
+    
+    # Rotate client secret and capture the generated value
+    NEW_SECRET_RESPONSE=$(curl -sf -X POST \
+        "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/${API_CLIENT_UUID}/client-secret" \
+        -H "Authorization: Bearer ${ADMIN_TOKEN}")
 
-if [[ $? -ne 0 || -z "${NEW_SECRET_RESPONSE}" ]]; then
-    echo "❌ Failed to configure API client secret"
-    exit 1
-fi
+    if [[ $? -ne 0 || -z "${NEW_SECRET_RESPONSE}" ]]; then
+        echo "❌ Failed to configure API client secret"
+        exit 1
+    fi
 
-CONFIGURED_SECRET=$(echo "$NEW_SECRET_RESPONSE" | jq -r '.value')
-if [[ -z "${CONFIGURED_SECRET}" || "${CONFIGURED_SECRET}" == "null" ]]; then
-  echo "❌ Could not read generated client secret"
-  exit 1
-fi
+    CONFIGURED_SECRET=$(echo "$NEW_SECRET_RESPONSE" | jq -r '.value')
+    if [[ -z "${CONFIGURED_SECRET}" || "${CONFIGURED_SECRET}" == "null" ]]; then
+      echo "❌ Could not read generated client secret"
+      exit 1
+    fi
 
-# Optionally persist secret if a target is provided
-if [[ -n "${WRITE_API_CLIENT_SECRET_TO:-}" ]]; then
-  umask 077; printf '%s' "${CONFIGURED_SECRET}" > "${WRITE_API_CLIENT_SECRET_TO}"
+    # Optionally persist secret if a target is provided
+    if [[ -n "${WRITE_API_CLIENT_SECRET_TO:-}" ]]; then
+      # Ensure parent directory exists with secure permissions
+      parent_dir=$(dirname -- "${WRITE_API_CLIENT_SECRET_TO}")
+      if ! mkdir -p "$parent_dir" 2>/dev/null; then
+        echo "❌ Failed to create directory: $parent_dir"
+        exit 1
+      fi
+      chmod 700 "$parent_dir"
+      
+      umask 077; printf '%s' "${CONFIGURED_SECRET}" > "${WRITE_API_CLIENT_SECRET_TO}"
+      echo "✅ API client secret written to ${WRITE_API_CLIENT_SECRET_TO}"
+    fi
+    
+    echo "✅ API client secret rotated successfully"
+else
+    echo "ℹ️ API client secret rotation skipped (set ROTATE_API_CLIENT_SECRET=true to enable)"
 fi
 
 # Configure web client redirect URIs and origins

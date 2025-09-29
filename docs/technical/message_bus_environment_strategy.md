@@ -31,8 +31,8 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
         
         if (_environment.IsDevelopment())
         {
-            // DEVELOPMENT: RabbitMQ (se habilitado) ou NoOp (se desabilitado)
-            if (rabbitMqEnabled != false)
+            // DEVELOPMENT: RabbitMQ (only if explicitly enabled) or NoOp (otherwise)
+            if (rabbitMqEnabled == true)
             {
                 var rabbitMqService = _serviceProvider.GetService<RabbitMqMessageBus>();
                 if (rabbitMqService != null)
@@ -51,10 +51,15 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
             // TESTING: Always NoOp to avoid external dependencies
             return _serviceProvider.GetRequiredService<NoOpMessageBus>();
         }
-        else
+        else if (_environment.IsProduction())
         {
             // PRODUCTION: Azure Service Bus
             return _serviceProvider.GetRequiredService<ServiceBusMessageBus>();
+        }
+        else
+        {
+            // STAGING/OTHER: NoOp for safety
+            return _serviceProvider.GetRequiredService<NoOpMessageBus>();
         }
     }
 }
@@ -201,18 +206,19 @@ private static void ConfigureTransport(
 **Arquivo**: `src/Aspire/MeAjudaAi.AppHost/Program.cs`
 
 ```csharp
-if (isLocal) // Development/Testing
+if (isDevelopment) // Development only
 {
     // RabbitMQ local para desenvolvimento
     var rabbitMq = builder.AddRabbitMQ("rabbitmq")
         .WithManagementPlugin();
     
     var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
-        .WithReference(rabbitMq); // ← RabbitMQ para dev
+        .WithReference(rabbitMq); // ← RabbitMQ only for Development
 }
-else // Production
+else // Testing/Production
 {
-    // Azure Service Bus para produção
+    // No RabbitMQ for Testing - NoOp will be used
+    // Azure Service Bus for Production
     var serviceBus = builder.AddAzureServiceBus("servicebus");
     
     var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")  
@@ -280,11 +286,11 @@ Environment Detection
 
 ✅ **SIM** - A implementação **garante completamente** que:
 
-- **RabbitMQ** é usado para **Development** apenas **quando explicitamente habilitado** (`RabbitMQ:Enabled != false`)
-- **Testing** sempre usa **NoOp/Mocks** (sem dependências externas)
-- **NoOp MessageBus** é usado como **fallback seguro** quando RabbitMQ está desabilitado ou indisponível
-- **Azure Service Bus** é usado exclusivamente para **Production**  
-- **Mocks** são usados automaticamente nos **testes de integração** (substituindo implementações reais)
+- **RabbitMQ** is used for **Development** only **when explicitly enabled** (`RabbitMQ:Enabled == true`)
+- **Testing** always uses **NoOp/Mocks** (no external dependencies)
+- **NoOp MessageBus** is used as **safe fallback** when RabbitMQ is disabled or unavailable
+- **Azure Service Bus** is used exclusively for **Production**  
+- **Mocks** are used automatically in **integration tests** (replacing real implementations)
 
 A seleção é feita automaticamente via:
 1. **Environment detection** (`IHostEnvironment`)

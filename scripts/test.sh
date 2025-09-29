@@ -329,11 +329,11 @@ validate_namespace_reorganization() {
     
     # Verificar se os novos namespaces estão sendo usados
     local functional_count
-    functional_count=$(grep -R -l --include='*.cs' 'MeAjudaAi\.Shared\.Functional' src/ 2>/dev/null | wc -l)
+    functional_count=$({ grep -R -l --include='*.cs' 'MeAjudaAi\.Shared\.Functional' src/ 2>/dev/null || true; } | wc -l)
     local domain_count
-    domain_count=$(grep -R -l --include='*.cs' 'MeAjudaAi\.Shared\.Domain' src/ 2>/dev/null | wc -l)
+    domain_count=$({ grep -R -l --include='*.cs' 'MeAjudaAi\.Shared\.Domain' src/ 2>/dev/null || true; } | wc -l)
     local contracts_count
-    contracts_count=$(grep -R -l --include='*.cs' 'MeAjudaAi\.Shared\.Contracts' src/ 2>/dev/null | wc -l)
+    contracts_count=$({ grep -R -l --include='*.cs' 'MeAjudaAi\.Shared\.Contracts' src/ 2>/dev/null || true; } | wc -l)
     
     print_info "Estatísticas de uso dos novos namespaces:"
     print_info "- Functional: $functional_count arquivos"
