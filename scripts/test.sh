@@ -65,7 +65,19 @@ NC='\033[0m' # No Color
 
 # === Função de ajuda ===
 show_help() {
-    sed -n '/^# =/,/^# =/p' "$0" | sed 's/^# //g' | sed 's/^=.*//g'
+    cat <<'USAGE'
+MeAjudaAi Test Runner
+Usage: ./scripts/test.sh [options]
+  -h, --help         Show this help
+  -v, --verbose      Verbose logs
+  -u, --unit         Unit tests only
+  -i, --integration  Integration tests only
+  -e, --e2e          E2E tests only
+  -f, --fast         Apply performance optimizations
+  -c, --coverage     Generate coverage report
+  --skip-build       Skip build
+  --parallel         Run tests in parallel
+USAGE
 }
 
 # === Funções de Logging ===

@@ -252,10 +252,9 @@ Environment Detection
 │                 │                 │                 │
 │ RabbitMQ        │ NoOp/Mocks      │ Service Bus     │
 │ (se habilitado) │ (sem deps ext.) │ (Azure)         │
-│ OU NoOp         │ OU RabbitMQ*    │ + Scalable      │
+│ OU NoOp         │                 │ + Scalable      │
 │ (se desabilitado)│                │                 │
 └─────────────────┴─────────────────┴─────────────────┘
-* RabbitMQ só se explicitamente habilitado
 ```
 
 ## **Validação**

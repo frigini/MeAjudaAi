@@ -138,12 +138,13 @@ get_legacy_os_name_from_platform() {
 get_legacy_os_name() {
     eval $invocation
 
-    local uname=$(uname)
+    local uname
+    uname=$(uname)
     if [ "$uname" = "Darwin" ]; then
         echo "osx"
         return 0
     elif [ -n "$runtime_id" ]; then
-        echo $(get_legacy_os_name_from_platform "${runtime_id%-*}" || echo "${runtime_id%-*}")
+        echo "$(get_legacy_os_name_from_platform "${runtime_id%-*}" || echo "${runtime_id%-*}")"
         return 0
     else
         if [ -e /etc/os-release ]; then
@@ -774,8 +775,10 @@ get_specific_product_version() {
     local specific_product_version=null
 
     # Try to get the version number, using the productVersion.txt file located next to the installer file.
-    local download_links=($(get_specific_product_version_url "$azure_feed" "$specific_version" true "$package_download_link")
-        $(get_specific_product_version_url "$azure_feed" "$specific_version" false "$package_download_link"))
+    local download_links=()
+    while IFS= read -r line; do download_links+=("$line"); done < <(
+        { get_specific_product_version_url "$azure_feed" "$specific_version" true "$package_download_link";
+          get_specific_product_version_url "$azure_feed" "$specific_version" false "$package_download_link"; } )
 
     for download_link in "${download_links[@]}"
     do
@@ -1173,7 +1176,7 @@ download() {
             break
         fi
 
-        say "Download attempt #$attempts has failed: $http_code $download_error_msg"
+        say "Download attempt #$attempts has failed: ${http_code:-unknown} ${download_error_msg:-unknown}"
         say "Attempt #$((attempts+1)) will start in $((attempts*10)) seconds."
         sleep $((attempts*10))
     done

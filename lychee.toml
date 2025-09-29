@@ -25,9 +25,9 @@ exclude_path = [
   "target",
   "node_modules", 
   ".git",
-  "bin",
-  "obj",
-  "TestResults"
+  "bin/**",
+  "obj/**",
+  "TestResults/**"
 ]
 
 # Base directory for resolving relative file paths

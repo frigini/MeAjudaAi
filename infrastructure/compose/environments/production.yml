@@ -20,7 +20,7 @@ services:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backups:/backups
+      - ${BACKUPS_DIR:-./backups}:/backups
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
@@ -44,7 +44,7 @@ services:
       POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Missing KEYCLOAK_DB_PASSWORD environment variable}
     volumes:
       - keycloak_db_data:/var/lib/postgresql/data
-      - ./backups:/backups
+      - ${BACKUPS_DIR:-./backups}:/backups
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${KEYCLOAK_DB_USER:-keycloak}"]
@@ -60,7 +60,9 @@ services:
         max-file: "3"
 
   keycloak:
-    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}
+    # Pin by digest for supply-chain stability
+    # To update: docker pull quay.io/keycloak/keycloak:26.0.2 && docker inspect --format='{{index .RepoDigests 0}}' quay.io/keycloak/keycloak:26.0.2
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}@${KEYCLOAK_DIGEST:-sha256:a01c5ebe4b8e4aef91b0e2e22b73f7be40e98b9c3f2c3d8b4e8c1b9f3e2a5d8f}
     container_name: meajudaai-keycloak-prod
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
@@ -74,6 +76,7 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: true
       KC_PROXY: edge
       KC_HTTP_ENABLED: true
+      KC_METRICS_ENABLED: true
     command: ["start", "--optimized", "--import-realm"]
     ports:
       - "127.0.0.1:${KEYCLOAK_PORT:-8080}:8080"
@@ -85,7 +88,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/ready >/dev/null || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -107,7 +110,7 @@ services:
       - redis_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?Missing REDIS_PASSWORD environment variable}", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a \"$REDIS_PASSWORD\" ping"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -133,6 +136,10 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
       - ../../rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 30s
