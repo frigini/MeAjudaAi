@@ -2,6 +2,14 @@ name: MeAjudaAi CI Pipeline
 
 on:
   push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master, develop ]
+
+env:judaAi CI Pipeline
+
+on:
+  push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]

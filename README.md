@@ -260,7 +260,7 @@ O projeto possui pipelines automatizadas que executam em PRs e pushes para as br
 #### 3. **Pipeline Automática**
 
 ✅ **A pipeline executa automaticamente quando você:**
-- Abrir um PR para `main` ou `develop`
+- Abrir um PR para `master` ou `develop`
 - Fazer push para essas branches
 
 ✅ **O que a pipeline faz:**
@@ -421,7 +421,7 @@ docker compose -f environments/testing.yml up -d
 
 **"Pipeline não executa no PR"**
 - ✅ Verifique se o secret `AZURE_CREDENTIALS` está configurado
-- ✅ Confirme que a branch é `main` ou `develop`
+- ✅ Confirme que a branch é `master` ou `develop`
 
 **"Azure deployment failed"**
 - ✅ Execute `az login` para verificar autenticação
