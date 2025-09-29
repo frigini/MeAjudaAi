@@ -15,6 +15,15 @@ public class RateLimitingMiddleware(
     IOptionsMonitor<RateLimitOptions> options,
     ILogger<RateLimitingMiddleware> logger)
 {
+    /// <summary>
+    /// Simple counter class for rate limiting.
+    /// 
+    /// <para>
+    /// <b>Thread-safety:</b> The <see cref="Value"/> field must only be accessed or modified using thread-safe operations,
+    /// such as <see cref="System.Threading.Interlocked.Increment(ref int)"/>. This class is designed to be used in a concurrent environment,
+    /// and all modifications to <see cref="Value"/> should be performed atomically.
+    /// </para>
+    /// </summary>
     private sealed class Counter { public int Value; }
     public async Task InvokeAsync(HttpContext context)
     {
