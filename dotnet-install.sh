@@ -203,7 +203,7 @@ get_current_os_name() {
         linux_platform_name="$(get_linux_platform_name)" || true
 
         if [ "$linux_platform_name" = "rhel.6" ]; then
-            echo $linux_platform_name
+            echo "$linux_platform_name"
             return 0
         elif is_musl_based_distro; then
             echo "linux-musl"
@@ -1422,9 +1422,9 @@ generate_akams_links() {
         effective_version="$(get_specific_product_version "$azure_feed" "$specific_version" "$download_link")"
 
         # Add link info to arrays
-        download_links+=($download_link)
-        specific_versions+=($specific_version)
-        effective_versions+=($effective_version)
+        download_links+=("$download_link")
+        specific_versions+=("$specific_version")
+        effective_versions+=("$effective_version")
         link_types+=("aka.ms")
 
         #  Check if the SDK version is already installed.
@@ -1466,9 +1466,9 @@ generate_regular_links() {
     say_verbose "Constructed primary named payload URL: $download_link"
 
     # Add link info to arrays
-    download_links+=($download_link)
-    specific_versions+=($specific_version)
-    effective_versions+=($effective_version)
+    download_links+=("$download_link")
+    specific_versions+=("$specific_version")
+    effective_versions+=("$effective_version")
     link_types+=("primary")
 
     legacy_download_link="$(construct_legacy_download_link "$feed" "$channel" "$normalized_architecture" "$specific_version")" || valid_legacy_download_link=false
@@ -1476,9 +1476,9 @@ generate_regular_links() {
     if [ "$valid_legacy_download_link" = true ]; then
         say_verbose "Constructed legacy named payload URL: $legacy_download_link"
     
-        download_links+=($legacy_download_link)
-        specific_versions+=($specific_version)
-        effective_versions+=($effective_version)
+        download_links+=("$legacy_download_link")
+        specific_versions+=("$specific_version")
+        effective_versions+=("$effective_version")
         link_types+=("legacy")
     else
         legacy_download_link=""
