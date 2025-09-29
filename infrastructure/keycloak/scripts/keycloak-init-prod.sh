@@ -55,6 +55,8 @@ done
 
 # Authenticate with Keycloak admin
 echo "🔑 Authenticating with Keycloak admin..."
+command -v jq >/dev/null 2>&1 || { echo "❌ Error: 'jq' is required"; exit 1; }
+command -v curl >/dev/null 2>&1 || { echo "❌ Error: 'curl' is required"; exit 1; }
 ADMIN_TOKEN=$(curl -sf -X POST "${KEYCLOAK_URL}/realms/master/protocol/openid-connect/token" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -d "username=${ADMIN_USERNAME}" \

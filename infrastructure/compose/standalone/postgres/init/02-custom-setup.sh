@@ -20,6 +20,7 @@ fi
 # Export the variable to ensure it's available for subprocesses
 export READONLY_USER_PASSWORD
 
+export PGPASSWORD="${PGPASSWORD:-$POSTGRES_PASSWORD}"
 # Wait for PostgreSQL to be ready
 until pg_isready -h localhost -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do
   echo "⏳ Waiting for PostgreSQL to be ready..."
@@ -47,7 +48,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     GRANT CONNECT ON DATABASE $POSTGRES_DB TO readonly_user;
     GRANT USAGE ON SCHEMA app TO readonly_user;
     GRANT SELECT ON ALL TABLES IN SCHEMA app TO readonly_user;
-    ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA app GRANT SELECT ON TABLES TO readonly_user;
+    ALTER DEFAULT PRIVILEGES FOR ROLE ${POSTGRES_USER} IN SCHEMA app GRANT SELECT ON TABLES TO readonly_user;
 EOSQL
 
 echo "🎉 Custom PostgreSQL setup completed successfully!"

@@ -119,12 +119,12 @@ docker compose -f environments/development.yml up -d
 
 | Serviço | URL | Credenciais |
 |---------|-----|-------------|
-| **Aspire Dashboard** | https://localhost:17063<br/>http://localhost:15297 | - |
-| **API Service** | https://localhost:7524<br/>http://localhost:5545 | - |
-| **Keycloak Admin** | http://localhost:8080 | admin/[senha gerada] |
+| **Aspire Dashboard** | [https://localhost:17063](https://localhost:17063)<br/>[http://localhost:15297](http://localhost:15297) | - |
+| **API Service** | [https://localhost:7524](https://localhost:7524)<br/>[http://localhost:5545](http://localhost:5545) | - |
+| **Keycloak Admin** | [http://localhost:8080](http://localhost:8080) | admin/[senha gerada] |
 | **PostgreSQL** | localhost:5432 | postgres/dev123 |
 | **Redis** | localhost:6379 | - |
-| **RabbitMQ Management** | http://localhost:15672 | meajudaai/[senha gerada] |
+| **RabbitMQ Management** | [http://localhost:15672](http://localhost:15672) | meajudaai/[senha gerada] |
 
 ## 📁 Estrutura do Projeto
 

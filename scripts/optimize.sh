@@ -289,9 +289,9 @@ apply_all_optimizations() {
 run_performance_test() {
     print_header "Executando Teste de Performance"
     
-    cd "$PROJECT_ROOT" || { 
+    cd "$PROJECT_ROOT" || {
         print_error "Falha ao mudar para diretório do projeto: $PROJECT_ROOT"
-        exit 1
+        return 1
     }
     
     print_step "Executando testes com otimizações..."
@@ -355,7 +355,7 @@ show_current_state() {
 main() {
     if [ "$RESET" = true ]; then
         restore_original_state
-        exit 0
+        return 0
     fi
     
     apply_all_optimizations

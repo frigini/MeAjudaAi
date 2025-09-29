@@ -62,7 +62,7 @@ Key development settings in `appsettings.Development.json`:
     "UseTestAuthentication": true
   }
 }
-```
+```text
 
 ## Project Structure
 
@@ -83,7 +83,7 @@ MeAjudaAi/
 ├── tests/                         # Test projects
 ├── infrastructure/                # Infrastructure as Code
 └── docs/                         # Documentation
-```
+```text
 
 ### Module Structure (DDD)
 
@@ -95,7 +95,7 @@ Module/
 │   └── ModuleApi/                # Public API for other modules
 ├── Domain/                       # Entities, aggregates, domain services
 └── Infrastructure/               # Data access, external services
-```
+```text
 
 ### Module Communication
 
@@ -165,7 +165,7 @@ using MeAjudaAi.Shared.Security;       // UserRoles
 using MeAjudaAi.Shared.Endpoints;      // BaseEndpoint
 using MeAjudaAi.Shared.Database;       // Database utilities
 using MeAjudaAi.Shared.Caching;        // Cache services
-```
+```csharp
 
 ### Module Template Structure
 
@@ -534,7 +534,7 @@ using MeAjudaAi.Shared.Common;
 // After  
 using MeAjudaAi.Shared.Functional;  // Result<T>
 using MeAjudaAi.Shared.Mediator;    // IRequest<T>
-```
+```csharp
 
 **Domain Entities:**
 ```csharp
@@ -543,7 +543,7 @@ using MeAjudaAi.Shared.Common;
 
 // After
 using MeAjudaAi.Shared.Domain;      // BaseEntity, ValueObject
-```
+```csharp
 
 **API Endpoints:**
 ```csharp
@@ -554,7 +554,7 @@ using MeAjudaAi.Shared.Common;
 using MeAjudaAi.Shared.Functional;  // Result<T>
 using MeAjudaAi.Shared.Contracts;   // Response<T>
 using MeAjudaAi.Shared.Endpoints;   // BaseEndpoint
-```
+```csharp
 
 ### Validation
 

@@ -245,16 +245,19 @@ build_solution() {
     
     print_info "Compilando em modo Release..."
     if [ "$VERBOSE" = true ]; then
-        dotnet build --no-restore --configuration Release --verbosity normal
+        if dotnet build --no-restore --configuration Release --verbosity normal; then
+            print_info "Build concluído com sucesso!"
+        else
+            print_error "Falha no build. Verifique os erros acima."
+            exit 1
+        fi
     else
-        dotnet build --no-restore --configuration Release --verbosity minimal
-    fi
-
-    if [ $? -eq 0 ]; then
-        print_info "Build concluído com sucesso!"
-    else
-        print_error "Falha no build. Verifique os erros acima."
-        exit 1
+        if dotnet build --no-restore --configuration Release --verbosity minimal; then
+            print_info "Build concluído com sucesso!"
+        else
+            print_error "Falha no build. Verifique os erros acima."
+            exit 1
+        fi
     fi
 }
 
@@ -297,7 +300,7 @@ validate_namespace_reorganization() {
     print_info "Verificando conformidade com a reorganização de namespaces..."
     
     # Verificar se não há referências ao namespace antigo
-    if grep -R -q "using MeAjudaAi\.Shared\.Common;" src/ 2>/dev/null; then
+    if grep -R -q --include='*.cs' "using MeAjudaAi\.Shared\.Common;" src/ 2>/dev/null; then
         print_error "❌ Encontradas referências ao namespace antigo MeAjudaAi.Shared.Common"
         print_error "   Use os novos namespaces específicos:"
         print_error "   - MeAjudaAi.Shared.Functional (Result, Error, Unit)"
@@ -444,6 +447,9 @@ run_integration_tests() {
     if [ "$COVERAGE" = true ]; then
         args+=(--collect:"XPlat Code Coverage")
     fi
+    if [ "$PARALLEL" = true ]; then
+        args+=(--parallel)
+    fi
     
     print_info "Executando testes de integração..."
     if dotnet test "${args[@]}"; then
@@ -467,6 +473,13 @@ run_e2e_tests() {
         args+=(--logger "console;verbosity=normal")
     else
         args+=(--logger "console;verbosity=minimal")
+    fi
+    
+    if [ "$COVERAGE" = true ]; then
+        args+=(--collect:"XPlat Code Coverage")
+    fi
+    if [ "$PARALLEL" = true ]; then
+        args+=(--parallel)
     fi
     
     print_info "Executando testes E2E..."

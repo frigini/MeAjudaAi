@@ -71,7 +71,7 @@ if (environment.IsDevelopment())
 {
     // Development: Registra RabbitMQ e NoOp (fallback)
     services.TryAddSingleton<RabbitMqMessageBus>();
-    services.TryAddSingleton<NoOp.NoOpMessageBus>();
+    services.TryAddSingleton<NoOpMessageBus>();
 }
 else if (environment.IsProduction())
 {
@@ -80,8 +80,8 @@ else if (environment.IsProduction())
 }
 else if (environment.IsEnvironment(EnvironmentNames.Testing))
 {
-    // Testing: Registra apenas NoOp - mocks serão adicionados via AddMessagingMocks()
-    services.TryAddSingleton<NoOp.NoOpMessageBus>();
+    // Testing: apenas NoOp/mocks
+    services.TryAddSingleton<NoOpMessageBus>();
 }
 
 // Registrar o factory e o IMessageBus baseado no ambiente
@@ -139,9 +139,6 @@ services.AddSingleton<IMessageBus>(serviceProvider =>
   "Messaging": {
     "Enabled": false,
     "Provider": "Mock"
-  },
-  "RabbitMQ": {
-    "Enabled": false
   }
 }
 ```

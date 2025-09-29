@@ -69,10 +69,8 @@ var identity = new ClaimsIdentity(claims, Scheme.Name, ClaimTypes.Name, ClaimTyp
 O sistema inclui validação automática para prevenir uso incorreto:
 
 ```csharp
-// Esta validação é executada no startup (em Program.cs)
-var app = builder.Build();
-
-if (app.Environment.IsProduction() && /* TestHandler detectado */)
+// Esta validação é executada no startup (em Program.cs) — antes de builder.Build()
+if (builder.Environment.IsProduction() && /* TestHandler detectado */)
 {
     throw new InvalidOperationException(
         "TestAuthenticationHandler cannot be used in Production environment!");

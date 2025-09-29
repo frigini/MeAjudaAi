@@ -1,6 +1,11 @@
-param([string]$OutputPath = "api-spec.json")
+#requires -Version 5.1
+Set-StrictMode -Version Latest
+param(
+    [Parameter(Mandatory = $false)]
+    [ValidateNotNullOrEmpty()]
+    [string]$OutputPath = "api-spec.json"
+)
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-Push-Location $ProjectRoot
 $OutputPath = if ([System.IO.Path]::IsPathRooted($OutputPath)) { $OutputPath } else { Join-Path $ProjectRoot $OutputPath }
 try {
     Write-Host "Validando especificacao OpenAPI..." -ForegroundColor Cyan
@@ -8,6 +13,10 @@ try {
         $Content = Get-Content -Raw -ErrorAction Stop $OutputPath | ConvertFrom-Json -ErrorAction Stop
         if (-not $Content.paths) {
             Write-Error "Secao 'paths' ausente no OpenAPI: $OutputPath"
+            exit 1
+        }
+        if (-not $Content.openapi -or -not ($Content.openapi -match '^3(\.|$)')) {
+            Write-Error "Campo 'openapi' 3.x ausente ou invalido no OpenAPI: $OutputPath"
             exit 1
         }
         # Define valid HTTP operation names (case-insensitive)
@@ -31,10 +40,12 @@ try {
         } | Measure-Object -Sum).Sum)
         
         Write-Host "Users endpoints: $usersCount" -ForegroundColor Green
-        foreach ($path in $usersPaths) {
+        $sortedUsersPaths = $usersPaths | Sort-Object Name
+        foreach ($path in $sortedUsersPaths) {
             # Filter to only HTTP operation names
             $httpOps = $path.Value.PSObject.Properties | Where-Object { $httpMethods -contains $_.Name.ToLowerInvariant() }
             $methods = ($httpOps.Name | Sort-Object | ForEach-Object { $_.ToUpperInvariant() }) -join ", "
+            if ([string]::IsNullOrWhiteSpace($methods)) { $methods = "(no operations)" }
             Write-Host "  $($path.Name): $methods" -ForegroundColor White
         }
         Write-Host "Especificacao OK!" -ForegroundColor Green
@@ -45,6 +56,4 @@ try {
 } catch {
     Write-Error ("Falha ao validar especificacao: " + $_.Exception.Message)
     exit 1
-} finally {
-    Pop-Location
 }

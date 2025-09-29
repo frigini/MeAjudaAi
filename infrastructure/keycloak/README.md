@@ -39,6 +39,8 @@ export INITIAL_ADMIN_PASSWORD="$(openssl rand -base64 32)"
 export INITIAL_ADMIN_EMAIL="admin@yourcompany.com"
 
 # 2. Import production realm (no secrets, no demo users)
+# Note: For Docker Compose setups, use: docker compose exec keycloak /opt/keycloak/bin/kc.sh import ...
+# Ensure realm files are mounted at /opt/keycloak/data/import/ via volumes
 docker exec keycloak /opt/keycloak/bin/kc.sh import --file /opt/keycloak/data/import/meajudaai-realm.prod.json
 
 # 3. Run production initialization script
@@ -57,6 +59,7 @@ docker exec keycloak /opt/keycloak/bin/kc.sh import --file /opt/keycloak/data/im
 ## 📋 Required Environment Variables
 
 ### Production
+- `KEYCLOAK_ADMIN`: Keycloak admin username (defaults to `admin`, can be overridden)
 - `KEYCLOAK_ADMIN_PASSWORD`: Keycloak admin password
 - `MEAJUDAAI_API_CLIENT_SECRET`: API client secret
 - `MEAJUDAAI_WEB_REDIRECT_URIS`: Comma-separated redirect URIs
@@ -66,6 +69,7 @@ docker exec keycloak /opt/keycloak/bin/kc.sh import --file /opt/keycloak/data/im
 - `INITIAL_ADMIN_EMAIL`: Initial admin email (optional)
 
 ### Development
+- `KEYCLOAK_ADMIN`: Keycloak admin username (defaults to `admin`, can be overridden)
 - `KEYCLOAK_ADMIN_PASSWORD`: Keycloak admin password
 - `MEAJUDAAI_API_CLIENT_SECRET`: API client secret (optional, defaults to dev secret)
 

@@ -3,23 +3,41 @@
 
 -- Create extensions that might be useful for development
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- Optional: case-insensitive text for username/email
+CREATE EXTENSION IF NOT EXISTS "citext";
 
 -- Create a basic schema for development
 CREATE SCHEMA IF NOT EXISTS app;
 
--- Grant permissions to the default user
-GRANT ALL PRIVILEGES ON SCHEMA app TO postgres;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA app TO postgres;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA app TO postgres;
-GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA app TO postgres;
+-- Dev-only: application role (consider sourcing credentials from env)
+DO $blk$
+BEGIN
+  PERFORM 1 FROM pg_roles WHERE rolname = 'meajudaai_app';
+  IF NOT FOUND THEN
+    CREATE ROLE meajudaai_app LOGIN PASSWORD 'change-me-in-dev';
+  END IF;
+END
+$blk$;
+
+ALTER SCHEMA app OWNER TO meajudaai_app;
+GRANT USAGE, CREATE ON SCHEMA app TO meajudaai_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES    IN SCHEMA app TO meajudaai_app;
+GRANT USAGE, SELECT                 ON ALL SEQUENCES  IN SCHEMA app TO meajudaai_app;
+GRANT EXECUTE                      ON ALL FUNCTIONS  IN SCHEMA app TO meajudaai_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA app
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES   TO meajudaai_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA app
+  GRANT USAGE, SELECT                ON SEQUENCES TO meajudaai_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA app
+  GRANT EXECUTE                      ON FUNCTIONS TO meajudaai_app;
 
 -- Create a simple users table for testing
 CREATE TABLE IF NOT EXISTS app.users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(255) NOT NULL UNIQUE,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    id UUID PRIMARY KEY DEFAULT public.gen_random_uuid(),
+    username CITEXT NOT NULL UNIQUE,
+    email    CITEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Create trigger function to automatically update updated_at timestamp
@@ -42,7 +60,7 @@ VALUES
     ('admin', 'admin@example.com'),
     ('developer', 'dev@example.com'),
     ('tester', 'test@example.com')
-ON CONFLICT (username) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Log the initialization
 DO $$

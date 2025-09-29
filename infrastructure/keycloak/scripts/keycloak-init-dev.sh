@@ -57,7 +57,7 @@ echo "🔧 Configuring API client secret for development..."
 curl -sf -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/meajudaai-api" \
     -H "Authorization: Bearer ${ADMIN_TOKEN}" \
     -H "Content-Type: application/json" \
-    -d "{\"secret\": \"${DEV_API_CLIENT_SECRET}\"}" || {
+    -d "$(jq -n --arg secret "$DEV_API_CLIENT_SECRET" '{secret: $secret}')" || {
     echo "❌ Failed to configure API client secret"
     exit 1
 }

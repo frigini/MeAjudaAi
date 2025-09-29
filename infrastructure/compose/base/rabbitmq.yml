@@ -11,6 +11,7 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?Missing RABBITMQ_USER environment variable}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:?Missing RABBITMQ_PASS environment variable}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
     ports:
       - "${RABBITMQ_PORT:-5672}:5672"
       - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"

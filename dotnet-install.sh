@@ -661,7 +661,7 @@ parse_globaljson_file_for_version() {
         return 1
     fi
 
-    sdk_section=$(cat $json_file | tr -d "\r" | awk '/"sdk"/,/}/')
+    sdk_section=$(tr -d '\r' < "$json_file" | awk '/"sdk"/,/}/')
     if [ -z "$sdk_section" ]; then
         say_err "Unable to parse the SDK node in \`$json_file\`"
         return 1
@@ -1008,7 +1008,7 @@ copy_files_or_dirs_from_list() {
             if [ -d "$target" ]; then
                 rm -rf "$target"
             fi
-            cp -R $override_switch "$root_path/$path" "$target"
+            cp -R ${override_switch:+$override_switch} "$root_path/$path" "$target"
         fi
     done
 }
@@ -1082,9 +1082,9 @@ get_http_header()
     local failed=false
     local response
     if machine_has "curl"; then
-        get_http_header_curl $remote_path $disable_feed_credential || failed=true
+        get_http_header_curl "$remote_path" "$disable_feed_credential" || failed=true
     elif machine_has "wget"; then
-        get_http_header_wget $remote_path $disable_feed_credential || failed=true
+        get_http_header_wget "$remote_path" "$disable_feed_credential" || failed=true
     else
         failed=true
     fi
@@ -1502,22 +1502,26 @@ print_dry_run() {
     done
 
     resolved_version=${specific_versions[0]}
-    repeatable_command="./$script_name --version "\""$resolved_version"\"" --install-dir "\""$install_root"\"" --architecture "\""$normalized_architecture"\"" --os "\""$normalized_os"\"""
+    repeatable_command=$(printf '%q ' "./$script_name" \
+      --version "$resolved_version" \
+      --install-dir "$install_root" \
+      --architecture "$normalized_architecture" \
+      --os "$normalized_os")
     
     if [ ! -z "$normalized_quality" ]; then
-        repeatable_command+=" --quality "\""$normalized_quality"\"""
+        repeatable_command+=$(printf ' %q %q' --quality "$normalized_quality")
     fi
 
     if [[ "$runtime" == "dotnet" ]]; then
-        repeatable_command+=" --runtime "\""dotnet"\"""
+        repeatable_command+=$(printf ' %q %q' --runtime "dotnet")
     elif [[ "$runtime" == "aspnetcore" ]]; then
-        repeatable_command+=" --runtime "\""aspnetcore"\"""
+        repeatable_command+=$(printf ' %q %q' --runtime "aspnetcore")
     fi
 
     repeatable_command+="$non_dynamic_parameters"
 
     if [ -n "$feed_credential" ]; then
-        repeatable_command+=" --feed-credential "\""<feed_credential>"\"""
+        repeatable_command+=$(printf ' %q %q' --feed-credential "<feed_credential>")
     fi
 
     say "Repeatable invocation: $repeatable_command"

@@ -50,10 +50,7 @@ public static class HealthCheckExtensions
     {
         // Registra ExternalServicesOptions usando AddOptions<>()
         services.AddOptions<ExternalServicesOptions>()
-            .Configure<IConfiguration>((opts, config) =>
-            {
-                config.GetSection(ExternalServicesOptions.SectionName).Bind(opts);
-            })
+            .BindConfiguration(ExternalServicesOptions.SectionName)
             .ValidateOnStart();
 
         // Registra ExternalServicesOptions como singleton para DI direto

@@ -27,17 +27,17 @@ This directory contains the infrastructure configuration for the MeAjudaAi platf
 
 Copy `.env.example` to `.env` and configure:
 
-```bash
+```dotenv
 # Keycloak Version (Production Stable)
 KEYCLOAK_VERSION=26.0.2
 
 # Database Configuration (REQUIRED for production)
-POSTGRES_PASSWORD=your-secure-password-here
-KEYCLOAK_DB_PASSWORD=your-secure-keycloak-db-password-here
+POSTGRES_PASSWORD="your-secure-password-here"
+KEYCLOAK_DB_PASSWORD="your-secure-keycloak-db-password-here"
 
 # RabbitMQ Configuration (REQUIRED for production)
 RABBITMQ_USER=meajudaai
-RABBITMQ_PASS=your-secure-rabbitmq-password-here
+RABBITMQ_PASS="your-secure-rabbitmq-password-here"
 
 # Other configuration variables...
 ```

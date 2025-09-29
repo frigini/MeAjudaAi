@@ -5,7 +5,7 @@
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'users_role') THEN
-        CREATE ROLE users_role NOLOGIN;
+        CREATE ROLE users_role NOLOGIN INHERIT;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -14,7 +14,7 @@ $$ LANGUAGE plpgsql;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'meajudaai_app_role') THEN
-        CREATE ROLE meajudaai_app_role NOLOGIN;
+        CREATE ROLE meajudaai_app_role NOLOGIN INHERIT;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -23,7 +23,7 @@ $$ LANGUAGE plpgsql;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'meajudaai_app_owner') THEN
-        CREATE ROLE meajudaai_app_owner NOLOGIN;
+        CREATE ROLE meajudaai_app_owner NOLOGIN INHERIT;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -45,3 +45,8 @@ $$ LANGUAGE plpgsql;
 -- NOTE: Actual LOGIN users with passwords should be created in environment-specific
 -- migrations that read passwords from secure session GUCs or configuration, not in versioned DDL.
 -- Example: CREATE USER users_login_user WITH PASSWORD current_setting('app.users_password') IN ROLE users_role;
+
+-- Document roles
+COMMENT ON ROLE users_role IS 'Permission grouping role for users schema';
+COMMENT ON ROLE meajudaai_app_role IS 'App-wide role for cross-module access';
+COMMENT ON ROLE meajudaai_app_owner IS 'Owner role for application-owned objects';

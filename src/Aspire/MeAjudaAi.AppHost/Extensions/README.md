@@ -24,6 +24,18 @@ var postgresql = builder.AddMeAjudaAiPostgreSQL(options =>
     options.MainDatabase = "myapp-db";
     options.IncludePgAdmin = true;
 });
+
+// Produção (Azure PostgreSQL)
+var postgresqlAzure = builder.AddMeAjudaAiAzurePostgreSQL(opts =>
+{
+    opts.Username = "meajudaai_admin"; // não use nomes reservados
+    opts.MainDatabase = "meajudaai";
+});
+```
+
+**Nota**: para ambientes local/teste, defina `POSTGRES_PASSWORD` antes de subir:
+```bash
+export POSTGRES_PASSWORD='strong-dev-password'
 ```
 
 ### Redis
@@ -67,6 +79,12 @@ export POSTGRES_PASSWORD="your-secure-database-password-here"
 ```
 
 ⚠️ **Nunca use senhas padrão ou fracas em produção!** O método falhará se essas variáveis não estiverem definidas, evitando deployments inseguros.
+
+#### 🔒 Restrições do Azure PostgreSQL
+
+**Nomes de usuário não permitidos no Azure PostgreSQL:**
+- `postgres`, `admin`, `administrator`, `root`, `guest`, `public`
+- Use nomes específicos da aplicação como `meajudaai_admin`, `app_user`, etc.
 
 ## 🎯 Benefícios
 
