@@ -1,5 +1,6 @@
 ﻿using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Common.Constants;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;
@@ -12,10 +13,29 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Extensions;
+
+/// <summary>
+/// Mock implementation of IHostEnvironment for cases where environment is not available
+/// </summary>
+internal class MockHostEnvironment : IHostEnvironment
+{
+    public MockHostEnvironment(string environmentName)
+    {
+        EnvironmentName = environmentName;
+        ApplicationName = "MeAjudaAi";
+        ContentRootPath = Directory.GetCurrentDirectory();
+    }
+
+    public string EnvironmentName { get; set; }
+    public string ApplicationName { get; set; }
+    public string ContentRootPath { get; set; }
+    public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
+}
 
 public static class ServiceCollectionExtensions
 {
@@ -31,10 +51,12 @@ public static class ServiceCollectionExtensions
         services.AddCaching(configuration);
         
         // Só adiciona messaging se não estiver em ambiente de teste
-        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-        if (envName != "Testing")
+        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? EnvironmentNames.Development;
+        if (envName != EnvironmentNames.Testing)
         {
-            services.AddMessaging(configuration);
+            // Cria um mock environment baseado na variável de ambiente
+            var mockEnvironment = new MockHostEnvironment(envName);
+            services.AddMessaging(configuration, mockEnvironment);
         }
         else
         {
@@ -71,10 +93,11 @@ public static class ServiceCollectionExtensions
             services.AddPostgres(configuration);
             services.AddCaching(configuration);
             
-            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-            if (envName != "Testing")
+            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? EnvironmentNames.Development;
+            if (envName != EnvironmentNames.Testing)
             {
-                services.AddMessaging(configuration);
+                var mockEnvironment = new MockHostEnvironment(envName);
+                services.AddMessaging(configuration, mockEnvironment);
             }
             else
             {

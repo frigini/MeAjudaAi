@@ -79,7 +79,7 @@ MeAjudaAi/
 │   ├── Modules/                   # Domain modules
 │   │   └── Users/                 # User management module
 │   └── Shared/                    # Shared components
-│       └── MeAjudai.Shared/       # Common utilities
+│       └── MeAjudaAi.Shared/       # Common utilities
 ├── tests/                         # Test projects
 ├── infrastructure/                # Infrastructure as Code
 └── docs/                         # Documentation

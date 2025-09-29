@@ -14,22 +14,19 @@ execute_sql() {
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f "$file"
 }
 
-# Execute Users module scripts
-echo "📁 Setting up Users module..."
-if [ -f "/docker-entrypoint-initdb.d/modules/users/00-roles.sql" ]; then
-    execute_sql "/docker-entrypoint-initdb.d/modules/users/00-roles.sql"
-fi
-if [ -f "/docker-entrypoint-initdb.d/modules/users/01-permissions.sql" ]; then
-    execute_sql "/docker-entrypoint-initdb.d/modules/users/01-permissions.sql"
-fi
-
-# Execute Providers module scripts
-echo "📁 Setting up Providers module..."
-if [ -f "/docker-entrypoint-initdb.d/modules/providers/00-roles.sql" ]; then
-    execute_sql "/docker-entrypoint-initdb.d/modules/providers/00-roles.sql"
-fi
-if [ -f "/docker-entrypoint-initdb.d/modules/providers/01-permissions.sql" ]; then
-    execute_sql "/docker-entrypoint-initdb.d/modules/providers/01-permissions.sql"
+MODULES_DIR="/docker-entrypoint-initdb.d/modules"
+if [ -d "${MODULES_DIR}" ]; then
+    for module_path in "${MODULES_DIR}"/*; do
+        [ -d "${module_path}" ] || continue
+        module_name=$(basename "${module_path}")
+        echo "📁 Setting up ${module_name} module..."
+        for script_name in 00-roles.sql 01-permissions.sql; do
+            script_path="${module_path}/${script_name}"
+            if [ -f "${script_path}" ]; then
+                execute_sql "${script_path}"
+            fi
+        done
+    done
 fi
 
 # Execute cross-module views

@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Common.Constants;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
@@ -45,7 +46,7 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
         // Check if RabbitMQ is explicitly disabled
         var rabbitMqEnabled = _configuration.GetValue<bool?>("RabbitMQ:Enabled");
         
-        if (_environment.IsDevelopment() || _environment.EnvironmentName == "Testing")
+        if (_environment.IsDevelopment() || _environment.IsEnvironment(EnvironmentNames.Testing))
         {
             // Use RabbitMQ only if explicitly enabled or not configured (default behavior)
             if (rabbitMqEnabled != false)

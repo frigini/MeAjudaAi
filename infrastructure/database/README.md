@@ -4,7 +4,7 @@ This directory contains PostgreSQL initialization scripts that are automatically
 
 ## Structure
 
-```
+```text
 database/
 ├── 01-init-meajudaai.sh          # Main initialization orchestrator
 ├── modules/                       # Module-specific database setup

@@ -13,7 +13,7 @@ public class UserId : ValueObject
     public UserId(Guid value)
     {
         if (value == Guid.Empty)
-            throw new ArgumentException("UserId não pode ser vazio");
+            throw new ArgumentException("UserId cannot be empty");
         Value = value;
     }
 

@@ -31,6 +31,14 @@ else
             options.RequireHttpsMetadata = true;
         });
 }
+
+var app = builder.Build();
+
+// Habilite autenticação/autorização no pipeline
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.Run();
 ```
 
 ### Configuração de Autorização
@@ -47,6 +55,13 @@ builder.Services.AddAuthorization(options =>
 });
 ```
 
+**⚠️ Importante**: Para que a política `AdminOnly` funcione corretamente, o `TestAuthenticationHandler` deve criar a identidade com o tipo de claim correto:
+
+```csharp
+// Dentro do handler ao criar a identity:
+var identity = new ClaimsIdentity(claims, Scheme.Name, ClaimTypes.Name, ClaimTypes.Role);
+```
+
 ## 🔍 Verificação de Ambiente
 
 ### Validação Automática
@@ -54,15 +69,17 @@ builder.Services.AddAuthorization(options =>
 O sistema inclui validação automática para prevenir uso incorreto:
 
 ```csharp
-// Esta validação é executada no startup
-if (environment.IsProduction() && /* TestHandler detectado */)
+// Esta validação é executada no startup (em Program.cs)
+var app = builder.Build();
+
+if (app.Environment.IsProduction() && /* TestHandler detectado */)
 {
     throw new InvalidOperationException(
         "TestAuthenticationHandler cannot be used in Production environment!");
 }
 ```
 
-### Variables de Ambiente
+### Variáveis de Ambiente
 
 Certifique-se de que as seguintes variáveis estão configuradas:
 
@@ -73,7 +90,7 @@ ASPNETCORE_ENVIRONMENT=Development
 # Para testes
 ASPNETCORE_ENVIRONMENT=Testing
 
-# NUNCA use em produção
+# Em produção, defina:
 # ASPNETCORE_ENVIRONMENT=Production
 ```
 
@@ -83,7 +100,7 @@ ASPNETCORE_ENVIRONMENT=Testing
 
 O handler gera logs específicos para auditoria:
 
-```
+```text
 [WARN] 🚨 TEST AUTHENTICATION ACTIVE: Bypassing real authentication. 
 Request from 127.0.0.1 authenticated as admin user automatically. 
 Ensure this is NOT a production environment!
@@ -93,7 +110,7 @@ Ensure this is NOT a production environment!
 
 Em modo debug, logs adicionais são gerados:
 
-```
+```text
 [DEBUG] Test authentication completed. Generated claims: 9, 
 Identity: test-user, IsAuthenticated: True
 ```
@@ -132,21 +149,32 @@ public async Task GetUsers_WithAuthentication_ShouldReturnUsers()
 Para casos específicos, você pode estender o handler:
 
 ```csharp
-public class CustomTestAuthenticationHandler : TestAuthenticationHandler
+public class CustomTestAuthenticationHandler
+  : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+  public CustomTestAuthenticationHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
+    : base(options, logger, encoder, clock) { }
+
+  protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+  {
+    var claims = new[]
     {
-        // Adicionar claims personalizados se necessário
-        var baseClaims = GetBaseClaims();
-        var customClaims = new[]
-        {
-            new Claim("department", "IT"),
-            new Claim("level", "senior")
-        };
-        
-        // Combinar claims...
-        return CreateSuccessResult(baseClaims.Concat(customClaims));
-    }
+      new Claim(ClaimTypes.NameIdentifier, "test-user"),
+      new Claim(ClaimTypes.Name, "test-user"),
+      new Claim(ClaimTypes.Role, "admin"),
+      new Claim("department", "IT"),
+      new Claim("level", "senior")
+    };
+    var identity = new ClaimsIdentity(claims, Scheme.Name, ClaimTypes.Name, ClaimTypes.Role);
+    var principal = new ClaimsPrincipal(identity);
+    var ticket = new AuthenticationTicket(
+      principal,
+      new AuthenticationProperties { ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(15) },
+      Scheme.Name);
+    return Task.FromResult(AuthenticateResult.Success(ticket));
+  }
 }
 ```
 
@@ -154,11 +182,18 @@ public class CustomTestAuthenticationHandler : TestAuthenticationHandler
 
 ```csharp
 // Para cenários complexos com múltiplos esquemas
-builder.Services.AddAuthentication()
+builder.Services.AddAuthentication(options =>
+{
+  options.DefaultAuthenticateScheme = "Test-Admin";
+  options.DefaultChallengeScheme = "Test-Admin";
+})
     .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
         "Test-Admin", options => { })
     .AddScheme<AuthenticationSchemeOptions, TestUserAuthenticationHandler>(
         "Test-User", options => { });
+
+// Alternativa por endpoint:
+// [Authorize(AuthenticationSchemes = "Test-User")]
 ```
 
 ## 🔒 Boas Práticas de Segurança
@@ -166,9 +201,25 @@ builder.Services.AddAuthentication()
 ### 1. Sempre Verificar Ambiente
 
 ```csharp
-if (!environment.IsDevelopment() && !environment.IsEnvironment("Testing"))
+// Exemplo usando IHostEnvironment injetado
+public class TestAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    throw new InvalidOperationException("TestAuthenticationHandler not allowed in this environment");
+    private readonly IHostEnvironment _environment;
+    
+    public TestAuthenticationHandler(IHostEnvironment environment, /* outros parâmetros */)
+    {
+        _environment = environment;
+    }
+    
+    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    {
+        if (!_environment.IsDevelopment() && !_environment.IsEnvironment("Testing"))
+        {
+            throw new InvalidOperationException("TestAuthenticationHandler not allowed in this environment");
+        }
+        
+        // ... resto da implementação
+    }
 }
 ```
 
@@ -182,6 +233,24 @@ _logger.LogWarning("TEST AUTH: Request {Path} authenticated with test handler fr
 ### 3. Timeouts Curtos
 
 ```csharp
-// Claims com expiração curta para testes
-new Claim("exp", DateTimeOffset.UtcNow.AddMinutes(15).ToUnixTimeSeconds().ToString())
+// Configurar expiração via AuthenticationProperties em vez de claim string
+var claims = new[]
+{
+    new Claim(ClaimTypes.Name, "test-user"),
+    new Claim(ClaimTypes.Role, "Admin"),
+    // Removido claim "exp" - usando AuthenticationProperties.ExpiresUtc
+};
+
+var identity = new ClaimsIdentity(claims, "Test");
+var principal = new ClaimsPrincipal(identity);
+
+// Definir expiração adequada via AuthenticationProperties
+var properties = new AuthenticationProperties
+{
+    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(15), // Expira em 15 minutos
+    IsPersistent = false // Não persiste entre sessões do browser
+};
+
+var ticket = new AuthenticationTicket(principal, properties, "Test");
+return AuthenticateResult.Success(ticket);
 ```

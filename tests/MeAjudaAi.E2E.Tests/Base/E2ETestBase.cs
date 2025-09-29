@@ -59,7 +59,21 @@ public abstract class E2ETestBase : IAsyncLifetime
             {"Messaging:Enabled", "false"},
             {"Cache:WarmupEnabled", "false"},
             {"ServiceBus:Enabled", "false"},
-            {"Keycloak:Enabled", "false"}
+            {"Keycloak:Enabled", "false"},
+            // Configuração de Rate Limiting para testes - valores muito altos para evitar bloqueios
+            {"AdvancedRateLimit:Anonymous:RequestsPerMinute", "10000"},
+            {"AdvancedRateLimit:Anonymous:RequestsPerHour", "100000"},
+            {"AdvancedRateLimit:Anonymous:RequestsPerDay", "1000000"},
+            {"AdvancedRateLimit:Authenticated:RequestsPerMinute", "10000"},
+            {"AdvancedRateLimit:Authenticated:RequestsPerHour", "100000"},
+            {"AdvancedRateLimit:Authenticated:RequestsPerDay", "1000000"},
+            {"AdvancedRateLimit:General:WindowInSeconds", "60"},
+            {"AdvancedRateLimit:General:EnableIpWhitelist", "false"},
+            // Configuração legada também para garantir
+            {"RateLimit:DefaultRequestsPerMinute", "10000"},
+            {"RateLimit:AuthRequestsPerMinute", "10000"},
+            {"RateLimit:SearchRequestsPerMinute", "10000"},
+            {"RateLimit:WindowInSeconds", "60"}
         };
 
         if (RequiresRedis && _redisContainer != null)

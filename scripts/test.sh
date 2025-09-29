@@ -32,7 +32,7 @@
 #   - reportgenerator (para cobertura)
 # =============================================================================
 
-set -e  # Para em caso de erro
+set -e -o pipefail  # Pare em caso de erro e em falhas em pipelines
 
 # === Configurações ===
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -149,11 +149,19 @@ setup_test_environment() {
     
     # Limpar resultados antigos
     print_verbose "Limpando resultados antigos..."
-    rm -rf "$TEST_RESULTS_DIR"/*.trx 2>/dev/null || true
-    rm -rf "$COVERAGE_DIR"/* 2>/dev/null || true
+    
+    # Verificar e limpar diretório de resultados de teste
+    if [ -n "$TEST_RESULTS_DIR" ] && [ -d "$TEST_RESULTS_DIR" ]; then
+        find "$TEST_RESULTS_DIR" -maxdepth 1 -type f -name '*.trx' -delete 2>/dev/null || true
+    fi
+    
+    # Verificar e limpar diretório de cobertura
+    if [ -n "$COVERAGE_DIR" ] && [ -d "$COVERAGE_DIR" ]; then
+        find "$COVERAGE_DIR" -mindepth 1 -maxdepth 1 -delete 2>/dev/null || true
+    fi
     
     # Verificar Docker se necessário
-    if [ "$INTEGRATION_ONLY" = true ] || [ "$E2E_ONLY" = true ] || ([ "$UNIT_ONLY" = false ] && [ "$INTEGRATION_ONLY" = false ] && [ "$E2E_ONLY" = false ]); then
+    if [ "$INTEGRATION_ONLY" = true ] || [ "$E2E_ONLY" = true ] || { [ "$UNIT_ONLY" = false ] && [ "$INTEGRATION_ONLY" = false ] && [ "$E2E_ONLY" = false ]; }; then
         print_verbose "Verificando Docker para testes de integração..."
         if ! docker info &> /dev/null; then
             print_warning "Docker não está rodando. Testes de integração serão pulados."
@@ -232,12 +240,12 @@ build_solution() {
     
     print_info "Compilando em modo Release..."
     if [ "$VERBOSE" = true ]; then
-        local build_command="dotnet build --no-restore --configuration Release --verbosity normal"
+        dotnet build --no-restore --configuration Release --verbosity normal
     else
-        local build_command="dotnet build --no-restore --configuration Release --verbosity minimal"
+        dotnet build --no-restore --configuration Release --verbosity minimal
     fi
-    
-    if $build_command; then
+
+    if [ $? -eq 0 ]; then
         print_info "Build concluído com sucesso!"
     else
         print_error "Falha no build. Verifique os erros acima."
@@ -249,27 +257,27 @@ build_solution() {
 run_unit_tests() {
     print_header "Executando Testes Unitários"
     
-    local test_args="--no-build --configuration Release"
-    test_args="$test_args --filter \"Category!=Integration&Category!=E2E\""
-    test_args="$test_args --logger \"trx;LogFileName=unit-tests.trx\""
-    test_args="$test_args --results-directory \"$TEST_RESULTS_DIR\""
+    local -a args=(--no-build --configuration Release \
+                   --filter 'Category!=Integration&Category!=E2E' \
+                   --logger "trx;LogFileName=unit-tests.trx" \
+                   --results-directory "$TEST_RESULTS_DIR")
     
     if [ "$VERBOSE" = true ]; then
-        test_args="$test_args --logger \"console;verbosity=normal\""
+        args+=(--logger "console;verbosity=normal")
     else
-        test_args="$test_args --logger \"console;verbosity=minimal\""
+        args+=(--logger "console;verbosity=minimal")
     fi
     
     if [ "$COVERAGE" = true ]; then
-        test_args="$test_args --collect:\"XPlat Code Coverage\""
+        args+=(--collect:"XPlat Code Coverage")
     fi
     
     if [ "$PARALLEL" = true ]; then
-        test_args="$test_args --parallel"
+        args+=(--parallel)
     fi
     
     print_info "Executando testes unitários..."
-    if eval "dotnet test $test_args"; then
+    if dotnet test "${args[@]}"; then
         print_info "Testes unitários concluídos com sucesso!"
     else
         print_error "Alguns testes unitários falharam."
@@ -296,9 +304,12 @@ validate_namespace_reorganization() {
     fi
     
     # Verificar se os novos namespaces estão sendo usados
-    local functional_count=$(find src/ -name "*.cs" -exec grep -l "MeAjudaAi\.Shared\.Functional" {} \; 2>/dev/null | wc -l)
-    local domain_count=$(find src/ -name "*.cs" -exec grep -l "MeAjudaAi\.Shared\.Domain" {} \; 2>/dev/null | wc -l)
-    local contracts_count=$(find src/ -name "*.cs" -exec grep -l "MeAjudaAi\.Shared\.Contracts" {} \; 2>/dev/null | wc -l)
+    local functional_count
+    functional_count=$(grep -R -l --include='*.cs' 'MeAjudaAi\.Shared\.Functional' src/ 2>/dev/null | wc -l)
+    local domain_count
+    domain_count=$(grep -R -l --include='*.cs' 'MeAjudaAi\.Shared\.Domain' src/ 2>/dev/null | wc -l)
+    local contracts_count
+    contracts_count=$(grep -R -l --include='*.cs' 'MeAjudaAi\.Shared\.Contracts' src/ 2>/dev/null | wc -l)
     
     print_info "Estatísticas de uso dos novos namespaces:"
     print_info "- Functional: $functional_count arquivos"
@@ -317,7 +328,11 @@ run_specific_project_tests() {
     
     # Testes do Shared
     print_info "Executando testes MeAjudaAi.Shared.Tests..."
-    if dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --no-build --configuration Release --logger "console;verbosity=minimal"; then
+    if dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj \
+         --no-build --configuration Release \
+         --logger "console;verbosity=minimal" \
+         --logger "trx;LogFileName=shared-tests.trx" \
+         --results-directory "$TEST_RESULTS_DIR"; then
         print_info "✅ MeAjudaAi.Shared.Tests passou"
     else
         print_error "❌ MeAjudaAi.Shared.Tests falhou"
@@ -326,7 +341,11 @@ run_specific_project_tests() {
     
     # Testes de Arquitetura
     print_info "Executando testes MeAjudaAi.Architecture.Tests..."
-    if dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --no-build --configuration Release --logger "console;verbosity=minimal"; then
+    if dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj \
+         --no-build --configuration Release \
+         --logger "console;verbosity=minimal" \
+         --logger "trx;LogFileName=architecture-tests.trx" \
+         --results-directory "$TEST_RESULTS_DIR"; then
         print_info "✅ MeAjudaAi.Architecture.Tests passou"
     else
         print_error "❌ MeAjudaAi.Architecture.Tests falhou"
@@ -335,7 +354,11 @@ run_specific_project_tests() {
     
     # Testes de Integração
     print_info "Executando testes MeAjudaAi.Integration.Tests..."
-    if ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --no-build --configuration Release --logger "console;verbosity=minimal"; then
+    if ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
+         --no-build --configuration Release \
+         --logger "console;verbosity=minimal" \
+         --logger "trx;LogFileName=integration-per-project-tests.trx" \
+         --results-directory "$TEST_RESULTS_DIR"; then
         print_info "✅ MeAjudaAi.Integration.Tests passou"
     else
         print_error "❌ MeAjudaAi.Integration.Tests falhou"
@@ -344,7 +367,11 @@ run_specific_project_tests() {
     
     # Testes E2E
     print_info "Executando testes MeAjudaAi.E2E.Tests..."
-    if ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj --no-build --configuration Release --logger "console;verbosity=minimal"; then
+    if ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
+         --no-build --configuration Release \
+         --logger "console;verbosity=minimal" \
+         --logger "trx;LogFileName=e2e-per-project-tests.trx" \
+         --results-directory "$TEST_RESULTS_DIR"; then
         print_info "✅ MeAjudaAi.E2E.Tests passou"
     else
         print_error "❌ MeAjudaAi.E2E.Tests falhou"
@@ -368,23 +395,23 @@ run_integration_tests() {
         return 0
     fi
     
-    local test_args="--no-build --configuration Release"
-    test_args="$test_args --filter \"Category=Integration\""
-    test_args="$test_args --logger \"trx;LogFileName=integration-tests.trx\""
-    test_args="$test_args --results-directory \"$TEST_RESULTS_DIR\""
+    local -a args=(--no-build --configuration Release \
+                   --filter 'Category=Integration' \
+                   --logger "trx;LogFileName=integration-tests.trx" \
+                   --results-directory "$TEST_RESULTS_DIR")
     
     if [ "$VERBOSE" = true ]; then
-        test_args="$test_args --logger \"console;verbosity=normal\""
+        args+=(--logger "console;verbosity=normal")
     else
-        test_args="$test_args --logger \"console;verbosity=minimal\""
+        args+=(--logger "console;verbosity=minimal")
     fi
     
     if [ "$COVERAGE" = true ]; then
-        test_args="$test_args --collect:\"XPlat Code Coverage\""
+        args+=(--collect:"XPlat Code Coverage")
     fi
     
     print_info "Executando testes de integração..."
-    if eval "dotnet test $test_args"; then
+    if dotnet test "${args[@]}"; then
         print_info "Testes de integração concluídos com sucesso!"
     else
         print_error "Alguns testes de integração falharam."
@@ -396,19 +423,19 @@ run_integration_tests() {
 run_e2e_tests() {
     print_header "Executando Testes End-to-End"
     
-    local test_args="--no-build --configuration Release"
-    test_args="$test_args --filter \"Category=E2E\""
-    test_args="$test_args --logger \"trx;LogFileName=e2e-tests.trx\""
-    test_args="$test_args --results-directory \"$TEST_RESULTS_DIR\""
+    local -a args=(--no-build --configuration Release \
+                   --filter 'Category=E2E' \
+                   --logger "trx;LogFileName=e2e-tests.trx" \
+                   --results-directory "$TEST_RESULTS_DIR")
     
     if [ "$VERBOSE" = true ]; then
-        test_args="$test_args --logger \"console;verbosity=normal\""
+        args+=(--logger "console;verbosity=normal")
     else
-        test_args="$test_args --logger \"console;verbosity=minimal\""
+        args+=(--logger "console;verbosity=minimal")
     fi
     
     print_info "Executando testes E2E..."
-    if eval "dotnet test $test_args"; then
+    if dotnet test "${args[@]}"; then
         print_info "Testes E2E concluídos com sucesso!"
     else
         print_error "Alguns testes E2E falharam."
@@ -428,6 +455,12 @@ generate_coverage_report() {
     if ! command -v reportgenerator &> /dev/null; then
         print_warning "reportgenerator não encontrado. Instalando..."
         dotnet tool install --global dotnet-reportgenerator-globaltool
+        
+        # Adicionar diretório de ferramentas do dotnet ao PATH se não estiver presente
+        if [[ ":$PATH:" != *":$HOME/.dotnet/tools:"* ]]; then
+            export PATH="$PATH:$HOME/.dotnet/tools"
+            print_verbose "Adicionado $HOME/.dotnet/tools ao PATH"
+        fi
     fi
     
     print_info "Processando arquivos de cobertura..."
@@ -448,7 +481,8 @@ show_results() {
     print_header "Resultados dos Testes"
     
     # Contar arquivos de resultado
-    local trx_files=$(find "$TEST_RESULTS_DIR" -name "*.trx" 2>/dev/null | wc -l)
+    local trx_files
+    trx_files=$(find "$TEST_RESULTS_DIR" -name "*.trx" 2>/dev/null | wc -l)
     
     if [ "$trx_files" -gt 0 ]; then
         print_info "Arquivos de resultado gerados: $trx_files"
@@ -466,8 +500,9 @@ show_results() {
 
 # === Execução Principal ===
 main() {
-    local start_time=$(date +%s)
+    local start_time
     local failed_tests=0
+    start_time=$(date +%s)
     
     setup_test_environment
     apply_optimizations
@@ -491,8 +526,10 @@ main() {
     generate_coverage_report
     show_results
     
-    local end_time=$(date +%s)
-    local duration=$((end_time - start_time))
+    local end_time
+    local duration
+    end_time=$(date +%s)
+    duration=$((end_time - start_time))
     
     print_header "Resumo da Execução"
     print_info "Tempo total: ${duration}s"

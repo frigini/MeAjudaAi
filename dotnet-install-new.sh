@@ -26,11 +26,16 @@ if [ -t 1 ] && command -v tput > /dev/null; then
     # see if it supports colors
     ncolors=$(tput colors || echo 0)
     if [ -n "$ncolors" ] && [ $ncolors -ge 8 ]; then
+        bold="$(tput bold       || echo)"
         normal="$(tput sgr0     || echo)"
+        black="$(tput setaf 0   || echo)"
         red="$(tput setaf 1     || echo)"
         green="$(tput setaf 2   || echo)"
         yellow="$(tput setaf 3  || echo)"
+        blue="$(tput setaf 4    || echo)"
+        magenta="$(tput setaf 5 || echo)"
         cyan="$(tput setaf 6    || echo)"
+        white="$(tput setaf 7   || echo)"
     fi
 fi
 

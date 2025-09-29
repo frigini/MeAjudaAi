@@ -69,7 +69,21 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         ["RabbitMQ:Enabled"] = "false",
                         ["Keycloak:Enabled"] = "false",
                         ["Cache:Enabled"] = "false", // Disable Redis for now
-                        ["Cache:ConnectionString"] = _redisContainer.GetConnectionString()
+                        ["Cache:ConnectionString"] = _redisContainer.GetConnectionString(),
+                        // Configuração de Rate Limiting para testes - valores muito altos para evitar bloqueios
+                        ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "10000",
+                        ["AdvancedRateLimit:Anonymous:RequestsPerHour"] = "100000",
+                        ["AdvancedRateLimit:Anonymous:RequestsPerDay"] = "1000000",
+                        ["AdvancedRateLimit:Authenticated:RequestsPerMinute"] = "10000",
+                        ["AdvancedRateLimit:Authenticated:RequestsPerHour"] = "100000",
+                        ["AdvancedRateLimit:Authenticated:RequestsPerDay"] = "1000000",
+                        ["AdvancedRateLimit:General:WindowInSeconds"] = "60",
+                        ["AdvancedRateLimit:General:EnableIpWhitelist"] = "false",
+                        // Configuração legada também para garantir
+                        ["RateLimit:DefaultRequestsPerMinute"] = "10000",
+                        ["RateLimit:AuthRequestsPerMinute"] = "10000",
+                        ["RateLimit:SearchRequestsPerMinute"] = "10000",
+                        ["RateLimit:WindowInSeconds"] = "60"
                     });
                     
                     // Adicionar ambiente de teste

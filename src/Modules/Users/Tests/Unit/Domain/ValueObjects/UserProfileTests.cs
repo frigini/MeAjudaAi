@@ -50,7 +50,7 @@ public class UserProfileTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() => new UserProfile(invalidFirstName!, lastName));
-        exception.Message.Should().Be("First name cannot be empty");
+        exception.Message.Should().Be("First name cannot be empty or whitespace");
     }
 
     [Theory]
@@ -64,7 +64,7 @@ public class UserProfileTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() => new UserProfile(firstName, invalidLastName!));
-        exception.Message.Should().Be("Sobrenome não pode ser vazio");
+        exception.Message.Should().Be("Last name cannot be empty or whitespace");
     }
 
     [Fact]

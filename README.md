@@ -122,7 +122,7 @@ docker compose -f environments/development.yml up -d
 
 ## 📁 Estrutura do Projeto
 
-```
+```text
 MeAjudaAi/
 ├── src/
 │   ├── Aspire/                     # Orquestração .NET Aspire

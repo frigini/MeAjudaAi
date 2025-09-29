@@ -1,6 +1,7 @@
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.Shared.Extensions;
+using MeAjudaAi.Shared.Logging;
 using MeAjudaAi.ServiceDefaults;
 using Serilog;
 
@@ -17,8 +18,9 @@ try
             .Enrich.FromLogContext()
             .Enrich.WithProperty("Application", "MeAjudaAi")
             .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+            .Enrich.With<CorrelationIdEnricher>()
             .WriteTo.Console(outputTemplate:
-                "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+                "[{Timestamp:HH:mm:ss} {Level:u3}] {CorrelationId} {Message:lj} {Properties:j}{NewLine}{Exception}")
             .CreateLogger();
 
         builder.Host.UseSerilog((context, services, configuration) => configuration
@@ -26,8 +28,9 @@ try
             .Enrich.FromLogContext()
             .Enrich.WithProperty("Application", "MeAjudaAi")
             .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
+            .Enrich.With<CorrelationIdEnricher>()
             .WriteTo.Console(outputTemplate:
-                "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
+                "[{Timestamp:HH:mm:ss} {Level:u3}] {CorrelationId} {Message:lj} {Properties:j}{NewLine}{Exception}"));
 
         Log.Information("🚀 Iniciando MeAjudaAi API Service");
     }
@@ -53,7 +56,7 @@ try
         Log.Information("✅ MeAjudaAi API Service configurado com sucesso - Ambiente: {Environment}", environmentName);
     }
 
-    app.Run();
+    await app.RunAsync();
 }
 catch (Exception ex)
 {
@@ -62,6 +65,13 @@ catch (Exception ex)
         Log.Fatal(ex, "❌ Falha crítica ao inicializar MeAjudaAi API Service");
     }
     throw;
+}
+finally
+{
+    if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Testing")
+    {
+        Log.CloseAndFlush();
+    }
 }
 
 // Make Program class accessible for integration tests

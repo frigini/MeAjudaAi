@@ -45,6 +45,11 @@ services:
     networks:
       - meajudaai-test-network
     command: ["redis-server", "--save", ""]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   # Keycloak for integration tests
   keycloak-test-db:

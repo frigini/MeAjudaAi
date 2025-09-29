@@ -2,7 +2,6 @@
 -- Basic database setup for development and testing
 
 -- Create extensions that might be useful for development
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Create a basic schema for development
@@ -23,8 +22,19 @@ CREATE TABLE IF NOT EXISTS app.users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create an index on email for performance
-CREATE INDEX IF NOT EXISTS idx_users_email ON app.users(email);
+-- Create trigger function to automatically update updated_at timestamp
+CREATE OR REPLACE FUNCTION app.touch_updated_at()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at := CURRENT_TIMESTAMP;
+  RETURN NEW;
+END $$;
+
+-- Create trigger to automatically update updated_at on row updates
+DROP TRIGGER IF EXISTS trg_users_touch ON app.users;
+CREATE TRIGGER trg_users_touch
+BEFORE UPDATE ON app.users
+FOR EACH ROW EXECUTE FUNCTION app.touch_updated_at();
 
 -- Insert sample data for development
 INSERT INTO app.users (username, email) 

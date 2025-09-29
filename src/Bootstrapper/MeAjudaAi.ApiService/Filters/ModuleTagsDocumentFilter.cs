@@ -59,15 +59,31 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
 
     private static HashSet<string> GetUsedTagsFromPaths(OpenApiDocument swaggerDoc)
     {
-        var tags = new HashSet<string>();
+        var tags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        
+        // Guard against null Paths collection
+        if (swaggerDoc.Paths == null)
+            return tags;
         
         foreach (var path in swaggerDoc.Paths.Values)
         {
+            // Guard against null path
+            if (path?.Operations == null)
+                continue;
+                
             foreach (var operation in path.Operations.Values)
             {
+                // Guard against null operation or Tags collection
+                if (operation?.Tags == null)
+                    continue;
+                    
                 foreach (var tag in operation.Tags)
                 {
-                    tags.Add(tag.Name);
+                    // Skip tags with null or empty Name
+                    if (!string.IsNullOrEmpty(tag?.Name))
+                    {
+                        tags.Add(tag.Name);
+                    }
                 }
             }
         }

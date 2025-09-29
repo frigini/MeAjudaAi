@@ -13,29 +13,6 @@ namespace MeAjudaAi.ApiService.Extensions;
 public static class SecurityExtensions
 {
     /// <summary>
-    /// Valida as configurações do Keycloak para garantir que estão completas.
-    /// </summary>
-    /// <param name="options">Opções de configuração do Keycloak</param>
-    /// <exception cref="InvalidOperationException">Lançada quando configuração obrigatória está ausente</exception>
-    private static void ValidateKeycloakOptions(KeycloakOptions options)
-    {
-        if (string.IsNullOrWhiteSpace(options.BaseUrl))
-            throw new InvalidOperationException("Keycloak BaseUrl is required but not configured");
-
-        if (string.IsNullOrWhiteSpace(options.Realm))
-            throw new InvalidOperationException("Keycloak Realm is required but not configured");
-
-        if (string.IsNullOrWhiteSpace(options.ClientId))
-            throw new InvalidOperationException("Keycloak ClientId is required but not configured");
-
-        if (!Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out _))
-            throw new InvalidOperationException($"Keycloak BaseUrl '{options.BaseUrl}' is not a valid URL");
-
-        if (options.ClockSkew.TotalMinutes > 30)
-            throw new InvalidOperationException("Keycloak ClockSkew should not exceed 30 minutes for security reasons");
-    }
-
-    /// <summary>
     /// Valida todas as configurações relacionadas à segurança para evitar erros em produção.
     /// </summary>
     /// <param name="configuration">Configuração da aplicação</param>
@@ -316,19 +293,13 @@ public static class SecurityExtensions
                             var principal = context.Principal!;
                             var clientId = context.HttpContext.RequestServices.GetRequiredService<IOptions<KeycloakOptions>>().Value.ClientId;
 
-                            // Copy existing claims and add role claims from Keycloak structures
+                            // Copia claims existentes e adiciona roles do Keycloak
                             var claims = principal.Claims.ToList();
-                            var json = context.SecurityToken as JwtSecurityToken;
-                            if (json is not null && json.Payload.TryGetValue("realm_access", out var realmObj) && realmObj is IDictionary<string, object> realmDict
-                                && realmDict.TryGetValue("roles", out var realmRoles) && realmRoles is IEnumerable<object> rr)
+                            
+                            if (context.SecurityToken is JwtSecurityToken jwtToken)
                             {
-                                foreach (var r in rr.OfType<string>()) claims.Add(new Claim(ClaimTypes.Role, r));
-                            }
-                            if (json is not null && json.Payload.TryGetValue("resource_access", out var resObj) && resObj is IDictionary<string, object> resDict
-                                && resDict.TryGetValue(clientId, out var clientObj) && clientObj is IDictionary<string, object> clientDict
-                                && clientDict.TryGetValue("roles", out var clientRoles) && clientRoles is IEnumerable<object> cr)
-                            {
-                                foreach (var r in cr.OfType<string>()) claims.Add(new Claim(ClaimTypes.Role, r));
+                                var keycloakRoles = ExtractKeycloakRoles(jwtToken, clientId);
+                                claims.AddRange(keycloakRoles);
                             }
 
                             var identity = new ClaimsIdentity(claims, principal.Identity?.AuthenticationType, "preferred_username", ClaimTypes.Role);
@@ -370,6 +341,68 @@ public static class SecurityExtensions
         services.AddScoped<IAuthorizationHandler, SelfOrAdminHandler>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Extrai roles do token JWT do Keycloak a partir das estruturas realm_access e resource_access.
+    /// </summary>
+    /// <param name="jwtToken">Token JWT do Keycloak</param>
+    /// <param name="clientId">ID do cliente para extração de roles específicos do cliente</param>
+    /// <returns>Lista de claims de role extraídos do token</returns>
+    private static List<Claim> ExtractKeycloakRoles(JwtSecurityToken jwtToken, string clientId)
+    {
+        var roleClaims = new List<Claim>();
+
+        // Extrai roles do realm_access
+        if (jwtToken.Payload.TryGetValue("realm_access", out var realmObj) && 
+            realmObj is IDictionary<string, object> realmDict &&
+            realmDict.TryGetValue("roles", out var realmRoles) && 
+            realmRoles is IEnumerable<object> realmRolesList)
+        {
+            foreach (var role in realmRolesList.OfType<string>())
+            {
+                roleClaims.Add(new Claim(ClaimTypes.Role, role));
+            }
+        }
+
+        // Extrai roles do resource_access para o cliente específico
+        if (jwtToken.Payload.TryGetValue("resource_access", out var resourceObj) && 
+            resourceObj is IDictionary<string, object> resourceDict &&
+            resourceDict.TryGetValue(clientId, out var clientObj) && 
+            clientObj is IDictionary<string, object> clientDict &&
+            clientDict.TryGetValue("roles", out var clientRoles) && 
+            clientRoles is IEnumerable<object> clientRolesList)
+        {
+            foreach (var role in clientRolesList.OfType<string>())
+            {
+                roleClaims.Add(new Claim(ClaimTypes.Role, role));
+            }
+        }
+
+        return roleClaims;
+    }
+
+    /// <summary>
+    /// Valida as configurações do Keycloak para garantir que estão completas.
+    /// </summary>
+    /// <param name="options">Opções de configuração do Keycloak</param>
+    /// <exception cref="InvalidOperationException">Lançada quando configuração obrigatória está ausente</exception>
+    private static void ValidateKeycloakOptions(KeycloakOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(options.BaseUrl))
+            throw new InvalidOperationException("Keycloak BaseUrl is required but not configured");
+
+        if (string.IsNullOrWhiteSpace(options.Realm))
+            throw new InvalidOperationException("Keycloak Realm is required but not configured");
+
+        if (string.IsNullOrWhiteSpace(options.ClientId))
+            throw new InvalidOperationException("Keycloak ClientId is required but not configured");
+
+        if (!Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out _))
+            throw new InvalidOperationException($"Keycloak BaseUrl '{options.BaseUrl}' is not a valid URL");
+
+        if (options.ClockSkew.TotalMinutes > 30)
+            throw new InvalidOperationException("Keycloak ClockSkew should not exceed 30 minutes for security reasons");
     }
 }
 

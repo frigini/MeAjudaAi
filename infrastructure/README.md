@@ -7,27 +7,21 @@ This directory contains the infrastructure configuration for the MeAjudaAi platf
 ### Keycloak Authentication
 
 **Version Management**: 
-- Keycloak is pinned to specific versions for production stability
-- Current default: `26.0.2`
-- Configure via environment variable: `KEYCLOAK_VERSION=x.y.z`
+- **All environments use pinned versions**: No `:latest` tags for reproducibility
+- **Current default**: `26.0.2`
+- **Consistent across environments**: Development, testing, and production use same `KEYCLOAK_VERSION`
+- **Override capability**: Set `KEYCLOAK_VERSION` environment variable to use different version
+- **Testing and Upgrades**:
+  - Always test new Keycloak versions in development first
+  - Check [Keycloak Release Notes](https://www.keycloak.org/docs/latest/release_notes/index.html) for breaking changes
+  - Update the default version in `.env.example` after validation
+  - **When updating**: Change `KEYCLOAK_VERSION` in all environment files simultaneously
 
 **HTTP/HTTPS Configuration**:
 - **Development**: HTTP enabled for convenience (`KC_HTTP_ENABLED=true`)
 - **Production**: HTTP enabled internally, HTTPS enforced at proxy level (`KC_PROXY=edge`)
 - **Testing**: HTTP enabled for test environment simplicity
 - All environments include `--import-realm` flag for automatic realm setup
-
-**Version Management**:
-- **All environments use pinned versions**: No `:latest` tags for reproducibility
-- **Consistent across environments**: Development, testing, and production use same `KEYCLOAK_VERSION`
-- **Centrally managed**: Version defaults defined in each environment's compose file
-- **Override capability**: Set `KEYCLOAK_VERSION` environment variable to use different version
-
-**Testing and Upgrades**:
-- Always test new Keycloak versions in development first
-- Check [Keycloak Release Notes](https://www.keycloak.org/docs/latest/release_notes/index.html) for breaking changes
-- Update the default version in `.env.example` after validation
-- **When updating**: Change `KEYCLOAK_VERSION` in all environment files simultaneously
 
 ### Environment Configuration
 
@@ -74,10 +68,10 @@ RABBITMQ_PASS=your-secure-rabbitmq-password-here
 1. **Generate Required Passwords:**
    ```bash
    # Generate secure passwords
-   export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
-   export RABBITMQ_PASS=$(openssl rand -base64 32)
-   echo "Keycloak password: $KEYCLOAK_ADMIN_PASSWORD"
-   echo "RabbitMQ password: $RABBITMQ_PASS"
+   export KEYCLOAK_ADMIN_PASSWORD="$(openssl rand -base64 32)"
+   export RABBITMQ_PASS="$(openssl rand -base64 32)"
+   # Tip: avoid echoing secrets; consider writing to a local .env file with strict permissions
+   # umask 077; printf 'KEYCLOAK_ADMIN_PASSWORD=%s\nRABBITMQ_PASS=%s\n' "$KEYCLOAK_ADMIN_PASSWORD" "$RABBITMQ_PASS" > compose/environments/.env.development
    ```
 
 2. **Alternative: Create .env file:**

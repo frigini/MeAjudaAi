@@ -49,9 +49,24 @@ var serviceBus = builder.AddMeAjudaAiServiceBus();
 // Desenvolvimento
 var keycloak = builder.AddMeAjudaAiKeycloak();
 
-// Produção
+// Produção - REQUER variáveis de ambiente seguras
 var keycloak = builder.AddMeAjudaAiKeycloakProduction();
 ```
+
+#### ⚠️ Requisitos de Segurança para Produção
+
+Para usar `AddMeAjudaAiKeycloakProduction()`, as seguintes variáveis de ambiente **devem** estar definidas:
+
+- `KEYCLOAK_ADMIN_PASSWORD`: Senha segura para o administrador do Keycloak
+- `POSTGRES_PASSWORD`: Senha segura para o banco de dados PostgreSQL
+
+**Exemplo de configuração:**
+```bash
+export KEYCLOAK_ADMIN_PASSWORD="your-secure-admin-password-here"
+export POSTGRES_PASSWORD="your-secure-database-password-here"
+```
+
+⚠️ **Nunca use senhas padrão ou fracas em produção!** O método falhará se essas variáveis não estiverem definidas, evitando deployments inseguros.
 
 ## 🎯 Benefícios
 

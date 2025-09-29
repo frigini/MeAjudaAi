@@ -1,11 +1,13 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
+using MeAjudaAi.Shared.Common.Constants;
 using MeAjudaAi.Shared.Messaging.Factory;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Rebus.Config;
@@ -22,6 +24,7 @@ internal static class Extensions
     public static IServiceCollection AddMessaging(
         this IServiceCollection services,
         IConfiguration configuration,
+        IHostEnvironment environment,
         Action<MessageBusOptions>? configureOptions = null)
     {
         // Verifica se o messaging está habilitado
@@ -42,23 +45,21 @@ internal static class Extensions
             // Validações manuais com mensagens claras
             if (string.IsNullOrWhiteSpace(options.DefaultTopicName))
                 throw new InvalidOperationException("ServiceBus DefaultTopicName is required when messaging is enabled. Configure 'Messaging:ServiceBus:DefaultTopicName' in appsettings.json");
-                
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
             
             // Validação mais rigorosa da connection string
             if (string.IsNullOrWhiteSpace(options.ConnectionString) || 
                 options.ConnectionString.Contains("${") || // Check for unresolved environment variable placeholder
                 options.ConnectionString.Equals("Endpoint=sb://localhost/;SharedAccessKeyName=default;SharedAccessKey=default")) // Check for dummy connection string
             {
-                if (environment == "Development" || environment == "Testing")
+                if (environment.IsDevelopment() || environment.IsEnvironment(EnvironmentNames.Testing))
                 {
                     // Para desenvolvimento/teste, log warning mas permita continuar
                     var logger = provider.GetService<Microsoft.Extensions.Logging.ILogger<ServiceBusOptions>>();
-                    logger?.LogWarning("ServiceBus connection string is not configured. Messaging functionality will be limited in {Environment} environment.", environment);
+                    logger?.LogWarning("ServiceBus connection string is not configured. Messaging functionality will be limited in {Environment} environment.", environment.EnvironmentName);
                 }
                 else
                 {
-                    throw new InvalidOperationException($"ServiceBus connection string is required for {environment} environment. " +
+                    throw new InvalidOperationException($"ServiceBus connection string is required for {environment.EnvironmentName} environment. " +
                         "Set the SERVICEBUS_CONNECTION_STRING environment variable or configure 'Messaging:ServiceBus:ConnectionString' in appsettings.json. " +
                         "If messaging is not needed, set 'Messaging:Enabled' to false.");
                 }
@@ -97,10 +98,31 @@ internal static class Extensions
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
         services.AddSingleton<ITopicStrategySelector, TopicStrategySelector>();
 
-        // Registrar implementações específicas do MessageBus
-        services.AddSingleton<ServiceBusMessageBus>();
-        services.AddSingleton<RabbitMqMessageBus>();
-        services.AddSingleton<NoOp.NoOpMessageBus>();
+        // Registrar implementações específicas do MessageBus condicionalmente baseado no ambiente
+        // para reduzir o risco de resolução acidental em ambientes de teste
+        if (environment.IsDevelopment())
+        {
+            // Development: Registra RabbitMQ e NoOp (fallback)
+            services.TryAddSingleton<RabbitMqMessageBus>();
+            services.TryAddSingleton<NoOp.NoOpMessageBus>();
+        }
+        else if (environment.IsProduction())
+        {
+            // Production: Registra apenas ServiceBus
+            services.TryAddSingleton<ServiceBusMessageBus>();
+        }
+        else if (environment.IsEnvironment(EnvironmentNames.Testing))
+        {
+            // Testing: Registra apenas NoOp - mocks serão adicionados via AddMessagingMocks()
+            services.TryAddSingleton<NoOp.NoOpMessageBus>();
+        }
+        else
+        {
+            // Ambiente desconhecido: Registra todas as implementações para compatibilidade
+            services.TryAddSingleton<ServiceBusMessageBus>();
+            services.TryAddSingleton<RabbitMqMessageBus>();
+            services.TryAddSingleton<NoOp.NoOpMessageBus>();
+        }
         
         // Registrar o factory e o IMessageBus baseado no ambiente
         services.AddSingleton<IMessageBusFactory, EnvironmentBasedMessageBusFactory>();
@@ -120,8 +142,7 @@ internal static class Extensions
         services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
 
         // Só configura o Rebus se não estiver em ambiente de teste
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-        if (environment != "Testing")
+        if (!environment.IsEnvironment(EnvironmentNames.Testing))
         {
             services.AddRebus((configure, serviceProvider) =>
             {
@@ -225,7 +246,7 @@ internal static class Extensions
         RabbitMqOptions rabbitMqOptions,
         IHostEnvironment environment)
     {
-        if (environment.EnvironmentName == "Testing")
+        if (environment.IsEnvironment(EnvironmentNames.Testing))
         {
             // Para testes, usa RabbitMQ com configuração mínima
             // Isso irá falhar de forma controlada e não bloqueará o startup da aplicação

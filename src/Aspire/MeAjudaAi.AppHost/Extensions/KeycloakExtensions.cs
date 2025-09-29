@@ -43,7 +43,13 @@ public sealed class MeAjudaAiKeycloakOptions
     /// <summary>
     /// Senha do banco de dados
     /// </summary>
-    public string DatabasePassword { get; set; } = "dev123";
+    public string DatabasePassword { get; set; } =
+        Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "dev123";
+    
+    /// <summary>
+    /// Hostname para URLs de produção (ex: keycloak.mydomain.com)
+    /// </summary>
+    public string? Hostname { get; set; }
     
     /// <summary>
     /// Indica se deve expor endpoint HTTP (padrão: true para desenvolvimento)
@@ -155,12 +161,34 @@ public static class MeAjudaAiKeycloakExtensions
         this IDistributedApplicationBuilder builder,
         Action<MeAjudaAiKeycloakOptions>? configure = null)
     {
+        // Registrar parâmetros secretos obrigatórios
+        var keycloakAdminPassword = builder.AddParameter("keycloak-admin-password", secret: true);
+        var postgresPassword = builder.AddParameter("postgres-password", secret: true);
+
+        // Verificar se as variáveis de ambiente obrigatórias estão definidas
+        var adminPasswordFromEnv = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD");
+        var dbPasswordFromEnv = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
+
+        if (string.IsNullOrEmpty(adminPasswordFromEnv))
+        {
+            throw new InvalidOperationException(
+                "KEYCLOAK_ADMIN_PASSWORD environment variable is required for production deployment. " +
+                "Please set this environment variable with a secure password.");
+        }
+
+        if (string.IsNullOrEmpty(dbPasswordFromEnv))
+        {
+            throw new InvalidOperationException(
+                "POSTGRES_PASSWORD environment variable is required for production deployment. " +
+                "Please set this environment variable with a secure password.");
+        }
+
         var options = new MeAjudaAiKeycloakOptions
         {
-            // Configurações seguras para produção
+            // Configurações seguras para produção - usar valores das variáveis de ambiente validadas
             ExposeHttpEndpoint = false,
-            AdminPassword = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD") ?? "secure-random-password",
-            DatabasePassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "secure-db-password"
+            AdminPassword = adminPasswordFromEnv,
+            DatabasePassword = dbPasswordFromEnv
         };
         configure?.Invoke(options);
 
@@ -173,11 +201,11 @@ public static class MeAjudaAiKeycloakExtensions
             .WithEnvironment("KC_DB", "postgres")
             .WithEnvironment("KC_DB_URL", $"jdbc:postgresql://{options.DatabaseHost}:{options.DatabasePort}/{options.DatabaseName}?currentSchema={options.DatabaseSchema}")
             .WithEnvironment("KC_DB_USERNAME", options.DatabaseUsername)
-            .WithEnvironment("KC_DB_PASSWORD", options.DatabasePassword)
+            .WithEnvironment("KC_DB_PASSWORD", postgresPassword)
             .WithEnvironment("KC_DB_SCHEMA", options.DatabaseSchema)
-            // Credenciais do admin
+            // Credenciais do admin usando parâmetros secretos
             .WithEnvironment("KEYCLOAK_ADMIN", options.AdminUsername)
-            .WithEnvironment("KEYCLOAK_ADMIN_PASSWORD", options.AdminPassword)
+            .WithEnvironment("KEYCLOAK_ADMIN_PASSWORD", keycloakAdminPassword)
             // Configurações de produção
             .WithEnvironment("KC_HOSTNAME_STRICT", "true")
             .WithEnvironment("KC_HOSTNAME_STRICT_HTTPS", "true")
@@ -205,9 +233,9 @@ public static class MeAjudaAiKeycloakExtensions
             keycloak = keycloak.WithHttpsEndpoint(targetPort: 8443, name: "https");
         }
 
-        var authUrl = options.ExposeHttpEndpoint ? 
-            $"https://localhost:{keycloak.GetEndpoint("https").Port}" :
-            "https://keycloak.production.domain.com"; // URL de produção
+        var authUrl = options.ExposeHttpEndpoint
+            ? $"https://localhost:{keycloak.GetEndpoint("https").Port}"
+            : $"https://{options.Hostname ?? Environment.GetEnvironmentVariable("KEYCLOAK_HOSTNAME") ?? "change-me.example.com"}";
         var adminUrl = $"{authUrl}/admin";
 
         Console.WriteLine($"[Keycloak] ✅ Keycloak produção configurado:");

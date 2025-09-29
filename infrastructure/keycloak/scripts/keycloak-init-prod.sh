@@ -71,26 +71,57 @@ echo "✅ Successfully authenticated with Keycloak"
 
 # Configure API client secret
 echo "🔧 Configuring API client secret..."
-curl -sf -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/meajudaai-api" \
+
+# Fetch API client UUID
+API_CLIENT_UUID=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients?clientId=meajudaai-api" \
+    -H "Authorization: Bearer ${ADMIN_TOKEN}" | jq -r '.[0].id')
+
+if [[ -z "${API_CLIENT_UUID}" || "${API_CLIENT_UUID}" == "null" ]]; then
+    echo "❌ Could not locate meajudaai-api client"
+    exit 1
+fi
+
+# Fetch current client configuration and update secret
+API_CLIENT_PAYLOAD=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/${API_CLIENT_UUID}" \
+    -H "Authorization: Bearer ${ADMIN_TOKEN}" | jq --arg secret "${API_CLIENT_SECRET}" '.secret=$secret')
+
+curl -sf -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/${API_CLIENT_UUID}" \
     -H "Authorization: Bearer ${ADMIN_TOKEN}" \
     -H "Content-Type: application/json" \
-    -d "{\"secret\": \"${API_CLIENT_SECRET}\"}" || {
+    -d "${API_CLIENT_PAYLOAD}" || {
     echo "❌ Failed to configure API client secret"
     exit 1
 }
 
 # Configure web client redirect URIs and origins
 echo "🌐 Configuring web client redirect URIs and origins..."
+
+# Fetch web client UUID
+WEB_CLIENT_UUID=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients?clientId=meajudaai-web" \
+    -H "Authorization: Bearer ${ADMIN_TOKEN}" | jq -r '.[0].id')
+
+if [[ -z "${WEB_CLIENT_UUID}" || "${WEB_CLIENT_UUID}" == "null" ]]; then
+    echo "❌ Could not locate meajudaai-web client"
+    exit 1
+fi
+
 IFS=',' read -ra REDIRECT_ARRAY <<< "${WEB_REDIRECT_URIS}"
 IFS=',' read -ra ORIGINS_ARRAY <<< "${WEB_ORIGINS}"
 
 REDIRECT_JSON=$(printf '%s\n' "${REDIRECT_ARRAY[@]}" | jq -R . | jq -s .)
 ORIGINS_JSON=$(printf '%s\n' "${ORIGINS_ARRAY[@]}" | jq -R . | jq -s .)
 
-curl -sf -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/meajudaai-web" \
+# Fetch current client configuration and update redirect URIs and origins
+WEB_CLIENT_PAYLOAD=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/${WEB_CLIENT_UUID}" \
+    -H "Authorization: Bearer ${ADMIN_TOKEN}" | jq \
+    --argjson redirects "${REDIRECT_JSON}" \
+    --argjson origins "${ORIGINS_JSON}" \
+    '.redirectUris=$redirects | .webOrigins=$origins')
+
+curl -sf -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/${WEB_CLIENT_UUID}" \
     -H "Authorization: Bearer ${ADMIN_TOKEN}" \
     -H "Content-Type: application/json" \
-    -d "{\"redirectUris\": ${REDIRECT_JSON}, \"webOrigins\": ${ORIGINS_JSON}}" || {
+    -d "${WEB_CLIENT_PAYLOAD}" || {
     echo "❌ Failed to configure web client"
     exit 1
 }

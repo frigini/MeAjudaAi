@@ -38,14 +38,22 @@ public class ExampleSchemaFilter : ISchemaFilter
 
         foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
-            var propertyName = char.ToLowerInvariant(property.Name[0]) + property.Name.Substring(1);
-            
-            if (!schema.Properties.ContainsKey(propertyName)) continue;
+            var attrName = property.GetCustomAttribute<System.Text.Json.Serialization.JsonPropertyNameAttribute>()?.Name;
+            var candidates = new[]
+            {
+                attrName,
+                property.Name,
+                char.ToLowerInvariant(property.Name[0]) + property.Name.Substring(1)
+            }.Where(n => !string.IsNullOrEmpty(n)).Cast<string>();
+
+            var schemaKey = schema.Properties.Keys
+                .FirstOrDefault(k => candidates.Any(c => string.Equals(k, c, StringComparison.Ordinal)));
+            if (schemaKey == null) continue;
 
             var exampleValue = GetPropertyExample(property);
             if (exampleValue != null)
             {
-                example[propertyName] = exampleValue;
+                example[schemaKey] = exampleValue;
                 hasExamples = true;
             }
         }
@@ -78,9 +86,9 @@ public class ExampleSchemaFilter : ISchemaFilter
         return propertyType.Name switch
         {
             nameof(String) => GetStringExample(propertyName),
-            nameof(Guid) => new OpenApiString(Guid.NewGuid().ToString()),
-            nameof(DateTime) => new OpenApiDateTime(DateTime.UtcNow),
-            nameof(DateTimeOffset) => new OpenApiDateTime(DateTimeOffset.UtcNow),
+            nameof(Guid) => new OpenApiString("3fa85f64-5717-4562-b3fc-2c963f66afa6"),
+            nameof(DateTime) => new OpenApiDateTime(new DateTime(2024, 01, 15, 10, 30, 00, DateTimeKind.Utc)),
+            nameof(DateTimeOffset) => new OpenApiDateTime(new DateTimeOffset(2024, 01, 15, 10, 30, 00, TimeSpan.Zero)),
             nameof(Int32) => new OpenApiInteger(GetIntegerExample(propertyName)),
             nameof(Int64) => new OpenApiLong(GetLongExample(propertyName)),
             nameof(Boolean) => new OpenApiBoolean(GetBooleanExample(propertyName)),

@@ -16,52 +16,66 @@ public class RateLimitingMiddleware(
     ILogger<RateLimitingMiddleware> logger)
 {
     /// <summary>
-    /// Simple counter class for rate limiting.
-    /// 
+    /// Classe contador simples para rate limiting.
     /// <para>
-    /// <b>Thread-safety:</b> The <see cref="Value"/> field must only be accessed or modified using thread-safe operations,
-    /// such as <see cref="System.Threading.Interlocked.Increment(ref int)"/>. This class is designed to be used in a concurrent environment,
-    /// and all modifications to <see cref="Value"/> should be performed atomically.
+    /// <b>Thread-safety:</b> O campo <see cref="Value"/> deve ser acessado ou modificado apenas usando operações thread-safe,
+    /// como <see cref="System.Threading.Interlocked.Increment(ref int)"/>. Esta classe foi projetada para ser usada em um ambiente concorrente,
+    /// e todas as modificações no <see cref="Value"/> devem ser realizadas atomicamente.
     /// </para>
     /// </summary>
-    private sealed class Counter { public int Value; }
+    private sealed class Counter 
+    { 
+        public int Value; 
+        public DateTime ExpiresAt; 
+    }
     public async Task InvokeAsync(HttpContext context)
     {
         var clientIp = GetClientIpAddress(context);
         var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
         
         var currentOptions = options.CurrentValue;
-        var effectiveWindow = TimeSpan.FromSeconds(currentOptions.General.WindowInSeconds);
+        
+        // Check IP whitelist first - bypass rate limiting if IP is whitelisted
+        if (currentOptions.General.EnableIpWhitelist && 
+            currentOptions.General.WhitelistedIps.Contains(clientIp))
+        {
+            await next(context);
+            return;
+        }
+        
+        // Defensively clamp window to at least 1 second
+        var windowSeconds = Math.Max(1, currentOptions.General.WindowInSeconds);
+        var effectiveWindow = TimeSpan.FromSeconds(windowSeconds);
         
         // Determine effective limit using priority order
-        var limit = GetEffectiveLimit(context, currentOptions, isAuthenticated);
+        var limit = GetEffectiveLimit(context, currentOptions, isAuthenticated, effectiveWindow);
         
-        var key = $"rate_limit:{clientIp}:{context.Request.Path}";
+        // Key by user (when authenticated) and method to reduce false sharing
+        var userKey = isAuthenticated
+            ? (context.User.FindFirst("sub")?.Value ?? context.User.Identity?.Name ?? clientIp)
+            : clientIp;
+        var key = $"rate_limit:{userKey}:{context.Request.Method}:{context.Request.Path}";
         
         var counter = cache.GetOrCreate(key, entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = effectiveWindow;
-            return new Counter();
-        }) ?? new Counter();
+            return new Counter { ExpiresAt = DateTime.UtcNow + effectiveWindow };
+        })!; // GetOrCreate never returns null when factory returns a value
 
         var current = Interlocked.Increment(ref counter.Value);
 
         if (current > limit)
         {
             logger.LogWarning("Rate limit exceeded for client {ClientIp} on path {Path}. Limit: {Limit}, Current count: {Count}, Window: {Window}s",
-                clientIp, context.Request.Path, limit, current, currentOptions.General.WindowInSeconds);
-            await HandleRateLimitExceeded(context, limit, currentOptions.General.WindowInSeconds);
+                clientIp, context.Request.Path, limit, current, windowSeconds);
+            await HandleRateLimitExceeded(context, counter, currentOptions.General.ErrorMessage, (int)effectiveWindow.TotalSeconds);
             return;
         }
 
-        // Counter already incremented; ensure key TTL is set
-        cache.GetOrCreate(key, entry =>
-        {
-            entry.AbsoluteExpirationRelativeToNow = effectiveWindow;
-            return counter;
-        });
+        // TTL set at creation; no need for redundant cache operation
         
-        if (current >= Math.Floor(limit * 0.8)) // Log warning when approaching limit (80%)
+        var warnThreshold = (int)Math.Ceiling(limit * 0.8);
+        if (current >= warnThreshold) // approaching limit (80%)
         {
             logger.LogInformation("Client {ClientIp} approaching rate limit on path {Path}. Current: {Count}/{Limit}, Window: {Window}s",
                 clientIp, context.Request.Path, current, limit, currentOptions.General.WindowInSeconds);
@@ -70,7 +84,7 @@ public class RateLimitingMiddleware(
         await next(context);
     }
 
-    private static int GetEffectiveLimit(HttpContext context, RateLimitOptions rateLimitOptions, bool isAuthenticated)
+    private static int GetEffectiveLimit(HttpContext context, RateLimitOptions rateLimitOptions, bool isAuthenticated, TimeSpan window)
     {
         var requestPath = context.Request.Path.Value ?? string.Empty;
         
@@ -83,7 +97,11 @@ public class RateLimitingMiddleware(
                 if ((isAuthenticated && endpointLimit.Value.ApplyToAuthenticated) ||
                     (!isAuthenticated && endpointLimit.Value.ApplyToAnonymous))
                 {
-                    return endpointLimit.Value.RequestsPerMinute;
+                    return ScaleToWindow(
+                        endpointLimit.Value.RequestsPerMinute,
+                        endpointLimit.Value.RequestsPerHour,
+                        0,
+                        window);
                 }
             }
         }
@@ -99,15 +117,30 @@ public class RateLimitingMiddleware(
             {
                 if (rateLimitOptions.RoleLimits.TryGetValue(role, out var roleLimit))
                 {
-                    return roleLimit.RequestsPerMinute;
+                    return ScaleToWindow(
+                        roleLimit.RequestsPerMinute,
+                        roleLimit.RequestsPerHour,
+                        roleLimit.RequestsPerDay,
+                        window);
                 }
             }
         }
         
         // 3. Fall back to default authenticated/anonymous limits
-        return isAuthenticated ? 
-            rateLimitOptions.Authenticated.RequestsPerMinute : 
-            rateLimitOptions.Anonymous.RequestsPerMinute;
+        return isAuthenticated
+            ? ScaleToWindow(rateLimitOptions.Authenticated.RequestsPerMinute, rateLimitOptions.Authenticated.RequestsPerHour, rateLimitOptions.Authenticated.RequestsPerDay, window)
+            : ScaleToWindow(rateLimitOptions.Anonymous.RequestsPerMinute,    rateLimitOptions.Anonymous.RequestsPerHour,    rateLimitOptions.Anonymous.RequestsPerDay,    window);
+    }
+
+    private static int ScaleToWindow(int perMinute, int perHour, int perDay, TimeSpan window)
+    {
+        var secs = Math.Max(1, (int)window.TotalSeconds);
+        var candidates = new List<double>(3);
+        if (perMinute > 0) candidates.Add(perMinute * secs / 60.0);
+        if (perHour   > 0) candidates.Add(perHour   * secs / 3600.0);
+        if (perDay    > 0) candidates.Add(perDay    * secs / 86400.0);
+        var allowed = candidates.Count > 0 ? candidates.Min() : 0.0;
+        return Math.Max(1, (int)Math.Floor(allowed));
     }
     
     private static bool IsPathMatch(string requestPath, string pattern)
@@ -131,20 +164,22 @@ public class RateLimitingMiddleware(
         return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
 
-    private static async Task HandleRateLimitExceeded(HttpContext context, int limit, int windowInSeconds)
+    private static async Task HandleRateLimitExceeded(HttpContext context, Counter counter, string errorMessage, int windowInSeconds)
     {
+        // Calculate remaining TTL from counter expiration
+        var retryAfterSeconds = Math.Max(0, (int)Math.Ceiling((counter.ExpiresAt - DateTime.UtcNow).TotalSeconds));
+        
         context.Response.StatusCode = 429;
-        context.Response.Headers.Append("Retry-After", windowInSeconds.ToString());
+        context.Response.Headers.Append("Retry-After", retryAfterSeconds.ToString());
         context.Response.ContentType = "application/json";
 
         var errorResponse = new 
         {
             Error = "RateLimitExceeded",
-            Message = "Rate limit exceeded. Please try again later.",
+            Message = errorMessage,
             Details = new Dictionary<string, object>
             {
-                ["limit"] = limit,
-                ["retryAfterSeconds"] = windowInSeconds,
+                ["retryAfterSeconds"] = retryAfterSeconds,
                 ["windowInSeconds"] = windowInSeconds
             }
         };

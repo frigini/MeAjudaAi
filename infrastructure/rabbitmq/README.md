@@ -10,6 +10,28 @@ This directory contains security configurations for RabbitMQ message broker.
 - **Logs authentication attempts** for security monitoring
 - **Sets reasonable connection limits**
 - **Requires secure credentials** via environment variables
+- **Includes TLS hardening options** (commented out, ready for production use)
+
+## TLS/SSL Security (Optional)
+
+For production deployments, uncomment and configure the TLS options in `rabbitmq.conf`:
+
+```properties
+# Bind management interface to localhost only
+management.listener.ip = 127.0.0.1
+
+# Enable SSL/TLS listener on port 5671
+listeners.ssl.default = 5671
+
+# SSL certificate configuration
+ssl_options.cacertfile = /etc/rabbitmq/certs/ca.pem
+ssl_options.certfile   = /etc/rabbitmq/certs/server.pem
+ssl_options.keyfile    = /etc/rabbitmq/certs/server_key.pem
+ssl_options.verify     = verify_peer
+ssl_options.fail_if_no_peer_cert = true
+```
+
+**Note**: TLS configuration requires valid SSL certificates to be mounted in the container.
 
 ## Environment Variables
 
@@ -40,7 +62,7 @@ The configuration is automatically mounted when using Docker Compose:
 
 ## Management Interface
 
-- **URL**: http://localhost:15672
+- **URL**: `http://localhost:15672`
 - **Username**: Value from `RABBITMQ_USER` (default: `meajudaai`)
 - **Password**: Value from `RABBITMQ_PASS` (must be set securely)
 

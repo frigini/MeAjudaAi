@@ -23,6 +23,9 @@ ALTER DEFAULT PRIVILEGES FOR ROLE users_owner IN SCHEMA users GRANT USAGE, SELEC
 -- Create dedicated application schema for cross-cutting objects
 CREATE SCHEMA IF NOT EXISTS meajudaai_app;
 
+-- Set explicit schema ownership
+ALTER SCHEMA meajudaai_app OWNER TO meajudaai_app_owner;
+
 -- Grant permissions on dedicated application schema
 GRANT USAGE, CREATE ON SCHEMA meajudaai_app TO meajudaai_app_role;
 
@@ -32,3 +35,6 @@ ALTER ROLE meajudaai_app_role SET search_path = meajudaai_app, users, public;
 -- Grant limited permissions on public schema (read-only)
 GRANT USAGE ON SCHEMA public TO users_role;
 GRANT USAGE ON SCHEMA public TO meajudaai_app_role;
+
+-- Harden public schema by revoking CREATE from PUBLIC (security best practice)
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;

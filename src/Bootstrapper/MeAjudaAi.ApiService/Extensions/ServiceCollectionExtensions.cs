@@ -23,11 +23,13 @@ public static class ServiceCollectionExtensions
             .Validate(options =>
             {
                 // Validações customizadas para a configuração avançada
-                if (options.Anonymous.RequestsPerMinute <= 0)
+                if (options.Anonymous.RequestsPerMinute <= 0 || options.Anonymous.RequestsPerHour <= 0 || options.Anonymous.RequestsPerDay <= 0)
                     return false;
-                if (options.Authenticated.RequestsPerMinute <= 0)
+                if (options.Authenticated.RequestsPerMinute <= 0 || options.Authenticated.RequestsPerHour <= 0 || options.Authenticated.RequestsPerDay <= 0)
                     return false;
                 if (options.General.WindowInSeconds <= 0)
+                    return false;
+                if (options.General.EnableIpWhitelist && (options.General.WhitelistedIps == null || options.General.WhitelistedIps.Count == 0))
                     return false;
                 return true;
             }, "Rate limit configuration is invalid. All limits must be greater than zero.");
@@ -40,7 +42,8 @@ public static class ServiceCollectionExtensions
         // Adiciona autenticação segura baseada no ambiente
         // Para testes de integração (INTEGRATION_TESTS=true), não configuramos Keycloak
         // pois será substituído pelo FakeIntegrationAuthenticationHandler
-        if (Environment.GetEnvironmentVariable("INTEGRATION_TESTS") != "true")
+        var it = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+        if (!string.Equals(it, "true", StringComparison.OrdinalIgnoreCase))
         {
             // Usa a extensão segura do Keycloak com validação completa de tokens
             services.AddEnvironmentAuthentication(configuration, environment);

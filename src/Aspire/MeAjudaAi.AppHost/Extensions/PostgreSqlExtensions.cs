@@ -29,11 +29,6 @@ public sealed class MeAjudaAiPostgreSqlOptions
     /// Indica se deve incluir PgAdmin para desenvolvimento
     /// </summary>
     public bool IncludePgAdmin { get; set; } = true;
-    
-    /// <summary>
-    /// Indica se deve usar isolamento por schemas (padrão: true)
-    /// </summary>
-    public bool UseSchemaIsolation { get; set; } = true;
 }
 
 /// <summary>
@@ -45,11 +40,6 @@ public sealed class MeAjudaAiPostgreSqlResult
     /// Referência ao banco de dados principal da aplicação (único para todos os módulos)
     /// </summary>
     public required IResourceBuilder<IResource> MainDatabase { get; init; }
-    
-    /// <summary>
-    /// String de conexão direta (cenários de teste)
-    /// </summary>
-    public string? DirectConnectionString { get; init; }
 }
 
 /// <summary>
@@ -133,15 +123,13 @@ public static class PostgreSqlExtensions
             .WithImageTag("13-alpine") // Usa PostgreSQL 13 para melhor compatibilidade
             .WithEnvironment("POSTGRES_DB", options.MainDatabase)
             .WithEnvironment("POSTGRES_USER", options.Username)
-            .WithEnvironment("POSTGRES_PASSWORD", options.Password)
-            .WithEnvironment("POSTGRES_HOST_AUTH_METHOD", "trust"); // Autenticação trust para testes
+            .WithEnvironment("POSTGRES_PASSWORD", options.Password);
 
         var mainDb = postgres.AddDatabase("meajudaai-db-local", options.MainDatabase);
 
         return new MeAjudaAiPostgreSqlResult
         {
-            MainDatabase = mainDb,
-            DirectConnectionString = null
+            MainDatabase = mainDb
         };
     }
 
@@ -194,7 +182,8 @@ public static class PostgreSqlExtensions
 
     private static bool IsTestEnvironment(IDistributedApplicationBuilder builder)
     {
-        return builder.Environment.EnvironmentName == "Testing" ||
-               Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing";
+        return builder.Environment.EnvironmentName == "Testing"
+            || Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing"
+            || Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Testing";
     }
 }

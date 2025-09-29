@@ -56,6 +56,10 @@ public static class HealthCheckExtensions
             })
             .ValidateOnStart();
 
+        // Registra ExternalServicesOptions como singleton para DI direto
+        services.AddSingleton<ExternalServicesOptions>(sp =>
+            sp.GetRequiredService<IOptions<ExternalServicesOptions>>().Value);
+
         // Registra HttpClient para o ExternalServicesHealthCheck
         services.AddHttpClient<ExternalServicesHealthCheck>();
 

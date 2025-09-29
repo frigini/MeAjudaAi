@@ -1,27 +1,38 @@
 # Estratégia de MessageBus por Ambiente - Documentação
 
-## ✅ **RESPOSTA À PERGUNTA**: Sim, a implementação garante que RabbitMQ seja usado para desenvolvimento, mocks para testes, e Azure Service Bus apenas para produção.
+## ✅ **RESPOSTA À PERGUNTA**: Sim, a implementação garante seleção automática de MessageBus por ambiente: RabbitMQ para desenvolvimento (quando habilitado), NoOp/Mocks para testes, e Azure Service Bus para produção.
 
 ## **Implementação Realizada**
 
 ### 1. **Factory Pattern para Seleção de MessageBus**
 
-**Arquivo**: `src/Shared/MeAjudai.Shared/Messaging/Factory/MessageBusFactory.cs`
+**Arquivo**: `src/Shared/MeAjudaAi.Shared/Messaging/Factory/MessageBusFactory.cs`
 
 ```csharp
 public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
 {
     public IMessageBus CreateMessageBus()
     {
-        if (_environment.IsDevelopment())
+        var rabbitMqEnabled = _configuration.GetValue<bool?>("RabbitMQ:Enabled");
+        
+        if (_environment.IsDevelopment() || _environment.EnvironmentName == "Testing")
         {
-            // DEVELOPMENT: RabbitMQ
-            return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
-        }
-        else if (_environment.EnvironmentName == "Testing")
-        {
-            // TESTING: Mocks (handled by AddMessagingMocks in test setup)
-            return _serviceProvider.GetRequiredService<MockMessageBus>();
+            // DEVELOPMENT/TESTING: RabbitMQ (se habilitado) ou NoOp (se desabilitado)
+            if (rabbitMqEnabled != false)
+            {
+                try
+                {
+                    return _serviceProvider.GetRequiredService<RabbitMqMessageBus>();
+                }
+                catch
+                {
+                    return _serviceProvider.GetRequiredService<NoOpMessageBus>(); // Fallback
+                }
+            }
+            else
+            {
+                return _serviceProvider.GetRequiredService<NoOpMessageBus>();
+            }
         }
         else
         {
@@ -34,12 +45,27 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
 
 ### 2. **Configuração de DI por Ambiente**
 
-**Arquivo**: `src/Shared/MeAjudai.Shared/Messaging/Extensions.cs`
+**Arquivo**: `src/Shared/MeAjudaAi.Shared/Messaging/Extensions.cs`
 
 ```csharp
-// Registrar implementações específicas do MessageBus
-services.AddSingleton<ServiceBusMessageBus>();
-services.AddSingleton<RabbitMqMessageBus>();
+// Registrar implementações específicas do MessageBus condicionalmente baseado no ambiente
+// para reduzir o risco de resolução acidental em ambientes de teste
+if (environment.IsDevelopment())
+{
+    // Development: Registra RabbitMQ e NoOp (fallback)
+    services.TryAddSingleton<RabbitMqMessageBus>();
+    services.TryAddSingleton<NoOp.NoOpMessageBus>();
+}
+else if (environment.IsProduction())
+{
+    // Production: Registra apenas ServiceBus
+    services.TryAddSingleton<ServiceBusMessageBus>();
+}
+else if (environment.IsEnvironment(EnvironmentNames.Testing))
+{
+    // Testing: Registra apenas NoOp - mocks serão adicionados via AddMessagingMocks()
+    services.TryAddSingleton<NoOp.NoOpMessageBus>();
+}
 
 // Registrar o factory e o IMessageBus baseado no ambiente
 services.AddSingleton<IMessageBusFactory, EnvironmentBasedMessageBusFactory>();
@@ -56,26 +82,35 @@ services.AddSingleton<IMessageBus>(serviceProvider =>
 ```json
 {
   "Messaging": {
-    "Enabled": true,
-    "Provider": "RabbitMQ", // ← Explicita RabbitMQ para dev
+    "Enabled": false,
+    "Provider": "RabbitMQ",
     "RabbitMQ": {
+      "Enabled": false,
+      "ConnectionString": "amqp://guest:guest@localhost:5672/",
       "DefaultQueueName": "MeAjudaAi-events-dev",
       "Host": "localhost",
-      "Port": 5672
+      "Port": 5672,
+      "Username": "guest",
+      "Password": "guest",
+      "VirtualHost": "/"
     }
   }
 }
 ```
+
+**Nota**: O RabbitMQ suporta duas formas de configuração de conexão:
+1. **ConnectionString direta**: `"amqp://user:pass@host:port/vhost"`
+2. **Propriedades individuais**: O sistema automaticamente constrói a ConnectionString usando `Host`, `Port`, `Username`, `Password` e `VirtualHost` através do método `BuildConnectionString()`
 
 #### **Production** (`appsettings.Production.json`):
 ```json
 {
   "Messaging": {
     "Enabled": true,
-    "Provider": "ServiceBus", // ← Explicita Service Bus para prod
+    "Provider": "ServiceBus",
     "ServiceBus": {
       "ConnectionString": "${SERVICEBUS_CONNECTION_STRING}",
-      "TopicName": "MeAjudaAi-prod-events"
+      "DefaultTopicName": "MeAjudaAi-prod-events"
     }
   }
 }
@@ -86,7 +121,10 @@ services.AddSingleton<IMessageBus>(serviceProvider =>
 {
   "Messaging": {
     "Enabled": false,
-    "Provider": "Mock" // ← Mocks para testes
+    "Provider": "Mock"
+  },
+  "RabbitMQ": {
+    "Enabled": false
   }
 }
 ```
@@ -96,18 +134,24 @@ services.AddSingleton<IMessageBus>(serviceProvider =>
 **Configuração nos testes**: `tests/MeAjudaAi.Integration.Tests/Base/ApiTestBase.cs`
 
 ```csharp
+// Em uma classe de configuração de testes ou Program.cs
 builder.ConfigureServices(services =>
 {
-    // Configura mocks de messaging (FASE 2.3)
-    services.AddMessagingMocks(); // ← Substitui implementações reais por mocks
+    // Configura mocks de messaging automaticamente para ambiente Testing
+    if (builder.Environment.EnvironmentName == "Testing")
+    {
+        services.AddMessagingMocks(); // ← Substitui implementações reais por mocks
+    }
     
     // Outras configurações...
 });
 ```
 
+**Nota**: Para testes de integração, os mocks são registrados automaticamente quando o ambiente é "Testing", substituindo as implementações reais do MessageBus para garantir isolamento e velocidade dos testes.
+
 ### 5. **Transporte Rebus por Ambiente**
 
-**Arquivo**: `src/Shared/MeAjudai.Shared/Messaging/Extensions.cs`
+**Arquivo**: `src/Shared/MeAjudaAi.Shared/Messaging/Extensions.cs`
 
 ```csharp
 private static void ConfigureTransport(
@@ -125,7 +169,7 @@ private static void ConfigureTransport(
     {
         // DEVELOPMENT: RabbitMQ
         transport.UseRabbitMq(
-            rabbitMqOptions.ConnectionString,
+            rabbitMqOptions.BuildConnectionString(), // Builds from Host/Port or uses ConnectionString
             rabbitMqOptions.DefaultQueueName);
     }
     else
@@ -165,16 +209,16 @@ else // Production
 ## **Garantias Implementadas**
 
 ### ✅ **1. Development Environment**
-- **IMessageBus**: `RabbitMqMessageBus`
-- **Transport**: RabbitMQ (via Rebus)
-- **Infrastructure**: RabbitMQ container (Aspire)
-- **Configuration**: `appsettings.Development.json` → "Provider": "RabbitMQ"
+- **IMessageBus**: `RabbitMqMessageBus` (se `RabbitMQ:Enabled != false`) OU `NoOpMessageBus` (se desabilitado)
+- **Transport**: RabbitMQ (se habilitado) OU None (se desabilitado)
+- **Infrastructure**: RabbitMQ container (Aspire, quando habilitado)
+- **Configuration**: `appsettings.Development.json` → "Provider": "RabbitMQ", "RabbitMQ:Enabled": false
 
 ### ✅ **2. Testing Environment**
-- **IMessageBus**: `MockServiceBusMessageBus` ou `MockRabbitMqMessageBus` (mocks)
-- **Transport**: Disabled (Rebus não configurado)
-- **Infrastructure**: Mocks (sem dependências externas)
-- **Configuration**: `appsettings.Testing.json` → "Provider": "Mock", "Enabled": false
+- **IMessageBus**: `RabbitMqMessageBus` (se `RabbitMQ:Enabled != false`) OU `NoOpMessageBus` (se desabilitado) OU Mocks (nos testes de integração)
+- **Transport**: None (Rebus não configurado para Testing)
+- **Infrastructure**: NoOp/Mocks (sem dependências externas)
+- **Configuration**: `appsettings.Testing.json` → "Provider": "Mock", "Enabled": false, "RabbitMQ:Enabled": false
 
 ### ✅ **3. Production Environment**
 - **IMessageBus**: `ServiceBusMessageBus`
@@ -184,7 +228,7 @@ else // Production
 
 ## **Fluxo de Seleção**
 
-```
+```text
 Application Startup
        ↓
 Environment Detection
@@ -192,10 +236,12 @@ Environment Detection
 ┌─────────────────┬─────────────────┬─────────────────┐
 │   Development   │     Testing     │   Production    │
 │                 │                 │                 │
-│ RabbitMQ        │ Mocks           │ Service Bus     │
-│ + Local         │ + No External   │ + Azure         │
-│ + Fast Setup    │ + Isolated      │ + Scalable      │
+│ RabbitMQ        │ NoOp/Mocks      │ Service Bus     │
+│ (se habilitado) │ (sem deps ext.) │ (Azure)         │
+│ OU NoOp         │ OU RabbitMQ*    │ + Scalable      │
+│ (se desabilitado)│                │                 │
 └─────────────────┴─────────────────┴─────────────────┘
+* RabbitMQ só se explicitamente habilitado
 ```
 
 ## **Validação**
@@ -203,7 +249,7 @@ Environment Detection
 ### **Como Confirmar a Configuração:**
 
 1. **Logs na Aplicação**:
-   ```
+   ```text
    Development: "Creating RabbitMQ MessageBus for environment: Development"
    Testing: Mocks registrados via AddMessagingMocks()
    Production: "Creating Azure Service Bus MessageBus for environment: Production"
@@ -221,15 +267,17 @@ Environment Detection
 
 ✅ **SIM** - A implementação **garante completamente** que:
 
-- **RabbitMQ** é usado exclusivamente para **Development**
+- **RabbitMQ** é usado para **Development/Testing** apenas **quando explicitamente habilitado** (`RabbitMQ:Enabled != false`)
+- **NoOp MessageBus** é usado como **fallback seguro** quando RabbitMQ está desabilitado ou indisponível
 - **Azure Service Bus** é usado exclusivamente para **Production**  
-- **Mocks** são usados automaticamente nos **testes de integração (Testing)**
+- **Mocks** são usados automaticamente nos **testes de integração** (substituindo implementações reais)
 
 A seleção é feita automaticamente via:
 1. **Environment detection** (`IHostEnvironment`)
-2. **Factory pattern** (`EnvironmentBasedMessageBusFactory`)
-3. **Dependency injection** (registro baseado no ambiente)
-4. **Configuration files** (settings específicos por ambiente)
-5. **Aspire infrastructure** (containers/services apropriados)
+2. **Configuration-based enablement** (`RabbitMQ:Enabled`)
+3. **Factory pattern** (`EnvironmentBasedMessageBusFactory`)
+4. **Dependency injection** (registro baseado no ambiente)
+5. **Graceful fallbacks** (NoOp quando RabbitMQ indisponível)
+6. **Automatic test mocks** (AddMessagingMocks() aplicado automaticamente em ambiente Testing)
 
-**Nenhuma configuração manual** é necessária - a seleção é **automática e determinística** baseada no ambiente de execução.
+**Configuração manual mínima** é necessária apenas para testes de integração que requerem registro explícito de mocks via `AddMessagingMocks()`. A seleção de MessageBus em runtime é **automática e determinística** baseada no ambiente de execução e configurações.
