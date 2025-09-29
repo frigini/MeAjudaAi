@@ -204,8 +204,12 @@ apply_docker_optimizations() {
     
     # Configurações Docker para Windows
     if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]]; then
-        export DOCKER_HOST="npipe://./pipe/docker_engine"
-        print_verbose "Docker Host configurado para Windows"
+        if [[ -z "${DOCKER_HOST:-}" ]]; then
+            export DOCKER_HOST="npipe://./pipe/docker_engine"
+            print_verbose "Docker Host configurado para Windows"
+        else
+            print_verbose "Mantendo DOCKER_HOST existente: $DOCKER_HOST"
+        fi
     fi
     
     # Desabilitar recursos pesados do TestContainers
@@ -310,7 +314,9 @@ run_performance_test() {
     local start_time
     start_time=$(date +%s)
     
-    dotnet test --configuration Release --verbosity minimal --nologo --filter "Category!=E2E"
+    if ! dotnet test --configuration Release --verbosity minimal --nologo --filter "Category!=E2E"; then
+        print_warning "Alguns testes falharam durante o teste de performance."
+    fi
     
     local end_time
     local duration
