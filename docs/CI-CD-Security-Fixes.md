@@ -15,9 +15,10 @@ Error: 🛑 missing gitleaks license.
 ```
 
 **Solution**: 
-- Modified the workflow to handle missing licenses gracefully using `continue-on-error: true`
-- Added TruffleHog as a backup secret scanner that runs alongside Gitleaks
-- Both scanners now run without failing the entire pipeline
+- Added conditional execution for Gitleaks based on license availability
+- Added TruffleHog as a backup secret scanner that always runs
+- Both scanners fail the workflow when secrets are detected (strict enforcement)
+- Gitleaks skips execution when no license is available (prevents license errors)
 
 **Files Changed**:
 - `.github/workflows/pr-validation.yml`
@@ -86,8 +87,8 @@ The CI/CD pipeline now includes:
    - Blocks PR merges when secrets are found
    - Gracefully skips when license is not available
 
-2. **TruffleHog** (backup scanner)
-   - Free alternative secret scanner
+2. **TruffleHog** (complementary scanner)
+   - Free open-source secret scanner
    - Runs regardless of Gitleaks license status
    - Focuses on verified secrets only
    - **FAILS the workflow if secrets are detected**
