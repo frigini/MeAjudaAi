@@ -1,4 +1,6 @@
-﻿namespace MeAjudaAi.Shared.Functional;
+﻿using System.Text.Json.Serialization;
+
+namespace MeAjudaAi.Shared.Functional;
 
 public class Result<T>
 {
@@ -6,6 +8,14 @@ public class Result<T>
     public bool IsFailure => !IsSuccess;
     public T Value { get; }
     public Error Error { get; }
+
+    [JsonConstructor]
+    public Result(bool isSuccess, T value, Error error)
+    {
+        IsSuccess = isSuccess;
+        Value = value;
+        Error = error;
+    }
 
     private Result(T value) => (IsSuccess, Value, Error) = (true, value, null!);
     private Result(Error error) => (IsSuccess, Value, Error) = (false, default!, error);
@@ -29,7 +39,12 @@ public class Result
     public bool IsFailure => !IsSuccess;
     public Error Error { get; }
 
-    private Result(bool isSuccess, Error error) => (IsSuccess, Error) = (isSuccess, error);
+    [JsonConstructor]
+    public Result(bool isSuccess, Error error)
+    {
+        IsSuccess = isSuccess;
+        Error = error;
+    }
 
     public static Result Success() => new(true, null!);
     public static Result Failure(Error error) => new(false, error);

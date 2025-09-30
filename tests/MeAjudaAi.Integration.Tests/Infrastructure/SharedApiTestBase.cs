@@ -197,6 +197,16 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     {
                         options.AddPolicy("SelfOrAdmin", policy =>
                             policy.AddRequirements(new MeAjudaAi.ApiService.Handlers.SelfOrAdminRequirement()));
+                        options.AddPolicy("AdminOnly", policy =>
+                            policy.RequireRole("admin", "super-admin"));
+                        options.AddPolicy("SuperAdminOnly", policy =>
+                            policy.RequireRole("super-admin"));
+                        options.AddPolicy("UserManagement", policy =>
+                            policy.RequireRole("admin", "super-admin"));
+                        options.AddPolicy("ServiceProviderAccess", policy =>
+                            policy.RequireRole("service-provider", "admin", "super-admin"));
+                        options.AddPolicy("CustomerAccess", policy =>
+                            policy.RequireRole("customer", "admin", "super-admin"));
                     });
                     
                     // Registra o handler de autorização necessário

@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Tests.Auth;
@@ -14,6 +15,15 @@ public class SimpleHealthTests(WebApplicationFactory<Program> factory) : IClassF
     private readonly WebApplicationFactory<Program> _factory = factory.WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Testing");
+            builder.ConfigureAppConfiguration((context, config) =>
+            {
+                // Configurar uma connection string mock para health checks básicos
+                config.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Port=5432;Database=meajudaai_mock;Username=postgres;Password=test;",
+                    ["Postgres:ConnectionString"] = "Host=localhost;Port=5432;Database=meajudaai_mock;Username=postgres;Password=test;"
+                });
+            });
             builder.ConfigureServices(services =>
             {
                 // Configurar serviços de teste básicos

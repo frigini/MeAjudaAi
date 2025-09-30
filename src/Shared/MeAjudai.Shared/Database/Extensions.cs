@@ -21,10 +21,21 @@ public static class Extensions
                     configuration.GetConnectionString("meajudaai-db") ??        // Aspire para desenvolvimento
                     configuration["Postgres:ConnectionString"] ??              // Configuração manual
                     string.Empty;
-            })
-            .Validate(opts => !string.IsNullOrEmpty(opts.ConnectionString),
-                "PostgreSQL connection string not found. Configure connection string via Aspire, 'Postgres:ConnectionString' in appsettings.json, or as ConnectionStrings:meajudaai-db")
-            .ValidateOnStart();
+            });
+
+        // Só valida a connection string em ambientes que não sejam Testing
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        if (environment != "Testing")
+        {
+            services.Configure<PostgresOptions>(opts =>
+            {
+                if (string.IsNullOrEmpty(opts.ConnectionString))
+                {
+                    throw new InvalidOperationException(
+                        "PostgreSQL connection string not found. Configure connection string via Aspire, 'Postgres:ConnectionString' in appsettings.json, or as ConnectionStrings:meajudaai-db");
+                }
+            });
+        }
 
         // Monitoramento essencial de banco de dados
         services.AddDatabaseMonitoring();

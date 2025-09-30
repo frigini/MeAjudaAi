@@ -177,6 +177,10 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         ServiceBusMock!.ClearPublishedMessages();
         RabbitMqMock!.ClearPublishedMessages();
 
+        // IMPORTANTE: Reconfigura autenticação como admin antes do DELETE
+        // pois a limpeza de mensagens pode ter afetado o estado da autenticação
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+
         // Act - Deletar usuário
         var deleteResponse = await Client.DeleteAsync($"/api/v1/users/{userId}");
 

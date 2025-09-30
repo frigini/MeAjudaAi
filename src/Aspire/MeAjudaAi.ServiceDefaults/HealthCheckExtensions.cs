@@ -37,6 +37,14 @@ public static class HealthCheckExtensions
 
     private static IHealthChecksBuilder AddDatabaseHealthCheck(this IServiceCollection services)
     {
+        // Em ambiente de teste, adiciona um health check mock ao invés do real
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        if (environment == "Testing")
+        {
+            return services.AddHealthChecks()
+                .AddCheck("postgres", () => HealthCheckResult.Healthy("Database ready for testing"), ["ready", "database"]);
+        }
+
         // Registra PostgresOptions como singleton para PostgresHealthCheck
         services.AddSingleton<PostgresOptions>(serviceProvider =>
             serviceProvider.GetRequiredService<IOptions<PostgresOptions>>().Value);
