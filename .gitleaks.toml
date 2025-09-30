@@ -65,6 +65,6 @@ paths = [
 [[allowlist.paths]]
 description = "Configuration templates"
 paths = [
-    '''appsettings\.Development\.json$''',
-    '''appsettings\.template\.json$'''
+    '''appsettings\.template\.json$''',
+    '''appsettings\.example\.json$'''
 ]
