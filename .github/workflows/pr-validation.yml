@@ -132,8 +132,10 @@ jobs:
       run: |
         echo "🔍 Checking for potential hardcoded secrets..."
         # Check for common secret patterns
-        if grep -r -E "(password|secret|key|token)\s*=\s*['\"][^'\"]{10,}" --include="*.cs" --include="*.json" --exclude="*.yml" src/ || true; then
-          echo "⚠️ Potential hardcoded secrets found. Please review the above results."
+        matches=$(grep -r -E '(password|secret|key|token)\s*=\s*["'\''][^"'\'']{10,}' --include="*.cs" --include="*.json" --exclude="*.yml" src/ || true)
+        if [ -n "$matches" ]; then
+          echo "⚠️ Potential hardcoded secrets found. Please review the matches below."
+          echo "$matches"
         else
           echo "✅ No obvious hardcoded secrets detected"
         fi

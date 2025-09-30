@@ -12,7 +12,6 @@ ADMIN_USERNAME="${KEYCLOAK_ADMIN:-admin}"
 ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:?Error: KEYCLOAK_ADMIN_PASSWORD must be set}"
 
 # Required environment variables for production secrets
-API_CLIENT_SECRET="${MEAJUDAAI_API_CLIENT_SECRET:-}"
 WEB_REDIRECT_URIS="${MEAJUDAAI_WEB_REDIRECT_URIS:?Error: MEAJUDAAI_WEB_REDIRECT_URIS must be set}"
 WEB_ORIGINS="${MEAJUDAAI_WEB_ORIGINS:?Error: MEAJUDAAI_WEB_ORIGINS must be set}"
 
@@ -66,6 +65,9 @@ if [[ -z "${API_CLIENT_UUID}" || "${API_CLIENT_UUID}" == "null" ]]; then
     exit 1
 fi
 
+# Initialize status tracking for client secret rotation
+API_SECRET_STATUS="skipped"
+
 # Conditionally rotate client secret (only if explicitly requested)
 if [[ "${ROTATE_API_CLIENT_SECRET:-}" == "true" ]]; then
     echo "🔄 Rotating API client secret..."
@@ -77,12 +79,14 @@ if [[ "${ROTATE_API_CLIENT_SECRET:-}" == "true" ]]; then
 
     if [[ $? -ne 0 || -z "${NEW_SECRET_RESPONSE}" ]]; then
         echo "❌ Failed to configure API client secret"
+        API_SECRET_STATUS="failed"
         exit 1
     fi
 
     CONFIGURED_SECRET=$(echo "$NEW_SECRET_RESPONSE" | jq -r '.value')
     if [[ -z "${CONFIGURED_SECRET}" || "${CONFIGURED_SECRET}" == "null" ]]; then
       echo "❌ Could not read generated client secret"
+      API_SECRET_STATUS="failed"
       exit 1
     fi
 
@@ -92,6 +96,7 @@ if [[ "${ROTATE_API_CLIENT_SECRET:-}" == "true" ]]; then
       parent_dir=$(dirname -- "${WRITE_API_CLIENT_SECRET_TO}")
       if ! mkdir -p "$parent_dir" 2>/dev/null; then
         echo "❌ Failed to create directory: $parent_dir"
+        API_SECRET_STATUS="failed"
         exit 1
       fi
       chmod 700 "$parent_dir"
@@ -101,6 +106,7 @@ if [[ "${ROTATE_API_CLIENT_SECRET:-}" == "true" ]]; then
     fi
     
     echo "✅ API client secret rotated successfully"
+    API_SECRET_STATUS="rotated"
 else
     echo "ℹ️ API client secret rotation skipped (set ROTATE_API_CLIENT_SECRET=true to enable)"
 fi
@@ -251,7 +257,23 @@ echo "✅ Production security settings applied"
 echo "✅ Keycloak production initialization completed successfully!"
 echo ""
 echo "📋 Configuration Summary:"
-echo "  • API client secret: Rotated via Admin REST"
+
+# Generate appropriate status message for API client secret
+case "${API_SECRET_STATUS}" in
+    "rotated")
+        echo "  • API client secret: Rotated via Admin REST"
+        ;;
+    "skipped")
+        echo "  • API client secret: Skipped (rotation not enabled)"
+        ;;
+    "failed")
+        echo "  • API client secret: Rotation failed"
+        ;;
+    *)
+        echo "  • API client secret: Unknown status"
+        ;;
+esac
+
 echo "  • Web client redirects: ${WEB_REDIRECT_URIS}"
 echo "  • Web client origins: ${WEB_ORIGINS}"
 echo "  • Registration: Disabled for production"

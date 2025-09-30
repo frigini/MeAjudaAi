@@ -6,14 +6,6 @@ on:
   pull_request:
     branches: [ master, develop ]
 
-env:judaAi CI Pipeline
-
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-
 env:
   DOTNET_VERSION: '9.0.x'
 
@@ -117,7 +109,7 @@ jobs:
     - name: Run security analysis
       uses: github/super-linter@v4
       env:
-        DEFAULT_BRANCH: main
+        DEFAULT_BRANCH: master
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VALIDATE_CSHARP: true
         VALIDATE_DOCKERFILE: true

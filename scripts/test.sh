@@ -18,7 +18,7 @@
 #   -f, --fast          Modo rápido (com otimizações)
 #   -c, --coverage      Gera relatório de cobertura
 #   --skip-build        Pula o build
-#   --parallel          Executa testes em paralelo
+#   --parallel          Executa testes em paralelo usando MSBuild properties
 #
 # Exemplos:
 #   ./scripts/test.sh                   # Todos os testes
@@ -76,7 +76,7 @@ Usage: ./scripts/test.sh [options]
   -f, --fast         Apply performance optimizations
   -c, --coverage     Generate coverage report
   --skip-build       Skip build
-  --parallel         Run tests in parallel
+  --parallel         Run tests in parallel using MSBuild properties
 USAGE
 }
 
@@ -296,8 +296,10 @@ run_unit_tests() {
         args+=(--collect:"XPlat Code Coverage")
     fi
     
+    # Configure parallel execution via MSBuild properties instead of unsupported --parallel flag
     if [ "$PARALLEL" = true ]; then
-        args+=(--parallel)
+        args+=(-p:ParallelizeTestCollections=true)
+        args+=(-p:MaxCpuCount=0)
     fi
     
     print_info "Executando testes unitários..."
@@ -361,9 +363,10 @@ run_specific_project_tests() {
         common_args+=(--collect:"XPlat Code Coverage")
     fi
     
-    # Add parallel execution if enabled
+    # Configure parallel execution via MSBuild properties instead of unsupported --parallel flag
     if [ "$PARALLEL" = true ]; then
-        common_args+=(--parallel)
+        common_args+=(-p:ParallelizeTestCollections=true)
+        common_args+=(-p:MaxCpuCount=0)
     fi
     
     # Set verbosity
@@ -463,8 +466,11 @@ run_integration_tests() {
     if [ "$COVERAGE" = true ]; then
         args+=(--collect:"XPlat Code Coverage")
     fi
+    
+    # Configure parallel execution via MSBuild properties instead of unsupported --parallel flag
     if [ "$PARALLEL" = true ]; then
-        args+=(--parallel)
+        args+=(-p:ParallelizeTestCollections=true)
+        args+=(-p:MaxCpuCount=0)
     fi
     
     print_info "Executando testes de integração..."
@@ -508,8 +514,11 @@ run_e2e_tests() {
     if [ "$COVERAGE" = true ]; then
         args+=(--collect:"XPlat Code Coverage")
     fi
+    
+    # Configure parallel execution via MSBuild properties instead of unsupported --parallel flag
     if [ "$PARALLEL" = true ]; then
-        args+=(--parallel)
+        args+=(-p:ParallelizeTestCollections=true)
+        args+=(-p:MaxCpuCount=0)
     fi
     
     print_info "Executando testes E2E..."

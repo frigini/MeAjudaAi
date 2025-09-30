@@ -229,10 +229,10 @@ else // Testing/Production
 ## **Garantias Implementadas**
 
 ### ✅ **1. Development Environment**
-- **IMessageBus**: `RabbitMqMessageBus` (se `RabbitMQ:Enabled != false`) OU `NoOpMessageBus` (se desabilitado)
+- **IMessageBus**: `RabbitMqMessageBus` (se `RabbitMQ:Enabled == true`) OU `NoOpMessageBus` (se desabilitado)
 - **Transport**: RabbitMQ (se habilitado) OU None (se desabilitado)
 - **Infrastructure**: RabbitMQ container (Aspire, quando habilitado)
-- **Configuration**: `appsettings.Development.json` → "Provider": "RabbitMQ", "RabbitMQ:Enabled": false
+- **Configuration**: `appsettings.Development.json` → "Provider": "RabbitMQ", "RabbitMQ:Enabled": true
 
 ### ✅ **2. Testing Environment**
 - **IMessageBus**: `NoOpMessageBus` (ou Mocks para testes de integração)
