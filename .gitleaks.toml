@@ -1,0 +1,70 @@
+# Gitleaks configuration for MeAjudaAi project
+# https://github.com/gitleaks/gitleaks
+
+title = "MeAjudaAi Gitleaks Config"
+
+[extend]
+# Extend the default Gitleaks ruleset
+useDefault = true
+
+# Custom rules for .NET/C# projects
+[[rules]]
+id = "dotnet-connection-string"
+description = "Detects potentially sensitive connection strings"
+regex = '''(?i)(connectionstring|connstring)\s*=\s*["']([^"']*(?:password|pwd|secret|key)[^"']*)["']'''
+keywords = ["connectionstring", "connstring", "password", "pwd"]
+
+[[rules]]
+id = "appsettings-secrets"
+description = "Detects secrets in appsettings files"
+regex = '''(?i)["']?(apikey|api_key|secret|password|token|connectionstring)["']?\s*:\s*["']([a-zA-Z0-9+/=]{20,})["']'''
+keywords = ["apikey", "secret", "password", "token", "connectionstring"]
+path = '''appsettings.*\.json$'''
+
+[[rules]]
+id = "keycloak-secrets"
+description = "Detects Keycloak client secrets"
+regex = '''(?i)(client[_-]?secret|keycloak[_-]?secret)\s*[:=]\s*["']?([a-zA-Z0-9\-_]{20,})["']?'''
+keywords = ["client_secret", "client-secret", "keycloak"]
+
+# Allowlist for known false positives
+[allowlist]
+description = "Allowlist for MeAjudaAi project"
+
+# Ignore test files and mock data
+[[allowlist.regexes]]
+description = "Test files and mock data"
+regex = '''(test|mock|example|sample|dummy)'''
+path = '''(test|tests|mock|examples|samples)'''
+
+# Ignore template and configuration files with placeholder values
+[[allowlist.regexes]]
+description = "Template placeholders"
+regex = '''(your[_-]?secret[_-]?here|placeholder|example[_-]?value|change[_-]?me|replace[_-]?with)'''
+
+# Ignore documentation files
+[[allowlist.paths]]
+description = "Documentation and README files"
+paths = [
+    '''.*\.md$''',
+    '''.*\.txt$''',
+    '''docs/.*''',
+    '''README.*'''
+]
+
+# Ignore Docker and infrastructure template files
+[[allowlist.paths]]
+description = "Infrastructure templates"
+paths = [
+    '''infrastructure/.*\.example$''',
+    '''infrastructure/.*\.template$''',
+    '''docker-compose\..*\.yml$'''
+]
+
+# Ignore specific configuration files that may contain template secrets
+[[allowlist.paths]]
+description = "Configuration templates"
+paths = [
+    '''appsettings\.Development\.json$''',
+    '''appsettings\.template\.json$'''
+]

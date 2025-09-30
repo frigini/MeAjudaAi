@@ -27,12 +27,12 @@
 #   ./scripts/test.sh --coverage        # Com cobertura
 #
 # Dependências:
-#   - .NET 8 SDK
+#   - .NET 9.0.x SDK
 #   - Docker Desktop (para testes de integração)
 #   - reportgenerator (para cobertura)
 # =============================================================================
 
-set -e -o pipefail  # Pare em caso de erro e em falhas em pipelines
+set -e -u -o pipefail  # Pare em caso de erro, variáveis não definidas e falhas em pipelines
 
 # === Configurações ===
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -243,7 +243,7 @@ apply_optimizations() {
         export POSTGRES_SYNCHRONOUS_COMMIT=off
         export POSTGRES_FULL_PAGE_WRITES=off
         
-        print_info "Otimizações aplicadas! Esperado 70%+ de melhoria na performance."
+        print_info "Otimizações aplicadas! Potencial de melhoria significativa de performance (dependente do ambiente)."
     fi
 }
 
@@ -296,10 +296,11 @@ run_unit_tests() {
         args+=(--collect:"XPlat Code Coverage")
     fi
     
-    # Configure parallel execution via MSBuild properties instead of unsupported --parallel flag
+    # Configure parallel execution using correct MSBuild parallelism
     if [ "$PARALLEL" = true ]; then
-        args+=(-p:ParallelizeTestCollections=true)
-        args+=(-p:MaxCpuCount=0)
+        # Enable MSBuild parallelism (0 = auto, uses all available cores)
+        args+=(-m:0)
+        # Test-level parallelization should be configured via runsettings/xUnit config, not MSBuild properties.
     fi
     
     print_info "Executando testes unitários..."
@@ -363,10 +364,11 @@ run_specific_project_tests() {
         common_args+=(--collect:"XPlat Code Coverage")
     fi
     
-    # Configure parallel execution via MSBuild properties instead of unsupported --parallel flag
+    # Configure parallel execution using correct MSBuild parallelism
     if [ "$PARALLEL" = true ]; then
-        common_args+=(-p:ParallelizeTestCollections=true)
-        common_args+=(-p:MaxCpuCount=0)
+        # Enable MSBuild parallelism (0 = auto, uses all available cores)
+        common_args+=(-m:0)
+        # Test-level parallelization should be configured via runsettings/xUnit config, not MSBuild properties.
     fi
     
     # Set verbosity
@@ -467,10 +469,11 @@ run_integration_tests() {
         args+=(--collect:"XPlat Code Coverage")
     fi
     
-    # Configure parallel execution via MSBuild properties instead of unsupported --parallel flag
+    # Configure parallel execution using correct MSBuild parallelism
     if [ "$PARALLEL" = true ]; then
-        args+=(-p:ParallelizeTestCollections=true)
-        args+=(-p:MaxCpuCount=0)
+        # Enable MSBuild parallelism (0 = auto, uses all available cores)
+        args+=(-m:0)
+        # Test-level parallelization should be configured via runsettings/xUnit config, not MSBuild properties.
     fi
     
     print_info "Executando testes de integração..."
@@ -515,10 +518,11 @@ run_e2e_tests() {
         args+=(--collect:"XPlat Code Coverage")
     fi
     
-    # Configure parallel execution via MSBuild properties instead of unsupported --parallel flag
+    # Configure parallel execution using correct MSBuild parallelism
     if [ "$PARALLEL" = true ]; then
-        args+=(-p:ParallelizeTestCollections=true)
-        args+=(-p:MaxCpuCount=0)
+        # Enable MSBuild parallelism (0 = auto, uses all available cores)
+        args+=(-m:0)
+        # Test-level parallelization should be configured via runsettings/xUnit config, not MSBuild properties.
     fi
     
     print_info "Executando testes E2E..."

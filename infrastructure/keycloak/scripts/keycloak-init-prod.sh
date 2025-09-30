@@ -126,8 +126,30 @@ fi
 IFS=',' read -ra REDIRECT_ARRAY <<< "${WEB_REDIRECT_URIS}"
 IFS=',' read -ra ORIGINS_ARRAY <<< "${WEB_ORIGINS}"
 
-REDIRECT_JSON=$(printf '%s\n' "${REDIRECT_ARRAY[@]}" | jq -R . | jq -s .)
-ORIGINS_JSON=$(printf '%s\n' "${ORIGINS_ARRAY[@]}" | jq -R . | jq -s .)
+# Clean arrays by trimming whitespace and filtering empty entries
+CLEAN_REDIRECTS=()
+for uri in "${REDIRECT_ARRAY[@]}"; do
+    # Trim leading/trailing whitespace and strip carriage returns
+    cleaned_uri=$(echo "$uri" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s/\r$//')
+    # Skip empty entries
+    if [[ -n "$cleaned_uri" ]]; then
+        CLEAN_REDIRECTS+=("$cleaned_uri")
+    fi
+done
+
+CLEAN_ORIGINS=()
+for origin in "${ORIGINS_ARRAY[@]}"; do
+    # Trim leading/trailing whitespace and strip carriage returns
+    cleaned_origin=$(echo "$origin" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s/\r$//')
+    # Skip empty entries
+    if [[ -n "$cleaned_origin" ]]; then
+        CLEAN_ORIGINS+=("$cleaned_origin")
+    fi
+done
+
+# Generate JSON from cleaned arrays
+REDIRECT_JSON=$(printf '%s\n' "${CLEAN_REDIRECTS[@]}" | jq -R . | jq -s .)
+ORIGINS_JSON=$(printf '%s\n' "${CLEAN_ORIGINS[@]}" | jq -R . | jq -s .)
 
 # Fetch current client configuration and update redirect URIs and origins
 WEB_CLIENT_PAYLOAD=$(curl -sf "${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/clients/${WEB_CLIENT_UUID}" \

@@ -38,18 +38,52 @@ jobs:
           --no-build \
           --verbosity normal \
           --collect:"XPlat Code Coverage" \
-          --results-directory ./coverage/shared
+          --results-directory ./coverage/shared \
+          --logger "trx;LogFileName=shared-tests.trx"
           
         dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj \
           --configuration Release \
           --no-build \
           --verbosity normal \
           --collect:"XPlat Code Coverage" \
-          --results-directory ./coverage/architecture
+          --results-directory ./coverage/architecture \
+          --logger "trx;LogFileName=architecture-tests.trx"
           
         echo "✅ Testes executados com sucesso"
-        
-        echo "✅ Conformidade com namespaces validada"
+
+    - name: Validate namespace reorganization
+      run: |
+        echo "🔍 Validating namespace reorganization..."
+        if grep -R -nP '^\s*using\s+MeAjudaAi\.Shared\.Common;' -- src/ 2>/dev/null; then
+          echo "❌ Found old namespace imports"
+          exit 1
+        else
+          echo "✅ Conformidade com namespaces validada"
+        fi
+
+    - name: Upload Shared coverage
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-shared
+        path: coverage/shared/**
+        retention-days: 30
+
+    - name: Upload Architecture coverage
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-architecture
+        path: coverage/architecture/**
+        retention-days: 30
+
+    - name: Upload Test Results (TRX)
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-trx
+        path: "**/*.trx"
+        retention-days: 30
 
     - name: Code Coverage Summary
       uses: irongut/CodeCoverageSummary@v1.3.0
@@ -128,19 +162,25 @@ jobs:
     - name: Run Security Audit
       run: dotnet list package --vulnerable --include-transitive || true
 
-    - name: Check for hardcoded secrets (basic check)
-      run: |
-        echo "🔍 Checking for potential hardcoded secrets..."
-        # Check for common secret patterns
-        matches=$(grep -r -E '(password|secret|key|token)\s*=\s*["'\''][^"'\'']{10,}' --include="*.cs" --include="*.json" --exclude="*.yml" src/ || true)
-        if [ -n "$matches" ]; then
-          echo "⚠️ Potential hardcoded secrets found. Please review the matches below."
-          echo "$matches"
-        else
-          echo "✅ No obvious hardcoded secrets detected"
-        fi
+  # Job 3: Secret Detection with Gitleaks
+  secret-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for comprehensive scanning
 
-  # Job 3: Markdown Link Validation  
+    - name: Gitleaks Secret Scan
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        config-path: .gitleaks.toml
+
+  # Job 4: Markdown Link Validation  
   markdown-link-check:
     name: Validate Markdown Links
     runs-on: ubuntu-latest
@@ -149,11 +189,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Cache lychee results
+      uses: actions/cache@v4
+      with:
+        path: .lycheecache
+        key: lychee-${{ runner.os }}-${{ hashFiles('**/*.md','lychee.toml') }}
+        restore-keys: |
+          lychee-${{ runner.os }}-
+
     - name: Check markdown links with lychee
       uses: lycheeverse/lychee-action@v1.10.0
       with:
         # Check all markdown files in the repository using config file
-        args: --config lychee.toml --verbose --no-progress "**/*.md"
+        args: --config lychee.toml --verbose --no-progress --cache "**/*.md"
         # Fail the job if broken links are found
         fail: true
         # Only check local file links for now to avoid external link issues

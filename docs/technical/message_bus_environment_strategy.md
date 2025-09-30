@@ -76,7 +76,6 @@ if (environment.IsDevelopment())
 {
     // Development: Registra RabbitMQ e NoOp (fallback)
     services.TryAddSingleton<RabbitMqMessageBus>();
-    services.TryAddSingleton<NoOpMessageBus>();
 }
 else if (environment.IsProduction())
 {
@@ -85,9 +84,11 @@ else if (environment.IsProduction())
 }
 else if (environment.IsEnvironment(EnvironmentNames.Testing))
 {
-    // Testing: apenas NoOp/mocks
-    services.TryAddSingleton<NoOpMessageBus>();
+    // Testing: apenas NoOp/mocks - NoOpMessageBus will be registered below
 }
+
+// Ensure NoOpMessageBus is always available as a fallback for all environments
+services.TryAddSingleton<NoOpMessageBus>();
 
 // Registrar o factory e o IMessageBus baseado no ambiente
 services.AddSingleton<IMessageBusFactory, EnvironmentBasedMessageBusFactory>();
@@ -215,14 +216,20 @@ if (isDevelopment) // Development only
     var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
         .WithReference(rabbitMq); // ← RabbitMQ only for Development
 }
-else // Testing/Production
+else if (isProduction) // Production only
 {
-    // No RabbitMQ for Testing - NoOp will be used
     // Azure Service Bus for Production
     var serviceBus = builder.AddAzureServiceBus("servicebus");
     
     var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")  
-        .WithReference(serviceBus); // ← Service Bus para prod
+        .WithReference(serviceBus); // ← Service Bus for Production
+}
+else // Testing environment
+{
+    // No external message bus infrastructure for Testing
+    // NoOpMessageBus will be used without external dependencies
+    var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice");
+    // ← No message bus reference, NoOpMessageBus handles all messaging
 }
 ```
 
@@ -237,7 +244,7 @@ else // Testing/Production
 ### ✅ **2. Testing Environment**
 - **IMessageBus**: `NoOpMessageBus` (ou Mocks para testes de integração)
 - **Transport**: None (Rebus não configurado para Testing)
-- **Infrastructure**: NoOp/Mocks (sem dependências externas)
+- **Infrastructure**: NoOp/Mocks (sem dependências externas - sem Service Bus no Aspire)
 - **Configuration**: `appsettings.Testing.json` → "Provider": "Mock", "Enabled": false, "RabbitMQ:Enabled": false
 
 ### ✅ **3. Production Environment**
