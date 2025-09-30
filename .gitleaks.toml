@@ -31,40 +31,31 @@ keywords = ["client_secret", "client-secret", "keycloak"]
 [allowlist]
 description = "Allowlist for MeAjudaAi project"
 
-# Ignore test files and mock data
-[[allowlist.regexes]]
-description = "Test files and mock data"
-regex = '''(test|mock|example|sample|dummy)'''
-path = '''(test|tests|mock|examples|samples)'''
-
-# Ignore template and configuration files with placeholder values
-[[allowlist.regexes]]
-description = "Template placeholders"
-regex = '''(your[_-]?secret[_-]?here|placeholder|example[_-]?value|change[_-]?me|replace[_-]?with)'''
-
-# Ignore documentation files
-[[allowlist.paths]]
-description = "Documentation and README files"
+# Path-based allowlist - only directories/files used for tests and samples
 paths = [
-    '''.*\.md$''',
-    '''.*\.txt$''',
-    '''docs/.*''',
-    '''README.*'''
-]
-
-# Ignore Docker and infrastructure template files
-[[allowlist.paths]]
-description = "Infrastructure templates"
-paths = [
+    # Test and mock directories only
+    '''(^|.*/)tests?/.*''',
+    '''(^|.*/)mocks?/.*''',
+    '''(^|.*/)examples?/.*''',
+    '''(^|.*/)samples?/.*''',
+    # Infrastructure template files only (not real config files)
     '''infrastructure/.*\.example$''',
     '''infrastructure/.*\.template$''',
-    '''docker-compose\..*\.yml$'''
+    # Docker template files only (not real compose files)
+    '''docker-compose\..*\.example\.yml$''',
+    '''docker-compose\..*\.template\.yml$''',
+    '''docker-compose\..*\.sample\.yml$''',
+    # Configuration template files only
+    '''appsettings\.template\.json$''',
+    '''appsettings\.example\.json$''',
+    # Documentation samples only (not all docs)
+    '''(^|.*/)docs/(samples?|examples?)/.*''',
+    '''(^|.*/)docs/.*\.example\..*''',
+    '''(^|.*/)docs/.*\.template\..*'''
 ]
 
-# Ignore specific configuration files that may contain template secrets
-[[allowlist.paths]]
-description = "Configuration templates"
-paths = [
-    '''appsettings\.template\.json$''',
-    '''appsettings\.example\.json$'''
+# Content-based regex allowlist - only for placeholder values
+regexes = [
+    # Template placeholder patterns only
+    '''(your[_-]?secret[_-]?here|placeholder|example[_-]?value|change[_-]?me|replace[_-]?with)'''
 ]
