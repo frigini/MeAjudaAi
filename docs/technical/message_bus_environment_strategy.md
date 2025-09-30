@@ -105,10 +105,10 @@ services.AddSingleton<IMessageBus>(serviceProvider =>
 ```json
 {
   "Messaging": {
-    "Enabled": false,
+    "Enabled": true,
     "Provider": "RabbitMQ",
     "RabbitMQ": {
-      "Enabled": false,
+      "Enabled": true,
       "ConnectionString": "amqp://guest:guest@localhost:5672/",
       "DefaultQueueName": "MeAjudaAi-events-dev",
       "Host": "localhost",
