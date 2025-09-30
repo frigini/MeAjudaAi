@@ -56,19 +56,39 @@ error: repetition operator missing expression
 - Only sanitized template files are excluded from scanning
 - Reduces risk of accidentally committing development secrets
 
+### 4. Secret Scanner Workflow Enforcement
+
+**Problem**: Security scanners (Gitleaks and TruffleHog) had `continue-on-error: true` which allowed PRs to pass even when secrets were detected, and TruffleHog was using incorrect base branch.
+
+**Solution**: 
+- Removed `continue-on-error: true` from both Gitleaks and TruffleHog steps
+- Updated TruffleHog base branch from hardcoded `main` to dynamic `${{ github.event.pull_request.base.ref }}`
+- Both scanners now fail the workflow when secrets are detected
+
+**Files Changed**:
+- `.github/workflows/pr-validation.yml`
+
+**Security Impact**: 
+- **Critical**: PR validation now blocks merges when secrets are detected
+- **Accurate scanning**: TruffleHog scans correct commit range for each PR
+- **Mandatory security**: No way to bypass secret detection failures
+
 ## Current Security Scanning Setup
 
 The CI/CD pipeline now includes:
 
-1. **Gitleaks** (with graceful failure handling)
+1. **Gitleaks** (strict failure mode)
    - Scans for secrets in git history
    - Requires license for organizations
-   - Configured to continue on error if license missing
+   - **FAILS the workflow if secrets are detected**
+   - Blocks PR merges when secrets are found
 
 2. **TruffleHog** (backup scanner)
    - Free alternative secret scanner
    - Runs regardless of Gitleaks license status
    - Focuses on verified secrets only
+   - **FAILS the workflow if secrets are detected**
+   - Uses dynamic base branch targeting for PR scans
 
 3. **Lychee Link Checker**
    - Validates markdown links
@@ -119,13 +139,16 @@ Patterns to exclude from link checking:
 Both security scanners will:
 - Run on every pull request
 - Generate detailed reports in workflow logs
-- Continue pipeline execution even if issues are found
+- **FAIL the workflow if secrets are detected** 
+- **BLOCK PR merges when security issues are found**
 - Provide summaries in the GitHub Actions interface
 
 To view results:
 1. Go to the Actions tab in your repository
 2. Click on the specific workflow run
 3. Check the "Secret Detection" job for security scan results
+4. **Red X indicates secrets were found and PR is blocked**
+5. **Green checkmark indicates no secrets detected**
 
 ## Best Practices
 

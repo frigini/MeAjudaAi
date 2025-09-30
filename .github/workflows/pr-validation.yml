@@ -180,17 +180,15 @@ jobs:
         GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
       with:
         config-path: .gitleaks.toml
-      continue-on-error: true  # Don't fail the workflow if license is missing
         
     - name: Alternative Secret Scan (TruffleHog)
       # Run TruffleHog as backup secret scanner
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
-        base: main
+        base: ${{ github.event.pull_request.base.ref }}
         head: HEAD
         extra_args: --debug --only-verified
-      continue-on-error: true  # Don't fail on TruffleHog issues
 
   # Job 4: Markdown Link Validation  
   markdown-link-check:
