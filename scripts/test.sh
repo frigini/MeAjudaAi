@@ -18,13 +18,18 @@
 #   -f, --fast          Modo rápido (com otimizações)
 #   -c, --coverage      Gera relatório de cobertura
 #   --skip-build        Pula o build
-#   --parallel          Executa testes em paralelo usando MSBuild properties
+#   --parallel          Executa testes em paralelo usando runsettings
 #
 # Exemplos:
 #   ./scripts/test.sh                   # Todos os testes
 #   ./scripts/test.sh --unit            # Apenas unitários
 #   ./scripts/test.sh --fast            # Modo otimizado
 #   ./scripts/test.sh --coverage        # Com cobertura
+#   ./scripts/test.sh --parallel        # Paralelo via runsettings
+#
+# Arquivos de Configuração:
+#   tests/parallel.runsettings     # Configuração para execução paralela
+#   tests/sequential.runsettings   # Configuração para execução sequencial
 #
 # Dependências:
 #   - .NET 9.0.x SDK
@@ -296,11 +301,11 @@ run_unit_tests() {
         args+=(--collect:"XPlat Code Coverage")
     fi
     
-    # Configure parallel execution using correct MSBuild parallelism
+    # Configure test parallelization via runsettings
     if [ "$PARALLEL" = true ]; then
-        # Enable MSBuild parallelism (0 = auto, uses all available cores)
-        args+=(-m:0)
-        # Test-level parallelization should be configured via runsettings/xUnit config, not MSBuild properties.
+        args+=(--settings "tests/parallel.runsettings")
+    else
+        args+=(--settings "tests/sequential.runsettings")
     fi
     
     print_info "Executando testes unitários..."
@@ -364,11 +369,11 @@ run_specific_project_tests() {
         common_args+=(--collect:"XPlat Code Coverage")
     fi
     
-    # Configure parallel execution using correct MSBuild parallelism
+    # Configure test parallelization via runsettings
     if [ "$PARALLEL" = true ]; then
-        # Enable MSBuild parallelism (0 = auto, uses all available cores)
-        common_args+=(-m:0)
-        # Test-level parallelization should be configured via runsettings/xUnit config, not MSBuild properties.
+        common_args+=(--settings "tests/parallel.runsettings")
+    else
+        common_args+=(--settings "tests/sequential.runsettings")
     fi
     
     # Set verbosity
@@ -469,11 +474,11 @@ run_integration_tests() {
         args+=(--collect:"XPlat Code Coverage")
     fi
     
-    # Configure parallel execution using correct MSBuild parallelism
+    # Configure test parallelization via runsettings
     if [ "$PARALLEL" = true ]; then
-        # Enable MSBuild parallelism (0 = auto, uses all available cores)
-        args+=(-m:0)
-        # Test-level parallelization should be configured via runsettings/xUnit config, not MSBuild properties.
+        args+=(--settings "tests/parallel.runsettings")
+    else
+        args+=(--settings "tests/sequential.runsettings")
     fi
     
     print_info "Executando testes de integração..."
@@ -518,11 +523,11 @@ run_e2e_tests() {
         args+=(--collect:"XPlat Code Coverage")
     fi
     
-    # Configure parallel execution using correct MSBuild parallelism
+    # Configure test parallelization via runsettings
     if [ "$PARALLEL" = true ]; then
-        # Enable MSBuild parallelism (0 = auto, uses all available cores)
-        args+=(-m:0)
-        # Test-level parallelization should be configured via runsettings/xUnit config, not MSBuild properties.
+        args+=(--settings "tests/parallel.runsettings")
+    else
+        args+=(--settings "tests/sequential.runsettings")
     fi
     
     print_info "Executando testes E2E..."
