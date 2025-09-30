@@ -174,6 +174,8 @@ jobs:
         fetch-depth: 0  # Fetch full history for comprehensive scanning
 
     - name: Gitleaks Secret Scan
+      # Only run if GITLEAKS_LICENSE is available (required for organizations)
+      if: ${{ secrets.GITLEAKS_LICENSE != '' }}
       uses: gitleaks/gitleaks-action@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -182,7 +184,7 @@ jobs:
         config-path: .gitleaks.toml
         
     - name: Alternative Secret Scan (TruffleHog)
-      # Run TruffleHog as backup secret scanner
+      # Run TruffleHog as backup secret scanner (always runs)
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./

@@ -63,25 +63,28 @@ error: repetition operator missing expression
 **Solution**: 
 - Removed `continue-on-error: true` from both Gitleaks and TruffleHog steps
 - Updated TruffleHog base branch from hardcoded `main` to dynamic `${{ github.event.pull_request.base.ref }}`
-- Both scanners now fail the workflow when secrets are detected
+- Added conditional execution for Gitleaks based on license availability
+- Both scanners fail the workflow when secrets are detected (if they run)
 
 **Files Changed**:
 - `.github/workflows/pr-validation.yml`
 
 **Security Impact**: 
-- **Critical**: PR validation now blocks merges when secrets are detected
+- **Critical**: PR validation blocks merges when secrets are detected
 - **Accurate scanning**: TruffleHog scans correct commit range for each PR
-- **Mandatory security**: No way to bypass secret detection failures
+- **Smart execution**: Gitleaks only runs when license is available
+- **Mandatory security**: No way to bypass secret detection failures when scanners run
 
 ## Current Security Scanning Setup
 
 The CI/CD pipeline now includes:
 
-1. **Gitleaks** (strict failure mode)
+1. **Gitleaks** (conditional execution with strict failure mode)
    - Scans for secrets in git history
-   - Requires license for organizations
+   - Only runs when GITLEAKS_LICENSE secret is available
    - **FAILS the workflow if secrets are detected**
    - Blocks PR merges when secrets are found
+   - Gracefully skips when license is not available
 
 2. **TruffleHog** (backup scanner)
    - Free alternative secret scanner
