@@ -41,10 +41,10 @@ done
 echo "🔑 Authenticating with Keycloak admin..."
 ADMIN_TOKEN=$(curl -sf -X POST "${KEYCLOAK_URL}/realms/master/protocol/openid-connect/token" \
     -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "username=${ADMIN_USERNAME}" \
-    -d "password=${ADMIN_PASSWORD}" \
-    -d "grant_type=password" \
-    -d "client_id=admin-cli" | jq -r '.access_token')
+    --data-urlencode "username=${ADMIN_USERNAME}" \
+    --data-urlencode "password=${ADMIN_PASSWORD}" \
+    --data-urlencode "grant_type=password" \
+    --data-urlencode "client_id=admin-cli" | jq -r '.access_token')
 
 if [[ "${ADMIN_TOKEN}" == "null" || -z "${ADMIN_TOKEN}" ]]; then
     echo "❌ Failed to authenticate with Keycloak admin"
@@ -94,12 +94,23 @@ if [[ "${ROTATE_API_CLIENT_SECRET:-}" == "true" ]]; then
     if [[ -n "${WRITE_API_CLIENT_SECRET_TO:-}" ]]; then
       # Ensure parent directory exists with secure permissions
       parent_dir=$(dirname -- "${WRITE_API_CLIENT_SECRET_TO}")
+      parent_dir_existed=false
+      
+      # Check if parent directory already exists
+      if [[ -d "$parent_dir" ]]; then
+        parent_dir_existed=true
+      fi
+      
       if ! mkdir -p "$parent_dir" 2>/dev/null; then
         echo "❌ Failed to create directory: $parent_dir"
         API_SECRET_STATUS="failed"
         exit 1
       fi
-      chmod 700 "$parent_dir"
+      
+      # Only set restrictive permissions on directories we created
+      if [[ "$parent_dir_existed" == false ]]; then
+        chmod 700 "$parent_dir"
+      fi
       
       umask 077; printf '%s' "${CONFIGURED_SECRET}" > "${WRITE_API_CLIENT_SECRET_TO}"
       echo "✅ API client secret written to ${WRITE_API_CLIENT_SECRET_TO}"
