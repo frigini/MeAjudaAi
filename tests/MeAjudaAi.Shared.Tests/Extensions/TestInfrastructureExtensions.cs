@@ -29,7 +29,7 @@ public static class TestInfrastructureExtensions
                 builder.ConfigureTestLogging();
             }
         });
-        
+
         return services;
     }
 
@@ -39,13 +39,13 @@ public static class TestInfrastructureExtensions
     public static IServiceCollection AddTestCache(this IServiceCollection services, TestCacheOptions? options = null)
     {
         options ??= new TestCacheOptions();
-        
+
         if (options.Enabled)
         {
             // Para testes simples, usar cache em memória ao invés de Redis
             services.AddMemoryCache();
         }
-        
+
         return services;
     }
 
@@ -62,15 +62,15 @@ public static class TestInfrastructureExtensions
     /// Configura um DbContext genérico para usar com TestContainers PostgreSQL
     /// </summary>
     public static IServiceCollection AddTestDatabase<TDbContext>(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         TestDatabaseOptions options,
-        string migrationsAssembly) 
+        string migrationsAssembly)
         where TDbContext : DbContext
     {
         services.AddDbContext<TDbContext>((serviceProvider, dbOptions) =>
         {
             var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();
-            
+
             string connectionString;
             try
             {
@@ -92,7 +92,7 @@ public static class TestInfrastructureExtensions
                         "was called and container is fully ready before creating DbContext.", ex);
                 }
             }
-            
+
             dbOptions.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(migrationsAssembly);
@@ -100,7 +100,7 @@ public static class TestInfrastructureExtensions
                 npgsqlOptions.CommandTimeout(60);
             });
         });
-        
+
         return services;
     }
 }
@@ -111,26 +111,26 @@ public static class TestInfrastructureExtensions
 internal class MockMessageBus : IMessageBus
 {
     private readonly List<object> _publishedMessages = new();
-    
+
     public IReadOnlyList<object> PublishedMessages => _publishedMessages.AsReadOnly();
-    
+
     public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
     {
         _publishedMessages.Add(message!);
         return Task.CompletedTask;
     }
-    
+
     public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
     {
         _publishedMessages.Add(@event!);
         return Task.CompletedTask;
     }
-    
+
     public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
     {
         return Task.CompletedTask;
     }
-    
+
     public void ClearMessages()
     {
         _publishedMessages.Clear();

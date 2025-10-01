@@ -19,7 +19,7 @@ public class AspireTestAuthenticationHandler(
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var authHeader = Request.Headers.Authorization.FirstOrDefault();
-        
+
         if (string.IsNullOrEmpty(authHeader))
         {
             Logger.LogDebug("Aspire test: No authorization header - anonymous user");

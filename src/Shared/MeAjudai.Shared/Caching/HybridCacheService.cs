@@ -13,27 +13,27 @@ public class HybridCacheService(
     {
         var stopwatch = Stopwatch.StartNew();
         var isHit = false;
-        
+
         try
         {
             var result = await hybridCache.GetOrCreateAsync<T>(
                 key,
-                factory: _ => 
+                factory: _ =>
                 {
                     isHit = false; // Factory chamado = cache miss
                     return new ValueTask<T>(default(T)!);
                 },
                 cancellationToken: cancellationToken);
-                
+
             // Se o factory não foi chamado, foi um hit
             if (!isHit && result != null && !result.Equals(default(T)))
             {
                 isHit = true;
             }
-            
+
             stopwatch.Stop();
             metrics.RecordOperation(key, "get", isHit, stopwatch.Elapsed.TotalSeconds);
-            
+
             return result;
         }
         catch (Exception ex)
@@ -54,13 +54,13 @@ public class HybridCacheService(
         CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
-        
+
         try
         {
             options ??= GetDefaultOptions(expiration);
 
             await hybridCache.SetAsync(key, value, options, tags, cancellationToken);
-            
+
             stopwatch.Stop();
             metrics.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "set", "success");
         }
@@ -106,14 +106,14 @@ public class HybridCacheService(
     {
         var stopwatch = Stopwatch.StartNew();
         var factoryCalled = false;
-        
+
         try
         {
             options ??= GetDefaultOptions(expiration);
 
             var result = await hybridCache.GetOrCreateAsync(
                 key,
-                async (ct) => 
+                async (ct) =>
                 {
                     factoryCalled = true; // Factory chamado = cache miss
                     return await factory(ct);
@@ -121,10 +121,10 @@ public class HybridCacheService(
                 options,
                 tags,
                 cancellationToken);
-                
+
             stopwatch.Stop();
             metrics.RecordOperation(key, "get-or-create", !factoryCalled, stopwatch.Elapsed.TotalSeconds);
-            
+
             return result;
         }
         catch (Exception ex)

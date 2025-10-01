@@ -8,7 +8,7 @@ public sealed class PagedResult<T>
     public int Page { get; }
     public int PageSize { get; }
     public int TotalCount { get; }
-    public int TotalPages { get; } 
+    public int TotalPages { get; }
     public bool HasNextPage { get; }
     public bool HasPreviousPage { get; }
 

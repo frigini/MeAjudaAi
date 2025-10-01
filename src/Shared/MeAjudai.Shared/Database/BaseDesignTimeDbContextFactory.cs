@@ -20,31 +20,31 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
     {
         var derivedType = GetType();
         var namespaceParts = derivedType.Namespace?.Split('.') ?? Array.Empty<string>();
-        
+
         // Procura pelo padrão: MeAjudaAi.Modules.{ModuleName}.Infrastructure
         for (int i = 0; i < namespaceParts.Length - 1; i++)
         {
-            if (namespaceParts[i] == "MeAjudaAi" && 
-                i + 2 < namespaceParts.Length && 
+            if (namespaceParts[i] == "MeAjudaAi" &&
+                i + 2 < namespaceParts.Length &&
                 namespaceParts[i + 1] == "Modules")
             {
                 return namespaceParts[i + 2]; // Retorna o nome do módulo
             }
         }
-        
+
         // Alternativa: extrai do nome da classe se seguir o padrão {ModuleName}DbContextFactory
         var className = derivedType.Name;
         if (className.EndsWith("DbContextFactory"))
         {
             return className.Substring(0, className.Length - "DbContextFactory".Length);
         }
-        
+
         throw new InvalidOperationException(
             $"Não foi possível determinar o nome do módulo a partir do namespace '{derivedType.Namespace}' ou do nome da classe '{className}'. " +
             "Padrão de namespace esperado: 'MeAjudaAi.Modules.{ModuleName}.Infrastructure.Persistence' " +
             "ou padrão de nome de classe: '{ModuleName}DbContextFactory'");
     }
-    
+
     /// <summary>
     /// Obtém a string de conexão para operações em tempo de design
     /// Pode ser sobrescrito para lógica personalizada
@@ -54,16 +54,16 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
         // Tenta obter da configuração primeiro
         var configuration = BuildConfiguration();
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-        
+
         if (!string.IsNullOrEmpty(connectionString))
         {
             return connectionString;
         }
-        
+
         // Alternativa para conexão local padrão de desenvolvimento
         return GetDefaultConnectionString();
     }
-    
+
     /// <summary>
     /// Obtém o nome do assembly de migrations com base no nome do módulo
     /// </summary>
@@ -71,7 +71,7 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
     {
         return $"MeAjudaAi.Modules.{GetModuleName()}.Infrastructure";
     }
-    
+
     /// <summary>
     /// Obtém o nome do schema da tabela de histórico de migrations com base no nome do módulo
     /// </summary>
@@ -79,7 +79,7 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
     {
         return GetModuleName().ToLowerInvariant();
     }
-    
+
     /// <summary>
     /// Obtém a string de conexão padrão para desenvolvimento local
     /// </summary>
@@ -88,7 +88,7 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
         var moduleName = GetModuleName().ToLowerInvariant();
         return $"Host=localhost;Database=meajudaai_dev;Username=postgres;Password=dev123;SearchPath={moduleName},public";
     }
-    
+
     /// <summary>
     /// Constrói a configuração a partir dos arquivos appsettings
     /// </summary>
@@ -100,10 +100,10 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
             .AddJsonFile("appsettings.Development.json", optional: true)
             .AddJsonFile("appsettings.Local.json", optional: true)
             .AddEnvironmentVariables();
-        
+
         return builder.Build();
     }
-    
+
     /// <summary>
     /// Configura opções adicionais para o DbContext
     /// </summary>
@@ -121,20 +121,20 @@ public abstract class BaseDesignTimeDbContextFactory<TContext> : IDesignTimeDbCo
     public TContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<TContext>();
-        
+
         // Configura PostgreSQL com opções de migrations
         optionsBuilder.UseNpgsql(GetDesignTimeConnectionString(), options =>
         {
             options.MigrationsAssembly(GetMigrationsAssembly());
             options.MigrationsHistoryTable("__EFMigrationsHistory", GetMigrationsHistorySchema());
         });
-        
+
         // Permite que classes derivadas configurem opções adicionais
         ConfigureAdditionalOptions(optionsBuilder);
 
         return CreateDbContextInstance(optionsBuilder.Options);
     }
-    
+
     /// <summary>
     /// Cria a instância real do DbContext
     /// Sobrescreva este método para lógica personalizada de construtor

@@ -174,11 +174,11 @@ public class ConventionBasedArchitectureTests
     {
         // Exemplo de convenção personalizada usando Scrutor
         var allApplicationAssemblies = ModuleDiscoveryHelper.GetAllApplicationAssemblies();
-        
+
         var services = ArchitecturalDiscoveryHelper.DiscoverTypesByConvention(
             allApplicationAssemblies,
-            type => type.Name.EndsWith("Service") && 
-                   type.IsClass && 
+            type => type.Name.EndsWith("Service") &&
+                   type.IsClass &&
                    !type.IsAbstract);
 
         // Valida que todos os services implementam alguma interface
@@ -219,7 +219,7 @@ public class ConventionBasedArchitectureTests
         // Testa que pelo menos conseguimos fazer discovery de algo no projeto
         var repositories = ArchitecturalDiscoveryHelper.DiscoverRepositories();
         Console.WriteLine($"Found {repositories.Count()} repositories");
-        
+
         // Este deve funcionar se tivermos pelo menos a estrutura básica
         true.Should().BeTrue("Scrutor discovery functionality is working correctly");
     }

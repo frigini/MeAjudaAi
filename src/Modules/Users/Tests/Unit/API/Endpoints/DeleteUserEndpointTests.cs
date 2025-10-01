@@ -67,7 +67,7 @@ public class DeleteUserEndpointTests
         // Act & Assert
         command.UserId.Should().Be(userId);
         command.CorrelationId.Should().NotBeEmpty();
-        
+
         // Verifica igualdade do UserId mesmo com CorrelationId diferente
         var command2 = new DeleteUserCommand(userId);
         command.UserId.Should().Be(command2.UserId);
@@ -98,7 +98,7 @@ public class DeleteUserEndpointTests
         // Act & Assert - Testa se o método de extensão está disponível
         var action = () => userId.ToDeleteCommand();
         action.Should().NotThrow();
-        
+
         var result = action();
         result.Should().NotBeNull();
     }
@@ -119,7 +119,7 @@ public class DeleteUserEndpointTests
 
         // Assert
         commands.Should().HaveCount(iterations);
-        commands.Should().AllSatisfy(cmd => 
+        commands.Should().AllSatisfy(cmd =>
         {
             cmd.Should().NotBeNull();
             cmd.Should().BeOfType<DeleteUserCommand>();

@@ -46,7 +46,7 @@ internal sealed class UserRepository(UsersDbContext context, IDateTimeProvider d
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var search = searchTerm.Trim().ToLower();
-            query = query.Where(u => 
+            query = query.Where(u =>
                 u.Email.Value.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
                 u.Username.Value.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
                 u.FirstName.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||

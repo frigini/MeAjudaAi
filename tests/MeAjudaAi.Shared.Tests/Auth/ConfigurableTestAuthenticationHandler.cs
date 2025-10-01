@@ -16,14 +16,14 @@ public class ConfigurableTestAuthenticationHandler(
     UrlEncoder encoder) : BaseTestAuthenticationHandler(options, logger, encoder)
 {
     public const string SchemeName = "TestConfigurable";
-    
+
     private static readonly ConcurrentDictionary<string, UserConfig> _userConfigs = new();
     private static volatile string? _currentConfigKey;
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         Console.WriteLine($"[ConfigurableTestAuth] HandleAuthenticateAsync called - CurrentKey: {_currentConfigKey}, UserConfigs count: {_userConfigs.Count}");
-        
+
         if (_currentConfigKey == null || !_userConfigs.TryGetValue(_currentConfigKey, out _))
         {
             Console.WriteLine("[ConfigurableTestAuth] No config found - FAILING authentication");
@@ -34,20 +34,20 @@ public class ConfigurableTestAuthenticationHandler(
         return Task.FromResult(CreateSuccessResult());
     }
 
-    protected override string GetTestUserId() => 
-        _currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config) 
+    protected override string GetTestUserId() =>
+        _currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config)
             ? config.UserId : base.GetTestUserId();
 
-    protected override string GetTestUserName() => 
-        _currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config) 
+    protected override string GetTestUserName() =>
+        _currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config)
             ? config.UserName : base.GetTestUserName();
 
-    protected override string GetTestUserEmail() => 
-        _currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config) 
+    protected override string GetTestUserEmail() =>
+        _currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config)
             ? config.Email : base.GetTestUserEmail();
 
-    protected override string[] GetTestUserRoles() => 
-        _currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config) 
+    protected override string[] GetTestUserRoles() =>
+        _currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config)
             ? config.Roles : base.GetTestUserRoles();
 
     protected override string GetAuthenticationScheme() => SchemeName;

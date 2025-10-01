@@ -38,7 +38,7 @@ public class MetricsCollectorService(
     private async Task CollectMetrics(CancellationToken cancellationToken)
     {
         using var scope = serviceProvider.CreateScope();
-        
+
         try
         {
             // Coletar métricas de usuários ativos
@@ -64,7 +64,7 @@ public class MetricsCollectorService(
         {
             // Aqui você implementaria a lógica real para contar usuários ativos
             // Por exemplo, usuários que fizeram login nas últimas 24 horas
-            
+
             // Placeholder - implementar com o serviço real de usuários
             await Task.Delay(1, CancellationToken.None); // Simular operação async
             return Random.Shared.Next(50, 200); // Valor simulado
@@ -81,7 +81,7 @@ public class MetricsCollectorService(
         try
         {
             // Aqui você implementaria a lógica real para contar solicitações pendentes
-            
+
             // Placeholder - implementar com o serviço real de help requests
             await Task.Delay(1, CancellationToken.None); // Simular operação async
             return Random.Shared.Next(0, 50); // Valor simulado

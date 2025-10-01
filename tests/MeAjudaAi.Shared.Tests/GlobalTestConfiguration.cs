@@ -16,7 +16,7 @@ public static class GlobalTestConfiguration
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("TEST_SILENT_LOGGING", "true");
         Environment.SetEnvironmentVariable("DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION", "false");
-        
+
         // Configurar cultura invariante para testes consistentes
         Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
         Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;

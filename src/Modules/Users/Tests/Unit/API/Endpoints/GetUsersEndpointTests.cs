@@ -95,7 +95,7 @@ public class GetUsersEndpointTests
         query.Should().NotBeNull();
         query.Page.Should().Be(page);
         query.PageSize.Should().Be(pageSize);
-        
+
         // Nota: A validação deve ocorrer na camada de domínio ou no validador da requisição
     }
 
@@ -136,7 +136,7 @@ public class GetUsersEndpointTests
         query.PageSize.Should().Be(pageSize);
         query.SearchTerm.Should().Be(searchTerm);
         query.CorrelationId.Should().NotBeEmpty();
-        
+
         // Verifica igualdade das propriedades mesmo com CorrelationId diferente
         var query2 = new GetUsersQuery(page, pageSize, searchTerm);
         query.Page.Should().Be(query2.Page);
@@ -177,7 +177,7 @@ public class GetUsersEndpointTests
         // Act & Assert - Testa se o método de extensão está disponível
         var action = () => request.ToUsersQuery();
         action.Should().NotThrow();
-        
+
         var result = action();
         result.Should().NotBeNull();
     }
@@ -203,7 +203,7 @@ public class GetUsersEndpointTests
 
         // Assert
         queries.Should().HaveCount(iterations);
-        queries.Should().AllSatisfy(query => 
+        queries.Should().AllSatisfy(query =>
         {
             query.Should().NotBeNull();
             query.Should().BeOfType<GetUsersQuery>();

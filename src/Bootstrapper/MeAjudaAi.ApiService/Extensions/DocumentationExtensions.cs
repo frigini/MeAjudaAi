@@ -84,7 +84,7 @@ public static class DocumentationExtensions
             }
 
             options.EnableAnnotations();
-            
+
             // Configurações avançadas para melhor documentação
             options.UseInlineDefinitionsForEnums();
             options.DescribeAllParametersInCamelCase();
@@ -96,10 +96,10 @@ public static class DocumentationExtensions
                 var httpMethod = apiDesc.HttpMethod;
                 return $"{controllerName}_{actionName}_{httpMethod}";
             });
-            
+
             // Exemplos automáticos baseados em annotations
             options.SchemaFilter<ExampleSchemaFilter>();
-            
+
             // Filtros essenciais
             options.OperationFilter<ApiVersionOperationFilter>();
             options.DocumentFilter<ModuleTagsDocumentFilter>();
@@ -114,19 +114,19 @@ public static class DocumentationExtensions
         {
             options.RouteTemplate = "api-docs/{documentName}/swagger.json";
         });
-        
+
         app.UseSwaggerUI(options =>
         {
             options.SwaggerEndpoint("/api-docs/v1/swagger.json", "MeAjudaAi API v1.0");
             options.RoutePrefix = "api-docs";
             options.DocumentTitle = "MeAjudaAi API";
-            
+
             // Configurações essenciais de UI
             options.DefaultModelsExpandDepth(1);
             options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
             options.EnableDeepLinking();
             options.EnableFilter();
-            
+
             // CSS otimizado
             options.InjectStylesheet("/css/swagger-custom.css");
         });

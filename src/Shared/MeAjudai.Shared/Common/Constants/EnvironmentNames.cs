@@ -9,12 +9,12 @@ public static class EnvironmentNames
     /// Nome do ambiente de desenvolvimento
     /// </summary>
     public const string Development = "Development";
-    
+
     /// <summary>
     /// Nome do ambiente de produção
     /// </summary>
     public const string Production = "Production";
-    
+
     /// <summary>
     /// Nome do ambiente de testes
     /// </summary>

@@ -14,11 +14,11 @@ namespace MeAjudaAi.Integration.Tests.Base;
 public abstract class PerformanceTestBase : IAsyncLifetime
 {
     private DistributedApplication _app = null!;
-    
+
     protected HttpClient ApiClient { get; private set; } = null!;
     protected HttpClient KeycloakClient { get; private set; } = null!;
     protected Faker Faker { get; } = new();
-    
+
     // Timeouts otimizados
     protected static readonly TimeSpan AppStartTimeout = TimeSpan.FromMinutes(2); // Reduzido de 5 para 2 minutos
     protected static readonly TimeSpan ResourceTimeout = TimeSpan.FromSeconds(90); // Reduzido de 5 minutos para 90 segundos
@@ -35,7 +35,7 @@ public abstract class PerformanceTestBase : IAsyncLifetime
         {
             // Configurar AppHost com timeouts otimizados
             var appHostBuilder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>(cancellationToken);
-            
+
             // Configuração mínima de logging para reduzir overhead
             appHostBuilder.Services.AddLogging(logging =>
             {
@@ -64,7 +64,7 @@ public abstract class PerformanceTestBase : IAsyncLifetime
 
             // Esperar apenas pelos recursos críticos com timeout reduzido
             var resourceNotificationService = _app.Services.GetRequiredService<ResourceNotificationService>();
-            
+
             // Esperar PostgreSQL (crítico)
             await resourceNotificationService
                 .WaitForResourceAsync("postgres-local", KnownResourceStates.Running)
@@ -166,7 +166,7 @@ public abstract class PerformanceTestBase : IAsyncLifetime
         {
             KeycloakClient?.Dispose();
             ApiClient?.Dispose();
-            
+
             if (_app != null)
             {
                 await _app.DisposeAsync();
@@ -186,9 +186,9 @@ public abstract class BasicTestBase : IAsyncLifetime
 {
     protected HttpClient ApiClient { get; private set; } = null!;
     protected Faker Faker { get; } = new();
-    
+
     private DistributedApplication _app = null!;
-    
+
     protected static readonly TimeSpan SimpleTimeout = TimeSpan.FromSeconds(60);
 
     protected JsonSerializerOptions JsonOptions { get; } = SerializationDefaults.Api;
@@ -199,7 +199,7 @@ public abstract class BasicTestBase : IAsyncLifetime
         var cancellationToken = cancellationTokenSource.Token;
 
         var appHostBuilder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>(cancellationToken);
-        
+
         // Configuração mínima
         appHostBuilder.Services.AddLogging(logging =>
         {

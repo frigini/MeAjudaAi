@@ -77,32 +77,32 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
                     Required = false,
                     Schema = new OpenApiSchema { Type = "string", Example = new Microsoft.OpenApi.Any.OpenApiString("joão") }
                 });
-                
+
                 operation.Parameters.Add(new OpenApiParameter
                 {
                     Name = "pageNumber",
                     In = ParameterLocation.Query,
                     Description = "Número da página (base 1)",
                     Required = false,
-                    Schema = new OpenApiSchema 
-                    { 
-                        Type = "integer", 
-                        Minimum = 1, 
+                    Schema = new OpenApiSchema
+                    {
+                        Type = "integer",
+                        Minimum = 1,
                         Default = new Microsoft.OpenApi.Any.OpenApiInteger(1),
                         Example = new Microsoft.OpenApi.Any.OpenApiInteger(1)
                     }
                 });
-                
+
                 operation.Parameters.Add(new OpenApiParameter
                 {
                     Name = "pageSize",
                     In = ParameterLocation.Query,
                     Description = "Quantidade de itens por página",
                     Required = false,
-                    Schema = new OpenApiSchema 
-                    { 
-                        Type = "integer", 
-                        Minimum = 1, 
+                    Schema = new OpenApiSchema
+                    {
+                        Type = "integer",
+                        Minimum = 1,
                         Maximum = 100,
                         Default = new Microsoft.OpenApi.Any.OpenApiInteger(10),
                         Example = new Microsoft.OpenApi.Any.OpenApiInteger(10)

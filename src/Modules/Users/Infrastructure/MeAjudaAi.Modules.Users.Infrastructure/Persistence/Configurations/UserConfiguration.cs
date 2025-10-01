@@ -15,7 +15,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.Id)
             .HasConversion(
-                id => id.Value, 
+                id => id.Value,
                 value => new UserId(value))
             .HasColumnName("id")
             .ValueGeneratedNever();
@@ -31,7 +31,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.Email)
             .HasConversion(
-                email => email.Value, 
+                email => email.Value,
                 value => new Email(value))
             .HasColumnName("email")
             .HasMaxLength(254)

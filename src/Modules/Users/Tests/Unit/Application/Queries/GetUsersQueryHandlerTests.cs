@@ -38,7 +38,7 @@ public class GetUsersQueryHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
-        
+
         var pagedResult = result.Value;
         pagedResult.Should().NotBeNull();
         pagedResult.Items.Should().HaveCount(5);
@@ -70,7 +70,7 @@ public class GetUsersQueryHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
-        
+
         var pagedResult = result.Value;
         pagedResult.Should().NotBeNull();
         pagedResult.Items.Should().BeEmpty();
@@ -142,7 +142,7 @@ public class GetUsersQueryHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
-        
+
         var pagedResult = result.Value;
         pagedResult.Items.Should().HaveCount(50);
         pagedResult.TotalCount.Should().Be(totalCount);
@@ -168,7 +168,7 @@ public class GetUsersQueryHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
-        
+
         _userRepositoryMock.Verify(
             x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()),
             Times.Once);
@@ -213,10 +213,10 @@ public class GetUsersQueryHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
-        
+
         var pagedResult = result.Value;
         var userDto = pagedResult.Items.First();
-        
+
         userDto.Id.Should().Be(user.Id);
         userDto.Username.Should().Be(user.Username.Value);
         userDto.Email.Should().Be(user.Email.Value);

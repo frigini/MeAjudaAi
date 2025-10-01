@@ -33,7 +33,7 @@ public class GlobalArchitectureTests
 
         failures.Should().BeEmpty(
             "Domain layer should not depend on Application layer. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -60,7 +60,7 @@ public class GlobalArchitectureTests
 
         failures.Should().BeEmpty(
             "Domain layer should not depend on Infrastructure layer. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -87,7 +87,7 @@ public class GlobalArchitectureTests
 
         failures.Should().BeEmpty(
             "Domain layer should not depend on API layer. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -114,7 +114,7 @@ public class GlobalArchitectureTests
 
         failures.Should().BeEmpty(
             "Application layer should not depend on Infrastructure layer. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -141,7 +141,7 @@ public class GlobalArchitectureTests
 
         failures.Should().BeEmpty(
             "Application layer should not depend on API layer. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -170,7 +170,7 @@ public class GlobalArchitectureTests
 
         failures.Should().BeEmpty(
             "Controllers should not depend on Infrastructure layer directly. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -209,11 +209,11 @@ public class GlobalArchitectureTests
         // ✅ Discovery automático é ideal para validações customizadas
         var allApplicationAssemblies = ModuleDiscoveryHelper.GetAllApplicationAssemblies()
             .Concat(ModuleDiscoveryHelper.GetAllInfrastructureAssemblies());
-        
+
         var services = ArchitecturalDiscoveryHelper.DiscoverTypesByConvention(
             allApplicationAssemblies,
-            type => type.Name.EndsWith("Service") && 
-                   type.IsClass && 
+            type => type.Name.EndsWith("Service") &&
+                   type.IsClass &&
                    !type.IsAbstract &&
                    !type.IsInterface);
 

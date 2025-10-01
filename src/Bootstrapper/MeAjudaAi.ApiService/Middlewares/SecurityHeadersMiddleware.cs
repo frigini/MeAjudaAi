@@ -7,16 +7,16 @@ public class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment
 {
     private readonly RequestDelegate _next = next;
     private readonly bool _isDevelopment = environment.IsDevelopment();
-    
+
     // Valores de cabeçalho pré-computados para evitar concatenação de strings a cada requisição
-    private static readonly KeyValuePair<string, string>[] StaticHeaders = 
+    private static readonly KeyValuePair<string, string>[] StaticHeaders =
     [
         new("X-Content-Type-Options", "nosniff"),
         new("X-Frame-Options", "DENY"),
         new("X-XSS-Protection", "1; mode=block"),
         new("Referrer-Policy", "strict-origin-when-cross-origin"),
         new("Permissions-Policy", "geolocation=(), microphone=(), camera=()"),
-        new("Content-Security-Policy", 
+        new("Content-Security-Policy",
             "default-src 'self'; " +
             "script-src 'self' 'unsafe-inline'; " +
             "style-src 'self' 'unsafe-inline'; " +
@@ -27,14 +27,14 @@ public class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment
     ];
 
     private const string HstsHeader = "max-age=31536000; includeSubDomains";
-    
+
     // Cabeçalhos para remover - usando array para iteração mais rápida
     private static readonly string[] HeadersToRemove = ["Server", "X-Powered-By", "X-AspNet-Version"];
 
     public async Task InvokeAsync(HttpContext context)
     {
         var headers = context.Response.Headers;
-        
+
         // Adiciona cabeçalhos de segurança estáticos eficientemente
         foreach (var header in StaticHeaders)
         {

@@ -34,7 +34,7 @@ public class SelfOrAdminHandler : AuthorizationHandler<SelfOrAdminRequirement>
         {
             var routeUserId = httpContext.GetRouteValue("id")?.ToString()
                                ?? httpContext.GetRouteValue("userId")?.ToString();
-            
+
             // Só permite acesso se ambos os IDs estão presentes e são iguais
             if (!string.IsNullOrWhiteSpace(userIdClaim) &&
                 !string.IsNullOrWhiteSpace(routeUserId) &&

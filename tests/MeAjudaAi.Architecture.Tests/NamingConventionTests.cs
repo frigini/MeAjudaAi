@@ -36,14 +36,14 @@ public class NamingConventionTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.DomainAssembly == domainAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "Os eventos de domínio devem terminar com 'DomainEvent'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -61,7 +61,7 @@ public class NamingConventionTests
 
         result.IsSuccessful.Should().BeTrue(
             "Os eventos de integração devem terminar com 'IntegrationEvent'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? []));
     }
 
@@ -85,14 +85,14 @@ public class NamingConventionTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.ApplicationAssembly == applicationAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "Os comandos devem terminar com 'Command'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -116,14 +116,14 @@ public class NamingConventionTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.ApplicationAssembly == applicationAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "As consultas devem terminar com 'Query'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -147,14 +147,14 @@ public class NamingConventionTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.InfrastructureAssembly == infrastructureAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "As implementações do repositório devem terminar com 'Repository'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -176,14 +176,14 @@ public class NamingConventionTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.DomainAssembly == domainAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "As interfaces devem começar com 'I'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -219,7 +219,7 @@ public class NamingConventionTests
 
         failures.Should().BeEmpty(
             "Os objetos de valor não devem terminar com 'Id' (exceto tipos de ID específicos). " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -241,14 +241,14 @@ public class NamingConventionTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.ApiAssembly == apiAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "Os controladores devem terminar com 'Controller'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -270,7 +270,7 @@ public class NamingConventionTests
 
         result.IsSuccessful.Should().BeTrue(
             "As classes de exceção devem terminar com 'Exception'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? []));
     }
 
@@ -325,11 +325,11 @@ public class NamingConventionTests
     {
         // Exemplo de discovery personalizado para validators
         var allApplicationAssemblies = ModuleDiscoveryHelper.GetAllApplicationAssemblies();
-        
+
         var validators = ArchitecturalDiscoveryHelper.DiscoverTypesByConvention(
             allApplicationAssemblies,
-            type => type.Name.EndsWith("Validator") && 
-                   type.IsClass && 
+            type => type.Name.EndsWith("Validator") &&
+                   type.IsClass &&
                    !type.IsAbstract);
 
         // Validar que validators seguem convenção de namespace

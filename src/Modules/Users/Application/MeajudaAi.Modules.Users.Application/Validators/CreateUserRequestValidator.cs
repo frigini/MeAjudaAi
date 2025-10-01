@@ -51,7 +51,8 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .Matches("^[a-zA-ZÀ-ÿ\\s]+$")
             .WithMessage("Last name must contain only letters and spaces");
 
-        When(x => x.Roles != null, () => {
+        When(x => x.Roles != null, () =>
+        {
             RuleForEach(x => x.Roles)
                 .NotEmpty()
                 .WithMessage("Role cannot be empty")

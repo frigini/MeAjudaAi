@@ -1,3 +1,4 @@
+---
 # PostgreSQL base configuration
 # Use with: docker compose -f base/postgres.yml up
 # 

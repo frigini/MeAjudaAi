@@ -54,8 +54,8 @@ public class CachingBehavior<TRequest, TResponse>(
             };
 
             await cacheService.SetAsync(cacheKey, result, cacheExpiration, options, cacheTags, cancellationToken);
-            
-            logger.LogDebug("Cached result for key: {CacheKey} with expiration: {Expiration}", 
+
+            logger.LogDebug("Cached result for key: {CacheKey} with expiration: {Expiration}",
                 cacheKey, cacheExpiration);
         }
 

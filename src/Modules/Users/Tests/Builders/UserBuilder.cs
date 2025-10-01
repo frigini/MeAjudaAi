@@ -18,7 +18,8 @@ public class UserBuilder : BuilderBase<User>
     {
         // Configura o Faker com regras específicas para o domínio User
         Faker = new Faker<User>()
-            .CustomInstantiator(f => {
+            .CustomInstantiator(f =>
+            {
                 var user = new User(
                     _username ?? new Username(f.Internet.UserName()),
                     _email ?? new Email(f.Internet.Email()),

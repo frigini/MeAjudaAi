@@ -14,6 +14,6 @@ public abstract class ApiTestBase : SharedApiTestBase<Program>
     // - Configuração de autenticação teste
     // - Migrations automáticas
     // - Cleanup automático
-    
+
     // Não precisamos de overrides específicos
 }

@@ -45,7 +45,7 @@ public class ModuleBoundaryTests
                 if (!result.IsSuccessful)
                 {
                     var assemblyLayer = GetLayerName(assembly!, currentModule);
-                    var violationDetails = result.FailingTypes?.Select(t => 
+                    var violationDetails = result.FailingTypes?.Select(t =>
                         $"{currentModule.Name}.{assemblyLayer}: {t.FullName}") ?? [];
                     failures.AddRange(violationDetails);
                 }
@@ -54,7 +54,7 @@ public class ModuleBoundaryTests
 
         failures.Should().BeEmpty(
             "Módulos não devem referenciar outros módulos diretamente. " +
-            "Violações: {0}", 
+            "Violações: {0}",
             string.Join(", ", failures));
     }
 
@@ -87,7 +87,7 @@ public class ModuleBoundaryTests
 
         failures.Should().BeEmpty(
             "Implementações internas do módulo não devem ser públicas. " +
-            "Violações: {0}", 
+            "Violações: {0}",
             string.Join(", ", failures));
     }
 
@@ -107,8 +107,8 @@ public class ModuleBoundaryTests
                 .ToList();
 
             var invalidReferences = referencedAssemblies
-                .Where(name => name != "MeAjudaAi.Shared" && 
-                              !name?.StartsWith("System") == true && 
+                .Where(name => name != "MeAjudaAi.Shared" &&
+                              !name?.StartsWith("System") == true &&
                               !name?.StartsWith("Microsoft") == true)
                 .ToList();
 
@@ -120,7 +120,7 @@ public class ModuleBoundaryTests
 
         failures.Should().BeEmpty(
             "Domínio deve referenciar apenas o projeto Shared e assemblies do framework. " +
-            "Referências inválidas: {0}", 
+            "Referências inválidas: {0}",
             string.Join("; ", failures));
     }
 
@@ -248,7 +248,7 @@ public class ModuleBoundaryTests
 
         failures.Should().BeEmpty(
             "Classes de extensão devem ser públicas para registro de DI. " +
-            "Violações: {0}", 
+            "Violações: {0}",
             string.Join(", ", failures));
     }
 
@@ -278,7 +278,7 @@ public class ModuleBoundaryTests
                 if (integrationEventTypes.Any())
                 {
                     var assemblyLayer = GetLayerName(assembly!, module);
-                    failures.AddRange(integrationEventTypes.Select(t => 
+                    failures.AddRange(integrationEventTypes.Select(t =>
                         $"{module.Name}.{assemblyLayer}: {t.FullName}"));
                 }
             }
@@ -286,7 +286,7 @@ public class ModuleBoundaryTests
 
         failures.Should().BeEmpty(
             "Eventos de integração não devem existir em assemblies de módulo, devem estar no Shared. " +
-            "Encontrados: {0}", 
+            "Encontrados: {0}",
             string.Join(", ", failures));
     }
 

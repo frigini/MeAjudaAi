@@ -30,9 +30,9 @@ public sealed class UsersModuleApi(
     {
         var query = new GetUserByIdQuery(userId);
         var result = await getUserByIdHandler.HandleAsync(query, cancellationToken);
-        
+
         return result.Match(
-            onSuccess: userDto => userDto == null 
+            onSuccess: userDto => userDto == null
                 ? Result<ModuleUserDto?>.Success(null)
                 : Result<ModuleUserDto?>.Success(new ModuleUserDto(
                     userDto.Id,
@@ -41,7 +41,7 @@ public sealed class UsersModuleApi(
                     userDto.FirstName,
                     userDto.LastName,
                     userDto.FullName)),
-            onFailure: error => error.StatusCode == 404 
+            onFailure: error => error.StatusCode == 404
                 ? Result<ModuleUserDto?>.Success(null)  // NotFound -> Success(null)
                 : Result<ModuleUserDto?>.Failure(error) // Outros erros propagam
         );
@@ -51,9 +51,9 @@ public sealed class UsersModuleApi(
     {
         var query = new GetUserByEmailQuery(email);
         var result = await getUserByEmailHandler.HandleAsync(query, cancellationToken);
-        
+
         return result.Match(
-            onSuccess: userDto => userDto == null 
+            onSuccess: userDto => userDto == null
                 ? Result<ModuleUserDto?>.Success(null)
                 : Result<ModuleUserDto?>.Success(new ModuleUserDto(
                     userDto.Id,
@@ -62,18 +62,18 @@ public sealed class UsersModuleApi(
                     userDto.FirstName,
                     userDto.LastName,
                     userDto.FullName)),
-            onFailure: error => error.StatusCode == 404 
+            onFailure: error => error.StatusCode == 404
                 ? Result<ModuleUserDto?>.Success(null)  // NotFound -> Success(null)
                 : Result<ModuleUserDto?>.Failure(error) // Outros erros propagam
         );
     }
 
     public async Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(
-        IReadOnlyList<Guid> userIds, 
+        IReadOnlyList<Guid> userIds,
         CancellationToken cancellationToken = default)
     {
         var users = new List<ModuleUserBasicDto>();
-        
+
         // Para cada ID, busca o usuário (otimização futura: query batch)
         foreach (var userId in userIds)
         {
@@ -84,7 +84,7 @@ public sealed class UsersModuleApi(
                 users.Add(new ModuleUserBasicDto(user.Id, user.Username, user.Email, true));
             }
         }
-        
+
         return Result<IReadOnlyList<ModuleUserBasicDto>>.Success(users);
     }
 
@@ -110,8 +110,8 @@ public sealed class UsersModuleApi(
     {
         var query = new GetUserByUsernameQuery(username);
         var result = await getUserByUsernameHandler.HandleAsync(query, cancellationToken);
-        
-        return result.IsSuccess 
+
+        return result.IsSuccess
             ? Result<bool>.Success(true)  // Usuário encontrado = username existe
             : Result<bool>.Success(false); // Usuário não encontrado = username não existe
     }

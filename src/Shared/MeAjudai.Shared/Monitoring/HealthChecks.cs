@@ -13,14 +13,14 @@ public partial class MeAjudaAiHealthChecks
     public class HelpProcessingHealthCheck() : IHealthCheck
     {
         public Task<HealthCheckResult> CheckHealthAsync(
-            HealthCheckContext context, 
+            HealthCheckContext context,
             CancellationToken cancellationToken = default)
         {
             try
             {
                 // Verificar se os serviços essenciais estão funcionando
                 // Simular uma verificação rápida do sistema de ajuda
-                
+
                 var data = new Dictionary<string, object>
                 {
                     { "timestamp", DateTime.UtcNow },

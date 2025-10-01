@@ -15,18 +15,18 @@ public class SharedTestFixture : IAsyncLifetime
     private static readonly SemaphoreSlim InitializationSemaphore = new(1, 1);
     private static SharedTestFixture? _instance;
     private static readonly Lock InstanceLock = new();
-    
+
     // Cache de aplicação compartilhada
     private DistributedApplication? _app;
     private bool _isInitialized = false;
-    
+
     // Cache de clients HTTP reutilizáveis
     private readonly ConcurrentDictionary<string, HttpClient> _httpClients = new();
-    
+
     // Configurações otimizadas
     private static readonly TimeSpan InitializationTimeout = TimeSpan.FromMinutes(3);
     private static readonly TimeSpan ResourceWaitTimeout = TimeSpan.FromSeconds(120);
-    
+
     public static SharedTestFixture Instance
     {
         get
@@ -47,19 +47,19 @@ public class SharedTestFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         if (_isInitialized) return;
-        
+
         await InitializationSemaphore.WaitAsync();
         try
         {
             if (_isInitialized) return; // Double-check locking
-            
+
             using var cancellationTokenSource = new CancellationTokenSource(InitializationTimeout);
             var cancellationToken = cancellationTokenSource.Token;
 
             Console.WriteLine("[SharedFixture] Inicializando aplicação compartilhada...");
-            
+
             var appHostBuilder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>(cancellationToken);
-            
+
             // Configuração ultra-otimizada para testes
             appHostBuilder.Services.AddLogging(logging =>
             {
@@ -88,18 +88,18 @@ public class SharedTestFixture : IAsyncLifetime
             await _app.StartAsync(cancellationToken);
 
             var resourceNotificationService = _app.Services.GetRequiredService<ResourceNotificationService>();
-            
+
             // Aguardar recursos críticos em paralelo
             var postgresTask = resourceNotificationService
                 .WaitForResourceAsync("postgres-test", KnownResourceStates.Running)
                 .WaitAsync(ResourceWaitTimeout, cancellationToken);
-                
+
             var apiTask = resourceNotificationService
                 .WaitForResourceAsync("apiservice", KnownResourceStates.Running)
                 .WaitAsync(ResourceWaitTimeout, cancellationToken);
 
             await Task.WhenAll(postgresTask, apiTask);
-            
+
             Console.WriteLine("[SharedFixture] Aplicação compartilhada inicializada com sucesso!");
             _isInitialized = true;
         }
@@ -115,7 +115,7 @@ public class SharedTestFixture : IAsyncLifetime
         {
             if (_app == null)
                 throw new InvalidOperationException("Fixture não foi inicializado");
-                
+
             var client = _app.CreateHttpClient(name);
             client.Timeout = TimeSpan.FromSeconds(30);
             return client;
@@ -139,9 +139,9 @@ public class SharedTestFixture : IAsyncLifetime
     public async Task DisposeAsync()
     {
         if (!_isInitialized) return;
-        
+
         Console.WriteLine("[SharedFixture] Disposing aplicação compartilhada...");
-        
+
         foreach (var client in _httpClients.Values)
         {
             client?.Dispose();
@@ -152,7 +152,7 @@ public class SharedTestFixture : IAsyncLifetime
         {
             await _app.DisposeAsync();
         }
-        
+
         _isInitialized = false;
     }
 }

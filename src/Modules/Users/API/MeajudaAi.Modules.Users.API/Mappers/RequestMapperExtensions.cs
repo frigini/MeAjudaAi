@@ -38,7 +38,7 @@ public static class RequestMapperExtensions
             UserId: userId,
             FirstName: request.FirstName,
             LastName: request.LastName
-            // Observação: Email não está incluído conforme design do comando - use comando separado para atualização de email
+        // Observação: Email não está incluído conforme design do comando - use comando separado para atualização de email
         );
     }
 

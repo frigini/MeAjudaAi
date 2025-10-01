@@ -105,7 +105,7 @@ public class UserProfileTests
         const string firstName = "João";
         const string lastName = "Silva";
         var phoneNumber = new PhoneNumber("(11) 99999-9999");
-        
+
         var userProfile1 = new UserProfile(firstName, lastName, phoneNumber);
         var userProfile2 = new UserProfile(firstName, lastName, phoneNumber);
 
@@ -120,7 +120,7 @@ public class UserProfileTests
         // Arrange
         const string firstName = "João";
         const string lastName = "Silva";
-        
+
         var userProfile1 = new UserProfile(firstName, lastName);
         var userProfile2 = new UserProfile(firstName, lastName);
 
@@ -159,7 +159,7 @@ public class UserProfileTests
         const string lastName = "Silva";
         var phoneNumber1 = new PhoneNumber("(11) 99999-9999");
         var phoneNumber2 = new PhoneNumber("(11) 88888-8888");
-        
+
         var userProfile1 = new UserProfile(firstName, lastName, phoneNumber1);
         var userProfile2 = new UserProfile(firstName, lastName, phoneNumber2);
 
@@ -174,7 +174,7 @@ public class UserProfileTests
         const string firstName = "João";
         const string lastName = "Silva";
         var phoneNumber = new PhoneNumber("(11) 99999-9999");
-        
+
         var userProfile1 = new UserProfile(firstName, lastName, phoneNumber);
         var userProfile2 = new UserProfile(firstName, lastName);
 

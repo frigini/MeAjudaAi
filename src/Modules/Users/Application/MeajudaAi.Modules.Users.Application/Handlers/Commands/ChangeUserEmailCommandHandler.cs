@@ -73,7 +73,7 @@ internal sealed class ChangeUserEmailCommandHandler(
         });
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        logger.LogInformation("Starting email change process for user {UserId} to {NewEmail}", 
+        logger.LogInformation("Starting email change process for user {UserId} to {NewEmail}",
             command.UserId, command.NewEmail);
 
         try
@@ -94,7 +94,7 @@ internal sealed class ChangeUserEmailCommandHandler(
 
             stopwatch.Stop();
             logger.LogInformation(
-                "Email successfully changed for user {UserId} from {OldEmail} to {NewEmail} in {ElapsedMs}ms by {UpdatedBy}", 
+                "Email successfully changed for user {UserId} from {OldEmail} to {NewEmail} in {ElapsedMs}ms by {UpdatedBy}",
                 command.UserId, oldEmail, command.NewEmail, stopwatch.ElapsedMilliseconds, command.UpdatedBy ?? "System");
 
             return Result<UserDto>.Success(user.ToDto());
@@ -102,10 +102,10 @@ internal sealed class ChangeUserEmailCommandHandler(
         catch (Exception ex)
         {
             stopwatch.Stop();
-            logger.LogError(ex, 
-                "Unexpected error changing email for user {UserId} to {NewEmail} after {ElapsedMs}ms", 
+            logger.LogError(ex,
+                "Unexpected error changing email for user {UserId} to {NewEmail} after {ElapsedMs}ms",
                 command.UserId, command.NewEmail, stopwatch.ElapsedMilliseconds);
-            
+
             return Result<UserDto>.Failure($"Failed to change user email: {ex.Message}");
         }
     }
@@ -135,7 +135,7 @@ internal sealed class ChangeUserEmailCommandHandler(
 
         if (existingUserWithEmail != null && existingUserWithEmail.Id != user.Id)
         {
-            logger.LogWarning("Email change failed: Email {NewEmail} already in use by user {ExistingUserId}", 
+            logger.LogWarning("Email change failed: Email {NewEmail} already in use by user {ExistingUserId}",
                 command.NewEmail, existingUserWithEmail.Id);
             return Result<Domain.Entities.User>.Failure("Email address is already in use by another user");
         }
@@ -148,9 +148,9 @@ internal sealed class ChangeUserEmailCommandHandler(
     /// </summary>
     private void ApplyEmailChange(ChangeUserEmailCommand command, Domain.Entities.User user, string oldEmail)
     {
-        logger.LogDebug("Applying email change from {OldEmail} to {NewEmail} for user {UserId}", 
+        logger.LogDebug("Applying email change from {OldEmail} to {NewEmail} for user {UserId}",
             oldEmail, command.NewEmail, command.UserId);
-        
+
         user.ChangeEmail(command.NewEmail);
     }
 
@@ -164,8 +164,8 @@ internal sealed class ChangeUserEmailCommandHandler(
     {
         var persistenceStart = stopwatch.ElapsedMilliseconds;
         await userRepository.UpdateAsync(user, cancellationToken);
-        
-        logger.LogDebug("Email change persistence completed in {ElapsedMs}ms", 
+
+        logger.LogDebug("Email change persistence completed in {ElapsedMs}ms",
             stopwatch.ElapsedMilliseconds - persistenceStart);
     }
 }

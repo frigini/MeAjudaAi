@@ -38,22 +38,22 @@ public class RateLimitOptions
 public class AnonymousLimits
 {
     [Range(1, int.MaxValue)] public int RequestsPerMinute { get; set; } = 30;
-    [Range(1, int.MaxValue)] public int RequestsPerHour  { get; set; } = 300;
-    [Range(1, int.MaxValue)] public int RequestsPerDay   { get; set; } = 1000;
+    [Range(1, int.MaxValue)] public int RequestsPerHour { get; set; } = 300;
+    [Range(1, int.MaxValue)] public int RequestsPerDay { get; set; } = 1000;
 }
 
 public class AuthenticatedLimits
 {
     [Range(1, int.MaxValue)] public int RequestsPerMinute { get; set; } = 120;
-    [Range(1, int.MaxValue)] public int RequestsPerHour  { get; set; } = 2000;
-    [Range(1, int.MaxValue)] public int RequestsPerDay   { get; set; } = 10000;
+    [Range(1, int.MaxValue)] public int RequestsPerHour { get; set; } = 2000;
+    [Range(1, int.MaxValue)] public int RequestsPerDay { get; set; } = 10000;
 }
 
 public class EndpointLimits
 {
     [Required] public string Pattern { get; set; } = string.Empty; // supports * wildcard
     [Range(1, int.MaxValue)] public int RequestsPerMinute { get; set; } = 60;
-    [Range(1, int.MaxValue)] public int RequestsPerHour   { get; set; } = 1000;
+    [Range(1, int.MaxValue)] public int RequestsPerHour { get; set; } = 1000;
     public bool ApplyToAuthenticated { get; set; } = true;
     public bool ApplyToAnonymous { get; set; } = true;
 }
@@ -61,8 +61,8 @@ public class EndpointLimits
 public class RoleLimits
 {
     [Range(1, int.MaxValue)] public int RequestsPerMinute { get; set; } = 200;
-    [Range(1, int.MaxValue)] public int RequestsPerHour   { get; set; } = 5000;
-    [Range(1, int.MaxValue)] public int RequestsPerDay    { get; set; } = 20000;
+    [Range(1, int.MaxValue)] public int RequestsPerHour { get; set; } = 5000;
+    [Range(1, int.MaxValue)] public int RequestsPerDay { get; set; } = 20000;
 }
 
 public class GeneralSettings

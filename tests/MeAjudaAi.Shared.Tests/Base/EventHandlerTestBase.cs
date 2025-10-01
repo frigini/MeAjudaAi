@@ -23,12 +23,12 @@ public abstract class EventHandlerTestBase<THandler>
     {
         MessageBusMock = new Mock<IMessageBus>();
         LoggerMock = new Mock<ILogger<THandler>>();
-        
+
         // Define uma data base fixa para testes determinísticos
         BaseDateTime = new DateTime(2025, 9, 23, 10, 0, 0, DateTimeKind.Utc);
-        
+
         Fixture = new Fixture();
-        
+
         // Configura AutoFixture para funcionar bem com nosso domínio
         ConfigureFixture();
     }
@@ -45,37 +45,37 @@ public abstract class EventHandlerTestBase<THandler>
 
         // Configura para criar Guids realistas
         Fixture.Customize<Guid>(composer => composer.FromFactory(() => Guid.NewGuid()));
-        
+
         // Configura DateTime para ser determinístico baseado na data base
-        Fixture.Customize<DateTime>(composer => 
+        Fixture.Customize<DateTime>(composer =>
             composer.FromFactory(() => BaseDateTime.AddDays(Random.Shared.Next(0, 30))));
     }
 
     /// <summary>
     /// Verifica se uma mensagem foi publicada no message bus
     /// </summary>
-    protected void VerifyMessagePublished<TMessage>(Times? times = null) 
+    protected void VerifyMessagePublished<TMessage>(Times? times = null)
         where TMessage : class
     {
         MessageBusMock.Verify(
             x => x.PublishAsync(
-                It.IsAny<TMessage>(), 
-                It.IsAny<string?>(), 
-                It.IsAny<CancellationToken>()), 
+                It.IsAny<TMessage>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()),
             times ?? Times.Once());
     }
 
     /// <summary>
     /// Verifica se uma mensagem específica foi publicada no message bus
     /// </summary>
-    protected void VerifyMessagePublished<TMessage>(TMessage expectedMessage, Times? times = null) 
+    protected void VerifyMessagePublished<TMessage>(TMessage expectedMessage, Times? times = null)
         where TMessage : class
     {
         MessageBusMock.Verify(
             x => x.PublishAsync(
-                It.Is<TMessage>(msg => msg.Equals(expectedMessage)), 
-                It.IsAny<string?>(), 
-                It.IsAny<CancellationToken>()), 
+                It.Is<TMessage>(msg => msg.Equals(expectedMessage)),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()),
             times ?? Times.Once());
     }
 
@@ -86,9 +86,9 @@ public abstract class EventHandlerTestBase<THandler>
     {
         MessageBusMock.Verify(
             x => x.PublishAsync(
-                It.IsAny<object>(), 
-                It.IsAny<string?>(), 
-                It.IsAny<CancellationToken>()), 
+                It.IsAny<object>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()),
             Times.Never);
     }
 

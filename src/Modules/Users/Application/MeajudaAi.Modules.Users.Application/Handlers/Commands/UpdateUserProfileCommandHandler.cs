@@ -50,7 +50,7 @@ internal sealed class UpdateUserProfileCommandHandler(
         UpdateUserProfileCommand command,
         CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Processing UpdateUserProfileCommand for user {UserId} with correlation {CorrelationId}", 
+        logger.LogInformation("Processing UpdateUserProfileCommand for user {UserId} with correlation {CorrelationId}",
             command.UserId, command.CorrelationId);
 
         try
@@ -86,7 +86,7 @@ internal sealed class UpdateUserProfileCommandHandler(
         CancellationToken cancellationToken)
     {
         logger.LogDebug("Fetching user {UserId} for profile update", command.UserId);
-        
+
         var user = await userRepository.GetByIdAsync(
             new UserId(command.UserId), cancellationToken);
 
@@ -104,9 +104,9 @@ internal sealed class UpdateUserProfileCommandHandler(
     /// </summary>
     private void ApplyProfileUpdate(UpdateUserProfileCommand command, Domain.Entities.User user)
     {
-        logger.LogDebug("Updating profile for user {UserId}: FirstName={FirstName}, LastName={LastName}", 
+        logger.LogDebug("Updating profile for user {UserId}: FirstName={FirstName}, LastName={LastName}",
             command.UserId, command.FirstName, command.LastName);
-        
+
         user.UpdateProfile(command.FirstName, command.LastName);
     }
 
@@ -119,13 +119,13 @@ internal sealed class UpdateUserProfileCommandHandler(
         CancellationToken cancellationToken)
     {
         logger.LogDebug("Persisting profile changes for user {UserId}", command.UserId);
-        
+
         // Persiste as alterações no repositório
         await userRepository.UpdateAsync(user, cancellationToken);
 
         // Invalida cache relacionado ao usuário atualizado
         await usersCacheService.InvalidateUserAsync(command.UserId, user.Email.Value, cancellationToken);
-        
+
         logger.LogDebug("Profile persistence and cache invalidation completed for user {UserId}", command.UserId);
     }
 }

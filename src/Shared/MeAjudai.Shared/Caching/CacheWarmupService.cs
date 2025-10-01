@@ -14,7 +14,7 @@ public interface ICacheWarmupService
     /// Realiza o warmup do cache para dados críticos
     /// </summary>
     Task WarmupAsync(CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Realiza warmup específico por módulo
     /// </summary>
@@ -38,7 +38,7 @@ public class CacheWarmupService : ICacheWarmupService
         _serviceProvider = serviceProvider;
         _logger = logger;
         _warmupStrategies = [];
-        
+
         // Registrar estratégias de warmup por módulo
         RegisterWarmupStrategies();
     }
@@ -50,11 +50,11 @@ public class CacheWarmupService : ICacheWarmupService
 
         try
         {
-            var tasks = _warmupStrategies.Values.Select(strategy => 
+            var tasks = _warmupStrategies.Values.Select(strategy =>
                 ExecuteSafeWarmup(strategy, cancellationToken));
-            
+
             await Task.WhenAll(tasks);
-            
+
             stopwatch.Stop();
             _logger.LogInformation("Cache warmup completed successfully in {Duration}ms", stopwatch.ElapsedMilliseconds);
         }
@@ -79,14 +79,14 @@ public class CacheWarmupService : ICacheWarmupService
         try
         {
             await strategy(_serviceProvider, cancellationToken);
-            
+
             stopwatch.Stop();
-            _logger.LogInformation("Cache warmup for module {ModuleName} completed in {Duration}ms", 
+            _logger.LogInformation("Cache warmup for module {ModuleName} completed in {Duration}ms",
                 moduleName, stopwatch.ElapsedMilliseconds);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Cache warmup failed for module {ModuleName} after {Duration}ms", 
+            _logger.LogError(ex, "Cache warmup failed for module {ModuleName} after {Duration}ms",
                 moduleName, stopwatch.ElapsedMilliseconds);
             throw;
         }
@@ -96,7 +96,7 @@ public class CacheWarmupService : ICacheWarmupService
     {
         // Estratégia para o módulo Users
         _warmupStrategies["Users"] = WarmupUsersModule;
-        
+
         // Futuras estratégias para outros módulos podem ser adicionadas aqui
         // _warmupStrategies["Help"] = WarmupHelpModule;
         // _warmupStrategies["Notifications"] = WarmupNotificationsModule;
@@ -105,13 +105,13 @@ public class CacheWarmupService : ICacheWarmupService
     private async Task WarmupUsersModule(IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Starting Users module cache warmup");
-        
+
         using var scope = serviceProvider.CreateScope();
         var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
-        
+
         // Cache configurações do sistema relacionadas a usuários
         await WarmupUserSystemConfigurations(cacheService, cancellationToken);
-        
+
         _logger.LogDebug("Users module cache warmup completed");
     }
 
@@ -121,7 +121,7 @@ public class CacheWarmupService : ICacheWarmupService
         {
             // Exemplo: cachear configurações que são frequentemente acessadas
             var configKey = "user-system-config";
-            
+
             await cacheService.GetOrCreateAsync(
                 configKey,
                 async _ =>
@@ -134,7 +134,7 @@ public class CacheWarmupService : ICacheWarmupService
                 TimeSpan.FromHours(6),
                 tags: [CacheTags.Configuration, CacheTags.Users],
                 cancellationToken: cancellationToken);
-                
+
             _logger.LogDebug("User system configurations warmed up");
         }
         catch (Exception ex)
@@ -145,7 +145,7 @@ public class CacheWarmupService : ICacheWarmupService
     }
 
     private async Task ExecuteSafeWarmup(
-        Func<IServiceProvider, CancellationToken, Task> warmupStrategy, 
+        Func<IServiceProvider, CancellationToken, Task> warmupStrategy,
         CancellationToken cancellationToken)
     {
         try

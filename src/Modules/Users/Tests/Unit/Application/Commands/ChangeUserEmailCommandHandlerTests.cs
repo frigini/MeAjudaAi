@@ -31,7 +31,7 @@ public class ChangeUserEmailCommandHandlerTests
         var userId = Guid.NewGuid();
         var newEmail = "newemail@test.com";
         var command = new ChangeUserEmailCommand(userId, newEmail, "admin");
-        
+
         var user = new UserBuilder()
             .WithUsername("testuser")
             .WithEmail("oldemail@test.com")
@@ -98,7 +98,7 @@ public class ChangeUserEmailCommandHandlerTests
         var existingUserId = Guid.NewGuid();
         var newEmail = "existing@test.com";
         var command = new ChangeUserEmailCommand(userId, newEmail);
-        
+
         var user = new UserBuilder()
             .WithUsername("testuser")
             .WithEmail("oldemail@test.com")
@@ -138,7 +138,7 @@ public class ChangeUserEmailCommandHandlerTests
         var userId = Guid.NewGuid();
         var newEmail = "sameemail@test.com";
         var command = new ChangeUserEmailCommand(userId, newEmail);
-        
+
         var user = new UserBuilder()
             .WithUsername("testuser")
             .WithEmail("oldemail@test.com")
@@ -207,7 +207,7 @@ public class ChangeUserEmailCommandHandlerTests
 
         // Act & Assert
         var result = await _handler.HandleAsync(command, cancellationTokenSource.Token);
-        
+
         // O handler captura a exceção e retorna failure
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
@@ -221,7 +221,7 @@ public class ChangeUserEmailCommandHandlerTests
         var userId = Guid.NewGuid();
         var newEmail = "newemail@test.com";
         var command = new ChangeUserEmailCommand(userId, newEmail);
-        
+
         var user = new UserBuilder()
             .WithUsername("testuser")
             .WithEmail("oldemail@test.com")

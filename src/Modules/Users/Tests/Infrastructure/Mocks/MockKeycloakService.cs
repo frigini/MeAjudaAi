@@ -10,12 +10,12 @@ namespace MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 public class MockKeycloakService : IKeycloakService
 {
     public Task<Result<string>> CreateUserAsync(
-        string username, 
-        string email, 
-        string firstName, 
-        string lastName, 
-        string password, 
-        IEnumerable<string> roles, 
+        string username,
+        string email,
+        string firstName,
+        string lastName,
+        string password,
+        IEnumerable<string> roles,
         CancellationToken cancellationToken = default)
     {
         // Para testes, simular criação bem-sucedida
@@ -24,8 +24,8 @@ public class MockKeycloakService : IKeycloakService
     }
 
     public Task<Result<AuthenticationResult>> AuthenticateAsync(
-        string usernameOrEmail, 
-        string password, 
+        string usernameOrEmail,
+        string password,
         CancellationToken cancellationToken = default)
     {
         // Para testes, validar apenas credenciais específicas
@@ -40,12 +40,12 @@ public class MockKeycloakService : IKeycloakService
             );
             return Task.FromResult(Result<AuthenticationResult>.Success(result));
         }
-        
+
         return Task.FromResult(Result<AuthenticationResult>.Failure("Invalid credentials"));
     }
 
     public Task<Result<TokenValidationResult>> ValidateTokenAsync(
-        string token, 
+        string token,
         CancellationToken cancellationToken = default)
     {
         // Para testes, validar tokens que começam com "mock_token_"
@@ -58,7 +58,7 @@ public class MockKeycloakService : IKeycloakService
             );
             return Task.FromResult(Result<TokenValidationResult>.Success(result));
         }
-        
+
         return Task.FromResult(Result<TokenValidationResult>.Failure("Invalid token"));
     }
 

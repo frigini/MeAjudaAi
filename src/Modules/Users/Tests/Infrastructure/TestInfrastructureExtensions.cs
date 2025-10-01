@@ -24,41 +24,41 @@ public static class UsersTestInfrastructureExtensions
     /// Adiciona toda a infraestrutura de testes necessária para o módulo Users
     /// </summary>
     public static IServiceCollection AddUsersTestInfrastructure(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         TestInfrastructureOptions? options = null)
     {
         options ??= new TestInfrastructureOptions();
-        
+
         services.AddSingleton(options);
-        
+
         // Adicionar serviços compartilhados essenciais (incluindo IDateTimeProvider)
         services.AddSingleton<IDateTimeProvider, TestDateTimeProvider>();
-        
+
         // Usar extensões compartilhadas
         services.AddTestLogging();
         services.AddTestCache(options.Cache);
-        
+
         // Adicionar serviços de cache do Shared (incluindo ICacheService)
         // Para testes, usar implementação simples sem dependências complexas
         services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, TestCacheService>();
-        
+
         // Configurar banco de dados específico do módulo Users
         services.AddTestDatabase<UsersDbContext>(
-            options.Database, 
+            options.Database,
             "MeAjudaAi.Modules.Users.Infrastructure");
-        
+
         // Configurar naming convention específica do Users
         services.PostConfigure<DbContextOptions<UsersDbContext>>(dbOptions =>
         {
             // Esta configuração específica será aplicada após a configuração genérica
         });
-        
+
         // Configurar DbContext específico com snake_case naming
         services.AddDbContext<UsersDbContext>((serviceProvider, dbOptions) =>
         {
             var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();
             var connectionString = container.GetConnectionString();
-            
+
             dbOptions.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
@@ -72,24 +72,24 @@ public static class UsersTestInfrastructureExtensions
                 warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
             });
         });
-        
+
         // Configurar mocks específicos do módulo Users
         services.AddUsersTestMocks(options.ExternalServices);
-        
+
         // Adicionar repositórios específicos do Users
         services.AddScoped<IUserRepository, UserRepository>();
-        
+
         // Adicionar serviços de aplicação (incluindo IUsersModuleApi)
         services.AddApplication();
-        
+
         return services;
     }
-    
+
     /// <summary>
     /// Adiciona mocks específicos do módulo Users
     /// </summary>
     private static IServiceCollection AddUsersTestMocks(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         TestExternalServicesOptions options)
     {
         if (options.UseKeycloakMock)
@@ -99,13 +99,13 @@ public static class UsersTestInfrastructureExtensions
             services.Replace(ServiceDescriptor.Scoped<IUserDomainService, MockUserDomainService>());
             services.Replace(ServiceDescriptor.Scoped<IAuthenticationDomainService, MockAuthenticationDomainService>());
         }
-        
+
         if (options.UseMessageBusMock)
         {
             // Usar mock compartilhado do message bus
             services.AddTestMessageBus();
         }
-        
+
         return services;
     }
 }

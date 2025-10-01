@@ -18,7 +18,7 @@ public static class ModuleServiceRegistrationExtensions
         services.Scan(scan => scan
             .FromAssemblies(assemblies)
             .AddClasses(classes => classes.Where(type =>
-                type.Name.EndsWith("Service") && 
+                type.Name.EndsWith("Service") &&
                 !type.IsInterface &&
                 !type.IsAbstract))
             .AsImplementedInterfaces()
@@ -37,7 +37,7 @@ public static class ModuleServiceRegistrationExtensions
         services.Scan(scan => scan
             .FromAssemblies(assemblies)
             .AddClasses(classes => classes.Where(type =>
-                type.Name.EndsWith("Repository") && 
+                type.Name.EndsWith("Repository") &&
                 !type.IsInterface &&
                 !type.IsAbstract))
             .AsImplementedInterfaces()
@@ -56,7 +56,7 @@ public static class ModuleServiceRegistrationExtensions
         services.Scan(scan => scan
             .FromAssemblies(assemblies)
             .AddClasses(classes => classes.Where(type =>
-                type.Name.EndsWith("Validator") && 
+                type.Name.EndsWith("Validator") &&
                 !type.IsInterface &&
                 !type.IsAbstract))
             .AsImplementedInterfaces()
@@ -75,7 +75,7 @@ public static class ModuleServiceRegistrationExtensions
         services.Scan(scan => scan
             .FromAssemblies(assemblies)
             .AddClasses(classes => classes.Where(type =>
-                type.Name.EndsWith("CacheService") && 
+                type.Name.EndsWith("CacheService") &&
                 !type.IsInterface &&
                 !type.IsAbstract))
             .AsImplementedInterfaces()
@@ -94,7 +94,7 @@ public static class ModuleServiceRegistrationExtensions
         services.Scan(scan => scan
             .FromAssemblies(assemblies)
             .AddClasses(classes => classes.Where(type =>
-                type.Name.EndsWith("DomainService") && 
+                type.Name.EndsWith("DomainService") &&
                 !type.IsInterface &&
                 !type.IsAbstract))
             .AsImplementedInterfaces()

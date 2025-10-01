@@ -53,7 +53,7 @@ public abstract class BaseTestAuthenticationHandler(
         var identity = new ClaimsIdentity(claims, GetAuthenticationScheme(), ClaimTypes.Name, ClaimTypes.Role);
         var principal = new ClaimsPrincipal(identity);
         var ticket = new AuthenticationTicket(principal, GetAuthenticationScheme());
-        
+
         return AuthenticateResult.Success(ticket);
     }
 }

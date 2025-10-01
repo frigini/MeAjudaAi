@@ -81,7 +81,7 @@ internal sealed class ChangeUserUsernameCommandHandler(
         });
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        logger.LogInformation("Starting username change process for user {UserId} to {NewUsername}", 
+        logger.LogInformation("Starting username change process for user {UserId} to {NewUsername}",
             command.UserId, command.NewUsername);
 
         try
@@ -107,7 +107,7 @@ internal sealed class ChangeUserUsernameCommandHandler(
 
             stopwatch.Stop();
             logger.LogInformation(
-                "Username successfully changed for user {UserId} from {OldUsername} to {NewUsername} in {ElapsedMs}ms by {UpdatedBy}", 
+                "Username successfully changed for user {UserId} from {OldUsername} to {NewUsername} in {ElapsedMs}ms by {UpdatedBy}",
                 command.UserId, oldUsername, command.NewUsername, stopwatch.ElapsedMilliseconds, command.UpdatedBy ?? "System");
 
             return Result<UserDto>.Success(user.ToDto());
@@ -115,10 +115,10 @@ internal sealed class ChangeUserUsernameCommandHandler(
         catch (Exception ex)
         {
             stopwatch.Stop();
-            logger.LogError(ex, 
-                "Unexpected error changing username for user {UserId} to {NewUsername} after {ElapsedMs}ms", 
+            logger.LogError(ex,
+                "Unexpected error changing username for user {UserId} to {NewUsername} after {ElapsedMs}ms",
                 command.UserId, command.NewUsername, stopwatch.ElapsedMilliseconds);
-            
+
             return Result<UserDto>.Failure($"Failed to change username: {ex.Message}");
         }
     }
@@ -148,7 +148,7 @@ internal sealed class ChangeUserUsernameCommandHandler(
 
         if (existingUserWithUsername != null && existingUserWithUsername.Id != user.Id)
         {
-            logger.LogWarning("Username change failed: Username {NewUsername} already in use by user {ExistingUserId}", 
+            logger.LogWarning("Username change failed: Username {NewUsername} already in use by user {ExistingUserId}",
                 command.NewUsername, existingUserWithUsername.Id);
             return Result<Domain.Entities.User>.Failure("Username is already taken by another user");
         }
@@ -163,7 +163,7 @@ internal sealed class ChangeUserUsernameCommandHandler(
     {
         if (!command.BypassRateLimit && !user.CanChangeUsername(dateTimeProvider))
         {
-            logger.LogWarning("Username change rate limit exceeded for user {UserId}. Last change: {LastChange}", 
+            logger.LogWarning("Username change rate limit exceeded for user {UserId}. Last change: {LastChange}",
                 command.UserId, user.LastUsernameChangeAt);
             return Result<Unit>.Failure("Username can only be changed once per month");
         }
@@ -176,9 +176,9 @@ internal sealed class ChangeUserUsernameCommandHandler(
     /// </summary>
     private void ApplyUsernameChange(ChangeUserUsernameCommand command, Domain.Entities.User user, string oldUsername)
     {
-        logger.LogDebug("Applying username change from {OldUsername} to {NewUsername} for user {UserId}", 
+        logger.LogDebug("Applying username change from {OldUsername} to {NewUsername} for user {UserId}",
             oldUsername, command.NewUsername, command.UserId);
-        
+
         user.ChangeUsername(command.NewUsername, dateTimeProvider);
     }
 
@@ -192,8 +192,8 @@ internal sealed class ChangeUserUsernameCommandHandler(
     {
         var persistenceStart = stopwatch.ElapsedMilliseconds;
         await userRepository.UpdateAsync(user, cancellationToken);
-        
-        logger.LogDebug("Username change persistence completed in {ElapsedMs}ms", 
+
+        logger.LogDebug("Username change persistence completed in {ElapsedMs}ms",
             stopwatch.ElapsedMilliseconds - persistenceStart);
     }
 }

@@ -63,7 +63,7 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
 
             var statusCode = context.Response.StatusCode;
             var elapsedMs = stopwatch.ElapsedMilliseconds;
-            
+
             if (statusCode >= 500)
             {
                 _logger.LogError(

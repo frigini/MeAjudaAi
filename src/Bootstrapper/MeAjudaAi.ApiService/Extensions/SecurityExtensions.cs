@@ -86,7 +86,7 @@ public static class SecurityExtensions
                 {
                     var anonMinute = anonymousLimits.GetValue<int>("RequestsPerMinute");
                     var anonHour = anonymousLimits.GetValue<int>("RequestsPerHour");
-                    
+
                     if (anonMinute <= 0 || anonHour <= 0)
                         errors.Add("Anonymous request limits must be positive values");
 
@@ -258,59 +258,59 @@ public static class SecurityExtensions
                 options.Authority = keycloakOptions.AuthorityUrl;
                 options.Audience = keycloakOptions.ClientId;
                 options.RequireHttpsMetadata = keycloakOptions.RequireHttpsMetadata;
-                    
-                    // Parâmetros aprimorados de validação do token
-                    options.TokenValidationParameters = new TokenValidationParameters
+
+                // Parâmetros aprimorados de validação do token
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = keycloakOptions.ValidateIssuer,
+                    ValidateAudience = keycloakOptions.ValidateAudience,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = keycloakOptions.ClockSkew,
+                    RoleClaimType = ClaimTypes.Role,
+                    NameClaimType = "preferred_username" // Claim de usuário preferencial do Keycloak
+                };
+
+                // Adiciona eventos para log de problemas de autenticação
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
                     {
-                        ValidateIssuer = keycloakOptions.ValidateIssuer,
-                        ValidateAudience = keycloakOptions.ValidateAudience,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ClockSkew = keycloakOptions.ClockSkew,
-                        RoleClaimType = ClaimTypes.Role,
-                        NameClaimType = "preferred_username" // Claim de usuário preferencial do Keycloak
-                    };
-
-                    // Adiciona eventos para log de problemas de autenticação
-                    options.Events = new JwtBearerEvents
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
+                        logger.LogWarning("JWT authentication failed: {Exception}", context.Exception.Message);
+                        return Task.CompletedTask;
+                    },
+                    OnChallenge = context =>
                     {
-                        OnAuthenticationFailed = context =>
-                        {
-                            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
-                            logger.LogWarning("JWT authentication failed: {Exception}", context.Exception.Message);
-                            return Task.CompletedTask;
-                        },
-                        OnChallenge = context =>
-                        {
-                            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
-                            logger.LogInformation("JWT authentication challenge: {Error} - {ErrorDescription}", 
-                                context.Error, context.ErrorDescription);
-                            return Task.CompletedTask;
-                        },
-                        OnTokenValidated = context =>
-                        {
-                            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
-                            var principal = context.Principal!;
-                            var clientId = context.HttpContext.RequestServices.GetRequiredService<IOptions<KeycloakOptions>>().Value.ClientId;
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
+                        logger.LogInformation("JWT authentication challenge: {Error} - {ErrorDescription}",
+                            context.Error, context.ErrorDescription);
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
+                        var principal = context.Principal!;
+                        var clientId = context.HttpContext.RequestServices.GetRequiredService<IOptions<KeycloakOptions>>().Value.ClientId;
 
-                            // Copia claims existentes e adiciona roles do Keycloak
-                            var claims = principal.Claims.ToList();
-                            
-                            if (context.SecurityToken is JwtSecurityToken jwtToken)
-                            {
-                                var keycloakRoles = ExtractKeycloakRoles(jwtToken, clientId);
-                                claims.AddRange(keycloakRoles);
-                            }
+                        // Copia claims existentes e adiciona roles do Keycloak
+                        var claims = principal.Claims.ToList();
 
-                            var identity = new ClaimsIdentity(claims, principal.Identity?.AuthenticationType, "preferred_username", ClaimTypes.Role);
-                            context.Principal = new ClaimsPrincipal(identity);
-
-                            var userId = context.Principal.FindFirst("sub")?.Value;
-                            logger.LogDebug("JWT token validated successfully for user: {UserId}", userId);
-                            return Task.CompletedTask;
+                        if (context.SecurityToken is JwtSecurityToken jwtToken)
+                        {
+                            var keycloakRoles = ExtractKeycloakRoles(jwtToken, clientId);
+                            claims.AddRange(keycloakRoles);
                         }
-                    };
-                });
+
+                        var identity = new ClaimsIdentity(claims, principal.Identity?.AuthenticationType, "preferred_username", ClaimTypes.Role);
+                        context.Principal = new ClaimsPrincipal(identity);
+
+                        var userId = context.Principal.FindFirst("sub")?.Value;
+                        logger.LogDebug("JWT token validated successfully for user: {UserId}", userId);
+                        return Task.CompletedTask;
+                    }
+                };
+            });
 
         // Register startup logging service for Keycloak configuration
         services.AddHostedService<KeycloakConfigurationLogger>();
@@ -354,9 +354,9 @@ public static class SecurityExtensions
         var roleClaims = new List<Claim>();
 
         // Extrai roles do realm_access
-        if (jwtToken.Payload.TryGetValue("realm_access", out var realmObj) && 
+        if (jwtToken.Payload.TryGetValue("realm_access", out var realmObj) &&
             realmObj is IDictionary<string, object> realmDict &&
-            realmDict.TryGetValue("roles", out var realmRoles) && 
+            realmDict.TryGetValue("roles", out var realmRoles) &&
             realmRoles is IEnumerable<object> realmRolesList)
         {
             foreach (var role in realmRolesList.OfType<string>())
@@ -366,11 +366,11 @@ public static class SecurityExtensions
         }
 
         // Extrai roles do resource_access para o cliente específico
-        if (jwtToken.Payload.TryGetValue("resource_access", out var resourceObj) && 
+        if (jwtToken.Payload.TryGetValue("resource_access", out var resourceObj) &&
             resourceObj is IDictionary<string, object> resourceDict &&
-            resourceDict.TryGetValue(clientId, out var clientObj) && 
+            resourceDict.TryGetValue(clientId, out var clientObj) &&
             clientObj is IDictionary<string, object> clientDict &&
-            clientDict.TryGetValue("roles", out var clientRoles) && 
+            clientDict.TryGetValue("roles", out var clientRoles) &&
             clientRoles is IEnumerable<object> clientRolesList)
         {
             foreach (var role in clientRolesList.OfType<string>())
@@ -416,11 +416,11 @@ internal sealed class KeycloakConfigurationLogger(
     public Task StartAsync(CancellationToken cancellationToken)
     {
         var options = keycloakOptions.Value;
-        
+
         // Loga a configuração efetiva do Keycloak (sem segredos)
-        logger.LogInformation("Keycloak authentication configured - Authority: {Authority}, ClientId: {ClientId}, ValidateIssuer: {ValidateIssuer}", 
+        logger.LogInformation("Keycloak authentication configured - Authority: {Authority}, ClientId: {ClientId}, ValidateIssuer: {ValidateIssuer}",
             options.AuthorityUrl, options.ClientId, options.ValidateIssuer);
-            
+
         return Task.CompletedTask;
     }
 

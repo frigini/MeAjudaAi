@@ -28,10 +28,10 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             using var connection = new NpgsqlConnection(_connectionString);
             var result = await connection.QueryAsync<T>(sql, param);
-            
+
             stopwatch.Stop();
             metrics.RecordDapperQuery("query_multiple", stopwatch.Elapsed);
-            
+
             return result;
         }
         catch (Exception ex)
@@ -49,10 +49,10 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             using var connection = new NpgsqlConnection(_connectionString);
             var result = await connection.QuerySingleOrDefaultAsync<T>(sql, param);
-            
+
             stopwatch.Stop();
             metrics.RecordDapperQuery("query_single", stopwatch.Elapsed);
-            
+
             return result;
         }
         catch (Exception ex)
@@ -70,10 +70,10 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             using var connection = new NpgsqlConnection(_connectionString);
             var result = await connection.ExecuteAsync(sql, param);
-            
+
             stopwatch.Stop();
             metrics.RecordDapperQuery("execute", stopwatch.Elapsed);
-            
+
             return result;
         }
         catch (Exception ex)

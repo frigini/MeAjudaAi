@@ -13,13 +13,13 @@ public class RabbitMqMessageBus(
     public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
     {
         var targetQueue = queueName ?? options.DefaultQueueName;
-        
-        logger.LogInformation("RabbitMQ: Sending message of type {MessageType} to queue {QueueName}", 
+
+        logger.LogInformation("RabbitMQ: Sending message of type {MessageType} to queue {QueueName}",
             typeof(TMessage).Name, targetQueue);
 
         // Em desenvolvimento, apenas registramos as mensagens em log
         // A implementação completa do RabbitMQ seria conectada aqui via Rebus ou RabbitMQ.Client
-        logger.LogDebug("RabbitMQ Message Content: {MessageContent}", 
+        logger.LogDebug("RabbitMQ Message Content: {MessageContent}",
             JsonSerializer.Serialize(message, new JsonSerializerOptions { WriteIndented = true }));
 
         return Task.CompletedTask;
@@ -28,13 +28,13 @@ public class RabbitMqMessageBus(
     public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
     {
         var targetTopic = topicName ?? options.DefaultQueueName;
-        
-        logger.LogInformation("RabbitMQ: Publishing event of type {EventType} to topic {TopicName}", 
+
+        logger.LogInformation("RabbitMQ: Publishing event of type {EventType} to topic {TopicName}",
             typeof(TMessage).Name, targetTopic);
 
         // Em desenvolvimento, apenas registramos os eventos em log
         // A implementação completa do RabbitMQ seria conectada aqui via Rebus ou RabbitMQ.Client
-        logger.LogDebug("RabbitMQ Event Content: {EventContent}", 
+        logger.LogDebug("RabbitMQ Event Content: {EventContent}",
             JsonSerializer.Serialize(@event, new JsonSerializerOptions { WriteIndented = true }));
 
         return Task.CompletedTask;
@@ -43,8 +43,8 @@ public class RabbitMqMessageBus(
     public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
     {
         var subscription = subscriptionName ?? $"{typeof(TMessage).Name}-subscription";
-        
-        logger.LogInformation("RabbitMQ: Subscribing to messages of type {MessageType} with subscription {SubscriptionName}", 
+
+        logger.LogInformation("RabbitMQ: Subscribing to messages of type {MessageType} with subscription {SubscriptionName}",
             typeof(TMessage).Name, subscription);
 
         // Em desenvolvimento, apenas logamos as subscrições

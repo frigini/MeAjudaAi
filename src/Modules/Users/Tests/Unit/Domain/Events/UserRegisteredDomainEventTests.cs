@@ -17,11 +17,11 @@ public class UserRegisteredDomainEventTests
 
         // Act
         var domainEvent = new UserRegisteredDomainEvent(
-            aggregateId, 
-            version, 
-            email, 
-            username, 
-            firstName, 
+            aggregateId,
+            version,
+            email,
+            username,
+            firstName,
             lastName);
 
         // Assert
@@ -42,11 +42,11 @@ public class UserRegisteredDomainEventTests
 
         // Act
         var domainEvent = new UserRegisteredDomainEvent(
-            Guid.NewGuid(), 
-            1, 
-            "test@example.com", 
-            "testuser", 
-            "John", 
+            Guid.NewGuid(),
+            1,
+            "test@example.com",
+            "testuser",
+            "John",
             "Doe");
 
         var afterCreation = DateTime.UtcNow;

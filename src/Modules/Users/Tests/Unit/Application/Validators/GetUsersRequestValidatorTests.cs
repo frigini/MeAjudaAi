@@ -17,11 +17,11 @@ public class GetUsersRequestValidatorTests
     public void Validate_ValidRequest_ShouldNotHaveValidationErrors()
     {
         // Arrange
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = 10, 
-            SearchTerm = "john" 
+        var request = new GetUsersRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchTerm = "john"
         };
 
         // Act
@@ -35,10 +35,10 @@ public class GetUsersRequestValidatorTests
     public void Validate_ValidRequestWithoutSearchTerm_ShouldNotHaveValidationErrors()
     {
         // Arrange
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = 10 
+        var request = new GetUsersRequest
+        {
+            PageNumber = 1,
+            PageSize = 10
         };
 
         // Act
@@ -55,10 +55,10 @@ public class GetUsersRequestValidatorTests
     public void Validate_InvalidPageNumber_ShouldHaveValidationError(int pageNumber)
     {
         // Arrange
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = pageNumber, 
-            PageSize = 10 
+        var request = new GetUsersRequest
+        {
+            PageNumber = pageNumber,
+            PageSize = 10
         };
 
         // Act
@@ -75,10 +75,10 @@ public class GetUsersRequestValidatorTests
     public void Validate_ValidPageNumbers_ShouldNotHaveValidationError(int pageNumber)
     {
         // Arrange
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = pageNumber, 
-            PageSize = 10 
+        var request = new GetUsersRequest
+        {
+            PageNumber = pageNumber,
+            PageSize = 10
         };
 
         // Act
@@ -95,10 +95,10 @@ public class GetUsersRequestValidatorTests
     public void Validate_InvalidPageSize_ShouldHaveValidationError(int pageSize)
     {
         // Arrange
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = pageSize 
+        var request = new GetUsersRequest
+        {
+            PageNumber = 1,
+            PageSize = pageSize
         };
 
         // Act
@@ -115,10 +115,10 @@ public class GetUsersRequestValidatorTests
     public void Validate_PageSizeTooLarge_ShouldHaveValidationError(int pageSize)
     {
         // Arrange
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = pageSize 
+        var request = new GetUsersRequest
+        {
+            PageNumber = 1,
+            PageSize = pageSize
         };
 
         // Act
@@ -137,10 +137,10 @@ public class GetUsersRequestValidatorTests
     public void Validate_ValidPageSizes_ShouldNotHaveValidationError(int pageSize)
     {
         // Arrange
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = pageSize 
+        var request = new GetUsersRequest
+        {
+            PageNumber = 1,
+            PageSize = pageSize
         };
 
         // Act
@@ -156,11 +156,11 @@ public class GetUsersRequestValidatorTests
     public void Validate_EmptyOrWhitespaceSearchTerm_ShouldNotHaveValidationError(string searchTerm)
     {
         // Arrange
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = 10, 
-            SearchTerm = searchTerm 
+        var request = new GetUsersRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchTerm = searchTerm
         };
 
         // Act
@@ -175,11 +175,11 @@ public class GetUsersRequestValidatorTests
     public void Validate_SearchTermTooShort_ShouldHaveValidationError(string searchTerm)
     {
         // Arrange
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = 10, 
-            SearchTerm = searchTerm 
+        var request = new GetUsersRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchTerm = searchTerm
         };
 
         // Act
@@ -198,11 +198,11 @@ public class GetUsersRequestValidatorTests
     public void Validate_ValidSearchTerms_ShouldNotHaveValidationError(string searchTerm)
     {
         // Arrange
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = 10, 
-            SearchTerm = searchTerm 
+        var request = new GetUsersRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchTerm = searchTerm
         };
 
         // Act
@@ -217,11 +217,11 @@ public class GetUsersRequestValidatorTests
     {
         // Arrange
         var searchTerm = new string('a', 50); // Tamanho máximo é 50
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = 10, 
-            SearchTerm = searchTerm 
+        var request = new GetUsersRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchTerm = searchTerm
         };
 
         // Act
@@ -236,11 +236,11 @@ public class GetUsersRequestValidatorTests
     {
         // Arrange
         var searchTerm = new string('a', 51); // Tamanho máximo é 50
-        var request = new GetUsersRequest 
-        { 
-            PageNumber = 1, 
-            PageSize = 10, 
-            SearchTerm = searchTerm 
+        var request = new GetUsersRequest
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            SearchTerm = searchTerm
         };
 
         // Act

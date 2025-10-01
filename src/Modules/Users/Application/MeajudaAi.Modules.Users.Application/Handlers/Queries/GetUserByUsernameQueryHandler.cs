@@ -63,7 +63,7 @@ internal sealed class GetUserByUsernameQueryHandler(
                 logger.LogWarning(
                     "User not found by username. CorrelationId: {CorrelationId}, Username: {Username}",
                     correlationId, query.Username);
-                
+
                 return Result<UserDto>.Failure(Error.NotFound("User not found"));
             }
 
@@ -78,7 +78,7 @@ internal sealed class GetUserByUsernameQueryHandler(
             logger.LogError(ex,
                 "Failed to retrieve user by username. CorrelationId: {CorrelationId}, Username: {Username}",
                 correlationId, query.Username);
-            
+
             return Result<UserDto>.Failure($"Failed to retrieve user: {ex.Message}");
         }
     }

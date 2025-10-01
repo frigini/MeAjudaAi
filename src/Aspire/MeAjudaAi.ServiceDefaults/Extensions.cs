@@ -92,9 +92,9 @@ public static class Extensions
         var config = builder.Configuration;
 
         // OTEL Configuration via Environment Variables
-        var otlpEndpoint = config["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? 
+        var otlpEndpoint = config["OTEL_EXPORTER_OTLP_ENDPOINT"] ??
                           Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
-        
+
         var applicationInsightsConnectionString = config["APPLICATIONINSIGHTS_CONNECTION_STRING"] ??
                                                 Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
 

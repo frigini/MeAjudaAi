@@ -21,48 +21,48 @@ public class MessageBusSelectionTests : Base.ApiTestBase
     {
         // Arrange & Act
         var messageBus = Factory.Services.GetRequiredService<IMessageBus>();
-        
+
         // Assert
         // Em ambiente de Testing, devemos ter o mock configurado pelos testes
         messageBus.Should().NotBeNull("MessageBus deve estar configurado");
-        
+
         // Verifica se não é uma implementação real (ServiceBus ou RabbitMQ)
         messageBus.Should().NotBeOfType<ServiceBusMessageBus>("Não deve usar ServiceBus em testes");
         messageBus.Should().NotBeOfType<RabbitMqMessageBus>("Não deve usar RabbitMQ real em testes");
     }
 
-    [Fact] 
+    [Fact]
     public void MessageBusFactory_InDevelopmentEnvironment_ShouldCreateRabbitMq()
     {
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
-        
+
         // Registrar IConfiguration no DI
         services.AddSingleton<IConfiguration>(configuration);
-        
+
         // Simular ambiente Development
         services.AddSingleton<IHostEnvironment>(new TestHostEnvironment("Development"));
         services.AddSingleton<ILogger<EnvironmentBasedMessageBusFactory>>(new TestLogger<EnvironmentBasedMessageBusFactory>());
         services.AddSingleton<ILogger<RabbitMqMessageBus>>(new TestLogger<RabbitMqMessageBus>());
         services.AddSingleton<ILogger<ServiceBusMessageBus>>(new TestLogger<ServiceBusMessageBus>());
-        
+
         // Configurar opções mínimas
         services.AddSingleton(new RabbitMqOptions { ConnectionString = "amqp://localhost", DefaultQueueName = "test" });
         services.AddSingleton(new ServiceBusOptions { ConnectionString = "Endpoint=sb://test/", DefaultTopicName = "test" });
         services.AddSingleton(new MessageBusOptions());
-        
+
         // Registrar implementações
         services.AddSingleton<RabbitMqMessageBus>();
         services.AddSingleton<ServiceBusMessageBus>();
         services.AddSingleton<IMessageBusFactory, EnvironmentBasedMessageBusFactory>();
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();
-        
+
         // Act
         var messageBus = factory.CreateMessageBus();
-        
+
         // Assert
         messageBus.Should().BeOfType<RabbitMqMessageBus>("Development deve usar RabbitMQ");
     }
@@ -73,45 +73,45 @@ public class MessageBusSelectionTests : Base.ApiTestBase
         // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
-        
+
         // Registrar IConfiguration no DI
         services.AddSingleton<IConfiguration>(configuration);
-        
+
         // Simular ambiente Production
         services.AddSingleton<IHostEnvironment>(new TestHostEnvironment("Production"));
         services.AddSingleton<ILogger<EnvironmentBasedMessageBusFactory>>(new TestLogger<EnvironmentBasedMessageBusFactory>());
         services.AddSingleton<ILogger<RabbitMqMessageBus>>(new TestLogger<RabbitMqMessageBus>());
         services.AddSingleton<ILogger<ServiceBusMessageBus>>(new TestLogger<ServiceBusMessageBus>());
-        
+
         // Configurar opções mínimas
-        var serviceBusOptions = new ServiceBusOptions 
-        { 
-            ConnectionString = "Endpoint=sb://test/;SharedAccessKeyName=test;SharedAccessKey=test", 
-            DefaultTopicName = "test" 
+        var serviceBusOptions = new ServiceBusOptions
+        {
+            ConnectionString = "Endpoint=sb://test/;SharedAccessKeyName=test;SharedAccessKey=test",
+            DefaultTopicName = "test"
         };
-        
+
         services.AddSingleton(new RabbitMqOptions { ConnectionString = "amqp://localhost", DefaultQueueName = "test" });
         services.AddSingleton(serviceBusOptions);
         services.AddSingleton(new MessageBusOptions());
-        
+
         // Registrar ServiceBusClient para ServiceBusMessageBus
         services.AddSingleton(serviceProvider => new Azure.Messaging.ServiceBus.ServiceBusClient(serviceBusOptions.ConnectionString));
-        
+
         // Registrar dependências necessárias
         services.AddSingleton<IEventTypeRegistry, EventTypeRegistry>();
         services.AddSingleton<ITopicStrategySelector, TopicStrategySelector>();
-        
+
         // Registrar implementações
         services.AddSingleton<RabbitMqMessageBus>();
         services.AddSingleton<ServiceBusMessageBus>();
         services.AddSingleton<IMessageBusFactory, EnvironmentBasedMessageBusFactory>();
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();
-        
+
         // Act
         var messageBus = factory.CreateMessageBus();
-        
+
         // Assert
         messageBus.Should().BeOfType<ServiceBusMessageBus>("Production deve usar Azure Service Bus");
     }

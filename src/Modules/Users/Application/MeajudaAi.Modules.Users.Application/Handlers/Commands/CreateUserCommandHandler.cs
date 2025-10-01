@@ -78,7 +78,7 @@ internal sealed class CreateUserCommandHandler(
             await PersistUserAsync(userResult.Value, stopwatch, cancellationToken);
 
             stopwatch.Stop();
-            logger.LogInformation("User {UserId} created successfully for email {Email} in {ElapsedMs}ms", 
+            logger.LogInformation("User {UserId} created successfully for email {Email} in {ElapsedMs}ms",
                 userResult.Value.Id, command.Email, stopwatch.ElapsedMilliseconds);
 
             return Result<UserDto>.Success(userResult.Value.ToDto());
@@ -86,7 +86,7 @@ internal sealed class CreateUserCommandHandler(
         catch (Exception ex)
         {
             stopwatch.Stop();
-            logger.LogError(ex, "Unexpected error creating user for email {Email} after {ElapsedMs}ms", 
+            logger.LogError(ex, "Unexpected error creating user for email {Email} after {ElapsedMs}ms",
                 command.Email, stopwatch.ElapsedMilliseconds);
             return Result<UserDto>.Failure($"Failed to create user: {ex.Message}");
         }
@@ -96,7 +96,7 @@ internal sealed class CreateUserCommandHandler(
     /// Valida se o email e username são únicos no sistema.
     /// </summary>
     private async Task<Result<Unit>> ValidateUniquenessAsync(
-        CreateUserCommand command, 
+        CreateUserCommand command,
         CancellationToken cancellationToken)
     {
         // Verifica se já existe usuário com o email informado
@@ -130,7 +130,7 @@ internal sealed class CreateUserCommandHandler(
         System.Diagnostics.Stopwatch stopwatch,
         CancellationToken cancellationToken)
     {
-        logger.LogDebug("Creating user domain entity for email {Email}, username {Username}", 
+        logger.LogDebug("Creating user domain entity for email {Email}, username {Username}",
             command.Email, command.Username);
 
         var userCreationStart = stopwatch.ElapsedMilliseconds;
@@ -143,7 +143,7 @@ internal sealed class CreateUserCommandHandler(
             command.Roles,
             cancellationToken);
 
-        logger.LogDebug("User domain service completed in {ElapsedMs}ms", 
+        logger.LogDebug("User domain service completed in {ElapsedMs}ms",
             stopwatch.ElapsedMilliseconds - userCreationStart);
 
         if (userResult.IsFailure)
@@ -165,8 +165,8 @@ internal sealed class CreateUserCommandHandler(
         logger.LogDebug("Persisting user {UserId} to repository", user.Id);
         var persistenceStart = stopwatch.ElapsedMilliseconds;
         await userRepository.AddAsync(user, cancellationToken);
-        
-        logger.LogDebug("User persistence completed in {ElapsedMs}ms", 
+
+        logger.LogDebug("User persistence completed in {ElapsedMs}ms",
             stopwatch.ElapsedMilliseconds - persistenceStart);
     }
 }

@@ -23,7 +23,7 @@ public sealed class DatabasePerformanceHealthCheck(
         {
             // Verificar se o sistema de métricas está configurado
             var metricsConfigured = metrics != null;
-            
+
             var description = "Database monitoring active";
             var data = new Dictionary<string, object>
             {

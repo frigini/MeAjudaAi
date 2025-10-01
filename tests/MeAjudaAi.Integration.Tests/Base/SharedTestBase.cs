@@ -18,10 +18,10 @@ public abstract class SharedTestBase(SharedTestFixture sharedFixture) : IAsyncLi
     {
         // Usa o fixture compartilhado que já está inicializado
         await sharedFixture.InitializeAsync();
-        
+
         // Reutiliza o client HTTP do fixture
         ApiClient = sharedFixture.GetOrCreateHttpClient("apiservice");
-        
+
         // Verificação rápida de saúde (opcional, só se necessário)
         if (!await sharedFixture.IsApiHealthyAsync())
         {

@@ -182,7 +182,7 @@ public class ExampleSchemaFilter : ISchemaFilter
         if (firstValue == null) return;
 
         // Check if schema represents enum as integer or string
-        var isIntegerEnum = schema.Type == "integer" || 
+        var isIntegerEnum = schema.Type == "integer" ||
                            (schema.Enum?.Count > 0 && schema.Enum[0] is OpenApiInteger);
 
         if (isIntegerEnum)

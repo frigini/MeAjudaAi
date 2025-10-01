@@ -5,8 +5,8 @@ var builder = DistributedApplication.CreateBuilder(args);
 // Detecção de ambiente de teste
 var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 var builderEnv = builder.Environment.EnvironmentName;
-var isTestingEnv = envName == "Testing" || 
-                  builderEnv == "Testing" || 
+var isTestingEnv = envName == "Testing" ||
+                  builderEnv == "Testing" ||
                   Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true";
 
 if (isTestingEnv)

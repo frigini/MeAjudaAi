@@ -29,7 +29,7 @@ public static class Extensions
     private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
         // Usa PostgreSQL para todos os ambientes (TestContainers fornecerá database de teste)
-        var connectionString = configuration.GetConnectionString("DefaultConnection") 
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
                               ?? configuration.GetConnectionString("Users")
                               ?? configuration.GetConnectionString("meajudaai-db");
 
@@ -37,12 +37,12 @@ public static class Extensions
         {
             // Obter interceptor de métricas se disponível
             var metricsInterceptor = serviceProvider.GetService<DatabaseMetricsInterceptor>();
-            
+
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
-                
+
                 // PERFORMANCE: Timeout mais longo para permitir criação do banco de dados
                 npgsqlOptions.CommandTimeout(60);
             })
@@ -50,7 +50,7 @@ public static class Extensions
             // Configurações consistentes para evitar problemas com compiled queries
             .EnableServiceProviderCaching()
             .EnableSensitiveDataLogging(false);
-            
+
             // Adiciona interceptor de métricas se disponível
             if (metricsInterceptor != null)
             {
@@ -89,7 +89,7 @@ public static class Extensions
         // Verifica se Keycloak está habilitado para usar implementação real ou mock
         var keycloakEnabledString = configuration["Keycloak:Enabled"];
         var keycloakEnabled = !string.Equals(keycloakEnabledString, "false", StringComparison.OrdinalIgnoreCase);
-        
+
         if (keycloakEnabled)
         {
             services.AddHttpClient<IKeycloakService, KeycloakService>();

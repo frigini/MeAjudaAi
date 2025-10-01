@@ -24,10 +24,10 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     private PostgreSqlContainer _postgresContainer = null!;
     private RedisContainer _redisContainer = null!;
     private WebApplicationFactory<Program> _factory = null!;
-    
+
     protected HttpClient ApiClient { get; private set; } = null!;
     protected Faker Faker { get; } = new();
-    
+
     protected static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
 
     public virtual async Task InitializeAsync()
@@ -56,7 +56,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
             {
                 builder.UseEnvironment("Testing");
                 Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
-                
+
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
                     config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -85,7 +85,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         ["RateLimit:SearchRequestsPerMinute"] = "10000",
                         ["RateLimit:WindowInSeconds"] = "60"
                     });
-                    
+
                     // Adicionar ambiente de teste
                     config.AddEnvironmentVariables("MEAJUDAAI_TEST_");
                 });
@@ -118,7 +118,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     var keycloakDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IKeycloakService));
                     if (keycloakDescriptor != null)
                         services.Remove(keycloakDescriptor);
-                    
+
                     services.AddScoped<IKeycloakService, MockKeycloakService>();
 
                     // Remove todas as configurações de autenticação existentes
@@ -147,10 +147,10 @@ public abstract class TestContainerTestBase : IAsyncLifetime
             });
 
         ApiClient = _factory.CreateClient();
-        
+
         // Aplicar migrações diretamente no banco TestContainer
         await ApplyMigrationsAsync();
-        
+
         // Aguardar API ficar disponível
         await WaitForApiHealthAsync();
     }
@@ -159,10 +159,10 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     {
         ApiClient?.Dispose();
         _factory?.Dispose();
-        
+
         if (_postgresContainer != null)
             await _postgresContainer.StopAsync();
-            
+
         if (_redisContainer != null)
             await _redisContainer.StopAsync();
     }
@@ -203,7 +203,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     {
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        
+
         // Para E2E tests, sempre recriar o banco do zero
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();

@@ -23,7 +23,7 @@ public static class Extensions
     /// Usa os scripts existentes em infrastructure/database/schemas
     /// </summary>
     public static async Task<IServiceCollection> AddUsersModuleWithSchemaIsolationAsync(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         IConfiguration configuration,
         string? usersRolePassword = null,
         string? appRolePassword = null)

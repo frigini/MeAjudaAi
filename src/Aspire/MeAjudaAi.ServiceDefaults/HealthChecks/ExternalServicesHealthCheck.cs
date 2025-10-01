@@ -7,7 +7,7 @@ namespace MeAjudaAi.ServiceDefaults.HealthChecks;
 /// Health check para verificar a conectividade com serviços externos
 /// </summary>
 public class ExternalServicesHealthCheck(
-    HttpClient httpClient, 
+    HttpClient httpClient,
     ExternalServicesOptions externalServicesOptions,
     ILogger<ExternalServicesHealthCheck> logger) : IHealthCheck
 {
@@ -22,21 +22,21 @@ public class ExternalServicesHealthCheck(
             // Verifica o Keycloak se estiver habilitado
             if (externalServicesOptions.Keycloak.Enabled)
             {
-                var (IsHealthy, Error)= await CheckKeycloakAsync(cancellationToken);
+                var (IsHealthy, Error) = await CheckKeycloakAsync(cancellationToken);
                 results.Add(("Keycloak", IsHealthy, Error));
             }
 
             // Verifica APIs de pagamento externas (implementação futura)
             if (externalServicesOptions.PaymentGateway.Enabled)
             {
-                var (IsHealthy, Error)= await CheckPaymentGatewayAsync(cancellationToken);
+                var (IsHealthy, Error) = await CheckPaymentGatewayAsync(cancellationToken);
                 results.Add(("Payment Gateway", IsHealthy, Error));
             }
 
             // Verifica serviços de geolocalização (implementação futura)
             if (externalServicesOptions.Geolocation.Enabled)
             {
-                var (IsHealthy, Error)= await CheckGeolocationAsync(cancellationToken);
+                var (IsHealthy, Error) = await CheckGeolocationAsync(cancellationToken);
                 results.Add(("Geolocation Service", IsHealthy, Error));
             }
 

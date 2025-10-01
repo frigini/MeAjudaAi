@@ -20,7 +20,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     {
         // Arrange
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
-        
+
         var userData = new
         {
             username = "testuser_softdelete",
@@ -32,7 +32,7 @@ public class ImplementedFeaturesTests : ApiTestBase
 
         // Act - Criar usuário
         var createResponse = await Client.PostAsJsonAsync("/api/v1/users", userData);
-        
+
         if (createResponse.IsSuccessStatusCode)
         {
             var createContent = await createResponse.Content.ReadAsStringAsync();
@@ -55,7 +55,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     {
         // Arrange
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
-        
+
         var userData = new
         {
             username = "validuser",
@@ -71,7 +71,7 @@ public class ImplementedFeaturesTests : ApiTestBase
 
         // Assert - FluentValidation deve estar funcionando (não deve ter erro de validação)
         Assert.True(response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.BadRequest);
-        
+
         // Se for BadRequest, deve ser erro de negócio, não de configuração
         if (!response.IsSuccessStatusCode)
         {
@@ -85,7 +85,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     {
         // Arrange
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
-        
+
         var invalidUserData = new
         {
             username = "", // Username vazio - deve falhar
@@ -101,7 +101,7 @@ public class ImplementedFeaturesTests : ApiTestBase
 
         // Assert - Deve retornar erro de validação
         Assert.False(response.IsSuccessStatusCode);
-        
+
         // Deve ser BadRequest com detalhes de validação
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -123,15 +123,15 @@ public class ImplementedFeaturesTests : ApiTestBase
         {
             var response = await Client.GetAsync(endpoint);
             var content = await response.Content.ReadAsStringAsync();
-            
+
             // DEBUG: Ver qual status code está sendo retornado
             Console.WriteLine($"[FILTER-TEST] Endpoint: {endpoint}");
             Console.WriteLine($"[FILTER-TEST] Status: {response.StatusCode}");
             Console.WriteLine($"[FILTER-TEST] Content: {content.Substring(0, Math.Min(200, content.Length))}");
-            
+
             // Deve retornar OK (autenticado) ou específicos códigos de erro esperados
             Assert.True(
-                response.IsSuccessStatusCode || 
+                response.IsSuccessStatusCode ||
                 response.StatusCode == System.Net.HttpStatusCode.BadRequest,
                 $"Unexpected status {response.StatusCode} for endpoint {endpoint}. Content: {content}"
             );

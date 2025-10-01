@@ -20,24 +20,24 @@ public static class MockInfrastructureExtensions
         services.Configure<LoggerFilterOptions>(options =>
         {
             options.MinLevel = LogLevel.Warning; // Apenas Warning e Error
-            
+
             // Específicos para Entity Framework (muito verboso)
             options.Rules.Add(new LoggerFilterRule(null, "Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Error, null));
             options.Rules.Add(new LoggerFilterRule(null, "Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Error, null));
             options.Rules.Add(new LoggerFilterRule(null, "Microsoft.EntityFrameworkCore.Migrations", LogLevel.Warning, null));
-            
+
             // Específicos para ASP.NET Core
             options.Rules.Add(new LoggerFilterRule(null, "Microsoft.AspNetCore.Hosting", LogLevel.Warning, null));
             options.Rules.Add(new LoggerFilterRule(null, "Microsoft.AspNetCore.Routing", LogLevel.Error, null));
             options.Rules.Add(new LoggerFilterRule(null, "Microsoft.AspNetCore.Authentication", LogLevel.Warning, null));
-            
+
             // Específicos para HTTP Client
             options.Rules.Add(new LoggerFilterRule(null, "System.Net.Http.HttpClient", LogLevel.Error, null));
-            
+
             // TestContainers (apenas erros críticos)
             options.Rules.Add(new LoggerFilterRule(null, "Testcontainers", LogLevel.Error, null));
         });
-        
+
         return services;
     }
 
@@ -57,16 +57,16 @@ public static class MockInfrastructureExtensions
             ["Logging:LogLevel:Microsoft.EntityFrameworkCore.Database.Command"] = "Error",
             ["Logging:LogLevel:Microsoft.EntityFrameworkCore.Infrastructure"] = "Error",
             ["Logging:LogLevel:System.Net.Http.HttpClient"] = "Error",
-            
+
             // Desabilita features desnecessárias em testes
             ["HealthChecks:EnableDetailedErrors"] = "false",
             ["Metrics:Enabled"] = "false",
             ["OpenTelemetry:Enabled"] = "false",
-            
+
             // Timeouts otimizados para testes
             ["HttpClient:Timeout"] = "00:00:30",
             ["Database:CommandTimeout"] = "30",
-            
+
             // Desabilita caches que podem interferir
             ["ResponseCaching:Enabled"] = "false",
             ["OutputCaching:Enabled"] = "false"
@@ -98,14 +98,14 @@ public static class MockInfrastructureExtensions
         ).ToList();
 
         var allServicesToRemove = cacheServices.Concat(cachingBehaviors).Concat(authHandlers).ToList();
-        
+
         foreach (var service in allServicesToRemove)
         {
             services.Remove(service);
         }
 
         // Cache services removidos para testes
-        
+
         return services;
     }
 
@@ -133,7 +133,7 @@ public static class TestEnvironmentProfiles
     {
         services.AddMockLogging();
         services.RemoveProductionServices();
-        
+
         // Configurações específicas para unit tests
         services.Configure<LoggerFilterOptions>(options =>
         {
@@ -148,12 +148,12 @@ public static class TestEnvironmentProfiles
     {
         services.AddMockLogging();
         services.RemoveProductionServices();
-        
+
         // Add messaging mocks for integration tests
         services.AddMessagingMocks();
-        
+
         // NOTE: Authentication will be configured separately to avoid conflicts
-        
+
         // Force reconfigure PostgresOptions to use test configuration
         // Remove existing PostgresOptions and reconfigure with test priority
         var existingOptions = services.FirstOrDefault(s => s.ServiceType == typeof(MeAjudaAi.Shared.Database.PostgresOptions));
@@ -161,19 +161,19 @@ public static class TestEnvironmentProfiles
         {
             services.Remove(existingOptions);
         }
-        
+
         // Re-add with test configuration priority
         services.AddOptions<MeAjudaAi.Shared.Database.PostgresOptions>()
             .Configure<IConfiguration>((opts, config) =>
             {
-                opts.ConnectionString = 
+                opts.ConnectionString =
                     config.GetConnectionString("DefaultConnection") ??      // TestContainer connection (highest priority)
                     config.GetConnectionString("meajudaai-db-local") ??
                     config.GetConnectionString("meajudaai-db") ??
                     config["Postgres:ConnectionString"] ??
                     string.Empty;
             });
-        
+
         // Permite warnings importantes em integration tests
         services.Configure<LoggerFilterOptions>(options =>
         {
@@ -187,12 +187,12 @@ public static class TestEnvironmentProfiles
     public static void ConfigureForE2ETests(IServiceCollection services)
     {
         services.AddMockLogging();
-        
+
         // E2E tests podem precisar de mais informações
         services.Configure<LoggerFilterOptions>(options =>
         {
             options.MinLevel = LogLevel.Information;
-            
+
             // Mas ainda silencia EF Core
             options.Rules.Add(new LoggerFilterRule(null, "Microsoft.EntityFrameworkCore", LogLevel.Warning, null));
         });
@@ -207,7 +207,7 @@ public static class TestTypeDetector
     public static TestType DetectTestType()
     {
         var testAssembly = System.Reflection.Assembly.GetCallingAssembly().GetName().Name;
-        
+
         return testAssembly switch
         {
             var name when name?.Contains("Unit") == true => TestType.Unit,
@@ -220,7 +220,7 @@ public static class TestTypeDetector
     public static void ConfigureServicesForTestType(IServiceCollection services)
     {
         var testType = DetectTestType();
-        
+
         switch (testType)
         {
             case TestType.Unit:

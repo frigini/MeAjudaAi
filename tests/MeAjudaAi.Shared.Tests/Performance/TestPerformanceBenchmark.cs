@@ -18,15 +18,15 @@ public class TestPerformanceBenchmark(ITestOutputHelper output, ILogger? logger 
     {
         var stopwatch = Stopwatch.StartNew();
         var memoryBefore = GC.GetTotalMemory(false);
-        
+
         try
         {
             var result = await operation();
             stopwatch.Stop();
-            
+
             var memoryAfter = GC.GetTotalMemory(false);
             var memoryUsed = memoryAfter - memoryBefore;
-            
+
             var benchmarkResult = new BenchmarkResult
             {
                 OperationName = operationName,
@@ -35,16 +35,16 @@ public class TestPerformanceBenchmark(ITestOutputHelper output, ILogger? logger 
                 Success = true,
                 Timestamp = DateTime.UtcNow
             };
-            
+
             _results[operationName] = benchmarkResult;
             LogResult(benchmarkResult);
-            
+
             return result;
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            
+
             var benchmarkResult = new BenchmarkResult
             {
                 OperationName = operationName,
@@ -54,10 +54,10 @@ public class TestPerformanceBenchmark(ITestOutputHelper output, ILogger? logger 
                 ErrorMessage = ex.Message,
                 Timestamp = DateTime.UtcNow
             };
-            
+
             _results[operationName] = benchmarkResult;
             LogResult(benchmarkResult);
-            
+
             throw;
         }
     }
@@ -91,7 +91,7 @@ public class TestPerformanceBenchmark(ITestOutputHelper output, ILogger? logger 
     public void CompareWithBaseline(Dictionary<string, long> baselineMs)
     {
         output.WriteLine("\n=== COMPARAÇÃO COM BASELINE ===");
-        
+
         foreach (var baseline in baselineMs)
         {
             if (_results.TryGetValue(baseline.Key, out var result))
@@ -99,7 +99,7 @@ public class TestPerformanceBenchmark(ITestOutputHelper output, ILogger? logger 
                 var improvement = ((double)(baseline.Value - result.ElapsedMilliseconds) / baseline.Value) * 100;
                 var icon = improvement > 0 ? "🚀" : "🐌";
                 var sign = improvement > 0 ? "+" : "";
-                
+
                 output.WriteLine($"{icon} {baseline.Key}: {sign}{improvement:F1}%");
             }
         }
@@ -140,14 +140,14 @@ public static class BenchmarkExtensions
     /// Benchmark rápido para uma operação em teste
     /// </summary>
     public static async Task<T> BenchmarkOperationAsync<T>(
-        this ITestOutputHelper output, 
-        string operationName, 
+        this ITestOutputHelper output,
+        string operationName,
         Func<Task<T>> operation,
         long? expectedMaxMs = null)
     {
         var benchmark = new TestPerformanceBenchmark(output);
         var result = await benchmark.BenchmarkAsync(operationName, operation);
-        
+
         if (expectedMaxMs.HasValue)
         {
             var actualMs = benchmark.GetResult(operationName)?.ElapsedMilliseconds ?? 0;
@@ -156,7 +156,7 @@ public static class BenchmarkExtensions
                 output.WriteLine($"⚠️ PERFORMANCE WARNING: {operationName} took {actualMs}ms, expected <{expectedMaxMs}ms");
             }
         }
-        
+
         return result;
     }
 }

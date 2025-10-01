@@ -8,17 +8,17 @@ public static class UsersCacheKeys
 {
     private const string UserPrefix = "user";
     private const string UsersPrefix = "users";
-    
+
     /// <summary>
     /// Chave para cache de usuário por ID
     /// </summary>
     public static string UserById(Guid userId) => $"{UserPrefix}:id:{userId}";
-    
+
     /// <summary>
     /// Chave para cache de usuário por email
     /// </summary>
     public static string UserByEmail(string email) => $"{UserPrefix}:email:{email.ToLowerInvariant()}";
-    
+
     /// <summary>
     /// Chave para cache de lista paginada de usuários
     /// </summary>
@@ -27,7 +27,7 @@ public static class UsersCacheKeys
         var key = $"{UsersPrefix}:list:{page}:{pageSize}";
         return string.IsNullOrEmpty(filter) ? key : $"{key}:filter:{filter}";
     }
-    
+
     /// <summary>
     /// Chave para cache de contagem total de usuários
     /// </summary>
@@ -36,17 +36,17 @@ public static class UsersCacheKeys
         var key = $"{UsersPrefix}:count";
         return string.IsNullOrEmpty(filter) ? key : $"{key}:filter:{filter}";
     }
-    
+
     /// <summary>
     /// Chave para cache de roles de um usuário
     /// </summary>
     public static string UserRoles(Guid userId) => $"{UserPrefix}:roles:{userId}";
-    
+
     /// <summary>
     /// Chave para cache de configurações relacionadas a usuários
     /// </summary>
     public const string UserSystemConfig = "user-system-config";
-    
+
     /// <summary>
     /// Chave para cache de estatísticas de usuários
     /// </summary>

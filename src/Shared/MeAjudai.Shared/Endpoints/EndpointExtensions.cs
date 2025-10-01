@@ -19,7 +19,7 @@ public static class EndpointExtensions
                 var createdResponse = new Response<T>(result.Value, 201, "Criado com sucesso");
                 return TypedResults.CreatedAtRoute(createdResponse, createdRoute, routeValues);
             }
-            
+
             return TypedResults.Ok(new Response<T>(result.Value));
         }
 

@@ -9,27 +9,27 @@ public static class UserRoles
     /// Usuário comum com permissões básicas
     /// </summary>
     public const string User = "user";
-    
+
     /// <summary>
     /// Administrador com permissões elevadas
     /// </summary>
     public const string Admin = "admin";
-    
+
     /// <summary>
     /// Super administrador com acesso total ao sistema
     /// </summary>
     public const string SuperAdmin = "super-admin";
-    
+
     /// <summary>
     /// Papel de prestador de serviço para contas empresariais
     /// </summary>
     public const string ServiceProvider = "service-provider";
-    
+
     /// <summary>
     /// Papel de cliente para contas de usuário final
     /// </summary>
     public const string Customer = "customer";
-    
+
     /// <summary>
     /// Papel de moderador para gestão de conteúdo (uso futuro)
     /// </summary>
@@ -38,7 +38,7 @@ public static class UserRoles
     /// <summary>
     /// Obtém todos os papéis disponíveis no sistema
     /// </summary>
-    public static readonly string[] AllRoles = 
+    public static readonly string[] AllRoles =
     [
         User,
         Admin,
@@ -51,7 +51,7 @@ public static class UserRoles
     /// <summary>
     /// Obtém papéis que possuem privilégios administrativos
     /// </summary>
-    public static readonly string[] AdminRoles = 
+    public static readonly string[] AdminRoles =
     [
         Admin,
         SuperAdmin
@@ -60,7 +60,7 @@ public static class UserRoles
     /// <summary>
     /// Obtém papéis disponíveis para criação de usuário comum
     /// </summary>
-    public static readonly string[] BasicRoles = 
+    public static readonly string[] BasicRoles =
     [
         User,
         Customer,

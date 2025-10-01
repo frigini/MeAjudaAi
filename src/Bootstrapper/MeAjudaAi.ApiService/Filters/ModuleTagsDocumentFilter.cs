@@ -23,10 +23,10 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
     {
         // Organizar tags em ordem lógica
         var orderedTags = new List<string> { "Users",/* "Services", "Bookings", "Notifications", "Reports", "Admin",*/ "Health" };
-        
+
         // Criar tags com descrições
         swaggerDoc.Tags = [];
-        
+
         foreach (var tagName in orderedTags)
         {
             if (_moduleDescriptions.TryGetValue(tagName, out var description))
@@ -60,23 +60,23 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
     private static HashSet<string> GetUsedTagsFromPaths(OpenApiDocument swaggerDoc)
     {
         var tags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        
+
         // Guard against null Paths collection
         if (swaggerDoc.Paths == null)
             return tags;
-        
+
         foreach (var path in swaggerDoc.Paths.Values)
         {
             // Guard against null path
             if (path?.Operations == null)
                 continue;
-                
+
             foreach (var operation in path.Operations.Values)
             {
                 // Guard against null operation or Tags collection
                 if (operation?.Tags == null)
                     continue;
-                    
+
                 foreach (var tag in operation.Tags)
                 {
                     // Skip tags with null or empty Name
@@ -87,7 +87,7 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
                 }
             }
         }
-        
+
         return tags;
     }
 
@@ -112,10 +112,10 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
     {
         // Adicionar componentes reutilizáveis
         swaggerDoc.Components ??= new OpenApiComponents();
-        
+
         // Exemplo de erro padrão
         swaggerDoc.Components.Examples ??= new Dictionary<string, OpenApiExample>();
-        
+
         swaggerDoc.Components.Examples["ErrorResponse"] = new OpenApiExample
         {
             Summary = "Resposta de Erro Padrão",
@@ -162,7 +162,7 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
 
         // Schemas reutilizáveis
         swaggerDoc.Components.Schemas ??= new Dictionary<string, OpenApiSchema>();
-        
+
         swaggerDoc.Components.Schemas["PaginationMetadata"] = new OpenApiSchema
         {
             Type = "object",

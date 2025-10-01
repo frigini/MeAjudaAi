@@ -36,14 +36,14 @@ public class LayerDependencyTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.DomainAssembly == domainAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "Domain entities should be sealed. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -68,14 +68,14 @@ public class LayerDependencyTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.DomainAssembly == domainAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "Domain events should end with 'Event'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -100,14 +100,14 @@ public class LayerDependencyTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.DomainAssembly == domainAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "Value objects should be sealed. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -132,14 +132,14 @@ public class LayerDependencyTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.ApplicationAssembly == applicationAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "Command handlers should end with 'Handler'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -164,14 +164,14 @@ public class LayerDependencyTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.ApplicationAssembly == applicationAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "Query handlers should end with 'Handler'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -196,14 +196,14 @@ public class LayerDependencyTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.InfrastructureAssembly == infrastructureAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "Infrastructure repositories should end with 'Repository'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -228,14 +228,14 @@ public class LayerDependencyTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.InfrastructureAssembly == infrastructureAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "Infrastructure configurations should end with 'Configuration'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 
@@ -260,14 +260,14 @@ public class LayerDependencyTests
             {
                 var moduleName = AllModules
                     .FirstOrDefault(m => m.ApiAssembly == apiAssembly)?.Name ?? "Unknown";
-                
+
                 failures.AddRange(result.FailingTypes?.Select(t => $"{moduleName}: {t.FullName}") ?? []);
             }
         }
 
         failures.Should().BeEmpty(
             "API controllers should end with 'Controller'. " +
-            "Violations: {0}", 
+            "Violations: {0}",
             string.Join(", ", failures));
     }
 }

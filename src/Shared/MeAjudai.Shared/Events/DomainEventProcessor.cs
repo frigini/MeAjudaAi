@@ -15,7 +15,7 @@ public class DomainEventProcessor(IServiceProvider serviceProvider) : IDomainEve
     private async Task ProcessSingleEventAsync(IDomainEvent domainEvent, CancellationToken cancellationToken)
     {
         var eventType = domainEvent.GetType();
-        
+
         // Buscar todos os handlers para este tipo de evento
         var handlerType = typeof(IEventHandler<>).MakeGenericType(eventType);
         var handlers = serviceProvider.GetServices(handlerType);

@@ -63,7 +63,7 @@ internal sealed class GetUserByIdQueryHandler(
                 async ct =>
                 {
                     logger.LogDebug("Cache miss - fetching user from repository. UserId: {UserId}", query.UserId);
-                    
+
                     var user = await userRepository.GetByIdAsync(new UserId(query.UserId), ct);
                     return user?.ToDto();
                 },
@@ -74,7 +74,7 @@ internal sealed class GetUserByIdQueryHandler(
                 logger.LogWarning(
                     "User not found. CorrelationId: {CorrelationId}, UserId: {UserId}",
                     correlationId, query.UserId);
-                
+
                 return Result<UserDto>.Failure(Error.NotFound("User not found"));
             }
 
@@ -89,7 +89,7 @@ internal sealed class GetUserByIdQueryHandler(
             logger.LogError(ex,
                 "Failed to retrieve user by ID. CorrelationId: {CorrelationId}, UserId: {UserId}",
                 correlationId, query.UserId);
-            
+
             return Result<UserDto>.Failure($"Failed to retrieve user: {ex.Message}");
         }
     }

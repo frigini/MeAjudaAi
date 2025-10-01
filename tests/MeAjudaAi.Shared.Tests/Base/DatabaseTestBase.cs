@@ -20,7 +20,7 @@ public abstract class DatabaseTestBase : IAsyncLifetime
     protected DatabaseTestBase(TestDatabaseOptions? databaseOptions = null)
     {
         _databaseOptions = databaseOptions ?? GetDefaultDatabaseOptions();
-        
+
         _postgresContainer = new PostgreSqlBuilder()
             .WithImage("postgres:17.5")
             .WithDatabase(_databaseOptions.DatabaseName)
@@ -36,7 +36,7 @@ public abstract class DatabaseTestBase : IAsyncLifetime
     protected virtual TestDatabaseOptions GetDefaultDatabaseOptions() => new()
     {
         DatabaseName = "meajudaai_test",
-        Username = "test_user", 
+        Username = "test_user",
         Password = "test_password",
         Schema = "public"
     };
@@ -132,14 +132,14 @@ public abstract class DatabaseTestBase : IAsyncLifetime
 
         using var connection = new Npgsql.NpgsqlConnection(ConnectionString);
         await connection.OpenAsync();
-        
+
         // Aguarda até que pelo menos uma tabela seja criada
         var maxAttempts = 20; // Aumentado de 10 para 20
         var attempt = 0;
-        
+
         // Schemas que podem conter tabelas (genérico para todos os módulos)
         var schemasToCheck = GetExpectedSchemas();
-        
+
         while (attempt < maxAttempts)
         {
             using var checkCommand = connection.CreateCommand();
@@ -149,18 +149,18 @@ public abstract class DatabaseTestBase : IAsyncLifetime
                 WHERE table_schema IN ({string.Join(", ", schemasToCheck.Select(s => $"'{s}'"))})
                 AND table_type = 'BASE TABLE'
                 AND table_name != '__EFMigrationsHistory'";
-            
+
             var tableCount = (long)(await checkCommand.ExecuteScalarAsync() ?? 0L);
-            
+
             if (tableCount > 0)
             {
                 break; // Tabelas encontradas, pode inicializar o Respawner
             }
-            
+
             attempt++;
             await Task.Delay(1000); // Aumentado de 500ms para 1000ms
         }
-        
+
         _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
@@ -175,8 +175,8 @@ public abstract class DatabaseTestBase : IAsyncLifetime
     /// </summary>
     protected virtual string[] GetExpectedSchemas()
     {
-        return string.IsNullOrWhiteSpace(_databaseOptions.Schema) 
-            ? ["public"] 
+        return string.IsNullOrWhiteSpace(_databaseOptions.Schema)
+            ? ["public"]
             : ["public", _databaseOptions.Schema];
     }
 

@@ -19,13 +19,13 @@ public abstract class BuilderBase<T> where T : class
     public virtual T Build()
     {
         var instance = Faker.Generate();
-        
+
         // Aplica ações customizadas
         foreach (var action in _customActions)
         {
             action(instance);
         }
-        
+
         return instance;
     }
 

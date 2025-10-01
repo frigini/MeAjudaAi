@@ -12,10 +12,10 @@ public static class Extensions
         IConfiguration configuration)
     {
         services.AddOptions<PostgresOptions>()
-            .Configure(opts => 
+            .Configure(opts =>
             {
                 // Tenta múltiplas fontes de string de conexão em ordem de preferência
-                opts.ConnectionString = 
+                opts.ConnectionString =
                     configuration.GetConnectionString("DefaultConnection") ??  // Sobrescrita para testes
                     configuration.GetConnectionString("meajudaai-db-local") ??  // Aspire para testes
                     configuration.GetConnectionString("meajudaai-db") ??        // Aspire para desenvolvimento
@@ -60,7 +60,7 @@ public static class Extensions
         string? appRolePassword = null)
     {
         // Obter string de conexão admin
-        var adminConnectionString = 
+        var adminConnectionString =
             configuration.GetConnectionString("meajudaai-db-admin") ??
             configuration.GetConnectionString("meajudaai-db") ??
             configuration["Postgres:ConnectionString"];
@@ -134,10 +134,10 @@ public static class Extensions
     {
         // Registra métricas de banco de dados
         services.AddSingleton<DatabaseMetrics>();
-        
+
         // Registra interceptor para Entity Framework
         services.AddSingleton<DatabaseMetricsInterceptor>();
-        
+
         return services;
     }
 }

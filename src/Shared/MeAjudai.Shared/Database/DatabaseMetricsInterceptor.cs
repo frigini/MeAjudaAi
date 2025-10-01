@@ -45,7 +45,7 @@ public class DatabaseMetricsInterceptor(DatabaseMetrics metrics, ILogger<Databas
         return trimmed switch
         {
             var text when text.StartsWith("SELECT") => "SELECT",
-            var text when text.StartsWith("INSERT") => "INSERT", 
+            var text when text.StartsWith("INSERT") => "INSERT",
             var text when text.StartsWith("UPDATE") => "UPDATE",
             var text when text.StartsWith("DELETE") => "DELETE",
             _ => "OTHER"

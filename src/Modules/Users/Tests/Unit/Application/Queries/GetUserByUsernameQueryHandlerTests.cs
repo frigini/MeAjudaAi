@@ -52,7 +52,7 @@ public class GetUserByUsernameQueryHandlerTests
         result.Value.Email.Should().Be("test@example.com");
         result.Value.FirstName.Should().Be("Test");
         result.Value.LastName.Should().Be("User");
-        
+
         _userRepositoryMock.Verify(
             x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()),
             Times.Once);
@@ -77,7 +77,7 @@ public class GetUserByUsernameQueryHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error.Message.Should().Be("User not found");
-        
+
         _userRepositoryMock.Verify(
             x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()),
             Times.Once);
@@ -104,7 +104,7 @@ public class GetUserByUsernameQueryHandlerTests
         result.Error.Should().NotBeNull();
         result.Error.Message.Should().Contain("Failed to retrieve user");
         result.Error.Message.Should().Contain("Database connection failed");
-        
+
         _userRepositoryMock.Verify(
             x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()),
             Times.Once);

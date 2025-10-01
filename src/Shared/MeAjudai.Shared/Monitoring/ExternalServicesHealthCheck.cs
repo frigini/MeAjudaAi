@@ -24,11 +24,12 @@ public partial class MeAjudaAiHealthChecks
                 if (!string.IsNullOrEmpty(keycloakUrl))
                 {
                     var response = await httpClient.GetAsync($"{keycloakUrl}/realms/meajudaai", cancellationToken);
-                    results["keycloak"] = new { 
+                    results["keycloak"] = new
+                    {
                         status = response.IsSuccessStatusCode ? "healthy" : "unhealthy",
                         response_time_ms = 0 // Could measure actual response time
                     };
-                    
+
                     if (!response.IsSuccessStatusCode)
                         allHealthy = false;
                 }
@@ -44,7 +45,7 @@ public partial class MeAjudaAiHealthChecks
             results["timestamp"] = DateTime.UtcNow;
             results["overall_status"] = allHealthy ? "healthy" : "degraded";
 
-            return allHealthy 
+            return allHealthy
                 ? HealthCheckResult.Healthy("All external services are operational", results)
                 : HealthCheckResult.Degraded("Some external services are not operational", data: results);
         }

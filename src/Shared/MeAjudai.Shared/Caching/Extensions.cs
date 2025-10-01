@@ -24,7 +24,7 @@ internal static class Extensions
         services.AddStackExchangeRedisCache(options =>
         {
             // Tenta múltiplas fontes de string de conexão Redis em ordem de preferência
-            options.Configuration = 
+            options.Configuration =
                 configuration.GetConnectionString("redis") ??          // Nome padrão Aspire
                 configuration.GetConnectionString("Redis") ??          // Configuração manual
                 "localhost:6379";                                      // Fallback para testes
@@ -33,7 +33,7 @@ internal static class Extensions
 
         // Registra métricas de cache
         services.AddSingleton<CacheMetrics>();
-        
+
         // Registra serviços de cache
         services.AddSingleton<ICacheService, HybridCacheService>();
         services.AddSingleton<ICacheWarmupService, CacheWarmupService>();

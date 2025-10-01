@@ -15,7 +15,7 @@ public class LoggingContextMiddleware(RequestDelegate next, ILogger<LoggingConte
     public async Task InvokeAsync(HttpContext context)
     {
         // Gerar ou usar correlation ID existente
-        var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault() 
+        var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault()
                            ?? UuidGenerator.NewIdString();
 
         // Adicionar correlation ID ao response header
@@ -29,32 +29,32 @@ public class LoggingContextMiddleware(RequestDelegate next, ILogger<LoggingConte
         using (LogContext.PushProperty("RemoteIpAddress", context.Connection.RemoteIpAddress?.ToString()))
         {
             var stopwatch = Stopwatch.StartNew();
-            
+
             try
             {
-                logger.LogInformation("Request started {Method} {Path}", 
+                logger.LogInformation("Request started {Method} {Path}",
                     context.Request.Method, context.Request.Path);
 
                 await next(context);
 
                 stopwatch.Stop();
-                
+
                 logger.LogInformation("Request completed {Method} {Path} - {StatusCode} in {ElapsedMilliseconds}ms",
-                    context.Request.Method, 
-                    context.Request.Path, 
+                    context.Request.Method,
+                    context.Request.Path,
                     context.Response.StatusCode,
                     stopwatch.ElapsedMilliseconds);
             }
             catch (Exception ex)
             {
                 stopwatch.Stop();
-                
+
                 logger.LogError(ex, "Request failed {Method} {Path} - {StatusCode} in {ElapsedMilliseconds}ms",
-                    context.Request.Method, 
-                    context.Request.Path, 
+                    context.Request.Method,
+                    context.Request.Path,
                     context.Response.StatusCode,
                     stopwatch.ElapsedMilliseconds);
-                
+
                 throw;
             }
         }
@@ -80,10 +80,10 @@ public static class LoggingExtensions
     public static IDisposable PushUserContext(this Microsoft.Extensions.Logging.ILogger logger, string? userId, string? username = null)
     {
         var disposables = new List<IDisposable>();
-        
+
         if (!string.IsNullOrEmpty(userId))
             disposables.Add(LogContext.PushProperty("UserId", userId));
-            
+
         if (!string.IsNullOrEmpty(username))
             disposables.Add(LogContext.PushProperty("Username", username));
 

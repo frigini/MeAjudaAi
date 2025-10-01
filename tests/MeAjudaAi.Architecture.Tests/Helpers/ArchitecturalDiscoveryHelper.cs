@@ -23,8 +23,8 @@ public static class ArchitecturalDiscoveryHelper
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes
                     .Where(type => type.Name.EndsWith("Handler") &&
-                                  type.GetInterfaces().Any(i => 
-                                      i.IsGenericType && 
+                                  type.GetInterfaces().Any(i =>
+                                      i.IsGenericType &&
                                       i.GetGenericTypeDefinition().Name.Contains("ICommandHandler"))))
                 .AsSelf());
         }
@@ -49,8 +49,8 @@ public static class ArchitecturalDiscoveryHelper
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes
                     .Where(type => type.Name.EndsWith("Handler") &&
-                                  type.GetInterfaces().Any(i => 
-                                      i.IsGenericType && 
+                                  type.GetInterfaces().Any(i =>
+                                      i.IsGenericType &&
                                       i.GetGenericTypeDefinition().Name.Contains("IQueryHandler"))))
                 .AsSelf());
         }
@@ -75,8 +75,8 @@ public static class ArchitecturalDiscoveryHelper
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes
                     .Where(type => type.Name.EndsWith("Handler") &&
-                                  type.GetInterfaces().Any(i => 
-                                      i.IsGenericType && 
+                                  type.GetInterfaces().Any(i =>
+                                      i.IsGenericType &&
                                       i.GetGenericTypeDefinition().Name.Contains("IEventHandler"))))
                 .AsSelf());
         }
@@ -100,7 +100,7 @@ public static class ArchitecturalDiscoveryHelper
             services.Scan(scan => scan
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes
-                    .Where(type => type.GetInterfaces().Any(i => 
+                    .Where(type => type.GetInterfaces().Any(i =>
                            i.Name.Contains("IDomainEvent"))))
                 .AsSelf());
         }
@@ -124,7 +124,7 @@ public static class ArchitecturalDiscoveryHelper
             services.Scan(scan => scan
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes
-                    .Where(type => type.GetInterfaces().Any(i => 
+                    .Where(type => type.GetInterfaces().Any(i =>
                            i.Name.Contains("ICommand"))))
                 .AsSelf());
         }
@@ -148,7 +148,7 @@ public static class ArchitecturalDiscoveryHelper
             services.Scan(scan => scan
                 .FromAssemblies(assembly)
                 .AddClasses(classes => classes
-                    .Where(type => type.GetInterfaces().Any(i => 
+                    .Where(type => type.GetInterfaces().Any(i =>
                            i.Name.Contains("IQuery"))))
                 .AsSelf());
         }

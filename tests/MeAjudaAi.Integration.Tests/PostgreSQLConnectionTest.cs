@@ -44,7 +44,7 @@ public class PostgreSQLConnectionTest
         }
 
         // Skip test if running in CI with limited resources
-        if (Environment.GetEnvironmentVariable("CI") == "true" || 
+        if (Environment.GetEnvironmentVariable("CI") == "true" ||
             Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true")
         {
             Assert.True(true, "Skipping heavy Aspire test in CI environment");
@@ -59,10 +59,10 @@ public class PostgreSQLConnectionTest
         {
             // Act
             using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>(cancellationToken);
-            
+
             await using var app = await appHost.BuildAsync(cancellationToken);
             var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
-            
+
             await app.StartAsync(cancellationToken);
 
             // Wait specifically for postgres-local to be running
@@ -89,7 +89,7 @@ public class PostgreSQLConnectionTest
         }
 
         // Skip test if running in CI with limited resources
-        if (Environment.GetEnvironmentVariable("CI") == "true" || 
+        if (Environment.GetEnvironmentVariable("CI") == "true" ||
             Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true")
         {
             Assert.True(true, "Skipping heavy Aspire test in CI environment");
@@ -106,7 +106,7 @@ public class PostgreSQLConnectionTest
             using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>(cancellationToken);
             await using var app = await appHost.BuildAsync(cancellationToken);
             var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
-            
+
             await app.StartAsync(cancellationToken);
 
             // Wait for PostgreSQL to be ready (single database approach)

@@ -91,7 +91,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
 
             // Act 3: Verifica se o usuário pode ser recuperado
             var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
-            
+
             // Assert 3: Usuário deve ser recuperável
             getResponse.StatusCode.Should().BeOneOf(
                 HttpStatusCode.OK,
@@ -156,7 +156,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
     {
         // Arrange - autentica como admin para poder criar usuários
         AuthenticateAsAdmin();
-        
+
         var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Mantém sob 30 caracteres
         var userRequest = new
         {
@@ -178,7 +178,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
         var successCount = responses.Count(r => r.StatusCode == HttpStatusCode.Created);
         var conflictCount = responses.Count(r => r.StatusCode == HttpStatusCode.Conflict);
         var badRequestCount = responses.Count(r => r.StatusCode == HttpStatusCode.BadRequest);
-        
+
         // Apenas uma deve ter sucesso e as outras falhar (conflict ou validation), ou todas falharem
         // BadRequest é aceitável como resposta de conflito concorrente (erros de validação)
         var failureCount = conflictCount + badRequestCount;

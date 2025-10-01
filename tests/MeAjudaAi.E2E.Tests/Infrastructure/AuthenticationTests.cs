@@ -14,10 +14,10 @@ public class AuthenticationTests : TestContainerTestBase
         // Em ambiente de teste, o Keycloak está desabilitado por design para tornar
         // os testes mais rápidos e confiáveis. Este teste verifica que o sistema
         // funciona corretamente mesmo sem Keycloak ativo.
-        
+
         // Act
         var healthResponse = await ApiClient.GetAsync("/health");
-        
+
         // Assert
         healthResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable);
     }
@@ -39,7 +39,7 @@ public class AuthenticationTests : TestContainerTestBase
         var response = await PostJsonAsync("/api/v1/users", createUserRequest);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created, 
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
             "Sistema deve funcionar para criação de usuários mesmo sem Keycloak ativo");
     }
 
@@ -52,11 +52,11 @@ public class AuthenticationTests : TestContainerTestBase
 
         // Assert
         healthResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable);
-        
+
         // Endpoints de usuários devem estar acessíveis em modo de teste
         usersResponse.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK, 
-            HttpStatusCode.Unauthorized, 
+            HttpStatusCode.OK,
+            HttpStatusCode.Unauthorized,
             HttpStatusCode.Forbidden);
     }
 
@@ -72,7 +72,7 @@ public class AuthenticationTests : TestContainerTestBase
             HttpStatusCode.Unauthorized, // Se requer autenticação
             HttpStatusCode.Forbidden     // Se requer autorização específica
         );
-        
+
         // Não deve retornar erro interno do servidor
         response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
     }

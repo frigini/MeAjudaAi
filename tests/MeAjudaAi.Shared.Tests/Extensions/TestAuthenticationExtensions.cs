@@ -65,7 +65,7 @@ public static class TestAuthenticationExtensions
         }
 
         // Authentication handlers removidos para substituição por handlers de teste
-        
+
         return services;
     }
 }

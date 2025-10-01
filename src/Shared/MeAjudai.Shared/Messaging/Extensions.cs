@@ -41,13 +41,13 @@ internal static class Extensions
         {
             var options = new ServiceBusOptions();
             ConfigureServiceBusOptions(options, configuration);
-            
+
             // Validações manuais com mensagens claras
             if (string.IsNullOrWhiteSpace(options.DefaultTopicName))
                 throw new InvalidOperationException("ServiceBus DefaultTopicName is required when messaging is enabled. Configure 'Messaging:ServiceBus:DefaultTopicName' in appsettings.json");
-            
+
             // Validação mais rigorosa da connection string
-            if (string.IsNullOrWhiteSpace(options.ConnectionString) || 
+            if (string.IsNullOrWhiteSpace(options.ConnectionString) ||
                 options.ConnectionString.Contains("${") || // Check for unresolved environment variable placeholder
                 options.ConnectionString.Equals("Endpoint=sb://localhost/;SharedAccessKeyName=default;SharedAccessKey=default")) // Check for dummy connection string
             {
@@ -64,7 +64,7 @@ internal static class Extensions
                         "If messaging is not needed, set 'Messaging:Enabled' to false.");
                 }
             }
-                
+
             return options;
         });
 
@@ -73,11 +73,11 @@ internal static class Extensions
         {
             var options = new RabbitMqOptions();
             ConfigureRabbitMqOptions(options, configuration);
-            
+
             // Validação manual
             if (string.IsNullOrWhiteSpace(options.ConnectionString))
                 throw new InvalidOperationException("RabbitMQ connection string not found. Ensure Aspire rabbitmq connection is available or configure 'Messaging:RabbitMQ:ConnectionString' in appsettings.json");
-                
+
             return options;
         });
 
@@ -123,7 +123,7 @@ internal static class Extensions
             services.TryAddSingleton<RabbitMqMessageBus>();
             services.TryAddSingleton<NoOp.NoOpMessageBus>();
         }
-        
+
         // Registrar o factory e o IMessageBus baseado no ambiente
         services.AddSingleton<IMessageBusFactory, EnvironmentBasedMessageBusFactory>();
         services.AddSingleton(serviceProvider =>
@@ -192,7 +192,7 @@ internal static class Extensions
     {
         using var scope = host.Services.CreateScope();
         var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-        
+
         if (environment.IsDevelopment())
         {
             await host.EnsureRabbitMqInfrastructureAsync();
@@ -206,13 +206,13 @@ internal static class Extensions
     private static void ConfigureServiceBusOptions(ServiceBusOptions options, IConfiguration configuration)
     {
         configuration.GetSection(ServiceBusOptions.SectionName).Bind(options);
-        
+
         // Tenta obter a connection string do Aspire primeiro
         if (string.IsNullOrWhiteSpace(options.ConnectionString))
         {
             options.ConnectionString = configuration.GetConnectionString("servicebus") ?? string.Empty;
         }
-        
+
         // Para ambientes de desenvolvimento/teste, fornece valores padrão mesmo sem connection string
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
         if (environment == "Development" || environment == "Testing")
@@ -222,7 +222,7 @@ internal static class Extensions
             {
                 options.ConnectionString = "Endpoint=sb://localhost/;SharedAccessKeyName=default;SharedAccessKey=default";
             }
-            
+
             if (string.IsNullOrWhiteSpace(options.DefaultTopicName))
             {
                 options.DefaultTopicName = "MeAjudaAi-events";

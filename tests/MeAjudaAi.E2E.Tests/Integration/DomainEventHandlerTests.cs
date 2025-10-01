@@ -15,7 +15,7 @@ public class DomainEventHandlerTests : TestContainerTestBase
         {
             var canConnect = await context.Database.CanConnectAsync();
             canConnect.Should().BeTrue("Database should be accessible for domain event processing");
-            
+
             // Testa operações básicas de banco de dados ao invés de queries complexas de schema
             // Isso verifica se a infraestrutura de processamento de eventos de domínio está funcionando
             canConnect.Should().BeTrue("Domain event processing requires database connectivity");

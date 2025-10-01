@@ -20,7 +20,8 @@ public class GetUsersRequestValidator : AbstractValidator<GetUsersRequest>
             .LessThanOrEqualTo(100)
             .WithMessage("Tamanho da página não pode ser maior que 100");
 
-        When(x => !string.IsNullOrWhiteSpace(x.SearchTerm), () => {
+        When(x => !string.IsNullOrWhiteSpace(x.SearchTerm), () =>
+        {
             RuleFor(x => x.SearchTerm)
                 .MinimumLength(2)
                 .WithMessage("Termo de busca deve ter pelo menos 2 caracteres")

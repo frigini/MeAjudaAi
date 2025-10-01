@@ -50,11 +50,11 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         var response = await Client.PostAsJsonAsync("/api/v1/users", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created, 
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"User creation should succeed. Response: {await response.Content.ReadAsStringAsync()}");
 
         // Verifica se o evento foi publicado
-        var wasEventPublished = WasMessagePublished<UserRegisteredIntegrationEvent>(e => 
+        var wasEventPublished = WasMessagePublished<UserRegisteredIntegrationEvent>(e =>
             e.Email == request.Email);
 
         wasEventPublished.Should().BeTrue("UserRegisteredIntegrationEvent should be published when user is created");
@@ -62,7 +62,7 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         // Verifica detalhes do evento
         var publishedEvents = GetPublishedMessages<UserRegisteredIntegrationEvent>();
         var userRegisteredEvent = publishedEvents.FirstOrDefault();
-        
+
         userRegisteredEvent.Should().NotBeNull();
         userRegisteredEvent!.Email.Should().Be(request.Email);
         userRegisteredEvent.FirstName.Should().Be(request.FirstName);
@@ -76,7 +76,7 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         // Arrange - Criar usuário primeiro
         await EnsureMessagingInitializedAsync();
         ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Configura autenticação como admin para criar o usuário
-        
+
         var createRequest = new
         {
             Username = "updateuser",
@@ -124,11 +124,11 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         var updateResponse = await Client.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest);
 
         // Assert
-        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK, 
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             $"User update should succeed. Response: {await updateResponse.Content.ReadAsStringAsync()}");
 
         // Verifica se o evento foi publicado
-        var wasEventPublished = WasMessagePublished<UserProfileUpdatedIntegrationEvent>(e => 
+        var wasEventPublished = WasMessagePublished<UserProfileUpdatedIntegrationEvent>(e =>
             e.UserId == userId);
 
         wasEventPublished.Should().BeTrue("UserProfileUpdatedIntegrationEvent should be published when user is updated");
@@ -136,7 +136,7 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         // Verifica detalhes do evento
         var publishedEvents = GetPublishedMessages<UserProfileUpdatedIntegrationEvent>();
         var userUpdatedEvent = publishedEvents.FirstOrDefault();
-        
+
         userUpdatedEvent.Should().NotBeNull();
         userUpdatedEvent!.UserId.Should().Be(userId);
         userUpdatedEvent.FirstName.Should().Be(updateRequest.FirstName);
@@ -149,7 +149,7 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         // Arrange - Criar usuário primeiro
         await EnsureMessagingInitializedAsync();
         ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Configura autenticação como admin ANTES de criar o usuário
-        
+
         var createRequest = new
         {
             Username = "deleteuser",
@@ -185,11 +185,11 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         var deleteResponse = await Client.DeleteAsync($"/api/v1/users/{userId}");
 
         // Assert
-        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent, 
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent,
             $"User deletion should succeed. Response: {await deleteResponse.Content.ReadAsStringAsync()}");
 
         // Verifica se o evento foi publicado
-        var wasEventPublished = WasMessagePublished<UserDeletedIntegrationEvent>(e => 
+        var wasEventPublished = WasMessagePublished<UserDeletedIntegrationEvent>(e =>
             e.UserId == userId);
 
         wasEventPublished.Should().BeTrue("UserDeletedIntegrationEvent should be published when user is deleted");
@@ -197,7 +197,7 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         // Verifica detalhes do evento
         var publishedEvents = GetPublishedMessages<UserDeletedIntegrationEvent>();
         var userDeletedEvent = publishedEvents.FirstOrDefault();
-        
+
         userDeletedEvent.Should().NotBeNull();
         userDeletedEvent!.UserId.Should().Be(userId);
     }
@@ -208,7 +208,7 @@ public class UserMessagingTests : MessagingIntegrationTestBase
         // Arrange
         await EnsureMessagingInitializedAsync();
         ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Configura usuário admin para o teste
-        
+
         var request = new
         {
             Username = "statsuser",
@@ -229,15 +229,15 @@ public class UserMessagingTests : MessagingIntegrationTestBase
 
         // Act
         var response = await Client.PostAsJsonAsync("/api/v1/users", request);
-        
+
         // Verify user creation succeeded
-        response.StatusCode.Should().Be(HttpStatusCode.Created, 
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"User creation should succeed. Response: {await response.Content.ReadAsStringAsync()}");
 
         // Assert
         var finalStats = GetMessagingStatistics();
         finalStats.TotalMessageCount.Should().BeGreaterThan(initialStats.TotalMessageCount);
-        
+
         // Pelo menos 1 mensagem deve ter sido publicada (UserRegisteredIntegrationEvent)
         finalStats.TotalMessageCount.Should().BeGreaterThanOrEqualTo(1);
     }

@@ -18,7 +18,7 @@ public class CorrelationIdEnricher : ILogEventEnricher
     {
         // Tentar obter correlation ID do contexto atual
         var correlationId = GetCorrelationId();
-        
+
         if (!string.IsNullOrEmpty(correlationId))
         {
             var property = propertyFactory.CreateProperty(CorrelationIdPropertyName, correlationId);
@@ -33,20 +33,20 @@ public class CorrelationIdEnricher : ILogEventEnricher
         if (httpContextAccessor?.HttpContext != null)
         {
             var context = httpContextAccessor.HttpContext;
-            
+
             // Verificar se já existe no response headers
             if (context.Response.Headers.TryGetValue("X-Correlation-ID", out var existingId))
             {
                 return existingId.FirstOrDefault();
             }
-            
+
             // Verificar se veio no request
             if (context.Request.Headers.TryGetValue("X-Correlation-ID", out var requestId))
             {
                 return requestId.FirstOrDefault();
             }
         }
-        
+
         // Gerar novo se não encontrar
         return UuidGenerator.NewIdString();
     }

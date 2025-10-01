@@ -24,19 +24,19 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
         {
             var currentSchemaHash = await CalculateCurrentSchemaHashAsync(connectionString, moduleName);
             var cacheKey = GetCacheKey(connectionString, moduleName);
-            
+
             if (SchemaCache.TryGetValue(cacheKey, out var cachedInfo))
             {
-                var canReuse = cachedInfo.SchemaHash == currentSchemaHash && 
+                var canReuse = cachedInfo.SchemaHash == currentSchemaHash &&
                               cachedInfo.CreatedAt > DateTime.UtcNow.AddMinutes(-30); // Cache válido por 30 min
-                
+
                 if (canReuse)
                 {
                     logger.LogInformation("[SchemaCache] Reutilizando schema existente para módulo {Module}", moduleName);
                     return true;
                 }
             }
-            
+
             // Atualizar cache com novo schema
             SchemaCache[cacheKey] = new DatabaseSchemaInfo
             {
@@ -44,7 +44,7 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
                 CreatedAt = DateTime.UtcNow,
                 ModuleName = moduleName
             };
-            
+
             logger.LogInformation("[SchemaCache] Schema atualizado no cache para módulo {Module}", moduleName);
             return false;
         }
@@ -98,7 +98,7 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
         // 1. Timestamp dos arquivos de migration mais recentes
         // 2. Nome do módulo
         // 3. ConnectionString (para distinguir diferentes bancos)
-        
+
         var hashInputs = new List<string>
         {
             moduleName,
@@ -174,18 +174,18 @@ public class DatabaseInitializer
     /// Inicializa o banco de dados apenas se necessário (com base no cache)
     /// </summary>
     public async Task<bool> InitializeIfNeededAsync(
-        string connectionString, 
+        string connectionString,
         string moduleName,
         Func<Task> initializationAction)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        
+
         try
         {
             // Verificar se pode reutilizar schema existente
             if (await _cacheService.CanReuseSchemaAsync(connectionString, moduleName))
             {
-                _logger.LogInformation("[OptimizedInit] Schema reutilizado para {Module} em {ElapsedMs}ms", 
+                _logger.LogInformation("[OptimizedInit] Schema reutilizado para {Module} em {ElapsedMs}ms",
                     moduleName, stopwatch.ElapsedMilliseconds);
                 return false; // Não precisou inicializar
             }
@@ -193,19 +193,19 @@ public class DatabaseInitializer
             // Executar inicialização
             _logger.LogInformation("[OptimizedInit] Inicializando schema para {Module}...", moduleName);
             await initializationAction();
-            
+
             // Marcar como inicializado no cache
             await _cacheService.MarkSchemaAsInitializedAsync(connectionString, moduleName);
-            
-            _logger.LogInformation("[OptimizedInit] Schema inicializado para {Module} em {ElapsedMs}ms", 
+
+            _logger.LogInformation("[OptimizedInit] Schema inicializado para {Module} em {ElapsedMs}ms",
                 moduleName, stopwatch.ElapsedMilliseconds);
-            
+
             return true; // Inicializou com sucesso
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[OptimizedInit] Falha na inicialização do schema para {Module}", moduleName);
-            
+
             // Invalidar cache em caso de erro
             DatabaseSchemaCacheService.InvalidateCache(connectionString, moduleName);
             throw;

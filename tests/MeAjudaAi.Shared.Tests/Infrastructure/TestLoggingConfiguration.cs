@@ -15,7 +15,7 @@ public static class TestLoggingConfiguration
     public static ILoggingBuilder ConfigureTestLogging(this ILoggingBuilder builder)
     {
         builder.ClearProviders();
-        
+
         // Adiciona console provider apenas se não estiver em modo de teste silencioso
         var verboseMode = Environment.GetEnvironmentVariable("TEST_VERBOSE_LOGGING");
         if (!string.IsNullOrEmpty(verboseMode) && verboseMode.Equals("true", StringComparison.OrdinalIgnoreCase))
@@ -29,30 +29,30 @@ public static class TestLoggingConfiguration
         builder.AddFilter("Microsoft.Hosting.Lifetime", LogLevel.Information);
         builder.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
         builder.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
-        
+
         // Filtros específicos para TestContainers
         builder.AddFilter("Testcontainers", LogLevel.Warning);
         builder.AddFilter("Docker.DotNet", LogLevel.Error);
-        
+
         // Filtros para Aspire e componentes relacionados
         builder.AddFilter("Aspire", LogLevel.Warning);
         builder.AddFilter("Microsoft.Extensions.ServiceDiscovery", LogLevel.Warning);
         builder.AddFilter("Microsoft.Extensions.Http.Resilience", LogLevel.Warning);
-        
+
         // Filtros para RabbitMQ e messaging
         builder.AddFilter("RabbitMQ", LogLevel.Warning);
         builder.AddFilter("MassTransit", LogLevel.Warning);
         builder.AddFilter("EasyNetQ", LogLevel.Warning);
-        
+
         // Filtros para Redis
         builder.AddFilter("StackExchange.Redis", LogLevel.Warning);
-        
+
         // Filtros para PostgreSQL/Npgsql
         builder.AddFilter("Npgsql", LogLevel.Warning);
-        
+
         // Mantém logs da aplicação em nível Info para debugging de testes
         builder.AddFilter("MeAjudaAi", LogLevel.Information);
-        
+
         // Level mínimo global
         builder.SetMinimumLevel(LogLevel.Warning);
 
@@ -66,10 +66,10 @@ public static class TestLoggingConfiguration
     {
         builder.ClearProviders();
         builder.SetMinimumLevel(LogLevel.Critical);
-        
+
         // Adiciona provider no-op para evitar warnings
         builder.Services.AddSingleton<ILoggerProvider, NoOpLoggerProvider>();
-        
+
         return builder;
     }
 }
@@ -89,7 +89,7 @@ internal class NoOpLoggerProvider : ILoggerProvider
 internal class NoOpLogger : ILogger
 {
     public static readonly NoOpLogger Instance = new();
-    
+
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
     public bool IsEnabled(LogLevel logLevel) => false;
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) { }

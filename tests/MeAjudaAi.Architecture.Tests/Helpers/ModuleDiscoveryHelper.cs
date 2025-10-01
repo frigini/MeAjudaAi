@@ -14,7 +14,7 @@ public static class ModuleDiscoveryHelper
     public static IEnumerable<ModuleInfo> DiscoverModules()
     {
         var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && 
+            .Where(a => !a.IsDynamic &&
                        a.FullName?.Contains("MeAjudaAi.Modules") == true)
             .ToList();
 
@@ -86,7 +86,7 @@ public static class ModuleDiscoveryHelper
 
         var parts = assemblyName.Split('.');
         var moduleIndex = Array.IndexOf(parts, "Modules");
-        
+
         if (moduleIndex >= 0 && moduleIndex + 1 < parts.Length)
         {
             return parts[moduleIndex + 1];

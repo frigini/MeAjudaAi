@@ -17,7 +17,7 @@ public class AuthenticationTests : ApiTestBase
 
         // DEBUG: Verificar se ClearConfiguration realmente limpa
         Console.WriteLine("[AUTH-TEST-DEBUG] Before request - should have no authenticated user");
-        
+
         // Act - incluir parâmetros de paginação para evitar BadRequest
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
 
@@ -45,7 +45,7 @@ public class AuthenticationTests : ApiTestBase
             var content = await response.Content.ReadAsStringAsync();
             Console.WriteLine($"BadRequest response: {content}");
         }
-        
+
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 

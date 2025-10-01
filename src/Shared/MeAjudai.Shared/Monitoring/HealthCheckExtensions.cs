@@ -17,7 +17,7 @@ public static class HealthCheckExtensions
                 "help_processing",
                 tags: ["ready", "business"])
             .AddCheck<MeAjudaAiHealthChecks.ExternalServicesHealthCheck>(
-                "external_services", 
+                "external_services",
                 tags: ["ready", "external"])
             .AddCheck<MeAjudaAiHealthChecks.PerformanceHealthCheck>(
                 "performance",

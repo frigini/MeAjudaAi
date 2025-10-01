@@ -20,7 +20,7 @@ public interface IUserRepository
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <returns>O usuário encontrado ou null se não existir</returns>
     Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Busca um usuário pelo endereço de email.
     /// </summary>
@@ -28,7 +28,7 @@ public interface IUserRepository
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <returns>O usuário encontrado ou null se não existir</returns>
     Task<User?> GetByEmailAsync(Email email, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Busca um usuário pelo nome de usuário.
     /// </summary>
@@ -36,7 +36,7 @@ public interface IUserRepository
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <returns>O usuário encontrado ou null se não existir</returns>
     Task<User?> GetByUsernameAsync(Username username, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Busca usuários com paginação.
     /// </summary>
@@ -45,7 +45,7 @@ public interface IUserRepository
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <returns>Lista paginada de usuários e o total de registros</returns>
     Task<(IReadOnlyList<User> Users, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Busca usuários com paginação e filtro de pesquisa otimizado.
     /// </summary>
@@ -59,7 +59,7 @@ public interface IUserRepository
     /// além de índices compostos para melhor performance em consultas com filtros.
     /// </remarks>
     Task<(IReadOnlyList<User> Users, int TotalCount)> GetPagedWithSearchAsync(int pageNumber, int pageSize, string? searchTerm = null, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Busca um usuário pelo identificador do Keycloak.
     /// </summary>
@@ -67,21 +67,21 @@ public interface IUserRepository
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <returns>O usuário encontrado ou null se não existir</returns>
     Task<User?> GetByKeycloakIdAsync(string keycloakId, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Adiciona um novo usuário ao repositório.
     /// </summary>
     /// <param name="user">Usuário a ser adicionado</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     Task AddAsync(User user, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Atualiza um usuário existente no repositório.
     /// </summary>
     /// <param name="user">Usuário com dados atualizados</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     Task UpdateAsync(User user, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Remove um usuário do repositório (exclusão física).
     /// </summary>
@@ -91,7 +91,7 @@ public interface IUserRepository
     /// Esta operação realiza exclusão física. Para exclusão lógica, use o método MarkAsDeleted da entidade User.
     /// </remarks>
     Task DeleteAsync(UserId id, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Verifica se um usuário existe no repositório.
     /// </summary>

@@ -15,7 +15,7 @@ public class HealthCheckTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK, 
+            HttpStatusCode.OK,
             HttpStatusCode.ServiceUnavailable // Aceitável durante inicialização
         );
     }
@@ -36,21 +36,21 @@ public class HealthCheckTests : TestContainerTestBase
         // Act & Assert - Permite tempo para serviços ficarem prontos
         var maxAttempts = 30;
         var delay = TimeSpan.FromSeconds(2);
-        
+
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
             var response = await ApiClient.GetAsync("/health/ready");
-            
+
             if (response.StatusCode == HttpStatusCode.OK)
                 return; // Teste passou
-            
+
             if (attempt < maxAttempts - 1)
                 await Task.Delay(delay);
         }
-        
+
         // Tentativa final com asserção
         var finalResponse = await ApiClient.GetAsync("/health/ready");
-        finalResponse.StatusCode.Should().Be(HttpStatusCode.OK, 
+        finalResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Verificação de prontidão deve eventualmente retornar OK após serviços estarem prontos");
     }
 }

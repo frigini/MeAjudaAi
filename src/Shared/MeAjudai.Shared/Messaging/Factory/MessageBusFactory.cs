@@ -45,7 +45,7 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
     {
         // Check if RabbitMQ is explicitly disabled
         var rabbitMqEnabled = _configuration.GetValue<bool?>("RabbitMQ:Enabled");
-        
+
         if (_environment.IsDevelopment() || _environment.IsEnvironment(EnvironmentNames.Testing))
         {
             // Use RabbitMQ only if explicitly enabled or not configured (default behavior)

@@ -35,7 +35,7 @@ public class ChangeUserUsernameCommandHandlerTests
         var userId = Guid.NewGuid();
         var newUsername = "newusername";
         var command = new ChangeUserUsernameCommand(userId, newUsername, "admin");
-        
+
         var user = new UserBuilder()
             .WithUsername("oldusername")
             .WithEmail("test@test.com")
@@ -102,7 +102,7 @@ public class ChangeUserUsernameCommandHandlerTests
         var existingUserId = Guid.NewGuid();
         var newUsername = "existingusername";
         var command = new ChangeUserUsernameCommand(userId, newUsername);
-        
+
         var user = new UserBuilder()
             .WithUsername("oldusername")
             .WithEmail("test@test.com")
@@ -142,7 +142,7 @@ public class ChangeUserUsernameCommandHandlerTests
         var userId = Guid.NewGuid();
         var newUsername = "sameusername";
         var command = new ChangeUserUsernameCommand(userId, newUsername);
-        
+
         var user = new UserBuilder()
             .WithUsername("oldusername")
             .WithEmail("test@test.com")
@@ -179,7 +179,7 @@ public class ChangeUserUsernameCommandHandlerTests
         var userId = Guid.NewGuid();
         var newUsername = "newusername";
         var command = new ChangeUserUsernameCommand(userId, newUsername, BypassRateLimit: false);
-        
+
         // Para simular rate limit, vamos criar um user que teve mudança recente
         var recentUser = new UserBuilder()
             .WithUsername("oldusername")
@@ -219,7 +219,7 @@ public class ChangeUserUsernameCommandHandlerTests
         var userId = Guid.NewGuid();
         var newUsername = "newusername";
         var command = new ChangeUserUsernameCommand(userId, newUsername, "admin", BypassRateLimit: true);
-        
+
         // Simular usuário que mudou username recentemente, mas com bypass
         var recentUser = new UserBuilder()
             .WithUsername("oldusername")
@@ -286,7 +286,7 @@ public class ChangeUserUsernameCommandHandlerTests
         var userId = Guid.NewGuid();
         var newUsername = "newusername";
         var command = new ChangeUserUsernameCommand(userId, newUsername);
-        
+
         var user = new UserBuilder()
             .WithUsername("oldusername")
             .WithEmail("test@test.com")

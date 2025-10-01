@@ -19,7 +19,7 @@ public class KeycloakService(
     private readonly KeycloakOptions _options = options;
     private string? _adminToken;
     private DateTime _adminTokenExpiry = DateTime.MinValue;
-    
+
     // Usando configurações padrão de serialização do projeto
     private static readonly JsonSerializerOptions JsonOptions = SerializationDefaults.Api;
 
@@ -299,9 +299,9 @@ public class KeycloakService(
                 keycloakUserId, string.Join(", ", roles));
 
             // 1. Obter papéis disponíveis do realm
-            var availableRolesRequest = new HttpRequestMessage(HttpMethod.Get, 
+            var availableRolesRequest = new HttpRequestMessage(HttpMethod.Get,
                 $"{_options.BaseUrl}/admin/realms/{_options.Realm}/roles");
-            availableRolesRequest.Headers.Authorization = 
+            availableRolesRequest.Headers.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminToken);
 
             var availableRolesResponse = await httpClient.SendAsync(availableRolesRequest, cancellationToken);
@@ -312,16 +312,16 @@ public class KeycloakService(
             }
 
             var availableRolesJson = await availableRolesResponse.Content.ReadAsStringAsync(cancellationToken);
-            var availableRoles = JsonSerializer.Deserialize<KeycloakRole[]>(availableRolesJson, 
+            var availableRoles = JsonSerializer.Deserialize<KeycloakRole[]>(availableRolesJson,
                 JsonOptions) ?? [];
 
             // 2. Mapear nomes de papéis para objetos de papel
             var rolesToAssign = new List<KeycloakRole>();
             foreach (var roleName in roles)
             {
-                var role = availableRoles.FirstOrDefault(r => 
+                var role = availableRoles.FirstOrDefault(r =>
                     string.Equals(r.Name, roleName, StringComparison.OrdinalIgnoreCase));
-                
+
                 if (role != null)
                 {
                     rolesToAssign.Add(role);
@@ -341,7 +341,7 @@ public class KeycloakService(
             // 3. Atribuir papéis ao usuário
             var assignRolesRequest = new HttpRequestMessage(HttpMethod.Post,
                 $"{_options.BaseUrl}/admin/realms/{_options.Realm}/users/{keycloakUserId}/role-mappings/realm");
-            assignRolesRequest.Headers.Authorization = 
+            assignRolesRequest.Headers.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminToken);
 
             var rolesJson = JsonSerializer.Serialize(rolesToAssign, JsonOptions);
@@ -351,12 +351,12 @@ public class KeycloakService(
             if (!assignRolesResponse.IsSuccessStatusCode)
             {
                 var errorContent = await assignRolesResponse.Content.ReadAsStringAsync(cancellationToken);
-                logger.LogError("Failed to assign roles to user {UserId}: {StatusCode} - {Error}", 
+                logger.LogError("Failed to assign roles to user {UserId}: {StatusCode} - {Error}",
                     keycloakUserId, assignRolesResponse.StatusCode, errorContent);
                 return Result.Failure($"Failed to assign roles: {assignRolesResponse.StatusCode}");
             }
 
-            logger.LogInformation("Successfully assigned {RoleCount} roles to user {UserId}", 
+            logger.LogInformation("Successfully assigned {RoleCount} roles to user {UserId}",
                 rolesToAssign.Count, keycloakUserId);
             return Result.Success();
         }
@@ -375,12 +375,12 @@ public class KeycloakService(
             // Os papéis podem vir em diferentes formatos:
             // 1. realm_access: { "roles": ["role1", "role2"] }
             // 2. resource_access: { "client1": { "roles": ["role1"] }, "client2": { "roles": ["role2"] } }
-            
+
             var roles = new List<string>();
-            
+
             using var document = JsonDocument.Parse(claimValue);
             var root = document.RootElement;
-            
+
             // Verifica se é um claim realm_access
             if (root.TryGetProperty("roles", out var realmRoles) && realmRoles.ValueKind == JsonValueKind.Array)
             {
@@ -401,7 +401,7 @@ public class KeycloakService(
                 // Verifica se é um claim resource_access (papéis de cliente)
                 foreach (var client in root.EnumerateObject())
                 {
-                    if (client.Value.TryGetProperty("roles", out var clientRoles) && 
+                    if (client.Value.TryGetProperty("roles", out var clientRoles) &&
                         clientRoles.ValueKind == JsonValueKind.Array)
                     {
                         foreach (var role in clientRoles.EnumerateArray())
@@ -419,7 +419,7 @@ public class KeycloakService(
                     }
                 }
             }
-            
+
             return roles.Distinct();
         }
         catch (JsonException)

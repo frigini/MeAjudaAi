@@ -23,7 +23,7 @@ public static class SerilogConfigurator
         var loggerConfig = new LoggerConfiguration()
             // 📄 Ler configurações básicas do appsettings.json
             .ReadFrom.Configuration(configuration)
-            
+
             // 🏗️ Adicionar enrichers via código
             .Enrich.FromLogContext()
             .Enrich.WithProperty("Application", "MeAjudaAi")
@@ -43,8 +43,8 @@ public static class SerilogConfigurator
     /// expressas em JSON
     /// </summary>
     private static void ApplyEnvironmentSpecificConfiguration(
-        LoggerConfiguration config, 
-        IConfiguration configuration, 
+        LoggerConfiguration config,
+        IConfiguration configuration,
         IWebHostEnvironment environment)
     {
         if (environment.IsDevelopment())
@@ -105,7 +105,7 @@ public static class LoggingConfigurationExtensions
         {
             // Aplicar a configuração do SerilogConfigurator
             var configuredLogger = SerilogConfigurator.ConfigureSerilog(configuration, environment);
-            
+
             loggerConfig.ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("Application", "MeAjudaAi")
@@ -132,11 +132,11 @@ public static class LoggingConfigurationExtensions
             }
 
             // Console sink
-            loggerConfig.WriteTo.Console(outputTemplate: 
+            loggerConfig.WriteTo.Console(outputTemplate:
                 "[{Timestamp:HH:mm:ss} {Level:u3}] {CorrelationId} {Message:lj} {Properties:j}{NewLine}{Exception}");
 
             // File sink para persistência
-            loggerConfig.WriteTo.File("logs/app-.log", 
+            loggerConfig.WriteTo.File("logs/app-.log",
                 rollingInterval: Serilog.RollingInterval.Day,
                 retainedFileCountLimit: 7,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}");
@@ -159,18 +159,18 @@ public static class LoggingConfigurationExtensions
                 : httpContext.Response.StatusCode > 499
                     ? LogEventLevel.Error
                     : LogEventLevel.Information;
-            
+
             options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
             {
                 diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value ?? "unknown");
                 diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
                 diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.FirstOrDefault() ?? "unknown");
-                
+
                 if (httpContext.User.Identity?.IsAuthenticated == true)
                 {
                     var userId = httpContext.User.FindFirst("sub")?.Value;
                     var username = httpContext.User.FindFirst("preferred_username")?.Value;
-                    
+
                     if (!string.IsNullOrEmpty(userId))
                         diagnosticContext.Set("UserId", userId);
                     if (!string.IsNullOrEmpty(username))

@@ -25,10 +25,10 @@ public abstract class E2ETestBase : IAsyncLifetime
     private PostgreSqlContainer? _postgresContainer;
     private RedisContainer? _redisContainer;
     private WebApplicationFactory<Program>? _factory;
-    
+
     protected HttpClient HttpClient { get; private set; } = null!;
     protected Faker Faker { get; } = new();
-    
+
     /// <summary>
     /// Opções de serialização JSON padrão do sistema
     /// </summary>
@@ -119,20 +119,20 @@ public abstract class E2ETestBase : IAsyncLifetime
             {
                 builder.UseEnvironment("Testing");
                 Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
-                
+
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
                     config.Sources.Clear();
                     config.AddInMemoryCollection(GetTestConfiguration());
                 });
-                
+
                 builder.ConfigureServices(services =>
                 {
                     // Remove serviços hospedados problemáticos
                     var hostedServices = services
                         .Where(descriptor => descriptor.ServiceType == typeof(IHostedService))
                         .ToList();
-                    
+
                     foreach (var service in hostedServices)
                     {
                         services.Remove(service);
@@ -154,14 +154,14 @@ public abstract class E2ETestBase : IAsyncLifetime
                               .EnableSensitiveDataLogging(false)
                               .LogTo(_ => { }, LogLevel.Error); // Minimal logging
                     });
-                    
+
                     // Configura logging mínimo
                     services.Configure<HostOptions>(options =>
                     {
                         options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
                     });
                 });
-                
+
                 builder.ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
@@ -169,12 +169,12 @@ public abstract class E2ETestBase : IAsyncLifetime
                     logging.SetMinimumLevel(LogLevel.Warning);
                 });
             });
-        
+
         HttpClient = _factory.CreateClient();
-        
+
         // Aguarda inicialização da aplicação
         await WaitForApplicationStartup();
-        
+
         // Aplica migrações do banco de dados
         await EnsureDatabaseSchemaAsync();
     }
@@ -183,12 +183,12 @@ public abstract class E2ETestBase : IAsyncLifetime
     {
         HttpClient?.Dispose();
         _factory?.Dispose();
-        
+
         if (_redisContainer != null)
         {
             await _redisContainer.DisposeAsync();
         }
-        
+
         if (_postgresContainer != null)
         {
             await _postgresContainer.DisposeAsync();
@@ -217,10 +217,10 @@ public abstract class E2ETestBase : IAsyncLifetime
             {
                 // Ignora exceções durante verificação de saúde
             }
-            
+
             await Task.Delay(delay);
         }
-        
+
         throw new TimeoutException("Aplicação não inicializou dentro do tempo limite esperado");
     }
 
@@ -231,7 +231,7 @@ public abstract class E2ETestBase : IAsyncLifetime
     {
         using var scope = _factory!.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        
+
         try
         {
             await context.Database.EnsureCreatedAsync();

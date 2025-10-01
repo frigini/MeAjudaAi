@@ -28,7 +28,7 @@ public abstract class SharedIntegrationTestBase(ITestOutputHelper output) : IAsy
     public virtual async Task InitializeAsync()
     {
         _output.WriteLine($"🔗 [SharedIntegrationTest] Iniciando teste de integração");
-        
+
         // HttpClient será configurado pela implementação específica
         // (Aspire, TestContainers, etc.)
         await InitializeInfrastructureAsync();
@@ -67,10 +67,10 @@ public abstract class SharedIntegrationTestBase(ITestOutputHelper output) : IAsy
         {
             var healthResponse = await HttpClient.GetAsync("/health");
             var readyResponse = await HttpClient.GetAsync("/health/ready");
-            
+
             var isHealthy = healthResponse.IsSuccessStatusCode && readyResponse.IsSuccessStatusCode;
             _output.WriteLine($"🏥 [SharedIntegrationTest] Serviços de integração: {(isHealthy ? "✅ Funcionando" : "❌ Com problemas")}");
-            
+
             return isHealthy;
         }
         catch (Exception ex)
@@ -123,7 +123,7 @@ public abstract class SharedIntegrationTestBase(ITestOutputHelper output) : IAsy
     protected async Task<bool> VerifyModuleConsistency(params Func<Task<bool>>[] moduleChecks)
     {
         var results = new List<bool>();
-        
+
         foreach (var check in moduleChecks)
         {
             var result = await check();
@@ -133,7 +133,7 @@ public abstract class SharedIntegrationTestBase(ITestOutputHelper output) : IAsy
 
         var isConsistent = results.All(r => r);
         _output.WriteLine($"🔍 [SharedIntegrationTest] Consistência geral: {(isConsistent ? "✅ OK" : "❌ Problemas detectados")}");
-        
+
         return isConsistent;
     }
 }

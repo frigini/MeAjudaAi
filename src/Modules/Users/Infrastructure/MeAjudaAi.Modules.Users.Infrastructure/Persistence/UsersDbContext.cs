@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 
-public class  UsersDbContext : BaseDbContext
+public class UsersDbContext : BaseDbContext
 {
     public DbSet<User> Users => Set<User>();
 
@@ -14,7 +14,7 @@ public class  UsersDbContext : BaseDbContext
     public UsersDbContext(DbContextOptions<UsersDbContext> options) : base(options)
     {
     }
-    
+
     // Construtor para runtime com DI
     public UsersDbContext(DbContextOptions<UsersDbContext> options, IDomainEventProcessor domainEventProcessor) : base(options, domainEventProcessor)
     {
@@ -23,7 +23,7 @@ public class  UsersDbContext : BaseDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("users");
-        
+
         // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 

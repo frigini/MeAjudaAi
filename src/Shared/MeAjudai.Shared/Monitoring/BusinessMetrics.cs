@@ -29,7 +29,7 @@ public class BusinessMetrics : IDisposable
             description: "Total number of user registrations");
 
         _userLogins = _meter.CreateCounter<long>(
-            "meajudaai.users.logins.total", 
+            "meajudaai.users.logins.total",
             description: "Total number of user logins");
 
         _activeUsers = _meter.CreateGauge<long>(
@@ -70,7 +70,7 @@ public class BusinessMetrics : IDisposable
         _userRegistrations.Add(1, new KeyValuePair<string, object?>("source", source));
 
     public void RecordUserLogin(string userId, string method = "password") =>
-        _userLogins.Add(1, 
+        _userLogins.Add(1,
             new KeyValuePair<string, object?>("user_id", userId),
             new KeyValuePair<string, object?>("method", method));
 

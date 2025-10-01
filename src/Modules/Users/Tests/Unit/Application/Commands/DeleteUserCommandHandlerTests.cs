@@ -58,15 +58,15 @@ public class DeleteUserCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
-        
+
         _userRepositoryMock.Verify(
             x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Once);
-        
+
         _userDomainServiceMock.Verify(
             x => x.SyncUserWithKeycloakAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Once);
-        
+
         _userRepositoryMock.Verify(
             x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
             Times.Once);
@@ -90,15 +90,15 @@ public class DeleteUserCommandHandlerTests
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("User not found");
-        
+
         _userRepositoryMock.Verify(
             x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Once);
-        
+
         _userDomainServiceMock.Verify(
             x => x.SyncUserWithKeycloakAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Never);
-        
+
         _userRepositoryMock.Verify(
             x => x.DeleteAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -130,15 +130,15 @@ public class DeleteUserCommandHandlerTests
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("Keycloak sync failed");
-        
+
         _userRepositoryMock.Verify(
             x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Once);
-        
+
         _userDomainServiceMock.Verify(
             x => x.SyncUserWithKeycloakAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Once);
-        
+
         _userRepositoryMock.Verify(
             x => x.DeleteAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -174,7 +174,7 @@ public class DeleteUserCommandHandlerTests
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be($"Failed to delete user: Database error");
-        
+
         _userRepositoryMock.Verify(
             x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
             Times.Once);

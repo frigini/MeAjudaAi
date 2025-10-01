@@ -20,8 +20,8 @@ public class UsersModuleApiTests
         _getUserByEmailHandler = new Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>>();
         _getUserByUsernameHandler = new Mock<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>>();
         _sut = new UsersModuleApi(
-            _getUserByIdHandler.Object, 
-            _getUserByEmailHandler.Object, 
+            _getUserByIdHandler.Object,
+            _getUserByEmailHandler.Object,
             _getUserByUsernameHandler.Object);
     }
 
@@ -63,7 +63,7 @@ public class UsersModuleApiTests
         var userDto = new UserDto(
             userId,
             "testuser",
-            "test@example.com", 
+            "test@example.com",
             "John",
             "Doe",
             "John Doe",
@@ -136,7 +136,7 @@ public class UsersModuleApiTests
             "testuser",
             email,
             "Jane",
-            "Smith", 
+            "Smith",
             "Jane Smith",
             UuidGenerator.NewIdString(),
             DateTime.UtcNow,
@@ -171,7 +171,7 @@ public class UsersModuleApiTests
         _getUserByIdHandler
             .Setup(x => x.HandleAsync(It.Is<GetUserByIdQuery>(q => q.UserId == userId1), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<UserDto>.Success(userDto1));
-        
+
         _getUserByIdHandler
             .Setup(x => x.HandleAsync(It.Is<GetUserByIdQuery>(q => q.UserId == userId2), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<UserDto>.Success(userDto2));
@@ -336,7 +336,7 @@ public class UsersModuleApiTests
         var userDto = new UserDto(
             UuidGenerator.NewId(),
             username,
-            "test@example.com", 
+            "test@example.com",
             "John",
             "Doe",
             "John Doe",
@@ -354,7 +354,7 @@ public class UsersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
-        
+
         _getUserByUsernameHandler
             .Verify(x => x.HandleAsync(It.Is<GetUserByUsernameQuery>(q => q.Username == username), It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -375,7 +375,7 @@ public class UsersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
-        
+
         _getUserByUsernameHandler
             .Verify(x => x.HandleAsync(It.Is<GetUserByUsernameQuery>(q => q.Username == username), It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -397,7 +397,7 @@ public class UsersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
-        
+
         _getUserByUsernameHandler
             .Verify(x => x.HandleAsync(It.IsAny<GetUserByUsernameQuery>(), cancellationToken), Times.Once);
     }

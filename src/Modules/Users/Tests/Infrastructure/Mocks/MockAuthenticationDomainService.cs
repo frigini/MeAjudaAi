@@ -7,8 +7,8 @@ namespace MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 internal class MockAuthenticationDomainService : IAuthenticationDomainService
 {
     public Task<Result<AuthenticationResult>> AuthenticateAsync(
-        string usernameOrEmail, 
-        string password, 
+        string usernameOrEmail,
+        string password,
         CancellationToken cancellationToken = default)
     {
         // Para testes, validar apenas credenciais específicas
@@ -23,12 +23,12 @@ internal class MockAuthenticationDomainService : IAuthenticationDomainService
             );
             return Task.FromResult(Result<AuthenticationResult>.Success(result));
         }
-        
+
         return Task.FromResult(Result<AuthenticationResult>.Failure("Invalid credentials"));
     }
-    
+
     public Task<Result<TokenValidationResult>> ValidateTokenAsync(
-        string token, 
+        string token,
         CancellationToken cancellationToken = default)
     {
         // Para testes, validar tokens que começam com "mock_token_"
@@ -41,7 +41,7 @@ internal class MockAuthenticationDomainService : IAuthenticationDomainService
             );
             return Task.FromResult(Result<TokenValidationResult>.Success(result));
         }
-        
+
         var invalidResult = new TokenValidationResult(
             UserId: null,
             Roles: [],

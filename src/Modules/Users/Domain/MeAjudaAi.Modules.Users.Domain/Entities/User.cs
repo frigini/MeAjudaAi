@@ -24,7 +24,7 @@ public sealed class User : AggregateRoot<UserId>
     /// Implementado como value object com validações específicas.
     /// </remarks>
     public Username Username { get; private set; } = null!;
-    
+
     /// <summary>
     /// Endereço de email do usuário.
     /// </summary>
@@ -33,17 +33,17 @@ public sealed class User : AggregateRoot<UserId>
     /// Deve ser único no sistema.
     /// </remarks>
     public Email Email { get; private set; } = null!;
-    
+
     /// <summary>
     /// Primeiro nome do usuário.
     /// </summary>
     public string FirstName { get; private set; } = string.Empty;
-    
+
     /// <summary>
     /// Sobrenome do usuário.
     /// </summary>
     public string LastName { get; private set; } = string.Empty;
-    
+
     /// <summary>
     /// Identificador único do usuário no Keycloak (sistema de autenticação externo).
     /// </summary>
@@ -56,7 +56,7 @@ public sealed class User : AggregateRoot<UserId>
     /// Indica se o usuário foi excluído logicamente do sistema.
     /// </summary>
     public bool IsDeleted { get; private set; }
-    
+
     /// <summary>
     /// Data e hora da exclusão lógica do usuário (UTC).
     /// </summary>
@@ -137,7 +137,7 @@ public sealed class User : AggregateRoot<UserId>
     public void UpdateProfile(string firstName, string lastName)
     {
         ValidateProfileUpdate();
-        
+
         if (FirstName == firstName && LastName == lastName)
             return;
 
@@ -219,7 +219,7 @@ public sealed class User : AggregateRoot<UserId>
         var oldEmail = Email;
         Email = newEmail;
         MarkAsUpdated();
-        
+
         // Adiciona evento de domínio para sincronização com sistemas externos
         AddDomainEvent(new UserEmailChangedEvent(Id.Value, 1, oldEmail, newEmail));
     }
@@ -246,7 +246,7 @@ public sealed class User : AggregateRoot<UserId>
         Username = newUsername;
         LastUsernameChangeAt = dateTimeProvider.CurrentDate();
         MarkAsUpdated();
-        
+
         // Adiciona evento de domínio para sincronização com sistemas externos
         AddDomainEvent(new UserUsernameChangedEvent(Id.Value, 1, oldUsername, newUsername));
     }
@@ -261,7 +261,7 @@ public sealed class User : AggregateRoot<UserId>
     {
         if (LastUsernameChangeAt == null)
             return true;
-            
+
         var daysSinceLastChange = (dateTimeProvider.CurrentDate() - LastUsernameChangeAt.Value).TotalDays;
         return daysSinceLastChange >= minimumDaysBetweenChanges;
     }

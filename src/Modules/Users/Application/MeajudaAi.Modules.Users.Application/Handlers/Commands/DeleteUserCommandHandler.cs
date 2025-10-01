@@ -52,7 +52,7 @@ internal sealed class DeleteUserCommandHandler(
         DeleteUserCommand command,
         CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Processing DeleteUserCommand for user {UserId} with correlation {CorrelationId}", 
+        logger.LogInformation("Processing DeleteUserCommand for user {UserId} with correlation {CorrelationId}",
             command.UserId, command.CorrelationId);
 
         try
@@ -90,7 +90,7 @@ internal sealed class DeleteUserCommandHandler(
         CancellationToken cancellationToken)
     {
         logger.LogDebug("Fetching user {UserId} for deletion", command.UserId);
-        
+
         var user = await userRepository.GetByIdAsync(
             new UserId(command.UserId), cancellationToken);
 
@@ -112,7 +112,7 @@ internal sealed class DeleteUserCommandHandler(
         CancellationToken cancellationToken)
     {
         logger.LogDebug("Starting Keycloak sync for user {UserId}", user.Id);
-        
+
         var syncResult = await userDomainService.SyncUserWithKeycloakAsync(
             user.Id, cancellationToken);
 
@@ -134,10 +134,10 @@ internal sealed class DeleteUserCommandHandler(
         CancellationToken cancellationToken)
     {
         logger.LogDebug("Applying logical deletion for user {UserId}", user.Id);
-        
+
         user.MarkAsDeleted(dateTimeProvider);
         await userRepository.UpdateAsync(user, cancellationToken);
-        
+
         logger.LogDebug("User {UserId} deletion persisted successfully", user.Id);
     }
 }

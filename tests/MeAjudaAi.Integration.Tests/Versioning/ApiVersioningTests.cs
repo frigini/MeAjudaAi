@@ -11,10 +11,10 @@ public class ApiVersioningTests : ApiTestBase
     {
         // Arrange - autentica como admin
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
-        
+
         // Act - inclui parâmetros de paginação obrigatórios
         var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
-        
+
         // Assert 
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized, HttpStatusCode.BadRequest);
         // Não deve ser NotFound - indica que versionamento está funcionando
@@ -26,10 +26,10 @@ public class ApiVersioningTests : ApiTestBase
     {
         // Arrange - autentica como admin
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
-        
+
         // OBS: Atualmente o sistema usa apenas segmentos de URL (/api/v1/users)
         // Testando se o segmento funciona corretamente
-        
+
         // Act - inclui parâmetros de paginação obrigatórios
         var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
 
@@ -44,10 +44,10 @@ public class ApiVersioningTests : ApiTestBase
     {
         // Arrange - autentica como admin
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
-        
+
         // OBS: Atualmente o sistema usa apenas segmentos de URL (/api/v1/users)
         // Testando se o segmento funciona corretamente
-        
+
         // Act - inclui parâmetros de paginação obrigatórios
         var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
 
@@ -62,7 +62,7 @@ public class ApiVersioningTests : ApiTestBase
     {
         // OBS: Sistema requer versão explícita no segmento de URL
         // Testando que rota sem versão retorna NotFound como esperado
-        
+
         // Act - inclui parâmetros de paginação obrigatórios
         var response = await HttpClient.GetAsync("/api/users?PageNumber=1&PageSize=10");
 
@@ -79,10 +79,10 @@ public class ApiVersioningTests : ApiTestBase
 
         // Assert
         // Verifica se a API retorna informações de versão nos headers
-        var apiVersionHeaders = response.Headers.Where(h => 
+        var apiVersionHeaders = response.Headers.Where(h =>
             h.Key.Contains("version", StringComparison.OrdinalIgnoreCase) ||
             h.Key.Contains("api-version", StringComparison.OrdinalIgnoreCase));
-        
+
         // No mínimo, a resposta não deve ser NotFound
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
     }

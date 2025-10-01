@@ -10,7 +10,7 @@ public static class VersioningExtensions
         {
             options.DefaultApiVersion = new ApiVersion(1, 0);
             options.AssumeDefaultVersionWhenUnspecified = true;
-            
+
             // Use composite reader para manter compatibilidade com clientes existentes
             // Suporta: URL segments (/api/v1/users), headers (api-version), query strings (?api-version=1.0)
             options.ApiVersionReader = ApiVersionReader.Combine(

@@ -16,7 +16,7 @@ public class BusinessMetricsMiddleware(
     public async Task InvokeAsync(HttpContext context)
     {
         var stopwatch = Stopwatch.StartNew();
-        
+
         try
         {
             await next(context);
@@ -24,14 +24,14 @@ public class BusinessMetricsMiddleware(
         finally
         {
             stopwatch.Stop();
-            
+
             // Capturar métricas de API
             var endpoint = GetEndpointName(context);
             var method = context.Request.Method;
             var statusCode = context.Response.StatusCode;
-            
+
             businessMetrics.RecordApiCall(endpoint, method, statusCode);
-            
+
             // Log para endpoints específicos de negócio
             LogBusinessEvents(context, stopwatch.Elapsed);
         }
@@ -88,11 +88,11 @@ public class BusinessMetricsMiddleware(
 
         // Normalizar path para métricas (remover IDs específicos)
         var path = context.Request.Path.Value ?? "/";
-        
+
         // Substituir IDs numéricos por placeholder
         var normalizedPath = System.Text.RegularExpressions.Regex.Replace(
             path, @"/\d+", "/{id}");
-            
+
         return normalizedPath;
     }
 }

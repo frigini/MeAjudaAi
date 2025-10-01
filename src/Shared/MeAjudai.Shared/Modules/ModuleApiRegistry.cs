@@ -15,7 +15,7 @@ public static class ModuleApiRegistry
     public static IServiceCollection AddModuleApis(this IServiceCollection services, params Assembly[] assemblies)
     {
         var moduleTypes = new List<Type>();
-        
+
         // Se nenhum assembly for especificado, usa o assembly atual
         if (assemblies.Length == 0)
         {

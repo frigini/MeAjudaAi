@@ -63,7 +63,7 @@ internal sealed class GetUserByEmailQueryHandler(
                 logger.LogWarning(
                     "User not found by email. CorrelationId: {CorrelationId}, Email: {Email}",
                     correlationId, query.Email);
-                
+
                 return Result<UserDto>.Failure(Error.NotFound("User not found"));
             }
 
@@ -78,7 +78,7 @@ internal sealed class GetUserByEmailQueryHandler(
             logger.LogError(ex,
                 "Failed to retrieve user by email. CorrelationId: {CorrelationId}, Email: {Email}",
                 correlationId, query.Email);
-            
+
             return Result<UserDto>.Failure($"Failed to retrieve user: {ex.Message}");
         }
     }

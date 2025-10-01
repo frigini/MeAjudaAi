@@ -29,13 +29,13 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
 {
     private PostgreSqlContainer? _postgresContainer;
     private WebApplicationFactory<TProgram>? _factory;
-    
+
     protected HttpClient HttpClient { get; private set; } = null!;
     protected HttpClient Client => HttpClient; // Alias para compatibilidade
     protected WebApplicationFactory<TProgram> Factory => _factory!;
     protected IServiceProvider Services => _factory!.Services;
     protected Faker Faker { get; } = new();
-    
+
     /// <summary>
     /// Opções de serialização JSON padrão do sistema
     /// </summary>
@@ -85,7 +85,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     {
         // CRUCIAL: Limpa configuração de autenticação ANTES de inicializar aplicação
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
-        
+
         // Configura e inicia PostgreSQL
         _postgresContainer = new PostgreSqlBuilder()
             .WithImage("postgres:15-alpine")
@@ -102,35 +102,35 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
-                
+
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
                     config.Sources.Clear();
                     config.AddInMemoryCollection(GetTestConfiguration());
-                    
+
                     // CRITICAL: Define variável de ambiente para que EnvironmentSpecificExtensions use FakeIntegrationAuthenticationHandler
                     Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
                 });
-                
+
                 builder.ConfigureServices((context, services) =>
                 {
                     // Remove serviços hospedados problemáticos
                     var hostedServices = services
                         .Where(descriptor => descriptor.ServiceType == typeof(IHostedService))
                         .ToList();
-                    
+
                     foreach (var service in hostedServices)
                     {
                         services.Remove(service);
                     }
 
                     // CRUCIAL: Remove TODOS os registros relacionados ao DbContext antes de reconfigurar
-                    var dbContextDescriptors = services.Where(s => 
+                    var dbContextDescriptors = services.Where(s =>
                         s.ServiceType == typeof(UsersDbContext) ||
                         s.ServiceType == typeof(DbContextOptions<UsersDbContext>) ||
                         (s.ServiceType.IsGenericType && s.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>))
                     ).ToList();
-                    
+
                     Console.WriteLine($"[TEST] Removing {dbContextDescriptors.Count} DbContext registrations");
                     foreach (var desc in dbContextDescriptors)
                     {
@@ -141,14 +141,14 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     // Agora registra com a connection string do container
                     var containerConnectionString = _postgresContainer.GetConnectionString();
                     Console.WriteLine($"[TEST] Registering DbContext with container connection string: {containerConnectionString}");
-                    
+
                     // REGISTRAR IDomainEventProcessor PARA PROCESSAR DOMAIN EVENTS
                     Console.WriteLine("[TEST] Registering IDomainEventProcessor for domain event processing");
                     services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
                     // REGISTRAR UsersDbContext COM IDomainEventProcessor para processar domain events
                     Console.WriteLine("[TEST] Registering UsersDbContext with IDomainEventProcessor (runtime) for tests");
-                    
+
                     // Registra usando factory method que força o uso do construtor COM IDomainEventProcessor
                     services.AddScoped<UsersDbContext>(serviceProvider =>
                     {
@@ -157,11 +157,11 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                             .EnableSensitiveDataLogging(false)
                             .LogTo(_ => { }, LogLevel.Error)
                             .Options;
-                        
+
                         var domainEventProcessor = serviceProvider.GetRequiredService<IDomainEventProcessor>();
                         return new UsersDbContext(options, domainEventProcessor);  // Usa o construtor runtime COM IDomainEventProcessor
                     });
-                    
+
                     // Também registra as DbContextOptions para injeção
                     services.AddSingleton<DbContextOptions<UsersDbContext>>(serviceProvider =>
                     {
@@ -171,9 +171,9 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                             .LogTo(_ => { }, LogLevel.Error)
                             .Options;
                     });
-                    
+
                     // BRUTAL APPROACH: Remove TODA configuração de authentication/authorization e reconfigure do zero
-                    var authServices = services.Where(s => 
+                    var authServices = services.Where(s =>
                         s.ServiceType.Namespace?.Contains("Authentication") == true ||
                         s.ServiceType.Namespace?.Contains("Authorization") == true ||
                         (s.ImplementationType?.Name.Contains("AuthenticationHandler") == true) ||
@@ -181,17 +181,17 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                         s.ServiceType == typeof(IAuthenticationSchemeProvider) ||
                         s.ServiceType == typeof(IAuthenticationHandlerProvider)
                     ).ToList();
-                    
+
                     Console.WriteLine($"[TEST-AUTH-BRUTAL] Removing {authServices.Count} authentication/authorization services");
                     foreach (var service in authServices)
                     {
                         services.Remove(service);
                         Console.WriteLine($"[TEST-AUTH-BRUTAL] Removed: {service.ServiceType.Name}");
                     }
-                    
+
                     // Reconfigura autenticação E autorização completamente do zero
                     Console.WriteLine("[TEST-AUTH-BRUTAL] Reconfiguring authentication and authorization from scratch");
-                    
+
                     // Primeiro adiciona autorização básica com políticas necessárias
                     services.AddAuthorization(options =>
                     {
@@ -208,13 +208,13 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                         options.AddPolicy("CustomerAccess", policy =>
                             policy.RequireRole("customer", "admin", "super-admin"));
                     });
-                    
+
                     // Registra o handler de autorização necessário
                     services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, MeAjudaAi.ApiService.Handlers.SelfOrAdminHandler>();
-                    
+
                     // Depois adiciona nossa autenticação configurável COM esquema padrão forçado
                     services.AddConfigurableTestAuthentication();
-                    
+
                     // FORÇA esquema padrão para nosso handler configurável
                     services.Configure<AuthenticationOptions>(options =>
                     {
@@ -222,11 +222,11 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                         options.DefaultChallengeScheme = "TestConfigurable";
                         options.DefaultScheme = "TestConfigurable";
                     });
-                    
+
                     // FORÇA ambiente não-Testing temporariamente para que messaging seja adicionado
                     var originalEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
                     Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
-                    
+
                     try
                     {
                         // Adiciona shared services que incluem messaging
@@ -236,16 +236,16 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     {
                         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnv);
                     }
-                    
+
                     // Adiciona mocks de messaging para sobrescrever implementações reais
                     services.AddMessagingMocks();
-                    
+
                     // FORÇA registros específicos de messaging que podem não estar sendo detectados pelo Scrutor
                     services.AddSingleton<MeAjudaAi.Shared.Tests.Mocks.Messaging.MockServiceBusMessageBus>();
                     services.AddSingleton<MeAjudaAi.Shared.Tests.Mocks.Messaging.MockRabbitMqMessageBus>();
-                    
+
                     // Event Handlers são registrados pelo próprio módulo Users via Extensions.AddEventHandlers()
-                    
+
                     // FORÇA Mock do cache para evitar conexões Redis nos testes
                     var cacheDescriptors = services.Where(s => s.ServiceType == typeof(Microsoft.Extensions.Caching.Distributed.IDistributedCache)).ToList();
                     foreach (var desc in cacheDescriptors)
@@ -254,7 +254,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     }
                     services.AddMemoryCache();
                     services.AddSingleton<Microsoft.Extensions.Caching.Distributed.IDistributedCache, Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache>();
-                    
+
                     // FORÇA MockKeycloakService para testes
                     var keycloakDescriptors = services.Where(s => s.ServiceType.Name.Contains("IKeycloakService")).ToList();
                     foreach (var desc in keycloakDescriptors)
@@ -262,10 +262,10 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                         services.Remove(desc);
                     }
                     services.AddScoped<MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.IKeycloakService, MockKeycloakService>();
-                    
+
                     // DEBUG: Vamos ver o que realmente está registrado
                     Console.WriteLine("[TEST-AUTH-DEBUG] Final authentication services:");
-                    var finalAuthServices = services.Where(s => 
+                    var finalAuthServices = services.Where(s =>
                         s.ServiceType.Name.Contains("Authentication") ||
                         (s.ImplementationType?.Name.Contains("AuthenticationHandler") == true)
                     ).ToList();
@@ -273,32 +273,32 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     {
                         Console.WriteLine($"[TEST-AUTH-DEBUG] {service.ServiceType.Name} -> {service.ImplementationType?.Name}");
                     }
-                    
+
                     // Configura HostOptions para ignoreexceções
                     services.Configure<HostOptions>(options =>
                     {
                         options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
                     });
                 });
-                
+
                 builder.ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
                     logging.AddConsole();
                     logging.SetMinimumLevel(LogLevel.Information); // MAIS detalhado para debug auth
-                    
+
                     // Logs específicos de autorização
                     logging.AddFilter("Microsoft.AspNetCore.Authorization", LogLevel.Debug);
                     logging.AddFilter("MeAjudaAi.ApiService.Handlers", LogLevel.Debug);
                     logging.AddFilter("MeAjudaAi.Shared.Tests.Auth", LogLevel.Debug);
                 });
             });
-        
+
         HttpClient = _factory.CreateClient();
-        
+
         // Aguarda inicialização
         await WaitForApplicationStartup();
-        
+
         // Aplica migrações
         await EnsureDatabaseSchemaAsync();
     }
@@ -307,7 +307,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     {
         HttpClient?.Dispose();
         _factory?.Dispose();
-        
+
         if (_postgresContainer != null)
         {
             await _postgresContainer.DisposeAsync();
@@ -336,10 +336,10 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
             {
                 // Ignora exceções durante verificação
             }
-            
+
             await Task.Delay(delay);
         }
-        
+
         throw new TimeoutException("Aplicação não inicializou dentro do tempo esperado");
     }
 
@@ -350,7 +350,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     {
         using var scope = _factory!.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        
+
         try
         {
             // Para Integration tests, sempre recriar o banco do zero para evitar conflitos
@@ -362,7 +362,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
             throw new InvalidOperationException("Falha ao configurar schema do banco para teste", ex);
         }
     }
-    
+
     /// <summary>
     /// Reset do banco de dados - compatibilidade com testes existentes
     /// </summary>
@@ -370,12 +370,12 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     {
         using var scope = _factory!.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        
+
         try
         {
             // Garante que o schema existe primeiro
             await context.Database.EnsureCreatedAsync();
-            
+
             // Limpa todas as tabelas mantendo o schema
             await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE users.\"Users\" RESTART IDENTITY CASCADE");
         }

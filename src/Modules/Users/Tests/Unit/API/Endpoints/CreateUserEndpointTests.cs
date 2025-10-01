@@ -117,7 +117,7 @@ public class CreateUserEndpointTests
     {
         // Arrange
         var roles = new[] { "Admin", "User", "Moderator" };
-        
+
         // Act
         var request = new CreateUserRequest
         {

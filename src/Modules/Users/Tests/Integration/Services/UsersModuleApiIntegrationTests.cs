@@ -61,7 +61,7 @@ public class UsersModuleApiIntegrationTests : UsersIntegrationTestBase
         var user = await CreateUserAsync(
             username: "emailtest",
             email: "emailtest@example.com",
-            firstName: "Email", 
+            firstName: "Email",
             lastName: "Test"
         );
 
@@ -106,7 +106,7 @@ public class UsersModuleApiIntegrationTests : UsersIntegrationTestBase
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(3);
-        
+
         result.Value.Should().Contain(u => u.Id == user1.Id.Value && u.Username == "batchuser1");
         result.Value.Should().Contain(u => u.Id == user2.Id.Value && u.Username == "batchuser2");
         result.Value.Should().Contain(u => u.Id == user3.Id.Value && u.Username == "batchuser3");
@@ -245,7 +245,7 @@ public class UsersModuleApiIntegrationTests : UsersIntegrationTestBase
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(10);
-        
+
         foreach (var user in users)
         {
             result.Value.Should().Contain(u => u.Id == user.Id.Value);

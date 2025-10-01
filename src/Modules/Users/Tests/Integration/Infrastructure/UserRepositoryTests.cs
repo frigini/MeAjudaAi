@@ -16,14 +16,14 @@ public class UserRepositoryTests : DatabaseTestBase
     private async Task InitializeInternalAsync()
     {
         await base.InitializeAsync();
-        
+
         var options = new DbContextOptionsBuilder<UsersDbContext>()
             .UseNpgsql(ConnectionString)
             .Options;
-            
+
         _context = new UsersDbContext(options);
         await _context.Database.MigrateAsync();
-        
+
         var mockDateTimeProvider = new Mock<IDateTimeProvider>();
         mockDateTimeProvider.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
         _repository = new UserRepository(_context, mockDateTimeProvider.Object);

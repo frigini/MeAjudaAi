@@ -71,15 +71,15 @@ public abstract class UsersIntegrationTestBase : IntegrationTestBase
         var usernameVO = new Username(username);
         var emailVO = new Email(email);
         var keycloakId = $"keycloak_{UuidGenerator.NewId()}";
-        
+
         var user = new User(usernameVO, emailVO, firstName, lastName, keycloakId);
-        
+
         // Obter contexto
         var dbContext = GetService<UsersDbContext>();
-        
+
         await dbContext.Users.AddAsync(user, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
-        
+
         return user;
     }
 }

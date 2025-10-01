@@ -18,7 +18,7 @@ public static class TestAuthorizationExtensions
             .AddClasses(classes => classes
                 .AssignableTo<IAuthorizationHandler>()
                 .Where(type => type.Name.EndsWith("Handler") &&
-                              (type.Namespace?.Contains("Test") == true || 
+                              (type.Namespace?.Contains("Test") == true ||
                                type.Namespace?.Contains("Integration") == true)))
             .As<IAuthorizationHandler>()
             .WithScopedLifetime());

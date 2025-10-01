@@ -38,7 +38,7 @@ public static class ServiceCollectionExtensions
         services.AddApiVersioning(); // Adiciona versionamento de API
         services.AddCorsPolicy(configuration, environment);
         services.AddMemoryCache();
-        
+
         // Adiciona autenticação segura baseada no ambiente
         // Para testes de integração (INTEGRATION_TESTS=true), não configuramos Keycloak
         // pois será substituído pelo FakeIntegrationAuthenticationHandler
@@ -54,15 +54,15 @@ public static class ServiceCollectionExtensions
             // O FakeIntegrationAuthenticationHandler será adicionado depois em AddEnvironmentSpecificServices
             services.AddAuthentication();
         }
-        
+
         // Adiciona serviços de autorização
         services.AddAuthorizationPolicies();
-        
+
         // Otimizações de performance
         services.AddResponseCompression();
         services.AddStaticFilesWithCaching();
         services.AddApiResponseCaching();
-        
+
         // Serviços específicos por ambiente
         services.AddEnvironmentSpecificServices(configuration, environment);
 
@@ -76,14 +76,14 @@ public static class ServiceCollectionExtensions
         // Middlewares de performance devem estar no início do pipeline
         app.UseResponseCompression();
         app.UseResponseCaching();
-        
+
         // Middleware de arquivos estáticos com cache
         app.UseMiddleware<StaticFilesMiddleware>();
         app.UseStaticFiles();
-        
+
         // Middlewares específicos por ambiente
         app.UseEnvironmentSpecificMiddlewares(environment);
-        
+
         app.UseApiMiddlewares();
 
         // Documentação apenas em desenvolvimento e testes

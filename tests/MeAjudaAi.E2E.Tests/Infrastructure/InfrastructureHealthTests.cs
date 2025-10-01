@@ -27,7 +27,7 @@ public class InfrastructureHealthTests : TestContainerTestBase
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<UsersDbContext>();
-            
+
             // Verificar se consegue se conectar ao banco
             var canConnect = await dbContext.Database.CanConnectAsync();
             canConnect.Should().BeTrue("Database should be reachable");
@@ -44,7 +44,7 @@ public class InfrastructureHealthTests : TestContainerTestBase
     {
         // Este teste verifica indiretamente se o Redis está funcionando
         // A API deve conseguir inicializar com o Redis configurado
-        
+
         // Act
         var response = await ApiClient.GetAsync("/health");
 

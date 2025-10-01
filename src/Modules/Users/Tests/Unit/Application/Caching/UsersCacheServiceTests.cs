@@ -23,9 +23,9 @@ public class UsersCacheServiceTests
         // Arrange
         var userId = Guid.NewGuid();
         var expectedUser = new UserDto(
-            Id: userId, 
+            Id: userId,
             Username: "testuser",
-            Email: "test@example.com", 
+            Email: "test@example.com",
             FirstName: "Test",
             LastName: "User",
             FullName: "Test User",
@@ -107,11 +107,11 @@ public class UsersCacheServiceTests
         _cacheServiceMock.Verify(
             x => x.RemoveAsync(UsersCacheKeys.UserById(userId), _cancellationToken),
             Times.Once);
-        
+
         _cacheServiceMock.Verify(
             x => x.RemoveAsync(UsersCacheKeys.UserRoles(userId), _cancellationToken),
             Times.Once);
-        
+
         _cacheServiceMock.Verify(
             x => x.RemoveByPatternAsync(CacheTags.UsersList, _cancellationToken),
             Times.Once);
@@ -131,15 +131,15 @@ public class UsersCacheServiceTests
         _cacheServiceMock.Verify(
             x => x.RemoveAsync(UsersCacheKeys.UserById(userId), _cancellationToken),
             Times.Once);
-        
+
         _cacheServiceMock.Verify(
             x => x.RemoveAsync(UsersCacheKeys.UserByEmail(email), _cancellationToken),
             Times.Once);
-        
+
         _cacheServiceMock.Verify(
             x => x.RemoveAsync(UsersCacheKeys.UserRoles(userId), _cancellationToken),
             Times.Once);
-        
+
         _cacheServiceMock.Verify(
             x => x.RemoveByPatternAsync(CacheTags.UsersList, _cancellationToken),
             Times.Once);
@@ -233,7 +233,7 @@ public class UsersCacheServiceTests
     {
         // Arrange
         var configData = new Dictionary<string, object> { { "MaxUsers", 1000 } };
-        Func<CancellationToken, ValueTask<Dictionary<string, object>>> factory = 
+        Func<CancellationToken, ValueTask<Dictionary<string, object>>> factory =
             ct => ValueTask.FromResult(configData);
 
         // Act

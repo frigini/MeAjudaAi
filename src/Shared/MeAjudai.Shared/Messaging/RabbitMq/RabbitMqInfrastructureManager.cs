@@ -57,7 +57,7 @@ public class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAs
                 await CreateQueueAsync(queueName);
                 await BindQueueToExchangeAsync(queueName, exchangeName, eventType.Name);
 
-                _logger.LogDebug("Infraestrutura criada para o tipo de evento {EventType}: exchange={Exchange}, queue={Queue}", 
+                _logger.LogDebug("Infraestrutura criada para o tipo de evento {EventType}: exchange={Exchange}, queue={Queue}",
                     eventType.Name, exchangeName, queueName);
             }
 
@@ -87,7 +87,7 @@ public class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAs
     public Task BindQueueToExchangeAsync(string queueName, string exchangeName, string routingKey = "")
     {
         // Implementação RabbitMQ será adicionada quando necessário
-        _logger.LogDebug("Solicitada vinculação de fila: {QueueName} para {ExchangeName} com chave '{RoutingKey}'", 
+        _logger.LogDebug("Solicitada vinculação de fila: {QueueName} para {ExchangeName} com chave '{RoutingKey}'",
             queueName, exchangeName, routingKey);
         return Task.CompletedTask;
     }

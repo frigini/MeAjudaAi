@@ -9,7 +9,7 @@ public class PhoneNumber : ValueObject
 {
     public string Value { get; }
     public string CountryCode { get; }
-    
+
     public PhoneNumber(string value, string countryCode = "BR")
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -20,7 +20,7 @@ public class PhoneNumber : ValueObject
         CountryCode = countryCode.Trim();
     }
 
-    public PhoneNumber(string value) : this(value, "BR") {}
+    public PhoneNumber(string value) : this(value, "BR") { }
 
     public override string ToString() => $"{CountryCode} {Value}";
 

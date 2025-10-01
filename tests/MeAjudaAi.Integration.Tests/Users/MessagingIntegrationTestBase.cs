@@ -25,13 +25,13 @@ public abstract class MessagingIntegrationTestBase : Base.ApiTestBase
     protected async Task CleanMessagesAsync()
     {
         await ResetDatabaseAsync();
-        
+
         // Inicializa o messaging se ainda não foi inicializado
         if (ServiceBusMock == null || RabbitMqMock == null)
         {
             await InitializeTestAsync();
         }
-        
+
         // Limpa mensagens de todos os mocks
         ServiceBusMock?.ClearPublishedMessages();
         RabbitMqMock?.ClearPublishedMessages();
@@ -42,7 +42,7 @@ public abstract class MessagingIntegrationTestBase : Base.ApiTestBase
     /// </summary>
     protected bool WasMessagePublished<T>(Func<T, bool>? predicate = null) where T : class
     {
-        return ServiceBusMock.WasMessagePublished(predicate) || 
+        return ServiceBusMock.WasMessagePublished(predicate) ||
                RabbitMqMock.WasMessagePublished(predicate);
     }
 

@@ -126,7 +126,7 @@ public class UpdateUserProfileEndpointTests
         command.Should().NotBeNull();
         command.FirstName.Should().Be(firstName);
         command.LastName.Should().Be(lastName);
-        
+
         // Nota: O trim deve ocorrer na camada de domínio ou validação
     }
 
@@ -144,7 +144,7 @@ public class UpdateUserProfileEndpointTests
         command.FirstName.Should().Be(firstName);
         command.LastName.Should().Be(lastName);
         command.CorrelationId.Should().NotBeEmpty();
-        
+
         // Verifica igualdade das propriedades mesmo com CorrelationId diferente
         var command2 = new UpdateUserProfileCommand(userId, firstName, lastName);
         command.UserId.Should().Be(command2.UserId);
@@ -187,7 +187,7 @@ public class UpdateUserProfileEndpointTests
         // Act & Assert - Testa se o método de extensão está disponível
         var action = () => request.ToCommand(userId);
         action.Should().NotThrow();
-        
+
         var result = action();
         result.Should().NotBeNull();
     }
@@ -217,7 +217,7 @@ public class UpdateUserProfileEndpointTests
 
         // Assert
         commands.Should().HaveCount(iterations);
-        commands.Should().AllSatisfy(cmd => 
+        commands.Should().AllSatisfy(cmd =>
         {
             cmd.Should().NotBeNull();
             cmd.Should().BeOfType<UpdateUserProfileCommand>();
@@ -260,7 +260,7 @@ public class UpdateUserProfileEndpointTests
         // Assert
         command.FirstName.Should().Be(firstName);
         command.LastName.Should().Be(lastName);
-        
+
         // Nota: Normalização de caixa deve ocorrer na camada de domínio
     }
 }

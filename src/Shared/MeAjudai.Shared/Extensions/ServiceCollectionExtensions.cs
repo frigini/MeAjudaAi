@@ -49,7 +49,7 @@ public static class ServiceCollectionExtensions
 
         services.AddPostgres(configuration);
         services.AddCaching(configuration);
-        
+
         // Só adiciona messaging se não estiver em ambiente de teste
         var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? EnvironmentNames.Development;
         if (envName != EnvironmentNames.Testing)
@@ -64,10 +64,10 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IMessageBus, NoOpMessageBus>();
             services.AddSingleton<MeAjudaAi.Shared.Messaging.ServiceBus.IServiceBusTopicManager, NoOpServiceBusTopicManager>();
         }
-        
+
         services.AddValidation();
         services.AddErrorHandling();
-        
+
         services.AddCommands();
         services.AddQueries();
         services.AddEvents();
@@ -92,7 +92,7 @@ public static class ServiceCollectionExtensions
             services.AddCustomSerialization();
             services.AddPostgres(configuration);
             services.AddCaching(configuration);
-            
+
             var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? EnvironmentNames.Development;
             if (envName != EnvironmentNames.Testing)
             {
@@ -104,14 +104,14 @@ public static class ServiceCollectionExtensions
                 services.AddSingleton<IMessageBus, NoOpMessageBus>();
                 services.AddSingleton<MeAjudaAi.Shared.Messaging.ServiceBus.IServiceBusTopicManager, NoOpServiceBusTopicManager>();
             }
-            
+
             services.AddValidation();
             services.AddErrorHandling();
             services.AddCommands();
             services.AddQueries();
             services.AddEvents();
         }
-        
+
         // Adiciona monitoramento avançado complementar ao Aspire
         services.AddAdvancedMonitoring(environment);
 
@@ -129,20 +129,20 @@ public static class ServiceCollectionExtensions
     public static async Task<IApplicationBuilder> UseSharedServicesAsync(this IApplicationBuilder app)
     {
         app.UseErrorHandling();
-        
+
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-        
+
         // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
         if (app is WebApplication webApp && environment != "Testing")
         {
             var configuration = webApp.Services.GetRequiredService<IConfiguration>();
             var isMessagingEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
-            
+
             if (isMessagingEnabled)
             {
                 await webApp.EnsureMessagingInfrastructureAsync();
             }
-            
+
             // Cache warmup em background para não bloquear startup
             var isCacheWarmupEnabled = configuration.GetValue<bool>("Cache:WarmupEnabled", true);
             if (isCacheWarmupEnabled)

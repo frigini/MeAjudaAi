@@ -8,12 +8,12 @@ namespace MeAjudaAi.ApiService.Middlewares;
 public class StaticFilesMiddleware(RequestDelegate next)
 {
     private readonly RequestDelegate _next = next;
-    
+
     // Cabeçalhos de cache pré-computados para melhor performance
     private const string LongCacheControl = "public,max-age=2592000,immutable"; // 30 dias
     private const string NoCacheControl = "no-cache,no-store,must-revalidate";
     private static readonly TimeSpan LongCacheDuration = TimeSpan.FromDays(30);
-    
+
     // Extensões de arquivos estáticos que devem ser cacheados
     private static readonly HashSet<string> CacheableExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -29,7 +29,7 @@ public class StaticFilesMiddleware(RequestDelegate next)
             context.Request.Path.StartsWithSegments("/fonts"))
         {
             var extension = Path.GetExtension(context.Request.Path.Value);
-            
+
             if (!string.IsNullOrEmpty(extension) && CacheableExtensions.Contains(extension))
             {
                 // Define cabeçalhos de cache antes de servir o arquivo
@@ -39,7 +39,7 @@ public class StaticFilesMiddleware(RequestDelegate next)
                     headers[HeaderNames.CacheControl] = LongCacheControl;
                     headers[HeaderNames.Expires] = DateTimeOffset.UtcNow.Add(LongCacheDuration).ToString("R");
                     // Removed manual ETag assignment - let ASP.NET Core static file middleware handle content-aware ETags
-                    
+
                     return Task.CompletedTask;
                 });
             }

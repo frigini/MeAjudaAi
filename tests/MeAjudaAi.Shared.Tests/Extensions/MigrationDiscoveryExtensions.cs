@@ -21,7 +21,7 @@ public static class MigrationDiscoveryExtensions
         CancellationToken cancellationToken = default)
     {
         var dbContextTypes = DiscoverDbContextTypes();
-        
+
         foreach (var contextType in dbContextTypes)
         {
             try
@@ -31,10 +31,10 @@ public static class MigrationDiscoveryExtensions
                 {
                     // Configura warnings para permitir aplicação de migrações em testes
                     context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
-                    
+
                     // Primeiro, garantir que o banco existe
                     await context.Database.EnsureCreatedAsync(cancellationToken);
-                    
+
                     // Tentar aplicar migrações mesmo com alterações pendentes
                     try
                     {
@@ -70,7 +70,7 @@ public static class MigrationDiscoveryExtensions
     private static IEnumerable<Type> DiscoverDbContextTypes()
     {
         var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(assembly => !assembly.IsDynamic && 
+            .Where(assembly => !assembly.IsDynamic &&
                               (assembly.FullName?.Contains("MeAjudaAi") == true ||
                                assembly.FullName?.Contains("Users") == true ||
                                assembly.FullName?.Contains("Infrastructure") == true));
@@ -82,8 +82,8 @@ public static class MigrationDiscoveryExtensions
             try
             {
                 var contextTypes = assembly.GetTypes()
-                    .Where(type => type.IsClass && 
-                                  !type.IsAbstract && 
+                    .Where(type => type.IsClass &&
+                                  !type.IsAbstract &&
                                   typeof(DbContext).IsAssignableFrom(type) &&
                                   type.Name.EndsWith("DbContext"))
                     .ToList();
@@ -95,8 +95,8 @@ public static class MigrationDiscoveryExtensions
                 // Trata assemblies que não podem ser totalmente carregados
                 var loadableTypes = ex.Types.Where(t => t != null);
                 var contextTypes = loadableTypes
-                    .Where(type => type!.IsClass && 
-                                  !type.IsAbstract && 
+                    .Where(type => type!.IsClass &&
+                                  !type.IsAbstract &&
                                   typeof(DbContext).IsAssignableFrom(type) &&
                                   type.Name.EndsWith("DbContext"))
                     .ToList();
@@ -124,7 +124,7 @@ public static class MigrationDiscoveryExtensions
         CancellationToken cancellationToken = default)
     {
         var dbContextTypes = DiscoverDbContextTypes();
-        
+
         foreach (var contextType in dbContextTypes)
         {
             try

@@ -26,7 +26,7 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         var userRepository = GetScopedService<IUserRepository>(scope);
         var dbContext = GetScopedService<UsersDbContext>(scope);
         var queryHandler = GetScopedService<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>>(scope);
-        
+
         // Cria um usuário de teste primeiro
         var username = new Username($"test{Guid.NewGuid().ToString()[..6]}");
         var email = new Email($"test{Guid.NewGuid().ToString()[..6]}@example.com");
@@ -34,20 +34,20 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         var lastName = "User";
         var password = "SecurePassword123!";
         var roles = new[] { "customer" };
-        
+
         var createResult = await userDomainService.CreateUserAsync(
             username, email, firstName, lastName, password, roles);
-        
+
         Assert.True(createResult.IsSuccess);
-        
+
         var createdUser = createResult.Value;
         await userRepository.AddAsync(createdUser);
         await dbContext.SaveChangesAsync();
-        
+
         // Act - Query the user by username
         var query = new GetUserByUsernameQuery(username.Value);
         var queryResult = await queryHandler.HandleAsync(query);
-        
+
         // Assert
         Assert.True(queryResult.IsSuccess);
         Assert.NotNull(queryResult.Value);
@@ -63,13 +63,13 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         // Arrange
         using var scope = CreateScope();
         var queryHandler = GetScopedService<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>>(scope);
-        
+
         var nonExistentUsername = $"fake{Guid.NewGuid().ToString()[..6]}";
-        
+
         // Act
         var query = new GetUserByUsernameQuery(nonExistentUsername);
         var queryResult = await queryHandler.HandleAsync(query);
-        
+
         // Assert
         Assert.False(queryResult.IsSuccess);
         Assert.NotNull(queryResult.Error);
@@ -85,7 +85,7 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         var userRepository = GetScopedService<IUserRepository>(scope);
         var dbContext = GetScopedService<UsersDbContext>(scope);
         var usersModuleApi = GetScopedService<IUsersModuleApi>(scope);
-        
+
         // Cria um usuário de teste primeiro
         var username = new Username($"test{Guid.NewGuid().ToString()[..6]}");
         var email = new Email($"test{Guid.NewGuid().ToString()[..6]}@example.com");
@@ -93,19 +93,19 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         var lastName = "User";
         var password = "SecurePassword123!";
         var roles = new[] { "customer" };
-        
+
         var createResult = await userDomainService.CreateUserAsync(
             username, email, firstName, lastName, password, roles);
-        
+
         Assert.True(createResult.IsSuccess);
-        
+
         var createdUser = createResult.Value;
         await userRepository.AddAsync(createdUser);
         await dbContext.SaveChangesAsync();
-        
+
         // Act - Check if username exists
         var existsResult = await usersModuleApi.UsernameExistsAsync(username.Value);
-        
+
         // Assert
         Assert.True(existsResult.IsSuccess);
         Assert.True(existsResult.Value);
@@ -117,12 +117,12 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         // Arrange
         using var scope = CreateScope();
         var usersModuleApi = GetScopedService<IUsersModuleApi>(scope);
-        
+
         var nonExistentUsername = $"fake{Guid.NewGuid().ToString()[..6]}";
-        
+
         // Act
         var existsResult = await usersModuleApi.UsernameExistsAsync(nonExistentUsername);
-        
+
         // Assert
         Assert.True(existsResult.IsSuccess);
         Assert.False(existsResult.Value);

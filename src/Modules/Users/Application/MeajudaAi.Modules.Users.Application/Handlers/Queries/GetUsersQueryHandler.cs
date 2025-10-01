@@ -55,7 +55,7 @@ internal sealed class GetUsersQueryHandler(
         });
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        logger.LogInformation("Starting paginated user listing for page {Page}, size {PageSize}", 
+        logger.LogInformation("Starting paginated user listing for page {Page}, size {PageSize}",
             query.Page, query.PageSize);
 
         try
@@ -87,7 +87,7 @@ internal sealed class GetUsersQueryHandler(
             logger.LogError(ex,
                 "Failed to retrieve paginated users after {ElapsedMs}ms - Page: {Page}, PageSize: {PageSize}",
                 stopwatch.ElapsedMilliseconds, query.Page, query.PageSize);
-            
+
             return Result<PagedResult<UserDto>>.Failure($"Failed to retrieve users: {ex.Message}");
         }
     }
@@ -99,7 +99,7 @@ internal sealed class GetUsersQueryHandler(
     {
         if (query.Page < 1 || query.PageSize < 1 || query.PageSize > 100)
         {
-            logger.LogWarning("Invalid pagination parameters: Page={Page}, PageSize={PageSize}", 
+            logger.LogWarning("Invalid pagination parameters: Page={Page}, PageSize={PageSize}",
                 query.Page, query.PageSize);
             return Result<Unit>.Failure("Invalid pagination parameters");
         }
@@ -116,12 +116,12 @@ internal sealed class GetUsersQueryHandler(
         CancellationToken cancellationToken)
     {
         logger.LogDebug("Executing repository query for users");
-        
+
         var repositoryStart = stopwatch.ElapsedMilliseconds;
         var (users, totalCount) = await userRepository.GetPagedAsync(
             query.Page, query.PageSize, cancellationToken);
 
-        logger.LogDebug("Repository query completed in {ElapsedMs}ms, found {TotalCount} total users", 
+        logger.LogDebug("Repository query completed in {ElapsedMs}ms, found {TotalCount} total users",
             stopwatch.ElapsedMilliseconds - repositoryStart, totalCount);
 
         return (users, totalCount);
@@ -136,8 +136,8 @@ internal sealed class GetUsersQueryHandler(
     {
         var mappingStart = stopwatch.ElapsedMilliseconds;
         var userDtos = users.Select(u => u.ToDto()).ToList().AsReadOnly();
-        
-        logger.LogDebug("DTO mapping completed in {ElapsedMs}ms for {UserCount} users", 
+
+        logger.LogDebug("DTO mapping completed in {ElapsedMs}ms for {UserCount} users",
             stopwatch.ElapsedMilliseconds - mappingStart, userDtos.Count);
 
         return userDtos;

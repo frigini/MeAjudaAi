@@ -29,22 +29,22 @@ public static class MessagingMockExtensions
     {
         // Remove implementações reais se existirem
         RemoveRealImplementations(services);
-        
+
         // Usa Scrutor para registrar automaticamente todos os mocks de messaging do assembly atual
         services.Scan(scan => scan
             .FromAssemblies(Assembly.GetExecutingAssembly())
             .AddClasses(classes => classes
-                .Where(type => type.Namespace != null && 
+                .Where(type => type.Namespace != null &&
                               type.Namespace.Contains("Messaging") &&
                               type.Name.StartsWith("Mock")))
             .AsSelf()
             .WithSingletonLifetime());
-        
+
         // Registra os mocks específicos
-        
+
         // Registra os mocks como as implementações do IMessageBus
         services.AddSingleton<IMessageBus>(provider => provider.GetRequiredService<MockServiceBusMessageBus>());
-        
+
         return services;
     }
 

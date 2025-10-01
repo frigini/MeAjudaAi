@@ -54,7 +54,7 @@ public static class SharedTestContainers
     private static void EnsureInitialized()
     {
         if (_isInitialized) return;
-        
+
         lock (_lock)
         {
             if (_isInitialized) return;
@@ -80,30 +80,30 @@ public static class SharedTestContainers
     public static async Task StartAllAsync()
     {
         EnsureInitialized();
-        
+
         await _postgreSqlContainer!.StartAsync();
-        
+
         // Verifica se o container está realmente pronto
         await ValidateContainerHealthAsync();
     }
-    
+
     /// <summary>
     /// Valida se o container PostgreSQL está saudável e pronto para conexões
     /// </summary>
     private static async Task ValidateContainerHealthAsync()
     {
         if (_postgreSqlContainer == null) return;
-        
+
         const int maxRetries = 30;
         const int delayMs = 1000;
-        
+
         for (int i = 0; i < maxRetries; i++)
         {
             try
             {
                 // Tenta obter connection string para verificar se as portas estão mapeadas
                 var connectionString = _postgreSqlContainer.GetConnectionString();
-                
+
                 // Se conseguiu obter, o container está pronto
                 Console.WriteLine($"Container PostgreSQL ready! Connection: {connectionString}");
                 return;
@@ -114,7 +114,7 @@ public static class SharedTestContainers
                 await Task.Delay(delayMs);
             }
         }
-        
+
         throw new InvalidOperationException("PostgreSQL container failed to become ready after maximum retries.");
     }
 
@@ -138,7 +138,7 @@ public static class SharedTestContainers
         if (!_isInitialized) return;
 
         _databaseOptions ??= GetDefaultDatabaseOptions();
-        
+
         // Limpa PostgreSQL
         if (_postgreSqlContainer != null)
         {
@@ -160,7 +160,7 @@ public static class SharedTestContainers
 
         // Schemas conhecidos dos módulos (pode ser expandido conforme novos módulos)
         var moduleSchemas = new[] { "users", "providers", "services", "orders", "public" };
-        
+
         foreach (var schema in moduleSchemas)
         {
             await CleanupDataAsync(schema);

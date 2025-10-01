@@ -56,15 +56,15 @@ public class UsersCacheService(ICacheService cacheService) : IUsersCacheService
     {
         // Remove cache específico do usuário
         await cacheService.RemoveAsync(UsersCacheKeys.UserById(userId), cancellationToken);
-        
+
         if (!string.IsNullOrEmpty(email))
         {
             await cacheService.RemoveAsync(UsersCacheKeys.UserByEmail(email), cancellationToken);
         }
-        
+
         // Remove cache dos roles do usuário
         await cacheService.RemoveAsync(UsersCacheKeys.UserRoles(userId), cancellationToken);
-        
+
         // Invalida listas que podem conter este usuário
         await cacheService.RemoveByPatternAsync(CacheTags.UsersList, cancellationToken);
     }

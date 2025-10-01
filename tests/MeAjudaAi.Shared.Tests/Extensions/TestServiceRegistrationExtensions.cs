@@ -18,7 +18,7 @@ public static class TestServiceRegistrationExtensions
         return services.Scan(scan => scan
             .FromAssemblies(assembly)
             .AddClasses(classes => classes
-                .Where(type => type.Name.EndsWith("Mock") || 
+                .Where(type => type.Name.EndsWith("Mock") ||
                               type.GetInterfaces().Any(i => i.Name.StartsWith("IMock"))))
             .AsImplementedInterfaces()
             .WithSingletonLifetime());
@@ -33,8 +33,8 @@ public static class TestServiceRegistrationExtensions
         return services.Scan(scan => scan
             .FromAssemblies(assembly)
             .AddClasses(classes => classes
-                .Where(type => type.Name.EndsWith("Stub") || 
-                              type.Name.EndsWith("Fake") || 
+                .Where(type => type.Name.EndsWith("Stub") ||
+                              type.Name.EndsWith("Fake") ||
                               type.Name.EndsWith("TestDouble")))
             .AsImplementedInterfaces()
             .WithSingletonLifetime());
@@ -64,8 +64,8 @@ public static class TestServiceRegistrationExtensions
         return services.Scan(scan => scan
             .FromAssemblies(assembly)
             .AddClasses(classes => classes
-                .Where(type => type.Name.EndsWith("Helper") || 
-                              type.Name.EndsWith("TestHelper") || 
+                .Where(type => type.Name.EndsWith("Helper") ||
+                              type.Name.EndsWith("TestHelper") ||
                               type.Name.EndsWith("TestUtility")))
             .AsSelf()
             .WithSingletonLifetime());
@@ -124,7 +124,7 @@ public static class TestServiceRegistrationExtensions
             .AddClasses(classes => classes
                 .Where(type => type.Name.EndsWith("TestHandler") ||
                               type.Name.EndsWith("MockHandler") ||
-                              (type.Namespace != null && type.Namespace.Contains("Test") && 
+                              (type.Namespace != null && type.Namespace.Contains("Test") &&
                                type.Name.EndsWith("Handler"))))
             .AsImplementedInterfaces()
             .WithScopedLifetime());
@@ -134,13 +134,13 @@ public static class TestServiceRegistrationExtensions
     /// Adiciona services específicos para um módulo de teste
     /// Procura por classes em namespaces que contêm o nome do módulo e "Test"
     /// </summary>
-    public static IServiceCollection AddModuleTestServices(this IServiceCollection services, 
+    public static IServiceCollection AddModuleTestServices(this IServiceCollection services,
         Assembly assembly, string moduleName)
     {
         return services.Scan(scan => scan
             .FromAssemblies(assembly)
             .AddClasses(classes => classes
-                .Where(type => type.Namespace != null && 
+                .Where(type => type.Namespace != null &&
                               type.Namespace.Contains(moduleName, StringComparison.OrdinalIgnoreCase) &&
                               type.Namespace.Contains("Test")))
             .AsImplementedInterfaces()

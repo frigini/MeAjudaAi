@@ -56,7 +56,7 @@ public class GetUserByEmailEndpointTests
         query.Should().NotBeNull();
         query.Email.Should().Be(invalidEmail);
         query.Should().BeOfType<GetUserByEmailQuery>();
-        
+
         // Nota: A validação do email deve ocorrer na camada de domínio, não no mapper
     }
 
@@ -85,7 +85,7 @@ public class GetUserByEmailEndpointTests
         // Act & Assert
         query.Email.Should().Be(email);
         query.CorrelationId.Should().NotBeEmpty();
-        
+
         // Verifica igualdade do Email mesmo com CorrelationId diferente
         var query2 = new GetUserByEmailQuery(email);
         query.Email.Should().Be(query2.Email);
@@ -120,7 +120,7 @@ public class GetUserByEmailEndpointTests
         query.Should().NotBeNull();
         query.Email.Should().Be(email);
         query.Email.Should().NotBe(email.ToLower());
-        
+
         // Nota: Normalização do email deve ocorrer na camada de domínio
     }
 
@@ -133,7 +133,7 @@ public class GetUserByEmailEndpointTests
         // Act & Assert - Testa se o método de extensão está disponível
         var action = () => email.ToEmailQuery();
         action.Should().NotThrow();
-        
+
         var result = action();
         result.Should().NotBeNull();
     }
@@ -154,7 +154,7 @@ public class GetUserByEmailEndpointTests
 
         // Assert
         queries.Should().HaveCount(iterations);
-        queries.Should().AllSatisfy(query => 
+        queries.Should().AllSatisfy(query =>
         {
             query.Should().NotBeNull();
             query.Should().BeOfType<GetUserByEmailQuery>();

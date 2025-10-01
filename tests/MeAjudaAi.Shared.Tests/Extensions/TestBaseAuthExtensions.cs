@@ -10,9 +10,9 @@ public static class TestBaseAuthExtensions
     /// <summary>
     /// Configura um usuário administrador para o teste
     /// </summary>
-    public static void AuthenticateAsAdmin(this object testBase, 
-        string userId = "admin-id", 
-        string username = "admin", 
+    public static void AuthenticateAsAdmin(this object testBase,
+        string userId = "admin-id",
+        string username = "admin",
         string email = "admin@test.com")
     {
         ConfigurableTestAuthenticationHandler.ConfigureAdmin(userId, username, email);
@@ -21,9 +21,9 @@ public static class TestBaseAuthExtensions
     /// <summary>
     /// Configura um usuário normal para o teste
     /// </summary>
-    public static void AuthenticateAsUser(this object testBase, 
-        string userId = "user-id", 
-        string username = "user", 
+    public static void AuthenticateAsUser(this object testBase,
+        string userId = "user-id",
+        string username = "user",
         string email = "user@test.com")
     {
         ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username, email);

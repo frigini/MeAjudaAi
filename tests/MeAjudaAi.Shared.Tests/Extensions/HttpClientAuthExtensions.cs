@@ -10,7 +10,7 @@ public static class HttpClientAuthExtensions
     /// </summary>
     public static HttpClient WithAuthorizationHeader(this HttpClient client, string token = "fake-token")
     {
-        client.DefaultRequestHeaders.Authorization = 
+        client.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         return client;
     }

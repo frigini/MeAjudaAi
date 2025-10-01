@@ -18,7 +18,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin(); // Autentica como admin para criar usuário
-        
+
         var createUserRequest = new
         {
             Username = Faker.Internet.UserName(),
@@ -38,7 +38,7 @@ public class UsersEndToEndTests : TestContainerTestBase
             throw new Exception($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
         }
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         var locationHeader = response.Headers.Location?.ToString();
         locationHeader.Should().NotBeNull();
         locationHeader.Should().Contain("/api/v1/users");
@@ -68,12 +68,12 @@ public class UsersEndToEndTests : TestContainerTestBase
         // Arrange
         var username = new Username(Faker.Internet.UserName());
         var email = new Email(Faker.Internet.Email());
-        
+
         // Act - Criar usuário diretamente no banco
         await WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<UsersDbContext>();
-            
+
             var user = new User(
                 username: username,
                 email: email,
@@ -90,7 +90,7 @@ public class UsersEndToEndTests : TestContainerTestBase
         await WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<UsersDbContext>();
-            
+
             var foundUser = await context.Users
                 .FirstOrDefaultAsync(u => u.Username == username);
 

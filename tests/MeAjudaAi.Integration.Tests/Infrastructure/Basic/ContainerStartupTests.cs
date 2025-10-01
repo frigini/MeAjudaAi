@@ -14,7 +14,7 @@ public class ContainerStartupTests
         // Arrange & Act
         using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
         await using var app = await appHost.BuildAsync();
-        
+
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
         await app.StartAsync();
 
@@ -32,7 +32,7 @@ public class ContainerStartupTests
         // Arrange & Act
         using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
         await using var app = await appHost.BuildAsync();
-        
+
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
         await app.StartAsync();
 
@@ -50,13 +50,13 @@ public class ContainerStartupTests
         // Arrange & Act
         using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
         await using var app = await appHost.BuildAsync();
-        
+
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
         var model = app.Services.GetRequiredService<DistributedApplicationModel>();
-        
+
         // Verifica se o RabbitMQ está configurado neste ambiente ANTES de iniciar
         var rabbitMqResource = model.Resources.FirstOrDefault(r => r.Name == "rabbitmq");
-        
+
         if (rabbitMqResource == null)
         {
             // RabbitMQ não configurado neste ambiente (ex: Testing)
@@ -68,10 +68,10 @@ public class ContainerStartupTests
 
         // Aguarda pelo RabbitMQ com timeout
         var timeout = TimeSpan.FromMinutes(3); // Timeout aumentado para RabbitMQ
-        try 
+        try
         {
             await resourceNotificationService.WaitForResourceAsync("rabbitmq", KnownResourceStates.Running).WaitAsync(timeout);
-            
+
             // Assert
             true.Should().BeTrue("RabbitMQ container started successfully");
         }
@@ -88,34 +88,34 @@ public class ContainerStartupTests
         // Arrange & Act
         using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
         await using var app = await appHost.BuildAsync();
-        
+
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
         var model = app.Services.GetRequiredService<DistributedApplicationModel>();
         await app.StartAsync();
 
         // Aguarda pelas dependências e pelo serviço de API com timeout generoso
         var timeout = TimeSpan.FromMinutes(5);
-        
+
         try
         {
             // Aguarda pelas dependências de infraestrutura - apenas as que estão configuradas
             await resourceNotificationService.WaitForResourceAsync("postgres-local", KnownResourceStates.Running).WaitAsync(timeout);
             await resourceNotificationService.WaitForResourceAsync("redis", KnownResourceStates.Running).WaitAsync(timeout);
-            
+
             // Verifica se o RabbitMQ está configurado antes de aguardar por ele
             var rabbitMqResource = model.Resources.FirstOrDefault(r => r.Name == "rabbitmq");
             if (rabbitMqResource != null)
             {
                 await resourceNotificationService.WaitForResourceAsync("rabbitmq", KnownResourceStates.Running).WaitAsync(timeout);
             }
-            
+
             // Aguarda pelo serviço de API
             await resourceNotificationService.WaitForResourceAsync("apiservice", KnownResourceStates.Running).WaitAsync(timeout);
 
             // Valida se o HTTP client pode ser criado
             var httpClient = app.CreateHttpClient("apiservice");
             httpClient.Should().NotBeNull();
-            
+
             // Assert
             true.Should().BeTrue("API Service started successfully after all dependencies");
         }

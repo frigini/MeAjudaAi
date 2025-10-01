@@ -25,7 +25,7 @@ public class UsersModuleTests : TestContainerTestBase
         {
             var content = await response.Content.ReadAsStringAsync();
             content.Should().NotBeNullOrEmpty();
-            
+
             // Verifica se é JSON válido
             var jsonDocument = System.Text.Json.JsonDocument.Parse(content);
             jsonDocument.Should().NotBeNull();
@@ -58,7 +58,7 @@ public class UsersModuleTests : TestContainerTestBase
         {
             var content = await response.Content.ReadAsStringAsync();
             content.Should().NotBeNullOrEmpty();
-            
+
             var createdUser = System.Text.Json.JsonSerializer.Deserialize<CreateUserResponse>(content, JsonOptions);
             createdUser.Should().NotBeNull();
             createdUser!.UserId.Should().NotBeEmpty();

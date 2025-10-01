@@ -38,10 +38,10 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         // Configura serviços para este teste específico
         var services = new ServiceCollection();
         var testOptions = GetTestOptions();
-        
+
         // Usa containers compartilhados - adiciona como singletons
         services.AddSingleton(SharedTestContainers.PostgreSql);
-        
+
         // Configurar logging otimizado para testes
         services.AddLogging(builder =>
         {
@@ -58,7 +58,7 @@ public abstract class IntegrationTestBase : IAsyncLifetime
 
         // Configura serviços específicos do módulo
         ConfigureModuleServices(services, testOptions);
-        
+
         _serviceProvider = services.BuildServiceProvider();
 
         // Setup específico do módulo
@@ -70,23 +70,23 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         // Setup adicional específico do teste
         await OnInitializeAsync();
     }
-    
+
     private static async Task EnsureContainersStartedAsync()
     {
         // Double-check locking pattern para garantir thread safety
         if (_containersStarted) return;
-        
+
         lock (_startupLock)
         {
             if (_containersStarted) return;
             _containersStarted = true;
         }
-        
+
         Console.WriteLine("Starting shared containers...");
-        
+
         // Inicia containers fora do lock
         await SharedTestContainers.StartAllAsync();
-        
+
         Console.WriteLine("Shared containers started successfully!");
     }
 
@@ -129,7 +129,7 @@ public abstract class IntegrationTestBase : IAsyncLifetime
     /// <summary>
     /// Obtém um serviço específico do escopo
     /// </summary>
-    protected T GetScopedService<T>(IServiceScope scope) where T : notnull => 
+    protected T GetScopedService<T>(IServiceScope scope) where T : notnull =>
         scope.ServiceProvider.GetRequiredService<T>();
 }
 
@@ -143,7 +143,7 @@ public static class IntegrationTestCleanup
         AppDomain.CurrentDomain.ProcessExit += async (_, _) => await SharedTestContainers.StopAllAsync();
         AppDomain.CurrentDomain.DomainUnload += async (_, _) => await SharedTestContainers.StopAllAsync();
     }
-    
+
     /// <summary>
     /// Força o cleanup dos containers (útil para executar no final de uma suite de testes)
     /// </summary>

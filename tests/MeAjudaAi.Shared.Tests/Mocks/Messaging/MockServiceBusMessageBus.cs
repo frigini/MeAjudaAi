@@ -17,14 +17,14 @@ public class MockServiceBusMessageBus : IMessageBus
         _mockMessageBus = new Mock<IMessageBus>();
         _logger = logger;
         _publishedMessages = [];
-        
+
         SetupMockBehavior();
     }
 
     /// <summary>
     /// Lista de mensagens publicadas durante os testes
     /// </summary>
-    public IReadOnlyList<(object message, string? destination, MessageType type)> PublishedMessages 
+    public IReadOnlyList<(object message, string? destination, MessageType type)> PublishedMessages
         => _publishedMessages.AsReadOnly();
 
     /// <summary>
@@ -37,29 +37,29 @@ public class MockServiceBusMessageBus : IMessageBus
 
     public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock Service Bus: Sending message of type {MessageType} to queue {QueueName}", 
+        _logger.LogInformation("Mock Service Bus: Sending message of type {MessageType} to queue {QueueName}",
             typeof(TMessage).Name, queueName);
-        
+
         _publishedMessages.Add((message!, queueName, MessageType.Send));
-        
+
         return _mockMessageBus.Object.SendAsync(message, queueName, cancellationToken);
     }
 
     public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock Service Bus: Publishing event of type {EventType} to topic {TopicName}", 
+        _logger.LogInformation("Mock Service Bus: Publishing event of type {EventType} to topic {TopicName}",
             typeof(TMessage).Name, topicName);
-        
+
         _publishedMessages.Add((@event!, topicName, MessageType.Publish));
-        
+
         return _mockMessageBus.Object.PublishAsync(@event, topicName, cancellationToken);
     }
 
     public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock Service Bus: Subscribing to messages of type {MessageType} with subscription {SubscriptionName}", 
+        _logger.LogInformation("Mock Service Bus: Subscribing to messages of type {MessageType} with subscription {SubscriptionName}",
             typeof(TMessage).Name, subscriptionName);
-        
+
         return _mockMessageBus.Object.SubscribeAsync(handler, subscriptionName, cancellationToken);
     }
 
@@ -87,8 +87,8 @@ public class MockServiceBusMessageBus : IMessageBus
             .Where(x => x.message is T && x.type == MessageType.Send)
             .Select(x => (T)x.message);
 
-        return predicate == null 
-            ? messagesOfType.Any() 
+        return predicate == null
+            ? messagesOfType.Any()
             : messagesOfType.Any(predicate);
     }
 
@@ -101,8 +101,8 @@ public class MockServiceBusMessageBus : IMessageBus
             .Where(x => x.message is T && x.type == MessageType.Publish)
             .Select(x => (T)x.message);
 
-        return predicate == null 
-            ? eventsOfType.Any() 
+        return predicate == null
+            ? eventsOfType.Any()
             : eventsOfType.Any(predicate);
     }
 

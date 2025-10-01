@@ -13,10 +13,10 @@ public class SharedTestFixture : IAsyncLifetime
     private static readonly Lock _lock = new();
     private static SharedTestFixture? _instance;
     private static int _referenceCount = 0;
-    
+
     public IHost? Host { get; private set; }
     public IServiceProvider Services => Host?.Services ?? throw new InvalidOperationException("Host not initialized");
-    
+
     /// <summary>
     /// Singleton pattern para garantir uma única instância compartilhada
     /// </summary>
@@ -63,7 +63,7 @@ public class SharedTestFixture : IAsyncLifetime
         {
             _referenceCount--;
             if (_referenceCount > 0) return; // Ainda há referências ativas
-            
+
             _instance = null;
         }
 
