@@ -127,19 +127,40 @@ public static class PostgreSqlExtensions
         if (string.IsNullOrWhiteSpace(options.Password))
             throw new InvalidOperationException("POSTGRES_PASSWORD must be provided via env var or options for testing.");
 
-        // Usa nomenclatura consistente com testes de integração - eles esperam "postgres-local"
-        var postgres = builder.AddPostgres("postgres-local")
-            .WithImageTag("13-alpine") // Usa PostgreSQL 13 para melhor compatibilidade
-            .WithEnvironment("POSTGRES_DB", options.MainDatabase)
-            .WithEnvironment("POSTGRES_USER", options.Username)
-            .WithEnvironment("POSTGRES_PASSWORD", options.Password);
-
-        var mainDb = postgres.AddDatabase("meajudaai-db-local", options.MainDatabase);
-
-        return new MeAjudaAiPostgreSqlResult
+        // Check if running in CI environment with external PostgreSQL service
+        var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+        var externalDbHost = Environment.GetEnvironmentVariable("CI_POSTGRES_HOST") ?? "localhost";
+        var externalDbPort = Environment.GetEnvironmentVariable("CI_POSTGRES_PORT") ?? "5432";
+        
+        if (isCI)
         {
-            MainDatabase = mainDb
-        };
+            // In CI, use external PostgreSQL service (e.g., GitHub Actions service)
+            var connectionString = $"Host={externalDbHost};Port={externalDbPort};Database={options.MainDatabase};Username={options.Username};Password={options.Password}";
+            
+            // Create a connection string resource instead of a container
+            var externalDb = builder.AddConnectionString("meajudaai-db-local", connectionString);
+            
+            return new MeAjudaAiPostgreSqlResult
+            {
+                MainDatabase = externalDb
+            };
+        }
+        else
+        {
+            // Local testing - create PostgreSQL container
+            var postgres = builder.AddPostgres("postgres-local")
+                .WithImageTag("13-alpine") // Usa PostgreSQL 13 para melhor compatibilidade
+                .WithEnvironment("POSTGRES_DB", options.MainDatabase)
+                .WithEnvironment("POSTGRES_USER", options.Username)
+                .WithEnvironment("POSTGRES_PASSWORD", options.Password);
+
+            var mainDb = postgres.AddDatabase("meajudaai-db-local", options.MainDatabase);
+
+            return new MeAjudaAiPostgreSqlResult
+            {
+                MainDatabase = mainDb
+            };
+        }
     }
 
     private static MeAjudaAiPostgreSqlResult AddDevelopmentPostgreSQL(

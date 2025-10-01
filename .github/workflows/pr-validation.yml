@@ -19,7 +19,7 @@ jobs:
   code-quality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15
@@ -57,6 +57,18 @@ jobs:
             echo "✅ GitHub secrets configured"
           fi
 
+      - name: Check Keycloak Configuration
+        run: |
+          echo "🔍 Checking Keycloak configuration..."
+          if [ -z "${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" ]; then
+            echo "⚠️  KEYCLOAK_ADMIN_PASSWORD secret not configured"
+            echo "💡 If your tests require Keycloak authentication, configure the secret in:"
+            echo "   Settings → Secrets and variables → Actions → KEYCLOAK_ADMIN_PASSWORD"
+            echo "🔄 Tests will continue but Keycloak-dependent features may fail"
+          else
+            echo "✅ Keycloak secrets configured"
+          fi
+
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update
@@ -80,7 +92,7 @@ jobs:
             echo "Waiting for PostgreSQL... ($i/30)"
             sleep 2
           done
-          
+
           # Check if we exited the loop due to timeout
           if ! pg_isready -h localhost -p 5432 -U "${{ secrets.POSTGRES_USER || 'postgres' }}"; then
             echo "❌ PostgreSQL failed to become ready within 60 seconds"
@@ -103,7 +115,7 @@ jobs:
           DB_USERNAME: ${{ secrets.POSTGRES_USER || 'postgres' }}
           DB_NAME: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
           # Keycloak settings
-          KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD || 'admin123' }}
+          KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
           # Connection string format for .NET
           ConnectionStrings__DefaultConnection: >-
             ${{ secrets.DB_CONNECTION_STRING || 'Host=localhost;Port=5432;Database=meajudaai_test;Username=postgres;Password=test123' }}
@@ -120,7 +132,7 @@ jobs:
             --collect:"XPlat Code Coverage" \
             --results-directory ./coverage/architecture \
             --logger "trx;LogFileName=architecture-tests.trx"
-            
+
           echo "🔗 Executando testes de integração (com banco)..."
           INTEG="tests/MeAjudaAi.Integration.Tests/"
           INTEG+="MeAjudaAi.Integration.Tests.csproj"
@@ -207,7 +219,7 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -231,14 +243,15 @@ jobs:
           # Install OSV-Scanner
           curl -sSfL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o osv-scanner
           chmod +x osv-scanner
-          
+
           echo "🔍 Running vulnerability scan..."
           # Run OSV-Scanner with high/critical severity filter
           ./osv-scanner --lockfile-keep-going --skip-git --format json . > osv-results.json || true
-          
+
           # Check for high/critical vulnerabilities
           if [ -f osv-results.json ]; then
-            HIGH_CRIT=$(jq -r '.results[].packages[]?.vulnerabilities[]? | select(.severity == "HIGH" or .severity == "CRITICAL") | .id' osv-results.json 2>/dev/null | wc -l)
+            HIGH_CRIT=$(jq -r '.results[].packages[]?.vulnerabilities[]? |select(.severity == "HIGH" or .severity == "CRITICAL") | .id' \
+              osv-results.json 2>/dev/null | wc -l)
             if [ "$HIGH_CRIT" -gt 0 ]; then
               echo "❌ Found $HIGH_CRIT HIGH/CRITICAL vulnerabilities!"
               echo "📄 Review osv-results.json for details"
@@ -270,7 +283,7 @@ jobs:
   markdown-link-check:
     name: Validate Markdown Links
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -310,7 +323,7 @@ jobs:
   yaml-validation:
     name: YAML Syntax Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

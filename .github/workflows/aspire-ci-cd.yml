@@ -1,10 +1,10 @@
 ---
 name: MeAjudaAi CI Pipeline
 
-on:
+"on":
   push:
     branches: [master, develop]
-    paths: 
+    paths:
       - 'src/Aspire/**'
       - '.github/workflows/aspire-ci-cd.yml'
   pull_request:
@@ -24,7 +24,6 @@ jobs:
   # Build and test the solution
   build-and-test:
     runs-on: ubuntu-latest
-    
     services:
       postgres:
         image: postgres:15
@@ -39,7 +38,6 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -76,7 +74,6 @@ jobs:
             echo "Waiting for PostgreSQL... ($i/30)"
             sleep 2
           done
-          
           # Check if we exited the loop due to timeout
           if ! pg_isready -h localhost -p 5432 -U "${{ secrets.POSTGRES_USER || 'postgres' }}"; then
             echo "❌ PostgreSQL failed to become ready within 60 seconds"
@@ -104,7 +101,6 @@ jobs:
   aspire-validation:
     runs-on: ubuntu-latest
     needs: build-and-test
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -137,7 +133,6 @@ jobs:
   # Code quality and security analysis
   code-analysis:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -168,11 +163,9 @@ jobs:
       - name: Basic code quality checks
         run: |
           echo "🔍 Running focused code quality checks..."
-          
           # Check for basic C# issues (quiet mode)
           echo "Checking C# syntax..."
           dotnet build MeAjudaAi.sln --verbosity quiet --no-restore
-          
           echo "✅ Code quality checks passed"
 
   # Build validation for individual services (without publishing)
@@ -185,8 +178,7 @@ jobs:
           - name: "ApiService"
             path: "src/Bootstrapper/MeAjudaAi.ApiService"
           - name: "Users.API"
-            path: "src/Modules/Users/API/MeajudaAi.Modules.Users.API"
-    
+            path: "src/Modules/Users/API/MeAjudaAi.Modules.Users.API"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -199,11 +191,8 @@ jobs:
       - name: Validate ${{ matrix.service.name }} builds for containerization
         run: |
           cd ${{ matrix.service.path }}
-          
           # Test that the service can be published (simulates container build)
           dotnet publish -c Release -o ./publish-output
-          
           echo "✅ ${{ matrix.service.name }} builds successfully for containers"
-          
           # Cleanup
           rm -rf ./publish-output

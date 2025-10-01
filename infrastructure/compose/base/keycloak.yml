@@ -14,7 +14,7 @@ services:
     environment:
       POSTGRES_DB: ${KEYCLOAK_DB:-keycloak}
       POSTGRES_USER: ${KEYCLOAK_DB_USER:-keycloak}
-      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD must be set}
     volumes:
       - keycloak_db_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -35,7 +35,7 @@ services:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KEYCLOAK_DB:-keycloak}
       KC_DB_USERNAME: ${KEYCLOAK_DB_USER:-keycloak}
-      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD must be set}
       KC_HOSTNAME_STRICT: ${KC_HOSTNAME_STRICT:-false}
       KC_HOSTNAME_STRICT_HTTPS: ${KC_HOSTNAME_STRICT_HTTPS:-false}
       KC_HTTP_ENABLED: ${KC_HTTP_ENABLED:-true}

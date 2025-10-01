@@ -2,6 +2,30 @@
 
 This directory contains the infrastructure configuration for the MeAjudaAi platform.
 
+## 🔒 Security Requirements
+
+**Before starting any environment**, you must configure secure credentials:
+
+1. **Copy the environment template**:
+   ```bash
+   cp compose/environments/.env.example compose/environments/.env
+   ```
+
+2. **Set secure passwords** for all services in `.env`:
+   - `POSTGRES_PASSWORD` - Main database password
+   - `KEYCLOAK_DB_PASSWORD` - Keycloak database password  
+   - `KEYCLOAK_ADMIN_PASSWORD` - Keycloak admin password
+   - `PGADMIN_DEFAULT_EMAIL` - PgAdmin login email
+   - `PGADMIN_DEFAULT_PASSWORD` - PgAdmin login password
+
+3. **Security Guidelines**:
+   - Use different passwords for each service
+   - Passwords should be at least 16 characters
+   - Never commit `.env` files with real credentials
+   - Use a password manager for secure generation
+
+⚠️ **Docker Compose will fail to start** if these environment variables are not set, preventing accidental deployment with default/weak credentials.
+
 ## Docker Compose Services
 
 ### Keycloak Authentication
