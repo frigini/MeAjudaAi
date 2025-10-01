@@ -1,3 +1,4 @@
+---
 # Keycloak with dedicated PostgreSQL database
 # Use with: docker compose -f base/keycloak.yml up
 # 

@@ -1,10 +1,15 @@
+---
 name: MeAjudaAi CI Pipeline
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [master, develop]
   pull_request:
-    branches: [ master, develop ]
+    branches: [master, develop]
+
+permissions:
+  contents: read
+  checks: write
 
 env:
   DOTNET_VERSION: '9.0.x'
@@ -91,30 +96,33 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Install dotnet format
-      run: dotnet tool install -g dotnet-format
+      - name: Install dotnet format
+        run: dotnet tool install -g dotnet-format
 
-    - name: Check code formatting
-      run: |
-        dotnet format --verify-no-changes --verbosity normal MeAjudaAi.sln || echo "⚠️ Code formatting issues found. Run 'dotnet format' locally to fix."
+      - name: Check code formatting
+        run: |
+          dotnet format --verify-no-changes --verbosity normal MeAjudaAi.sln || echo "⚠️ Code formatting issues found. Run 'dotnet format' locally to fix."
 
-    - name: Run security analysis
-      uses: github/super-linter@v4
-      env:
-        DEFAULT_BRANCH: master
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        VALIDATE_CSHARP: true
-        VALIDATE_DOCKERFILE: true
-        VALIDATE_JSON: true
-        VALIDATE_YAML: true
+      - name: Run security analysis
+        uses: github/super-linter@v4
+        env:
+          DEFAULT_BRANCH: master
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_CSHARP: true
+          VALIDATE_DOCKERFILE: true
+          VALIDATE_JSON: true
+          VALIDATE_YAML: true
+          LOG_LEVEL: VERBOSE
+          SUPPRESS_FILE_TYPE_WARN: false
+          FAIL_ON_ERROR: true
 
   # Build validation for individual services (without publishing)
   service-build-validation:

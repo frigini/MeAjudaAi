@@ -1,3 +1,4 @@
+---
 # RabbitMQ message broker service
 # Use with: docker compose -f base/rabbitmq.yml up
 #

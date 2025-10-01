@@ -1,3 +1,4 @@
+---
 # Complete development environment for MeAjudaAi
 # Includes all necessary services for local development
 # Usage: docker compose -f environments/development.yml up -d

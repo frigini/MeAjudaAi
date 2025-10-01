@@ -1,3 +1,4 @@
+---
 # Redis cache service
 # Use with: docker compose -f base/redis.yml up
 

@@ -1,10 +1,11 @@
+---
 name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [master, develop]
   pull_request:
-    branches: [ master ]
+    branches: [master]
   workflow_dispatch:
     inputs:
       deploy_infrastructure:
@@ -17,6 +18,11 @@ on:
         required: false
         default: false
         type: boolean
+
+permissions:
+  contents: read
+  deployments: write
+  statuses: write
 
 env:
   DOTNET_VERSION: '9.0.x'
