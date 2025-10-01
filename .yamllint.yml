@@ -3,10 +3,12 @@
 extends: default
 
 rules:
-  # Allow longer lines to reduce noise
+  # Allow longer lines with smart exemptions
   line-length:
     max: 120  # Increased from 80 to reduce false positives
     level: warning
+    allow-non-breakable-words: true       # Allow long URLs
+    allow-non-breakable-inline-mappings: true  # Allow long inline mappings
   
   # Be less strict about indentation in some cases
   indentation:
@@ -14,9 +16,9 @@ rules:
     indent-sequences: true
     check-multi-line-strings: false
   
-  # Don't require document start for compose files
+  # Require document start for clarity (compose files can override)
   document-start:
-    present: false
+    present: true
   
   # Allow some formatting flexibility
   comments:
@@ -28,6 +30,6 @@ rules:
     max-start: 1
     max-end: 1
   
-  # Allow trailing spaces in some contexts
+  # Enforce clean whitespace - trailing spaces cause diff churn
   trailing-spaces:
-    level: warning
+    level: error

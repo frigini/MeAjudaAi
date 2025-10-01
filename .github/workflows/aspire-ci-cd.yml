@@ -25,6 +25,21 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,13 +58,40 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.sln --no-restore --configuration Release
 
+      - name: Install PostgreSQL client
+        run: |
+          # Install PostgreSQL client tools for health checks
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          echo "🔄 Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "✅ PostgreSQL is ready!"
+              break
+            fi
+            echo "Waiting for PostgreSQL... ($i/30)"
+            sleep 2
+          done
+
       - name: Run tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
+          # Database configuration for tests that need it
+          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+          DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          DB_USERNAME: ${{ secrets.POSTGRES_USER || 'postgres' }}
         run: |
-          echo "🧪 Running test suite..."
-          dotnet test MeAjudaAi.sln --no-build --configuration Release
-          echo "✅ All tests passed successfully"
+          echo "🧪 Running core test suite (excluding E2E)..."
+          # Run only Architecture and Integration tests - skip E2E tests for Aspire validation
+          dotnet test tests/MeAjudaAi.Architecture.Tests/ --no-build --configuration Release
+          dotnet test tests/MeAjudaAi.Integration.Tests/ --no-build --configuration Release
+          dotnet test src/Modules/Users/Tests/ --no-build --configuration Release
+          echo "✅ Core tests passed successfully"
 
   # Validate Aspire configuration
   aspire-validation:

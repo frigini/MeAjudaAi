@@ -40,21 +40,23 @@ HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
 > ⚠️ **SEGURANÇA**: Por padrão, dados pessoais (PII) são SEMPRE redacted em logs para proteção de privacidade e conformidade LGPD/GDPR.
 
 **Configuração em `appsettings.json`:**
-```json
+```jsonc
 {
   "Logging": {
     "SuppressPII": true,  // Padrão: true (produção)
     "PII": {
       "EnableInDevelopment": true,   // Apenas em Development
       "RedactionText": "[REDACTED]", // Texto de substituição
-      "AllowedFields": ["CorrelationId", "UserId", "SessionId"] // IDs técnicos sempre permitidos
+      "HashTechnicalIds": true,      // Hash IDs técnicos em produção (opcional)
+      "HashAlgorithm": "SHA-256",    // Algoritmo para hash dos IDs
+      "AllowedFields": ["CorrelationId", "UserId", "SessionId"] // IDs técnicos sempre permitidos*
     }
   }
 }
 ```
 
 **Configuração por ambiente:**
-```json
+```jsonc
 // appsettings.Development.json - APENAS desenvolvimento local
 {
   "Logging": {
@@ -73,7 +75,7 @@ HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
 ### Propriedades Automáticas
 
 **Com SuppressPII=true (Padrão/Produção):**
-```json
+```jsonc
 {
   "Timestamp": "2025-09-17T10:30:00.123Z",
   "Level": "Information",
@@ -93,7 +95,7 @@ HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
 ```
 
 **Com SuppressPII=false (Development apenas):**
-```json
+```jsonc
 {
   "Timestamp": "2025-09-17T10:30:00.123Z",
   "Level": "Information",
@@ -117,11 +119,13 @@ HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
 ### 🔒 Logging com Proteção PII
 
 **Regras de PII nos Logs:**
-- ✅ **IDs técnicos**: Sempre permitidos (UserId, CorrelationId, SessionId)
+- ✅ **IDs técnicos**: Sempre permitidos (UserId, CorrelationId, SessionId)*
   - *Estes IDs são necessários para correlação e debugging em produção*
   - *Não contêm informações pessoais identificáveis diretamente*
 - ❌ **Dados pessoais**: Sempre redacted (Username, Email, Nome, CPF, etc.)
 - ⚠️ **Dados sensíveis**: Sempre redacted (Passwords, Tokens, Keys)
+
+> **\*Nota de Conformidade**: IDs técnicos são permitidos quando pseudonimizados e governados por controles de acesso. Em jurisdições rigorosas ou políticas organizacionais específicas, habilite `HashTechnicalIds: true` em produção para aplicar hash SHA-256 aos identificadores.
 
 ### Exemplo Básico
 ```csharp
@@ -215,34 +219,62 @@ public class PIIAwareLogger : IPIILogger
         _suppressPII = _config.GetValue<bool>("Logging:SuppressPII", true);
     }
 
-    public void LogInformation(string message, params object[] args)
+    public void LogInformation(string messageTemplate, params object[] args)
     {
         if (_suppressPII)
         {
-            // Redact PII fields in args based on parameter names or content
-            args = RedactPIIInArguments(args);
+            // Redact PII fields using template-aware redaction
+            args = RedactPIIInArguments(messageTemplate, args);
         }
-        _logger.LogInformation(message, args);
+        _logger.LogInformation(messageTemplate, args);
     }
 
-    private object[] RedactPIIInArguments(object[] args)
+    private object[] RedactPIIInArguments(string messageTemplate, object[] args)
     {
-        // Implementation to detect and redact PII based on:
-        // - Parameter patterns (email, username, name, etc.)
-        // - Configured PII field list
-        // - Data classification rules
-        return args.Select(arg => 
-            IsPotentialPII(arg) ? "[REDACTED]" : arg).ToArray();
+        // Parse template placeholders to map parameter names to argument indices
+        var placeholders = ExtractPlaceholders(messageTemplate);
+        
+        for (int i = 0; i < args.Length && i < placeholders.Count; i++)
+        {
+            var parameterName = placeholders[i];
+            
+            // Check if parameter name matches PII field patterns
+            if (IsPIIField(parameterName) || IsPotentialPII(args[i]))
+            {
+                args[i] = "[REDACTED]";
+            }
+        }
+        
+        return args;
+    }
+
+    private List<string> ExtractPlaceholders(string messageTemplate)
+    {
+        // Extract {ParameterName} placeholders from message template
+        // Handle both positional {0} and named {UserId} placeholders
+        var regex = new Regex(@"\{([^}]+)\}");
+        return regex.Matches(messageTemplate)
+            .Cast<Match>()
+            .Select(m => m.Groups[1].Value)
+            .ToList();
+    }
+
+    private bool IsPIIField(string fieldName)
+    {
+        // Check against configured PII field list
+        var piiFields = new[] { "Email", "Username", "Name", "Phone", "CPF" };
+        return piiFields.Any(field => 
+            fieldName.Contains(field, StringComparison.OrdinalIgnoreCase));
     }
 }
 ```
 
-## � Melhores Práticas de PII
+## 🛡️ Melhores Práticas de PII
 
 ### Configuração de Ambientes
 
 **Development (Local):**
-```json
+```jsonc
 {
   "Logging": {
     "SuppressPII": false,  // Permitir PII para debug local
@@ -255,7 +287,7 @@ public class PIIAwareLogger : IPIILogger
 ```
 
 **Staging/Testing:**
-```json
+```jsonc
 {
   "Logging": {
     "SuppressPII": true,   // OBRIGATÓRIO redact PII
@@ -268,13 +300,15 @@ public class PIIAwareLogger : IPIILogger
 ```
 
 **Production:**
-```json
+```jsonc
 {
   "Logging": {
     "SuppressPII": true,   // SEMPRE redact PII
     "PII": {
       "StrictMode": true,
       "AuditPIIAttempts": true,
+      "HashTechnicalIds": true,      // Hash IDs técnicos para compliance
+      "HashAlgorithm": "SHA-256",    // Algoritmo de hash seguro
       "AlertOnPIIBreach": true // Alertas automáticos
     }
   }
@@ -285,10 +319,12 @@ public class PIIAwareLogger : IPIILogger
 
 | Categoria | Exemplos | Ação |
 |-----------|----------|------|
-| **IDs Técnicos** | UserId, SessionId, CorrelationId | ✅ Sempre permitido |
+| **IDs Técnicos*** | UserId, SessionId, CorrelationId | ✅ Sempre permitido |
 | **PII Direto** | Email, CPF, Nome, Telefone | ❌ Sempre redact |
 | **PII Indireto** | Username, IP, Endereço | ⚠️ Redact por padrão |
 | **Dados Sensíveis** | Passwords, Tokens, Keys | 🚫 NUNCA logar |
+
+> **\*IDs Técnicos**: Permitidos quando pseudonimizados e governados por controles de acesso. Configure `HashTechnicalIds: true` se exigido por política organizacional ou jurisdição.
 
 ### Validação de Configuração
 
@@ -315,7 +351,7 @@ public void ValidateLoggingConfiguration()
 }
 ```
 
-## �🔍 Queries Úteis no Seq
+## 🔍 Queries Úteis no Seq
 
 ### Performance
 ```sql
