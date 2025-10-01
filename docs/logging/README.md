@@ -9,7 +9,7 @@ Sistema de logging híbrido que combina:
 
 ## 🏗️ Arquitetura
 
-```
+```text
 HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
                       ↓
               [CorrelationId, UserContext, Performance]
@@ -206,6 +206,10 @@ public async Task<IActionResult> UpdateUser(int id, UpdateUserRequest request)
 
 ### Implementação do IPIILogger
 ```csharp
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
+
 public class PIIAwareLogger : IPIILogger
 {
     private readonly ILogger _logger;
@@ -241,7 +245,13 @@ public class PIIAwareLogger : IPIILogger
             // Check if parameter name matches PII field patterns
             if (IsPIIField(parameterName) || IsPotentialPII(args[i]))
             {
-                args[i] = "[REDACTED]";
+                var redactionText = _config.GetValue<string>("Logging:PII:RedactionText", "[REDACTED]");
+                args[i] = redactionText;
+            }
+            else
+            {
+                // Check if technical ID hashing is enabled for allowed fields
+                args[i] = HashIfRequired(args[i]?.ToString() ?? "", parameterName);
             }
         }
         
@@ -261,10 +271,44 @@ public class PIIAwareLogger : IPIILogger
 
     private bool IsPIIField(string fieldName)
     {
-        // Check against configured PII field list
+        // Read AllowedFields from configuration
+        var allowedFields = _config.GetSection("Logging:PII:AllowedFields")
+            .Get<string[]>() ?? ["CorrelationId", "UserId", "SessionId"];
+        
+        // Check if field is in allowed list (case-insensitive)
+        if (allowedFields.Any(field => 
+            string.Equals(field, fieldName, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false; // Not PII - field is explicitly allowed
+        }
+        
+        // Check against configured PII field patterns
         var piiFields = new[] { "Email", "Username", "Name", "Phone", "CPF" };
         return piiFields.Any(field => 
             fieldName.Contains(field, StringComparison.OrdinalIgnoreCase));
+    }
+    
+    private string HashIfRequired(string value, string fieldName)
+    {
+        // Check if technical ID hashing is enabled
+        var hashTechnicalIds = _config.GetValue<bool>("Logging:PII:HashTechnicalIds", false);
+        if (!hashTechnicalIds) return value;
+        
+        // Only hash technical IDs (allowed fields)
+        var allowedFields = _config.GetSection("Logging:PII:AllowedFields")
+            .Get<string[]>() ?? ["CorrelationId", "UserId", "SessionId"];
+            
+        if (!allowedFields.Any(field => 
+            string.Equals(field, fieldName, StringComparison.OrdinalIgnoreCase)))
+        {
+            return value; // Not a technical ID - don't hash
+        }
+        
+        // Hash the technical ID using configured algorithm
+        var algorithm = _config.GetValue<string>("Logging:PII:HashAlgorithm", "SHA-256");
+        using var sha = SHA256.Create();
+        var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(value));
+        return Convert.ToHexString(hashBytes)[..8]; // First 8 chars for readability
     }
 }
 ```

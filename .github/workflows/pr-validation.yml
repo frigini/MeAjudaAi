@@ -1,3 +1,4 @@
+---
 name: Pull Request Validation
 
 "on":
@@ -23,9 +24,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -45,6 +46,17 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Check Database Configuration
+        run: |
+          echo "🔍 Checking database configuration..."
+          if [ -z "${{ secrets.POSTGRES_PASSWORD }}" ]; then
+            echo "⚠️  GitHub secrets not configured - using fallback values for testing"
+            echo "💡 To configure production secrets, go to: Settings → Secrets and variables → Actions"
+            echo "   Required secrets: POSTGRES_PASSWORD, POSTGRES_USER, POSTGRES_DB"
+          else
+            echo "✅ GitHub secrets configured"
+          fi
+
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update
@@ -59,14 +71,21 @@ jobs:
       - name: Wait for PostgreSQL to be ready
         run: |
           echo "🔄 Waiting for PostgreSQL to be ready..."
+          export PGPASSWORD="${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
           for i in {1..30}; do
-            if pg_isready -h localhost -p 5432 -U postgres; then
+            if pg_isready -h localhost -p 5432 -U "${{ secrets.POSTGRES_USER || 'postgres' }}"; then
               echo "✅ PostgreSQL is ready!"
               break
             fi
             echo "Waiting for PostgreSQL... ($i/30)"
             sleep 2
           done
+          
+          # Check if we exited the loop due to timeout
+          if ! pg_isready -h localhost -p 5432 -U "${{ secrets.POSTGRES_USER || 'postgres' }}"; then
+            echo "❌ PostgreSQL failed to become ready within 60 seconds"
+            exit 1
+          fi
 
       - name: Run tests with coverage
         env:
@@ -74,20 +93,20 @@ jobs:
           # PostgreSQL connection for CI
           MEAJUDAAI_DB_HOST: localhost
           MEAJUDAAI_DB_PORT: 5432
-          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD }}
-          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER }}
-          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB }}
+          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
           # Legacy environment variables for compatibility
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          DB_USERNAME: ${{ secrets.POSTGRES_USER }}
-          DB_NAME: ${{ secrets.POSTGRES_DB }}
+          DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          DB_USERNAME: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          DB_NAME: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
           # Keycloak settings
-          KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+          KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD || 'admin123' }}
           # Connection string format for .NET
           ConnectionStrings__DefaultConnection: >-
-            ${{ secrets.DB_CONNECTION_STRING }}
+            ${{ secrets.DB_CONNECTION_STRING || 'Host=localhost;Port=5432;Database=meajudaai_test;Username=postgres;Password=test123' }}
         run: |
           echo "🧪 Executando testes com cobertura..."
 
@@ -108,15 +127,15 @@ jobs:
 
           # Test database connection first
           echo "Testing database connection..."
-          PGPASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+          PGPASSWORD="${{ secrets.POSTGRES_PASSWORD || 'test123' }}" \
             psql -h localhost \
-                 -U "${{ secrets.POSTGRES_USER }}" \
-                 -d "${{ secrets.POSTGRES_DB }}" \
+                 -U "${{ secrets.POSTGRES_USER || 'postgres' }}" \
+                 -d "${{ secrets.POSTGRES_DB || 'meajudaai_test' }}" \
                  -c "SELECT 1;" || {
             echo "❌ Database connection failed"
             echo "Skipping integration tests..."
             echo "✅ Architecture tests completed successfully"
-            exit 0
+            exit 1
           }
 
           dotnet test "$INTEG" \
@@ -207,13 +226,37 @@ jobs:
         run: dotnet list package --vulnerable --include-transitive
 
       - name: OSV-Scanner (fail on HIGH/CRITICAL)
-        uses: google/osv-scanner-action@v1.8.5
+        run: |
+          echo "🔍 Installing OSV-Scanner..."
+          # Install OSV-Scanner
+          curl -sSfL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o osv-scanner
+          chmod +x osv-scanner
+          
+          echo "🔍 Running vulnerability scan..."
+          # Run OSV-Scanner with high/critical severity filter
+          ./osv-scanner --lockfile-keep-going --skip-git --format json . > osv-results.json || true
+          
+          # Check for high/critical vulnerabilities
+          if [ -f osv-results.json ]; then
+            HIGH_CRIT=$(jq -r '.results[].packages[]?.vulnerabilities[]? | select(.severity == "HIGH" or .severity == "CRITICAL") | .id' osv-results.json 2>/dev/null | wc -l)
+            if [ "$HIGH_CRIT" -gt 0 ]; then
+              echo "❌ Found $HIGH_CRIT HIGH/CRITICAL vulnerabilities!"
+              echo "📄 Review osv-results.json for details"
+              exit 1
+            else
+              echo "✅ No HIGH/CRITICAL vulnerabilities found"
+            fi
+          else
+            echo "⚠️ OSV scan completed without results file"
+          fi
+
+      - name: Upload OSV Scan Results
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          scan-args: >-
-            --lockfile-keep-going
-            --skip-git
-            --severity-level=HIGH
-            .
+          name: osv-scan-results
+          path: osv-results.json
+          if-no-files-found: ignore
 
       - name: Secret Detection with TruffleHog
         uses: trufflesecurity/trufflehog@main
@@ -278,9 +321,9 @@ jobs:
       - name: Validate workflow files only
         run: |
           echo "🔍 Validating critical YAML files..."
-          yamllint -c .yamllint.yml .github/workflows/ || {
-            echo "⚠️ YAML validation issues found"
+          if ! yamllint -c .yamllint.yml .github/workflows/; then
+            echo "❌ YAML validation failed"
             echo "ℹ️  Check yamllint output above for details"
-            exit 0  # Don't fail the pipeline for warnings
-          }
+            exit 1
+          fi
           echo "✅ YAML validation completed"

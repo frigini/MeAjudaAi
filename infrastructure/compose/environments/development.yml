@@ -44,7 +44,7 @@ services:
       - meajudaai-network
 
   keycloak:
-    image: quay.io/keycloak/keycloak:latest
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}
     container_name: meajudaai-keycloak-dev
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
@@ -56,7 +56,7 @@ services:
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HTTP_ENABLED: true
-    command: ["start-dev", "--import-realm"]
+    command: ["start-dev", "--import-realm"]  # Override base production command for development
     ports:
       - "8080:8080"
     volumes:
