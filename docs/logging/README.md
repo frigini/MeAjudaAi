@@ -47,7 +47,7 @@ HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
     "PII": {
       "EnableInDevelopment": true,   // Apenas em Development
       "RedactionText": "[REDACTED]", // Texto de substituição
-      "AllowedFields": ["CorrelationId"] // Campos sempre permitidos
+      "AllowedFields": ["CorrelationId", "UserId", "SessionId"] // IDs técnicos sempre permitidos
     }
   }
 }
@@ -86,7 +86,7 @@ HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
     "RequestMethod": "GET", 
     "StatusCode": 200,
     "ElapsedMilliseconds": 45,
-    "UserId": "[REDACTED]",
+    "UserId": "user-123",
     "Username": "[REDACTED]"
   }
 }
@@ -118,6 +118,8 @@ HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
 
 **Regras de PII nos Logs:**
 - ✅ **IDs técnicos**: Sempre permitidos (UserId, CorrelationId, SessionId)
+  - *Estes IDs são necessários para correlação e debugging em produção*
+  - *Não contêm informações pessoais identificáveis diretamente*
 - ❌ **Dados pessoais**: Sempre redacted (Username, Email, Nome, CPF, etc.)
 - ⚠️ **Dados sensíveis**: Sempre redacted (Passwords, Tokens, Keys)
 
