@@ -1,5 +1,18 @@
 # Production-ready docker compose
-# This should be used as a reference - real production should use Kubernetes or similar
+# This should be used as a reference - real production     environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Missing KEYCLOAK_ADMIN_PASSWORD environment variable}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KEYCLOAK_DB:-keycloak}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER:-keycloak}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Missing KEYCLOAK_DB_PASSWORD environment variable}
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:?Missing KEYCLOAK_HOSTNAME environment variable}
+      KC_HOSTNAME_STRICT: true
+      KC_HOSTNAME_STRICT_HTTPS: true
+      KC_PROXY: edge
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: truebernetes or similar
 # Usage: docker compose -f infrastructure/compose/environments/production.yml --env-file .env.prod up -d
 #
 # IMPORTANT: Before running, create Docker secrets:
@@ -105,7 +118,7 @@ services:
       - "127.0.0.1:${KEYCLOAK_PORT:-8080}:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
-      - ../../../keycloak/realms:/opt/keycloak/data/import
+      - ../../keycloak/realms:/opt/keycloak/data/import
     depends_on:
       keycloak-db:
         condition: service_healthy

@@ -91,7 +91,7 @@ services:
       - "8081:8080"
     volumes:
       - keycloak_test_data:/opt/keycloak/data
-      - ../../../keycloak/realms:/opt/keycloak/data/import
+      - ../../keycloak/realms:/opt/keycloak/data/import
     depends_on:
       keycloak-test-db:
         condition: service_healthy

@@ -15,10 +15,16 @@ if (isTestingEnv)
     var testDbPassword = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PASS") ?? string.Empty;
 
     // Em ambiente de CI, a senha deve ser fornecida via variável de ambiente
-    if (string.IsNullOrEmpty(testDbPassword) && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI")))
+    var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+    if (string.IsNullOrEmpty(testDbPassword))
     {
-        Console.WriteLine("WARNING: MEAJUDAAI_DB_PASS not provided in CI environment, using default test password");
-        testDbPassword = "test123"; // Fallback for CI testing
+        if (isCI)
+        {
+            Console.Error.WriteLine("ERROR: MEAJUDAAI_DB_PASS environment variable is required in CI but not set.");
+            Console.Error.WriteLine("Please set MEAJUDAAI_DB_PASS to the database password in your CI environment.");
+            Environment.Exit(1);
+        }
+        testDbPassword = "test123"; // Fallback for local development only
     }
 
     var postgresql = builder.AddMeAjudaAiPostgreSQL(options =>
@@ -32,7 +38,7 @@ if (isTestingEnv)
     var redis = builder.AddRedis("redis");
 
     var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
-        .WithReference((IResourceBuilder<IResourceWithConnectionString>)postgresql.MainDatabase, "DefaultConnection")
+        .WithReference(postgresql.MainDatabase, "DefaultConnection")
         .WithReference(redis)
         .WaitFor(postgresql.MainDatabase)
         .WaitFor(redis)
@@ -51,10 +57,16 @@ else if (EnvironmentHelpers.IsDevelopment(builder))
     var mainDatabase = Environment.GetEnvironmentVariable("MAIN_DATABASE") ?? "meajudaai";
     var dbUsername = Environment.GetEnvironmentVariable("DB_USERNAME") ?? "postgres";
     var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? string.Empty;
-    if (string.IsNullOrEmpty(dbPassword) && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI")))
+    var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+    if (string.IsNullOrEmpty(dbPassword))
     {
-        Console.WriteLine("WARNING: DB_PASSWORD not provided in CI environment, using default test password");
-        dbPassword = "test123"; // Fallback for CI testing
+        if (isCI)
+        {
+            Console.Error.WriteLine("ERROR: DB_PASSWORD environment variable is required in CI but not set.");
+            Console.Error.WriteLine("Please set DB_PASSWORD to the database password in your CI environment.");
+            Environment.Exit(1);
+        }
+        dbPassword = "test123"; // Fallback for local development only
     }
     var includePgAdminStr = Environment.GetEnvironmentVariable("INCLUDE_PGADMIN") ?? "true";
     var includePgAdmin = bool.TryParse(includePgAdminStr, out var pgAdminResult) ? pgAdminResult : true;
@@ -79,12 +91,18 @@ else if (EnvironmentHelpers.IsDevelopment(builder))
                                ?? "admin";
         var adminPassword = builder.Configuration["Keycloak:AdminPassword"]
                             ?? Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD");
-        if (string.IsNullOrEmpty(adminPassword) && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI")))
+        var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+        if (string.IsNullOrEmpty(adminPassword))
         {
-            Console.WriteLine("WARNING: KEYCLOAK_ADMIN_PASSWORD not provided in CI environment, using default test password");
-            adminPassword = "admin123"; // Fallback for CI testing
+            if (isCI)
+            {
+                Console.Error.WriteLine("ERROR: KEYCLOAK_ADMIN_PASSWORD environment variable is required in CI but not set.");
+                Console.Error.WriteLine("Please set KEYCLOAK_ADMIN_PASSWORD to the Keycloak admin password in your CI environment.");
+                Environment.Exit(1);
+            }
+            adminPassword = "admin123"; // Fallback for local development only
         }
-        options.AdminPassword = adminPassword ?? "admin123"; // local-dev fallback only
+        options.AdminPassword = adminPassword;
         options.DatabaseHost = builder.Configuration["Keycloak:DatabaseHost"]
                               ?? Environment.GetEnvironmentVariable("KEYCLOAK_DB_HOST")
                               ?? "postgres-local";
@@ -110,7 +128,7 @@ else if (EnvironmentHelpers.IsDevelopment(builder))
     });
 
     var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
-        .WithReference((IResourceBuilder<IResourceWithConnectionString>)postgresql.MainDatabase, "DefaultConnection")
+        .WithReference(postgresql.MainDatabase, "DefaultConnection")
         .WithReference(redis)
         .WaitFor(postgresql.MainDatabase)
         .WaitFor(redis)
@@ -138,7 +156,7 @@ else if (EnvironmentHelpers.IsProduction(builder))
     builder.AddAzureContainerAppEnvironment("cae");
 
     var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
-        .WithReference((IResourceBuilder<IResourceWithConnectionString>)postgresql.MainDatabase, "DefaultConnection")
+        .WithReference(postgresql.MainDatabase, "DefaultConnection")
         .WithReference(redis)
         .WaitFor(postgresql.MainDatabase)
         .WaitFor(redis)

@@ -1,3 +1,5 @@
+using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 using MeAjudaAi.AppHost.Helpers;
 
 namespace MeAjudaAi.AppHost.Extensions;
@@ -41,7 +43,7 @@ public sealed class MeAjudaAiPostgreSqlResult
     /// <summary>
     /// Referência ao banco de dados principal da aplicação (único para todos os módulos)
     /// </summary>
-    public required IResourceBuilder<IResource> MainDatabase { get; init; }
+    public required IResourceBuilder<IResourceWithConnectionString> MainDatabase { get; init; }
 }
 
 /// <summary>
