@@ -90,55 +90,38 @@ public static class DocumentationExtensions
             options.DescribeAllParametersInCamelCase();
             options.CustomOperationIds(apiDesc =>
             {
-                // Gerar IDs únicos para cada operação - suporte para minimal APIs
-                var routeValues = apiDesc.ActionDescriptor.RouteValues;
-                var httpMethod = apiDesc.HttpMethod ?? "Unknown";
-                
-                string controllerName = "Unknown";
-                string actionName = "Unknown";
-                
-                // Tentar obter controller e action dos RouteValues (para controllers MVC)
-                if (routeValues.TryGetValue("controller", out var controller) && !string.IsNullOrEmpty(controller))
+                // Gerar IDs únicos para cada operação com suporte robusto para minimal APIs
+                var method = apiDesc.HttpMethod ?? "ANY";
+
+                // Primeiro, tentar extrair informações do MethodInfo através do ActionDescriptor
+                if (apiDesc.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor controllerActionDescriptor)
                 {
-                    controllerName = controller;
+                    var type = controllerActionDescriptor.ControllerTypeInfo.Name;
+                    var action = controllerActionDescriptor.MethodInfo.Name;
+                    return $"{type}_{action}_{method}";
                 }
-                
-                if (routeValues.TryGetValue("action", out var action) && !string.IsNullOrEmpty(action))
+
+                // Para minimal APIs e outros tipos de endpoints
+                if (apiDesc.ActionDescriptor is Microsoft.AspNetCore.Http.Metadata.IEndpointMetadataProvider)
                 {
-                    actionName = action;
-                }
-                
-                // Fallback para minimal APIs ou quando RouteValues não estão disponíveis
-                if (controllerName == "Unknown" || actionName == "Unknown")
-                {
-                    // Tentar usar ActionDescriptor para obter informações do método
-                    var actionDescriptor = apiDesc.ActionDescriptor;
-                    if (actionDescriptor != null)
+                    // Usar RouteValues se disponível
+                    var routeValues = apiDesc.ActionDescriptor.RouteValues;
+                    if (routeValues.TryGetValue("controller", out var controller) && !string.IsNullOrEmpty(controller) &&
+                        routeValues.TryGetValue("action", out var action) && !string.IsNullOrEmpty(action))
                     {
-                        // Para controllers MVC tradicionais
-                        if (actionDescriptor.DisplayName != null && actionDescriptor.DisplayName.Contains('.'))
-                        {
-                            var parts = actionDescriptor.DisplayName.Split('.');
-                            if (parts.Length >= 2)
-                            {
-                                controllerName = parts[^2]; // Penúltimo elemento
-                                actionName = parts[^1].Split(' ')[0]; // Primeiro token do último elemento
-                            }
-                        }
-                        else
-                        {
-                            // Último recurso: usar RelativePath e HttpMethod
-                            var pathSegments = apiDesc.RelativePath?.Split('/')
-                                .Where(s => !string.IsNullOrEmpty(s) && !s.StartsWith("{"))
-                                .ToArray();
-                            
-                            controllerName = pathSegments?.FirstOrDefault() ?? "Api";
-                            actionName = pathSegments?.LastOrDefault() ?? httpMethod;
-                        }
+                        return $"{controller}_{action}_{method}";
                     }
                 }
-                
-                return $"{controllerName}_{actionName}_{httpMethod}";
+
+                // Último recurso: usar segmentos da rota
+                var segments = (apiDesc.RelativePath ?? "unknown")
+                    .Split('/')
+                    .Where(s => !string.IsNullOrWhiteSpace(s) && !s.StartsWith("{"))
+                    .ToArray();
+
+                var ctrl = segments.FirstOrDefault() ?? "Api";
+                var act = segments.LastOrDefault() ?? "Operation";
+                return $"{ctrl}_{act}_{method}";
             });
 
             // Exemplos automáticos baseados em annotations

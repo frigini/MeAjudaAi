@@ -51,13 +51,15 @@ jobs:
         run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
 
       - name: Run tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
         run: |
           echo "🧪 Executando todos os testes..."
           
           # Executar testes por projeto
           dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Shared
           dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Architecture
-          ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Integration
+          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Integration
           
           echo "✅ Todos os testes executados com sucesso"
 
@@ -68,24 +70,24 @@ jobs:
         run: |
           reportgenerator \
             -reports:"TestResults/**/coverage.cobertura.xml" \
-          -targetdir:"TestResults/Coverage" \
-          -reporttypes:"Html;Cobertura;JsonSummary" \
-          -assemblyfilters:"-*.Tests*" \
-          -classfilters:"-*.Migrations*"
+            -targetdir:"TestResults/Coverage" \
+            -reporttypes:"Html;Cobertura;JsonSummary" \
+            -assemblyfilters:"-*.Tests*" \
+            -classfilters:"-*.Migrations*"
 
-    - name: Upload code coverage
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: code-coverage
-        path: "TestResults/Coverage/**/*"
+      - name: Upload code coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-coverage
+          path: "TestResults/Coverage/**/*"
 
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results
-        path: "**/TestResults/**/*"
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: "**/TestResults/**/*"
 
   # Job 2: Markdown Link Validation
   markdown-link-check:

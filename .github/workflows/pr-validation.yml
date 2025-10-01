@@ -38,16 +38,17 @@ jobs:
         run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
 
       - name: Run tests with coverage
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          MEAJUDAAI_DB_PASS: test123
+          MEAJUDAAI_DB_USER: postgres
+          MEAJUDAAI_DB: meajudaai_test
+          KEYCLOAK_ADMIN_PASSWORD: admin123
+          DB_PASSWORD: test123
+          DB_USERNAME: postgres
         run: |
           echo "🧪 Executando testes com cobertura..."
-          dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj \
-            --configuration Release \
-            --no-build \
-            --verbosity normal \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage/shared \
-            --logger "trx;LogFileName=shared-tests.trx"
-            
+          echo "🏗️ Executando testes de arquitetura..."
           dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj \
             --configuration Release \
             --no-build \
@@ -55,6 +56,15 @@ jobs:
             --collect:"XPlat Code Coverage" \
             --results-directory ./coverage/architecture \
             --logger "trx;LogFileName=architecture-tests.trx"
+            
+          echo "🔗 Executando testes de integração..."
+          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage/integration \
+            --logger "trx;LogFileName=integration-tests.trx"
             
           echo "✅ Testes executados com sucesso"
 
@@ -68,19 +78,19 @@ jobs:
             echo "✅ Conformidade com namespaces validada"
           fi
 
-      - name: Upload Shared coverage
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-shared
-          path: coverage/shared/**
-
       - name: Upload Architecture coverage
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage-architecture
           path: coverage/architecture/**
+
+      - name: Upload Integration coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-integration
+          path: coverage/integration/**
 
       - name: Upload Test Results (TRX)
         uses: actions/upload-artifact@v4

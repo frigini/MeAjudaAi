@@ -4,8 +4,10 @@
 #
 # Features:
 # - Health checks prevent startup race conditions
-# - Optimized PostgreSQL settings for faster tests
+# - Optimized PostgreSQL settings for faster tests  
 # - Keycloak waits for healthy database before starting
+# - Keycloak health endpoint enabled (KC_HEALTH_ENABLED=true)
+# - Health checks use management port 9000 for reliability
 # - All services expose health status for monitoring
 #
 # Environment Variables (with defaults):
@@ -83,19 +85,20 @@ services:
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
     command: ["start-dev", "--import-realm"]
     ports:
       - "8081:8080"
     volumes:
       - keycloak_test_data:/opt/keycloak/data
-      - ../../keycloak/realms:/opt/keycloak/data/import
+      - ../../../keycloak/realms:/opt/keycloak/data/import
     depends_on:
       keycloak-test-db:
         condition: service_healthy
     networks:
       - meajudaai-test-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9000/health/ready 2>/dev/null || curl -fsS http://localhost:9000/health/ready >/dev/null 2>&1 || timeout 1 bash -c '</dev/tcp/localhost/9000' 2>/dev/null"]
       interval: 10s
       timeout: 5s
       retries: 30

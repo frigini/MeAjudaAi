@@ -120,7 +120,7 @@ public static class Extensions
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Testing")
+        if (app.Environment.IsDevelopment() || IsTestingEnvironment())
         {
             app.MapHealthChecks("/health", new HealthCheckOptions
             {
@@ -185,5 +185,41 @@ public static class Extensions
         context.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
 
         await context.Response.WriteAsync(result);
+    }
+
+    /// <summary>
+    /// Determines if the current environment is Testing using the same precedence as AppHost EnvironmentHelpers
+    /// </summary>
+    private static bool IsTestingEnvironment()
+    {
+        // Check DOTNET_ENVIRONMENT first, then fallback to ASPNETCORE_ENVIRONMENT (same precedence as EnvironmentHelpers)
+        var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        var aspnetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var envName = !string.IsNullOrEmpty(dotnetEnv) ? dotnetEnv : aspnetEnv;
+
+        if (!string.IsNullOrEmpty(envName) &&
+            string.Equals(envName, "Testing", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // Check INTEGRATION_TESTS environment variable with robust boolean parsing
+        var integrationTestsValue = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+        if (!string.IsNullOrEmpty(integrationTestsValue))
+        {
+            // Handle both "true"/"false" and "1"/"0" patterns case-insensitively
+            if (bool.TryParse(integrationTestsValue, out var boolResult))
+            {
+                return boolResult;
+            }
+
+            // Handle "1" as true (common in CI/CD environments)
+            if (string.Equals(integrationTestsValue, "1", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

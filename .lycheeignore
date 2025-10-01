@@ -21,17 +21,17 @@ http://your-host:*
 # Mail links
 mailto:*
 
-# File patterns that should be ignored
+# File patterns that should be ignored (using regex patterns)
 # Binaries and build outputs
-**/bin/**
-**/obj/**
-**/node_modules/**
-**/.git/**
+.*bin/.*
+.*obj/.*
+.*node_modules/.*
+.*\.git/.*
 
 # Test results
-**/TestResults/**
-**/target/**
+.*TestResults/.*
+.*target/.*
 
 # Temporary files
-*.tmp
-*.temp
+.*\.tmp$
+.*\.temp$

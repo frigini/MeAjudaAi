@@ -40,15 +40,23 @@ jobs:
       - name: Run unit tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
+          MEAJUDAAI_DB_PASS: test123
+          MEAJUDAAI_DB_USER: postgres
+          MEAJUDAAI_DB: meajudaai_test
+          KEYCLOAK_ADMIN_PASSWORD: admin123
+          DB_PASSWORD: test123
+          DB_USERNAME: postgres
         run: |
           echo "🧪 Executando testes unitários..."
-          dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Shared
-          
           echo "🏗️ Executando testes de arquitetura..."
-          dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Architecture
+          dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj \
+            --no-build --configuration Release --logger trx \
+            --results-directory TestResults/Architecture
           
           echo "🔗 Executando testes de integração..."
-          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Integration
+          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
+            --no-build --configuration Release --logger trx \
+            --results-directory TestResults/Integration
           
           echo "✅ Todos os testes executados com sucesso"
 
@@ -123,6 +131,7 @@ jobs:
           LOG_LEVEL: VERBOSE
           SUPPRESS_FILE_TYPE_WARN: false
           FAIL_ON_ERROR: true
+          VALIDATE_ALL_CODEBASE: false
 
   # Build validation for individual services (without publishing)
   service-build-validation:

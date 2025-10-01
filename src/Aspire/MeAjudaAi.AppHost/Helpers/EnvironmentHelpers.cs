@@ -15,7 +15,7 @@ public static class EnvironmentHelpers
     {
         // Check builder environment name (case-insensitive)
         var builderEnv = builder.Environment.EnvironmentName;
-        if (!string.IsNullOrEmpty(builderEnv) && 
+        if (!string.IsNullOrEmpty(builderEnv) &&
             string.Equals(builderEnv, "Testing", StringComparison.OrdinalIgnoreCase))
         {
             return true;
@@ -25,8 +25,8 @@ public static class EnvironmentHelpers
         var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
         var aspnetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         var envName = !string.IsNullOrEmpty(dotnetEnv) ? dotnetEnv : aspnetEnv;
-        
-        if (!string.IsNullOrEmpty(envName) && 
+
+        if (!string.IsNullOrEmpty(envName) &&
             string.Equals(envName, "Testing", StringComparison.OrdinalIgnoreCase))
         {
             return true;
@@ -41,7 +41,7 @@ public static class EnvironmentHelpers
             {
                 return boolResult;
             }
-            
+
             // Handle "1" as true (common in CI/CD environments)
             if (string.Equals(integrationTestsValue, "1", StringComparison.OrdinalIgnoreCase))
             {
@@ -53,64 +53,46 @@ public static class EnvironmentHelpers
     }
 
     /// <summary>
+    /// Gets the effective environment name with fallback priority: DOTNET_ENVIRONMENT -> ASPNETCORE_ENVIRONMENT -> builder environment
+    /// </summary>
+    /// <param name="builder">The distributed application builder</param>
+    /// <returns>The effective environment name or empty string if not found</returns>
+    private static string GetEffectiveEnvName(IDistributedApplicationBuilder builder)
+    {
+        var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        if (!string.IsNullOrEmpty(dotnetEnv)) return dotnetEnv;
+        var aspnetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        if (!string.IsNullOrEmpty(aspnetEnv)) return aspnetEnv;
+        return builder.Environment.EnvironmentName ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Checks if the current environment matches the target environment name (case-insensitive)
+    /// </summary>
+    /// <param name="builder">The distributed application builder</param>
+    /// <param name="target">The target environment name to check</param>
+    /// <returns>True if the current environment matches the target, false otherwise</returns>
+    private static bool IsEnv(IDistributedApplicationBuilder builder, string target) =>
+        string.Equals(GetEffectiveEnvName(builder), target, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
     /// Determines if the current application is running in a development environment
     /// </summary>
     /// <param name="builder">The distributed application builder</param>
     /// <returns>True if running in development environment, false otherwise</returns>
-    public static bool IsDevelopment(IDistributedApplicationBuilder builder)
-    {
-        var builderEnv = builder.Environment.EnvironmentName;
-        if (!string.IsNullOrEmpty(builderEnv) && 
-            string.Equals(builderEnv, "Development", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-        var aspnetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        var envName = !string.IsNullOrEmpty(dotnetEnv) ? dotnetEnv : aspnetEnv;
-        
-        return !string.IsNullOrEmpty(envName) && 
-               string.Equals(envName, "Development", StringComparison.OrdinalIgnoreCase);
-    }
+    public static bool IsDevelopment(IDistributedApplicationBuilder builder) => IsEnv(builder, "Development");
 
     /// <summary>
     /// Determines if the current application is running in a production environment
     /// </summary>
     /// <param name="builder">The distributed application builder</param>
     /// <returns>True if running in production environment, false otherwise</returns>
-    public static bool IsProduction(IDistributedApplicationBuilder builder)
-    {
-        var builderEnv = builder.Environment.EnvironmentName;
-        if (!string.IsNullOrEmpty(builderEnv) && 
-            string.Equals(builderEnv, "Production", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-        var aspnetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        var envName = !string.IsNullOrEmpty(dotnetEnv) ? dotnetEnv : aspnetEnv;
-        
-        return !string.IsNullOrEmpty(envName) && 
-               string.Equals(envName, "Production", StringComparison.OrdinalIgnoreCase);
-    }
+    public static bool IsProduction(IDistributedApplicationBuilder builder) => IsEnv(builder, "Production");
 
     /// <summary>
     /// Gets the current environment name with fallback priority: DOTNET_ENVIRONMENT -> ASPNETCORE_ENVIRONMENT -> builder environment
     /// </summary>
     /// <param name="builder">The distributed application builder</param>
     /// <returns>The environment name or empty string if not found</returns>
-    public static string GetEnvironmentName(IDistributedApplicationBuilder builder)
-    {
-        var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-        if (!string.IsNullOrEmpty(dotnetEnv))
-            return dotnetEnv;
-
-        var aspnetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        if (!string.IsNullOrEmpty(aspnetEnv))
-            return aspnetEnv;
-
-        return builder.Environment.EnvironmentName ?? string.Empty;
-    }
+    public static string GetEnvironmentName(IDistributedApplicationBuilder builder) => GetEffectiveEnvName(builder);
 }

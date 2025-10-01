@@ -20,18 +20,10 @@ user_agent = "lychee/MeAjudaAi Documentation Link Checker"
 # Include links in verbatim/code blocks
 include_verbatim = false
 
-# Exclude these file patterns
-exclude_path = [
-  "target",
-  "node_modules", 
-  ".git",
-  "bin",
-  "obj",
-  "TestResults"
-]
-
 # Base directory for resolving relative file paths
 base = "."
 
 # Check fragments in local files (anchors like #section)
 include_fragments = true
+
+# Ignore patterns are defined in .lycheeignore file

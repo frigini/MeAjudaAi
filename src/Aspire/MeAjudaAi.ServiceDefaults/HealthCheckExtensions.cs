@@ -18,7 +18,7 @@ public static class HealthCheckExtensions
             .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
         // Em ambiente de teste, use health checks mock simples
-        if (builder.Environment.IsEnvironment("Testing"))
+        if (IsTestingEnvironment())
         {
             builder.Services.AddHealthChecks()
                 .AddCheck("database", () => HealthCheckResult.Healthy("Database ready for testing"), ["ready", "database"])
@@ -38,8 +38,7 @@ public static class HealthCheckExtensions
     private static IHealthChecksBuilder AddDatabaseHealthCheck(this IServiceCollection services)
     {
         // Em ambiente de teste, adiciona um health check mock ao invés do real
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        if (environment == "Testing")
+        if (IsTestingEnvironment())
         {
             return services.AddHealthChecks()
                 .AddCheck("postgres", () => HealthCheckResult.Healthy("Database ready for testing"), ["ready", "database"]);
@@ -78,5 +77,41 @@ public static class HealthCheckExtensions
         // Health check simples para cache
         return services.AddHealthChecks()
             .AddCheck("cache", () => HealthCheckResult.Healthy("Cache is available"), ["ready", "cache"]);
+    }
+
+    /// <summary>
+    /// Determines if the current environment is Testing using the same precedence as AppHost EnvironmentHelpers
+    /// </summary>
+    private static bool IsTestingEnvironment()
+    {
+        // Check DOTNET_ENVIRONMENT first, then fallback to ASPNETCORE_ENVIRONMENT (same precedence as EnvironmentHelpers)
+        var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        var aspnetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var envName = !string.IsNullOrEmpty(dotnetEnv) ? dotnetEnv : aspnetEnv;
+
+        if (!string.IsNullOrEmpty(envName) &&
+            string.Equals(envName, "Testing", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // Check INTEGRATION_TESTS environment variable with robust boolean parsing
+        var integrationTestsValue = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+        if (!string.IsNullOrEmpty(integrationTestsValue))
+        {
+            // Handle both "true"/"false" and "1"/"0" patterns case-insensitively
+            if (bool.TryParse(integrationTestsValue, out var boolResult))
+            {
+                return boolResult;
+            }
+
+            // Handle "1" as true (common in CI/CD environments)
+            if (string.Equals(integrationTestsValue, "1", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

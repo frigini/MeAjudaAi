@@ -1,3 +1,5 @@
+using MeAjudaAi.AppHost.Helpers;
+
 namespace MeAjudaAi.AppHost.Extensions;
 
 /// <summary>
@@ -187,8 +189,6 @@ public static class PostgreSqlExtensions
 
     private static bool IsTestEnvironment(IDistributedApplicationBuilder builder)
     {
-        return builder.Environment.EnvironmentName == "Testing"
-            || Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing"
-            || Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Testing";
+        return EnvironmentHelpers.IsTesting(builder);
     }
 }
