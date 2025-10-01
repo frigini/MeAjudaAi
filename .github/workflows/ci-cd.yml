@@ -36,38 +36,38 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Restore dependencies
-      run: dotnet restore MeAjudaAi.sln
+      - name: Restore dependencies
+        run: dotnet restore MeAjudaAi.sln
 
-    - name: Build solution
-      run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
+      - name: Build solution
+        run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
 
-    - name: Run tests
-      run: |
-        echo "🧪 Executando todos os testes..."
-        
-        # Executar testes por projeto
-        dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Shared
-        dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Architecture
-        ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Integration
-        
-        echo "✅ Todos os testes executados com sucesso"
+      - name: Run tests
+        run: |
+          echo "🧪 Executando todos os testes..."
+          
+          # Executar testes por projeto
+          dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Shared
+          dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Architecture
+          ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Integration
+          
+          echo "✅ Todos os testes executados com sucesso"
 
-    - name: Install ReportGenerator
-      run: dotnet tool install -g dotnet-reportgenerator-globaltool
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
-    - name: Generate Code Coverage Report
-      run: |
-        reportgenerator \
-          -reports:"TestResults/**/coverage.cobertura.xml" \
+      - name: Generate Code Coverage Report
+        run: |
+          reportgenerator \
+            -reports:"TestResults/**/coverage.cobertura.xml" \
           -targetdir:"TestResults/Coverage" \
           -reporttypes:"Html;Cobertura;JsonSummary" \
           -assemblyfilters:"-*.Tests*" \
@@ -93,20 +93,20 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Check markdown links with lychee
-      uses: lycheeverse/lychee-action@v1.10.0
-      with:
-        # Check all markdown files in the repository using config file
-        args: --config lychee.toml --verbose --no-progress "**/*.md"
-        # Fail the job if broken links are found
-        fail: true
-        # Generate job summary
-        jobSummary: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check markdown links with lychee
+        uses: lycheeverse/lychee-action@v1.10.0
+        with:
+          # Check all markdown files in the repository using config file
+          args: --config lychee.toml --verbose --no-progress "**/*.md"
+          # Fail the job if broken links are found
+          fail: true
+          # Generate job summary
+          jobSummary: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Job 3: Infrastructure Validation (Optional)
   validate-infrastructure:
@@ -116,21 +116,21 @@ jobs:
     if: false  # Disabled until Azure credentials are configured
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Login to Azure
-      uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Validate Bicep templates
-      run: |
-        az bicep build --file infrastructure/main.bicep
-        az deployment group validate \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
-          --template-file infrastructure/main.bicep \
-          --parameters environmentName=dev location=${{ env.AZURE_LOCATION }} || echo "Resource group might not exist yet"
+      - name: Validate Bicep templates
+        run: |
+          az bicep build --file infrastructure/main.bicep
+          az deployment group validate \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
+            --template-file infrastructure/main.bicep \
+            --parameters environmentName=dev location=${{ env.AZURE_LOCATION }} || echo "Resource group might not exist yet"
 
   # Job 4: Deploy to Development (Optional)
   deploy-dev:
@@ -141,33 +141,33 @@ jobs:
     # environment: development
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Login to Azure
-      uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Create Resource Group
-      run: |
-        az group create \
-          --name ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
-          --location ${{ env.AZURE_LOCATION }}
+      - name: Create Resource Group
+        run: |
+          az group create \
+            --name ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
+            --location ${{ env.AZURE_LOCATION }}
 
-    - name: Deploy Infrastructure
-      if: github.event.inputs.deploy_infrastructure == 'true' || github.event.inputs.deploy_infrastructure == ''
-      run: |
-        DEPLOYMENT_NAME="meajudaai-dev-$(date +%s)"
-        az deployment group create \
-          --name "$DEPLOYMENT_NAME" \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
-          --template-file infrastructure/main.bicep \
-          --parameters environmentName=dev location=${{ env.AZURE_LOCATION }}
-        
-        # Export infrastructure outputs for reference
-        az deployment group show \
-          --name "$DEPLOYMENT_NAME" \
+      - name: Deploy Infrastructure
+        if: github.event.inputs.deploy_infrastructure == 'true' || github.event.inputs.deploy_infrastructure == ''
+        run: |
+          DEPLOYMENT_NAME="meajudaai-dev-$(date +%s)"
+          az deployment group create \
+            --name "$DEPLOYMENT_NAME" \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
+            --template-file infrastructure/main.bicep \
+            --parameters environmentName=dev location=${{ env.AZURE_LOCATION }}
+          
+          # Export infrastructure outputs for reference
+          az deployment group show \
+            --name "$DEPLOYMENT_NAME" \
           --resource-group ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
           --query "properties.outputs" > infrastructure-outputs.json
         
@@ -189,15 +189,15 @@ jobs:
         echo "🔗 Service Bus Namespace: $SERVICE_BUS_NAMESPACE"
         echo "💡 To use locally, set: export Messaging__ServiceBus__ConnectionString='[CONNECTION_STRING]'"
 
-    - name: Upload infrastructure outputs
-      uses: actions/upload-artifact@v4
-      with:
-        name: infrastructure-outputs-dev
-        path: infrastructure-outputs.json
+      - name: Upload infrastructure outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: infrastructure-outputs-dev
+          path: infrastructure-outputs.json
 
-    - name: Cleanup after test (if requested)
-      if: github.event.inputs.cleanup_after_test == 'true'
-      run: |
-        echo "🧹 Cleaning up dev resources as requested..."
-        az group delete --name ${{ env.AZURE_RESOURCE_GROUP_DEV }} --yes --no-wait
-        echo "✅ Cleanup initiated (resources will be deleted in a few minutes)"
+      - name: Cleanup after test (if requested)
+        if: github.event.inputs.cleanup_after_test == 'true'
+        run: |
+          echo "🧹 Cleaning up dev resources as requested..."
+          az group delete --name ${{ env.AZURE_RESOURCE_GROUP_DEV }} --yes --no-wait
+          echo "✅ Cleanup initiated (resources will be deleted in a few minutes)"

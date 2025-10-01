@@ -8,6 +8,7 @@
 # - KC_HOSTNAME_STRICT_HTTPS=true ensures external connections use HTTPS
 # - Version pinned for production stability (overrideable via KEYCLOAK_VERSION)
 
+---
 services:
   postgres:
     image: postgres:16

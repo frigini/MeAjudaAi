@@ -14,6 +14,7 @@
 # Keycloak Admin: KEYCLOAK_TEST_ADMIN=admin, KEYCLOAK_TEST_ADMIN_PASSWORD=admin
 # Keycloak Version: KEYCLOAK_VERSION=26.0.2 (pinned for reproducible tests - update only when needed)
 
+---
 services:
   # Test database
   postgres-test:

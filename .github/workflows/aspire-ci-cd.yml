@@ -20,44 +20,44 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Install Aspire workload
-      run: dotnet workload install aspire
+      - name: Install Aspire workload
+        run: dotnet workload install aspire
 
-    - name: Restore dependencies
-      run: dotnet restore MeAjudaAi.sln
+      - name: Restore dependencies
+        run: dotnet restore MeAjudaAi.sln
 
-    - name: Build solution
-      run: dotnet build MeAjudaAi.sln --no-restore --configuration Release
+      - name: Build solution
+        run: dotnet build MeAjudaAi.sln --no-restore --configuration Release
 
-    - name: Run unit tests
-      env:
-        ASPNETCORE_ENVIRONMENT: Testing
-      run: |
-        echo "🧪 Executando testes unitários..."
-        dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Shared
-        
-        echo "🏗️ Executando testes de arquitetura..."
-        dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Architecture
-        
-        echo "🔗 Executando testes de integração..."
-        dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Integration
-        
-        echo "✅ Todos os testes executados com sucesso"
+      - name: Run unit tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+        run: |
+          echo "🧪 Executando testes unitários..."
+          dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Shared
+          
+          echo "🏗️ Executando testes de arquitetura..."
+          dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Architecture
+          
+          echo "🔗 Executando testes de integração..."
+          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults/Integration
+          
+          echo "✅ Todos os testes executados com sucesso"
 
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results
-        path: TestResults
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults
 
   # Validate Aspire configuration
   aspire-validation:
@@ -65,31 +65,31 @@ jobs:
     needs: build-and-test
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Install Aspire workload
-      run: dotnet workload install aspire
+      - name: Install Aspire workload
+        run: dotnet workload install aspire
 
-    - name: Restore dependencies
-      run: dotnet restore MeAjudaAi.sln
+      - name: Restore dependencies
+        run: dotnet restore MeAjudaAi.sln
 
-    - name: Validate Aspire AppHost
-      run: |
-        cd src/Aspire/MeAjudaAi.AppHost
-        dotnet build --configuration Release
-        echo "✅ Aspire AppHost builds successfully"
+      - name: Validate Aspire AppHost
+        run: |
+          cd src/Aspire/MeAjudaAi.AppHost
+          dotnet build --configuration Release
+          echo "✅ Aspire AppHost builds successfully"
 
-    - name: Generate Aspire manifest (for future deployment)
-      run: |
-        cd src/Aspire/MeAjudaAi.AppHost
-        # This validates the Aspire configuration without deploying
-        dotnet run --project . --publisher manifest --output-path ./aspire-manifest.json --dry-run || echo "Manifest generation ready for future deployment"
+      - name: Generate Aspire manifest (for future deployment)
+        run: |
+          cd src/Aspire/MeAjudaAi.AppHost
+          # This validates the Aspire configuration without deploying
+          dotnet run --project . --publisher manifest --output-path ./aspire-manifest.json --dry-run || echo "Manifest generation ready for future deployment"
 
   # Code quality and security analysis
   code-analysis:
@@ -137,22 +137,22 @@ jobs:
             path: "src/Modules/Users/API/MeajudaAi.Modules.Users.API"
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Validate ${{ matrix.service.name }} builds for containerization
-      run: |
-        cd ${{ matrix.service.path }}
-        
-        # Test that the service can be published (simulates container build)
-        dotnet publish -c Release -o ./publish-output
-        
-        echo "✅ ${{ matrix.service.name }} builds successfully for containerization"
-        
-        # Cleanup
-        rm -rf ./publish-output
+      - name: Validate ${{ matrix.service.name }} builds for containerization
+        run: |
+          cd ${{ matrix.service.path }}
+          
+          # Test that the service can be published (simulates container build)
+          dotnet publish -c Release -o ./publish-output
+          
+          echo "✅ ${{ matrix.service.name }} builds successfully for containerization"
+          
+          # Cleanup
+          rm -rf ./publish-output
