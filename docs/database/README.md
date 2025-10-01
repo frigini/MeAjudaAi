@@ -17,7 +17,7 @@ Esta pasta contém toda a documentação relacionada ao banco de dados do projet
 ## 🎯 **Scripts de Banco**
 
 Os scripts SQL estão localizados em:
-```
+```text
 infrastructure/database/
 ├── modules/
 │   └── users/

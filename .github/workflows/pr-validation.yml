@@ -49,7 +49,9 @@ jobs:
         run: |
           echo "🧪 Executando testes com cobertura..."
           echo "🏗️ Executando testes de arquitetura..."
-          dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj \
+          ARCH="tests/MeAjudaAi.Architecture.Tests/"
+          ARCH+="MeAjudaAi.Architecture.Tests.csproj"
+          dotnet test "$ARCH" \
             --configuration Release \
             --no-build \
             --verbosity normal \
@@ -58,7 +60,9 @@ jobs:
             --logger "trx;LogFileName=architecture-tests.trx"
             
           echo "🔗 Executando testes de integração..."
-          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
+          INTEG="tests/MeAjudaAi.Integration.Tests/"
+          INTEG+="MeAjudaAi.Integration.Tests.csproj"
+          dotnet test "$INTEG" \
             --configuration Release \
             --no-build \
             --verbosity normal \
@@ -71,7 +75,8 @@ jobs:
       - name: Validate namespace reorganization
         run: |
           echo "🔍 Validating namespace reorganization..."
-          if grep -R -nP '^\s*using\s+MeAjudaAi\.Shared\.Common;' -- src/ 2>/dev/null; then
+          if grep -R -nP '^\s*using\s+MeAjudaAi\.Shared\.Common;' -- src/ \
+              2>/dev/null; then
             echo "❌ Found old namespace imports"
             exit 1
           else
@@ -170,7 +175,13 @@ jobs:
         uses: lycheeverse/lychee-action@v1.10.0
         with:
           # Use simplified configuration for reliability
-          args: --config lychee.toml --no-progress --cache --max-cache-age 1d "docs/**/*.md" "README.md"
+          args: >-
+            --config lychee.toml
+            --no-progress
+            --cache
+            --max-cache-age 1d
+            "docs/**/*.md"
+            "README.md"
           # Don't fail the entire pipeline on link check failures
           fail: false
           jobSummary: true

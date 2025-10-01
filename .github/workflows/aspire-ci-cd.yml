@@ -81,7 +81,9 @@ jobs:
         run: |
           cd src/Aspire/MeAjudaAi.AppHost
           # This validates the Aspire configuration without deploying
-          dotnet run --project . --publisher manifest --output-path ./aspire-manifest.json --dry-run || echo "Manifest generation ready for future deployment"
+          dotnet run --project . --publisher manifest \
+            --output-path ./aspire-manifest.json --dry-run || \
+            echo "Manifest generation ready for future deployment"
 
   # Code quality and security analysis
   code-analysis:
@@ -101,7 +103,12 @@ jobs:
 
       - name: Check code formatting
         run: |
-          dotnet format --verify-no-changes --verbosity normal MeAjudaAi.sln || echo "⚠️ Code formatting issues found. Run 'dotnet format' locally to fix."
+          dotnet format --verify-no-changes --verbosity normal \
+            MeAjudaAi.sln || {
+            echo "⚠️ Code formatting issues found."
+            echo "Run 'dotnet format' locally to fix."
+            exit 1
+          }
 
       - name: Run security analysis
         uses: github/super-linter@v4
@@ -145,7 +152,7 @@ jobs:
           # Test that the service can be published (simulates container build)
           dotnet publish -c Release -o ./publish-output
           
-          echo "✅ ${{ matrix.service.name }} builds successfully for containerization"
+          echo "✅ ${{ matrix.service.name }} builds successfully for containers"
           
           # Cleanup
           rm -rf ./publish-output
