@@ -17,7 +17,7 @@ Se você é novo no projeto, comece por aqui:
 | Documento | Descrição | Para quem |
 |-----------|-----------|-----------|
 | **[🛠️ Guia de Desenvolvimento](./development_guide.md)** | Setup completo, convenções, workflows e debugging | Desenvolvedores novos e experientes |
-| **[📋 Diretrizes de Desenvolvimento](./development-guidelines.md)** | Padrões de código, estrutura, Module APIs e ID generation | Desenvolvedores |
+| **[📋 Diretrizes de Desenvolvimento](./development_guide.md)** | Padrões de código, estrutura, Module APIs e ID generation | Desenvolvedores |
 | **[🚀 Infraestrutura](./infrastructure.md)** | Docker, Aspire, Azure e configuração de ambientes | DevOps e desenvolvedores |
 | **[🔄 CI/CD](./ci_cd.md)** | Pipelines, deploy e automação | DevOps e tech leads |
 
@@ -75,7 +75,7 @@ Para implementações específicas e detalhes técnicos:
 ### **🆕 Novo Desenvolvedor**
 1. Leia o [README principal](../README.md) para entender o projeto
 2. Siga o [Guia de Desenvolvimento](./development_guide.md) para setup
-3. Consulte as [Diretrizes de Desenvolvimento](./development-guidelines.md) para padrões
+3. Consulte as [Diretrizes de Desenvolvimento](./development_guide.md) para padrões
 4. Configure [Autenticação](./authentication.md) para desenvolvimento
 5. Estude a [Arquitetura](./architecture.md) para entender os padrões
 6. Consulte a [Infraestrutura](./infrastructure.md) para ambientes

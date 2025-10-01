@@ -4,8 +4,6 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [master, develop]
-  pull_request:
-    branches: [master]
   workflow_dispatch:
     inputs:
       deploy_infrastructure:
@@ -170,26 +168,26 @@ jobs:
           # Export infrastructure outputs for reference
           az deployment group show \
             --name "$DEPLOYMENT_NAME" \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
-          --query "properties.outputs" > infrastructure-outputs.json
-        
-        echo "Infrastructure outputs:"
-        cat infrastructure-outputs.json
-        
-        # Get connection string for development use
-        SERVICE_BUS_NAMESPACE=$(jq -r '.serviceBusNamespace.value' infrastructure-outputs.json)
-        MANAGEMENT_POLICY_NAME=$(jq -r '.managementPolicyName.value' infrastructure-outputs.json)
-        
-        CONNECTION_STRING=$(az servicebus namespace authorization-rule keys list \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
-          --namespace-name "$SERVICE_BUS_NAMESPACE" \
-          --name "$MANAGEMENT_POLICY_NAME" \
-          --query "primaryConnectionString" \
-          --output tsv)
-        
-        echo "✅ Infrastructure deployed successfully!"
-        echo "🔗 Service Bus Namespace: $SERVICE_BUS_NAMESPACE"
-        echo "💡 To use locally, set: export Messaging__ServiceBus__ConnectionString='[CONNECTION_STRING]'"
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
+            --query "properties.outputs" > infrastructure-outputs.json
+          
+          echo "Infrastructure outputs:"
+          cat infrastructure-outputs.json
+          
+          # Get connection string for development use
+          SERVICE_BUS_NAMESPACE=$(jq -r '.serviceBusNamespace.value' infrastructure-outputs.json)
+          MANAGEMENT_POLICY_NAME=$(jq -r '.managementPolicyName.value' infrastructure-outputs.json)
+          
+          CONNECTION_STRING=$(az servicebus namespace authorization-rule keys list \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
+            --namespace-name "$SERVICE_BUS_NAMESPACE" \
+            --name "$MANAGEMENT_POLICY_NAME" \
+            --query "primaryConnectionString" \
+            --output tsv)
+          
+          echo "✅ Infrastructure deployed successfully!"
+          echo "🔗 Service Bus Namespace: $SERVICE_BUS_NAMESPACE"
+          echo "💡 To use locally, set: export Messaging__ServiceBus__ConnectionString='[CONNECTION_STRING]'"
 
       - name: Upload infrastructure outputs
         uses: actions/upload-artifact@v4

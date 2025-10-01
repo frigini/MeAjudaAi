@@ -83,9 +83,9 @@ Refresh tokens are automatically handled by the frontend application. The backen
 For development and testing purposes, the system includes a `TestAuthenticationHandler` that bypasses Keycloak authentication.
 
 See the complete testing documentation:
-- [Test Authentication Handler](../testing/test-authentication-handler.md)
-- [Test Configuration](../testing/test-auth-configuration.md)
-- [Test Examples](../testing/test-auth-examples.md)
+- [Test Authentication Handler](../testing/test_authentication_handler.md)
+- [Test Configuration](../testing/test_auth_configuration.md)
+- [Test Examples](../testing/test_auth_examples.md)
 
 ## Production Deployment
 
@@ -160,4 +160,4 @@ The Swagger UI includes authentication support:
 2. Enter JWT token in format: `Bearer <token>`
 3. Test authenticated endpoints
 
-For obtaining tokens during development, see the [testing documentation](../testing/test-auth-examples.md).
+For obtaining tokens during development, see the [testing documentation](../testing/test_auth_examples.md).

@@ -54,10 +54,10 @@ O handler **sempre**:
 
 ## 📖 Mais Informações
 
-- [Configuração e Uso](./test-auth-configuration.md)
-- [Exemplos de Teste](./test-auth-examples.md)
-- [Troubleshooting](./test-auth-troubleshooting.md)
-- [Referências Técnicas](./test-auth-references.md)
+- [Configuração e Uso](./test_auth_configuration.md)
+- [Exemplos de Teste](./test_auth_examples.md)
+- [Troubleshooting](./test_auth_troubleshooting.md)
+- [Referências Técnicas](./test_auth_references.md)
 
 ## 🔗 Links Relacionados
 

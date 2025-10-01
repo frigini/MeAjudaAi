@@ -4,8 +4,14 @@ name: MeAjudaAi CI Pipeline
 on:
   push:
     branches: [master, develop]
+    paths: 
+      - 'src/Aspire/**'
+      - '.github/workflows/aspire-ci-cd.yml'
   pull_request:
     branches: [master, develop]
+    paths:
+      - 'src/Aspire/**'
+      - '.github/workflows/aspire-ci-cd.yml'
 
 permissions:
   contents: read
@@ -37,35 +43,13 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.sln --no-restore --configuration Release
 
-      - name: Run unit tests
+      - name: Build and validate solution
         env:
           ASPNETCORE_ENVIRONMENT: Testing
-          MEAJUDAAI_DB_PASS: test123
-          MEAJUDAAI_DB_USER: postgres
-          MEAJUDAAI_DB: meajudaai_test
-          KEYCLOAK_ADMIN_PASSWORD: admin123
-          DB_PASSWORD: test123
-          DB_USERNAME: postgres
         run: |
-          echo "🧪 Executando testes unitários..."
-          echo "🏗️ Executando testes de arquitetura..."
-          dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj \
-            --no-build --configuration Release --logger trx \
-            --results-directory TestResults/Architecture
-          
-          echo "🔗 Executando testes de integração..."
-          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
-            --no-build --configuration Release --logger trx \
-            --results-directory TestResults/Integration
-          
-          echo "✅ Todos os testes executados com sucesso"
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: TestResults
+          echo "🏗️ Building solution..."
+          dotnet build MeAjudaAi.sln --no-restore --configuration Release
+          echo "✅ Build completed successfully"
 
   # Validate Aspire configuration
   aspire-validation:

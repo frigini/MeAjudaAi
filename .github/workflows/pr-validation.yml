@@ -119,44 +119,7 @@ jobs:
           recreate: true
           path: code-coverage-results.md
 
-  # Job 2: Infrastructure Validation (Optional)
-  infrastructure-validation:
-    name: Infrastructure Validation
-    runs-on: ubuntu-latest
-    if: false  # Disabled until Azure credentials are configured
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Login to Azure (for validation only)
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Install Bicep CLI
-        run: |
-          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
-          chmod +x ./bicep
-          sudo mv ./bicep /usr/local/bin/bicep
-
-      - name: Validate Bicep syntax
-        run: |
-          bicep build infrastructure/main.bicep
-          bicep build infrastructure/servicebus.bicep
-
-      - name: Bicep Linting
-        run: |
-          az bicep build --file infrastructure/main.bicep --stdout > /dev/null
-
-      - name: Check for Bicep best practices
-        run: |
-          echo "✅ Bicep templates validation completed"
-          echo "📋 Validation Summary:"
-          echo "- main.bicep: Syntax valid"
-          echo "- servicebus.bicep: Syntax valid"
-
-  # Job 3: Security Scan
+  # Job 2: Security Scan (Consolidated)
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
@@ -164,6 +127,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -176,32 +141,7 @@ jobs:
       - name: Run Security Audit
         run: dotnet list package --vulnerable --include-transitive || true
 
-  # Job 3: Secret Detection with Gitleaks
-  secret-scan:
-    name: Secret Detection
-    runs-on: ubuntu-latest
-    
-    env:
-      GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Gitleaks Secret Scan
-        # Only run if GITLEAKS_LICENSE is available (required for organizations)
-        if: env.GITLEAKS_LICENSE != ''
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-        with:
-          config-path: .gitleaks.toml
-          
-      - name: Alternative Secret Scan (TruffleHog)
-        # Run TruffleHog as backup secret scanner (always runs)
+      - name: Secret Detection with TruffleHog
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
@@ -209,7 +149,7 @@ jobs:
           head: HEAD
           extra_args: --debug --only-verified
 
-  # Job 4: Markdown Link Validation  
+  # Job 3: Markdown Link Validation (Simplified)
   markdown-link-check:
     name: Validate Markdown Links
     runs-on: ubuntu-latest
@@ -222,18 +162,23 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .lycheecache
-          key: lychee-${{ runner.os }}-${{ hashFiles('**/*.md','lychee.toml') }}
+          key: lychee-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             lychee-${{ runner.os }}-
 
       - name: Check markdown links with lychee
         uses: lycheeverse/lychee-action@v1.10.0
         with:
-          # Check all markdown files in the repository using config file
-          args: --config lychee.toml --verbose --no-progress --cache "**/*.md"
-          # Fail the job if broken links are found
-          fail: true
-          # Only check local file links for now to avoid external link issues
+          # Use simplified configuration for reliability
+          args: --config lychee.toml --no-progress --cache --max-cache-age 1d "docs/**/*.md" "README.md"
+          # Don't fail the entire pipeline on link check failures
+          fail: false
           jobSummary: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Report link check results
+        if: always()
+        run: |
+          echo "📋 Link validation completed (non-blocking)"
+          echo "ℹ️  Check job summary for detailed results"

@@ -15,6 +15,8 @@ public class CorrelationIdMiddleware
     private readonly RequestDelegate _next;
     private const string CorrelationIdHeader = "X-Correlation-ID";
 
+    public CorrelationIdMiddleware(RequestDelegate next) => _next = next;
+
     public async Task InvokeAsync(HttpContext context)
     {
         var correlationId = context.Request.Headers[CorrelationIdHeader].FirstOrDefault() 
@@ -61,6 +63,11 @@ Log.Logger = new LoggerConfiguration()
 public class CorrelationIdHttpClientHandler : DelegatingHandler
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public CorrelationIdHttpClientHandler(IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContextAccessor = httpContextAccessor;
+    }
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, 
@@ -111,6 +118,12 @@ CorrelationId = "f7b3c4d2-8e91-4a6b-9c5d-1e2f3a4b5c6d"
 public class CorrelationMetrics
 {
     private readonly Histogram<double> _requestDuration;
+    
+    public CorrelationMetrics(IMeterFactory meterFactory)
+    {
+        var meter = meterFactory.Create("MeAjudaAi.Correlation");
+        _requestDuration = meter.CreateHistogram<double>("request_duration_ms");
+    }
     
     public void RecordRequestDuration(string correlationId, double durationMs)
     {
@@ -169,5 +182,5 @@ using (LogContext.PushProperty("CorrelationId", correlationId))
 ## 🔗 Links Relacionados
 
 - [Logging Setup](./README.md)
-- [Performance Monitoring](./PERFORMANCE.md)
-- [SEQ Configuration](./SEQ_SETUP.md)
+- [Performance Monitoring](./performance.md)
+- [SEQ Configuration](./seq_setup.md)

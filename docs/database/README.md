@@ -5,10 +5,10 @@ Esta pasta contém toda a documentação relacionada ao banco de dados do projet
 ## 📚 Índice de Documentação
 
 ### 🗂️ **Organização de Scripts**
-- [`scripts-organization.md`](./scripts-organization.md) - Como organizar e criar scripts de banco para novos módulos
+- [`scripts_organization.md`](./scripts_organization.md) - Como organizar e criar scripts de banco para novos módulos
 
 ### 🔒 **Isolamento de Schema**
-- [`schema-isolation.md`](./schema-isolation.md) - Implementação de isolamento de schema por módulo
+- [`schema_isolation.md`](./schema_isolation.md) - Implementação de isolamento de schema por módulo
 
 ### 🔧 **Arquivos Relacionados**
 - [`../technical/database_boundaries.md`](../technical/database_boundaries.md) - Boundaries e limites entre módulos
