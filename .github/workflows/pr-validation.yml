@@ -180,15 +180,15 @@ jobs:
           echo "🧪 Executando testes com cobertura consolidada..."
 
           # Build .NET connection string from PostgreSQL secrets
-          export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=$POSTGRES_DB;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD"
+          export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=$MEAJUDAAI_DB;Username=$MEAJUDAAI_DB_USER;Password=$MEAJUDAAI_DB_PASS"
           echo "✅ Built connection string from PostgreSQL secrets"
 
           # Test database connection first
           echo "Testing database connection..."
-          PGPASSWORD="$POSTGRES_PASSWORD" \
+          PGPASSWORD="$MEAJUDAAI_DB_PASS" \
             psql -h localhost \
-                 -U "$POSTGRES_USER" \
-                 -d "$POSTGRES_DB" \
+                 -U "$MEAJUDAAI_DB_USER" \
+                 -d "$MEAJUDAAI_DB" \
                  -c "SELECT 1;" || {
             echo "❌ Database connection failed — aborting workflow"
             echo "💡 Ensure PostgreSQL service is running and secrets are configured:"
