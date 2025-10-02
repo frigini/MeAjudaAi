@@ -133,10 +133,15 @@ jobs:
       - name: Validate Bicep templates
         run: |
           az bicep build --file infrastructure/main.bicep
-          az deployment group validate \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
-            --template-file infrastructure/main.bicep \
-            --parameters environmentName=dev location=${{ env.AZURE_LOCATION }} || echo "Resource group might not exist yet"
+          # Validate Bicep only if the resource group exists
+          if az group exists --name ${{ env.AZURE_RESOURCE_GROUP_DEV }} --output tsv | grep true; then
+            az deployment group validate \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP_DEV }} \
+              --template-file infrastructure/main.bicep \
+              --parameters environmentName=dev location=${{ env.AZURE_LOCATION }}
+          else
+            echo "Resource group '${{ env.AZURE_RESOURCE_GROUP_DEV }}' does not exist, skipping Bicep validation"
+          fi
 
   # Job 4: Deploy to Development (Optional)
   deploy-dev:
