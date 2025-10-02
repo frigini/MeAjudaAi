@@ -91,9 +91,11 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Check Database Configuration
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
           echo "🔍 Checking database configuration..."
-          if [ -z "${{ secrets.POSTGRES_PASSWORD }}" ]; then
+          if [ -z "$POSTGRES_PASSWORD" ]; then
             echo "⚠️  GitHub secrets not configured - using fallback values for testing"
             echo "💡 To configure production secrets, go to: Settings → Secrets and variables → Actions"
             echo "   Required secrets: POSTGRES_PASSWORD, POSTGRES_USER, POSTGRES_DB"
@@ -102,9 +104,11 @@ jobs:
           fi
 
       - name: Check Keycloak Configuration
+        env:
+          KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
         run: |
           echo "🔍 Checking Keycloak configuration..."
-          if [ -z "${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" ]; then
+          if [ -z "$KEYCLOAK_ADMIN_PASSWORD" ]; then
             echo "ℹ️  KEYCLOAK_ADMIN_PASSWORD secret not configured - Keycloak is optional"
             echo "💡 To enable Keycloak authentication features, configure the secret in:"
             echo "   Settings → Secrets and variables → Actions → KEYCLOAK_ADMIN_PASSWORD"
