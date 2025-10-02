@@ -27,18 +27,22 @@ jobs:
         run: |
           missing_secrets=""
 
-          # Check each required secret
-          if [[ -z "${{ secrets.POSTGRES_PASSWORD }}" ]]; then
+          # Check each required secret using safer syntax
+          POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
+          POSTGRES_USER="${{ secrets.POSTGRES_USER }}"
+          POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
+
+          if [ -z "$POSTGRES_PASSWORD" ]; then
             missing_secrets="$missing_secrets POSTGRES_PASSWORD"
           fi
-          if [[ -z "${{ secrets.POSTGRES_USER }}" ]]; then
+          if [ -z "$POSTGRES_USER" ]; then
             missing_secrets="$missing_secrets POSTGRES_USER"
           fi
-          if [[ -z "${{ secrets.POSTGRES_DB }}" ]]; then
+          if [ -z "$POSTGRES_DB" ]; then
             missing_secrets="$missing_secrets POSTGRES_DB"
           fi
 
-          if [[ -n "$missing_secrets" ]]; then
+          if [ -n "$missing_secrets" ]; then
             echo "❌ Required secrets are missing:$missing_secrets"
             echo ""
             echo "Please configure the following secrets in your repository:"
