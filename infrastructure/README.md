@@ -163,6 +163,7 @@ export RABBITMQ_PASS=$(openssl rand -base64 32)
 export POSTGRES_PASSWORD=$(openssl rand -base64 32)
 export KEYCLOAK_DB_PASSWORD=$(openssl rand -base64 32)
 export PGADMIN_DEFAULT_PASSWORD=$(openssl rand -base64 32)
+export PGADMIN_DEFAULT_EMAIL="admin@example.com"
 docker compose -f compose/environments/development.yml up -d
 
 # Development (Option 2: with populated .env file - recommended)

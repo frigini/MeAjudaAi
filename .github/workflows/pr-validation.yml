@@ -331,57 +331,8 @@ jobs:
           scan-args: |-
             --lockfile-keep-going
             --skip-git
-            --format=json
-            --output=osv-results.json
             .
-          fail-on-findings: false
-          upload-sarif: false
-
-      - name: Check OSV Results
-        if: always()
-        run: |
-          if [ -f osv-results.json ]; then
-            echo "🔍 Analyzing OSV scan results..."
-            
-            # Handle both array and string severity formats
-            HIGH_CRIT=$(jq -r '
-              .results[]?.packages[]?.vulnerabilities[]? | 
-              select(
-                (.severity == "HIGH" or .severity == "CRITICAL") or 
-                (.severity[]? == "HIGH" or .severity[]? == "CRITICAL")
-              ) | 
-              .id
-            ' osv-results.json 2>/dev/null | wc -l)
-            
-            if [ "$HIGH_CRIT" -gt 0 ]; then
-              echo "❌ Found $HIGH_CRIT HIGH/CRITICAL vulnerabilities!"
-              echo "📄 Review osv-results.json for details"
-              
-              # Show vulnerability details
-              jq -r '
-                .results[]?.packages[]?.vulnerabilities[]? | 
-                select(
-                  (.severity == "HIGH" or .severity == "CRITICAL") or 
-                  (.severity[]? == "HIGH" or .severity[]? == "CRITICAL")
-                ) | 
-                "- \(.id): \(.summary // "No summary available")"
-              ' osv-results.json 2>/dev/null | head -10
-              
-              exit 1
-            else
-              echo "✅ No HIGH/CRITICAL vulnerabilities found"
-            fi
-          else
-            echo "⚠️ OSV scan completed without results file"
-          fi
-
-      - name: Upload OSV Scan Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: osv-scan-results
-          path: osv-results.json
-          if-no-files-found: ignore
+          fail-on-severity: HIGH
 
       - name: Secret Detection with TruffleHog
         uses: trufflesecurity/trufflehog@main
