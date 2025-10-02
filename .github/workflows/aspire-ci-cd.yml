@@ -123,6 +123,10 @@ jobs:
           echo "✅ Aspire AppHost builds successfully"
 
       - name: Generate Aspire manifest (for future deployment)
+        env:
+          # Set fallback values for manifest generation (dry-run mode)
+          MEAJUDAAI_DB_PASS: 'manifest-generation'
+          ASPNETCORE_ENVIRONMENT: Testing
         run: |
           cd src/Aspire/MeAjudaAi.AppHost
           # This validates the Aspire configuration without deploying

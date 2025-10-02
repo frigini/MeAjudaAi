@@ -16,15 +16,17 @@ if (isTestingEnv)
 
     // Em ambiente de CI, a senha deve ser fornecida via variável de ambiente
     var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+    var isDryRun = args.Contains("--dry-run") || args.Contains("--publisher");
+    
     if (string.IsNullOrEmpty(testDbPassword))
     {
-        if (isCI)
+        if (isCI && !isDryRun)
         {
             Console.Error.WriteLine("ERROR: MEAJUDAAI_DB_PASS environment variable is required in CI but not set.");
             Console.Error.WriteLine("Please set MEAJUDAAI_DB_PASS to the database password in your CI environment.");
             Environment.Exit(1);
         }
-        testDbPassword = "test123"; // Fallback for local development only
+        testDbPassword = "test123"; // Fallback for local development and manifest generation
     }
 
     var postgresql = builder.AddMeAjudaAiPostgreSQL(options =>
