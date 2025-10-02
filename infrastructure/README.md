@@ -120,7 +120,8 @@ infrastructure/compose/environments/.env.*
    export RABBITMQ_PASS="$(openssl rand -base64 32)"
    export POSTGRES_PASSWORD="$(openssl rand -base64 32)"
    export KEYCLOAK_DB_PASSWORD="$(openssl rand -base64 32)"
-   export PGADMIN_DEFAULT_PASSWORD="$(openssl rand -base64 32)"
+   export PGLADMIN_DEFAULT_PASSWORD="$(openssl rand -base64 32)"
+   export PGLADMIN_DEFAULT_EMAIL="${PGLADMIN_DEFAULT_EMAIL:-admin@localhost}"
    
    # Write all secrets to .env file with strict permissions
    umask 077
@@ -129,7 +130,8 @@ KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
 RABBITMQ_PASS=${RABBITMQ_PASS}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 KEYCLOAK_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD}
-PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+PGLADMIN_DEFAULT_PASSWORD=${PGLADMIN_DEFAULT_PASSWORD}
+PGLADMIN_DEFAULT_EMAIL=${PGLADMIN_DEFAULT_EMAIL}
 EOF
    chmod 600 compose/environments/.env.development
    ```

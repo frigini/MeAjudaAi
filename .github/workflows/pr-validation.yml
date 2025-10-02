@@ -26,7 +26,7 @@ jobs:
         id: check
         run: |
           missing_secrets=""
-          
+
           # Check each required secret
           if [[ -z "${{ secrets.POSTGRES_PASSWORD }}" ]]; then
             missing_secrets="$missing_secrets POSTGRES_PASSWORD"
@@ -37,10 +37,7 @@ jobs:
           if [[ -z "${{ secrets.POSTGRES_DB }}" ]]; then
             missing_secrets="$missing_secrets POSTGRES_DB"
           fi
-          if [[ -z "${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" ]]; then
-            missing_secrets="$missing_secrets KEYCLOAK_ADMIN_PASSWORD"
-          fi
-          
+
           if [[ -n "$missing_secrets" ]]; then
             echo "❌ Required secrets are missing:$missing_secrets"
             echo ""
@@ -104,12 +101,12 @@ jobs:
         run: |
           echo "🔍 Checking Keycloak configuration..."
           if [ -z "${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" ]; then
-            echo "⚠️  KEYCLOAK_ADMIN_PASSWORD secret not configured"
-            echo "💡 If your tests require Keycloak authentication, configure the secret in:"
+            echo "ℹ️  KEYCLOAK_ADMIN_PASSWORD secret not configured - Keycloak is optional"
+            echo "💡 To enable Keycloak authentication features, configure the secret in:"
             echo "   Settings → Secrets and variables → Actions → KEYCLOAK_ADMIN_PASSWORD"
-            echo "🔄 Tests will continue but Keycloak-dependent features may fail"
+            echo "🔄 Tests will continue without Keycloak-dependent features"
           else
-            echo "✅ Keycloak secrets configured"
+            echo "✅ Keycloak secrets configured - authentication features enabled"
           fi
 
       - name: Install PostgreSQL client
@@ -323,6 +320,9 @@ jobs:
       - name: Run Security Audit
         run: dotnet list package --vulnerable --include-transitive
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: OSV-Scanner (fail on HIGH/CRITICAL)
         run: |
           echo "🔍 Installing OSV-Scanner..."
@@ -337,7 +337,8 @@ jobs:
 
           # Check for high/critical vulnerabilities
           if [ -f osv-results.json ]; then
-            HIGH_CRIT=$(jq -r '.results[].packages[]?.vulnerabilities[]? |select(.severity == "HIGH" or .severity == "CRITICAL") | .id' \
+            HIGH_CRIT=$(jq -r '.results[].packages[]?.vulnerabilities[]? | \
+              select(.severity == "HIGH" or .severity == "CRITICAL") | .id' \
               osv-results.json 2>/dev/null | wc -l)
             if [ "$HIGH_CRIT" -gt 0 ]; then
               echo "❌ Found $HIGH_CRIT HIGH/CRITICAL vulnerabilities!"
