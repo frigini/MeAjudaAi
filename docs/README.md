@@ -20,6 +20,7 @@ Se você é novo no projeto, comece por aqui:
 | **[📋 Diretrizes de Desenvolvimento](./development_guide.md)** | Padrões de código, estrutura, Module APIs e ID generation | Desenvolvedores |
 | **[🚀 Infraestrutura](./infrastructure.md)** | Docker, Aspire, Azure e configuração de ambientes | DevOps e desenvolvedores |
 | **[🔄 CI/CD](./ci_cd.md)** | Pipelines, deploy e automação | DevOps e tech leads |
+| **[📦 Adicionando Novos Módulos](./adding-new-modules.md)** | Como adicionar módulos com testes e cobertura | Desenvolvedores |
 
 ### **Arquitetura e Design**
 

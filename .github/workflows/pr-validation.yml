@@ -138,44 +138,67 @@ jobs:
           rm -rf ./coverage
           mkdir -p ./coverage
 
-          # Run tests one project at a time to avoid assembly duplication
-          echo "Running Users Module Tests..."
-          dotnet test src/Modules/Users/MeAjudaAi.Modules.Users.Tests/ \
-            --configuration Release \
-            --no-build \
-            --verbosity normal \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage/users \
-            --logger "trx;LogFileName=users-test-results.trx"
+          echo "🧪 Running unit tests with coverage for all modules..."
+          
+          # Define modules for coverage testing
+          # FORMAT: "ModuleName:path/to/module/tests/"
+          # TO ADD NEW MODULE: Add line like "Orders:src/Modules/Orders/MeAjudaAi.Modules.Orders.Tests/"
+          # See docs/adding-new-modules.md for complete instructions
+          MODULES=(
+            "Users:src/Modules/Users/MeAjudaAi.Modules.Users.Tests/"
+            # Future modules can be added here:
+            # "Orders:src/Modules/Orders/MeAjudaAi.Modules.Orders.Tests/"
+            # "Payments:src/Modules/Payments/MeAjudaAi.Modules.Payments.Tests/"
+          )
 
-          echo "Running Architecture Tests..."
-          dotnet test tests/MeAjudaAi.Architecture.Tests/ \
-            --configuration Release \
-            --no-build \
-            --verbosity normal \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage/architecture \
-            --logger "trx;LogFileName=architecture-test-results.trx"
+          # Run unit tests for each module with coverage
+          for module_info in "${MODULES[@]}"; do
+            IFS=':' read -r module_name module_path <<< "$module_info"
+            
+            if [ -d "$module_path" ]; then
+              echo "Running $module_name module unit tests with coverage..."
+              dotnet test "$module_path" \
+                --configuration Release \
+                --no-build \
+                --verbosity normal \
+                --collect:"XPlat Code Coverage" \
+                --results-directory "./coverage/${module_name,,}" \
+                --logger "trx;LogFileName=${module_name,,}-test-results.trx" \
+                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover \
+                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="[MeAjudaAi.Modules.${module_name}.*]*" \
+                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="[*.Tests]*,[*Test*]*,[testhost]*"
+            else
+              echo "⚠️  Module $module_name tests not found at $module_path - skipping"
+            fi
+          done
 
-          echo "Running Shared Tests..."
-          dotnet test tests/MeAjudaAi.Shared.Tests/ \
-            --configuration Release \
-            --no-build \
-            --verbosity normal \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage/shared \
-            --logger "trx;LogFileName=shared-test-results.trx"
+          echo "🧪 Running system tests without coverage collection..."
+          
+          # Define system tests (no coverage)
+          SYSTEM_TESTS=(
+            "Architecture:tests/MeAjudaAi.Architecture.Tests/"
+            "Integration:tests/MeAjudaAi.Integration.Tests/"
+            "Shared:tests/MeAjudaAi.Shared.Tests/"
+            # "E2E:tests/MeAjudaAi.E2E.Tests/"  # Uncomment when E2E tests are ready
+          )
 
-          echo "Running Integration Tests..."
-          dotnet test tests/MeAjudaAi.Integration.Tests/ \
-            --configuration Release \
-            --no-build \
-            --verbosity normal \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage/integration \
-            --logger "trx;LogFileName=integration-test-results.trx"
+          # Run system tests without coverage
+          for test_info in "${SYSTEM_TESTS[@]}"; do
+            IFS=':' read -r test_name test_path <<< "$test_info"
+            
+            if [ -d "$test_path" ]; then
+              echo "Running $test_name tests (no coverage)..."
+              dotnet test "$test_path" \
+                --configuration Release \
+                --no-build \
+                --verbosity normal \
+                --logger "trx;LogFileName=${test_name,,}-test-results.trx"
+            else
+              echo "⚠️  $test_name tests not found at $test_path - skipping"
+            fi
+          done
 
-          echo "✅ Testes executados com sucesso"
+          echo "✅ Todos os testes executados com sucesso"
 
       - name: Validate namespace reorganization
         run: |
@@ -207,7 +230,7 @@ jobs:
       - name: Code Coverage Summary
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: coverage/**/**/coverage.cobertura.xml
+          filename: coverage/**/coverage.cobertura.xml
           badge: true
           fail_below_min: false
           format: markdown

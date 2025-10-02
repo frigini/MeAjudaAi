@@ -125,6 +125,7 @@ jobs:
       - name: Generate Aspire manifest (for future deployment)
         env:
           # Set fallback values for manifest generation (dry-run mode)
+          DB_PASSWORD: 'manifest-generation'
           MEAJUDAAI_DB_PASS: 'manifest-generation'
           ASPNETCORE_ENVIRONMENT: Testing
         run: |
