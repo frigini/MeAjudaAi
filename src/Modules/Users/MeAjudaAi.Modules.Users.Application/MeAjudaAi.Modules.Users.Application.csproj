@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
-    <ProjectReference Include="..\..\Domain\MeAjudaAi.Modules.Users.Domain\MeAjudaAi.Modules.Users.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
+    <ProjectReference Include="..\MeAjudaAi.Modules.Users.Domain\MeAjudaAi.Modules.Users.Domain.csproj" />
   </ItemGroup>
 
 </Project>
