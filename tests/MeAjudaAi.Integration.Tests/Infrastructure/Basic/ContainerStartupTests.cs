@@ -114,7 +114,7 @@ public class ContainerStartupTests
             {
                 await resourceNotificationService.WaitForResourceAsync("postgres-local", KnownResourceStates.Running).WaitAsync(timeout);
             }
-            
+
             await resourceNotificationService.WaitForResourceAsync("redis", KnownResourceStates.Running).WaitAsync(timeout);
 
             // Verifica se o RabbitMQ está configurado antes de aguardar por ele

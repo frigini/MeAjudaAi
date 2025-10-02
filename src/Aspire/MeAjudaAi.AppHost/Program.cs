@@ -17,7 +17,7 @@ if (isTestingEnv)
     // Em ambiente de CI, a senha deve ser fornecida via variável de ambiente
     var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
     var isDryRun = args.Contains("--dry-run") || args.Contains("--publisher");
-    
+
     if (string.IsNullOrEmpty(testDbPassword))
     {
         if (isCI && !isDryRun)
