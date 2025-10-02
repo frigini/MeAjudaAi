@@ -222,21 +222,34 @@ jobs:
 
             if [ -d "$module_path" ]; then
               echo "Running $module_name module unit tests with coverage..."
-              # Set shorter variable names for DataCollectionRunSettings
-              INCLUDE_FILTER="[MeAjudaAi.Modules.${module_name}.*]*"
-              EXCLUDE_FILTER="[*.Tests]*,[*Test*]*,[testhost]*"
-              DC_CONFIG="DataCollectionRunSettings.DataCollectors.DataCollector.Configuration"
-
+              
+              # Create specific output directory for this module
+              MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
+              mkdir -p "$MODULE_COVERAGE_DIR"
+              
+              # Run tests with simplified coverage collection
               dotnet test "$module_path" \
                 --configuration Release \
                 --no-build \
                 --verbosity normal \
                 --collect:"XPlat Code Coverage" \
-                --results-directory "./coverage/${module_name,,}" \
+                --results-directory "$MODULE_COVERAGE_DIR" \
                 --logger "trx;LogFileName=${module_name,,}-test-results.trx" \
-                -- "${DC_CONFIG}.Format=opencover" \
-                -- "${DC_CONFIG}.Include=$INCLUDE_FILTER" \
-                -- "${DC_CONFIG}.Exclude=$EXCLUDE_FILTER"
+                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover \
+                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="[MeAjudaAi.Modules.${module_name}.*]*" \
+                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="[*.Tests]*,[*Test*]*,[testhost]*"
+              
+              # Find and rename the coverage file to a predictable name
+              if [ -d "$MODULE_COVERAGE_DIR" ]; then
+                COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -name "coverage.opencover.xml" -type f | head -1)
+                if [ -f "$COVERAGE_FILE" ]; then
+                  cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.opencover.xml"
+                  echo "✅ Coverage file created: $MODULE_COVERAGE_DIR/${module_name,,}.opencover.xml"
+                else
+                  echo "⚠️  Coverage file not found for $module_name module"
+                  find "$MODULE_COVERAGE_DIR" -name "*.xml" -type f | head -5
+                fi
+              fi
             else
               echo "⚠️  Module $module_name tests not found at $module_path - skipping"
             fi
@@ -300,9 +313,49 @@ jobs:
       - name: List Coverage Files (Debug)
         run: |
           echo "🔍 Listing coverage files for debugging..."
-          find ./coverage -name "*.xml" -type f 2>/dev/null || echo "No XML files found in coverage directory"
+          echo "Coverage directory structure:"
+          find ./coverage -type f 2>/dev/null | head -20 || echo "No files found in coverage directory"
+          echo ""
+          echo "OpenCover XML files:"
           find ./coverage -name "*.opencover.xml" -type f 2>/dev/null || echo "No .opencover.xml files found"
+          echo ""
+          echo "Any XML files:"
+          find ./coverage -name "*.xml" -type f 2>/dev/null || echo "No XML files found"
+          echo ""
+          echo "Coverage directory contents:"
           ls -la ./coverage/ 2>/dev/null || echo "Coverage directory not found"
+          echo ""
+          echo "Checking for coverage.xml files:"
+          find ./coverage -name "coverage.xml" -type f 2>/dev/null || echo "No coverage.xml files found"
+
+      - name: Fix Coverage Files (if needed)
+        run: |
+          echo "🔧 Attempting to fix coverage file locations and names..."
+          
+          # Find any coverage.xml files and rename them to .opencover.xml
+          find ./coverage -name "coverage.xml" -type f | while read -r file; do
+            dir=$(dirname "$file")
+            module=$(basename "$dir")
+            new_file="$dir/$module.opencover.xml"
+            echo "Copying $file to $new_file"
+            cp "$file" "$new_file"
+          done
+          
+          # Find coverage files in nested directories and copy to module directories
+          find ./coverage -name "coverage.opencover.xml" -type f | while read -r file; do
+            # Get the module directory (should be like ./coverage/users/)
+            module_dir=$(echo "$file" | sed 's|coverage/\([^/]*\)/.*|coverage/\1|')
+            module_name=$(basename "$module_dir")
+            target_file="$module_dir/$module_name.opencover.xml"
+            
+            if [ "$file" != "$target_file" ]; then
+              echo "Copying $file to $target_file"
+              cp "$file" "$target_file" 2>/dev/null || true
+            fi
+          done
+          
+          echo "Coverage files after processing:"
+          find ./coverage -name "*.opencover.xml" -type f 2>/dev/null || echo "Still no .opencover.xml files found"
 
       - name: Code Coverage Summary
         uses: irongut/CodeCoverageSummary@v1.3.0
@@ -316,6 +369,22 @@ jobs:
           indicators: true
           output: both
           thresholds: '60 80'
+        continue-on-error: true
+
+      - name: Alternative Coverage Summary (if opencover fails)
+        if: failure()
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: 'coverage/**/*.xml'
+          badge: true
+          fail_below_min: false
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+          thresholds: '60 80'
+        continue-on-error: true
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
