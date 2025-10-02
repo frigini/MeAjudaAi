@@ -27,9 +27,9 @@
   <ItemGroup>
     <!-- Reference all assemblies to test architecture rules -->
     <ProjectReference Include="..\..\src\Modules\Users\Domain\MeAjudaAi.Modules.Users.Domain\MeAjudaAi.Modules.Users.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Users\Application\MeajudaAi.Modules.Users.Application\MeAjudaAi.Modules.Users.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Users\Application\MeAjudaAi.Modules.Users.Application\MeAjudaAi.Modules.Users.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Users\API\MeajudaAi.Modules.Users.API\MeAjudaAi.Modules.Users.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Users\API\MeAjudaAi.Modules.Users.API\MeAjudaAi.Modules.Users.API.csproj" />
     <ProjectReference Include="..\..\src\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
     <ProjectReference Include="..\..\src\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
   </ItemGroup>
