@@ -124,10 +124,10 @@ jobs:
         run: |
           echo "🔄 Waiting for PostgreSQL to be ready..."
           export PGPASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
-          
+
           counter=1
           max_attempts=30
-          
+
           while [ $counter -le $max_attempts ]; do
             if pg_isready -h localhost -p 5432 -U "${{ secrets.POSTGRES_USER }}"; then
               echo "✅ PostgreSQL is ready!"
@@ -365,7 +365,7 @@ jobs:
                 echo ""
                 echo "🚫 Security scan failed - vulnerabilities detected"
                 echo "💡 Please review and fix vulnerabilities before merging"
-                
+
                 # Fail the workflow
                 exit 1
               fi
