@@ -124,7 +124,7 @@ jobs:
         run: |
           echo "🔄 Waiting for PostgreSQL to be ready..."
           export PGPASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
-          for i in {1..30}; do
+          for i in $(seq 1 30); do
             if pg_isready -h localhost -p 5432 -U "${{ secrets.POSTGRES_USER }}"; then
               echo "✅ PostgreSQL is ready!"
               break
