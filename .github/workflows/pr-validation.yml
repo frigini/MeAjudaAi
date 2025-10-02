@@ -340,14 +340,14 @@ jobs:
           else
             echo "⚠️ OSV-Scanner found vulnerabilities (exit code: $?)"
             echo "📄 Running detailed scan for HIGH/CRITICAL analysis..."
-            
+
             # Run again with JSON output for analysis
             ./osv-scanner --lockfile-keep-going --skip-git --format json . > osv-results.json || true
-            
+
             if [ -f osv-results.json ]; then
               # Simple check - if JSON contains any results, assume they need review
               TOTAL_VULNS=$(jq -r '.results[]?.packages[]?.vulnerabilities[]? | .id' osv-results.json 2>/dev/null | wc -l)
-              
+
               if [ "$TOTAL_VULNS" -gt 0 ]; then
                 echo "❌ Found $TOTAL_VULNS vulnerabilities that need review"
                 echo "📋 First 10 vulnerabilities found:"
