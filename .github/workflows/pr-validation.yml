@@ -118,7 +118,9 @@ jobs:
           KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
           # Connection string format for .NET
           ConnectionStrings__DefaultConnection: >-
-            ${{ secrets.DB_CONNECTION_STRING || 'Host=localhost;Port=5432;Database=meajudaai_test;Username=postgres;Password=test123' }}
+            ${{ secrets.DB_CONNECTION_STRING ||
+            'Host=localhost;Port=5432;Database=meajudaai_test;Username=postgres;Password=test123'
+            }}
         run: |
           echo "🧪 Executando testes com cobertura consolidada..."
 
@@ -139,7 +141,7 @@ jobs:
           mkdir -p ./coverage
 
           echo "🧪 Running unit tests with coverage for all modules..."
-          
+
           # Define modules for coverage testing
           # FORMAT: "ModuleName:path/to/module/tests/"
           # TO ADD NEW MODULE: Add line like "Orders:src/Modules/Orders/MeAjudaAi.Modules.Orders.Tests/"
@@ -154,9 +156,14 @@ jobs:
           # Run unit tests for each module with coverage
           for module_info in "${MODULES[@]}"; do
             IFS=':' read -r module_name module_path <<< "$module_info"
-            
+
             if [ -d "$module_path" ]; then
               echo "Running $module_name module unit tests with coverage..."
+              # Set shorter variable names for DataCollectionRunSettings
+              INCLUDE_FILTER="[MeAjudaAi.Modules.${module_name}.*]*"
+              EXCLUDE_FILTER="[*.Tests]*,[*Test*]*,[testhost]*"
+              DC_CONFIG="DataCollectionRunSettings.DataCollectors.DataCollector.Configuration"
+
               dotnet test "$module_path" \
                 --configuration Release \
                 --no-build \
@@ -164,16 +171,16 @@ jobs:
                 --collect:"XPlat Code Coverage" \
                 --results-directory "./coverage/${module_name,,}" \
                 --logger "trx;LogFileName=${module_name,,}-test-results.trx" \
-                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover \
-                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="[MeAjudaAi.Modules.${module_name}.*]*" \
-                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="[*.Tests]*,[*Test*]*,[testhost]*"
+                -- "${DC_CONFIG}.Format=opencover" \
+                -- "${DC_CONFIG}.Include=$INCLUDE_FILTER" \
+                -- "${DC_CONFIG}.Exclude=$EXCLUDE_FILTER"
             else
               echo "⚠️  Module $module_name tests not found at $module_path - skipping"
             fi
           done
 
           echo "🧪 Running system tests without coverage collection..."
-          
+
           # Define system tests (no coverage)
           SYSTEM_TESTS=(
             "Architecture:tests/MeAjudaAi.Architecture.Tests/"
@@ -185,7 +192,7 @@ jobs:
           # Run system tests without coverage
           for test_info in "${SYSTEM_TESTS[@]}"; do
             IFS=':' read -r test_name test_path <<< "$test_info"
-            
+
             if [ -d "$test_path" ]; then
               echo "Running $test_name tests (no coverage)..."
               dotnet test "$test_path" \
@@ -230,7 +237,7 @@ jobs:
       - name: Code Coverage Summary
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: coverage/**/coverage.cobertura.xml
+          filename: 'coverage/**/*.xml'
           badge: true
           fail_below_min: false
           format: markdown
@@ -273,7 +280,8 @@ jobs:
         run: |
           echo "🔍 Installing OSV-Scanner..."
           # Install OSV-Scanner
-          curl -sSfL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o osv-scanner
+          OSV_URL="https://github.com/google/osv-scanner/releases/latest/download"
+          curl -sSfL "${OSV_URL}/osv-scanner_linux_amd64" -o osv-scanner
           chmod +x osv-scanner
 
           echo "🔍 Running vulnerability scan..."
