@@ -129,15 +129,17 @@ jobs:
         run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
 
       - name: Wait for PostgreSQL to be ready
+        env:
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         run: |
           echo "🔄 Waiting for PostgreSQL to be ready..."
-          export PGPASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
 
           counter=1
           max_attempts=30
 
           while [ $counter -le $max_attempts ]; do
-            if pg_isready -h localhost -p 5432 -U "${{ secrets.POSTGRES_USER }}"; then
+            if pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
               echo "✅ PostgreSQL is ready!"
               break
             fi
@@ -147,7 +149,7 @@ jobs:
           done
 
           # Check if we exited the loop due to timeout
-          if ! pg_isready -h localhost -p 5432 -U "${{ secrets.POSTGRES_USER }}"; then
+          if ! pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
             echo "❌ PostgreSQL failed to become ready within 60 seconds"
             exit 1
           fi
@@ -173,15 +175,15 @@ jobs:
           echo "🧪 Executando testes com cobertura consolidada..."
 
           # Build .NET connection string from PostgreSQL secrets
-          export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
+          export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=$POSTGRES_DB;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD"
           echo "✅ Built connection string from PostgreSQL secrets"
 
           # Test database connection first
           echo "Testing database connection..."
-          PGPASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+          PGPASSWORD="$POSTGRES_PASSWORD" \
             psql -h localhost \
-                 -U "${{ secrets.POSTGRES_USER }}" \
-                 -d "${{ secrets.POSTGRES_DB }}" \
+                 -U "$POSTGRES_USER" \
+                 -d "$POSTGRES_DB" \
                  -c "SELECT 1;" || {
             echo "❌ Database connection failed — aborting workflow"
             echo "💡 Ensure PostgreSQL service is running and secrets are configured:"
