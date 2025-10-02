@@ -168,8 +168,10 @@ jobs:
                  -U "${{ secrets.POSTGRES_USER }}" \
                  -d "${{ secrets.POSTGRES_DB }}" \
                  -c "SELECT 1;" || {
-            echo "❌ Database connection failed"
-            echo "Skipping tests that require database..."
+            echo "❌ Database connection failed — aborting workflow"
+            echo "💡 Ensure PostgreSQL service is running and secrets are configured:"
+            echo "   - POSTGRES_PASSWORD, POSTGRES_USER, POSTGRES_DB"
+            echo "🔄 Integration tests require database connectivity to validate changes"
             exit 1
           }
 
