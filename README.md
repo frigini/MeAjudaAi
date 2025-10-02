@@ -2,6 +2,8 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
+<!-- Last updated: October 2, 2025 - Workflow syntax fixes applied -->
+
 ## 🎯 Visão Geral
 
 O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implementa as melhores práticas de desenvolvimento, incluindo Domain-Driven Design (DDD), CQRS, e arquitetura de monólito modular. A aplicação utiliza tecnologias de ponta como .NET 9, Azure, e containerização com Docker.
