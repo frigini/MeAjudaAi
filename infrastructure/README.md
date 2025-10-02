@@ -123,15 +123,15 @@ infrastructure/compose/environments/.env.*
 
 2. **Alternative: Create .env file:**
    ```bash
-   # Copy example and edit
-   cp compose/environments/.env.development.example compose/environments/.env.development
+   # Copy the base template and edit for development
+   cp compose/environments/.env.example compose/environments/.env.development
    # Edit .env.development file and set both passwords
    ```
 
 3. **Start Development Environment:**
    ```bash
    docker compose -f compose/environments/development.yml up -d
-   # OR with .env file:
+   # OR with the custom .env file:
    docker compose -f compose/environments/development.yml --env-file compose/environments/.env.development up -d
    ```
 
@@ -181,11 +181,12 @@ Individual service configurations for development scenarios where you only need 
 **Configuration**:
 ```bash
 # Optional: Create custom test configuration
-cp compose/environments/.env.testing.example compose/environments/.env.testing
-# Edit .env.testing if needed (defaults usually work)
+   # Copy the base template and edit for testing
+    cp compose/environments/.env.example compose/environments/.env.testing
+   # Edit .env.testing if needed (passwords are required)
 
 # Run with custom config
-docker compose -f compose/environments/testing.yml --env-file compose/environments/.env.testing up -d
+   docker compose -f compose/environments/testing.yml --env-file compose/environments/.env.testing up -d
 ```
 
 **Default Credentials** (testing only):
