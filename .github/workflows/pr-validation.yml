@@ -4,6 +4,8 @@ name: Pull Request Validation
 "on":
   pull_request:
     branches: [master, develop]
+  # Manual trigger for testing workflow changes
+  workflow_dispatch:
 
 permissions:
   contents: read
