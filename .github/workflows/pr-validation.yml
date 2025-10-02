@@ -124,13 +124,18 @@ jobs:
         run: |
           echo "🔄 Waiting for PostgreSQL to be ready..."
           export PGPASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
-          for i in $(seq 1 30); do
+          
+          counter=1
+          max_attempts=30
+          
+          while [ $counter -le $max_attempts ]; do
             if pg_isready -h localhost -p 5432 -U "${{ secrets.POSTGRES_USER }}"; then
               echo "✅ PostgreSQL is ready!"
               break
             fi
-            echo "Waiting for PostgreSQL... ($i/30)"
+            echo "Waiting for PostgreSQL... ($counter/$max_attempts)"
             sleep 2
+            counter=$((counter + 1))
           done
 
           # Check if we exited the loop due to timeout
