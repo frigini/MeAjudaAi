@@ -134,17 +134,14 @@ jobs:
             exit 1
           }
 
-          # Run all tests with consolidated coverage
+          # Run all tests with simple coverage collection
           dotnet test MeAjudaAi.sln \
             --configuration Release \
             --no-build \
             --verbosity normal \
             --collect:"XPlat Code Coverage" \
             --results-directory ./coverage \
-            --logger "trx;LogFileName=test-results.trx" \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura \
-               DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="[*.Tests]*,[*.Testing]*,[testhost]*" \
-               DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.IncludeTestAssembly=false
+            --logger "trx;LogFileName=test-results.trx"
 
           echo "✅ Testes executados com sucesso"
 
