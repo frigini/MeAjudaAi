@@ -120,22 +120,7 @@ jobs:
           ConnectionStrings__DefaultConnection: >-
             ${{ secrets.DB_CONNECTION_STRING || 'Host=localhost;Port=5432;Database=meajudaai_test;Username=postgres;Password=test123' }}
         run: |
-          echo "🧪 Executando testes com cobertura..."
-
-          echo "🏗️ Executando testes de arquitetura (sem banco)..."
-          ARCH="tests/MeAjudaAi.Architecture.Tests/"
-          ARCH+="MeAjudaAi.Architecture.Tests.csproj"
-          dotnet test "$ARCH" \
-            --configuration Release \
-            --no-build \
-            --verbosity normal \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage/architecture \
-            --logger "trx;LogFileName=architecture-tests.trx"
-
-          echo "🔗 Executando testes de integração (com banco)..."
-          INTEG="tests/MeAjudaAi.Integration.Tests/"
-          INTEG+="MeAjudaAi.Integration.Tests.csproj"
+          echo "🧪 Executando testes com cobertura consolidada..."
 
           # Test database connection first
           echo "Testing database connection..."
@@ -145,18 +130,19 @@ jobs:
                  -d "${{ secrets.POSTGRES_DB || 'meajudaai_test' }}" \
                  -c "SELECT 1;" || {
             echo "❌ Database connection failed"
-            echo "Skipping integration tests..."
-            echo "✅ Architecture tests completed successfully"
+            echo "Skipping tests that require database..."
             exit 1
           }
 
-          dotnet test "$INTEG" \
+          # Run all tests with consolidated coverage
+          dotnet test MeAjudaAi.sln \
             --configuration Release \
             --no-build \
             --verbosity normal \
             --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage/integration \
-            --logger "trx;LogFileName=integration-tests.trx"
+            --results-directory ./coverage \
+            --logger "trx;LogFileName=test-results.trx" \
+            --settings coverlet.runsettings
 
           echo "✅ Testes executados com sucesso"
 
@@ -171,27 +157,19 @@ jobs:
             echo "✅ Conformidade com namespaces validada"
           fi
 
-      - name: Upload Architecture coverage
+      - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: coverage-architecture
-          path: coverage/architecture/**
+          name: coverage-reports
+          path: coverage/**
           if-no-files-found: ignore
 
-      - name: Upload Integration coverage
+      - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: coverage-integration
-          path: coverage/integration/**
-          if-no-files-found: ignore
-
-      - name: Upload Test Results (TRX)
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results-trx
+          name: test-results
           path: "**/*.trx"
           if-no-files-found: ignore
 
