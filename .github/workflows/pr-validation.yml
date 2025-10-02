@@ -326,25 +326,47 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: OSV-Scanner (fail on HIGH/CRITICAL)
+        uses: google/osv-scanner-action@v1
+        with:
+          scan-args: |-
+            --lockfile-keep-going
+            --skip-git
+            --format=json
+            --output=osv-results.json
+            .
+          fail-on-findings: false
+          upload-sarif: false
+
+      - name: Check OSV Results
+        if: always()
         run: |
-          echo "🔍 Installing OSV-Scanner..."
-          # Install OSV-Scanner
-          OSV_URL="https://github.com/google/osv-scanner/releases/latest/download"
-          curl -sSfL "${OSV_URL}/osv-scanner_linux_amd64" -o osv-scanner
-          chmod +x osv-scanner
-
-          echo "🔍 Running vulnerability scan..."
-          # Run OSV-Scanner with high/critical severity filter
-          ./osv-scanner --lockfile-keep-going --skip-git --format json . > osv-results.json || true
-
-          # Check for high/critical vulnerabilities
           if [ -f osv-results.json ]; then
-            HIGH_CRIT=$(jq -r '.results[].packages[]?.vulnerabilities[]? | \
-              select(.severity == "HIGH" or .severity == "CRITICAL") | .id' \
-              osv-results.json 2>/dev/null | wc -l)
+            echo "🔍 Analyzing OSV scan results..."
+            
+            # Handle both array and string severity formats
+            HIGH_CRIT=$(jq -r '
+              .results[]?.packages[]?.vulnerabilities[]? | 
+              select(
+                (.severity == "HIGH" or .severity == "CRITICAL") or 
+                (.severity[]? == "HIGH" or .severity[]? == "CRITICAL")
+              ) | 
+              .id
+            ' osv-results.json 2>/dev/null | wc -l)
+            
             if [ "$HIGH_CRIT" -gt 0 ]; then
               echo "❌ Found $HIGH_CRIT HIGH/CRITICAL vulnerabilities!"
               echo "📄 Review osv-results.json for details"
+              
+              # Show vulnerability details
+              jq -r '
+                .results[]?.packages[]?.vulnerabilities[]? | 
+                select(
+                  (.severity == "HIGH" or .severity == "CRITICAL") or 
+                  (.severity[]? == "HIGH" or .severity[]? == "CRITICAL")
+                ) | 
+                "- \(.id): \(.summary // "No summary available")"
+              ' osv-results.json 2>/dev/null | head -10
+              
               exit 1
             else
               echo "✅ No HIGH/CRITICAL vulnerabilities found"
@@ -419,12 +441,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install yamllint
-        run: python3 -m pip install --user yamllint
+        run: python3 -m pip install yamllint
 
       - name: Validate workflow files only
         run: |
           echo "🔍 Validating critical YAML files..."
-          if ! yamllint -c .yamllint.yml .github/workflows/; then
+          if ! python3 -m yamllint -c .yamllint.yml .github/workflows/; then
             echo "❌ YAML validation failed"
             echo "ℹ️  Check yamllint output above for details"
             exit 1
