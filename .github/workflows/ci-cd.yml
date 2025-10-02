@@ -190,6 +190,7 @@ jobs:
           echo "💡 To use locally, set: export Messaging__ServiceBus__ConnectionString='[CONNECTION_STRING]'"
 
       - name: Upload infrastructure outputs
+        if: github.event.inputs.deploy_infrastructure == 'true' || github.event.inputs.deploy_infrastructure == ''
         uses: actions/upload-artifact@v4
         with:
           name: infrastructure-outputs-dev
