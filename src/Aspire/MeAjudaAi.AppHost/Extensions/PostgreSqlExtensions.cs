@@ -105,7 +105,7 @@ public static class PostgreSqlExtensions
         configure?.Invoke(options);
 
         var postgresUserParam = builder.AddParameter("PostgresUser", options.Username);
-        var postgresPasswordParam = builder.AddParameter("PostgresPassword", secret: true);
+        var postgresPasswordParam = builder.AddParameter("PostgresPassword", options.Password, secret: true);
 
         var postgresAzure = builder.AddAzurePostgresFlexibleServer("postgres-azure")
             .WithPasswordAuthentication(
@@ -129,17 +129,20 @@ public static class PostgreSqlExtensions
 
         // Check if running in CI environment with external PostgreSQL service
         var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
-        var externalDbHost = Environment.GetEnvironmentVariable("CI_POSTGRES_HOST") ?? "localhost";
-        var externalDbPort = Environment.GetEnvironmentVariable("CI_POSTGRES_PORT") ?? "5432";
-        
+
         if (isCI)
         {
             // In CI, use external PostgreSQL service (e.g., GitHub Actions service)
+            var externalDbHost = Environment.GetEnvironmentVariable("CI_POSTGRES_HOST") ?? "localhost";
+            var externalDbPort = Environment.GetEnvironmentVariable("CI_POSTGRES_PORT") ?? "5432";
             var connectionString = $"Host={externalDbHost};Port={externalDbPort};Database={options.MainDatabase};Username={options.Username};Password={options.Password}";
-            
-            // Create a connection string resource instead of a container
-            var externalDb = builder.AddConnectionString("meajudaai-db-local", connectionString);
-            
+
+            // Set the connection string as an environment variable so AddConnectionString can find it
+            Environment.SetEnvironmentVariable("ConnectionStrings__meajudaai-db-local", connectionString);
+
+            // Create a connection string resource that will read from the environment variable
+            var externalDb = builder.AddConnectionString("meajudaai-db-local");
+
             return new MeAjudaAiPostgreSqlResult
             {
                 MainDatabase = externalDb

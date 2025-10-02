@@ -17,12 +17,15 @@ This directory contains the infrastructure configuration for the MeAjudaAi platf
    - `KEYCLOAK_ADMIN_PASSWORD` - Keycloak admin password
    - `PGADMIN_DEFAULT_EMAIL` - PgAdmin login email
    - `PGADMIN_DEFAULT_PASSWORD` - PgAdmin login password
+   - `RABBITMQ_USER` - RabbitMQ username (optional, defaults if not set)
+   - `RABBITMQ_PASS` - RabbitMQ password
 
 3. **Security Guidelines**:
    - Use different passwords for each service
-   - Passwords should be at least 16 characters
+   - Passwords should be at least 16 characters with mixed characters
    - Never commit `.env` files with real credentials
-   - Use a password manager for secure generation
+   - Use a password manager for secure generation and storage
+   - Populate all credential fields before running docker compose
 
 ⚠️ **Docker Compose will fail to start** if these environment variables are not set, preventing accidental deployment with default/weak credentials.
 

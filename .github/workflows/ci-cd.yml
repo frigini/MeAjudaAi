@@ -187,7 +187,9 @@ jobs:
             --output tsv)
           echo "✅ Infrastructure deployed successfully!"
           echo "🔗 Service Bus Namespace: $SERVICE_BUS_NAMESPACE"
-          echo "💡 To use locally, set: export Messaging__ServiceBus__ConnectionString='[CONNECTION_STRING]'"      - name: Upload infrastructure outputs
+          echo "💡 To use locally, set: export Messaging__ServiceBus__ConnectionString='[CONNECTION_STRING]'"
+
+      - name: Upload infrastructure outputs
         uses: actions/upload-artifact@v4
         with:
           name: infrastructure-outputs-dev

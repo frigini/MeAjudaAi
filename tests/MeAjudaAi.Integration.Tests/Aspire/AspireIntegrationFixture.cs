@@ -1,4 +1,5 @@
 using Aspire.Hosting;
+using System;
 
 namespace MeAjudaAi.Integration.Tests.Aspire;
 
@@ -33,9 +34,14 @@ public class AspireIntegrationFixture : IAsyncLifetime
         await _app.StartAsync();
         Console.WriteLine("[AspireIntegrationFixture] AppHost started successfully");
 
-        // Aguarda PostgreSQL estar pronto
-        await _resourceNotificationService.WaitForResourceAsync("postgres-local", KnownResourceStates.Running)
-            .WaitAsync(TimeSpan.FromMinutes(3));
+        var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+
+        // Aguarda PostgreSQL estar pronto (skip container wait in CI)
+        if (!isCI)
+        {
+            await _resourceNotificationService.WaitForResourceAsync("postgres-local", KnownResourceStates.Running)
+                .WaitAsync(TimeSpan.FromMinutes(3));
+        }
 
         // Aguarda Redis estar pronto (configurado no AppHost para Testing)
         await _resourceNotificationService.WaitForResourceAsync("redis", KnownResourceStates.Running)

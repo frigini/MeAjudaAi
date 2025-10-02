@@ -64,11 +64,15 @@ public abstract class PerformanceTestBase : IAsyncLifetime
 
             // Esperar apenas pelos recursos críticos com timeout reduzido
             var resourceNotificationService = _app.Services.GetRequiredService<ResourceNotificationService>();
+            var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
 
-            // Esperar PostgreSQL (crítico)
-            await resourceNotificationService
-                .WaitForResourceAsync("postgres-local", KnownResourceStates.Running)
-                .WaitAsync(ResourceTimeout, cancellationToken);
+            // Esperar PostgreSQL (crítico) - skip container wait in CI
+            if (!isCI)
+            {
+                await resourceNotificationService
+                    .WaitForResourceAsync("postgres-local", KnownResourceStates.Running)
+                    .WaitAsync(ResourceTimeout, cancellationToken);
+            }
 
             // Esperar API Service (crítico)
             await resourceNotificationService
