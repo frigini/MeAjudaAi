@@ -142,7 +142,9 @@ jobs:
             --collect:"XPlat Code Coverage" \
             --results-directory ./coverage \
             --logger "trx;LogFileName=test-results.trx" \
-            --settings coverlet.runsettings
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura \
+               DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="[*.Tests]*,[*.Testing]*,[testhost]*" \
+               DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.IncludeTestAssembly=false
 
           echo "✅ Testes executados com sucesso"
 

@@ -5,13 +5,9 @@
       <DataCollector friendlyName="XPlat code coverage" uri="datacollector://Microsoft/CodeCoverage/2.0" assemblyQualifiedName="Microsoft.CodeCoverage.DataCollector, Microsoft.CodeCoverage, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
         <Configuration>
           <Format>cobertura</Format>
-          <Exclude>[*.Tests]*,[*.Testing]*,[testhost]*,[*]*.Migrations.*,[*]Program,[*]Startup</Exclude>
-          <ExcludeByFile>**/bin/**,**/obj/**,**/TestResults/**,**/Migrations/**</ExcludeByFile>
-          <IncludeDirectory>**/src/**</IncludeDirectory>
-          <SingleHit>false</SingleHit>
-          <UseSourceLink>true</UseSourceLink>
+          <Exclude>[*.Tests]*,[*.Testing]*,[testhost]*</Exclude>
+          <ExcludeByFile>**/bin/**,**/obj/**</ExcludeByFile>
           <IncludeTestAssembly>false</IncludeTestAssembly>
-          <SkipAutoProps>true</SkipAutoProps>
         </Configuration>
       </DataCollector>
     </DataCollectors>

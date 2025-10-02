@@ -54,6 +54,10 @@ coverage.info
 coverage.xml
 *.coverage
 .coverage
+coverage/
+test-coverage/
+coverage-*/
+test-coverage-*/
 htmlcov/
 
 # Docker
