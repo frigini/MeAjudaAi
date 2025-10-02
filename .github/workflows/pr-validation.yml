@@ -161,10 +161,12 @@ jobs:
           DB_NAME: ${{ secrets.POSTGRES_DB }}
           # Keycloak settings
           KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
-          # Connection string format for .NET
-          ConnectionStrings__DefaultConnection: ${{ secrets.DB_CONNECTION_STRING }}
         run: |
           echo "🧪 Executando testes com cobertura consolidada..."
+
+          # Build .NET connection string from PostgreSQL secrets
+          export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
+          echo "✅ Built connection string from PostgreSQL secrets"
 
           # Test database connection first
           echo "Testing database connection..."
@@ -339,18 +341,21 @@ jobs:
           chmod +x osv-scanner
 
           echo "🔍 Running vulnerability scan..."
-          # Run OSV-Scanner and check exit code
-          if ./osv-scanner --lockfile-keep-going --skip-git .; then
+          # Run OSV-Scanner and capture exit code
+          osv_exit_code=0
+          ./osv-scanner --lockfile-keep-going --skip-git . || osv_exit_code=$?
+
+          if [ $osv_exit_code -eq 0 ]; then
             echo "✅ No vulnerabilities found"
           else
-            echo "⚠️ OSV-Scanner found vulnerabilities (exit code: $?)"
-            echo "📄 Running detailed scan for HIGH/CRITICAL analysis..."
+            echo "⚠️ OSV-Scanner found vulnerabilities (exit code: $osv_exit_code)"
+            echo "📄 Running detailed scan for analysis..."
 
-            # Run again with JSON output for analysis
+            # Run again with JSON output for detailed analysis
             ./osv-scanner --lockfile-keep-going --skip-git --format json . > osv-results.json || true
 
             if [ -f osv-results.json ]; then
-              # Simple check - if JSON contains any results, assume they need review
+              # Count total vulnerabilities
               TOTAL_VULNS=$(jq -r '.results[]?.packages[]?.vulnerabilities[]? | .id' osv-results.json 2>/dev/null | wc -l)
 
               if [ "$TOTAL_VULNS" -gt 0 ]; then
@@ -358,9 +363,15 @@ jobs:
                 echo "📋 First 10 vulnerabilities found:"
                 jq -r '.results[]?.packages[]?.vulnerabilities[]? | "- \(.id): \(.summary // "No summary")"' osv-results.json 2>/dev/null | head -10
                 echo ""
-                echo "⚠️ Please review vulnerabilities manually and assess their impact"
-                echo "💡 Consider updating dependencies or implementing mitigations"
+                echo "🚫 Security scan failed - vulnerabilities detected"
+                echo "💡 Please review and fix vulnerabilities before merging"
+                
+                # Fail the workflow
+                exit 1
               fi
+            else
+              echo "❌ OSV-Scanner failed but no results file generated"
+              exit 1
             fi
           fi
 

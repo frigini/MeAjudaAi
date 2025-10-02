@@ -143,7 +143,7 @@ EOF
    
    # Generate and set all required passwords in the file
    # Required variables: KEYCLOAK_ADMIN_PASSWORD, RABBITMQ_PASS, 
-   # POSTGRES_PASSWORD, KEYCLOAK_DB_PASSWORD, PGADMIN_DEFAULT_PASSWORD
+   # POSTGRES_PASSWORD, KEYCLOAK_DB_PASSWORD, PGADMIN_DEFAULT_PASSWORD, PGADMIN_DEFAULT_EMAIL
    chmod 600 compose/environments/.env.development
    ```
 
