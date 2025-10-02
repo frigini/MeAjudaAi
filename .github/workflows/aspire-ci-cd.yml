@@ -127,6 +127,7 @@ jobs:
           # Set fallback values for manifest generation (dry-run mode)
           DB_PASSWORD: 'manifest-generation'
           MEAJUDAAI_DB_PASS: 'manifest-generation'
+          KEYCLOAK_ADMIN_PASSWORD: 'manifest-generation'
           ASPNETCORE_ENVIRONMENT: Testing
         run: |
           cd src/Aspire/MeAjudaAi.AppHost
@@ -192,6 +193,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore MeAjudaAi.sln
 
       - name: Validate ${{ matrix.service.name }} builds for containerization
         run: |

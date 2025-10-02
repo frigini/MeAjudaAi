@@ -115,18 +115,34 @@ infrastructure/compose/environments/.env.*
 
 1. **Generate Required Passwords:**
    ```bash
-   # Generate secure passwords
+   # Generate all required secure passwords
    export KEYCLOAK_ADMIN_PASSWORD="$(openssl rand -base64 32)"
    export RABBITMQ_PASS="$(openssl rand -base64 32)"
-   # Tip: avoid echoing secrets; consider writing to a local .env file with strict permissions
-   # umask 077; printf 'KEYCLOAK_ADMIN_PASSWORD=%s\nRABBITMQ_PASS=%s\n' "$KEYCLOAK_ADMIN_PASSWORD" "$RABBITMQ_PASS" > compose/environments/.env.development
+   export POSTGRES_PASSWORD="$(openssl rand -base64 32)"
+   export KEYCLOAK_DB_PASSWORD="$(openssl rand -base64 32)"
+   export PGADMIN_DEFAULT_PASSWORD="$(openssl rand -base64 32)"
+   
+   # Write all secrets to .env file with strict permissions
+   umask 077
+   cat > compose/environments/.env.development << EOF
+KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+RABBITMQ_PASS=${RABBITMQ_PASS}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+KEYCLOAK_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD}
+PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+EOF
+   chmod 600 compose/environments/.env.development
    ```
 
-2. **Alternative: Create .env file:**
+2. **Alternative: Create .env file manually:**
    ```bash
    # Copy the base template and edit for development
    cp compose/environments/.env.example compose/environments/.env.development
-   # Edit .env.development file and set both passwords
+   
+   # Generate and set all required passwords in the file
+   # Required variables: KEYCLOAK_ADMIN_PASSWORD, RABBITMQ_PASS, 
+   # POSTGRES_PASSWORD, KEYCLOAK_DB_PASSWORD, PGADMIN_DEFAULT_PASSWORD
+   chmod 600 compose/environments/.env.development
    ```
 
 3. **Start Development Environment:**
@@ -139,9 +155,16 @@ infrastructure/compose/environments/.env.*
 ### Usage
 
 ```bash
-# Development (with environment variables set)
+# Development (Option 1: with all environment variables set)
 export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
 export RABBITMQ_PASS=$(openssl rand -base64 32)
+export POSTGRES_PASSWORD=$(openssl rand -base64 32)
+export KEYCLOAK_DB_PASSWORD=$(openssl rand -base64 32)
+export PGADMIN_DEFAULT_PASSWORD=$(openssl rand -base64 32)
+docker compose -f compose/environments/development.yml up -d
+
+# Development (Option 2: with populated .env file - recommended)
+source compose/environments/.env.development  # Load all required secrets
 docker compose -f compose/environments/development.yml up -d
 
 # Production (with .env file)
