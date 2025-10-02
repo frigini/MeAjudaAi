@@ -63,19 +63,29 @@ jobs:
           sudo apt-get install -y postgresql-client
 
       - name: Wait for PostgreSQL to be ready
+        env:
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
         run: |
           echo "🔄 Waiting for PostgreSQL to be ready..."
-          export PGPASSWORD="${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
-          for i in {1..30}; do
-            if pg_isready -h localhost -p 5432 -U "${{ secrets.POSTGRES_USER || 'postgres' }}"; then
+          echo "Debug: POSTGRES_USER=$POSTGRES_USER"
+          echo "Debug: Checking PostgreSQL availability..."
+
+          counter=1
+          max_attempts=30
+
+          while [ $counter -le $max_attempts ]; do
+            if pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
               echo "✅ PostgreSQL is ready!"
               break
             fi
-            echo "Waiting for PostgreSQL... ($i/30)"
+            echo "Waiting for PostgreSQL... ($counter/$max_attempts)"
             sleep 2
+            counter=$((counter + 1))
           done
+
           # Check if we exited the loop due to timeout
-          if ! pg_isready -h localhost -p 5432 -U "${{ secrets.POSTGRES_USER || 'postgres' }}"; then
+          if ! pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
             echo "❌ PostgreSQL failed to become ready within 60 seconds"
             exit 1
           fi
