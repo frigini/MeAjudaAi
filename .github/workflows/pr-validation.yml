@@ -531,7 +531,8 @@ jobs:
               if [ "${HIGH_OR_CRIT:-0}" -gt 0 ]; then
                 echo "❌ Found $HIGH_OR_CRIT HIGH/CRITICAL vulnerabilities"
                 echo "📋 First 10 vulnerabilities found:"
-                jq -r "$SUMMARY_QUERY | $DISPLAY_QUERY" osv-results.json 2>/dev/null | head -10
+                # Use inline jq program to display vulnerability summary
+                jq -r '.results[]?.packages[]?.vulnerabilities[]? | "- \(.id): \(.summary // "No summary")"' osv-results.json 2>/dev/null | head -10
                 echo ""
                 echo "🚫 Security scan failed - vulnerabilities detected"
                 echo "💡 Please review and fix vulnerabilities before merging"
