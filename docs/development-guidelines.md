@@ -42,6 +42,6 @@ Please refer to the main [README.md](../README.md) for setup instructions.
 
 ## Related Documentation
 
-- [CI/CD Setup](../docs/ci_cd.md)
-- [Authentication Guide](../docs/authentication.md)
-- [Testing Guide](../docs/testing/test_authentication_handler.md)
+- [CI/CD Setup](../ci_cd.md)
+- [Authentication Guide](../authentication.md)
+- [Testing Guide](../testing/test_authentication_handler.md)

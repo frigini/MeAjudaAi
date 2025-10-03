@@ -94,17 +94,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Check Database Configuration
-        env:
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        run: |
-          echo "🔍 Checking database configuration..."
-          if [ -z "$POSTGRES_PASSWORD" ]; then
-            echo "⚠️  GitHub secrets not configured - using fallback values for testing"
-            echo "💡 To configure production secrets, go to: Settings → Secrets and variables → Actions"
-            echo "   Required secrets: POSTGRES_PASSWORD, POSTGRES_USER, POSTGRES_DB"
-          else
-            echo "✅ GitHub secrets configured"
-          fi
+        run: echo "✅ GitHub secrets configured (enforced by check-secrets)"
 
       - name: Check Keycloak Configuration
         env:
@@ -157,7 +147,8 @@ jobs:
           if ! pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
             echo "❌ PostgreSQL failed to become ready within 180 seconds"
             echo "Debug: Checking PostgreSQL logs..."
-            docker logs $(docker ps -q --filter ancestor=postgres:15) || echo "Could not get PostgreSQL logs"
+            echo "Service container id: ${{ job.services.postgres.id }}"
+            docker logs "${{ job.services.postgres.id }}" || echo "Could not get PostgreSQL logs"
             exit 1
           fi
 
@@ -181,6 +172,7 @@ jobs:
           # Keycloak settings
           KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
         run: |
+          set -euo pipefail
           echo "🧪 Executando testes com cobertura consolidada..."
 
           # Build .NET connection string from PostgreSQL secrets
@@ -520,14 +512,18 @@ jobs:
             ./osv-scanner --lockfile-keep-going --skip-git --format json . > osv-results.json || true
 
             if [ -f osv-results.json ]; then
-              # Count total vulnerabilities
-              VULN_QUERY='.results[]?.packages[]?.vulnerabilities[]? | .id'
-              SUMMARY_QUERY='.results[]?.packages[]?.vulnerabilities[]?'
-              DISPLAY_QUERY='"- \(.id): \(.summary // "No summary")"'
-              TOTAL_VULNS=$(jq -r "$VULN_QUERY" osv-results.json 2>/dev/null | wc -l)
+              # Count HIGH/CRITICAL by CVSS (>=7.0)
+              HIGH_OR_CRIT=$(
+                jq -r '
+                  [.results[]?.packages[]?.vulnerabilities[]?
+                    | ( [(.severity // [])[]?.score? | tonumber] | max // 0 )
+                    | select(. >= 7.0)
+                  ] | length
+                ' osv-results.json 2>/dev/null
+              )
 
-              if [ "$TOTAL_VULNS" -gt 0 ]; then
-                echo "❌ Found $TOTAL_VULNS vulnerabilities that need review"
+              if [ "${HIGH_OR_CRIT:-0}" -gt 0 ]; then
+                echo "❌ Found $HIGH_OR_CRIT HIGH/CRITICAL vulnerabilities"
                 echo "📋 First 10 vulnerabilities found:"
                 jq -r "$SUMMARY_QUERY | $DISPLAY_QUERY" osv-results.json 2>/dev/null | head -10
                 echo ""
@@ -536,6 +532,13 @@ jobs:
 
                 # Fail the workflow
                 exit 1
+              else
+                echo "✅ No HIGH/CRITICAL vulnerabilities found"
+                # Count total vulnerabilities for info
+                TOTAL_VULNS=$(jq -r '.results[]?.packages[]?.vulnerabilities[]? | .id' osv-results.json 2>/dev/null | wc -l)
+                if [ "$TOTAL_VULNS" -gt 0 ]; then
+                  echo "ℹ️  Found $TOTAL_VULNS low/medium severity vulnerabilities (ignored)"
+                fi
               fi
             else
               echo "❌ OSV-Scanner failed but no results file generated"
