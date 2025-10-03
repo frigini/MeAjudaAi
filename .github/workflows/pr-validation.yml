@@ -284,7 +284,7 @@ jobs:
       - name: Validate namespace reorganization
         run: |
           echo "🔍 Validating namespace reorganization..."
-          if grep -R -nP '^\s*using\s+MeAjudaAi\.Shared\.Common;' -- src/ \
+          if grep -R -nE '^[[:space:]]*using[[:space:]]+MeAjudaAi\.Shared\.Common;' -- src/ \
               2>/dev/null; then
             echo "❌ Found old namespace imports"
             exit 1
@@ -371,6 +371,7 @@ jobs:
         continue-on-error: true
 
       - name: Alternative Coverage Summary (if opencover fails)
+        id: coverage_fallback
         if: steps.coverage_opencover.outcome != 'success'
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
@@ -424,10 +425,10 @@ jobs:
           message: |
             ## 📊 Code Coverage Report
 
-            ${{ steps.coverage_opencover.outputs.summary }}
+            ${{ steps.coverage_opencover.outputs.summary || steps.coverage_fallback.outputs.summary }}
 
             ### 📈 Coverage Details
-            - **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge }}
+            - **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge || steps.coverage_fallback.outputs.badge }}
             - **Minimum threshold**: 70% (warning) / 85% (good)
             - **Report format**: OpenCover XML with detailed metrics
 
@@ -498,8 +499,9 @@ jobs:
       - name: OSV-Scanner (fail on HIGH/CRITICAL)
         run: |
           echo "🔍 Installing OSV-Scanner..."
-          # Install OSV-Scanner
-          OSV_URL="https://github.com/google/osv-scanner/releases/latest/download"
+          # Install OSV-Scanner with pinned version for reproducibility
+          OSV_VERSION="v1.8.3"
+          OSV_URL="https://github.com/google/osv-scanner/releases/download/${OSV_VERSION}"
           curl -sSfL "${OSV_URL}/osv-scanner_linux_amd64" -o osv-scanner
           chmod +x osv-scanner
 
