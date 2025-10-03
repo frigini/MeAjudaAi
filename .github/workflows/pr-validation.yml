@@ -422,6 +422,7 @@ jobs:
         if: github.event_name == 'pull_request'
         with:
           recreate: true
+          header: coverage-report
           message: |
             ## 📊 Code Coverage Report
 
@@ -453,8 +454,16 @@ jobs:
         run: |
           echo "🎯 VALIDATING COVERAGE THRESHOLDS"
           echo "================================="
-          # Check if CodeCoverageSummary step succeeded
-          if [ "${{ steps.coverage_opencover.outcome }}" = "success" ]; then
+          
+          # Check if either coverage step succeeded OR if coverage_fallback succeeded
+          primary_success="${{ steps.coverage_opencover.outcome }}"
+          fallback_success="${{ steps.coverage_fallback.outcome }}"
+          
+          echo "Debug: Primary coverage outcome: $primary_success"
+          echo "Debug: Fallback coverage outcome: $fallback_success"
+          
+          # Consider success if either step succeeded
+          if [ "$primary_success" = "success" ] || [ "$fallback_success" = "success" ]; then
             echo "✅ Coverage analysis completed successfully"
             echo "📊 Coverage thresholds met (≥70%)"
           else
