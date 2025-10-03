@@ -184,7 +184,9 @@ jobs:
           echo "🧪 Executando testes com cobertura consolidada..."
 
           # Build .NET connection string from PostgreSQL secrets
-          export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=$MEAJUDAAI_DB;Username=$MEAJUDAAI_DB_USER;Password=$MEAJUDAAI_DB_PASS"
+          DB_CONN_STR="Host=localhost;Port=5432;Database=$MEAJUDAAI_DB"
+          DB_CONN_STR="${DB_CONN_STR};Username=$MEAJUDAAI_DB_USER;Password=$MEAJUDAAI_DB_PASS"
+          export ConnectionStrings__DefaultConnection="$DB_CONN_STR"
           echo "✅ Built connection string from PostgreSQL secrets"
 
           # Test database connection first
@@ -230,6 +232,8 @@ jobs:
               mkdir -p "$MODULE_COVERAGE_DIR"
 
               # Run tests with simplified coverage collection
+              INCLUDE_FILTER="[MeAjudaAi.Modules.${module_name}.*]*"
+              EXCLUDE_FILTER="[*.Tests]*,[*Test*]*,[testhost]*"
               dotnet test "$module_path" \
                 --configuration Release \
                 --no-build \
@@ -238,8 +242,8 @@ jobs:
                 --results-directory "$MODULE_COVERAGE_DIR" \
                 --logger "trx;LogFileName=${module_name,,}-test-results.trx" \
                 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover \
-                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="[MeAjudaAi.Modules.${module_name}.*]*" \
-                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="[*.Tests]*,[*Test*]*,[testhost]*"
+                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="$INCLUDE_FILTER" \
+                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="$EXCLUDE_FILTER"
 
               # Find and rename the coverage file to a predictable name
               if [ -d "$MODULE_COVERAGE_DIR" ]; then
@@ -454,7 +458,8 @@ jobs:
 
             if [ -f osv-results.json ]; then
               # Count total vulnerabilities
-              TOTAL_VULNS=$(jq -r '.results[]?.packages[]?.vulnerabilities[]? | .id' osv-results.json 2>/dev/null | wc -l)
+              VULN_QUERY='.results[]?.packages[]?.vulnerabilities[]? | .id'
+              TOTAL_VULNS=$(jq -r "$VULN_QUERY" osv-results.json 2>/dev/null | wc -l)
 
               if [ "$TOTAL_VULNS" -gt 0 ]; then
                 echo "❌ Found $TOTAL_VULNS vulnerabilities that need review"
