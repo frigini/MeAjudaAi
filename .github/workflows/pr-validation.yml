@@ -358,6 +358,7 @@ jobs:
           find ./coverage -name "*.opencover.xml" -type f 2>/dev/null || echo "Still no .opencover.xml files found"
 
       - name: Code Coverage Summary
+        id: coverage_opencover
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: 'coverage/**/*.opencover.xml'
@@ -372,7 +373,7 @@ jobs:
         continue-on-error: true
 
       - name: Alternative Coverage Summary (if opencover fails)
-        if: failure()
+        if: steps.coverage_opencover.outcome != 'success'
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: 'coverage/**/*.xml'
