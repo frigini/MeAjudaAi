@@ -222,11 +222,11 @@ jobs:
 
             if [ -d "$module_path" ]; then
               echo "Running $module_name module unit tests with coverage..."
-              
+
               # Create specific output directory for this module
               MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
               mkdir -p "$MODULE_COVERAGE_DIR"
-              
+
               # Run tests with simplified coverage collection
               dotnet test "$module_path" \
                 --configuration Release \
@@ -238,7 +238,7 @@ jobs:
                 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover \
                 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="[MeAjudaAi.Modules.${module_name}.*]*" \
                 -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="[*.Tests]*,[*Test*]*,[testhost]*"
-              
+
               # Find and rename the coverage file to a predictable name
               if [ -d "$MODULE_COVERAGE_DIR" ]; then
                 COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -name "coverage.opencover.xml" -type f | head -1)
@@ -331,7 +331,7 @@ jobs:
       - name: Fix Coverage Files (if needed)
         run: |
           echo "🔧 Attempting to fix coverage file locations and names..."
-          
+
           # Find any coverage.xml files and rename them to .opencover.xml
           find ./coverage -name "coverage.xml" -type f | while read -r file; do
             dir=$(dirname "$file")
@@ -340,20 +340,20 @@ jobs:
             echo "Copying $file to $new_file"
             cp "$file" "$new_file"
           done
-          
+
           # Find coverage files in nested directories and copy to module directories
           find ./coverage -name "coverage.opencover.xml" -type f | while read -r file; do
             # Get the module directory (should be like ./coverage/users/)
             module_dir=$(echo "$file" | sed 's|coverage/\([^/]*\)/.*|coverage/\1|')
             module_name=$(basename "$module_dir")
             target_file="$module_dir/$module_name.opencover.xml"
-            
+
             if [ "$file" != "$target_file" ]; then
               echo "Copying $file to $target_file"
               cp "$file" "$target_file" 2>/dev/null || true
             fi
           done
-          
+
           echo "Coverage files after processing:"
           find ./coverage -name "*.opencover.xml" -type f 2>/dev/null || echo "Still no .opencover.xml files found"
 
