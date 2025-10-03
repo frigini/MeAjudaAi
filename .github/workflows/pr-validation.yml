@@ -399,18 +399,17 @@ jobs:
           echo "📊 CODE COVERAGE SUMMARY"
           echo "========================"
           echo ""
-          
           # Look for coverage files and extract basic statistics
           for coverage_file in $(find ./coverage -name "*.opencover.xml" -o -name "*.xml" | head -5); do
             if [ -f "$coverage_file" ]; then
               echo "📄 Coverage file: $coverage_file"
-              
               # Extract line coverage using grep/awk if available
               if command -v awk >/dev/null 2>&1; then
                 # Try to extract coverage statistics from OpenCover XML
-                lines_covered=$(grep -o 'sequenceCoverage="[^"]*"' "$coverage_file" 2>/dev/null | head -1 | grep -o '[0-9.]*' || echo "N/A")
-                branch_covered=$(grep -o 'branchCoverage="[^"]*"' "$coverage_file" 2>/dev/null | head -1 | grep -o '[0-9.]*' || echo "N/A")
-                
+                COVERAGE_LINE_ATTR='sequenceCoverage="[^"]*"'
+                COVERAGE_BRANCH_ATTR='branchCoverage="[^"]*"'
+                lines_covered=$(grep -o "$COVERAGE_LINE_ATTR" "$coverage_file" 2>/dev/null | head -1 | grep -o '[0-9.]*' || echo "N/A")
+                branch_covered=$(grep -o "$COVERAGE_BRANCH_ATTR" "$coverage_file" 2>/dev/null | head -1 | grep -o '[0-9.]*' || echo "N/A")
                 if [ "$lines_covered" != "N/A" ]; then
                   echo "  📈 Line Coverage: ${lines_covered}%"
                 fi
@@ -421,7 +420,7 @@ jobs:
               echo ""
             fi
           done
-          
+
           echo "💡 For detailed coverage report, check the 'Code Coverage Summary' step above"
           echo "🎯 Minimum thresholds: 70% (warning) / 85% (good)"
 
@@ -432,28 +431,22 @@ jobs:
           recreate: true
           message: |
             ## 📊 Code Coverage Report
-            
             ${{ steps.coverage_opencover.outputs.summary }}
-            
-            ### 📈 Coverage Details
-            - **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge }}
+            ### 📈 Coverage Details- **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge }}
             - **Minimum threshold**: 70% (warning) / 85% (good)
             - **Report format**: OpenCover XML with detailed metrics
-            
-            ### 📋 Coverage Analysis
-            - **Line Coverage**: Shows percentage of code lines executed during tests
+
+            ### 📋 Coverage Analysis- **Line Coverage**: Shows percentage of code lines executed during tests
             - **Branch Coverage**: Shows percentage of code branches/conditions tested
             - **Complexity**: Code complexity metrics for maintainability
-            
-            ### 🎯 Quality Gates
-            - ✅ **Pass**: Coverage ≥ 85%
+
+            ### 🎯 Quality Gates- ✅ **Pass**: Coverage ≥ 85%
             - ⚠️ **Warning**: Coverage 70-84%
             - ❌ **Fail**: Coverage < 70%
-            
-            ### 📁 Artifacts
-            - **Coverage reports**: Available in workflow artifacts
+
+            ### 📁 Artifacts- **Coverage reports**: Available in workflow artifacts
             - **Test results**: TRX files with detailed test execution data
-            
+
             *This comment is updated automatically on each push to track coverage trends.*
 
       - name: Validate Coverage Thresholds
@@ -461,7 +454,6 @@ jobs:
         run: |
           echo "🎯 VALIDATING COVERAGE THRESHOLDS"
           echo "================================="
-          
           # Check if CodeCoverageSummary step succeeded
           if [ "${{ steps.coverage_opencover.outcome }}" = "success" ]; then
             echo "✅ Coverage analysis completed successfully"
@@ -470,7 +462,7 @@ jobs:
             echo "❌ Coverage analysis failed or coverage below minimum threshold"
             echo "📊 Required: ≥70% line coverage"
             echo "💡 Check the 'Code Coverage Summary' step for detailed information"
-            
+
             # Only fail in strict mode (can be controlled via environment variable)
             if [ "${STRICT_COVERAGE:-true}" = "true" ]; then
               echo "🚫 STRICT MODE: Failing pipeline due to insufficient coverage"
@@ -530,12 +522,14 @@ jobs:
             if [ -f osv-results.json ]; then
               # Count total vulnerabilities
               VULN_QUERY='.results[]?.packages[]?.vulnerabilities[]? | .id'
+              SUMMARY_QUERY='.results[]?.packages[]?.vulnerabilities[]?'
+              DISPLAY_QUERY='"- \(.id): \(.summary // "No summary")"'
               TOTAL_VULNS=$(jq -r "$VULN_QUERY" osv-results.json 2>/dev/null | wc -l)
 
               if [ "$TOTAL_VULNS" -gt 0 ]; then
                 echo "❌ Found $TOTAL_VULNS vulnerabilities that need review"
                 echo "📋 First 10 vulnerabilities found:"
-                jq -r '.results[]?.packages[]?.vulnerabilities[]? | "- \(.id): \(.summary // "No summary")"' osv-results.json 2>/dev/null | head -10
+                jq -r "$SUMMARY_QUERY | $DISPLAY_QUERY" osv-results.json 2>/dev/null | head -10
                 echo ""
                 echo "🚫 Security scan failed - vulnerabilities detected"
                 echo "💡 Please review and fix vulnerabilities before merging"
