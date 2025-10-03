@@ -516,11 +516,11 @@ jobs:
           curl -sSfL "${OSV_URL}/osv-scanner_linux_amd64" -o osv-scanner
           chmod +x osv-scanner
 
-          echo "� OSV-Scanner version and help:"
+          echo "OSV-Scanner version and help:"
           ./osv-scanner --version || echo "Version command failed"
           ./osv-scanner scan --help | head -20 || echo "Help command failed"
 
-          echo "�🔍 Running vulnerability scan..."
+          echo "🔍 Running vulnerability scan..."
           # Run OSV-Scanner and capture exit code
           osv_exit_code=0
           ./osv-scanner scan --recursive --skip-git . || osv_exit_code=$?
