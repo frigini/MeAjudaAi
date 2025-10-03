@@ -505,10 +505,14 @@ jobs:
           curl -sSfL "${OSV_URL}/osv-scanner_linux_amd64" -o osv-scanner
           chmod +x osv-scanner
 
-          echo "🔍 Running vulnerability scan..."
+          echo "� OSV-Scanner version and help:"
+          ./osv-scanner --version || echo "Version command failed"
+          ./osv-scanner scan --help | head -20 || echo "Help command failed"
+
+          echo "�🔍 Running vulnerability scan..."
           # Run OSV-Scanner and capture exit code
           osv_exit_code=0
-          ./osv-scanner --lockfile-keep-going --skip-git . || osv_exit_code=$?
+          ./osv-scanner scan --recursive --skip-git . || osv_exit_code=$?
 
           if [ $osv_exit_code -eq 0 ]; then
             echo "✅ No vulnerabilities found"
@@ -517,7 +521,7 @@ jobs:
             echo "📄 Running detailed scan for analysis..."
 
             # Run again with JSON output for detailed analysis
-            ./osv-scanner --lockfile-keep-going --skip-git --format json . > osv-results.json || true
+            ./osv-scanner scan --recursive --skip-git --format json . > osv-results.json || true
 
             if [ -f osv-results.json ]; then
               # Count HIGH/CRITICAL by CVSS (>=7.0)
