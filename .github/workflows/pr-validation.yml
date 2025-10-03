@@ -391,7 +391,16 @@ jobs:
         if: github.event_name == 'pull_request'
         with:
           recreate: true
-          path: code-coverage-results.md
+          message: |
+            ## 📊 Code Coverage Report
+
+            Code coverage analysis completed. See the Code Coverage Summary step above for detailed results.
+
+            - **Coverage collection**: ✅ Completed
+            - **Report generation**: ✅ Available in workflow artifacts
+            - **Module coverage**: Check individual module coverage in the detailed logs
+
+            *This comment will be updated automatically on each push.*
 
   # Job 2: Security Scan (Consolidated)
   security-scan:
