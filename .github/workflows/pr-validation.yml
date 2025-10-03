@@ -401,8 +401,10 @@ jobs:
                 # Try to extract coverage statistics from OpenCover XML
                 COVERAGE_LINE_ATTR='sequenceCoverage="[^"]*"'
                 COVERAGE_BRANCH_ATTR='branchCoverage="[^"]*"'
-                lines_covered=$(grep -o "$COVERAGE_LINE_ATTR" "$coverage_file" 2>/dev/null | head -1 | grep -o '[0-9.]*' || echo "N/A")
-                branch_covered=$(grep -o "$COVERAGE_BRANCH_ATTR" "$coverage_file" 2>/dev/null | head -1 | grep -o '[0-9.]*' || echo "N/A")
+                lines_covered=$(grep -o "$COVERAGE_LINE_ATTR" "$coverage_file" 2>/dev/null | \
+                  head -1 | grep -o '[0-9.]*' || echo "N/A")
+                branch_covered=$(grep -o "$COVERAGE_BRANCH_ATTR" "$coverage_file" 2>/dev/null | \
+                  head -1 | grep -o '[0-9.]*' || echo "N/A")
                 if [ "$lines_covered" != "N/A" ]; then
                   echo "  📈 Line Coverage: ${lines_covered}%"
                 fi
@@ -429,7 +431,8 @@ jobs:
             ${{ steps.coverage_opencover.outputs.summary || steps.coverage_fallback.outputs.summary }}
 
             ### 📈 Coverage Details
-            - **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge || steps.coverage_fallback.outputs.badge }}
+            - **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge ||
+              steps.coverage_fallback.outputs.badge }}
             - **Minimum threshold**: 70% (warning) / 85% (good)
             - **Report format**: OpenCover XML with detailed metrics
 
@@ -454,14 +457,14 @@ jobs:
         run: |
           echo "🎯 VALIDATING COVERAGE THRESHOLDS"
           echo "================================="
-          
+
           # Check if either coverage step succeeded OR if coverage_fallback succeeded
           primary_success="${{ steps.coverage_opencover.outcome }}"
           fallback_success="${{ steps.coverage_fallback.outcome }}"
-          
+
           echo "Debug: Primary coverage outcome: $primary_success"
           echo "Debug: Fallback coverage outcome: $fallback_success"
-          
+
           # Consider success if either step succeeded
           if [ "$primary_success" = "success" ] || [ "$fallback_success" = "success" ]; then
             echo "✅ Coverage analysis completed successfully"
@@ -547,7 +550,9 @@ jobs:
                 echo "❌ Found $HIGH_OR_CRIT HIGH/CRITICAL vulnerabilities"
                 echo "📋 First 10 vulnerabilities found:"
                 # Use inline jq program to display vulnerability summary
-                jq -r '.results[]?.packages[]?.vulnerabilities[]? | "- \(.id): \(.summary // "No summary")"' osv-results.json 2>/dev/null | head -10
+                jq -r '.results[]?.packages[]?.vulnerabilities[]? |
+                  "- \(.id): \(.summary // "No summary")"' \
+                  osv-results.json 2>/dev/null | head -10
                 echo ""
                 echo "🚫 Security scan failed - vulnerabilities detected"
                 echo "💡 Please review and fix vulnerabilities before merging"
@@ -557,7 +562,8 @@ jobs:
               else
                 echo "✅ No HIGH/CRITICAL vulnerabilities found"
                 # Count total vulnerabilities for info
-                TOTAL_VULNS=$(jq -r '.results[]?.packages[]?.vulnerabilities[]? | .id' osv-results.json 2>/dev/null | wc -l)
+                TOTAL_VULNS=$(jq -r '.results[]?.packages[]?.vulnerabilities[]? | .id' \
+                  osv-results.json 2>/dev/null | wc -l)
                 if [ "$TOTAL_VULNS" -gt 0 ]; then
                   echo "ℹ️  Found $TOTAL_VULNS low/medium severity vulnerabilities (ignored)"
                 fi
