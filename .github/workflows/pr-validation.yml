@@ -477,7 +477,7 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.pull_request.base.ref }}
+          base: ${{ github.event.pull_request.base.ref || 'master' }}
           head: HEAD
           extra_args: --debug --only-verified
 
