@@ -131,23 +131,18 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                         (s.ServiceType.IsGenericType && s.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>))
                     ).ToList();
 
-                    Console.WriteLine($"[TEST] Removing {dbContextDescriptors.Count} DbContext registrations");
                     foreach (var desc in dbContextDescriptors)
                     {
-                        Console.WriteLine($"[TEST] Removing: {desc.ServiceType.Name}");
                         services.Remove(desc);
                     }
 
                     // Agora registra com a connection string do container
                     var containerConnectionString = _postgresContainer.GetConnectionString();
-                    Console.WriteLine($"[TEST] Registering DbContext with container connection string: {containerConnectionString}");
 
                     // REGISTRAR IDomainEventProcessor PARA PROCESSAR DOMAIN EVENTS
-                    Console.WriteLine("[TEST] Registering IDomainEventProcessor for domain event processing");
                     services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
                     // REGISTRAR UsersDbContext COM IDomainEventProcessor para processar domain events
-                    Console.WriteLine("[TEST] Registering UsersDbContext with IDomainEventProcessor (runtime) for tests");
 
                     // Registra usando factory method que força o uso do construtor COM IDomainEventProcessor
                     services.AddScoped<UsersDbContext>(serviceProvider =>
@@ -182,15 +177,12 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                         s.ServiceType == typeof(IAuthenticationHandlerProvider)
                     ).ToList();
 
-                    Console.WriteLine($"[TEST-AUTH-BRUTAL] Removing {authServices.Count} authentication/authorization services");
                     foreach (var service in authServices)
                     {
                         services.Remove(service);
-                        Console.WriteLine($"[TEST-AUTH-BRUTAL] Removed: {service.ServiceType.Name}");
                     }
 
                     // Reconfigura autenticação E autorização completamente do zero
-                    Console.WriteLine("[TEST-AUTH-BRUTAL] Reconfiguring authentication and authorization from scratch");
 
                     // Primeiro adiciona autorização básica com políticas necessárias
                     services.AddAuthorization(options =>
@@ -263,17 +255,6 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     }
                     services.AddScoped<MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.IKeycloakService, MockKeycloakService>();
 
-                    // DEBUG: Vamos ver o que realmente está registrado
-                    Console.WriteLine("[TEST-AUTH-DEBUG] Final authentication services:");
-                    var finalAuthServices = services.Where(s =>
-                        s.ServiceType.Name.Contains("Authentication") ||
-                        (s.ImplementationType?.Name.Contains("AuthenticationHandler") == true)
-                    ).ToList();
-                    foreach (var service in finalAuthServices)
-                    {
-                        Console.WriteLine($"[TEST-AUTH-DEBUG] {service.ServiceType.Name} -> {service.ImplementationType?.Name}");
-                    }
-
                     // Configura HostOptions para ignoreexceções
                     services.Configure<HostOptions>(options =>
                     {
@@ -285,12 +266,13 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                 {
                     logging.ClearProviders();
                     logging.AddConsole();
-                    logging.SetMinimumLevel(LogLevel.Information); // MAIS detalhado para debug auth
+                    logging.SetMinimumLevel(LogLevel.Warning); // Reduzido para menos verbosidade
 
-                    // Logs específicos de autorização
-                    logging.AddFilter("Microsoft.AspNetCore.Authorization", LogLevel.Debug);
-                    logging.AddFilter("MeAjudaAi.ApiService.Handlers", LogLevel.Debug);
-                    logging.AddFilter("MeAjudaAi.Shared.Tests.Auth", LogLevel.Debug);
+                    // Apenas erros para logs desnecessários
+                    logging.AddFilter("Microsoft.AspNetCore.Authorization", LogLevel.Error);
+                    logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
+                    logging.AddFilter("Microsoft.AspNetCore.Authentication", LogLevel.Error);
+                    logging.AddFilter("MeAjudaAi.Shared.Tests.Auth", LogLevel.Error);
                 });
             });
 

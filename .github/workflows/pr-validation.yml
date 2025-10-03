@@ -165,6 +165,8 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           # PostgreSQL connection for CI
+          EXTERNAL_POSTGRES_HOST: localhost
+          EXTERNAL_POSTGRES_PORT: 5432
           MEAJUDAAI_DB_HOST: localhost
           MEAJUDAAI_DB_PORT: 5432
           MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD }}

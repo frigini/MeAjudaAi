@@ -22,15 +22,11 @@ public class ConfigurableTestAuthenticationHandler(
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        Console.WriteLine($"[ConfigurableTestAuth] HandleAuthenticateAsync called - CurrentKey: {_currentConfigKey}, UserConfigs count: {_userConfigs.Count}");
-
         if (_currentConfigKey == null || !_userConfigs.TryGetValue(_currentConfigKey, out _))
         {
-            Console.WriteLine("[ConfigurableTestAuth] No config found - FAILING authentication");
             return Task.FromResult(AuthenticateResult.Fail("No test user configured"));
         }
 
-        Console.WriteLine("[ConfigurableTestAuth] Config found - SUCCEEDING authentication");
         return Task.FromResult(CreateSuccessResult());
     }
 
