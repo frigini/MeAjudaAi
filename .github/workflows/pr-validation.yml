@@ -369,14 +369,14 @@ jobs:
         with:
           filename: 'coverage/**/*.opencover.xml'
           badge: true
-          fail_below_min: false
+          fail_below_min: true
           format: markdown
           hide_branch_rate: false
-          hide_complexity: true
+          hide_complexity: false
           indicators: true
           output: both
-          thresholds: '60 80'
-        continue-on-error: true
+          thresholds: '70 85'
+        continue-on-error: false
 
       - name: Alternative Coverage Summary (if opencover fails)
         if: steps.coverage_opencover.outcome != 'success'
@@ -384,14 +384,46 @@ jobs:
         with:
           filename: 'coverage/**/*.xml'
           badge: true
-          fail_below_min: false
+          fail_below_min: true
           format: markdown
           hide_branch_rate: false
-          hide_complexity: true
+          hide_complexity: false
           indicators: true
           output: both
-          thresholds: '60 80'
-        continue-on-error: true
+          thresholds: '70 85'
+        continue-on-error: false
+
+      - name: Display Coverage Percentages
+        if: always()
+        run: |
+          echo "📊 CODE COVERAGE SUMMARY"
+          echo "========================"
+          echo ""
+          
+          # Look for coverage files and extract basic statistics
+          for coverage_file in $(find ./coverage -name "*.opencover.xml" -o -name "*.xml" | head -5); do
+            if [ -f "$coverage_file" ]; then
+              echo "📄 Coverage file: $coverage_file"
+              
+              # Extract line coverage using grep/awk if available
+              if command -v awk >/dev/null 2>&1; then
+                # Try to extract coverage statistics from OpenCover XML
+                lines_covered=$(grep -o 'sequenceCoverage="[^"]*"' "$coverage_file" 2>/dev/null | head -1 | grep -o '[0-9.]*' || echo "N/A")
+                branch_covered=$(grep -o 'branchCoverage="[^"]*"' "$coverage_file" 2>/dev/null | head -1 | grep -o '[0-9.]*' || echo "N/A")
+                
+                if [ "$lines_covered" != "N/A" ]; then
+                  echo "  📈 Line Coverage: ${lines_covered}%"
+                fi
+                if [ "$branch_covered" != "N/A" ]; then
+                  echo "  🌿 Branch Coverage: ${branch_covered}%"
+                fi
+              fi
+              echo ""
+            fi
+          done
+          
+          echo "💡 For detailed coverage report, check the 'Code Coverage Summary' step above"
+          echo "🎯 Minimum thresholds: 70% (warning) / 85% (good)"
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
@@ -400,14 +432,53 @@ jobs:
           recreate: true
           message: |
             ## 📊 Code Coverage Report
+            
+            ${{ steps.coverage_opencover.outputs.summary }}
+            
+            ### 📈 Coverage Details
+            - **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge }}
+            - **Minimum threshold**: 70% (warning) / 85% (good)
+            - **Report format**: OpenCover XML with detailed metrics
+            
+            ### 📋 Coverage Analysis
+            - **Line Coverage**: Shows percentage of code lines executed during tests
+            - **Branch Coverage**: Shows percentage of code branches/conditions tested
+            - **Complexity**: Code complexity metrics for maintainability
+            
+            ### 🎯 Quality Gates
+            - ✅ **Pass**: Coverage ≥ 85%
+            - ⚠️ **Warning**: Coverage 70-84%
+            - ❌ **Fail**: Coverage < 70%
+            
+            ### 📁 Artifacts
+            - **Coverage reports**: Available in workflow artifacts
+            - **Test results**: TRX files with detailed test execution data
+            
+            *This comment is updated automatically on each push to track coverage trends.*
 
-            Code coverage analysis completed. See the Code Coverage Summary step above for detailed results.
-
-            - **Coverage collection**: ✅ Completed
-            - **Report generation**: ✅ Available in workflow artifacts
-            - **Module coverage**: Check individual module coverage in the detailed logs
-
-            *This comment will be updated automatically on each push.*
+      - name: Validate Coverage Thresholds
+        if: always()
+        run: |
+          echo "🎯 VALIDATING COVERAGE THRESHOLDS"
+          echo "================================="
+          
+          # Check if CodeCoverageSummary step succeeded
+          if [ "${{ steps.coverage_opencover.outcome }}" = "success" ]; then
+            echo "✅ Coverage analysis completed successfully"
+            echo "📊 Coverage thresholds met (≥70%)"
+          else
+            echo "❌ Coverage analysis failed or coverage below minimum threshold"
+            echo "📊 Required: ≥70% line coverage"
+            echo "💡 Check the 'Code Coverage Summary' step for detailed information"
+            
+            # Only fail in strict mode (can be controlled via environment variable)
+            if [ "${STRICT_COVERAGE:-true}" = "true" ]; then
+              echo "🚫 STRICT MODE: Failing pipeline due to insufficient coverage"
+              exit 1
+            else
+              echo "⚠️  LENIENT MODE: Continuing despite coverage issues"
+            fi
+          fi
 
   # Job 2: Security Scan (Consolidated)
   security-scan:
