@@ -475,6 +475,7 @@ jobs:
           echo "🎯 Minimum thresholds: 70% (warning) / 85% (good)"
 
       - name: Select Coverage Outputs
+        id: select_coverage_outputs
         if: always()
         run: |
           echo "🎯 Selecting coverage outputs from available steps..."
