@@ -1,4 +1,4 @@
-using Testcontainers.PostgreSql;
+﻿using Testcontainers.PostgreSql;
 using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Shared.Tests.Extensions;
 

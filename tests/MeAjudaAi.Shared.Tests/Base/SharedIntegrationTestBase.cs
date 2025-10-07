@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Tests.Auth;
+﻿using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Extensions;
 using Xunit.Abstractions;
 

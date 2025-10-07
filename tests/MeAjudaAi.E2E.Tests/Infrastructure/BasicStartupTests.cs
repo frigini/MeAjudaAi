@@ -1,9 +1,9 @@
-using MeAjudaAi.E2E.Tests.Base;
+ï»¿using MeAjudaAi.E2E.Tests.Base;
 
 namespace MeAjudaAi.E2E.Tests.Infrastructure;
 
 /// <summary>
-/// Testes básicos de integração para verificar o startup da aplicação e funcionalidades básicas
+/// Testes bï¿½sicos de integraï¿½ï¿½o para verificar o startup da aplicaï¿½ï¿½o e funcionalidades bï¿½sicas
 /// </summary>
 public class BasicStartupTests : TestContainerTestBase
 {
@@ -14,7 +14,7 @@ public class BasicStartupTests : TestContainerTestBase
         var response = await ApiClient.GetAsync("/");
 
         // Assert
-        // Mesmo um 404 está ok - significa que a aplicação iniciou
+        // Mesmo um 404 estï¿½ ok - significa que a aplicaï¿½ï¿½o iniciou
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
     }
 
@@ -38,7 +38,7 @@ public class BasicStartupTests : TestContainerTestBase
         var response = await ApiClient.GetAsync("/api");
 
         // Assert
-        // Qualquer resposta (mesmo 404) significa que o roteamento está funcionando
+        // Qualquer resposta (mesmo 404) significa que o roteamento estï¿½ funcionando
         response.Should().NotBeNull();
     }
 }

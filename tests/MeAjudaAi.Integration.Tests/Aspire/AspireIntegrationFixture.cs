@@ -1,4 +1,4 @@
-using Aspire.Hosting;
+﻿using Aspire.Hosting;
 using System;
 
 namespace MeAjudaAi.Integration.Tests.Aspire;

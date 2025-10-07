@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Tests.Infrastructure;
+﻿using MeAjudaAi.Shared.Tests.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Tests.Base;

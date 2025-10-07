@@ -1,4 +1,4 @@
-namespace MeAjudaAi.E2E.Tests;
+﻿namespace MeAjudaAi.E2E.Tests;
 
 public record CreateUserResponse(
     Guid Id,

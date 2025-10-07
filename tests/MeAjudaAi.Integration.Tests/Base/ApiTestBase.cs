@@ -1,4 +1,4 @@
-using MeAjudaAi.Integration.Tests.Infrastructure;
+﻿using MeAjudaAi.Integration.Tests.Infrastructure;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 

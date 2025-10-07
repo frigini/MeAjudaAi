@@ -137,4 +137,43 @@ public class EmailTests
         email1.Should().NotBe(email2);
         email1.GetHashCode().Should().NotBe(email2.GetHashCode());
     }
+
+    [Fact]
+    public void ImplicitOperator_ToStringConversion_ShouldReturnValue()
+    {
+        // Arrange
+        var email = new Email("test@example.com");
+
+        // Act
+        string emailString = email;
+
+        // Assert
+        emailString.Should().Be("test@example.com");
+    }
+
+    [Fact]
+    public void ImplicitOperator_FromStringConversion_ShouldCreateEmail()
+    {
+        // Arrange
+        string emailString = "test@example.com";
+
+        // Act
+        Email email = emailString;
+
+        // Assert
+        email.Value.Should().Be("test@example.com");
+    }
+
+    [Fact]
+    public void ToString_ShouldReturnValue()
+    {
+        // Arrange
+        var email = new Email("test@example.com");
+
+        // Act
+        var result = email.Value; // Email records usam a propriedade Value, não ToString()
+
+        // Assert
+        result.Should().Be("test@example.com");
+    }
 }

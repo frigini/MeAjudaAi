@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using System.Net.Http.Json;

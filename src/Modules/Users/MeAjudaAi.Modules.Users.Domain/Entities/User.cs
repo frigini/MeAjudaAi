@@ -213,7 +213,7 @@ public sealed class User : AggregateRoot<UserId>
         if (IsDeleted)
             throw UserDomainException.ForInvalidOperation("ChangeEmail", "user is deleted");
 
-        if (Email.Equals(newEmail, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(Email.Value, newEmail, StringComparison.OrdinalIgnoreCase))
             return; // Nenhuma mudança necessária
 
         var oldEmail = Email;
@@ -239,7 +239,7 @@ public sealed class User : AggregateRoot<UserId>
         if (IsDeleted)
             throw UserDomainException.ForInvalidOperation("ChangeUsername", "user is deleted");
 
-        if (Username.Equals(newUsername, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(Username.Value, newUsername, StringComparison.OrdinalIgnoreCase))
             return; // Nenhuma mudança necessária
 
         var oldUsername = Username;

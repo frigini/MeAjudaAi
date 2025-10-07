@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using System;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure.Basic;

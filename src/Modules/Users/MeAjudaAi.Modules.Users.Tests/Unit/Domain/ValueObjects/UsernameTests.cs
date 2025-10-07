@@ -70,31 +70,31 @@ public class UsernameTests
     }
 
     [Theory]
-    [InlineData("user name")] // Espa�o
-    [InlineData("user@name")] // Caractere especial
-    [InlineData("user#name")] // Caractere especial
-    [InlineData("user$name")] // Caractere especial
-    [InlineData("user%name")] // Caractere especial
-    [InlineData("user&name")] // Caractere especial
-    [InlineData("user+name")] // Caractere especial
-    [InlineData("user=name")] // Caractere especial
-    [InlineData("user!name")] // Caractere especial
-    [InlineData("user?name")] // Caractere especial
-    [InlineData("user/name")] // Caractere especial
-    [InlineData("user\\name")] // Caractere especial
-    [InlineData("user|name")] // Caractere especial
-    [InlineData("user<name")] // Caractere especial
-    [InlineData("user>name")] // Caractere especial
-    [InlineData("user:name")] // Caractere especial
-    [InlineData("user;name")] // Caractere especial
-    [InlineData("user'name")] // Caractere especial
-    [InlineData("user\"name")] // Caractere especial
-    [InlineData("user[name")] // Caractere especial
-    [InlineData("user]name")] // Caractere especial
-    [InlineData("user{name")] // Caractere especial
-    [InlineData("user}name")] // Caractere especial
-    [InlineData("user`name")] // Caractere especial
-    [InlineData("user~name")] // Caractere especial
+    [InlineData("user name")]
+    [InlineData("user@name")]
+    [InlineData("user#name")]
+    [InlineData("user$name")]
+    [InlineData("user%name")]
+    [InlineData("user&name")]
+    [InlineData("user+name")]
+    [InlineData("user=name")]
+    [InlineData("user!name")]
+    [InlineData("user?name")]
+    [InlineData("user/name")]
+    [InlineData("user\\name")]
+    [InlineData("user|name")]
+    [InlineData("user<name")]
+    [InlineData("user>name")]
+    [InlineData("user:name")]
+    [InlineData("user;name")]
+    [InlineData("user'name")]
+    [InlineData("user\"name")]
+    [InlineData("user[name")]
+    [InlineData("user]name")]
+    [InlineData("user{name")]
+    [InlineData("user}name")]
+    [InlineData("user`name")]
+    [InlineData("user~name")]
     public void Constructor_WithInvalidCharacters_ShouldThrowArgumentException(string invalidUsername)
     {
         // Act & Assert
@@ -178,5 +178,44 @@ public class UsernameTests
         // Act & Assert
         username1.Should().NotBe(username2);
         username1.GetHashCode().Should().NotBe(username2.GetHashCode());
+    }
+
+    [Fact]
+    public void ImplicitOperator_ToStringConversion_ShouldReturnValue()
+    {
+        // Arrange
+        var username = new Username("testuser");
+
+        // Act
+        string usernameString = username;
+
+        // Assert
+        usernameString.Should().Be("testuser");
+    }
+
+    [Fact]
+    public void ImplicitOperator_FromStringConversion_ShouldCreateUsername()
+    {
+        // Arrange
+        string usernameString = "testuser";
+
+        // Act
+        Username username = usernameString;
+
+        // Assert
+        username.Value.Should().Be("testuser");
+    }
+
+    [Fact]
+    public void ToString_ShouldReturnValue()
+    {
+        // Arrange
+        var username = new Username("testuser");
+
+        // Act
+        var result = username.Value; // Username records usam a propriedade Value, não ToString()
+
+        // Assert
+        result.Should().Be("testuser");
     }
 }

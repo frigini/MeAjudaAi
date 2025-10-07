@@ -1,4 +1,4 @@
-using Aspire.Hosting;
+﻿using Aspire.Hosting;
 using Bogus;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;

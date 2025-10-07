@@ -1,4 +1,4 @@
-using MeAjudaAi.Architecture.Tests.Helpers;
+﻿using MeAjudaAi.Architecture.Tests.Helpers;
 using System.Reflection;
 
 namespace MeAjudaAi.Architecture.Tests;

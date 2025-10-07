@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Tests.Infrastructure;
+﻿using MeAjudaAi.Shared.Tests.Infrastructure;
 
 [assembly: CollectionBehavior(DisableTestParallelization = false, MaxParallelThreads = 4)]
 

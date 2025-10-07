@@ -1,4 +1,4 @@
-using MeAjudaAi.E2E.Tests.Base;
+﻿using MeAjudaAi.E2E.Tests.Base;
 
 namespace MeAjudaAi.E2E.Tests.Integration;
 

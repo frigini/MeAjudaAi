@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Tests.Collections;
+﻿namespace MeAjudaAi.Shared.Tests.Collections;
 
 /// <summary>
 /// Collection para testes que podem ser executados em paralelo

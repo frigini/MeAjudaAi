@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Tests.Extensions;
+﻿using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
 
 namespace MeAjudaAi.Integration.Tests.Users;

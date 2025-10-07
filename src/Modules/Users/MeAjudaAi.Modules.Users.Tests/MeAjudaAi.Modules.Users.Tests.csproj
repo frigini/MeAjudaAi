@@ -31,7 +31,7 @@
     <!-- Database Testing -->
     <PackageReference Include="Testcontainers.PostgreSql" Version="4.7.0" />
     <PackageReference Include="Respawn" Version="6.2.1" />
-    <!-- Removed Microsoft.EntityFrameworkCore.InMemory - using real database with TestContainers instead -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.9" />
     
     <!-- Integration Testing -->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.9" />

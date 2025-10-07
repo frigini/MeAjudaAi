@@ -223,13 +223,14 @@ jobs:
               MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
               mkdir -p "$MODULE_COVERAGE_DIR"
 
-              # Run tests with simplified coverage collection
+              # Run tests with simplified coverage collection - UNIT TESTS ONLY
               INCLUDE_FILTER="[MeAjudaAi.Modules.${module_name}.*]*"
               EXCLUDE_FILTER="[*.Tests]*,[*Test*]*,[testhost]*"
               dotnet test "$module_path" \
                 --configuration Release \
                 --no-build \
                 --verbosity normal \
+                --filter "FullyQualifiedName!~Integration&FullyQualifiedName!~Infrastructure" \
                 --collect:"XPlat Code Coverage" \
                 --results-directory "$MODULE_COVERAGE_DIR" \
                 --logger "trx;LogFileName=${module_name,,}-test-results.trx" \

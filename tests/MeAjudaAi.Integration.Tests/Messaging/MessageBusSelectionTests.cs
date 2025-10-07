@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Strategy;
 using MeAjudaAi.Shared.Messaging.Factory;

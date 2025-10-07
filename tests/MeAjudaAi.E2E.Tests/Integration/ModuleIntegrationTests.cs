@@ -1,4 +1,4 @@
-using MeAjudaAi.E2E.Tests.Base;
+﻿using MeAjudaAi.E2E.Tests.Base;
 using System.Net.Http.Json;
 
 namespace MeAjudaAi.E2E.Tests.Integration;

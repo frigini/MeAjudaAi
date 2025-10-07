@@ -1,4 +1,4 @@
-using Bogus;
+﻿using Bogus;
 using System.Net.Http.Headers;
 using System.Text.Json;
 

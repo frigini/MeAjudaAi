@@ -101,4 +101,42 @@ public class UserBuilder : BuilderBase<User>
         WithCustomAction(user => user.MarkAsDeleted(mockDateTimeProvider.Object));
         return this;
     }
+
+    public UserBuilder WithCreatedAt(DateTime createdAt)
+    {
+        WithCustomAction(user =>
+        {
+            var createdAtProperty = typeof(User).GetProperty("CreatedAt", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (createdAtProperty != null && createdAtProperty.CanWrite)
+            {
+                createdAtProperty.SetValue(user, createdAt);
+            }
+            else
+            {
+                // Se a propriedade não é writable, tenta usar reflection no campo backing
+                var createdAtField = typeof(User).BaseType?.GetField("<CreatedAt>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                createdAtField?.SetValue(user, createdAt);
+            }
+        });
+        return this;
+    }
+
+    public UserBuilder WithUpdatedAt(DateTime? updatedAt)
+    {
+        WithCustomAction(user =>
+        {
+            var updatedAtProperty = typeof(User).GetProperty("UpdatedAt", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (updatedAtProperty != null && updatedAtProperty.CanWrite)
+            {
+                updatedAtProperty.SetValue(user, updatedAt);
+            }
+            else
+            {
+                // Se a propriedade não é writable, tenta usar reflection no campo backing
+                var updatedAtField = typeof(User).BaseType?.GetField("<UpdatedAt>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                updatedAtField?.SetValue(user, updatedAt);
+            }
+        });
+        return this;
+    }
 }

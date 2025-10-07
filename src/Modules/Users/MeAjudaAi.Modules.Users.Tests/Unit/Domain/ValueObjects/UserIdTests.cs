@@ -105,4 +105,18 @@ public class UserIdTests
         userId.Should().NotBeNull();
         userId.Equals(null).Should().BeFalse();
     }
+
+    [Fact]
+    public void ToString_ShouldReturnGuidString()
+    {
+        // Arrange
+        var guid = UuidGenerator.NewId();
+        var userId = new UserId(guid);
+
+        // Act
+        var result = userId.Value.ToString(); // UserId usa a propriedade Value para o Guid
+
+        // Assert
+        result.Should().Be(guid.ToString());
+    }
 }
