@@ -494,16 +494,27 @@ public class KeycloakServiceTests
     private static string CreateValidJwtToken()
     {
         var userId = Guid.NewGuid();
-        var header = Convert.ToBase64String(Encoding.UTF8.GetBytes("{\"alg\":\"HS256\",\"typ\":\"JWT\"}"));
-        var payload = Convert.ToBase64String(Encoding.UTF8.GetBytes($$"""
+        
+        // Helper method for Base64URL encoding (JWT standard)
+        static string Base64UrlEncode(string input)
+        {
+            var bytes = Encoding.UTF8.GetBytes(input);
+            return Convert.ToBase64String(bytes)
+                .TrimEnd('=')           // Remove padding
+                .Replace('+', '-')      // Replace + with -
+                .Replace('/', '_');     // Replace / with _
+        }
+        
+        var header = Base64UrlEncode("{\"alg\":\"HS256\",\"typ\":\"JWT\"}");
+        var payload = Base64UrlEncode($$"""
         {
             "sub": "{{userId}}",
             "exp": {{DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()}},
             "iat": {{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}},
             "realm_access": {"roles":["user"]}
         }
-        """));
-        var signature = Convert.ToBase64String(Encoding.UTF8.GetBytes("signature"));
+        """);
+        var signature = Base64UrlEncode("signature");
 
         return $"{header}.{payload}.{signature}";
     }
