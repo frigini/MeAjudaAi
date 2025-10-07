@@ -494,7 +494,7 @@ public class KeycloakServiceTests
     private static string CreateValidJwtToken()
     {
         var userId = Guid.NewGuid();
-        
+
         // Helper method for Base64URL encoding (JWT standard)
         static string Base64UrlEncode(string input)
         {
@@ -504,7 +504,7 @@ public class KeycloakServiceTests
                 .Replace('+', '-')      // Replace + with -
                 .Replace('/', '_');     // Replace / with _
         }
-        
+
         var header = Base64UrlEncode("{\"alg\":\"HS256\",\"typ\":\"JWT\"}");
         var payload = Base64UrlEncode($$"""
         {
