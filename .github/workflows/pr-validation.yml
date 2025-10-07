@@ -517,11 +517,11 @@ jobs:
           curl -sSfL "${OSV_URL}/osv-scanner_linux_amd64" -o osv-scanner
           chmod +x osv-scanner
 
-          echo "� OSV-Scanner version and help:"
+          echo "OSV-Scanner version and help:"
           ./osv-scanner --version || echo "Version command failed"
           ./osv-scanner scan --help | head -20 || echo "Help command failed"
 
-          echo "�🔍 Running vulnerability scan..."
+          echo "🔍 Running vulnerability scan..."
           # Run OSV-Scanner and capture exit code
           osv_exit_code=0
           ./osv-scanner scan --recursive --skip-git . || osv_exit_code=$?
@@ -575,13 +575,13 @@ jobs:
           fi
 
       - name: Secret Detection with TruffleHog
+        if: ${{ github.event_name == 'pull_request' }}
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.pull_request.base.ref || 'master' }}
-          head: HEAD
+          base: ${{ github.event.pull_request.base.ref }}
+          head: ${{ github.event.pull_request.head.sha }}
           extra_args: --debug --only-verified
-
   # Job 3: Markdown Link Validation (Simplified)
   markdown-link-check:
     name: Validate Markdown Links
