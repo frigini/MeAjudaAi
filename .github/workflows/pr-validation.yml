@@ -258,12 +258,20 @@ jobs:
 
               # Find and rename the coverage file to a predictable name
               if [ -d "$MODULE_COVERAGE_DIR" ]; then
-                COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -name "coverage.opencover.xml" -type f | head -1)
+                # Look for both opencover and cobertura formats
+                COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" -type f | head -1)
                 if [ -f "$COVERAGE_FILE" ]; then
-                  cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.opencover.xml"
-                  echo "✅ Coverage file created: $MODULE_COVERAGE_DIR/${module_name,,}.opencover.xml"
+                  # Copy to standardized name based on original format
+                  if [[ "$COVERAGE_FILE" == *"cobertura"* ]]; then
+                    cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
+                    echo "✅ Cobertura coverage file created: $MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
+                  else
+                    cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.opencover.xml"
+                    echo "✅ OpenCover coverage file created: $MODULE_COVERAGE_DIR/${module_name,,}.opencover.xml"
+                  fi
                 else
                   echo "⚠️  Coverage file not found for $module_name module"
+                  echo "Available files in coverage directory:"
                   find "$MODULE_COVERAGE_DIR" -name "*.xml" -type f | head -5
                 fi
               fi
@@ -349,21 +357,27 @@ jobs:
         run: |
           echo "🔧 Attempting to fix coverage file locations and names..."
 
-          # Find any coverage.xml files and rename them to .opencover.xml
+          # Find any coverage.xml files and rename them to appropriate format
           find ./coverage -name "coverage.xml" -type f | while read -r file; do
             dir=$(dirname "$file")
             module=$(basename "$dir")
-            new_file="$dir/$module.opencover.xml"
+            new_file="$dir/$module.cobertura.xml"
             echo "Copying $file to $new_file"
             cp "$file" "$new_file"
           done
 
           # Find coverage files in nested directories and copy to module directories
-          find ./coverage -name "coverage.opencover.xml" -type f | while read -r file; do
+          find ./coverage -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" -type f | while read -r file; do
             # Get the module directory (should be like ./coverage/users/)
             module_dir=$(echo "$file" | sed 's|coverage/\([^/]*\)/.*|coverage/\1|')
             module_name=$(basename "$module_dir")
-            target_file="$module_dir/$module_name.opencover.xml"
+            
+            # Determine target file based on source format
+            if [[ "$file" == *"cobertura"* ]]; then
+              target_file="$module_dir/$module_name.cobertura.xml"
+            else
+              target_file="$module_dir/$module_name.opencover.xml"
+            fi
 
             if [ "$file" != "$target_file" ]; then
               echo "Copying $file to $target_file"
@@ -372,7 +386,7 @@ jobs:
           done
 
           echo "Coverage files after processing:"
-          find ./coverage -name "*.opencover.xml" -type f 2>/dev/null || echo "Still no .opencover.xml files found"
+          find ./coverage -name "*.xml" -type f 2>/dev/null || echo "No XML coverage files found"
 
       - name: Code Coverage Summary
         id: coverage_opencover
@@ -389,9 +403,25 @@ jobs:
           output: both
           thresholds: '70 85'
 
-      - name: Alternative Coverage Summary (if opencover fails)
-        id: coverage_fallback
+      - name: Alternative Coverage Summary (Cobertura format)
+        id: coverage_cobertura
         if: ${{ always() && steps.coverage_opencover.outcome != 'success' }}
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: 'coverage/**/*.cobertura.xml'
+          badge: true
+          fail_below_min: false
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: false
+          indicators: true
+          output: both
+          thresholds: '70 85'
+        continue-on-error: true
+
+      - name: Fallback Coverage Summary (any XML)
+        id: coverage_fallback
+        if: ${{ always() && steps.coverage_opencover.outcome != 'success' && steps.coverage_cobertura.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: 'coverage/**/*.xml'
@@ -447,13 +477,13 @@ jobs:
           message: |
             ## 📊 Code Coverage Report
 
-            ${{ steps.coverage_opencover.outputs.summary || steps.coverage_fallback.outputs.summary }}
+            ${{ steps.coverage_opencover.outputs.summary || steps.coverage_cobertura.outputs.summary || steps.coverage_fallback.outputs.summary }}
 
             ### 📈 Coverage Details
-            - **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge ||
-              steps.coverage_fallback.outputs.badge }}
+            - **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge || steps.coverage_cobertura.outputs.badge || steps.coverage_fallback.outputs.badge }}
             - **Minimum threshold**: 70% (warning) / 85% (good)
-            - **Report format**: OpenCover XML with detailed metrics
+            - **Report format**: Auto-detected from OpenCover/Cobertura XML files
+            - **Coverage source**: ${{ steps.coverage_opencover.outcome == 'success' && 'OpenCover' || steps.coverage_cobertura.outcome == 'success' && 'Cobertura' || 'Fallback XML' }}
 
             ### 📋 Coverage Analysis
             - **Line Coverage**: Shows percentage of code lines executed during tests
@@ -479,30 +509,40 @@ jobs:
 
           # Check step outcomes first
           primary_success="${{ steps.coverage_opencover.outcome }}"
+          cobertura_success="${{ steps.coverage_cobertura.outcome }}"
           fallback_success="${{ steps.coverage_fallback.outcome }}"
 
-          echo "Debug: Primary coverage outcome: ${primary_success:-'not_run'}"
+          echo "Debug: Primary (OpenCover) outcome: ${primary_success:-'not_run'}"
+          echo "Debug: Cobertura coverage outcome: ${cobertura_success:-'not_run'}"
           echo "Debug: Fallback coverage outcome: ${fallback_success:-'not_run'}"
 
           # Get coverage percentages (if available)
           primary_line_rate="${{ steps.coverage_opencover.outputs.line-rate }}"
+          cobertura_line_rate="${{ steps.coverage_cobertura.outputs.line-rate }}"
           fallback_line_rate="${{ steps.coverage_fallback.outputs.line-rate }}"
 
           echo "Debug: Primary line rate: ${primary_line_rate:-'not_available'}"
+          echo "Debug: Cobertura line rate: ${cobertura_line_rate:-'not_available'}"
           echo "Debug: Fallback line rate: ${fallback_line_rate:-'not_available'}"
 
           # Check if coverage files exist for debugging
           echo "Debug: Checking coverage files..."
           find coverage -name "*.xml" -type f 2>/dev/null || echo "No coverage XML files found"
-          find coverage -name "*.opencover.xml" -type f 2>/dev/null || echo "No opencover XML files found"
 
           # Determine which coverage value to use
           coverage_rate=""
+          coverage_source=""
           if [ "$primary_success" = "success" ] && [ -n "$primary_line_rate" ]; then
             coverage_rate="$primary_line_rate"
-            echo "📊 Using primary coverage: ${coverage_rate}%"
+            coverage_source="OpenCover"
+            echo "📊 Using primary (OpenCover) coverage: ${coverage_rate}%"
+          elif [ "$cobertura_success" = "success" ] && [ -n "$cobertura_line_rate" ]; then
+            coverage_rate="$cobertura_line_rate"
+            coverage_source="Cobertura"
+            echo "📊 Using Cobertura coverage: ${coverage_rate}%"
           elif [ "$fallback_success" = "success" ] && [ -n "$fallback_line_rate" ]; then
             coverage_rate="$fallback_line_rate"
+            coverage_source="Fallback XML"
             echo "📊 Using fallback coverage: ${coverage_rate}%"
           fi
 
@@ -513,9 +553,9 @@ jobs:
 
             if [ "$coverage_int" -ge 70 ]; then
               echo "✅ Coverage analysis completed successfully"
-              echo "📊 Coverage thresholds met: ${coverage_rate}% (≥70%)"
+              echo "📊 Coverage thresholds met: ${coverage_rate}% (≥70%) via $coverage_source"
             else
-              echo "❌ Coverage below minimum threshold: ${coverage_rate}% (required: ≥70%)"
+              echo "❌ Coverage below minimum threshold: ${coverage_rate}% (required: ≥70%) via $coverage_source"
               echo "💡 Check the 'Code Coverage Summary' step for detailed information"
 
               # Only fail in strict mode
