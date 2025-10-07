@@ -612,9 +612,6 @@ jobs:
                   ] | length
                 ' osv-results.json 2>/dev/null
               )
-                  ] | length
-                ' osv-results.json 2>/dev/null
-              )
 
               if [ "${HIGH_OR_CRIT:-0}" -gt 0 ]; then
                 echo "❌ Found $HIGH_OR_CRIT HIGH/CRITICAL vulnerabilities"
