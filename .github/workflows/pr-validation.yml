@@ -594,18 +594,24 @@ jobs:
                   def safe_score_to_number:
                     if type == "number" then .
                     elif type == "string" then
-                      if . == "CRITICAL" then 9
-                      elif . == "HIGH" then 7
-                      elif . == "MEDIUM" then 5
-                      elif . == "LOW" then 3
-                      else 0
-                      end
+                      (tonumber? // (
+                        (. | ascii_upcase) as $upper
+                        | if $upper == "CRITICAL" then 9
+                          elif $upper == "HIGH" then 7
+                          elif $upper == "MEDIUM" then 5
+                          elif $upper == "LOW" then 3
+                          else 0
+                          end
+                      ))
                     else 0
                     end;
 
                   [.results[]?.packages[]?.vulnerabilities[]?
                     | ( [(.severity // [])[]?.score? | safe_score_to_number] | max // 0 )
                     | select(. >= 7.0)
+                  ] | length
+                ' osv-results.json 2>/dev/null
+              )
                   ] | length
                 ' osv-results.json 2>/dev/null
               )
