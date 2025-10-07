@@ -481,15 +481,20 @@ jobs:
           primary_success="${{ steps.coverage_opencover.outcome }}"
           fallback_success="${{ steps.coverage_fallback.outcome }}"
 
-          echo "Debug: Primary coverage outcome: $primary_success"
-          echo "Debug: Fallback coverage outcome: $fallback_success"
+          echo "Debug: Primary coverage outcome: ${primary_success:-'not_run'}"
+          echo "Debug: Fallback coverage outcome: ${fallback_success:-'not_run'}"
 
           # Get coverage percentages (if available)
           primary_line_rate="${{ steps.coverage_opencover.outputs.line-rate }}"
           fallback_line_rate="${{ steps.coverage_fallback.outputs.line-rate }}"
 
-          echo "Debug: Primary line rate: $primary_line_rate"
-          echo "Debug: Fallback line rate: $fallback_line_rate"
+          echo "Debug: Primary line rate: ${primary_line_rate:-'not_available'}"
+          echo "Debug: Fallback line rate: ${fallback_line_rate:-'not_available'}"
+
+          # Check if coverage files exist for debugging
+          echo "Debug: Checking coverage files..."
+          find coverage -name "*.xml" -type f 2>/dev/null || echo "No coverage XML files found"
+          find coverage -name "*.opencover.xml" -type f 2>/dev/null || echo "No opencover XML files found"
 
           # Determine which coverage value to use
           coverage_rate=""
@@ -523,11 +528,15 @@ jobs:
             fi
           else
             echo "❌ Coverage analysis failed - no coverage data available"
-            echo "💡 Check the 'Code Coverage Summary' step for errors"
+            echo "💡 This might be due to:"
+            echo "   - Coverage files not generated properly"
+            echo "   - Coverage generation step failed"
+            echo "   - File path mismatch in coverage summary action"
 
             # Only fail in strict mode
             if [ "${STRICT_COVERAGE:-true}" = "true" ]; then
               echo "🚫 STRICT MODE: Failing pipeline due to coverage analysis failure"
+              echo "💡 To continue despite coverage issues, set STRICT_COVERAGE=false"
               exit 1
             else
               echo "⚠️  LENIENT MODE: Continuing despite coverage analysis issues"
