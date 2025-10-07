@@ -474,6 +474,50 @@ jobs:
           echo "💡 For detailed coverage report, check the 'Code Coverage Summary' step above"
           echo "🎯 Minimum thresholds: 70% (warning) / 85% (good)"
 
+      - name: Select Coverage Outputs
+        if: always()
+        run: |
+          echo "🎯 Selecting coverage outputs from available steps..."
+
+          # Check which coverage step succeeded and has outputs
+          if [ "${{ steps.coverage_opencover.outcome }}" = "success" ] && 
+             [ -n "${{ steps.coverage_opencover.outputs.summary }}" ]; then
+            SUMMARY="${{ steps.coverage_opencover.outputs.summary }}"
+            BADGE="${{ steps.coverage_opencover.outputs.badge }}"
+            SOURCE="OpenCover"
+            echo "Using OpenCover coverage outputs"
+          elif [ "${{ steps.coverage_cobertura.outcome }}" = "success" ] && 
+               [ -n "${{ steps.coverage_cobertura.outputs.summary }}" ]; then
+            SUMMARY="${{ steps.coverage_cobertura.outputs.summary }}"
+            BADGE="${{ steps.coverage_cobertura.outputs.badge }}"
+            SOURCE="Cobertura"
+            echo "Using Cobertura coverage outputs"
+          elif [ "${{ steps.coverage_fallback.outcome }}" = "success" ] && 
+               [ -n "${{ steps.coverage_fallback.outputs.summary }}" ]; then
+            SUMMARY="${{ steps.coverage_fallback.outputs.summary }}"
+            BADGE="${{ steps.coverage_fallback.outputs.badge }}"
+            SOURCE="Fallback XML"
+            echo "Using Fallback coverage outputs"
+          else
+            SUMMARY="Coverage data not available"
+            BADGE=""
+            SOURCE="None"
+            echo "No coverage outputs available"
+          fi
+
+          # Export outputs
+          echo "source=$SOURCE" >> $GITHUB_OUTPUT
+          echo "badge=$BADGE" >> $GITHUB_OUTPUT
+
+          # Export multiline summary using heredoc
+          {
+            echo 'summary<<EOF'
+            echo "$SUMMARY"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+          echo "Coverage source: $SOURCE"
+
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request'
@@ -483,19 +527,13 @@ jobs:
           message: |
             ## 📊 Code Coverage Report
 
-            ${{ steps.coverage_opencover.outputs.summary ||
-                steps.coverage_cobertura.outputs.summary ||
-                steps.coverage_fallback.outputs.summary }}
+            ${{ steps.select_coverage_outputs.outputs.summary }}
 
             ### 📈 Coverage Details
-            - **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge ||
-                                      steps.coverage_cobertura.outputs.badge ||
-                                      steps.coverage_fallback.outputs.badge }}
+            - **Coverage badges**: ${{ steps.select_coverage_outputs.outputs.badge }}
             - **Minimum threshold**: 70% (warning) / 85% (good)
             - **Report format**: Auto-detected from OpenCover/Cobertura XML files
-            - **Coverage source**: ${{ (steps.coverage_opencover.outcome == 'success' && 'OpenCover') ||
-                                      (steps.coverage_cobertura.outcome == 'success' && 'Cobertura') ||
-                                      'Fallback XML' }}
+            - **Coverage source**: ${{ steps.select_coverage_outputs.outputs.source }}
 
             ### 📋 Coverage Analysis
             - **Line Coverage**: Shows percentage of code lines executed during tests
@@ -771,3 +809,4 @@ jobs:
             exit 1
           fi
           echo "✅ YAML validation completed"
+
