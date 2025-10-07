@@ -12,15 +12,76 @@ public static class Extensions
         IConfiguration configuration)
     {
         services.AddOptions<PostgresOptions>()
-            .Configure(opts => configuration.GetSection(PostgresOptions.SectionName).Bind(opts))
-            .Validate(opts => !string.IsNullOrEmpty(opts.ConnectionString),
-                "PostgreSQL connection string not found. Configure 'Postgres:ConnectionString' in appsettings.json")
-            .ValidateOnStart();
+            .Configure(opts =>
+            {
+                // Tenta múltiplas fontes de string de conexão em ordem de preferência
+                opts.ConnectionString =
+                    configuration.GetConnectionString("DefaultConnection") ??  // Sobrescrita para testes
+                    configuration.GetConnectionString("meajudaai-db-local") ??  // Aspire para testes
+                    configuration.GetConnectionString("meajudaai-db") ??        // Aspire para desenvolvimento
+                    configuration["Postgres:ConnectionString"] ??              // Configuração manual
+                    string.Empty;
+            });
 
-        services.AddHostedService<DbContextInitializer>();
+        // Só valida a connection string em ambientes que não sejam Testing
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        if (environment != "Testing")
+        {
+            services.Configure<PostgresOptions>(opts =>
+            {
+                if (string.IsNullOrEmpty(opts.ConnectionString))
+                {
+                    throw new InvalidOperationException(
+                        "PostgreSQL connection string not found. Configure connection string via Aspire, 'Postgres:ConnectionString' in appsettings.json, or as ConnectionStrings:meajudaai-db");
+                }
+            });
+        }
 
-        // Fix para EF Core timestamp behavior
+        // Monitoramento essencial de banco de dados
+        services.AddDatabaseMonitoring();
+
+        // Gerenciador de permissões de schema para isolamento entre módulos
+        services.AddSingleton<SchemaPermissionsManager>();
+
+        // Correção para comportamento de timestamp do EF Core
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+        return services;
+    }
+
+    /// <summary>
+    /// Configura permissões de schema para o módulo Users usando scripts existentes.
+    /// Use em produção para segurança do módulo.
+    /// </summary>
+    public static async Task<IServiceCollection> EnsureUsersSchemaPermissionsAsync(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        string? usersRolePassword = null,
+        string? appRolePassword = null)
+    {
+        // Obter string de conexão admin
+        var adminConnectionString =
+            configuration.GetConnectionString("meajudaai-db-admin") ??
+            configuration.GetConnectionString("meajudaai-db") ??
+            configuration["Postgres:ConnectionString"];
+
+        if (string.IsNullOrEmpty(adminConnectionString))
+        {
+            throw new InvalidOperationException("Admin connection string not found for schema permissions setup");
+        }
+
+        // Usar senhas da configuração ou padrões para desenvolvimento
+        usersRolePassword ??= configuration["Postgres:UsersRolePassword"] ?? "users_secret";
+        appRolePassword ??= configuration["Postgres:AppRolePassword"] ?? "app_secret";
+
+        // Configurar permissões se necessário
+        using var serviceProvider = services.BuildServiceProvider();
+        var permissionsManager = serviceProvider.GetRequiredService<SchemaPermissionsManager>();
+
+        if (!await permissionsManager.AreUsersPermissionsConfiguredAsync(adminConnectionString))
+        {
+            await permissionsManager.EnsureUsersModulePermissionsAsync(adminConnectionString, usersRolePassword, appRolePassword);
+        }
 
         return services;
     }
@@ -64,5 +125,19 @@ public static class Extensions
     {
         options.EnableSensitiveDataLogging(false);
         options.EnableServiceProviderCaching();
+    }
+
+    /// <summary>
+    /// Adiciona monitoramento essencial de banco de dados
+    /// </summary>
+    public static IServiceCollection AddDatabaseMonitoring(this IServiceCollection services)
+    {
+        // Registra métricas de banco de dados
+        services.AddSingleton<DatabaseMetrics>();
+
+        // Registra interceptor para Entity Framework
+        services.AddSingleton<DatabaseMetricsInterceptor>();
+
+        return services;
     }
 }

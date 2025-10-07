@@ -1,0 +1,55 @@
+# Lychee ignore file - patterns to exclude from link checking
+
+# External URLs that may be temporarily unavailable
+# Uncomment the patterns below if needed for specific external sites
+# https://github.com/*
+# https://example.com/*
+
+# Localhost URLs (for development)
+http://localhost*
+https://localhost*
+
+# Private/internal URLs
+https://dev.azure.com/*
+https://portal.azure.com/*
+
+# Placeholder URLs in documentation
+https://your-keycloak-instance.com/*
+https://your-app-domain.com/*
+http://your-host:*
+
+# Mail links
+mailto:*
+
+# File patterns that should be ignored (using regex patterns)
+# Binaries and build outputs
+.*bin/.*
+.*obj/.*
+.*node_modules/.*
+.*\.git/.*
+
+# Test results
+.*TestResults/.*
+.*target/.*
+
+# Temporary files
+.*\.tmp$
+.*\.temp$
+
+# Planned documentation files (future development)
+# Uncomment specific patterns below if documents are planned but not yet created
+
+# docs/authentication/README.md
+# docs/deployment/environments.md  
+# docs/development/README.md
+# docs/testing/test-auth-references.md
+# docs/testing/test-auth-troubleshooting.md
+
+# Planned top-level documentation files
+# docs/CI-CD-Setup.md
+# docs/Scripts-Analysis.md
+
+# Fragment links to sections planned for reorganization
+# Use specific fragment patterns if headers are being restructured
+.*#project-structure
+.*#padroes-de-seguranca

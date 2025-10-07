@@ -1,0 +1,33 @@
+﻿using MeAjudaAi.Shared.Domain;
+
+namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
+
+/// <summary>
+/// Perfil do usuário.
+/// </summary>
+public class UserProfile : ValueObject
+{
+    public string FirstName { get; }
+    public string LastName { get; }
+    public PhoneNumber? PhoneNumber { get; }
+    public string FullName => $"{FirstName} {LastName}";
+
+    public UserProfile(string firstName, string lastName, PhoneNumber? phoneNumber = null)
+    {
+        if (string.IsNullOrWhiteSpace(firstName))
+            throw new ArgumentException("First name cannot be empty or whitespace");
+        if (string.IsNullOrWhiteSpace(lastName))
+            throw new ArgumentException("Last name cannot be empty or whitespace");
+        FirstName = firstName.Trim();
+        LastName = lastName.Trim();
+        PhoneNumber = phoneNumber;
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return FirstName;
+        yield return LastName;
+        if (PhoneNumber is not null)
+            yield return PhoneNumber;
+    }
+}

@@ -46,15 +46,25 @@ _ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
 
-# Test Results
+# Test Results and Coverage
 TestResults/
 [Tt]est[Rr]esult*/
+[Cc]overage[Rr]eport*/
+CoverageReport/
 coverage.json
 coverage.info
 coverage.xml
+coverage.cobertura.xml
 *.coverage
 .coverage
+coverage*/
+test-coverage*/
 htmlcov/
+lcov.info
+*.lcov
+cobertura.xml
+opencover.xml
+temp_check*/
 
 # Docker
 .docker/
@@ -107,3 +117,13 @@ secrets.json
 # Project specific
 init-scripts/
 postgres_data/
+logs/
+*.log
+
+# Generated API specifications (use script to regenerate)
+**/openapi*.json
+**/swagger*.json
+**/api*.json
+**/meajudaai*.json
+*.openapi.json
+*.swagger.json

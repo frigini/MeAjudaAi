@@ -1,0 +1,42 @@
+# Standalone Keycloak for development
+# Minimal setup with embedded H2 database for quick testing
+# 
+# REQUIRED: Set KEYCLOAK_ADMIN_PASSWORD before running
+# OPTIONAL: Set KEYCLOAK_ADMIN (defaults to 'admin', consider using a custom username)
+# OPTIONAL: Set KEYCLOAK_PORT (defaults to 8081 to avoid conflicts with development.yml)
+#
+# Usage:
+#   export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
+#   export KEYCLOAK_ADMIN="meajudaai_admin"  # Recommended: avoid 'admin'
+#   export KEYCLOAK_PORT=8081                # Avoid port conflicts
+#   docker compose -f standalone/keycloak-only.yml up -d
+#
+# Or use .env file with secure credentials
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}
+    container_name: meajudaai-keycloak-standalone
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Missing KEYCLOAK_ADMIN_PASSWORD environment variable}
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "${KEYCLOAK_PORT:-8081}:8080"
+    volumes:
+      - keycloak_standalone_data:/opt/keycloak/data
+      - ../../keycloak/realms:/opt/keycloak/data/import
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+volumes:
+  keycloak_standalone_data:
+    name: meajudaai-keycloak-standalone-data

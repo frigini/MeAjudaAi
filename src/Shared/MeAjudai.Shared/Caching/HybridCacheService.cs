@@ -1,33 +1,46 @@
 ﻿using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace MeAjudaAi.Shared.Caching;
 
-public class HybridCacheService : ICacheService
+public class HybridCacheService(
+    HybridCache hybridCache,
+    ILogger<HybridCacheService> logger,
+    CacheMetrics metrics) : ICacheService
 {
-    private readonly HybridCache _hybridCache;
-    private readonly ILogger<HybridCacheService> _logger;
-
-    public HybridCacheService(
-        HybridCache hybridCache,
-        ILogger<HybridCacheService> logger)
-    {
-        _hybridCache = hybridCache;
-        _logger = logger;
-    }
-
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var isHit = false;
+
         try
         {
-            return await _hybridCache.GetOrCreateAsync<T>(
+            var result = await hybridCache.GetOrCreateAsync<T>(
                 key,
-                factory: _ => new ValueTask<T>(default(T)!),
+                factory: _ =>
+                {
+                    isHit = false; // Factory chamado = cache miss
+                    return new ValueTask<T>(default(T)!);
+                },
                 cancellationToken: cancellationToken);
+
+            // Se o factory não foi chamado, foi um hit
+            if (!isHit && result != null && !result.Equals(default(T)))
+            {
+                isHit = true;
+            }
+
+            stopwatch.Stop();
+            metrics.RecordOperation(key, "get", isHit, stopwatch.Elapsed.TotalSeconds);
+
+            return result;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to get value from cache for key {Key}", key);
+            stopwatch.Stop();
+            metrics.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "get", "error");
+            logger.LogWarning(ex, "Failed to get value from cache for key {Key}", key);
             return default;
         }
     }
@@ -40,15 +53,22 @@ public class HybridCacheService : ICacheService
         IReadOnlyCollection<string>? tags = null,
         CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
             options ??= GetDefaultOptions(expiration);
 
-            await _hybridCache.SetAsync(key, value, options, tags, cancellationToken);
+            await hybridCache.SetAsync(key, value, options, tags, cancellationToken);
+
+            stopwatch.Stop();
+            metrics.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "set", "success");
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to set value in cache for key {Key}", key);
+            stopwatch.Stop();
+            metrics.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "set", "error");
+            logger.LogWarning(ex, "Failed to set value in cache for key {Key}", key);
         }
     }
 
@@ -56,11 +76,11 @@ public class HybridCacheService : ICacheService
     {
         try
         {
-            await _hybridCache.RemoveAsync(key, cancellationToken);
+            await hybridCache.RemoveAsync(key, cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to remove value from cache for key {Key}", key);
+            logger.LogWarning(ex, "Failed to remove value from cache for key {Key}", key);
         }
     }
 
@@ -68,11 +88,11 @@ public class HybridCacheService : ICacheService
     {
         try
         {
-            await _hybridCache.RemoveByTagAsync(pattern, cancellationToken);
+            await hybridCache.RemoveByTagAsync(pattern, cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to remove values by pattern {Pattern}", pattern);
+            logger.LogWarning(ex, "Failed to remove values by pattern {Pattern}", pattern);
         }
     }
 
@@ -84,20 +104,34 @@ public class HybridCacheService : ICacheService
         IReadOnlyCollection<string>? tags = null,
         CancellationToken cancellationToken = default)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var factoryCalled = false;
+
         try
         {
             options ??= GetDefaultOptions(expiration);
 
-            return await _hybridCache.GetOrCreateAsync(
+            var result = await hybridCache.GetOrCreateAsync(
                 key,
-                factory,
+                async (ct) =>
+                {
+                    factoryCalled = true; // Factory chamado = cache miss
+                    return await factory(ct);
+                },
                 options,
                 tags,
                 cancellationToken);
+
+            stopwatch.Stop();
+            metrics.RecordOperation(key, "get-or-create", !factoryCalled, stopwatch.Elapsed.TotalSeconds);
+
+            return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get or create cache value for key {Key}", key);
+            stopwatch.Stop();
+            metrics.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "get-or-create", "error");
+            logger.LogError(ex, "Failed to get or create cache value for key {Key}", key);
             return await factory(cancellationToken);
         }
     }

@@ -1,0 +1,41 @@
+# yamllint disable rule:document-start
+# PostgreSQL base configuration
+# Use with: docker compose -f base/postgres.yml up
+# 
+# Security: POSTGRES_PASSWORD is required via environment variable
+# Set in .env file or via environment for production deployments
+#
+# Database Initialization: 
+# - Mounts ../../database directory containing SQL scripts and shell initialization
+# - Runs modular schema setup automatically on first container start
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: meajudaai-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-MeAjudaAi}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD environment variable}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../../database:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - meajudaai-network
+
+volumes:
+  postgres_data:
+    name: meajudaai-postgres-data
+
+networks:
+  meajudaai-network:
+    name: meajudaai-network
+    driver: bridge

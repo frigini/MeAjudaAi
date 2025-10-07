@@ -1,0 +1,33 @@
+# Lychee configuration file - Simplified for reliability
+# See: https://github.com/lycheeverse/lychee#configuration-file
+
+# Only check local file links to ensure documentation consistency
+# External links disabled to prevent pipeline failures from temporary outages
+scheme = ["file"]
+
+# Be more lenient with status codes to reduce false failures
+accept = [200, 201, 204, 301, 302, 307, 308, 403, 429, 999]
+
+# Reduced concurrency to prevent overwhelming local filesystem
+max_concurrency = 5
+
+# Shorter timeout for faster failures
+timeout = 15
+
+# User agent string
+user_agent = "lychee/MeAjudaAi-CI"
+
+# Don't include code blocks to reduce false positives
+include_verbatim = false
+
+# Base directory for resolving relative file paths
+base = "."
+
+# Check fragments but be more forgiving
+include_fragments = true
+
+# Retry failed requests to handle temporary issues
+max_retries = 2
+
+# Cache results to speed up subsequent runs
+cache = true

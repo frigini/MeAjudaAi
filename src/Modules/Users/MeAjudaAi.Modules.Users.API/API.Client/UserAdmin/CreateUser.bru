@@ -1,0 +1,75 @@
+meta {
+  name: Create User
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "username": "newuser",
+    "email": "newuser@example.com",
+    "firstName": "New",
+    "lastName": "User",
+    "password": "SecurePassword123!",
+    "roles": ["User"]
+  }
+}
+
+docs {
+  # Create User
+  
+  Cria um novo usuário no sistema via administrador.
+  
+  ## Autorização
+  - **Política**: AdminOnly
+  - **Requer token**: Sim (admin)
+  
+  ## Body Parameters
+  - `username` (string, required): Nome de usuário único
+  - `email` (string, required): Email válido e único
+  - `firstName` (string, required): Primeiro nome
+  - `lastName` (string, required): Sobrenome
+  - `password` (string, required): Senha segura
+  - `roles` (array, optional): Roles do usuário (padrão: ["User"])
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "email": "newuser@example.com",
+      "firstName": "New",
+      "lastName": "User",
+      "username": "newuser",
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00Z",
+      "roles": ["User"]
+    },
+    "message": "User created successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **201**: Criado com sucesso
+  - **400**: Dados inválidos
+  - **401**: Token inválido
+  - **403**: Sem permissão de admin
+  - **409**: Email/username já existe
+}

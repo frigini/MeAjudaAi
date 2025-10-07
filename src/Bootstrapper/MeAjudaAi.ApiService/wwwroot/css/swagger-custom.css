@@ -1,0 +1,39 @@
+/* Swagger UI - Estilos Essenciais para MeAjudaAi */
+
+/* Header simples */
+.swagger-ui .topbar {
+    background-color: #2c3e50;
+}
+
+.swagger-ui .topbar .download-url-wrapper {
+    display: none;
+}
+
+/* Cores dos métodos HTTP */
+.swagger-ui .opblock.opblock-get {
+    border-color: #27ae60;
+}
+
+.swagger-ui .opblock.opblock-post {
+    border-color: #3498db;
+}
+
+.swagger-ui .opblock.opblock-put {
+    border-color: #f39c12;
+}
+
+.swagger-ui .opblock.opblock-delete {
+    border-color: #e74c3c;
+}
+
+/* Título principal */
+.swagger-ui .info .title {
+    color: #2c3e50;
+    font-size: 32px;
+}
+
+/* Parâmetros obrigatórios */
+.swagger-ui .parameter__name.required:after {
+    content: " *";
+    color: #e74c3c;
+}

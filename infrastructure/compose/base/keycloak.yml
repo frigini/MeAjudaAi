@@ -1,0 +1,73 @@
+# yamllint disable rule:document-start
+# Keycloak with dedicated PostgreSQL database
+# Use with: docker compose -f base/keycloak.yml up
+# 
+# Version Management:
+# - Keycloak version is pinned via KEYCLOAK_VERSION environment variable
+# - Default: 26.0.2 (production-stable release)
+# - Override via .env file: KEYCLOAK_VERSION=x.y.z
+
+services:
+  keycloak-db:
+    image: postgres:16
+    container_name: meajudaai-keycloak-db
+    environment:
+      POSTGRES_DB: ${KEYCLOAK_DB:-keycloak}
+      POSTGRES_USER: ${KEYCLOAK_DB_USER:-keycloak}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD must be set}
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KEYCLOAK_DB_USER:-keycloak}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - meajudaai-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}
+    container_name: meajudaai-keycloak
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KEYCLOAK_DB:-keycloak}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER:-keycloak}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD must be set}
+      KC_HOSTNAME_STRICT: ${KC_HOSTNAME_STRICT:-false}
+      KC_HOSTNAME_STRICT_HTTPS: ${KC_HOSTNAME_STRICT_HTTPS:-false}
+      KC_HTTP_ENABLED: ${KC_HTTP_ENABLED:-true}
+      KC_PROXY: ${KC_PROXY:-none}
+    command: 
+      - "start"
+      - "--optimized"
+      - "--import-realm"
+    ports:
+      - "${KEYCLOAK_PORT:-8080}:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ../../keycloak/realms:/opt/keycloak/data/import
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - meajudaai-network
+
+volumes:
+  keycloak_db_data:
+    name: meajudaai-keycloak-db-data
+  keycloak_data:
+    name: meajudaai-keycloak-data
+
+networks:
+  meajudaai-network:
+    name: meajudaai-network
+    driver: bridge

@@ -4,16 +4,20 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>bec52780-5193-416a-9b9e-22cab59751d3</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="9.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Aspire\MeAjudaAi.ServiceDefaults\MeAjudaAi.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\..\Modules\Users\API\MeajudaAi.Modules.Users.API\MeAjudaAi.Modules.Users.API.csproj" />
+    <ProjectReference Include="..\..\Modules\Users\MeAjudaAi.Modules.Users.API\MeAjudaAi.Modules.Users.API.csproj" />
     <ProjectReference Include="..\..\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
   </ItemGroup>
 

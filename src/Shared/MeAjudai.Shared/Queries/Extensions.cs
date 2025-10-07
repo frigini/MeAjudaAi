@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-
 namespace MeAjudaAi.Shared.Queries;
 
 internal static class Extensions
@@ -9,7 +8,7 @@ internal static class Extensions
         services.AddSingleton<IQueryDispatcher, QueryDispatcher>();
 
         services.Scan(scan => scan
-            .FromAssembliesOf(typeof(IQuery<>))
+            .FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
             .AddClasses(classes => classes.AssignableTo(typeof(IQueryHandler<,>)))
             .AsImplementedInterfaces()
             .WithScopedLifetime());

@@ -1,0 +1,56 @@
+# Standalone PostgreSQL for development
+# Basic PostgreSQL setup for when you only need the database
+# 
+# REQUIRED: Set POSTGRES_PASSWORD before running
+# Usage: 
+#   export POSTGRES_PASSWORD=your-secure-password
+#   docker compose -f standalone/postgres-only.yml up -d
+# 
+# Or use .env file:
+#   echo "POSTGRES_PASSWORD=your-secure-password" > .env
+#   docker compose -f standalone/postgres-only.yml up -d
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: meajudaai-postgres-standalone
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-MeAjudaAi}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD environment variable}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_standalone_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Development-only service with sample data
+  postgres-dev:
+    image: postgres:16
+    container_name: meajudaai-postgres-dev-standalone
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-MeAjudaAi}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD environment variable}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_standalone_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d  # Sample data only in dev
+    profiles:
+      - development
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_standalone_data:
+    name: meajudaai-postgres-standalone-data

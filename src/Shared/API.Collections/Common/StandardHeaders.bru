@@ -1,0 +1,50 @@
+headers {
+  # 🔧 STANDARD HEADERS - Common across all API requests
+  # These headers are automatically included in all requests
+  
+  # === CONTENT TYPE ===
+  Content-Type: application/json
+  
+  # === ACCEPT ===
+  Accept: application/json
+  
+  # === AUTHORIZATION (Optional - override when needed) ===
+  # Authorization: {{tokenType}} {{accessToken}}
+  
+  # === CACHE CONTROL ===
+  Cache-Control: no-cache
+  
+  # === USER AGENT ===
+  User-Agent: Bruno API Client - MeAjudaAi
+  
+  # === REQUEST ID (For tracing) ===
+  X-Request-ID: {{$uuid}}
+  
+  # === API VERSION ===
+  X-API-Version: {{apiVersion}}
+  
+  # === TIMESTAMP ===
+  X-Request-Timestamp: {{$timestamp}}
+}
+
+script:post-response {
+  # 📊 COMMON POST-RESPONSE LOGIC
+  # This script runs after every request using these headers
+  
+  // Log response info
+  console.log(`Response Status: ${res.status}`);
+  console.log(`Response Time: ${res.responseTime}ms`);
+  
+  // Handle common errors
+  if (res.status >= 400) {
+    console.warn(`⚠️ API Error ${res.status}:`, res.body);
+  }
+  
+  // Extract and store common response data
+  if (res.body && res.body.data) {
+    bru.setVar("lastResponseData", JSON.stringify(res.body.data));
+  }
+  
+  // Store response timestamp for future reference
+  bru.setVar("lastResponseTime", new Date().toISOString());
+}

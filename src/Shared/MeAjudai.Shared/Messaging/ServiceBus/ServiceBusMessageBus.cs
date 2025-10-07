@@ -1,8 +1,8 @@
 ﻿using Azure.Messaging.ServiceBus;
+using MeAjudaAi.Shared.Time;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -21,12 +21,12 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
     public ServiceBusMessageBus(
         ServiceBusClient client,
         ITopicStrategySelector topicStrategySelector,
-        IOptions<MessageBusOptions> options,
+        MessageBusOptions options,
         ILogger<ServiceBusMessageBus> logger)
     {
         _client = client;
         _topicStrategySelector = topicStrategySelector;
-        _options = options.Value;
+        _options = options;
         _logger = logger;
         _jsonOptions = new JsonSerializerOptions
         {
@@ -162,7 +162,7 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
         {
             ContentType = "application/json",
             Subject = typeof(T).Name,
-            MessageId = Guid.NewGuid().ToString(),
+            MessageId = UuidGenerator.NewIdString(),
             TimeToLive = _options.DefaultTimeToLive
         };
 

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <!-- Disable parallel test execution -->
+    <MaxCpuCount>1</MaxCpuCount>
+    
+    <!-- Test timeout in milliseconds (15 minutes for sequential) -->
+    <TestSessionTimeout>900000</TestSessionTimeout>
+    
+    <!-- Disable app domains for better performance -->
+    <DisableAppDomain>true</DisableAppDomain>
+  </RunConfiguration>
+  
+  <xUnit>
+    <!-- xUnit sequential execution settings -->
+    <ParallelizeTestCollections>false</ParallelizeTestCollections>
+    <ParallelizeAssembly>false</ParallelizeAssembly>
+    <MaxParallelThreads>1</MaxParallelThreads>
+  </xUnit>
+  
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <!-- Code coverage data collector -->
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

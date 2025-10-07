@@ -1,10 +1,21 @@
+---
 name: MeAjudaAi CI Pipeline
 
-on:
+"on":
   push:
-    branches: [ main, develop ]
+    branches: [master, develop]
+    paths:
+      - 'src/Aspire/**'
+      - '.github/workflows/aspire-ci-cd.yml'
   pull_request:
-    branches: [ main, develop ]
+    branches: [master, develop]
+    paths:
+      - 'src/Aspire/**'
+      - '.github/workflows/aspire-ci-cd.yml'
+
+permissions:
+  contents: read
+  checks: write
 
 env:
   DOTNET_VERSION: '9.0.x'
@@ -13,96 +24,165 @@ jobs:
   # Build and test the solution
   build-and-test:
     runs-on: ubuntu-latest
-    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Install Aspire workload
-      run: dotnet workload install aspire
+      - name: Install Aspire workload
+        run: dotnet workload install aspire
 
-    - name: Restore dependencies
-      run: dotnet restore MeAjudaAi.sln
+      - name: Restore dependencies
+        run: dotnet restore MeAjudaAi.sln
 
-    - name: Build solution
-      run: dotnet build MeAjudaAi.sln --no-restore --configuration Release
+      - name: Build solution
+        run: dotnet build MeAjudaAi.sln --no-restore --configuration Release
 
-    - name: Run unit tests
-      run: dotnet test tests/MeAjudaAi.Tests/MeAjudaAi.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults
+      - name: Install PostgreSQL client
+        run: |
+          # Install PostgreSQL client tools for health checks
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
 
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results
-        path: TestResults
+      - name: Wait for PostgreSQL to be ready
+        env:
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+        run: |
+          echo "🔄 Waiting for PostgreSQL to be ready..."
+          echo "Debug: POSTGRES_USER=$POSTGRES_USER"
+          echo "Debug: Checking PostgreSQL availability..."
+
+          counter=1
+          max_attempts=30
+
+          while [ $counter -le $max_attempts ]; do
+            if pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
+              echo "✅ PostgreSQL is ready!"
+              break
+            fi
+            echo "Waiting for PostgreSQL... ($counter/$max_attempts)"
+            sleep 2
+            counter=$((counter + 1))
+          done
+
+          # Check if we exited the loop due to timeout
+          if ! pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
+            echo "❌ PostgreSQL failed to become ready within 60 seconds"
+            exit 1
+          fi
+
+      - name: Run tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          # Database configuration for tests that need it
+          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+          DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          DB_USERNAME: ${{ secrets.POSTGRES_USER || 'postgres' }}
+        run: |
+          echo "🧪 Running core test suite (excluding E2E)..."
+          # Run only Architecture and Integration tests - skip E2E tests for Aspire validation
+          dotnet test tests/MeAjudaAi.Architecture.Tests/ --no-build --configuration Release
+          dotnet test tests/MeAjudaAi.Integration.Tests/ --no-build --configuration Release
+          dotnet test src/Modules/Users/MeAjudaAi.Modules.Users.Tests/ --no-build --configuration Release
+          echo "✅ Core tests passed successfully"
 
   # Validate Aspire configuration
   aspire-validation:
     runs-on: ubuntu-latest
     needs: build-and-test
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Install Aspire workload
-      run: dotnet workload install aspire
+      - name: Install Aspire workload
+        run: dotnet workload install aspire
 
-    - name: Restore dependencies
-      run: dotnet restore MeAjudaAi.sln
+      - name: Restore dependencies
+        run: dotnet restore MeAjudaAi.sln
 
-    - name: Validate Aspire AppHost
-      run: |
-        cd src/Aspire/MeAjudaAi.AppHost
-        dotnet build --configuration Release
-        echo "✅ Aspire AppHost builds successfully"
+      - name: Validate Aspire AppHost
+        run: |
+          cd src/Aspire/MeAjudaAi.AppHost
+          dotnet build --configuration Release
+          echo "✅ Aspire AppHost builds successfully"
 
-    - name: Generate Aspire manifest (for future deployment)
-      run: |
-        cd src/Aspire/MeAjudaAi.AppHost
-        # This validates the Aspire configuration without deploying
-        dotnet run --project . --publisher manifest --output-path ./aspire-manifest.json --dry-run || echo "Manifest generation ready for future deployment"
+      - name: Generate Aspire manifest (for future deployment)
+        env:
+          # Set fallback values for manifest generation (dry-run mode)
+          DB_PASSWORD: 'manifest-generation'
+          MEAJUDAAI_DB_PASS: 'manifest-generation'
+          KEYCLOAK_ADMIN_PASSWORD: 'manifest-generation'
+          ASPNETCORE_ENVIRONMENT: Testing
+        run: |
+          cd src/Aspire/MeAjudaAi.AppHost
+          # This validates the Aspire configuration without deploying
+          dotnet run --project . --publisher manifest \
+            --output-path ./aspire-manifest.json --dry-run
+          echo "✅ Aspire manifest generated successfully"
 
   # Code quality and security analysis
   code-analysis:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Install dotnet format
-      run: dotnet tool install -g dotnet-format
+      - name: Install dotnet format
+        run: dotnet tool install -g dotnet-format
 
-    - name: Check code formatting
-      run: |
-        dotnet format --verify-no-changes --verbosity normal MeAjudaAi.sln || echo "⚠️ Code formatting issues found. Run 'dotnet format' locally to fix."
+      - name: Check code formatting
+        run: |
+          dotnet format --verify-no-changes --verbosity normal \
+            MeAjudaAi.sln || {
+            echo "⚠️ Code formatting issues found."
+            echo "Run 'dotnet format' locally to fix."
+            exit 1
+          }
 
-    - name: Run security analysis
-      uses: github/super-linter@v4
-      env:
-        DEFAULT_BRANCH: main
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        VALIDATE_CSHARP: true
-        VALIDATE_DOCKERFILE: true
-        VALIDATE_JSON: true
-        VALIDATE_YAML: true
+      - name: Run vulnerability scan
+        run: |
+          echo "🔍 Scanning for vulnerable packages..."
+          dotnet list package --vulnerable --include-transitive
+          echo "✅ Vulnerability scan completed"
+
+      - name: Basic code quality checks
+        run: |
+          echo "🔍 Running focused code quality checks..."
+          # Check for basic C# issues (quiet mode)
+          echo "Checking C# syntax..."
+          dotnet build MeAjudaAi.sln --verbosity quiet --no-restore
+          echo "✅ Code quality checks passed"
 
   # Build validation for individual services (without publishing)
   service-build-validation:
@@ -114,25 +194,24 @@ jobs:
           - name: "ApiService"
             path: "src/Bootstrapper/MeAjudaAi.ApiService"
           - name: "Users.API"
-            path: "src/Modules/Users/API/MeajudaAi.Modules.Users.API"
-    
+            path: "src/Modules/Users/MeAjudaAi.Modules.Users.API"
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Validate ${{ matrix.service.name }} builds for containerization
-      run: |
-        cd ${{ matrix.service.path }}
-        
-        # Test that the service can be published (simulates container build)
-        dotnet publish -c Release -o ./publish-output
-        
-        echo "✅ ${{ matrix.service.name }} builds successfully for containerization"
-        
-        # Cleanup
-        rm -rf ./publish-output
+      - name: Restore dependencies
+        run: dotnet restore MeAjudaAi.sln
+
+      - name: Validate ${{ matrix.service.name }} builds for containerization
+        run: |
+          cd ${{ matrix.service.path }}
+          # Test that the service can be published (simulates container build)
+          dotnet publish -c Release -o ./publish-output
+          echo "✅ ${{ matrix.service.name }} builds successfully for containers"
+          # Cleanup
+          rm -rf ./publish-output

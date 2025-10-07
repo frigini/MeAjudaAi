@@ -1,0 +1,61 @@
+# Gitleaks configuration for MeAjudaAi project
+# https://github.com/gitleaks/gitleaks
+
+title = "MeAjudaAi Gitleaks Config"
+
+[extend]
+# Extend the default Gitleaks ruleset
+useDefault = true
+
+# Custom rules for .NET/C# projects
+[[rules]]
+id = "dotnet-connection-string"
+description = "Detects potentially sensitive connection strings"
+regex = '''(?i)(connectionstring|connstring)\s*=\s*["']([^"']*(?:password|pwd|secret|key)[^"']*)["']'''
+keywords = ["connectionstring", "connstring", "password", "pwd"]
+
+[[rules]]
+id = "appsettings-secrets"
+description = "Detects secrets in appsettings files"
+regex = '''(?i)["']?(apikey|api_key|secret|password|token|connectionstring)["']?\s*:\s*["']([a-zA-Z0-9+/=]{20,})["']'''
+keywords = ["apikey", "secret", "password", "token", "connectionstring"]
+path = '''appsettings.*\.json$'''
+
+[[rules]]
+id = "keycloak-secrets"
+description = "Detects Keycloak client secrets"
+regex = '''(?i)(client[_-]?secret|keycloak[_-]?secret)\s*[:=]\s*["']?([a-zA-Z0-9\-_]{20,})["']?'''
+keywords = ["client_secret", "client-secret", "keycloak"]
+
+# Allowlist for known false positives
+[allowlist]
+description = "Allowlist for MeAjudaAi project"
+
+# Path-based allowlist - only directories/files used for tests and samples
+paths = [
+    # Test and mock directories only
+    '''(^|.*/)tests?/.*''',
+    '''(^|.*/)mocks?/.*''',
+    '''(^|.*/)examples?/.*''',
+    '''(^|.*/)samples?/.*''',
+    # Infrastructure template files only (not real config files)
+    '''infrastructure/.*\.example$''',
+    '''infrastructure/.*\.template$''',
+    # Docker template files only (not real compose files)
+    '''docker-compose\..*\.example\.yml$''',
+    '''docker-compose\..*\.template\.yml$''',
+    '''docker-compose\..*\.sample\.yml$''',
+    # Configuration template files only
+    '''appsettings\.template\.json$''',
+    '''appsettings\.example\.json$''',
+    # Documentation samples only (not all docs)
+    '''(^|.*/)docs/(samples?|examples?)/.*''',
+    '''(^|.*/)docs/.*\.example\..*''',
+    '''(^|.*/)docs/.*\.template\..*'''
+]
+
+# Content-based regex allowlist - only for placeholder values
+regexes = [
+    # Template placeholder patterns only
+    '''(your[_-]?secret[_-]?here|placeholder|example[_-]?value|change[_-]?me|replace[_-]?with)'''
+]

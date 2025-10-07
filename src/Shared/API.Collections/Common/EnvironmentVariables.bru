@@ -1,0 +1,27 @@
+vars {
+  # Ambientes
+  baseUrl: {{process.env.API_BASE_URL || "http://localhost:5000"}}
+  keycloakUrl: {{process.env.KEYCLOAK_URL || "http://localhost:8080"}}
+  
+  # Auth
+  realm: meajudaai-realm
+  clientId: meajudaai-client
+  adminUser: {{process.env.ADMIN_USER || "admin"}}
+  adminPassword: {{process.env.ADMIN_PASSWORD || "admin123"}}
+  
+  # Runtime tokens (preenchidos via scripts)
+  accessToken: 
+  refreshToken:
+  
+  # Test data (gerados dinamicamente)
+  userId: 
+  testEmail: test-{{randomUuid()}}@example.com
+  testUsername: testuser-{{randomUuid()}}
+  
+  # API versioning
+  apiVersion: v1
+  
+  # Request defaults  
+  contentType: application/json
+  userAgent: MeAjudaAi-BrunoClient/1.0
+}
