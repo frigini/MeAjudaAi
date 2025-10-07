@@ -259,7 +259,9 @@ jobs:
               # Find and rename the coverage file to a predictable name
               if [ -d "$MODULE_COVERAGE_DIR" ]; then
                 # Look for both opencover and cobertura formats
-                COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" -type f | head -1)
+                COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" \
+                  -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" \
+                  -type f | head -1)
                 if [ -f "$COVERAGE_FILE" ]; then
                   # Copy to standardized name based on original format
                   if [[ "$COVERAGE_FILE" == *"cobertura"* ]]; then
@@ -367,11 +369,12 @@ jobs:
           done
 
           # Find coverage files in nested directories and copy to module directories
-          find ./coverage -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" -type f | while read -r file; do
+          find ./coverage -name "coverage.opencover.xml" \
+            -o -name "coverage.cobertura.xml" -type f | while read -r file; do
             # Get the module directory (should be like ./coverage/users/)
             module_dir=$(echo "$file" | sed 's|coverage/\([^/]*\)/.*|coverage/\1|')
             module_name=$(basename "$module_dir")
-            
+
             # Determine target file based on source format
             if [[ "$file" == *"cobertura"* ]]; then
               target_file="$module_dir/$module_name.cobertura.xml"
@@ -421,7 +424,10 @@ jobs:
 
       - name: Fallback Coverage Summary (any XML)
         id: coverage_fallback
-        if: ${{ always() && steps.coverage_opencover.outcome != 'success' && steps.coverage_cobertura.outcome != 'success' }}
+        if: >-
+          ${{ always() &&
+              steps.coverage_opencover.outcome != 'success' &&
+              steps.coverage_cobertura.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: 'coverage/**/*.xml'
@@ -477,13 +483,19 @@ jobs:
           message: |
             ## 📊 Code Coverage Report
 
-            ${{ steps.coverage_opencover.outputs.summary || steps.coverage_cobertura.outputs.summary || steps.coverage_fallback.outputs.summary }}
+            ${{ steps.coverage_opencover.outputs.summary ||
+                steps.coverage_cobertura.outputs.summary ||
+                steps.coverage_fallback.outputs.summary }}
 
             ### 📈 Coverage Details
-            - **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge || steps.coverage_cobertura.outputs.badge || steps.coverage_fallback.outputs.badge }}
+            - **Coverage badges**: ${{ steps.coverage_opencover.outputs.badge ||
+                                      steps.coverage_cobertura.outputs.badge ||
+                                      steps.coverage_fallback.outputs.badge }}
             - **Minimum threshold**: 70% (warning) / 85% (good)
             - **Report format**: Auto-detected from OpenCover/Cobertura XML files
-            - **Coverage source**: ${{ steps.coverage_opencover.outcome == 'success' && 'OpenCover' || steps.coverage_cobertura.outcome == 'success' && 'Cobertura' || 'Fallback XML' }}
+            - **Coverage source**: ${{ (steps.coverage_opencover.outcome == 'success' && 'OpenCover') ||
+                                      (steps.coverage_cobertura.outcome == 'success' && 'Cobertura') ||
+                                      'Fallback XML' }}
 
             ### 📋 Coverage Analysis
             - **Line Coverage**: Shows percentage of code lines executed during tests
