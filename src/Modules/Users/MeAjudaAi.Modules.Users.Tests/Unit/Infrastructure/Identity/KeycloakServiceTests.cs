@@ -217,24 +217,79 @@ public class KeycloakServiceTests
     public async Task AuthenticateAsync_WhenValidCredentials_ShouldReturnSuccess()
     {
         // Arrange
+        var jwtToken = CreateValidJwtToken();
         var tokenResponse = new KeycloakTokenResponse
         {
-            AccessToken = CreateValidJwtToken(),
+            AccessToken = jwtToken,
             ExpiresIn = 3600,
             RefreshToken = "refresh-token",
             TokenType = "Bearer"
         };
 
-        // Configura resposta simulando autentica��o bem-sucedida
+        // Configura resposta simulando autenticação bem-sucedida
         SetupHttpResponse(HttpStatusCode.OK, JsonSerializer.Serialize(tokenResponse));
 
         // Act
         var result = await _keycloakService.AuthenticateAsync("testuser", "password");
 
-        // Assert
+        // Assert with detailed error message for CI debugging
+        if (result.IsFailure)
+        {
+            var errorDetails = $"Authentication failed. Error: {result.Error?.Message ?? "Unknown"}, " +
+                             $"JWT Token Length: {jwtToken.Length}, " +
+                             $"Token starts with: {(jwtToken.Length > 50 ? jwtToken.Substring(0, 50) : jwtToken)}...";
+            Assert.Fail(errorDetails);
+        }
+
+        result.IsSuccess.Should().BeTrue("Authentication should succeed with valid credentials");
+        result.Value!.AccessToken.Should().Be(tokenResponse.AccessToken);
+        result.Value.UserId.Should().NotBe(Guid.Empty, "UserId should be extracted from JWT token");
+    }
+
+    [Fact]
+    public async Task AuthenticateAsync_DiagnosticTest_ShouldShowDetails()
+    {
+        // Arrange
+        var jwtToken = CreateValidJwtToken();
+        var tokenResponse = new KeycloakTokenResponse
+        {
+            AccessToken = jwtToken,
+            ExpiresIn = 3600,
+            RefreshToken = "refresh-token",
+            TokenType = "Bearer"
+        };
+
+        // Decode JWT payload to check structure for debugging
+        var parts = jwtToken.Split('.');
+        string payloadInfo = "Invalid JWT structure";
+        if (parts.Length > 1)
+        {
+            try
+            {
+                var payload = Encoding.UTF8.GetString(Convert.FromBase64String(parts[1] + "=="));
+                payloadInfo = payload;
+            }
+            catch
+            {
+                payloadInfo = "Failed to decode JWT payload";
+            }
+        }
+
+        SetupHttpResponse(HttpStatusCode.OK, JsonSerializer.Serialize(tokenResponse));
+
+        // Act
+        var result = await _keycloakService.AuthenticateAsync("testuser", "password");
+
+        // Assert with detailed debugging information
+        if (result.IsFailure)
+        {
+            var debugInfo = $"Diagnostic Test Failed. " +
+                          $"JWT Payload: {payloadInfo}, " +
+                          $"Error: {result.Error?.Message ?? "None"}";
+            Assert.Fail(debugInfo);
+        }
+
         result.IsSuccess.Should().BeTrue();
-        result.Value.AccessToken.Should().Be(tokenResponse.AccessToken);
-        result.Value.UserId.Should().NotBe(Guid.Empty);
     }
 
     [Fact]
