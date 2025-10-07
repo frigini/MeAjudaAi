@@ -1,0 +1,128 @@
+# yamllint disable rule:document-start
+# Complete development environment for MeAjudaAi
+# Includes all necessary services for local development
+# Usage: docker compose -f environments/development.yml up -d
+#
+# SECURITY WARNING: This file contains weak default passwords for local development only.
+# REQUIRED: Set KEYCLOAK_ADMIN_PASSWORD and RABBITMQ_PASS before running
+# Generate passwords with: openssl rand -base64 32
+# For shared, staging, or production environments, set secure passwords using:
+#   POSTGRES_PASSWORD=strong-password
+#   KEYCLOAK_DB_PASSWORD=strong-password  
+#   KEYCLOAK_ADMIN_PASSWORD=strong-password
+#   RABBITMQ_PASS=strong-password
+# See .env.example for complete configuration.
+
+services:
+  # Main database
+  postgres:
+    image: postgres:16
+    container_name: meajudaai-postgres-dev
+    environment:
+      POSTGRES_DB: MeAjudaAi
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD environment variable}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../../database:/docker-entrypoint-initdb.d
+    networks:
+      - meajudaai-network
+
+  # Keycloak with its own database
+  keycloak-db:
+    image: postgres:16
+    container_name: meajudaai-keycloak-db-dev
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD must be set}
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    networks:
+      - meajudaai-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}
+    container_name: meajudaai-keycloak-dev
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Missing KEYCLOAK_ADMIN_PASSWORD environment variable}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD must be set}
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+    command: ["start-dev", "--import-realm"]  # Override base production command for development
+    ports:
+      - "8080:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ../../keycloak/realms:/opt/keycloak/data/import
+    depends_on:
+      - keycloak-db
+    networks:
+      - meajudaai-network
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: meajudaai-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - meajudaai-network
+
+  # RabbitMQ for messaging
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: meajudaai-rabbitmq-dev
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-meajudaai}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:?Missing RABBITMQ_PASS environment variable}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ../../rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    networks:
+      - meajudaai-network
+
+  # PgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: meajudaai-pgadmin-dev
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:?PGADMIN_DEFAULT_EMAIL required}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?PGADMIN_DEFAULT_PASSWORD required}
+    ports:
+      - "8081:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - meajudaai-network
+
+volumes:
+  postgres_data:
+    name: meajudaai-postgres-data-dev
+  keycloak_db_data:
+    name: meajudaai-keycloak-db-data-dev
+  keycloak_data:
+    name: meajudaai-keycloak-data-dev
+  redis_data:
+    name: meajudaai-redis-data-dev
+  rabbitmq_data:
+    name: meajudaai-rabbitmq-data-dev
+  pgadmin_data:
+    name: meajudaai-pgadmin-data-dev
+
+networks:
+  meajudaai-network:
+    name: meajudaai-network-dev
+    driver: bridge

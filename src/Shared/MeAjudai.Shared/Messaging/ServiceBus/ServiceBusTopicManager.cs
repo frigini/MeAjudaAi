@@ -1,18 +1,17 @@
 ﻿using Azure.Messaging.ServiceBus.Administration;
 using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.Shared.Messaging.ServiceBus;
 
 public class ServiceBusTopicManager(
     ServiceBusAdministrationClient adminClient,
-    IOptions<ServiceBusOptions> options,
+    ServiceBusOptions options,
     IEventTypeRegistry eventRegistry,
     ITopicStrategySelector topicSelector,
     ILogger<ServiceBusTopicManager> logger) : IServiceBusTopicManager
 {
-    private readonly ServiceBusOptions _options = options.Value;
+    private readonly ServiceBusOptions _options = options;
 
     public async Task EnsureTopicsExistAsync(CancellationToken cancellationToken = default)
     {

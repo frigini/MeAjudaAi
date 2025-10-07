@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "configurations": [
+    {
+      "name": "default",
+      "reportTypes": ["Html", "Cobertura", "JsonSummary", "TextSummary"],
+      "targetdir": "TestResults/Coverage",
+      "reporttitle": "MeAjudaAi - Code Coverage Report",
+      "assemblyfilters": [
+        "-*.Tests*",
+        "-*.Testing*",
+        "-testhost*"
+      ],
+      "classfilters": [
+        "-*.Migrations*",
+        "-Program",
+        "-Startup"
+      ],
+      "filefilters": [
+        "-**/Migrations/**",
+        "-**/bin/**",
+        "-**/obj/**"
+      ],
+      "verbosity": "Info",
+      "tag": "main"
+    }
+  ]
+}

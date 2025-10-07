@@ -1,16 +1,17 @@
 ﻿using Azure.Monitor.OpenTelemetry.AspNetCore;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using System.Text.Json;
-using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.ServiceDefaults;
 
@@ -90,19 +91,27 @@ public static class Extensions
     {
         var config = builder.Configuration;
 
-        var useOtlpExporter = !string.IsNullOrWhiteSpace(config["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+        // OTEL Configuration via Environment Variables
+        var otlpEndpoint = config["OTEL_EXPORTER_OTLP_ENDPOINT"] ??
+                          Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+
+        var applicationInsightsConnectionString = config["APPLICATIONINSIGHTS_CONNECTION_STRING"] ??
+                                                Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+
+        // Use OTLP Exporter if endpoint is configured
+        var useOtlpExporter = !string.IsNullOrWhiteSpace(otlpEndpoint);
 
         if (useOtlpExporter)
         {
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
-        var appInsightsConnectionString = config["APPLICATIONINSIGHTS_CONNECTION_STRING"];
-        if (!string.IsNullOrEmpty(appInsightsConnectionString))
+        // Use Azure Monitor if Application Insights is configured
+        if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
         {
             builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
             {
-                options.ConnectionString = appInsightsConnectionString;
+                options.ConnectionString = applicationInsightsConnectionString;
             });
         }
 
@@ -111,7 +120,7 @@ public static class Extensions
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment() || IsTestingEnvironment())
         {
             app.MapHealthChecks("/health", new HealthCheckOptions
             {
@@ -170,15 +179,47 @@ public static class Extensions
                 exception = entry.Value.Exception?.Message,
                 data = entry.Value.Data.Count > 0 ? entry.Value.Data : null
             }).ToArray()
-        }, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = isDevelopment
-        });
+        }, SerializationDefaults.HealthChecks(isDevelopment));
 
         context.Response.ContentType = "application/json";
         context.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
 
         await context.Response.WriteAsync(result);
+    }
+
+    /// <summary>
+    /// Determines if the current environment is Testing using the same precedence as AppHost EnvironmentHelpers
+    /// </summary>
+    private static bool IsTestingEnvironment()
+    {
+        // Check DOTNET_ENVIRONMENT first, then fallback to ASPNETCORE_ENVIRONMENT (same precedence as EnvironmentHelpers)
+        var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        var aspnetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var envName = !string.IsNullOrEmpty(dotnetEnv) ? dotnetEnv : aspnetEnv;
+
+        if (!string.IsNullOrEmpty(envName) &&
+            string.Equals(envName, "Testing", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // Check INTEGRATION_TESTS environment variable with robust boolean parsing
+        var integrationTestsValue = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+        if (!string.IsNullOrEmpty(integrationTestsValue))
+        {
+            // Handle both "true"/"false" and "1"/"0" patterns case-insensitively
+            if (bool.TryParse(integrationTestsValue, out var boolResult))
+            {
+                return boolResult;
+            }
+
+            // Handle "1" as true (common in CI/CD environments)
+            if (string.Equals(integrationTestsValue, "1", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

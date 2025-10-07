@@ -1,13 +1,12 @@
-﻿using Serilog;
-using Serilog.Events;
+﻿using MeAjudaAi.Shared.Time;
 using System.Diagnostics;
 
 namespace MeAjudaAi.ApiService.Middlewares;
 
-public class RequestLoggingMiddleware(RequestDelegate next)
+public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger)
 {
     private readonly RequestDelegate _next = next;
-    private readonly Serilog.ILogger _logger = Log.ForContext<RequestLoggingMiddleware>();
+    private readonly ILogger<RequestLoggingMiddleware> _logger = logger;
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -19,7 +18,7 @@ public class RequestLoggingMiddleware(RequestDelegate next)
         }
 
         var stopwatch = Stopwatch.StartNew();
-        var requestId = Guid.NewGuid().ToString();
+        var requestId = UuidGenerator.NewIdString();
         var clientIp = GetClientIpAddress(context);
         var userAgent = context.Request.Headers.UserAgent.ToString();
         var userId = GetUserId(context);
@@ -27,12 +26,15 @@ public class RequestLoggingMiddleware(RequestDelegate next)
         // Adiciona o RequestId no contexto para outros middlewares/endpoints
         context.Items["RequestId"] = requestId;
 
-        var logger = _logger.ForContext("RequestId", requestId)
-                            .ForContext("ClientIp", clientIp)
-                            .ForContext("UserAgent", userAgent)
-                            .ForContext("UserId", userId);
+        using var scope = _logger.BeginScope(new Dictionary<string, object>
+        {
+            ["RequestId"] = requestId,
+            ["ClientIp"] = clientIp,
+            ["UserAgent"] = userAgent,
+            ["UserId"] = userId
+        });
 
-        logger.Information(
+        _logger.LogInformation(
             "Starting request {Method} {Path} {QueryString} from {ClientIp} User: {UserId}",
             context.Request.Method,
             context.Request.Path,
@@ -47,7 +49,7 @@ public class RequestLoggingMiddleware(RequestDelegate next)
         }
         catch (Exception ex)
         {
-            logger.Error(ex,
+            _logger.LogError(ex,
                 "Request {Method} {Path} failed with exception: {ExceptionMessage}",
                 context.Request.Method,
                 context.Request.Path,
@@ -59,14 +61,39 @@ public class RequestLoggingMiddleware(RequestDelegate next)
         {
             stopwatch.Stop();
 
-            var level = GetLogLevel(context.Response.StatusCode);
-            logger.Write(level,
-                "Completed request {Method} {Path} with status {StatusCode} in {ElapsedMs}ms",
-                context.Request.Method,
-                context.Request.Path,
-                context.Response.StatusCode,
-                stopwatch.ElapsedMilliseconds
-            );
+            var statusCode = context.Response.StatusCode;
+            var elapsedMs = stopwatch.ElapsedMilliseconds;
+
+            if (statusCode >= 500)
+            {
+                _logger.LogError(
+                    "Completed request {Method} {Path} with status {StatusCode} in {ElapsedMs}ms",
+                    context.Request.Method,
+                    context.Request.Path,
+                    statusCode,
+                    elapsedMs
+                );
+            }
+            else if (statusCode >= 400)
+            {
+                _logger.LogWarning(
+                    "Completed request {Method} {Path} with status {StatusCode} in {ElapsedMs}ms",
+                    context.Request.Method,
+                    context.Request.Path,
+                    statusCode,
+                    elapsedMs
+                );
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Completed request {Method} {Path} with status {StatusCode} in {ElapsedMs}ms",
+                    context.Request.Method,
+                    context.Request.Path,
+                    statusCode,
+                    elapsedMs
+                );
+            }
         }
     }
 
@@ -104,15 +131,5 @@ public class RequestLoggingMiddleware(RequestDelegate next)
         return context.User?.FindFirst("sub")?.Value ??
                context.User?.FindFirst("id")?.Value ??
                "anonymous";
-    }
-
-    private static LogEventLevel GetLogLevel(int statusCode)
-    {
-        return statusCode switch
-        {
-            >= 500 => LogEventLevel.Error,
-            >= 400 => LogEventLevel.Warning,
-            _ => LogEventLevel.Information
-        };
     }
 }

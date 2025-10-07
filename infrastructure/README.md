@@ -1,224 +1,230 @@
 # MeAjudaAi Infrastructure
 
-This folder contains the Azure infrastructure as code (Bicep templates) and CI/CD pipeline configuration for the MeAjudaAi project.
+This directory contains the infrastructure configuration for the MeAjudaAi platform.
 
-## 🏗️ Infrastructure Components
+## 🔒 Security Requirements
 
-- **Azure Service Bus Standard**: Message queuing and pub/sub messaging
-- **Authorization Rules**: Separate policies for management and application access
-- **Resource Groups**: Environment-specific resource organization
+**Before starting any environment**, you must configure secure credentials:
 
-## 📁 Structure
-
-```
-infrastructure/
-├── main.bicep              # Main infrastructure template
-├── servicebus.bicep        # Service Bus configuration
-├── deploy.sh              # Deployment script
-└── README.md              # This file
-```
-
-## 🚀 CI/CD Pipeline
-
-### GitHub Actions Workflows
-
-1. **`ci-cd.yml`** - Main deployment pipeline
-   - Builds and tests .NET application
-   - Validates Bicep templates
-   - Deploys to different environments based on branch/manual trigger
-
-2. **`pr-validation.yml`** - Pull request validation
-   - Code quality checks
-   - Security scanning
-   - Infrastructure validation
-
-### 🔧 Setup Instructions
-
-#### 1. Azure Service Principal Setup
-
-Create a service principal for GitHub Actions:
-
-```bash
-# Login to Azure
-az login
-
-# Create service principal
-az ad sp create-for-rbac \
-  --name "meajudaai-github-actions" \
-  --role "Contributor" \
-  --scopes "/subscriptions/YOUR_SUBSCRIPTION_ID" \
-  --sdk-auth
-```
-
-#### 2. GitHub Secrets Configuration
-
-Add these secrets to your GitHub repository (`Settings > Secrets and variables > Actions`):
-
-| Secret Name | Value | Description |
-|-------------|-------|-------------|
-| `AZURE_CREDENTIALS` | Service principal JSON output | Azure authentication credentials |
-
-Example `AZURE_CREDENTIALS` format:
-```json
-{
-  "clientId": "your-client-id",
-  "clientSecret": "your-client-secret",
-  "subscriptionId": "your-subscription-id",
-  "tenantId": "your-tenant-id"
-}
-```
-
-#### 3. GitHub Environments Setup
-
-Create these environments in GitHub (`Settings > Environments`):
-
-- **development** - Auto-deploys from `develop` branch
-- **staging** - Auto-deploys from `main` branch  
-- **production** - Manual approval required
-
-### 🌍 Environment (Dev-Only Setup)
-
-| Environment | Resource Group | Trigger | Cost Impact |
-|-------------|---------------|---------|-------------|
-| Development | `meajudaai-dev` | Push to `develop` or manual | ~$10/month |
-
-**Note**: This setup is optimized for local development. You can easily add staging/production environments later when needed.
-
-## 🚀 Usage
-
-### Automatic Deployments
-
-- **Development**: Push to `develop` branch
-- **Staging**: Push to `main` branch
-- **Production**: Use "Run workflow" button in GitHub Actions
-
-### Manual Deployments
-
-1. **Via GitHub Actions UI**:
-   - Go to Actions tab
-   - Select "CI/CD Pipeline"
-   - Click "Run workflow"
-   - Choose environment and options
-
-2. **Local Development**:
+1. **Copy the environment template**:
    ```bash
-   # Make script executable (Linux/Mac)
-   chmod +x infrastructure/deploy.sh
-   
-   # Deploy to development
-   ./infrastructure/deploy.sh dev brazilsouth
-   
-   # Deploy to production with custom resource group
-   ./infrastructure/deploy.sh prod brazilsouth meajudaai-prod-custom
+   cp compose/environments/.env.example compose/environments/.env
    ```
 
-## 💰 Cost Management
+2. **Set secure passwords** for all services in `.env`:
+   - `POSTGRES_PASSWORD` - Main database password
+   - `KEYCLOAK_DB_PASSWORD` - Keycloak database password  
+   - `KEYCLOAK_ADMIN_PASSWORD` - Keycloak admin password
+   - `PGADMIN_DEFAULT_EMAIL` - PgAdmin login email
+   - `PGADMIN_DEFAULT_PASSWORD` - PgAdmin login password
+   - `RABBITMQ_USER` - RabbitMQ username (optional, defaults if not set)
+   - `RABBITMQ_PASS` - RabbitMQ password
 
-### Current Costs (per environment):
-- **Service Bus Standard**: ~$9.81 USD/month
-- **Resource Group**: Free
-- **Total per environment**: ~$10 USD/month
+3. **Security Guidelines**:
+   - Use different passwords for each service
+   - Passwords should be at least 16 characters with mixed characters
+   - Never commit `.env` files with real credentials
+   - Use a password manager for secure generation and storage
+   - Populate all credential fields before running docker compose
 
-### Cost Optimization Tips:
-1. **Delete dev resources** when not in use
-2. **Use cleanup workflow** for temporary testing
-3. **Monitor usage** with Azure Cost Management
-4. **Consider Service Bus Basic** (~$5/month) for development
+⚠️ **Docker Compose will fail to start** if these environment variables are not set, preventing accidental deployment with default/weak credentials.
 
-### Cleanup Commands:
-```bash
-# Delete entire environment
-az group delete --name meajudaai-dev --yes --no-wait
+## Docker Compose Services
 
-# Or use the GitHub Actions cleanup job
+### Keycloak Authentication
+
+**Version Management**: 
+- **All environments use pinned versions**: No `:latest` tags for reproducibility
+- **Current default**: `26.0.2`
+- **Consistent across environments**: Development, testing, and production use same `KEYCLOAK_VERSION`
+- **Override capability**: Set `KEYCLOAK_VERSION` environment variable to use different version
+- **Testing and Upgrades**:
+  - Always test new Keycloak versions in development first
+  - Check [Keycloak Release Notes](https://www.keycloak.org/docs/latest/release_notes/index.html) for breaking changes
+  - Update the default version in `.env.example` after validation
+  - **When updating**: Change `KEYCLOAK_VERSION` in all environment files simultaneously
+
+**HTTP/HTTPS Configuration**:
+- **Development**: HTTP enabled for convenience (`KC_HTTP_ENABLED=true`)
+- **Production**: HTTP enabled internally, HTTPS enforced at proxy level (`KC_PROXY=edge`)
+- **Testing**: HTTP enabled for test environment simplicity
+- All environments include `--import-realm` flag for automatic realm setup
+
+### Environment Configuration
+
+Copy `.env.example` to `.env` and configure:
+
+```dotenv
+# Keycloak Version (Production Stable)
+KEYCLOAK_VERSION=26.0.2
+
+# Keycloak Admin Configuration (REQUIRED for all environments)
+KEYCLOAK_ADMIN=admin
+KEYCLOAK_ADMIN_PASSWORD="your-secure-admin-password-here"  # REQUIRED
+
+# Database Configuration (REQUIRED for production)
+POSTGRES_PASSWORD="your-secure-postgres-password-here"     # REQUIRED for prod
+KEYCLOAK_DB_PASSWORD="your-secure-keycloak-db-password-here"  # REQUIRED for prod
+
+# RabbitMQ Configuration (REQUIRED for production)
+RABBITMQ_USER=meajudaai
+RABBITMQ_PASS="your-secure-rabbitmq-password-here"         # REQUIRED for prod
+
+# Additional production variables
+KEYCLOAK_HOSTNAME="your-keycloak-domain.com"               # REQUIRED for prod
+RABBITMQ_ERLANG_COOKIE="your-secure-erlang-cookie-here"    # REQUIRED for prod
+
+# Other configuration variables...
 ```
 
-## 🔒 Security Best Practices
+### Development vs Production Security
 
-### ✅ Implemented:
-- No connection strings in deployment outputs
-- Separate authorization policies for different access levels
-- Environment-specific resource groups
-- Azure RBAC for service principal
+**Development Environment** (`development.yml`):
+- **REQUIRES** all password environment variables to be set (no defaults provided for security)
+- Required variables: `POSTGRES_PASSWORD`, `KEYCLOAK_DB_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`, `RABBITMQ_PASS`, `PGADMIN_DEFAULT_PASSWORD`
+- Some usernames have defaults (e.g., `RABBITMQ_USER` defaults to `meajudaai`, `KEYCLOAK_ADMIN` defaults to `admin`)
+- Suitable for local development with proper password configuration
+- **NEVER use weak passwords even for development environments**
 
-### 🔧 Secrets Management:
-- Connection strings retrieved at runtime
-- Use Azure Key Vault for production secrets (future enhancement)
-- No hardcoded values in templates
+**Production/Shared Environments**:
+- Use the same environment variables as development
+- Ensure all passwords are strong, unique, and securely generated
+- All services require secure credentials via `.env` file
 
-## 🛠️ Local Development
+**Security Notes**: 
+- **All password environment variables are required for Development and Production environments** (no defaults provided)
+- **Testing environment uses built-in defaults** for test services (e.g., `POSTGRES_TEST_PASSWORD=test123`, `KEYCLOAK_TEST_DB_PASSWORD=keycloak`, `KEYCLOAK_TEST_ADMIN_PASSWORD=admin`)
+- Required passwords for Development/Production: `POSTGRES_PASSWORD`, `KEYCLOAK_DB_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`, `RABBITMQ_PASS`, `PGADMIN_DEFAULT_PASSWORD`
+- The compose files will fail to start in Development/Production if these variables are not provided (intentional security design)
+- Use strong, unique passwords (≥16 characters) generated by a password manager
 
-For local testing without deploying infrastructure:
+**Important**: Add environment files to your `.gitignore`:
 
-```bash
-# Option 1: Deploy temporarily
-./infrastructure/deploy.sh dev brazilsouth
-# ... do your testing ...
-az group delete --name meajudaai-dev --yes
-
-# Option 2: Use local alternatives
-# - Azurite for Azure Storage emulation
-# - Local RabbitMQ for message queuing
-# - In-memory implementations for testing
+```gitignore
+# Infrastructure environment files
+infrastructure/.env
+infrastructure/*.env
+infrastructure/*.env.*
+infrastructure/**/.env*
+infrastructure/compose/environments/.env.*
 ```
 
-## 📊 Monitoring
+### Development Setup
 
-### Available Outputs:
-- Service Bus namespace name
-- Management policy name  
-- Application policy name
-- Service Bus endpoint URL
-- Resource group name
-- Deployment name
+**Required Before Starting Development Environment:**
 
-### Connection Strings:
-Retrieved securely via Azure CLI after deployment:
+1. **Generate Required Passwords:**
+   ```bash
+   # Generate all required secure passwords
+   export KEYCLOAK_ADMIN_PASSWORD="$(openssl rand -base64 32)"
+   export RABBITMQ_PASS="$(openssl rand -base64 32)"
+   export POSTGRES_PASSWORD="$(openssl rand -base64 32)"
+   export KEYCLOAK_DB_PASSWORD="$(openssl rand -base64 32)"
+   export PGADMIN_DEFAULT_PASSWORD="$(openssl rand -base64 32)"
+   export PGADMIN_DEFAULT_EMAIL="${PGADMIN_DEFAULT_EMAIL:-admin@localhost}"
+   
+   # Write all secrets to .env file with strict permissions
+   umask 077
+   cat > compose/environments/.env.development << EOF
+KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+RABBITMQ_PASS=${RABBITMQ_PASS}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+KEYCLOAK_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD}
+PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+EOF
+   chmod 600 compose/environments/.env.development
+   ```
+
+2. **Alternative: Create .env file manually:**
+   ```bash
+   # Copy the base template and edit for development
+   cp compose/environments/.env.example compose/environments/.env.development
+   
+   # Generate and set all required passwords in the file
+   # Required variables: KEYCLOAK_ADMIN_PASSWORD, RABBITMQ_PASS, 
+   # POSTGRES_PASSWORD, KEYCLOAK_DB_PASSWORD, PGADMIN_DEFAULT_PASSWORD, PGADMIN_DEFAULT_EMAIL
+   chmod 600 compose/environments/.env.development
+   ```
+
+3. **Start Development Environment:**
+   ```bash
+   docker compose -f compose/environments/development.yml up -d
+   # OR with the custom .env file:
+   docker compose -f compose/environments/development.yml --env-file compose/environments/.env.development up -d
+   ```
+
+### Usage
+
 ```bash
-az servicebus namespace authorization-rule keys list \
-  --resource-group meajudaai-dev \
-  --namespace-name sb-MeAjudaAi-dev \
-  --name ManagementPolicy \
-  --query "primaryConnectionString"
+# Development (Option 1: with all environment variables set)
+export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
+export RABBITMQ_PASS=$(openssl rand -base64 32)
+export POSTGRES_PASSWORD=$(openssl rand -base64 32)
+export KEYCLOAK_DB_PASSWORD=$(openssl rand -base64 32)
+export PGADMIN_DEFAULT_PASSWORD=$(openssl rand -base64 32)
+export PGADMIN_DEFAULT_EMAIL="admin@example.com"
+docker compose -f compose/environments/development.yml up -d
+
+# Development (Option 2: with populated .env file - recommended)
+source compose/environments/.env.development  # Load all required secrets
+docker compose -f compose/environments/development.yml up -d
+
+# Production (with .env file)
+docker compose -f compose/environments/production.yml up -d
+
+# Testing (uses defaults or custom .env.testing)
+docker compose -f compose/environments/testing.yml up -d
+
+# Standalone services (require explicit passwords)
+export POSTGRES_PASSWORD=$(openssl rand -base64 32)
+docker compose -f compose/standalone/postgres-only.yml up -d
+
+export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
+docker compose -f compose/standalone/keycloak-only.yml up -d
 ```
 
-## 🆘 Troubleshooting
+### Standalone Services
 
-### Common Issues:
+**Location**: `compose/standalone/`
 
-1. **"Resource group not found"**
-   - Solution: Pipeline creates resource groups automatically
+Individual service configurations for development scenarios where you only need specific components.
 
-2. **"Bicep validation failed"**
-   - Check syntax: `az bicep build --file infrastructure/main.bicep`
-   - Validate parameters match template requirements
+**Security**: All standalone services require explicit passwords (no unsafe defaults)
+**Features**: PostgreSQL includes automatic database initialization with development schema
+- See `compose/standalone/README.md` for detailed usage instructions
+- Use `compose/standalone/.env.example` as a template for configuration
+- (dev-only) PostgreSQL automatically creates `app` schema with sample data on first startup
 
-3. **"Azure credentials expired"**
-   - Regenerate service principal credentials
-   - Update `AZURE_CREDENTIALS` secret
+### Testing Environment
 
-4. **"Deployment timeout"**
-   - Service Bus creation can take 5-10 minutes
-   - Check Azure portal for deployment status
+**Characteristics**:
+- **Lightweight configuration** optimized for CI/CD and local testing
+- **Separate ports** to avoid conflicts with development environment
+- **Environment variable driven** with sensible defaults
+- **PostgreSQL optimizations** for faster test execution (fsync=off, etc.)
+- **Health checks** prevent startup race conditions and ensure service readiness
 
-### Debug Commands:
+**Configuration**:
 ```bash
-# Check current Azure context
-az account show
+# Optional: Create custom test configuration
+   # Copy the base template and edit for testing
+    cp compose/environments/.env.example compose/environments/.env.testing
+   # Edit .env.testing if needed (passwords are required)
 
-# List resource groups
-az group list --output table
-
-# Check deployment status
-az deployment group list --resource-group meajudaai-dev --output table
+# Run with custom config
+   docker compose -f compose/environments/testing.yml --env-file compose/environments/.env.testing up -d
 ```
 
-## 🔄 Pipeline Status
+**Default Credentials** (testing only):
+- **Main DB**: `postgres/test123` on `localhost:5433`
+- **Keycloak Admin**: `admin/admin` on `localhost:8081`
+- **Keycloak DB**: `keycloak/keycloak`
+- **Redis**: No auth on `localhost:6380`
 
-Check pipeline status at: `https://github.com/YOUR-USERNAME/MeAjudaAi/actions`
+## Version Management Best Practices
 
-## 📚 Additional Resources
-
-- [Azure Bicep Documentation](https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/)
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Azure Service Bus Pricing](https://azure.microsoft.com/en-us/pricing/details/service-bus/)
+1. **Pin specific versions** for all production services
+2. **Test upgrades** in development environment first
+3. **Document version changes** in commit messages
+4. **Monitor security advisories** for all used versions

@@ -1,0 +1,106 @@
+meta {
+  name: Health Check All Services
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/health
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const health = res.getBody();
+    console.log("🏥 Health Check Results:");
+    console.log("================================");
+    
+    if (health.status) {
+      console.log("✅ Overall Status:", health.status);
+    }
+    
+    if (health.results) {
+      Object.entries(health.results).forEach(([service, result]) => {
+        const icon = result.status === "Healthy" ? "✅" : "❌";
+        console.log(`${icon} ${service}: ${result.status}`);
+        if (result.description) {
+          console.log(`   📝 ${result.description}`);
+        }
+      });
+    }
+    
+    console.log("================================");
+    
+    if (health.status === "Healthy") {
+      console.log("🎉 All services are healthy!");
+    } else {
+      console.log("⚠️  Some services need attention!");
+    }
+  } else {
+    console.log("❌ Health check failed!");
+    console.log("Status:", res.status);
+    console.log("Response:", res.getBody());
+  }
+}
+
+docs {
+  # Health Check All Services
+  
+  Verifica o status de saúde de todos os serviços da aplicação MeAjudaAi.
+  
+  ## O que verifica
+  - ✅ **API Principal**: Status da API REST
+  - ✅ **PostgreSQL**: Conectividade com banco de dados
+  - ✅ **Redis**: Cache e sessões
+  - ✅ **RabbitMQ**: Message broker
+  - ✅ **Keycloak**: Serviço de autenticação
+  
+  ## Resposta Esperada (Healthy)
+  ```json
+  {
+    "status": "Healthy",
+    "totalDuration": "00:00:00.1234567",
+    "results": {
+      "database": {
+        "status": "Healthy",
+        "description": "PostgreSQL connection successful",
+        "duration": "00:00:00.0123456"
+      },
+      "redis": {
+        "status": "Healthy",
+        "description": "Redis cache operational"
+      },
+      "keycloak": {
+        "status": "Healthy",
+        "description": "Keycloak authentication service ready"
+      },
+      "rabbitmq": {
+        "status": "Healthy",
+        "description": "Message broker connected"
+      }
+    }
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Todos os serviços saudáveis
+  - **503**: Um ou mais serviços com problema
+  - **500**: Erro interno na verificação
+  
+  ## Uso Recomendado
+  - Execute antes de iniciar testes
+  - Use em pipelines de CI/CD
+  - Diagnóstico rápido de problemas
+  
+  ## Troubleshooting
+  ### Se algum serviço está Unhealthy:
+  1. Verifique Aspire Dashboard: https://localhost:15888
+  2. Confirme se containers Docker estão rodando
+  3. Verifique logs específicos do serviço
+  4. Reinicie Aspire se necessário
+}

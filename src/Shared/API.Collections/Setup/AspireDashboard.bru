@@ -1,0 +1,133 @@
+meta {
+  name: Aspire Dashboard Info
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://localhost:15888/api/v1/resources
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const resources = res.getBody();
+    console.log("📊 Aspire Dashboard - Resources:");
+    console.log("=================================");
+    
+    if (Array.isArray(resources)) {
+      resources.forEach(resource => {
+        const icon = getResourceIcon(resource.resourceType);
+        const status = resource.state || "Unknown";
+        const statusIcon = status === "Running" ? "🟢" : 
+                          status === "Starting" ? "🟡" : 
+                          status === "Stopped" ? "🔴" : "⚪";
+        
+        console.log(`${icon} ${resource.name}`);
+        console.log(`   ${statusIcon} Status: ${status}`);
+        console.log(`   🏷️  Type: ${resource.resourceType}`);
+        
+        if (resource.endpoints && resource.endpoints.length > 0) {
+          console.log(`   🔗 Endpoints:`);
+          resource.endpoints.forEach(endpoint => {
+            console.log(`      • ${endpoint.endpointUrl}`);
+          });
+        }
+        console.log("");
+      });
+    }
+    
+    console.log("🔗 Dashboard URL: https://localhost:15888");
+  } else {
+    console.log("❌ Failed to get Aspire Dashboard info");
+    console.log("💡 Make sure Aspire is running:");
+    console.log("   dotnet run --project src/Aspire/MeAjudaAi.AppHost");
+  }
+  
+  function getResourceIcon(type) {
+    switch(type) {
+      case "postgres": return "🐘";
+      case "redis": return "🗃️";
+      case "rabbitmq": return "🐰";
+      case "keycloak": return "🔐";
+      case "container": return "🐳";
+      case "project": return "🚀";
+      default: return "📦";
+    }
+  }
+}
+
+docs {
+  # Aspire Dashboard Info
+  
+  Obtém informações sobre todos os recursos gerenciados pelo Aspire.
+  
+  ## O que mostra
+  - 🚀 **Projetos**: APIs e serviços .NET
+  - 🐳 **Containers**: PostgreSQL, Redis, RabbitMQ, Keycloak
+  - 🔗 **Endpoints**: URLs de acesso aos serviços
+  - 📊 **Status**: Running, Starting, Stopped
+  
+  ## Pré-requisitos
+  - Aspire Dashboard rodando em https://localhost:15888
+  - Certificado SSL aceito no navegador
+  
+  ## Resposta Esperada
+  ```json
+  [
+    {
+      "name": "postgres-local",
+      "resourceType": "postgres",
+      "state": "Running",
+      "endpoints": [
+        {
+          "endpointUrl": "postgresql://localhost:5432"
+        }
+      ]
+    },
+    {
+      "name": "apiservice",
+      "resourceType": "project", 
+      "state": "Running",
+      "endpoints": [
+        {
+          "endpointUrl": "http://localhost:5000"
+        }
+      ]
+    }
+  ]
+  ```
+  
+  ## Códigos de Status
+  - **200**: Dashboard disponível e funcionando
+  - **404**: Endpoint não encontrado (versão Aspire diferente?)
+  - **Connection Error**: Aspire não está rodando
+  
+  ## Uso
+  - Verificação rápida do status dos serviços
+  - Descoberta de endpoints dinâmicos
+  - Debugging de problemas de conectividade
+  
+  ## Troubleshooting
+  
+  ### Connection refused:
+  1. Verifique se Aspire está rodando:
+     ```bash
+     dotnet run --project src/Aspire/MeAjudaAi.AppHost
+     ```
+  2. Acesse manualmente: https://localhost:15888
+  
+  ### SSL Certificate error:
+  1. Abra https://localhost:15888 no navegador
+  2. Aceite o certificado self-signed
+  3. Execute novamente este endpoint
+  
+  ### API endpoint changed:
+  - API pode variar entre versões do Aspire
+  - Consulte documentação da versão específica
+}

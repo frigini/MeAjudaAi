@@ -1,0 +1,70 @@
+meta {
+  name: Get Users (Paginated)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users?pageNumber=1&pageSize=10&searchTerm=
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Get Users (Paginated)
+  
+  Lista todos os usuários do sistema com paginação.
+  
+  ## Autorização
+  - **Política**: SelfOrAdmin
+  - **Requer token**: Sim
+  
+  ## Parâmetros Query
+  - `pageNumber` (int): Número da página (padrão: 1)
+  - `pageSize` (int): Items por página (padrão: 10, máximo: 100)
+  - `searchTerm` (string): Termo de busca (opcional)
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "items": [
+        {
+          "id": "uuid",
+          "email": "user@example.com",
+          "firstName": "John",
+          "lastName": "Doe",
+          "username": "johndoe",
+          "isActive": true,
+          "createdAt": "2025-01-01T00:00:00Z",
+          "roles": ["User"]
+        }
+      ],
+      "totalCount": 50,
+      "pageNumber": 1,
+      "pageSize": 10,
+      "totalPages": 5,
+      "hasPreviousPage": false,
+      "hasNextPage": true
+    },
+    "message": "Users retrieved successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **400**: Parâmetros inválidos
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+}

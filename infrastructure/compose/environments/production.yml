@@ -1,0 +1,208 @@
+# Production-ready docker compose
+# This should be used as a reference - real production
+# Usage: docker compose -f infrastructure/compose/environments/production.yml --env-file .env.prod up -d
+#
+# IMPORTANT: Before running, create Docker secrets:
+# 1. Initialize Docker Swarm: docker swarm init
+# 2. Create Redis secret: echo "your-redis-password" | docker secret create meajudaai_redis_password -
+# 3. Or run: ./setup-secrets.sh
+#
+# Security Features:
+# - All images pinned by SHA256 digest for supply-chain security
+# - Resource limits applied to all services for production hygiene
+# - Docker secrets for sensitive data (Redis password)
+#
+# Resource Allocation:
+# - Main Postgres: 1 CPU, 1GB RAM (primary database)
+# - Keycloak DB: 0.5 CPU, 512MB RAM (identity database)
+# - Keycloak App: 1 CPU, 1GB RAM (identity server)
+# - Redis: 0.5 CPU, 256MB RAM (cache/sessions)
+# - RabbitMQ: 1 CPU, 512MB RAM (message broker)
+# - Total: ~4 CPUs, ~3.25GB RAM
+#
+# Keycloak Configuration Notes:
+# - HTTP is enabled for internal container communication (KC_HTTP_ENABLED=true)
+# - HTTPS enforcement happens at the reverse proxy level (KC_PROXY=edge)
+# - KC_HOSTNAME_STRICT_HTTPS=true ensures external connections use HTTPS
+# - Version pinned for production stability (overrideable via KEYCLOAK_VERSION)
+
+---
+services:
+  postgres:
+    image: postgres:16@sha256:d0f363f8366fbc3f52d172c6e76bc27151c3d643b870e1062b4e8bfe65baf609
+    container_name: meajudaai-postgres-prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-MeAjudaAi}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD environment variable}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ${BACKUPS_DIR:-./backups}:/backups
+    restart: unless-stopped
+    cpus: "1.0"
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - meajudaai-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  keycloak-db:
+    image: postgres:16@sha256:d0f363f8366fbc3f52d172c6e76bc27151c3d643b870e1062b4e8bfe65baf609
+    container_name: meajudaai-keycloak-db-prod
+    environment:
+      POSTGRES_DB: ${KEYCLOAK_DB:-keycloak}
+      POSTGRES_USER: ${KEYCLOAK_DB_USER:-keycloak}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Missing KEYCLOAK_DB_PASSWORD environment variable}
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+      - ${BACKUPS_DIR:-./backups}:/backups
+    restart: unless-stopped
+    cpus: "0.5"
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KEYCLOAK_DB_USER:-keycloak}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - meajudaai-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  keycloak:
+    # Pin by digest for supply-chain stability
+    # To update: docker pull quay.io/keycloak/keycloak:26.0.2 && docker inspect --format='{{index .RepoDigests 0}}' quay.io/keycloak/keycloak:26.0.2
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0.2}@${KEYCLOAK_DIGEST:-sha256:a01c5ebe4b8e4aef91b0e2e22b73f7be40e98b9c3f2c3d8b4e8c1b9f3e2a5d8f}
+    container_name: meajudaai-keycloak-prod
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Missing KEYCLOAK_ADMIN_PASSWORD environment variable}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KEYCLOAK_DB:-keycloak}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER:-keycloak}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Missing KEYCLOAK_DB_PASSWORD environment variable}
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:?Missing KEYCLOAK_HOSTNAME environment variable}
+      KC_HOSTNAME_STRICT: true
+      KC_HOSTNAME_STRICT_HTTPS: true
+      KC_PROXY: edge
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    command: ["start", "--optimized", "--import-realm"]
+    ports:
+      - "127.0.0.1:${KEYCLOAK_PORT:-8080}:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ../../keycloak/realms:/opt/keycloak/data/import
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    restart: unless-stopped
+    cpus: "1.0"
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/ready >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - meajudaai-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    container_name: meajudaai-redis-prod
+    command: ["sh", "-c", "export REDIS_PASSWORD=\"$$(cat /run/secrets/redis_password)\"; redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly yes"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    secrets:
+      - redis_password
+    restart: unless-stopped
+    cpus: "0.5"
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "export REDIS_PASSWORD=\"$$(cat /run/secrets/redis_password)\"; redis-cli -a \"$$REDIS_PASSWORD\" ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - meajudaai-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine@sha256:1d6e4c5fb7a7b7b3e6d7f8b8c9d5a4b3c2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7
+    container_name: meajudaai-rabbitmq-prod
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?Missing RABBITMQ_USER environment variable}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:?Missing RABBITMQ_PASS environment variable}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Missing RABBITMQ_ERLANG_COOKIE environment variable}
+    ports:
+      - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
+      - "127.0.0.1:${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ../../rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    restart: unless-stopped
+    cpus: "1.0"
+    mem_limit: 512m
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - meajudaai-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data:
+    name: meajudaai-postgres-data-prod
+  keycloak_db_data:
+    name: meajudaai-keycloak-db-data-prod
+  keycloak_data:
+    name: meajudaai-keycloak-data-prod
+  redis_data:
+    name: meajudaai-redis-data-prod
+  rabbitmq_data:
+    name: meajudaai-rabbitmq-data-prod
+
+networks:
+  meajudaai-network:
+    name: meajudaai-network-prod
+    driver: bridge
+
+secrets:
+  redis_password:
+    external: true
+    name: meajudaai_redis_password

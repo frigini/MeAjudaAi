@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace MeAjudaAi.Shared.Database;
+﻿namespace MeAjudaAi.Shared.Database;
 
 public interface IDapperConnection
 {

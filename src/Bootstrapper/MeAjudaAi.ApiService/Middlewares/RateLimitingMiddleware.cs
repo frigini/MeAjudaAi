@@ -1,75 +1,191 @@
-﻿using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Caching.Memory;
-using Serilog;
+using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace MeAjudaAi.ApiService.Middlewares;
 
+/// <summary>
+/// Middleware de Rate Limiting com suporte a usuários autenticados
+/// </summary>
 public class RateLimitingMiddleware(
     RequestDelegate next,
     IMemoryCache cache,
-    RateLimitOptions options)
+    IOptionsMonitor<RateLimitOptions> options,
+    ILogger<RateLimitingMiddleware> logger)
 {
-    private readonly RequestDelegate _next = next;
-    private readonly IMemoryCache _cache = cache;
-    private readonly RateLimitOptions _options = options;
-    private readonly Serilog.ILogger _logger = Log.ForContext<RateLimitingMiddleware>();
-
+    /// <summary>
+    /// Classe contador simples para rate limiting.
+    /// <para>
+    /// <b>Thread-safety:</b> O campo <see cref="Value"/> deve ser acessado ou modificado apenas usando operações thread-safe,
+    /// como <see cref="System.Threading.Interlocked.Increment(ref int)"/>. Esta classe foi projetada para ser usada em um ambiente concorrente,
+    /// e todas as modificações no <see cref="Value"/> devem ser realizadas atomicamente.
+    /// </para>
+    /// </summary>
+    private sealed class Counter
+    {
+        public int Value;
+        public DateTime ExpiresAt;
+    }
     public async Task InvokeAsync(HttpContext context)
     {
         var clientIp = GetClientIpAddress(context);
-        var endpoint = $"{context.Request.Method}:{context.Request.Path}";
-        var key = $"rate_limit_{clientIp}_{endpoint}";
+        var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
 
-        var config = GetRateLimitConfig(context);
+        var currentOptions = options.CurrentValue;
 
-        if (!_cache.TryGetValue(key, out int requestCount))
+        // Check IP whitelist first - bypass rate limiting if IP is whitelisted
+        if (currentOptions.General.EnableIpWhitelist &&
+            currentOptions.General.WhitelistedIps.Contains(clientIp))
         {
-            requestCount = 0;
-        }
-
-        if (requestCount >= config.RequestsPerWindow)
-        {
-            _logger.Warning(
-                "Rate limit exceeded for {ClientIp} on {Endpoint}. Count: {RequestCount}/{Limit}",
-                clientIp, endpoint, requestCount, config.RequestsPerWindow);
-
-            context.Response.StatusCode = 429;
-            context.Response.Headers.Append("Retry-After", config.WindowInSeconds.ToString());
-
-            await context.Response.WriteAsync("Rate limit exceeded. Try again later.");
+            await next(context);
             return;
         }
 
-        _cache.Set(key, requestCount + 1, TimeSpan.FromSeconds(config.WindowInSeconds));
+        // Defensively clamp window to at least 1 second
+        var windowSeconds = Math.Max(1, currentOptions.General.WindowInSeconds);
+        var effectiveWindow = TimeSpan.FromSeconds(windowSeconds);
 
-        context.Response.Headers.Append("X-RateLimit-Limit", config.RequestsPerWindow.ToString());
-        context.Response.Headers.Append("X-RateLimit-Remaining", (config.RequestsPerWindow - requestCount - 1).ToString());
+        // Determine effective limit using priority order
+        var limit = GetEffectiveLimit(context, currentOptions, isAuthenticated, effectiveWindow);
 
-        await _next(context);
+        // Key by user (when authenticated) and method to reduce false sharing
+        var userKey = isAuthenticated
+            ? (context.User.FindFirst("sub")?.Value ?? context.User.Identity?.Name ?? clientIp)
+            : clientIp;
+        var key = $"rate_limit:{userKey}:{context.Request.Method}:{context.Request.Path}";
+
+        var counter = cache.GetOrCreate(key, entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = effectiveWindow;
+            return new Counter { ExpiresAt = DateTime.UtcNow + effectiveWindow };
+        })!; // GetOrCreate never returns null when factory returns a value
+
+        var current = Interlocked.Increment(ref counter.Value);
+
+        if (current > limit)
+        {
+            logger.LogWarning("Rate limit exceeded for client {ClientIp} on path {Path}. Limit: {Limit}, Current count: {Count}, Window: {Window}s",
+                clientIp, context.Request.Path, limit, current, windowSeconds);
+            await HandleRateLimitExceeded(context, counter, currentOptions.General.ErrorMessage, (int)effectiveWindow.TotalSeconds);
+            return;
+        }
+
+        // TTL set at creation; no need for redundant cache operation
+
+        var warnThreshold = (int)Math.Ceiling(limit * 0.8);
+        if (current >= warnThreshold) // approaching limit (80%)
+        {
+            logger.LogInformation("Client {ClientIp} approaching rate limit on path {Path}. Current: {Count}/{Limit}, Window: {Window}s",
+                clientIp, context.Request.Path, current, limit, currentOptions.General.WindowInSeconds);
+        }
+
+        await next(context);
+    }
+
+    private static int GetEffectiveLimit(HttpContext context, RateLimitOptions rateLimitOptions, bool isAuthenticated, TimeSpan window)
+    {
+        var requestPath = context.Request.Path.Value ?? string.Empty;
+
+        // 1. Check for endpoint-specific limits first
+        foreach (var endpointLimit in rateLimitOptions.EndpointLimits)
+        {
+            if (IsPathMatch(requestPath, endpointLimit.Value.Pattern))
+            {
+                // Check if this endpoint limit applies to the current user type
+                if ((isAuthenticated && endpointLimit.Value.ApplyToAuthenticated) ||
+                    (!isAuthenticated && endpointLimit.Value.ApplyToAnonymous))
+                {
+                    return ScaleToWindow(
+                        endpointLimit.Value.RequestsPerMinute,
+                        endpointLimit.Value.RequestsPerHour,
+                        0,
+                        window);
+                }
+            }
+        }
+
+        // 2. Check for role-specific limits (only for authenticated users)
+        if (isAuthenticated)
+        {
+            var userRoles = context.User.FindAll("role")?.Select(c => c.Value) ??
+                           context.User.FindAll("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Select(c => c.Value) ??
+                           [];
+
+            foreach (var role in userRoles)
+            {
+                if (rateLimitOptions.RoleLimits.TryGetValue(role, out var roleLimit))
+                {
+                    return ScaleToWindow(
+                        roleLimit.RequestsPerMinute,
+                        roleLimit.RequestsPerHour,
+                        roleLimit.RequestsPerDay,
+                        window);
+                }
+            }
+        }
+
+        // 3. Fall back to default authenticated/anonymous limits
+        return isAuthenticated
+            ? ScaleToWindow(rateLimitOptions.Authenticated.RequestsPerMinute, rateLimitOptions.Authenticated.RequestsPerHour, rateLimitOptions.Authenticated.RequestsPerDay, window)
+            : ScaleToWindow(rateLimitOptions.Anonymous.RequestsPerMinute, rateLimitOptions.Anonymous.RequestsPerHour, rateLimitOptions.Anonymous.RequestsPerDay, window);
+    }
+
+    private static int ScaleToWindow(int perMinute, int perHour, int perDay, TimeSpan window)
+    {
+        var secs = Math.Max(1, (int)window.TotalSeconds);
+        var candidates = new List<double>(3);
+        if (perMinute > 0) candidates.Add(perMinute * secs / 60.0);
+        if (perHour > 0) candidates.Add(perHour * secs / 3600.0);
+        if (perDay > 0) candidates.Add(perDay * secs / 86400.0);
+        var allowed = candidates.Count > 0 ? candidates.Min() : 0.0;
+        return Math.Max(1, (int)Math.Floor(allowed));
+    }
+
+    private static bool IsPathMatch(string requestPath, string pattern)
+    {
+        if (string.IsNullOrEmpty(pattern))
+            return false;
+
+        // Simple wildcard matching - can be enhanced for more complex patterns
+        if (pattern.Contains('*'))
+        {
+            var regexPattern = pattern.Replace("*", ".*");
+            return System.Text.RegularExpressions.Regex.IsMatch(requestPath, regexPattern,
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        }
+
+        return string.Equals(requestPath, pattern, StringComparison.OrdinalIgnoreCase);
     }
 
     private static string GetClientIpAddress(HttpContext context)
     {
-        var xForwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        if (!string.IsNullOrEmpty(xForwardedFor))
-            return xForwardedFor.Split(',')[0].Trim();
-
         return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
 
-    private RateLimitConfig GetRateLimitConfig(HttpContext context)
+    private static async Task HandleRateLimitExceeded(HttpContext context, Counter counter, string errorMessage, int windowInSeconds)
     {
-        var path = context.Request.Path.Value?.ToLowerInvariant();
+        // Calculate remaining TTL from counter expiration
+        var retryAfterSeconds = Math.Max(0, (int)Math.Ceiling((counter.ExpiresAt - DateTime.UtcNow).TotalSeconds));
 
-        return path switch
+        context.Response.StatusCode = 429;
+        context.Response.Headers.Append("Retry-After", retryAfterSeconds.ToString());
+        context.Response.ContentType = "application/json";
+
+        var errorResponse = new
         {
-            var p when p?.Contains("/auth/") == true =>
-                new RateLimitConfig(_options.AuthRequestsPerMinute, _options.WindowInSeconds),
-            var p when p?.Contains("/search") == true =>
-                new RateLimitConfig(_options.SearchRequestsPerMinute, _options.WindowInSeconds),
-            _ => new RateLimitConfig(_options.DefaultRequestsPerMinute, _options.WindowInSeconds)
+            Error = "RateLimitExceeded",
+            Message = errorMessage,
+            Details = new Dictionary<string, object>
+            {
+                ["retryAfterSeconds"] = retryAfterSeconds,
+                ["windowInSeconds"] = windowInSeconds
+            }
         };
-    }
 
-    private record RateLimitConfig(int RequestsPerWindow, int WindowInSeconds);
+        var json = JsonSerializer.Serialize(errorResponse, SerializationDefaults.Api);
+
+        await context.Response.WriteAsync(json);
+    }
 }

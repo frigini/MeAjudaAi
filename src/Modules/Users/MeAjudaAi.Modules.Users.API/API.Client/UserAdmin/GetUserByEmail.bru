@@ -1,0 +1,62 @@
+meta {
+  name: Get User by Email
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/by-email/{{testEmail}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Get User by Email
+  
+  Busca um usuário pelo endereço de email.
+  
+  ## Autorização
+  - **Política**: AdminOnly
+  - **Requer token**: Sim (admin)
+  
+  ## Path Parameters
+  - `email` (string, required): Email do usuário
+  
+  ## Instruções
+  1. Substitua `{{testEmail}}` por um email válido
+  2. Ou configure a variável `testEmail` na collection
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "firstName": "John",
+      "lastName": "Doe",
+      "username": "johndoe",
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00Z",
+      "roles": ["User"]
+    },
+    "message": "User retrieved successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **401**: Token inválido
+  - **403**: Sem permissão de admin
+  - **404**: Usuário com email não encontrado
+}

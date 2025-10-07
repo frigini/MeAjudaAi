@@ -1,0 +1,83 @@
+meta {
+  name: Setup - Get Keycloak Token
+  type: http
+  seq: 0
+}
+
+post {
+  url: {{keycloakUrl}}/realms/{{realm}}/protocol/openid-connect/token
+  body: formUrlEncoded
+  auth: none
+}
+
+headers {
+  Content-Type: application/x-www-form-urlencoded
+}
+
+body:form-urlencoded {
+  grant_type: password
+  client_id: {{clientId}}
+  username: {{adminUser}}
+  password: {{adminPassword}}
+}
+
+script:post-response {
+  if (res.status === 200) {
+    const response = res.getBody();
+    bru.setVar("accessToken", response.access_token);
+    console.log("✅ Token obtained successfully!");
+    console.log("🔑 Access Token:", response.access_token.substring(0, 50) + "...");
+    console.log("⏰ Expires in:", response.expires_in, "seconds");
+  } else {
+    console.log("❌ Failed to get token");
+    console.log("Status:", res.status);
+    console.log("Response:", res.getBody());
+  }
+}
+
+docs {
+  # Setup - Get Keycloak Token
+  
+  Este endpoint obtém um token de acesso do Keycloak para usar nos outros endpoints.
+  
+  ## Como usar
+  1. **Execute este endpoint primeiro** antes de testar os outros
+  2. O script automaticamente salvará o token na variável `accessToken`
+  3. Todos os outros endpoints usarão este token automaticamente
+  
+  ## Pré-requisitos
+  - Keycloak rodando em http://localhost:8080
+  - Realm `meajudaai-realm` configurado
+  - Client `meajudaai-client` configurado
+  - Usuário admin criado
+  
+  ## Configuração das Variáveis
+  Certifique-se de que estas variáveis estão configuradas na collection:
+  - `keycloakUrl`: http://localhost:8080
+  - `realm`: meajudaai-realm
+  - `clientId`: meajudaai-client
+  - `adminUser`: admin
+  - `adminPassword`: admin123
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expires_in": 300,
+    "refresh_expires_in": 1800,
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token_type": "Bearer",
+    "not-before-policy": 0,
+    "session_state": "uuid",
+    "scope": "profile email"
+  }
+  ```
+  
+  ## Troubleshooting
+  - **401 Unauthorized**: Verifique username/password
+  - **404 Not Found**: Verifique se o realm existe
+  - **Connection Error**: Verifique se Keycloak está rodando
+  
+  ## Próximo Passo
+  Após obter o token, execute qualquer endpoint da API Users!
+}

@@ -1,0 +1,44 @@
+# yamllint disable rule:document-start
+# Redis cache service
+# Use with: docker compose -f base/redis.yml up
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: meajudaai-redis
+    command: >
+      sh -c '
+        if [ -n "$$REDIS_PASSWORD" ]; then
+          redis-server --requirepass "$$REDIS_PASSWORD"
+        else
+          redis-server
+        fi
+      '
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: >
+        ["CMD", "sh", "-c", "
+          if [ -n \"$$REDIS_PASSWORD\" ]; then
+            redis-cli -a \"$$REDIS_PASSWORD\" ping
+          else
+            redis-cli ping
+          fi
+        "]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - meajudaai-network
+
+volumes:
+  redis_data:
+    name: meajudaai-redis-data
+
+networks:
+  meajudaai-network:
+    name: meajudaai-network
+    driver: bridge
