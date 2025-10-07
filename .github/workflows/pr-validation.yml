@@ -192,7 +192,7 @@ jobs:
             ESCAPED_DB=$(escape_single_quotes "$MEAJUDAAI_DB")
             ESCAPED_USER=$(escape_single_quotes "$MEAJUDAAI_DB_USER")
             ESCAPED_PASS=$(escape_single_quotes "$MEAJUDAAI_DB_PASS")
-            
+
             DB_CONN_STR="Host=localhost;Port=5432;Database='$ESCAPED_DB'"
             DB_CONN_STR="${DB_CONN_STR};Username='$ESCAPED_USER';Password='$ESCAPED_PASS'"
             export ConnectionStrings__DefaultConnection="$DB_CONN_STR"
