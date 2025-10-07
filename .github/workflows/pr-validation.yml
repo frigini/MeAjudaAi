@@ -381,7 +381,7 @@ jobs:
         with:
           filename: 'coverage/**/*.opencover.xml'
           badge: true
-          fail_below_min: true
+          fail_below_min: false
           format: markdown
           hide_branch_rate: false
           hide_complexity: false
@@ -396,7 +396,7 @@ jobs:
         with:
           filename: 'coverage/**/*.xml'
           badge: true
-          fail_below_min: true
+          fail_below_min: false
           format: markdown
           hide_branch_rate: false
           hide_complexity: false
@@ -477,28 +477,60 @@ jobs:
           echo "🎯 VALIDATING COVERAGE THRESHOLDS"
           echo "================================="
 
-          # Check if either coverage step succeeded OR if coverage_fallback succeeded
+          # Check step outcomes first
           primary_success="${{ steps.coverage_opencover.outcome }}"
           fallback_success="${{ steps.coverage_fallback.outcome }}"
 
           echo "Debug: Primary coverage outcome: $primary_success"
           echo "Debug: Fallback coverage outcome: $fallback_success"
 
-          # Consider success if either step succeeded
-          if [ "$primary_success" = "success" ] || [ "$fallback_success" = "success" ]; then
-            echo "✅ Coverage analysis completed successfully"
-            echo "📊 Coverage thresholds met (≥70%)"
-          else
-            echo "❌ Coverage analysis failed or coverage below minimum threshold"
-            echo "📊 Required: ≥70% line coverage"
-            echo "💡 Check the 'Code Coverage Summary' step for detailed information"
+          # Get coverage percentages (if available)
+          primary_line_rate="${{ steps.coverage_opencover.outputs.line-rate }}"
+          fallback_line_rate="${{ steps.coverage_fallback.outputs.line-rate }}"
 
-            # Only fail in strict mode (can be controlled via environment variable)
+          echo "Debug: Primary line rate: $primary_line_rate"
+          echo "Debug: Fallback line rate: $fallback_line_rate"
+
+          # Determine which coverage value to use
+          coverage_rate=""
+          if [ "$primary_success" = "success" ] && [ -n "$primary_line_rate" ]; then
+            coverage_rate="$primary_line_rate"
+            echo "📊 Using primary coverage: ${coverage_rate}%"
+          elif [ "$fallback_success" = "success" ] && [ -n "$fallback_line_rate" ]; then
+            coverage_rate="$fallback_line_rate"
+            echo "📊 Using fallback coverage: ${coverage_rate}%"
+          fi
+
+          # Validate coverage against threshold
+          if [ -n "$coverage_rate" ]; then
+            # Convert to integer for comparison (remove decimal part)
+            coverage_int=$(echo "$coverage_rate" | cut -d'.' -f1)
+
+            if [ "$coverage_int" -ge 70 ]; then
+              echo "✅ Coverage analysis completed successfully"
+              echo "📊 Coverage thresholds met: ${coverage_rate}% (≥70%)"
+            else
+              echo "❌ Coverage below minimum threshold: ${coverage_rate}% (required: ≥70%)"
+              echo "💡 Check the 'Code Coverage Summary' step for detailed information"
+
+              # Only fail in strict mode
+              if [ "${STRICT_COVERAGE:-true}" = "true" ]; then
+                echo "🚫 STRICT MODE: Failing pipeline due to insufficient coverage"
+                exit 1
+              else
+                echo "⚠️  LENIENT MODE: Continuing despite coverage issues"
+              fi
+            fi
+          else
+            echo "❌ Coverage analysis failed - no coverage data available"
+            echo "💡 Check the 'Code Coverage Summary' step for errors"
+
+            # Only fail in strict mode
             if [ "${STRICT_COVERAGE:-true}" = "true" ]; then
-              echo "🚫 STRICT MODE: Failing pipeline due to insufficient coverage"
+              echo "🚫 STRICT MODE: Failing pipeline due to coverage analysis failure"
               exit 1
             else
-              echo "⚠️  LENIENT MODE: Continuing despite coverage issues"
+              echo "⚠️  LENIENT MODE: Continuing despite coverage analysis issues"
             fi
           fi
 
@@ -555,11 +587,24 @@ jobs:
             ./osv-scanner scan --recursive --skip-git --format json . > osv-results.json || true
 
             if [ -f osv-results.json ]; then
-              # Count HIGH/CRITICAL by CVSS (>=7.0)
+              # Count HIGH/CRITICAL by CVSS (>=7.0) with safe parsing and textual severity mapping
               HIGH_OR_CRIT=$(
                 jq -r '
+                  # Function to safely convert severity scores to numbers
+                  def safe_score_to_number:
+                    if type == "number" then .
+                    elif type == "string" then
+                      if . == "CRITICAL" then 9
+                      elif . == "HIGH" then 7
+                      elif . == "MEDIUM" then 5
+                      elif . == "LOW" then 3
+                      else 0
+                      end
+                    else 0
+                    end;
+
                   [.results[]?.packages[]?.vulnerabilities[]?
-                    | ( [(.severity // [])[]?.score? | tonumber] | max // 0 )
+                    | ( [(.severity // [])[]?.score? | safe_score_to_number] | max // 0 )
                     | select(. >= 7.0)
                   ] | length
                 ' osv-results.json 2>/dev/null

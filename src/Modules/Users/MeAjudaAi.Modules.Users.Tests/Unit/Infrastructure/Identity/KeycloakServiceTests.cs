@@ -75,7 +75,7 @@ public class KeycloakServiceTests
         // Configura resposta do token de admin
         SetupHttpResponse(HttpStatusCode.OK, JsonSerializer.Serialize(adminTokenResponse));
 
-        // Configura resposta de criação de usuário com cabeçalho Location
+        // Configura resposta de criaï¿½ï¿½o de usuï¿½rio com cabeï¿½alho Location
         var userCreationResponse = new HttpResponseMessage(HttpStatusCode.Created);
         userCreationResponse.Headers.Location = new Uri($"https://keycloak.example.com/admin/realms/test-realm/users/{userId}");
 
@@ -117,7 +117,7 @@ public class KeycloakServiceTests
             TokenType = "Bearer"
         };
 
-        // Configura sequência de respostas simulando falha na criação do usuário
+        // Configura sequï¿½ncia de respostas simulando falha na criaï¿½ï¿½o do usuï¿½rio
         _mockHttpMessageHandler
             .Protected()
             .SetupSequence<Task<HttpResponseMessage>>(
@@ -159,7 +159,7 @@ public class KeycloakServiceTests
             TokenType = "Bearer"
         };
 
-        // Configura resposta sem cabeçalho Location
+        // Configura resposta sem cabeï¿½alho Location
         _mockHttpMessageHandler
             .Protected()
             .SetupSequence<Task<HttpResponseMessage>>(
@@ -190,7 +190,7 @@ public class KeycloakServiceTests
     public async Task CreateUserAsync_WhenExceptionThrown_ShouldReturnFailure()
     {
         // Arrange
-        // Simula exceção de rede
+        // Simula exceï¿½ï¿½o de rede
         _mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -225,7 +225,7 @@ public class KeycloakServiceTests
             TokenType = "Bearer"
         };
 
-        // Configura resposta simulando autenticação bem-sucedida
+        // Configura resposta simulando autenticaï¿½ï¿½o bem-sucedida
         SetupHttpResponse(HttpStatusCode.OK, JsonSerializer.Serialize(tokenResponse));
 
         // Act
@@ -241,7 +241,7 @@ public class KeycloakServiceTests
     public async Task AuthenticateAsync_WhenInvalidCredentials_ShouldReturnFailure()
     {
         // Arrange
-        // Configura resposta simulando credenciais inválidas
+        // Configura resposta simulando credenciais invï¿½lidas
         SetupHttpResponse(HttpStatusCode.Unauthorized, "Invalid credentials");
 
         // Act
@@ -279,7 +279,7 @@ public class KeycloakServiceTests
             TokenType = "Bearer"
         };
 
-        // Configura resposta simulando token JWT inválido
+        // Configura resposta simulando token JWT invï¿½lido
         SetupHttpResponse(HttpStatusCode.OK, JsonSerializer.Serialize(tokenResponse));
 
         // Act
@@ -294,7 +294,7 @@ public class KeycloakServiceTests
     public async Task AuthenticateAsync_WhenExceptionThrown_ShouldReturnFailure()
     {
         // Arrange
-        // Simula exceção de timeout
+        // Simula exceï¿½ï¿½o de timeout
         _mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -324,7 +324,7 @@ public class KeycloakServiceTests
             TokenType = "Bearer"
         };
 
-        // Configura sequência de respostas simulando desativação bem-sucedida
+        // Configura sequï¿½ncia de respostas simulando desativaï¿½ï¿½o bem-sucedida
         _mockHttpMessageHandler
             .Protected()
             .SetupSequence<Task<HttpResponseMessage>>(
@@ -372,7 +372,7 @@ public class KeycloakServiceTests
             TokenType = "Bearer"
         };
 
-        // Configura sequência de respostas simulando falha na desativação
+        // Configura sequï¿½ncia de respostas simulando falha na desativaï¿½ï¿½o
         _mockHttpMessageHandler
             .Protected()
             .SetupSequence<Task<HttpResponseMessage>>(
@@ -401,7 +401,7 @@ public class KeycloakServiceTests
     {
         // Arrange
         var userId = Guid.NewGuid().ToString();
-        // Simula exceção de serviço
+        // Simula exceï¿½ï¿½o de serviï¿½o
         _mockHttpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -418,7 +418,7 @@ public class KeycloakServiceTests
         result.Error.Message.Should().Be("Admin token request failed: Service unavailable");
     }
 
-    // Configura resposta simulada para requisições HTTP
+    // Configura resposta simulada para requisiï¿½ï¿½es HTTP
     private void SetupHttpResponse(HttpStatusCode statusCode, string content)
     {
         var response = new HttpResponseMessage(statusCode)
@@ -435,7 +435,7 @@ public class KeycloakServiceTests
             .ReturnsAsync(response);
     }
 
-    // Cria um token JWT válido para testes
+    // Cria um token JWT vï¿½lido para testes
     private static string CreateValidJwtToken()
     {
         var userId = Guid.NewGuid();
@@ -445,7 +445,7 @@ public class KeycloakServiceTests
             "sub": "{{userId}}",
             "exp": {{DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()}},
             "iat": {{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}},
-            "realm_access": "{\"roles\":[\"user\"]}"
+            "realm_access": {"roles":["user"]}
         }
         """));
         var signature = Convert.ToBase64String(Encoding.UTF8.GetBytes("signature"));
