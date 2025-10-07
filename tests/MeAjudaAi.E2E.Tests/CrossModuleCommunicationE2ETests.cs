@@ -121,14 +121,14 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
         var nonExistentId = Guid.NewGuid();
 
         // Act & Assert - Test all contract methods behave consistently
-        
+
         // 1. GetUserByIdAsync
         var getUserResponse = await ApiClient.GetAsync($"/api/v1/users/{user.GetProperty("id").GetGuid()}");
         if (getUserResponse.StatusCode == HttpStatusCode.OK)
         {
             var content = await getUserResponse.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-            
+
             // Verify standard response structure
             result.TryGetProperty("data", out var data).Should().BeTrue();
             data.TryGetProperty("id", out _).Should().BeTrue();
@@ -147,7 +147,7 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
     public async Task ErrorRecovery_ModuleApiFailures_ShouldNotAffectOtherModules()
     {
         // This test simulates how failures in one module's usage shouldn't affect others
-        
+
         // Arrange
         var validUser = await CreateUserAsync("recovery_test", "recovery@test.com", "Recovery", "Test");
         var invalidUserId = Guid.NewGuid();

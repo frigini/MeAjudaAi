@@ -1,12 +1,10 @@
-﻿using FluentAssertions;
-using MeAjudaAi.Shared.Contracts.Modules;
+﻿using MeAjudaAi.Shared.Contracts.Modules;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Shared.Functional;
-using NetArchTest.Rules;
 using System.Reflection;
 
-namespace MeAjudaAi.Tests.Architecture.ModuleApis;
+namespace MeAjudaAi.Architecture.Tests;
 
 public class ModuleApiArchitectureTests
 {
@@ -26,8 +24,11 @@ public class ModuleApiArchitectureTests
 
         // Assert
         var violations = result.GetResult().FailingTypes;
-        violations.Should().BeEmpty(
-            because: "Module API interfaces should be in the Shared.Contracts.Modules namespace hierarchy");
+        if (violations != null)
+        {
+            violations.Should().BeEmpty(
+                because: "Module API interfaces should be in the Shared.Contracts.Modules namespace hierarchy");
+        }
     }
 
     [Fact]
@@ -39,6 +40,7 @@ public class ModuleApiArchitectureTests
         // Act & Assert
         foreach (var assembly in assemblies)
         {
+            // Obtém os tipos que implementam IModuleApi
             var moduleApiTypes = Types.InAssembly(assembly)
                 .That()
                 .AreClasses()
@@ -48,6 +50,7 @@ public class ModuleApiArchitectureTests
 
             foreach (var type in moduleApiTypes)
             {
+                // Verifica se possui o atributo ModuleApi
                 var attribute = type.GetCustomAttribute<ModuleApiAttribute>();
                 attribute.Should().NotBeNull(
                     because: $"Module API implementation {type.Name} should have [ModuleApi] attribute");
@@ -75,9 +78,10 @@ public class ModuleApiArchitectureTests
         // Act & Assert
         foreach (var type in moduleApiTypes)
         {
+            // Verifica os métodos das interfaces
             var methods = type.GetMethods()
                 .Where(m => !m.IsSpecialName && m.DeclaringType == type)
-                .Where(m => m.Name != nameof(IModuleApi.IsAvailableAsync)); // Exclude base interface methods
+                .Where(m => m.Name != nameof(IModuleApi.IsAvailableAsync)); // Exclui métodos da interface base
 
             foreach (var method in methods)
             {
@@ -115,6 +119,7 @@ public class ModuleApiArchitectureTests
         // Act & Assert
         foreach (var type in moduleApiTypes)
         {
+            // Verifica métodos assíncronos
             var methods = type.GetMethods()
                 .Where(m => !m.IsSpecialName && m.DeclaringType == type)
                 .Where(m => m.ReturnType.IsGenericType &&
@@ -128,7 +133,7 @@ public class ModuleApiArchitectureTests
                 hasCancellationToken.Should().BeTrue(
                     because: $"Async method {type.Name}.{method.Name} should have a CancellationToken parameter");
 
-                // Verify it has default value
+                // Verifica se possui valor padrão
                 var cancellationParam = parameters.FirstOrDefault(p => p.ParameterType == typeof(CancellationToken));
                 if (cancellationParam != null)
                 {
@@ -151,12 +156,15 @@ public class ModuleApiArchitectureTests
             .Should()
             .BeSealed()
             .And()
-            .BeClasses(); // Records are classes in .NET
+            .BeClasses(); // Records são classes em .NET
 
         // Assert
         var violations = result.GetResult().FailingTypes;
-        violations.Should().BeEmpty(
-            because: "Module API DTOs should be sealed records for immutability");
+        if (violations != null)
+        {
+            violations.Should().BeEmpty(
+                because: "Module API DTOs should be sealed records for immutability");
+        }
     }
 
     [Fact]
@@ -170,6 +178,7 @@ public class ModuleApiArchitectureTests
         {
             var moduleName = GetModuleName(assembly);
 
+            // Verifica dependências entre módulos
             var result = Types.InAssembly(assembly)
                 .That()
                 .ImplementInterface(typeof(IModuleApi))
@@ -177,8 +186,11 @@ public class ModuleApiArchitectureTests
                 .NotHaveDependencyOnAny(GetOtherModuleNamespaces(moduleName));
 
             var violations = result.GetResult().FailingTypes;
-            violations.Should().BeEmpty(
-                because: $"Module API in {moduleName} should not depend on other modules");
+            if (violations != null)
+            {
+                violations.Should().BeEmpty(
+                    because: $"Module API in {moduleName} should not depend on other modules");
+            }
         }
     }
 
@@ -194,8 +206,11 @@ public class ModuleApiArchitectureTests
 
         // Assert
         var violations = result.GetResult().FailingTypes;
-        violations.Should().BeEmpty(
-            because: "Module API contracts should not reference internal module types");
+        if (violations != null)
+        {
+            violations.Should().BeEmpty(
+                because: "Module API contracts should not reference internal module types");
+        }
     }
 
     [Fact]
@@ -207,6 +222,7 @@ public class ModuleApiArchitectureTests
         // Act & Assert
         foreach (var assembly in assemblies)
         {
+            // Verifica se as implementações são sealed
             var result = Types.InAssembly(assembly)
                 .That()
                 .ImplementInterface(typeof(IModuleApi))
@@ -214,8 +230,11 @@ public class ModuleApiArchitectureTests
                 .BeSealed();
 
             var violations = result.GetResult().FailingTypes;
-            violations.Should().BeEmpty(
-                because: "Module API implementations should be sealed to prevent inheritance");
+            if (violations != null)
+            {
+                violations.Should().BeEmpty(
+                    because: "Module API implementations should be sealed to prevent inheritance");
+            }
         }
     }
 
@@ -241,7 +260,7 @@ public class ModuleApiArchitectureTests
 
     private static Assembly[] GetModuleAssemblies()
     {
-        // Get all assemblies that contain Module API implementations
+        // Obtém todos os assemblies que possuem implementações de Module API
         return AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => a.FullName?.Contains("MeAjudaAi.Modules") == true)
             .Where(a => a.FullName?.Contains("Application") == true)
@@ -250,6 +269,7 @@ public class ModuleApiArchitectureTests
 
     private static string GetModuleName(Assembly assembly)
     {
+        // Extrai o nome do módulo do nome do assembly
         var name = assembly.GetName().Name ?? "";
         var parts = name.Split('.');
         return parts.Length >= 3 ? parts[2] : "Unknown"; // MeAjudaAi.Modules.{ModuleName}

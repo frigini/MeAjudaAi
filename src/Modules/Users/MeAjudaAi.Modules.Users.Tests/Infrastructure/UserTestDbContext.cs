@@ -8,10 +8,8 @@ namespace MeAjudaAi.Modules.Users.Tests.Infrastructure;
 /// DbContext específico para testes unitários de configuração do Entity Framework.
 /// Utilizado para validar mapeamentos e configurações sem dependências externas.
 /// </summary>
-public class UserTestDbContext : DbContext
+public class UserTestDbContext(DbContextOptions<UserTestDbContext> options) : DbContext(options)
 {
-    public UserTestDbContext(DbContextOptions<UserTestDbContext> options) : base(options) { }
-
     public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

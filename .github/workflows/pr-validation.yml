@@ -155,6 +155,8 @@ jobs:
       - name: Run tests with coverage
         env:
           ASPNETCORE_ENVIRONMENT: Testing
+          # Pre-built connection string (optional, takes precedence if available)
+          DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
           # PostgreSQL connection for CI
           EXTERNAL_POSTGRES_HOST: localhost
           EXTERNAL_POSTGRES_PORT: 5432
@@ -175,11 +177,27 @@ jobs:
           set -euo pipefail
           echo "🧪 Executando testes com cobertura consolidada..."
 
-          # Build .NET connection string from PostgreSQL secrets
-          DB_CONN_STR="Host=localhost;Port=5432;Database=$MEAJUDAAI_DB"
-          DB_CONN_STR="${DB_CONN_STR};Username=$MEAJUDAAI_DB_USER;Password=$MEAJUDAAI_DB_PASS"
-          export ConnectionStrings__DefaultConnection="$DB_CONN_STR"
-          echo "✅ Built connection string from PostgreSQL secrets"
+          # Function to escape single quotes in PostgreSQL connection string values
+          escape_single_quotes() {
+            echo "$1" | sed "s/'/''/g"
+          }
+
+          # Build .NET connection string from PostgreSQL secrets with proper quoting
+          # Check if a pre-built connection string secret exists first
+          if [ -n "${DB_CONNECTION_STRING:-}" ]; then
+            export ConnectionStrings__DefaultConnection="$DB_CONNECTION_STRING"
+            echo "✅ Using pre-built connection string from DB_CONNECTION_STRING secret"
+          else
+            # Build connection string with proper Npgsql quoting for special characters
+            ESCAPED_DB=$(escape_single_quotes "$MEAJUDAAI_DB")
+            ESCAPED_USER=$(escape_single_quotes "$MEAJUDAAI_DB_USER")
+            ESCAPED_PASS=$(escape_single_quotes "$MEAJUDAAI_DB_PASS")
+            
+            DB_CONN_STR="Host=localhost;Port=5432;Database='$ESCAPED_DB'"
+            DB_CONN_STR="${DB_CONN_STR};Username='$ESCAPED_USER';Password='$ESCAPED_PASS'"
+            export ConnectionStrings__DefaultConnection="$DB_CONN_STR"
+            echo "✅ Built connection string from PostgreSQL secrets with proper quoting"
+          fi
 
           # Test database connection first
           echo "Testing database connection..."
