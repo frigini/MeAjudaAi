@@ -358,6 +358,7 @@ jobs:
 
       - name: Code Coverage Summary
         id: coverage_opencover
+        continue-on-error: true
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: 'coverage/**/*.opencover.xml'
@@ -372,7 +373,7 @@ jobs:
 
       - name: Alternative Coverage Summary (if opencover fails)
         id: coverage_fallback
-        if: steps.coverage_opencover.outcome != 'success'
+        if: ${{ always() && steps.coverage_opencover.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: 'coverage/**/*.xml'

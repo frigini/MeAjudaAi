@@ -29,13 +29,13 @@ public class HybridCacheServiceTests : IDisposable
         services.AddMemoryCache();
         services.AddMetrics();
         services.AddLogging();
-        
+
         _serviceProvider = services.BuildServiceProvider();
         _hybridCache = _serviceProvider.GetRequiredService<HybridCache>();
-        
+
         var meterFactory = _serviceProvider.GetRequiredService<IMeterFactory>();
         _cacheMetrics = new CacheMetrics(meterFactory);
-        
+
         _cacheService = new HybridCacheService(_hybridCache, Mock.Of<ILogger<HybridCacheService>>(), _cacheMetrics);
     }
 
@@ -79,8 +79,8 @@ public class HybridCacheServiceTests : IDisposable
         // Arrange
         var key = "custom-options-key";
         var value = "custom-value";
-        var customOptions = new HybridCacheEntryOptions 
-        { 
+        var customOptions = new HybridCacheEntryOptions
+        {
             Expiration = TimeSpan.FromHours(1),
             LocalCacheExpiration = TimeSpan.FromMinutes(10)
         };
@@ -115,7 +115,7 @@ public class HybridCacheServiceTests : IDisposable
         // Arrange
         var key = "remove-test-key";
         var value = "remove-test-value";
-        
+
         // Primeiro armazena o valor
         await _cacheService.SetAsync(key, value);
         var beforeRemove = await _cacheService.GetAsync<string>(key);
@@ -138,11 +138,11 @@ public class HybridCacheServiceTests : IDisposable
         var key2 = "pattern-key-2";
         var value1 = "pattern-value-1";
         var value2 = "pattern-value-2";
-        
+
         // Armazena valores com a mesma tag
         await _cacheService.SetAsync(key1, value1, tags: [tag]);
         await _cacheService.SetAsync(key2, value2, tags: [tag]);
-        
+
         // Verifica se os valores est�o em cache
         var beforeRemove1 = await _cacheService.GetAsync<string>(key1);
         var beforeRemove2 = await _cacheService.GetAsync<string>(key2);
@@ -179,7 +179,7 @@ public class HybridCacheServiceTests : IDisposable
         // Assert
         result.Should().Be(factoryValue);
         factoryCalled.Should().BeTrue();
-        
+
         // Verifica se o valor foi armazenado em cache
         var cachedResult = await _cacheService.GetAsync<string>(key);
         cachedResult.Should().Be(factoryValue);
@@ -192,10 +192,10 @@ public class HybridCacheServiceTests : IDisposable
         var key = "cache-hit-test-key";
         var cachedValue = "cached-value";
         var factoryValue = "factory-value";
-        
+
         // Primeiro armazena um valor
         await _cacheService.SetAsync(key, cachedValue);
-        
+
         var factoryCalled = false;
         ValueTask<string> factory(CancellationToken ct)
         {
@@ -231,7 +231,7 @@ public class HybridCacheServiceTests : IDisposable
 
         // Assert
         result.Should().Be(factoryValue);
-        
+
         // Verifica se o valor foi armazenado em cache
         var cachedResult = await _cacheService.GetAsync<string>(key);
         cachedResult.Should().Be(factoryValue);

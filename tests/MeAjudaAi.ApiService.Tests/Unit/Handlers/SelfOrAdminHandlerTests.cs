@@ -68,10 +68,10 @@ public class SelfOrAdminHandlerTests
         };
         var identity = new ClaimsIdentity(claims, "test");
         var user = new ClaimsPrincipal(identity);
-        
+
         var httpContext = new DefaultHttpContext();
         httpContext.Request.RouteValues["userId"] = userId;
-        
+
         var context = new AuthorizationHandlerContext([_requirement], user, httpContext);
 
         // Act
@@ -92,10 +92,10 @@ public class SelfOrAdminHandlerTests
         };
         var identity = new ClaimsIdentity(claims, "test");
         var user = new ClaimsPrincipal(identity);
-        
+
         var httpContext = new DefaultHttpContext();
         httpContext.Request.RouteValues["userId"] = "differentUser";
-        
+
         var context = new AuthorizationHandlerContext([_requirement], user, httpContext);
 
         // Act

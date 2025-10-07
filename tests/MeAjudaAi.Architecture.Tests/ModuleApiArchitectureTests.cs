@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using MeAjudaAi.Shared.Contracts.Modules;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
+using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Shared.Functional;
 using NetArchTest.Rules;
 using System.Reflection;
@@ -24,7 +25,8 @@ public class ModuleApiArchitectureTests
             .ResideInNamespaceMatching(@"MeAjudaAi\.Shared\.Contracts\.Modules\.\w+");
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
+        var violations = result.GetResult().FailingTypes;
+        violations.Should().BeEmpty(
             because: "Module API interfaces should be in the Shared.Contracts.Modules namespace hierarchy");
     }
 
@@ -49,10 +51,10 @@ public class ModuleApiArchitectureTests
                 var attribute = type.GetCustomAttribute<ModuleApiAttribute>();
                 attribute.Should().NotBeNull(
                     because: $"Module API implementation {type.Name} should have [ModuleApi] attribute");
-                
+
                 attribute!.ModuleName.Should().NotBeNullOrWhiteSpace(
                     because: $"Module API {type.Name} should have a valid module name");
-                
+
                 attribute.ApiVersion.Should().NotBeNullOrWhiteSpace(
                     because: $"Module API {type.Name} should have a valid API version");
             }
@@ -82,11 +84,11 @@ public class ModuleApiArchitectureTests
                 if (method.ReturnType.IsGenericType)
                 {
                     var genericType = method.ReturnType.GetGenericTypeDefinition();
-                    
+
                     if (genericType == typeof(Task<>))
                     {
                         var taskInnerType = method.ReturnType.GetGenericArguments()[0];
-                        
+
                         if (taskInnerType.IsGenericType)
                         {
                             var innerGenericType = taskInnerType.GetGenericTypeDefinition();
@@ -115,14 +117,14 @@ public class ModuleApiArchitectureTests
         {
             var methods = type.GetMethods()
                 .Where(m => !m.IsSpecialName && m.DeclaringType == type)
-                .Where(m => m.ReturnType.IsGenericType && 
+                .Where(m => m.ReturnType.IsGenericType &&
                            m.ReturnType.GetGenericTypeDefinition() == typeof(Task<>));
 
             foreach (var method in methods)
             {
                 var parameters = method.GetParameters();
                 var hasCancellationToken = parameters.Any(p => p.ParameterType == typeof(CancellationToken));
-                
+
                 hasCancellationToken.Should().BeTrue(
                     because: $"Async method {type.Name}.{method.Name} should have a CancellationToken parameter");
 
@@ -152,7 +154,8 @@ public class ModuleApiArchitectureTests
             .BeClasses(); // Records are classes in .NET
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
+        var violations = result.GetResult().FailingTypes;
+        violations.Should().BeEmpty(
             because: "Module API DTOs should be sealed records for immutability");
     }
 
@@ -166,14 +169,15 @@ public class ModuleApiArchitectureTests
         foreach (var assembly in assemblies)
         {
             var moduleName = GetModuleName(assembly);
-            
+
             var result = Types.InAssembly(assembly)
                 .That()
                 .ImplementInterface(typeof(IModuleApi))
                 .Should()
                 .NotHaveDependencyOnAny(GetOtherModuleNamespaces(moduleName));
 
-            result.IsSuccessful.Should().BeTrue(
+            var violations = result.GetResult().FailingTypes;
+            violations.Should().BeEmpty(
                 because: $"Module API in {moduleName} should not depend on other modules");
         }
     }
@@ -189,7 +193,8 @@ public class ModuleApiArchitectureTests
             .NotHaveDependencyOnAny("MeAjudaAi.Modules.*.Domain", "MeAjudaAi.Modules.*.Infrastructure");
 
         // Assert
-        result.IsSuccessful.Should().BeTrue(
+        var violations = result.GetResult().FailingTypes;
+        violations.Should().BeEmpty(
             because: "Module API contracts should not reference internal module types");
     }
 
@@ -208,7 +213,8 @@ public class ModuleApiArchitectureTests
                 .Should()
                 .BeSealed();
 
-            result.IsSuccessful.Should().BeTrue(
+            var violations = result.GetResult().FailingTypes;
+            violations.Should().BeEmpty(
                 because: "Module API implementations should be sealed to prevent inheritance");
         }
     }

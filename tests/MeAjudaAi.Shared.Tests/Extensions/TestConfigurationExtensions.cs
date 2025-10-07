@@ -19,10 +19,10 @@ public static class TestConfigurationExtensions
             options.MediumTimeout = TestData.Performance.MediumTimeout;
             options.LongTimeout = TestData.Performance.LongTimeout;
         });
-        
+
         return services;
     }
-    
+
     /// <summary>
     /// Adiciona configurações de paginação para testes
     /// </summary>
@@ -34,7 +34,7 @@ public static class TestConfigurationExtensions
             options.MaxPageSize = TestData.Pagination.MaxPageSize;
             options.FirstPage = TestData.Pagination.FirstPage;
         });
-        
+
         return services;
     }
 }

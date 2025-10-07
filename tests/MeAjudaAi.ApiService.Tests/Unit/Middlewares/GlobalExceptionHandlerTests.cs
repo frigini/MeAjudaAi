@@ -137,7 +137,7 @@ public class GlobalExceptionHandlerTests
         responseStream.Position = 0;
         var responseContent = await new StreamReader(responseStream).ReadToEndAsync();
         responseContent.Should().NotBeEmpty();
-        
+
         var errorResponse = JsonSerializer.Deserialize<object>(responseContent);
         errorResponse.Should().NotBeNull();
     }

@@ -365,10 +365,10 @@ public class UserTests
         var user = CreateTestUser();
         var changeDate = new DateTime(2023, 10, 1, 12, 0, 0, DateTimeKind.Utc);
         var checkDate = new DateTime(2023, 10, 15, 12, 0, 0, DateTimeKind.Utc); // 14 dias depois
-        
+
         var changeDateProvider = CreateMockDateTimeProvider(changeDate);
         var checkDateProvider = CreateMockDateTimeProvider(checkDate);
-        
+
         user.ChangeUsername("newusername", changeDateProvider);
 
         // Act
@@ -385,10 +385,10 @@ public class UserTests
         var user = CreateTestUser();
         var changeDate = new DateTime(2023, 9, 1, 12, 0, 0, DateTimeKind.Utc);
         var checkDate = new DateTime(2023, 10, 15, 12, 0, 0, DateTimeKind.Utc); // 44 dias depois
-        
+
         var changeDateProvider = CreateMockDateTimeProvider(changeDate);
         var checkDateProvider = CreateMockDateTimeProvider(checkDate);
-        
+
         user.ChangeUsername("newusername", changeDateProvider);
 
         // Act

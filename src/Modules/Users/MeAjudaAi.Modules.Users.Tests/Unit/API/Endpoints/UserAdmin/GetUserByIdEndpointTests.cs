@@ -85,7 +85,7 @@ public class GetUserByIdEndpointTests
         result.Should().NotBeNull();
         var httpResult = result as IStatusCodeHttpResult;
         httpResult?.StatusCode.Should().Be(StatusCodes.Status200OK);
-        
+
         _queryDispatcherMock.Verify(
             x => x.QueryAsync<GetUserByIdQuery, Result<UserDto>>(
                 It.Is<GetUserByIdQuery>(q => q.UserId == userId),

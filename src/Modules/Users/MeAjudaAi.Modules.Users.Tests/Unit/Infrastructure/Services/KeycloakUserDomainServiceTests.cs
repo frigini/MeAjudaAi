@@ -33,23 +33,23 @@ public class KeycloakUserDomainServiceTests
 
         _keycloakServiceMock
             .Setup(x => x.CreateUserAsync(
-                username.Value, 
-                email.Value, 
-                firstName, 
-                lastName, 
-                password, 
-                roles, 
+                username.Value,
+                email.Value,
+                firstName,
+                lastName,
+                password,
+                roles,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<string>.Success(keycloakId));
 
         // Act
         var result = await _service.CreateUserAsync(
-            username, 
-            email, 
-            firstName, 
-            lastName, 
-            password, 
-            roles, 
+            username,
+            email,
+            firstName,
+            lastName,
+            password,
+            roles,
             CancellationToken.None);
 
         // Assert

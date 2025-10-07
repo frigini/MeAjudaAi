@@ -15,7 +15,7 @@ public class RequestMapperExtensionsTests
         var request = new CreateUserRequest
         {
             Username = "testuser",
-            Email = "test@example.com", 
+            Email = "test@example.com",
             FirstName = "John",
             LastName = "Doe",
             Password = "password123",
@@ -43,7 +43,7 @@ public class RequestMapperExtensionsTests
         {
             Username = "testuser",
             Email = "test@example.com",
-            FirstName = "John", 
+            FirstName = "John",
             LastName = "Doe",
             Password = "password123",
             Roles = null

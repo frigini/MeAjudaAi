@@ -35,11 +35,11 @@ public class ExtensionsTests
         // Assert
         Assert.NotNull(result);
         Assert.Same(services, result);
-        
+
         // Verify that services were registered
         var serviceProvider = services.BuildServiceProvider();
         Assert.NotNull(serviceProvider);
-        
+
         // Should be able to build without throwing
         Assert.True(services.Count > 0);
     }
@@ -95,10 +95,10 @@ public class ExtensionsTests
 
         // Assert
         var serviceProvider = services.BuildServiceProvider();
-        
+
         // Should be able to build service provider without exceptions
         Assert.NotNull(serviceProvider);
-        
+
         // Verify some basic services are registered
         Assert.Contains(services, s => s.ServiceType.Namespace?.Contains("Users") == true);
     }
@@ -118,7 +118,7 @@ public class ExtensionsTests
         // Assert
         Assert.NotNull(result);
         Assert.Same(services, result);
-        
+
         // Should register at least some services
         Assert.True(services.Count > 0);
     }

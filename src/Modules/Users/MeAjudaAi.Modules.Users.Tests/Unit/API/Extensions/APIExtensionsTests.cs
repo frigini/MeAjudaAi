@@ -33,7 +33,7 @@ public class APIExtensionsTests
         // Assert
         result.Should().BeSameAs(services);
         services.Should().NotBeEmpty();
-        
+
         // Verificar se serviços foram registrados (teste estrutural)
         var serviceProvider = services.BuildServiceProvider();
         serviceProvider.Should().NotBeNull();
@@ -75,10 +75,10 @@ public class APIExtensionsTests
 
         // Act & Assert
         var act = async () => await services.AddUsersModuleWithSchemaIsolationAsync(
-            configuration, 
-            usersRolePassword: null, 
+            configuration,
+            usersRolePassword: null,
             appRolePassword: null);
-        
+
         await act.Should().NotThrowAsync();
     }
 
@@ -89,7 +89,7 @@ public class APIExtensionsTests
         var builder = WebApplication.CreateBuilder();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddRouting();
-        
+
         using var app = builder.Build();
 
         // Act
@@ -178,7 +178,7 @@ public class APIExtensionsTests
 
         // Assert
         result.Should().BeSameAs(services);
-        
+
         // Verificar que pelo menos alguns serviços foram registrados
         services.Count.Should().BeGreaterThan(0);
     }
@@ -201,7 +201,7 @@ public class APIExtensionsTests
             services.AddUsersModule(configuration);
             services.AddUsersModule(configuration);
         };
-        
+
         act.Should().NotThrow();
     }
 }

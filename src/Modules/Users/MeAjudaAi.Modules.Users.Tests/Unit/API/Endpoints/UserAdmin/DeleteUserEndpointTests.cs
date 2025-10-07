@@ -73,7 +73,7 @@ public class DeleteUserEndpointTests
         result.Should().NotBeNull();
         var httpResult = result as IStatusCodeHttpResult;
         httpResult?.StatusCode.Should().Be(StatusCodes.Status204NoContent);
-        
+
         _commandDispatcherMock.Verify(
             x => x.SendAsync<DeleteUserCommand, Result>(
                 It.Is<DeleteUserCommand>(cmd => cmd.UserId == userId),

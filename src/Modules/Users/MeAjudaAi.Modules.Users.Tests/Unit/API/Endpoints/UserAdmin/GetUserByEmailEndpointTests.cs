@@ -213,7 +213,7 @@ public class GetUserByEmailEndpointTests
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => InvokeEndpointMethod(email, _mockQueryDispatcher.Object, CancellationToken.None));
-        
+
         exception.Should().Be(expectedException);
         _mockQueryDispatcher.Verify(x => x.QueryAsync<GetUserByEmailQuery, Result<UserDto>>(
             It.IsAny<GetUserByEmailQuery>(),

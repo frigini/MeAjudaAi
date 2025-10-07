@@ -38,7 +38,7 @@ public class GetUsersEndpointTests
 
         _mockQueryDispatcher
             .Setup(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-                It.IsAny<GetUsersQuery>(), 
+                It.IsAny<GetUsersQuery>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(successResult);
 
@@ -48,7 +48,7 @@ public class GetUsersEndpointTests
         // Assert
         result.Should().NotBeNull();
         _mockQueryDispatcher.Verify(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-            It.Is<GetUsersQuery>(q => 
+            It.Is<GetUsersQuery>(q =>
                 q.Page == 1 &&
                 q.PageSize == 10 &&
                 q.SearchTerm == null),
@@ -68,7 +68,7 @@ public class GetUsersEndpointTests
 
         _mockQueryDispatcher
             .Setup(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-                It.IsAny<GetUsersQuery>(), 
+                It.IsAny<GetUsersQuery>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(successResult);
 
@@ -78,7 +78,7 @@ public class GetUsersEndpointTests
         // Assert
         result.Should().NotBeNull();
         _mockQueryDispatcher.Verify(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-            It.Is<GetUsersQuery>(q => 
+            It.Is<GetUsersQuery>(q =>
                 q.Page == pageNumber &&
                 q.PageSize == pageSize &&
                 q.SearchTerm == null),
@@ -100,7 +100,7 @@ public class GetUsersEndpointTests
 
         _mockQueryDispatcher
             .Setup(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-                It.IsAny<GetUsersQuery>(), 
+                It.IsAny<GetUsersQuery>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(successResult);
 
@@ -110,7 +110,7 @@ public class GetUsersEndpointTests
         // Assert
         result.Should().NotBeNull();
         _mockQueryDispatcher.Verify(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-            It.Is<GetUsersQuery>(q => 
+            It.Is<GetUsersQuery>(q =>
                 q.Page == 1 &&
                 q.PageSize == 10 &&
                 q.SearchTerm == searchTerm),
@@ -131,7 +131,7 @@ public class GetUsersEndpointTests
 
         _mockQueryDispatcher
             .Setup(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-                It.IsAny<GetUsersQuery>(), 
+                It.IsAny<GetUsersQuery>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(successResult);
 
@@ -141,7 +141,7 @@ public class GetUsersEndpointTests
         // Assert
         result.Should().NotBeNull();
         _mockQueryDispatcher.Verify(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-            It.Is<GetUsersQuery>(q => 
+            It.Is<GetUsersQuery>(q =>
                 q.Page == pageNumber &&
                 q.PageSize == pageSize &&
                 q.SearchTerm == searchTerm),
@@ -160,7 +160,7 @@ public class GetUsersEndpointTests
 
         _mockQueryDispatcher
             .Setup(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-                It.IsAny<GetUsersQuery>(), 
+                It.IsAny<GetUsersQuery>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(successResult);
 
@@ -183,7 +183,7 @@ public class GetUsersEndpointTests
 
         _mockQueryDispatcher
             .Setup(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-                It.IsAny<GetUsersQuery>(), 
+                It.IsAny<GetUsersQuery>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(failureResult);
 
@@ -202,15 +202,15 @@ public class GetUsersEndpointTests
     {
         // Arrange
         var cancellationToken = new CancellationToken(true);
-        
+
         _mockQueryDispatcher
             .Setup(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-                It.IsAny<GetUsersQuery>(), 
+                It.IsAny<GetUsersQuery>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(() => 
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
             InvokeEndpoint(cancellationToken: cancellationToken));
 
         _mockQueryDispatcher.Verify(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
@@ -224,14 +224,14 @@ public class GetUsersEndpointTests
         // Arrange
         _mockQueryDispatcher
             .Setup(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-                It.IsAny<GetUsersQuery>(), 
+                It.IsAny<GetUsersQuery>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => 
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             InvokeEndpoint());
-        
+
         exception.Message.Should().Be("Database connection failed");
     }
 
@@ -247,7 +247,7 @@ public class GetUsersEndpointTests
 
         _mockQueryDispatcher
             .Setup(x => x.QueryAsync<GetUsersQuery, Result<PagedResult<UserDto>>>(
-                It.IsAny<GetUsersQuery>(), 
+                It.IsAny<GetUsersQuery>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(successResult);
 
@@ -277,26 +277,26 @@ public class GetUsersEndpointTests
     }
 
     private async Task<IResult> InvokeEndpoint(
-        int pageNumber = 1, 
-        int pageSize = 10, 
+        int pageNumber = 1,
+        int pageSize = 10,
         string? searchTerm = null,
         CancellationToken cancellationToken = default)
     {
         // Simula a chamada do endpoint através de reflexão
         var method = typeof(GetUsersEndpoint)
             .GetMethod("GetUsersAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        
+
         method.Should().NotBeNull("GetUsersAsync method should exist");
 
-        var task = (Task<IResult>)method!.Invoke(null, new object?[] 
-        { 
+        var task = (Task<IResult>)method!.Invoke(null, new object?[]
+        {
             pageNumber,
             pageSize,
             searchTerm,
-            _mockQueryDispatcher.Object, 
-            cancellationToken 
+            _mockQueryDispatcher.Object,
+            cancellationToken
         })!;
-        
+
         return await task;
     }
 }

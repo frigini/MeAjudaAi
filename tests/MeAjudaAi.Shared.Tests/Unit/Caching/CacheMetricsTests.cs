@@ -17,10 +17,10 @@ public class CacheMetricsTests : IDisposable
         var services = new ServiceCollection();
         services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
         services.AddMetrics();
-        
+
         _serviceProvider = services.BuildServiceProvider();
         _meterFactory = _serviceProvider.GetRequiredService<IMeterFactory>();
-        
+
         _metrics = new CacheMetrics(_meterFactory);
     }
 
@@ -132,7 +132,7 @@ public class CacheMetricsTests : IDisposable
             _metrics.RecordOperation("key3", "set", true, 0.05);
             _metrics.RecordOperation("key4", "set", false, 0.15);
         };
-        
+
         action.Should().NotThrow();
     }
 
@@ -176,7 +176,7 @@ public class CacheMetricsTests : IDisposable
                 var key = $"concurrent-key-{taskId}";
                 var isHit = random.Next(0, 2) == 1;
                 var duration = random.NextDouble() * 0.5; // 0-500ms
-                
+
                 _metrics.RecordOperation(key, "concurrent-test", isHit, duration);
             }));
         }

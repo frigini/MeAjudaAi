@@ -380,7 +380,7 @@ public class UserRepositoryTests
         constructors.Should().HaveCount(1);
         var constructor = constructors.First();
         var parameters = constructor.GetParameters();
-        
+
         parameters.Should().HaveCount(2);
         parameters[0].ParameterType.Name.Should().Be("UsersDbContext");
         parameters[1].ParameterType.Should().Be<IDateTimeProvider>();

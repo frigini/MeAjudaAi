@@ -106,7 +106,7 @@ public class UserMappersTests
         // Arrange
         var createdAt = new DateTime(2023, 1, 15, 10, 30, 0, DateTimeKind.Utc);
         var updatedAt = new DateTime(2023, 2, 20, 14, 45, 30, DateTimeKind.Utc);
-        
+
         var user = new UserBuilder()
             .WithEmail("timestamp@example.com")
             .WithUsername("timestampuser")

@@ -23,7 +23,7 @@ public class KeycloakServiceTests
     {
         _mockHttpMessageHandler = new Mock<HttpMessageHandler>();
         _httpClient = new HttpClient(_mockHttpMessageHandler.Object);
-        
+
         _options = new KeycloakOptions
         {
             BaseUrl = "https://keycloak.example.com",
@@ -33,7 +33,7 @@ public class KeycloakServiceTests
             AdminUsername = "admin",
             AdminPassword = "admin-password"
         };
-        
+
         _mockLogger = new Mock<ILogger<KeycloakService>>();
         _keycloakService = new KeycloakService(_httpClient, _options, _mockLogger.Object);
     }
@@ -46,11 +46,11 @@ public class KeycloakServiceTests
 
         // Act
         var result = await _keycloakService.CreateUserAsync(
-            "testuser", 
-            "test@example.com", 
-            "Test", 
-            "User", 
-            "password", 
+            "testuser",
+            "test@example.com",
+            "Test",
+            "User",
+            "password",
             ["user"]);
 
         // Assert
@@ -71,33 +71,33 @@ public class KeycloakServiceTests
         };
 
         var userId = Guid.NewGuid().ToString();
-        
+
         // Configura resposta do token de admin
         SetupHttpResponse(HttpStatusCode.OK, JsonSerializer.Serialize(adminTokenResponse));
-        
+
         // Configura resposta de criação de usuário com cabeçalho Location
         var userCreationResponse = new HttpResponseMessage(HttpStatusCode.Created);
         userCreationResponse.Headers.Location = new Uri($"https://keycloak.example.com/admin/realms/test-realm/users/{userId}");
-        
+
         _mockHttpMessageHandler
             .Protected()
             .SetupSequence<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK) 
-            { 
-                Content = new StringContent(JsonSerializer.Serialize(adminTokenResponse)) 
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(adminTokenResponse))
             })
             .ReturnsAsync(userCreationResponse);
 
         // Act
         var result = await _keycloakService.CreateUserAsync(
-            "testuser", 
-            "test@example.com", 
-            "Test", 
-            "User", 
-            "password", 
+            "testuser",
+            "test@example.com",
+            "Test",
+            "User",
+            "password",
             []);
 
         // Assert
@@ -124,9 +124,9 @@ public class KeycloakServiceTests
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK) 
-            { 
-                Content = new StringContent(JsonSerializer.Serialize(adminTokenResponse)) 
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(adminTokenResponse))
             })
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.BadRequest)
             {
@@ -135,11 +135,11 @@ public class KeycloakServiceTests
 
         // Act
         var result = await _keycloakService.CreateUserAsync(
-            "testuser", 
-            "test@example.com", 
-            "Test", 
-            "User", 
-            "password", 
+            "testuser",
+            "test@example.com",
+            "Test",
+            "User",
+            "password",
             []);
 
         // Assert
@@ -166,19 +166,19 @@ public class KeycloakServiceTests
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK) 
-            { 
-                Content = new StringContent(JsonSerializer.Serialize(adminTokenResponse)) 
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(adminTokenResponse))
             })
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.Created));
 
         // Act
         var result = await _keycloakService.CreateUserAsync(
-            "testuser", 
-            "test@example.com", 
-            "Test", 
-            "User", 
-            "password", 
+            "testuser",
+            "test@example.com",
+            "Test",
+            "User",
+            "password",
             []);
 
         // Assert
@@ -201,11 +201,11 @@ public class KeycloakServiceTests
 
         // Act
         var result = await _keycloakService.CreateUserAsync(
-            "testuser", 
-            "test@example.com", 
-            "Test", 
-            "User", 
-            "password", 
+            "testuser",
+            "test@example.com",
+            "Test",
+            "User",
+            "password",
             []);
 
         // Assert
@@ -331,9 +331,9 @@ public class KeycloakServiceTests
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK) 
-            { 
-                Content = new StringContent(JsonSerializer.Serialize(adminTokenResponse)) 
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(adminTokenResponse))
             })
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.NoContent));
 
@@ -379,9 +379,9 @@ public class KeycloakServiceTests
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK) 
-            { 
-                Content = new StringContent(JsonSerializer.Serialize(adminTokenResponse)) 
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(adminTokenResponse))
             })
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.NotFound)
             {
@@ -449,7 +449,7 @@ public class KeycloakServiceTests
         }
         """));
         var signature = Convert.ToBase64String(Encoding.UTF8.GetBytes("signature"));
-        
+
         return $"{header}.{payload}.{signature}";
     }
 }
