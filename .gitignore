@@ -54,6 +54,7 @@ coverage.info
 coverage.xml
 *.coverage
 .coverage
+coverage/
 htmlcov/
 
 # Docker
@@ -107,3 +108,4 @@ secrets.json
 # Project specific
 init-scripts/
 postgres_data/
+api-spec.json

@@ -1,0 +1,68 @@
+{
+  "id": "meajudaai",
+  "realm": "meajudaai",
+  "displayName": "MeAjudaAi",
+  "enabled": true,
+  "sslRequired": "all",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 30,
+  "passwordPolicy": "length(12) and digits(2) and lowerCase(2) and upperCase(2) and specialChars(2)",
+  "roles": {
+    "realm": [
+      {
+        "name": "customer",
+        "description": "Customer role for regular users"
+      },
+      {
+        "name": "service-provider",
+        "description": "Service provider role for professionals"
+      },
+      {
+        "name": "admin",
+        "description": "Administrator role"
+      },
+      {
+        "name": "super-admin",
+        "description": "Super administrator role"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "meajudaai-api",
+      "name": "MeAjudaAi API Client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "access.token.lifespan": "1800"
+      }
+    },
+    {
+      "clientId": "meajudaai-web",
+      "name": "MeAjudaAi Web Client",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [],
+      "webOrigins": []
+    }
+  ]
+}
