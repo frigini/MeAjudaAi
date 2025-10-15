@@ -12,7 +12,7 @@ public interface IRabbitMqInfrastructureManager
     Task BindQueueToExchangeAsync(string queueName, string exchangeName, string routingKey = "");
 }
 
-public class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAsyncDisposable
+internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, IAsyncDisposable
 {
     private readonly RabbitMqOptions _options;
     private readonly IEventTypeRegistry _eventRegistry;

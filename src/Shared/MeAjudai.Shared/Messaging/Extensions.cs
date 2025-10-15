@@ -13,13 +13,11 @@ using Microsoft.Extensions.Logging;
 using Rebus.Config;
 using Rebus.Routing;
 using Rebus.Routing.TypeBased;
-using Rebus.Serialization.Json;
 using Rebus.Transport;
-using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Messaging;
 
-internal static class Extensions
+internal static class MessagingExtensions
 {
     public static IServiceCollection AddMessaging(
         this IServiceCollection services,
@@ -48,8 +46,8 @@ internal static class Extensions
 
             // Validação mais rigorosa da connection string
             if (string.IsNullOrWhiteSpace(options.ConnectionString) ||
-                options.ConnectionString.Contains("${") || // Check for unresolved environment variable placeholder
-                options.ConnectionString.Equals("Endpoint=sb://localhost/;SharedAccessKeyName=default;SharedAccessKey=default")) // Check for dummy connection string
+                options.ConnectionString.Contains("${", StringComparison.OrdinalIgnoreCase) || // Check for unresolved environment variable placeholder
+                options.ConnectionString.Equals("Endpoint=sb://localhost/;SharedAccessKeyName=default;SharedAccessKey=default", StringComparison.OrdinalIgnoreCase)) // Check for dummy connection string
             {
                 if (environment.IsDevelopment() || environment.IsEnvironment(EnvironmentNames.Testing))
                 {
@@ -141,32 +139,11 @@ internal static class Extensions
         services.AddSingleton<IServiceBusTopicManager, ServiceBusTopicManager>();
         services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
 
-        // Só configura o Rebus se não estiver em ambiente de teste
-        if (!environment.IsEnvironment(EnvironmentNames.Testing))
-        {
-            services.AddRebus((configure, serviceProvider) =>
-            {
-                var serviceBusOptions = serviceProvider.GetRequiredService<ServiceBusOptions>();
-                var rabbitMqOptions = serviceProvider.GetRequiredService<RabbitMqOptions>();
-                var messageBusOptions = serviceProvider.GetRequiredService<MessageBusOptions>();
-                var eventRegistry = serviceProvider.GetRequiredService<IEventTypeRegistry>();
-                var topicSelector = serviceProvider.GetRequiredService<ITopicStrategySelector>();
-                var hostEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
+        // Adicionar sistema de Dead Letter Queue
+        MeAjudaAi.Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(services, configuration);
 
-                return configure
-                    .Transport(t => ConfigureTransport(t, serviceBusOptions, rabbitMqOptions, hostEnvironment))
-                    .Routing(async r => await ConfigureRoutingAsync(r, eventRegistry, topicSelector))
-                    .Options(o =>
-                    {
-                        o.SetNumberOfWorkers(messageBusOptions.MaxConcurrentCalls);
-                        o.SetMaxParallelism(messageBusOptions.MaxConcurrentCalls);
-                    })
-                    .Serialization(s => s.UseSystemTextJson(new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                    }));
-            });
-        }
+        // TODO: Reabilitar após configurar Rebus v3
+        // Rebus configuration temporariamente desabilitada
 
         return services;
     }
@@ -201,6 +178,12 @@ internal static class Extensions
         {
             await host.EnsureServiceBusTopicsAsync();
         }
+
+        // Garantir infraestrutura de Dead Letter Queue
+        await MeAjudaAi.Shared.Messaging.Extensions.DeadLetterExtensions.EnsureDeadLetterInfrastructureAsync(host);
+        
+        // Validar configuração de Dead Letter Queue
+        await MeAjudaAi.Shared.Messaging.Extensions.DeadLetterExtensions.ValidateDeadLetterConfigurationAsync(host);
     }
 
     private static void ConfigureServiceBusOptions(ServiceBusOptions options, IConfiguration configuration)
@@ -237,47 +220,6 @@ internal static class Extensions
         if (string.IsNullOrWhiteSpace(options.ConnectionString))
         {
             options.ConnectionString = configuration.GetConnectionString("rabbitmq") ?? options.BuildConnectionString();
-        }
-    }
-
-    private static void ConfigureTransport(
-        StandardConfigurer<ITransport> transport,
-        ServiceBusOptions serviceBusOptions,
-        RabbitMqOptions rabbitMqOptions,
-        IHostEnvironment environment)
-    {
-        if (environment.IsEnvironment(EnvironmentNames.Testing))
-        {
-            // Para testes, usa RabbitMQ com configuração mínima
-            // Isso irá falhar de forma controlada e não bloqueará o startup da aplicação
-            transport.UseRabbitMq("amqp://localhost", "test-queue");
-        }
-        else if (environment.IsDevelopment())
-        {
-            transport.UseRabbitMq(
-                rabbitMqOptions.ConnectionString,
-                rabbitMqOptions.DefaultQueueName);
-        }
-        else
-        {
-            transport.UseAzureServiceBus(
-                serviceBusOptions.ConnectionString,
-                serviceBusOptions.DefaultTopicName);
-        }
-    }
-
-    private async static Task ConfigureRoutingAsync(
-        StandardConfigurer<IRouter> routing,
-        IEventTypeRegistry eventRegistry,
-        ITopicStrategySelector topicSelector)
-    {
-        var routingConfig = routing.TypeBased();
-        var eventTypes = await eventRegistry.GetAllEventTypesAsync();
-
-        foreach (var eventType in eventTypes)
-        {
-            var topicName = topicSelector.SelectTopicForEvent(eventType);
-            routingConfig.Map(eventType, topicName);
         }
     }
 }

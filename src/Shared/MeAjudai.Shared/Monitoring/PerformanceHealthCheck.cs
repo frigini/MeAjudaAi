@@ -7,7 +7,7 @@ public partial class MeAjudaAiHealthChecks
     /// <summary>
     /// Health check para verificar métricas de performance
     /// </summary>
-    public class PerformanceHealthCheck() : IHealthCheck
+    internal class PerformanceHealthCheck() : IHealthCheck
     {
         public Task<HealthCheckResult> CheckHealthAsync(
             HealthCheckContext context,

@@ -3,7 +3,7 @@ Set-StrictMode -Version Latest
 param(
     [Parameter(Mandatory = $false)]
     [ValidateNotNullOrEmpty()]
-    [string]$OutputPath = "api-spec.json"
+    [string]$OutputPath = "api/api-spec.json"
 )
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $OutputPath = if ([System.IO.Path]::IsPathRooted($OutputPath)) { $OutputPath } else { Join-Path $ProjectRoot $OutputPath }

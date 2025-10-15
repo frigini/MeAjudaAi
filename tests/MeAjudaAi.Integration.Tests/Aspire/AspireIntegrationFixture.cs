@@ -1,5 +1,4 @@
-﻿using Aspire.Hosting;
-using System;
+using Aspire.Hosting;
 
 namespace MeAjudaAi.Integration.Tests.Aspire;
 
@@ -14,7 +13,7 @@ public class AspireIntegrationFixture : IAsyncLifetime
 
     public HttpClient HttpClient { get; private set; } = null!;
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         // Configura ambiente de teste ANTES de criar o AppHost
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
@@ -57,7 +56,7 @@ public class AspireIntegrationFixture : IAsyncLifetime
         Console.WriteLine("[AspireIntegrationFixture] HttpClient configured - migrations should be handled by application startup");
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         HttpClient?.Dispose();
 

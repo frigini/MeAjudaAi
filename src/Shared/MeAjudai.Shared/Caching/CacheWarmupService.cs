@@ -25,7 +25,7 @@ public interface ICacheWarmupService
 /// Serviço responsável pelo cache warming dos dados mais acessados.
 /// Executado durante a inicialização da aplicação e periodicamente.
 /// </summary>
-public class CacheWarmupService : ICacheWarmupService
+internal class CacheWarmupService : ICacheWarmupService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<CacheWarmupService> _logger;

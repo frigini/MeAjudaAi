@@ -871,7 +871,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .lycheecache
-          key: lychee-${{ runner.os }}-${{ hashFiles('**/*.md','lychee.toml') }}
+          key: lychee-${{ runner.os }}-${{ hashFiles('**/*.md','config/lychee.toml') }}
           restore-keys: |
             lychee-${{ runner.os }}-
 
@@ -880,7 +880,7 @@ jobs:
         with:
           # Use simplified configuration for reliability
           args: >-
-            --config lychee.toml
+            --config config/lychee.toml
             --no-progress
             --cache
             --max-cache-age 1d

@@ -10,7 +10,7 @@ public partial class MeAjudaAiHealthChecks
     /// <summary>
     /// Health check para verificar se o sistema pode processar ajudas
     /// </summary>
-    public class HelpProcessingHealthCheck() : IHealthCheck
+    internal class HelpProcessingHealthCheck() : IHealthCheck
     {
         public Task<HealthCheckResult> CheckHealthAsync(
             HealthCheckContext context,

@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Diagnostics;
+using MeAjudaAi.Shared.Database.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Shared.Exceptions;
 
@@ -23,6 +25,40 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                         g => g.Key,
                         g => g.Select(e => e.ErrorMessage).ToArray()),
                 new Dictionary<string, object?>()),
+
+            UniqueConstraintException uniqueException => (
+                StatusCodes.Status409Conflict,
+                "Duplicate Value",
+                $"The value for {uniqueException.ColumnName ?? "this field"} already exists",
+                null,
+                new Dictionary<string, object?>
+                {
+                    ["constraintName"] = uniqueException.ConstraintName,
+                    ["columnName"] = uniqueException.ColumnName
+                }),
+
+            NotNullConstraintException notNullException => (
+                StatusCodes.Status400BadRequest,
+                "Required Field Missing",
+                $"The field {notNullException.ColumnName ?? "this field"} is required",
+                null,
+                new Dictionary<string, object?>
+                {
+                    ["columnName"] = notNullException.ColumnName
+                }),
+
+            ForeignKeyConstraintException foreignKeyException => (
+                StatusCodes.Status400BadRequest,
+                "Invalid Reference",
+                $"The referenced record does not exist",
+                null,
+                new Dictionary<string, object?>
+                {
+                    ["constraintName"] = foreignKeyException.ConstraintName,
+                    ["tableName"] = foreignKeyException.TableName
+                }),
+
+            DbUpdateException dbUpdateException => ProcessDbUpdateException(dbUpdateException),
 
             NotFoundException notFoundException => (
                 StatusCodes.Status404NotFound,
@@ -116,12 +152,71 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         return true;
     }
 
+    private static (int statusCode, string title, string detail, object? errors, Dictionary<string, object?> extensions) ProcessDbUpdateException(DbUpdateException dbUpdateException)
+    {
+        // Tenta processar a exceção usando nosso processador customizado
+        var processedException = PostgreSqlExceptionProcessor.ProcessException(dbUpdateException);
+        
+        if (processedException is UniqueConstraintException uniqueException)
+        {
+            return (
+                StatusCodes.Status409Conflict,
+                "Duplicate Value",
+                $"The value for {uniqueException.ColumnName ?? "this field"} already exists",
+                null,
+                new Dictionary<string, object?>
+                {
+                    ["constraintName"] = uniqueException.ConstraintName,
+                    ["columnName"] = uniqueException.ColumnName
+                });
+        }
+        
+        if (processedException is NotNullConstraintException notNullException)
+        {
+            return (
+                StatusCodes.Status400BadRequest,
+                "Required Field Missing",
+                $"The field {notNullException.ColumnName ?? "this field"} is required",
+                null,
+                new Dictionary<string, object?>
+                {
+                    ["columnName"] = notNullException.ColumnName
+                });
+        }
+        
+        if (processedException is ForeignKeyConstraintException foreignKeyException)
+        {
+            return (
+                StatusCodes.Status400BadRequest,
+                "Invalid Reference",
+                "The referenced record does not exist",
+                null,
+                new Dictionary<string, object?>
+                {
+                    ["constraintName"] = foreignKeyException.ConstraintName,
+                    ["tableName"] = foreignKeyException.TableName
+                });
+        }
+
+        // Fallback para DbUpdateException genérica
+        return (
+            StatusCodes.Status400BadRequest,
+            "Database Error",
+            "A database error occurred while processing your request",
+            null,
+            new Dictionary<string, object?>
+            {
+                ["exceptionType"] = dbUpdateException.GetType().Name
+            });
+    }
+
     private static string GetProblemTypeUri(int statusCode) => statusCode switch
     {
         400 => "https://tools.ietf.org/html/rfc7231#section-6.5.1",
         401 => "https://tools.ietf.org/html/rfc7235#section-3.1",
         403 => "https://tools.ietf.org/html/rfc7231#section-6.5.3",
         404 => "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+        409 => "https://tools.ietf.org/html/rfc7231#section-6.5.8",
         500 => "https://tools.ietf.org/html/rfc7231#section-6.6.1",
         _ => "https://tools.ietf.org/html/rfc7231"
     };

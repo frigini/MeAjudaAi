@@ -1,4 +1,4 @@
-﻿using Bogus;
+using Bogus;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Serialization;
@@ -81,7 +81,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
         };
     }
 
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         // CRUCIAL: Limpa configuração de autenticação ANTES de inicializar aplicação
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
@@ -285,7 +285,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
         await EnsureDatabaseSchemaAsync();
     }
 
-    public virtual async Task DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         HttpClient?.Dispose();
         _factory?.Dispose();

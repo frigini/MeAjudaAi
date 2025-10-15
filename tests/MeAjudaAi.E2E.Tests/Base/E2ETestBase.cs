@@ -89,7 +89,7 @@ public abstract class E2ETestBase : IAsyncLifetime
         return config;
     }
 
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         // Configura e inicia PostgreSQL (obrigatório)
         _postgresContainer = new PostgreSqlBuilder()
@@ -179,7 +179,7 @@ public abstract class E2ETestBase : IAsyncLifetime
         await EnsureDatabaseSchemaAsync();
     }
 
-    public virtual async Task DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         HttpClient?.Dispose();
         _factory?.Dispose();

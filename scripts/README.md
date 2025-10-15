@@ -104,7 +104,7 @@ Script para onboarding de novos desenvolvedores.
 Script para gerar especificação OpenAPI para clientes REST.
 
 ```bash
-# Gerar especificação padrão (api-spec.json na raiz do projeto)
+# Gerar especificação padrão (api-spec.json no diretório api)
 ./scripts/export-openapi.ps1
 
 # Especificar arquivo de saída (sempre relativo à raiz do projeto)
@@ -124,9 +124,9 @@ Script para gerar especificação OpenAPI para clientes REST.
 
 **Uso típico:**
 ```bash
-# Gerar na raiz do projeto e importar no cliente de API preferido
-./scripts/export-openapi.ps1 -OutputPath "api-spec.json"
-# → Arquivo criado em: C:\Code\MeAjudaAi\api-spec.json
+# Gerar no diretório api e importar no cliente de API preferido
+./scripts/export-openapi.ps1 -OutputPath "api/api-spec.json"
+# → Arquivo criado em: C:\Code\MeAjudaAi\api\api-spec.json
 # → Importar arquivo em APIDog/Postman/Insomnia
 ```
 

@@ -30,7 +30,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
     protected static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
 
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         // Configurar containers com configuração mais robusta
         _postgresContainer = new PostgreSqlBuilder()
@@ -155,7 +155,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         await WaitForApiHealthAsync();
     }
 
-    public virtual async Task DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         ApiClient?.Dispose();
         _factory?.Dispose();

@@ -1,4 +1,4 @@
-﻿using Aspire.Hosting;
+using Aspire.Hosting;
 using Bogus;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
@@ -26,7 +26,7 @@ public abstract class PerformanceTestBase : IAsyncLifetime
 
     protected JsonSerializerOptions JsonOptions { get; } = SerializationDefaults.Api;
 
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         using var cancellationTokenSource = new CancellationTokenSource(AppStartTimeout);
         var cancellationToken = cancellationTokenSource.Token;
@@ -164,7 +164,7 @@ public abstract class PerformanceTestBase : IAsyncLifetime
         ApiClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
-    public virtual async Task DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         try
         {
@@ -197,7 +197,7 @@ public abstract class BasicTestBase : IAsyncLifetime
 
     protected JsonSerializerOptions JsonOptions { get; } = SerializationDefaults.Api;
 
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         using var cancellationTokenSource = new CancellationTokenSource(SimpleTimeout);
         var cancellationToken = cancellationTokenSource.Token;
@@ -223,7 +223,7 @@ public abstract class BasicTestBase : IAsyncLifetime
         ApiClient.Timeout = TimeSpan.FromSeconds(30);
     }
 
-    public virtual async Task DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         try
         {

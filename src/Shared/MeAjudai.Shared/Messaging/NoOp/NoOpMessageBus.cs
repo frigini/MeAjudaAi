@@ -5,7 +5,7 @@ namespace MeAjudaAi.Shared.Messaging.NoOp;
 /// <summary>
 /// Implementação do IMessageBus que não faz nada - para uso em testes ou quando messaging está desabilitado
 /// </summary>
-public class NoOpMessageBus(ILogger<NoOpMessageBus> logger) : IMessageBus
+internal class NoOpMessageBus(ILogger<NoOpMessageBus> logger) : IMessageBus
 {
     public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
     {

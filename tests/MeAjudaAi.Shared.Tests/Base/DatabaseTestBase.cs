@@ -88,7 +88,7 @@ public abstract class DatabaseTestBase : IAsyncLifetime
     /// <summary>
     /// Inicializa o container do banco de dados de teste
     /// </summary>
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         // Inicia o container PostgreSQL
         await _postgresContainer.StartAsync();
@@ -183,8 +183,9 @@ public abstract class DatabaseTestBase : IAsyncLifetime
     /// <summary>
     /// Limpa o container do banco de dados de teste
     /// </summary>
-    public virtual async Task DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         await _postgresContainer.DisposeAsync();
+        GC.SuppressFinalize(this);
     }
 }

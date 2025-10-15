@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using System;
+using FluentAssertions;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure.Basic;
 
@@ -13,7 +12,7 @@ public class ContainerStartupTests
     public async Task Redis_ShouldStartSuccessfully()
     {
         // Arrange & Act
-        using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
         await using var app = await appHost.BuildAsync();
 
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
@@ -39,7 +38,7 @@ public class ContainerStartupTests
         }
 
         // Arrange & Act
-        using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
         await using var app = await appHost.BuildAsync();
 
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
@@ -57,7 +56,7 @@ public class ContainerStartupTests
     public async Task RabbitMQ_ShouldStartSuccessfully()
     {
         // Arrange & Act
-        using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
         await using var app = await appHost.BuildAsync();
 
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
@@ -95,7 +94,7 @@ public class ContainerStartupTests
     public async Task ApiService_ShouldStartAfterDependencies()
     {
         // Arrange & Act
-        using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
         await using var app = await appHost.BuildAsync();
 
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();

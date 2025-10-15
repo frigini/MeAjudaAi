@@ -1,11 +1,10 @@
-﻿using Bogus;
+using Bogus;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
 /// <summary>
-/// Base class ultra-otimizada que usa fixture compartilhado
 /// <summary>
 /// Base class compartilhada para testes de integração com máxima reutilização de recursos
 /// </summary>
@@ -14,7 +13,7 @@ public abstract class SharedTestBase(SharedTestFixture sharedFixture) : IAsyncLi
     protected HttpClient ApiClient { get; private set; } = null!;
     protected Faker Faker { get; } = new();
 
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         // Usa o fixture compartilhado que já está inicializado
         await sharedFixture.InitializeAsync();
@@ -64,11 +63,11 @@ public abstract class SharedTestBase(SharedTestFixture sharedFixture) : IAsyncLi
         ApiClient.DefaultRequestHeaders.Authorization = null;
     }
 
-    public virtual Task DisposeAsync()
+    public virtual ValueTask DisposeAsync()
     {
         // Não dispose do ApiClient aqui - ele é compartilhado
         // Apenas limpar headers específicos do teste se necessário
         ClearAuthorizationHeader();
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }

@@ -6,9 +6,9 @@ namespace MeAjudaAi.Shared.Monitoring;
 public partial class MeAjudaAiHealthChecks
 {
     /// <summary>
-    /// Health check para verificar a conectividade com serviços externos
+    /// Health check para verificar disponibilidade de serviços externos
     /// </summary>
-    public class ExternalServicesHealthCheck(HttpClient httpClient, IConfiguration configuration) : IHealthCheck
+    internal class ExternalServicesHealthCheck(HttpClient httpClient, IConfiguration configuration) : IHealthCheck
     {
         public async Task<HealthCheckResult> CheckHealthAsync(
             HealthCheckContext context,

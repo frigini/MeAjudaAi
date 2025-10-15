@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Messaging.ServiceBus;
 
-public class ServiceBusTopicManager(
+internal class ServiceBusTopicManager(
     ServiceBusAdministrationClient adminClient,
     ServiceBusOptions options,
     IEventTypeRegistry eventRegistry,

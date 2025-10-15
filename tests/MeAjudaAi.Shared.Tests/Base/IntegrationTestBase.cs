@@ -30,7 +30,7 @@ public abstract class IntegrationTestBase : IAsyncLifetime
     /// </summary>
     protected virtual Task OnModuleInitializeAsync(IServiceProvider serviceProvider) => Task.CompletedTask;
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         // CRÍTICO: Garante que os containers sejam iniciados ANTES de qualquer configuração de serviços
         await EnsureContainersStartedAsync();
@@ -90,7 +90,7 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         Console.WriteLine("Shared containers started successfully!");
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         // Cleanup específico do teste
         await OnDisposeAsync();
@@ -104,6 +104,8 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         {
             await _serviceProvider.DisposeAsync();
         }
+        
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

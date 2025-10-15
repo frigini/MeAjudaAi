@@ -10,7 +10,7 @@ namespace MeAjudaAi.Shared.Logging;
 /// <summary>
 /// Middleware para adicionar correlation ID e contexto enriquecido aos logs
 /// </summary>
-public class LoggingContextMiddleware(RequestDelegate next, ILogger<LoggingContextMiddleware> logger)
+internal class LoggingContextMiddleware(RequestDelegate next, ILogger<LoggingContextMiddleware> logger)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -77,7 +77,7 @@ public static class LoggingExtensions
     /// <summary>
     /// Adiciona contexto de usuário aos logs
     /// </summary>
-    public static IDisposable PushUserContext(this Microsoft.Extensions.Logging.ILogger logger, string? userId, string? username = null)
+    public static IDisposable PushUserContext(this ILogger logger, string? userId, string? username = null)
     {
         var disposables = new List<IDisposable>();
 
@@ -93,7 +93,7 @@ public static class LoggingExtensions
     /// <summary>
     /// Adiciona contexto de operação aos logs
     /// </summary>
-    public static IDisposable PushOperationContext(this Microsoft.Extensions.Logging.ILogger logger, string operation, object? parameters = null)
+    public static IDisposable PushOperationContext(this ILogger logger, string operation, object? parameters = null)
     {
         var disposables = new List<IDisposable>
         {

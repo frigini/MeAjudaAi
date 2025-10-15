@@ -8,7 +8,7 @@ using Serilog.Events;
 namespace MeAjudaAi.Shared.Logging;
 
 /// <summary>
-/// Enricher personalizado para adicionar Correlation ID aos logs
+/// Enricher do Serilog para adicionar Correlation ID aos logs
 /// </summary>
 public class CorrelationIdEnricher : ILogEventEnricher
 {

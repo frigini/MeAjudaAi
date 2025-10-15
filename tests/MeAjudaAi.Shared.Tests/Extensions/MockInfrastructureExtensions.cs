@@ -108,17 +108,6 @@ public static class MockInfrastructureExtensions
 
         return services;
     }
-
-    /// <summary>
-    /// Adiciona serviços de cache mock para testes  
-    /// Por enquanto deixamos vazio, apenas removemos os serviços problemáticos
-    /// </summary>
-    private static IServiceCollection AddMockCacheServices(this IServiceCollection services)
-    {
-        // Por enquanto apenas remove os serviços problemáticos
-        // TODO: Implementar mocks se necessário
-        return services;
-    }
 }
 
 /// <summary>

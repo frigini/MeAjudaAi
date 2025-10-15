@@ -1179,7 +1179,7 @@ options.OperationFilter<ApiVersionOperationFilter>();
 #### **Comando Único**
 ```bash
 # Gera especificação OpenAPI completa
-.\scripts\export-openapi.ps1 -OutputPath "api-spec.json"
+.\scripts\export-openapi.ps1 -OutputPath "api/api-spec.json"
 ```
 
 **Características:**

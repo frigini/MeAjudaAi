@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Messaging.ServiceBus;
 
-public class ServiceBusInitializationService(
+internal class ServiceBusInitializationService(
     IServiceProvider serviceProvider,
     ILogger<ServiceBusInitializationService> logger) : IHostedService
 {

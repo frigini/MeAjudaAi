@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using System;
+using FluentAssertions;
 
 namespace MeAjudaAi.Integration.Tests;
 
@@ -25,7 +24,7 @@ public class PostgreSQLConnectionTest
                 }
             };
             process.Start();
-            process.WaitForExit(5000); // 5 second timeout
+            process.WaitForExit(5000); // Timeout de 5 segundos
             return process.ExitCode == 0;
         }
         catch
@@ -34,17 +33,17 @@ public class PostgreSQLConnectionTest
         }
     }
 
-    [Fact(Timeout = 120000)] // 2 minute timeout - increased for CI environments
+    [Fact(Timeout = 120000)] // Timeout de 2 minutos - aumentado para ambientes CI
     public async Task PostgreSQL_ShouldStart_WithCorrectCredentials()
     {
-        // Skip test if Docker is not available
+        // Pula o teste se o Docker não estiver disponível
         if (!IsDockerAvailable())
         {
             Assert.True(true, "Docker is not available - skipping PostgreSQL container test");
             return;
         }
 
-        // Skip test if running in CI with limited resources
+        // Pula o teste se executando em CI com recursos limitados
         if (Environment.GetEnvironmentVariable("CI") == "true" ||
             Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true")
         {
@@ -53,13 +52,13 @@ public class PostgreSQLConnectionTest
         }
 
         // Arrange
-        var timeout = TimeSpan.FromSeconds(90); // Increased timeout for Aspire startup
+        var timeout = TimeSpan.FromSeconds(90); // Timeout aumentado para inicialização do Aspire
         var cancellationToken = new CancellationTokenSource(timeout).Token;
 
         try
         {
             // Act
-            using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>(cancellationToken);
+            var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>(cancellationToken);
 
             await using var app = await appHost.BuildAsync(cancellationToken);
             var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
@@ -68,13 +67,13 @@ public class PostgreSQLConnectionTest
 
             var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
 
-            // Wait specifically for postgres-local to be running (skip in CI)
+            // Aguarda especificamente pelo postgres-local estar em execução (pula no CI)
             if (!isCI)
             {
                 await resourceNotificationService.WaitForResourceAsync("postgres-local", KnownResourceStates.Running, cancellationToken);
             }
 
-            // Assert - If we reach here, PostgreSQL started successfully
+            // Assert - Se chegamos aqui, o PostgreSQL iniciou com sucesso
             true.Should().BeTrue("PostgreSQL container started without authentication errors");
         }
         catch (OperationCanceledException ex)
@@ -84,17 +83,17 @@ public class PostgreSQLConnectionTest
         }
     }
 
-    [Fact(Timeout = 120000)] // 2 minute timeout
+    [Fact(Timeout = 120000)] // Timeout de 2 minutos
     public async Task PostgreSQL_Database_ShouldBeAccessible()
     {
-        // Skip test if Docker is not available
+        // Pula o teste se o Docker não estiver disponível
         if (!IsDockerAvailable())
         {
             Assert.True(true, "Docker is not available - skipping PostgreSQL database test");
             return;
         }
 
-        // Skip test if running in CI with limited resources
+        // Pula o teste se executando em CI com recursos limitados
         if (Environment.GetEnvironmentVariable("CI") == "true" ||
             Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true")
         {
@@ -109,7 +108,7 @@ public class PostgreSQLConnectionTest
         try
         {
             // Act
-            using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>(cancellationToken);
+            var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>(cancellationToken);
             await using var app = await appHost.BuildAsync(cancellationToken);
             var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
 
@@ -117,7 +116,7 @@ public class PostgreSQLConnectionTest
 
             var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
 
-            // Wait for PostgreSQL to be ready (single database approach)
+            // Aguarda o PostgreSQL estar pronto (abordagem de banco único)
             if (!isCI)
             {
                 await resourceNotificationService.WaitForResourceAsync("postgres-local", KnownResourceStates.Running, cancellationToken);

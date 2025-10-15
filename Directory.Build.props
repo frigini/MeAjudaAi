@@ -1,0 +1,69 @@
+<Project>
+  <!-- Configurações globais para todos os projetos -->
+  
+  <PropertyGroup>
+    <!-- Versão do .NET e configurações gerais -->
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    
+    <!-- Configurações de qualidade de código -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <WarningsNotAsErrors>NU1608;NU1701;NU1902;NU1603;NU1605</WarningsNotAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    
+    <!-- Configurações de documentação -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;NU1603;NU1605</NoWarn> <!-- Missing XML comment warnings + NuGet package warnings -->
+    
+    <!-- Configurações de performance -->
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- Configurações específicas para projetos de teste -->
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <AnalysisMode>Minimum</AnalysisMode>
+  </PropertyGroup>
+
+  <!-- Pacotes globais de análise estática -->
+  <ItemGroup Condition="'$(IsTestProject)' != 'true'">
+    <PackageReference Include="SonarAnalyzer.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Suppressões globais para regras que não fazem sentido no contexto -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);S3881</NoWarn> <!-- Dispose pattern - gerenciado pelo DI container -->
+    <NoWarn>$(NoWarn);S6960</NoWarn> <!-- Primary constructors - usamos frequentemente -->
+    <NoWarn>$(NoWarn);S1075</NoWarn> <!-- URI paths - necessário para documentação da API -->
+    <NoWarn>$(NoWarn);S101</NoWarn>  <!-- Naming conventions - relaxado para testes -->
+    <!-- Warnings de estilo menos relevantes -->
+    <NoWarn>$(NoWarn);IDE0008</NoWarn> <!-- Use explicit type instead of 'var' -->
+    <NoWarn>$(NoWarn);IDE0058</NoWarn> <!-- Expression value is never used -->
+    <NoWarn>$(NoWarn);IDE0160</NoWarn> <!-- Convert to block scoped namespace -->
+    <NoWarn>$(NoWarn);IDE0011</NoWarn> <!-- Add braces to if statement -->
+    <NoWarn>$(NoWarn);IDE0028</NoWarn> <!-- Collection initialization can be simplified -->
+    <NoWarn>$(NoWarn);IDE0300</NoWarn> <!-- Collection initialization can be simplified (newer) -->
+    <NoWarn>$(NoWarn);IDE0055</NoWarn> <!-- Fix formatting (pode causar conflitos com outros formatters) -->
+  </PropertyGroup>
+
+  <!-- Configurações específicas para Release -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <Optimize>true</Optimize>
+    <TrimUnusedDependencies>true</TrimUnusedDependencies>
+  </PropertyGroup>
+
+  <!-- Configurações específicas para Debug -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+</Project>

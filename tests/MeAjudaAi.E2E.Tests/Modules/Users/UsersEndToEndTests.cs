@@ -35,7 +35,7 @@ public class UsersEndToEndTests : TestContainerTestBase
         if (response.StatusCode != HttpStatusCode.Created)
         {
             var content = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
+            throw new InvalidOperationException($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
         }
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 

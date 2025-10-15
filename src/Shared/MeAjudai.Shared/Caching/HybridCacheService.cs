@@ -96,6 +96,18 @@ public class HybridCacheService(
         }
     }
 
+    public async Task RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await hybridCache.RemoveByTagAsync(tag, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to remove values by tag {Tag}", tag);
+        }
+    }
+
     public async Task<T> GetOrCreateAsync<T>(
         string key,
         Func<CancellationToken, ValueTask<T>> factory,

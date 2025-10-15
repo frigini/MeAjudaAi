@@ -7,7 +7,7 @@ namespace MeAjudaAi.Shared.Database;
 /// Gerencia permissões de schema usando scripts SQL existentes da infraestrutura.
 /// Executa apenas quando necessário e de forma modular.
 /// </summary>
-public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
+internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
 {
     /// <summary>
     /// Configura permissões usando os scripts existentes em infrastructure/database/schemas
@@ -45,10 +45,12 @@ public class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger)
         string baseConnectionString,
         string usersRolePassword = "users_secret")
     {
-        var builder = new NpgsqlConnectionStringBuilder(baseConnectionString);
-        builder.Username = "users_role";
-        builder.Password = usersRolePassword;
-        builder.SearchPath = "users,public"; // Schema users primeiro, public como fallback
+        var builder = new NpgsqlConnectionStringBuilder(baseConnectionString)
+        {
+            Username = "users_role",
+            Password = usersRolePassword,
+            SearchPath = "users,public" // Schema users primeiro, public como fallback
+        };
 
         return builder.ToString();
     }
