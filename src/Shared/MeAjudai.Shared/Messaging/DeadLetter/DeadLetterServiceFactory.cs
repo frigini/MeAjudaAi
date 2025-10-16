@@ -62,13 +62,18 @@ public sealed class NoOpDeadLetterService(ILogger<NoOpDeadLetterService> logger)
 
     public bool ShouldRetry(Exception exception, int attemptCount)
     {
-        // Abordagem conservativa para NoOp - não tenta muitas vezes
-        return attemptCount < 2 && exception.ClassifyFailure() == EFailureType.Transient;
+        // Máximo 3 tentativas para NoOp (tentativas 1, 2 e 3)
+        const int maxAttempts = 3;
+        return attemptCount <= maxAttempts && exception.ClassifyFailure() == EFailureType.Transient;
     }
 
     public TimeSpan CalculateRetryDelay(int attemptCount)
     {
-        return TimeSpan.FromSeconds(Math.Pow(2, attemptCount)); // Backoff exponencial simples
+        // Backoff exponencial: 2^(attemptCount-1) * 2 segundos, mas com máximo de 5 minutos (300 segundos)
+        var baseDelaySeconds = Math.Pow(2, attemptCount - 1) * 2;
+        var maxDelaySeconds = 300; // 5 minutos
+        var delaySeconds = Math.Min(baseDelaySeconds, maxDelaySeconds);
+        return TimeSpan.FromSeconds(delaySeconds);
     }
 
     public Task ReprocessDeadLetterMessageAsync(

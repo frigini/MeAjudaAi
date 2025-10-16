@@ -1,6 +1,7 @@
 using FluentValidation.TestHelper;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Validators;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Validators;
 
@@ -58,7 +59,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Username)
-              .WithErrorMessage("Username is required");
+              .WithErrorMessage(ValidationMessages.Required.Username);
     }
 
     [Theory]
@@ -82,7 +83,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Username)
-              .WithErrorMessage("Username must be between 3 and 50 characters");
+              .WithErrorMessage(ValidationMessages.Length.UsernameTooLong);
     }
 
     [Theory]
@@ -107,7 +108,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Username)
-              .WithErrorMessage("Username must contain only letters, numbers, dots, hyphens or underscores");
+              .WithErrorMessage(ValidationMessages.InvalidFormat.Username);
     }
 
     [Theory]
@@ -156,7 +157,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Email)
-              .WithErrorMessage("Email is required");
+              .WithErrorMessage(ValidationMessages.Required.Email);
     }
 
     [Theory]
@@ -181,7 +182,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Email)
-              .WithErrorMessage("Email must have a valid format");
+              .WithErrorMessage(ValidationMessages.InvalidFormat.Email);
     }
 
     [Fact]
@@ -203,7 +204,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Email)
-              .WithErrorMessage("Email cannot exceed 255 characters");
+              .WithErrorMessage(ValidationMessages.Length.EmailTooLong);
     }
 
     [Theory]
@@ -299,7 +300,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
-              .WithErrorMessage("First name is required");
+              .WithErrorMessage(ValidationMessages.Required.FirstName);
     }
 
     [Theory]
@@ -322,7 +323,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
-              .WithErrorMessage("First name must be between 2 and 100 characters");
+              .WithErrorMessage(ValidationMessages.Length.FirstNameTooLong);
     }
 
     [Theory]
@@ -346,7 +347,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
-              .WithErrorMessage("First name must contain only letters and spaces");
+              .WithErrorMessage(ValidationMessages.InvalidFormat.FirstName);
     }
 
     [Theory]
@@ -394,6 +395,6 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.LastName)
-              .WithErrorMessage("Last name is required");
+              .WithErrorMessage(ValidationMessages.Required.LastName);
     }
 }

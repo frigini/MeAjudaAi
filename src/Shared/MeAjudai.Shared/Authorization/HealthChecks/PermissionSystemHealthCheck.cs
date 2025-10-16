@@ -12,7 +12,7 @@ namespace MeAjudaAi.Shared.Authorization.HealthChecks;
 public sealed class PermissionSystemHealthCheck : IHealthCheck
 {
     private readonly IPermissionService _permissionService;
-    private readonly PermissionMetricsService _metricsService;
+    private readonly IPermissionMetricsService _metricsService;
     private readonly ILogger<PermissionSystemHealthCheck> _logger;
 
     // Limites para considerações de saúde
@@ -22,7 +22,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
 
     public PermissionSystemHealthCheck(
         IPermissionService permissionService,
-        PermissionMetricsService metricsService,
+        IPermissionMetricsService metricsService,
         ILogger<PermissionSystemHealthCheck> logger)
     {
         _permissionService = permissionService;

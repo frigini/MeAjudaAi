@@ -14,7 +14,7 @@ public sealed class PermissionService(
     ICacheService cacheService,
     IServiceProvider serviceProvider,
     ILogger<PermissionService> logger,
-    PermissionMetricsService metrics) : IPermissionService
+    IPermissionMetricsService metrics) : IPermissionService
 {
 
     // Cache key patterns

@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Constants;
+
 namespace MeAjudaAi.Shared.Models;
 
 /// <summary>
@@ -12,6 +14,6 @@ public class AuthenticationErrorResponse : ApiErrorResponse
     {
         StatusCode = 401;
         Title = "Unauthorized";
-        Detail = "Token de autenticação ausente, inválido ou expirado.";
+        Detail = ValidationMessages.Generic.Unauthorized;
     }
 }

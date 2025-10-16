@@ -73,7 +73,7 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         // Assert
         Assert.False(queryResult.IsSuccess);
         Assert.NotNull(queryResult.Error);
-        Assert.Contains("User not found", queryResult.Error.Message);
+        Assert.Contains("Usuário não encontrado", queryResult.Error.Message);
     }
 
     [Fact]

@@ -48,6 +48,11 @@ public sealed class MessageRetryMiddleware<TMessage>(
 
                 return true; // Sucesso
             }
+            catch (OperationCanceledException)
+            {
+                // Cancelamento deve ser propagado imediatamente, não tratado como falha
+                throw;
+            }
             catch (Exception ex)
             {
                 lastException = ex;

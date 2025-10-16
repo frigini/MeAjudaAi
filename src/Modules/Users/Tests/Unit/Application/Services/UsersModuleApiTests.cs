@@ -2,6 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Services;
 using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Time;
@@ -97,7 +98,7 @@ public class UsersModuleApiTests
             .Returns((HealthCheckService?)null);
 
         _getUserByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User not found")));
+            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound(ValidationMessages.NotFound.User)));
 
         // Act
         var result = await _sut.IsAvailableAsync();

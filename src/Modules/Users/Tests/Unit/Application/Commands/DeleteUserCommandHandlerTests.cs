@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
@@ -89,7 +90,7 @@ public class DeleteUserCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("User not found");
+        result.Error.Message.Should().Be(ValidationMessages.NotFound.User);
 
         _userRepositoryMock.Verify(
             x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()),

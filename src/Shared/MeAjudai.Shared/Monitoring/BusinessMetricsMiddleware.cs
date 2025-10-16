@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -56,7 +57,7 @@ internal class BusinessMetricsMiddleware(
             // Logins
             if (path.Contains("/auth/login") && method == "POST" && statusCode is >= 200 and < 300)
             {
-                var userId = context.User?.FindFirst("sub")?.Value ?? "unknown";
+                var userId = context.User?.FindFirst(AuthConstants.Claims.Subject)?.Value ?? "unknown";
                 businessMetrics.RecordUserLogin(userId, "password");
                 logger.LogInformation("User login completed: {UserId}", userId);
             }

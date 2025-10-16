@@ -2,6 +2,7 @@ using MeAjudaAi.Shared.Authorization.HealthChecks;
 using MeAjudaAi.Shared.Authorization.Keycloak;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Middleware;
+using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -183,7 +184,7 @@ public static class AuthorizationExtensions
     public static TBuilder RequireSelfOrAdmin<TBuilder>(this TBuilder builder)
         where TBuilder : IEndpointConventionBuilder
     {
-        return builder.RequireAuthorization("SelfOrAdmin");
+        return builder.RequireAuthorization(AuthConstants.Policies.SelfOrAdmin);
     }
     
     /// <summary>
@@ -194,7 +195,7 @@ public static class AuthorizationExtensions
     public static TBuilder RequireAdmin<TBuilder>(this TBuilder builder)
         where TBuilder : IEndpointConventionBuilder
     {
-        return builder.RequireAuthorization("AdminOnly");
+        return builder.RequireAuthorization(AuthConstants.Policies.AdminOnly);
     }
     
     /// <summary>
@@ -205,7 +206,7 @@ public static class AuthorizationExtensions
     public static TBuilder RequireSuperAdmin<TBuilder>(this TBuilder builder)
         where TBuilder : IEndpointConventionBuilder
     {
-        return builder.RequireAuthorization("SuperAdminOnly");
+        return builder.RequireAuthorization(AuthConstants.Policies.SuperAdminOnly);
     }
     
     /// <summary>

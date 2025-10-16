@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
@@ -77,7 +78,7 @@ public sealed class PermissionClaimsTransformation(
     private static string? GetUserId(ClaimsPrincipal principal)
     {
         return principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-               principal.FindFirst("sub")?.Value ??
+               principal.FindFirst(AuthConstants.Claims.Subject)?.Value ??
                principal.FindFirst("id")?.Value;
     }
 }

@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
@@ -57,7 +58,7 @@ public sealed class PermissionAuthorizationHandler(ILogger<PermissionAuthorizati
     private static string? GetUserId(ClaimsPrincipal user)
     {
         return user.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-               user.FindFirst("sub")?.Value ??
+               user.FindFirst(AuthConstants.Claims.Subject)?.Value ??
                user.FindFirst("id")?.Value;
     }
 }

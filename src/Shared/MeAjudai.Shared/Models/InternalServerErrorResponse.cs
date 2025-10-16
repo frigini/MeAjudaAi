@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Constants;
+
 namespace MeAjudaAi.Shared.Models;
 
 /// <summary>
@@ -12,6 +14,6 @@ public class InternalServerErrorResponse : ApiErrorResponse
     {
         StatusCode = 500;
         Title = "Internal Server Error";
-        Detail = "Ocorreu um erro interno no servidor. Tente novamente mais tarde.";
+        Detail = ValidationMessages.Generic.InternalError;
     }
 }

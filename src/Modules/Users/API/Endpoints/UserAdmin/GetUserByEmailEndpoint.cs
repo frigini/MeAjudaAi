@@ -2,6 +2,7 @@
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
@@ -35,7 +36,7 @@ public class GetUserByEmailEndpoint : BaseEndpoint, IEndpoint
     /// - Respostas estruturadas para sucesso (200) e não encontrado (404)
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/by-email/{email}", GetUserByEmailAsync)
+        => app.MapGet(ApiEndpoints.Users.GetByEmail, GetUserByEmailAsync)
             .WithName("GetUserByEmail")
             .WithSummary("Consultar usuário por email")
             .WithDescription("""

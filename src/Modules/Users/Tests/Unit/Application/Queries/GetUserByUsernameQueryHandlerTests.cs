@@ -76,7 +76,7 @@ public class GetUserByUsernameQueryHandlerTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error.Message.Should().Be("User not found");
+        result.Error.Message.Should().Be("Usuário não encontrado.");
 
         _userRepositoryMock.Verify(
             x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()),

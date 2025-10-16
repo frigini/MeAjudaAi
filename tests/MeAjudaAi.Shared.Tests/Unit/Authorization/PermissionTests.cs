@@ -80,11 +80,11 @@ public class PermissionTests
     }
 
     [Theory]
-    [InlineData("System")]
-    [InlineData("Users")]
-    [InlineData("Providers")]
-    [InlineData("Orders")]
-    [InlineData("Reports")]
+    [InlineData("system")]
+    [InlineData("users")]
+    [InlineData("providers")]
+    [InlineData("orders")]
+    [InlineData("reports")]
     public void GetPermissionsByModule_ShouldReturnOnlyModulePermissions(string moduleName)
     {
         // Act
@@ -123,7 +123,7 @@ public class PermissionTests
     {
         // Arrange
         var allPermissions = Enum.GetValues<EPermission>();
-        var validModules = new[] { "System", "Users", "Providers", "Orders", "Reports" };
+        var validModules = new[] { "system", "users", "providers", "orders", "reports", "admin" };
 
         // Act & Assert
         foreach (var permission in allPermissions)

@@ -1,6 +1,7 @@
 using FluentValidation.TestHelper;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Validators;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Validators;
 
@@ -53,7 +54,7 @@ public class UpdateUserProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
-              .WithErrorMessage("Nome é obrigatório");
+              .WithErrorMessage(ValidationMessages.Required.FirstName);
     }
 
     [Theory]
@@ -74,7 +75,7 @@ public class UpdateUserProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
-              .WithErrorMessage("Nome deve ter entre 2 e 100 caracteres");
+              .WithErrorMessage(ValidationMessages.Length.FirstNameTooLong);
     }
 
     [Theory]
@@ -97,7 +98,7 @@ public class UpdateUserProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
-              .WithErrorMessage("Nome deve conter apenas letras e espaços");
+              .WithErrorMessage(ValidationMessages.InvalidFormat.FirstName);
     }
 
     [Theory]
@@ -143,7 +144,7 @@ public class UpdateUserProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.LastName)
-              .WithErrorMessage("Sobrenome é obrigatório");
+              .WithErrorMessage(ValidationMessages.Required.LastName);
     }
 
     [Theory]
@@ -164,7 +165,7 @@ public class UpdateUserProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.LastName)
-              .WithErrorMessage("Sobrenome deve ter entre 2 e 100 caracteres");
+              .WithErrorMessage(ValidationMessages.Length.LastNameTooLong);
     }
 
     [Theory]
@@ -187,7 +188,7 @@ public class UpdateUserProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.LastName)
-              .WithErrorMessage("Sobrenome deve conter apenas letras e espaços");
+              .WithErrorMessage(ValidationMessages.InvalidFormat.LastName);
     }
 
     [Theory]
@@ -233,7 +234,7 @@ public class UpdateUserProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Email)
-              .WithErrorMessage("Email é obrigatório");
+              .WithErrorMessage(ValidationMessages.Required.Email);
     }
 
     [Theory]
@@ -256,7 +257,7 @@ public class UpdateUserProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Email)
-              .WithErrorMessage("Email deve ter um formato válido");
+              .WithErrorMessage(ValidationMessages.InvalidFormat.Email);
     }
 
     [Fact]
@@ -276,7 +277,7 @@ public class UpdateUserProfileRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Email)
-              .WithErrorMessage("Email não pode ter mais de 255 caracteres");
+              .WithErrorMessage(ValidationMessages.Length.EmailTooLong);
     }
 
     [Theory]

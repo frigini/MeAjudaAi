@@ -15,7 +15,7 @@ public class PermissionServiceTests
     private readonly Mock<ICacheService> _mockCacheService;
     private readonly Mock<IServiceProvider> _mockServiceProvider;
     private readonly Mock<ILogger<PermissionService>> _mockLogger;
-    private readonly Mock<PermissionMetricsService> _mockMetrics;
+    private readonly Mock<IPermissionMetricsService> _mockMetrics;
     private readonly PermissionService _permissionService;
 
     public PermissionServiceTests()
@@ -23,7 +23,7 @@ public class PermissionServiceTests
         _mockCacheService = new Mock<ICacheService>();
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockLogger = new Mock<ILogger<PermissionService>>();
-        _mockMetrics = new Mock<PermissionMetricsService>();
+        _mockMetrics = new Mock<IPermissionMetricsService>();
         
         _permissionService = new PermissionService(
             _mockCacheService.Object,
@@ -39,13 +39,13 @@ public class PermissionServiceTests
         var userId = "test-user-123";
         var expectedPermissions = new List<EPermission> { EPermission.UsersRead, EPermission.UsersProfile };
         
-        var mockResolver = new Mock<IModulePermissionResolver>();
-        mockResolver.Setup(x => x.ResolvePermissionsAsync(userId, It.IsAny<CancellationToken>()))
+        var mockProvider = new Mock<IPermissionProvider>();
+        mockProvider.Setup(x => x.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedPermissions);
-        mockResolver.Setup(x => x.ModuleName).Returns("Users");
+        mockProvider.Setup(x => x.ModuleName).Returns("Users");
 
-        _mockServiceProvider.Setup(x => x.GetService(typeof(IEnumerable<IModulePermissionResolver>)))
-            .Returns(new[] { mockResolver.Object });
+        _mockServiceProvider.Setup(x => x.GetService(typeof(IEnumerable<IPermissionProvider>)))
+            .Returns(new[] { mockProvider.Object });
 
         _mockCacheService.Setup(x => x.GetOrCreateAsync<IReadOnlyList<EPermission>>(
                 It.IsAny<string>(),
@@ -207,13 +207,19 @@ public class PermissionServiceTests
         // Arrange
         var userId = "test-user-123";
         var module = "Users";
-        var allPermissions = new List<EPermission> 
+        var modulePermissions = new List<EPermission> 
         { 
             EPermission.UsersRead, 
-            EPermission.UsersProfile, 
-            EPermission.AdminSystem,
-            EPermission.ProvidersRead 
+            EPermission.UsersProfile
         };
+
+        var mockProvider = new Mock<IPermissionProvider>();
+        mockProvider.Setup(x => x.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(modulePermissions);
+        mockProvider.Setup(x => x.ModuleName).Returns(module);
+
+        _mockServiceProvider.Setup(x => x.GetService(typeof(IEnumerable<IPermissionProvider>)))
+            .Returns(new[] { mockProvider.Object });
 
         _mockCacheService.Setup(x => x.GetOrCreateAsync<IReadOnlyList<EPermission>>(
                 It.IsAny<string>(),
@@ -223,21 +229,14 @@ public class PermissionServiceTests
                 It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
             .Returns<string, Func<CancellationToken, ValueTask<IReadOnlyList<EPermission>>>, TimeSpan, HybridCacheEntryOptions, IReadOnlyCollection<string>, CancellationToken>(
-                async (key, factory, expiration, options, tags, ct) => 
-                {
-                    if (key.Contains("_module_"))
-                    {
-                        return await factory(ct);
-                    }
-                    return allPermissions;
-                });
+                async (key, factory, expiration, options, tags, ct) => await factory(ct));
 
         // Act
         var result = await _permissionService.GetUserPermissionsByModuleAsync(userId, module);
 
         // Assert
         Assert.NotNull(result);
-        Assert.All(result, permission => Assert.Equal(module, permission.GetModule()));
+        Assert.All(result, permission => Assert.Equal(module.ToLower(), permission.GetModule()));
     }
 
     [Fact]
@@ -250,7 +249,7 @@ public class PermissionServiceTests
         await _permissionService.InvalidateUserPermissionsCacheAsync(userId);
 
         // Assert
-        _mockCacheService.Verify(x => x.RemoveByPatternAsync($"user:{userId}", It.IsAny<CancellationToken>()), Times.Once);
+        _mockCacheService.Verify(x => x.RemoveByTagAsync($"user:{userId}", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Theory]

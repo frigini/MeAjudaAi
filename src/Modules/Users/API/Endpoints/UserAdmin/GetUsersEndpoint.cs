@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
@@ -38,7 +39,7 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
     /// - Resposta paginada estruturada
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/", GetUsersAsync)
+        => app.MapGet(ApiEndpoints.Users.GetAll, GetUsersAsync)
             .WithName("GetUsers")
             .WithSummary("Consultar usuários paginados")
             .WithDescription("""

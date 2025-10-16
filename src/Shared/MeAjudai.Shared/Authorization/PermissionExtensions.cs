@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Security.Claims;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Shared.Authorization;
 
@@ -114,7 +115,7 @@ public static class ClaimsPrincipalExtensions
     public static string? GetOrganizationId(this ClaimsPrincipal principal)
     {
         ArgumentNullException.ThrowIfNull(principal);
-        return principal.FindFirst("organization_id")?.Value;
+        return principal.FindFirst(AuthConstants.Claims.Organization)?.Value;
     }
 
     /// <summary>
@@ -125,7 +126,7 @@ public static class ClaimsPrincipalExtensions
     public static string? GetUserId(this ClaimsPrincipal principal)
     {
         ArgumentNullException.ThrowIfNull(principal);
-        return principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return principal.FindFirst(AuthConstants.Claims.Subject)?.Value;
     }
 
     /// <summary>
@@ -136,6 +137,6 @@ public static class ClaimsPrincipalExtensions
     public static string? GetEmail(this ClaimsPrincipal principal)
     {
         ArgumentNullException.ThrowIfNull(principal);
-        return principal.FindFirst(ClaimTypes.Email)?.Value;
+        return principal.FindFirst(AuthConstants.Claims.Email)?.Value;
     }
 }

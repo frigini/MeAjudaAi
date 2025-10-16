@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Constants;
+
 namespace MeAjudaAi.Shared.Models;
 
 /// <summary>
@@ -16,7 +18,7 @@ public class ValidationErrorResponse : ApiErrorResponse
     {
         StatusCode = 400;
         Title = "Validation Error";
-        Detail = "Um ou mais campos de entrada contêm dados inválidos.";
+        Detail = ValidationMessages.Generic.InvalidData;
     }
 
     /// <summary>

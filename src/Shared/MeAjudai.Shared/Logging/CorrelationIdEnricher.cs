@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -35,13 +36,13 @@ public class CorrelationIdEnricher : ILogEventEnricher
             var context = httpContextAccessor.HttpContext;
 
             // Verificar se já existe no response headers
-            if (context.Response.Headers.TryGetValue("X-Correlation-ID", out var existingId))
+            if (context.Response.Headers.TryGetValue(AuthConstants.Headers.CorrelationId, out var existingId))
             {
                 return existingId.FirstOrDefault();
             }
 
             // Verificar se veio no request
-            if (context.Request.Headers.TryGetValue("X-Correlation-ID", out var requestId))
+            if (context.Request.Headers.TryGetValue(AuthConstants.Headers.CorrelationId, out var requestId))
             {
                 return requestId.FirstOrDefault();
             }

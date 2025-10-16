@@ -9,7 +9,7 @@ namespace MeAjudaAi.Shared.Authorization.Metrics;
 /// Serviço para métricas e monitoramento do sistema de permissões.
 /// Coleta dados de performance, uso e falhas para observabilidade.
 /// </summary>
-public sealed class PermissionMetricsService : IDisposable
+public sealed class PermissionMetricsService : IPermissionMetricsService
 {
     private readonly ILogger<PermissionMetricsService> _logger;
     private readonly Meter _meter;
@@ -378,6 +378,7 @@ public static class PermissionMetricsExtensions
     public static IServiceCollection AddPermissionMetrics(this IServiceCollection services)
     {
         services.AddSingleton<PermissionMetricsService>();
+        services.AddSingleton<IPermissionMetricsService>(provider => provider.GetRequiredService<PermissionMetricsService>());
         return services;
     }
 
@@ -385,7 +386,7 @@ public static class PermissionMetricsExtensions
     /// Wrapper para medir operações de permissão com using statement.
     /// </summary>
     public static async Task<T> MeasureAsync<T>(
-        this PermissionMetricsService metrics,
+        this IPermissionMetricsService metrics,
         Func<Task<T>> operation,
         string operationType,
         string userId)

@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
@@ -37,7 +38,7 @@ public class CreateUserEndpoint : BaseEndpoint, IEndpoint
     /// - Nome único para referência
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/", CreateUserAsync)
+        => app.MapPost(ApiEndpoints.Users.Create, CreateUserAsync)
             .WithName("CreateUser")
             .WithSummary("Create new user")
             .WithDescription("Creates a new user in the system with Keycloak integration")
