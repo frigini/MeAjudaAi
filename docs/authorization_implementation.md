@@ -2,11 +2,11 @@
 
 ## 📋 Visão Geral
 
-Este documento detalha o sistema de autorização type-safe implementado no MeAjudaAi, baseado em enums (`EPermissions`) e arquitetura modular.
+Este documento detalha o sistema de autorização type-safe implementado no MeAjudaAi, baseado em enums (`EPermission`) e arquitetura modular.
 
 ### Características do Sistema
 
-✅ **Type-Safe**: Enum `EPermissions` com validação em tempo de compilação  
+✅ **Type-Safe**: Enum `EPermission` com validação em tempo de compilação  
 ✅ **Modular**: Cada módulo implementa seu próprio `IModulePermissionResolver`  
 ✅ **Performance**: Cache distribuído com HybridCache  
 ✅ **Extensível**: Suporte para múltiplos provedores de permissão  
@@ -14,12 +14,12 @@ Este documento detalha o sistema de autorização type-safe implementado no MeAj
 
 ## 🔧 Componentes Principais
 
-### 1. EPermissions Enum
+### 1. EPermission Enum
 
 Sistema unificado de permissões type-safe:
 
 ```csharp
-public enum EPermissions
+public enum EPermission
 {
     // ===== SISTEMA - GLOBAL =====
     [Display(Name = "system:read")]
@@ -68,10 +68,10 @@ Interface principal para resolução de permissões:
 ```csharp
 public interface IPermissionService
 {
-    Task<IReadOnlyList<EPermissions>> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default);
-    Task<bool> HasPermissionAsync(string userId, EPermissions permission, CancellationToken cancellationToken = default);
-    Task<bool> HasPermissionsAsync(string userId, IEnumerable<EPermissions> permissions, bool requireAll = true, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<EPermissions>> GetUserPermissionsByModuleAsync(string userId, string moduleName, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<EPermission>> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default);
+    Task<bool> HasPermissionAsync(string userId, EPermission permission, CancellationToken cancellationToken = default);
+    Task<bool> HasPermissionsAsync(string userId, IEnumerable<EPermission> permissions, bool requireAll = true, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<EPermission>> GetUserPermissionsByModuleAsync(string userId, string moduleName, CancellationToken cancellationToken = default);
     Task InvalidateUserPermissionsCacheAsync(string userId, CancellationToken cancellationToken = default);
 }
 ```csharp
@@ -83,8 +83,8 @@ Interface para resolução modular de permissões:
 public interface IModulePermissionResolver
 {
     string ModuleName { get; }
-    Task<IReadOnlyList<EPermissions>> ResolvePermissionsAsync(string userId, CancellationToken cancellationToken = default);
-    bool CanResolve(EPermissions permission);
+    Task<IReadOnlyList<EPermission>> ResolvEPermissionAsync(string userId, CancellationToken cancellationToken = default);
+    bool CanResolve(EPermission permission);
 }
 ```csharp
 ## 🚀 Implementação
@@ -125,7 +125,7 @@ public class UsersPermissionResolver : IModulePermissionResolver
     
     public string ModuleName => "Users";
     
-    public async Task<IReadOnlyList<EPermissions>> ResolvePermissionsAsync(
+    public async Task<IReadOnlyList<EPermission>> ResolvEPermissionAsync(
         string userId, 
         CancellationToken cancellationToken = default)
     {
@@ -134,12 +134,12 @@ public class UsersPermissionResolver : IModulePermissionResolver
             // Busca roles do usuário (exemplo simplificado)
             var userRoles = await GetUserRolesAsync(userId, cancellationToken);
             
-            var permissions = new HashSet<EPermissions>();
+            var permissions = new HashSet<EPermission>();
             
             foreach (var role in userRoles)
             {
-                var rolePermissions = MapRoleToUserPermissions(role);
-                foreach (var permission in rolePermissions)
+                var rolEPermission = MapRoleToUserPermissions(role);
+                foreach (var permission in rolEPermission)
                 {
                     permissions.Add(permission);
                 }
@@ -150,11 +150,11 @@ public class UsersPermissionResolver : IModulePermissionResolver
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to resolve permissions for user {UserId}", userId);
-            return Array.Empty<EPermissions>();
+            return Array.Empty<EPermission>();
         }
     }
     
-    public bool CanResolve(EPermissions permission)
+    public bool CanResolve(EPermission permission)
     {
         return permission.GetModule().Equals("users", StringComparison.OrdinalIgnoreCase);
     }
@@ -172,25 +172,25 @@ public class UsersPermissionResolver : IModulePermissionResolver
         return new[] { "user" };
     }
     
-    private static IEnumerable<EPermissions> MapRoleToUserPermissions(string role)
+    private static IEnumerable<EPermission> MapRoleToUserPermissions(string role)
     {
         return role.ToUpperInvariant() switch
         {
             "ADMIN" => new[]
             {
-                EPermissions.AdminUsers,
-                EPermissions.UsersRead, EPermissions.UsersCreate, 
-                EPermissions.UsersUpdate, EPermissions.UsersDelete, EPermissions.UsersList
+                EPermission.AdminUsers,
+                EPermission.UsersRead, EPermission.UsersCreate, 
+                EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.UsersList
             },
             "MANAGER" => new[]
             {
-                EPermissions.UsersRead, EPermissions.UsersUpdate, EPermissions.UsersList
+                EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersList
             },
             "USER" => new[]
             {
-                EPermissions.UsersRead, EPermissions.UsersProfile
+                EPermission.UsersRead, EPermission.UsersProfile
             },
-            _ => Array.Empty<EPermissions>()
+            _ => Array.Empty<EPermission>()
         };
     }
 }
@@ -207,31 +207,31 @@ public static class UsersEndpoints
         
         // GET /api/users - Requer permissão de leitura
         group.MapGet("/", GetUsers)
-             .RequirePermission(EPermissions.UsersRead)
+             .RequirePermission(EPermission.UsersRead)
              .WithName("GetUsers")
              .WithSummary("Lista todos os usuários");
         
         // POST /api/users - Requer permissão de criação
         group.MapPost("/", CreateUser)
-             .RequirePermission(EPermissions.UsersCreate)
+             .RequirePermission(EPermission.UsersCreate)
              .WithName("CreateUser")
              .WithSummary("Cria um novo usuário");
         
         // PUT /api/users/{id} - Requer permissão de atualização
         group.MapPut("/{id:int}", UpdateUser)
-             .RequirePermission(EPermissions.UsersUpdate)
+             .RequirePermission(EPermission.UsersUpdate)
              .WithName("UpdateUser")
              .WithSummary("Atualiza um usuário");
         
         // DELETE /api/users/{id} - Requer múltiplas permissões
         group.MapDelete("/{id:int}", DeleteUser)
-             .RequirePermissions(EPermissions.UsersDelete, EPermissions.AdminUsers)
+             .RequirEPermission(EPermission.UsersDelete, EPermission.AdminUsers)
              .WithName("DeleteUser")
              .WithSummary("Remove um usuário");
              
         // GET /api/users/profile - Acesso ao próprio perfil
         group.MapGet("/profile", GetMyProfile)
-             .RequirePermission(EPermissions.UsersProfile)
+             .RequirePermission(EPermission.UsersProfile)
              .WithName("GetMyProfile")
              .WithSummary("Obtém perfil do usuário atual");
     }
@@ -260,7 +260,7 @@ public static class UsersEndpoints
         var currentUserId = currentUser.GetUserId();
         
         // Verificação contextual: admin pode editar qualquer usuário
-        if (await permissionService.HasPermissionAsync(currentUserId, EPermissions.AdminUsers))
+        if (await permissionService.HasPermissionAsync(currentUserId, EPermission.AdminUsers))
         {
             var user = await repository.UpdateAsync(id, dto);
             return Results.Ok(user);
@@ -268,7 +268,7 @@ public static class UsersEndpoints
         
         // Usuário pode editar apenas seu próprio perfil
         if (currentUserId == id.ToString() && 
-            await permissionService.HasPermissionAsync(currentUserId, EPermissions.UsersProfile))
+            await permissionService.HasPermissionAsync(currentUserId, EPermission.UsersProfile))
         {
             var user = await repository.UpdateAsync(id, dto);
             return Results.Ok(user);
@@ -328,7 +328,7 @@ public static class UsersModuleExtensions
 var permissions = await permissionService.GetUserPermissionsAsync(userId);
 
 // Cache por módulo (15 minutos)
-var modulePermissions = await permissionService.GetUserPermissionsByModuleAsync(userId, "Users");
+var modulEPermission = await permissionService.GetUserPermissionsByModuleAsync(userId, "Users");
 
 // Invalidação quando necessário
 await permissionService.InvalidateUserPermissionsCacheAsync(userId);
@@ -364,8 +364,8 @@ public class UsersApiFactory : WebApplicationFactory<Program>
                 options.DefaultUserId = "test-user";
                 options.DefaultPermissions = new[]
                 {
-                    EPermissions.UsersRead,
-                    EPermissions.UsersCreate
+                    EPermission.UsersRead,
+                    EPermission.UsersCreate
                 };
             });
         });
@@ -397,7 +397,7 @@ public async Task CreateUser_WithoutPermission_ShouldReturnForbidden()
 {
     // Arrange
     using var factory = new UsersApiFactory();
-    factory.ConfigureTestPermissions(Array.Empty<EPermissions>());
+    factory.ConfigureTestPermissions(Array.Empty<EPermission>());
     using var client = factory.CreateClient();
     
     var createDto = new CreateUserDto { Name = "Test User" };
@@ -419,7 +419,7 @@ public async Task CreateUser_WithoutPermission_ShouldReturnForbidden()
 
 ### ✅ Endpoints
 - [ ] Aplicar `.RequirePermission()` nos endpoints
-- [ ] Usar `.RequirePermissions()` para múltiplas permissões
+- [ ] Usar `.RequirEPermission()` para múltiplas permissões
 - [ ] Implementar verificações contextuais quando necessário
 - [ ] Adicionar documentação/summary aos endpoints
 
@@ -440,10 +440,10 @@ public async Task CreateUser_WithoutPermission_ShouldReturnForbidden()
 - [Sistema de Autenticação Principal](../authentication.md)
 - [Type-Safe Permissions System](./type_safe_permissions_system.md)
 - [Server-Side Permission Resolution Guide](./server_side_permission_resolution_guide.md)
-- [Test Authentication Handler](../testing/test_authentication_handler.md)
+- [Test Authentication Handler](./development.md#3-test-authentication-handler)
 
 ---
 
 **Status**: ✅ **Implementado e Ativo**  
 **Última Atualização**: Outubro 2025  
-**Sistema**: Type-Safe Authorization com EPermissions
+**Sistema**: Type-Safe Authorization com EPermission

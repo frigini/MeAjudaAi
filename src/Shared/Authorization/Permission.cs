@@ -4,7 +4,7 @@ namespace MeAjudaAi.Shared.Authorization;
 
 /// <summary>
 /// Compatibility layer for Permission type. 
-/// This provides backward compatibility while migrating to EPermissions enum.
+/// This provides backward compatibility while migrating to EPermission enum.
 /// </summary>
 public static class Permission
 {

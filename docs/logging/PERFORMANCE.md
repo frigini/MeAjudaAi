@@ -90,7 +90,8 @@ Integração com sistema de logging para correlação:
 ```csharp
 logger.LogInformation("Query executed: {Operation} in {Duration}ms", 
     operation, duration);
-```text
+```
+
 ## 🔗 Links Relacionados
 
 - [Logging Setup](./README.md)

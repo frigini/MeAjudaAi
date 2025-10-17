@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MeAjudaAi.Shared.Authorization;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -165,20 +166,52 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     private async Task<string> GetAdminTokenAsync(CancellationToken cancellationToken)
     {
         var cacheKey = "keycloak_admin_token";
-        var cacheOptions = new HybridCacheEntryOptions
-        {
-            Expiration = TimeSpan.FromMinutes(5), // Tokens duram mais, mas cache por menos tempo para segurança
-            LocalCacheExpiration = TimeSpan.FromMinutes(2)
-        };
-
+        
         return await _cache.GetOrCreateAsync(
             cacheKey,
-            async _ => await RequestAdminTokenAsync(cancellationToken),
-            cacheOptions,
+            async _ => 
+            {
+                var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
+                return tokenResponse.AccessToken;
+            },
+            await CreateTokenCacheOptionsAsync(cancellationToken),
             cancellationToken: cancellationToken);
     }
 
-    private async Task<string> RequestAdminTokenAsync(CancellationToken cancellationToken)
+    private async Task<HybridCacheEntryOptions> CreateTokenCacheOptionsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
+            
+            // Calculate safe cache expiration based on token lifetime
+            const int safetyMarginSeconds = 30;
+            const int minimumTtlSeconds = 10;
+            
+            var expiresInSeconds = tokenResponse.ExpiresIn > 0 ? tokenResponse.ExpiresIn : 300; // Default to 5 minutes if missing or invalid
+            var safeCacheSeconds = Math.Max(expiresInSeconds - safetyMarginSeconds, minimumTtlSeconds);
+            
+            var cacheExpiration = TimeSpan.FromSeconds(safeCacheSeconds);
+            var localCacheExpiration = TimeSpan.FromSeconds(Math.Min(safeCacheSeconds / 2, 120)); // Max 2 minutes local cache
+            
+            return new HybridCacheEntryOptions
+            {
+                Expiration = cacheExpiration,
+                LocalCacheExpiration = localCacheExpiration
+            };
+        }
+        catch
+        {
+            // Fallback to short static TTL if token request fails
+            return new HybridCacheEntryOptions
+            {
+                Expiration = TimeSpan.FromSeconds(30),
+                LocalCacheExpiration = TimeSpan.FromSeconds(10)
+            };
+        }
+    }
+
+    private async Task<TokenResponse> RequestAdminTokenAsync(CancellationToken cancellationToken)
     {
         var tokenEndpoint = $"{_config.BaseUrl}/realms/{_config.Realm}/protocol/openid-connect/token";
         
@@ -197,27 +230,67 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         var tokenResponse = await response.Content.ReadAsStringAsync(cancellationToken);
         var tokenData = JsonSerializer.Deserialize<TokenResponse>(tokenResponse);
         
-        return tokenData?.AccessToken ?? throw new InvalidOperationException("Failed to get admin token");
+        return tokenData ?? throw new InvalidOperationException("Failed to get admin token");
     }
 
     /// <summary>
     /// Busca informações do usuário no Keycloak.
+    /// Primeiro tenta por ID, depois por username como fallback.
     /// </summary>
     private async Task<KeycloakUser?> GetUserInfoAsync(string userId, string adminToken, CancellationToken cancellationToken)
     {
         var endpoint = $"{_config.BaseUrl}/admin/realms/{_config.Realm}/users";
-        var encodedUserId = Uri.EscapeDataString(userId);
         
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"{endpoint}?username={encodedUserId}&exact=true");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        // Primeiro, tenta buscar diretamente por ID do Keycloak (mais eficiente)
+        try
+        {
+            var encodedUserId = Uri.EscapeDataString(userId);
+            using var directRequest = new HttpRequestMessage(HttpMethod.Get, $"{endpoint}/{encodedUserId}");
+            directRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            
+            var directResponse = await _httpClient.SendAsync(directRequest, cancellationToken);
+            if (directResponse.IsSuccessStatusCode)
+            {
+                var userJson = await directResponse.Content.ReadAsStringAsync(cancellationToken);
+                var user = JsonSerializer.Deserialize<KeycloakUser>(userJson);
+                if (user != null)
+                {
+                    _logger.LogDebug("User {MaskedUserId} found by ID in Keycloak", MaskUserId(userId));
+                    return user;
+                }
+            }
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogDebug("User {MaskedUserId} not found by ID, trying username search", MaskUserId(userId));
+        }
         
-        var response = await _httpClient.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        
-        var usersJson = await response.Content.ReadAsStringAsync(cancellationToken);
-        var users = JsonSerializer.Deserialize<KeycloakUser[]>(usersJson);
-        
-        return users?.FirstOrDefault();
+        // Fallback: busca por username
+        try
+        {
+            var encodedUserId = Uri.EscapeDataString(userId);
+            using var searchRequest = new HttpRequestMessage(HttpMethod.Get, $"{endpoint}?username={encodedUserId}&exact=true");
+            searchRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            
+            var searchResponse = await _httpClient.SendAsync(searchRequest, cancellationToken);
+            searchResponse.EnsureSuccessStatusCode();
+            
+            var usersJson = await searchResponse.Content.ReadAsStringAsync(cancellationToken);
+            var users = JsonSerializer.Deserialize<KeycloakUser[]>(usersJson);
+            
+            var foundUser = users?.FirstOrDefault();
+            if (foundUser != null)
+            {
+                _logger.LogDebug("User {MaskedUserId} found by username in Keycloak", MaskUserId(userId));
+            }
+            
+            return foundUser;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to find user {MaskedUserId} by username in Keycloak", MaskUserId(userId));
+            return null;
+        }
     }
 
     /// <summary>

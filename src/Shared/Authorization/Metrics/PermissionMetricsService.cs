@@ -20,11 +20,13 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     private readonly Counter<long> _cacheHitCounter;
     private readonly Counter<long> _cacheMissCounter;
     private readonly Counter<long> _authorizationFailureCounter;
+    private readonly Counter<long> _cacheInvalidationCounter;
     
     // Histograms
     private readonly Histogram<double> _permissionResolutionDuration;
     private readonly Histogram<double> _cacheOperationDuration;
     private readonly Histogram<double> _authorizationCheckDuration;
+    private readonly Histogram<double> _performanceHistogram;
     
     // Gauges (via ObservableGauge)
     private readonly ObservableGauge<int> _activePermissionChecks;
@@ -34,7 +36,7 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     private long _totalPermissionChecks;
     private long _totalCacheHits;
     private int _currentActiveChecks;
-    private readonly Lock _statsLock = new();
+    private readonly object _statsLock = new();
 
     public PermissionMetricsService(ILogger<PermissionMetricsService> logger)
     {
@@ -61,6 +63,10 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
         _authorizationFailureCounter = _meter.CreateCounter<long>(
             "meajudaai_authorization_failures_total",
             description: "Total number of authorization failures");
+            
+        _cacheInvalidationCounter = _meter.CreateCounter<long>(
+            "meajudaai_permission_cache_invalidations_total",
+            description: "Total number of permission cache invalidations");
         
         // Initialize histograms
         _permissionResolutionDuration = _meter.CreateHistogram<double>(
@@ -77,6 +83,10 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
             "meajudaai_authorization_check_duration_seconds",
             "seconds",
             "Duration of authorization checks");
+            
+        _performanceHistogram = _meter.CreateHistogram<double>(
+            "meajudaai_permission_performance",
+            description: "Performance metrics for permission components");
         
         // Initialize observable gauges
         _activePermissionChecks = _meter.CreateObservableGauge<int>(
@@ -97,11 +107,13 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     {
         var tags = new TagList
         {
-            { "user_id", userId },
             { "module", module ?? "unknown" }
         };
 
         _permissionResolutionCounter.Add(1, tags);
+        
+        _logger.LogDebug("Permission resolution started for user {UserId} in module {Module}", 
+            userId, module ?? "unknown");
         
         return new OperationTimer(
             () => Interlocked.Increment(ref _currentActiveChecks),
@@ -125,10 +137,9 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     {
         var tags = new TagList
         {
-            { "user_id", userId },
             { "permission", permission.GetValue() },
             { "module", permission.GetModule() },
-            { "granted", granted.ToString() }
+            { "result", granted ? "granted" : "denied" }
         };
 
         _permissionCheckCounter.Add(1, tags);
@@ -137,6 +148,9 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
         {
             _authorizationFailureCounter.Add(1, tags);
         }
+
+        _logger.LogDebug("Permission check: User {UserId} {Result} for permission {Permission}", 
+            userId, granted ? "granted" : "denied", permission.GetValue());
 
         lock (_statsLock)
         {
@@ -188,11 +202,13 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     {
         var tags = new TagList
         {
-            { "user_id", userId },
             { "module", moduleName }
         };
 
         _permissionResolutionCounter.Add(1, tags);
+        
+        _logger.LogDebug("Module permission resolution started for user {UserId} in module {ModuleName}", 
+            userId, moduleName);
         
         return new OperationTimer(
             () => Interlocked.Increment(ref _currentActiveChecks),
@@ -245,7 +261,6 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     {
         var tags = new TagList
         {
-            { "user_id", userId },
             { "permission", permission.GetValue() },
             { "module", permission.GetModule() },
             { "reason", reason }
@@ -264,13 +279,11 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     {
         var tags = new TagList
         {
-            { "user_id", userId },
             { "reason", reason }
         };
 
-        // Use counter for cache invalidations
-        _meter.CreateCounter<long>("meajudaai_permission_cache_invalidations_total")
-              .Add(1, tags);
+        // Use existing counter field instead of creating new one
+        _cacheInvalidationCounter.Add(1, tags);
               
         _logger.LogDebug("Permission cache invalidated for user {UserId}: {Reason}", userId, reason);
     }
@@ -286,8 +299,7 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
             { "unit", unit }
         };
 
-        _meter.CreateHistogram<double>($"meajudaai_permission_{component}_performance")
-              .Record(value, tags);
+        _performanceHistogram.Record(value, tags);
     }
 
     /// <summary>

@@ -61,7 +61,8 @@ public async Task GetCurrentUser_WithTestAuth_ShouldReturnTestUser()
     user.Email.Should().Be("test@example.com");
     user.Name.Should().Be("test-user");
 }
-```csharp
+```
+
 ## 🔧 Desenvolvimento Local
 
 ### Setup para Desenvolvimento
@@ -114,7 +115,8 @@ public IActionResult GetAuthInfo()
         IsTestAuth = User.Identity?.AuthenticationType == "AspireTest"
     });
 }
-```csharp
+```
+
 ## 🚀 CI/CD Pipeline
 
 ### GitHub Actions
@@ -167,7 +169,8 @@ steps:
     projects: 'tests/**/*.csproj'
     arguments: '--configuration Release --logger trx --collect:"XPlat Code Coverage"'
     testRunTitle: 'Integration Tests (TestAuth)'
-```csharp
+```
+
 ## 🎯 Cenários Específicos
 
 ### Teste de Upload com Autenticação
@@ -187,7 +190,8 @@ public async Task UploadFile_WithTestAuth_ShouldSucceed()
     // Assert
     response.StatusCode.Should().Be(HttpStatusCode.Created);
 }
-```bash
+```
+
 ### Teste de WebSocket com Autenticação
 
 ```csharp
@@ -208,7 +212,8 @@ public async Task ConnectWebSocket_WithTestAuth_ShouldConnect()
     // Assert
     webSocket.State.Should().Be(WebSocketState.Open);
 }
-```csharp
+```
+
 ### Teste de Rate Limiting
 
 ```csharp
@@ -254,7 +259,8 @@ public IActionResult CheckAuthHealth()
             .ToList()
     });
 }
-```csharp
+```
+
 ### Log Personalizado para Testes
 
 ```csharp
@@ -293,7 +299,8 @@ public class TestAuthAwareLogger<T> : ILogger<T>
         _innerLogger.LogInformation($"[TEST-AUTH] {message}", args);
     }
 }
-```bash
+```
+
 ### Assertion Helper para Testes
 
 ```csharp
@@ -313,4 +320,4 @@ public static class TestAuthAssertions
         user.FindFirst("sub")?.Value.Should().Be("test-user-id");
     }
 }
-```text
+```

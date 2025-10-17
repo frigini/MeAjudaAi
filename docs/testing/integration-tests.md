@@ -141,5 +141,5 @@ Integration tests run as part of the CI/CD pipeline:
 ## Related Documentation
 
 - [Test Authentication Handler](test_authentication_handler.md)
-- [Development Guidelines](../development-guidelines.md)
+- [Development Guidelines](../development.md)
 - [CI/CD Setup](../ci_cd.md)

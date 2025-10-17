@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;

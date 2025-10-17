@@ -7,7 +7,7 @@ Este documento cobre o sistema completo de autenticação e autorização do MeA
 O MeAjudaAi utiliza um sistema robusto de autenticação e autorização com as seguintes características:
 
 - **Autenticação**: Integração com Keycloak usando JWT tokens
-- **Autorização**: Sistema type-safe baseado em enums (`EPermissions`)
+- **Autorização**: Sistema type-safe baseado em enums (`EPermission`)
 - **Arquitetura Modular**: Cada módulo pode implementar suas próprias regras de permissão
 - **Cache Inteligente**: HybridCache para otimização de desempenho
 - **Extensibilidade**: Suporte para múltiplos provedores de permissão
@@ -24,22 +24,12 @@ Authentication & Authorization System
 │   └── User Identity Management
 │
 └── Authorization (Type-Safe Permissions)
-    ├── EPermissions Enum (Type-Safe)
+    ├── EPermission Enum (Type-Safe)
     ├── Permission Service (Caching + Resolution)
     ├── Module Permission Resolvers
     └── Authorization Handlers
 ```
 
-### Fluxo de Autorização
-
-```
-graph TD
-    A[Request] --> B[JWT Validation]
-    B --> C[Claims Transformation]
-    C --> D[Permission Resolution]
-    D --> E[Permission Cache]
-    E --> F{Permission Check}
-```
 ### Fluxo de Autorização
 
 ```mermaid
@@ -59,12 +49,12 @@ graph TD
 
 ## 🔐 Sistema de Permissões
 
-### EPermissions Enum
+### EPermission Enum
 
 O sistema utiliza um enum type-safe para definir todas as permissões:
 
 ```
-public enum EPermissions
+public enum EPermission
 {
     // Sistema
     [Display(Name = "system:read")]
@@ -117,18 +107,18 @@ public async Task<IResult> GetUserData(
     IPermissionService permissionService)
 {
     // Verificação simples
-    if (!user.HasPermission(EPermissions.UsersRead))
+    if (!user.HasPermission(EPermission.UsersRead))
         return Results.Forbid();
     
     // Verificação assíncrona com service
     var userId = user.GetUserId();
-    if (!await permissionService.HasPermissionAsync(userId, EPermissions.UsersRead))
+    if (!await permissionService.HasPermissionAsync(userId, EPermission.UsersRead))
         return Results.Forbid();
         
     // Múltiplas permissões
     var hasAnyPermission = await permissionService.HasPermissionsAsync(
         userId, 
-        [EPermissions.UsersRead, EPermissions.AdminUsers], 
+        [EPermission.UsersRead, EPermission.AdminUsers], 
         requireAll: false);
     
     return Results.Ok(/* data */);
@@ -194,13 +184,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 ```
 # Quick setup com Keycloak standalone
 docker compose -f infrastructure/compose/standalone/keycloak-only.yml up -d
-```
-
-### 4. Setup Local com Docker
-
-```
-# Quick setup com Keycloak standalone
-docker compose -f infrastructure/compose/standalone/keycloak-only.yml up -d
 
 # Ou ambiente completo de desenvolvimento
 docker compose -f infrastructure/compose/environments/development.yml up -d
@@ -216,45 +199,60 @@ public class UsersPermissionResolver : IModulePermissionResolver
 {
     public string ModuleName => "Users";
     
-    public async Task<IReadOnlyList<EPermissions>> ResolvePermissionsAsync(
+    public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(
         string userId, 
         CancellationToken cancellationToken = default)
     {
         // Lógica específica do módulo para resolver permissões
         var userRoles = await GetUserRolesAsync(userId, cancellationToken);
         
-        var permissions = new List<EPermissions>();
+        var permissions = new List<EPermission>();
         
         foreach (var role in userRoles)
         {
-            permissions.AddRange(MapRoleToPermissions(role));
+            return role switch
+        {
+            "admin" => new[] 
+            { 
+                EPermission.UsersRead, 
+                EPermission.UsersCreate, 
+                EPermission.UsersUpdate, 
+                EPermission.UsersDelete 
+            },
+            "manager" => new[] 
+            { 
+                EPermission.UsersRead, 
+                EPermission.UsersUpdate 
+            },
+            "user" => new[] { EPermission.UsersRead },
+            _ => Array.Empty<EPermission>()
         }
         
         return permissions;
     }
     
-    public bool CanResolve(EPermissions permission)
+    public bool CanResolve(EPermission permission)
     {
         // Verifica se este resolver pode lidar com a permissão
         return permission.GetModule().Equals("users", StringComparison.OrdinalIgnoreCase);
     }
     
-    private IEnumerable<EPermissions> MapRoleToPermissions(string role)
+    private IEnumerable<EPermission> MapRoleToPermissions(string role)
     {
         return role.ToLowerInvariant() switch
         {
             "user-admin" => new[] { 
-                EPermissions.UsersRead, 
-                EPermissions.UsersCreate, 
-                EPermissions.UsersUpdate, 
-                EPermissions.UsersDelete 
+                EPermission.UsersRead, 
+                EPermission.UsersCreate, 
+                EPermission.UsersUpdate, 
+                EPermission.UsersDelete 
             },
             "user-operator" => new[] { 
-                EPermissions.UsersRead, 
-                EPermissions.UsersUpdate 
+                EPermission.UsersRead, 
+                EPermission.UsersUpdate 
             },
-            "user" => new[] { EPermissions.UsersRead },
-            _ => Array.Empty<EPermissions>()
+            "user" => new[] { EPermission.UsersRead },
+            _ => Array.Empty<EPermission>()
         };
     }
 }
@@ -321,31 +319,31 @@ Roles do Keycloak são automaticamente mapeados para permissões:
 
 ```
 // Configuração no KeycloakPermissionResolver
-private static IEnumerable<EPermissions> MapKeycloakRoleToPermissions(string roleName)
+private static IEnumerable<EPermission> MapKeycloakRoleToPermissions(string roleName)
 {
     return roleName.ToLowerInvariant() switch
     {
         "meajudaai-system-admin" => new[]
         {
-            EPermissions.AdminSystem,
-            EPermissions.AdminUsers,
-            EPermissions.UsersRead,
-            EPermissions.UsersCreate,
-            EPermissions.UsersUpdate,
-            EPermissions.UsersDelete
+            EPermission.AdminSystem,
+            EPermission.AdminUsers,
+            EPermission.UsersRead,
+            EPermission.UsersCreate,
+            EPermission.UsersUpdate,
+            EPermission.UsersDelete
         },
         "meajudaai-user-admin" => new[]
         {
-            EPermissions.AdminUsers,
-            EPermissions.UsersRead,
-            EPermissions.UsersCreate,
-            EPermissions.UsersUpdate
+            EPermission.AdminUsers,
+            EPermission.UsersRead,
+            EPermission.UsersCreate,
+            EPermission.UsersUpdate
         },
         "meajudaai-user" => new[]
         {
-            EPermissions.UsersRead
+            EPermission.UsersRead
         },
-        _ => Array.Empty<EPermissions>()
+        _ => Array.Empty<EPermission>()
     };
 }
 ```
@@ -370,8 +368,8 @@ services.AddTestAuthentication(options =>
     options.DefaultUserId = "test-user";
     options.DefaultPermissions = new[] 
     { 
-        EPermissions.UsersRead, 
-        EPermissions.UsersCreate 
+        EPermission.UsersRead, 
+        EPermission.UsersCreate 
     };
 });
 ```
@@ -382,7 +380,7 @@ services.AddTestAuthentication(options =>
 public async Task ShouldAllowUserWithPermission()
 {
     // Arrange
-    var user = CreateTestUser(EPermissions.UsersRead);
+    var user = CreateTestUser(EPermission.UsersRead);
     
     // Act
     var result = await endpoint.HandleAsync(user);
@@ -405,12 +403,12 @@ public async Task<IResult> UpdateUser(
     var currentUserId = currentUser.GetUserId();
     
     // Admin pode editar qualquer usuário
-    if (await permissionService.HasPermissionAsync(currentUserId, EPermissions.AdminUsers))
+    if (await permissionService.HasPermissionAsync(currentUserId, EPermission.AdminUsers))
         return await UpdateUserInternal(userId, dto);
     
     // Usuário pode editar apenas seu próprio perfil
     if (currentUserId == userId.ToString() && 
-        await permissionService.HasPermissionAsync(currentUserId, EPermissions.UsersProfile))
+        await permissionService.HasPermissionAsync(currentUserId, EPermission.UsersProfile))
         return await UpdateUserInternal(userId, dto);
     
     return Results.Forbid();
@@ -424,12 +422,12 @@ public static class CustomPermissionExtensions
     public static bool CanManageUser(this ClaimsPrincipal user, string targetUserId)
     {
         // Admin pode gerenciar qualquer usuário
-        if (user.HasPermission(EPermissions.AdminUsers))
+        if (user.HasPermission(EPermission.AdminUsers))
             return true;
         
         // Usuário pode gerenciar apenas a si mesmo
         return user.GetUserId() == targetUserId && 
-               user.HasPermission(EPermissions.UsersProfile);
+               user.HasPermission(EPermission.UsersProfile);
     }
 }
 ```
@@ -470,14 +468,6 @@ builder.Logging.AddFilter("MeAjudaAi.Shared.Authorization", LogLevel.Trace);
 
 ---
 
-## 📖 Documentação Relacionada
-
-- [Server-Side Permission Resolution Guide](./authentication/server_side_permission_resolution_guide.md)
-- [Test Authentication Handler](./testing/test_authentication_handler.md)
-- [Development Guidelines](./development-guidelines.md)
-- [Test Configuration](../testing/test_auth_configuration.md)
-- [Test Examples](../testing/test_auth_examples.md)
-
 ## Production Deployment
 
 ### Environment Configuration
@@ -503,58 +493,19 @@ For production deployments, configure SSL certificates:
 - Configure proper trust store if using custom certificates
 - Ensure certificate chain validation
 
-## Troubleshooting
-
-### Common Issues
-
-1. **Token Validation Errors**
-   - Check authority URL configuration
-   - Verify metadata endpoint accessibility
-   - Ensure proper audience configuration
-
-2. **CORS Issues**
-   - Configure allowed origins in Keycloak client
-   - Set proper CORS headers in application
-
-3. **Certificate Issues**
-   - Verify SSL certificate validity
-   - Check certificate trust chain
-   - Configure proper certificate validation
-
-### Debug Logging
-
-Enable authentication debug logging in `appsettings.Development.json`:
-
-```
-{
-  "Logging": {
-    "LogLevel": {
-      "Microsoft.AspNetCore.Authentication": "Debug",
-      "Microsoft.AspNetCore.Authorization": "Debug"
-    }
-  }
-}
-```
-### Health Checks
-
-The application includes authentication health checks:
-- Keycloak connectivity
-- Token validation endpoint
-- Metadata endpoint accessibility
-
 ## 📖 Documentação Relacionada
 
 ### Documentação Especializada
-- **[Guia de Implementação de Autorização](./authentication/authorization_system_implementation.md)** - Guia completo para implementar autorização type-safe
-- **[Sistema de Permissões Type-Safe](./authentication/type_safe_permissions_system.md)** - Detalhes do sistema baseado em EPermissions
-- **[Resolução Server-Side de Permissões](./authentication/server_side_permission_resolution_guide.md)** - Guia para resolução de permissões no servidor
+- **[Guia de Implementação de Autorização](./authorization_implementation.md)** - Guia completo para implementar autorização type-safe
+- **[Sistema de Permissões Type-Safe](./type_safe_permissions.md)** - Detalhes do sistema baseado em EPermission
+- **[Resolução Server-Side de Permissões](./server_side_permissions.md)** - Guia para resolução de permissões no servidor
 
 ### Desenvolvimento e Testes
-- **[Test Authentication Handler](./testing/test_authentication_handler.md)** - Handler configurável para cenários de teste
-- **[Exemplos de Teste de Auth](../testing/test_auth_examples.md)** - Exemplos práticos de autenticação em testes
+- **[Test Authentication Handler](./development.md#3-test-authentication-handler)** - Handler configurável para cenários de teste
+- **[Exemplos de Teste de Auth](./development.md#10-testing-best-practices)** - Exemplos práticos de autenticação em testes
 
 ### Arquitetura e Operações
-- **[Guias de Desenvolvimento](./development-guidelines.md)** - Diretrizes gerais de desenvolvimento
+- **[Guias de Desenvolvimento](./development.md)** - Diretrizes gerais de desenvolvimento
 - **[Arquitetura do Sistema](./architecture.md)** - Visão geral da arquitetura
 - **[CI/CD e Infraestrutura](./ci_cd.md)** - Configuração de pipeline e deploy
 
@@ -578,7 +529,7 @@ The application includes authentication health checks:
 
 4. **Permission Resolution Errors**
    - Verify module permission resolvers are registered
-   - Check EPermissions enum mapping
+   - Check EPermission enum mapping
    - Validate cache configuration
 
 ### Debug Logging
@@ -611,4 +562,4 @@ The Swagger UI includes authentication support:
 2. Enter JWT token in format: `Bearer <token>`
 3. Test authenticated endpoints
 
-For obtaining tokens during development, see the [testing documentation](../testing/test_auth_examples.md).
+For obtaining tokens during development, see the [testing documentation](./development.md#3-test-authentication-handler).

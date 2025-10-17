@@ -104,7 +104,7 @@ public static class ClaimsPrincipalExtensions
     public static string? GetTenantId(this ClaimsPrincipal principal)
     {
         ArgumentNullException.ThrowIfNull(principal);
-        return principal.FindFirst("tenant_id")?.Value;
+        return principal.FindFirst(AuthConstants.Claims.TenantId)?.Value;
     }
 
     /// <summary>

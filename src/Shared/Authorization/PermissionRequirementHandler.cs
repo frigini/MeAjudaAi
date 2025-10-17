@@ -6,9 +6,9 @@ using System.Security.Claims;
 namespace MeAjudaAi.Shared.Authorization;
 
 /// <summary>
-/// Authorization handler que verifica se o usuário possui a permissão necessária.
+/// Authorization handler que verifica PermissionRequirement.
 /// </summary>
-public sealed class PermissionAuthorizationHandler(ILogger<PermissionAuthorizationHandler> logger) : AuthorizationHandler<PermissionRequirement>
+public sealed class PermissionRequirementHandler(ILogger<PermissionRequirementHandler> logger) : AuthorizationHandler<PermissionRequirement>
 {
     protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
@@ -17,7 +17,7 @@ public sealed class PermissionAuthorizationHandler(ILogger<PermissionAuthorizati
         var user = context.User;
         
         // Verifica se o usuário está autenticado
-        if (user?.Identity?.IsAuthenticated != true)
+        if (!user.Identity?.IsAuthenticated == true)
         {
             logger.LogDebug("User is not authenticated");
             context.Fail();
@@ -33,8 +33,8 @@ public sealed class PermissionAuthorizationHandler(ILogger<PermissionAuthorizati
         }
         
         // Verifica se o usuário possui a permissão específica
-        var requiredPermission = requirement.PermissionValue;
-        var hasPermission = user.HasClaim(CustomClaimTypes.Permission, requiredPermission);
+        var requiredPermission = requirement.Permission.GetValue();
+        var hasPermission = user.HasClaim(AuthConstants.Claims.Permission, requiredPermission);
         
         if (hasPermission)
         {
@@ -52,13 +52,10 @@ public sealed class PermissionAuthorizationHandler(ILogger<PermissionAuthorizati
         return Task.CompletedTask;
     }
     
-    /// <summary>
-    /// Extrai o ID do usuário dos claims.
-    /// </summary>
     private static string? GetUserId(ClaimsPrincipal user)
     {
-        return user.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-               user.FindFirst(AuthConstants.Claims.Subject)?.Value ??
-               user.FindFirst("id")?.Value;
+        return user.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+               ?? user.FindFirst("sub")?.Value 
+               ?? user.FindFirst("id")?.Value;
     }
 }

@@ -26,7 +26,7 @@ Este documento descreve a estratégia completa de Dead Letter Queue implementada
                            │   Exponential        │    │      Queue          │
                            │     Backoff          │    │   (RabbitMQ/SB)     │
                            └──────────────────────┘    └─────────────────────┘
-```text
+```
 ### Interfaces Core
 
 #### `IDeadLetterService`
@@ -71,7 +71,7 @@ public interface IDeadLetterService
     }
   }
 }
-```text
+```
 ### 2. Service Bus Dead Letter Service
 **Ambiente**: Production
 
@@ -94,7 +94,8 @@ public interface IDeadLetterService
     }
   }
 }
-```csharp
+```
+
 ## 🔁 Estratégia de Retry
 
 ### Políticas de Retry
@@ -108,7 +109,8 @@ string[] permanentExceptions = {
     "MeAjudaAi.Shared.Exceptions.BusinessRuleException",
     "MeAjudaAi.Shared.Exceptions.DomainException"
 };
-```yaml
+```
+
 - **Ação**: Envio imediato para DLQ
 - **Justificativa**: Erros de lógica/validação que não serão resolvidos com retry
 
@@ -128,7 +130,8 @@ string[] transientExceptions = {
 ```csharp
 if (exception is OutOfMemoryException or StackOverflowException)
     return FailureType.Critical;
-```bash
+```
+
 - **Ação**: Envio imediato para DLQ + notificação de admin
 - **Justificativa**: Problemas sistêmicos que requerem intervenção
 
@@ -182,7 +185,8 @@ public async Task ProcessMessage<TMessage>(TMessage message, string sourceQueue)
         _logger.LogWarning("Message sent to dead letter queue");
     }
 }
-```yaml
+```
+
 ## 📊 Monitoramento e Observabilidade
 
 ### Informações Capturadas
@@ -212,7 +216,7 @@ public sealed class DeadLetterStatistics
     public Dictionary<string, int> MessagesByExceptionType { get; set; }
     public Dictionary<string, FailureRate> FailureRateByHandler { get; set; }
 }
-```text
+```
 ### Logs Estruturados
 
 ```csharp
@@ -234,7 +238,7 @@ services.AddDeadLetterQueue(configuration, environment, options =>
 {
     options.ConfigureForDevelopment(); // ou ConfigureForProduction()
 });
-```text
+```
 ### 2. Configuração de Ambiente
 
 #### Development (appsettings.Development.json)
@@ -253,7 +257,8 @@ services.AddDeadLetterQueue(configuration, environment, options =>
     }
   }
 }
-```yaml
+```
+
 #### Production (appsettings.Production.json)
 ```json
 {
@@ -281,7 +286,7 @@ var app = builder.Build();
 await app.EnsureMessagingInfrastructureAsync();
 
 await app.RunAsync();
-```text
+```
 ## 🔄 Operações de DLQ
 
 ### 1. Listar Mensagens na DLQ
@@ -294,12 +299,14 @@ foreach (var message in messages)
 {
     Console.WriteLine($"Message {message.MessageId}: {message.LastFailureReason}");
 }
-```csharp
+```
+
 ### 2. Reprocessar Mensagem
 
 ```csharp
 await deadLetterService.ReprocessDeadLetterMessageAsync("dlq.users-events", messageId);
-```yaml
+```
+
 ### 3. Purgar Mensagem (Após Análise)
 
 ```csharp
@@ -310,7 +317,7 @@ await deadLetterService.PurgeDeadLetterMessageAsync("dlq.users-events", messageI
 ```csharp
 var statistics = await deadLetterService.GetDeadLetterStatisticsAsync();
 Console.WriteLine($"Total messages in DLQ: {statistics.TotalDeadLetterMessages}");
-```text
+```
 ## 🧪 Testes
 
 ### Testes Unitários
@@ -371,7 +378,7 @@ public async Task MessageRetryMiddleware_WithTransientFailure_ShouldRetryAndSucc
     success.Should().BeTrue();
     callCount.Should().Be(3);
 }
-```text
+```
 ## 📈 Métricas e Alertas
 
 ### Métricas Recomendadas
@@ -419,7 +426,194 @@ public async Task MessageRetryMiddleware_WithTransientFailure_ShouldRetryAndSucc
 - Auditar operações de reprocessamento
 - Implementar políticas de retenção
 
-## 📚 Referências
+## �️ Operational Management
+
+### 1. Monitoring Dead Letter Queues
+
+#### Development Environment (RabbitMQ)
+```bash
+# Connect to RabbitMQ container
+docker exec -it meajudaai-rabbitmq rabbitmqctl list_queues name messages
+
+# Filter DLQ queues
+docker exec -it meajudaai-rabbitmq rabbitmqctl list_queues name messages | grep dlq
+
+# Detailed queue information
+docker exec -it meajudaai-rabbitmq rabbitmqctl list_queues name messages consumers memory
+```
+
+#### Production Environment (Azure Service Bus)
+```bash
+# Using Azure CLI
+az servicebus queue list --resource-group meajudaai-rg --namespace-name meajudaai-sb --query "[?contains(name, 'DeadLetter')]"
+
+# Get specific queue details
+az servicebus queue show --resource-group meajudaai-rg --namespace-name meajudaai-sb --name "users-events\$DeadLetterQueue"
+```
+
+### 2. Application-Level Monitoring
+
+#### Get DLQ Statistics via API
+```csharp
+[HttpGet("admin/deadletter/statistics")]
+public async Task<IActionResult> GetDeadLetterStatistics()
+{
+    var statistics = await _deadLetterService.GetDeadLetterStatisticsAsync();
+    return Ok(statistics);
+}
+
+// Response example:
+{
+    "totalDeadLetterMessages": 15,
+    "messagesByQueue": {
+        "dlq.users-events": 8,
+        "dlq.billing-events": 5,
+        "dlq.notification-events": 2
+    },
+    "messagesByExceptionType": {
+        "TimeoutException": 7,
+        "ArgumentException": 5,
+        "PostgresException": 3
+    }
+}
+```
+
+### 3. Reprocessing Operations
+
+#### Manual Reprocessing
+```csharp
+// Reprocess single message
+var success = await _deadLetterService.ReprocessDeadLetterMessageAsync("dlq.users-events", messageId);
+
+// Reprocess all messages in queue
+var messages = await _deadLetterService.ListDeadLetterMessagesAsync("dlq.users-events", 100);
+foreach (var message in messages)
+{
+    try
+    {
+        await _deadLetterService.ReprocessDeadLetterMessageAsync("dlq.users-events", message.MessageId);
+        Console.WriteLine($"Successfully reprocessed message {message.MessageId}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Failed to reprocess message {message.MessageId}: {ex.Message}");
+    }
+}
+```
+
+#### Automated Cleanup
+```csharp
+// Purge messages older than 7 days
+var messages = await _deadLetterService.ListDeadLetterMessagesAsync("dlq.users-events", 100);
+var oldMessages = messages.Where(m => m.FirstAttemptAt < DateTime.UtcNow.AddDays(-7));
+
+foreach (var message in oldMessages)
+{
+    await _deadLetterService.PurgeDeadLetterMessageAsync("dlq.users-events", message.MessageId);
+    Console.WriteLine($"Purged old message {message.MessageId}");
+}
+```
+
+### 4. Performance Optimization
+
+#### Batch Processing for DLQ Operations
+```csharp
+public async Task ProcessDLQInBatches(string queueName, int batchSize = 10)
+{
+    bool hasMoreMessages = true;
+    
+    while (hasMoreMessages)
+    {
+        var messages = await _deadLetterService.ListDeadLetterMessagesAsync(queueName, batchSize);
+        
+        if (!messages.Any())
+        {
+            hasMoreMessages = false;
+            continue;
+        }
+        
+        var tasks = messages.Select(async message =>
+        {
+            try
+            {
+                if (ShouldReprocess(message))
+                {
+                    await _deadLetterService.ReprocessDeadLetterMessageAsync(queueName, message.MessageId);
+                }
+                else if (ShouldPurge(message))
+                {
+                    await _deadLetterService.PurgeDeadLetterMessageAsync(queueName, message.MessageId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to process DLQ message {MessageId}", message.MessageId);
+            }
+        });
+        
+        await Task.WhenAll(tasks);
+        
+        // Small delay to avoid overwhelming the system
+        await Task.Delay(TimeSpan.FromSeconds(1));
+    }
+}
+
+private bool ShouldReprocess(FailedMessageInfo message)
+{
+    return message.AttemptCount <= 3 && 
+           message.LastAttemptAt > DateTime.UtcNow.AddHours(-1) &&
+           !IsKnownPermanentFailure(message.LastFailureReason);
+}
+
+private bool ShouldPurge(FailedMessageInfo message)
+{
+    return message.FirstAttemptAt < DateTime.UtcNow.AddDays(-7) ||
+           IsKnownPermanentFailure(message.LastFailureReason);
+}
+```
+
+### 5. Automated Monitoring Scripts
+
+#### PowerShell Script for DLQ Monitoring
+```powershell
+# DeadLetterMonitor.ps1
+param(
+    [string]$Environment = "Development",
+    [int]$MaxMessages = 50
+)
+
+function Get-DLQStatistics {
+    param([string]$ApiBaseUrl)
+    
+    $response = Invoke-RestMethod -Uri "$ApiBaseUrl/admin/deadletter/statistics" -Method Get
+    return $response
+}
+
+function Send-DLQAlert {
+    param([object]$Statistics)
+    
+    if ($Statistics.totalDeadLetterMessages -gt 10) {
+        Write-Warning "High number of DLQ messages: $($Statistics.totalDeadLetterMessages)"
+        
+        # Send notification (Teams, Slack, Email, etc.)
+        # Invoke-RestMethod -Uri $TeamsWebhookUrl -Method Post -Body $alertPayload
+    }
+}
+
+# Main execution
+$apiUrl = if ($Environment -eq "Production") { "https://api.meajudaai.com" } else { "https://localhost:5001" }
+
+try {
+    $stats = Get-DLQStatistics -ApiBaseUrl $apiUrl
+    Write-Output "DLQ Statistics: $($stats | ConvertTo-Json)"
+    Send-DLQAlert -Statistics $stats
+}
+catch {
+    Write-Error "Failed to get DLQ statistics: $($_.Exception.Message)"
+}
+```
+
+## �📚 Referências
 
 - [RabbitMQ Dead Letter Exchange](https://www.rabbitmq.com/dlx.html)
 - [Azure Service Bus Dead Letter Queue](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-dead-letter-queues)

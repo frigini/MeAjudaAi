@@ -58,8 +58,9 @@ tests/
 docs/
 ├── messaging/
 │   └── dead_letter_queue_strategy.md     # ✅ Documentação completa
-└── examples/
-    └── appsettings.Development.deadletter.json # ✅ Exemplo configuração
+└── configuration-templates/
+    ├── appsettings.Development.deadletter.json # ✅ Exemplo configuração dev
+    └── appsettings.Production.deadletter.json  # ✅ Exemplo configuração prod
 ```yaml
 ## ⚙️ Configuração Implementada
 

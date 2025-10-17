@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Security.Claims;
+using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Shared.Authorization.Middleware;
 
@@ -17,15 +20,15 @@ public sealed class PermissionOptimizationMiddleware(
     // Endpoints que não precisam de verificação de permissões
     private static readonly HashSet<string> PublicEndpoints = new(StringComparer.OrdinalIgnoreCase)
     {
-        "/health",
-        "/health/ready",
-        "/health/live",
+        ApiEndpoints.System.Health,
+        ApiEndpoints.System.HealthReady,
+        ApiEndpoints.System.HealthLive,
         "/metrics",
         "/swagger",
         "/api/auth/login",
         "/api/auth/logout",
         "/api/auth/refresh",
-        "/.well-known/openid_configuration"
+        "/.well-known/openid-configuration"
     };
 
     // Métodos HTTP que geralmente não precisam de permissões complexas

@@ -30,6 +30,32 @@ A aplicação suporta configuração específica para dois ambientes principais:
   - Swagger UI desabilitado
   - Todos os recursos de segurança habilitados
 
+### 3. Dead Letter Queue Templates
+
+#### Development Dead Letter (`appsettings.Development.deadletter.json`)
+- **Propósito**: Configuração de dead letter queue para desenvolvimento
+- **Características**:
+  - RabbitMQ como provider de messaging
+  - Retry policy relaxado (3 tentativas)
+  - Logging detalhado habilitado
+  - Notificações de admin desabilitadas
+
+#### Production Dead Letter (`appsettings.Production.deadletter.json`)
+- **Propósito**: Configuração de dead letter queue para produção
+- **Características**:
+  - ServiceBus como provider de messaging
+  - Retry policy mais agressivo (5 tentativas)
+  - Logging detalhado desabilitado
+  - Notificações de admin habilitadas
+  - TTL estendido (72 horas)
+
+### 4. Authorization Example (`appsettings.authorization.example.json`)
+- **Propósito**: Template completo de configuração de autorização
+- **Características**:
+  - Configurações Keycloak completas
+  - Políticas de autorização pré-definidas
+  - Claims customizados configurados
+
 ## 🚀 Como Usar os Templates
 
 ### Passo 1: Copiar o Template

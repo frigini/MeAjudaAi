@@ -199,4 +199,4 @@ env:
 
 - [CodeCoverageSummary Action](https://github.com/irongut/CodeCoverageSummary)
 - [OpenCover Documentation](https://github.com/OpenCover/opencover)
-- [Coverage Best Practices](../development-guidelines.md#testing-guidelines)
+- [Coverage Best Practices](../development.md#-diretrizes-de-testes)

@@ -162,8 +162,13 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Install dotnet format
-        run: dotnet tool install -g dotnet-format
+      - name: Install Aspire workload
+        run: |
+          # Install with specific options for .NET 9 and preview packages
+          dotnet workload install aspire --skip-sign-check --source https://api.nuget.org/v3/index.json
+
+      - name: Restore dependencies
+        run: dotnet restore MeAjudaAi.sln
 
       - name: Check code formatting
         run: |

@@ -1,5 +1,6 @@
 ﻿using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Middlewares;
+using MeAjudaAi.Shared.Authorization.Middleware;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
@@ -94,6 +95,7 @@ public static class ServiceCollectionExtensions
 
         app.UseCors("DefaultPolicy");
         app.UseAuthentication();
+        app.UsePermissionOptimization(); // Middleware de otimização após autenticação
         app.UseAuthorization();
 
         return app;

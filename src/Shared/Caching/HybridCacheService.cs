@@ -88,6 +88,10 @@ public class HybridCacheService(
     {
         try
         {
+            // TODO: HybridCache only supports tag-based removal, not pattern matching.
+            // This currently delegates to RemoveByTagAsync, which may not provide
+            // the expected wildcard pattern matching behavior defined in the interface.
+            // Consider implementing proper pattern matching or using a different caching provider.
             await hybridCache.RemoveByTagAsync(pattern, cancellationToken);
         }
         catch (Exception ex)

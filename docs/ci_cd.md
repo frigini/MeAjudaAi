@@ -1,6 +1,95 @@
-# Guia de CI/CD - MeAjudaAi
+# CI/CD Configuration & Security Guide - MeAjudaAi
 
-Este documento detalha a configuração e estratégias de CI/CD para o projeto MeAjudaAi.
+Este documento detalha a configuração, estratégias de CI/CD e correções de segurança para o projeto MeAjudaAi.
+
+## 🔒 Security Scanning Fixes
+
+### Issues Fixed
+
+#### 1. Gitleaks License Requirement
+**Problem**: Gitleaks v2 now requires a license for organization repositories, causing CI/CD pipeline failures.
+
+**Solution**: 
+- Added conditional execution for Gitleaks based on license availability
+- Added TruffleHog as a backup secret scanner that always runs
+- Both scanners fail the workflow when secrets are detected (strict enforcement)
+
+#### 2. Lychee Link Checker Regex Error
+**Problem**: Invalid regex patterns in `.lycheeignore` file causing parse errors.
+
+**Solution**: 
+- Fixed glob patterns by changing `*/bin/*` to `**/bin/**`
+- Updated all patterns to use proper glob syntax
+
+#### 3. Gitleaks Allowlist Security Blind Spot
+**Problem**: The configuration was excluding `appsettings.Development.json` files from secret scanning.
+
+**Solution**: 
+- Removed `appsettings.Development.json` from the gitleaks allowlist
+- Kept only template/example files in the allowlist
+- Enhanced security coverage for development configuration files
+
+#### 4. Secret Scanner Workflow Enforcement
+**Problem**: Security scanners had `continue-on-error: true` allowing PRs to pass even when secrets were detected.
+
+**Solution**: 
+- Removed `continue-on-error: true` from both Gitleaks and TruffleHog steps
+- Updated TruffleHog base branch to dynamic `${{ github.event.pull_request.base.ref }}`
+- **Critical**: PR validation now blocks merges when secrets are detected
+
+### Current Security Scanning Setup
+
+The CI/CD pipeline now includes:
+
+1. **Gitleaks** (conditional execution with strict failure mode)
+   - Scans for secrets in git history
+   - Only runs when GITLEAKS_LICENSE secret is available
+   - **FAILS the workflow if secrets are detected**
+   - Blocks PR merges when secrets are found
+
+2. **TruffleHog** (complementary scanner)
+   - Free open-source secret scanner
+   - Runs regardless of Gitleaks license status
+   - Focuses on verified secrets only
+   - **FAILS the workflow if secrets are detected**
+
+3. **Lychee Link Checker**
+   - Validates markdown links
+   - Uses proper glob patterns for exclusions
+   - Caches results for performance
+
+### Optional: Adding Gitleaks License
+
+If you want to use the full Gitleaks functionality:
+
+1. Purchase a license from [gitleaks.io](https://gitleaks.io)
+2. Add the license as a GitHub repository secret named `GITLEAKS_LICENSE`
+3. The workflow will automatically use the licensed version when available
+
+### Setting up GITLEAKS_LICENSE Secret
+
+1. Go to your repository Settings
+2. Navigate to Secrets and variables → Actions
+3. Click "New repository secret"
+4. Name: `GITLEAKS_LICENSE`
+5. Value: Your purchased license key
+6. Click "Add secret"
+
+### Monitoring Security Scans
+
+Both security scanners will:
+- Run on every pull request
+- Generate detailed reports in workflow logs
+- **FAIL the workflow if secrets are detected** 
+- **BLOCK PR merges when security issues are found**
+- Provide summaries in the GitHub Actions interface
+
+To view results:
+1. Go to the Actions tab in your repository
+2. Click on the specific workflow run
+3. Check the "Secret Detection" job for security scan results
+4. **Red X indicates secrets were found and PR is blocked**
+5. **Green checkmark indicates no secrets detected**
 
 ## 🚀 Estratégia de CI/CD
 
@@ -668,6 +757,59 @@ Write-Host "✅ Configuração de CI/CD (apenas setup) concluída!" -ForegroundC
 #### GitHub Actions Status Badge
 ```markdown
 [![CI/CD Pipeline](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml)
+```
+
+## 🛡️ Security Best Practices
+
+### Configuration Files Security
+
+#### .gitleaks.toml
+The gitleaks configuration file defines:
+- Rules for secret detection
+- Allowlisted files/patterns (only templates/examples)
+- Custom detection rules
+
+**Critical**: Only template files (`appsettings.template.json`, `appsettings.example.json`) are excluded from scanning.
+
+#### lychee.toml
+The lychee configuration file defines:
+- Link checking scope (currently file:// links only)
+- Timeout and concurrency settings
+- Status codes to accept as valid
+
+#### .lycheeignore
+Patterns to exclude from link checking:
+- Build artifacts (`**/bin/**`, `**/obj/**`)
+- Dependencies (`**/node_modules/**`)
+- Version control (`**/.git/**`)
+- Test outputs (`**/TestResults/**`)
+- Localhost and development URLs
+
+### Security Monitoring Guidelines
+
+1. **Regular Updates**: Keep security scanning tools updated
+2. **License Management**: Monitor Gitleaks license expiration if using paid version
+3. **False Positives**: Update `.gitleaks.toml` to handle legitimate false positives
+4. **Link Maintenance**: Update `.lycheeignore` for new patterns that should be excluded
+5. **Secret Rotation**: Regularly rotate secrets detected in allowlisted files
+
+### Security Troubleshooting
+
+#### Common Security Issues
+
+1. **License errors**: Use TruffleHog output if Gitleaks fails
+2. **Regex errors**: Ensure `.lycheeignore` uses valid glob patterns (`**` for recursive matching)
+3. **Link timeouts**: Adjust timeout settings in `lychee.toml`
+4. **False secret detection**: Review and update `.gitleaks.toml` allowlist carefully
+
+#### Support Resources
+
+For issues with:
+- **Gitleaks**: Check [gitleaks documentation](https://github.com/gitleaks/gitleaks)
+- **TruffleHog**: Check [TruffleHog documentation](https://github.com/trufflesecurity/trufflehog)
+- **Lychee**: Check [lychee documentation](https://github.com/lycheeverse/lychee)
+
+## 🚨 Troubleshooting
 ```bash
 ## 🚨 Troubleshooting
 

@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Authorization.Keycloak;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -30,7 +31,18 @@ public static class SerilogConfigurator
             .Enrich.WithProperty("Environment", environment.EnvironmentName)
             .Enrich.WithProperty("MachineName", Environment.MachineName)
             .Enrich.WithProperty("ProcessId", Environment.ProcessId)
-            .Enrich.WithProperty("Version", GetApplicationVersion());
+            .Enrich.WithProperty("Version", GetApplicationVersion())
+            
+            // 🔒 Redact sensitive data from KeycloakPermissionOptions
+            .Destructure.ByTransforming<KeycloakPermissionOptions>(o => new
+            {
+                o.BaseUrl,
+                o.Realm,
+                o.ClientId,
+                o.AdminUsername,
+                ClientSecret = "***REDACTED***",
+                AdminPassword = "***REDACTED***"
+            });
 
         // 🎯 Aplicar configurações específicas por ambiente
         ApplyEnvironmentSpecificConfiguration(loggerConfig, configuration, environment);

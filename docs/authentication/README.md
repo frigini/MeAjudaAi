@@ -105,7 +105,7 @@ O sistema expõe automaticamente:
 
 ## 🔗 Documentação Relacionada
 
-- [Guias de Desenvolvimento](../development-guidelines.md)
+- [Guias de Desenvolvimento](../development.md)
 - [Arquitetura do Sistema](../architecture.md)
 - [Guia de Testes](../testing/)
 - [Configuração CI/CD](../ci_cd.md)

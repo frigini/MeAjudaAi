@@ -284,14 +284,14 @@ public class UserRepositoryTests : DatabaseTestBase
         await base.DisposeAsync();
     }
 
-    // M�todo auxiliar para adicionar usu�rio e persistir
+    // Método auxiliar para adicionar usuário e persistir
     private async Task AddUserAndSaveAsync(User user)
     {
         await _repository.AddAsync(user);
         await _context.SaveChangesAsync();
     }
 
-    // M�todo auxiliar para atualizar usu�rio e persistir
+    // Método auxiliar para atualizar usuário e persistir
     private async Task UpdateUserAndSaveAsync(User user)
     {
         await _repository.UpdateAsync(user);

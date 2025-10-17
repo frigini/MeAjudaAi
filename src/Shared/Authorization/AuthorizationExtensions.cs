@@ -31,6 +31,7 @@ public static class AuthorizationExtensions
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IClaimsTransformation, PermissionClaimsTransformation>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        services.AddScoped<IAuthorizationHandler, PermissionRequirementHandler>();
         
         // Adiciona métricas e monitoramento
         services.AddPermissionMetrics();
@@ -47,7 +48,7 @@ public static class AuthorizationExtensions
         // Configura políticas de autorização
         services.AddAuthorization(options =>
         {
-            // Registra políticas para cada permissão (EPermissions)
+            // Registra políticas para cada permissão (EPermission)
             foreach (EPermission permission in Enum.GetValues<EPermission>())
             {
                 var policyName = $"RequirePermission:{permission.GetValue()}";
@@ -84,8 +85,10 @@ public static class AuthorizationExtensions
         services.AddScoped<IKeycloakPermissionResolver, KeycloakPermissionResolver>();
         
         // Configura opções do Keycloak a partir da configuração
-        services.Configure<KeycloakPermissionOptions>(
-            configuration.GetSection("Keycloak"));
+        services.AddOptions<KeycloakPermissionOptions>()
+            .Bind(configuration.GetSection("Keycloak"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
         
         return services;
     }
@@ -97,7 +100,7 @@ public static class AuthorizationExtensions
     /// <returns>Application builder para chaining</returns>
     public static IApplicationBuilder UsePermissionBasedAuthorization(this IApplicationBuilder app)
     {
-        // Middleware de otimização deve vir antes da autenticação
+        // Middleware de otimização deve vir após UseAuthentication() e antes de UseAuthorization()
         app.UsePermissionOptimization();
         
         return app;
@@ -245,14 +248,16 @@ public static class AuthorizationExtensions
     {
         var permissionValue = $"{module}:{action}";
         var permission = PermissionExtensions.FromValue(permissionValue);
-        
+
         if (permission.HasValue)
         {
             return builder.RequirePermission(permission.Value);
         }
-        
-        // Fallback para política dinâmica se permissão não existir no enum
-        var policyName = $"RequirePermission:{permissionValue}";
-        return builder.RequireAuthorization(policyName);
+
+        // Se a permissão não existe no enum, falha imediatamente
+        // Para evitar políticas não registradas em runtime
+        throw new InvalidOperationException(
+            $"Permission '{permissionValue}' is not defined in EPermission enum. " +
+            $"Add the permission to the enum or use RequirePermission() with a valid EPermission value.");
     }
 }
