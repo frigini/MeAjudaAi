@@ -439,7 +439,7 @@ public async Task CreateUser_WithoutPermission_ShouldReturnForbidden()
 
 - [Sistema de Autenticação Principal](../authentication.md)
 - [Type-Safe Permissions System](./type_safe_permissions_system.md)
-- [Server-Side Permission Resolution Guide](./server_side_permission_resolution_guide.md)
+- [Server-Side Permission Resolution Guide](./server_side_permissions.md)
 - [Test Authentication Handler](./development.md#3-test-authentication-handler)
 
 ---

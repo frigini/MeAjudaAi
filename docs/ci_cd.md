@@ -114,7 +114,7 @@ graph LR
     E --> F[Deploy Dev]
     F --> G[Integration Tests]
     G --> H[Deploy Production]
-```csharp
+```
 ### Ambientes de Deploy
 
 | Ambiente | Trigger | Aprovação | Recursos Azure |
@@ -135,7 +135,8 @@ subscriptionName: "Azure Subscription"
 resourceGroupName: "rg-meajudaai"
 servicePrincipalId: "app-id"
 authenticationType: ServicePrincipal
-```text
+```
+
 #### Azure Container Registry
 ```yaml
 # Connection para ACR

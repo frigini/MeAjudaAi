@@ -206,29 +206,35 @@ public class UsersPermissionResolver : IModulePermissionResolver
         // Lógica específica do módulo para resolver permissões
         var userRoles = await GetUserRolesAsync(userId, cancellationToken);
         
-        var permissions = new List<EPermission>();
+        var permissions = new HashSet<EPermission>();
         
         foreach (var role in userRoles)
         {
-            return role switch
-        {
-            "admin" => new[] 
-            { 
-                EPermission.UsersRead, 
-                EPermission.UsersCreate, 
-                EPermission.UsersUpdate, 
-                EPermission.UsersDelete 
-            },
-            "manager" => new[] 
-            { 
-                EPermission.UsersRead, 
-                EPermission.UsersUpdate 
-            },
-            "user" => new[] { EPermission.UsersRead },
-            _ => Array.Empty<EPermission>()
+            var rolePermissions = role switch
+            {
+                "admin" => new[] 
+                { 
+                    EPermission.UsersRead, 
+                    EPermission.UsersCreate, 
+                    EPermission.UsersUpdate, 
+                    EPermission.UsersDelete 
+                },
+                "manager" => new[] 
+                { 
+                    EPermission.UsersRead, 
+                    EPermission.UsersUpdate 
+                },
+                "user" => new[] { EPermission.UsersRead },
+                _ => Array.Empty<EPermission>()
+            };
+            
+            foreach (var permission in rolePermissions)
+            {
+                permissions.Add(permission);
+            }
         }
         
-        return permissions;
+        return permissions.ToArray();
     }
     
     public bool CanResolve(EPermission permission)
@@ -440,7 +446,7 @@ public static class CustomPermissionExtensions
    - Confirme se o cache não está desatualizado
    - Valide o mapeamento de roles no Keycloak
 
-2. **Desempenho lenta**
+2. **Desempenho lento**
    - Monitore métricas de cache hit ratio
    - Verifique se resolvers modulares estão otimizados
    - Considere ajustar TTL do cache

@@ -10,7 +10,7 @@ Esta pasta contém documentação completa sobre os sistemas de autenticação e
 - **[Sistema de Autenticação](../authentication.md)** - Documentação principal do sistema de autenticação e autorização
 - **[Guia de Implementação](./authorization_system_implementation.md)** - Guia completo para implementar autorização type-safe
 - **[Sistema de Permissões Type-Safe](./type_safe_permissions_system.md)** - Detalhes do sistema baseado em EPermissions
-- **[Resolução Server-Side](./server_side_permission_resolution_guide.md)** - Guia para resolução de permissões no servidor
+- **[Resolução Server-Side](../server_side_permissions.md)** - Guia para resolução de permissões no servidor
 
 ### Testes e Desenvolvimento
 - **[Test Authentication Handler](../testing/test_authentication_handler.md)** - Handler configurável para testes
