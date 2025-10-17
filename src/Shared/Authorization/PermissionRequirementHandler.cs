@@ -17,7 +17,7 @@ public sealed class PermissionRequirementHandler(ILogger<PermissionRequirementHa
         var user = context.User;
         
         // Verifica se o usuário está autenticado
-        if (!user.Identity?.IsAuthenticated == true)
+        if (user?.Identity?.IsAuthenticated != true)
         {
             logger.LogDebug("User is not authenticated");
             context.Fail();

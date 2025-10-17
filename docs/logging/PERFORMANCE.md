@@ -96,4 +96,4 @@ logger.LogInformation("Query executed: {Operation} in {Duration}ms",
 
 - [Logging Setup](./README.md)
 - [Correlation ID Best Practices](./CORRELATION_ID.md)
-- [SEQ Configuration](./seq_setup.md)
+- [SEQ Configuration](./SEQ_SETUP.md)

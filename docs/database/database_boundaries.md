@@ -127,7 +127,7 @@ builder.Services.AddDbContext<UsersDbContext>(options =>
 ```bash
 # Copy template for new module
 cp -r infrastructure/database/modules/users infrastructure/database/modules/providers
-```csharp
+```
 ### Step 2: Update SQL Scripts
 Replace `users` with new module name in:
 - `00-create-roles.sql`
@@ -144,14 +144,15 @@ public class ProvidersDbContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 }
-```yaml
+```
+
 ### Step 4: Register in DI
 ```csharp
 builder.Services.AddDbContext<ProvidersDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("Providers"), 
         o => o.MigrationsHistoryTable("__EFMigrationsHistory", "providers")));
-```csharp
+```
 ## 🔄 Migration Commands
 
 ### Generate Migrations
@@ -169,12 +170,13 @@ dotnet ef database update --context UsersDbContext
 
 # Apply specific migration
 dotnet ef database update AddUserProfile --context UsersDbContext
-```bash
+```
+
 ### Remove Migrations
 ```bash
 # Remove last migration for Users module
 dotnet ef migrations remove --context UsersDbContext
-```yaml
+```
 ## 🌐 Cross-Module Access Strategies
 
 ### Option 1: Database Views (Current)

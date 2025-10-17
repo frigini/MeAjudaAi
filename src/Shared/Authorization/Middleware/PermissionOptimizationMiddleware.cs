@@ -155,7 +155,8 @@ public sealed class PermissionOptimizationMiddleware(
             return;
 
         // Para operações de leitura em endpoints específicos, pode usar cache mais agressivo
-        if (path.Contains("/api/users/profile") || path.Contains("/api/health"))
+        if (path.StartsWith("/api/users/profile", StringComparison.OrdinalIgnoreCase) || 
+            path.StartsWith(ApiEndpoints.System.Health, StringComparison.OrdinalIgnoreCase))
         {
             context.Items["UseAggressivePermissionCache"] = true;
             context.Items["PermissionCacheDuration"] = TimeSpan.FromMinutes(30);
