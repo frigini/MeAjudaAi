@@ -48,7 +48,9 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install Aspire workload
-        run: dotnet workload install aspire
+        run: |
+          # Install with specific options for .NET 9 and preview packages
+          dotnet workload install aspire --skip-sign-check --source https://api.nuget.org/v3/index.json
 
       - name: Restore dependencies
         run: dotnet restore MeAjudaAi.sln
@@ -121,7 +123,9 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install Aspire workload
-        run: dotnet workload install aspire
+        run: |
+          # Install with specific options for .NET 9 and preview packages
+          dotnet workload install aspire --skip-sign-check --source https://api.nuget.org/v3/index.json
 
       - name: Restore dependencies
         run: dotnet restore MeAjudaAi.sln
