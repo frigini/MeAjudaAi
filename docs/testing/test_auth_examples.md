@@ -19,7 +19,8 @@ public async Task GetUsers_WithTestAuth_ShouldReturnUsers()
     var users = await response.Content.ReadFromJsonAsync<List<UserDto>>();
     users.Should().NotBeNull();
 }
-```csharp
+```
+
 ### Teste de Autorização por Role
 
 ```csharp
@@ -41,7 +42,8 @@ public async Task UserEndpoint_WithTestAuth_ShouldAllowAccess()
     
     response.StatusCode.Should().Be(HttpStatusCode.OK);
 }
-```text
+```
+
 ### Teste de Claims Específicos
 
 ```csharp
@@ -92,7 +94,8 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
         await next();
     });
 }
-```text
+```
+
 ### Verificação em Runtime
 
 ```csharp
@@ -141,7 +144,8 @@ jobs:
         dotnet test tests/MeAjudaAi.Integration.Tests/ \
           --configuration Release \
           --logger "console;verbosity=detailed"
-```text
+```
+
 ### Azure DevOps
 
 ```yaml
@@ -224,7 +228,8 @@ public async Task RateLimit_WithTestAuth_ShouldApplyAuthenticatedLimits()
     var successCount = responses.Count(r => r.StatusCode == HttpStatusCode.OK);
     successCount.Should().BeGreaterThan(100); // Mais que limite anônimo
 }
-```text
+```
+
 ## 🔍 Debugging e Troubleshooting
 
 ### Verificar se TestAuth Está Ativo

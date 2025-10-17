@@ -18,7 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Aspire\MeAjudaAi.ServiceDefaults\MeAjudaAi.ServiceDefaults.csproj" />
     <ProjectReference Include="..\..\Modules\Users\API\MeAjudaAi.Modules.Users.API.csproj" />
-    <ProjectReference Include="..\..\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
+    <ProjectReference Include="..\..\Shared\MeAjudaAi.Shared.csproj" />
   </ItemGroup>
 
 </Project>

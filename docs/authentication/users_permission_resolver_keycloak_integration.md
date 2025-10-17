@@ -16,7 +16,8 @@ Configure a environment variable `Authorization:UseKeycloak` no seu `appsettings
     "UseKeycloak": false  // true para usar Keycloak, false para mock
   }
 }
-```csharp
+```
+
 ### Configuração para Desenvolvimento (Mock)
 
 ```json
@@ -25,7 +26,8 @@ Configure a environment variable `Authorization:UseKeycloak` no seu `appsettings
     "UseKeycloak": false
   }
 }
-```text
+```
+
 **Mock Implementation:**
 - Usa padrões de `userId` para simular roles
 - `admin` → `["meajudaai-system-admin", "meajudaai-user-admin"]`
@@ -49,7 +51,8 @@ Configure a environment variable `Authorization:UseKeycloak` no seu `appsettings
     "AdminPassword": "admin-password"
   }
 }
-```yaml
+```
+
 ## 🔧 Implementation Details
 
 ### Dependency Injection
@@ -59,7 +62,8 @@ O resolver é injetado automaticamente quando você usa `AddPermissionBasedAutho
 ```csharp
 // No Program.cs ou Startup.cs
 services.AddPermissionBasedAuthorization(configuration);
-```bash
+```
+
 ### Constructor Logic
 
 ```csharp
@@ -77,7 +81,8 @@ public UsersPermissionResolver(
         _useKeycloak = false;
     }
 }
-```sql
+```
+
 ### Role Resolution Flow
 
 ```csharp
@@ -98,7 +103,8 @@ public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(string use
     // 3. Remove duplicatas e retorna
     return permissions.Distinct().ToList();
 }
-```csharp
+```
+
 ## 📊 Role Mapping
 
 ### Roles → Permissions Mapping
@@ -126,14 +132,16 @@ O método `GetUserRolesFromKeycloakAsync` usa o `IKeycloakPermissionResolver` ex
 [Debug] Fetching user roles from Keycloak for user {UserId}
 [Debug] Retrieved {RoleCount} roles from {Keycloak|Mock} for user {UserId}: {Roles}
 [Debug] Resolved {PermissionCount} Users module permissions for user {UserId} using {ResolverType}
-```csharp
+```
+
 ### Error Handling
 
 ```text
 [Warning] Keycloak integration enabled but resolver not available. Using mock.
 [Error] Failed to fetch roles from Keycloak for user {UserId}, falling back to mock
 [Error] Failed to resolve Users module permissions for user {UserId}
-```text
+```
+
 ## 🧪 Testing
 
 ### Development Testing (Mock)
@@ -142,7 +150,7 @@ O método `GetUserRolesFromKeycloakAsync` usa o `IKeycloakPermissionResolver` ex
 {
   "Authorization": { "UseKeycloak": false }
 }
-```csharp
+```
 - Testa com `userId` contendo `"admin"`, `"manager"`, ou outros valores
 - Verifica mapeamento de roles mock
 
@@ -153,7 +161,7 @@ O método `GetUserRolesFromKeycloakAsync` usa o `IKeycloakPermissionResolver` ex
   "Authorization": { "UseKeycloak": true },
   "Keycloak": { /* configuração real */ }
 }
-```csharp
+```
 - Testa com usuários reais do Keycloak
 - Verifica integração completa
 
@@ -166,7 +174,8 @@ environment:
   - Authorization__UseKeycloak=true
   - Keycloak__BaseUrl=https://keycloak.company.com
   - Keycloak__Realm=production
-```csharp
+```
+
 ### Kubernetes
 
 ```yaml
@@ -178,7 +187,8 @@ env:
       secretKeyRef:
         name: keycloak-config
         key: base-url
-```yaml
+```
+
 ## 🔒 Security Considerations
 
 1. **Keycloak Credentials:** Use secrets management para `ClientSecret` e credenciais admin
@@ -198,13 +208,13 @@ env:
 ### Fase 1: Development
 ```json
 { "Authorization": { "UseKeycloak": false } }
-```yaml
+```
 ### Fase 2: Staging  
 ```json
 { "Authorization": { "UseKeycloak": true } }
-```yaml
+```
 ### Fase 3: Production
 ```json
 { "Authorization": { "UseKeycloak": true } }
-```text
+```
 Com environment variables específicas por ambiente.

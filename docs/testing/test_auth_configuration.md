@@ -58,7 +58,8 @@ builder.Services.AddAuthorization(options =>
 ```csharp
 // Dentro do handler ao criar a identity:
 var identity = new ClaimsIdentity(claims, Scheme.Name, ClaimTypes.Name, ClaimTypes.Role);
-```yaml
+```
+
 ## 🔍 Verificação de Ambiente
 
 ### Validação Automática
@@ -97,7 +98,8 @@ O handler gera logs específicos para auditoria:
 [WARN] 🚨 TEST AUTHENTICATION ACTIVE: Bypassing real authentication. 
 Request from 127.0.0.1 authenticated as admin user automatically. 
 Ensure this is NOT a production environment!
-```yaml
+```
+
 ### Logs de Debug
 
 Em modo debug, logs adicionais são gerados:

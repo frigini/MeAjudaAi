@@ -198,7 +198,7 @@ public class UserRepositoryTests : DatabaseTestBase
         await _context.SaveChangesAsync();
 
         // Assert
-        // N�o deve ser encontrado por consultas normais (exclus�o l�gica)
+        // Não deve ser encontrado por consultas normais (exclusão lógica)
         var foundUser = await _repository.GetByIdAsync(user.Id);
         foundUser.Should().BeNull();
 

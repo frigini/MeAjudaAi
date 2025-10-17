@@ -35,19 +35,94 @@ end_of_line = crlf
 [Dockerfile]
 end_of_line = lf
 
-# Regras de análise de código C#
+# =====================================
+# REGRAS DE ANÁLISE DE CÓDIGO C# - PRODUÇÃO
+# =====================================
 [*.cs]
+
+# Regras básicas de qualidade
 dotnet_diagnostic.CA1515.severity = none  # Consider making public types internal
 dotnet_diagnostic.CA1848.severity = none  # Use LoggerMessage delegates instead of LoggerExtensions methods
 
-# Configuração de async/await
-dotnet_diagnostic.CA2007.severity = none  # Consider calling ConfigureAwait on the awaited task
+# CRÍTICAS DE SEGURANÇA - RIGOROSAS EM PRODUÇÃO
+# CA2007: ConfigureAwait(false) - importante em bibliotecas, opcional em aplicações ASP.NET Core
+dotnet_diagnostic.CA2007.severity = suggestion  # Consider calling ConfigureAwait on the awaited task
 
-# Exception handling
-dotnet_diagnostic.CA1031.severity = none  # Modify to catch a more specific allowed exception type
+# CA1031: Catch específico - importante para diagnóstico, mas permite exceções genéricas em pontos de entrada
+dotnet_diagnostic.CA1031.severity = suggestion  # Modify to catch a more specific allowed exception type
+
+# CA1062: Validação de null - crítico para APIs públicas
+dotnet_diagnostic.CA1062.severity = warning  # Validate parameter is non-null before using it
+
+# CA2000: Dispose de recursos - crítico para vazamentos de memória
+dotnet_diagnostic.CA2000.severity = warning  # Call System.IDisposable.Dispose on object
+
+# CA5394: Random inseguro - CRÍTICO para segurança criptográfica
+dotnet_diagnostic.CA5394.severity = error  # Random is an insecure random number generator
+
+# CA2100: SQL Injection - CRÍTICO para segurança de dados
+dotnet_diagnostic.CA2100.severity = error  # Review if the query string accepts any user input
 
 # Parameter naming conflicts with reserved keywords
 dotnet_diagnostic.CA1716.severity = none  # Rename parameter so that it no longer conflicts with reserved keywords
+
+# Regras de estilo menos críticas
+dotnet_diagnostic.CA1305.severity = none  # Specify IFormatProvider
+dotnet_diagnostic.CA1307.severity = none  # Specify StringComparison for clarity
+dotnet_diagnostic.CA1310.severity = none  # Specify StringComparison for performance
+dotnet_diagnostic.CA1304.severity = none  # Specify CultureInfo
+dotnet_diagnostic.CA1308.severity = none  # Normalize strings to uppercase
+
+# Performance (sugestões)
+dotnet_diagnostic.CA1863.severity = suggestion  # Cache CompositeFormat for repeated use
+dotnet_diagnostic.CA1869.severity = suggestion  # Cache and reuse JsonSerializerOptions instances
+dotnet_diagnostic.CA1860.severity = suggestion  # Prefer comparing Count to 0 rather than using Any()
+dotnet_diagnostic.CA1851.severity = suggestion  # Possible multiple enumerations of IEnumerable
+dotnet_diagnostic.CA1859.severity = suggestion  # Change return type for improved performance
+dotnet_diagnostic.CA1822.severity = suggestion  # Member does not access instance data and can be marked as static
+
+# Type sealing e organização
+dotnet_diagnostic.CA1852.severity = none  # Type can be sealed because it has no subtypes
+dotnet_diagnostic.CA1812.severity = none  # Internal class that is apparently never instantiated
+dotnet_diagnostic.CA1050.severity = none  # Declare types in namespaces (Program class)
+dotnet_diagnostic.CA1052.severity = none  # Static holder types should be static (Program class)
+
+# Configurações de API
+dotnet_diagnostic.CA2227.severity = none  # Collection properties should be read-only (configuration POCOs)
+dotnet_diagnostic.CA1002.severity = none  # Do not expose generic lists (configuration POCOs)
+dotnet_diagnostic.CA1056.severity = none  # Use Uri instead of string for URL properties (configuration classes)
+
+# Exception handling específico
+dotnet_diagnostic.CA1032.severity = none  # Exception constructors (custom exceptions)
+dotnet_diagnostic.CA1040.severity = none  # Avoid empty interfaces (marker interfaces)
+
+# Domain naming conventions
+dotnet_diagnostic.CA1720.severity = none  # Identifiers contain type names (domain naming)
+dotnet_diagnostic.CA1711.severity = none  # Types end with reserved suffixes (domain naming)
+dotnet_diagnostic.CA1724.severity = none  # Type name conflicts with namespace name
+dotnet_diagnostic.CA1725.severity = none  # Parameter name should match interface declaration
+
+# Operadores e conversões
+dotnet_diagnostic.CA2225.severity = none  # Operator overloads provide named alternatives (value objects)
+dotnet_diagnostic.CA1866.severity = suggestion  # Use char overloads for StartsWith
+dotnet_diagnostic.CA2234.severity = none  # Use URI overload instead of string overload
+
+# Generics
+dotnet_diagnostic.CA1000.severity = none  # Do not declare static members on generic types
+dotnet_diagnostic.CA2955.severity = none  # Use comparison to default(T) instead
+
+# =====================================
+# REGRAS ESPECÍFICAS PARA TESTES
+# =====================================
+[**/*Test*.cs,**/Tests/**/*.cs,**/tests/**/*.cs]
+
+# Relaxar regras críticas APENAS em testes
+dotnet_diagnostic.CA2007.severity = none  # ConfigureAwait não necessário em testes
+dotnet_diagnostic.CA1031.severity = none  # Catch genérico OK em testes
+dotnet_diagnostic.CA1062.severity = none  # Validação de null menos crítica em testes
+dotnet_diagnostic.CA2000.severity = none  # Dispose pode ser relaxado em testes
+dotnet_diagnostic.CA5394.severity = suggestion  # Random pode ser usado em dados de teste
+dotnet_diagnostic.CA2100.severity = suggestion  # SQL dinâmico pode ser usado em testes
 
 # Test-specific warnings (noise in test context)
 dotnet_diagnostic.CA1707.severity = none  # Remove underscores from member names (common in test methods)
@@ -66,8 +141,6 @@ dotnet_diagnostic.CA2263.severity = none  # Prefer generic overloads (test asser
 dotnet_diagnostic.CA1827.severity = none  # Use Any() instead of Count() (test validations)
 dotnet_diagnostic.CA1829.severity = none  # Use Count property instead of Enumerable.Count (test validations)
 dotnet_diagnostic.CA1826.severity = none  # Use indexable collections directly (test data)
-dotnet_diagnostic.IDE0120.severity = none  # Simplify LINQ expression (test scenarios)
-dotnet_diagnostic.CA5351.severity = none  # Weak cryptographic algorithm (test hashing only)
 dotnet_diagnostic.CA1861.severity = none  # Prefer static readonly fields over constant arrays (micro-optimization)
 dotnet_diagnostic.CA1063.severity = none  # Implement IDisposable correctly (test infrastructure)
 dotnet_diagnostic.CA1721.severity = none  # Property names confusing with methods (test mocks)
@@ -75,7 +148,15 @@ dotnet_diagnostic.CA2214.severity = none  # Do not call overridable methods in c
 dotnet_diagnostic.CA2254.severity = none  # Logging message template should not vary (test logging)
 dotnet_diagnostic.CA2208.severity = none  # Argument exception parameter names (test scenarios)
 dotnet_diagnostic.CA2215.severity = none  # Dispose methods should call base.Dispose (test infrastructure)
+
+# xUnit specific
 dotnet_diagnostic.xUnit1012.severity = none  # Null should not be used for type parameter (test data)
+dotnet_diagnostic.xUnit1051.severity = none  # Calls to methods which accept CancellationToken should use TestContext.Current.CancellationToken
+
+# =====================================
+# IDE STYLE RULES (TODOS OS ARQUIVOS)
+# =====================================
+[*.cs]
 
 # IDE style warnings (non-critical formatting)
 dotnet_diagnostic.IDE0057.severity = suggestion  # Substring can be simplified
@@ -87,81 +168,7 @@ dotnet_diagnostic.IDE0061.severity = none  # Use block body for local function (
 dotnet_diagnostic.IDE0062.severity = none  # Local function can be made static (micro-optimization)
 dotnet_diagnostic.IDE0036.severity = none  # Modifiers are not ordered (cosmetic)
 dotnet_diagnostic.IDE0022.severity = none  # Use block body for method (endpoint style preference)
-# IDE0051 removed - we want to catch unused private members
-
-# Compiler warnings (less critical in test context)
-dotnet_diagnostic.CS1570.severity = none  # XML comment malformed (test documentation)
-dotnet_diagnostic.CS1998.severity = none  # Async method lacks await (test methods)
-dotnet_diagnostic.CS8321.severity = none  # Local function declared but never used (test helpers)
-
-# Additional code analysis warnings for API/production code cleanup
-dotnet_diagnostic.CA1050.severity = none  # Declare types in namespaces (Program class)
-dotnet_diagnostic.CA1052.severity = none  # Static holder types should be static (Program class)
-dotnet_diagnostic.CA2227.severity = none  # Collection properties should be read-only (configuration POCOs)
-dotnet_diagnostic.CA1002.severity = none  # Do not expose generic lists (configuration POCOs)
-dotnet_diagnostic.CA1805.severity = none  # Members initialized to default values (explicit configuration)
-dotnet_diagnostic.CA1056.severity = none  # Use Uri instead of string for URL properties (configuration classes)
-dotnet_diagnostic.CA1866.severity = suggestion  # Use char overloads for StartsWith
-dotnet_diagnostic.CA1032.severity = none  # Exception constructors (custom exceptions)
-dotnet_diagnostic.CA1040.severity = none  # Avoid empty interfaces (marker interfaces)
-dotnet_diagnostic.CA2225.severity = none  # Operator overloads provide named alternatives (value objects)
-dotnet_diagnostic.CA1720.severity = none  # Identifiers contain type names (domain naming)
-dotnet_diagnostic.CA1711.severity = none  # Types end with reserved suffixes (domain naming)
-dotnet_diagnostic.S1118.severity = none  # Utility classes should not have public constructors (Sonar)
-dotnet_diagnostic.S3903.severity = none  # Types should be declared in named namespaces (Sonar)
-dotnet_diagnostic.S3267.severity = none  # Loops should be simplified using LINQ (Sonar - readability preference)
-dotnet_diagnostic.S1066.severity = none  # Mergeable if statements (Sonar - readability preference)
-dotnet_diagnostic.S6610.severity = none  # StartsWith overloads (Sonar)
-dotnet_diagnostic.S6608.severity = none  # Use indexing instead of LINQ Last (Sonar)
-dotnet_diagnostic.S3246.severity = none  # Generic type parameter covariance (Sonar)
-dotnet_diagnostic.S2326.severity = none  # Unused type parameters (Sonar)
-dotnet_diagnostic.S3260.severity = none  # Record classes should be sealed (Sonar)
-dotnet_diagnostic.S4487.severity = none  # Unread private fields (Sonar - metrics fields)
-dotnet_diagnostic.S1135.severity = none  # TODO comments (Sonar)
-dotnet_diagnostic.S1133.severity = none  # Deprecated code comments (Sonar)
-dotnet_diagnostic.S1186.severity = none  # Empty methods (Sonar - migration methods)
-dotnet_diagnostic.S3427.severity = none  # Method signature overlap (Sonar)
-dotnet_diagnostic.S1144.severity = none  # Unused private methods (Sonar)
-dotnet_diagnostic.S125.severity = none   # Remove commented code (Sonar)
-dotnet_diagnostic.S3400.severity = none  # Methods that return constants (Sonar)
-
-# Null validation
-dotnet_diagnostic.CA1062.severity = none  # Validate parameter is non-null before using it
-
-# Type sealing
-dotnet_diagnostic.CA1852.severity = none  # Type can be sealed because it has no subtypes
-dotnet_diagnostic.CA1812.severity = none  # Internal class that is apparently never instantiated
-
-# Performance and culture-related
-dotnet_diagnostic.CA1305.severity = none  # Specify IFormatProvider
-dotnet_diagnostic.CA1307.severity = none  # Specify StringComparison for clarity
-dotnet_diagnostic.CA1310.severity = none  # Specify StringComparison for performance
-dotnet_diagnostic.CA1304.severity = none  # Specify CultureInfo
-dotnet_diagnostic.CA1308.severity = none  # Normalize strings to uppercase
-dotnet_diagnostic.CA1863.severity = none  # Cache CompositeFormat for repeated use
-dotnet_diagnostic.CA1869.severity = none  # Cache and reuse JsonSerializerOptions instances
-dotnet_diagnostic.CA1860.severity = none  # Prefer comparing Count to 0 rather than using Any()
-dotnet_diagnostic.CA1851.severity = none  # Possible multiple enumerations of IEnumerable
-dotnet_diagnostic.CA1859.severity = none  # Change return type for improved performance
-dotnet_diagnostic.CA1822.severity = none  # Member does not access instance data and can be marked as static
-dotnet_diagnostic.CA1000.severity = none  # Do not declare static members on generic types
-
-# Security
-dotnet_diagnostic.CA5394.severity = none  # Random is an insecure random number generator
-dotnet_diagnostic.CA2100.severity = none  # Review if the query string accepts any user input
-dotnet_diagnostic.CA2000.severity = none  # Call System.IDisposable.Dispose on object
-
-# Method calls
-dotnet_diagnostic.CA2234.severity = none  # Use URI overload instead of string overload
-
-# Naming conflicts
-dotnet_diagnostic.CA1724.severity = none  # Type name conflicts with namespace name
-dotnet_diagnostic.CA1725.severity = none  # Parameter name should match interface declaration
-
-# Generic constraints
-dotnet_diagnostic.CA2955.severity = none  # Use comparison to default(T) instead
-
-# IDE Style rules
+dotnet_diagnostic.IDE0120.severity = none  # Simplify LINQ expression (test scenarios)
 dotnet_diagnostic.IDE0060.severity = none  # Remove unused parameter
 dotnet_diagnostic.IDE0059.severity = none  # Unnecessary assignment of a value
 dotnet_diagnostic.IDE0200.severity = none  # Lambda expression can be removed
@@ -172,25 +179,64 @@ dotnet_diagnostic.IDE0052.severity = none  # Private member can be removed as th
 dotnet_diagnostic.IDE0078.severity = none  # Use pattern matching
 dotnet_diagnostic.IDE0005.severity = none  # Using directive is unnecessary
 
-# SonarSource rules
-dotnet_diagnostic.S3875.severity = none   # Remove this overload of operator
+# =====================================
+# SONAR/THIRD-PARTY ANALYZER RULES
+# =====================================
+[*.cs]
 
-# xUnit rules
-dotnet_diagnostic.xUnit1051.severity = none  # Calls to methods which accept CancellationToken should use TestContext.Current.CancellationToken to allow test cancellation to be more responsive
-dotnet_diagnostic.S1481.severity = none   # Remove the unused local variable
-dotnet_diagnostic.S1172.severity = none   # Remove this unused method parameter
-dotnet_diagnostic.S1854.severity = none   # Remove this useless assignment to local variable
-dotnet_diagnostic.S2139.severity = none   # Either log this exception and handle it, or rethrow it
-dotnet_diagnostic.S2234.severity = none   # Parameters have the same names but not the same order
-dotnet_diagnostic.S2325.severity = none   # Make this method static
-dotnet_diagnostic.S2955.severity = none   # Use comparison to default(T) instead
-dotnet_diagnostic.S3358.severity = none   # Extract this nested ternary operation
-dotnet_diagnostic.S6667.severity = none   # Logging in a catch clause should pass the caught exception
-dotnet_diagnostic.S927.severity = none    # Rename parameter to match interface declaration
+# SonarSource rules
+dotnet_diagnostic.S1118.severity = none  # Utility classes should not have public constructors
+dotnet_diagnostic.S3903.severity = none  # Types should be declared in named namespaces
+dotnet_diagnostic.S3267.severity = none  # Loops should be simplified using LINQ (readability preference)
+dotnet_diagnostic.S1066.severity = none  # Mergeable if statements (readability preference)
+dotnet_diagnostic.S6610.severity = none  # StartsWith overloads
+dotnet_diagnostic.S6608.severity = none  # Use indexing instead of LINQ Last
+dotnet_diagnostic.S3246.severity = none  # Generic type parameter covariance
+dotnet_diagnostic.S2326.severity = none  # Unused type parameters
+dotnet_diagnostic.S3260.severity = none  # Record classes should be sealed
+dotnet_diagnostic.S4487.severity = none  # Unread private fields (metrics fields)
+dotnet_diagnostic.S1135.severity = none  # TODO comments
+dotnet_diagnostic.S1133.severity = none  # Deprecated code comments
+dotnet_diagnostic.S1186.severity = none  # Empty methods (migration methods)
+dotnet_diagnostic.S3427.severity = none  # Method signature overlap
+dotnet_diagnostic.S1144.severity = none  # Unused private methods
+dotnet_diagnostic.S125.severity = none   # Remove commented code
+dotnet_diagnostic.S3400.severity = none  # Methods that return constants
+dotnet_diagnostic.S3875.severity = none  # Remove this overload of operator
+dotnet_diagnostic.S1481.severity = none  # Remove the unused local variable
+dotnet_diagnostic.S1172.severity = none  # Remove this unused method parameter
+dotnet_diagnostic.S1854.severity = none  # Remove this useless assignment to local variable
+dotnet_diagnostic.S2139.severity = none  # Either log this exception and handle it, or rethrow it
+dotnet_diagnostic.S2234.severity = none  # Parameters have the same names but not the same order
+dotnet_diagnostic.S2325.severity = none  # Make this method static
+dotnet_diagnostic.S2955.severity = none  # Use comparison to default(T) instead
+dotnet_diagnostic.S3358.severity = none  # Extract this nested ternary operation
+dotnet_diagnostic.S6667.severity = none  # Logging in a catch clause should pass the caught exception
+dotnet_diagnostic.S927.severity = none   # Rename parameter to match interface declaration
+
+# =====================================
+# COMPILER WARNINGS
+# =====================================
+[*.cs]
+
+# Compiler warnings (less critical in test context)
+dotnet_diagnostic.CS1570.severity = none  # XML comment malformed (test documentation)
+dotnet_diagnostic.CS1998.severity = none  # Async method lacks await (test methods)
+dotnet_diagnostic.CS8321.severity = none  # Local function declared but never used (test helpers)
+
+# =====================================
+# NUGET E BUILD WARNINGS
+# =====================================
+[*.cs]
 
 # NuGet package warnings
 dotnet_diagnostic.NU1603.severity = none  # Package dependency version conflicts
 dotnet_diagnostic.NU1605.severity = none  # Package downgrade warnings
+
+# =====================================
+# ORGANIZAÇÃO E FORMATAÇÃO
+# =====================================
+[*.cs]
 
 # Organização de usings
 dotnet_sort_system_directives_first = true
@@ -198,123 +244,16 @@ dotnet_separate_import_directive_groups = false
 
 # Preferências de qualidade de código
 dotnet_analyzer_diagnostic.category-roslynator.severity = warning
-dotnet_analyzer_diagnostic.category-Style.severity = warning
 
-# Preferências de linguagem - qualificadores 'this.' e 'Me.'
-dotnet_style_qualification_for_field = false:warning
-dotnet_style_qualification_for_property = false:warning
-dotnet_style_qualification_for_method = false:warning
-dotnet_style_qualification_for_event = false:warning
+# =====================================
+# REGRAS ESPECÍFICAS PARA MIGRATIONS
+# =====================================
+[**/Migrations/**/*.cs]
 
-# Preferências de linguagem - palavras-chave vs tipos BCL
-dotnet_style_predefined_type_for_locals_parameters_members = true:warning
-dotnet_style_predefined_type_for_member_access = true:warning
-
-# Preferências de linguagem - modificadores
-dotnet_style_require_accessibility_modifiers = always:warning
-dotnet_style_readonly_field = true:warning
-
-# Preferências de linguagem - expressões de parênteses
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
-dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
-
-# Preferências de linguagem - nível de expressão
-dotnet_style_object_initializer = true:suggestion
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_explicit_tuple_names = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_style_prefer_inferred_tuple_names = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
-dotnet_style_prefer_auto_properties = true:suggestion
-dotnet_style_prefer_conditional_expression_over_assignment = true:silent
-dotnet_style_prefer_conditional_expression_over_return = true:silent
-
-# Estilo de formatação - organizar usings
-dotnet_sort_system_directives_first = true
-
-# Estilo de formatação - qualificadores
-csharp_new_line_before_open_brace = all
-csharp_new_line_before_else = true
-csharp_new_line_before_catch = true
-csharp_new_line_before_finally = true
-csharp_new_line_before_members_in_object_initializers = true
-csharp_new_line_before_members_in_anonymous_types = true
-csharp_new_line_between_query_expression_clauses = true
-
-# Estilo de formatação - indentação
-csharp_indent_case_contents = true
-csharp_indent_switch_labels = true
-csharp_indent_labels = flush_left
-
-# Estilo de formatação - espaçamento
-csharp_space_after_cast = false
-csharp_space_after_keywords_in_control_flow_statements = true
-csharp_space_between_method_call_parameter_list_parentheses = false
-csharp_space_between_method_declaration_parameter_list_parentheses = false
-csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
-csharp_space_between_method_call_name_and_opening_parenthesis = false
-csharp_space_after_comma = true
-csharp_space_after_dot = false
-
-# Estilo de formatação - opções de quebra
-csharp_preserve_single_line_statements = true
-csharp_preserve_single_line_blocks = true
-
-# Preferências de linguagem C# - tipos var
-csharp_style_var_for_built_in_types = false:silent
-csharp_style_var_when_type_is_apparent = true:silent
-csharp_style_var_elsewhere = false:silent
-
-# Preferências de linguagem C# - membros expressivos
-csharp_style_expression_bodied_methods = false:suggestion
-csharp_style_expression_bodied_constructors = false:suggestion
-csharp_style_expression_bodied_operators = false:suggestion
-csharp_style_expression_bodied_properties = true:suggestion
-csharp_style_expression_bodied_indexers = true:suggestion
-csharp_style_expression_bodied_accessors = true:suggestion
-
-# Preferências de linguagem C# - correspondência de padrões
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-
-# Preferências de linguagem C# - expressões in-line
-csharp_style_inlined_variable_declaration = true:suggestion
-
-# Preferências de linguagem C# - nível de expressão C#
-csharp_prefer_simple_default_expression = true:suggestion
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_style_pattern_local_over_anonymous_function = true:suggestion
-
-# Preferências de linguagem C# - blocos de código
-csharp_prefer_braces = true:warning
-
-# Arquivos de testes
-[{*Test*.cs,*Tests.cs,*.Test.cs,*.Tests.cs,**/*Test*/**/*.cs,**/*Tests*/**/*.cs}]
-# Relaxar algumas regras para testes
-dotnet_analyzer_diagnostic.CA1707.severity = none   # Underscores em nomes são aceitos em testes
-dotnet_analyzer_diagnostic.CA1062.severity = none   # Null checks podem ser relaxados em testes
-dotnet_analyzer_diagnostic.IDE0058.severity = none  # Expression value is never used (comum em assertions)
-dotnet_analyzer_diagnostic.IDE0011.severity = none  # Add braces to if statement
-dotnet_analyzer_diagnostic.CA1848.severity = none   # LoggerMessage delegates performance
-
-# Configurações globais de warnings menos relevantes
-[*.cs]
-# IDE - Estilo de código (menos críticos)
-dotnet_analyzer_diagnostic.IDE0008.severity = silent  # Use explicit type instead of 'var'
-dotnet_analyzer_diagnostic.IDE0058.severity = silent  # Expression value is never used
-dotnet_analyzer_diagnostic.IDE0160.severity = silent  # Convert to block scoped namespace
-dotnet_analyzer_diagnostic.IDE0011.severity = silent  # Add braces to if statement
-dotnet_analyzer_diagnostic.IDE0028.severity = silent  # Collection initialization can be simplified
-dotnet_analyzer_diagnostic.IDE0300.severity = silent  # Collection initialization can be simplified (newer)
-
-# Performance warnings não críticos
-dotnet_analyzer_diagnostic.CA1848.severity = suggestion # LoggerMessage delegates performance
-
-# Manter warnings importantes de segurança/qualidade
-dotnet_analyzer_diagnostic.CA1062.severity = warning    # Validate parameters (segurança)
-dotnet_analyzer_diagnostic.CA2234.severity = warning    # Use URI overload (segurança)
-dotnet_analyzer_diagnostic.CS0618.severity = warning    # Obsolete warnings (migração)
+# Relaxar todas as regras em migrations (código gerado)
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA2000.severity = none
+dotnet_diagnostic.CA5394.severity = none
+dotnet_diagnostic.CA2100.severity = none
+dotnet_diagnostic.CA1031.severity = none
+dotnet_diagnostic.CA2007.severity = none

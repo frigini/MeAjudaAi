@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{D55D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{F98F35D2-DE8C-49BC-9785-CDFBA3EA22EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Shared", "src\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj", "{B5465160-1EE9-9113-4E66-4FCF2EC8F5DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Shared", "src\Shared\MeAjudaAi.Shared.csproj", "{B5465160-1EE9-9113-4E66-4FCF2EC8F5DF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.ApiService", "src\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj", "{9E8191C1-8216-B109-888B-6E4663C2CD53}"
 EndProject

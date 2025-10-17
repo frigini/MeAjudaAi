@@ -391,17 +391,17 @@ public async Task MessageRetryMiddleware_WithTransientFailure_ShouldRetryAndSucc
 ### Alertas Sugeridos
 
 1. **DLQ Growth Alert**
-   ```
+   ```promql
    dlq_message_count > 100
    ```
 
 2. **High Failure Rate Alert**
-   ```
+   ```promql
    dlq_failure_rate_by_handler > 0.1 (10%)
    ```
 
 3. **Old Messages Alert**
-   ```
+   ```promql
    dlq_oldest_message_age_hours > 24
    ```
 

@@ -42,11 +42,12 @@ graph TB
     REPO --> ENT
     DOM --> ENT
     ENT --> VO
-```csharp
+```
+
 ### **Modular Monolith**
 Estrutura modular que facilita futuras extrações para microserviços.
 
-```text
+```
 src/
 ├── Modules/                    # Módulos de domínio
 │   ├── Users/                  # Gestão de usuários
@@ -60,7 +61,8 @@ src/
 └── Aspire/                     # Orquestração de desenvolvimento
     ├── MeAjudaAi.AppHost/      # Host Aspire
     └── MeAjudaAi.ServiceDefaults/ # Configurações padrão
-```yaml
+```
+
 ## 🎯 Domain-Driven Design (DDD)
 
 ### **Bounded Contexts**
@@ -137,7 +139,8 @@ public class User : AggregateRoot<UserId>
     /// <summary>Preferências do usuário</summary>  
     public UserPreferences Preferences { get; private set; }
 }
-```csharp
+```
+
 ### **Value Objects**
 
 ```csharp
@@ -175,7 +178,8 @@ public sealed record Email
     public static implicit operator string(Email email) => email.Value;
     public static implicit operator Email(string email) => new(email);
 }
-```sql
+`sql
+
 ### **Domain Events**
 
 ```csharp
@@ -197,7 +201,8 @@ public sealed record UserProfileUpdatedDomainEvent(
     UserProfile UpdatedProfile,
     DateTime OccurredAt
 ) : DomainEvent(OccurredAt);
-```csharp
+`csharp
+
 ## ⚡ CQRS (Command Query Responsibility Segregation)
 
 ### **Estrutura de Commands**
@@ -255,7 +260,8 @@ public sealed class RegisterUserCommandHandler
         return RegisterUserResult.Success(user.Id);
     }
 }
-```yaml
+`yaml
+
 ### **Estrutura de Queries**
 
 ```csharp
@@ -279,7 +285,8 @@ public sealed class GetUserByIdQueryHandler
         return await _repository.GetUserByIdAsync(query.UserId, cancellationToken);
     }
 }
-```csharp
+`csharp
+
 ### **DTOs e Mapeamento**
 
 ```csharp
@@ -320,7 +327,8 @@ public static class UserMapper
         );
     }
 }
-```sql
+`sql
+
 ## 🔌 Dependency Injection e Modularização
 
 ### **Registro de Serviços por Módulo**
@@ -361,7 +369,8 @@ public static class UsersModuleServiceCollectionExtensions
         return services;
     }
 }
-```csharp
+`csharp
+
 ### **Configuração no Program.cs**
 
 ```csharp
@@ -395,7 +404,8 @@ public class Program
         app.Run();
     }
 }
-```yaml
+`yaml
+
 ## 📡 Event-Driven Architecture
 
 ### **Domain Events**
@@ -433,7 +443,8 @@ public abstract class AggregateRoot<TId> : Entity<TId> where TId : EntityId
         _domainEvents.Clear();
     }
 }
-```csharp
+`csharp
+
 ### **Event Bus Implementation**
 
 ```csharp
@@ -474,7 +485,8 @@ public sealed class MediatREventBus : IEventBus
         }
     }
 }
-```sql
+`sql
+
 ### **Event Handlers**
 
 ```csharp
@@ -512,7 +524,8 @@ public sealed class SendWelcomeEmailHandler
         }
     }
 }
-```csharp
+`csharp
+
 ## 🛡️ Padrões de Segurança
 
 ### **Authentication & Authorization**
@@ -551,7 +564,8 @@ public sealed class RequirePermissionAttribute : AuthorizeAttribute, IAuthorizat
         Policy = $"RequirePermission:{permission}";
     }
 }
-```text
+`	ext
+
 ### **Validation Pattern**
 
 ```csharp
@@ -586,7 +600,8 @@ public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUse
             .WithMessage("Tipo de usuário inválido");
     }
 }
-```csharp
+`csharp
+
 ## 🔄 Padrões de Resilência
 
 ### **Retry Pattern**
@@ -619,7 +634,8 @@ public static class RetryPolicies
             retryCount: 2,
             sleepDurationProvider: _ => TimeSpan.FromMilliseconds(500));
 }
-```yaml
+`yaml
+
 ### **Circuit Breaker Pattern**
 
 ```csharp
@@ -642,7 +658,8 @@ public static class CircuitBreakerPolicies
                 // Log circuit breaker closed
             });
 }
-```csharp
+`csharp
+
 ## 📊 Observabilidade e Monitoramento
 
 ### **Logging Structure**
@@ -674,7 +691,8 @@ public static partial class UserLogMessages
     public static partial void UserRegistrationFailed(
         this ILogger logger, string externalId, Exception exception);
 }
-```text
+`	ext
+
 ### **Métricas Personalizadas**
 
 ```csharp
@@ -713,7 +731,8 @@ public sealed class UserMetrics
             new KeyValuePair<string, object?>("user_type", userType.ToString()));
     }
 }
-```csharp
+`csharp
+
 ## 🧪 Padrões de Teste
 
 ### **Test Structure**
@@ -766,7 +785,8 @@ public sealed class UserTests : DomainTestBase
             .Which.Should().BeOfType<UserRegisteredDomainEvent>();
     }
 }
-```yaml
+`yaml
+
 ### **Integration Tests**
 
 ```csharp
@@ -820,7 +840,8 @@ public sealed class UserEndpointsTests : IntegrationTestBase
         result!.UserId.Should().NotBeEmpty();
     }
 }
-```csharp
+`csharp
+
 ## 🔌 Module APIs - Comunicação Entre Módulos
 
 ### **Padrão Module APIs**
@@ -853,7 +874,8 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
     // Implementação usando handlers internos do módulo
     // Não expõe detalhes de implementação interna
 }
-```csharp
+`csharp
+
 ### **DTOs para Module APIs**
 
 Os DTOs devem ser organizados em arquivos separados dentro de `Shared/Contracts/Modules/{ModuleName}/DTOs/`:
@@ -883,7 +905,8 @@ public sealed record ModuleUserDto(
     string LastName,
     string FullName
 );
-```yaml
+`yaml
+
 ### **Registro e Descoberta de Module APIs**
 
 ```csharp
@@ -915,7 +938,8 @@ public sealed class ModuleApiAttribute : Attribute
         ApiVersion = apiVersion;
     }
 }
-```csharp
+`csharp
+
 ### **Boas Práticas para Module APIs**
 
 #### ✅ **RECOMENDADO**
@@ -932,7 +956,8 @@ Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(IReadOnlyList
 
 // ✅ Boa prática: Result pattern
 Task<Result<ModuleUserDto?>> GetUserByIdAsync(Guid userId);
-```csharp
+`csharp
+
 #### ❌ **EVITAR**
 
 1. **Exposição de Entidades**: Nunca expor entidades de domínio diretamente
@@ -950,7 +975,8 @@ public record ComplexUserDto(
     List<Order> Orders,
     Dictionary<string, object> Metadata
 );
-```csharp
+`csharp
+
 ### **Testes para Module APIs**
 
 Module APIs devem ter cobertura completa de testes em múltiplas camadas:
@@ -966,8 +992,8 @@ public class UsersModuleApiTests : TestBase
         // Testa comportamento da API com mocks
     }
 }
-```text
-#### **Testes de Integração**
+`$([System.Environment]::NewLine)
+
 ```csharp
 // Testam a API com banco de dados real
 public class UsersModuleApiIntegrationTests : IntegrationTestBase
@@ -978,8 +1004,8 @@ public class UsersModuleApiIntegrationTests : IntegrationTestBase
         // Testa fluxo completo com persistência
     }
 }
-```csharp
-#### **Testes Arquiteturais**
+`$([System.Environment]::NewLine)
+
 ```csharp
 // Validam que a estrutura de Module APIs segue padrões
 public class ModuleApiArchitectureTests
@@ -990,8 +1016,8 @@ public class ModuleApiArchitectureTests
         // Valida estrutura e convenções
     }
 }
-```text
-#### **Testes E2E** 
+`$([System.Environment]::NewLine)
+
 ```csharp
 // Simulam consumo real entre módulos
 public class CrossModuleCommunicationE2ETests : IntegrationTestBase
@@ -1002,7 +1028,8 @@ public class CrossModuleCommunicationE2ETests : IntegrationTestBase
         // Testa cenários reais de uso entre módulos
     }
 }
-```csharp
+`csharp
+
 ### **Evitando Arquivos de Exemplo**
 
 **❌ NÃO CRIAR** arquivos de exemplo nos testes E2E. Em vez disso:
@@ -1035,14 +1062,15 @@ public async Task<IActionResult> RegisterUser([FromBody] RegisterUserCommand com
 {
     // Implementação...
 }
-```csharp
+```
+
 #### **2. Bruno Collections (.bru) - DESENVOLVIMENTO**
 - ✅ **Controle de versão** no Git
 - ✅ **Leve e eficiente** para desenvolvedores
 - ✅ **Variáveis de ambiente** configuráveis
 - ✅ **Scripts pré/pós-request** em JavaScript
 
-```plaintext
+```
 # Estrutura Bruno
 src/Shared/API.Collections/
 ├── Common/
@@ -1057,8 +1085,8 @@ src/Shared/API.Collections/
         ├── CreateUser.bru
         ├── GetUsers.bru
         └── UpdateUser.bru
-```csharp
-#### **3. Postman Collections - COLABORAÇÃO**
+`$([System.Environment]::NewLine)
+
 - 🤝 **Compartilhamento fácil** com QA, PO, clientes
 - 🔄 **Geração automática** via OpenAPI
 - 🧪 **Testes automáticos** integrados
@@ -1068,7 +1096,8 @@ src/Shared/API.Collections/
 
 #### **Comandos Disponíveis**
 
-```bash
+`ash
+
 # Gerar todas as collections
 cd tools/api-collections
 ./generate-all-collections.sh        # Linux/Mac
@@ -1079,7 +1108,8 @@ npm run generate:postman
 
 # Validar collections
 npm run validate
-```csharp
+```
+
 #### **Estrutura de Output**
 
 ```text
@@ -1089,12 +1119,13 @@ src/Shared/API.Collections/Generated/
 ├── MeAjudaAi-staging-Environment.json      # Ambiente staging
 ├── MeAjudaAi-production-Environment.json   # Ambiente produção
 └── README.md                               # Instruções de uso
-```yaml
+```
+
 ### **Configurações Avançadas do Swagger**
 
 #### **Filtros Personalizados**
 
-```csharp
+```
 // Exemplos automáticos baseados em convenções
 options.SchemaFilter<ExampleSchemaFilter>();
 
@@ -1103,7 +1134,8 @@ options.DocumentFilter<ModuleTagsDocumentFilter>();
 
 // Versionamento de API
 options.OperationFilter<ApiVersionOperationFilter>();
-```sql
+`sql
+
 #### **Melhorias Implementadas**
 
 - **📝 Exemplos Inteligentes**: Baseados em nomes de propriedades e tipos
@@ -1140,10 +1172,12 @@ options.OperationFilter<ApiVersionOperationFilter>();
 ### **Exportação OpenAPI para Clientes REST**
 
 #### **Comando Único**
-```bash
+`ash
+
 # Gera especificação OpenAPI completa
 .\scripts\export-openapi.ps1 -OutputPath "api/api-spec.json"
-```csharp
+```
+
 **Características:**
 - ✅ **Funciona offline** (não precisa rodar aplicação)
 - ✅ **Health checks incluídos** (/health, /health/ready, /health/live)  

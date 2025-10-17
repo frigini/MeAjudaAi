@@ -17,8 +17,8 @@ public sealed class RabbitMqDeadLetterService(
 {
     private readonly DeadLetterOptions _deadLetterOptions = deadLetterOptions.Value;
     private IConnection? _connection;
-    private IModel? _channel;
-    private readonly Lock _lockObject = new();
+    private IChannel? _channel;
+    private readonly SemaphoreSlim _connectionSemaphore = new(1, 1);
 
     public async Task SendToDeadLetterAsync<TMessage>(
         TMessage message,
@@ -37,14 +37,16 @@ public sealed class RabbitMqDeadLetterService(
             await EnsureDeadLetterInfrastructureAsync(deadLetterQueueName);
 
             var messageBody = Encoding.UTF8.GetBytes(failedMessageInfo.ToJson());
-            var properties = _channel!.CreateBasicProperties();
-            properties.Persistent = _deadLetterOptions.RabbitMq.EnablePersistence;
-            properties.MessageId = failedMessageInfo.MessageId;
-            properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-            properties.Expiration = TimeSpan.FromHours(_deadLetterOptions.DeadLetterTtlHours).TotalMilliseconds.ToString();
+            var properties = new BasicProperties
+            {
+                Persistent = _deadLetterOptions.RabbitMq.EnablePersistence,
+                MessageId = failedMessageInfo.MessageId,
+                Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),
+                Expiration = TimeSpan.FromHours(_deadLetterOptions.DeadLetterTtlHours).TotalMilliseconds.ToString()
+            };
 
             // Adicionar headers para facilitar consultas
-            properties.Headers = new Dictionary<string, object>
+            properties.Headers = new Dictionary<string, object?>
             {
                 ["original-message-type"] = typeof(TMessage).FullName ?? "Unknown",
                 ["failure-reason"] = exception.GetType().Name,
@@ -54,11 +56,13 @@ public sealed class RabbitMqDeadLetterService(
                 ["failed-at"] = DateTime.UtcNow.ToString("O")
             };
 
-            _channel.BasicPublish(
+            await _channel!.BasicPublishAsync(
                 exchange: _deadLetterOptions.RabbitMq.DeadLetterExchange,
                 routingKey: GetDeadLetterRoutingKey(sourceQueue),
+                mandatory: false,
                 basicProperties: properties,
-                body: messageBody);
+                body: messageBody,
+                cancellationToken: cancellationToken);
 
             logger.LogWarning(
                 "Message sent to dead letter queue. MessageId: {MessageId}, Type: {MessageType}, Queue: {Queue}, Attempts: {Attempts}, Reason: {Reason}",
@@ -111,7 +115,7 @@ public sealed class RabbitMqDeadLetterService(
         {
             await EnsureConnectionAsync();
 
-            var result = _channel!.BasicGet(deadLetterQueueName, autoAck: false);
+            var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
             if (result != null)
             {
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
@@ -121,23 +125,25 @@ public sealed class RabbitMqDeadLetterService(
                 {
                     // Reenvia para a fila original
                     var originalMessageBody = Encoding.UTF8.GetBytes(failedMessageInfo.OriginalMessage);
-                    var properties = _channel.CreateBasicProperties();
+                    var properties = new BasicProperties();
                     properties.MessageId = Guid.NewGuid().ToString();
-                    properties.Headers = new Dictionary<string, object>
+                    properties.Headers = new Dictionary<string, object?>
                     {
                         ["reprocessed-from-dlq"] = true,
                         ["original-message-id"] = messageId,
                         ["reprocessed-at"] = DateTime.UtcNow.ToString("O")
                     };
 
-                    _channel.BasicPublish(
+                    await _channel.BasicPublishAsync(
                         exchange: "",
                         routingKey: failedMessageInfo.SourceQueue,
+                        mandatory: false,
                         basicProperties: properties,
-                        body: originalMessageBody);
+                        body: originalMessageBody,
+                        cancellationToken: cancellationToken);
 
                     // Remove da DLQ
-                    _channel.BasicAck(result.DeliveryTag, multiple: false);
+                    await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
 
                     logger.LogInformation("Message {MessageId} reprocessed from dead letter queue {Queue}",
                         messageId, deadLetterQueueName);
@@ -145,7 +151,7 @@ public sealed class RabbitMqDeadLetterService(
                 else
                 {
                     // Rejeita a mensagem de volta para a fila
-                    _channel.BasicNack(result.DeliveryTag, multiple: false, requeue: true);
+                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
                 }
             }
         }
@@ -171,7 +177,7 @@ public sealed class RabbitMqDeadLetterService(
             var count = 0;
             while (count < maxCount)
             {
-                var result = _channel!.BasicGet(deadLetterQueueName, autoAck: false);
+                var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
                 if (result == null) break;
 
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
@@ -183,7 +189,7 @@ public sealed class RabbitMqDeadLetterService(
                 }
 
                 // Importante: Rejeita a mensagem de volta para a fila
-                _channel.BasicNack(result.DeliveryTag, multiple: false, requeue: true);
+                await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
                 count++;
             }
         }
@@ -205,7 +211,7 @@ public sealed class RabbitMqDeadLetterService(
         {
             await EnsureConnectionAsync();
 
-            var result = _channel!.BasicGet(deadLetterQueueName, autoAck: false);
+            var result = await _channel!.BasicGetAsync(deadLetterQueueName, autoAck: false, cancellationToken);
             if (result != null)
             {
                 var messageBodyJson = Encoding.UTF8.GetString(result.Body.Span);
@@ -213,13 +219,13 @@ public sealed class RabbitMqDeadLetterService(
 
                 if (failedMessageInfo?.MessageId == messageId)
                 {
-                    _channel.BasicAck(result.DeliveryTag, multiple: false);
+                    await _channel.BasicAckAsync(result.DeliveryTag, multiple: false, cancellationToken);
                     logger.LogInformation("Dead letter message {MessageId} purged from queue {Queue}",
                         messageId, deadLetterQueueName);
                 }
                 else
                 {
-                    _channel.BasicNack(result.DeliveryTag, multiple: false, requeue: true);
+                    await _channel.BasicNackAsync(result.DeliveryTag, multiple: false, requeue: true, cancellationToken);
                 }
             }
         }
@@ -246,7 +252,7 @@ public sealed class RabbitMqDeadLetterService(
             {
                 try
                 {
-                    var queueInfo = _channel!.QueueDeclarePassive(queueName);
+                    var queueInfo = await _channel!.QueueDeclarePassiveAsync(queueName, cancellationToken);
                     statistics.MessagesByQueue[queueName] = (int)queueInfo.MessageCount;
                     statistics.TotalDeadLetterMessages += (int)queueInfo.MessageCount;
                 }
@@ -270,7 +276,8 @@ public sealed class RabbitMqDeadLetterService(
         if (_connection?.IsOpen == true && _channel?.IsOpen == true)
             return;
 
-        lock (_lockObject)
+        await _connectionSemaphore.WaitAsync();
+        try
         {
             if (_connection?.IsOpen == true && _channel?.IsOpen == true)
                 return;
@@ -291,8 +298,8 @@ public sealed class RabbitMqDeadLetterService(
                     factory.VirtualHost = rabbitMqOptions.VirtualHost;
                 }
 
-                _connection = factory.CreateConnection();
-                _channel = _connection.CreateModel();
+                _connection = await factory.CreateConnectionAsync();
+                _channel = await _connection.CreateChannelAsync();
             }
             catch (Exception ex)
             {
@@ -300,8 +307,10 @@ public sealed class RabbitMqDeadLetterService(
                 throw;
             }
         }
-
-        await Task.CompletedTask;
+        finally
+        {
+            _connectionSemaphore.Release();
+        }
     }
 
     private async Task EnsureDeadLetterInfrastructureAsync(string deadLetterQueueName)
@@ -310,19 +319,19 @@ public sealed class RabbitMqDeadLetterService(
             throw new InvalidOperationException("RabbitMQ channel not available");
 
         // Declara o exchange de dead letter
-        _channel.ExchangeDeclare(
+        await _channel.ExchangeDeclareAsync(
             exchange: _deadLetterOptions.RabbitMq.DeadLetterExchange,
             type: ExchangeType.Topic,
             durable: true);
 
         // Declara a fila de dead letter
-        var arguments = new Dictionary<string, object>();
+        var arguments = new Dictionary<string, object?>();
         if (_deadLetterOptions.DeadLetterTtlHours > 0)
         {
             arguments["x-message-ttl"] = (int)TimeSpan.FromHours(_deadLetterOptions.DeadLetterTtlHours).TotalMilliseconds;
         }
 
-        _channel.QueueDeclare(
+        await _channel.QueueDeclareAsync(
             queue: deadLetterQueueName,
             durable: true,
             exclusive: false,
@@ -330,12 +339,10 @@ public sealed class RabbitMqDeadLetterService(
             arguments: arguments);
 
         // Vincula a fila ao exchange
-        _channel.QueueBind(
+        await _channel.QueueBindAsync(
             queue: deadLetterQueueName,
             exchange: _deadLetterOptions.RabbitMq.DeadLetterExchange,
             routingKey: GetDeadLetterRoutingKey(deadLetterQueueName));
-
-        await Task.CompletedTask;
     }
 
     private FailedMessageInfo CreateFailedMessageInfo<TMessage>(
@@ -414,16 +421,23 @@ public sealed class RabbitMqDeadLetterService(
     {
         try
         {
-            _channel?.Close();
-            _channel?.Dispose();
-            _connection?.Close();
-            _connection?.Dispose();
+            if (_channel != null)
+            {
+                await _channel.CloseAsync();
+                await _channel.DisposeAsync();
+            }
+            
+            if (_connection != null)
+            {
+                await _connection.CloseAsync();
+                await _connection.DisposeAsync();
+            }
+
+            _connectionSemaphore?.Dispose();
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error disposing RabbitMQ dead letter service");
         }
-
-        await Task.CompletedTask;
     }
 }

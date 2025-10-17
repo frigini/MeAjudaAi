@@ -4,6 +4,8 @@ using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Logging;
 using MeAjudaAi.ServiceDefaults;
 using Serilog;
+using System.Diagnostics;
+using Serilog.Context;
 
 public partial class Program
 {
@@ -46,9 +48,8 @@ public partial class Program
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("Application", "MeAjudaAi")
                 .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
-                .Enrich.With<CorrelationIdEnricher>()
                 .WriteTo.Console(outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level:u3}] {CorrelationId} {Message:lj} {Properties:j}{NewLine}{Exception}")
+                    "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
                 .CreateLogger();
 
             builder.Host.UseSerilog((context, services, configuration) => configuration
@@ -56,9 +57,8 @@ public partial class Program
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("Application", "MeAjudaAi")
                 .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
-                .Enrich.With<CorrelationIdEnricher>()
                 .WriteTo.Console(outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level:u3}] {CorrelationId} {Message:lj} {Properties:j}{NewLine}{Exception}"));
+                    "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
 
             Log.Information("🚀 Iniciando MeAjudaAi API Service");
         }
@@ -68,6 +68,7 @@ public partial class Program
     {
         // Configurações via ServiceDefaults e Shared (sem duplicar Serilog)
         builder.AddServiceDefaults();
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddSharedServices(builder.Configuration);
         builder.Services.AddApiServices(builder.Configuration, builder.Environment);
         builder.Services.AddUsersModule(builder.Configuration);
@@ -76,6 +77,9 @@ public partial class Program
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
         app.MapDefaultEndpoints();
+
+        // Add structured logging middleware early in pipeline
+        app.UseStructuredLogging();
 
         // Configurar serviços e módulos
         await app.UseSharedServicesAsync();

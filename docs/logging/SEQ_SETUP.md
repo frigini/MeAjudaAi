@@ -21,7 +21,8 @@ services:
 
 volumes:
   seq_data:
-```csharp
+```
+
 ### Docker Run (Simples)
 
 ```bash
@@ -31,7 +32,8 @@ docker run -d \
   -p 5341:80 \
   -v seq_data:/data \
   datalust/seq:latest
-```text
+```
+
 ## 🎯 Configuração por Ambiente
 
 ### Development
@@ -69,7 +71,8 @@ CorrelationId = "abc-123-def"
 
 -- Erros de autenticação
 @Message like "%authentication%" and @Level = "Error"
-```yaml
+```
+
 ## 💰 Custos por Volume
 
 | Volume/Dia | Eventos/Dia | Custo/Ano | Cenário |
@@ -92,7 +95,8 @@ docker exec seq cat /data/Documents/seq.db > backup.db
 
 # Verificar saúde
 curl http://localhost:5341/api/diagnostics/status
-```text
+```
+
 ## 🎯 Próximos Passos
 
 1. **Desenvolvimento**: Execute `docker run` e acesse `localhost:5341`

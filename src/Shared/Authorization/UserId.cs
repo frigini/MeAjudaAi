@@ -10,8 +10,8 @@ namespace MeAjudaAi.Shared.Authorization;
 /// </summary>
 /// <remarks>
 /// Este é um value object compartilhado que pode ser usado por qualquer módulo.
-/// Módulos específicos podem ter seus próprios value objects UserId mais especializados
-/// que herdam deste ou implementam conversões implícitas.
+/// Como esta classe é selada, módulos específicos podem ter seus próprios value objects 
+/// UserId especializados que implementam conversões implícitas com este tipo base.
 /// </remarks>
 public sealed class UserId : ValueObject
 {
@@ -68,16 +68,30 @@ public sealed class UserId : ValueObject
     /// <summary>
     /// Conversão implícita de UserId para Guid
     /// </summary>
-    public static implicit operator Guid(UserId userId) => userId.Value;
+    /// <param name="userId">Instância de UserId para conversão</param>
+    /// <returns>Valor Guid do UserId</returns>
+    /// <exception cref="ArgumentNullException">Quando userId é null</exception>
+    public static implicit operator Guid(UserId userId) 
+    {
+        ArgumentNullException.ThrowIfNull(userId);
+        return userId.Value;
+    }
 
     /// <summary>
     /// Conversão implícita de Guid para UserId
     /// </summary>
+    /// <param name="guid">Valor Guid para conversão</param>
+    /// <returns>Nova instância de UserId</returns>
+    /// <exception cref="ArgumentException">Quando o Guid é Guid.Empty</exception>
     public static implicit operator UserId(Guid guid) => new(guid);
 
     /// <summary>
     /// Conversão implícita de string para UserId
     /// </summary>
+    /// <param name="guidString">String GUID para conversão</param>
+    /// <returns>Nova instância de UserId</returns>
+    /// <exception cref="ArgumentNullException">Quando guidString é null ou vazia</exception>
+    /// <exception cref="ArgumentException">Quando guidString não é um GUID válido</exception>
     public static implicit operator UserId(string guidString) => FromString(guidString);
 
     /// <summary>
