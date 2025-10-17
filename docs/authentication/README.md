@@ -46,8 +46,7 @@ builder.Services.AddPermissionBasedAuthorization(builder.Configuration);
 builder.Services.AddModulePermissionResolver<UsersPermissionResolver>();
 
 app.UsePermissionBasedAuthorization();
-```
-
+```csharp
 ### 2. Uso em Endpoints
 ```csharp
 group.MapGet("/", GetUsers)
@@ -55,14 +54,12 @@ group.MapGet("/", GetUsers)
 
 group.MapPost("/", CreateUser)
      .RequirePermission(EPermissions.UsersCreate);
-```
-
+```csharp
 ### 3. Verificação Programática
 ```csharp
 var hasPermission = await permissionService
     .HasPermissionAsync(userId, EPermissions.UsersRead);
-```
-
+```text
 ## 🔧 Ambientes
 
 ### Desenvolvimento

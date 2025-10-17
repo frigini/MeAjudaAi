@@ -60,8 +60,7 @@ public enum EPermissions
     [Display(Name = "admin:reports")]
     AdminReports
 }
-```
-
+```csharp
 ### 2. IPermissionService
 
 Interface principal para resolução de permissões:
@@ -75,8 +74,7 @@ public interface IPermissionService
     Task<IReadOnlyList<EPermissions>> GetUserPermissionsByModuleAsync(string userId, string moduleName, CancellationToken cancellationToken = default);
     Task InvalidateUserPermissionsCacheAsync(string userId, CancellationToken cancellationToken = default);
 }
-```
-
+```csharp
 ### 3. IModulePermissionResolver
 
 Interface para resolução modular de permissões:
@@ -88,8 +86,7 @@ public interface IModulePermissionResolver
     Task<IReadOnlyList<EPermissions>> ResolvePermissionsAsync(string userId, CancellationToken cancellationToken = default);
     bool CanResolve(EPermissions permission);
 }
-```
-
+```csharp
 ## 🚀 Implementação
 
 ### 1. Configuração Básica
@@ -112,8 +109,7 @@ var app = builder.Build();
 app.UsePermissionBasedAuthorization();
 
 app.Run();
-```
-
+```text
 ### 2. Implementação de Module Resolver
 
 ```csharp
@@ -198,8 +194,7 @@ public class UsersPermissionResolver : IModulePermissionResolver
         };
     }
 }
-```
-
+```csharp
 ### 3. Uso em Endpoints
 
 ```csharp
@@ -299,8 +294,7 @@ public static class UsersEndpoints
         return Results.Ok(profile);
     }
 }
-```
-
+```csharp
 ### 4. Configuração do Módulo
 
 ```csharp
@@ -324,8 +318,7 @@ public static class UsersModuleExtensions
         app.MapUsersEndpoints();
     }
 }
-```
-
+```text
 ## 🔧 Cache e Performance
 
 ### Configuração de Cache
@@ -339,8 +332,7 @@ var modulePermissions = await permissionService.GetUserPermissionsByModuleAsync(
 
 // Invalidação quando necessário
 await permissionService.InvalidateUserPermissionsCacheAsync(userId);
-```
-
+```csharp
 ### Métricas Automáticas
 
 O sistema coleta automaticamente:
@@ -353,8 +345,7 @@ O sistema coleta automaticamente:
 ```csharp
 // Métricas são expostas em /metrics para Prometheus
 // Configuração automática, sem código adicional necessário
-```
-
+```bash
 ## 🧪 Testes
 
 ### Configuração para Testes
@@ -380,8 +371,7 @@ public class UsersApiFactory : WebApplicationFactory<Program>
         });
     }
 }
-```
-
+```sql
 ### Exemplo de Teste
 
 ```csharp
@@ -418,8 +408,7 @@ public async Task CreateUser_WithoutPermission_ShouldReturnForbidden()
     // Assert
     response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
 }
-```
-
+```text
 ## 📋 Checklist de Implementação
 
 ### ✅ Configuração Inicial

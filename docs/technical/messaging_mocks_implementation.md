@@ -138,8 +138,7 @@ public class MyMessagingTest : MessagingIntegrationTestBase
         events.Should().HaveCount(1);
     }
 }
-```
-
+```csharp
 ### Verificação de Estatísticas
 
 ```csharp
@@ -147,8 +146,7 @@ var stats = GetMessagingStatistics();
 stats.ServiceBusMessageCount.Should().Be(2);
 stats.RabbitMqMessageCount.Should().Be(1);
 stats.TotalMessageCount.Should().Be(3);
-```
-
+```text
 ### Simulação de Falhas
 
 ```csharp
@@ -162,8 +160,7 @@ MessagingMocks.ServiceBus.SimulatePublishFailure(new Exception("Publish failure"
 
 // Restaurar comportamento normal
 MessagingMocks.ServiceBus.ResetToNormalBehavior();
-```
-
+```text
 ## Vantagens da Implementação
 
 ### 1. Isolamento Completo

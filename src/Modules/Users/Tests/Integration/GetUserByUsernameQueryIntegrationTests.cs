@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 
@@ -73,7 +74,7 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         // Assert
         Assert.False(queryResult.IsSuccess);
         Assert.NotNull(queryResult.Error);
-        Assert.Contains("Usuário não encontrado", queryResult.Error.Message);
+        Assert.Contains(ValidationMessages.NotFound.User, queryResult.Error.Message);
     }
 
     [Fact]

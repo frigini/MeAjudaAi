@@ -17,8 +17,7 @@ O `SchemaPermissionsManager` implementa **isolamento de segurança para o módul
 ```csharp
 // Program.cs - modo atual (sem isolamento)
 services.AddUsersModule(configuration);
-```
-
+```csharp
 ### 2. Produção (Com Isolamento)
 ```csharp
 // Program.cs - modo seguro
@@ -30,8 +29,7 @@ else
 {
     services.AddUsersModule(configuration);
 }
-```
-
+```yaml
 ### 3. Configuração (appsettings.Production.json)
 ```json
 {
@@ -46,8 +44,7 @@ else
     "AppRolePassword": "app_secure_password_456"
   }
 }
-```
-
+```csharp
 ## 🔧 Scripts Existentes Utilizados
 
 ### 1. **00-create-roles-users-only.sql**
@@ -55,15 +52,13 @@ else
 CREATE ROLE users_role LOGIN PASSWORD 'users_secret';
 CREATE ROLE meajudaai_app_role LOGIN PASSWORD 'app_secret';
 GRANT users_role TO meajudaai_app_role;
-```
-
+```text
 ### 2. **02-grant-permissions-users-only.sql**
 ```sql
 -- Permissões específicas do módulo Users
 -- Search path: users, public
 -- Isolamento completo de outros schemas
-```
-
+```text
 > **📝 Nota sobre Schemas**: O schema `users` é criado automaticamente pelo Entity Framework Core através da configuração `HasDefaultSchema("users")`. Não há necessidade de scripts específicos para criação de schemas.
 
 ## ⚡ Benefícios

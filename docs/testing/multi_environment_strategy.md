@@ -46,8 +46,7 @@ public class UsersApiTests : ApiTestBase
         // Teste rápido sem dependências externas
     }
 }
-```
-
+```csharp
 ### Testes de Integração Completa (Integration)
 ```csharp
 public class UsersIntegrationTests : IntegrationTestBase  
@@ -62,8 +61,7 @@ public class UsersIntegrationTests : IntegrationTestBase
         await WaitForMessageProcessing(); // Helper para aguardar eventos
     }
 }
-```
-
+```csharp
 ## 🔄 Configurações por Ambiente
 
 | Recurso | Testing | Integration | Development |
@@ -86,8 +84,7 @@ dotnet test --filter "IntegrationTests"
 
 # Todos os testes
 dotnet test
-```
-
+```csharp
 ## 📋 Boas Práticas
 
 1. **Use Testing** para a maioria dos testes de API
@@ -108,8 +105,7 @@ stages:
   - integration:   # Integration environment (~10-15 min) 
       filter: "IntegrationTests"
       depends: fast-tests
-```
-
+```text
 ## 🎯 Resultado
 
 - ⚡ **95%** dos testes executam rapidamente (Testing)

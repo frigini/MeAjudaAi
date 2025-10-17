@@ -35,8 +35,7 @@ dotnet run
 # OU executar apenas a API
 cd src/Bootstrapper/MeAjudaAi.ApiService
 dotnet run
-```
-
+```csharp
 ### **Configuração do Visual Studio**
 
 #### Extensões Recomendadas
@@ -59,8 +58,7 @@ dotnet run
         "**/obj": true
     }
 }
-```
-
+```csharp
 ## 🏗️ Estrutura do Projeto
 
 ### **Organização de Código**
@@ -89,8 +87,7 @@ src/
 │   └── MeAjudaAi.Shared/             # Primitivos e abstrações
 └── Bootstrapper/                     # Configuração da aplicação
     └── MeAjudaAi.ApiService/         # API principal
-```
-
+```text
 ### **Convenções de Nomenclatura**
 
 #### **Arquivos e Classes**
@@ -106,8 +103,7 @@ public sealed class RegisterUserCommandHandler; // Handlers: [Command/Query]Hand
 public class user { }                           // Não use minúsculas
 public class UserService { }                   // Evite sufixo "Service" genérico
 public class UserManager { }                   // Evite sufixo "Manager"
-```
-
+```csharp
 #### **Namespaces**
 ```csharp
 // ✅ Estrutura padrão
@@ -115,8 +111,7 @@ namespace MeAjudaAi.Modules.Users.Domain.Entities;
 namespace MeAjudaAi.Modules.Users.Application.Commands;
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 namespace MeAjudaAi.Shared.Common.Exceptions;
-```
-
+```csharp
 #### **Métodos e Variáveis**
 ```csharp
 // ✅ Métodos: PascalCase, descritivos
@@ -129,8 +124,7 @@ var existingUser = await userRepository.GetByIdAsync(userId);
 
 // ✅ Constantes: PascalCase
 public const string DefaultConnectionStringName = "DefaultConnection";
-```
-
+```csharp
 ## 📋 Workflows de Desenvolvimento
 
 ### **Feature Development Flow**
@@ -143,8 +137,7 @@ graph LR
     D --> E[PR Review]
     E --> F[Merge to Develop]
     F --> G[Deploy to Dev]
-```
-
+```text
 #### **1. Criar Feature Branch**
 ```bash
 # Partir sempre do develop
@@ -153,8 +146,7 @@ git pull origin develop
 
 # Criar branch feature com padrão: feature/JIRA-123-description
 git checkout -b feature/USER-001-user-registration
-```
-
+```csharp
 #### **2. Implementação TDD**
 ```csharp
 // 1️⃣ Escrever teste primeiro
@@ -180,8 +172,7 @@ public class RegisterUserCommandHandler
 }
 
 // 3️⃣ Refatorar com implementação completa
-```
-
+```yaml
 #### **3. Commits Semânticos**
 ```bash
 # Formato: type(scope): description
@@ -190,8 +181,7 @@ git commit -m "test(users): add user registration unit tests"
 git commit -m "docs(users): update user API documentation"
 git commit -m "fix(users): handle duplicate email validation"
 git commit -m "refactor(users): extract user validation service"
-```
-
+```csharp
 **Tipos de commit**:
 - `feat`: Nova funcionalidade
 - `fix`: Correção de bug
@@ -225,8 +215,7 @@ git commit -m "refactor(users): extract user validation service"
 ## ❌ Obrigatórias
 - Falta tratamento de exceção em UserRepository.SaveAsync()
 - Connection string hardcoded (usar IConfiguration)
-```
-
+```csharp
 ## 🧪 Estratégias de Teste
 
 ### **Pirâmide de Testes**
@@ -235,8 +224,7 @@ git commit -m "refactor(users): extract user validation service"
     🔺 E2E Tests (5%)
      Integration Tests (25%)
         Unit Tests (70%)
-```
-
+```text
 ### **Padrões de Teste**
 
 #### **Unit Tests - Domain Layer**
@@ -276,8 +264,7 @@ public sealed class UserTests
             .Which.Should().BeOfType<UserRegisteredDomainEvent>();
     }
 }
-```
-
+```csharp
 #### **Integration Tests - Application Layer**
 ```csharp
 public sealed class RegisterUserCommandHandlerTests : IntegrationTestBase
@@ -333,8 +320,7 @@ public sealed class RegisterUserCommandHandlerTests : IntegrationTestBase
         result.Error.Should().Contain("já está em uso");
     }
 }
-```
-
+```csharp
 #### **E2E Tests - API Layer**
 ```csharp
 public sealed class UserEndpointsTests : ApiTestBase
@@ -383,8 +369,7 @@ public sealed class UserEndpointsTests : ApiTestBase
         user!.Id.Should().Be(userId.ToString());
     }
 }
-```
-
+```text
 ### **Test Utilities e Builders**
 
 #### **Test Data Builders**
@@ -436,8 +421,7 @@ var user = new UserBuilder()
     .WithEmail("provider@example.com")
     .AsServiceProvider()
     .Build();
-```
-
+```csharp
 ## 🔍 Debugging e Troubleshooting
 
 ### **Configuração de Debug**
@@ -467,8 +451,7 @@ var user = new UserBuilder()
     }
   }
 }
-```
-
+```text
 ### **Logs Estruturados**
 
 ```csharp
@@ -485,8 +468,7 @@ _logger.LogError(exception,
 // ❌ Ruim - Logs sem estrutura
 _logger.LogInformation($"User {user.Id} created");
 _logger.LogError("Error occurred: " + exception.Message);
-```
-
+```csharp
 ### **Ferramentas de Debug**
 
 #### **Serilog Configuration**
@@ -504,8 +486,7 @@ builder.Host.UseSerilog((context, configuration) =>
             retainedFileCountLimit: 7)
         .WriteTo.Seq("http://localhost:5341") // Se usando Seq
 );
-```
-
+```yaml
 #### **Application Insights (Produção)**
 ```csharp
 // Program.cs
@@ -529,8 +510,7 @@ public class UserTelemetryService
         });
     }
 }
-```
-
+```bash
 ## 📦 Package Management
 
 ### **Estrutura de Dependências**
@@ -545,8 +525,7 @@ public class UserTelemetryService
 <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0" />
 <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
 <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
-```
-
+```sql
 ### **Versionamento**
 
 #### **Central Package Management**
@@ -565,8 +544,7 @@ public class UserTelemetryService
     <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.0" />
   </ItemGroup>
 </Project>
-```
-
+```yaml
 ## 🛠️ Ferramentas e Scripts
 
 ### **Scripts Úteis**
@@ -584,8 +562,7 @@ dotnet ef migrations add AddUserProfile --context UsersDbContext --output-dir In
 
 # Script SQL da migration
 dotnet ef migrations script --context UsersDbContext --output migration.sql
-```
-
+```bash
 #### **Testes**
 ```bash
 # Executar todos os testes
@@ -599,8 +576,7 @@ dotnet test tests/MeAjudaAi.Modules.Users.Tests/
 
 # Executar teste específico
 dotnet test --filter "FullyQualifiedName~RegisterUserCommandHandlerTests"
-```
-
+```yaml
 #### **Code Quality**
 ```bash
 # Formatação de código
@@ -611,8 +587,7 @@ dotnet run --project tools/StaticAnalysis
 
 # Security scan
 dotnet security-scan
-```
-
+```bash
 ### **Aliases Úteis**
 
 ```bash
@@ -627,8 +602,7 @@ alias dformat="dotnet format"
 alias aspire="cd src/Aspire/MeAjudaAi.AppHost && dotnet run"
 alias api="cd src/Bootstrapper/MeAjudaAi.ApiService && dotnet run"
 alias migrate="dotnet ef database update --context UsersDbContext"
-```
-
+```text
 ## 📚 Recursos e Referências
 
 ### **Documentação Interna**

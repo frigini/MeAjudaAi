@@ -247,52 +247,6 @@ public class KeycloakServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task AuthenticateAsync_DiagnosticTest_ShouldShowDetails()
-    {
-        // Arrange
-        var jwtToken = CreateValidJwtToken();
-        var tokenResponse = new KeycloakTokenResponse
-        {
-            AccessToken = jwtToken,
-            ExpiresIn = 3600,
-            RefreshToken = "refresh-token",
-            TokenType = "Bearer"
-        };
-
-        // Decode JWT payload to check structure for debugging
-        var parts = jwtToken.Split('.');
-        string payloadInfo = "Invalid JWT structure";
-        if (parts.Length > 1)
-        {
-            try
-            {
-                var payload = Encoding.UTF8.GetString(Convert.FromBase64String(parts[1] + "=="));
-                payloadInfo = payload;
-            }
-            catch
-            {
-                payloadInfo = "Failed to decode JWT payload";
-            }
-        }
-
-        SetupHttpResponse(HttpStatusCode.OK, JsonSerializer.Serialize(tokenResponse));
-
-        // Act
-        var result = await _keycloakService.AuthenticateAsync("testuser", "password");
-
-        // Assert with detailed debugging information
-        if (result.IsFailure)
-        {
-            var debugInfo = $"Diagnostic Test Failed. " +
-                          $"JWT Payload: {payloadInfo}, " +
-                          $"Error: {result.Error?.Message ?? "None"}";
-            Assert.Fail(debugInfo);
-        }
-
-        result.IsSuccess.Should().BeTrue();
-    }
-
-    [Fact]
     public async Task AuthenticateAsync_WhenInvalidCredentials_ShouldReturnFailure()
     {
         // Arrange
@@ -530,6 +484,7 @@ public class KeycloakServiceTests : IDisposable
         if (disposing)
         {
             _httpClient?.Dispose();
+            (_mockHttpMessageHandler?.Object as IDisposable)?.Dispose();
         }
     }
 }

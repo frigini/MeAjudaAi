@@ -16,7 +16,7 @@ public class UsersModuleApiIntegrationTests : UsersIntegrationTestBase
     }
 
     [Fact]
-    public async Task GetUserByIdAsyncWithExistingUserShouldReturnUser()
+    public async Task GetUserByIdAsync_WithExistingUser_ShouldReturnUser()
     {
         // Arrange
         var user = await CreateUserAsync(

@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Shared.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
@@ -76,7 +77,7 @@ public class GetUserByUsernameQueryHandlerTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error.Message.Should().Be("Usuário não encontrado.");
+        result.Error.Message.Should().Be(ValidationMessages.NotFound.User);
 
         _userRepositoryMock.Verify(
             x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()),

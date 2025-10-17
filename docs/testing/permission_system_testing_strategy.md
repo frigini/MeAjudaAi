@@ -6,7 +6,7 @@ Este documento detalha a estratégia de testes implementada para o sistema de pe
 
 A estratégia segue a pirâmide de testes com diferentes níveis de granularidade:
 
-```
+```text
                     /\
                    /  \
                   / E2E \
@@ -20,19 +20,17 @@ A estratégia segue a pirâmide de testes com diferentes níveis de granularidad
           /                      \
          /   Architecture Tests   \
         /_______________________\
-```
-
+```csharp
 ## 1. Testes Unitários (Base da Pirâmide)
 
 ### 📁 Localização
-```
+```text
 tests/MeAjudaAi.Shared.Tests/Unit/Authorization/
 ├── PermissionTests.cs
 ├── PermissionServiceTests.cs
 ├── ClaimsPrincipalExtensionsTests.cs
 └── UsersPermissionResolverTests.cs
-```
-
+```text
 ### 🎯 Objetivo
 Testar componentes individuais isoladamente com mocks/stubs.
 
@@ -67,11 +65,10 @@ Testar componentes individuais isoladamente com mocks/stubs.
 ## 2. Testes de Integração
 
 ### 📁 Localização
-```
+```text
 tests/MeAjudaAi.Integration.Tests/Authorization/
 └── PermissionAuthorizationIntegrationTests.cs
-```
-
+```csharp
 ### 🎯 Objetivo
 Testar a integração entre componentes do sistema de autorização em um ambiente controlado.
 
@@ -99,11 +96,10 @@ Testar a integração entre componentes do sistema de autorização em um ambien
 ## 3. Testes End-to-End (E2E)
 
 ### 📁 Localização
-```
+```text
 tests/MeAjudaAi.E2E.Tests/Authorization/
 └── PermissionAuthorizationE2ETests.cs
-```
-
+```csharp
 ### 🎯 Objetivo
 Simular cenários reais de usuários com diferentes perfis acessando o sistema completo.
 
@@ -135,11 +131,10 @@ Simular cenários reais de usuários com diferentes perfis acessando o sistema c
 ## 4. Testes de Arquitetura
 
 ### 📁 Localização
-```
+```text
 tests/MeAjudaAi.Architecture.Tests/Authorization/
 └── PermissionArchitectureTests.cs
-```
-
+```yaml
 ### 🎯 Objetivo
 Garantir que o sistema de permissões siga as regras arquiteturais e mantenha a integridade do design.
 
@@ -208,16 +203,14 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
     // Configuração completa da aplicação para testes
 }
-```
-
-### 📋 Dados de Teste Padronizados
 ```csharp
+### 📋 Dados de Teste Padronizados
+```text
 // Usuários padrão para testes
 - "basic-user-123": Permissões básicas (UsersRead, UsersProfile)
 - "user-admin-456": Admin de usuários (Users module completo)
 - "system-admin-789": Admin completo (todas as permissões)
-```
-
+```bash
 ### 🏃 Execução dos Testes
 ```bash
 # Testes unitários apenas
@@ -234,11 +227,11 @@ dotnet test --filter "Category=Architecture"
 
 # Todos os testes com cobertura
 dotnet test --collect:"XPlat Code Coverage"
-```
-
+```text
 ## 7. Cenários de Teste por Funcionalidade
 
 ### 🔐 Sistema de Permissões Core
+
 | Componente | Unit | Integration | E2E | Architecture |
 |------------|------|-------------|-----|--------------|
 | Permission Enum | ✅ | ✅ | ✅ | ✅ |
@@ -247,6 +240,7 @@ dotnet test --collect:"XPlat Code Coverage"
 | Authorization Handlers | ✅ | ✅ | ✅ | ✅ |
 
 ### 👥 Módulo Users
+
 | Componente | Unit | Integration | E2E | Architecture |
 |------------|------|-------------|-----|--------------|
 | UsersPermissionResolver | ✅ | ✅ | ✅ | ✅ |
@@ -254,6 +248,7 @@ dotnet test --collect:"XPlat Code Coverage"
 | Users Endpoints | ⚪ | ✅ | ✅ | ⚪ |
 
 ### 🔗 Integração Sistema
+
 | Aspecto | Unit | Integration | E2E | Architecture |
 |---------|------|-------------|-----|--------------|
 | Cache (HybridCache) | ✅ | ✅ | ✅ | ⚪ |

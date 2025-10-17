@@ -9,7 +9,7 @@ public interface IKeycloakPermissionResolver : IModulePermissionResolver
     /// <summary>
     /// Obtém as roles do usuário diretamente do Keycloak.
     /// </summary>
-    /// <param name="userId">ID do usuário</param>
+    /// <param name="userId">ID do usuário como string (para compatibilidade com Keycloak)</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Lista de roles do Keycloak</returns>
     Task<IReadOnlyList<string>> GetUserRolesFromKeycloakAsync(string userId, CancellationToken cancellationToken = default);

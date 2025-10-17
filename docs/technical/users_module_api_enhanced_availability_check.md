@@ -13,8 +13,7 @@ public Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default
     // Verifica se o módulo Users está funcionando
     return Task.FromResult(true); // Por enquanto sempre true, pode incluir health checks
 }
-```
-
+```csharp
 ### After (Functional):
 ```csharp
 public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
@@ -43,8 +42,7 @@ public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = d
         return false;
     }
 }
-```
-
+```text
 ## 🔍 Implementation Details
 
 ### Health Check Integration
@@ -73,8 +71,7 @@ private async Task<bool> CanExecuteBasicOperationsAsync(CancellationToken cancel
         return false;
     }
 }
-```
-
+```csharp
 ### Error Handling Strategy
 
 | Scenario | Response | Behavior |
@@ -93,20 +90,17 @@ private async Task<bool> CanExecuteBasicOperationsAsync(CancellationToken cancel
    ```csharp
    [Fact]
    public async Task IsAvailableAsync_WhenHealthy_ShouldReturn_True()
-   ```
-
+   ```text
 2. **❌ Basic Operations Failure**: Handler throws exception
    ```csharp
    [Fact]
    public async Task IsAvailableAsync_WhenBasicOperationsFail_ShouldReturn_False()
-   ```
-
+   ```yaml
 3. **🔄 Health Service Unavailable**: Graceful fallback
    ```csharp
    [Fact]
    public async Task IsAvailableAsync_WhenHealthCheckServiceUnavailable_ShouldStillCheckBasicOperations()
-   ```
-
+   ```sql
 ### Test Results
 - **Total Tests**: 23 tests
 - **Passed**: 23 ✅
@@ -175,8 +169,7 @@ else
 {
     // Module unavailable - handle gracefully
 }
-```
-
+```csharp
 ### Health Check Endpoint
 - Available at `/health` endpoint
 - Shows overall application health including module availability
@@ -185,14 +178,13 @@ else
 ## 🔍 Monitoring & Observability
 
 ### Log Messages
-```
+```text
 [Debug] Checking Users module availability
 [Debug] Users module is available and healthy
 [Warning] Users module unavailable due to failed health checks: {FailedChecks}
 [Warning] Users module unavailable - basic operations test failed
 [Error] Error checking Users module availability
-```
-
+```text
 ### Metrics Integration
 - Module availability can be exposed as a metric
 - Health check duration tracking

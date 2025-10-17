@@ -34,8 +34,7 @@ Eliminar redundância no sistema de autorização e consolidar em uma estratégi
 .RequireSelfOrAdmin()   // Para endpoints de usuário
 .RequireAdmin()         // Para operações administrativas
 .RequireSuperAdmin()    // Para operações críticas
-```
-
+```csharp
 ### **3. Arquitetura Limpa**
 ```csharp
 // SecurityExtensions.cs - Políticas especiais apenas
@@ -50,8 +49,7 @@ foreach (EPermissions permission in Enum.GetValues<EPermissions>())
     var policyName = $"RequirePermission:{permission.GetValue()}";
     options.AddPolicy(policyName, policy => policy.Requirements.Add(new PermissionRequirement(permission)));
 }
-```
-
+```yaml
 ## 🗂️ Arquivos Modificados
 
 ### **Atualizados:**
@@ -119,8 +117,7 @@ foreach (EPermissions permission in Enum.GetValues<EPermissions>())
 
 // ❌ Evitar - Strings mágicas
 .RequireAuthorization("AdminOnly")
-```
-
+```text
 ## 🧪 Validação
 
 - ✅ 0 erros de compilação

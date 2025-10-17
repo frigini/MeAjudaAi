@@ -42,12 +42,11 @@ graph TB
     REPO --> ENT
     DOM --> ENT
     ENT --> VO
-```
-
+```csharp
 ### **Modular Monolith**
 Estrutura modular que facilita futuras extrações para microserviços.
 
-```
+```text
 src/
 ├── Modules/                    # Módulos de domínio
 │   ├── Users/                  # Gestão de usuários
@@ -61,8 +60,7 @@ src/
 └── Aspire/                     # Orquestração de desenvolvimento
     ├── MeAjudaAi.AppHost/      # Host Aspire
     └── MeAjudaAi.ServiceDefaults/ # Configurações padrão
-```
-
+```yaml
 ## 🎯 Domain-Driven Design (DDD)
 
 ### **Bounded Contexts**
@@ -85,8 +83,7 @@ public class UsersContext
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<UserPreferences> UserPreferences { get; set; }
 }
-```
-
+```bash
 **Conceitos do Domínio**:
 - **User**: Agregado raiz para dados básicos de identidade
 - **UserProfile**: Perfil detalhado (experiência, habilidades, localização)
@@ -140,8 +137,7 @@ public class User : AggregateRoot<UserId>
     /// <summary>Preferências do usuário</summary>  
     public UserPreferences Preferences { get; private set; }
 }
-```
-
+```csharp
 ### **Value Objects**
 
 ```csharp
@@ -179,8 +175,7 @@ public sealed record Email
     public static implicit operator string(Email email) => email.Value;
     public static implicit operator Email(string email) => new(email);
 }
-```
-
+```sql
 ### **Domain Events**
 
 ```csharp
@@ -202,8 +197,7 @@ public sealed record UserProfileUpdatedDomainEvent(
     UserProfile UpdatedProfile,
     DateTime OccurredAt
 ) : DomainEvent(OccurredAt);
-```
-
+```csharp
 ## ⚡ CQRS (Command Query Responsibility Segregation)
 
 ### **Estrutura de Commands**
@@ -261,8 +255,7 @@ public sealed class RegisterUserCommandHandler
         return RegisterUserResult.Success(user.Id);
     }
 }
-```
-
+```yaml
 ### **Estrutura de Queries**
 
 ```csharp
@@ -286,8 +279,7 @@ public sealed class GetUserByIdQueryHandler
         return await _repository.GetUserByIdAsync(query.UserId, cancellationToken);
     }
 }
-```
-
+```csharp
 ### **DTOs e Mapeamento**
 
 ```csharp
@@ -328,8 +320,7 @@ public static class UserMapper
         );
     }
 }
-```
-
+```sql
 ## 🔌 Dependency Injection e Modularização
 
 ### **Registro de Serviços por Módulo**
@@ -370,8 +361,7 @@ public static class UsersModuleServiceCollectionExtensions
         return services;
     }
 }
-```
-
+```csharp
 ### **Configuração no Program.cs**
 
 ```csharp
@@ -405,8 +395,7 @@ public class Program
         app.Run();
     }
 }
-```
-
+```yaml
 ## 📡 Event-Driven Architecture
 
 ### **Domain Events**
@@ -444,8 +433,7 @@ public abstract class AggregateRoot<TId> : Entity<TId> where TId : EntityId
         _domainEvents.Clear();
     }
 }
-```
-
+```csharp
 ### **Event Bus Implementation**
 
 ```csharp
@@ -486,8 +474,7 @@ public sealed class MediatREventBus : IEventBus
         }
     }
 }
-```
-
+```sql
 ### **Event Handlers**
 
 ```csharp
@@ -525,8 +512,7 @@ public sealed class SendWelcomeEmailHandler
         }
     }
 }
-```
-
+```csharp
 ## 🛡️ Padrões de Segurança
 
 ### **Authentication & Authorization**
@@ -565,8 +551,7 @@ public sealed class RequirePermissionAttribute : AuthorizeAttribute, IAuthorizat
         Policy = $"RequirePermission:{permission}";
     }
 }
-```
-
+```text
 ### **Validation Pattern**
 
 ```csharp
@@ -601,8 +586,7 @@ public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUse
             .WithMessage("Tipo de usuário inválido");
     }
 }
-```
-
+```csharp
 ## 🔄 Padrões de Resilência
 
 ### **Retry Pattern**
@@ -635,8 +619,7 @@ public static class RetryPolicies
             retryCount: 2,
             sleepDurationProvider: _ => TimeSpan.FromMilliseconds(500));
 }
-```
-
+```yaml
 ### **Circuit Breaker Pattern**
 
 ```csharp
@@ -659,8 +642,7 @@ public static class CircuitBreakerPolicies
                 // Log circuit breaker closed
             });
 }
-```
-
+```csharp
 ## 📊 Observabilidade e Monitoramento
 
 ### **Logging Structure**
@@ -692,8 +674,7 @@ public static partial class UserLogMessages
     public static partial void UserRegistrationFailed(
         this ILogger logger, string externalId, Exception exception);
 }
-```
-
+```text
 ### **Métricas Personalizadas**
 
 ```csharp
@@ -732,8 +713,7 @@ public sealed class UserMetrics
             new KeyValuePair<string, object?>("user_type", userType.ToString()));
     }
 }
-```
-
+```csharp
 ## 🧪 Padrões de Teste
 
 ### **Test Structure**
@@ -786,8 +766,7 @@ public sealed class UserTests : DomainTestBase
             .Which.Should().BeOfType<UserRegisteredDomainEvent>();
     }
 }
-```
-
+```yaml
 ### **Integration Tests**
 
 ```csharp
@@ -841,8 +820,7 @@ public sealed class UserEndpointsTests : IntegrationTestBase
         result!.UserId.Should().NotBeEmpty();
     }
 }
-```
-
+```csharp
 ## 🔌 Module APIs - Comunicação Entre Módulos
 
 ### **Padrão Module APIs**
@@ -875,13 +853,12 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
     // Implementação usando handlers internos do módulo
     // Não expõe detalhes de implementação interna
 }
-```
-
+```csharp
 ### **DTOs para Module APIs**
 
 Os DTOs devem ser organizados em arquivos separados dentro de `Shared/Contracts/Modules/{ModuleName}/DTOs/`:
 
-```
+```text
 src/Shared/MeAjudaAi.Shared/Contracts/Modules/Users/DTOs/
 ├── ModuleUserDto.cs
 ├── ModuleUserBasicDto.cs
@@ -890,8 +867,7 @@ src/Shared/MeAjudaAi.Shared/Contracts/Modules/Users/DTOs/
 ├── GetModuleUsersBatchRequest.cs
 ├── CheckUserExistsRequest.cs
 └── CheckUserExistsResponse.cs
-```
-
+```yaml
 **Exemplo de DTO:**
 
 ```csharp
@@ -907,8 +883,7 @@ public sealed record ModuleUserDto(
     string LastName,
     string FullName
 );
-```
-
+```yaml
 ### **Registro e Descoberta de Module APIs**
 
 ```csharp
@@ -940,8 +915,7 @@ public sealed class ModuleApiAttribute : Attribute
         ApiVersion = apiVersion;
     }
 }
-```
-
+```csharp
 ### **Boas Práticas para Module APIs**
 
 #### ✅ **RECOMENDADO**
@@ -958,8 +932,7 @@ Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(IReadOnlyList
 
 // ✅ Boa prática: Result pattern
 Task<Result<ModuleUserDto?>> GetUserByIdAsync(Guid userId);
-```
-
+```csharp
 #### ❌ **EVITAR**
 
 1. **Exposição de Entidades**: Nunca expor entidades de domínio diretamente
@@ -977,8 +950,7 @@ public record ComplexUserDto(
     List<Order> Orders,
     Dictionary<string, object> Metadata
 );
-```
-
+```csharp
 ### **Testes para Module APIs**
 
 Module APIs devem ter cobertura completa de testes em múltiplas camadas:
@@ -994,8 +966,7 @@ public class UsersModuleApiTests : TestBase
         // Testa comportamento da API com mocks
     }
 }
-```
-
+```text
 #### **Testes de Integração**
 ```csharp
 // Testam a API com banco de dados real
@@ -1007,8 +978,7 @@ public class UsersModuleApiIntegrationTests : IntegrationTestBase
         // Testa fluxo completo com persistência
     }
 }
-```
-
+```csharp
 #### **Testes Arquiteturais**
 ```csharp
 // Validam que a estrutura de Module APIs segue padrões
@@ -1020,8 +990,7 @@ public class ModuleApiArchitectureTests
         // Valida estrutura e convenções
     }
 }
-```
-
+```text
 #### **Testes E2E** 
 ```csharp
 // Simulam consumo real entre módulos
@@ -1033,8 +1002,7 @@ public class CrossModuleCommunicationE2ETests : IntegrationTestBase
         // Testa cenários reais de uso entre módulos
     }
 }
-```
-
+```csharp
 ### **Evitando Arquivos de Exemplo**
 
 **❌ NÃO CRIAR** arquivos de exemplo nos testes E2E. Em vez disso:
@@ -1067,8 +1035,7 @@ public async Task<IActionResult> RegisterUser([FromBody] RegisterUserCommand com
 {
     // Implementação...
 }
-```
-
+```csharp
 #### **2. Bruno Collections (.bru) - DESENVOLVIMENTO**
 - ✅ **Controle de versão** no Git
 - ✅ **Leve e eficiente** para desenvolvedores
@@ -1090,8 +1057,7 @@ src/Shared/API.Collections/
         ├── CreateUser.bru
         ├── GetUsers.bru
         └── UpdateUser.bru
-```
-
+```csharp
 #### **3. Postman Collections - COLABORAÇÃO**
 - 🤝 **Compartilhamento fácil** com QA, PO, clientes
 - 🔄 **Geração automática** via OpenAPI
@@ -1113,19 +1079,17 @@ npm run generate:postman
 
 # Validar collections
 npm run validate
-```
-
+```csharp
 #### **Estrutura de Output**
 
-```
+```text
 src/Shared/API.Collections/Generated/
 ├── MeAjudaAi-API-Collection.json           # Collection principal
 ├── MeAjudaAi-development-Environment.json  # Ambiente desenvolvimento
 ├── MeAjudaAi-staging-Environment.json      # Ambiente staging
 ├── MeAjudaAi-production-Environment.json   # Ambiente produção
 └── README.md                               # Instruções de uso
-```
-
+```yaml
 ### **Configurações Avançadas do Swagger**
 
 #### **Filtros Personalizados**
@@ -1139,8 +1103,7 @@ options.DocumentFilter<ModuleTagsDocumentFilter>();
 
 // Versionamento de API
 options.OperationFilter<ApiVersionOperationFilter>();
-```
-
+```sql
 #### **Melhorias Implementadas**
 
 - **📝 Exemplos Inteligentes**: Baseados em nomes de propriedades e tipos
@@ -1180,8 +1143,7 @@ options.OperationFilter<ApiVersionOperationFilter>();
 ```bash
 # Gera especificação OpenAPI completa
 .\scripts\export-openapi.ps1 -OutputPath "api/api-spec.json"
-```
-
+```csharp
 **Características:**
 - ✅ **Funciona offline** (não precisa rodar aplicação)
 - ✅ **Health checks incluídos** (/health, /health/ready, /health/live)  
@@ -1219,8 +1181,7 @@ Especificação OpenAPI inclui:
     "cache": { "status": "Healthy", "duration": "00:00:00.0087432" }
   }
 }
-```
-
+```text
 ---
 
 📖 **Próximos Passos**: Este documento serve como base para o desenvolvimento. Consulte também a [documentação de infraestrutura](./infrastructure.md) e [guia de CI/CD](./ci_cd.md) para informações complementares.

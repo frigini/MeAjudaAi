@@ -65,8 +65,7 @@ Suporta configuração via `appsettings.json`:        return "MeAjudaAi.Modules.
 
 }
 
-### 1. Implementação Simples```
-
+### 1. Implementação Simples```csharp
 ```csharp
 
 public class UsersDbContextFactory : BaseDesignTimeDbContextFactory<UsersDbContext>### 2. Configuração Adicional (Opcional)
@@ -97,8 +96,7 @@ dotnet ef migrations add NewMigration --project src/Modules/Users/Infrastructure
 
 }
 
-# Lista migrations existentes```
-
+# Lista migrations existentes```csharp
 dotnet ef migrations list --project src/Modules/Users/Infrastructure --startup-project src/Bootstrapper/MeAjudaAi.ApiService
 
 ```## Métodos Abstratos
@@ -235,8 +233,7 @@ Sistema confirmado funcionando através de:    {
         return new OrdersDbContext(options);
     }
 }
-```
-
+```bash
 ## Comandos de Migração
 
 ```bash
@@ -245,8 +242,7 @@ dotnet ef migrations add InitialCreate --project src/Modules/Users/Infrastructur
 
 # Aplicar migração
 dotnet ef database update --project src/Modules/Users/Infrastructure/MeAjudaAi.Modules.Users.Infrastructure
-```
-
+```text
 ## Benefícios
 
 1. **Consistência**: Todas as factories seguem o mesmo padrão

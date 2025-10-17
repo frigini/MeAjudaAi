@@ -25,8 +25,7 @@ graph LR
     E --> F[Deploy Dev]
     F --> G[Integration Tests]
     G --> H[Deploy Production]
-```
-
+```csharp
 ### Ambientes de Deploy
 
 | Ambiente | Trigger | Aprovação | Recursos Azure |
@@ -47,16 +46,14 @@ subscriptionName: "Azure Subscription"
 resourceGroupName: "rg-meajudaai"
 servicePrincipalId: "app-id"
 authenticationType: ServicePrincipal
-```
-
+```text
 #### Azure Container Registry
 ```yaml
 # Connection para ACR
 registryType: Azure Container Registry
 azureSubscription: "Azure Subscription"
 azureContainerRegistry: "acrmeajudaai.azurecr.io"
-```
-
+```yaml
 ### Pipeline de Build (`azure-pipelines.yml`)
 
 ```yaml
@@ -270,8 +267,7 @@ stages:
                     scriptLocation: 'inlineScript'
                     inlineScript: |
                       azd up --environment production
-```
-
+```bash
 ### Variable Groups
 
 #### MeAjudaAi-Variables
@@ -296,8 +292,7 @@ variables:
     value: "80"
   - name: SonarQualityGate
     value: "OK"
-```
-
+```csharp
 #### MeAjudaAi-Secrets (Key Vault)
 ```yaml
 secrets:
@@ -318,8 +313,7 @@ secrets:
     source: KeyVault
     vault: "kv-meajudaai"
     secret: "appinsights-instrumentation-key"
-```
-
+```yaml
 ## 🐙 Configuração do GitHub Actions
 
 ### Workflow Principal (`.github/workflows/ci-cd.yml`)
@@ -470,8 +464,7 @@ jobs:
       - name: Deploy to Production
         run: |
           azd up --environment production
-```
-
+```csharp
 ### Workflow de PR Validation
 
 ```yaml
@@ -508,8 +501,7 @@ jobs:
       
       - name: Run static analysis
         run: dotnet run --project tools/StaticAnalysis
-```
-
+```text
 ## 🔧 Scripts de Setup
 
 ### `setup-cicd.ps1` (Windows)
@@ -581,8 +573,7 @@ foreach ($secret in $secrets.GetEnumerator()) {
 
 Write-Host "✅ Setup de CI/CD concluído!" -ForegroundColor Green
 Write-Host "🌐 Dashboard: https://portal.azure.com" -ForegroundColor Cyan
-```
-
+```yaml
 ### `setup-ci-only.ps1` (Apenas CI)
 
 ```powershell
@@ -634,8 +625,7 @@ if (Get-Command gh -ErrorAction SilentlyContinue) {
 }
 
 Write-Host "✅ Configuração de CI/CD (apenas setup) concluída!" -ForegroundColor Green
-```
-
+```csharp
 ## 📊 Monitoramento e Métricas
 
 ### Quality Gates
@@ -674,13 +664,11 @@ Write-Host "✅ Configuração de CI/CD (apenas setup) concluída!" -ForegroundC
   type: "deployment-frequency"
   configuration:
     environments: ["Development", "Production"]
-```
-
+```text
 #### GitHub Actions Status Badge
 ```markdown
 [![CI/CD Pipeline](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml)
-```
-
+```bash
 ## 🚨 Troubleshooting
 
 ### Problemas Comuns de CI/CD
@@ -692,8 +680,7 @@ az pipelines run show --id <run-id> --output table
 
 # Debug local
 dotnet build --verbosity diagnostic
-```
-
+```sql
 #### 2. Deploy Failures
 ```bash
 # Verificar status do Azure Container Apps
@@ -701,8 +688,7 @@ az containerapp list --resource-group rg-meajudaai --output table
 
 # Logs de deployment
 azd show --environment production
-```
-
+```bash
 #### 3. Test Failures
 ```bash
 # Executar testes com mais verbosidade
@@ -710,8 +696,7 @@ dotnet test --logger "console;verbosity=detailed"
 
 # Verificar cobertura
 dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
-```
-
+```text
 ### Rollback Procedures
 
 #### 1. Rollback de Aplicação
@@ -721,15 +706,13 @@ az pipelines run create --definition-name "MeAjudaAi-Rollback" --parameters last
 
 # Via azd
 azd deploy --environment production --confirm --image-tag <previous-tag>
-```
-
+```text
 #### 2. Rollback de Infraestrutura
 ```bash
 # Reverter para versão anterior do Bicep
 git checkout <previous-commit> -- infrastructure/
 azd provision --environment production
-```
-
+```text
 ---
 
 📞 **Suporte**: Para problemas de CI/CD, verifique os [logs de build](https://dev.azure.com/frigini/MeAjudaAi) ou abra uma [issue](https://github.com/frigini/MeAjudaAi/issues).

@@ -26,8 +26,7 @@ public async Task ResolvePermissionsAsync_WithMockImplementation_ShouldReturnExp
     permissions.Should().Contain(EPermissions.AdminUsers);
     permissions.Should().Contain(EPermissions.UsersRead);
 }
-```
-
+```csharp
 ### Keycloak Integration Testing
 
 ```csharp
@@ -56,8 +55,7 @@ public async Task ResolvePermissionsAsync_WithKeycloakEnabled_ShouldUseKeycloakR
     mockKeycloakResolver.Verify(x => x.ResolvePermissionsAsync("test-user", default), Times.Once);
     permissions.Should().Contain(EPermissions.UsersRead);
 }
-```
-
+```csharp
 ## 🔧 Integration Testing
 
 ### Test Configuration
@@ -73,8 +71,7 @@ public async Task ResolvePermissionsAsync_WithKeycloakEnabled_ShouldUseKeycloakR
     }
   }
 }
-```
-
+```csharp
 ### WebApplicationFactory Example
 
 ```csharp
@@ -113,8 +110,7 @@ public class UsersPermissionResolverIntegrationTests : IClassFixture<WebApplicat
         permissions.Should().Contain(expectedPermission);
     }
 }
-```
-
+```text
 ## 🏭 Production Testing
 
 ### Environment-Specific Testing
@@ -149,8 +145,7 @@ public class ProductionUsersPermissionResolverTests
         permissions.Should().NotBeEmpty();
     }
 }
-```
-
+```csharp
 ## 📊 Performance Testing
 
 ### Benchmarking
@@ -193,8 +188,7 @@ public class UsersPermissionResolverBenchmark
         return await _keycloakResolver.ResolvePermissionsAsync("test-user");
     }
 }
-```
-
+```text
 ## 🔍 Debugging
 
 ### Enable Debug Logging
@@ -208,16 +202,14 @@ public class UsersPermissionResolverBenchmark
     }
   }
 }
-```
-
+```csharp
 ### Expected Log Output
 
-```
+```text
 [Debug] UsersPermissionResolver initialized with Mock implementation
 [Debug] Retrieved 1 mock roles for user regular-user: meajudaai-user  
 [Debug] Resolved 2 Users module permissions for user regular-user from roles: meajudaai-user using Mock
-```
-
+```text
 ## 🚨 Error Scenarios Testing
 
 ### Keycloak Unavailable
@@ -245,4 +237,4 @@ public async Task ResolvePermissions_WhenKeycloakUnavailable_ShouldFallbackToMoc
     permissions.Should().NotBeEmpty();
     permissions.Should().Contain(EPermissions.UsersRead);
 }
-```
+```text

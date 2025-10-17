@@ -8,15 +8,14 @@ Quando criar um novo módulo (ex: Orders, Payments, etc.), siga estes passos par
 
 Certifique-se de que o novo módulo siga a estrutura padrão:
 
-```
+```yaml
 src/Modules/{ModuleName}/
 ├── MeAjudaAi.Modules.{ModuleName}.API/
 ├── MeAjudaAi.Modules.{ModuleName}.Application/
 ├── MeAjudaAi.Modules.{ModuleName}.Domain/
 ├── MeAjudaAi.Modules.{ModuleName}.Infrastructure/
 └── MeAjudaAi.Modules.{ModuleName}.Tests/      # ← Testes unitários
-```
-
+```bash
 ### 2. Atualizar o Workflow de PR
 
 No arquivo `.github/workflows/pr-validation.yml`, adicione o novo módulo na seção `MODULES`:
@@ -27,16 +26,14 @@ MODULES=(
   "Orders:src/Modules/Orders/MeAjudaAi.Modules.Orders.Tests/"     # ← Adicione aqui
   "Payments:src/Modules/Payments/MeAjudaAi.Modules.Payments.Tests/" # ← E aqui
 )
-```
-
+```text
 ### 3. Atualizar o Workflow Aspire (se necessário)
 
 No arquivo `.github/workflows/aspire-ci-cd.yml`, se o módulo tiver testes específicos que precisam ser executados no pipeline de deploy, adicione-os na seção de testes:
 
 ```bash
 dotnet test src/Modules/{ModuleName}/MeAjudaAi.Modules.{ModuleName}.Tests/ --no-build --configuration Release
-```
-
+```text
 ### 4. Cobertura de Código
 
 O sistema automaticamente:

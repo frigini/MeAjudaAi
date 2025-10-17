@@ -1096,7 +1096,7 @@
     }
   ],
   "errors": [],
-  "totalFilesAnalyzed": 0,
+  "totalFilesAnalyzed": 11,
   "totalLegacyUsages": 145,
   "criticalUsages": 0,
   "highUsages": 1,

@@ -17,7 +17,12 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .WithMessage(ValidationMessages.Required.Username);
 
         RuleFor(x => x.Username)
-            .Length(ValidationConstants.UserLimits.UsernameMinLength, ValidationConstants.UserLimits.UsernameMaxLength)
+            .MinimumLength(ValidationConstants.UserLimits.UsernameMinLength)
+            .WithMessage(ValidationMessages.Length.UsernameTooShort)
+            .When(x => !string.IsNullOrWhiteSpace(x.Username));
+
+        RuleFor(x => x.Username)
+            .MaximumLength(ValidationConstants.UserLimits.UsernameMaxLength)
             .WithMessage(ValidationMessages.Length.UsernameTooLong)
             .When(x => !string.IsNullOrWhiteSpace(x.Username));
 
@@ -39,7 +44,12 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .WithMessage(ValidationMessages.Required.FirstName);
 
         RuleFor(x => x.FirstName)
-            .Length(ValidationConstants.UserLimits.FirstNameMinLength, ValidationConstants.UserLimits.FirstNameMaxLength)
+            .MinimumLength(ValidationConstants.UserLimits.FirstNameMinLength)
+            .WithMessage(ValidationMessages.Length.FirstNameTooShort)
+            .When(x => !string.IsNullOrWhiteSpace(x.FirstName));
+
+        RuleFor(x => x.FirstName)
+            .MaximumLength(ValidationConstants.UserLimits.FirstNameMaxLength)
             .WithMessage(ValidationMessages.Length.FirstNameTooLong)
             .When(x => !string.IsNullOrWhiteSpace(x.FirstName));
 
@@ -53,7 +63,12 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .WithMessage(ValidationMessages.Required.LastName);
 
         RuleFor(x => x.LastName)
-            .Length(ValidationConstants.UserLimits.LastNameMinLength, ValidationConstants.UserLimits.LastNameMaxLength)
+            .MinimumLength(ValidationConstants.UserLimits.LastNameMinLength)
+            .WithMessage(ValidationMessages.Length.LastNameTooShort)
+            .When(x => !string.IsNullOrWhiteSpace(x.LastName));
+
+        RuleFor(x => x.LastName)
+            .MaximumLength(ValidationConstants.UserLimits.LastNameMaxLength)
             .WithMessage(ValidationMessages.Length.LastNameTooLong)
             .When(x => !string.IsNullOrWhiteSpace(x.LastName));
 

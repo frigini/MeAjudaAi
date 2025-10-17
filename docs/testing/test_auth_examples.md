@@ -19,8 +19,7 @@ public async Task GetUsers_WithTestAuth_ShouldReturnUsers()
     var users = await response.Content.ReadFromJsonAsync<List<UserDto>>();
     users.Should().NotBeNull();
 }
-```
-
+```csharp
 ### Teste de Autorização por Role
 
 ```csharp
@@ -42,8 +41,7 @@ public async Task UserEndpoint_WithTestAuth_ShouldAllowAccess()
     
     response.StatusCode.Should().Be(HttpStatusCode.OK);
 }
-```
-
+```text
 ### Teste de Claims Específicos
 
 ```csharp
@@ -61,8 +59,7 @@ public async Task GetCurrentUser_WithTestAuth_ShouldReturnTestUser()
     user.Email.Should().Be("test@example.com");
     user.Name.Should().Be("test-user");
 }
-```
-
+```csharp
 ## 🔧 Desenvolvimento Local
 
 ### Setup para Desenvolvimento
@@ -95,8 +92,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
         await next();
     });
 }
-```
-
+```text
 ### Verificação em Runtime
 
 ```csharp
@@ -115,8 +111,7 @@ public IActionResult GetAuthInfo()
         IsTestAuth = User.Identity?.AuthenticationType == "AspireTest"
     });
 }
-```
-
+```csharp
 ## 🚀 CI/CD Pipeline
 
 ### GitHub Actions
@@ -146,8 +141,7 @@ jobs:
         dotnet test tests/MeAjudaAi.Integration.Tests/ \
           --configuration Release \
           --logger "console;verbosity=detailed"
-```
-
+```text
 ### Azure DevOps
 
 ```yaml
@@ -169,8 +163,7 @@ steps:
     projects: 'tests/**/*.csproj'
     arguments: '--configuration Release --logger trx --collect:"XPlat Code Coverage"'
     testRunTitle: 'Integration Tests (TestAuth)'
-```
-
+```csharp
 ## 🎯 Cenários Específicos
 
 ### Teste de Upload com Autenticação
@@ -190,8 +183,7 @@ public async Task UploadFile_WithTestAuth_ShouldSucceed()
     // Assert
     response.StatusCode.Should().Be(HttpStatusCode.Created);
 }
-```
-
+```bash
 ### Teste de WebSocket com Autenticação
 
 ```csharp
@@ -212,8 +204,7 @@ public async Task ConnectWebSocket_WithTestAuth_ShouldConnect()
     // Assert
     webSocket.State.Should().Be(WebSocketState.Open);
 }
-```
-
+```csharp
 ### Teste de Rate Limiting
 
 ```csharp
@@ -233,8 +224,7 @@ public async Task RateLimit_WithTestAuth_ShouldApplyAuthenticatedLimits()
     var successCount = responses.Count(r => r.StatusCode == HttpStatusCode.OK);
     successCount.Should().BeGreaterThan(100); // Mais que limite anônimo
 }
-```
-
+```text
 ## 🔍 Debugging e Troubleshooting
 
 ### Verificar se TestAuth Está Ativo
@@ -259,8 +249,7 @@ public IActionResult CheckAuthHealth()
             .ToList()
     });
 }
-```
-
+```csharp
 ### Log Personalizado para Testes
 
 ```csharp
@@ -299,8 +288,7 @@ public class TestAuthAwareLogger<T> : ILogger<T>
         _innerLogger.LogInformation($"[TEST-AUTH] {message}", args);
     }
 }
-```
-
+```bash
 ### Assertion Helper para Testes
 
 ```csharp
@@ -320,4 +308,4 @@ public static class TestAuthAssertions
         user.FindFirst("sub")?.Value.Should().Be("test-user-id");
     }
 }
-```
+```text

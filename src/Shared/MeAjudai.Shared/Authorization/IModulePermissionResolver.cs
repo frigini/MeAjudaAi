@@ -10,16 +10,17 @@ public interface IModulePermissionResolver
     /// <summary>
     /// Nome do módulo que este resolver atende.
     /// Usado para identificação e debug.
+    /// Use as constantes definidas em <see cref="ModuleNames"/> para consistência.
     /// </summary>
     string ModuleName { get; }
     
     /// <summary>
     /// Resolve as permissões de um usuário dentro do contexto deste módulo.
     /// </summary>
-    /// <param name="userId">ID do usuário</param>
+    /// <param name="userId">ID do usuário usando value object para type safety</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Lista de permissões resolvidas para o usuário neste módulo</returns>
-    Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(string userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(UserId userId, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Verifica se o resolver pode lidar com uma permissão específica.

@@ -12,7 +12,7 @@ A estratégia de Dead Letter Queue foi implementada com sucesso no MeAjudaAi, fo
 
 ## 🏗️ Arquitetura Implementada
 
-```
+```csharp
 ┌──────────────────┐    ┌─────────────────────┐    ┌──────────────────────┐
 │   Event Handler  │───▶│ MessageRetryMiddleware│───▶│  IDeadLetterService  │
 │                  │    │                     │    │                      │
@@ -30,11 +30,10 @@ A estratégia de Dead Letter Queue foi implementada com sucesso no MeAjudaAi, fo
                         │   20s, 40s...       │    │ - Failure Analysis   │
                         │ - Max: 300s         │    │ - Reprocess Support  │
                         └─────────────────────┘    └──────────────────────┘
-```
-
+```text
 ## 📁 Estrutura de Arquivos Criados
 
-```
+```csharp
 src/Shared/MeAjudaAi.Shared/
 ├── Messaging/
 │   ├── DeadLetter/
@@ -61,8 +60,7 @@ docs/
 │   └── dead_letter_queue_strategy.md     # ✅ Documentação completa
 └── examples/
     └── appsettings.Development.deadletter.json # ✅ Exemplo configuração
-```
-
+```yaml
 ## ⚙️ Configuração Implementada
 
 ### Development (appsettings.Development.json)
@@ -87,8 +85,7 @@ docs/
     }
   }
 }
-```
-
+```csharp
 ### Production (appsettings.Production.json)
 ```json
 {
@@ -110,8 +107,7 @@ docs/
     }
   }
 }
-```
-
+```text
 ## 🔄 Fluxo de Processamento
 
 ### 1. **Execução Normal**
@@ -125,30 +121,26 @@ public class UserCreatedEventHandler : IEventHandler<UserCreatedEvent>
         // ✅ Sucesso - nenhuma ação adicional necessária
     }
 }
-```
-
+```sql
 ### 2. **Falha Temporária (com Retry)**
-```
+```csharp
 Tentativa 1: TimeoutException → Aguarda 5s  → Retry
 Tentativa 2: TimeoutException → Aguarda 10s → Retry  
 Tentativa 3: TimeoutException → Aguarda 20s → Retry
 Tentativa 4: TimeoutException → MAX_RETRY  → DLQ
-```
-
+```text
 ### 3. **Falha Permanente (Direto para DLQ)**
-```
+```yaml
 Tentativa 1: ArgumentException → Classificação: Permanente → DLQ
-```
-
+```text
 ## 🔍 Monitoramento e Operações
 
 ### Logs Estruturados
-```
+```csharp
 [WARNING] Message sent to dead letter queue. 
 MessageId: abc-123, Type: UserCreatedEvent, Queue: dlq.users-events, 
 Attempts: 3, Reason: Connection timeout
-```
-
+```yaml
 ### Operações Disponíveis
 ```csharp
 var deadLetterService = serviceProvider.GetRequiredService<IDeadLetterService>();
@@ -165,8 +157,7 @@ Console.WriteLine($"Total messages in DLQ: {stats.TotalDeadLetterMessages}");
 
 // Purgar mensagem após análise
 await deadLetterService.PurgeDeadLetterMessageAsync("dlq.users-events", "abc-123");
-```
-
+```text
 ## 🧪 Cobertura de Testes
 
 ### Testes Unitários (15 testes)
@@ -189,8 +180,7 @@ await deadLetterService.PurgeDeadLetterMessageAsync("dlq.users-events", "abc-123
 [InlineData(typeof(TimeoutException), 1, true, "Transient exception should retry")]
 [InlineData(typeof(TimeoutException), 5, false, "Should not retry after max attempts")]
 [InlineData(typeof(OutOfMemoryException), 1, false, "Critical exception should not retry")]
-```
-
+```csharp
 ## 🚀 Ativação do Sistema
 
 ### 1. Automática via AddMessaging()
@@ -198,8 +188,7 @@ await deadLetterService.PurgeDeadLetterMessageAsync("dlq.users-events", "abc-123
 // Program.cs - já integrado
 services.AddMessaging(configuration, environment);
 // DLQ é automaticamente configurado
-```
-
+```sql
 ### 2. Manual (se necessário)
 ```csharp
 services.AddDeadLetterQueue(configuration, environment, options =>
@@ -209,15 +198,13 @@ services.AddDeadLetterQueue(configuration, environment, options =>
     else
         options.ConfigureForProduction();
 });
-```
-
+```csharp
 ### 3. Inicialização da Infraestrutura
 ```csharp
 // Program.cs
 await app.EnsureMessagingInfrastructureAsync();
 // Inclui validação e criação da infraestrutura DLQ
-```
-
+```text
 ## 📊 Métricas e Alertas Sugeridos
 
 ### Métricas OpenTelemetry
@@ -230,8 +217,7 @@ _meter.CreateCounter<int>("dlq_messages_sent_total")
 _meter.CreateHistogram<double>("dlq_processing_duration_seconds")
     .WithDescription("Time spent processing messages before DLQ")
     .WithUnit("seconds");
-```
-
+```text
 ### Alertas Recomendados
 - **DLQ Growth**: `dlq_message_count > 100`
 - **High Failure Rate**: `dlq_failure_rate > 10%`

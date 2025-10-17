@@ -198,7 +198,7 @@ public class UserRepositoryTests : DatabaseTestBase
         await _context.SaveChangesAsync();
 
         // Assert
-        // Não deve ser encontrado por consultas normais (exclusão lógica)
+        // Nï¿½o deve ser encontrado por consultas normais (exclusï¿½o lï¿½gica)
         var foundUser = await _repository.GetByIdAsync(user.Id);
         foundUser.Should().BeNull();
 
@@ -270,7 +270,6 @@ public class UserRepositoryTests : DatabaseTestBase
 
     public override async ValueTask InitializeAsync()
     {
-        await base.InitializeAsync();
         await InitializeInternalAsync();
     }
 
@@ -285,14 +284,14 @@ public class UserRepositoryTests : DatabaseTestBase
         await base.DisposeAsync();
     }
 
-    // Método auxiliar para adicionar usuário e persistir
+    // Mï¿½todo auxiliar para adicionar usuï¿½rio e persistir
     private async Task AddUserAndSaveAsync(User user)
     {
         await _repository.AddAsync(user);
         await _context.SaveChangesAsync();
     }
 
-    // Método auxiliar para atualizar usuário e persistir
+    // Mï¿½todo auxiliar para atualizar usuï¿½rio e persistir
     private async Task UpdateUserAndSaveAsync(User user)
     {
         await _repository.UpdateAsync(user);

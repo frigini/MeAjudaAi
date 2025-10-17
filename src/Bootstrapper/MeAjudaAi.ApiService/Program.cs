@@ -18,7 +18,7 @@ public partial class Program
 
             var app = builder.Build();
 
-            ConfigureMiddleware(app);
+            await ConfigureMiddlewareAsync(app);
 
             LogStartupComplete(app);
 
@@ -73,12 +73,12 @@ public partial class Program
         builder.Services.AddUsersModule(builder.Configuration);
     }
 
-    private static void ConfigureMiddleware(WebApplication app)
+    private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
         app.MapDefaultEndpoints();
 
         // Configurar serviços e módulos
-        app.UseSharedServicesAsync().Wait();
+        await app.UseSharedServicesAsync();
         app.UseApiServices(app.Environment);
         app.UseUsersModule();
     }

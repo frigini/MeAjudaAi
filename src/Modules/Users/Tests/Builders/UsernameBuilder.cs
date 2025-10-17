@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.Builders;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Modules.Users.Tests.Builders;
 
@@ -20,8 +21,8 @@ public class UsernameBuilder : BuilderBase<Username>
 
     public UsernameBuilder WithLength(int length)
     {
-        if (length < 3 || length > 30)
-            throw new ArgumentException("Username length must be between 3 and 30 characters");
+        if (length < ValidationConstants.UserLimits.UsernameMinLength || length > ValidationConstants.UserLimits.UsernameMaxLength)
+            throw new ArgumentException($"Username length must be between {ValidationConstants.UserLimits.UsernameMinLength} and {ValidationConstants.UserLimits.UsernameMaxLength} characters");
 
         Faker = new Faker<Username>()
             .CustomInstantiator(f => new Username(f.Random.String2(length, "abcdefghijklmnopqrstuvwxyz0123456789")));

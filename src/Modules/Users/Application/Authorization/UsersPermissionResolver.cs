@@ -15,7 +15,7 @@ public sealed class UsersPermissionResolver : IModulePermissionResolver
     private readonly IKeycloakPermissionResolver? _keycloakResolver;
     private readonly bool _useKeycloak;
 
-    public string ModuleName => "Users";
+    public string ModuleName => ModuleNames.Users;
 
     public UsersPermissionResolver(
         ILogger<UsersPermissionResolver> logger, 
@@ -38,32 +38,30 @@ public sealed class UsersPermissionResolver : IModulePermissionResolver
             _useKeycloak ? "Keycloak" : "Mock");
     }
 
-    public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(UserId userId, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        ArgumentNullException.ThrowIfNull(userId);
         
         try
         {
-            var permissions = new List<EPermission>();
+            IReadOnlyList<EPermission> allPermissions;
             
             // Usa Keycloak ou implementação mock baseado na configuração
-            var userRoles = _useKeycloak 
-                ? await GetUserRolesFromKeycloakAsync(userId, cancellationToken).ConfigureAwait(false)
-                : await GetUserRolesMockAsync(userId, cancellationToken).ConfigureAwait(false);
+            // Converte o UserId para string para compatibilidade com implementações existentes
+            allPermissions = _useKeycloak 
+                ? await GetUserPermissionsFromKeycloakAsync(userId.Value.ToString(), cancellationToken).ConfigureAwait(false)
+                : await GetUserPermissionsFromMockAsync(userId.Value.ToString(), cancellationToken).ConfigureAwait(false);
             
-            foreach (var role in userRoles)
-            {
-                var rolePermissions = MapRoleToUserPermissions(role);
-                permissions.AddRange(rolePermissions);
-            }
+            // Filtra apenas permissões do módulo Users
+            var usersPermissions = allPermissions
+                .Where(permission => CanResolve(permission))
+                .Distinct()
+                .ToList();
             
-            // Remove duplicatas
-            var distinctPermissions = permissions.Distinct().ToList();
+            _logger.LogDebug("Resolved {PermissionCount} Users module permissions for user {UserId} using {ResolverType}", 
+                usersPermissions.Count, userId, _useKeycloak ? "Keycloak" : "Mock");
             
-            _logger.LogDebug("Resolved {PermissionCount} Users module permissions for user {UserId} from roles: {Roles} using {ResolverType}", 
-                distinctPermissions.Count, userId, string.Join(", ", userRoles), _useKeycloak ? "Keycloak" : "Mock");
-            
-            return distinctPermissions;
+            return usersPermissions;
         }
         catch (OperationCanceledException)
         {
@@ -80,83 +78,81 @@ public sealed class UsersPermissionResolver : IModulePermissionResolver
     public bool CanResolve(EPermission permission)
     {
         // Verifica se a permissão pertence ao módulo Users
-        return permission.GetModule().Equals("Users", StringComparison.OrdinalIgnoreCase);
+        return permission.GetModule().Equals(ModuleNames.Users, StringComparison.OrdinalIgnoreCase);
     }
     
     /// <summary>
-    /// Obtém roles do usuário via Keycloak.
+    /// Obtém as permissões do usuário diretamente do Keycloak.
+    /// Utiliza o resolver Keycloak existente para obter permissões sem conversão desnecessária.
     /// </summary>
-    private async Task<IReadOnlyList<string>> GetUserRolesFromKeycloakAsync(string userId, CancellationToken cancellationToken)
+    /// <param name="userId">ID do usuário</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Lista de permissões resolvidas pelo Keycloak</returns>
+    private async Task<IReadOnlyList<EPermission>> GetUserPermissionsFromKeycloakAsync(string userId, CancellationToken cancellationToken)
     {
         if (_keycloakResolver == null)
         {
-            _logger.LogWarning("Keycloak resolver not available, falling back to mock implementation");
-            return await GetUserRolesMockAsync(userId, cancellationToken).ConfigureAwait(false);
+            _logger.LogWarning("Keycloak resolver is not available. Returning empty permissions for user {UserId}", userId);
+            return [];
         }
 
         try
         {
-            _logger.LogDebug("Fetching user roles from Keycloak for user {UserId}", userId);
+            _logger.LogDebug("Fetching user permissions from Keycloak for user {UserId}", userId);
             
-            // Usa o Keycloak resolver para obter permissões e depois extrai os roles
             var permissions = await _keycloakResolver.ResolvePermissionsAsync(userId, cancellationToken).ConfigureAwait(false);
             
-            // Converte permissões de volta para roles para manter compatibilidade
-            // Em implementação real, o Keycloak resolver poderia expor um método para obter roles diretamente
-            var roles = new List<string>();
+            _logger.LogDebug("Retrieved {PermissionCount} permissions from Keycloak for user {UserId}", 
+                permissions.Count, userId);
             
-            if (permissions.Contains(EPermission.AdminUsers))
-                roles.Add("meajudaai-system-admin");
-            else if (permissions.Contains(EPermission.UsersList))
-                roles.Add("meajudaai-user-admin");
-            else if (permissions.Contains(EPermission.UsersRead))
-                roles.Add("meajudaai-user");
-                
-            _logger.LogDebug("Retrieved {RoleCount} roles from Keycloak for user {UserId}: {Roles}", 
-                roles.Count, userId, string.Join(", ", roles));
-                
-            return roles;
+            return permissions;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch roles from Keycloak for user {UserId}, falling back to mock", userId);
-            return await GetUserRolesMockAsync(userId, cancellationToken).ConfigureAwait(false);
+            _logger.LogError(ex, "Failed to get permissions from Keycloak for user {UserId}", userId);
+            return [];
         }
     }
 
     /// <summary>
-    /// Obtém roles do usuário usando implementação mock/local.
+    /// Obtém permissões do usuário usando implementação mock/local.
+    /// Retorna permissões diretamente baseadas no padrão do userId para desenvolvimento/testes.
     /// </summary>
-    private async Task<IReadOnlyList<string>> GetUserRolesMockAsync(string userId, CancellationToken cancellationToken)
+    /// <param name="userId">ID do usuário</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Lista de permissões simuladas</returns>
+    private async Task<IReadOnlyList<EPermission>> GetUserPermissionsFromMockAsync(string userId, CancellationToken cancellationToken)
     {
         // Simula delay de consulta à base de dados ou serviço externo
         await Task.Delay(10, cancellationToken).ConfigureAwait(false);
 
         // Mapeamento baseado em padrões de userId para desenvolvimento/testes
-        var roles = userId switch
+        // Inclui apenas permissões do módulo Users (users:*)
+        var permissions = userId switch
         {
-            var id when id.Contains("admin", StringComparison.OrdinalIgnoreCase) => new[] { "meajudaai-system-admin", "meajudaai-user-admin" },
-            var id when id.Contains("manager", StringComparison.OrdinalIgnoreCase) => new[] { "meajudaai-user-admin" },
-            _ => new[] { "meajudaai-user" }
+            var id when id.Contains("admin", StringComparison.OrdinalIgnoreCase) => 
+                new[] { 
+                    EPermission.UsersRead, 
+                    EPermission.UsersCreate, 
+                    EPermission.UsersUpdate, 
+                    EPermission.UsersDelete, 
+                    EPermission.UsersList,
+                    EPermission.UsersProfile
+                },
+            var id when id.Contains("manager", StringComparison.OrdinalIgnoreCase) => 
+                new[] { 
+                    EPermission.UsersRead, 
+                    EPermission.UsersCreate, 
+                    EPermission.UsersUpdate, 
+                    EPermission.UsersList,
+                    EPermission.UsersProfile 
+                },
+            _ => new[] { EPermission.UsersRead, EPermission.UsersProfile }
         };
 
-        _logger.LogDebug("Retrieved {RoleCount} mock roles for user {UserId}: {Roles}", 
-            roles.Length, userId, string.Join(", ", roles));
+        _logger.LogDebug("Retrieved {PermissionCount} mock permissions for user {UserId}", 
+            permissions.Length, userId);
             
-        return roles;
-    }
-
-    /// <summary>
-    /// Mapeia roles para permissões específicas do módulo Users.
-    /// </summary>
-    private static EPermission[] MapRoleToUserPermissions(string role)
-    {
-        return role.ToUpperInvariant() switch
-        {
-            "MEAJUDAAI-SYSTEM-ADMIN" => [EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.AdminUsers],
-            "MEAJUDAAI-USER-ADMIN" => [EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersList],
-            "MEAJUDAAI-USER" => [EPermission.UsersRead, EPermission.UsersProfile],
-            _ => []
-        };
+        return permissions;
     }
 }

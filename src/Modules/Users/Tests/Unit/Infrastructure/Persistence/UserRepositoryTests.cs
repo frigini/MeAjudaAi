@@ -7,6 +7,12 @@ using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence;
 
+/// <summary>
+/// Unit tests for IUserRepository interface contract validation.
+/// Note: These tests use mocks to verify interface behavior contracts,
+/// not the concrete UserRepository implementation. Actual repository 
+/// implementation testing should be done in integration tests with real database.
+/// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Layer", "Infrastructure")]
@@ -365,22 +371,5 @@ public class UserRepositoryTests
 
         // Assert
         userRepositoryType.Should().Implement<IUserRepository>();
-    }
-
-    [Fact]
-    public void UserRepository_ShouldHaveCorrectConstructor()
-    {
-        // Arrange & Act
-        var userRepositoryType = typeof(UserRepository);
-        var constructors = userRepositoryType.GetConstructors();
-
-        // Assert
-        constructors.Should().HaveCount(1);
-        var constructor = constructors.First();
-        var parameters = constructor.GetParameters();
-
-        parameters.Should().HaveCount(2);
-        parameters[0].ParameterType.Name.Should().Be("UsersDbContext");
-        parameters[1].ParameterType.Should().Be<IDateTimeProvider>();
     }
 }

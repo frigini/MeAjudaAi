@@ -22,29 +22,27 @@
 #### Before (With Obsolete Methods):
 ```csharp
 // Modern methods
-public static readonly EPermissions[] BasicUser = [EPermissions.UsersRead];
-public static readonly EPermissions[] UserAdmin = [EPermissions.UsersRead, EPermissions.UsersUpdate];
-public static readonly EPermissions[] SystemAdmin = [EPermissions.UsersRead, EPermissions.UsersUpdate, EPermissions.UsersDelete, EPermissions.AdminUsers];
+public static readonly EPermission[] BasicUser = [EPermission.UsersRead];
+public static readonly EPermission[] UserAdmin = [EPermission.UsersRead, EPermission.UsersUpdate];
+public static readonly EPermission[] SystemAdmin = [EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.AdminUsers];
 
 // Legacy methods (OBSOLETE)
-[Obsolete("Use BasicUser com EPermissions...")]
-public static readonly EPermissions[] BasicUserLegacy = [EPermissions.UsersRead];
+[Obsolete("Use BasicUser com EPermission...")]
+public static readonly EPermission[] BasicUserLegacy = [EPermission.UsersRead];
 
-[Obsolete("Use UserAdmin com EPermissions...")]
-public static readonly EPermissions[] UserAdminLegacy = [EPermissions.UsersRead, EPermissions.UsersUpdate];
+[Obsolete("Use UserAdmin com EPermission...")]
+public static readonly EPermission[] UserAdminLegacy = [EPermission.UsersRead, EPermission.UsersUpdate];
 
-[Obsolete("Use SystemAdmin com EPermissions...")]
-public static readonly EPermissions[] SystemAdminLegacy = [EPermissions.UsersRead, EPermissions.UsersUpdate, EPermissions.UsersDelete, EPermissions.AdminUsers];
-```
-
+[Obsolete("Use SystemAdmin com EPermission...")]
+public static readonly EPermission[] SystemAdminLegacy = [EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.AdminUsers];
+```csharp
 #### After (Clean):
 ```csharp
 // Modern methods only
-public static readonly EPermissions[] BasicUser = [EPermissions.UsersRead];
-public static readonly EPermissions[] UserAdmin = [EPermissions.UsersRead, EPermissions.UsersUpdate];
-public static readonly EPermissions[] SystemAdmin = [EPermissions.UsersRead, EPermissions.UsersUpdate, EPermissions.UsersDelete, EPermissions.AdminUsers];
-```
-
+public static readonly EPermission[] BasicUser = [EPermission.UsersRead];
+public static readonly EPermission[] UserAdmin = [EPermission.UsersRead, EPermission.UsersUpdate];
+public static readonly EPermission[] SystemAdmin = [EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.AdminUsers];
+```text
 ### ✅ Benefits Achieved
 
 1. **Reduced Code Complexity:** -24 lines of legacy code removed
@@ -58,8 +56,7 @@ public static readonly EPermissions[] SystemAdmin = [EPermissions.UsersRead, EPe
 The obsolete warning configuration remains for future obsolete members:
 ```properties
 dotnet_analyzer_diagnostic.CS0618.severity = warning    # Obsolete warnings (migração)
-```
-
+```text
 ### 🧪 Testing Impact
 
 - **No Test Changes Required:** No tests were using obsolete methods

@@ -15,7 +15,7 @@ Este documento descreve a estratégia completa de Dead Letter Queue implementada
 
 ### Componentes Principais
 
-```
+```csharp
 ┌─────────────────────┐    ┌──────────────────────┐    ┌─────────────────────┐
 │   Message Handler   │───▶│ MessageRetryMiddleware│───▶│  IDeadLetterService │
 └─────────────────────┘    └──────────────────────┘    └─────────────────────┘
@@ -26,8 +26,7 @@ Este documento descreve a estratégia completa de Dead Letter Queue implementada
                            │   Exponential        │    │      Queue          │
                            │     Backoff          │    │   (RabbitMQ/SB)     │
                            └──────────────────────┘    └─────────────────────┘
-```
-
+```text
 ### Interfaces Core
 
 #### `IDeadLetterService`
@@ -43,9 +42,10 @@ public interface IDeadLetterService
     TimeSpan CalculateRetryDelay(int attemptCount);
     Task ReprocessDeadLetterMessageAsync(string deadLetterQueueName, string messageId, CancellationToken cancellationToken = default);
     Task<IEnumerable<FailedMessageInfo>> ListDeadLetterMessagesAsync(string deadLetterQueueName, int maxCount = 50, CancellationToken cancellationToken = default);
+    Task<DeadLetterStatistics> GetDeadLetterStatisticsAsync(CancellationToken cancellationToken = default);
+    Task PurgeDeadLetterMessageAsync(string deadLetterQueueName, string messageId, CancellationToken cancellationToken = default);
 }
-```
-
+```csharp
 ## 🔧 Implementações
 
 ### 1. RabbitMQ Dead Letter Service
@@ -71,8 +71,7 @@ public interface IDeadLetterService
     }
   }
 }
-```
-
+```text
 ### 2. Service Bus Dead Letter Service
 **Ambiente**: Production
 
@@ -95,8 +94,7 @@ public interface IDeadLetterService
     }
   }
 }
-```
-
+```csharp
 ## 🔁 Estratégia de Retry
 
 ### Políticas de Retry
@@ -110,7 +108,7 @@ string[] permanentExceptions = {
     "MeAjudaAi.Shared.Exceptions.BusinessRuleException",
     "MeAjudaAi.Shared.Exceptions.DomainException"
 };
-```
+```yaml
 - **Ação**: Envio imediato para DLQ
 - **Justificativa**: Erros de lógica/validação que não serão resolvidos com retry
 
@@ -122,7 +120,7 @@ string[] transientExceptions = {
     "Npgsql.PostgresException",
     "System.Net.Sockets.SocketException"
 };
-```
+```csharp
 - **Ação**: Retry com backoff exponencial
 - **Justificativa**: Problemas de rede/infraestrutura que podem ser resolvidos
 
@@ -130,7 +128,7 @@ string[] transientExceptions = {
 ```csharp
 if (exception is OutOfMemoryException or StackOverflowException)
     return FailureType.Critical;
-```
+```bash
 - **Ação**: Envio imediato para DLQ + notificação de admin
 - **Justificativa**: Problemas sistêmicos que requerem intervenção
 
@@ -146,8 +144,7 @@ public TimeSpan CalculateRetryDelay(int attemptCount)
     
     return exponentialDelay > maxDelay ? maxDelay : exponentialDelay;
 }
-```
-
+```csharp
 **Exemplo de Delays**:
 - Tentativa 1: 5 segundos
 - Tentativa 2: 10 segundos  
@@ -169,8 +166,7 @@ public class UserCreatedEventHandler : IEventHandler<UserCreatedEvent>
         await ProcessUserCreation(@event, cancellationToken);
     }
 }
-```
-
+```csharp
 ### Uso Manual com Extensões
 
 ```csharp
@@ -186,8 +182,7 @@ public async Task ProcessMessage<TMessage>(TMessage message, string sourceQueue)
         _logger.LogWarning("Message sent to dead letter queue");
     }
 }
-```
-
+```yaml
 ## 📊 Monitoramento e Observabilidade
 
 ### Informações Capturadas
@@ -206,8 +201,7 @@ public sealed class FailedMessageInfo
     public List<FailureAttempt> FailureHistory { get; set; }
     public EnvironmentMetadata Environment { get; set; }
 }
-```
-
+```csharp
 ### Estatísticas Disponíveis
 
 ```csharp
@@ -218,16 +212,14 @@ public sealed class DeadLetterStatistics
     public Dictionary<string, int> MessagesByExceptionType { get; set; }
     public Dictionary<string, FailureRate> FailureRateByHandler { get; set; }
 }
-```
-
+```text
 ### Logs Estruturados
 
 ```csharp
 _logger.LogWarning(
     "Message sent to dead letter queue. MessageId: {MessageId}, Type: {MessageType}, Queue: {Queue}, Attempts: {Attempts}, Reason: {Reason}",
     failedMessageInfo.MessageId, typeof(TMessage).Name, deadLetterQueueName, attemptCount, exception.Message);
-```
-
+```csharp
 ## 🚀 Setup e Configuração
 
 ### 1. Configuração no DI Container
@@ -242,8 +234,7 @@ services.AddDeadLetterQueue(configuration, environment, options =>
 {
     options.ConfigureForDevelopment(); // ou ConfigureForProduction()
 });
-```
-
+```text
 ### 2. Configuração de Ambiente
 
 #### Development (appsettings.Development.json)
@@ -262,8 +253,7 @@ services.AddDeadLetterQueue(configuration, environment, options =>
     }
   }
 }
-```
-
+```yaml
 #### Production (appsettings.Production.json)
 ```json
 {
@@ -280,8 +270,7 @@ services.AddDeadLetterQueue(configuration, environment, options =>
     }
   }
 }
-```
-
+```sql
 ### 3. Inicialização da Infraestrutura
 
 ```csharp
@@ -292,8 +281,7 @@ var app = builder.Build();
 await app.EnsureMessagingInfrastructureAsync();
 
 await app.RunAsync();
-```
-
+```text
 ## 🔄 Operações de DLQ
 
 ### 1. Listar Mensagens na DLQ
@@ -306,27 +294,23 @@ foreach (var message in messages)
 {
     Console.WriteLine($"Message {message.MessageId}: {message.LastFailureReason}");
 }
-```
-
+```csharp
 ### 2. Reprocessar Mensagem
 
 ```csharp
 await deadLetterService.ReprocessDeadLetterMessageAsync("dlq.users-events", messageId);
-```
-
+```yaml
 ### 3. Purgar Mensagem (Após Análise)
 
 ```csharp
 await deadLetterService.PurgeDeadLetterMessageAsync("dlq.users-events", messageId);
-```
-
+```csharp
 ### 4. Obter Estatísticas
 
 ```csharp
 var statistics = await deadLetterService.GetDeadLetterStatisticsAsync();
 Console.WriteLine($"Total messages in DLQ: {statistics.TotalDeadLetterMessages}");
-```
-
+```text
 ## 🧪 Testes
 
 ### Testes Unitários
@@ -361,8 +345,7 @@ public void ShouldRetry_WithDifferentExceptions_ReturnsExpectedResult(Type excep
     // Assert
     result.Should().Be(expected);
 }
-```
-
+```csharp
 ### Testes de Integração
 
 ```csharp
@@ -388,8 +371,7 @@ public async Task MessageRetryMiddleware_WithTransientFailure_ShouldRetryAndSucc
     success.Should().BeTrue();
     callCount.Should().Be(3);
 }
-```
-
+```text
 ## 📈 Métricas e Alertas
 
 ### Métricas Recomendadas

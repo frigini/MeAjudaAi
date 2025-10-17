@@ -16,7 +16,7 @@ O MeAjudaAi utiliza um sistema robusto de autenticação e autorização com as 
 
 ### Componentes Principais
 
-```
+```text
 Authentication & Authorization System
 ├── Authentication (Keycloak + JWT)
 │   ├── JWT Token Validation
@@ -28,8 +28,7 @@ Authentication & Authorization System
     ├── Permission Service (Caching + Resolution)
     ├── Module Permission Resolvers
     └── Authorization Handlers
-```
-
+```csharp
 ### Fluxo de Autorização
 
 ```mermaid
@@ -45,8 +44,7 @@ graph TD
     D --> I[Module Resolvers]
     I --> J[Keycloak Roles]
     J --> K[Permission Mapping]
-```
-
+```text
 ## 🔐 Sistema de Permissões
 
 ### EPermissions Enum
@@ -83,8 +81,7 @@ public enum EPermissions
     [Display(Name = "admin:users")]
     AdminUsers
 }
-```
-
+```csharp
 ### Uso em Endpoints
 
 ```csharp
@@ -97,8 +94,7 @@ app.MapPost("/api/users", CreateUser)
 
 app.MapDelete("/api/users/{id}", DeleteUser)
    .RequirePermission(EPermissions.UsersDelete);
-```
-
+```csharp
 ### Verificação Programática
 
 ```csharp
@@ -124,8 +120,7 @@ public async Task<IResult> GetUserData(
     
     return Results.Ok(/* data */);
 }
-```
-
+```yaml
 ## ⚙️ Configuração
 
 ### 1. Configuração Básica
@@ -146,8 +141,7 @@ var app = builder.Build();
 
 // Aplica middleware de autorização
 app.UsePermissionBasedAuthorization();
-```
-
+```csharp
 ### 2. Configuração do Keycloak
 
 ```json
@@ -168,8 +162,7 @@ app.UsePermissionBasedAuthorization();
     }
   }
 }
-```
-
+```yaml
 ### 3. Configuração de Autenticação JWT
 
 ```csharp
@@ -180,8 +173,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.Audience = "meajudaai-client";
         options.RequireHttpsMetadata = false; // Apenas para desenvolvimento
     });
-```
-
+```bash
 ### 4. Setup Local com Docker
 
 ```bash
@@ -190,8 +182,7 @@ docker compose -f infrastructure/compose/standalone/keycloak-only.yml up -d
 
 # Ou ambiente completo de desenvolvimento
 docker compose -f infrastructure/compose/environments/development.yml up -d
-```
-
+```yaml
 ## 🏗️ Implementação Modular
 
 ### Permission Resolver por Módulo
@@ -245,8 +236,7 @@ public class UsersPermissionResolver : IModulePermissionResolver
         };
     }
 }
-```
-
+```yaml
 ### Registro do Resolver
 
 ```csharp
@@ -261,8 +251,7 @@ public static class UsersModuleExtensions
         return services;
     }
 }
-```
-
+```csharp
 ## 🚀 Performance e Cache
 
 ### Sistema de Cache
@@ -278,8 +267,7 @@ var modulePermissions = await permissionService.GetUserPermissionsByModuleAsync(
 
 // Invalidação seletiva
 await permissionService.InvalidateUserPermissionsCacheAsync(userId);
-```
-
+```csharp
 ### Métricas e Monitoramento
 
 O sistema coleta métricas detalhadas:
@@ -292,8 +280,7 @@ O sistema coleta métricas detalhadas:
 ```csharp
 // Métricas são coletadas automaticamente
 // Consulte /metrics para Prometheus ou Application Insights
-```
-
+```yaml
 ## 🔍 Keycloak Integration
 
 ### Setup do Realm
@@ -339,8 +326,7 @@ private static IEnumerable<EPermissions> MapKeycloakRoleToPermissions(string rol
         _ => Array.Empty<EPermissions>()
     };
 }
-```
-
+```csharp
 ### Claims Mapping
 
 O sistema mapeia claims do Keycloak:
@@ -366,8 +352,7 @@ services.AddTestAuthentication(options =>
         EPermissions.UsersCreate 
     };
 });
-```
-
+```yaml
 ### Testes Unitários
 
 ```csharp
@@ -383,8 +368,7 @@ public async Task ShouldAllowUserWithPermission()
     // Assert
     result.Should().BeOfType<Ok<UserDto>>();
 }
-```
-
+```csharp
 ## 📚 Exemplos Avançados
 
 ### Permissões Contextuais
@@ -409,8 +393,7 @@ public async Task<IResult> UpdateUser(
     
     return Results.Forbid();
 }
-```
-
+```text
 ### Extension Methods Customizados
 
 ```csharp
@@ -427,8 +410,7 @@ public static class CustomPermissionExtensions
                user.HasPermission(EPermissions.UsersProfile);
     }
 }
-```
-
+```csharp
 ## 🛠️ Troubleshooting
 
 ### Problemas Comuns
@@ -454,8 +436,7 @@ public static class CustomPermissionExtensions
 // Habilitar logs detalhados
 builder.Logging.SetMinimumLevel(LogLevel.Debug);
 builder.Logging.AddFilter("MeAjudaAi.Shared.Authorization", LogLevel.Trace);
-```
-
+```text
 ## 📋 Checklist de Implementação
 
 - [ ] Configurar Keycloak realm
@@ -485,8 +466,7 @@ In production, ensure the following environment variables are set:
 Authentication__Keycloak__Authority=https://your-keycloak-domain/realms/meajudaai
 Authentication__Keycloak__RequireHttpsMetadata=true
 Authentication__Keycloak__Audience=account
-```
-
+```csharp
 ### Security Considerations
 
 1. **HTTPS Required**: Always use HTTPS in production
@@ -532,8 +512,7 @@ Enable authentication debug logging in `appsettings.Development.json`:
     }
   }
 }
-```
-
+```csharp
 ### Health Checks
 
 The application includes authentication health checks:
@@ -594,8 +573,7 @@ Enable authentication debug logging in `appsettings.Development.json`:
     }
   }
 }
-```
-
+```text
 ### Health Checks
 
 The application includes authentication health checks:

@@ -14,7 +14,7 @@ O sistema de Dead Letter Queue (DLQ) do MeAjudaAi implementa uma estratégia rob
 
 ### Componentes Principais
 
-```
+```csharp
 ┌─────────────────────────────────────────────────────────┐
 │                    Message Handler                       │
 │                                                         │
@@ -36,8 +36,7 @@ O sistema de Dead Letter Queue (DLQ) do MeAjudaAi implementa uma estratégia rob
          │  │             │ │                 ││
          │  └─────────────┘ └─────────────────┘│
          └─────────────────────────────────────┘
-```
-
+```text
 ### Factory Pattern por Ambiente
 
 - **Development**: `RabbitMqDeadLetterService`
@@ -71,8 +70,7 @@ O sistema de Dead Letter Queue (DLQ) do MeAjudaAi implementa uma estratégia rob
     }
   }
 }
-```
-
+```csharp
 ### Registro no Container DI
 
 ```csharp
@@ -84,8 +82,7 @@ services.AddDeadLetterQueue(configuration, environment, options =>
 {
     options.ConfigureForProduction(); // ou ConfigureForDevelopment()
 });
-```
-
+```yaml
 ## 🔄 Classificação de Falhas
 
 ### Tipos de Falha
@@ -116,8 +113,7 @@ public class DeadLetterOptions
         "Npgsql.PostgresException"
     };
 }
-```
-
+```csharp
 ## 🔧 Implementação
 
 ### 1. Handler com Retry Automático
@@ -149,8 +145,7 @@ public class UserCreatedEventHandler : IEventHandler<UserCreatedEvent>
         await UpdateStatisticsAsync(@event);
     }
 }
-```
-
+```yaml
 ### 2. Middleware Manual
 
 ```csharp
@@ -170,8 +165,7 @@ public class CustomEventHandler
             cancellationToken);
     }
 }
-```
-
+```csharp
 ## 📊 Monitoramento e Observabilidade
 
 ### 1. Métricas
@@ -190,8 +184,7 @@ O sistema registra automaticamente:
 _logger.LogWarning(
     "Message sent to dead letter queue. MessageId: {MessageId}, Type: {MessageType}, Attempts: {Attempts}, Reason: {Reason}",
     messageId, messageType, attemptCount, exception.Message);
-```
-
+```text
 ### 3. API de Administração
 
 ```csharp
@@ -220,8 +213,7 @@ public class DeadLetterController : ControllerBase
         await _deadLetterService.ReprocessDeadLetterMessageAsync(queueName, messageId);
     }
 }
-```
-
+```yaml
 ## 🔀 Transporte por Ambiente
 
 ### RabbitMQ (Development)
@@ -250,8 +242,7 @@ public class RabbitMqDeadLetterService : IDeadLetterService
             arguments: arguments);
     }
 }
-```
-
+```csharp
 ### Azure Service Bus (Production)
 
 ```csharp
@@ -271,8 +262,7 @@ public class ServiceBusDeadLetterService : IDeadLetterService
         await sender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
 }
-```
-
+```text
 ## 🚀 Algoritmo de Retry
 
 ### Backoff Exponencial
@@ -287,8 +277,7 @@ public TimeSpan CalculateRetryDelay(int attemptCount)
 
     return exponentialDelay > maxDelay ? maxDelay : exponentialDelay;
 }
-```
-
+```csharp
 ### Exemplo de Sequência
 
 | Tentativa | Delay | Cálculo |
@@ -317,8 +306,7 @@ public sealed class FailedMessageInfo
     public List<FailureAttempt> FailureHistory { get; set; }
     public EnvironmentMetadata Environment { get; set; }
 }
-```
-
+```yaml
 ### Estatísticas DLQ
 
 ```csharp
@@ -329,8 +317,7 @@ public sealed class DeadLetterStatistics
     public Dictionary<string, int> MessagesByExceptionType { get; set; }
     public Dictionary<string, FailureRate> FailureRateByHandler { get; set; }
 }
-```
-
+```csharp
 ## 🔧 Validação e Saúde
 
 ### Health Check
@@ -347,29 +334,25 @@ GET /api/admin/deadletter/health
   "retryDelayMs": 5000,
   "status": "Healthy"
 }
-```
-
+```text
 ## 🚦 Cenários de Uso
 
 ### 1. Falha de Rede Temporária
-```
+```text
 Tentativa 1: HttpRequestException → Retry em 5s
 Tentativa 2: HttpRequestException → Retry em 10s  
 Tentativa 3: Sucesso ✅
-```
-
+```text
 ### 2. Erro de Validação
-```
+```yaml
 Tentativa 1: ArgumentException → DLQ imediatamente ❌
-```
-
+```text
 ### 3. Falha Persistente
-```
+```yaml
 Tentativa 1: TimeoutException → Retry em 5s
 Tentativa 2: TimeoutException → Retry em 10s
 Tentativa 3: TimeoutException → DLQ ❌
-```
-
+```text
 ## 📚 Documentos Relacionados
 
 - [Estratégia de MessageBus por Ambiente](./message_bus_environment_strategy.md)

@@ -63,8 +63,7 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
         }
     }
 }
-```
-
+```csharp
 ### 2. **Configuração de DI por Ambiente**
 
 **Arquivo**: `src/Shared/MeAjudaAi.Shared/Messaging/Extensions.cs`
@@ -97,8 +96,7 @@ services.AddSingleton<IMessageBus>(serviceProvider =>
     var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();
     return factory.CreateMessageBus(); // ← Seleção baseada no ambiente
 });
-```
-
+```yaml
 ### 3. **Configurações por Ambiente**
 
 #### **Development** (`appsettings.Development.json`):
@@ -119,8 +117,7 @@ services.AddSingleton<IMessageBus>(serviceProvider =>
     }
   }
 }
-```
-
+```csharp
 **Nota**: O RabbitMQ suporta duas formas de configuração de conexão:
 1. **ConnectionString direta**: `"amqp://user:pass@host:port/vhost"`
 2. **Propriedades individuais**: O sistema automaticamente constrói a ConnectionString usando `Host`, `Port`, `Username`, `Password` e `VirtualHost` através do método `BuildConnectionString()`
@@ -137,8 +134,7 @@ services.AddSingleton<IMessageBus>(serviceProvider =>
     }
   }
 }
-```
-
+```csharp
 #### **Testing** (`appsettings.Testing.json`):
 ```json
 {
@@ -147,8 +143,7 @@ services.AddSingleton<IMessageBus>(serviceProvider =>
     "Provider": "Mock"
   }
 }
-```
-
+```yaml
 ### 4. **Mocks para Testes**
 
 **Configuração nos testes**: `tests/MeAjudaAi.Integration.Tests/Base/ApiTestBase.cs`
@@ -165,8 +160,7 @@ builder.ConfigureServices(services =>
     
     // Outras configurações...
 });
-```
-
+```csharp
 **Nota**: Para testes de integração, os mocks são registrados automaticamente quando o ambiente é "Testing", substituindo as implementações reais do MessageBus para garantir isolamento e velocidade dos testes.
 
 ### 5. **Transporte Rebus por Ambiente**
@@ -200,8 +194,7 @@ private static void ConfigureTransport(
             serviceBusOptions.DefaultTopicName);
     }
 }
-```
-
+```csharp
 ### 6. **Infraestrutura Aspire por Ambiente**
 
 **Arquivo**: `src/Aspire/MeAjudaAi.AppHost/Program.cs`
@@ -231,8 +224,7 @@ else // Testing environment
     var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice");
     // ← No message bus reference, NoOpMessageBus handles all messaging
 }
-```
-
+```text
 ## **Garantias Implementadas**
 
 ### ✅ **1. Development Environment**
@@ -268,8 +260,7 @@ Environment Detection
 │ OU NoOp         │                 │ + Scalable      │
 │ (se desabilitado)│                │                 │
 └─────────────────┴─────────────────┴─────────────────┘
-```
-
+```text
 ## **Validação**
 
 ### **Como Confirmar a Configuração:**

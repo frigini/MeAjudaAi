@@ -4,6 +4,13 @@ namespace MeAjudaAi.Shared.Authorization;
 
 /// <summary>
 /// Define tipos de claims customizados utilizados no sistema de autenticação/autorização.
+/// 
+/// Architectural Note: Esta classe atua como uma facade para AuthConstants.Claims,
+/// fornecendo uma camada de abstração que permite:
+/// - Isolamento de mudanças: Alterações em AuthConstants não afetam diretamente o código de autorização
+/// - Semantica específica: Claims podem evoluir independentemente de outras constantes de autenticação
+/// - Futura extensibilidade: Permite adicionar lógica específica de claims sem modificar AuthConstants
+/// - Clareza de propósito: Separação clara entre constantes gerais de auth e tipos específicos de claims
 /// </summary>
 public static class CustomClaimTypes
 {

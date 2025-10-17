@@ -11,7 +11,7 @@
 ## 📊 **Situação Atual vs Proposta**
 
 ### **Atual: 12+ Scripts** 
-```
+```csharp
 run-local.sh               (248 linhas) ✅ Bem documentado
 run-local-improved.sh      (?) ❌ Duplicado
 test.sh                    (240 linhas) ✅ Bem documentado  
@@ -22,10 +22,9 @@ infrastructure/scripts/start-dev.sh     ❌ Duplicado?
 infrastructure/scripts/start-keycloak.sh ❌ Duplicado?
 infrastructure/scripts/stop-all.sh      ❌ Duplicado?
 + vários outros...
-```
-
+```text
 ### **Proposta: 6 Scripts Essenciais**
-```
+```yaml
 scripts/
 ├── dev.sh              # Desenvolvimento local (substitui run-local*.sh)
 ├── test.sh             # Testes (mantém atual)
@@ -33,8 +32,7 @@ scripts/
 ├── setup.sh            # Setup inicial do projeto
 ├── optimize.sh         # Otimizações (mantém tests/optimize-tests.sh)
 └── utils.sh            # Funções compartilhadas
-```
-
+```bash
 ## 🔄 **Scripts para Consolidar/Remover**
 
 ### **Duplicados/Redundantes:**
@@ -114,8 +112,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # === LÓGICA DO SCRIPT AQUI ===
-```
-
+```text
 ## 🚀 **Plano de Ação Recomendado**
 
 ### **Fase 1: Auditoria (Agora)**

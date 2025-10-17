@@ -67,7 +67,9 @@ internal class MetricsCollectorService(
 
             // Placeholder - implementar com o serviço real de usuários
             await Task.Delay(1, CancellationToken.None); // Simular operação async
-            return Random.Shared.Next(50, 200); // Valor simulado
+            
+            // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
+            return 125; // Valor simulado fixo
         }
         catch (Exception ex)
         {
@@ -84,7 +86,9 @@ internal class MetricsCollectorService(
 
             // Placeholder - implementar com o serviço real de help requests
             await Task.Delay(1, CancellationToken.None); // Simular operação async
-            return Random.Shared.Next(0, 50); // Valor simulado
+            
+            // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
+            return 25; // Valor simulado fixo
         }
         catch (Exception ex)
         {

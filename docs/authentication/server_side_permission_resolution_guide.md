@@ -47,8 +47,7 @@ app.MapUsersEndpoints();
 app.MapHealthChecks("/health");
 
 app.Run();
-```
-
+```csharp
 ## 2. Configuração no appsettings.json
 
 ### appsettings.json
@@ -68,8 +67,7 @@ app.Run();
     }
   }
 }
-```
-
+```text
 ### appsettings.Production.json
 ```json
 {
@@ -82,12 +80,11 @@ app.Run();
     "Audience": "meajudaai-api"
   }
 }
-```
-
+```yaml
 ## 3. Estrutura de Roles no Keycloak
 
 ### Roles Recomendados
-```
+```bash
 Realm Roles:
 ├── meajudaai-system-admin     # Administrador completo
 ├── meajudaai-user-admin       # Administrador de usuários
@@ -99,8 +96,7 @@ Realm Roles:
 ├── meajudaai-order-operator   # Operador de pedidos
 ├── meajudaai-report-admin     # Admin de relatórios
 └── meajudaai-report-viewer    # Visualizador de relatórios
-```
-
+```sql
 ### Mapeamento Automático
 O `KeycloakPermissionResolver` mapeia automaticamente estes roles para permissões:
 
@@ -113,8 +109,7 @@ O `KeycloakPermissionResolver` mapeia automaticamente estes roles para permissõ
 "meajudaai-provider-admin" → CRUD prestadores
 "meajudaai-order-admin" → CRUD pedidos
 "meajudaai-report-admin" → Criar/exportar relatórios
-```
-
+```yaml
 ## 4. Uso em Endpoints
 
 ### Endpoints com Permissões Type-Safe
@@ -153,8 +148,7 @@ public static class UsersEndpoints
         return endpoints;
     }
 }
-```
-
+```csharp
 ### Handlers com Verificação Server-Side
 ```csharp
 private static async Task<IResult> GetUsersAsync(
@@ -195,8 +189,7 @@ private static async Task<IResult> DeleteUserAsync(
     
     return Results.Forbid();
 }
-```
-
+```yaml
 ## 5. Verificações Client-Side (Controllers/Views)
 
 ### Em Controllers
@@ -224,8 +217,7 @@ public class UsersController : ControllerBase
         return Ok(new { profile = "data", permissions });
     }
 }
-```
-
+```csharp
 ### Em Views/Components
 ```csharp
 @using MeAjudaAi.Shared.Authorization
@@ -240,8 +232,7 @@ public class UsersController : ControllerBase
         <!-- Conteúdo administrativo -->
     </div>
 }
-```
-
+```text
 ## 6. Monitoramento e Observabilidade
 
 ### Métricas Automáticas
@@ -265,8 +256,7 @@ Endpoint `/health` inclui verificação automática:
 [INF] Added 7 permission claims for user user-123
 [WRN] Authorization failure: User user-456 denied users:delete - Permission not granted
 [DBG] Resolved 5 permissions from 2 Keycloak roles for user user-789
-```
-
+```csharp
 ## 7. Cache e Performance
 
 ### Configuração Automática
@@ -287,8 +277,7 @@ await permissionService.InvalidateUserPermissionsCacheAsync("user-123");
 // Métricas de cache
 var stats = metricsService.GetSystemStats();
 Console.WriteLine($"Cache hit rate: {stats.CacheHitRate:P1}");
-```
-
+```csharp
 ## 8. Desenvolvimento e Testes
 
 ### Testes Automatizados
@@ -304,8 +293,7 @@ dotnet test --filter "Category=E2E"
 
 # Testes de arquitetura
 dotnet test --filter "Category=Architecture"
-```
-
+```yaml
 ### Ambiente de Desenvolvimento
 ```csharp
 // TestAuthenticationHandler para testes
@@ -318,8 +306,7 @@ services.AddAuthentication("Test")
             new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue())
         };
     });
-```
-
+```csharp
 ## 9. Extensibilidade para Novos Módulos
 
 ### Adicionando Módulo Providers
@@ -357,8 +344,7 @@ public static IServiceCollection AddProvidersModule(this IServiceCollection serv
 
 // 4. Configurar no Program.cs
 builder.Services.AddProvidersModule();
-```
-
+```sql
 ## 10. Troubleshooting
 
 ### Problemas Comuns
@@ -367,27 +353,23 @@ builder.Services.AddProvidersModule();
 ```bash
 # Verifique se HybridCache está configurado no Aspire
 # Logs devem mostrar: "Added X permission claims for user Y"
-```
-
+```csharp
 **Permissões não carregam**
 ```bash
 # Verifique configuração Keycloak
 # Teste endpoint: GET /health - deve mostrar resolver_count > 0
-```
-
+```yaml
 **Performance degradada**
 ```bash
 # Monitore métricas
 curl /metrics | grep meajudaai_permission
 # Cache hit rate deve estar > 70%
-```
-
+```text
 **Roles não mapeiam**
 ```bash
 # Verifique nomes exatos no Keycloak
 # Logs devem mostrar: "Retrieved X roles from Keycloak for user Y"
-```
-
+```text
 O sistema está agora **completo e pronto para produção** com:
 - ✅ Permissões type-safe
 - ✅ Resolução server-side com cache

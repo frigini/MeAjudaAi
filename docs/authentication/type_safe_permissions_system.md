@@ -13,12 +13,12 @@ O sistema implementa:
 
 ## Estrutura de Arquivos
 
-```
+```csharp
 src/
 ├── Shared/MeAjudai.Shared/Authorization/
-│   ├── Permission.cs                    # Enum type-safe de permissões
+│   ├── EPermission.cs                   # Enum type-safe de permissões
 │   ├── CustomClaimTypes.cs             # Constantes de claim types
-│   ├── PermissionExtensions.cs         # Extensões para enum Permission
+│   ├── PermissionExtensions.cs         # Extensões para enum EPermission
 │   ├── IPermissionService.cs           # Interface do serviço de permissões
 │   ├── PermissionService.cs            # Implementação modular com cache
 │   ├── IModulePermissionResolver.cs    # Interface para resolvers modulares
@@ -35,8 +35,7 @@ src/
 │       │   └── UsersModuleExtensions.cs # Configuração do módulo
 │       └── Endpoints/
 │           └── UsersEndpoints.cs       # Exemplo de endpoints com permissões
-```
-
+```yaml
 ## Como Usar
 
 ### 1. Configuração no ApiService
@@ -52,9 +51,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddPermissionBasedAuthorization();
 
 // Registra módulos com seus resolvers de permissão
-builder.Services.AddUsersModule();
-// builder.Services.AddProvidersModule(); // Futuros módulos
-// builder.Services.AddOrdersModule();
+builder.Services.AddUsersModule(builder.Configuration);
+// builder.Services.AddProvidersModule(builder.Configuration); // Futuros módulos
+// builder.Services.AddOrdersModule(builder.Configuration);
 
 var app = builder.Build();
 
@@ -62,13 +61,12 @@ var app = builder.Build();
 app.MapUsersEndpoints();
 
 app.Run();
-```
-
+```csharp
 ### 2. Criando Permissões Type-Safe
 
 ```csharp
-// As permissões são organizadas por módulo no enum Permission
-public enum Permission
+// As permissões são organizadas por módulo no enum EPermission
+public enum EPermission
 {
     // Sistema
     [Display(Name = "admin:system", Description = "Administração do sistema")]
@@ -85,8 +83,7 @@ public enum Permission
     [Display(Name = "providers:read", Description = "Visualizar prestadores")]
     ProvidersRead,
 }
-```
-
+```sql
 ### 3. Implementando Resolver Modular
 
 ```csharp
@@ -95,13 +92,13 @@ public sealed class UsersPermissionResolver : IModulePermissionResolver
 {
     public string ModuleName => "Users";
     
-    public async Task<IReadOnlyList<Permission>> ResolvePermissionsAsync(
+    public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(
         string userId, 
         CancellationToken cancellationToken = default)
     {
         // Lógica específica do módulo para mapear roles/contexto em permissões
         var userRoles = await GetUserRolesAsync(userId, cancellationToken);
-        var permissions = new List<Permission>();
+        var permissions = new List<EPermission>();
         
         foreach (var role in userRoles)
         {
@@ -112,24 +109,23 @@ public sealed class UsersPermissionResolver : IModulePermissionResolver
         return permissions.Distinct().ToList();
     }
     
-    public bool CanResolve(Permission permission)
+    public bool CanResolve(EPermission permission)
     {
         return permission.GetModule().Equals("Users", StringComparison.OrdinalIgnoreCase);
     }
     
-    private static IEnumerable<Permission> MapRoleToUserPermissions(string role)
+    private static IEnumerable<EPermission> MapRoleToUserPermissions(string role)
     {
         return role.ToLowerInvariant() switch
         {
             "system-admin" => UsersPermissions.SystemAdmin,
             "user-admin" => UsersPermissions.UserAdmin,
             "basic-user" => UsersPermissions.BasicUser,
-            _ => Array.Empty<Permission>()
+            _ => Array.Empty<EPermission>()
         };
     }
 }
-```
-
+```csharp
 ### 4. Organizando Permissões por Módulo
 
 ```csharp
@@ -139,31 +135,30 @@ public static class UsersPermissions
     // Categorias de permissões
     public static class Read
     {
-        public static readonly Permission[] All = { Permission.UsersRead, Permission.UsersList };
-        public static readonly Permission Profile = Permission.UsersProfile;
+        public static readonly EPermission[] All = { EPermission.UsersRead, EPermission.UsersList };
+        public static readonly EPermission Profile = EPermission.UsersProfile;
     }
     
     public static class Write
     {
-        public static readonly Permission[] All = { Permission.UsersCreate, Permission.UsersUpdate };
-        public static readonly Permission Create = Permission.UsersCreate;
-        public static readonly Permission Update = Permission.UsersUpdate;
+        public static readonly EPermission[] All = { EPermission.UsersCreate, EPermission.UsersUpdate };
+        public static readonly EPermission Create = EPermission.UsersCreate;
+        public static readonly EPermission Update = EPermission.UsersUpdate;
     }
     
     public static class Admin
     {
-        public static readonly Permission[] All = { Permission.AdminUsers, Permission.UsersDelete };
-        public static readonly Permission Delete = Permission.UsersDelete;
-        public static readonly Permission Management = Permission.AdminUsers;
+        public static readonly EPermission[] All = { EPermission.AdminUsers, EPermission.UsersDelete };
+        public static readonly EPermission Delete = EPermission.UsersDelete;
+        public static readonly EPermission Management = EPermission.AdminUsers;
     }
     
     // Permissões por tipo de usuário
-    public static readonly Permission[] BasicUser = { Permission.UsersProfile, Permission.UsersRead };
-    public static readonly Permission[] UserAdmin = { Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersList };
-    public static readonly Permission[] SystemAdmin = { Permission.AdminSystem, Permission.AdminUsers, Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersDelete, Permission.UsersList };
+    public static readonly EPermission[] BasicUser = { EPermission.UsersProfile, EPermission.UsersRead };
+    public static readonly EPermission[] UserAdmin = { EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersList };
+    public static readonly EPermission[] SystemAdmin = { EPermission.AdminSystem, EPermission.AdminUsers, EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.UsersList };
 }
-```
-
+```yaml
 ### 5. Aplicando Permissões em Endpoints
 
 ```csharp
@@ -175,22 +170,22 @@ public static class UsersEndpoints
         
         // Exemplo 1: Permissão única
         group.MapGet("/", GetUsersAsync)
-            .RequirePermission(Permission.UsersList)
+            .RequirePermission(EPermission.UsersList)
             .RequireAuthorization();
         
         // Exemplo 2: Múltiplas permissões (todas obrigatórias)
         group.MapDelete("/{id:guid}", DeleteUserAsync)
-            .RequirePermissions(Permission.UsersDelete, Permission.AdminUsers)
+            .RequirePermissions(EPermission.UsersDelete, EPermission.AdminUsers)
             .RequireAuthorization();
         
         // Exemplo 3: Qualquer uma das permissões
         group.MapGet("/{id:guid}", GetUserByIdAsync)
-            .RequireAnyPermission(Permission.UsersRead, Permission.AdminUsers)
+            .RequireAnyPermission(EPermission.UsersRead, EPermission.AdminUsers)
             .RequireAuthorization();
         
         // Exemplo 4: Permissões específicas de módulo
         group.MapGet("/admin", GetAllUsersAdminAsync)
-            .RequireModulePermission("Users", Permission.AdminUsers, Permission.UsersList)
+            .RequireModulePermission("Users", EPermission.AdminUsers, EPermission.UsersList)
             .RequireAuthorization();
         
         // Exemplo 5: Admin do sistema
@@ -201,8 +196,7 @@ public static class UsersEndpoints
         return endpoints;
     }
 }
-```
-
+```csharp
 ### 6. Verificação Server-Side nos Handlers
 
 ```csharp
@@ -214,7 +208,7 @@ private static async Task<IResult> GetUsersAsync(
     
     // Verificação server-side adicional (redundante mas segura)
     if (!string.IsNullOrEmpty(userId) && 
-        await permissionService.HasPermissionAsync(userId, Permission.UsersList))
+        await permissionService.HasPermissionAsync(userId, EPermission.UsersList))
     {
         // Lógica do endpoint
         return Results.Ok(new { message = "Lista de usuários" });
@@ -232,7 +226,7 @@ private static async Task<IResult> DeleteUserAsync(
     var userId = context.User.FindFirst("sub")?.Value;
     
     if (!string.IsNullOrEmpty(userId) && 
-        await permissionService.HasPermissionsAsync(userId, new[] { Permission.UsersDelete, Permission.AdminUsers }))
+        await permissionService.HasPermissionsAsync(userId, new[] { EPermission.UsersDelete, EPermission.AdminUsers }))
     {
         // Lógica de remoção
         return Results.Ok(new { id, message = "Usuário removido" });
@@ -251,15 +245,14 @@ private static async Task<IResult> GetAllUsersAdminAsync(
     // Obtém permissões específicas do módulo Users
     var userPermissions = await permissionService.GetUserPermissionsByModuleAsync(userId ?? "", "Users");
     
-    if (userPermissions.Contains(Permission.AdminUsers) && userPermissions.Contains(Permission.UsersList))
+    if (userPermissions.Contains(EPermission.AdminUsers) && userPermissions.Contains(EPermission.UsersList))
     {
         return Results.Ok(new { message = "Lista administrativa", permissions = userPermissions.Count });
     }
     
     return Results.Forbid();
 }
-```
-
+```yaml
 ### 7. Extensões para ClaimsPrincipal
 
 ```csharp
@@ -269,17 +262,17 @@ public class SomeController : ControllerBase
     public IActionResult SomeAction()
     {
         // Verificação direta no ClaimsPrincipal
-        if (User.HasPermission(Permission.UsersRead))
+        if (User.HasPermission(EPermission.UsersRead))
         {
             // Usuário tem permissão
         }
         
-        if (User.HasPermissions(Permission.UsersRead, Permission.UsersList))
+        if (User.HasPermissions(EPermission.UsersRead, EPermission.UsersList))
         {
             // Usuário tem todas as permissões
         }
         
-        if (User.HasAnyPermission(Permission.UsersRead, Permission.AdminUsers))
+        if (User.HasAnyPermission(EPermission.UsersRead, EPermission.AdminUsers))
         {
             // Usuário tem pelo menos uma das permissões
         }
@@ -296,8 +289,7 @@ public class SomeController : ControllerBase
         return Ok();
     }
 }
-```
-
+```csharp
 ## Performance e Cache
 
 O sistema usa cache em múltiplas camadas:
@@ -311,8 +303,7 @@ var modulePermissions = await permissionService.GetUserPermissionsByModuleAsync(
 
 // Invalidação de cache
 await permissionService.InvalidateUserPermissionsCacheAsync(userId);
-```
-
+```yaml
 **Características do Cache:**
 - Cache distribuído usando HybridCache (já disponível no Aspire)
 - Cache local (5 minutos) + cache distribuído (30 minutos)
@@ -325,7 +316,7 @@ Para adicionar um novo módulo (ex: Providers):
 
 ### 1. Adicionar permissões no enum:
 ```csharp
-public enum Permission
+public enum EPermission
 {
     // Existing permissions...
     
@@ -336,46 +327,42 @@ public enum Permission
     [Display(Name = "providers:create", Description = "Criar prestadores")]
     ProvidersCreate,
 }
-```
-
+```csharp
 ### 2. Criar resolver do módulo:
 ```csharp
 public sealed class ProvidersPermissionResolver : IModulePermissionResolver
 {
     public string ModuleName => "Providers";
     
-    public async Task<IReadOnlyList<Permission>> ResolvePermissionsAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(string userId, CancellationToken cancellationToken = default)
     {
         // Lógica específica do módulo Providers
     }
     
-    public bool CanResolve(Permission permission)
+    public bool CanResolve(EPermission permission)
     {
         return permission.GetModule().Equals("Providers", StringComparison.OrdinalIgnoreCase);
     }
 }
-```
-
+```yaml
 ### 3. Registrar no DI:
 ```csharp
 // ProvidersModuleExtensions.cs
-public static IServiceCollection AddProvidersModule(this IServiceCollection services)
+public static IServiceCollection AddProvidersModule(this IServiceCollection services, IConfiguration configuration)
 {
     services.AddModulePermissionResolver<ProvidersPermissionResolver>();
     return services;
 }
 
 // Program.cs
-builder.Services.AddProvidersModule();
-```
-
+builder.Services.AddProvidersModule(builder.Configuration);
+```csharp
 ### 4. Criar endpoints com permissões:
 ```csharp
 group.MapGet("/", GetProvidersAsync)
-    .RequirePermission(Permission.ProvidersRead)
+    .RequirePermission(EPermission.ProvidersRead)
     .RequireAuthorization();
-```
-
+```text
 ## Vantagens do Sistema
 
 1. **Type-Safety**: Permissões são validadas em tempo de compilação

@@ -39,8 +39,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.Run();
-```
-
+```csharp
 ### Configuração de Autorização
 
 ```csharp
@@ -53,15 +52,13 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("UserPolicy", policy =>
         policy.RequireAuthenticatedUser()); // TestHandler sempre autentica
 });
-```
-
+```text
 **⚠️ Importante**: Para que a política `AdminOnly` funcione corretamente, o `TestAuthenticationHandler` deve criar a identidade com o tipo de claim correto:
 
 ```csharp
 // Dentro do handler ao criar a identity:
 var identity = new ClaimsIdentity(claims, Scheme.Name, ClaimTypes.Name, ClaimTypes.Role);
-```
-
+```yaml
 ## 🔍 Verificação de Ambiente
 
 ### Validação Automática
@@ -75,8 +72,7 @@ if (builder.Environment.IsProduction() && /* TestHandler detectado */)
     throw new InvalidOperationException(
         "TestAuthenticationHandler cannot be used in Production environment!");
 }
-```
-
+```csharp
 ### Variáveis de Ambiente
 
 Certifique-se de que as seguintes variáveis estão configuradas:
@@ -90,8 +86,7 @@ ASPNETCORE_ENVIRONMENT=Testing
 
 # Em produção, defina:
 # ASPNETCORE_ENVIRONMENT=Production
-```
-
+```csharp
 ## 📊 Monitoramento e Logs
 
 ### Logs de Segurança
@@ -102,8 +97,7 @@ O handler gera logs específicos para auditoria:
 [WARN] 🚨 TEST AUTHENTICATION ACTIVE: Bypassing real authentication. 
 Request from 127.0.0.1 authenticated as admin user automatically. 
 Ensure this is NOT a production environment!
-```
-
+```yaml
 ### Logs de Debug
 
 Em modo debug, logs adicionais são gerados:
@@ -111,8 +105,7 @@ Em modo debug, logs adicionais são gerados:
 ```text
 [DEBUG] Test authentication completed. Generated claims: 9, 
 Identity: test-user, IsAuthenticated: True
-```
-
+```text
 ## 🎯 Casos de Uso Recomendados
 
 ### 1. Testes de Integração
@@ -126,8 +119,7 @@ public async Task GetUsers_WithAuthentication_ShouldReturnUsers()
     
     response.StatusCode.Should().Be(HttpStatusCode.OK);
 }
-```
-
+```csharp
 ### 2. Desenvolvimento Local
 
 - Permite testar endpoints protegidos sem configurar Keycloak
@@ -174,8 +166,7 @@ public class CustomTestAuthenticationHandler
     return Task.FromResult(AuthenticateResult.Success(ticket));
   }
 }
-```
-
+```csharp
 ### Múltiplos Esquemas
 
 ```csharp
@@ -192,8 +183,7 @@ builder.Services.AddAuthentication(options =>
 
 // Alternativa por endpoint:
 // [Authorize(AuthenticationSchemes = "Test-User")]
-```
-
+```text
 ## 🔒 Boas Práticas de Segurança
 
 ### 1. Sempre Verificar Ambiente
@@ -231,15 +221,13 @@ public class TestAuthenticationHandler : AuthenticationHandler<AuthenticationSch
         // ... resto da implementação
     }
 }
-```
-
+```csharp
 ### 2. Logs de Auditoria
 
 ```csharp
 _logger.LogWarning("TEST AUTH: Request {Path} authenticated with test handler from IP {IP}",
     Context.Request.Path, Context.Connection.RemoteIpAddress);
-```
-
+```text
 ### 3. Timeouts Curtos
 
 ```csharp
@@ -263,4 +251,4 @@ var properties = new AuthenticationProperties
 
 var ticket = new AuthenticationTicket(principal, properties, "Test");
 return AuthenticateResult.Success(ticket);
-```
+```text

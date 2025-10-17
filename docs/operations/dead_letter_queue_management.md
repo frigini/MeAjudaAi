@@ -14,8 +14,7 @@ docker exec -it meajudaai-rabbitmq rabbitmqctl list_queues name messages | grep 
 
 # Detailed queue information
 docker exec -it meajudaai-rabbitmq rabbitmqctl list_queues name messages consumers memory
-```
-
+```csharp
 #### Check DLQ Status (Production - Azure Service Bus)
 ```bash
 # Using Azure CLI
@@ -23,8 +22,7 @@ az servicebus queue list --resource-group meajudaai-rg --namespace-name meajudaa
 
 # Get specific queue details
 az servicebus queue show --resource-group meajudaai-rg --namespace-name meajudaai-sb --name "users-events\$DeadLetterQueue"
-```
-
+```text
 ### 2. Application-Level Monitoring
 
 #### Get DLQ Statistics via API
@@ -60,8 +58,7 @@ public async Task<IActionResult> GetDeadLetterStatistics()
     },
     "lastUpdated": "2025-10-08T12:00:00Z"
 }
-```
-
+```csharp
 ### 3. Message Analysis and Recovery
 
 #### List Messages in DLQ
@@ -79,8 +76,7 @@ foreach (var message in messages)
     Console.WriteLine($"Last attempt: {message.LastAttemptAt}");
     Console.WriteLine("---");
 }
-```
-
+```csharp
 #### Reprocess Messages
 ```csharp
 // Reprocess single message
@@ -88,12 +84,12 @@ await _deadLetterService.ReprocessDeadLetterMessageAsync("dlq.users-events", "me
 
 // Bulk reprocessing with conditions
 var messages = await _deadLetterService.ListDeadLetterMessagesAsync("dlq.users-events", 50);
-var reprocessableMesages = messages.Where(m => 
+var reprocessableMessages = messages.Where(m => 
     m.AttemptCount <= 3 && 
     m.LastAttemptAt > DateTime.UtcNow.AddHours(-1) &&
     !m.LastFailureReason.Contains("ArgumentException"));
 
-foreach (var message in reprocessableMesages)
+foreach (var message in reprocessableMessages)
 {
     try
     {
@@ -105,8 +101,7 @@ foreach (var message in reprocessableMesages)
         Console.WriteLine($"Failed to reprocess message {message.MessageId}: {ex.Message}");
     }
 }
-```
-
+```text
 #### Clean Up Old Messages
 ```csharp
 // Purge messages older than 7 days
@@ -118,8 +113,7 @@ foreach (var message in oldMessages)
     await _deadLetterService.PurgeDeadLetterMessageAsync("dlq.users-events", message.MessageId);
     Console.WriteLine($"Purged old message {message.MessageId}");
 }
-```
-
+```csharp
 ### 4. Automated Scripts
 
 #### PowerShell Script for DLQ Monitoring
@@ -165,8 +159,7 @@ try {
 catch {
     Write-Error "Failed to retrieve DLQ statistics: $($_.Exception.Message)"
 }
-```
-
+```yaml
 #### Bash Script for RabbitMQ DLQ Monitoring
 ```bash
 #!/bin/bash
@@ -202,8 +195,7 @@ fi
 # Detailed breakdown
 echo "DLQ Breakdown:"
 docker exec $RABBITMQ_CONTAINER rabbitmqctl list_queues name messages | grep dlq
-```
-
+```csharp
 ### 5. Troubleshooting Common Issues
 
 #### Issue: Messages Not Going to DLQ
@@ -222,8 +214,7 @@ Console.WriteLine($"Exception classified as: {failureType}");
 var deadLetterService = serviceProvider.GetRequiredService<IDeadLetterService>();
 var shouldRetry = deadLetterService.ShouldRetry(exception, attemptCount: 1);
 Console.WriteLine($"Should retry: {shouldRetry}");
-```
-
+```text
 #### Issue: Too Many Retries
 ```json
 // Adjust configuration
@@ -240,8 +231,7 @@ Console.WriteLine($"Should retry: {shouldRetry}");
     }
   }
 }
-```
-
+```csharp
 #### Issue: Messages Lost in DLQ
 ```csharp
 // Increase TTL for investigation
@@ -261,8 +251,7 @@ Console.WriteLine($"Should retry: {shouldRetry}");
     }
   }
 }
-```
-
+```bash
 ### 6. Performance Optimization
 
 #### Batch Processing for DLQ Operations
@@ -319,6 +308,5 @@ private bool ShouldPurge(FailedMessageInfo message)
     return message.FirstAttemptAt < DateTime.UtcNow.AddDays(-7) ||
            IsKnownPermanentFailure(message.LastFailureReason);
 }
-```
-
+```text
 This guide provides comprehensive operational procedures for managing Dead Letter Queues in both development and production environments.

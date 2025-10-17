@@ -4,13 +4,12 @@ This directory contains all Keycloak-related configuration for the MeAjudaAi pro
 
 ## Directory Structure
 
-```
+```text
 keycloak/
 ├── realms/
 │   └── meajudaai-realm.json          # Realm configuration for import
 └── README.md
-```
-
+```text
 ## Realm Import
 
 The `meajudaai-realm.json` file contains the MeAjudaAi realm configuration. To import the realm on startup, start Keycloak with the `--import-realm` flag (e.g., `kc.sh start --optimized --import-realm`). The default import directory is `/opt/keycloak/data/import`.

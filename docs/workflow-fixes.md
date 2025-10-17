@@ -10,8 +10,7 @@
 for i in {1..30}; do
     # código aqui
 done
-```
-
+```csharp
 **Solução:**
 ```bash
 # ✅ CORRETO: Sintaxe POSIX-compliant
@@ -21,8 +20,7 @@ while [ $counter -le $max_attempts ]; do
     # código aqui
     counter=$((counter + 1))
 done
-```
-
+```text
 **Arquivos Corrigidos:**
 - `.github/workflows/pr-validation.yml`
 - `.github/workflows/aspire-ci-cd.yml`
@@ -33,8 +31,7 @@ done
 ```bash
 # ❌ ERRO: Interpolação direta causa problemas de escaping
 export PGPASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
-```
-
+```csharp
 **Solução:**
 ```yaml
 # ✅ CORRETO: Usar variáveis de ambiente
@@ -44,8 +41,7 @@ env:
 run: |
   # Usar as variáveis normalmente
   pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"
-```
-
+```yaml
 ### 3. Configuração PostgreSQL Melhorada
 
 **Adições:**
@@ -78,8 +74,7 @@ run: |
 ### 1. Trigger Manual do Workflow
 ```bash
 # Via GitHub UI: Actions → Pull Request Validation → Run workflow
-```
-
+```csharp
 ### 2. Verificar Logs
 ```bash
 # Verificar se PostgreSQL está rodando
@@ -87,8 +82,7 @@ docker ps | grep postgres
 
 # Verificar logs do PostgreSQL
 docker logs $(docker ps -q --filter ancestor=postgres:15)
-```
-
+```powershell
 ### 3. Testar Conexão Local
 ```bash
 # Definir variáveis
@@ -97,8 +91,7 @@ export POSTGRES_USER="postgres"
 
 # Testar conexão
 pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"
-```
-
+```text
 ## Lições Aprendidas
 
 1. **Sempre usar sintaxe POSIX** em scripts de CI/CD

@@ -42,8 +42,7 @@ infrastructure/database/
 │   └── module-registry.sql            # Registry of installed modules
 │
 └── README.md                          # Documentation
-```
-
+```csharp
 ## 🏗️ Schema Organization
 
 ### Database Schema Structure
@@ -55,8 +54,7 @@ infrastructure/database/
 ├── bookings (schema)      - Appointments and reservations
 ├── notifications (schema) - Messaging system
 └── public (schema)        - Cross-cutting views and shared data
-```
-
+```text
 ## 🔐 Database Roles
 
 | Role | Schema | Purpose |
@@ -85,8 +83,7 @@ infrastructure/database/
     "DefaultConnection": "Host=localhost;Database=meajudaai;Username=meajudaai_app_role;Password=${APP_ROLE_PASSWORD}"
   }
 }
-```
-
+```csharp
 ### DbContext Configuration
 ```csharp
 public class UsersDbContext : DbContext
@@ -103,8 +100,7 @@ public class UsersDbContext : DbContext
 builder.Services.AddDbContext<UsersDbContext>(options =>
     options.UseNpgsql(connectionString, 
         o => o.MigrationsHistoryTable("__EFMigrationsHistory", "users")));
-```
-
+```yaml
 ## 🚀 Benefits of This Strategy
 
 ### Enforceable Boundaries
@@ -131,8 +127,7 @@ builder.Services.AddDbContext<UsersDbContext>(options =>
 ```bash
 # Copy template for new module
 cp -r infrastructure/database/modules/users infrastructure/database/modules/providers
-```
-
+```csharp
 ### Step 2: Update SQL Scripts
 Replace `users` with new module name in:
 - `00-create-roles.sql`
@@ -149,16 +144,14 @@ public class ProvidersDbContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 }
-```
-
+```yaml
 ### Step 4: Register in DI
 ```csharp
 builder.Services.AddDbContext<ProvidersDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("Providers"), 
         o => o.MigrationsHistoryTable("__EFMigrationsHistory", "providers")));
-```
-
+```csharp
 ## 🔄 Migration Commands
 
 ### Generate Migrations
@@ -168,8 +161,7 @@ dotnet ef migrations add AddUserProfile --context UsersDbContext --output-dir In
 
 # Generate migration for Providers module (future)
 dotnet ef migrations add InitialProviders --context ProvidersDbContext --output-dir Infrastructure/Persistence/Migrations
-```
-
+```yaml
 ### Apply Migrations
 ```bash
 # Apply all migrations for Users module
@@ -177,14 +169,12 @@ dotnet ef database update --context UsersDbContext
 
 # Apply specific migration
 dotnet ef database update AddUserProfile --context UsersDbContext
-```
-
+```bash
 ### Remove Migrations
 ```bash
 # Remove last migration for Users module
 dotnet ef migrations remove --context UsersDbContext
-```
-
+```yaml
 ## 🌐 Cross-Module Access Strategies
 
 ### Option 1: Database Views (Current)
@@ -196,8 +186,7 @@ JOIN bookings.bookings b ON b.user_id = u.id
 JOIN services.services s ON s.id = b.service_id;
 
 GRANT SELECT ON public.user_bookings_summary TO meajudaai_app_role;
-```
-
+```yaml
 ### Option 2: Module APIs (Recommended)
 ```csharp
 // Each module exposes a clean API
@@ -236,8 +225,7 @@ public class BookingService
         // Create booking...
     }
 }
-```
-
+```csharp
 ### Option 3: Event-Driven Read Models (Future)
 ```csharp
 // Users module publishes events
@@ -262,8 +250,7 @@ public class NotificationEventHandler : INotificationHandler<UserRegisteredEvent
             });
     }
 }
-```
-
+```text
 ## ⚡ Development Setup
 
 ### Local Development

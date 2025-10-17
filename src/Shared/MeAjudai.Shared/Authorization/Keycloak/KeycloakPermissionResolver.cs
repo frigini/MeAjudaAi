@@ -18,7 +18,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     private readonly HybridCache _cache;
     private readonly ILogger<KeycloakPermissionResolver> _logger;
 
-    public string ModuleName => "Keycloak";
+    public string ModuleName => ModuleNames.Users; // Keycloak resolver é usado principalmente pelo módulo Users
 
     public KeycloakPermissionResolver(
         HttpClient httpClient,
@@ -33,6 +33,14 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         _logger = logger;
 
         ConfigureHttpClient();
+    }
+
+    public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(UserId userId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(userId);
+
+        // Converte UserId para string para compatibilidade com a implementação atual
+        return await ResolvePermissionsAsync(userId.Value.ToString(), cancellationToken);
     }
 
     public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(string userId, CancellationToken cancellationToken = default)

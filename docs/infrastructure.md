@@ -15,7 +15,7 @@ Este documento fornece um guia completo para configurar, executar e fazer deploy
 
 ## 📁 Estrutura da Infraestrutura
 
-```
+```csharp
 infrastructure/
 ├── compose/                    # Docker Compose (alternativo)
 │   ├── base/                   # Definições de serviços base
@@ -28,8 +28,7 @@ infrastructure/
 ├── main.bicep                  # Template de infraestrutura Azure
 ├── servicebus.bicep            # Configuração Azure Service Bus
 └── deploy.sh                   # Script de deployment Azure
-```
-
+```yaml
 ## 🚀 Configuração para Desenvolvimento
 
 ### .NET Aspire (Recomendado)
@@ -37,8 +36,7 @@ infrastructure/
 ```bash
 cd src/Aspire/MeAjudaAi.AppHost
 dotnet run
-```
-
+```bash
 **Fornece:**
 - PostgreSQL com setup automático de schemas
 - Keycloak com importação automática de realm
@@ -66,8 +64,7 @@ docker compose -f environments/development.yml up -d
 docker compose -f standalone/keycloak-only.yml up -d
 docker compose -f standalone/postgres-only.yml up -d
 docker compose -f standalone/messaging-only.yml up -d
-```
-
+```yaml
 #### Composições Disponíveis
 
 **Development** (`environments/development.yml`)
@@ -114,8 +111,7 @@ azd show
 
 # Limpar recursos (cuidado!)
 azd down
-```
-
+```yaml
 ### Configuração de Ambientes
 
 #### Desenvolvimento Local
@@ -124,15 +120,13 @@ azd down
 export ASPNETCORE_ENVIRONMENT=Development
 export ConnectionStrings__DefaultConnection="Host=localhost;Database=meajudaai_dev;Username=postgres;Password=dev123"
 export Keycloak__Authority="http://localhost:8080/realms/meajudaai"
-```
-
+```bash
 #### Produção Azure
 ```bash
 # Configuração automática via azd
 # Secrets gerenciados pelo Key Vault
 # Connection strings injetadas via Container Apps
-```
-
+```csharp
 ## 🗄️ Configuração de Banco de Dados
 
 ### Estratégia de Schemas
@@ -149,8 +143,7 @@ GRANT ALL ON ALL TABLES IN SCHEMA users TO users_role;
 -- Schema e role para módulo Services (futuro)
 CREATE SCHEMA IF NOT EXISTS services;
 CREATE ROLE services_role;
-```
-
+```yaml
 ### Migrations
 
 ```bash
@@ -162,8 +155,7 @@ dotnet ef database update --context UsersDbContext
 
 # Remover última migration
 dotnet ef migrations remove --context UsersDbContext
-```
-
+```sql
 ## 🔐 Configuração do Keycloak
 
 ### Realm MeAjudaAi
@@ -200,8 +192,7 @@ O arquivo `infrastructure/keycloak/realms/meajudaai-realm.json` contém:
   "standardFlowEnabled": true,
   "directAccessGrantsEnabled": true
 }
-```
-
+```yaml
 ## 📨 Sistema de Messaging
 
 ### Estratégia por Ambiente
@@ -210,14 +201,12 @@ O arquivo `infrastructure/keycloak/realms/meajudaai-realm.json` contém:
 ```csharp
 // Configuração automática via Aspire
 builder.AddRabbitMQ("messaging");
-```
-
+```bash
 #### Produção: Azure Service Bus
 ```csharp
 // Configuração automática via azd
 builder.AddAzureServiceBus("messaging");
-```
-
+```yaml
 ### Factory Pattern
 
 ```csharp
@@ -235,8 +224,7 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
         }
     }
 }
-```
-
+```powershell
 ## 🔧 Scripts de Utilitários
 
 ### Setup Completo
@@ -250,8 +238,7 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
 
 # Setup com deploy Azure
 ./setup-cicd.ps1
-```
-
+```text
 ### Backup e Restore
 
 ```bash
@@ -260,8 +247,7 @@ docker exec postgres-dev pg_dump -U postgres meajudaai_dev > backup.sql
 
 # Restore
 docker exec -i postgres-dev psql -U postgres -d meajudaai_dev < backup.sql
-```
-
+```bash
 ### Logs e Monitoramento
 
 ```bash
@@ -273,8 +259,7 @@ docker compose -f infrastructure/compose/environments/development.yml logs -f
 
 # Logs Azure Container Apps
 az containerapp logs show --name meajudaai-api --resource-group rg-meajudaai
-```
-
+```text
 ## 🚨 Troubleshooting
 
 ### Problemas Comuns
@@ -286,8 +271,7 @@ netstat -an | grep 8080
 
 # Restart do container
 docker compose restart keycloak
-```
-
+```bash
 #### 2. PostgreSQL connection refused
 ```bash
 # Verificar status do container
@@ -295,8 +279,7 @@ docker ps | grep postgres
 
 # Verificar logs
 docker logs postgres-dev
-```
-
+```text
 #### 3. Aspire não conecta aos serviços
 ```bash
 # Limpar containers anteriores
@@ -304,8 +287,7 @@ docker system prune -f
 
 # Restart do Aspire
 dotnet run --project src/Aspire/MeAjudaAi.AppHost
-```
-
+```bash
 ### Verificação de Saúde
 
 ```bash
@@ -317,8 +299,7 @@ docker compose ps
 
 # Status dos recursos Azure
 azd show
-```
-
+```text
 ## 📋 Checklist de Deploy
 
 ### Desenvolvimento

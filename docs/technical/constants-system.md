@@ -6,14 +6,13 @@ Este documento descreve o sistema de constantes centralizadas implementado no pr
 
 Todas as constantes estão localizadas em `src/Shared/MeAjudai.Shared/Constants/`:
 
-```
+```csharp
 Constants/
 ├── ApiEndpoints.cs          # Endpoints da API por módulo
 ├── AuthConstants.cs         # Constantes de autorização
 ├── ValidationConstants.cs   # Limites de validação
 └── ValidationMessages.cs    # Mensagens de erro padronizadas
-```
-
+```text
 ## 🚀 Como Usar
 
 ### 1. ApiEndpoints - Endpoints da API
@@ -27,8 +26,7 @@ public static void Map(IEndpointRouteBuilder app)
     => app.MapGet(ApiEndpoints.Users.GetById, GetUserAsync)
         .WithName("GetUser")
         .RequireAdmin();
-```
-
+```csharp
 **Para Clientes HTTP Externos (com Refit):**
 
 ```csharp
@@ -42,8 +40,7 @@ public interface IUsersApi
     [Get($"/api/v1{ApiEndpoints.Users.GetById}")]
     Task<UserResponse> GetUserAsync(string id);
 }
-```
-
+```yaml
 ### 2. AuthConstants - Autorização
 
 **Policies:**
@@ -55,8 +52,7 @@ using MeAjudaAi.Shared.Constants;
 
 // Use:
 .RequireAuthorization(AuthConstants.Policies.AdminOnly)
-```
-
+```csharp
 **Claims:**
 ```csharp
 // Em vez de:
@@ -64,8 +60,7 @@ var userId = context.User.FindFirst("user_id")?.Value;
 
 // Use:
 var userId = context.User.FindFirst(AuthConstants.Claims.UserId)?.Value;
-```
-
+```yaml
 **Roles:**
 ```csharp
 // Em vez de:
@@ -73,8 +68,7 @@ if (user.IsInRole("admin"))
 
 // Use:
 if (user.IsInRole(AuthConstants.Roles.Admin))
-```
-
+```csharp
 ### 3. ValidationConstants - Limites de Validação
 
 **Em DTOs e Entidades:**
@@ -91,8 +85,7 @@ public class User
     [EmailAddress]
     public string Email { get; set; }
 }
-```
-
+```yaml
 **Em Validadores FluentValidation:**
 ```csharp
 public class CreateUserValidator : AbstractValidator<CreateUserRequest>
@@ -109,8 +102,7 @@ public class CreateUserValidator : AbstractValidator<CreateUserRequest>
             .Matches(ValidationConstants.Patterns.Email);
     }
 }
-```
-
+```csharp
 ### 4. ValidationMessages - Mensagens de Erro
 
 **Em Validadores:**
@@ -120,16 +112,14 @@ RuleFor(x => x.Email)
     .WithMessage(ValidationMessages.Required.Email)
     .EmailAddress()
     .WithMessage(ValidationMessages.InvalidFormat.Email);
-```
-
+```yaml
 **Em Handlers de Comando:**
 ```csharp
 if (await userRepository.EmailExistsAsync(command.Email))
 {
     return Result.Failure<UserDto>(ValidationMessages.Conflict.EmailAlreadyExists);
 }
-```
-
+```sql
 ## 🎯 Benefícios
 
 ### ✅ **Antes (Problemas):**
@@ -149,8 +139,7 @@ app.MapPost("/users", ...)
 // Mensagens hardcoded
 "O email é obrigatório"
 "Email é obrigatório"     // Inconsistente!
-```
-
+```csharp
 ### ✅ **Depois (Soluções):**
 ```csharp
 // Endpoints centralizados
@@ -166,8 +155,7 @@ app.MapPost(ApiEndpoints.Users.Create, ...)
 
 // Mensagens padronizadas
 ValidationMessages.Required.Email
-```
-
+```text
 ## 📝 Diretrizes de Uso
 
 ### ✅ **DO - Faça:**

@@ -56,8 +56,10 @@ internal class TestCacheService : ICacheService
 
     public Task RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
     {
-        // Para teste, remove todas as chaves que contenham a tag
-        var keysToRemove = _cache.Keys.Where(k => k.Contains(tag, StringComparison.OrdinalIgnoreCase)).ToList();
+        // Use delimiter-based matching to avoid unintended matches (e.g., "user" not matching "userdata")
+        var delimiter = ":";
+        var tagPrefix = $"{tag}{delimiter}";
+        var keysToRemove = _cache.Keys.Where(k => k.StartsWith(tagPrefix, StringComparison.OrdinalIgnoreCase)).ToList();
         foreach (var key in keysToRemove)
         {
             _cache.TryRemove(key, out _);
@@ -82,11 +84,24 @@ internal class TestCacheService : ICacheService
 
     private static bool IsMatch(string key, string pattern)
     {
-        // Implementação simples de pattern matching
+        // Handle explicit match-all pattern
+        if (pattern == "*")
+            return true;
+            
+        // Order-aware wildcard matching
         if (pattern.Contains('*', StringComparison.Ordinal))
         {
             var parts = pattern.Split('*', StringSplitOptions.RemoveEmptyEntries);
-            return parts.All(part => key.Contains(part, StringComparison.OrdinalIgnoreCase));
+            var startIndex = 0;
+            
+            foreach (var part in parts)
+            {
+                var foundIndex = key.IndexOf(part, startIndex, StringComparison.OrdinalIgnoreCase);
+                if (foundIndex == -1)
+                    return false;
+                startIndex = foundIndex + part.Length;
+            }
+            return true;
         }
         return key.Contains(pattern, StringComparison.OrdinalIgnoreCase);
     }

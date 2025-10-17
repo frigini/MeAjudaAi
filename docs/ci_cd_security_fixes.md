@@ -9,11 +9,10 @@ This document describes the fixes applied to resolve CI/CD pipeline failures rel
 ### 1. Gitleaks License Requirement
 
 **Problem**: Gitleaks v2 now requires a license for organization repositories, causing the CI/CD pipeline to fail with:
-```
+```csharp
 [Me-Ajuda-Ai] is an organization. License key is required.
 Error: 🛑 missing gitleaks license.
-```
-
+```text
 **Solution**: 
 - Added conditional execution for Gitleaks based on license availability
 - Added TruffleHog as a backup secret scanner that always runs
@@ -26,13 +25,12 @@ Error: 🛑 missing gitleaks license.
 ### 2. Lychee Link Checker Regex Error
 
 **Problem**: Invalid regex patterns in `.lycheeignore` file causing the error:
-```
+```yaml
 Error: regex parse error:
     */bin/*
     ^
 error: repetition operator missing expression
-```
-
+```text
 **Solution**: 
 - Fixed glob patterns in `.lycheeignore` by changing `*/bin/*` to `**/bin/**`
 - Updated all similar patterns to use proper glob syntax

@@ -76,8 +76,7 @@ builder.Services.AddDeadLetterQueue(builder.Configuration, builder.Environment, 
     else
         options.ConfigureForProduction();
 });
-```
-
+```csharp
 ### **2. Configuração**
 ```json
 {
@@ -91,8 +90,7 @@ builder.Services.AddDeadLetterQueue(builder.Configuration, builder.Environment, 
     }
   }
 }
-```
-
+```text
 ### **3. Uso em Event Handlers**
 ```csharp
 public class UserCreatedEventHandler : IEventHandler<UserCreatedEvent>
@@ -111,8 +109,7 @@ public class UserCreatedEventHandler : IEventHandler<UserCreatedEvent>
         }
     }
 }
-```
-
+```text
 ### **4. Monitoramento**
 ```csharp
 // Obter estatísticas
@@ -123,8 +120,7 @@ var messages = await _deadLetterService.ListDeadLetterMessagesAsync("dlq.users-e
 
 // Reprocessar mensagem
 await _deadLetterService.ReprocessDeadLetterMessageAsync("dlq.users-events", "message-id");
-```
-
+```text
 ## 🚀 **Production Ready Features**
 
 - ✅ **Environment-aware**: Configuração automática baseada no ambiente

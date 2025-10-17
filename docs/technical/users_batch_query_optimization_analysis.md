@@ -24,8 +24,7 @@ public async Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(
 
     return Result<IReadOnlyList<ModuleUserBasicDto>>.Success(users);
 }
-```
-
+```csharp
 ### Fluxo Atual de Consulta
 Para buscar 10 usuários, por exemplo:
 1. **Query 1**: `SELECT * FROM Users WHERE Id = @id1`
@@ -70,17 +69,16 @@ public async Task<IReadOnlyList<User>> GetUsersByIdsAsync(
     IReadOnlyList<UserId> userIds, 
     CancellationToken cancellationToken = default)
 {
+    // Note: For large lists, chunk into batches of ~1000 to avoid SQL parameter limits
     return await _context.Users
         .Where(u => userIds.Contains(u.Id))  // ✅ SINGLE QUERY
         .ToListAsync(cancellationToken);
 }
-```
-
+```text
 #### 3.2 Nova Query CQRS
 ```csharp
 public record GetUsersByIdsQuery(IReadOnlyList<Guid> UserIds) : IQuery<Result<IReadOnlyList<UserDto>>>;
-```
-
+```csharp
 #### 3.3 Handler com Cache Otimizado
 ```csharp
 public async Task<Result<IReadOnlyList<UserDto>>> HandleAsync(
@@ -92,8 +90,7 @@ public async Task<Result<IReadOnlyList<UserDto>>> HandleAsync(
     // 2. Fazer batch query apenas para IDs não cacheados
     // 3. Combinar resultados
 }
-```
-
+```yaml
 #### 3.4 UsersModuleApi Otimizado
 ```csharp
 public async Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(
@@ -110,8 +107,7 @@ public async Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(
         onFailure: error => Result<IReadOnlyList<ModuleUserBasicDto>>.Failure(error)
     );
 }
-```
-
+```csharp
 ### 4. Cenários de Uso Reais
 
 #### Cross-Module Communication
@@ -120,13 +116,12 @@ public async Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(
 - **Notifications Module**: Envia notificações para listas de usuários
 
 #### Performance Impact Example
-```
+```text
 Cenário: 50 usuários em um relatório
 - Implementação Atual: 50 queries + 50 cache lookups
 - Implementação Batch: 1 query + cache batch lookup inteligente
 - Improvement: ~98% redução em database calls
-```
-
+```csharp
 ### 5. Estratégia de Cache Avançada
 
 #### Cache-First Approach
@@ -136,16 +131,16 @@ var cachedUsers = await GetUsersFromCacheAsync(userIds);
 var missingIds = userIds.Except(cachedUsers.Select(u => u.Id));
 
 // 2. Buscar apenas os que não estão no cache
+var freshUsers = new List<User>(); // Inicializar antes do if
 if (missingIds.Any())
 {
-    var freshUsers = await _userRepository.GetUsersByIdsAsync(missingIds);
+    freshUsers = await _userRepository.GetUsersByIdsAsync(missingIds);
     await CacheUsersAsync(freshUsers);
 }
 
 // 3. Combinar resultados
 return cachedUsers.Concat(freshUsers);
-```
-
+```sql
 ### 6. SQL Query Comparison
 
 #### Antes (N+1 Problem)
@@ -159,16 +154,14 @@ SELECT Id, Username, Email, FirstName, LastName
 FROM Users 
 WHERE Id = @userId2;
 -- ... repeat for each user
-```
-
+```text
 #### Depois (Batch Query)
 ```sql
 -- Query executada 1 vez
 SELECT Id, Username, Email, FirstName, LastName 
 FROM Users 
 WHERE Id IN (@userId1, @userId2, @userId3, ..., @userIdN);
-```
-
+```text
 ### 7. Considerações de Implementação
 
 #### Limitações
