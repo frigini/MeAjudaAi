@@ -19,7 +19,6 @@ Se você é novo no projeto, comece por aqui:
 | **[🛠️ Guia de Desenvolvimento](./development.md)** | Setup completo, convenções, workflows, debugging e testes | Desenvolvedores |
 | **[🏗️ Arquitetura](./architecture.md)** | Clean Architecture, DDD, CQRS e padrões | Arquitetos e desenvolvedores |
 | **[📦 Adicionando Novos Módulos](./adding-new-modules.md)** | Como adicionar módulos com testes e cobertura | Desenvolvedores |
-| **[🔄 Workflow Fixes](./workflow-fixes.md)** | Correções e melhorias de workflow | DevOps |
 
 ### **🔐 Segurança e Autenticação**
 
@@ -29,8 +28,7 @@ Se você é novo no projeto, comece por aqui:
 | **[🛡️ Implementação de Autorização](./authorization_implementation.md)** | Sistema type-safe de permissões | Desenvolvedores |
 | **[🔑 Permissões Type-Safe](./type_safe_permissions.md)** | Detalhes do sistema baseado em EPermission | Desenvolvedores |
 | **[🖥️ Permissões Server-Side](./server_side_permissions.md)** | Resolução de permissões no servidor | Desenvolvedores backend |
-| **[🔄 Refatoração de Autorização](./authorization_refactoring.md)** | Melhorias e refatorações | Desenvolvedores |
-| **[🔑 Integração Keycloak](./keycloak_integration.md)** | Configuração e integração detalhada | Administradores |
+| **[ Integração Keycloak](./keycloak_integration.md)** | Configuração e integração detalhada | Administradores |
 
 ### **🚀 Infraestrutura e Deploy**
 

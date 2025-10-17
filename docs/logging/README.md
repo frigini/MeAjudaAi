@@ -423,5 +423,5 @@ CorrelationId = "abc-123-def"
 ## 🔗 Documentação Relacionada
 
 - [Seq Setup](./seq_setup.md)
-- [Correlation ID Best Practices](./CORRELATION_ID.md)
-- [Performance Monitoring](./PERFORMANCE.md)
+- [Correlation ID Best Practices](./correlation_id.md)
+- [Performance Monitoring](./performance.md)
