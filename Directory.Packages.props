@@ -88,6 +88,7 @@
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="9.0.0-preview.5.24523.6" />
     <PackageVersion Include="Aspire.Hosting.Redis" Version="9.0.0-preview.5.24523.6" />
     <PackageVersion Include="Aspire.Hosting.Seq" Version="9.0.0-preview.5.24523.6" />
+    <PackageVersion Include="Aspire.RabbitMQ.Client" Version="9.0.0-preview.5.24523.6" />
     <PackageVersion Include="Aspire.Npgsql" Version="9.0.0-preview.5.24523.6" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.0.1-preview.1.24557.2" />

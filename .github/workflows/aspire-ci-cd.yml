@@ -56,7 +56,7 @@ jobs:
         run: dotnet restore MeAjudaAi.sln
 
       - name: Build solution
-        run: dotnet build MeAjudaAi.sln --no-restore --configuration Release
+        run: dotnet build MeAjudaAi.sln --no-restore --configuration Release --verbosity minimal
 
       - name: Install PostgreSQL client
         run: |

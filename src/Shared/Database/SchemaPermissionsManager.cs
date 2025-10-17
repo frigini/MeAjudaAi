@@ -154,14 +154,18 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
     private static async Task ExecuteSqlAsync(NpgsqlConnection connection, string sql)
     {
         using var command = connection.CreateCommand();
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities - SQL is from predefined constants, not user input
         command.CommandText = sql;
+#pragma warning restore CA2100
         await command.ExecuteNonQueryAsync();
     }
 
     private static async Task<T> ExecuteScalarAsync<T>(NpgsqlConnection connection, string sql)
     {
         using var command = connection.CreateCommand();
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities - SQL is from predefined constants, not user input
         command.CommandText = sql;
+#pragma warning restore CA2100
         var result = await command.ExecuteScalarAsync();
         return (T)Convert.ChangeType(result!, typeof(T));
     }
