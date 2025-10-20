@@ -76,6 +76,7 @@ public abstract class DatabaseTestBase : IAsyncLifetime
     /// Executa SQL bruto no banco de dados de teste.
     /// Útil para configuração ou verificação em testes.
     /// </summary>
+#pragma warning disable CA2100 // SQL injection analysis not needed for test utilities
     protected async Task ExecuteSqlAsync(string sql)
     {
         using var connection = new Npgsql.NpgsqlConnection(ConnectionString);
@@ -84,6 +85,7 @@ public abstract class DatabaseTestBase : IAsyncLifetime
         command.CommandText = sql;
         await command.ExecuteNonQueryAsync();
     }
+#pragma warning restore CA2100
 
     /// <summary>
     /// Inicializa o container do banco de dados de teste
@@ -143,12 +145,14 @@ public abstract class DatabaseTestBase : IAsyncLifetime
         while (attempt < maxAttempts)
         {
             using var checkCommand = connection.CreateCommand();
+#pragma warning disable CA2100 // Schema names come from configuration, not user input
             checkCommand.CommandText = $@"
                 SELECT COUNT(*) 
                 FROM information_schema.tables 
                 WHERE table_schema IN ({string.Join(", ", schemasToCheck.Select(s => $"'{s}'"))})
                 AND table_type = 'BASE TABLE'
                 AND table_name != '__EFMigrationsHistory'";
+#pragma warning restore CA2100
 
             var tableCount = (long)(await checkCommand.ExecuteScalarAsync() ?? 0L);
 
