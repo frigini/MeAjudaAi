@@ -54,7 +54,7 @@ The CI/CD pipeline now includes:
    - **FAILS the workflow if secrets are detected**
 
 3. **Lychee Link Checker**
-   - Validates markdown links
+   - Validates Markdown links
    - Uses proper glob patterns for exclusions
    - Caches results for performance
 
@@ -382,7 +382,7 @@ variables:
     value: "80"
   - name: SonarQualityGate
     value: "OK"
-```csharp
+```yaml
 #### MeAjudaAi-Secrets (Key Vault)
 ```yaml
 secrets:
@@ -554,7 +554,7 @@ jobs:
       - name: Deploy to Production
         run: |
           azd up --environment production
-```csharp
+```yaml
 ### Workflow de PR Validation
 
 ```yaml
@@ -591,7 +591,7 @@ jobs:
       
       - name: Run static analysis
         run: dotnet run --project tools/StaticAnalysis
-```text
+```yaml
 ## 🔧 Scripts de Setup
 
 ### `setup-cicd.ps1` (Windows)
@@ -663,7 +663,7 @@ foreach ($secret in $secrets.GetEnumerator()) {
 
 Write-Host "✅ Setup de CI/CD concluído!" -ForegroundColor Green
 Write-Host "🌐 Dashboard: https://portal.azure.com" -ForegroundColor Cyan
-```yaml
+```powershell
 ### `setup-ci-only.ps1` (Apenas CI)
 
 ```powershell
@@ -715,7 +715,7 @@ if (Get-Command gh -ErrorAction SilentlyContinue) {
 }
 
 Write-Host "✅ Configuração de CI/CD (apenas setup) concluída!" -ForegroundColor Green
-```csharp
+```powershell
 ## 📊 Monitoramento e Métricas
 
 ### Quality Gates
@@ -754,7 +754,7 @@ Write-Host "✅ Configuração de CI/CD (apenas setup) concluída!" -ForegroundC
   type: "deployment-frequency"
   configuration:
     environments: ["Development", "Production"]
-```text
+```yaml
 #### GitHub Actions Status Badge
 ```markdown
 [![CI/CD Pipeline](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml)
@@ -821,7 +821,7 @@ az pipelines run show --id <run-id> --output table
 
 # Debug local
 dotnet build --verbosity diagnostic
-```sql
+```bash
 #### 2. Deploy Failures
 ```bash
 # Verificar status do Azure Container Apps
@@ -837,7 +837,7 @@ dotnet test --logger "console;verbosity=detailed"
 
 # Verificar cobertura
 dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
-```text
+```bash
 ### Rollback Procedures
 
 #### 1. Rollback de Aplicação
@@ -847,13 +847,13 @@ az pipelines run create --definition-name "MeAjudaAi-Rollback" --parameters last
 
 # Via azd
 azd deploy --environment production --confirm --image-tag <previous-tag>
-```text
+```bash
 #### 2. Rollback de Infraestrutura
 ```bash
 # Reverter para versão anterior do Bicep
 git checkout <previous-commit> -- infrastructure/
 azd provision --environment production
-```text
+```bash
 ---
 
 📞 **Suporte**: Para problemas de CI/CD, verifique os [logs de build](https://dev.azure.com/frigini/MeAjudaAi) ou abra uma [issue](https://github.com/frigini/MeAjudaAi/issues).

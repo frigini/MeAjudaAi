@@ -18,7 +18,7 @@ Este documento detalha o sistema de autorização type-safe implementado no MeAj
 
 Sistema unificado de permissões type-safe:
 
-```csharp
+```
 public enum EPermission
 {
     // ===== SISTEMA - GLOBAL =====
@@ -65,7 +65,7 @@ public enum EPermission
 
 Interface principal para resolução de permissões:
 
-```csharp
+```
 public interface IPermissionService
 {
     Task<IReadOnlyList<EPermission>> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default);
@@ -79,11 +79,11 @@ public interface IPermissionService
 
 Interface para resolução modular de permissões:
 
-```csharp
+```
 public interface IModulePermissionResolver
 {
     string ModuleName { get; }
-    Task<IReadOnlyList<EPermission>> ResolvEPermissionAsync(string userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(string userId, CancellationToken cancellationToken = default);
     bool CanResolve(EPermission permission);
 }
 ```
@@ -91,7 +91,7 @@ public interface IModulePermissionResolver
 
 ### 1. Configuração Básica
 
-```csharp
+```
 // Program.cs no ApiService
 using MeAjudaAi.Shared.Authorization;
 
@@ -112,7 +112,7 @@ app.Run();
 ```
 ### 2. Implementação de Module Resolver
 
-```csharp
+```
 // Modules/Users/Application/Authorization/UsersPermissionResolver.cs
 public class UsersPermissionResolver : IModulePermissionResolver
 {
@@ -125,7 +125,7 @@ public class UsersPermissionResolver : IModulePermissionResolver
     
     public string ModuleName => "Users";
     
-    public async Task<IReadOnlyList<EPermission>> ResolvEPermissionAsync(
+    public async Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(
         string userId, 
         CancellationToken cancellationToken = default)
     {
@@ -138,8 +138,8 @@ public class UsersPermissionResolver : IModulePermissionResolver
             
             foreach (var role in userRoles)
             {
-                var rolEPermission = MapRoleToUserPermissions(role);
-                foreach (var permission in rolEPermission)
+                var rolePermissions = MapRoleToUserPermissions(role);
+                foreach (var permission in rolePermissions)
                 {
                     permissions.Add(permission);
                 }
@@ -197,7 +197,7 @@ public class UsersPermissionResolver : IModulePermissionResolver
 ```
 ### 3. Uso em Endpoints
 
-```csharp
+```
 // Modules/Users/API/Endpoints/UsersEndpoints.cs
 public static class UsersEndpoints
 {
@@ -225,7 +225,7 @@ public static class UsersEndpoints
         
         // DELETE /api/users/{id} - Requer múltiplas permissões
         group.MapDelete("/{id:int}", DeleteUser)
-             .RequirEPermission(EPermission.UsersDelete, EPermission.AdminUsers)
+             .RequirePermissions(EPermission.UsersDelete, EPermission.AdminUsers)
              .WithName("DeleteUser")
              .WithSummary("Remove um usuário");
              
@@ -297,7 +297,7 @@ public static class UsersEndpoints
 ```
 ### 4. Configuração do Módulo
 
-```csharp
+```
 // Modules/Users/API/Extensions/UsersModuleExtensions.cs
 public static class UsersModuleExtensions
 {
@@ -323,7 +323,7 @@ public static class UsersModuleExtensions
 
 ### Configuração de Cache
 
-```csharp
+```
 // Cache automático por usuário (30 minutos)
 var permissions = await permissionService.GetUserPermissionsAsync(userId);
 
@@ -342,7 +342,7 @@ O sistema coleta automaticamente:
 - ❌ Falhas de autorização
 - 📈 Performance por módulo
 
-```csharp
+```
 // Métricas são expostas em /metrics para Prometheus
 // Configuração automática, sem código adicional necessário
 ```
@@ -350,7 +350,7 @@ O sistema coleta automaticamente:
 
 ### Configuração para Testes
 
-```csharp
+```
 // WebApplicationFactory para testes de integração
 public class UsersApiFactory : WebApplicationFactory<Program>
 {
@@ -374,7 +374,7 @@ public class UsersApiFactory : WebApplicationFactory<Program>
 ```
 ### Exemplo de Teste
 
-```csharp
+```
 [Test]
 public async Task GetUsers_WithValidPermission_ShouldReturnUsers()
 {
@@ -419,7 +419,7 @@ public async Task CreateUser_WithoutPermission_ShouldReturnForbidden()
 
 ### ✅ Endpoints
 - [ ] Aplicar `.RequirePermission()` nos endpoints
-- [ ] Usar `.RequirEPermission()` para múltiplas permissões
+- [ ] Usar `.RequirePermissions()` para múltiplas permissões
 - [ ] Implementar verificações contextuais quando necessário
 - [ ] Adicionar documentação/summary aos endpoints
 

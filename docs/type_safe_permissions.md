@@ -13,7 +13,7 @@ O sistema implementa:
 
 ## Estrutura de Arquivos
 
-```csharp
+```
 src/
 ├── Shared/MeAjudai.Shared/Authorization/
 │   ├── EPermission.cs                   # Enum type-safe de permissões
@@ -35,12 +35,12 @@ src/
 │       │   └── UsersModuleExtensions.cs # Configuração do módulo
 │       └── Endpoints/
 │           └── UsersEndpoints.cs       # Exemplo de endpoints com permissões
-```yaml
+```
 ## Como Usar
 
 ### 1. Configuração no ApiService
 
-```csharp
+```
 // Program.cs no ApiService
 using MeAjudaAi.Modules.Users.API.Extensions;
 using MeAjudaAi.Shared.Authorization;
@@ -61,10 +61,11 @@ var app = builder.Build();
 app.MapUsersEndpoints();
 
 app.Run();
-```csharp
+```
+
 ### 2. Criando Permissões Type-Safe
 
-```csharp
+```
 // As permissões são organizadas por módulo no enum EPermission
 public enum EPermission
 {
@@ -83,10 +84,11 @@ public enum EPermission
     [Display(Name = "providers:read", Description = "Visualizar prestadores")]
     ProvidersRead,
 }
-```sql
+```
+
 ### 3. Implementando Resolver Modular
 
-```csharp
+```
 // Cada módulo implementa seu próprio resolver
 public sealed class UsersPermissionResolver : IModulePermissionResolver
 {
@@ -125,10 +127,10 @@ public sealed class UsersPermissionResolver : IModulePermissionResolver
         };
     }
 }
-```csharp
+```
 ### 4. Organizando Permissões por Módulo
 
-```csharp
+```
 // UsersPermissions.cs - organiza permissões por categoria e role
 public static class UsersPermissions
 {
@@ -158,10 +160,10 @@ public static class UsersPermissions
     public static readonly EPermission[] UserAdmin = { EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersList };
     public static readonly EPermission[] SystemAdmin = { EPermission.AdminSystem, EPermission.AdminUsers, EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersDelete, EPermission.UsersList };
 }
-```yaml
+```
 ### 5. Aplicando Permissões em Endpoints
 
-```csharp
+```
 public static class UsersEndpoints
 {
     public static IEndpointRouteBuilder MapUsersEndpoints(this IEndpointRouteBuilder endpoints)
@@ -196,10 +198,10 @@ public static class UsersEndpoints
         return endpoints;
     }
 }
-```csharp
+```
 ### 6. Verificação Server-Side nos Handlers
 
-```csharp
+```
 private static async Task<IResult> GetUsersAsync(
     HttpContext context,
     IPermissionService permissionService)
@@ -252,10 +254,10 @@ private static async Task<IResult> GetAllUsersAdminAsync(
     
     return Results.Forbid();
 }
-```yaml
+```
 ### 7. Extensões para ClaimsPrincipal
 
-```csharp
+```
 // Verificações no lado do cliente/view
 public class SomeController : ControllerBase
 {
@@ -289,12 +291,12 @@ public class SomeController : ControllerBase
         return Ok();
     }
 }
-```csharp
+```
 ## Performance e Cache
 
 O sistema usa cache em múltiplas camadas:
 
-```csharp
+```
 // Cache por usuário (30 minutos)
 var permissions = await permissionService.GetUserPermissionsAsync(userId);
 
@@ -303,7 +305,7 @@ var modulePermissions = await permissionService.GetUserPermissionsByModuleAsync(
 
 // Invalidação de cache
 await permissionService.InvalidateUserPermissionsCacheAsync(userId);
-```yaml
+```
 **Características do Cache:**
 - Cache distribuído usando HybridCache (já disponível no Aspire)
 - Cache local (5 minutos) + cache distribuído (30 minutos)
@@ -315,7 +317,7 @@ await permissionService.InvalidateUserPermissionsCacheAsync(userId);
 Para adicionar um novo módulo (ex: Providers):
 
 ### 1. Adicionar permissões no enum:
-```csharp
+```
 public enum EPermission
 {
     // Existing permissions...
@@ -327,9 +329,9 @@ public enum EPermission
     [Display(Name = "providers:create", Description = "Criar prestadores")]
     ProvidersCreate,
 }
-```csharp
+```
 ### 2. Criar resolver do módulo:
-```csharp
+```
 public sealed class ProvidersPermissionResolver : IModulePermissionResolver
 {
     public string ModuleName => "Providers";
@@ -344,9 +346,9 @@ public sealed class ProvidersPermissionResolver : IModulePermissionResolver
         return permission.GetModule().Equals("Providers", StringComparison.OrdinalIgnoreCase);
     }
 }
-```yaml
+```
 ### 3. Registrar no DI:
-```csharp
+```
 // ProvidersModuleExtensions.cs
 public static IServiceCollection AddProvidersModule(this IServiceCollection services, IConfiguration configuration)
 {
@@ -356,13 +358,13 @@ public static IServiceCollection AddProvidersModule(this IServiceCollection serv
 
 // Program.cs
 builder.Services.AddProvidersModule(builder.Configuration);
-```csharp
+```
 ### 4. Criar endpoints com permissões:
-```csharp
+```
 group.MapGet("/", GetProvidersAsync)
     .RequirePermission(EPermission.ProvidersRead)
     .RequireAuthorization();
-```text
+```
 ## Vantagens do Sistema
 
 1. **Type-Safety**: Permissões são validadas em tempo de compilação
