@@ -143,7 +143,7 @@ authenticationType: ServicePrincipal
 registryType: Azure Container Registry
 azureSubscription: "Azure Subscription"
 azureContainerRegistry: "acrmeajudaai.azurecr.io"
-```yaml
+
 ### Pipeline de Build (`azure-pipelines.yml`)
 
 ```yaml
@@ -357,7 +357,7 @@ stages:
                     scriptLocation: 'inlineScript'
                     inlineScript: |
                       azd up --environment production
-```bash
+
 ### Variable Groups
 
 #### MeAjudaAi-Variables
@@ -382,7 +382,7 @@ variables:
     value: "80"
   - name: SonarQualityGate
     value: "OK"
-```yaml
+
 #### MeAjudaAi-Secrets (Key Vault)
 ```yaml
 secrets:
@@ -403,7 +403,7 @@ secrets:
     source: KeyVault
     vault: "kv-meajudaai"
     secret: "appinsights-instrumentation-key"
-```yaml
+
 ## 🐙 Configuração do GitHub Actions
 
 ### Workflow Principal (`.github/workflows/ci-cd.yml`)
@@ -554,7 +554,7 @@ jobs:
       - name: Deploy to Production
         run: |
           azd up --environment production
-```yaml
+
 ### Workflow de PR Validation
 
 ```yaml
@@ -591,7 +591,7 @@ jobs:
       
       - name: Run static analysis
         run: dotnet run --project tools/StaticAnalysis
-```yaml
+
 ## 🔧 Scripts de Setup
 
 ### `setup-cicd.ps1` (Windows)
@@ -663,7 +663,7 @@ foreach ($secret in $secrets.GetEnumerator()) {
 
 Write-Host "✅ Setup de CI/CD concluído!" -ForegroundColor Green
 Write-Host "🌐 Dashboard: https://portal.azure.com" -ForegroundColor Cyan
-```powershell
+
 ### `setup-ci-only.ps1` (Apenas CI)
 
 ```powershell
@@ -715,7 +715,7 @@ if (Get-Command gh -ErrorAction SilentlyContinue) {
 }
 
 Write-Host "✅ Configuração de CI/CD (apenas setup) concluída!" -ForegroundColor Green
-```powershell
+
 ## 📊 Monitoramento e Métricas
 
 ### Quality Gates
@@ -754,7 +754,7 @@ Write-Host "✅ Configuração de CI/CD (apenas setup) concluída!" -ForegroundC
   type: "deployment-frequency"
   configuration:
     environments: ["Development", "Production"]
-```yaml
+
 #### GitHub Actions Status Badge
 ```markdown
 [![CI/CD Pipeline](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml)

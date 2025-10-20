@@ -18,7 +18,7 @@ Este documento detalha o sistema de autorização type-safe implementado no MeAj
 
 Sistema unificado de permissões type-safe:
 
-```
+```csharp
 public enum EPermission
 {
     // ===== SISTEMA - GLOBAL =====
@@ -65,7 +65,7 @@ public enum EPermission
 
 Interface principal para resolução de permissões:
 
-```
+```csharp
 public interface IPermissionService
 {
     Task<IReadOnlyList<EPermission>> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default);
@@ -79,7 +79,7 @@ public interface IPermissionService
 
 Interface para resolução modular de permissões:
 
-```
+```csharp
 public interface IModulePermissionResolver
 {
     string ModuleName { get; }
@@ -91,7 +91,7 @@ public interface IModulePermissionResolver
 
 ### 1. Configuração Básica
 
-```
+```csharp
 // Program.cs no ApiService
 using MeAjudaAi.Shared.Authorization;
 
@@ -112,7 +112,7 @@ app.Run();
 ```
 ### 2. Implementação de Module Resolver
 
-```
+```csharp
 // Modules/Users/Application/Authorization/UsersPermissionResolver.cs
 public class UsersPermissionResolver : IModulePermissionResolver
 {
@@ -194,11 +194,9 @@ public class UsersPermissionResolver : IModulePermissionResolver
         };
     }
 }
-```
-### 3. Uso em Endpoints
+```csharp### 3. Uso em Endpoints
 
-```
-// Modules/Users/API/Endpoints/UsersEndpoints.cs
+```csharp// Modules/Users/API/Endpoints/UsersEndpoints.cs
 public static class UsersEndpoints
 {
     public static void MapUsersEndpoints(this IEndpointRouteBuilder app)
@@ -297,7 +295,8 @@ public static class UsersEndpoints
 ```
 ### 4. Configuração do Módulo
 
-```
+```csharp
+// Modules/Users/Extensions.cs
 // Modules/Users/API/Extensions/UsersModuleExtensions.cs
 public static class UsersModuleExtensions
 {
@@ -323,12 +322,12 @@ public static class UsersModuleExtensions
 
 ### Configuração de Cache
 
-```
+```csharp
 // Cache automático por usuário (30 minutos)
 var permissions = await permissionService.GetUserPermissionsAsync(userId);
 
 // Cache por módulo (15 minutos)
-var modulEPermission = await permissionService.GetUserPermissionsByModuleAsync(userId, "Users");
+var modulePermissions = await permissionService.GetUserPermissionsByModuleAsync(userId, "Users");
 
 // Invalidação quando necessário
 await permissionService.InvalidateUserPermissionsCacheAsync(userId);
@@ -350,8 +349,7 @@ O sistema coleta automaticamente:
 
 ### Configuração para Testes
 
-```
-// WebApplicationFactory para testes de integração
+```csharp// WebApplicationFactory para testes de integração
 public class UsersApiFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -374,7 +372,7 @@ public class UsersApiFactory : WebApplicationFactory<Program>
 ```
 ### Exemplo de Teste
 
-```
+```csharp
 [Test]
 public async Task GetUsers_WithValidPermission_ShouldReturnUsers()
 {
