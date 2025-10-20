@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Exceptions;
 
 namespace MeAjudaAi.Modules.Users.Domain.Exceptions;
 

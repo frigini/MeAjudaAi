@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.Application.DTOs;
+using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 

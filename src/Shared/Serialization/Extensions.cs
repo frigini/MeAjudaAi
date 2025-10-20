@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Serialization;

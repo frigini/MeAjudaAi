@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.ServiceDefaults.HealthChecks;
+using MeAjudaAi.ServiceDefaults.HealthChecks;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

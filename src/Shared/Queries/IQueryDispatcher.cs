@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Queries;
+namespace MeAjudaAi.Shared.Queries;
 
 public interface IQueryDispatcher
 {

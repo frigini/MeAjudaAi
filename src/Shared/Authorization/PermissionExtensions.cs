@@ -21,7 +21,7 @@ public static class PermissionExtensions
         var attribute = field?.GetCustomAttribute<DisplayAttribute>();
         return attribute?.Name ?? permission.ToString();
     }
-    
+
     /// <summary>
     /// Obtém o módulo da permissão baseado no prefixo do valor.
     /// </summary>
@@ -33,7 +33,7 @@ public static class PermissionExtensions
         var colonIndex = value.IndexOf(':', StringComparison.Ordinal);
         return colonIndex > 0 ? value[..colonIndex] : "unknown";
     }
-    
+
     /// <summary>
     /// Converte uma string de permissão para o enum correspondente.
     /// </summary>
@@ -43,18 +43,18 @@ public static class PermissionExtensions
     {
         if (string.IsNullOrWhiteSpace(permissionValue))
             return null;
-            
+
         var permissions = Enum.GetValues<EPermission>();
-        
+
         foreach (var permission in permissions)
         {
             if (permission.GetValue().Equals(permissionValue, StringComparison.OrdinalIgnoreCase))
                 return permission;
         }
-        
+
         return null;
     }
-    
+
     /// <summary>
     /// Obtém todas as permissões de um módulo específico.
     /// </summary>
@@ -64,12 +64,12 @@ public static class PermissionExtensions
     {
         if (string.IsNullOrWhiteSpace(module))
             return [];
-            
+
         var permissions = Enum.GetValues<EPermission>();
-        
+
         return permissions.Where(p => p.GetModule().Equals(module, StringComparison.OrdinalIgnoreCase));
     }
-    
+
     /// <summary>
     /// Obtém todos os módulos disponíveis no sistema.
     /// </summary>
@@ -79,7 +79,7 @@ public static class PermissionExtensions
         var permissions = Enum.GetValues<EPermission>();
         return permissions.Select(p => p.GetModule()).Distinct().OrderBy(m => m);
     }
-    
+
     /// <summary>
     /// Verifica se uma permissão é de administração do sistema.
     /// </summary>

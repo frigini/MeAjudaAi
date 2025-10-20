@@ -1,20 +1,20 @@
+using System.Net.Http.Json;
 using Bogus;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;
-using MeAjudaAi.Shared.Tests.Mocks.Messaging;
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Extensions;
-using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Tests.Mocks.Messaging;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-using System.Net.Http.Json;
 using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
@@ -412,5 +412,10 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     protected static async Task<T?> ReadFromJsonAsync<T>(HttpResponseMessage response)
     {
         return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
+    }
+
+    protected async Task<HttpResponseMessage> PostAsJsonAsync<T>(Uri requestUri, T value)
+    {
+        throw new NotImplementedException();
     }
 }

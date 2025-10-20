@@ -33,7 +33,7 @@ public static class AuthConstants
         public const string GivenName = "given_name";     // Primeiro nome
         public const string FamilyName = "family_name";   // Sobrenome
         public const string Roles = "roles";              // Array de roles
-        
+
         // Claims customizados (se necessário)
         public const string UserId = "user_id";
         public const string KeycloakId = "keycloak_id";

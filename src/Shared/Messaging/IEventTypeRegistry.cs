@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Messaging;
+namespace MeAjudaAi.Shared.Messaging;
 
 public interface IEventTypeRegistry
 {

@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Messaging.Strategy;
+namespace MeAjudaAi.Shared.Messaging.Strategy;
 
 public enum ETopicStrategy
 {

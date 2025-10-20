@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MeAjudaAi.Integration.Tests.Extensions;
 

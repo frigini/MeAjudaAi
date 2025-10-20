@@ -1,10 +1,10 @@
-﻿using Azure.Messaging.ServiceBus;
-using MeAjudaAi.Shared.Time;
-using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Shared.Messaging.Strategy;
-using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
+using Azure.Messaging.ServiceBus;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Strategy;
+using MeAjudaAi.Shared.Time;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Messaging.ServiceBus;
 

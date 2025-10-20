@@ -29,7 +29,7 @@ public sealed class UserId : ValueObject
     {
         if (value == Guid.Empty)
             throw new ArgumentException("UserId cannot be empty", nameof(value));
-        
+
         Value = value;
     }
 
@@ -71,7 +71,7 @@ public sealed class UserId : ValueObject
     /// <param name="userId">Instância de UserId para conversão</param>
     /// <returns>Valor Guid do UserId</returns>
     /// <exception cref="ArgumentNullException">Quando userId é null</exception>
-    public static implicit operator Guid(UserId userId) 
+    public static implicit operator Guid(UserId userId)
     {
         ArgumentNullException.ThrowIfNull(userId);
         return userId.Value;

@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using MeAjudaAi.Shared.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 

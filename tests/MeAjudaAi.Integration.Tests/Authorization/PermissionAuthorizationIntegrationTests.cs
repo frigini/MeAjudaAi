@@ -1,4 +1,5 @@
-using static MeAjudaAi.Modules.Users.API.Extensions;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 using MeAjudaAi.Shared.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -8,8 +9,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
+using static MeAjudaAi.Modules.Users.API.Extensions;
 
 namespace MeAjudaAi.Integration.Tests.Authorization;
 
@@ -36,7 +36,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
             new Claim("sub", "test-user-123"),
             new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue())
         };
-        
+
         var client = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
@@ -61,7 +61,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
             new Claim("sub", "test-user-123"),
             new Claim(CustomClaimTypes.Permission, Permission.UsersProfile.GetValue()) // Permissão errada
         };
-        
+
         var client = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
@@ -87,7 +87,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
             new Claim(CustomClaimTypes.Permission, Permission.UsersDelete.GetValue()),
             new Claim(CustomClaimTypes.Permission, Permission.AdminUsers.GetValue())
         };
-        
+
         var client = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
@@ -113,7 +113,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
             new Claim(CustomClaimTypes.Permission, Permission.UsersDelete.GetValue())
             // Faltando permissão AdminUsers
         };
-        
+
         var client = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
@@ -139,7 +139,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
             new Claim(CustomClaimTypes.Permission, Permission.AdminUsers.GetValue())
             // Tem AdminUsers mas não UsersRead - ainda deve funcionar para requisito "any"
         };
-        
+
         var client = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
@@ -164,7 +164,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
             new Claim("sub", "test-user-123"),
             new Claim(CustomClaimTypes.IsSystemAdmin, "true")
         };
-        
+
         var client = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
@@ -190,7 +190,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
             new Claim(CustomClaimTypes.Permission, Permission.AdminUsers.GetValue()),
             new Claim(CustomClaimTypes.Permission, Permission.UsersList.GetValue())
         };
-        
+
         var client = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
@@ -234,11 +234,11 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
                 // Adiciona autorização baseada em permissões
                 services.AddPermissionBasedAuthorization();
                 services.AddUsersModule(configuration);
-                
+
                 // Adiciona autenticação de teste
                 services.AddAuthentication("Test")
                     .AddScheme<TestAuthenticationSchemeOptions, TestAuthenticationHandler>("Test", options => { });
-                
+
                 services.AddAuthorization();
             });
 
@@ -284,7 +284,7 @@ public static class TestAuthenticationExtensions
         {
             options.Claims = claims;
         });
-        
+
         return services;
     }
 }
@@ -315,7 +315,7 @@ public class TestAuthenticationHandler : AuthenticationHandler<TestAuthenticatio
             var identity = new ClaimsIdentity(Options.Claims, "Test");
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, "Test");
-            
+
             return Task.FromResult(AuthenticateResult.Success(ticket));
         }
 

@@ -1,4 +1,4 @@
-﻿using Azure.Messaging.ServiceBus.Administration;
+using Azure.Messaging.ServiceBus.Administration;
 using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Logging;
 

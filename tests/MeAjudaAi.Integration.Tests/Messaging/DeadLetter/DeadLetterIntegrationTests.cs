@@ -34,7 +34,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
     {
         // Configura serviços de messaging para testes de Dead Letter
         services.AddLogging();
-        
+
         // Adiciona configuração de Dead Letter
         var configuration = CreateConfiguration();
         services.AddSingleton(configuration);
@@ -47,18 +47,18 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         var services = new ServiceCollection();
         var configuration = CreateConfiguration();
         var environment = CreateHostEnvironment("Development");
-        
+
         services.AddLogging();
         services.AddSingleton(configuration);
         services.AddSingleton(environment);
-        
+
         // Act
         Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
             services, configuration);
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var deadLetterService = serviceProvider.GetRequiredService<IDeadLetterService>();
-        
+
         // Assert
         deadLetterService.Should().NotBeNull();
         // Em desenvolvimento sem RabbitMQ, deve usar NoOpDeadLetterService ou fallback similar
@@ -71,17 +71,17 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         var services = new ServiceCollection();
         var configuration = CreateConfiguration(includeServiceBus: true);
         var environment = CreateHostEnvironment("Production");
-        
+
         services.AddLogging();
         services.AddSingleton(configuration);
         services.AddSingleton(environment);
-        
+
         // Act
         Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
             services, configuration);
-        
+
         var serviceProvider = services.BuildServiceProvider();
-        
+
         // Assert
         var factory = serviceProvider.GetRequiredService<IDeadLetterServiceFactory>();
         factory.Should().NotBeNull();
@@ -95,25 +95,25 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         var services = new ServiceCollection();
         var configuration = CreateConfiguration();
         var environment = CreateHostEnvironment("Testing");
-        
+
         services.AddLogging();
         services.AddSingleton(configuration);
         services.AddSingleton(environment);
-        
+
         // Act
         Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
             services, configuration);
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var deadLetterService = serviceProvider.GetRequiredService<IDeadLetterService>();
-        
+
         // Assert
         deadLetterService.Should().NotBeNull();
-        
+
         // Testa configuração
         var shouldRetryTransient = deadLetterService.ShouldRetry(new TimeoutException(), 1);
         var shouldRetryPermanent = deadLetterService.ShouldRetry(new ArgumentException(), 1);
-        
+
         shouldRetryTransient.Should().BeTrue();
         shouldRetryPermanent.Should().BeFalse();
     }
@@ -125,18 +125,18 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         var services = new ServiceCollection();
         var configuration = CreateConfiguration();
         var environment = CreateHostEnvironment("Testing");
-        
+
         services.AddLogging();
         services.AddSingleton(configuration);
         services.AddSingleton(environment);
-        
+
         Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
             services, configuration);
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var message = new TestMessage { Id = "integration-test" };
         var callCount = 0;
-        
+
         Task TestHandler(TestMessage msg, CancellationToken ct)
         {
             callCount++;
@@ -144,10 +144,10 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
                 throw new TimeoutException("Temporary failure for testing");
             return Task.CompletedTask;
         }
-        
+
         // Act
         var result = true; // Simula sucesso para o teste
-        
+
         // Assert
         result.Should().BeTrue();
         callCount.Should().Be(0); // Nenhuma chamada feita ainda
@@ -173,14 +173,14 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
                 ApplicationVersion = "1.0.0"
             }
         };
-        
+
         var exception = new InvalidOperationException("Test exception");
         failedMessage.AddFailureAttempt(exception, "TestHandler");
-        
+
         // Act
         var json = failedMessage.ToJson();
         var deserializedMessage = FailedMessageInfoExtensions.FromJson(json);
-        
+
         // Assert
         deserializedMessage.Should().NotBeNull();
         deserializedMessage!.MessageId.Should().Be(failedMessage.MessageId);
@@ -205,10 +205,10 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
             "System.InvalidOperationException" => new InvalidOperationException("Test"),
             _ => new InvalidOperationException("Unknown")
         };
-        
+
         // Act
         var failureType = exception.ClassifyFailure();
-        
+
         // Assert
         failureType.Should().Be(expectedType);
     }

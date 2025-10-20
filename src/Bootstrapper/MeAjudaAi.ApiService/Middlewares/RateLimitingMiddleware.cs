@@ -1,8 +1,8 @@
+using System.Text.Json;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using System.Text.Json;
 
 namespace MeAjudaAi.ApiService.Middlewares;
 

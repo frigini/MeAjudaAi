@@ -1,5 +1,5 @@
-using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
+using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
@@ -49,7 +49,7 @@ public class MockKeycloakService : IKeycloakService
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(token);
-        
+
         // Para testes, validar tokens que começam com "mock_token_"
         if (token.StartsWith("mock_token_", StringComparison.OrdinalIgnoreCase))
         {

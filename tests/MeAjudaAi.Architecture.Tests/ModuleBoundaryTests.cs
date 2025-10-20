@@ -1,5 +1,5 @@
-﻿using MeAjudaAi.Architecture.Tests.Helpers;
 using System.Reflection;
+using MeAjudaAi.Architecture.Tests.Helpers;
 
 namespace MeAjudaAi.Architecture.Tests;
 

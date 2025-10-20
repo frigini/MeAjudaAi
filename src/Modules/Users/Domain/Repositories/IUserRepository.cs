@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Users.Domain.Repositories;

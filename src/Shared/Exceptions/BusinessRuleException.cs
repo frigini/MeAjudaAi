@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Exceptions;
+namespace MeAjudaAi.Shared.Exceptions;
 
 public class BusinessRuleException(string ruleName, string message) : DomainException(message)
 {

@@ -16,7 +16,7 @@ public static class DomainEventMapperExtensions
     public static UserRegisteredIntegrationEvent ToIntegrationEvent(this UserRegisteredDomainEvent domainEvent)
     {
         ArgumentNullException.ThrowIfNull(domainEvent);
-        
+
         return new UserRegisteredIntegrationEvent(
             Source: "Users",
             UserId: domainEvent.AggregateId,
@@ -40,7 +40,7 @@ public static class DomainEventMapperExtensions
     {
         ArgumentNullException.ThrowIfNull(domainEvent);
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
-        
+
         return new UserProfileUpdatedIntegrationEvent(
             Source: "Users",
             UserId: domainEvent.AggregateId,
@@ -59,7 +59,7 @@ public static class DomainEventMapperExtensions
     public static UserDeletedIntegrationEvent ToIntegrationEvent(this UserDeletedDomainEvent domainEvent)
     {
         ArgumentNullException.ThrowIfNull(domainEvent);
-        
+
         return new UserDeletedIntegrationEvent(
             Source: "Users",
             UserId: domainEvent.AggregateId,

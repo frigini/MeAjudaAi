@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
+using MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 

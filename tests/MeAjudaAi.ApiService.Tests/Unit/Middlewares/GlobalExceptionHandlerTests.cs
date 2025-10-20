@@ -1,9 +1,9 @@
-﻿using FluentAssertions;
+using System.Text.Json;
+using FluentAssertions;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Text.Json;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
 

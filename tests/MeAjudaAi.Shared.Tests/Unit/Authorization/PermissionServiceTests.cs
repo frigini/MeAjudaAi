@@ -24,7 +24,7 @@ public class PermissionServiceTests
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockLogger = new Mock<ILogger<PermissionService>>();
         _mockMetrics = new Mock<IPermissionMetricsService>();
-        
+
         _permissionService = new PermissionService(
             _mockCacheService.Object,
             _mockServiceProvider.Object,
@@ -38,7 +38,7 @@ public class PermissionServiceTests
         // Arrange
         var userId = "test-user-123";
         var expectedPermissions = new List<EPermission> { EPermission.UsersRead, EPermission.UsersProfile };
-        
+
         var mockProvider = new Mock<IPermissionProvider>();
         mockProvider.Setup(x => x.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedPermissions);
@@ -207,9 +207,9 @@ public class PermissionServiceTests
         // Arrange
         var userId = "test-user-123";
         var module = "Users";
-        var modulePermissions = new List<EPermission> 
-        { 
-            EPermission.UsersRead, 
+        var modulePermissions = new List<EPermission>
+        {
+            EPermission.UsersRead,
             EPermission.UsersProfile
         };
 

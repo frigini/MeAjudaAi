@@ -211,7 +211,7 @@ public class GetUserByIdQueryHandlerTests
             .WithLastName("User")
             .Build();
 
-        // Configura o serviço de cache para chamar a função de fábrica (simulando cache miss)
+        // Configura o serviÃ§o de cache para chamar a funÃ§Ã£o de fÃ¡brica (simulando cache miss)
         _usersCacheServiceMock
             .Setup(x => x.GetOrCacheUserByIdAsync(
                 userId,

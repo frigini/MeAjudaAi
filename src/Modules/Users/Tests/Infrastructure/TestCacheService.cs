@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Caching;
 using System.Collections.Concurrent;
+using MeAjudaAi.Shared.Caching;
 
 namespace MeAjudaAi.Modules.Users.Tests.Infrastructure;
 
@@ -87,13 +87,13 @@ internal class TestCacheService : ICacheService
         // Handle explicit match-all pattern
         if (pattern == "*")
             return true;
-            
+
         // Order-aware wildcard matching
         if (pattern.Contains('*', StringComparison.Ordinal))
         {
             var parts = pattern.Split('*', StringSplitOptions.RemoveEmptyEntries);
             var startIndex = 0;
-            
+
             foreach (var part in parts)
             {
                 var foundIndex = key.IndexOf(part, startIndex, StringComparison.OrdinalIgnoreCase);

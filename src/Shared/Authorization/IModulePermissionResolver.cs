@@ -13,7 +13,7 @@ public interface IModulePermissionResolver
     /// Use as constantes definidas em <see cref="ModuleNames"/> para consistência.
     /// </summary>
     string ModuleName { get; }
-    
+
     /// <summary>
     /// Resolve as permissões de um usuário dentro do contexto deste módulo.
     /// </summary>
@@ -21,7 +21,7 @@ public interface IModulePermissionResolver
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Lista de permissões resolvidas para o usuário neste módulo</returns>
     Task<IReadOnlyList<EPermission>> ResolvePermissionsAsync(UserId userId, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Verifica se o resolver pode lidar com uma permissão específica.
     /// Útil para casos onde múltiplos módulos podem ter permissões sobrepostas.

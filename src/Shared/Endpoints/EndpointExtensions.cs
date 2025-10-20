@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Http;
 

@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Modules.Users.Domain.Services.Models;
+namespace MeAjudaAi.Modules.Users.Domain.Services.Models;
 
 public sealed record TokenValidationResult(
     Guid? UserId = null,

@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Exceptions;
+namespace MeAjudaAi.Shared.Exceptions;
 
 public class NotFoundException(string entityName, object entityId) : DomainException($"{entityName} with id {entityId} was not found")
 {

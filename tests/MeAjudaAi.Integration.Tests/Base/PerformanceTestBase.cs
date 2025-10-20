@@ -1,9 +1,9 @@
+using System.Net.Http.Headers;
+using System.Text.Json;
 using Aspire.Hosting;
 using Bogus;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Headers;
-using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -180,6 +180,11 @@ public abstract class PerformanceTestBase : IAsyncLifetime
         {
             // Ignorar erros de dispose durante cleanup
         }
+    }
+
+    protected async Task<HttpResponseMessage> PostJsonAsync<T>(Uri requestUri, T value, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
     }
 }
 

@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Authorization;
 using System.Security.Claims;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 

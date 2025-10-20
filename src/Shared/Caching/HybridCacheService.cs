@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Caching;
 

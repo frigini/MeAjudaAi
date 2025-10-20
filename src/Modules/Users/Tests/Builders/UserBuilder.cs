@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Time;
 using MeAjudaAi.Shared.Tests.Builders;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Users.Tests.Builders;
 

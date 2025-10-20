@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using MeAjudaAi.Shared.Behaviors;
 using MeAjudaAi.Shared.Mediator;
 using Microsoft.Extensions.DependencyInjection;

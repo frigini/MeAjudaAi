@@ -36,7 +36,7 @@ internal sealed class UserRepository(UsersDbContext context, IDateTimeProvider d
 
         // Para listas muito grandes, considerar chunking para respeitar limites do SQL Server (~2100 parâmetros)
         const int maxBatchSize = 2000;
-        
+
         if (userIds.Count <= maxBatchSize)
         {
             // Caso simples: uma única query batch
@@ -93,8 +93,8 @@ internal sealed class UserRepository(UsersDbContext context, IDateTimeProvider d
 
     public async Task<User?> GetByKeycloakIdAsync(string keycloakId, CancellationToken cancellationToken = default)
     {
-        return string.IsNullOrWhiteSpace(keycloakId) 
-            ? null 
+        return string.IsNullOrWhiteSpace(keycloakId)
+            ? null
             : await _context.Users.FirstOrDefaultAsync(u => u.KeycloakId == keycloakId, cancellationToken);
     }
 

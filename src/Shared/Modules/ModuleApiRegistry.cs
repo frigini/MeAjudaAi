@@ -1,6 +1,6 @@
+using System.Reflection;
 using MeAjudaAi.Shared.Contracts.Modules;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace MeAjudaAi.Shared.Modules;
 

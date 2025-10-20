@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization.HealthChecks;
 using MeAjudaAi.Shared.Authorization.Keycloak;
 using MeAjudaAi.Shared.Authorization.Metrics;
@@ -8,7 +9,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Security.Claims;
 
 namespace MeAjudaAi.Shared.Authorization;
 
@@ -24,26 +24,26 @@ public static class AuthorizationExtensions
     /// <param name="configuration">Configuration for Keycloak integration</param>
     /// <returns>Service collection para chaining</returns>
     public static IServiceCollection AddPermissionBasedAuthorization(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         IConfiguration? configuration = null)
     {
         // Registra serviços de permissão core
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IClaimsTransformation, PermissionClaimsTransformation>();
         services.AddScoped<IAuthorizationHandler, PermissionRequirementHandler>();
-        
+
         // Adiciona métricas e monitoramento
         services.AddPermissionMetrics();
-        
+
         // Adiciona health checks
         services.AddPermissionSystemHealthCheck();
-        
+
         // Adiciona integração com Keycloak se configuração estiver disponível
         if (configuration != null)
         {
             services.AddKeycloakPermissionResolver(configuration);
         }
-        
+
         // Configura políticas de autorização
         services.AddAuthorization(options =>
         {
@@ -57,10 +57,10 @@ public static class AuthorizationExtensions
                 });
             }
         });
-        
+
         return services;
     }
-    
+
     /// <summary>
     /// Adiciona resolução de permissões via Keycloak.
     /// </summary>
@@ -68,30 +68,30 @@ public static class AuthorizationExtensions
     /// <param name="configuration">Configuration para Keycloak</param>
     /// <returns>Service collection para chaining</returns>
     public static IServiceCollection AddKeycloakPermissionResolver(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
-        
+
         // Registra HttpClient com configuração centralizada
         services.AddHttpClient<KeycloakPermissionResolver>(client =>
         {
             client.DefaultRequestHeaders.Add("User-Agent", "MeAjudaAi-PermissionResolver/1.0");
             client.Timeout = TimeSpan.FromSeconds(30);
         });
-        
+
         // Registra o resolvedor de permissões do Keycloak
         services.AddScoped<IKeycloakPermissionResolver, KeycloakPermissionResolver>();
-        
+
         // Configura opções do Keycloak a partir da configuração
         services.AddOptions<KeycloakPermissionOptions>()
             .Bind(configuration.GetSection("Keycloak"))
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        
+
         return services;
     }
-    
+
     /// <summary>
     /// Adiciona middleware de autorização para a aplicação.
     /// </summary>
@@ -101,10 +101,10 @@ public static class AuthorizationExtensions
     {
         // Middleware de otimização deve vir após UseAuthentication() e antes de UseAuthorization()
         app.UsePermissionOptimization();
-        
+
         return app;
     }
-    
+
     /// <summary>
     /// Adiciona um resolver de permissões específico de um módulo.
     /// </summary>
@@ -114,7 +114,7 @@ public static class AuthorizationExtensions
         services.AddScoped<IModulePermissionResolver, T>();
         return services;
     }
-    
+
     /// <summary>
     /// Verifica se um ClaimsPrincipal possui uma permissão específica.
     /// </summary>
@@ -126,7 +126,7 @@ public static class AuthorizationExtensions
         ArgumentNullException.ThrowIfNull(user);
         return user.HasClaim(CustomClaimTypes.Permission, permission.GetValue());
     }
-    
+
     /// <summary>
     /// Verifica se um ClaimsPrincipal possui múltiplas permissões.
     /// </summary>
@@ -138,12 +138,12 @@ public static class AuthorizationExtensions
     {
         ArgumentNullException.ThrowIfNull(user);
         var permissionsList = permissions.ToList();
-        
+
         return permissionsList.Count == 0 || (requireAll
             ? permissionsList.All(user.HasPermission)
             : permissionsList.Any(user.HasPermission));
     }
-    
+
     /// <summary>
     /// Verifica se um ClaimsPrincipal é administrador do sistema.
     /// </summary>
@@ -154,7 +154,7 @@ public static class AuthorizationExtensions
         ArgumentNullException.ThrowIfNull(user);
         return user.HasClaim(CustomClaimTypes.IsSystemAdmin, "true");
     }
-    
+
     /// <summary>
     /// Obtém todas as permissões de um ClaimsPrincipal.
     /// </summary>
@@ -168,10 +168,10 @@ public static class AuthorizationExtensions
             .Select(c => PermissionExtensions.FromValue(c.Value))
             .Where(p => p.HasValue)
             .Select(p => p!.Value);
-            
+
         return permissionClaims;
     }
-    
+
     /// <summary>
     /// Extension method para adicionar autorização baseada em permissão a endpoints.
     /// </summary>
@@ -184,7 +184,7 @@ public static class AuthorizationExtensions
         var policyName = $"RequirePermission:{permission.GetValue()}";
         return builder.RequireAuthorization(policyName);
     }
-    
+
     /// <summary>
     /// Extension method para autorização Admin ou Self (para endpoints de usuário).
     /// </summary>
@@ -195,7 +195,7 @@ public static class AuthorizationExtensions
     {
         return builder.RequireAuthorization(AuthConstants.Policies.SelfOrAdmin);
     }
-    
+
     /// <summary>
     /// Extension method para autorização Admin.
     /// </summary>
@@ -206,7 +206,7 @@ public static class AuthorizationExtensions
     {
         return builder.RequireAuthorization(AuthConstants.Policies.AdminOnly);
     }
-    
+
     /// <summary>
     /// Extension method para autorização Super Admin.
     /// </summary>
@@ -217,7 +217,7 @@ public static class AuthorizationExtensions
     {
         return builder.RequireAuthorization(AuthConstants.Policies.SuperAdminOnly);
     }
-    
+
     /// <summary>
     /// Extension method para adicionar múltiplas permissões (require ALL).
     /// </summary>
@@ -234,7 +234,7 @@ public static class AuthorizationExtensions
         }
         return builder;
     }
-    
+
     /// <summary>
     /// Extension method para adicionar permissão por módulo.
     /// </summary>

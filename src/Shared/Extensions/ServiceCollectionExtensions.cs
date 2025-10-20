@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Caching;
+using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Common.Constants;
 using MeAjudaAi.Shared.Database;

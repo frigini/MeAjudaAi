@@ -37,7 +37,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
         {
             var healthData = new Dictionary<string, object>();
             var issues = new List<string>();
-            
+
             // 1. Teste básico de funcionalidade
             var functionalityResult = await CheckBasicFunctionalityAsync(cancellationToken);
             healthData.Add("basic_functionality", functionalityResult.Status);
@@ -51,7 +51,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
             healthData.Add("performance_metrics", performanceResult.Status);
             healthData.Add("cache_hit_rate", performanceResult.CacheHitRate);
             healthData.Add("active_checks", performanceResult.ActiveChecks);
-            
+
             if (!performanceResult.IsHealthy)
             {
                 issues.Add($"Performance: {performanceResult.Issue}");
@@ -75,7 +75,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
             }
 
             // Determina status geral
-            var overallStatus = issues.Any() 
+            var overallStatus = issues.Any()
                 ? (issues.Count > 2 ? HealthStatus.Unhealthy : HealthStatus.Degraded)
                 : HealthStatus.Healthy;
 
@@ -93,8 +93,8 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
         {
             _logger.LogError(ex, "Permission system health check failed");
             return new HealthCheckResult(
-                HealthStatus.Unhealthy, 
-                "Permission system health check threw an exception", 
+                HealthStatus.Unhealthy,
+                "Permission system health check threw an exception",
                 ex);
         }
     }
@@ -122,7 +122,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
 
             // Testa verificação de permissão
             var hasPermission = await _permissionService.HasPermissionAsync(testUserId, testPermission, cancellationToken);
-            
+
             // Para health check, não importa se tem ou não a permissão, apenas que a operação funcione
             return new InternalHealthCheckResult(true, "Basic functionality working");
         }
@@ -185,16 +185,16 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
         try
         {
             var testUserId = "cache-health-test";
-            
+
             // Testa operação de cache simples
             var startTime = DateTimeOffset.UtcNow;
-            
+
             // Primeira chamada (cache miss esperado)
             await _permissionService.GetUserPermissionsAsync(testUserId, cancellationToken);
-            
+
             // Segunda chamada (cache hit esperado)
             await _permissionService.GetUserPermissionsAsync(testUserId, cancellationToken);
-            
+
             var duration = DateTimeOffset.UtcNow - startTime;
 
             // Cache deve fazer a segunda chamada mais rápida
@@ -220,7 +220,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
         {
             // Esta verificação seria mais robusta com acesso ao service provider
             // Por agora, assume que se chegou até aqui, os resolvers básicos estão funcionando
-            
+
             return new ResolversHealthResult
             {
                 IsHealthy = true,

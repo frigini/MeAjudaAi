@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.Users.Application.Commands;

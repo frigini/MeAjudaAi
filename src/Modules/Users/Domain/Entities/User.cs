@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.Domain.Events;
+using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Domain.Exceptions;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;

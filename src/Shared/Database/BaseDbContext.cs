@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using MeAjudaAi.Shared.Events;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Shared.Database;
 

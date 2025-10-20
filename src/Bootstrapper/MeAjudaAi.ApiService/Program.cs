@@ -1,10 +1,10 @@
+using System.Diagnostics;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Modules.Users.API;
+using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Logging;
-using MeAjudaAi.ServiceDefaults;
 using Serilog;
-using System.Diagnostics;
 using Serilog.Context;
 
 public partial class Program

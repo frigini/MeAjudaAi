@@ -17,7 +17,7 @@ public class UniqueConstraintException : DbUpdateException
 
     public UniqueConstraintException(string message, Exception innerException) : base(message, innerException) { }
 
-    public UniqueConstraintException(string? constraintName, string? columnName, Exception innerException) 
+    public UniqueConstraintException(string? constraintName, string? columnName, Exception innerException)
         : base($"Unique constraint violation on {columnName ?? "unknown column"}", innerException)
     {
         ConstraintName = constraintName;
@@ -38,7 +38,7 @@ public class NotNullConstraintException : DbUpdateException
 
     public NotNullConstraintException(string message, Exception innerException) : base(message, innerException) { }
 
-    public NotNullConstraintException(string? columnName, Exception innerException, bool isColumnName) 
+    public NotNullConstraintException(string? columnName, Exception innerException, bool isColumnName)
         : base($"Cannot insert null value into column {columnName ?? "unknown column"}", innerException)
     {
         if (isColumnName) ColumnName = columnName;
@@ -59,7 +59,7 @@ public class ForeignKeyConstraintException : DbUpdateException
 
     public ForeignKeyConstraintException(string message, Exception innerException) : base(message, innerException) { }
 
-    public ForeignKeyConstraintException(string? constraintName, string? tableName, Exception innerException) 
+    public ForeignKeyConstraintException(string? constraintName, string? tableName, Exception innerException)
         : base($"Foreign key constraint violation on table {tableName ?? "unknown table"}", innerException)
     {
         ConstraintName = constraintName;
@@ -94,7 +94,7 @@ public static class PostgreSqlExceptionProcessor
     {
         var constraintName = ExtractConstraintName(postgresException.Detail);
         var columnName = ExtractColumnName(postgresException.Detail);
-        
+
         return new UniqueConstraintException(constraintName, columnName, postgresException);
     }
 
@@ -108,44 +108,44 @@ public static class PostgreSqlExceptionProcessor
     {
         var constraintName = ExtractConstraintName(postgresException.Detail);
         var tableName = ExtractTableName(postgresException.Detail);
-        
+
         return new ForeignKeyConstraintException(constraintName, tableName, postgresException);
     }
 
     private static string? ExtractConstraintName(string? detail)
     {
         if (string.IsNullOrEmpty(detail)) return null;
-        
+
         // Padrão comum: "Key (column)=(value) already exists."
         // ou "violates foreign key constraint \"constraint_name\""
         var constraintMatch = System.Text.RegularExpressions.Regex.Match(
-            detail, @"constraint\s+""([^""]+)""", 
+            detail, @"constraint\s+""([^""]+)""",
             System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            
+
         return constraintMatch.Success ? constraintMatch.Groups[1].Value : null;
     }
 
     private static string? ExtractColumnName(string? detail)
     {
         if (string.IsNullOrEmpty(detail)) return null;
-        
+
         // Padrão comum: "Key (column_name)=(value) already exists."
         var columnMatch = System.Text.RegularExpressions.Regex.Match(
-            detail, @"Key\s+\(([^)]+)\)", 
+            detail, @"Key\s+\(([^)]+)\)",
             System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            
+
         return columnMatch.Success ? columnMatch.Groups[1].Value : null;
     }
 
     private static string? ExtractTableName(string? detail)
     {
         if (string.IsNullOrEmpty(detail)) return null;
-        
+
         // Padrão comum: "violates foreign key constraint on table \"table_name\""
         var tableMatch = System.Text.RegularExpressions.Regex.Match(
-            detail, @"table\s+""([^""]+)""", 
+            detail, @"table\s+""([^""]+)""",
             System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            
+
         return tableMatch.Success ? tableMatch.Groups[1].Value : null;
     }
 }

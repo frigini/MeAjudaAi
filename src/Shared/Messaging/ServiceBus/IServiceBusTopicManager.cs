@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Messaging.ServiceBus;
+namespace MeAjudaAi.Shared.Messaging.ServiceBus;
 
 public interface IServiceBusTopicManager
 {

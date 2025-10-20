@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
+namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
 
 public class KeycloakCreateUserRequest
 {

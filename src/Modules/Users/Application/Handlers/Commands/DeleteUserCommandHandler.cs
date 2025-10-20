@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.Application.Commands;
+using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;

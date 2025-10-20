@@ -15,19 +15,19 @@ public static class ValidationConstants
     {
         // Baseado em: .HasMaxLength(30) nas migrations
         public const int UsernameMaxLength = 30;
-        
+
         // Baseado em: .HasMaxLength(254) nas migrations
         public const int EmailMaxLength = 254;
-        
+
         // Baseado em: .HasMaxLength(100) nas migrations
         public const int FirstNameMaxLength = 100;
-        
+
         // Baseado em: .HasMaxLength(100) nas migrations
         public const int LastNameMaxLength = 100;
-        
+
         // Baseado em: .HasMaxLength(50) nas migrations
         public const int KeycloakIdMaxLength = 50;
-        
+
         // Limites mínimos práticos
         public const int UsernameMinLength = 3;
         public const int FirstNameMinLength = 2;
@@ -41,13 +41,13 @@ public static class ValidationConstants
     {
         // Padrão básico para email (compatível com HTML5)
         public const string Email = @"^[^\s@]+@[^\s@]+\.[^\s@]+$";
-        
+
         // Username: letras, números, underscore, hífen e pontos
         public const string Username = @"^[a-zA-Z0-9_.-]+$";
-        
+
         // Names: apenas letras e espaços (para FirstName e LastName)
         public const string Name = @"^[a-zA-ZÀ-ÿ\s]+$";
-        
+
         // GUID/UUID padrão
         public const string Guid = @"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
     }

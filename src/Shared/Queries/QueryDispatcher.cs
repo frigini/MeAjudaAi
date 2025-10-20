@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Mediator;
+using MeAjudaAi.Shared.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

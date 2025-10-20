@@ -17,7 +17,7 @@ public static class UsersPermissions
         public const EPermission UsersList = EPermission.UsersList;
         public const EPermission UserDetails = EPermission.UsersRead;
     }
-    
+
     /// <summary>
     /// Permissões de escrita/modificação de usuários.
     /// </summary>
@@ -27,7 +27,7 @@ public static class UsersPermissions
         public const EPermission UpdateUser = EPermission.UsersUpdate;
         public const EPermission DeleteUser = EPermission.UsersDelete;
     }
-    
+
     /// <summary>
     /// Permissões administrativas do módulo de usuários.
     /// </summary>
@@ -36,7 +36,7 @@ public static class UsersPermissions
         public const EPermission SystemAdmin = EPermission.SystemAdmin;
         public const EPermission ManageAllUsers = EPermission.UsersList;
     }
-    
+
     /// <summary>
     /// Grupos de permissões comuns para facilitar uso em policies.
     /// </summary>
@@ -45,16 +45,16 @@ public static class UsersPermissions
         /// <summary>
         /// Permissões de usuário básico (próprio perfil).
         /// </summary>
-        public static readonly EPermission[] BasicUser = 
+        public static readonly EPermission[] BasicUser =
         {
             EPermission.UsersProfile,
             EPermission.UsersRead
         };
-        
+
         /// <summary>
         /// Permissões de administrador de usuários.
         /// </summary>
-        public static readonly EPermission[] UserAdmin = 
+        public static readonly EPermission[] UserAdmin =
         {
             EPermission.UsersList,
             EPermission.UsersRead,
@@ -62,11 +62,11 @@ public static class UsersPermissions
             EPermission.UsersUpdate,
             EPermission.UsersDelete
         };
-        
+
         /// <summary>
         /// Permissões de administrador de sistema.
         /// </summary>
-        public static readonly EPermission[] SystemAdmin = 
+        public static readonly EPermission[] SystemAdmin =
         {
             EPermission.SystemAdmin,
             EPermission.SystemRead,

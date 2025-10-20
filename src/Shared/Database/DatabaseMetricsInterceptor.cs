@@ -1,6 +1,6 @@
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
-using System.Data.Common;
 
 namespace MeAjudaAi.Shared.Database;
 

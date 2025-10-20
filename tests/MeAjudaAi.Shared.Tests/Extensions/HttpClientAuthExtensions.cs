@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Tests.Extensions;
+namespace MeAjudaAi.Shared.Tests.Extensions;
 
 /// <summary>
 /// Extensões para HttpClient facilitar configuração de autenticação

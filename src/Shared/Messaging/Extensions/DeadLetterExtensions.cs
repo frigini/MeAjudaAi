@@ -26,7 +26,7 @@ public static class DeadLetterExtensions
     {
         // Configurar opções
         services.Configure<DeadLetterOptions>(configuration.GetSection(DeadLetterOptions.SectionName));
-        
+
         if (configureOptions != null)
         {
             services.Configure(configureOptions);
@@ -66,7 +66,7 @@ public static class DeadLetterExtensions
         Action<DeadLetterOptions>? configureOptions = null)
     {
         services.Configure<DeadLetterOptions>(configuration.GetSection(DeadLetterOptions.SectionName));
-        
+
         if (configureOptions != null)
         {
             services.Configure(configureOptions);
@@ -91,7 +91,7 @@ public static class DeadLetterExtensions
         Action<DeadLetterOptions>? configureOptions = null)
     {
         services.Configure<DeadLetterOptions>(configuration.GetSection(DeadLetterOptions.SectionName));
-        
+
         if (configureOptions != null)
         {
             services.Configure(configureOptions);
@@ -111,7 +111,7 @@ public static class DeadLetterExtensions
     public static Task ValidateDeadLetterConfigurationAsync(this IHost host)
     {
         using var scope = host.Services.CreateScope();
-        
+
         try
         {
             var deadLetterService = scope.ServiceProvider.GetRequiredService<IDeadLetterService>();
@@ -125,7 +125,7 @@ public static class DeadLetterExtensions
             logger.LogInformation(
                 "Dead Letter Queue validation completed. Service: {ServiceType}, ShouldRetry: {ShouldRetry}, RetryDelay: {RetryDelay}ms",
                 deadLetterService.GetType().Name, shouldRetry, retryDelay.TotalMilliseconds);
-                
+
             return Task.CompletedTask;
         }
         catch (Exception ex)
@@ -144,7 +144,7 @@ public static class DeadLetterExtensions
     public static Task EnsureDeadLetterInfrastructureAsync(this IHost host)
     {
         using var scope = host.Services.CreateScope();
-        
+
         try
         {
             var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
@@ -161,7 +161,7 @@ public static class DeadLetterExtensions
                 // mas você poderia verificar se as filas existem aqui
                 logger.LogInformation("Dead Letter infrastructure for Service Bus will be created dynamically");
             }
-            
+
             return Task.CompletedTask;
         }
         catch (Exception ex)

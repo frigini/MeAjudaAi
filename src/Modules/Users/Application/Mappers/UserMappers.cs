@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.Application.DTOs;
+using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 
 namespace MeAjudaAi.Modules.Users.Application.Mappers;

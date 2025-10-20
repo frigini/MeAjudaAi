@@ -1,4 +1,6 @@
-﻿using MeAjudaAi.ApiService.Handlers;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using MeAjudaAi.ApiService.Handlers;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Shared.Authorization;
@@ -6,8 +8,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
@@ -26,7 +26,7 @@ internal static class SecurityExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(environment);
-        
+
         var errors = new List<string>();
 
         // Valida configuração de CORS
@@ -352,10 +352,10 @@ internal static class SecurityExtensions
     public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        
+
         // Sistema de permissões type-safe (único e centralizado)
         services.AddPermissionBasedAuthorization();
-        
+
         // Adiciona políticas especiais que precisam de handlers customizados
         services.AddAuthorizationBuilder()
             .AddPolicy("SelfOrAdmin", policy =>
@@ -364,7 +364,7 @@ internal static class SecurityExtensions
                 policy.RequireRole("admin", "super-admin"))
             .AddPolicy("SuperAdminOnly", policy =>
                 policy.RequireRole("super-admin"));
-        
+
         // Registra handlers de autorização customizados
         services.AddScoped<IAuthorizationHandler, SelfOrAdminHandler>();
 
@@ -452,7 +452,7 @@ internal sealed class KeycloakConfigurationLogger(
         return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) 
+    public Task StopAsync(CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }

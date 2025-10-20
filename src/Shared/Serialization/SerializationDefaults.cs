@@ -1,6 +1,6 @@
-﻿using MeAjudaAi.Shared.Serialization.Converters;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MeAjudaAi.Shared.Serialization.Converters;
 
 namespace MeAjudaAi.Shared.Serialization;
 

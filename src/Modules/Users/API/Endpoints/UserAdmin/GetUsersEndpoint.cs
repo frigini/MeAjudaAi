@@ -1,7 +1,7 @@
-﻿using MeAjudaAi.Modules.Users.Application.DTOs;
+using MeAjudaAi.Modules.Users.API.Mappers;
+using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts;

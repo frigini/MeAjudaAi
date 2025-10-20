@@ -1,17 +1,17 @@
 namespace MeAjudaAi.Shared.Security;
 
 /// <summary>
-/// PapÈis do sistema para autorizaÁ„o e controle de acesso
+/// Pap√©is do sistema para autoriza√ß√£o e controle de acesso
 /// </summary>
 public static class UserRoles
 {
     /// <summary>
-    /// Usu·rio comum com permissıes b·sicas
+    /// Usu√°rio comum com permiss√µes b√°sicas
     /// </summary>
     public const string User = "user";
 
     /// <summary>
-    /// Administrador com permissıes elevadas
+    /// Administrador com permiss√µes elevadas
     /// </summary>
     public const string Admin = "admin";
 
@@ -21,22 +21,22 @@ public static class UserRoles
     public const string SuperAdmin = "super-admin";
 
     /// <summary>
-    /// Papel de prestador de serviÁo para contas empresariais
+    /// Papel de prestador de servi√ßo para contas empresariais
     /// </summary>
     public const string ServiceProvider = "service-provider";
 
     /// <summary>
-    /// Papel de cliente para contas de usu·rio final
+    /// Papel de cliente para contas de usu√°rio final
     /// </summary>
     public const string Customer = "customer";
 
     /// <summary>
-    /// Papel de moderador para gest„o de conte˙do (uso futuro)
+    /// Papel de moderador para gest√£o de conte√∫do (uso futuro)
     /// </summary>
     public const string Moderator = "moderator";
 
     /// <summary>
-    /// ObtÈm todos os papÈis disponÌveis no sistema
+    /// Obt√©m todos os pap√©is dispon√≠veis no sistema
     /// </summary>
     public static readonly string[] AllRoles =
     [
@@ -49,7 +49,7 @@ public static class UserRoles
     ];
 
     /// <summary>
-    /// ObtÈm papÈis que possuem privilÈgios administrativos
+    /// Obt√©m pap√©is que possuem privil√©gios administrativos
     /// </summary>
     public static readonly string[] AdminRoles =
     [
@@ -58,7 +58,7 @@ public static class UserRoles
     ];
 
     /// <summary>
-    /// ObtÈm papÈis disponÌveis para criaÁ„o de usu·rio comum
+    /// Obt√©m pap√©is dispon√≠veis para cria√ß√£o de usu√°rio comum
     /// </summary>
     public static readonly string[] BasicRoles =
     [
@@ -68,20 +68,20 @@ public static class UserRoles
     ];
 
     /// <summary>
-    /// Valida se um papel È v·lido no sistema
+    /// Valida se um papel √© v√°lido no sistema
     /// </summary>
     /// <param name="role">Papel a ser validado</param>
-    /// <returns>True se o papel for v·lido, false caso contr·rio</returns>
+    /// <returns>True se o papel for v√°lido, false caso contr√°rio</returns>
     public static bool IsValidRole(string role)
     {
         return AllRoles.Contains(role, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
-    /// Valida se um papel possui privilÈgios administrativos
+    /// Valida se um papel possui privil√©gios administrativos
     /// </summary>
     /// <param name="role">Papel a ser verificado</param>
-    /// <returns>True se o papel for de nÌvel admin, false caso contr·rio</returns>
+    /// <returns>True se o papel for de n√≠vel admin, false caso contr√°rio</returns>
     public static bool IsAdminRole(string role)
     {
         return AdminRoles.Contains(role, StringComparer.OrdinalIgnoreCase);

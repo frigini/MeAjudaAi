@@ -1,6 +1,6 @@
-﻿using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Shared.Messaging.ServiceBus;
 using System.Reflection;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.ServiceBus;
 
 namespace MeAjudaAi.Shared.Messaging.Strategy;
 

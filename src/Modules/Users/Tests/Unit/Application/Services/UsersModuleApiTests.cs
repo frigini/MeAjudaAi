@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Users.Application.DTOs;
-using MeAjudaAi.Modules.Users.Application.Services;
 using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Application.Services;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -31,7 +31,7 @@ public class UsersModuleApiTests
         _getUsersByIdsHandler = new Mock<IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>>>();
         _serviceProvider = new Mock<IServiceProvider>();
         _logger = new Mock<ILogger<UsersModuleApi>>();
-        
+
         _sut = new UsersModuleApi(
             _getUserByIdHandler.Object,
             _getUserByEmailHandler.Object,
@@ -233,7 +233,7 @@ public class UsersModuleApiTests
         result.Value.Should().HaveCount(2);
         result.Value.Should().Contain(u => u.Id == userId1 && u.Username == "user1");
         result.Value.Should().Contain(u => u.Id == userId2 && u.Username == "user2");
-        
+
         // Verificar que o batch handler foi chamado uma única vez
         _getUsersByIdsHandler.Verify(x => x.HandleAsync(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -382,7 +382,7 @@ public class UsersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
-        
+
         // Verificar que o batch handler foi chamado
         _getUsersByIdsHandler.Verify(x => x.HandleAsync(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -404,7 +404,7 @@ public class UsersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Message.Should().Be(error);
-        
+
         // Verificar que o batch handler foi chamado
         _getUsersByIdsHandler.Verify(x => x.HandleAsync(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
     }

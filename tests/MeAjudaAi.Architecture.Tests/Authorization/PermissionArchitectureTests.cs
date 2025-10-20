@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Authorization;
 using System.Reflection;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Architecture.Tests.Authorization;
 
@@ -10,7 +10,6 @@ namespace MeAjudaAi.Architecture.Tests.Authorization;
 public class PermissionArchitectureTests
 {
     private readonly Assembly _sharedAssembly = typeof(Permission).Assembly;
-    private readonly Assembly _usersModuleAssembly = typeof(MeAjudaAi.Modules.Users.Application.Services.UsersModuleApi).Assembly;
 
     [Fact]
     public void PermissionResolver_ShouldImplementIModulePermissionResolver()
@@ -28,7 +27,7 @@ public class PermissionArchitectureTests
             .GetResult();
 
         // Assert
-        Assert.True(result.IsSuccessful, 
+        Assert.True(result.IsSuccessful,
             $"Todos os PermissionResolvers devem implementar IModulePermissionResolver. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
@@ -48,7 +47,7 @@ public class PermissionArchitectureTests
             .GetResult();
 
         // Assert
-        Assert.True(result.IsSuccessful, 
+        Assert.True(result.IsSuccessful,
             $"Todos os PermissionResolvers devem ser sealed para evitar herança não controlada. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
@@ -64,7 +63,7 @@ public class PermissionArchitectureTests
             .GetResult();
 
         // Assert
-        Assert.True(result.IsSuccessful, 
+        Assert.True(result.IsSuccessful,
             $"PermissionService não deve depender de módulos específicos para manter a modularidade. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
@@ -84,7 +83,7 @@ public class PermissionArchitectureTests
             .GetResult();
 
         // Assert
-        Assert.True(result.IsSuccessful, 
+        Assert.True(result.IsSuccessful,
             $"ModulePermissionResolvers devem residir apenas na camada Application/Authorization. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
@@ -104,7 +103,7 @@ public class PermissionArchitectureTests
             .GetResult();
 
         // Assert
-        Assert.True(result.IsSuccessful, 
+        Assert.True(result.IsSuccessful,
             $"Classes de permissão devem estar no namespace Authorization. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
@@ -119,7 +118,7 @@ public class PermissionArchitectureTests
         {
             var field = typeof(EPermission).GetField(permission.ToString());
             var displayAttribute = field?.GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>();
-            
+
             Assert.NotNull(displayAttribute);
             Assert.NotNull(displayAttribute.Name);
             Assert.NotEmpty(displayAttribute.Name);
@@ -137,19 +136,19 @@ public class PermissionArchitectureTests
         foreach (var permission in permissionValues)
         {
             var value = permission.GetValue();
-            
+
             // Deve seguir o padrão "module:action"
             Assert.Contains(":", value);
-            
+
             var parts = value.Split(':');
             Assert.Equal(2, parts.Length);
-            
+
             // Módulo deve estar em lowercase
-            Assert.True(parts[0].All(char.IsLower) || parts[0] == "admin", 
+            Assert.True(parts[0].All(char.IsLower) || parts[0] == "admin",
                 $"Módulo '{parts[0]}' deve estar em lowercase ou ser 'admin'. Permission: {permission}");
-            
+
             // Ação deve estar em lowercase
-            Assert.True(parts[1].All(char.IsLower), 
+            Assert.True(parts[1].All(char.IsLower),
                 $"Ação '{parts[1]}' deve estar em lowercase. Permission: {permission}");
         }
     }
@@ -183,7 +182,7 @@ public class PermissionArchitectureTests
             .GetResult();
 
         // Assert
-        Assert.True(result.IsSuccessful, 
+        Assert.True(result.IsSuccessful,
             $"Extensões de autorização não devem depender de módulos específicos. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
@@ -225,7 +224,7 @@ public class PermissionArchitectureTests
             .GetResult();
 
         // Assert
-        Assert.True(result.IsSuccessful, 
+        Assert.True(result.IsSuccessful,
             $"Classes de organização de permissões devem ser static. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
@@ -242,7 +241,7 @@ public class PermissionArchitectureTests
             Assert.True(field.IsStatic, $"Field {field.Name} deve ser static");
             Assert.True(field.IsLiteral || field.IsInitOnly, $"Field {field.Name} deve ser const ou readonly");
             Assert.Equal(typeof(string), field.FieldType);
-            
+
             var value = field.GetValue(null) as string;
             Assert.NotNull(value);
             Assert.NotEmpty(value);
@@ -263,7 +262,7 @@ public class PermissionArchitectureTests
             .GetResult();
 
         // Assert
-        Assert.True(result.IsSuccessful, 
+        Assert.True(result.IsSuccessful,
             $"Todos os Requirements devem implementar IAuthorizationRequirement. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
@@ -281,7 +280,7 @@ public class PermissionArchitectureTests
             .GetResult();
 
         // Assert
-        Assert.True(result.IsSuccessful, 
+        Assert.True(result.IsSuccessful,
             $"AuthorizationHandlers devem estar no namespace correto. Violações: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
@@ -299,7 +298,7 @@ public class PermissionArchitectureTests
             .GetResult();
 
         // Esta regra é mais complexa e seria melhor implementada com análise de dependências específica
-        Assert.True(result.IsSuccessful || result.FailingTypeNames.Count() < 10, 
+        Assert.True(result.IsSuccessful || result.FailingTypeNames.Count() < 10,
             "Não deve haver dependências circulares problemáticas no sistema de autorização");
     }
 }

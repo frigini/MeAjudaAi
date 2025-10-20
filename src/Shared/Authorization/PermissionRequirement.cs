@@ -12,12 +12,12 @@ public sealed class PermissionRequirement : IAuthorizationRequirement
     /// A permissão necessária para acessar o recurso.
     /// </summary>
     public EPermission Permission { get; }
-    
+
     /// <summary>
     /// O valor string da permissão (derivado do enum).
     /// </summary>
     public string PermissionValue => Permission.GetValue();
-    
+
     /// <summary>
     /// Inicializa o requirement com a permissão requerida.
     /// </summary>

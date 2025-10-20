@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.API.Endpoints;
+using MeAjudaAi.Modules.Users.API.Endpoints;
 using MeAjudaAi.Modules.Users.Application;
 using MeAjudaAi.Modules.Users.Infrastructure;
 using MeAjudaAi.Shared.Database;

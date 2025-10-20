@@ -1,13 +1,13 @@
-﻿using MeAjudaAi.Modules.Users.Domain.Services.Models;
-using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
-using MeAjudaAi.Shared.Functional;
-using MeAjudaAi.Shared.Serialization;
-using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using MeAjudaAi.Modules.Users.Domain.Services.Models;
+using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
+using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 

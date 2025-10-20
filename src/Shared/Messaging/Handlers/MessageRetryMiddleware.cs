@@ -76,7 +76,7 @@ public sealed class MessageRetryMiddleware<TMessage>(
 
                 // Calcula delay para próxima tentativa
                 var retryDelay = deadLetterService.CalculateRetryDelay(attemptCount);
-                
+
                 logger.LogInformation(
                     "Will retry message of type {MessageType} in {RetryDelay}ms (attempt {AttemptCount})",
                     typeof(TMessage).Name, retryDelay.TotalMilliseconds, attemptCount);
@@ -95,7 +95,7 @@ public interface IMessageRetryMiddlewareFactory
     /// <summary>
     /// Cria middleware de retry para um tipo específico de mensagem
     /// </summary>
-    MessageRetryMiddleware<TMessage> CreateMiddleware<TMessage>(string handlerType, string sourceQueue) 
+    MessageRetryMiddleware<TMessage> CreateMiddleware<TMessage>(string handlerType, string sourceQueue)
         where TMessage : class;
 }
 
@@ -104,7 +104,7 @@ public interface IMessageRetryMiddlewareFactory
 /// </summary>
 public sealed class MessageRetryMiddlewareFactory(IServiceProvider serviceProvider) : IMessageRetryMiddlewareFactory
 {
-    public MessageRetryMiddleware<TMessage> CreateMiddleware<TMessage>(string handlerType, string sourceQueue) 
+    public MessageRetryMiddleware<TMessage> CreateMiddleware<TMessage>(string handlerType, string sourceQueue)
         where TMessage : class
     {
         var deadLetterService = serviceProvider.GetRequiredService<IDeadLetterService>();
@@ -138,9 +138,9 @@ public static class MessageRetryExtensions
     {
         var middlewareFactory = serviceProvider.GetRequiredService<IMessageRetryMiddlewareFactory>();
         var handlerType = handler.Method.DeclaringType?.FullName ?? "Unknown";
-        
+
         var middleware = middlewareFactory.CreateMiddleware<TMessage>(handlerType, sourceQueue);
-        
+
         return await middleware.ExecuteWithRetryAsync(message, handler, cancellationToken);
     }
 

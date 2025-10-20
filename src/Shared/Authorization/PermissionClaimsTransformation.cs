@@ -1,7 +1,7 @@
+using System.Security.Claims;
 using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace MeAjudaAi.Shared.Authorization;
 
@@ -18,51 +18,51 @@ public sealed class PermissionClaimsTransformation(
         // Só processa usuários autenticados
         if (principal.Identity?.IsAuthenticated != true)
             return principal;
-        
+
         // Verifica se já possui claims de permissão (evita processamento duplo)
         if (principal.HasClaim(CustomClaimTypes.Permission, "*"))
             return principal;
-        
+
         var userId = GetUserId(principal);
         if (string.IsNullOrEmpty(userId))
         {
             logger.LogWarning("Unable to extract user ID from authenticated principal");
             return principal;
         }
-        
+
         try
         {
             // Obtém permissões do usuário
             var permissions = await permissionService.GetUserPermissionsAsync(userId);
-            
+
             if (!permissions.Any())
             {
                 logger.LogDebug("No permissions found for user {UserId}", userId);
                 return principal;
             }
-            
+
             // Cria nova identidade com as permissões
             var claimsIdentity = new ClaimsIdentity(principal.Identity);
-            
+
             // Adiciona claims de permissão
             foreach (var permission in permissions)
             {
                 claimsIdentity.AddClaim(new Claim(CustomClaimTypes.Permission, permission.GetValue()));
                 claimsIdentity.AddClaim(new Claim(CustomClaimTypes.Module, permission.GetModule()));
             }
-            
+
             // Adiciona flag indicando que permissões foram processadas
             claimsIdentity.AddClaim(new Claim(CustomClaimTypes.Permission, "*"));
-            
+
             // Adiciona flag de admin se aplicável
             if (permissions.Any(p => p.IsAdminPermission()))
             {
                 claimsIdentity.AddClaim(new Claim(CustomClaimTypes.IsSystemAdmin, "true"));
             }
-            
-            logger.LogDebug("Added {PermissionCount} permission claims for user {UserId}", 
+
+            logger.LogDebug("Added {PermissionCount} permission claims for user {UserId}",
                 permissions.Count, userId);
-            
+
             return new ClaimsPrincipal(claimsIdentity);
         }
         catch (Exception ex)
@@ -71,7 +71,7 @@ public sealed class PermissionClaimsTransformation(
             return principal;
         }
     }
-    
+
     /// <summary>
     /// Extrai o ID do usuário dos claims.
     /// </summary>

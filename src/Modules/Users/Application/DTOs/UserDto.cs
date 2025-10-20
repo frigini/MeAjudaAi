@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Modules.Users.Application.DTOs;
+namespace MeAjudaAi.Modules.Users.Application.DTOs;
 
 public sealed record UserDto(
     Guid Id,

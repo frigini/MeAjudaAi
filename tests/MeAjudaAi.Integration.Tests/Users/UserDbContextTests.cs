@@ -1,8 +1,8 @@
-﻿using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 
 namespace MeAjudaAi.Integration.Tests.Users;
 

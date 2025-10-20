@@ -47,19 +47,19 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
         try
         {
             _logger.LogDebug("Checking Users module availability");
-            
+
             // Verifica health checks registrados do sistema
             var healthCheckService = _serviceProvider.GetService<HealthCheckService>();
             if (healthCheckService != null)
             {
                 var healthReport = await healthCheckService.CheckHealthAsync(
-                    check => check.Tags.Contains("users") || check.Tags.Contains("database"), 
+                    check => check.Tags.Contains("users") || check.Tags.Contains("database"),
                     cancellationToken);
-                
+
                 // Se algum health check crítico falhou, o módulo não está disponível
                 if (healthReport.Status == HealthStatus.Unhealthy)
                 {
-                    _logger.LogWarning("Users module unavailable due to failed health checks: {FailedChecks}", 
+                    _logger.LogWarning("Users module unavailable due to failed health checks: {FailedChecks}",
                         string.Join(", ", healthReport.Entries.Where(e => e.Value.Status == HealthStatus.Unhealthy).Select(e => e.Key)));
                     return false;
                 }
@@ -99,23 +99,23 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
             // Usamos um GUID fixo que provavelmente não existe, mas o handler deve responder adequadamente
             var testQuery = new GetUserByIdQuery(Guid.Parse("00000000-0000-0000-0000-000000000001"));
             var result = await _getUserByIdHandler.HandleAsync(testQuery, cancellationToken);
-            
+
             // Verifica o resultado da operação para detectar falhas de infraestrutura
             if (result.IsSuccess)
             {
                 // Operação bem-sucedida, sistema está saudável
                 return true;
             }
-            
+
             // Se falhou, verifica se é um erro aceitável (NotFound) ou uma falha real
             if (result.Error.StatusCode == 404)
             {
                 // NotFound é aceitável para o health check - significa que o sistema respondeu corretamente
                 return true;
             }
-            
+
             // Qualquer outro erro (500, timeout de DB, etc.) indica problema de infraestrutura
-            _logger.LogWarning("Basic operations test failed with non-404 error: {ErrorMessage} (Status: {StatusCode})", 
+            _logger.LogWarning("Basic operations test failed with non-404 error: {ErrorMessage} (Status: {StatusCode})",
                 result.Error.Message, result.Error.StatusCode);
             return false;
         }

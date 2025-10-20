@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.API.Mappers;
+using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Shared.Authorization;

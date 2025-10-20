@@ -20,7 +20,7 @@ public sealed class PermissionService(
     // Cache key patterns
     private const string UserPermissionsCacheKey = "user_permissions_{0}";
     private const string UserModulePermissionsCacheKey = "user_permissions_{0}_module_{1}";
-    
+
     // Cache configuration
     private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(30);
     private static readonly HybridCacheEntryOptions CacheOptions = new()
@@ -38,16 +38,16 @@ public sealed class PermissionService(
         }
 
         using var timer = metrics.MeasurePermissionResolution(userId);
-        
+
         var cacheKey = string.Format(UserPermissionsCacheKey, userId);
         var tags = new[] { "permissions", $"user:{userId}" };
-        
+
         bool cacheHit = false;
         using var cacheTimer = metrics.MeasureCacheOperation("get_user_permissions", cacheHit);
-        
+
         var result = await cacheService.GetOrCreateAsync(
             cacheKey,
-            async _ => 
+            async _ =>
             {
                 cacheHit = false; // Cache miss
                 return await ResolveUserPermissionsAsync(userId, cancellationToken);
@@ -64,51 +64,51 @@ public sealed class PermissionService(
 
         return result;
     }
-    
+
     public async Task<bool> HasPermissionAsync(string userId, EPermission permission, CancellationToken cancellationToken = default)
     {
         using var timer = metrics.MeasurePermissionCheck(userId, permission, false); // Will update with actual result
-        
+
         var permissions = await GetUserPermissionsAsync(userId, cancellationToken);
         var hasPermission = permissions.Contains(permission);
-        
+
         if (!hasPermission)
         {
             metrics.RecordAuthorizationFailure(userId, permission, "Permission not granted");
         }
-        
+
         return hasPermission;
     }
-    
+
     public async Task<bool> HasPermissionsAsync(string userId, IEnumerable<EPermission> permissions, bool requireAll = true, CancellationToken cancellationToken = default)
     {
         if (!permissions.Any())
         {
             return true; // Vacuous truth - no permissions to check
         }
-        
+
         using var timer = metrics.MeasureMultiplePermissionCheck(userId, permissions, requireAll);
-        
+
         var userPermissions = await GetUserPermissionsAsync(userId, cancellationToken);
         var userPermissionSet = userPermissions.ToHashSet();
-        
-        bool result = requireAll 
+
+        bool result = requireAll
             ? permissions.All(userPermissionSet.Contains)
             : permissions.Any(userPermissionSet.Contains);
-        
+
         if (!result)
         {
             var missingPermissions = permissions.Where(p => !userPermissionSet.Contains(p));
-            var reason = requireAll 
+            var reason = requireAll
                 ? $"Missing required permissions: {string.Join(", ", missingPermissions)}"
                 : $"None of the required permissions found: {string.Join(", ", permissions)}";
-            
+
             metrics.RecordAuthorizationFailure(userId, permissions.First(), reason);
         }
-        
+
         return result;
     }
-    
+
     public async Task<IReadOnlyList<EPermission>> GetUserPermissionsByModuleAsync(string userId, string moduleName, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(userId))
@@ -116,7 +116,7 @@ public sealed class PermissionService(
             logger.LogWarning("GetUserPermissionsByModuleAsync called with empty userId");
             return Array.Empty<EPermission>();
         }
-        
+
         if (string.IsNullOrWhiteSpace(moduleName))
         {
             logger.LogWarning("GetUserPermissionsByModuleAsync called with empty module name");
@@ -124,10 +124,10 @@ public sealed class PermissionService(
         }
 
         using var timer = metrics.MeasureModulePermissionResolution(userId, moduleName);
-        
+
         var cacheKey = string.Format(UserModulePermissionsCacheKey, userId, moduleName);
         var tags = new[] { "permissions", $"user:{userId}", $"module:{moduleName}" };
-        
+
         var result = await cacheService.GetOrCreateAsync(
             cacheKey,
             async _ => await ResolveUserModulePermissionsAsync(userId, moduleName, cancellationToken),
@@ -135,32 +135,32 @@ public sealed class PermissionService(
             CacheOptions,
             tags,
             cancellationToken);
-        
+
         return result;
     }
-    
+
     public async Task InvalidateUserPermissionsCacheAsync(string userId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(userId))
         {
             return;
         }
-        
+
         // Clear all user permission caches
         var userCacheKey = string.Format(UserPermissionsCacheKey, userId);
         await cacheService.RemoveByTagAsync($"user:{userId}", cancellationToken);
-        
+
         logger.LogInformation("Invalidated permission cache for user {UserId}", userId);
     }
-    
+
     // Private implementation methods
     private async Task<IReadOnlyList<EPermission>> ResolveUserPermissionsAsync(string userId, CancellationToken cancellationToken)
     {
         var permissions = new List<EPermission>();
-        
+
         // Get all permission providers from DI
         var providers = serviceProvider.GetServices<IPermissionProvider>();
-        
+
         foreach (var provider in providers)
         {
             try
@@ -170,23 +170,23 @@ public sealed class PermissionService(
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Permission provider {ProviderType} failed for user {UserId}", 
+                logger.LogWarning(ex, "Permission provider {ProviderType} failed for user {UserId}",
                     provider.GetType().Name, userId);
             }
         }
-        
+
         // Remove duplicates and return
         return permissions.Distinct().ToArray();
     }
-    
+
     private async Task<IReadOnlyList<EPermission>> ResolveUserModulePermissionsAsync(string userId, string moduleName, CancellationToken cancellationToken)
     {
         var permissions = new List<EPermission>();
-        
+
         // Get module-specific permission providers
         var providers = serviceProvider.GetServices<IPermissionProvider>()
             .Where(p => p.ModuleName.Equals(moduleName, StringComparison.OrdinalIgnoreCase));
-        
+
         foreach (var provider in providers)
         {
             try
@@ -196,11 +196,11 @@ public sealed class PermissionService(
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Module permission provider {ProviderType} failed for user {UserId} in module {ModuleName}", 
+                logger.LogWarning(ex, "Module permission provider {ProviderType} failed for user {UserId} in module {ModuleName}",
                     provider.GetType().Name, userId, moduleName);
             }
         }
-        
+
         return permissions.Distinct().ToArray();
     }
 }

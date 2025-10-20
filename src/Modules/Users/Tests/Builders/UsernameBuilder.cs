@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Shared.Tests.Builders;
 using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Tests.Builders;
 
 namespace MeAjudaAi.Modules.Users.Tests.Builders;
 

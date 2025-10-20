@@ -165,7 +165,7 @@ public class KeycloakUserDomainServiceTests
         // Arrange
         var userId = new UserId(Guid.NewGuid());
 
-        // Act & Assert - Não deve lançar exceção
+        // Act & Assert - NÃ£o deve lanÃ§ar exceÃ§Ã£o
         var result = await _service.SyncUserWithKeycloakAsync(userId, CancellationToken.None);
         Assert.True(result.IsSuccess);
     }

@@ -1,4 +1,4 @@
-﻿using Bogus;
+using Bogus;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
@@ -290,5 +290,10 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     protected static void AuthenticateAsAnonymous()
     {
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
+    }
+
+    protected async Task<HttpResponseMessage> PostJsonAsync<T>(Uri requestUri, T content)
+    {
+        throw new NotImplementedException();
     }
 }

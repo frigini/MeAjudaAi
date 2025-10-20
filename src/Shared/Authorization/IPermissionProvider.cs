@@ -10,7 +10,7 @@ public interface IPermissionProvider
     /// Nome do módulo responsável por este provedor
     /// </summary>
     string ModuleName { get; }
-    
+
     /// <summary>
     /// Obtém as permissões de um usuário específico para este módulo
     /// </summary>

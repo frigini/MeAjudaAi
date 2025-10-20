@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Constants;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Authorization.Middleware;
 
@@ -55,7 +55,7 @@ public sealed class PermissionOptimizationMiddleware(
 
         // Aplica otimizações baseadas no contexto da requisição
         await ApplyPermissionOptimizationsAsync(context);
-        
+
         await next(context);
     }
 
@@ -78,7 +78,7 @@ public sealed class PermissionOptimizationMiddleware(
             ApplyReadOnlyOptimizations(context);
 
             stopwatch.Stop();
-            
+
             if (stopwatch.ElapsedMilliseconds > 100) // Log apenas se demorar mais que 100ms
             {
                 logger.LogWarning("Permission optimization took {ElapsedMs}ms for {Method} {Path}",
@@ -129,12 +129,12 @@ public sealed class PermissionOptimizationMiddleware(
 
         // Identifica permissões necessárias baseadas na rota
         var requiredPermissions = GetRequiredPermissionsForPath(path, context.Request.Method);
-        
+
         if (requiredPermissions.Any())
         {
             // Armazena as permissões esperadas no contexto para otimização downstream
             context.Items["ExpectedPermissions"] = requiredPermissions;
-            
+
             logger.LogDebug("Pre-identified {PermissionCount} required permissions for {Method} {Path}",
                 requiredPermissions.Count, context.Request.Method, path);
         }
@@ -155,7 +155,7 @@ public sealed class PermissionOptimizationMiddleware(
             return;
 
         // Para operações de leitura em endpoints específicos, pode usar cache mais agressivo
-        if (path.StartsWith("/api/users/profile", StringComparison.OrdinalIgnoreCase) || 
+        if (path.StartsWith("/api/users/profile", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith(ApiEndpoints.System.Health, StringComparison.OrdinalIgnoreCase))
         {
             context.Items["UseAggressivePermissionCache"] = true;
@@ -190,7 +190,7 @@ public sealed class PermissionOptimizationMiddleware(
                 _ => Array.Empty<EPermission>()
             });
         }
-        
+
         // Providers module (futuro)
         else if (path.StartsWith("/api/providers"))
         {
@@ -203,7 +203,7 @@ public sealed class PermissionOptimizationMiddleware(
                 _ => Array.Empty<EPermission>()
             });
         }
-        
+
         // Orders module (futuro)
         else if (path.StartsWith("/api/orders"))
         {
@@ -216,7 +216,7 @@ public sealed class PermissionOptimizationMiddleware(
                 _ => Array.Empty<EPermission>()
             });
         }
-        
+
         // Reports module (futuro)
         else if (path.StartsWith("/api/reports"))
         {
@@ -228,7 +228,7 @@ public sealed class PermissionOptimizationMiddleware(
                 _ => Array.Empty<EPermission>()
             });
         }
-        
+
         // Admin endpoints
         else if (path.StartsWith("/api/admin") || path.Contains("/admin"))
         {
@@ -247,7 +247,7 @@ public sealed class PermissionOptimizationMiddleware(
         if (string.IsNullOrEmpty(pathValue))
             return false;
 
-        return PublicEndpoints.Any(endpoint => 
+        return PublicEndpoints.Any(endpoint =>
             pathValue.StartsWith(endpoint, StringComparison.OrdinalIgnoreCase));
     }
 

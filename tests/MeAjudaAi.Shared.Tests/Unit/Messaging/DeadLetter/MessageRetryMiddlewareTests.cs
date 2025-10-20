@@ -22,7 +22,7 @@ public class MessageRetryMiddlewareTests
     {
         var services = new ServiceCollection();
         services.AddLogging(builder => builder.AddConsole());
-        
+
         // Adiciona configuração
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -35,18 +35,18 @@ public class MessageRetryMiddlewareTests
             .Build();
 
         services.AddSingleton<IConfiguration>(configuration);
-        
+
         // Adiciona mock do ambiente host
         services.AddSingleton<IHostEnvironment>(new TestHostEnvironment("Testing"));
-        
+
         // Adiciona serviço de dead letter
         services.AddSingleton<IDeadLetterService, NoOpDeadLetterService>();
-        
+
         _serviceProvider = services.BuildServiceProvider();
 
         var deadLetterService = _serviceProvider.GetRequiredService<IDeadLetterService>();
         var logger = _serviceProvider.GetRequiredService<ILogger<MessageRetryMiddleware<TestMessage>>>();
-        
+
         _middleware = new MessageRetryMiddleware<TestMessage>(
             deadLetterService, logger, "TestHandler", "test-queue");
     }
@@ -178,7 +178,7 @@ public class MessageRetryMiddlewareTests
         services.AddLogging();
         services.AddSingleton<IDeadLetterService, NoOpDeadLetterService>();
         services.AddMessageRetryMiddleware();
-        
+
         var serviceProvider = services.BuildServiceProvider();
         var message = new TestMessage { Id = "test-123" };
         var callCount = 0;

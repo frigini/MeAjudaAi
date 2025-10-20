@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Time
+namespace MeAjudaAi.Shared.Time
 {
     internal sealed class DateTimeProvider : IDateTimeProvider
     {

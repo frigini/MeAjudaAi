@@ -1,10 +1,10 @@
+using System.Net;
+using System.Text;
+using System.Text.Json;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
 using Microsoft.Extensions.Logging;
 using Moq.Protected;
-using System.Net;
-using System.Text;
-using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Identity;
 

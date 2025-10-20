@@ -1,8 +1,8 @@
-using MeAjudaAi.Shared.Authorization;
-using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using MeAjudaAi.Shared.Authorization;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace MeAjudaAi.E2E.Tests.Authorization;
 
@@ -34,7 +34,7 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", basicUserToken);
 
         // Act & Assert - Operações que o usuário básico PODE fazer
-        
+
         // 1. Ver seu próprio perfil
         var profileResponse = await _client.GetAsync("/api/users/profile");
         Assert.Equal(HttpStatusCode.OK, profileResponse.StatusCode);
@@ -44,7 +44,7 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         Assert.Equal(HttpStatusCode.OK, readResponse.StatusCode);
 
         // Act & Assert - Operações que o usuário básico NÃO PODE fazer
-        
+
         // 3. Criar usuários (deve retornar Forbidden)
         var createUserPayload = new { name = "New User", email = "new@test.com" };
         var createResponse = await _client.PostAsync("/api/users",
@@ -76,7 +76,7 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAdminToken);
 
         // Act & Assert - Operações administrativas que PODE fazer
-        
+
         // 1. Listar todos os usuários
         var listResponse = await _client.GetAsync("/api/users");
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
@@ -98,7 +98,7 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         Assert.Equal(HttpStatusCode.OK, adminResponse.StatusCode);
 
         // Act & Assert - Operações que NÃO PODE fazer (sem permissão de delete)
-        
+
         // 5. Deletar usuários (deve retornar Forbidden - precisa de permissão específica)
         var deleteResponse = await _client.DeleteAsync("/api/users/some-user-id");
         Assert.Equal(HttpStatusCode.Forbidden, deleteResponse.StatusCode);
@@ -126,7 +126,7 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", systemAdminToken);
 
         // Act & Assert - Deve ter acesso completo
-        
+
         // 1. Todas as operações de usuários
         var listResponse = await _client.GetAsync("/api/users");
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
@@ -219,7 +219,7 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
 
         // Act - Múltiplas requisições que devem usar cache
         var responses = new List<HttpResponseMessage>();
-        
+
         for (int i = 0; i < 5; i++)
         {
             var response = await _client.GetAsync("/api/users/profile");
@@ -264,7 +264,7 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, createResponse.StatusCode);
-        
+
         // Verificar se retorna detalhes do erro (ProblemDetails)
         var content = await createResponse.Content.ReadAsStringAsync();
         Assert.Contains("permission", content.ToLowerInvariant());

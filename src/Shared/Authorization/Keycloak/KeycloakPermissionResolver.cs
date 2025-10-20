@@ -31,11 +31,11 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         ILogger<KeycloakPermissionResolver> logger)
     {
         ArgumentNullException.ThrowIfNull(configuration);
-        
+
         _httpClient = httpClient;
         _config = configuration.GetSection("Keycloak").Get<KeycloakConfiguration>()
                   ?? throw new InvalidOperationException("Keycloak configuration not found");
-        
+
         // Validate required configuration values
         if (string.IsNullOrWhiteSpace(_config.BaseUrl))
             throw new InvalidOperationException("Keycloak BaseUrl is required but not configured");
@@ -45,7 +45,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
             throw new InvalidOperationException("Keycloak AdminClientId is required but not configured");
         if (string.IsNullOrWhiteSpace(_config.AdminClientSecret))
             throw new InvalidOperationException("Keycloak AdminClientSecret is required but not configured");
-        
+
         _cache = cache;
         _logger = logger;
     }
@@ -57,10 +57,10 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     {
         if (string.IsNullOrWhiteSpace(userId))
             return "[EMPTY]";
-        
+
         if (userId.Length <= 6)
             return $"{userId[0]}***{userId[^1]}";
-        
+
         return $"{userId[..3]}***{userId[^3..]}";
     }
 
@@ -132,7 +132,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         {
             // 1. Obter token de admin
             var adminToken = await GetAdminTokenAsync(cancellationToken);
-            
+
             // 2. Buscar usuário pelo ID
             var userInfo = await GetUserInfoAsync(userId, adminToken, cancellationToken);
             if (userInfo == null)
@@ -143,9 +143,9 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
 
             // 3. Buscar roles do usuário
             var userRoles = await GetUserRolesAsync(userInfo.Id, adminToken, cancellationToken);
-            
+
             _logger.LogDebug("Retrieved {RoleCount} roles from Keycloak for user {MaskedUserId}", userRoles.Count, MaskUserId(userId));
-            
+
             return userRoles;
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -166,10 +166,10 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     private async Task<string> GetAdminTokenAsync(CancellationToken cancellationToken)
     {
         var cacheKey = "keycloak_admin_token";
-        
+
         return await _cache.GetOrCreateAsync(
             cacheKey,
-            async _ => 
+            async _ =>
             {
                 var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
                 return tokenResponse.AccessToken;
@@ -183,17 +183,17 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         try
         {
             var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
-            
+
             // Calculate safe cache expiration based on token lifetime
             const int safetyMarginSeconds = 30;
             const int minimumTtlSeconds = 10;
-            
+
             var expiresInSeconds = tokenResponse.ExpiresIn > 0 ? tokenResponse.ExpiresIn : 300; // Default to 5 minutes if missing or invalid
             var safeCacheSeconds = Math.Max(expiresInSeconds - safetyMarginSeconds, minimumTtlSeconds);
-            
+
             var cacheExpiration = TimeSpan.FromSeconds(safeCacheSeconds);
             var localCacheExpiration = TimeSpan.FromSeconds(Math.Min(safeCacheSeconds / 2, 120)); // Max 2 minutes local cache
-            
+
             return new HybridCacheEntryOptions
             {
                 Expiration = cacheExpiration,
@@ -214,7 +214,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     private async Task<TokenResponse> RequestAdminTokenAsync(CancellationToken cancellationToken)
     {
         var tokenEndpoint = $"{_config.BaseUrl}/realms/{_config.Realm}/protocol/openid-connect/token";
-        
+
         var parameters = new Dictionary<string, string>
         {
             { "grant_type", "client_credentials" },
@@ -224,12 +224,12 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
 
         using var content = new FormUrlEncodedContent(parameters);
         var response = await _httpClient.PostAsync(tokenEndpoint, content, cancellationToken);
-        
+
         response.EnsureSuccessStatusCode();
-        
+
         var tokenResponse = await response.Content.ReadAsStringAsync(cancellationToken);
         var tokenData = JsonSerializer.Deserialize<TokenResponse>(tokenResponse);
-        
+
         return tokenData ?? throw new InvalidOperationException("Failed to get admin token");
     }
 
@@ -240,14 +240,14 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     private async Task<KeycloakUser?> GetUserInfoAsync(string userId, string adminToken, CancellationToken cancellationToken)
     {
         var endpoint = $"{_config.BaseUrl}/admin/realms/{_config.Realm}/users";
-        
+
         // Primeiro, tenta buscar diretamente por ID do Keycloak (mais eficiente)
         try
         {
             var encodedUserId = Uri.EscapeDataString(userId);
             using var directRequest = new HttpRequestMessage(HttpMethod.Get, $"{endpoint}/{encodedUserId}");
             directRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-            
+
             var directResponse = await _httpClient.SendAsync(directRequest, cancellationToken);
             if (directResponse.IsSuccessStatusCode)
             {
@@ -264,26 +264,26 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         {
             _logger.LogDebug("User {MaskedUserId} not found by ID, trying username search", MaskUserId(userId));
         }
-        
+
         // Fallback: busca por username
         try
         {
             var encodedUserId = Uri.EscapeDataString(userId);
             using var searchRequest = new HttpRequestMessage(HttpMethod.Get, $"{endpoint}?username={encodedUserId}&exact=true");
             searchRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-            
+
             var searchResponse = await _httpClient.SendAsync(searchRequest, cancellationToken);
             searchResponse.EnsureSuccessStatusCode();
-            
+
             var usersJson = await searchResponse.Content.ReadAsStringAsync(cancellationToken);
             var users = JsonSerializer.Deserialize<KeycloakUser[]>(usersJson);
-            
+
             var foundUser = users?.FirstOrDefault();
             if (foundUser != null)
             {
                 _logger.LogDebug("User {MaskedUserId} found by username in Keycloak", MaskUserId(userId));
             }
-            
+
             return foundUser;
         }
         catch (Exception ex)
@@ -299,16 +299,16 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     private async Task<IReadOnlyList<string>> GetUserRolesAsync(string keycloakUserId, string adminToken, CancellationToken cancellationToken)
     {
         var endpoint = $"{_config.BaseUrl}/admin/realms/{_config.Realm}/users/{keycloakUserId}/role-mappings/realm";
-        
+
         using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        
+
         var response = await _httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
-        
+
         var rolesJson = await response.Content.ReadAsStringAsync(cancellationToken);
         var roles = JsonSerializer.Deserialize<KeycloakRole[]>(rolesJson);
-        
+
         return roles?.Select(r => r.Name).ToList() ?? new List<string>();
     }
 
@@ -318,7 +318,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     public IEnumerable<EPermission> MapKeycloakRoleToPermissions(string roleName)
     {
         ArgumentNullException.ThrowIfNull(roleName);
-        
+
         return roleName.ToLowerInvariant() switch
         {
             // Roles de sistema
@@ -332,59 +332,59 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
                 EPermission.OrdersRead, EPermission.OrdersCreate, EPermission.OrdersUpdate, EPermission.OrdersDelete,
                 EPermission.ReportsView, EPermission.ReportsExport, EPermission.ReportsCreate
             },
-            
+
             // Roles de administração de usuários
             "meajudaai-user-admin" => new[]
             {
                 EPermission.AdminUsers,
                 EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate, EPermission.UsersList
             },
-            
+
             // Roles de operação de usuários
             "meajudaai-user-operator" => new[]
             {
                 EPermission.UsersRead, EPermission.UsersUpdate, EPermission.UsersList
             },
-            
+
             // Usuário básico
             "meajudaai-user" => new[]
             {
                 EPermission.UsersRead, EPermission.UsersProfile
             },
-            
+
             // Roles de prestadores
             "meajudaai-provider-admin" => new[]
             {
                 EPermission.ProvidersRead, EPermission.ProvidersCreate, EPermission.ProvidersUpdate, EPermission.ProvidersDelete
             },
-            
+
             "meajudaai-provider" => new[]
             {
                 EPermission.ProvidersRead
             },
-            
+
             // Roles de pedidos
             "meajudaai-order-admin" => new[]
             {
                 EPermission.OrdersRead, EPermission.OrdersCreate, EPermission.OrdersUpdate, EPermission.OrdersDelete
             },
-            
+
             "meajudaai-order-operator" => new[]
             {
                 EPermission.OrdersRead, EPermission.OrdersUpdate
             },
-            
+
             // Roles de relatórios
             "meajudaai-report-admin" => new[]
             {
                 EPermission.ReportsView, EPermission.ReportsExport, EPermission.ReportsCreate
             },
-            
+
             "meajudaai-report-viewer" => new[]
             {
                 EPermission.ReportsView
             },
-            
+
             // Role desconhecida
             _ => Array.Empty<EPermission>()
         };
@@ -409,10 +409,10 @@ internal sealed class TokenResponse
 {
     [JsonPropertyName("access_token")]
     public string AccessToken { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("token_type")]
     public string TokenType { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("expires_in")]
     public int ExpiresIn { get; set; }
 }
@@ -424,13 +424,13 @@ internal sealed class KeycloakUser
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("username")]
     public string Username { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("email")]
     public string Email { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("enabled")]
     public bool Enabled { get; set; }
 }
@@ -442,10 +442,10 @@ internal sealed class KeycloakRole
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
 }

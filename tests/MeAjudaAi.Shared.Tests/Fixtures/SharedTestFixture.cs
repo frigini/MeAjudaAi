@@ -73,7 +73,7 @@ public class SharedTestFixture : IAsyncLifetime
             Host.Dispose();
             Host = null;
         }
-        
+
         GC.SuppressFinalize(this);
     }
 }

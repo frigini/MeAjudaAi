@@ -1,5 +1,5 @@
-﻿using MeAjudaAi.Shared.Time;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Shared.Domain;
 

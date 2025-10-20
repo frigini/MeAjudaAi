@@ -5,8 +5,8 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure;
-using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 

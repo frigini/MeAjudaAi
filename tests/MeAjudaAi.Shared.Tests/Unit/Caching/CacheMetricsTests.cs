@@ -1,7 +1,7 @@
-﻿using MeAjudaAi.Shared.Caching;
+using System.Diagnostics.Metrics;
+using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics.Metrics;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Caching;
 

@@ -1,4 +1,4 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 
 namespace MeAjudaAi.ApiService.Extensions;
 

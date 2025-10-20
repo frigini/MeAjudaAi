@@ -1,8 +1,8 @@
+using System.Diagnostics;
 using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 
 namespace MeAjudaAi.Shared.Monitoring;
 

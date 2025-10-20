@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Diagnostics;
 using MeAjudaAi.Shared.Database.Exceptions;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Exceptions;
 
@@ -156,7 +156,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
     {
         // Tenta processar a exceção usando nosso processador customizado
         var processedException = PostgreSqlExceptionProcessor.ProcessException(dbUpdateException);
-        
+
         if (processedException is UniqueConstraintException uniqueException)
         {
             return (
@@ -170,7 +170,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                     ["columnName"] = uniqueException.ColumnName
                 });
         }
-        
+
         if (processedException is NotNullConstraintException notNullException)
         {
             return (
@@ -183,7 +183,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                     ["columnName"] = notNullException.ColumnName
                 });
         }
-        
+
         if (processedException is ForeignKeyConstraintException foreignKeyException)
         {
             return (

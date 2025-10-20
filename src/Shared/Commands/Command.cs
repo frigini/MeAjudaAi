@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Shared.Commands;
 

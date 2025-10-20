@@ -1,9 +1,9 @@
+using System.Text;
+using System.Text.Json;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using System.Text;
-using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 
@@ -426,7 +426,7 @@ public sealed class RabbitMqDeadLetterService(
                 await _channel.CloseAsync();
                 await _channel.DisposeAsync();
             }
-            
+
             if (_connection != null)
             {
                 await _connection.CloseAsync();

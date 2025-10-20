@@ -1,9 +1,9 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Functional;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 
 namespace MeAjudaAi.Shared.Endpoints;
 

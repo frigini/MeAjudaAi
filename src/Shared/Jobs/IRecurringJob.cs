@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Jobs;
+namespace MeAjudaAi.Shared.Jobs;
 
 public interface IRecurringJob
 {

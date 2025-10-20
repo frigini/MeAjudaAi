@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Authorization;
 using System.ComponentModel.DataAnnotations;
+using MeAjudaAi.Shared.Authorization;
 using Xunit;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;

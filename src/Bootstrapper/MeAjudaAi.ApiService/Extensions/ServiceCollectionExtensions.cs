@@ -1,5 +1,5 @@
-﻿using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Middlewares;
+using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Authorization.Middleware;
 
 namespace MeAjudaAi.ApiService.Extensions;

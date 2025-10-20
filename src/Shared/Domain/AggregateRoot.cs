@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Domain;
+namespace MeAjudaAi.Shared.Domain;
 
 public abstract class AggregateRoot<TId> : BaseEntity
 {

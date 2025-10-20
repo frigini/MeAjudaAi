@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;

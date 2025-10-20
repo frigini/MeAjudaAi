@@ -32,7 +32,7 @@ public static class SerilogConfigurator
             .Enrich.WithProperty("MachineName", Environment.MachineName)
             .Enrich.WithProperty("ProcessId", Environment.ProcessId)
             .Enrich.WithProperty("Version", GetApplicationVersion())
-            
+
             // 🔒 Redact sensitive data from KeycloakPermissionOptions
             .Destructure.ByTransforming<KeycloakPermissionOptions>(o => new
             {

@@ -1,7 +1,7 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Authorization.Metrics;
 
@@ -13,7 +13,7 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
 {
     private readonly ILogger<PermissionMetricsService> _logger;
     private readonly Meter _meter;
-    
+
     // Counters
     private readonly Counter<long> _permissionResolutionCounter;
     private readonly Counter<long> _permissionCheckCounter;
@@ -21,17 +21,17 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     private readonly Counter<long> _cacheMissCounter;
     private readonly Counter<long> _authorizationFailureCounter;
     private readonly Counter<long> _cacheInvalidationCounter;
-    
+
     // Histograms
     private readonly Histogram<double> _permissionResolutionDuration;
     private readonly Histogram<double> _cacheOperationDuration;
     private readonly Histogram<double> _authorizationCheckDuration;
     private readonly Histogram<double> _performanceHistogram;
-    
+
     // Gauges (via ObservableGauge)
     private readonly ObservableGauge<int> _activePermissionChecks;
     private readonly ObservableGauge<double> _cacheHitRate;
-    
+
     // State tracking
     private long _totalPermissionChecks;
     private long _totalCacheHits;
@@ -42,58 +42,58 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     {
         _logger = logger;
         _meter = new Meter("MeAjudaAi.Authorization", "1.0.0");
-        
+
         // Initialize counters
         _permissionResolutionCounter = _meter.CreateCounter<long>(
             "meajudaai_permission_resolutions_total",
             description: "Total number of permission resolutions performed");
-            
+
         _permissionCheckCounter = _meter.CreateCounter<long>(
-            "meajudaai_permission_checks_total", 
+            "meajudaai_permission_checks_total",
             description: "Total number of permission checks performed");
-            
+
         _cacheHitCounter = _meter.CreateCounter<long>(
             "meajudaai_permission_cache_hits_total",
             description: "Total number of permission cache hits");
-            
+
         _cacheMissCounter = _meter.CreateCounter<long>(
             "meajudaai_permission_cache_misses_total",
             description: "Total number of permission cache misses");
-            
+
         _authorizationFailureCounter = _meter.CreateCounter<long>(
             "meajudaai_authorization_failures_total",
             description: "Total number of authorization failures");
-            
+
         _cacheInvalidationCounter = _meter.CreateCounter<long>(
             "meajudaai_permission_cache_invalidations_total",
             description: "Total number of permission cache invalidations");
-        
+
         // Initialize histograms
         _permissionResolutionDuration = _meter.CreateHistogram<double>(
             "meajudaai_permission_resolution_duration_seconds",
             "seconds",
             "Duration of permission resolution operations");
-            
+
         _cacheOperationDuration = _meter.CreateHistogram<double>(
             "meajudaai_permission_cache_operation_duration_seconds",
-            "seconds", 
+            "seconds",
             "Duration of permission cache operations");
-            
+
         _authorizationCheckDuration = _meter.CreateHistogram<double>(
             "meajudaai_authorization_check_duration_seconds",
             "seconds",
             "Duration of authorization checks");
-            
+
         _performanceHistogram = _meter.CreateHistogram<double>(
             "meajudaai_permission_performance",
             description: "Performance metrics for permission components");
-        
+
         // Initialize observable gauges
         _activePermissionChecks = _meter.CreateObservableGauge<int>(
             "meajudaai_active_permission_checks",
             () => _currentActiveChecks,
             description: "Number of currently active permission checks");
-            
+
         _cacheHitRate = _meter.CreateObservableGauge<double>(
             "meajudaai_permission_cache_hit_rate",
             () => CalculateCacheHitRate(),
@@ -111,17 +111,17 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
         };
 
         _permissionResolutionCounter.Add(1, tags);
-        
-        _logger.LogDebug("Permission resolution started for user {UserId} in module {Module}", 
+
+        _logger.LogDebug("Permission resolution started for user {UserId} in module {Module}",
             userId, module ?? "unknown");
-        
+
         return new OperationTimer(
             () => Interlocked.Increment(ref _currentActiveChecks),
             duration =>
             {
                 Interlocked.Decrement(ref _currentActiveChecks);
                 _permissionResolutionDuration.Record(duration.TotalSeconds, tags);
-                
+
                 if (duration.TotalMilliseconds > 1000) // Log slow operations
                 {
                     _logger.LogWarning("Slow permission resolution: {Duration}ms for user {UserId} in module {Module}",
@@ -143,13 +143,13 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
         };
 
         _permissionCheckCounter.Add(1, tags);
-        
+
         if (!granted)
         {
             _authorizationFailureCounter.Add(1, tags);
         }
 
-        _logger.LogDebug("Permission check: User {UserId} {Result} for permission {Permission}", 
+        _logger.LogDebug("Permission check: User {UserId} {Result} for permission {Permission}",
             userId, granted ? "granted" : "denied", permission.GetValue());
 
         lock (_statsLock)
@@ -194,7 +194,7 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
                 _authorizationCheckDuration.Record(duration.TotalSeconds, tags);
             });
     }
-    
+
     /// <summary>
     /// Registra uma operação de resolução de permissões por módulo.
     /// </summary>
@@ -206,17 +206,17 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
         };
 
         _permissionResolutionCounter.Add(1, tags);
-        
-        _logger.LogDebug("Module permission resolution started for user {UserId} in module {ModuleName}", 
+
+        _logger.LogDebug("Module permission resolution started for user {UserId} in module {ModuleName}",
             userId, moduleName);
-        
+
         return new OperationTimer(
             () => Interlocked.Increment(ref _currentActiveChecks),
             duration =>
             {
                 Interlocked.Decrement(ref _currentActiveChecks);
                 _permissionResolutionDuration.Record(duration.TotalSeconds, tags);
-                
+
                 if (duration.TotalMilliseconds > 1000) // Log slow operations
                 {
                     _logger.LogWarning("Slow module permission resolution: {Duration}ms for user {UserId} in module {Module}",
@@ -267,7 +267,7 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
         };
 
         _authorizationFailureCounter.Add(1, tags);
-        
+
         _logger.LogWarning("Authorization failure: User {UserId} denied {Permission} - {Reason}",
             userId, permission.GetValue(), reason);
     }
@@ -284,7 +284,7 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
 
         // Use existing counter field instead of creating new one
         _cacheInvalidationCounter.Add(1, tags);
-              
+
         _logger.LogDebug("Permission cache invalidated for user {UserId}: {Reason}", userId, reason);
     }
 

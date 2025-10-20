@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Events;
+namespace MeAjudaAi.Shared.Events;
 
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class HighVolumeEventAttribute : Attribute { }

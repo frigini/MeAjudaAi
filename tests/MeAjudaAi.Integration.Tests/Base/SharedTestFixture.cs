@@ -1,8 +1,8 @@
+using System.Collections.Concurrent;
+using System.Text.Json;
 using Aspire.Hosting;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
-using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 

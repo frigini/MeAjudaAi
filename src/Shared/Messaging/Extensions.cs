@@ -181,7 +181,7 @@ internal static class MessagingExtensions
 
         // Garantir infraestrutura de Dead Letter Queue
         await MeAjudaAi.Shared.Messaging.Extensions.DeadLetterExtensions.EnsureDeadLetterInfrastructureAsync(host);
-        
+
         // Validar configuração de Dead Letter Queue
         await MeAjudaAi.Shared.Messaging.Extensions.DeadLetterExtensions.ValidateDeadLetterConfigurationAsync(host);
     }

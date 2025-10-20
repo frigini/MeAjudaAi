@@ -48,7 +48,7 @@ public class CreateUserCommandHandlerTests
             .WithLastName(command.LastName)
             .Build();
 
-        // Configura as validações para passar (sem usuários existentes)
+        // Configura as validaÃ§Ãµes para passar (sem usuÃ¡rios existentes)
         _userRepositoryMock
             .Setup(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
@@ -84,7 +84,7 @@ public class CreateUserCommandHandlerTests
         result.Value.FirstName.Should().Be(command.FirstName);
         result.Value.LastName.Should().Be(command.LastName);
 
-        // Verifica se todos os métodos foram chamados
+        // Verifica se todos os mÃ©todos foram chamados
         _userRepositoryMock.Verify(x => x.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()), Times.Once);
         _userRepositoryMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Once);
         _userDomainServiceMock.Verify(
@@ -178,7 +178,7 @@ public class CreateUserCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("email already exists");
 
-        // Verifica que o check de username e o serviço de domínio não foram chamados
+        // Verifica que o check de username e o serviÃ§o de domÃ­nio nÃ£o foram chamados
         _userRepositoryMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Never);
         _userDomainServiceMock.Verify(
             x => x.CreateUserAsync(
@@ -228,7 +228,7 @@ public class CreateUserCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("Username already taken");
 
-        // Verifica que o serviço de domínio não foi chamado
+        // Verifica que o serviÃ§o de domÃ­nio nÃ£o foi chamado
         _userDomainServiceMock.Verify(
             x => x.CreateUserAsync(
                 It.IsAny<Username>(),
@@ -266,7 +266,7 @@ public class CreateUserCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("Failed to create user");
 
-        // Verifica que métodos subsequentes não foram chamados
+        // Verifica que mÃ©todos subsequentes nÃ£o foram chamados
         _userRepositoryMock.Verify(x => x.GetByUsernameAsync(It.IsAny<Username>(), It.IsAny<CancellationToken>()), Times.Never);
         _userDomainServiceMock.Verify(
             x => x.CreateUserAsync(

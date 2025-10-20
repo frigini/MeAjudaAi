@@ -1,6 +1,6 @@
-﻿using Dapper;
-using Npgsql;
 using System.Diagnostics;
+using Dapper;
+using Npgsql;
 
 namespace MeAjudaAi.Shared.Database;
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace MeAjudaAi.Shared.Caching;
 
