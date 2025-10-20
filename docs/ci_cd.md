@@ -811,8 +811,6 @@ For issues with:
 - **Lychee**: Check [lychee documentation](https://github.com/lycheeverse/lychee)
 
 ## 🚨 Troubleshooting
-```bash
-## 🚨 Troubleshooting
 
 ### Problemas Comuns de CI/CD
 
