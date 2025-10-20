@@ -24,7 +24,7 @@ src/
 │   ├── IModulePermissionResolver.cs    # Interface para resolvers modulares
 │   ├── AuthorizationExtensions.cs      # Extensões para DI e ClaimsPrincipal
 │   ├── PermissionClaimsTransformation.cs
-│   ├── PermissionAuthorizationHandler.cs
+│   ├── PermissionRequirementHandler.cs
 │   └── RequirePermissionAttribute.cs
 ├── Modules/Users/
 │   ├── Application/Authorization/

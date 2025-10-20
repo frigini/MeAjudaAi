@@ -30,7 +30,6 @@ public static class AuthorizationExtensions
         // Registra serviços de permissão core
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IClaimsTransformation, PermissionClaimsTransformation>();
-        services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
         services.AddScoped<IAuthorizationHandler, PermissionRequirementHandler>();
         
         // Adiciona métricas e monitoramento
