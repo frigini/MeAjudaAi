@@ -11,7 +11,7 @@ public static class UsersPermissions
     /// <summary>
     /// Permissões básicas de leitura de usuários.
     /// </summary>
-    public static class Read
+    internal static class Read
     {
         public const EPermission OwnProfile = EPermission.UsersProfile;
         public const EPermission UsersList = EPermission.UsersList;
@@ -21,7 +21,7 @@ public static class UsersPermissions
     /// <summary>
     /// Permissões de escrita/modificação de usuários.
     /// </summary>
-    public static class Write
+    internal static class Write
     {
         public const EPermission CreateUser = EPermission.UsersCreate;
         public const EPermission UpdateUser = EPermission.UsersUpdate;
@@ -31,7 +31,7 @@ public static class UsersPermissions
     /// <summary>
     /// Permissões administrativas do módulo de usuários.
     /// </summary>
-    public static class Admin
+    internal static class Admin
     {
         public const EPermission SystemAdmin = EPermission.SystemAdmin;
         public const EPermission ManageAllUsers = EPermission.UsersList;
@@ -40,7 +40,7 @@ public static class UsersPermissions
     /// <summary>
     /// Grupos de permissões comuns para facilitar uso em policies.
     /// </summary>
-    public static class Groups
+    internal static class Groups
     {
         /// <summary>
         /// Permissões de usuário básico (próprio perfil).

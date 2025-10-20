@@ -32,6 +32,8 @@ public class KeycloakService(
         IEnumerable<string> roles,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(roles);
+
         try
         {
             var adminToken = await GetAdminTokenAsync(cancellationToken);
@@ -59,7 +61,7 @@ public class KeycloakService(
             };
 
             var json = JsonSerializer.Serialize(createUserPayload, JsonOptions);
-            var content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
+            using var content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             httpClient.DefaultRequestHeaders.Clear();
             httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {adminToken.Value}");
@@ -119,7 +121,7 @@ public class KeycloakService(
                 new("password", password)
             };
 
-            var content = new FormUrlEncodedContent(tokenRequest);
+            using var content = new FormUrlEncodedContent(tokenRequest);
             var response = await httpClient.PostAsync(_options.TokenUrl, content, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -217,7 +219,7 @@ public class KeycloakService(
 
             var updatePayload = new { enabled = false };
             var json = JsonSerializer.Serialize(updatePayload, JsonOptions);
-            var content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
+            using var content = new StringContent(json, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             httpClient.DefaultRequestHeaders.Clear();
             httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {adminToken.Value}");
@@ -259,7 +261,7 @@ public class KeycloakService(
                 new("password", _options.AdminPassword)
             };
 
-            var content = new FormUrlEncodedContent(tokenRequest);
+            using var content = new FormUrlEncodedContent(tokenRequest);
             var response = await httpClient.PostAsync(_options.TokenUrl, content, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -299,7 +301,7 @@ public class KeycloakService(
                 keycloakUserId, string.Join(", ", roles));
 
             // 1. Obter papéis disponíveis do realm
-            var availableRolesRequest = new HttpRequestMessage(HttpMethod.Get,
+            using var availableRolesRequest = new HttpRequestMessage(HttpMethod.Get,
                 $"{_options.BaseUrl}/admin/realms/{_options.Realm}/roles");
             availableRolesRequest.Headers.Authorization =
                 new AuthenticationHeaderValue("Bearer", adminToken);
@@ -339,13 +341,14 @@ public class KeycloakService(
             }
 
             // 3. Atribuir papéis ao usuário
-            var assignRolesRequest = new HttpRequestMessage(HttpMethod.Post,
+            using var assignRolesRequest = new HttpRequestMessage(HttpMethod.Post,
                 $"{_options.BaseUrl}/admin/realms/{_options.Realm}/users/{keycloakUserId}/role-mappings/realm");
             assignRolesRequest.Headers.Authorization =
                 new AuthenticationHeaderValue("Bearer", adminToken);
 
             var rolesJson = JsonSerializer.Serialize(rolesToAssign, JsonOptions);
-            assignRolesRequest.Content = new StringContent(rolesJson, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
+            using var requestContent = new StringContent(rolesJson, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
+            assignRolesRequest.Content = requestContent;
 
             var assignRolesResponse = await httpClient.SendAsync(assignRolesRequest, cancellationToken);
             if (!assignRolesResponse.IsSuccessStatusCode)

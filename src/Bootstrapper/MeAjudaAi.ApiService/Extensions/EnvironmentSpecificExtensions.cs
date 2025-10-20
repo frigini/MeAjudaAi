@@ -166,5 +166,5 @@ public class SecurityOptions
 {
     public bool EnforceHttps { get; set; }
     public bool EnableStrictTransportSecurity { get; set; }
-    public string[] AllowedHosts { get; set; } = [];
+    public IReadOnlyList<string> AllowedHosts { get; set; } = [];
 }

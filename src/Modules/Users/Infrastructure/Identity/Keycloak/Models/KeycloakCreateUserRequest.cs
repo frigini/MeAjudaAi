@@ -8,5 +8,5 @@ public class KeycloakCreateUserRequest
     public string LastName { get; set; } = string.Empty;
     public bool Enabled { get; set; }
     public bool EmailVerified { get; set; }
-    public KeycloakCredential[] Credentials { get; set; } = [];
+    public IReadOnlyList<KeycloakCredential> Credentials { get; set; } = [];
 }

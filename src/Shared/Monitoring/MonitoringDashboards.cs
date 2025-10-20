@@ -8,7 +8,7 @@ public static class MonitoringDashboards
     /// <summary>
     /// Configuração de dashboard para métricas de negócio
     /// </summary>
-    public static class BusinessDashboard
+    internal static class BusinessDashboard
     {
         public const string DashboardName = "MeAjudaAi Business Metrics";
 
@@ -34,7 +34,7 @@ public static class MonitoringDashboards
     /// <summary>
     /// Configuração de dashboard para performance
     /// </summary>
-    public static class PerformanceDashboard
+    internal static class PerformanceDashboard
     {
         public const string DashboardName = "MeAjudaAi Performance";
 
