@@ -75,4 +75,9 @@ public abstract class SharedTestBase(SharedTestFixture sharedFixture) : IAsyncLi
     {
         throw new NotImplementedException();
     }
+
+    protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T value, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }

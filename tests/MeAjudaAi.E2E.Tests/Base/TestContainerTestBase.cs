@@ -296,4 +296,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     {
         throw new NotImplementedException();
     }
+
+    protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T content)
+    {
+        throw new NotImplementedException();
+    }
 }

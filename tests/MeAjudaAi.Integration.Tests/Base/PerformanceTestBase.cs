@@ -186,6 +186,11 @@ public abstract class PerformanceTestBase : IAsyncLifetime
     {
         throw new NotImplementedException();
     }
+
+    protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T value, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 /// <summary>

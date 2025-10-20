@@ -326,4 +326,9 @@ public abstract class E2ETestBase : IAsyncLifetime
     {
         throw new NotImplementedException();
     }
+
+    protected async Task<HttpResponseMessage> PutAsJsonAsync<T>(Uri requestUri, T value)
+    {
+        throw new NotImplementedException();
+    }
 }

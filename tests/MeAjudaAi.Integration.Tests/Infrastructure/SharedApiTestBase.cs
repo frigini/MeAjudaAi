@@ -418,4 +418,9 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     {
         throw new NotImplementedException();
     }
+
+    protected async Task<HttpResponseMessage> PutAsJsonAsync<T>(Uri requestUri, T value)
+    {
+        throw new NotImplementedException();
+    }
 }
