@@ -12,15 +12,15 @@ public class ContainerStartupTests
     public async Task Redis_ShouldStartSuccessfully()
     {
         // Arrange & Act
-        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
-        await using var app = await appHost.BuildAsync();
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>(TestContext.Current.CancellationToken);
+        await using var app = await appHost.BuildAsync(TestContext.Current.CancellationToken);
 
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
-        await app.StartAsync();
+        await app.StartAsync(TestContext.Current.CancellationToken);
 
         // Aguarda pelo Redis com timeout apropriado
         var timeout = TimeSpan.FromMinutes(1); // Redis inicia rapidamente
-        await resourceNotificationService.WaitForResourceAsync("redis", KnownResourceStates.Running).WaitAsync(timeout);
+        await resourceNotificationService.WaitForResourceAsync("redis", KnownResourceStates.Running).WaitAsync(timeout, TestContext.Current.CancellationToken);
 
         // Assert
         true.Should().BeTrue("Redis container started successfully");

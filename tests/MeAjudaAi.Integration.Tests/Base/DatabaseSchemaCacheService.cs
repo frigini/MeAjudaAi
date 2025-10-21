@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,9 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     /// </summary>
     public async Task<bool> CanReuseSchemaAsync(string connectionString, string moduleName)
     {
+        ArgumentNullException.ThrowIfNull(connectionString);
+        ArgumentNullException.ThrowIfNull(moduleName);
+        
         await CacheLock.WaitAsync();
         try
         {
@@ -59,6 +63,9 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     /// </summary>
     public async Task MarkSchemaAsInitializedAsync(string connectionString, string moduleName)
     {
+        ArgumentNullException.ThrowIfNull(connectionString);
+        ArgumentNullException.ThrowIfNull(moduleName);
+        
         await CacheLock.WaitAsync();
         try
         {
@@ -80,6 +87,9 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     /// </summary>
     public static void InvalidateCache(string connectionString, string moduleName)
     {
+        ArgumentNullException.ThrowIfNull(connectionString);
+        ArgumentNullException.ThrowIfNull(moduleName);
+        
         var cacheKey = GetCacheKey(connectionString, moduleName);
         SchemaCache.TryRemove(cacheKey, out _);
     }
@@ -177,7 +187,11 @@ public class DatabaseInitializer
         string moduleName,
         Func<Task> initializationAction)
     {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        ArgumentNullException.ThrowIfNull(connectionString);
+        ArgumentNullException.ThrowIfNull(moduleName);
+        ArgumentNullException.ThrowIfNull(initializationAction);
+        
+        var stopwatch = Stopwatch.StartNew();
 
         try
         {

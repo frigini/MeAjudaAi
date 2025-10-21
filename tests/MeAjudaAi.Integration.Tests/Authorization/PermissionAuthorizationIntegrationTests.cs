@@ -46,7 +46,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         }).CreateClient();
 
         // Act
-        var response = await client.GetAsync("/test/users-read");
+        var response = await client.GetAsync("/test/users-read", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -71,7 +71,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         }).CreateClient();
 
         // Act
-        var response = await client.GetAsync("/test/users-read");
+        var response = await client.GetAsync("/test/users-read", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -97,7 +97,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         }).CreateClient();
 
         // Act
-        var response = await client.DeleteAsync("/test/users-delete");
+        var response = await client.DeleteAsync("/test/users-delete", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -123,7 +123,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         }).CreateClient();
 
         // Act
-        var response = await client.DeleteAsync("/test/users-delete");
+        var response = await client.DeleteAsync("/test/users-delete", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -149,7 +149,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         }).CreateClient();
 
         // Act
-        var response = await client.GetAsync("/test/users-read-or-admin");
+        var response = await client.GetAsync("/test/users-read-or-admin", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -174,7 +174,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         }).CreateClient();
 
         // Act
-        var response = await client.GetAsync("/test/system-admin");
+        var response = await client.GetAsync("/test/system-admin", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -200,7 +200,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         }).CreateClient();
 
         // Act
-        var response = await client.GetAsync("/test/users-module-admin");
+        var response = await client.GetAsync("/test/users-module-admin", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -210,7 +210,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
     public async Task UnauthenticatedRequest_ShouldReturnUnauthorized()
     {
         // Act
-        var response = await _client.GetAsync("/test/users-read");
+        var response = await _client.GetAsync("/test/users-read", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -220,6 +220,8 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            ArgumentNullException.ThrowIfNull(builder);
+
             builder.ConfigureServices(services =>
             {
                 // Cria configuração de teste
@@ -294,7 +296,7 @@ public static class TestAuthenticationExtensions
 /// </summary>
 public class TestAuthenticationSchemeOptions : AuthenticationSchemeOptions
 {
-    public Claim[] Claims { get; set; } = Array.Empty<Claim>();
+    public IReadOnlyList<Claim> Claims { get; set; } = Array.Empty<Claim>();
 }
 
 /// <summary>

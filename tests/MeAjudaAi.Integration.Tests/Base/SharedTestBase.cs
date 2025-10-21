@@ -49,6 +49,8 @@ public abstract class SharedTestBase(SharedTestFixture sharedFixture) : IAsyncLi
 
     protected async Task<T> ReadJsonAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(response);
+        
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
         return JsonSerializer.Deserialize<T>(content, sharedFixture.JsonOptions)!;
     }

@@ -375,6 +375,8 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     /// </summary>
     protected async Task WithDbContextAsync(Func<UsersDbContext, Task> operation)
     {
+        ArgumentNullException.ThrowIfNull(operation);
+        
         using var scope = _factory!.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         await operation(context);
@@ -385,6 +387,8 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     /// </summary>
     protected async Task<T> WithDbContextAsync<T>(Func<UsersDbContext, Task<T>> operation)
     {
+        ArgumentNullException.ThrowIfNull(operation);
+        
         using var scope = _factory!.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         return await operation(context);
@@ -411,6 +415,8 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     /// </summary>
     protected static async Task<T?> ReadFromJsonAsync<T>(HttpResponseMessage response)
     {
+        ArgumentNullException.ThrowIfNull(response);
+        
         return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
     }
 
