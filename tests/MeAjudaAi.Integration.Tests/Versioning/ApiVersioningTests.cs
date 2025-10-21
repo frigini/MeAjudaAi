@@ -13,7 +13,7 @@ public class ApiVersioningTests : ApiTestBase
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act - inclui parâmetros de paginação obrigatórios
-        var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
+        var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert 
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized, HttpStatusCode.BadRequest);
@@ -31,7 +31,7 @@ public class ApiVersioningTests : ApiTestBase
         // Testando se o segmento funciona corretamente
 
         // Act - inclui parâmetros de paginação obrigatórios
-        var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
+        var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized);
@@ -49,7 +49,7 @@ public class ApiVersioningTests : ApiTestBase
         // Testando se o segmento funciona corretamente
 
         // Act - inclui parâmetros de paginação obrigatórios
-        var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
+        var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized);
@@ -64,7 +64,7 @@ public class ApiVersioningTests : ApiTestBase
         // Testando que rota sem versão retorna NotFound como esperado
 
         // Act - inclui parâmetros de paginação obrigatórios
-        var response = await HttpClient.GetAsync("/api/users?PageNumber=1&PageSize=10");
+        var response = await HttpClient.GetAsync("/api/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -75,7 +75,7 @@ public class ApiVersioningTests : ApiTestBase
     public async Task ApiVersioning_ShouldReturnApiVersionHeader()
     {
         // Arrange & Act - inclui parâmetros de paginação obrigatórios
-        var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
+        var response = await HttpClient.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert
         // Verifica se a API retorna informações de versão nos headers

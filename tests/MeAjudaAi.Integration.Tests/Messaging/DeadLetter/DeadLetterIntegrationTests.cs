@@ -202,7 +202,9 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         {
             "System.TimeoutException" => new TimeoutException("Test"),
             "System.ArgumentException" => new ArgumentException("Test"),
+            "System.OutOfMemoryException" => new TestOutOfMemoryException("Test"),
             "System.InvalidOperationException" => new InvalidOperationException("Test"),
+            "UnknownException" => new TestUnknownException("Unknown"), // Tipo customizado para teste de Unknown
             _ => new InvalidOperationException("Unknown")
         };
 
@@ -244,6 +246,21 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
     private static IHostEnvironment CreateHostEnvironment(string environmentName)
     {
         return new TestHostEnvironment(environmentName);
+    }
+
+    // Classes de exceção para teste
+    private class TestOutOfMemoryException : OutOfMemoryException
+    {
+        public TestOutOfMemoryException(string message) : base(message)
+        {
+        }
+    }
+
+    private class TestUnknownException : Exception
+    {
+        public TestUnknownException(string message) : base(message)
+        {
+        }
     }
 
     // Classes de teste

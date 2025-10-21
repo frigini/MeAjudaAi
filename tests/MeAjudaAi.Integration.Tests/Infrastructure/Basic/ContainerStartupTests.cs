@@ -38,15 +38,15 @@ public class ContainerStartupTests
         }
 
         // Arrange & Act
-        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>();
-        await using var app = await appHost.BuildAsync();
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.MeAjudaAi_AppHost>(TestContext.Current.CancellationToken);
+        await using var app = await appHost.BuildAsync(TestContext.Current.CancellationToken);
 
         var resourceNotificationService = app.Services.GetRequiredService<ResourceNotificationService>();
-        await app.StartAsync();
+        await app.StartAsync(TestContext.Current.CancellationToken);
 
         // Aguarda pelo PostgreSQL (demora mais para iniciar)
         var timeout = TimeSpan.FromMinutes(2); // Reduzido de 3 para 2 minutos
-        await resourceNotificationService.WaitForResourceAsync("postgres-local", KnownResourceStates.Running).WaitAsync(timeout);
+        await resourceNotificationService.WaitForResourceAsync("postgres-local", KnownResourceStates.Running).WaitAsync(timeout, TestContext.Current.CancellationToken);
 
         // Assert
         true.Should().BeTrue("PostgreSQL container started successfully");

@@ -19,10 +19,10 @@ public class AuthenticationTests : ApiTestBase
         Console.WriteLine("[AUTH-TEST-DEBUG] Before request - should have no authenticated user");
 
         // Act - incluir parâmetros de paginação para evitar BadRequest
-        var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
+        var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // DEBUG: Vamos ver o que realmente retornou
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Console.WriteLine($"[AUTH-TEST] Status: {response.StatusCode}");
         Console.WriteLine($"[AUTH-TEST] Content: {content}");
 
@@ -37,12 +37,12 @@ public class AuthenticationTests : ApiTestBase
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act - inclui parâmetros de paginação
-        var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10");
+        var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert - vamos ver qual erro está sendo retornado
         if (response.StatusCode == HttpStatusCode.BadRequest)
         {
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
             Console.WriteLine($"BadRequest response: {content}");
         }
 
@@ -56,7 +56,7 @@ public class AuthenticationTests : ApiTestBase
         ConfigurableTestAuthenticationHandler.ConfigureRegularUser();
 
         // Act
-        var response = await Client.GetAsync("/api/v1/users");
+        var response = await Client.GetAsync("/api/v1/users", TestContext.Current.CancellationToken);
 
         // Assert
         // Se users endpoint requer admin, deve retornar Forbidden

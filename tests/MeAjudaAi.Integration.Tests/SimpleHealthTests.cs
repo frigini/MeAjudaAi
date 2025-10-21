@@ -45,7 +45,7 @@ public class SimpleHealthTests(WebApplicationFactory<Program> factory) : IClassF
         using var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/health");
+        var response = await client.GetAsync("/health", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -58,7 +58,7 @@ public class SimpleHealthTests(WebApplicationFactory<Program> factory) : IClassF
         using var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/health/live");
+        var response = await client.GetAsync("/health/live", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -71,7 +71,7 @@ public class SimpleHealthTests(WebApplicationFactory<Program> factory) : IClassF
         using var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/health/ready");
+        var response = await client.GetAsync("/health/ready", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);

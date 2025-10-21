@@ -249,7 +249,7 @@ public static class FailedMessageInfoExtensions
         if (transientExceptions.Contains(exceptionType))
             return EFailureType.Transient;
 
-        // Falhas críticas
+        // Falhas críticas - usar typeof para incluir subtipos
         if (exception is OutOfMemoryException or StackOverflowException)
             return EFailureType.Critical;
 

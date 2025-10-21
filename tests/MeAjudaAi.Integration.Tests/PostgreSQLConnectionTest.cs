@@ -11,7 +11,7 @@ public class PostgreSQLConnectionTest
     {
         try
         {
-            var process = new System.Diagnostics.Process
+            using var process = new System.Diagnostics.Process
             {
                 StartInfo = new System.Diagnostics.ProcessStartInfo
                 {
@@ -53,7 +53,8 @@ public class PostgreSQLConnectionTest
 
         // Arrange
         var timeout = TimeSpan.FromSeconds(90); // Timeout aumentado para inicialização do Aspire
-        var cancellationToken = new CancellationTokenSource(timeout).Token;
+        using var cts = new CancellationTokenSource(timeout);
+        var cancellationToken = cts.Token;
 
         try
         {

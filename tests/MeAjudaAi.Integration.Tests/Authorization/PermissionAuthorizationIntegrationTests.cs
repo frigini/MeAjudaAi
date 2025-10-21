@@ -233,8 +233,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
                     })
                     .Build();
 
-                // Adiciona autorização baseada em permissões
-                services.AddPermissionBasedAuthorization();
+                // Adiciona módulo de usuários (autorização já está configurada no application setup)
                 services.AddUsersModule(configuration);
 
                 // Adiciona autenticação de teste

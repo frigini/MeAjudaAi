@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
@@ -114,6 +115,15 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
 
                 builder.ConfigureServices((context, services) =>
                 {
+                    // Configure Serilog for tests to provide DiagnosticContext
+                    services.AddSerilog((serviceProvider, loggerConfig) =>
+                    {
+                        loggerConfig
+                            .MinimumLevel.Warning()
+                            .WriteTo.Console()
+                            .Enrich.FromLogContext();
+                    });
+
                     // Remove serviços hospedados problemáticos
                     var hostedServices = services
                         .Where(descriptor => descriptor.ServiceType == typeof(IHostedService))
@@ -232,6 +242,19 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     // Adiciona mocks de messaging para sobrescrever implementações reais
                     services.AddMessagingMocks();
 
+                    // Configure RabbitMqOptions for tests to prevent dependency resolution issues
+                    services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions 
+                    { 
+                        ConnectionString = "amqp://localhost", 
+                        DefaultQueueName = "test",
+                        Host = "localhost",
+                        Port = 5672,
+                        Username = "guest",
+                        Password = "guest",
+                        VirtualHost = "/",
+                        DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
+                    });
+
                     // FORÇA registros específicos de messaging que podem não estar sendo detectados pelo Scrutor
                     services.AddSingleton<MeAjudaAi.Shared.Tests.Mocks.Messaging.MockServiceBusMessageBus>();
                     services.AddSingleton<MeAjudaAi.Shared.Tests.Mocks.Messaging.MockRabbitMqMessageBus>();
@@ -308,7 +331,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
         {
             try
             {
-                var response = await HttpClient.GetAsync("/health");
+                var response = await HttpClient.GetAsync("/health", TestContext.Current.CancellationToken);
                 if (response.IsSuccessStatusCode)
                 {
                     return;
