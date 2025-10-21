@@ -113,7 +113,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
                     Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
                     Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
-                    
+
                     // FORCE Test environment in configuration context as well
                     context.HostingEnvironment.EnvironmentName = "Testing";
                 });

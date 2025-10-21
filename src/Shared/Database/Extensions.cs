@@ -24,15 +24,15 @@ public static class Extensions
             });
 
         // Só valida a connection string em ambientes que não sejam Testing
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? 
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
                          Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
         var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
-        
-        var isTestingEnvironment = environment == "Testing" || 
+
+        var isTestingEnvironment = environment == "Testing" ||
                                  environment?.Equals("Testing", StringComparison.OrdinalIgnoreCase) == true ||
-                                 integrationTests == "true" || 
+                                 integrationTests == "true" ||
                                  integrationTests == "1";
-        
+
         if (!isTestingEnvironment)
         {
             services.Configure<PostgresOptions>(opts =>

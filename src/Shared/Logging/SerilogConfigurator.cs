@@ -163,7 +163,7 @@ public static class LoggingConfigurationExtensions
     public static IApplicationBuilder UseStructuredLogging(this IApplicationBuilder app)
     {
         app.UseLoggingContext();
-        
+
         // Only use Serilog request logging if not in Testing environment
         var environment = app.ApplicationServices.GetService<IWebHostEnvironment>();
         if (environment != null && !environment.IsEnvironment("Testing"))

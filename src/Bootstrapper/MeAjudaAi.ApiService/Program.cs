@@ -58,7 +58,7 @@ public partial class Program
                 .Enrich.WithProperty("Application", "MeAjudaAi")
                 .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
                 .WriteTo.Console(outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"), 
+                    "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"),
                 writeToProviders: false, preserveStaticLogger: false);
 
             Log.Information("🚀 Iniciando MeAjudaAi API Service");

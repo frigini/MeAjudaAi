@@ -85,6 +85,12 @@
     <NoWarn>$(NoWarn);CA2208</NoWarn> <!-- ArgumentNullException parameter names -->
     <NoWarn>$(NoWarn);CA1861</NoWarn> <!-- Static readonly vs constant arrays -->
     <NoWarn>$(NoWarn);CA2215</NoWarn> <!-- Base.DisposeAsync calls -->
+    <NoWarn>$(NoWarn);CA2263</NoWarn> <!-- Generic overload preference -->
+    <NoWarn>$(NoWarn);CA1829</NoWarn> <!-- Use Count property instead of Enumerable.Count() -->
+    <NoWarn>$(NoWarn);CA1827</NoWarn> <!-- Use Any() instead of Count() -->
+    
+    <!-- Build and Assembly Conflicts -->
+    <NoWarn>$(NoWarn);MSB3277</NoWarn> <!-- Assembly version conflicts -->
     
     <!-- xUnit Analyzers -->
     <NoWarn>$(NoWarn);xUnit1051</NoWarn> <!-- CancellationToken usage in tests -->

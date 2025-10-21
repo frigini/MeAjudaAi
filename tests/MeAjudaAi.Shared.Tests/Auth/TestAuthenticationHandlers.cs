@@ -3,6 +3,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Shared.Tests.Auth;
 
@@ -42,6 +43,25 @@ public abstract class BaseTestAuthenticationHandler(
         {
             claims.Add(new Claim(ClaimTypes.Role, role, ClaimValueTypes.String));
             claims.Add(new Claim("roles", role.ToLowerInvariant(), ClaimValueTypes.String));
+            
+            // Add permissions based on role for test environment
+            if (role.Equals("admin", StringComparison.OrdinalIgnoreCase))
+            {
+                // Add all admin permissions
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersList.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersCreate.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersUpdate.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersDelete.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.AdminUsers.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.IsSystemAdmin, "true"));
+            }
+            else if (role.Equals("user", StringComparison.OrdinalIgnoreCase))
+            {
+                // Add basic user permissions
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersProfile.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue()));
+            }
         }
 
         return [.. claims];

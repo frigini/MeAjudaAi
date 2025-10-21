@@ -51,16 +51,16 @@ public static class ServiceCollectionExtensions
         services.AddCaching(configuration);
 
         // Só adiciona messaging se não estiver em ambiente de teste
-        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? 
-                     Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? 
+        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
+                     Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
                      EnvironmentNames.Development;
         var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
-        
-        var isTestingEnvironment = envName == EnvironmentNames.Testing || 
+
+        var isTestingEnvironment = envName == EnvironmentNames.Testing ||
                                  envName.Equals("Testing", StringComparison.OrdinalIgnoreCase) ||
-                                 integrationTests == "true" || 
+                                 integrationTests == "true" ||
                                  integrationTests == "1";
-        
+
         if (!isTestingEnvironment)
         {
             // Cria um mock environment baseado na variável de ambiente
@@ -139,14 +139,14 @@ public static class ServiceCollectionExtensions
     {
         app.UseErrorHandling();
 
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? 
-                         Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? 
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
+                         Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
                          "Development";
         var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
-        
-        var isTestingEnvironment = environment == "Testing" || 
+
+        var isTestingEnvironment = environment == "Testing" ||
                                  environment.Equals("Testing", StringComparison.OrdinalIgnoreCase) ||
-                                 integrationTests == "true" || 
+                                 integrationTests == "true" ||
                                  integrationTests == "1";
 
         // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)

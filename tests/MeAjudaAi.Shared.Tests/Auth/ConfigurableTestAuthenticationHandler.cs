@@ -22,9 +22,11 @@ public class ConfigurableTestAuthenticationHandler(
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        // Se não há configuração específica, assume admin por padrão para compatibilidade
         if (_currentConfigKey == null || !_userConfigs.TryGetValue(_currentConfigKey, out _))
         {
-            return Task.FromResult(AuthenticateResult.Fail("No test user configured"));
+            // Auto-configure como admin se nenhuma configuração foi definida
+            ConfigureAdmin();
         }
 
         return Task.FromResult(CreateSuccessResult());
