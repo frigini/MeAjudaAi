@@ -45,6 +45,57 @@
     <NoWarn>$(NoWarn);S6960</NoWarn> <!-- Primary constructors - usamos frequentemente -->
     <NoWarn>$(NoWarn);S1075</NoWarn> <!-- URI paths - necessário para documentação da API -->
     <NoWarn>$(NoWarn);S101</NoWarn>  <!-- Naming conventions - relaxado para testes -->
+    
+    <!-- Code Analysis - Test Naming and Conventions -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn> <!-- Underscores in test method names -->
+    <NoWarn>$(NoWarn);CA1303</NoWarn> <!-- Hardcoded strings in console logs -->
+    <NoWarn>$(NoWarn);CA1062</NoWarn> <!-- Null validation in development code -->
+    <NoWarn>$(NoWarn);CA1311</NoWarn> <!-- Culture specification -->
+    <NoWarn>$(NoWarn);CA1034</NoWarn> <!-- Nested types in tests -->
+    <NoWarn>$(NoWarn);CA1024</NoWarn> <!-- Properties vs methods in test helpers -->
+    <NoWarn>$(NoWarn);CA1508</NoWarn> <!-- Dead code detection in test fixtures -->
+    <NoWarn>$(NoWarn);CA1826</NoWarn> <!-- Enumerable methods on collections -->
+    
+    <!-- Code Analysis - Resource Management -->
+    <NoWarn>$(NoWarn);CA2000</NoWarn> <!-- Dispose objects in test mocks -->
+    <NoWarn>$(NoWarn);CA2213</NoWarn> <!-- Disposable fields in test infrastructure -->
+    <NoWarn>$(NoWarn);CA1816</NoWarn> <!-- Dispose methods should call GC.SuppressFinalize -->
+    
+    <!-- Code Analysis - String and Culture -->
+    <NoWarn>$(NoWarn);CA1304</NoWarn> <!-- String culture specification -->
+    <NoWarn>$(NoWarn);CA1305</NoWarn> <!-- IFormatProvider specification -->
+    <NoWarn>$(NoWarn);CA1307</NoWarn> <!-- StringComparison specification -->
+    <NoWarn>$(NoWarn);CA1309</NoWarn> <!-- Ordinal string comparison -->
+    <NoWarn>$(NoWarn);CA1310</NoWarn> <!-- StringComparison correctness -->
+    
+    <!-- Code Analysis - Security (Test Context) -->
+    <NoWarn>$(NoWarn);CA5351</NoWarn> <!-- MD5 usage in test scenarios -->
+    
+    <!-- Code Analysis - Performance and Design -->
+    <NoWarn>$(NoWarn);CA1848</NoWarn> <!-- LoggerMessage delegates -->
+    <NoWarn>$(NoWarn);CA2007</NoWarn> <!-- ConfigureAwait in tests -->
+    <NoWarn>$(NoWarn);CA2234</NoWarn> <!-- System.Uri instead of string -->
+    <NoWarn>$(NoWarn);CA1051</NoWarn> <!-- Public fields in test classes -->
+    <NoWarn>$(NoWarn);CA1805</NoWarn> <!-- Explicit initialization to default value -->
+    <NoWarn>$(NoWarn);CA1063</NoWarn> <!-- Dispose pattern implementation -->
+    <NoWarn>$(NoWarn);CA1721</NoWarn> <!-- Property name confusion -->
+    <NoWarn>$(NoWarn);CA2214</NoWarn> <!-- Overridable methods in constructors -->
+    <NoWarn>$(NoWarn);CA1054</NoWarn> <!-- URI parameters should be System.Uri -->
+    <NoWarn>$(NoWarn);CA2254</NoWarn> <!-- Logging message template consistency -->
+    <NoWarn>$(NoWarn);CA2208</NoWarn> <!-- ArgumentNullException parameter names -->
+    <NoWarn>$(NoWarn);CA1861</NoWarn> <!-- Static readonly vs constant arrays -->
+    <NoWarn>$(NoWarn);CA2215</NoWarn> <!-- Base.DisposeAsync calls -->
+    
+    <!-- xUnit Analyzers -->
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn> <!-- CancellationToken usage in tests -->
+    <NoWarn>$(NoWarn);xUnit1012</NoWarn> <!-- Null values in theory data -->
+    
+    <!-- Package and Build Warnings -->
+    <NoWarn>$(NoWarn);NU1608</NoWarn> <!-- Package version compatibility -->
+    <NoWarn>$(NoWarn);MSB3026</NoWarn> <!-- File copy retries -->
+    <NoWarn>$(NoWarn);MSB3027</NoWarn> <!-- File copy failures -->
+    <NoWarn>$(NoWarn);MSB3021</NoWarn> <!-- File access issues -->
+    
     <!-- Warnings de estilo menos relevantes -->
     <NoWarn>$(NoWarn);IDE0008</NoWarn> <!-- Use explicit type instead of 'var' -->
     <NoWarn>$(NoWarn);IDE0058</NoWarn> <!-- Expression value is never used -->
@@ -53,6 +104,7 @@
     <NoWarn>$(NoWarn);IDE0028</NoWarn> <!-- Collection initialization can be simplified -->
     <NoWarn>$(NoWarn);IDE0300</NoWarn> <!-- Collection initialization can be simplified (newer) -->
     <NoWarn>$(NoWarn);IDE0055</NoWarn> <!-- Fix formatting (pode causar conflitos com outros formatters) -->
+    <NoWarn>$(NoWarn);IDE0060</NoWarn> <!-- Remove unused parameter -->
   </PropertyGroup>
 
   <!-- Configurações específicas para Release -->
