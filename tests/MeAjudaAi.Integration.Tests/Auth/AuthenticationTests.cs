@@ -48,7 +48,7 @@ public class AuthenticationTests : ApiTestBase
         // Debug - vamos ver qual erro está sendo retornado
         var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var headers = string.Join(", ", response.Headers.Select(h => $"{h.Key}: {string.Join(", ", h.Value)}"));
-        
+
         // Falha com informações úteis
         if (response.StatusCode != HttpStatusCode.OK)
         {
