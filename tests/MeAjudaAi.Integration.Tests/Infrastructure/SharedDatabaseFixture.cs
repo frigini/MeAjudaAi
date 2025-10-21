@@ -1,5 +1,5 @@
-using Testcontainers.PostgreSql;
 using DotNet.Testcontainers.Builders;
+using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
 
@@ -83,7 +83,7 @@ public sealed class SharedDatabaseFixture : IAsyncLifetime
             return;
 
         var connectionString = _postgresContainer.GetConnectionString();
-        
+
         // TODO: Implementar limpeza rápida das tabelas se necessário
         // Por enquanto, cada teste deve ser responsável por sua própria limpeza
     }
