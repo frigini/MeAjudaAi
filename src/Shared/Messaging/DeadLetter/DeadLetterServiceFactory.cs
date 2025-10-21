@@ -27,7 +27,12 @@ public sealed class EnvironmentBasedDeadLetterServiceFactory(
 {
     public IDeadLetterService CreateDeadLetterService()
     {
-        if (environment.IsDevelopment() || environment.EnvironmentName == "Testing")
+        if (environment.EnvironmentName == "Testing")
+        {
+            logger.LogInformation("Creating NoOp Dead Letter Service for Testing environment");
+            return serviceProvider.GetRequiredService<NoOpDeadLetterService>();
+        }
+        else if (environment.IsDevelopment())
         {
             logger.LogInformation("Creating RabbitMQ Dead Letter Service for environment: {Environment}", environment.EnvironmentName);
             return serviceProvider.GetRequiredService<RabbitMqDeadLetterService>();

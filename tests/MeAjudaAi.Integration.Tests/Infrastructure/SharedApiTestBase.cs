@@ -243,9 +243,9 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     services.AddMessagingMocks();
 
                     // Configure RabbitMqOptions for tests to prevent dependency resolution issues
-                    services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions 
-                    { 
-                        ConnectionString = "amqp://localhost", 
+                    services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions
+                    {
+                        ConnectionString = "amqp://localhost",
                         DefaultQueueName = "test",
                         Host = "localhost",
                         Port = 5672,
@@ -399,7 +399,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     protected async Task WithDbContextAsync(Func<UsersDbContext, Task> operation)
     {
         ArgumentNullException.ThrowIfNull(operation);
-        
+
         using var scope = _factory!.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         await operation(context);
@@ -411,7 +411,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     protected async Task<T> WithDbContextAsync<T>(Func<UsersDbContext, Task<T>> operation)
     {
         ArgumentNullException.ThrowIfNull(operation);
-        
+
         using var scope = _factory!.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         return await operation(context);
@@ -439,7 +439,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     protected static async Task<T?> ReadFromJsonAsync<T>(HttpResponseMessage response)
     {
         ArgumentNullException.ThrowIfNull(response);
-        
+
         return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
     }
 

@@ -163,33 +163,39 @@ public static class LoggingConfigurationExtensions
     public static IApplicationBuilder UseStructuredLogging(this IApplicationBuilder app)
     {
         app.UseLoggingContext();
-        app.UseSerilogRequestLogging(options =>
+        
+        // Only use Serilog request logging if not in Testing environment
+        var environment = app.ApplicationServices.GetService<IWebHostEnvironment>();
+        if (environment != null && !environment.IsEnvironment("Testing"))
         {
-            options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-            options.GetLevel = (httpContext, elapsed, ex) => ex != null
-                ? LogEventLevel.Error
-                : httpContext.Response.StatusCode > 499
-                    ? LogEventLevel.Error
-                    : LogEventLevel.Information;
-
-            options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+            app.UseSerilogRequestLogging(options =>
             {
-                diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value ?? "unknown");
-                diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-                diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.FirstOrDefault() ?? "unknown");
+                options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+                options.GetLevel = (httpContext, elapsed, ex) => ex != null
+                    ? LogEventLevel.Error
+                    : httpContext.Response.StatusCode > 499
+                        ? LogEventLevel.Error
+                        : LogEventLevel.Information;
 
-                if (httpContext.User.Identity?.IsAuthenticated == true)
+                options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
                 {
-                    var userId = httpContext.User.FindFirst("sub")?.Value;
-                    var username = httpContext.User.FindFirst("preferred_username")?.Value;
+                    diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value ?? "unknown");
+                    diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+                    diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.FirstOrDefault() ?? "unknown");
 
-                    if (!string.IsNullOrEmpty(userId))
-                        diagnosticContext.Set("UserId", userId);
-                    if (!string.IsNullOrEmpty(username))
-                        diagnosticContext.Set("Username", username);
-                }
-            };
-        });
+                    if (httpContext.User.Identity?.IsAuthenticated == true)
+                    {
+                        var userId = httpContext.User.FindFirst("sub")?.Value;
+                        var username = httpContext.User.FindFirst("preferred_username")?.Value;
+
+                        if (!string.IsNullOrEmpty(userId))
+                            diagnosticContext.Set("UserId", userId);
+                        if (!string.IsNullOrEmpty(username))
+                            diagnosticContext.Set("Username", username);
+                    }
+                };
+            });
+        }
 
         return app;
     }

@@ -22,7 +22,7 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     {
         ArgumentNullException.ThrowIfNull(connectionString);
         ArgumentNullException.ThrowIfNull(moduleName);
-        
+
         await CacheLock.WaitAsync();
         try
         {
@@ -65,7 +65,7 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     {
         ArgumentNullException.ThrowIfNull(connectionString);
         ArgumentNullException.ThrowIfNull(moduleName);
-        
+
         await CacheLock.WaitAsync();
         try
         {
@@ -89,7 +89,7 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     {
         ArgumentNullException.ThrowIfNull(connectionString);
         ArgumentNullException.ThrowIfNull(moduleName);
-        
+
         var cacheKey = GetCacheKey(connectionString, moduleName);
         SchemaCache.TryRemove(cacheKey, out _);
     }
@@ -190,7 +190,7 @@ public class DatabaseInitializer
         ArgumentNullException.ThrowIfNull(connectionString);
         ArgumentNullException.ThrowIfNull(moduleName);
         ArgumentNullException.ThrowIfNull(initializationAction);
-        
+
         var stopwatch = Stopwatch.StartNew();
 
         try

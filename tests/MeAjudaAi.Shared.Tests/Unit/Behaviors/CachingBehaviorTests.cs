@@ -136,7 +136,7 @@ public class CachingBehaviorTests
     }
 
     // Test helper classes
-    internal class TestCacheableQuery(string id) : IRequest<Result<string>>, ICacheableQuery
+    public class TestCacheableQuery(string id) : IRequest<Result<string>>, ICacheableQuery
     {
         public string Id { get; } = id;
 
@@ -145,7 +145,7 @@ public class CachingBehaviorTests
         public IReadOnlyCollection<string> GetCacheTags() => ["test-tag"];
     }
 
-    internal class TestNonCacheableQuery : IRequest<Result<string>>
+    public class TestNonCacheableQuery : IRequest<Result<string>>
     {
         public string Id { get; set; } = "non-cacheable";
     }

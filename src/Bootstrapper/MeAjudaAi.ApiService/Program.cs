@@ -58,9 +58,17 @@ public partial class Program
                 .Enrich.WithProperty("Application", "MeAjudaAi")
                 .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
                 .WriteTo.Console(outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
+                    "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"), 
+                writeToProviders: false, preserveStaticLogger: false);
 
             Log.Information("🚀 Iniciando MeAjudaAi API Service");
+        }
+        else
+        {
+            // For Testing environment, use minimal console logging
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+            builder.Logging.SetMinimumLevel(LogLevel.Warning);
         }
     }
 
@@ -78,8 +86,11 @@ public partial class Program
     {
         app.MapDefaultEndpoints();
 
-        // Add structured logging middleware early in pipeline
-        app.UseStructuredLogging();
+        // Add structured logging middleware (will conditionally add Serilog request logging based on environment)
+        if (!app.Environment.IsEnvironment("Testing"))
+        {
+            app.UseStructuredLogging();
+        }
 
         // Configurar serviços e módulos
         await app.UseSharedServicesAsync();
