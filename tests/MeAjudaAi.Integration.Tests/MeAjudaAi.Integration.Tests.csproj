@@ -7,6 +7,9 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     
+    <!-- Suprimir warnings específicos de testes -->
+    <NoWarn>$(NoWarn);NU1608</NoWarn>
+    
     <!-- Configurações de Performance para Testes de Integração -->
     <VSTestUseMSBuildOutput>false</VSTestUseMSBuildOutput>
     <VSTestTreatNoTestsAsError>false</VSTestTreatNoTestsAsError>

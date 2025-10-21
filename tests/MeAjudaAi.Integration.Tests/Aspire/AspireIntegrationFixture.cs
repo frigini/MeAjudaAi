@@ -65,5 +65,7 @@ public class AspireIntegrationFixture : IAsyncLifetime
             await _app.StopAsync();
             await _app.DisposeAsync();
         }
+        
+        GC.SuppressFinalize(this);
     }
 }

@@ -63,10 +63,10 @@ public class CreateUserRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("ab")] // Muito curto
-    [InlineData("a")] // Muito curto
-    [InlineData("this_is_a_very_long_username_that_exceeds_fifty_chars")] // Muito longo
-    public void Validate_InvalidUsernameLength_ShouldHaveValidationError(string username)
+    [InlineData("ab", ValidationMessages.Length.UsernameTooShort)] // Muito curto
+    [InlineData("a", ValidationMessages.Length.UsernameTooShort)] // Muito curto
+    [InlineData("this_is_a_very_long_username_that_exceeds_fifty_chars", ValidationMessages.Length.UsernameTooLong)] // Muito longo
+    public void Validate_InvalidUsernameLength_ShouldHaveValidationError(string username, string expectedMessage)
     {
         // Arrange
         var request = new CreateUserRequest
@@ -83,7 +83,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Username)
-              .WithErrorMessage(ValidationMessages.Length.UsernameTooLong);
+              .WithErrorMessage(expectedMessage);
     }
 
     [Theory]
@@ -304,9 +304,9 @@ public class CreateUserRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("A")] // Muito curto
-    [InlineData("ThisIsAVeryLongFirstNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem")] // Muito longo
-    public void Validate_InvalidFirstNameLength_ShouldHaveValidationError(string firstName)
+    [InlineData("A", ValidationMessages.Length.FirstNameTooShort)] // Muito curto
+    [InlineData("ThisIsAVeryLongFirstNameThatExceedsOneHundredCharactersAndShouldFailValidationBecauseItIsTooLongForTheSystem", ValidationMessages.Length.FirstNameTooLong)] // Muito longo
+    public void Validate_InvalidFirstNameLength_ShouldHaveValidationError(string firstName, string expectedMessage)
     {
         // Arrange
         var request = new CreateUserRequest
@@ -323,7 +323,7 @@ public class CreateUserRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
-              .WithErrorMessage(ValidationMessages.Length.FirstNameTooLong);
+              .WithErrorMessage(expectedMessage);
     }
 
     [Theory]

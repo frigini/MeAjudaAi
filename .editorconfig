@@ -138,6 +138,10 @@ dotnet_diagnostic.CA2213.severity = none  # Disposable fields not disposed (test
 dotnet_diagnostic.CA1819.severity = none  # Properties should not return arrays (test data)
 dotnet_diagnostic.CA1024.severity = none  # Use properties where appropriate (test helpers)
 dotnet_diagnostic.CA2263.severity = none  # Prefer generic overloads (test assertions)
+dotnet_diagnostic.CA5351.severity = suggestion  # Broken cryptographic algorithms OK for test data
+
+# xUnit specific warnings
+dotnet_diagnostic.xUnit1051.severity = suggestion  # CancellationToken usage (can be relaxed but good to see)
 dotnet_diagnostic.CA1827.severity = none  # Use Any() instead of Count() (test validations)
 dotnet_diagnostic.CA1829.severity = none  # Use Count property instead of Enumerable.Count (test validations)
 dotnet_diagnostic.CA1826.severity = none  # Use indexable collections directly (test data)
