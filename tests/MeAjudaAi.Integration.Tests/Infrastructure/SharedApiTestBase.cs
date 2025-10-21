@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using Bogus;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
@@ -16,20 +15,26 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using System.Net.Http.Json;
 using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
 
 /// <summary>
 /// Classe base genérica para testes de integração de API
-/// Utiliza TestContainers para PostgreSQL com configuração otimizada para CI/CD
+/// Utiliza container PostgreSQL compartilhado para melhor performance
 /// Suporte genérico a qualquer programa/módulo através de TProgram
 /// </summary>
 public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     where TProgram : class
 {
-    private PostgreSqlContainer? _postgresContainer;
+    private readonly SharedDatabaseFixture _databaseFixture;
     private WebApplicationFactory<TProgram>? _factory;
+
+    protected SharedApiTestBase(SharedDatabaseFixture databaseFixture)
+    {
+        _databaseFixture = databaseFixture;
+    }
 
     protected HttpClient HttpClient { get; private set; } = null!;
     protected HttpClient Client => HttpClient; // Alias para compatibilidade
@@ -49,10 +54,10 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     {
         return new Dictionary<string, string?>
         {
-            {"ConnectionStrings:DefaultConnection", _postgresContainer?.GetConnectionString()},
-            {"ConnectionStrings:meajudaai-db-local", _postgresContainer?.GetConnectionString()},
-            {"ConnectionStrings:users-db", _postgresContainer?.GetConnectionString()},
-            {"Postgres:ConnectionString", _postgresContainer?.GetConnectionString()},
+            {"ConnectionStrings:DefaultConnection", _databaseFixture.ConnectionString},
+            {"ConnectionStrings:meajudaai-db-local", _databaseFixture.ConnectionString},
+            {"ConnectionStrings:users-db", _databaseFixture.ConnectionString},
+            {"Postgres:ConnectionString", _databaseFixture.ConnectionString},
             {"ASPNETCORE_ENVIRONMENT", "Testing"},
             {"INTEGRATION_TESTS", "true"}, // IMPORTANTE: Para usar FakeIntegrationAuthenticationHandler em vez de TestAuthenticationHandler
             {"Logging:LogLevel:Default", "Warning"},
@@ -87,16 +92,8 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
         // CRUCIAL: Limpa configuração de autenticação ANTES de inicializar aplicação
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
 
-        // Configura e inicia PostgreSQL
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:15-alpine")
-            .WithDatabase("meajudaai_test")
-            .WithUsername("postgres")
-            .WithPassword("test123")
-            .WithCleanUp(true)
-            .Build();
-
-        await _postgresContainer.StartAsync();
+        // Garante que o container compartilhado está inicializado
+        await _databaseFixture.InitializeAsync();
 
         // Configura WebApplicationFactory seguindo padrão E2E
         _factory = new WebApplicationFactory<TProgram>()
@@ -152,7 +149,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
                     }
 
                     // Agora registra com a connection string do container
-                    var containerConnectionString = _postgresContainer.GetConnectionString();
+                    var containerConnectionString = _databaseFixture.ConnectionString;
 
                     // REGISTRAR IDomainEventProcessor PARA PROCESSAR DOMAIN EVENTS
                     services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
@@ -321,10 +318,7 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
         HttpClient?.Dispose();
         _factory?.Dispose();
 
-        if (_postgresContainer != null)
-        {
-            await _postgresContainer.DisposeAsync();
-        }
+        // O container compartilhado é gerenciado pela fixture, não dispose aqui
     }
 
     /// <summary>

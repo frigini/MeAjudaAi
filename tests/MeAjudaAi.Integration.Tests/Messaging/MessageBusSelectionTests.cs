@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Factory;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
@@ -14,7 +15,8 @@ namespace MeAjudaAi.Integration.Tests.Messaging;
 /// <summary>
 /// Testes para verificar se o MessageBus correto é selecionado baseado no ambiente
 /// </summary>
-public class MessageBusSelectionTests : Base.ApiTestBase
+[Collection("Integration Tests Collection")]
+public class MessageBusSelectionTests(SharedDatabaseFixture databaseFixture) : Base.ApiTestBase(databaseFixture)
 {
     [Fact]
     public void MessageBusFactory_InTestingEnvironment_ShouldReturnMock()

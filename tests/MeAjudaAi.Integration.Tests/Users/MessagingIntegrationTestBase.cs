@@ -1,3 +1,4 @@
+using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
 
@@ -6,7 +7,7 @@ namespace MeAjudaAi.Integration.Tests.Users;
 /// <summary>
 /// Classe base para testes de integração que precisam verificar mensagens
 /// </summary>
-public abstract class MessagingIntegrationTestBase : Base.ApiTestBase
+public abstract class MessagingIntegrationTestBase(SharedDatabaseFixture databaseFixture) : Base.ApiTestBase(databaseFixture)
 {
     protected MockServiceBusMessageBus ServiceBusMock { get; private set; } = null!;
     protected MockRabbitMqMessageBus RabbitMqMock { get; private set; } = null!;

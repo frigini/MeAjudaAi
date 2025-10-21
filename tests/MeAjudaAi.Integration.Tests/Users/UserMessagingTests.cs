@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
 using MeAjudaAi.Shared.Tests.Auth;
 
@@ -9,12 +10,11 @@ namespace MeAjudaAi.Integration.Tests.Users;
 /// <summary>
 /// Testes que verificam se eventos são publicados corretamente através do sistema de messaging
 /// </summary>
-public class UserMessagingTests : MessagingIntegrationTestBase
+[Collection("Integration Tests Collection")]
+public class UserMessagingTests(SharedDatabaseFixture databaseFixture) : MessagingIntegrationTestBase(databaseFixture)
 {
-    public UserMessagingTests()
-    {
-        // Inicializa o messaging após a criação do factory
-    }
+    // Removido construtor sem parâmetros, agora o construtor pai faz o trabalho
+    // Inicialização do messaging será feita automaticamente pelo base
 
     private async Task EnsureMessagingInitializedAsync()
     {

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests.Auth;
@@ -7,7 +8,8 @@ namespace MeAjudaAi.Integration.Tests.Auth;
 /// <summary>
 /// Testes para verificar se o sistema de autenticação mock está funcionando
 /// </summary>
-public class AuthenticationTests : ApiTestBase
+[Collection("Integration Tests Collection")]
+public class AuthenticationTests(SharedDatabaseFixture databaseFixture) : ApiTestBase(databaseFixture)
 {
     [Fact]
     public async Task GetUsers_WithoutAuthentication_ShouldReturnUnauthorized()
