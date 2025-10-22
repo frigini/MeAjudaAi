@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Tests.Auth;
+using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,7 +18,7 @@ namespace MeAjudaAi.Integration.Tests.Authorization;
 /// <summary>
 /// Testes de integração para o sistema de autorização baseado em permissões.
 /// </summary>
-public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionAuthorizationIntegrationTests.TestWebApplicationFactory>
+public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionAuthorizationIntegrationTests.TestWebApplicationFactory>, IDisposable
 {
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
@@ -27,63 +29,37 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         _client = _factory.CreateClient();
     }
 
+    public void Dispose()
+    {
+        // Clean up authentication configuration after each test
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+    }
+
     [Fact]
     public async Task AuthenticatedEndpoint_WithAnyClaims_ShouldReturnSuccess()
     {
         // Arrange
-        var claims = new[]
-        {
-            new Claim("sub", "test-user-123"),
-            new Claim("test", "value")
-        };
-
-        var client = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                // Update the test authentication options with new claims
-                services.Configure<TestAuthenticationSchemeOptions>(options =>
-                {
-                    options.Claims = claims;
-                });
-            });
-        }).CreateClient();
+        ConfigurableTestAuthenticationHandler.ConfigureRegularUser();
 
         // Act
-        var response = await client.GetAsync("/test/authenticated", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync("/test/authenticated", TestContext.Current.CancellationToken);
 
         // Assert
         Console.WriteLine($"Response status: {response.StatusCode}");
         var content = await response.Content.ReadAsStringAsync();
         Console.WriteLine($"Response content: {content}");
-        
+
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
     public async Task EndpointWithPermissionRequirement_WithValidPermission_ShouldReturnSuccess()
     {
-        // Arrange
-        var claims = new[]
-        {
-            new Claim("sub", "test-user-123"),
-            new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue())
-        };
-
-        var client = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                // Update the test authentication options with new claims
-                services.Configure<TestAuthenticationSchemeOptions>(options =>
-                {
-                    options.Claims = claims;
-                });
-            });
-        }).CreateClient();
+        // Arrange - Configure user with admin permissions (includes UsersRead)
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act
-        var response = await client.GetAsync("/test/users-read", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync("/test/users-read", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -92,27 +68,11 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
     [Fact]
     public async Task EndpointWithPermissionRequirement_WithoutPermission_ShouldReturnForbidden()
     {
-        // Arrange
-        var claims = new[]
-        {
-            new Claim("sub", "test-user-123"),
-            new Claim(CustomClaimTypes.Permission, Permission.UsersProfile.GetValue()) // Permissão errada
-        };
-
-        var client = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                // Update the test authentication options with new claims
-                services.Configure<TestAuthenticationSchemeOptions>(options =>
-                {
-                    options.Claims = claims;
-                });
-            });
-        }).CreateClient();
+        // Arrange - Configure user with only basic permissions (not UsersRead)
+        ConfigurableTestAuthenticationHandler.ConfigureRegularUser();
 
         // Act
-        var response = await client.GetAsync("/test/users-read", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync("/test/users-read", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -121,28 +81,11 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
     [Fact]
     public async Task EndpointWithMultiplePermissions_WithAllPermissions_ShouldReturnSuccess()
     {
-        // Arrange
-        var claims = new[]
-        {
-            new Claim("sub", "test-user-123"),
-            new Claim(CustomClaimTypes.Permission, Permission.UsersDelete.GetValue()),
-            new Claim(CustomClaimTypes.Permission, Permission.AdminUsers.GetValue())
-        };
-
-        var client = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                // Update the test authentication options with new claims
-                services.Configure<TestAuthenticationSchemeOptions>(options =>
-                {
-                    options.Claims = claims;
-                });
-            });
-        }).CreateClient();
+        // Arrange - Admin has all permissions including UsersDelete and AdminUsers
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act
-        var response = await client.DeleteAsync("/test/users-delete", TestContext.Current.CancellationToken);
+        var response = await _client.DeleteAsync("/test/users-delete", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -151,28 +94,11 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
     [Fact]
     public async Task EndpointWithMultiplePermissions_WithPartialPermissions_ShouldReturnForbidden()
     {
-        // Arrange
-        var claims = new[]
-        {
-            new Claim("sub", "test-user-123"),
-            new Claim(CustomClaimTypes.Permission, Permission.UsersDelete.GetValue())
-            // Faltando permissão AdminUsers
-        };
-
-        var client = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                // Update the test authentication options with new claims
-                services.Configure<TestAuthenticationSchemeOptions>(options =>
-                {
-                    options.Claims = claims;
-                });
-            });
-        }).CreateClient();
+        // Arrange - Regular user doesn't have UsersDelete or AdminUsers permissions
+        ConfigurableTestAuthenticationHandler.ConfigureRegularUser();
 
         // Act
-        var response = await client.DeleteAsync("/test/users-delete", TestContext.Current.CancellationToken);
+        var response = await _client.DeleteAsync("/test/users-delete", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -181,87 +107,37 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
     [Fact]
     public async Task EndpointWithAnyPermission_WithOneOfRequiredPermissions_ShouldReturnSuccess()
     {
-        // Arrange
-        var claims = new[]
-        {
-            new Claim("sub", "test-user-123"),
-            new Claim(CustomClaimTypes.Permission, Permission.AdminUsers.GetValue())
-            // Tem AdminUsers mas não UsersRead - ainda deve funcionar para requisito "any"
-        };
-
-        var client = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                // Update the test authentication options with new claims
-                services.Configure<TestAuthenticationSchemeOptions>(options =>
-                {
-                    options.Claims = claims;
-                });
-            });
-        }).CreateClient();
+        // Arrange - Admin has required permissions
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act
-        var response = await client.GetAsync("/test/users-read-or-admin", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync("/test/users-read-or-admin", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [Fact]
+        [Fact]
     public async Task EndpointWithSystemAdminRequirement_WithSystemAdminClaim_ShouldReturnSuccess()
     {
-        // Arrange
-        var claims = new[]
-        {
-            new Claim("sub", "test-user-123"),
-            new Claim(CustomClaimTypes.IsSystemAdmin, "true")
-        };
-
-        var client = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                // Update the test authentication options with new claims
-                services.Configure<TestAuthenticationSchemeOptions>(options =>
-                {
-                    options.Claims = claims;
-                });
-            });
-        }).CreateClient();
+        // Arrange - Admin has system admin claim
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act
-        var response = await client.GetAsync("/test/system-admin", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync("/test/system-admin", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [Fact]
+        [Fact]
     public async Task EndpointWithModulePermission_WithValidModulePermissions_ShouldReturnSuccess()
     {
-        // Arrange
-        var claims = new[]
-        {
-            new Claim("sub", "test-user-123"),
-            new Claim(CustomClaimTypes.Permission, Permission.AdminUsers.GetValue()),
-            new Claim(CustomClaimTypes.Permission, Permission.UsersList.GetValue())
-        };
-
-        var client = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                // Update the test authentication options with new claims
-                services.Configure<TestAuthenticationSchemeOptions>(options =>
-                {
-                    options.Claims = claims;
-                });
-            });
-        }).CreateClient();
+        // Arrange - Admin has all module permissions including AdminUsers and UsersList
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act
-        var response = await client.GetAsync("/test/users-module-admin", TestContext.Current.CancellationToken);
+        var response = await _client.GetAsync("/test/users-module-admin", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -270,6 +146,9 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
     [Fact]
     public async Task UnauthenticatedRequest_ShouldReturnUnauthorized()
     {
+        // Arrange
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+
         // Act
         var response = await _client.GetAsync("/test/users-read", TestContext.Current.CancellationToken);
 
@@ -303,13 +182,9 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
                 if (claimsTransformationDescriptor != null)
                     services.Remove(claimsTransformationDescriptor);
 
-                // Adiciona autenticação de teste
-                services.AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = "Test";
-                    options.DefaultChallengeScheme = "Test";
-                })
-                .AddScheme<TestAuthenticationSchemeOptions, TestAuthenticationHandler>("Test", options => { });
+                // Use the same authentication pattern as working tests
+                services.RemoveRealAuthentication();
+                services.AddConfigurableTestAuthentication();
 
                 services.AddAuthorization();
             });
@@ -347,61 +222,5 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
                 });
             });
         }
-    }
-}
-
-/// <summary>
-/// Extensões para configurar autenticação de teste.
-/// </summary>
-public static class TestAuthenticationExtensions
-{
-    public static IServiceCollection AddTestAuthentication(this IServiceCollection services, Claim[] claims)
-    {
-        services.Configure<TestAuthenticationSchemeOptions>(options =>
-        {
-            options.Claims = claims;
-        });
-
-        return services;
-    }
-}
-
-/// <summary>
-/// Opções para o esquema de autenticação de teste.
-/// </summary>
-public class TestAuthenticationSchemeOptions : AuthenticationSchemeOptions
-{
-    public IReadOnlyList<Claim> Claims { get; set; } = Array.Empty<Claim>();
-}
-
-/// <summary>
-/// Handler de autenticação para testes.
-/// </summary>
-public class TestAuthenticationHandler : AuthenticationHandler<TestAuthenticationSchemeOptions>
-{
-    public TestAuthenticationHandler(IOptionsMonitor<TestAuthenticationSchemeOptions> options,
-        ILoggerFactory logger, UrlEncoder encoder)
-        : base(options, logger, encoder)
-    {
-    }
-
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
-    {
-        Console.WriteLine($"TestAuthenticationHandler.HandleAuthenticateAsync called. Claims count: {Options.Claims?.Count ?? 0}");
-        
-        if (Options.Claims?.Any() == true)
-        {
-            Console.WriteLine($"Creating identity with claims: {string.Join(", ", Options.Claims.Select(c => $"{c.Type}={c.Value}"))}");
-            
-            var identity = new ClaimsIdentity(Options.Claims, "Test");
-            var principal = new ClaimsPrincipal(identity);
-            var ticket = new AuthenticationTicket(principal, "Test");
-
-            Console.WriteLine($"Authentication success. Identity authenticated: {identity.IsAuthenticated}");
-            return Task.FromResult(AuthenticateResult.Success(ticket));
-        }
-
-        Console.WriteLine("No claims found, returning NoResult");
-        return Task.FromResult(AuthenticateResult.NoResult());
     }
 }
