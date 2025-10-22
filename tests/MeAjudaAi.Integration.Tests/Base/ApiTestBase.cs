@@ -1,6 +1,8 @@
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Auth;
+using MeAjudaAi.Shared.Tests.Extensions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +43,16 @@ public abstract class ApiTestBase : IAsyncLifetime
                         options.UseNpgsql(_databaseFixture.ConnectionString);
                         options.EnableSensitiveDataLogging();
                     });
+
+                    // Add test authentication to override any existing authentication
+                    services.RemoveRealAuthentication();
+                    services.AddDevelopmentTestAuthentication();
+                    
+                    // Remove ClaimsTransformation that causes hanging in tests
+                    var claimsTransformationDescriptor = services.FirstOrDefault(d => 
+                        d.ServiceType == typeof(IClaimsTransformation));
+                    if (claimsTransformationDescriptor != null)
+                        services.Remove(claimsTransformationDescriptor);
                 });
             });
 

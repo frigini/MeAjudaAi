@@ -1,3 +1,8 @@
+using System.Security.Claims;
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Options;
+
 namespace MeAjudaAi.ApiService.Extensions;
 
 /// <summary>
@@ -22,6 +27,11 @@ public static class EnvironmentSpecificExtensions
         else if (environment.IsDevelopment())
         {
             services.AddDevelopmentServices();
+        }
+        // Serviços para testes de integração
+        else if (environment.IsEnvironment("Testing"))
+        {
+            services.AddTestingServices();
         }
 
         return services;
@@ -57,6 +67,16 @@ public static class EnvironmentSpecificExtensions
         // Documentação Swagger verbose apenas em desenvolvimento
         services.AddDevelopmentDocumentation();
 
+        return services;
+    }
+
+    /// <summary>
+    /// Adiciona serviços específicos para ambiente de testes
+    /// </summary>
+    private static IServiceCollection AddTestingServices(this IServiceCollection services)
+    {
+        // Para o ambiente de Testing, configuramos apenas os serviços básicos
+        // A autenticação será configurada pelos testes individuais usando WebApplicationFactory
         return services;
     }
 
@@ -167,4 +187,48 @@ public class SecurityOptions
     public bool EnforceHttps { get; set; }
     public bool EnableStrictTransportSecurity { get; set; }
     public IReadOnlyList<string> AllowedHosts { get; set; } = [];
+}
+
+/// <summary>
+/// Opções para o esquema de autenticação de teste
+/// </summary>
+public class TestAuthenticationSchemeOptions : AuthenticationSchemeOptions
+{
+    /// <summary>
+    /// Usuário padrão para testes
+    /// </summary>
+    public string DefaultUserId { get; set; } = "test-user-id";
+    
+    /// <summary>
+    /// Nome do usuário padrão para testes
+    /// </summary>
+    public string DefaultUserName { get; set; } = "test-user";
+}
+
+/// <summary>
+/// Handler de autenticação simplificado para ambiente de teste
+/// </summary>
+public class TestAuthenticationHandler : AuthenticationHandler<TestAuthenticationSchemeOptions>
+{
+    public TestAuthenticationHandler(IOptionsMonitor<TestAuthenticationSchemeOptions> options,
+        ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
+    {
+    }
+
+    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    {
+        // Para testes, sempre autenticamos com um usuário padrão
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
+            new Claim(ClaimTypes.Name, "test-user"),
+            new Claim(ClaimTypes.Role, "user")
+        };
+
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+        var ticket = new AuthenticationTicket(principal, "Test");
+
+        return Task.FromResult(AuthenticateResult.Success(ticket));
+    }
 }
