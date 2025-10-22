@@ -41,7 +41,11 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         {
             builder.ConfigureServices(services =>
             {
-                services.AddTestAuthentication(claims);
+                // Update the test authentication options with new claims
+                services.Configure<TestAuthenticationSchemeOptions>(options =>
+                {
+                    options.Claims = claims;
+                });
             });
         }).CreateClient();
 
@@ -66,7 +70,11 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         {
             builder.ConfigureServices(services =>
             {
-                services.AddTestAuthentication(claims);
+                // Update the test authentication options with new claims
+                services.Configure<TestAuthenticationSchemeOptions>(options =>
+                {
+                    options.Claims = claims;
+                });
             });
         }).CreateClient();
 
@@ -92,7 +100,11 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         {
             builder.ConfigureServices(services =>
             {
-                services.AddTestAuthentication(claims);
+                // Update the test authentication options with new claims
+                services.Configure<TestAuthenticationSchemeOptions>(options =>
+                {
+                    options.Claims = claims;
+                });
             });
         }).CreateClient();
 
@@ -118,7 +130,11 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         {
             builder.ConfigureServices(services =>
             {
-                services.AddTestAuthentication(claims);
+                // Update the test authentication options with new claims
+                services.Configure<TestAuthenticationSchemeOptions>(options =>
+                {
+                    options.Claims = claims;
+                });
             });
         }).CreateClient();
 
@@ -144,7 +160,11 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         {
             builder.ConfigureServices(services =>
             {
-                services.AddTestAuthentication(claims);
+                // Update the test authentication options with new claims
+                services.Configure<TestAuthenticationSchemeOptions>(options =>
+                {
+                    options.Claims = claims;
+                });
             });
         }).CreateClient();
 
@@ -169,7 +189,11 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         {
             builder.ConfigureServices(services =>
             {
-                services.AddTestAuthentication(claims);
+                // Update the test authentication options with new claims
+                services.Configure<TestAuthenticationSchemeOptions>(options =>
+                {
+                    options.Claims = claims;
+                });
             });
         }).CreateClient();
 
@@ -195,7 +219,11 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
         {
             builder.ConfigureServices(services =>
             {
-                services.AddTestAuthentication(claims);
+                // Update the test authentication options with new claims
+                services.Configure<TestAuthenticationSchemeOptions>(options =>
+                {
+                    options.Claims = claims;
+                });
             });
         }).CreateClient();
 
