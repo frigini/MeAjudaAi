@@ -236,6 +236,12 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
                 // Adiciona módulo de usuários (autorização já está configurada no application setup)
                 services.AddUsersModule(configuration);
 
+                // Remove ClaimsTransformation that causes hanging in tests
+                var claimsTransformationDescriptor = services.FirstOrDefault(d => 
+                    d.ServiceType == typeof(Microsoft.AspNetCore.Authentication.IClaimsTransformation));
+                if (claimsTransformationDescriptor != null)
+                    services.Remove(claimsTransformationDescriptor);
+
                 // Adiciona autenticação de teste
                 services.AddAuthentication("Test")
                     .AddScheme<TestAuthenticationSchemeOptions, TestAuthenticationHandler>("Test", options => { });
