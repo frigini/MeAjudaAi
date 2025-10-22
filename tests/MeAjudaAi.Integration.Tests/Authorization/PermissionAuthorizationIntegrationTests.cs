@@ -237,7 +237,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
                 services.AddUsersModule(configuration);
 
                 // Remove ClaimsTransformation that causes hanging in tests
-                var claimsTransformationDescriptor = services.FirstOrDefault(d => 
+                var claimsTransformationDescriptor = services.FirstOrDefault(d =>
                     d.ServiceType == typeof(Microsoft.AspNetCore.Authentication.IClaimsTransformation));
                 if (claimsTransformationDescriptor != null)
                     services.Remove(claimsTransformationDescriptor);
@@ -252,8 +252,8 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
             builder.Configure(app =>
             {
                 app.UseAuthentication();
-                app.UseAuthorization();
                 app.UseRouting();
+                app.UseAuthorization();
 
                 app.UseEndpoints(endpoints =>
                 {

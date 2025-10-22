@@ -198,7 +198,7 @@ public class TestAuthenticationSchemeOptions : AuthenticationSchemeOptions
     /// Usuário padrão para testes
     /// </summary>
     public string DefaultUserId { get; set; } = "test-user-id";
-    
+
     /// <summary>
     /// Nome do usuário padrão para testes
     /// </summary>

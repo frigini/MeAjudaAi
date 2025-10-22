@@ -116,7 +116,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         // Log com diferentes níveis baseado no tipo de erro
         if (statusCode >= 500)
         {
-            logger.LogError(exception, "Server error occurred: {ErrorType} - Original Exception: {ExceptionDetails}", 
+            logger.LogError(exception, "Server error occurred: {ErrorType} - Original Exception: {ExceptionDetails}",
                 exception.GetType().Name, exception.ToString());
         }
         else if (statusCode >= 400)

@@ -47,9 +47,9 @@ public abstract class ApiTestBase : IAsyncLifetime
                     // Add test authentication to override any existing authentication
                     services.RemoveRealAuthentication();
                     services.AddConfigurableTestAuthentication();
-                    
+
                     // Remove ClaimsTransformation that causes hanging in tests
-                    var claimsTransformationDescriptor = services.FirstOrDefault(d => 
+                    var claimsTransformationDescriptor = services.FirstOrDefault(d =>
                         d.ServiceType == typeof(IClaimsTransformation));
                     if (claimsTransformationDescriptor != null)
                         services.Remove(claimsTransformationDescriptor);

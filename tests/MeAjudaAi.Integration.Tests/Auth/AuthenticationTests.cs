@@ -21,14 +21,14 @@ public class AuthenticationTests : ApiTestBase
         // TODO: Fix authorization pipeline to return proper 401/403 instead of 500
         // Currently there's an unhandled exception in the authorization system when processing unauthenticated requests
         // This is likely in PermissionRequirementHandler or related authorization components
-        
+
         // TEMPORARY: Accept 500 as a known issue until we fix the authorization pipeline
         response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Unauthorized, 
-            HttpStatusCode.Forbidden, 
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.Forbidden,
             HttpStatusCode.InternalServerError  // Known issue - fix pending
         );
-        
+
         if (response.StatusCode == HttpStatusCode.InternalServerError)
         {
             var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
@@ -49,11 +49,11 @@ public class AuthenticationTests : ApiTestBase
         // TODO: Same authorization pipeline issue as above - fix pending
         // TEMPORARY: Accept 500 as a known issue until we fix the authorization pipeline
         response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK, 
-            HttpStatusCode.Forbidden, 
+            HttpStatusCode.OK,
+            HttpStatusCode.Forbidden,
             HttpStatusCode.InternalServerError  // Known issue - fix pending
         );
-        
+
         if (response.StatusCode == HttpStatusCode.InternalServerError)
         {
             var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
