@@ -1,9 +1,9 @@
-﻿using MeAjudaAi.E2E.Tests.Base;
+using System.Text.Json;
+using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Users;
 
@@ -35,7 +35,7 @@ public class UsersEndToEndTests : TestContainerTestBase
         if (response.StatusCode != HttpStatusCode.Created)
         {
             var content = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
+            throw new InvalidOperationException($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
         }
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 

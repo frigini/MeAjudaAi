@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +12,7 @@ public class SharedTestFixture : IAsyncLifetime
 {
     private static readonly Lock _lock = new();
     private static SharedTestFixture? _instance;
-    private static int _referenceCount = 0;
+    private static int _referenceCount;
 
     public IHost? Host { get; private set; }
     public IServiceProvider Services => Host?.Services ?? throw new InvalidOperationException("Host not initialized");
@@ -30,7 +30,7 @@ public class SharedTestFixture : IAsyncLifetime
         }
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         if (Host != null) return; // Já inicializado
 
@@ -57,7 +57,7 @@ public class SharedTestFixture : IAsyncLifetime
         await Host.StartAsync();
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         lock (_lock)
         {
@@ -73,5 +73,7 @@ public class SharedTestFixture : IAsyncLifetime
             Host.Dispose();
             Host = null;
         }
+
+        GC.SuppressFinalize(this);
     }
 }

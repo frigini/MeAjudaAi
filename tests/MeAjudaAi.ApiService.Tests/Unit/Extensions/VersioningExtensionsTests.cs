@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Extensions;
 

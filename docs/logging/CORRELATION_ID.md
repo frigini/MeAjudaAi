@@ -31,13 +31,11 @@ public class CorrelationIdMiddleware
         }
     }
 }
-```
-
+```csharp
 ### **Configuração no Program.cs**
 ```csharp
 app.UseMiddleware<CorrelationIdMiddleware>();
-```
-
+```text
 ## 📝 Estrutura de Logs
 
 ### **Template Serilog**
@@ -48,14 +46,12 @@ Log.Logger = new LoggerConfiguration()
         "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} " +
         "{CorrelationId} {SourceContext}{NewLine}{Exception}")
     .CreateLogger();
-```
-
+```sql
 ### **Exemplo de Log**
-```
+```json
 [14:30:25 INF] User created successfully f7b3c4d2-8e91-4a6b-9c5d-1e2f3a4b5c6d MeAjudaAi.Users.Application
 [14:30:25 INF] Email notification sent f7b3c4d2-8e91-4a6b-9c5d-1e2f3a4b5c6d MeAjudaAi.Notifications
-```
-
+```text
 ## 🔄 Propagação Entre Serviços
 
 ### **HTTP Client Configuration**
@@ -83,8 +79,7 @@ public class CorrelationIdHttpClientHandler : DelegatingHandler
         return await base.SendAsync(request, cancellationToken);
     }
 }
-```
-
+```sql
 ### **Message Bus Integration**
 ```csharp
 public class DomainEventWithCorrelation
@@ -93,8 +88,7 @@ public class DomainEventWithCorrelation
     public IDomainEvent Event { get; set; }
     public DateTime Timestamp { get; set; }
 }
-```
-
+```csharp
 ## 🔍 Rastreamento
 
 ### **Queries no SEQ**
@@ -109,8 +103,7 @@ CorrelationId = "f7b3c4d2-8e91-4a6b-9c5d-1e2f3a4b5c6d" and @Level = "Error"
 CorrelationId = "f7b3c4d2-8e91-4a6b-9c5d-1e2f3a4b5c6d" 
 | where @Message like "%completed%"
 | project @Timestamp, Duration
-```
-
+```text
 ## 📊 Métricas e Monitoring
 
 ### **Correlation ID Metrics**
@@ -131,8 +124,7 @@ public class CorrelationMetrics
             new("correlation_id", correlationId));
     }
 }
-```
-
+```text
 ### **Dashboard Queries**
 - **Average Request Duration**: Tempo médio por correlation ID
 - **Error Rate**: Percentual de correlation IDs com erro
@@ -168,8 +160,7 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseCorrelationId();
 app.UseAuthentication();
 app.UseAuthorization();
-```
-
+```csharp
 ### **Logs Sem Correlation**
 ```csharp
 // Verificar se LogContext está sendo usado
@@ -177,8 +168,7 @@ using (LogContext.PushProperty("CorrelationId", correlationId))
 {
     logger.LogInformation("This log will have correlation ID");
 }
-```
-
+```text
 ## 🔗 Links Relacionados
 
 - [Logging Setup](./README.md)

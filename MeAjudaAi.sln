@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{D55D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{F98F35D2-DE8C-49BC-9785-CDFBA3EA22EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Shared", "src\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj", "{B5465160-1EE9-9113-4E66-4FCF2EC8F5DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Shared", "src\Shared\MeAjudaAi.Shared.csproj", "{B5465160-1EE9-9113-4E66-4FCF2EC8F5DF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.ApiService", "src\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj", "{9E8191C1-8216-B109-888B-6E4663C2CD53}"
 EndProject
@@ -41,13 +41,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{DCFD7F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{ACAE8CA4-04A2-4573-853B-E25B2F50671A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Users.Application", "src\Modules\Users\MeAjudaAi.Modules.Users.Application\MeAjudaAi.Modules.Users.Application.csproj", "{E891CA21-7F1E-4A35-AF98-9D2A5C0104D8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Users.Application", "src\Modules\Users\Application\MeAjudaAi.Modules.Users.Application.csproj", "{E891CA21-7F1E-4A35-AF98-9D2A5C0104D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Users.Infrastructure", "src\Modules\Users\MeAjudaAi.Modules.Users.Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj", "{AEC75B4E-7D10-4FCF-BEB8-E04A4A3AE29D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Users.Infrastructure", "src\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj", "{AEC75B4E-7D10-4FCF-BEB8-E04A4A3AE29D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Users.Domain", "src\Modules\Users\MeAjudaAi.Modules.Users.Domain\MeAjudaAi.Modules.Users.Domain.csproj", "{72447551-CAC3-4135-AE06-7E8B8177229C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Users.Domain", "src\Modules\Users\Domain\MeAjudaAi.Modules.Users.Domain.csproj", "{72447551-CAC3-4135-AE06-7E8B8177229C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Users.API", "src\Modules\Users\MeAjudaAi.Modules.Users.API\MeAjudaAi.Modules.Users.API.csproj", "{75369D09-FFEF-4213-B9EE-93733AA156F6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Users.API", "src\Modules\Users\API\MeAjudaAi.Modules.Users.API.csproj", "{75369D09-FFEF-4213-B9EE-93733AA156F6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.E2E.Tests", "tests\MeAjudaAi.E2E.Tests\MeAjudaAi.E2E.Tests.csproj", "{D50E8B11-B918-4CFA-90B8-D8B60A0DDE7A}"
 EndProject
@@ -59,7 +59,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.ApiService.Tests"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{EA1A0251-FB5A-4966-BF96-64D6F78F95AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Users.Tests", "src\Modules\Users\MeAjudaAi.Modules.Users.Tests\MeAjudaAi.Modules.Users.Tests.csproj", "{838886D7-C244-AA56-83CC-4B20AEC7F7B6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Users.Tests", "src\Modules\Users\Tests\MeAjudaAi.Modules.Users.Tests.csproj", "{838886D7-C244-AA56-83CC-4B20AEC7F7B6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

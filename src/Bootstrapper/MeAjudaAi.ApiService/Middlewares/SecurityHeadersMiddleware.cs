@@ -33,6 +33,8 @@ public class SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment
 
     public async Task InvokeAsync(HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         var headers = context.Response.Headers;
 
         // Adiciona cabeçalhos de segurança estáticos eficientemente

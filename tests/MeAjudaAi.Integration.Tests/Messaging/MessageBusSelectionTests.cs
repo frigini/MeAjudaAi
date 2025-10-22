@@ -1,9 +1,10 @@
-﻿using FluentAssertions;
+using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Messaging.Strategy;
 using MeAjudaAi.Shared.Messaging.Factory;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
+using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
@@ -14,13 +15,14 @@ namespace MeAjudaAi.Integration.Tests.Messaging;
 /// <summary>
 /// Testes para verificar se o MessageBus correto é selecionado baseado no ambiente
 /// </summary>
+[Collection("Integration Tests Collection")]
 public class MessageBusSelectionTests : Base.ApiTestBase
 {
     [Fact]
     public void MessageBusFactory_InTestingEnvironment_ShouldReturnMock()
     {
         // Arrange & Act
-        var messageBus = Factory.Services.GetRequiredService<IMessageBus>();
+        var messageBus = Services.GetRequiredService<IMessageBus>();
 
         // Assert
         // Em ambiente de Testing, devemos ter o mock configurado pelos testes

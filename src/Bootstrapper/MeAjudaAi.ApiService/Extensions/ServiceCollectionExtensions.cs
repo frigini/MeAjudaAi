@@ -1,5 +1,6 @@
-﻿using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Middlewares;
+using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.Shared.Authorization.Middleware;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
@@ -40,19 +41,13 @@ public static class ServiceCollectionExtensions
         services.AddMemoryCache();
 
         // Adiciona autenticação segura baseada no ambiente
-        // Para testes de integração (INTEGRATION_TESTS=true), não configuramos Keycloak
-        // pois será substituído pelo FakeIntegrationAuthenticationHandler
+        // Para testes de integração ou Testing environment, não configuramos nada aqui
+        // pois será configurado pelo WebApplicationFactory nos testes
         var it = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
-        if (!string.Equals(it, "true", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(it, "true", StringComparison.OrdinalIgnoreCase) && !environment.IsEnvironment("Testing"))
         {
             // Usa a extensão segura do Keycloak com validação completa de tokens
             services.AddEnvironmentAuthentication(configuration, environment);
-        }
-        else
-        {
-            // Para testes de integração, configuramos apenas a base da autenticação
-            // O FakeIntegrationAuthenticationHandler será adicionado depois em AddEnvironmentSpecificServices
-            services.AddAuthentication();
         }
 
         // Adiciona serviços de autorização
@@ -94,6 +89,7 @@ public static class ServiceCollectionExtensions
 
         app.UseCors("DefaultPolicy");
         app.UseAuthentication();
+        app.UsePermissionOptimization(); // Middleware de otimização após autenticação
         app.UseAuthorization();
 
         return app;

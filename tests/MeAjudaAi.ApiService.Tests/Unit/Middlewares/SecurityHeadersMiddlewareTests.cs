@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using MeAjudaAi.ApiService.Middlewares;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

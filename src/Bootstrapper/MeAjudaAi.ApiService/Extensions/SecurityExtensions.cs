@@ -1,16 +1,20 @@
-﻿using MeAjudaAi.ApiService.Handlers;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using MeAjudaAi.ApiService.Handlers;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
+using MeAjudaAi.Shared.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
-public static class SecurityExtensions
+/// <summary>
+/// Métodos de extensão para configuração de segurança incluindo autenticação, autorização e CORS.
+/// </summary>
+internal static class SecurityExtensions
 {
     /// <summary>
     /// Valida todas as configurações relacionadas à segurança para evitar erros em produção.
@@ -20,6 +24,9 @@ public static class SecurityExtensions
     /// <exception cref="InvalidOperationException">Lançada quando a configuração de segurança é inválida</exception>
     public static void ValidateSecurityConfiguration(IConfiguration configuration, IWebHostEnvironment environment)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(environment);
+
         var errors = new List<string>();
 
         // Valida configuração de CORS
@@ -41,7 +48,11 @@ public static class SecurityExtensions
                     errors.Add("Too many allowed origins with credentials enabled increases security risk");
             }
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
+        {
+            errors.Add($"CORS configuration error: {ex.Message}");
+        }
+        catch (ArgumentException ex)
         {
             errors.Add($"CORS configuration error: {ex.Message}");
         }
@@ -67,7 +78,11 @@ public static class SecurityExtensions
                         errors.Add("Keycloak ClockSkew should be minimal (≤5 minutes) in production for higher security");
                 }
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
+            {
+                errors.Add($"Keycloak configuration error: {ex.Message}");
+            }
+            catch (ArgumentException ex)
             {
                 errors.Add($"Keycloak configuration error: {ex.Message}");
             }
@@ -104,7 +119,11 @@ public static class SecurityExtensions
                 }
             }
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
+        {
+            errors.Add($"Rate limiting configuration error: {ex.Message}");
+        }
+        catch (ArgumentException ex)
         {
             errors.Add($"Rate limiting configuration error: {ex.Message}");
         }
@@ -123,7 +142,7 @@ public static class SecurityExtensions
             errors.Add("AllowedHosts must be restricted to specific domains in production (not '*')");
 
         // Lança erros agregados se houver
-        if (errors.Any())
+        if (errors.Count > 0)
         {
             var errorMessage = "Security configuration validation failed:\n" + string.Join("\n", errors.Select(e => $"- {e}"));
             throw new InvalidOperationException(errorMessage);
@@ -135,6 +154,9 @@ public static class SecurityExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(environment);
         // Registra opções de CORS usando AddOptions<>()
         services.AddOptions<CorsOptions>()
             .Configure<IConfiguration>((opts, config) =>
@@ -220,6 +242,9 @@ public static class SecurityExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(environment);
         // A autenticação específica por ambiente agora é gerenciada pelo EnvironmentSpecificExtensions
         // Aqui apenas configuramos Keycloak para ambientes não-testing
         if (!environment.IsEnvironment("Testing"))
@@ -238,6 +263,9 @@ public static class SecurityExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(environment);
         // Registra KeycloakOptions usando AddOptions<>()
         services.AddOptions<KeycloakOptions>()
             .Configure<IConfiguration>((opts, config) =>
@@ -312,32 +340,32 @@ public static class SecurityExtensions
                 };
             });
 
-        // Register startup logging service for Keycloak configuration
+        // Registra serviço de logging de inicialização para configuração do Keycloak
         services.AddHostedService<KeycloakConfigurationLogger>();
 
         return services;
     }
 
     /// <summary>
-    /// Configura políticas de autorização
+    /// Configura políticas de autorização baseadas em permissões type-safe
     /// </summary>
     public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
+
+        // Sistema de permissões type-safe (único e centralizado)
+        services.AddPermissionBasedAuthorization();
+
+        // Adiciona políticas especiais que precisam de handlers customizados
         services.AddAuthorizationBuilder()
+            .AddPolicy("SelfOrAdmin", policy =>
+                policy.AddRequirements(new SelfOrAdminRequirement()))
             .AddPolicy("AdminOnly", policy =>
                 policy.RequireRole("admin", "super-admin"))
             .AddPolicy("SuperAdminOnly", policy =>
-                policy.RequireRole("super-admin"))
-            .AddPolicy("UserManagement", policy =>
-                policy.RequireRole("admin", "super-admin"))
-            .AddPolicy("ServiceProviderAccess", policy =>
-                policy.RequireRole("service-provider", "admin", "super-admin"))
-            .AddPolicy("CustomerAccess", policy =>
-                policy.RequireRole("customer", "admin", "super-admin"))
-            .AddPolicy("SelfOrAdmin", policy =>
-                policy.AddRequirements(new SelfOrAdminRequirement()));
+                policy.RequireRole("super-admin"));
 
-        // Registra handlers de autorização
+        // Registra handlers de autorização customizados
         services.AddScoped<IAuthorizationHandler, SelfOrAdminHandler>();
 
         return services;
@@ -424,5 +452,8 @@ internal sealed class KeycloakConfigurationLogger(
         return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
 }

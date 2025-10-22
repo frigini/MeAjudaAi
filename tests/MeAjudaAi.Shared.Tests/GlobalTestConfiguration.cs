@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Tests.Infrastructure;
+using MeAjudaAi.Shared.Tests.Infrastructure;
 
 [assembly: CollectionBehavior(DisableTestParallelization = false, MaxParallelThreads = 4)]
 
@@ -29,15 +29,16 @@ public static class GlobalTestConfiguration
 /// </summary>
 public class SharedIntegrationTestFixture : IAsyncLifetime
 {
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         // Inicia containers compartilhados uma única vez para toda a collection
         await SharedTestContainers.StartAllAsync();
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         // Para containers quando todos os testes da collection terminarem
         await SharedTestContainers.StopAllAsync();
+        GC.SuppressFinalize(this);
     }
 }

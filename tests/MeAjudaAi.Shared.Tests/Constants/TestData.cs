@@ -6,7 +6,7 @@ namespace MeAjudaAi.Tests.Shared.Constants;
 public static class TestData
 {
     // Usuários padrão para testes
-    public static class Users
+    internal static class Users
     {
         public const string AdminUserId = "admin-test-id";
         public const string AdminUsername = "admin";
@@ -20,7 +20,7 @@ public static class TestData
     }
 
     // Tokens e autenticação
-    public static class Auth
+    internal static class Auth
     {
         public const string ValidTestToken = "Bearer test-token-valid";
         public const string InvalidTestToken = "Bearer test-token-invalid";
@@ -28,7 +28,7 @@ public static class TestData
     }
 
     // Configurações de paginação comuns
-    public static class Pagination
+    internal static class Pagination
     {
         public const int DefaultPageSize = 10;
         public const int MaxPageSize = 100;
@@ -36,7 +36,7 @@ public static class TestData
     }
 
     // Timeouts e configurações de performance
-    public static class Performance
+    internal static class Performance
     {
         public static readonly TimeSpan ShortTimeout = TimeSpan.FromSeconds(5);
         public static readonly TimeSpan MediumTimeout = TimeSpan.FromSeconds(30);

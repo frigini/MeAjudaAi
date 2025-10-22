@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using MeAjudaAi.ApiService.Options;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Options;

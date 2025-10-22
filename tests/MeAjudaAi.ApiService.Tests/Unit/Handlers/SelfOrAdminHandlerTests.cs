@@ -1,8 +1,8 @@
-﻿using FluentAssertions;
+using System.Security.Claims;
+using FluentAssertions;
 using MeAjudaAi.ApiService.Handlers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Handlers;
 

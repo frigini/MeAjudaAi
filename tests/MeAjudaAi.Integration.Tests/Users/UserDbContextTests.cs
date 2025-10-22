@@ -1,8 +1,9 @@
-﻿using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Modules.Users.Domain.ValueObjects;
-using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Integration.Tests.Infrastructure;
+using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 
 namespace MeAjudaAi.Integration.Tests.Users;
 
@@ -15,7 +16,7 @@ public class UserDbContextTests : ApiTestBase
     public async Task CanConnectToDatabase_ShouldWork()
     {
         // Arrange
-        using var scope = Factory.Services.CreateScope();
+        using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
         // Act & Assert
@@ -24,10 +25,10 @@ public class UserDbContextTests : ApiTestBase
     }
 
     [Fact]
-    public async Task CreateUser_Directly_ShouldWork()
+    public async Task CanSaveAndRetrieveUser_ShouldWork()
     {
         // Arrange
-        using var scope = Factory.Services.CreateScope();
+        using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
         var user = new User(

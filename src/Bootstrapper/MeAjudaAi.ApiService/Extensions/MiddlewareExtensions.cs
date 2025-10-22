@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.ApiService.Middlewares;
+using MeAjudaAi.ApiService.Middlewares;
 
 namespace MeAjudaAi.ApiService.Extensions;
 

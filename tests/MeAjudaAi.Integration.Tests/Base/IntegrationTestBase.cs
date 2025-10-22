@@ -1,6 +1,5 @@
-﻿using MeAjudaAi.Integration.Tests.Aspire;
+using MeAjudaAi.Integration.Tests.Aspire;
 using MeAjudaAi.Shared.Tests.Base;
-using Xunit.Abstractions;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -22,7 +21,7 @@ namespace MeAjudaAi.Integration.Tests.Base;
 public abstract class IntegrationTestBase(AspireIntegrationFixture fixture, ITestOutputHelper output)
     : SharedIntegrationTestBase(output), IClassFixture<AspireIntegrationFixture>
 {
-    protected readonly AspireIntegrationFixture _fixture = fixture;
+    private readonly AspireIntegrationFixture _fixture = fixture;
 
     protected override async Task InitializeInfrastructureAsync()
     {

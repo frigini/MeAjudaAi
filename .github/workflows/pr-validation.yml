@@ -224,13 +224,13 @@ jobs:
 
           # Define modules for coverage testing
           # FORMAT: "ModuleName:path/to/module/tests/"
-          # TO ADD NEW MODULE: Add line like "Orders:src/Modules/Orders/MeAjudaAi.Modules.Orders.Tests/"
+          # TO ADD NEW MODULE: Add line like "Orders:src/Modules/Orders/Tests/"
           # See docs/adding-new-modules.md for complete instructions
           MODULES=(
-            "Users:src/Modules/Users/MeAjudaAi.Modules.Users.Tests/"
+            "Users:src/Modules/Users/Tests/"
             # Future modules can be added here:
-            # "Orders:src/Modules/Orders/MeAjudaAi.Modules.Orders.Tests/"
-            # "Payments:src/Modules/Payments/MeAjudaAi.Modules.Payments.Tests/"
+            # "Orders:src/Modules/Orders/Tests/"
+            # "Payments:src/Modules/Payments/Tests/"
           )
 
           # Run unit tests for each module with coverage
@@ -871,7 +871,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .lycheecache
-          key: lychee-${{ runner.os }}-${{ hashFiles('**/*.md','lychee.toml') }}
+          key: lychee-${{ runner.os }}-${{ hashFiles('**/*.md','config/lychee.toml') }}
           restore-keys: |
             lychee-${{ runner.os }}-
 
@@ -880,7 +880,7 @@ jobs:
         with:
           # Use simplified configuration for reliability
           args: >-
-            --config lychee.toml
+            --config config/lychee.toml
             --no-progress
             --cache
             --max-cache-age 1d

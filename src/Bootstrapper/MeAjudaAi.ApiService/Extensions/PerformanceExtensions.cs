@@ -49,6 +49,8 @@ public static class PerformanceExtensions
     /// </summary>
     public static bool IsSafeForCompression(HttpContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         var request = context.Request;
         var response = context.Response;
 

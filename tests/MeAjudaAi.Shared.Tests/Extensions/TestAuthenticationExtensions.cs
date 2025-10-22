@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Shared.Tests.Auth;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Tests.Extensions;
 

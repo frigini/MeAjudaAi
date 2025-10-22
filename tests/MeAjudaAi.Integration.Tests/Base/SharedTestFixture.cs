@@ -1,8 +1,8 @@
-﻿using Aspire.Hosting;
-using MeAjudaAi.Shared.Serialization;
-using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Text.Json;
+using Aspire.Hosting;
+using MeAjudaAi.Shared.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -18,7 +18,7 @@ public class SharedTestFixture : IAsyncLifetime
 
     // Cache de aplicação compartilhada
     private DistributedApplication? _app;
-    private bool _isInitialized = false;
+    private bool _isInitialized;
 
     // Cache de clients HTTP reutilizáveis
     private readonly ConcurrentDictionary<string, HttpClient> _httpClients = new();
@@ -44,7 +44,7 @@ public class SharedTestFixture : IAsyncLifetime
 
     public JsonSerializerOptions JsonOptions { get; } = SerializationDefaults.Api;
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         if (_isInitialized) return;
 
@@ -136,7 +136,7 @@ public class SharedTestFixture : IAsyncLifetime
         }
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (!_isInitialized) return;
 

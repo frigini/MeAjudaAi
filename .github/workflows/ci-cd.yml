@@ -106,7 +106,7 @@ jobs:
         uses: lycheeverse/lychee-action@v1.10.0
         with:
           # Check all markdown files in the repository using config file
-          args: --config lychee.toml --verbose --no-progress "**/*.md"
+          args: --config config/lychee.toml --verbose --no-progress "**/*.md"
           # Fail the job if broken links are found
           fail: true
           # Generate job summary

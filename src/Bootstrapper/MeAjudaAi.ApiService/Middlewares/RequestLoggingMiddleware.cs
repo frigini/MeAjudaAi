@@ -1,5 +1,5 @@
-﻿using MeAjudaAi.Shared.Time;
 using System.Diagnostics;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.ApiService.Middlewares;
 

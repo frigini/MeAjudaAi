@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.ServiceDefaults.HealthChecks;
+using MeAjudaAi.ServiceDefaults.HealthChecks;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,19 +13,21 @@ public static class HealthCheckExtensions
     public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder)
         where TBuilder : IHostApplicationBuilder
     {
-        // Configuração simplificada - sempre adiciona health check básico
-        builder.Services.AddHealthChecks()
-            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
-
-        // Em ambiente de teste, use health checks mock simples
+        // Em ambiente de teste, use APENAS health checks mock simples
         if (IsTestingEnvironment())
         {
             builder.Services.AddHealthChecks()
+                .AddCheck("self", () => HealthCheckResult.Healthy("Self check passed for testing"), ["live"])
                 .AddCheck("database", () => HealthCheckResult.Healthy("Database ready for testing"), ["ready", "database"])
-                .AddCheck("cache", () => HealthCheckResult.Healthy("Cache ready for testing"), ["ready", "cache"]);
+                .AddCheck("cache", () => HealthCheckResult.Healthy("Cache ready for testing"), ["ready", "cache"])
+                .AddCheck("external-services", () => HealthCheckResult.Healthy("External services ready for testing"), ["ready", "external"]);
         }
         else
         {
+            // Configuração normal para outros ambientes
+            builder.Services.AddHealthChecks()
+                .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+
             // Em outros ambientes, adicione health checks reais
             builder.Services.AddDatabaseHealthCheck();
             builder.Services.AddCacheHealthCheck();

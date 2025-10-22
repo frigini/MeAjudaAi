@@ -6,15 +6,14 @@
 Nas execuções do workflow `PR Validation`, você encontrará as porcentagens em:
 
 #### Step: "Code Coverage Summary"
-```
+```csharp
 📊 Code Coverage Summary
 ========================
 Line Coverage: 85.3%
 Branch Coverage: 78.9%
-```
-
+```text
 #### Step: "Display Coverage Percentages"  
-```
+```yaml
 📊 CODE COVERAGE SUMMARY
 ========================
 
@@ -24,8 +23,7 @@ Branch Coverage: 78.9%
 
 💡 For detailed coverage report, check the 'Code Coverage Summary' step above
 🎯 Minimum thresholds: 70% (warning) / 85% (good)
-```
-
+```bash
 ### 2. **Pull Request - Comentários Automáticos**
 Em cada PR, você verá um comentário automático com:
 
@@ -40,8 +38,7 @@ Em cada PR, você verá um comentário automático com:
 - ✅ **Pass**: Coverage ≥ 85%
 - ⚠️ **Warning**: Coverage 70-84%  
 - ❌ **Fail**: Coverage < 70%
-```
-
+```text
 ### 3. **Artifacts de Download**
 Em cada execução do workflow, você pode baixar:
 
@@ -72,8 +69,7 @@ Em cada execução do workflow, você pode baixar:
 ### **Limites Atuais**
 ```yaml
 thresholds: '70 85'
-```
-
+```csharp
 - **70%**: Limite mínimo (warning se abaixo)
 - **85%**: Limite ideal (pass se acima)
 
@@ -90,8 +86,7 @@ thresholds: '70 85'
 # Abrir arquivos .opencover.xml em ferramentas como:
 # - Visual Studio Code com extensão Coverage Gutters
 # - ReportGenerator para HTML reports
-```
-
+```text
 ### **2. Focar em Branches Não Testadas**
 ```csharp
 // Exemplo de código com baixa branch coverage
@@ -106,8 +101,7 @@ public string GetStatus(int value)
 [Test] public void GetStatus_PositiveValue_ReturnsPositive() { }
 [Test] public void GetStatus_NegativeValue_ReturnsNegative() { } // Adicionar
 [Test] public void GetStatus_ZeroValue_ReturnsZero() { }         // Adicionar
-```
-
+```yaml
 ### **3. Adicionar Testes para Cenários Edge Case**
 - Valores nulos
 - Listas vazias  
@@ -117,7 +111,7 @@ public string GetStatus(int value)
 ## 📁 Arquivos de Coverage Gerados
 
 ### **Estrutura dos Artifacts**
-```
+```csharp
 coverage/
 ├── users/
 │   ├── users.opencover.xml     # Coverage detalhado do módulo Users
@@ -125,8 +119,7 @@ coverage/
 └── shared/
     ├── shared.opencover.xml    # Coverage do código compartilhado
     └── shared-test-results.trx
-```
-
+```text
 ### **Formato OpenCover XML**
 ```xml
 <CoverageSession>
@@ -134,8 +127,7 @@ coverage/
            sequenceCoverage="85.3" numBranchPoints="500" 
            visitedBranchPoints="394" branchCoverage="78.9" />
 </CoverageSession>
-```
-
+```text
 ## 🛠️ Ferramentas para Visualização Local
 
 ### **1. Coverage Gutters (VS Code)**
@@ -146,48 +138,42 @@ coverage/
 # - Verde: Linha testada
 # - Vermelho: Linha não testada
 # - Amarelo: Linha parcialmente testada
-```
-
+```csharp
 ### **2. ReportGenerator**
 ```bash
 # Gerar relatório HTML
 dotnet tool install -g dotnet-reportgenerator-globaltool
 reportgenerator -reports:"coverage/**/*.opencover.xml" -targetdir:"coveragereport" -reporttypes:Html
-```
-
+```yaml
 ### **3. dotCover/JetBrains Rider**
 ```bash
 # Usar ferramenta integrada do Rider
 # Run → Cover Unit Tests
 # Ver relatório visual no IDE
-```
-
+```text
 ## 📊 Exemplos de Relatórios
 
 ### **Relatório de Sucesso (≥85%)**
-```
+```csharp
 ✅ Coverage: 87.2% (Target: 85%)
 📈 Line Coverage: 87.2% (1308/1500 lines)
 🌿 Branch Coverage: 82.4% (412/500 branches)
 🎯 Quality Gate: PASSED
-```
-
+```text
 ### **Relatório de Warning (70-84%)**
-```
+```yaml
 ⚠️ Coverage: 76.8% (Target: 85%)
 📈 Line Coverage: 76.8% (1152/1500 lines)  
 🌿 Branch Coverage: 71.2% (356/500 branches)
 🎯 Quality Gate: WARNING - Consider adding more tests
-```
-
+```text
 ### **Relatório de Falha (<70%)**
-```
+```yaml
 ❌ Coverage: 65.3% (Target: 70%)
 📈 Line Coverage: 65.3% (980/1500 lines)
 🌿 Branch Coverage: 58.6% (293/500 branches)
 🎯 Quality Gate: FAILED - Insufficient test coverage
-```
-
+```text
 ## 🔄 Configuração Personalizada
 
 ### **Ajustar Thresholds**
@@ -202,17 +188,15 @@ thresholds: '80 90'
 
 # Para projetos críticos (muito rigoroso)
 thresholds: '90 95'
-```
-
+```yaml
 ### **Modo Leniente (Não Falhar)**
 ```yaml
 # Adicionar variável de ambiente
 env:
   STRICT_COVERAGE: false  # true = falha se < threshold
-```
-
+```text
 ## 📚 Links Úteis
 
 - [CodeCoverageSummary Action](https://github.com/irongut/CodeCoverageSummary)
 - [OpenCover Documentation](https://github.com/OpenCover/opencover)
-- [Coverage Best Practices](../development-guidelines.md#testing-guidelines)
+- [Coverage Best Practices](../development.md#-diretrizes-de-testes)

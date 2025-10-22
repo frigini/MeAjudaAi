@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.ApiService.Filters;
+using MeAjudaAi.ApiService.Filters;
 using Microsoft.OpenApi.Models;
 
 namespace MeAjudaAi.ApiService.Extensions;

@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Shared.Tests.Infrastructure;
+namespace MeAjudaAi.Shared.Tests.Infrastructure;
 
 /// <summary>
 /// Configurações específicas para infraestrutura de testes (compartilhada entre módulos)

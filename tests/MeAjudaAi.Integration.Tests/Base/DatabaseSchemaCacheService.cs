@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -19,6 +20,9 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     /// </summary>
     public async Task<bool> CanReuseSchemaAsync(string connectionString, string moduleName)
     {
+        ArgumentNullException.ThrowIfNull(connectionString);
+        ArgumentNullException.ThrowIfNull(moduleName);
+
         await CacheLock.WaitAsync();
         try
         {
@@ -59,6 +63,9 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     /// </summary>
     public async Task MarkSchemaAsInitializedAsync(string connectionString, string moduleName)
     {
+        ArgumentNullException.ThrowIfNull(connectionString);
+        ArgumentNullException.ThrowIfNull(moduleName);
+
         await CacheLock.WaitAsync();
         try
         {
@@ -80,6 +87,9 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     /// </summary>
     public static void InvalidateCache(string connectionString, string moduleName)
     {
+        ArgumentNullException.ThrowIfNull(connectionString);
+        ArgumentNullException.ThrowIfNull(moduleName);
+
         var cacheKey = GetCacheKey(connectionString, moduleName);
         SchemaCache.TryRemove(cacheKey, out _);
     }
@@ -129,8 +139,7 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
 
         // Gerar hash MD5 dos inputs
         var combined = string.Join("|", hashInputs);
-        using var md5 = MD5.Create();
-        var hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(combined));
+        var hashBytes = MD5.HashData(Encoding.UTF8.GetBytes(combined));
         return Task.FromResult(Convert.ToHexString(hashBytes));
     }
 
@@ -178,7 +187,11 @@ public class DatabaseInitializer
         string moduleName,
         Func<Task> initializationAction)
     {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        ArgumentNullException.ThrowIfNull(connectionString);
+        ArgumentNullException.ThrowIfNull(moduleName);
+        ArgumentNullException.ThrowIfNull(initializationAction);
+
+        var stopwatch = Stopwatch.StartNew();
 
         try
         {

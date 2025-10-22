@@ -30,6 +30,32 @@ A aplicação suporta configuração específica para dois ambientes principais:
   - Swagger UI desabilitado
   - Todos os recursos de segurança habilitados
 
+### 3. Dead Letter Queue Templates
+
+#### Development Dead Letter (`appsettings.Development.deadletter.json`)
+- **Propósito**: Configuração de dead letter queue para desenvolvimento
+- **Características**:
+  - RabbitMQ como provider de messaging
+  - Retry policy relaxado (3 tentativas)
+  - Logging detalhado habilitado
+  - Notificações de admin desabilitadas
+
+#### Production Dead Letter (`appsettings.Production.deadletter.json`)
+- **Propósito**: Configuração de dead letter queue para produção
+- **Características**:
+  - ServiceBus como provider de messaging
+  - Retry policy mais agressivo (5 tentativas)
+  - Logging detalhado desabilitado
+  - Notificações de admin habilitadas
+  - TTL estendido (72 horas)
+
+### 4. Authorization Example (`appsettings.authorization.example.json`)
+- **Propósito**: Template completo de configuração de autorização
+- **Características**:
+  - Configurações Keycloak completas
+  - Políticas de autorização pré-definidas
+  - Claims customizados configurados
+
 ## 🚀 Como Usar os Templates
 
 ### Passo 1: Copiar o Template
@@ -39,15 +65,13 @@ cp docs/configuration-templates/appsettings.Development.template.json src/Bootst
 
 # Para produção
 cp docs/configuration-templates/appsettings.Production.template.json src/Bootstrapper/MeAjudaAi.ApiService/appsettings.Production.json
-```
-
+```csharp
 ### Passo 2: Configurar Variáveis de Ambiente
 
 #### Development
 ```bash
 # Não requer variáveis de ambiente - usa valores padrão
-```
-
+```csharp
 #### Production
 ```bash
 export DATABASE_CONNECTION_STRING="Host=prod-db.meajudaai.com;Database=meajudaai_prod;Username=${DB_USER};Password=${DB_PASSWORD};Port=5432;SslMode=Require;"
@@ -59,8 +83,7 @@ export SERVICEBUS_CONNECTION_STRING="${AZURE_SERVICEBUS_CONNECTION}"
 export RABBITMQ_HOSTNAME="prod-rabbitmq.meajudaai.com"
 export RABBITMQ_USERNAME="${RABBITMQ_USER}"
 export RABBITMQ_PASSWORD="${RABBITMQ_PASS}"
-```
-
+```text
 ## 🔒 Configurações de Segurança por Ambiente
 
 ### Development
@@ -89,8 +112,7 @@ export RABBITMQ_PASSWORD="${RABBITMQ_PASS}"
     }
   }
 }
-```
-
+```csharp
 ### Production
 ```json
 {
@@ -101,8 +123,7 @@ export RABBITMQ_PASSWORD="${RABBITMQ_PASS}"
     }
   }
 }
-```
-
+```text
 ## 🔧 Configuração Específica por Componente
 
 ### 1. Banco de Dados
@@ -153,8 +174,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     volumes:
       - ./appsettings.Development.json:/app/appsettings.Development.json
-```
-
+```yaml
 ### Azure Container Apps (Production)
 ```bash
 # Production
@@ -162,8 +182,7 @@ az containerapp update \
   --name meajudaai-api \
   --resource-group meajudaai-prod \
   --set-env-vars ASPNETCORE_ENVIRONMENT=Production
-```
-
+```bash
 ## ⚠️ Importantes Considerações de Segurança
 
 ### 1. Secrets Management
@@ -218,8 +237,7 @@ docker logs meajudaai-api | grep "CORS"
 
 # Ver logs de Rate Limiting
 docker logs meajudaai-api | grep "RateLimit"
-```
-
+```text
 ## 📞 Suporte
 
 Para dúvidas sobre configuração:

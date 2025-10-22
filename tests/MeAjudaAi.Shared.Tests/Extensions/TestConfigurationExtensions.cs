@@ -1,5 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Tests.Shared.Constants;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Tests.Extensions;
 

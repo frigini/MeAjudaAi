@@ -1,7 +1,7 @@
-﻿using MeAjudaAi.Shared.Caching;
+using System.Diagnostics.Metrics;
+using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics.Metrics;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Caching;
 
@@ -165,9 +165,10 @@ public class CacheMetricsTests : IDisposable
     {
         // Arrange
         var tasks = new List<Task>();
-        var random = new Random();
+#pragma warning disable CA5394 // Random is acceptable for test data generation
+        var random = new Random(42); // Seed for reproducible tests
 
-        // Act - Cria m�ltiplas opera��es concorrentes
+        // Act - Cria múltiplas operações concorrentes
         for (int i = 0; i < 100; i++)
         {
             var taskId = i;
@@ -180,6 +181,7 @@ public class CacheMetricsTests : IDisposable
                 _metrics.RecordOperation(key, "concurrent-test", isHit, duration);
             }));
         }
+#pragma warning restore CA5394
 
         // Assert
         var action = () => Task.WaitAll(tasks.ToArray());

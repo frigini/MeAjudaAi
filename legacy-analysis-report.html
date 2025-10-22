@@ -1,0 +1,843 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Relatório de Análise de APIs Legacy</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #f5f5f5; padding: 20px; border-radius: 5px; }
+        .summary { display: flex; gap: 20px; margin: 20px 0; }
+        .metric { background: #e3f2fd; padding: 15px; border-radius: 5px; text-align: center; }
+        .metric h3 { margin: 0; color: #1976d2; }
+        .metric .number { font-size: 2em; font-weight: bold; }
+        .file-section { margin: 20px 0; }
+        .file-header { background: #fff3e0; padding: 10px; border-left: 4px solid #ff9800; }
+        .usage-item { margin: 10px 0; padding: 10px; border-left: 3px solid #ccc; }
+        .severity-critical { border-left-color: #f44336; background: #ffebee; }
+        .severity-high { border-left-color: #ff9800; background: #fff3e0; }
+        .severity-medium { border-left-color: #ffc107; background: #fffde7; }
+        .severity-low { border-left-color: #4caf50; background: #e8f5e8; }
+        .line-number { color: #666; font-family: monospace; }
+        .code { font-family: monospace; background: #f5f5f5; padding: 5px; }
+        .recommendations { background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class='header'>
+        <h1>🚨 Relatório de Análise de APIs Legacy</h1>
+        <p><strong>Data:</strong> 2025-10-10 22:34:10 UTC</p>
+        <p><strong>Diretório:</strong> c:\Code\MeAjudaAi\src</p>
+    </div>
+
+    <div class='summary'>
+        <div class='metric'>
+            <h3>Total de Arquivos</h3>
+            <div class='number'>11</div>
+        </div>
+        <div class='metric'>
+            <h3>Arquivos com Legacy</h3>
+            <div class='number'>11</div>
+        </div>
+        <div class='metric'>
+            <h3>Total de Ocorrências</h3>
+            <div class='number'>145</div>
+        </div>
+        <div class='metric'>
+            <h3>Críticas</h3>
+            <div class='number'>0</div>
+        </div>
+    </div>
+
+    <div class='recommendations'>
+        <h2>🎯 Recomendações de Migração</h2>
+        <ol>
+            <li><strong>Prioridade Critical:</strong> Migrar métodos IModulePermissionResolver legacy imediatamente</li>
+            <li><strong>Prioridade High:</strong> Substituir HasPermission/RequirePermission por versões EPermissions</li>
+            <li><strong>Prioridade Medium:</strong> Atualizar referências diretas ao enum Permission</li>
+            <li>📖 <strong>Consulte:</strong> <a href='docs/authentication/authorization_system_migration.md'>Guia de Migração</a></li>
+        </ol>
+    </div>
+
+    <h2>📁 Arquivos com Uso Legacy</h2>
+    <div class='file-section'>
+        <div class='file-header'>
+            <h3>..\..\src\Shared\MeAjudai.Shared\Authorization\Keycloak\KeycloakPermissionResolver.cs</h3>
+            <p>44 ocorrências encontradas</p>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 353)</span></div>
+            <div class='code'>Permission.AdminSystem,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminSystem</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 354)</span></div>
+            <div class='code'>Permission.AdminUsers,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminUsers</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 355)</span></div>
+            <div class='code'>Permission.AdminReports,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminReports</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 356)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersDelete, Permission.UsersList,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 356)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersDelete, Permission.UsersList,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 356)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersDelete, Permission.UsersList,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 356)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersDelete, Permission.UsersList,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 356)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersDelete, Permission.UsersList,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersList</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 357)</span></div>
+            <div class='code'>Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 357)</span></div>
+            <div class='code'>Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 357)</span></div>
+            <div class='code'>Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 357)</span></div>
+            <div class='code'>Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 358)</span></div>
+            <div class='code'>Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 358)</span></div>
+            <div class='code'>Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 358)</span></div>
+            <div class='code'>Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 358)</span></div>
+            <div class='code'>Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 359)</span></div>
+            <div class='code'>Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsView</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 359)</span></div>
+            <div class='code'>Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsExport</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 359)</span></div>
+            <div class='code'>Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 365)</span></div>
+            <div class='code'>Permission.AdminUsers,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminUsers</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 366)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersList</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 366)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersList</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 366)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersList</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 366)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersList</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersList</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 372)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersUpdate, Permission.UsersList</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 372)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersUpdate, Permission.UsersList</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 372)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersUpdate, Permission.UsersList</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersList</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 378)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersProfile</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 378)</span></div>
+            <div class='code'>Permission.UsersRead, Permission.UsersProfile</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersProfile</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 384)</span></div>
+            <div class='code'>Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 384)</span></div>
+            <div class='code'>Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 384)</span></div>
+            <div class='code'>Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 384)</span></div>
+            <div class='code'>Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 389)</span></div>
+            <div class='code'>Permission.ProvidersRead</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 395)</span></div>
+            <div class='code'>Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 395)</span></div>
+            <div class='code'>Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 395)</span></div>
+            <div class='code'>Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 395)</span></div>
+            <div class='code'>Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 400)</span></div>
+            <div class='code'>Permission.OrdersRead, Permission.OrdersUpdate</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 400)</span></div>
+            <div class='code'>Permission.OrdersRead, Permission.OrdersUpdate</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 406)</span></div>
+            <div class='code'>Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsView</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 406)</span></div>
+            <div class='code'>Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsExport</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 406)</span></div>
+            <div class='code'>Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 411)</span></div>
+            <div class='code'>Permission.ReportsView</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsView</code></div>
+        </div></div>
+    <div class='file-section'>
+        <div class='file-header'>
+            <h3>..\..\src\Modules\Users\API\Authorization\UsersPermissions.cs</h3>
+            <p>23 ocorrências encontradas</p>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 16)</span></div>
+            <div class='code'>public const Permission OwnProfile = Permission.UsersProfile;</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersProfile</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 17)</span></div>
+            <div class='code'>public const Permission UsersList = Permission.UsersList;</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersList</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 18)</span></div>
+            <div class='code'>public const Permission UserDetails = Permission.UsersRead;</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 26)</span></div>
+            <div class='code'>public const Permission CreateUser = Permission.UsersCreate;</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 27)</span></div>
+            <div class='code'>public const Permission UpdateUser = Permission.UsersUpdate;</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 28)</span></div>
+            <div class='code'>public const Permission DeleteUser = Permission.UsersDelete;</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 36)</span></div>
+            <div class='code'>public const Permission SystemAdmin = Permission.SystemAdmin;</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.SystemAdmin</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 37)</span></div>
+            <div class='code'>public const Permission ManageAllUsers = Permission.UsersList;</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersList</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 50)</span></div>
+            <div class='code'>Permission.UsersProfile,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersProfile</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 51)</span></div>
+            <div class='code'>Permission.UsersRead</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 59)</span></div>
+            <div class='code'>Permission.UsersList,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersList</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 60)</span></div>
+            <div class='code'>Permission.UsersRead,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 61)</span></div>
+            <div class='code'>Permission.UsersCreate,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 62)</span></div>
+            <div class='code'>Permission.UsersUpdate,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 63)</span></div>
+            <div class='code'>Permission.UsersDelete</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 71)</span></div>
+            <div class='code'>Permission.SystemAdmin,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.SystemAdmin</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 72)</span></div>
+            <div class='code'>Permission.SystemRead,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.SystemRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 73)</span></div>
+            <div class='code'>Permission.SystemWrite,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.SystemWrite</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 74)</span></div>
+            <div class='code'>Permission.UsersList,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersList</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 75)</span></div>
+            <div class='code'>Permission.UsersRead,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 76)</span></div>
+            <div class='code'>Permission.UsersCreate,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 77)</span></div>
+            <div class='code'>Permission.UsersUpdate,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 78)</span></div>
+            <div class='code'>Permission.UsersDelete</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersDelete</code></div>
+        </div></div>
+    <div class='file-section'>
+        <div class='file-header'>
+            <h3>..\..\src\Shared\MeAjudai.Shared\Authorization\Middleware\PermissionOptimizationMiddleware.cs</h3>
+            <p>20 ocorrências encontradas</p>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 189)</span></div>
+            <div class='code'>&quot;GET&quot; when path.Contains(&quot;/profile&quot;) =&gt; new[] { Permission.UsersProfile },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersProfile</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 190)</span></div>
+            <div class='code'>&quot;GET&quot; when path.Contains(&quot;/admin&quot;) =&gt; new[] { Permission.AdminUsers, Permission.UsersList },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminUsers</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 190)</span></div>
+            <div class='code'>&quot;GET&quot; when path.Contains(&quot;/admin&quot;) =&gt; new[] { Permission.AdminUsers, Permission.UsersList },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersList</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 191)</span></div>
+            <div class='code'>&quot;GET&quot; =&gt; new[] { Permission.UsersRead },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 192)</span></div>
+            <div class='code'>&quot;POST&quot; =&gt; new[] { Permission.UsersCreate },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 193)</span></div>
+            <div class='code'>&quot;PUT&quot; or &quot;PATCH&quot; =&gt; new[] { Permission.UsersUpdate },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 194)</span></div>
+            <div class='code'>&quot;DELETE&quot; =&gt; new[] { Permission.UsersDelete, Permission.AdminUsers },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 194)</span></div>
+            <div class='code'>&quot;DELETE&quot; =&gt; new[] { Permission.UsersDelete, Permission.AdminUsers },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminUsers</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 204)</span></div>
+            <div class='code'>&quot;GET&quot; =&gt; new[] { Permission.ProvidersRead },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 205)</span></div>
+            <div class='code'>&quot;POST&quot; =&gt; new[] { Permission.ProvidersCreate },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 206)</span></div>
+            <div class='code'>&quot;PUT&quot; or &quot;PATCH&quot; =&gt; new[] { Permission.ProvidersUpdate },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 207)</span></div>
+            <div class='code'>&quot;DELETE&quot; =&gt; new[] { Permission.ProvidersDelete },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 217)</span></div>
+            <div class='code'>&quot;GET&quot; =&gt; new[] { Permission.OrdersRead },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 218)</span></div>
+            <div class='code'>&quot;POST&quot; =&gt; new[] { Permission.OrdersCreate },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 219)</span></div>
+            <div class='code'>&quot;PUT&quot; or &quot;PATCH&quot; =&gt; new[] { Permission.OrdersUpdate },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 220)</span></div>
+            <div class='code'>&quot;DELETE&quot; =&gt; new[] { Permission.OrdersDelete },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 230)</span></div>
+            <div class='code'>&quot;GET&quot; when path.Contains(&quot;/export&quot;) =&gt; new[] { Permission.ReportsExport },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsExport</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 231)</span></div>
+            <div class='code'>&quot;GET&quot; =&gt; new[] { Permission.ReportsView },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsView</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 232)</span></div>
+            <div class='code'>&quot;POST&quot; =&gt; new[] { Permission.ReportsCreate },</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 240)</span></div>
+            <div class='code'>permissions.Add(Permission.AdminSystem);</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminSystem</code></div>
+        </div></div>
+    <div class='file-section'>
+        <div class='file-header'>
+            <h3>..\..\src\Shared\MeAjudai.Shared\Authorization\LegacyApiSupport.cs</h3>
+            <p>19 ocorrências encontradas</p>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 96)</span></div>
+            <div class='code'>Permission.AdminSystem =&gt; nameof(EPermissions.SystemAdmin),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminSystem</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 97)</span></div>
+            <div class='code'>Permission.UsersRead =&gt; nameof(EPermissions.UsersRead),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 98)</span></div>
+            <div class='code'>Permission.UsersCreate =&gt; nameof(EPermissions.UsersCreate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 99)</span></div>
+            <div class='code'>Permission.UsersUpdate =&gt; nameof(EPermissions.UsersUpdate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 100)</span></div>
+            <div class='code'>Permission.UsersDelete =&gt; nameof(EPermissions.UsersDelete),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 101)</span></div>
+            <div class='code'>Permission.AdminUsers =&gt; nameof(EPermissions.AdminUsers),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminUsers</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 102)</span></div>
+            <div class='code'>Permission.ProvidersRead =&gt; nameof(EPermissions.ProvidersRead),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 103)</span></div>
+            <div class='code'>Permission.ProvidersCreate =&gt; nameof(EPermissions.ProvidersCreate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 104)</span></div>
+            <div class='code'>Permission.ProvidersUpdate =&gt; nameof(EPermissions.ProvidersUpdate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 105)</span></div>
+            <div class='code'>Permission.ProvidersDelete =&gt; nameof(EPermissions.ProvidersDelete),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 106)</span></div>
+            <div class='code'>Permission.ProvidersApprove =&gt; nameof(EPermissions.ProvidersApprove),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersApprove</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 107)</span></div>
+            <div class='code'>Permission.OrdersRead =&gt; nameof(EPermissions.OrdersRead),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 108)</span></div>
+            <div class='code'>Permission.OrdersCreate =&gt; nameof(EPermissions.OrdersCreate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 109)</span></div>
+            <div class='code'>Permission.OrdersUpdate =&gt; nameof(EPermissions.OrdersUpdate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 110)</span></div>
+            <div class='code'>Permission.OrdersDelete =&gt; nameof(EPermissions.OrdersDelete),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 111)</span></div>
+            <div class='code'>Permission.OrdersFulfill =&gt; nameof(EPermissions.OrdersFulfill),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersFulfill</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 112)</span></div>
+            <div class='code'>Permission.ReportsView =&gt; nameof(EPermissions.ReportsView),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsView</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 113)</span></div>
+            <div class='code'>Permission.ReportsCreate =&gt; nameof(EPermissions.ReportsCreate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 114)</span></div>
+            <div class='code'>Permission.ReportsAdmin =&gt; nameof(EPermissions.ReportsAdmin),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsAdmin</code></div>
+        </div></div>
+    <div class='file-section'>
+        <div class='file-header'>
+            <h3>..\..\src\Shared\MeAjudai.Shared\Authorization\Migration\AuthorizationMigrationLogger.cs</h3>
+            <p>19 ocorrências encontradas</p>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 155)</span></div>
+            <div class='code'>Permission.AdminSystem =&gt; nameof(EPermissions.SystemAdmin),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminSystem</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 156)</span></div>
+            <div class='code'>Permission.UsersRead =&gt; nameof(EPermissions.UsersRead),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 157)</span></div>
+            <div class='code'>Permission.UsersCreate =&gt; nameof(EPermissions.UsersCreate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 158)</span></div>
+            <div class='code'>Permission.UsersUpdate =&gt; nameof(EPermissions.UsersUpdate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 159)</span></div>
+            <div class='code'>Permission.UsersDelete =&gt; nameof(EPermissions.UsersDelete),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 160)</span></div>
+            <div class='code'>Permission.AdminUsers =&gt; nameof(EPermissions.AdminUsers),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminUsers</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 161)</span></div>
+            <div class='code'>Permission.ProvidersRead =&gt; nameof(EPermissions.ProvidersRead),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 162)</span></div>
+            <div class='code'>Permission.ProvidersCreate =&gt; nameof(EPermissions.ProvidersCreate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 163)</span></div>
+            <div class='code'>Permission.ProvidersUpdate =&gt; nameof(EPermissions.ProvidersUpdate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 164)</span></div>
+            <div class='code'>Permission.ProvidersDelete =&gt; nameof(EPermissions.ProvidersDelete),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 165)</span></div>
+            <div class='code'>Permission.ProvidersApprove =&gt; nameof(EPermissions.ProvidersApprove),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ProvidersApprove</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 166)</span></div>
+            <div class='code'>Permission.OrdersRead =&gt; nameof(EPermissions.OrdersRead),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 167)</span></div>
+            <div class='code'>Permission.OrdersCreate =&gt; nameof(EPermissions.OrdersCreate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 168)</span></div>
+            <div class='code'>Permission.OrdersUpdate =&gt; nameof(EPermissions.OrdersUpdate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 169)</span></div>
+            <div class='code'>Permission.OrdersDelete =&gt; nameof(EPermissions.OrdersDelete),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 170)</span></div>
+            <div class='code'>Permission.OrdersFulfill =&gt; nameof(EPermissions.OrdersFulfill),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.OrdersFulfill</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 171)</span></div>
+            <div class='code'>Permission.ReportsView =&gt; nameof(EPermissions.ReportsView),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsView</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 172)</span></div>
+            <div class='code'>Permission.ReportsCreate =&gt; nameof(EPermissions.ReportsCreate),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsCreate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 173)</span></div>
+            <div class='code'>Permission.ReportsAdmin =&gt; nameof(EPermissions.ReportsAdmin),</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.ReportsAdmin</code></div>
+        </div></div>
+    <div class='file-section'>
+        <div class='file-header'>
+            <h3>..\..\src\Modules\Users\Application\Authorization\UsersPermissionResolver.cs</h3>
+            <p>7 ocorrências encontradas</p>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 148)</span></div>
+            <div class='code'>&quot;system-admin&quot; =&gt; [Permission.UsersRead, Permission.UsersUpdate, Permission.UsersDelete, Permission.AdminUsers],</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 148)</span></div>
+            <div class='code'>&quot;system-admin&quot; =&gt; [Permission.UsersRead, Permission.UsersUpdate, Permission.UsersDelete, Permission.AdminUsers],</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 148)</span></div>
+            <div class='code'>&quot;system-admin&quot; =&gt; [Permission.UsersRead, Permission.UsersUpdate, Permission.UsersDelete, Permission.AdminUsers],</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 148)</span></div>
+            <div class='code'>&quot;system-admin&quot; =&gt; [Permission.UsersRead, Permission.UsersUpdate, Permission.UsersDelete, Permission.AdminUsers],</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminUsers</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 149)</span></div>
+            <div class='code'>&quot;user-admin&quot; =&gt; [Permission.UsersRead, Permission.UsersUpdate],</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 149)</span></div>
+            <div class='code'>&quot;user-admin&quot; =&gt; [Permission.UsersRead, Permission.UsersUpdate],</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 150)</span></div>
+            <div class='code'>&quot;basic-user&quot; =&gt; [Permission.UsersRead],</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div></div>
+    <div class='file-section'>
+        <div class='file-header'>
+            <h3>..\..\src\Modules\Users\Application\Policies\UsersPermissions.cs</h3>
+            <p>7 ocorrências encontradas</p>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 40)</span></div>
+            <div class='code'>Permission.UsersRead</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 48)</span></div>
+            <div class='code'>Permission.UsersRead,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 49)</span></div>
+            <div class='code'>Permission.UsersUpdate</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 57)</span></div>
+            <div class='code'>Permission.UsersRead,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 58)</span></div>
+            <div class='code'>Permission.UsersUpdate,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersUpdate</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 59)</span></div>
+            <div class='code'>Permission.UsersDelete,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersDelete</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 60)</span></div>
+            <div class='code'>Permission.AdminUsers</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.AdminUsers</code></div>
+        </div></div>
+    <div class='file-section'>
+        <div class='file-header'>
+            <h3>..\..\src\Shared\MeAjudai.Shared\Authorization\PermissionService.cs</h3>
+            <p>2 ocorrências encontradas</p>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 212)</span></div>
+            <div class='code'>Permission.UsersProfile,</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersProfile</code></div>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 213)</span></div>
+            <div class='code'>Permission.UsersRead</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div></div>
+    <div class='file-section'>
+        <div class='file-header'>
+            <h3>..\..\src\Modules\Users\API\Endpoints\UserAdmin\GetUsersEndpoint.cs</h3>
+            <p>2 ocorrências encontradas</p>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 71)</span></div>
+            <div class='code'>.RequirePermission(Permission.UsersList)</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersList</code></div>
+        </div>
+        <div class='usage-item severity-high'>
+            <div><strong>RequirePermission(Permission)</strong> <span class='line-number'>(linha 71)</span></div>
+            <div class='code'>.RequirePermission(Permission.UsersList)</div>
+            <div><strong>Padrão encontrado:</strong> <code>.RequirePermission(Permission.</code></div>
+        </div></div>
+    <div class='file-section'>
+        <div class='file-header'>
+            <h3>..\..\src\Shared\MeAjudai.Shared\Authorization\RequirePermissionAttribute.cs</h3>
+            <p>1 ocorrências encontradas</p>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 20)</span></div>
+            <div class='code'>public string PermissionValue =&gt; Permission.GetValue();</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.GetValue</code></div>
+        </div></div>
+    <div class='file-section'>
+        <div class='file-header'>
+            <h3>..\..\src\Shared\MeAjudai.Shared\Authorization\HealthChecks\PermissionSystemHealthCheck.cs</h3>
+            <p>1 ocorrências encontradas</p>
+        </div>
+        <div class='usage-item severity-medium'>
+            <div><strong>Permission enum usage</strong> <span class='line-number'>(linha 110)</span></div>
+            <div class='code'>var testPermission = Permission.UsersRead;</div>
+            <div><strong>Padrão encontrado:</strong> <code>Permission.UsersRead</code></div>
+        </div></div>
+</body>
+</html>
