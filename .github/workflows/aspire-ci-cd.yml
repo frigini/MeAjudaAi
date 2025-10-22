@@ -106,7 +106,7 @@ jobs:
           # Run only Architecture and Integration tests - skip E2E tests for Aspire validation
           dotnet test tests/MeAjudaAi.Architecture.Tests/ --no-build --configuration Release
           dotnet test tests/MeAjudaAi.Integration.Tests/ --no-build --configuration Release
-          dotnet test src/Modules/Users/MeAjudaAi.Modules.Users.Tests/ --no-build --configuration Release
+          dotnet test src/Modules/Users/Tests/ --no-build --configuration Release
           echo "✅ Core tests passed successfully"
 
   # Validate Aspire configuration

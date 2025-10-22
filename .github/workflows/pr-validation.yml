@@ -224,13 +224,13 @@ jobs:
 
           # Define modules for coverage testing
           # FORMAT: "ModuleName:path/to/module/tests/"
-          # TO ADD NEW MODULE: Add line like "Orders:src/Modules/Orders/MeAjudaAi.Modules.Orders.Tests/"
+          # TO ADD NEW MODULE: Add line like "Orders:src/Modules/Orders/Tests/"
           # See docs/adding-new-modules.md for complete instructions
           MODULES=(
-            "Users:src/Modules/Users/MeAjudaAi.Modules.Users.Tests/"
+            "Users:src/Modules/Users/Tests/"
             # Future modules can be added here:
-            # "Orders:src/Modules/Orders/MeAjudaAi.Modules.Orders.Tests/"
-            # "Payments:src/Modules/Payments/MeAjudaAi.Modules.Payments.Tests/"
+            # "Orders:src/Modules/Orders/Tests/"
+            # "Payments:src/Modules/Payments/Tests/"
           )
 
           # Run unit tests for each module with coverage
