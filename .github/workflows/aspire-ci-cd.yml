@@ -203,7 +203,7 @@ jobs:
           - name: "ApiService"
             path: "src/Bootstrapper/MeAjudaAi.ApiService"
           - name: "Users.API"
-            path: "src/Modules/Users/MeAjudaAi.Modules.Users.API"
+            path: "src/Modules/Users/API"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
