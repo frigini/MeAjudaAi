@@ -28,6 +28,39 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
     }
 
     [Fact]
+    public async Task AuthenticatedEndpoint_WithAnyClaims_ShouldReturnSuccess()
+    {
+        // Arrange
+        var claims = new[]
+        {
+            new Claim("sub", "test-user-123"),
+            new Claim("test", "value")
+        };
+
+        var client = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                // Update the test authentication options with new claims
+                services.Configure<TestAuthenticationSchemeOptions>(options =>
+                {
+                    options.Claims = claims;
+                });
+            });
+        }).CreateClient();
+
+        // Act
+        var response = await client.GetAsync("/test/authenticated", TestContext.Current.CancellationToken);
+
+        // Assert
+        Console.WriteLine($"Response status: {response.StatusCode}");
+        var content = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"Response content: {content}");
+        
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task EndpointWithPermissionRequirement_WithValidPermission_ShouldReturnSuccess()
     {
         // Arrange
@@ -271,8 +304,12 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
                     services.Remove(claimsTransformationDescriptor);
 
                 // Adiciona autenticação de teste
-                services.AddAuthentication("Test")
-                    .AddScheme<TestAuthenticationSchemeOptions, TestAuthenticationHandler>("Test", options => { });
+                services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = "Test";
+                    options.DefaultChallengeScheme = "Test";
+                })
+                .AddScheme<TestAuthenticationSchemeOptions, TestAuthenticationHandler>("Test", options => { });
 
                 services.AddAuthorization();
             });
@@ -285,6 +322,10 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
 
                 app.UseEndpoints(endpoints =>
                 {
+                    // Endpoint simples apenas para testar autenticação
+                    endpoints.MapGet("/test/authenticated", () => Results.Ok("Authenticated"))
+                        .RequireAuthorization();
+
                     // Endpoints de teste
                     endpoints.MapGet("/test/users-read", () => Results.Ok("Success"))
                         .RequirePermission(Permission.UsersRead)
@@ -301,6 +342,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<PermissionA
                         .RequireAuthorization();
 
                     endpoints.MapGet("/test/users-module-admin", () => Results.Ok("Success"))
+                        .RequirePermissions(Permission.AdminUsers, Permission.UsersList)
                         .RequireAuthorization();
                 });
             });
@@ -345,15 +387,21 @@ public class TestAuthenticationHandler : AuthenticationHandler<TestAuthenticatio
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        Console.WriteLine($"TestAuthenticationHandler.HandleAuthenticateAsync called. Claims count: {Options.Claims?.Count ?? 0}");
+        
         if (Options.Claims?.Any() == true)
         {
+            Console.WriteLine($"Creating identity with claims: {string.Join(", ", Options.Claims.Select(c => $"{c.Type}={c.Value}"))}");
+            
             var identity = new ClaimsIdentity(Options.Claims, "Test");
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, "Test");
 
+            Console.WriteLine($"Authentication success. Identity authenticated: {identity.IsAuthenticated}");
             return Task.FromResult(AuthenticateResult.Success(ticket));
         }
 
+        Console.WriteLine("No claims found, returning NoResult");
         return Task.FromResult(AuthenticateResult.NoResult());
     }
 }
