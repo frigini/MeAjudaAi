@@ -16,13 +16,13 @@ namespace MeAjudaAi.Integration.Tests.Messaging;
 /// Testes para verificar se o MessageBus correto é selecionado baseado no ambiente
 /// </summary>
 [Collection("Integration Tests Collection")]
-public class MessageBusSelectionTests(SharedDatabaseFixture databaseFixture) : Base.ApiTestBase(databaseFixture)
+public class MessageBusSelectionTests : Base.ApiTestBase
 {
     [Fact]
     public void MessageBusFactory_InTestingEnvironment_ShouldReturnMock()
     {
         // Arrange & Act
-        var messageBus = Factory.Services.GetRequiredService<IMessageBus>();
+        var messageBus = Services.GetRequiredService<IMessageBus>();
 
         // Assert
         // Em ambiente de Testing, devemos ter o mock configurado pelos testes

@@ -10,14 +10,13 @@ namespace MeAjudaAi.Integration.Tests.Users;
 /// <summary>
 /// Testes para verificar se o DbContext está funcionando corretamente
 /// </summary>
-[Collection("Integration Tests Collection")]
-public class UserDbContextTests(SharedDatabaseFixture databaseFixture) : ApiTestBase(databaseFixture)
+public class UserDbContextTests : ApiTestBase
 {
     [Fact]
     public async Task CanConnectToDatabase_ShouldWork()
     {
         // Arrange
-        using var scope = Factory.Services.CreateScope();
+        using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
         // Act & Assert
@@ -26,10 +25,10 @@ public class UserDbContextTests(SharedDatabaseFixture databaseFixture) : ApiTest
     }
 
     [Fact]
-    public async Task CreateUser_Directly_ShouldWork()
+    public async Task CanSaveAndRetrieveUser_ShouldWork()
     {
         // Arrange
-        using var scope = Factory.Services.CreateScope();
+        using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
         var user = new User(

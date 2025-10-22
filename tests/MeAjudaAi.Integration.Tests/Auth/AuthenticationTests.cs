@@ -8,8 +8,7 @@ namespace MeAjudaAi.Integration.Tests.Auth;
 /// <summary>
 /// Testes para verificar se o sistema de autenticação mock está funcionando
 /// </summary>
-[Collection("Integration Tests Collection")]
-public class AuthenticationTests(SharedDatabaseFixture databaseFixture) : ApiTestBase(databaseFixture)
+public class AuthenticationTests : ApiTestBase
 {
     [Fact]
     public async Task GetUsers_WithoutAuthentication_ShouldReturnUnauthorized()

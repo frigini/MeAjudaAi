@@ -326,31 +326,29 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
     /// </summary>
     protected virtual async Task WaitForApplicationStartup()
     {
-        // SIMPLIFIED: Apenas verifica se consegue fazer uma requisição básica 
-        // ao invés de aguardar health checks complexos
-        var maxAttempts = 5; // Reduced attempts
-        var delay = TimeSpan.FromSeconds(1); // Reduced delay
+        // SIMPLIFIED: Para CI, não fazemos health checks que podem travar
+        // A aplicação deve inicializar rapidamente com o container compartilhado
+        var maxAttempts = 3; // Fewer attempts for CI
+        var delay = TimeSpan.FromMilliseconds(500); // Shorter delay
 
         for (int i = 0; i < maxAttempts; i++)
         {
             try
             {
-                // Try health endpoint first, fallback to root
-                var response = await HttpClient.GetAsync("/health", TestContext.Current.CancellationToken);
-                if (response.StatusCode != System.Net.HttpStatusCode.InternalServerError)
-                {
-                    return; // Any response that's not 500 means app is starting/running
-                }
+                // Quick check - any response means app is running
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                var response = await HttpClient.GetAsync("/", cts.Token);
+                return; // Any response means app is working
             }
             catch (Exception ex) when (i < maxAttempts - 1)
             {
                 Console.WriteLine($"[WaitForApplicationStartup] Attempt {i + 1}/{maxAttempts} failed: {ex.Message}");
-                await Task.Delay(delay, TestContext.Current.CancellationToken);
+                await Task.Delay(delay);
             }
         }
 
-        // If health fails, just return - application might be working even without health endpoint
-        Console.WriteLine("[WaitForApplicationStartup] Health check failed but continuing with tests");
+        // If all attempts fail, just continue - tests will fail if app is really broken
+        Console.WriteLine("[WaitForApplicationStartup] All attempts failed but continuing with tests");
     }
 
     /// <summary>
@@ -363,8 +361,8 @@ public abstract class SharedApiTestBase<TProgram> : IAsyncLifetime
 
         try
         {
-            // Para Integration tests, sempre recriar o banco do zero para evitar conflitos
-            await context.Database.EnsureDeletedAsync();
+            // Para container compartilhado, apenas garante que o schema existe
+            // NÃO deleta o banco entre testes para manter performance
             await context.Database.EnsureCreatedAsync();
         }
         catch (Exception ex)
