@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 

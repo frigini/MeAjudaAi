@@ -1,5 +1,5 @@
-using MeAjudaAi.Shared.Caching;
 using System.Collections.Concurrent;
+using MeAjudaAi.Shared.Caching;
 
 namespace MeAjudaAi.Modules.Users.Tests.Infrastructure;
 
@@ -7,17 +7,15 @@ namespace MeAjudaAi.Modules.Users.Tests.Infrastructure;
 /// Implementação simples de ICacheService para testes
 /// Usa ConcurrentDictionary em memória para simular cache
 /// </summary>
-public class TestCacheService : ICacheService
+internal class TestCacheService : ICacheService
 {
     private readonly ConcurrentDictionary<string, object> _cache = new();
 
     public Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
-        if (_cache.TryGetValue(key, out var value) && value is T typedValue)
-        {
-            return Task.FromResult<T?>(typedValue);
-        }
-        return Task.FromResult<T?>(default);
+        return _cache.TryGetValue(key, out var value) && value is T typedValue
+             ? Task.FromResult<T?>(typedValue)
+             : Task.FromResult<T?>(default);
     }
 
     public async Task<T> GetOrCreateAsync<T>(
@@ -56,6 +54,19 @@ public class TestCacheService : ICacheService
         return Task.CompletedTask;
     }
 
+    public Task RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
+    {
+        // Use delimiter-based matching to avoid unintended matches (e.g., "user" not matching "userdata")
+        var delimiter = ":";
+        var tagPrefix = $"{tag}{delimiter}";
+        var keysToRemove = _cache.Keys.Where(k => k.StartsWith(tagPrefix, StringComparison.OrdinalIgnoreCase)).ToList();
+        foreach (var key in keysToRemove)
+        {
+            _cache.TryRemove(key, out _);
+        }
+        return Task.CompletedTask;
+    }
+
     public Task RemoveByPatternAsync(string pattern, CancellationToken cancellationToken = default)
     {
         var keysToRemove = _cache.Keys.Where(k => IsMatch(k, pattern)).ToList();
@@ -73,12 +84,25 @@ public class TestCacheService : ICacheService
 
     private static bool IsMatch(string key, string pattern)
     {
-        // Implementação simples de pattern matching
-        if (pattern.Contains('*'))
+        // Handle explicit match-all pattern
+        if (pattern == "*")
+            return true;
+
+        // Order-aware wildcard matching
+        if (pattern.Contains('*', StringComparison.Ordinal))
         {
             var parts = pattern.Split('*', StringSplitOptions.RemoveEmptyEntries);
-            return parts.All(key.Contains);
+            var startIndex = 0;
+
+            foreach (var part in parts)
+            {
+                var foundIndex = key.IndexOf(part, startIndex, StringComparison.OrdinalIgnoreCase);
+                if (foundIndex == -1)
+                    return false;
+                startIndex = foundIndex + part.Length;
+            }
+            return true;
         }
-        return key.Contains(pattern);
+        return key.Contains(pattern, StringComparison.OrdinalIgnoreCase);
     }
 }

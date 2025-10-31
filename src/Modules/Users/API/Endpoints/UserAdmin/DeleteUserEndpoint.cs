@@ -1,6 +1,8 @@
-﻿using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.API.Mappers;
+using MeAjudaAi.Modules.Users.Application.Commands;
+using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;
@@ -32,7 +34,7 @@ public class DeleteUserEndpoint : BaseEndpoint, IEndpoint
     /// - Resposta 204 No Content para sucesso
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapDelete("/{id:guid}", DeleteUserAsync)
+        => app.MapDelete(ApiEndpoints.Users.Delete, DeleteUserAsync)
             .WithName("DeleteUser")
             .WithSummary("Excluir usuário")
             .WithDescription("""
@@ -54,7 +56,7 @@ public class DeleteUserEndpoint : BaseEndpoint, IEndpoint
                 - 204 No Content: Exclusão realizada com sucesso
                 - 404 Not Found: Usuário não encontrado
                 """)
-            .RequireAuthorization("AdminOnly")
+            .RequireAdmin()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound);
 

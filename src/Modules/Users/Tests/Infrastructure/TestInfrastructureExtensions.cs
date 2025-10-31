@@ -1,12 +1,12 @@
 using MeAjudaAi.Modules.Users.Application;
+using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
-using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
-using MeAjudaAi.Shared.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.Infrastructure;
 using MeAjudaAi.Shared.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -95,7 +95,7 @@ public static class UsersTestInfrastructureExtensions
         if (options.UseKeycloakMock)
         {
             // Substituir serviços reais por mocks específicos do Users
-            services.Replace(ServiceDescriptor.Scoped<IKeycloakService, Mocks.MockKeycloakService>());
+            services.Replace(ServiceDescriptor.Scoped<IKeycloakService, MockKeycloakService>());
             services.Replace(ServiceDescriptor.Scoped<IUserDomainService, MockUserDomainService>());
             services.Replace(ServiceDescriptor.Scoped<IAuthenticationDomainService, MockAuthenticationDomainService>());
         }

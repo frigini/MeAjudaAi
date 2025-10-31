@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
@@ -64,7 +65,7 @@ internal sealed class GetUserByUsernameQueryHandler(
                     "User not found by username. CorrelationId: {CorrelationId}, Username: {Username}",
                     correlationId, query.Username);
 
-                return Result<UserDto>.Failure(Error.NotFound("User not found"));
+                return Result<UserDto>.Failure(Error.NotFound(ValidationMessages.NotFound.User));
             }
 
             logger.LogInformation(

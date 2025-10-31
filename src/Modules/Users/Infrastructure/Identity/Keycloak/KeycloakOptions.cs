@@ -1,4 +1,4 @@
-﻿namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
+namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 
 public class KeycloakOptions
 {

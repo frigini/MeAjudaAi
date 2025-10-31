@@ -5,14 +5,14 @@ using MeAjudaAi.Modules.Users.Application.Queries;
 namespace MeAjudaAi.Modules.Users.API.Mappers;
 
 /// <summary>
-/// MÈtodos de extens„o para mapear DTOs para Commands e Queries
+/// M√©todos de extens√£o para mapear DTOs para Commands e Queries
 /// </summary>
 public static class RequestMapperExtensions
 {
     /// <summary>
     /// Mapeia CreateUserRequest para CreateUserCommand
     /// </summary>
-    /// <param name="request">RequisiÁ„o de criaÁ„o de usu·rio</param>
+    /// <param name="request">Requisi√ß√£o de cria√ß√£o de usu√°rio</param>
     /// <returns>CreateUserCommand com propriedades mapeadas</returns>
     public static CreateUserCommand ToCommand(this CreateUserRequest request)
     {
@@ -29,8 +29,8 @@ public static class RequestMapperExtensions
     /// <summary>
     /// Mapeia UpdateUserProfileRequest para UpdateUserProfileCommand
     /// </summary>
-    /// <param name="request">RequisiÁ„o de atualizaÁ„o de perfil</param>
-    /// <param name="userId">ID do usu·rio a ser atualizado</param>
+    /// <param name="request">Requisi√ß√£o de atualiza√ß√£o de perfil</param>
+    /// <param name="userId">ID do usu√°rio a ser atualizado</param>
     /// <returns>UpdateUserProfileCommand com propriedades mapeadas</returns>
     public static UpdateUserProfileCommand ToCommand(this UpdateUserProfileRequest request, Guid userId)
     {
@@ -38,14 +38,14 @@ public static class RequestMapperExtensions
             UserId: userId,
             FirstName: request.FirstName,
             LastName: request.LastName
-        // ObservaÁ„o: Email n„o est· incluÌdo conforme design do comando - use comando separado para atualizaÁ„o de email
+        // Observa√ß√£o: Email n√£o est√° inclu√≠do conforme design do comando - use comando separado para atualiza√ß√£o de email
         );
     }
 
     /// <summary>
-    /// Mapeia o ID do usu·rio para DeleteUserCommand
+    /// Mapeia o ID do usu√°rio para DeleteUserCommand
     /// </summary>
-    /// <param name="userId">ID do usu·rio a ser excluÌdo</param>
+    /// <param name="userId">ID do usu√°rio a ser exclu√≠do</param>
     /// <returns>DeleteUserCommand com o ID especificado</returns>
     public static DeleteUserCommand ToDeleteCommand(this Guid userId)
     {
@@ -53,9 +53,9 @@ public static class RequestMapperExtensions
     }
 
     /// <summary>
-    /// Mapeia o ID do usu·rio para GetUserByIdQuery
+    /// Mapeia o ID do usu√°rio para GetUserByIdQuery
     /// </summary>
-    /// <param name="userId">ID do usu·rio a ser consultado</param>
+    /// <param name="userId">ID do usu√°rio a ser consultado</param>
     /// <returns>GetUserByIdQuery com o ID especificado</returns>
     public static GetUserByIdQuery ToQuery(this Guid userId)
     {
@@ -65,7 +65,7 @@ public static class RequestMapperExtensions
     /// <summary>
     /// Mapeia o email para GetUserByEmailQuery
     /// </summary>
-    /// <param name="email">Email do usu·rio a ser consultado</param>
+    /// <param name="email">Email do usu√°rio a ser consultado</param>
     /// <returns>GetUserByEmailQuery com o email especificado</returns>
     public static GetUserByEmailQuery ToEmailQuery(this string? email)
     {
@@ -75,8 +75,8 @@ public static class RequestMapperExtensions
     /// <summary>
     /// Mapeia GetUsersRequest para GetUsersQuery
     /// </summary>
-    /// <param name="request">RequisiÁ„o de listagem de usu·rios</param>
-    /// <returns>GetUsersQuery com os par‚metros especificados</returns>
+    /// <param name="request">Requisi√ß√£o de listagem de usu√°rios</param>
+    /// <returns>GetUsersQuery com os par√¢metros especificados</returns>
     public static GetUsersQuery ToUsersQuery(this GetUsersRequest request)
     {
         return new GetUsersQuery(

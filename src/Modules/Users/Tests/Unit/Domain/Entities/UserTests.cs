@@ -399,7 +399,7 @@ public class UserTests
     }
 
 
-    // Cria um usu·rio de teste
+    // Cria um usu√°rio de teste
     private static User CreateTestUser(string firstName = "John", string lastName = "Doe")
     {
         return new User(

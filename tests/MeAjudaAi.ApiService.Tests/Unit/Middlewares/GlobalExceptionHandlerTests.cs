@@ -1,9 +1,9 @@
-﻿using FluentAssertions;
+using System.Text.Json;
+using FluentAssertions;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Text.Json;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Middlewares;
 
@@ -90,7 +90,7 @@ public class GlobalExceptionHandlerTests
         // Arrange
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
-        var exception = new Exception("Test exception");
+        var exception = new InvalidOperationException("Test exception");
 
         // Act
         await _handler.TryHandleAsync(context, exception, CancellationToken.None);
@@ -112,7 +112,7 @@ public class GlobalExceptionHandlerTests
         // Arrange
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
-        var exception = new Exception("Test exception");
+        var exception = new InvalidOperationException("Test exception");
 
         // Act
         await _handler.TryHandleAsync(context, exception, CancellationToken.None);

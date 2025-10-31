@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Shared.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries;
@@ -76,7 +77,7 @@ public class GetUserByUsernameQueryHandlerTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
-        result.Error.Message.Should().Be("User not found");
+        result.Error.Message.Should().Be(ValidationMessages.NotFound.User);
 
         _userRepositoryMock.Verify(
             x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()),
@@ -89,7 +90,7 @@ public class GetUserByUsernameQueryHandlerTests
         // Arrange
         var username = "testuser";
         var query = new GetUserByUsernameQuery(username);
-        var exception = new Exception("Database connection failed");
+        var exception = new InvalidOperationException("Database connection failed");
 
         _userRepositoryMock
             .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()))
@@ -158,7 +159,7 @@ public class GetUserByUsernameQueryHandlerTests
         var username = "testuser";
         var query = new GetUserByUsernameQuery(username);
         var cancellationTokenSource = new CancellationTokenSource();
-        cancellationTokenSource.Cancel();
+        await cancellationTokenSource.CancelAsync();
 
         _userRepositoryMock
             .Setup(x => x.GetByUsernameAsync(It.Is<Username>(u => u.Value == username), It.IsAny<CancellationToken>()))

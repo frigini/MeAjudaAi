@@ -13,8 +13,7 @@ Sistema de logging híbrido que combina:
 HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
                       ↓
               [CorrelationId, UserContext, Performance]
-```
-
+```csharp
 ## 🔧 Componentes
 
 ### 1. **LoggingContextMiddleware**
@@ -53,8 +52,7 @@ HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
     }
   }
 }
-```
-
+```csharp
 **Configuração por ambiente:**
 ```jsonc
 // appsettings.Development.json - APENAS desenvolvimento local
@@ -70,8 +68,7 @@ HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
     "SuppressPII": true   // SEMPRE redact PII em produção
   }
 }
-```
-
+```text
 ### Propriedades Automáticas
 
 **Com SuppressPII=true (Padrão/Produção):**
@@ -92,8 +89,7 @@ HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
     "Username": "[REDACTED]"
   }
 }
-```
-
+```yaml
 **Com SuppressPII=false (Development apenas):**
 ```jsonc
 {
@@ -112,8 +108,7 @@ HTTP Request → LoggingContextMiddleware → Serilog → Console + Seq
     "Username": "joao.silva"
   }
 }
-```
-
+```text
 ## 🎯 Uso nos Controllers
 
 ### 🔒 Logging com Proteção PII
@@ -158,8 +153,7 @@ public class UsersController : ControllerBase
         }
     }
 }
-```
-
+```text
 ### Contexto Avançado com Proteção PII
 ```csharp
 public async Task<IActionResult> UpdateUser(int id, UpdateUserRequest request)
@@ -202,8 +196,7 @@ public async Task<IActionResult> UpdateUser(int id, UpdateUserRequest request)
         }
     }
 }
-```
-
+```csharp
 ### Implementação do IPIILogger
 ```csharp
 using System.Security.Cryptography;
@@ -311,8 +304,7 @@ public class PIIAwareLogger : IPIILogger
         return Convert.ToHexString(hashBytes)[..8]; // First 8 chars for readability
     }
 }
-```
-
+```text
 ## 🛡️ Melhores Práticas de PII
 
 ### Configuração de Ambientes
@@ -328,8 +320,7 @@ public class PIIAwareLogger : IPIILogger
     }
   }
 }
-```
-
+```csharp
 **Staging/Testing:**
 ```jsonc
 {
@@ -341,8 +332,7 @@ public class PIIAwareLogger : IPIILogger
     }
   }
 }
-```
-
+```text
 **Production:**
 ```jsonc
 {
@@ -357,8 +347,7 @@ public class PIIAwareLogger : IPIILogger
     }
   }
 }
-```
-
+```yaml
 ### Classificação de Dados PII
 
 | Categoria | Exemplos | Ação |
@@ -393,8 +382,7 @@ public void ValidateLoggingConfiguration()
             "Ensure this is intentional for debugging purposes only", environment);
     }
 }
-```
-
+```csharp
 ## 🔍 Queries Úteis no Seq
 
 ### Performance
@@ -407,8 +395,7 @@ public void ValidateLoggingConfiguration()
 | summarize avg(ElapsedMilliseconds) by RequestPath 
 | order by avg_ElapsedMilliseconds desc 
 | limit 10
-```
-
+```text
 ### Erros
 ```sql
 -- Erros por usuário
@@ -418,16 +405,14 @@ public void ValidateLoggingConfiguration()
 
 -- Correlation ID para debug
 CorrelationId = "abc-123-def"
-```
-
+```csharp
 ### Business Intelligence
 ```sql
 -- Atividade por módulo
 @Message like "%completed%" 
 | summarize count() by substring(RequestPath, 0, indexof(RequestPath, '/', 1))
 | order by count desc
-```
-
+```text
 ## 🚀 Próximos Passos
 
 1. ✅ **Implementado** - Sistema base de logging
@@ -437,6 +422,6 @@ CorrelationId = "abc-123-def"
 
 ## 🔗 Documentação Relacionada
 
-- [Seq Setup](./SEQ_SETUP.md)
-- [Correlation ID Best Practices](./CORRELATION_ID.md)
-- [Performance Monitoring](./PERFORMANCE.md)
+- [Seq Setup](./seq_setup.md)
+- [Correlation ID Best Practices](./correlation_id.md)
+- [Performance Monitoring](./performance.md)

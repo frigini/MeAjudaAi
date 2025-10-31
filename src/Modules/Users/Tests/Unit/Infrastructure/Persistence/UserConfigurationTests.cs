@@ -90,7 +90,7 @@ public class UserConfigurationTests
     // Test DbContext para uso nos testes
     private class TestDbContext(DbContextOptions<TestDbContext> options) : DbContext(options)
     {
-        public DbSet<User> Users { get; set; }
+        public DbSet<User>? Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

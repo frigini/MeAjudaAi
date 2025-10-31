@@ -1,5 +1,6 @@
-﻿using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Shared.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -26,7 +27,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                 username => username.Value,
                 value => new Username(value))
             .HasColumnName("username")
-            .HasMaxLength(30)
+            .HasMaxLength(ValidationConstants.UserLimits.UsernameMaxLength)
             .IsRequired();
 
         builder.Property(u => u.Email)
@@ -34,23 +35,23 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                 email => email.Value,
                 value => new Email(value))
             .HasColumnName("email")
-            .HasMaxLength(254)
+            .HasMaxLength(ValidationConstants.UserLimits.EmailMaxLength)
             .IsRequired();
 
         // Primitive value object
         builder.Property(u => u.FirstName)
             .HasColumnName("first_name")
-            .HasMaxLength(100)
+            .HasMaxLength(ValidationConstants.UserLimits.FirstNameMaxLength)
             .IsRequired();
 
         builder.Property(u => u.LastName)
             .HasColumnName("last_name")
-            .HasMaxLength(100)
+            .HasMaxLength(ValidationConstants.UserLimits.LastNameMaxLength)
             .IsRequired();
 
         builder.Property(u => u.KeycloakId)
             .HasColumnName("keycloak_id")
-            .HasMaxLength(50)
+            .HasMaxLength(ValidationConstants.UserLimits.KeycloakIdMaxLength)
             .IsRequired();
 
         builder.Property(u => u.IsDeleted)

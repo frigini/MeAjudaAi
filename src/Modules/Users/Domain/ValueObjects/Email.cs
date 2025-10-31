@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 
@@ -14,8 +15,8 @@ public sealed partial record Email
     {
         if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentException("Email não pode ser vazio", nameof(value));
-        if (value.Length > 254)
-            throw new ArgumentException("Email não pode ter mais de 254 caracteres", nameof(value));
+        if (value.Length > ValidationConstants.UserLimits.EmailMaxLength)
+            throw new ArgumentException($"Email não pode ter mais de {ValidationConstants.UserLimits.EmailMaxLength} caracteres", nameof(value));
         if (!EmailRegex.IsMatch(value))
             throw new ArgumentException("Formato de email inválido", nameof(value));
         Value = value.ToLowerInvariant();

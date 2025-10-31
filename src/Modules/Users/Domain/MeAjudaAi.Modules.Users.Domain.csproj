@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
+    <ProjectReference Include="..\..\..\Shared\MeAjudaAi.Shared.csproj" />
   </ItemGroup>
 
 </Project>
-<!-- This project file is for the MeAjudaAi.Modules.Users.Application module, which is part of the MeAjudaAi system. -->
+<!-- This project file is for the MeAjudaAi.Modules.Users.Domain module, which is part of the MeAjudaAi system. -->

@@ -1,6 +1,8 @@
-﻿using MeAjudaAi.Modules.Users.API.Mappers;
+using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
@@ -34,7 +36,7 @@ public class GetUserByIdEndpoint : BaseEndpoint, IEndpoint
     /// - Respostas estruturadas para sucesso (200) e não encontrado (404)
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/{id:guid}", GetUserAsync)
+        => app.MapGet(ApiEndpoints.Users.GetById, GetUserAsync)
             .WithName("GetUser")
             .WithSummary("Consultar usuário por ID")
             .WithDescription("""
@@ -52,7 +54,7 @@ public class GetUserByIdEndpoint : BaseEndpoint, IEndpoint
                 - Metadados de criação e atualização
                 - Papéis e permissões associados
                 """)
-            .RequireAuthorization("SelfOrAdmin")
+            .RequireSelfOrAdmin()
             .Produces<Response<UserDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 

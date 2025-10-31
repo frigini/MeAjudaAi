@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
 using MeAjudaAi.Shared.Messaging;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Base;
 
@@ -46,9 +46,14 @@ public abstract class EventHandlerTestBase<THandler>
         // Configura para criar Guids realistas
         Fixture.Customize<Guid>(composer => composer.FromFactory(() => Guid.NewGuid()));
 
+#pragma warning disable CA5394 // Random is acceptable for test data generation
+        // Usa Random com seed fixo para testes determinísticos
+        var seededRandom = new Random(42);
+
         // Configura DateTime para ser determinístico baseado na data base
         Fixture.Customize<DateTime>(composer =>
-            composer.FromFactory(() => BaseDateTime.AddDays(Random.Shared.Next(0, 30))));
+            composer.FromFactory(() => BaseDateTime.AddDays(seededRandom.Next(0, 30))));
+#pragma warning restore CA5394
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Shared.Contracts;
 
 namespace MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 

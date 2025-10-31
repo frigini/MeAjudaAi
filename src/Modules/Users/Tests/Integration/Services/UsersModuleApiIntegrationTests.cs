@@ -111,7 +111,7 @@ public class UsersModuleApiIntegrationTests : UsersIntegrationTestBase
         result.Value.Should().Contain(u => u.Id == user2.Id.Value && u.Username == "batchuser2");
         result.Value.Should().Contain(u => u.Id == user3.Id.Value && u.Username == "batchuser3");
 
-        // Verify all users are marked as active
+        // Verifica se todos os usuários estão marcados como ativos
         result.Value.Should().AllSatisfy(user => user.IsActive.Should().BeTrue());
     }
 

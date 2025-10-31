@@ -1,41 +1,111 @@
-# Authentication Documentation
+# Authentication & Authorization Documentation
 
-## Overview
-This directory contains comprehensive documentation about the authentication system in MeAjudaAi.
+## 📋 Visão Geral
 
-## Contents
+Esta pasta contém documentação completa sobre os sistemas de autenticação e autorização do MeAjudaAi, incluindo o sistema type-safe baseado em `EPermissions`.
 
-- [Test Authentication Handler](../testing/test_authentication_handler.md) - Documentation for testing authentication
+## 📚 Conteúdo
 
-## Authentication System
+### Documentação Principal
+- **[Sistema de Autenticação](../authentication.md)** - Documentação principal do sistema de autenticação e autorização
+- **[Guia de Implementação](./authorization_system_implementation.md)** - Guia completo para implementar autorização type-safe
+- **[Sistema de Permissões Type-Safe](./type_safe_permissions_system.md)** - Detalhes do sistema baseado em EPermissions
+- **[Resolução Server-Side](../server_side_permissions.md)** - Guia para resolução de permissões no servidor
 
-The MeAjudaAi platform uses a configurable authentication system designed to support multiple authentication providers and testing scenarios.
+### Testes e Desenvolvimento
+- **[Test Authentication Handler](../testing/test_authentication_handler.md)** - Handler configurável para testes
 
-### Key Components
+## 🏗️ Arquitetura do Sistema
 
-1. **Authentication Services** - Main authentication logic
-2. **Test Authentication Handler** - Configurable handler for testing scenarios
-3. **Authentication Middleware** - Request processing and validation
+### Sistema de Autenticação
+- ✅ **Configurável** - Suporte a múltiplos provedores
+- ✅ **Testável** - Handler específico para testes
+- ✅ **Middleware** - Processamento e validação de requests
 
-### Configuration
+### Sistema de Autorização Type-Safe
+- ✅ **EPermissions Enum** - Sistema unificado type-safe
+- ✅ **Modular** - Cada módulo implementa `IModulePermissionResolver`
+- ✅ **Performance** - Cache distribuído com HybridCache
+- ✅ **Extensível** - Suporte para múltiplos provedores
+- ✅ **Monitoramento** - Métricas integradas para observabilidade
 
-Authentication is configured through the application settings and can be adapted for different environments:
+### Componentes Principais
 
-- **Development**: Simplified authentication for local development
-- **Testing**: Configurable test authentication handler
-- **Production**: Full authentication with external providers
+1. **IPermissionService** - Interface principal para resolução de permissões
+2. **IModulePermissionResolver** - Resolução modular de permissões
+3. **EPermissions** - Enum type-safe com todas as permissões do sistema
+4. **Permission Cache** - Sistema de cache distribuído para performance
+5. **Authorization Middleware** - Middleware para validação automática
 
-### Testing Authentication
+## 🚀 Configuração Rápida
 
-For testing scenarios, the platform includes a configurable authentication handler that allows:
+### 1. Configuração Básica
+```csharp
+// Program.cs
+builder.Services.AddPermissionBasedAuthorization(builder.Configuration);
+builder.Services.AddModulePermissionResolver<UsersPermissionResolver>();
 
-- Custom user creation for test scenarios
-- Flexible authentication outcomes
-- Integration with test containers and databases
+app.UsePermissionBasedAuthorization();
+```
+### 2. Uso em Endpoints
+```csharp
+group.MapGet("/", GetUsers)
+     .RequirePermission(EPermission.UsersRead);
 
-See the [Test Authentication Handler documentation](../testing/test_authentication_handler.md) for detailed usage instructions.
+group.MapPost("/", CreateUser)
+     .RequirePermission(EPermission.UsersCreate);
+```
+### 3. Verificação Programática
+```csharp
+var hasPermission = await permissionService
+    .HasPermissionAsync(userId, EPermission.UsersRead);
+```
+## 🔧 Ambientes
 
-## Related Documentation
+### Desenvolvimento
+- Autenticação simplificada para desenvolvimento local
+- Cache em memória para rapidez
+- Logs detalhados para debugging
 
-- [Development Guidelines](../development-guidelines.md)
-- [Testing Guide](../testing/test_authentication_handler.md)
+### Testes
+- Handler de autenticação configurável
+- Permissões mocadas para cenários específicos
+- Integração com test containers
+
+### Produção
+- Autenticação completa com provedores externos
+- Cache distribuído (Redis/SQL Server)
+- Métricas e monitoramento completos
+
+## 📖 Guias de Uso
+
+### Para Desenvolvedores
+1. Leia a [documentação principal](../authentication.md)
+2. Siga o [guia de implementação](./authorization_system_implementation.md)
+3. Implemente seu `IModulePermissionResolver`
+4. Use `.RequirePermission()` nos endpoints
+
+### Para Testes
+1. Configure o [Test Authentication Handler](../testing/test_authentication_handler.md)
+2. Use permissões mocadas nos testes
+3. Valide cenários com e sem permissão
+
+### Para DevOps
+1. Configure cache distribuído
+2. Monitore métricas em `/metrics`
+3. Configure alertas para falhas de autorização
+
+## 📊 Métricas e Monitoramento
+
+O sistema expõe automaticamente:
+- ⏱️ Tempo de resolução de permissões
+- 📊 Taxa de acerto do cache
+- ❌ Falhas de autorização
+- 📈 Performance por módulo
+
+## 🔗 Documentação Relacionada
+
+- [Guias de Desenvolvimento](../development.md)
+- [Arquitetura do Sistema](../architecture.md)
+- [Guia de Testes](../testing/)
+- [Configuração CI/CD](../ci_cd.md)

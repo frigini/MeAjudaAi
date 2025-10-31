@@ -28,7 +28,38 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 - **Docker** - Containerização
 - **Azure** - Hospedagem em nuvem
 
-## 🚀 Início Rápido
+## � Estrutura do Projeto
+
+O projeto foi organizado para facilitar navegação e manutenção:
+
+```
+📦 MeAjudaAi/
+├── 📁 api/              # Especificações de API (OpenAPI)
+├── 📁 automation/       # Scripts de automação CI/CD
+├── 📁 build/           # Scripts de build e Makefile
+├── 📁 config/          # Configurações de ferramentas
+├── 📁 docs/            # Documentação técnica
+├── 📁 infrastructure/  # IaC e configurações de infraestrutura
+├── 📁 scripts/         # Scripts de desenvolvimento
+├── 📁 src/             # Código fonte da aplicação
+├── 📁 tests/           # Testes automatizados
+└── 📁 tools/           # Ferramentas de desenvolvimento
+```
+
+### Diretórios Principais
+
+| Diretório | Propósito | Exemplos |
+|-----------|-----------|----------|
+| `src/` | Código fonte da aplicação | Módulos, APIs, domínios |
+| `tests/` | Testes unitários e integração | xUnit v3, testes por módulo |
+| `docs/` | Documentação técnica | Arquitetura, guias, ADRs |
+| `infrastructure/` | Infraestrutura como código | Bicep, Docker, Kubernetes |
+| `scripts/` | Scripts de desenvolvimento | Exportar API, testes, deploy |
+| `build/` | Build e automação | Makefile, scripts de CI |
+| `config/` | Configurações de ferramentas | Linting, segurança, cobertura |
+| `automation/` | Setup de CI/CD | Scripts de configuração |
+
+## �🚀 Início Rápido
 
 ### Para Desenvolvedores
 
@@ -430,7 +461,7 @@ docker compose -f environments/testing.yml up -d
 - ✅ Verifique se o Service Principal tem permissões `Contributor`
 
 **"Docker containers conflicting"**
-- ✅ Execute `make clean-docker` para limpar containers
+- ✅ Execute `make clean-docker` (via `./build/Makefile`) para limpar containers
 - ✅ Use `docker system prune -a` para limpeza completa
 
 ### Links Úteis

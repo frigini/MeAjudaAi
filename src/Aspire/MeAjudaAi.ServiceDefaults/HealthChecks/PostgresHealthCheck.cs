@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Npgsql;
 

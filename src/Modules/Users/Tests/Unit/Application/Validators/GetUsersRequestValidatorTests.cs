@@ -216,7 +216,7 @@ public class GetUsersRequestValidatorTests
     public void Validate_SearchTermExactlyMaxLength_ShouldNotHaveValidationError()
     {
         // Arrange
-        var searchTerm = new string('a', 50); // Tamanho m·ximo È 50
+        var searchTerm = new string('a', 50); // Tamanho m√°ximo √© 50
         var request = new GetUsersRequest
         {
             PageNumber = 1,
@@ -235,7 +235,7 @@ public class GetUsersRequestValidatorTests
     public void Validate_SearchTermTooLong_ShouldHaveValidationError()
     {
         // Arrange
-        var searchTerm = new string('a', 51); // Tamanho m·ximo È 50
+        var searchTerm = new string('a', 51); // Tamanho m√°ximo √© 50
         var request = new GetUsersRequest
         {
             PageNumber = 1,

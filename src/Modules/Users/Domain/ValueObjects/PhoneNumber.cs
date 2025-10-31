@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Domain;
+using MeAjudaAi.Shared.Domain;
 
 namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 

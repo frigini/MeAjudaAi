@@ -1,9 +1,15 @@
+using FluentAssertions;
 using MeAjudaAi.Modules.Users.Application.DTOs;
-using MeAjudaAi.Modules.Users.Application.Services;
 using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Application.Services;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Time;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Services;
 
@@ -12,6 +18,9 @@ public class UsersModuleApiTests
     private readonly Mock<IQueryHandler<GetUserByIdQuery, Result<UserDto>>> _getUserByIdHandler;
     private readonly Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>> _getUserByEmailHandler;
     private readonly Mock<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>> _getUserByUsernameHandler;
+    private readonly Mock<IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>>> _getUsersByIdsHandler;
+    private readonly Mock<IServiceProvider> _serviceProvider;
+    private readonly Mock<ILogger<UsersModuleApi>> _logger;
     private readonly UsersModuleApi _sut;
 
     public UsersModuleApiTests()
@@ -19,10 +28,17 @@ public class UsersModuleApiTests
         _getUserByIdHandler = new Mock<IQueryHandler<GetUserByIdQuery, Result<UserDto>>>();
         _getUserByEmailHandler = new Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>>();
         _getUserByUsernameHandler = new Mock<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>>();
+        _getUsersByIdsHandler = new Mock<IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>>>();
+        _serviceProvider = new Mock<IServiceProvider>();
+        _logger = new Mock<ILogger<UsersModuleApi>>();
+
         _sut = new UsersModuleApi(
             _getUserByIdHandler.Object,
             _getUserByEmailHandler.Object,
-            _getUserByUsernameHandler.Object);
+            _getUserByUsernameHandler.Object,
+            _getUsersByIdsHandler.Object,
+            _serviceProvider.Object,
+            _logger.Object);
     }
 
     [Fact]
@@ -46,8 +62,44 @@ public class UsersModuleApiTests
     }
 
     [Fact]
-    public async Task IsAvailableAsync_ShouldReturn_True()
+    public async Task IsAvailableAsync_WhenHealthy_ShouldReturn_True()
     {
+        // Arrange
+        _getUserByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User not found")));
+
+        // Act
+        var result = await _sut.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeTrue();
+        _getUserByIdHandler.Verify(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenBasicOperationsFail_ShouldReturn_False()
+    {
+        // Arrange
+        _getUserByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
+
+        // Act
+        var result = await _sut.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenHealthCheckServiceUnavailable_ShouldStillCheckBasicOperations()
+    {
+        // Arrange
+        _serviceProvider.Setup(x => x.GetService(typeof(HealthCheckService)))
+            .Returns((HealthCheckService?)null);
+
+        _getUserByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound(ValidationMessages.NotFound.User)));
+
         // Act
         var result = await _sut.IsAvailableAsync();
 
@@ -167,14 +219,11 @@ public class UsersModuleApiTests
 
         var userDto1 = new UserDto(userId1, "user1", "user1@test.com", "User", "One", "User One", UuidGenerator.NewIdString(), DateTime.UtcNow, null);
         var userDto2 = new UserDto(userId2, "user2", "user2@test.com", "User", "Two", "User Two", UuidGenerator.NewIdString(), DateTime.UtcNow, null);
+        var userDtos = new List<UserDto> { userDto1, userDto2 };
 
-        _getUserByIdHandler
-            .Setup(x => x.HandleAsync(It.Is<GetUserByIdQuery>(q => q.UserId == userId1), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Success(userDto1));
-
-        _getUserByIdHandler
-            .Setup(x => x.HandleAsync(It.Is<GetUserByIdQuery>(q => q.UserId == userId2), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Success(userDto2));
+        _getUsersByIdsHandler
+            .Setup(x => x.HandleAsync(It.Is<GetUsersByIdsQuery>(q => q.UserIds.SequenceEqual(userIds)), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<IReadOnlyList<UserDto>>.Success(userDtos));
 
         // Act
         var result = await _sut.GetUsersBatchAsync(userIds);
@@ -184,6 +233,9 @@ public class UsersModuleApiTests
         result.Value.Should().HaveCount(2);
         result.Value.Should().Contain(u => u.Id == userId1 && u.Username == "user1");
         result.Value.Should().Contain(u => u.Id == userId2 && u.Username == "user2");
+
+        // Verificar que o batch handler foi chamado uma única vez
+        _getUsersByIdsHandler.Verify(x => x.HandleAsync(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -320,12 +372,41 @@ public class UsersModuleApiTests
         // Arrange
         var emptyIds = new List<Guid>();
 
+        _getUsersByIdsHandler
+            .Setup(x => x.HandleAsync(It.Is<GetUsersByIdsQuery>(q => q.UserIds.Count == 0), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<IReadOnlyList<UserDto>>.Success(Array.Empty<UserDto>()));
+
         // Act
         var result = await _sut.GetUsersBatchAsync(emptyIds);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
+
+        // Verificar que o batch handler foi chamado
+        _getUsersByIdsHandler.Verify(x => x.HandleAsync(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetUsersBatchAsync_WhenHandlerFails_ShouldReturnFailure()
+    {
+        // Arrange
+        var userIds = new List<Guid> { UuidGenerator.NewId() };
+        var error = "Database error";
+
+        _getUsersByIdsHandler
+            .Setup(x => x.HandleAsync(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<IReadOnlyList<UserDto>>.Failure(error));
+
+        // Act
+        var result = await _sut.GetUsersBatchAsync(userIds);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Message.Should().Be(error);
+
+        // Verificar que o batch handler foi chamado
+        _getUsersByIdsHandler.Verify(x => x.HandleAsync(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

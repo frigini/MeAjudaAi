@@ -24,8 +24,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+<<<<<<< HEAD
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
+=======
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+>>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -36,7 +41,10 @@
     <!-- Geração de Dados para Teste -->
     <PackageReference Include="Bogus" />
     <PackageReference Include="AutoFixture" />
+<<<<<<< HEAD
     <PackageReference Include="AutoFixture.Xunit2" />
+=======
+>>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
     <PackageReference Include="AutoFixture.AutoMoq" />
     
     <!-- Testes de Banco de Dados -->
@@ -52,10 +60,14 @@
     <!-- Performance e Fixtures para Otimização -->
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+<<<<<<< HEAD
+=======
+    <PackageReference Include="xunit.v3" />
+>>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
+    <ProjectReference Include="..\..\src\Shared\MeAjudaAi.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

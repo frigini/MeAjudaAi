@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Modules.Users.Domain.Events;

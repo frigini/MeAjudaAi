@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.Domain.Services;
+using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Shared.Functional;

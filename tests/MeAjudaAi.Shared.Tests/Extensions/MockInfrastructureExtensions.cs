@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Extensions;
 
@@ -106,17 +106,6 @@ public static class MockInfrastructureExtensions
 
         // Cache services removidos para testes
 
-        return services;
-    }
-
-    /// <summary>
-    /// Adiciona serviços de cache mock para testes  
-    /// Por enquanto deixamos vazio, apenas removemos os serviços problemáticos
-    /// </summary>
-    private static IServiceCollection AddMockCacheServices(this IServiceCollection services)
-    {
-        // Por enquanto apenas remove os serviços problemáticos
-        // TODO: Implementar mocks se necessário
         return services;
     }
 }

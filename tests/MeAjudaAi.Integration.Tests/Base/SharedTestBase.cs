@@ -1,11 +1,10 @@
-﻿using Bogus;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using Bogus;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
 /// <summary>
-/// Base class ultra-otimizada que usa fixture compartilhado
 /// <summary>
 /// Base class compartilhada para testes de integração com máxima reutilização de recursos
 /// </summary>
@@ -14,7 +13,7 @@ public abstract class SharedTestBase(SharedTestFixture sharedFixture) : IAsyncLi
     protected HttpClient ApiClient { get; private set; } = null!;
     protected Faker Faker { get; } = new();
 
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         // Usa o fixture compartilhado que já está inicializado
         await sharedFixture.InitializeAsync();
@@ -50,6 +49,8 @@ public abstract class SharedTestBase(SharedTestFixture sharedFixture) : IAsyncLi
 
     protected async Task<T> ReadJsonAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(response);
+
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
         return JsonSerializer.Deserialize<T>(content, sharedFixture.JsonOptions)!;
     }
@@ -64,11 +65,21 @@ public abstract class SharedTestBase(SharedTestFixture sharedFixture) : IAsyncLi
         ApiClient.DefaultRequestHeaders.Authorization = null;
     }
 
-    public virtual Task DisposeAsync()
+    public virtual ValueTask DisposeAsync()
     {
         // Não dispose do ApiClient aqui - ele é compartilhado
         // Apenas limpar headers específicos do teste se necessário
         ClearAuthorizationHeader();
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
+    }
+
+    protected async Task<HttpResponseMessage> PostJsonAsync<T>(Uri requestUri, T value, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T value, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
     }
 }

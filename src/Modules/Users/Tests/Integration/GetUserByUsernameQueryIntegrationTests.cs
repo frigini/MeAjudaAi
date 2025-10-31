@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -44,7 +45,7 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         await userRepository.AddAsync(createdUser);
         await dbContext.SaveChangesAsync();
 
-        // Act - Query the user by username
+        // Act - Consulta o usuário pelo nome de usuário
         var query = new GetUserByUsernameQuery(username.Value);
         var queryResult = await queryHandler.HandleAsync(query);
 
@@ -73,7 +74,7 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         // Assert
         Assert.False(queryResult.IsSuccess);
         Assert.NotNull(queryResult.Error);
-        Assert.Contains("User not found", queryResult.Error.Message);
+        Assert.Contains(ValidationMessages.NotFound.User, queryResult.Error.Message);
     }
 
     [Fact]
@@ -103,7 +104,7 @@ public class GetUserByUsernameQueryIntegrationTests : UsersIntegrationTestBase
         await userRepository.AddAsync(createdUser);
         await dbContext.SaveChangesAsync();
 
-        // Act - Check if username exists
+        // Act - Verifica se o nome de usuário existe
         var existsResult = await usersModuleApi.UsernameExistsAsync(username.Value);
 
         // Assert

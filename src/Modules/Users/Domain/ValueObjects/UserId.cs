@@ -1,5 +1,5 @@
-﻿using MeAjudaAi.Shared.Time;
 using MeAjudaAi.Shared.Domain;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 

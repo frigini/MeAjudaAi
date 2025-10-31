@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Modules.Users.Domain.Events;
 

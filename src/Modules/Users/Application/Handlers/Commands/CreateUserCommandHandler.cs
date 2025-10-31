@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.Application.Commands;
+using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Mappers;
 using MeAjudaAi.Modules.Users.Domain.Repositories;

@@ -14,10 +14,17 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+<<<<<<< HEAD
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="Testcontainers.Redis" />
     <PackageReference Include="xunit" />
+=======
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.Redis" />
+>>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -26,6 +33,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Bogus" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+<<<<<<< HEAD
+=======
+    <PackageReference Include="xunit.v3" />
+>>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
   </ItemGroup>
 
   <ItemGroup>
@@ -35,7 +46,11 @@
     <ProjectReference Include="..\..\src\Modules\Users\Application\MeAjudaAi.Modules.Users.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Users\Tests\MeAjudaAi.Modules.Users.Tests.csproj" />
+<<<<<<< HEAD
     <ProjectReference Include="..\..\src\Shared\MeAjudai.Shared\MeAjudaAi.Shared.csproj" />
+=======
+    <ProjectReference Include="..\..\src\Shared\MeAjudaAi.Shared.csproj" />
+>>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
     <ProjectReference Include="..\MeAjudaAi.Shared.Tests\MeAjudaAi.Shared.Tests.csproj" />
   </ItemGroup>
 

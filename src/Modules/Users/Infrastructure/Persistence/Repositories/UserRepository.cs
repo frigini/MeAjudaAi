@@ -29,6 +29,36 @@ internal sealed class UserRepository(UsersDbContext context, IDateTimeProvider d
             .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<User>> GetUsersByIdsAsync(IReadOnlyList<UserId> userIds, CancellationToken cancellationToken = default)
+    {
+        if (userIds == null || userIds.Count == 0)
+            return Array.Empty<User>();
+
+        // Para listas muito grandes, considerar chunking para respeitar limites do SQL Server (~2100 parâmetros)
+        const int maxBatchSize = 2000;
+
+        if (userIds.Count <= maxBatchSize)
+        {
+            // Caso simples: uma única query batch
+            return await _context.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToListAsync(cancellationToken);
+        }
+
+        // Caso complexo: dividir em chunks para listas muito grandes
+        var allUsers = new List<User>();
+        for (int i = 0; i < userIds.Count; i += maxBatchSize)
+        {
+            var chunk = userIds.Skip(i).Take(maxBatchSize).ToList();
+            var chunkUsers = await _context.Users
+                .Where(u => chunk.Contains(u.Id))
+                .ToListAsync(cancellationToken);
+            allUsers.AddRange(chunkUsers);
+        }
+
+        return allUsers;
+    }
+
     public async Task<(IReadOnlyList<User> Users, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         var skip = (pageNumber - 1) * pageSize;
@@ -56,18 +86,16 @@ internal sealed class UserRepository(UsersDbContext context, IDateTimeProvider d
         var countTask = query.CountAsync(cancellationToken);
         var usersTask = query.Skip(skip).Take(pageSize).ToListAsync(cancellationToken);
         await Task.WhenAll(countTask, usersTask);
-        var totalCount = countTask.Result;
-        var users = usersTask.Result;
+        var totalCount = await countTask;
+        var users = await usersTask;
         return (users, totalCount);
     }
 
     public async Task<User?> GetByKeycloakIdAsync(string keycloakId, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(keycloakId))
-            return null;
-
-        return await _context.Users
-            .FirstOrDefaultAsync(u => u.KeycloakId == keycloakId, cancellationToken);
+        return string.IsNullOrWhiteSpace(keycloakId)
+            ? null
+            : await _context.Users.FirstOrDefaultAsync(u => u.KeycloakId == keycloakId, cancellationToken);
     }
 
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)

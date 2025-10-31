@@ -1,8 +1,8 @@
-﻿using MeAjudaAi.Modules.Users.Domain.Entities;
-using MeAjudaAi.Shared.Events;
-using MeAjudaAi.Shared.Database;
-using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Events;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 

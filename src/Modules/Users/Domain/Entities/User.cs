@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.Domain.Events;
+using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Domain.Exceptions;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
@@ -93,6 +93,9 @@ public sealed class User : AggregateRoot<UserId>
     public User(Username username, Email email, string firstName, string lastName, string keycloakId)
         : base(UserId.New())
     {
+        ArgumentNullException.ThrowIfNull(username);
+        ArgumentNullException.ThrowIfNull(email);
+
         // Validações de regras de negócio específicas para criação
         ValidateUserCreation(keycloakId);
 
@@ -159,6 +162,8 @@ public sealed class User : AggregateRoot<UserId>
     /// </remarks>
     public void MarkAsDeleted(IDateTimeProvider dateTimeProvider)
     {
+        ArgumentNullException.ThrowIfNull(dateTimeProvider);
+
         if (IsDeleted)
             return;
 
@@ -236,6 +241,8 @@ public sealed class User : AggregateRoot<UserId>
     /// </remarks>
     public void ChangeUsername(string newUsername, IDateTimeProvider dateTimeProvider)
     {
+        ArgumentNullException.ThrowIfNull(dateTimeProvider);
+
         if (IsDeleted)
             throw UserDomainException.ForInvalidOperation("ChangeUsername", "user is deleted");
 
@@ -259,6 +266,8 @@ public sealed class User : AggregateRoot<UserId>
     /// <returns>True se pode alterar, False se deve aguardar</returns>
     public bool CanChangeUsername(IDateTimeProvider dateTimeProvider, int minimumDaysBetweenChanges = 30)
     {
+        ArgumentNullException.ThrowIfNull(dateTimeProvider);
+
         if (LastUsernameChangeAt == null)
             return true;
 

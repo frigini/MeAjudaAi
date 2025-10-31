@@ -1,17 +1,17 @@
+using System.Net;
+using System.Text;
+using System.Text.Json;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak.Models;
 using Microsoft.Extensions.Logging;
 using Moq.Protected;
-using System.Net;
-using System.Text;
-using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Identity;
 
 [Trait("Category", "Unit")]
 [Trait("Layer", "Infrastructure")]
 [Trait("Component", "KeycloakService")]
-public class KeycloakServiceTests
+public class KeycloakServiceTests : IDisposable
 {
     private readonly Mock<HttpMessageHandler> _mockHttpMessageHandler;
     private readonly HttpClient _httpClient;
@@ -247,52 +247,6 @@ public class KeycloakServiceTests
     }
 
     [Fact]
-    public async Task AuthenticateAsync_DiagnosticTest_ShouldShowDetails()
-    {
-        // Arrange
-        var jwtToken = CreateValidJwtToken();
-        var tokenResponse = new KeycloakTokenResponse
-        {
-            AccessToken = jwtToken,
-            ExpiresIn = 3600,
-            RefreshToken = "refresh-token",
-            TokenType = "Bearer"
-        };
-
-        // Decode JWT payload to check structure for debugging
-        var parts = jwtToken.Split('.');
-        string payloadInfo = "Invalid JWT structure";
-        if (parts.Length > 1)
-        {
-            try
-            {
-                var payload = Encoding.UTF8.GetString(Convert.FromBase64String(parts[1] + "=="));
-                payloadInfo = payload;
-            }
-            catch
-            {
-                payloadInfo = "Failed to decode JWT payload";
-            }
-        }
-
-        SetupHttpResponse(HttpStatusCode.OK, JsonSerializer.Serialize(tokenResponse));
-
-        // Act
-        var result = await _keycloakService.AuthenticateAsync("testuser", "password");
-
-        // Assert with detailed debugging information
-        if (result.IsFailure)
-        {
-            var debugInfo = $"Diagnostic Test Failed. " +
-                          $"JWT Payload: {payloadInfo}, " +
-                          $"Error: {result.Error?.Message ?? "None"}";
-            Assert.Fail(debugInfo);
-        }
-
-        result.IsSuccess.Should().BeTrue();
-    }
-
-    [Fact]
     public async Task AuthenticateAsync_WhenInvalidCredentials_ShouldReturnFailure()
     {
         // Arrange
@@ -517,5 +471,20 @@ public class KeycloakServiceTests
         var signature = Base64UrlEncode("signature");
 
         return $"{header}.{payload}.{signature}";
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _httpClient?.Dispose();
+            (_mockHttpMessageHandler?.Object as IDisposable)?.Dispose();
+        }
     }
 }

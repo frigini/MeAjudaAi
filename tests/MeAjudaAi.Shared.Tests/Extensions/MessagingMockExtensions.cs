@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using System.Reflection;
+using Azure.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
-using Azure.Messaging.ServiceBus;
-using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Extensions;
 

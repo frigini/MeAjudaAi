@@ -198,11 +198,11 @@ public class UserRepositoryTests : DatabaseTestBase
         await _context.SaveChangesAsync();
 
         // Assert
-        // Should not be found by normal queries (soft deleted)
+        // Não deve ser encontrado por consultas normais (exclusão lógica)
         var foundUser = await _repository.GetByIdAsync(user.Id);
         foundUser.Should().BeNull();
 
-        // But should exist in database with IsDeleted = true
+        // Mas deve existir no banco de dados com IsDeleted = true
         var deletedUser = await _context.Users
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Id == user.Id);
@@ -268,13 +268,12 @@ public class UserRepositoryTests : DatabaseTestBase
         totalCount.Should().Be(0);
     }
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
-        await base.InitializeAsync();
         await InitializeInternalAsync();
     }
 
-    public override async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         await DisposeInternalAsync();
     }
@@ -285,14 +284,14 @@ public class UserRepositoryTests : DatabaseTestBase
         await base.DisposeAsync();
     }
 
-    // Helper method to add user and persist
+    // Método auxiliar para adicionar usuário e persistir
     private async Task AddUserAndSaveAsync(User user)
     {
         await _repository.AddAsync(user);
         await _context.SaveChangesAsync();
     }
 
-    // Helper method to update user and persist
+    // Método auxiliar para atualizar usuário e persistir
     private async Task UpdateUserAndSaveAsync(User user)
     {
         await _repository.UpdateAsync(user);

@@ -1,6 +1,4 @@
-﻿using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Extensions;
-using Xunit.Abstractions;
 
 namespace MeAjudaAi.Shared.Tests.Base;
 
@@ -25,7 +23,7 @@ public abstract class SharedIntegrationTestBase(ITestOutputHelper output) : IAsy
     protected readonly ITestOutputHelper _output = output;
     protected HttpClient HttpClient { get; set; } = null!;
 
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         _output.WriteLine($"🔗 [SharedIntegrationTest] Iniciando teste de integração");
 
@@ -40,12 +38,13 @@ public abstract class SharedIntegrationTestBase(ITestOutputHelper output) : IAsy
     /// </summary>
     protected abstract Task InitializeInfrastructureAsync();
 
-    public virtual Task DisposeAsync()
+    public virtual ValueTask DisposeAsync()
     {
         _output.WriteLine($"🧹 [SharedIntegrationTest] Finalizando teste de integração");
         // Não fazemos dispose do HttpClient aqui - ele pode ser compartilhado entre testes
         // O dispose será feito pelo fixture ou pelo factory apropriado
-        return Task.CompletedTask;
+        GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
     }
 
     /// <summary>

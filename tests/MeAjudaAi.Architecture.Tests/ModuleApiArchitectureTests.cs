@@ -1,9 +1,9 @@
-﻿using MeAjudaAi.Shared.Contracts.Modules;
+using System.Reflection;
+using MeAjudaAi.Shared.Contracts.Modules;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Functional;
-using System.Reflection;
 
 namespace MeAjudaAi.Architecture.Tests;
 

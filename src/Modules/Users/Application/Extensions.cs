@@ -3,8 +3,8 @@ using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Queries;
-using MeAjudaAi.Modules.Users.Application.Services;
 using MeAjudaAi.Modules.Users.Application.Queries;
+using MeAjudaAi.Modules.Users.Application.Services;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
@@ -23,6 +23,7 @@ public static class Extensions
         services.AddScoped<IQueryHandler<GetUserByIdQuery, Result<UserDto>>, GetUserByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>, GetUserByEmailQueryHandler>();
         services.AddScoped<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>, GetUserByUsernameQueryHandler>();
+        services.AddScoped<IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>>, GetUsersByIdsQueryHandler>();
 
         // Command Handlers - registro manual para garantir disponibilidade  
         services.AddScoped<ICommandHandler<CreateUserCommand, Result<UserDto>>, CreateUserCommandHandler>();

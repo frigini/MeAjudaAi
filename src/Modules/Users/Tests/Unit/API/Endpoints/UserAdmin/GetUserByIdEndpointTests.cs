@@ -1,14 +1,11 @@
-using FluentAssertions;
+using System.Reflection;
 using MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Http;
-using Moq;
-using System.Reflection;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.API.Endpoints.UserAdmin;
 

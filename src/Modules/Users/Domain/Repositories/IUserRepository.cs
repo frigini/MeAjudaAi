@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Users.Domain.Repositories;
@@ -36,6 +36,19 @@ public interface IUserRepository
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <returns>O usuário encontrado ou null se não existir</returns>
     Task<User?> GetByUsernameAsync(Username username, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Busca múltiplos usuários pelos seus identificadores únicos em uma única consulta batch.
+    /// </summary>
+    /// <param name="userIds">Lista de identificadores dos usuários a serem buscados</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <returns>Lista com os usuários encontrados</returns>
+    /// <remarks>
+    /// Método otimizado para buscar múltiplos usuários em uma única query SQL usando WHERE IN.
+    /// Substitui N queries individuais por uma única query batch, resolvendo o problema de N+1 queries.
+    /// Para listas muito grandes (>2000 IDs), considere usar chunking para respeitar limites do SQL.
+    /// </remarks>
+    Task<IReadOnlyList<User>> GetUsersByIdsAsync(IReadOnlyList<UserId> userIds, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Busca usuários com paginação.

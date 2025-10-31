@@ -1,6 +1,6 @@
-﻿using Testcontainers.PostgreSql;
-using Microsoft.Extensions.DependencyInjection;
 using MeAjudaAi.Shared.Tests.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Shared.Tests.Infrastructure;
 

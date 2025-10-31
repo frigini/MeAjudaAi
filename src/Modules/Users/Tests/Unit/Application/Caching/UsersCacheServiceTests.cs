@@ -172,7 +172,7 @@ public class UsersCacheServiceTests
         // Act
         await _usersCacheService.InvalidateUserAsync(userId, email, _cancellationToken);
 
-        // Assert - espaços em branco não são considerados vazios por string.IsNullOrEmpty()
+        // Assert - espaÃ§os em branco nÃ£o sÃ£o considerados vazios por string.IsNullOrEmpty()
         _cacheServiceMock.Verify(
             x => x.RemoveAsync(UsersCacheKeys.UserByEmail(email), _cancellationToken),
             Times.Once);
@@ -184,12 +184,12 @@ public class UsersCacheServiceTests
         // Arrange
         var userId = Guid.NewGuid();
 
-        // Act & Assert - não deve lançar exceção
+        // Act & Assert - nÃ£o deve lanÃ§ar exceÃ§Ã£o
         await _usersCacheService.InvalidateUserAsync(userId, "", _cancellationToken);
         await _usersCacheService.InvalidateUserAsync(userId, null, _cancellationToken);
         await _usersCacheService.InvalidateUserAsync(userId, "   ", _cancellationToken);
 
-        // Verifica se a remoção básica do cache foi chamada para cada teste
+        // Verifica se a remoÃ§Ã£o bÃ¡sica do cache foi chamada para cada teste
         _cacheServiceMock.Verify(
             x => x.RemoveAsync(UsersCacheKeys.UserById(userId), _cancellationToken),
             Times.Exactly(3));

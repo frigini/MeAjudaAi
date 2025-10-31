@@ -1,10 +1,8 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Tests.Base;
 using MeAjudaAi.Shared.Tests.Infrastructure;
 using MeAjudaAi.Shared.Time;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Users.Tests.Infrastructure;
@@ -23,7 +21,7 @@ public abstract class UsersIntegrationTestBase : IntegrationTestBase
         {
             Database = new TestDatabaseOptions
             {
-                DatabaseName = $"test_db_{GetType().Name.ToLowerInvariant()}",
+                DatabaseName = $"test_db_{GetType().Name.ToUpperInvariant()}",
                 Username = "test_user",
                 Password = "test_password",
                 Schema = "users"

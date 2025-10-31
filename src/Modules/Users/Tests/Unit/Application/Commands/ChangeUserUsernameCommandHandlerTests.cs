@@ -321,7 +321,7 @@ public class ChangeUserUsernameCommandHandlerTests
         var userId = Guid.NewGuid();
         var command = new ChangeUserUsernameCommand(userId, "newusername");
         var cancellationTokenSource = new CancellationTokenSource();
-        cancellationTokenSource.Cancel();
+        await cancellationTokenSource.CancelAsync();
 
         _userRepositoryMock
             .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))

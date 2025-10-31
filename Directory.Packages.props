@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-
+  <!-- Central Package Management for xUnit v3 Migration -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Enabled xUnit v3 -->
+    <UseXUnitV3>true</UseXUnitV3>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- .NET & Microsoft Core -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     
     <!-- ASP.NET Core -->
@@ -34,6 +36,7 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.9.0" />
@@ -51,7 +54,8 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
     
-    <!-- Security -->
+    <!-- Logging -->
+    <PackageVersion Include="Serilog" Version="4.2.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageVersion Include="Serilog.Enrichers.Process" Version="3.0.0" />
@@ -88,14 +92,19 @@
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     
     <!-- Testing Framework -->
-    <PackageVersion Include="xunit" Version="2.9.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <!-- xUnit v3 Packages -->
+    <PackageVersion Include="xunit.v3" Version="3.1.0" Condition="'$(UseXUnitV3)' == 'true'" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" Condition="'$(UseXUnitV3)' == 'true'" />
+    <!-- xUnit v2 Packages -->
+    <PackageVersion Include="xunit" Version="2.9.3" Condition="'$(UseXUnitV3)' != 'true'" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" Condition="'$(UseXUnitV3)' != 'true'" />
+    
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     
     <!-- Testing Libraries -->
     <PackageVersion Include="FluentAssertions" Version="8.6.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
-    <PackageVersion Include="Bogus" Version="35.6.3" />
+    <PackageVersion Include="Bogus" Version="35.6.4" />
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="AutoFixture.Xunit2" Version="4.18.1" />
     <PackageVersion Include="AutoFixture.AutoMoq" Version="4.18.1" />
@@ -122,6 +131,9 @@
     
     <!-- Architecture Testing -->
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
+    
+    <!-- Code Analysis -->
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.15.0.120848" />
   </ItemGroup>
 
 </Project>

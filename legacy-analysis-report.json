@@ -1,0 +1,1105 @@
+{
+  "analysisDate": "2025-10-10T22:34:10.6214962Z",
+  "rootPath": "c:\\Code\\MeAjudaAi\\src",
+  "filesWithLegacyUsage": [
+    {
+      "filePath": "c:\\Code\\MeAjudaAi\\src\\Shared\\MeAjudai.Shared\\Authorization\\LegacyApiSupport.cs",
+      "relativePath": "..\\..\\src\\Shared\\MeAjudai.Shared\\Authorization\\LegacyApiSupport.cs",
+      "legacyUsages": [
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 96,
+          "lineContent": "Permission.AdminSystem =\u003E nameof(EPermissions.SystemAdmin),",
+          "matchedText": "Permission.AdminSystem",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 97,
+          "lineContent": "Permission.UsersRead =\u003E nameof(EPermissions.UsersRead),",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 98,
+          "lineContent": "Permission.UsersCreate =\u003E nameof(EPermissions.UsersCreate),",
+          "matchedText": "Permission.UsersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 99,
+          "lineContent": "Permission.UsersUpdate =\u003E nameof(EPermissions.UsersUpdate),",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 100,
+          "lineContent": "Permission.UsersDelete =\u003E nameof(EPermissions.UsersDelete),",
+          "matchedText": "Permission.UsersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 101,
+          "lineContent": "Permission.AdminUsers =\u003E nameof(EPermissions.AdminUsers),",
+          "matchedText": "Permission.AdminUsers",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 102,
+          "lineContent": "Permission.ProvidersRead =\u003E nameof(EPermissions.ProvidersRead),",
+          "matchedText": "Permission.ProvidersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 103,
+          "lineContent": "Permission.ProvidersCreate =\u003E nameof(EPermissions.ProvidersCreate),",
+          "matchedText": "Permission.ProvidersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 104,
+          "lineContent": "Permission.ProvidersUpdate =\u003E nameof(EPermissions.ProvidersUpdate),",
+          "matchedText": "Permission.ProvidersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 105,
+          "lineContent": "Permission.ProvidersDelete =\u003E nameof(EPermissions.ProvidersDelete),",
+          "matchedText": "Permission.ProvidersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 106,
+          "lineContent": "Permission.ProvidersApprove =\u003E nameof(EPermissions.ProvidersApprove),",
+          "matchedText": "Permission.ProvidersApprove",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 107,
+          "lineContent": "Permission.OrdersRead =\u003E nameof(EPermissions.OrdersRead),",
+          "matchedText": "Permission.OrdersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 108,
+          "lineContent": "Permission.OrdersCreate =\u003E nameof(EPermissions.OrdersCreate),",
+          "matchedText": "Permission.OrdersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 109,
+          "lineContent": "Permission.OrdersUpdate =\u003E nameof(EPermissions.OrdersUpdate),",
+          "matchedText": "Permission.OrdersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 110,
+          "lineContent": "Permission.OrdersDelete =\u003E nameof(EPermissions.OrdersDelete),",
+          "matchedText": "Permission.OrdersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 111,
+          "lineContent": "Permission.OrdersFulfill =\u003E nameof(EPermissions.OrdersFulfill),",
+          "matchedText": "Permission.OrdersFulfill",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 112,
+          "lineContent": "Permission.ReportsView =\u003E nameof(EPermissions.ReportsView),",
+          "matchedText": "Permission.ReportsView",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 113,
+          "lineContent": "Permission.ReportsCreate =\u003E nameof(EPermissions.ReportsCreate),",
+          "matchedText": "Permission.ReportsCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 114,
+          "lineContent": "Permission.ReportsAdmin =\u003E nameof(EPermissions.ReportsAdmin),",
+          "matchedText": "Permission.ReportsAdmin",
+          "severity": 1
+        }
+      ],
+      "hasLegacyUsage": true
+    },
+    {
+      "filePath": "c:\\Code\\MeAjudaAi\\src\\Shared\\MeAjudai.Shared\\Authorization\\PermissionService.cs",
+      "relativePath": "..\\..\\src\\Shared\\MeAjudai.Shared\\Authorization\\PermissionService.cs",
+      "legacyUsages": [
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 212,
+          "lineContent": "Permission.UsersProfile,",
+          "matchedText": "Permission.UsersProfile",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 213,
+          "lineContent": "Permission.UsersRead",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        }
+      ],
+      "hasLegacyUsage": true
+    },
+    {
+      "filePath": "c:\\Code\\MeAjudaAi\\src\\Shared\\MeAjudai.Shared\\Authorization\\RequirePermissionAttribute.cs",
+      "relativePath": "..\\..\\src\\Shared\\MeAjudai.Shared\\Authorization\\RequirePermissionAttribute.cs",
+      "legacyUsages": [
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 20,
+          "lineContent": "public string PermissionValue =\u003E Permission.GetValue();",
+          "matchedText": "Permission.GetValue",
+          "severity": 1
+        }
+      ],
+      "hasLegacyUsage": true
+    },
+    {
+      "filePath": "c:\\Code\\MeAjudaAi\\src\\Modules\\Users\\API\\Authorization\\UsersPermissions.cs",
+      "relativePath": "..\\..\\src\\Modules\\Users\\API\\Authorization\\UsersPermissions.cs",
+      "legacyUsages": [
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 16,
+          "lineContent": "public const Permission OwnProfile = Permission.UsersProfile;",
+          "matchedText": "Permission.UsersProfile",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 17,
+          "lineContent": "public const Permission UsersList = Permission.UsersList;",
+          "matchedText": "Permission.UsersList",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 18,
+          "lineContent": "public const Permission UserDetails = Permission.UsersRead;",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 26,
+          "lineContent": "public const Permission CreateUser = Permission.UsersCreate;",
+          "matchedText": "Permission.UsersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 27,
+          "lineContent": "public const Permission UpdateUser = Permission.UsersUpdate;",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 28,
+          "lineContent": "public const Permission DeleteUser = Permission.UsersDelete;",
+          "matchedText": "Permission.UsersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 36,
+          "lineContent": "public const Permission SystemAdmin = Permission.SystemAdmin;",
+          "matchedText": "Permission.SystemAdmin",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 37,
+          "lineContent": "public const Permission ManageAllUsers = Permission.UsersList;",
+          "matchedText": "Permission.UsersList",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 50,
+          "lineContent": "Permission.UsersProfile,",
+          "matchedText": "Permission.UsersProfile",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 51,
+          "lineContent": "Permission.UsersRead",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 59,
+          "lineContent": "Permission.UsersList,",
+          "matchedText": "Permission.UsersList",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 60,
+          "lineContent": "Permission.UsersRead,",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 61,
+          "lineContent": "Permission.UsersCreate,",
+          "matchedText": "Permission.UsersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 62,
+          "lineContent": "Permission.UsersUpdate,",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 63,
+          "lineContent": "Permission.UsersDelete",
+          "matchedText": "Permission.UsersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 71,
+          "lineContent": "Permission.SystemAdmin,",
+          "matchedText": "Permission.SystemAdmin",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 72,
+          "lineContent": "Permission.SystemRead,",
+          "matchedText": "Permission.SystemRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 73,
+          "lineContent": "Permission.SystemWrite,",
+          "matchedText": "Permission.SystemWrite",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 74,
+          "lineContent": "Permission.UsersList,",
+          "matchedText": "Permission.UsersList",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 75,
+          "lineContent": "Permission.UsersRead,",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 76,
+          "lineContent": "Permission.UsersCreate,",
+          "matchedText": "Permission.UsersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 77,
+          "lineContent": "Permission.UsersUpdate,",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 78,
+          "lineContent": "Permission.UsersDelete",
+          "matchedText": "Permission.UsersDelete",
+          "severity": 1
+        }
+      ],
+      "hasLegacyUsage": true
+    },
+    {
+      "filePath": "c:\\Code\\MeAjudaAi\\src\\Modules\\Users\\Application\\Authorization\\UsersPermissionResolver.cs",
+      "relativePath": "..\\..\\src\\Modules\\Users\\Application\\Authorization\\UsersPermissionResolver.cs",
+      "legacyUsages": [
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 148,
+          "lineContent": "\u0022system-admin\u0022 =\u003E [Permission.UsersRead, Permission.UsersUpdate, Permission.UsersDelete, Permission.AdminUsers],",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 148,
+          "lineContent": "\u0022system-admin\u0022 =\u003E [Permission.UsersRead, Permission.UsersUpdate, Permission.UsersDelete, Permission.AdminUsers],",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 148,
+          "lineContent": "\u0022system-admin\u0022 =\u003E [Permission.UsersRead, Permission.UsersUpdate, Permission.UsersDelete, Permission.AdminUsers],",
+          "matchedText": "Permission.UsersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 148,
+          "lineContent": "\u0022system-admin\u0022 =\u003E [Permission.UsersRead, Permission.UsersUpdate, Permission.UsersDelete, Permission.AdminUsers],",
+          "matchedText": "Permission.AdminUsers",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 149,
+          "lineContent": "\u0022user-admin\u0022 =\u003E [Permission.UsersRead, Permission.UsersUpdate],",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 149,
+          "lineContent": "\u0022user-admin\u0022 =\u003E [Permission.UsersRead, Permission.UsersUpdate],",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 150,
+          "lineContent": "\u0022basic-user\u0022 =\u003E [Permission.UsersRead],",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        }
+      ],
+      "hasLegacyUsage": true
+    },
+    {
+      "filePath": "c:\\Code\\MeAjudaAi\\src\\Modules\\Users\\Application\\Policies\\UsersPermissions.cs",
+      "relativePath": "..\\..\\src\\Modules\\Users\\Application\\Policies\\UsersPermissions.cs",
+      "legacyUsages": [
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 40,
+          "lineContent": "Permission.UsersRead",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 48,
+          "lineContent": "Permission.UsersRead,",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 49,
+          "lineContent": "Permission.UsersUpdate",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 57,
+          "lineContent": "Permission.UsersRead,",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 58,
+          "lineContent": "Permission.UsersUpdate,",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 59,
+          "lineContent": "Permission.UsersDelete,",
+          "matchedText": "Permission.UsersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 60,
+          "lineContent": "Permission.AdminUsers",
+          "matchedText": "Permission.AdminUsers",
+          "severity": 1
+        }
+      ],
+      "hasLegacyUsage": true
+    },
+    {
+      "filePath": "c:\\Code\\MeAjudaAi\\src\\Shared\\MeAjudai.Shared\\Authorization\\HealthChecks\\PermissionSystemHealthCheck.cs",
+      "relativePath": "..\\..\\src\\Shared\\MeAjudai.Shared\\Authorization\\HealthChecks\\PermissionSystemHealthCheck.cs",
+      "legacyUsages": [
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 110,
+          "lineContent": "var testPermission = Permission.UsersRead;",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        }
+      ],
+      "hasLegacyUsage": true
+    },
+    {
+      "filePath": "c:\\Code\\MeAjudaAi\\src\\Shared\\MeAjudai.Shared\\Authorization\\Keycloak\\KeycloakPermissionResolver.cs",
+      "relativePath": "..\\..\\src\\Shared\\MeAjudai.Shared\\Authorization\\Keycloak\\KeycloakPermissionResolver.cs",
+      "legacyUsages": [
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 353,
+          "lineContent": "Permission.AdminSystem,",
+          "matchedText": "Permission.AdminSystem",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 354,
+          "lineContent": "Permission.AdminUsers,",
+          "matchedText": "Permission.AdminUsers",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 355,
+          "lineContent": "Permission.AdminReports,",
+          "matchedText": "Permission.AdminReports",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 356,
+          "lineContent": "Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersDelete, Permission.UsersList,",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 356,
+          "lineContent": "Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersDelete, Permission.UsersList,",
+          "matchedText": "Permission.UsersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 356,
+          "lineContent": "Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersDelete, Permission.UsersList,",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 356,
+          "lineContent": "Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersDelete, Permission.UsersList,",
+          "matchedText": "Permission.UsersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 356,
+          "lineContent": "Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersDelete, Permission.UsersList,",
+          "matchedText": "Permission.UsersList",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 357,
+          "lineContent": "Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete,",
+          "matchedText": "Permission.ProvidersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 357,
+          "lineContent": "Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete,",
+          "matchedText": "Permission.ProvidersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 357,
+          "lineContent": "Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete,",
+          "matchedText": "Permission.ProvidersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 357,
+          "lineContent": "Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete,",
+          "matchedText": "Permission.ProvidersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 358,
+          "lineContent": "Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete,",
+          "matchedText": "Permission.OrdersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 358,
+          "lineContent": "Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete,",
+          "matchedText": "Permission.OrdersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 358,
+          "lineContent": "Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete,",
+          "matchedText": "Permission.OrdersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 358,
+          "lineContent": "Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete,",
+          "matchedText": "Permission.OrdersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 359,
+          "lineContent": "Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate",
+          "matchedText": "Permission.ReportsView",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 359,
+          "lineContent": "Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate",
+          "matchedText": "Permission.ReportsExport",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 359,
+          "lineContent": "Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate",
+          "matchedText": "Permission.ReportsCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 365,
+          "lineContent": "Permission.AdminUsers,",
+          "matchedText": "Permission.AdminUsers",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 366,
+          "lineContent": "Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersList",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 366,
+          "lineContent": "Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersList",
+          "matchedText": "Permission.UsersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 366,
+          "lineContent": "Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersList",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 366,
+          "lineContent": "Permission.UsersRead, Permission.UsersCreate, Permission.UsersUpdate, Permission.UsersList",
+          "matchedText": "Permission.UsersList",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 372,
+          "lineContent": "Permission.UsersRead, Permission.UsersUpdate, Permission.UsersList",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 372,
+          "lineContent": "Permission.UsersRead, Permission.UsersUpdate, Permission.UsersList",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 372,
+          "lineContent": "Permission.UsersRead, Permission.UsersUpdate, Permission.UsersList",
+          "matchedText": "Permission.UsersList",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 378,
+          "lineContent": "Permission.UsersRead, Permission.UsersProfile",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 378,
+          "lineContent": "Permission.UsersRead, Permission.UsersProfile",
+          "matchedText": "Permission.UsersProfile",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 384,
+          "lineContent": "Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete",
+          "matchedText": "Permission.ProvidersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 384,
+          "lineContent": "Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete",
+          "matchedText": "Permission.ProvidersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 384,
+          "lineContent": "Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete",
+          "matchedText": "Permission.ProvidersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 384,
+          "lineContent": "Permission.ProvidersRead, Permission.ProvidersCreate, Permission.ProvidersUpdate, Permission.ProvidersDelete",
+          "matchedText": "Permission.ProvidersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 389,
+          "lineContent": "Permission.ProvidersRead",
+          "matchedText": "Permission.ProvidersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 395,
+          "lineContent": "Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete",
+          "matchedText": "Permission.OrdersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 395,
+          "lineContent": "Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete",
+          "matchedText": "Permission.OrdersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 395,
+          "lineContent": "Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete",
+          "matchedText": "Permission.OrdersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 395,
+          "lineContent": "Permission.OrdersRead, Permission.OrdersCreate, Permission.OrdersUpdate, Permission.OrdersDelete",
+          "matchedText": "Permission.OrdersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 400,
+          "lineContent": "Permission.OrdersRead, Permission.OrdersUpdate",
+          "matchedText": "Permission.OrdersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 400,
+          "lineContent": "Permission.OrdersRead, Permission.OrdersUpdate",
+          "matchedText": "Permission.OrdersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 406,
+          "lineContent": "Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate",
+          "matchedText": "Permission.ReportsView",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 406,
+          "lineContent": "Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate",
+          "matchedText": "Permission.ReportsExport",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 406,
+          "lineContent": "Permission.ReportsView, Permission.ReportsExport, Permission.ReportsCreate",
+          "matchedText": "Permission.ReportsCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 411,
+          "lineContent": "Permission.ReportsView",
+          "matchedText": "Permission.ReportsView",
+          "severity": 1
+        }
+      ],
+      "hasLegacyUsage": true
+    },
+    {
+      "filePath": "c:\\Code\\MeAjudaAi\\src\\Shared\\MeAjudai.Shared\\Authorization\\Middleware\\PermissionOptimizationMiddleware.cs",
+      "relativePath": "..\\..\\src\\Shared\\MeAjudai.Shared\\Authorization\\Middleware\\PermissionOptimizationMiddleware.cs",
+      "legacyUsages": [
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 189,
+          "lineContent": "\u0022GET\u0022 when path.Contains(\u0022/profile\u0022) =\u003E new[] { Permission.UsersProfile },",
+          "matchedText": "Permission.UsersProfile",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 190,
+          "lineContent": "\u0022GET\u0022 when path.Contains(\u0022/admin\u0022) =\u003E new[] { Permission.AdminUsers, Permission.UsersList },",
+          "matchedText": "Permission.AdminUsers",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 190,
+          "lineContent": "\u0022GET\u0022 when path.Contains(\u0022/admin\u0022) =\u003E new[] { Permission.AdminUsers, Permission.UsersList },",
+          "matchedText": "Permission.UsersList",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 191,
+          "lineContent": "\u0022GET\u0022 =\u003E new[] { Permission.UsersRead },",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 192,
+          "lineContent": "\u0022POST\u0022 =\u003E new[] { Permission.UsersCreate },",
+          "matchedText": "Permission.UsersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 193,
+          "lineContent": "\u0022PUT\u0022 or \u0022PATCH\u0022 =\u003E new[] { Permission.UsersUpdate },",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 194,
+          "lineContent": "\u0022DELETE\u0022 =\u003E new[] { Permission.UsersDelete, Permission.AdminUsers },",
+          "matchedText": "Permission.UsersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 194,
+          "lineContent": "\u0022DELETE\u0022 =\u003E new[] { Permission.UsersDelete, Permission.AdminUsers },",
+          "matchedText": "Permission.AdminUsers",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 204,
+          "lineContent": "\u0022GET\u0022 =\u003E new[] { Permission.ProvidersRead },",
+          "matchedText": "Permission.ProvidersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 205,
+          "lineContent": "\u0022POST\u0022 =\u003E new[] { Permission.ProvidersCreate },",
+          "matchedText": "Permission.ProvidersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 206,
+          "lineContent": "\u0022PUT\u0022 or \u0022PATCH\u0022 =\u003E new[] { Permission.ProvidersUpdate },",
+          "matchedText": "Permission.ProvidersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 207,
+          "lineContent": "\u0022DELETE\u0022 =\u003E new[] { Permission.ProvidersDelete },",
+          "matchedText": "Permission.ProvidersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 217,
+          "lineContent": "\u0022GET\u0022 =\u003E new[] { Permission.OrdersRead },",
+          "matchedText": "Permission.OrdersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 218,
+          "lineContent": "\u0022POST\u0022 =\u003E new[] { Permission.OrdersCreate },",
+          "matchedText": "Permission.OrdersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 219,
+          "lineContent": "\u0022PUT\u0022 or \u0022PATCH\u0022 =\u003E new[] { Permission.OrdersUpdate },",
+          "matchedText": "Permission.OrdersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 220,
+          "lineContent": "\u0022DELETE\u0022 =\u003E new[] { Permission.OrdersDelete },",
+          "matchedText": "Permission.OrdersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 230,
+          "lineContent": "\u0022GET\u0022 when path.Contains(\u0022/export\u0022) =\u003E new[] { Permission.ReportsExport },",
+          "matchedText": "Permission.ReportsExport",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 231,
+          "lineContent": "\u0022GET\u0022 =\u003E new[] { Permission.ReportsView },",
+          "matchedText": "Permission.ReportsView",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 232,
+          "lineContent": "\u0022POST\u0022 =\u003E new[] { Permission.ReportsCreate },",
+          "matchedText": "Permission.ReportsCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 240,
+          "lineContent": "permissions.Add(Permission.AdminSystem);",
+          "matchedText": "Permission.AdminSystem",
+          "severity": 1
+        }
+      ],
+      "hasLegacyUsage": true
+    },
+    {
+      "filePath": "c:\\Code\\MeAjudaAi\\src\\Shared\\MeAjudai.Shared\\Authorization\\Migration\\AuthorizationMigrationLogger.cs",
+      "relativePath": "..\\..\\src\\Shared\\MeAjudai.Shared\\Authorization\\Migration\\AuthorizationMigrationLogger.cs",
+      "legacyUsages": [
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 155,
+          "lineContent": "Permission.AdminSystem =\u003E nameof(EPermissions.SystemAdmin),",
+          "matchedText": "Permission.AdminSystem",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 156,
+          "lineContent": "Permission.UsersRead =\u003E nameof(EPermissions.UsersRead),",
+          "matchedText": "Permission.UsersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 157,
+          "lineContent": "Permission.UsersCreate =\u003E nameof(EPermissions.UsersCreate),",
+          "matchedText": "Permission.UsersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 158,
+          "lineContent": "Permission.UsersUpdate =\u003E nameof(EPermissions.UsersUpdate),",
+          "matchedText": "Permission.UsersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 159,
+          "lineContent": "Permission.UsersDelete =\u003E nameof(EPermissions.UsersDelete),",
+          "matchedText": "Permission.UsersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 160,
+          "lineContent": "Permission.AdminUsers =\u003E nameof(EPermissions.AdminUsers),",
+          "matchedText": "Permission.AdminUsers",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 161,
+          "lineContent": "Permission.ProvidersRead =\u003E nameof(EPermissions.ProvidersRead),",
+          "matchedText": "Permission.ProvidersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 162,
+          "lineContent": "Permission.ProvidersCreate =\u003E nameof(EPermissions.ProvidersCreate),",
+          "matchedText": "Permission.ProvidersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 163,
+          "lineContent": "Permission.ProvidersUpdate =\u003E nameof(EPermissions.ProvidersUpdate),",
+          "matchedText": "Permission.ProvidersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 164,
+          "lineContent": "Permission.ProvidersDelete =\u003E nameof(EPermissions.ProvidersDelete),",
+          "matchedText": "Permission.ProvidersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 165,
+          "lineContent": "Permission.ProvidersApprove =\u003E nameof(EPermissions.ProvidersApprove),",
+          "matchedText": "Permission.ProvidersApprove",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 166,
+          "lineContent": "Permission.OrdersRead =\u003E nameof(EPermissions.OrdersRead),",
+          "matchedText": "Permission.OrdersRead",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 167,
+          "lineContent": "Permission.OrdersCreate =\u003E nameof(EPermissions.OrdersCreate),",
+          "matchedText": "Permission.OrdersCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 168,
+          "lineContent": "Permission.OrdersUpdate =\u003E nameof(EPermissions.OrdersUpdate),",
+          "matchedText": "Permission.OrdersUpdate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 169,
+          "lineContent": "Permission.OrdersDelete =\u003E nameof(EPermissions.OrdersDelete),",
+          "matchedText": "Permission.OrdersDelete",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 170,
+          "lineContent": "Permission.OrdersFulfill =\u003E nameof(EPermissions.OrdersFulfill),",
+          "matchedText": "Permission.OrdersFulfill",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 171,
+          "lineContent": "Permission.ReportsView =\u003E nameof(EPermissions.ReportsView),",
+          "matchedText": "Permission.ReportsView",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 172,
+          "lineContent": "Permission.ReportsCreate =\u003E nameof(EPermissions.ReportsCreate),",
+          "matchedText": "Permission.ReportsCreate",
+          "severity": 1
+        },
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 173,
+          "lineContent": "Permission.ReportsAdmin =\u003E nameof(EPermissions.ReportsAdmin),",
+          "matchedText": "Permission.ReportsAdmin",
+          "severity": 1
+        }
+      ],
+      "hasLegacyUsage": true
+    },
+    {
+      "filePath": "c:\\Code\\MeAjudaAi\\src\\Modules\\Users\\API\\Endpoints\\UserAdmin\\GetUsersEndpoint.cs",
+      "relativePath": "..\\..\\src\\Modules\\Users\\API\\Endpoints\\UserAdmin\\GetUsersEndpoint.cs",
+      "legacyUsages": [
+        {
+          "type": "Permission enum usage",
+          "lineNumber": 71,
+          "lineContent": ".RequirePermission(Permission.UsersList)",
+          "matchedText": "Permission.UsersList",
+          "severity": 1
+        },
+        {
+          "type": "RequirePermission(Permission)",
+          "lineNumber": 71,
+          "lineContent": ".RequirePermission(Permission.UsersList)",
+          "matchedText": ".RequirePermission(Permission.",
+          "severity": 2
+        }
+      ],
+      "hasLegacyUsage": true
+    }
+  ],
+  "errors": [],
+  "totalFilesAnalyzed": 11,
+  "totalLegacyUsages": 145,
+  "criticalUsages": 0,
+  "highUsages": 1,
+  "mediumUsages": 144,
+  "lowUsages": 0
+}

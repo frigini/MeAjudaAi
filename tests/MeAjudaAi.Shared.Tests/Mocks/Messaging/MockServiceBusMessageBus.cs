@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Mocks.Messaging;

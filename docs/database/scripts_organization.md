@@ -10,7 +10,7 @@
 
 ## �📁 Structure Overview
 
-```
+```csharp
 infrastructure/database/
 ├── modules/
 │   ├── users/                    ✅ IMPLEMENTED
@@ -26,8 +26,7 @@ infrastructure/database/
 │   └── cross-module-views.sql
 ├── create-module.ps1             # Script para criar novos módulos
 └── README.md                     # Esta documentação
-```
-
+```text
 ## 🛠️ Adding New Modules
 
 ### Step 1: Create Module Folder Structure
@@ -35,8 +34,7 @@ infrastructure/database/
 ```bash
 # For new module (example: providers)
 mkdir infrastructure/database/modules/providers
-```
-
+```yaml
 ### Step 2: Create Scripts Using Templates
 
 #### `00-roles.sql` Template:
@@ -48,8 +46,7 @@ CREATE ROLE [module_name]_role LOGIN PASSWORD '$PASSWORD';
 
 -- Grant [module_name] role to app role for cross-module access
 GRANT [module_name]_role TO meajudaai_app_role;
-```
-
+```csharp
 #### `01-permissions.sql` Template:
 ```sql
 -- [MODULE_NAME] Module - Permissions
@@ -76,8 +73,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA [module_name] GRANT USAGE, SELECT ON SEQUENCE
 
 -- Grant permissions on public schema
 GRANT USAGE ON SCHEMA public TO [module_name]_role;
-```
-
+```text
 ### Step 3: Update SchemaPermissionsManager
 
 Add new methods for each module:
@@ -88,8 +84,7 @@ public async Task EnsureProvidersModulePermissionsAsync(string adminConnectionSt
 {
     // Implementation similar to EnsureUsersModulePermissionsAsync
 }
-```
-
+```csharp
 > ⚠️ **SECURITY WARNING**: Never hardcode passwords in method signatures or source code!
 
 **Secure Password Retrieval Pattern:**
@@ -121,8 +116,7 @@ public async Task ConfigureProvidersModule(IConfiguration configuration)
     await schemaManager.EnsureProvidersModulePermissionsAsync(
         adminConnectionString, providersPassword, appPassword);
 }
-```
-
+```text
 ### Step 4: Update Module Registration
 
 In each module's `Extensions.cs`:
@@ -182,8 +176,7 @@ public class DatabaseSchemaInitializationService : IHostedService
 
 // Register the hosted service in Program.cs or Startup.cs:
 // services.AddHostedService<DatabaseSchemaInitializationService>();
-```
-
+```csharp
 ## 🔧 Naming Conventions
 
 ### Database Objects:
@@ -202,8 +195,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
     modelBuilder.HasDefaultSchema("[module_name]");
     // EF Core will create the schema automatically
 }
-```
-
+```csharp
 ## ⚡ Quick Module Creation Script
 
 Create this PowerShell script for quick module setup:
@@ -263,8 +255,7 @@ $PermissionsContent | Out-File -FilePath "$ModulePath/01-permissions.sql" -Encod
 
 Write-Host "✅ Module '$ModuleName' database scripts created successfully!" -ForegroundColor Green
 Write-Host "📁 Location: $ModulePath" -ForegroundColor Cyan
-```
-
+```sql
 ## 📝 Usage Example
 
 ```bash
@@ -273,8 +264,7 @@ Write-Host "📁 Location: $ModulePath" -ForegroundColor Cyan
 
 # Create new services module  
 ./create-module.ps1 -ModuleName "services"
-```
-
+```text
 ## 🔒 Security Best Practices
 
 1. **Schema Isolation**: Each module has its own schema and role

@@ -26,8 +26,7 @@ infrastructure/database/
 ├── views/
 │   └── cross-module-views.sql
 └── create-module.ps1
-```
-
+```text
 ## 📝 **Convenções**
 
 - **Nomenclatura**: `kebab-case.md` (exceto `README.md`)

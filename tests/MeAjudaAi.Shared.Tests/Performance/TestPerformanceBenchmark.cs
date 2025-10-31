@@ -1,6 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using Xunit.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Performance;
 

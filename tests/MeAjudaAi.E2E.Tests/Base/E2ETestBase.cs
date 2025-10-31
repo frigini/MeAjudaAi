@@ -1,4 +1,5 @@
-﻿using Bogus;
+using System.Net.Http.Json;
+using Bogus;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;
@@ -9,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Json;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
@@ -89,7 +89,7 @@ public abstract class E2ETestBase : IAsyncLifetime
         return config;
     }
 
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         // Configura e inicia PostgreSQL (obrigatório)
         _postgresContainer = new PostgreSqlBuilder()
@@ -179,7 +179,7 @@ public abstract class E2ETestBase : IAsyncLifetime
         await EnsureDatabaseSchemaAsync();
     }
 
-    public virtual async Task DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         HttpClient?.Dispose();
         _factory?.Dispose();
@@ -320,5 +320,15 @@ public abstract class E2ETestBase : IAsyncLifetime
     protected static void ClearAuthentication()
     {
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
+    }
+
+    protected async Task<HttpResponseMessage> PostAsJsonAsync<T>(Uri requestUri, T value)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected async Task<HttpResponseMessage> PutAsJsonAsync<T>(Uri requestUri, T value)
+    {
+        throw new NotImplementedException();
     }
 }

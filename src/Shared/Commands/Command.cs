@@ -1,0 +1,13 @@
+using MeAjudaAi.Shared.Time;
+
+namespace MeAjudaAi.Shared.Commands;
+
+public abstract record Command : ICommand
+{
+    public Guid CorrelationId { get; } = UuidGenerator.NewId();
+}
+
+public abstract record Command<TResult> : ICommand<TResult>
+{
+    public Guid CorrelationId { get; } = UuidGenerator.NewId();
+}

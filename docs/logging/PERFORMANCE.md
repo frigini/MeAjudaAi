@@ -29,8 +29,7 @@ public class DatabasePerformanceMetrics
         _queryDuration.Record(durationMs, new("operation", operation));
     }
 }
-```
-
+```csharp
 ## 🔍 Instrumentação
 
 ### **Custom Metrics**
@@ -46,8 +45,7 @@ builder.Services.AddHealthChecks()
     .AddRedis(connectionString)
     .AddRabbitMQ(rabbitMqConnection)
     .AddKeycloak();
-```
-
+```csharp
 ## 📈 Dashboards e Alertas
 
 ### **Grafana Dashboards**
@@ -97,5 +95,5 @@ logger.LogInformation("Query executed: {Operation} in {Duration}ms",
 ## 🔗 Links Relacionados
 
 - [Logging Setup](./README.md)
-- [Correlation ID Best Practices](./CORRELATION_ID.md)
+- [Correlation ID Best Practices](./correlation_id.md)
 - [SEQ Configuration](./SEQ_SETUP.md)

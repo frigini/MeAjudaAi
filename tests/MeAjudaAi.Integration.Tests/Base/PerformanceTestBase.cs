@@ -1,9 +1,9 @@
-﻿using Aspire.Hosting;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using Aspire.Hosting;
 using Bogus;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Headers;
-using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -26,7 +26,7 @@ public abstract class PerformanceTestBase : IAsyncLifetime
 
     protected JsonSerializerOptions JsonOptions { get; } = SerializationDefaults.Api;
 
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         using var cancellationTokenSource = new CancellationTokenSource(AppStartTimeout);
         var cancellationToken = cancellationTokenSource.Token;
@@ -155,6 +155,8 @@ public abstract class PerformanceTestBase : IAsyncLifetime
 
     protected async Task<T> ReadJsonAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(response);
+
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
         return JsonSerializer.Deserialize<T>(content, JsonOptions)!;
     }
@@ -164,7 +166,7 @@ public abstract class PerformanceTestBase : IAsyncLifetime
         ApiClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
-    public virtual async Task DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         try
         {
@@ -180,6 +182,16 @@ public abstract class PerformanceTestBase : IAsyncLifetime
         {
             // Ignorar erros de dispose durante cleanup
         }
+    }
+
+    protected async Task<HttpResponseMessage> PostJsonAsync<T>(Uri requestUri, T value, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T value, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -197,7 +209,7 @@ public abstract class BasicTestBase : IAsyncLifetime
 
     protected JsonSerializerOptions JsonOptions { get; } = SerializationDefaults.Api;
 
-    public virtual async Task InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         using var cancellationTokenSource = new CancellationTokenSource(SimpleTimeout);
         var cancellationToken = cancellationTokenSource.Token;
@@ -223,7 +235,7 @@ public abstract class BasicTestBase : IAsyncLifetime
         ApiClient.Timeout = TimeSpan.FromSeconds(30);
     }
 
-    public virtual async Task DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         try
         {

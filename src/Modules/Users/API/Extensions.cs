@@ -1,4 +1,4 @@
-﻿using MeAjudaAi.Modules.Users.API.Endpoints;
+using MeAjudaAi.Modules.Users.API.Endpoints;
 using MeAjudaAi.Modules.Users.Application;
 using MeAjudaAi.Modules.Users.Infrastructure;
 using MeAjudaAi.Shared.Database;
@@ -34,7 +34,7 @@ public static class Extensions
         // Configurar permissões de schema (apenas se habilitado)
         if (configuration.GetValue("Database:EnableSchemaIsolation", false))
         {
-            await services.EnsureUsersSchemaPermissionsAsync(configuration, usersRolePassword, appRolePassword);
+            await services.EnsureUsersSchemaPermissionsAsync(configuration, usersRolePassword, appRolePassword).ConfigureAwait(false);
         }
 
         return services;

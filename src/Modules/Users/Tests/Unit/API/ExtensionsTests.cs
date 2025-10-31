@@ -36,11 +36,11 @@ public class ExtensionsTests
         Assert.NotNull(result);
         Assert.Same(services, result);
 
-        // Verify that services were registered
+        // Verifica se os serviços foram registrados
         var serviceProvider = services.BuildServiceProvider();
         Assert.NotNull(serviceProvider);
 
-        // Should be able to build without throwing
+        // Deve conseguir construir sem lançar exceções
         Assert.True(services.Count > 0);
     }
 
@@ -51,7 +51,7 @@ public class ExtensionsTests
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
 
-        // Act - Should not throw during registration even with empty config
+        // Act - Não deve lançar exceção durante o registro mesmo com configuração vazia
         var result = services.AddUsersModule(configuration);
 
         // Assert
@@ -96,10 +96,10 @@ public class ExtensionsTests
         // Assert
         var serviceProvider = services.BuildServiceProvider();
 
-        // Should be able to build service provider without exceptions
+        // Deve conseguir construir o service provider sem exceções
         Assert.NotNull(serviceProvider);
 
-        // Verify some basic services are registered
+        // Verifica se alguns serviços básicos estão registrados
         Assert.Contains(services, s => s.ServiceType.Namespace?.Contains("Users") == true);
     }
 
@@ -119,7 +119,7 @@ public class ExtensionsTests
         Assert.NotNull(result);
         Assert.Same(services, result);
 
-        // Should register at least some services
+        // Deve registrar pelo menos alguns serviços
         Assert.True(services.Count > 0);
     }
 

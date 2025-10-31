@@ -127,7 +127,7 @@ public class UpdateUserProfileCommandHandlerTests
 
         _userRepositoryMock
             .Setup(x => x.GetByIdAsync(It.IsAny<UserId>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Database error"));
+            .ThrowsAsync(new InvalidOperationException("Database error"));
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -168,7 +168,7 @@ public class UpdateUserProfileCommandHandlerTests
 
         _usersCacheServiceMock
             .Setup(x => x.InvalidateUserAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Cache error"));
+            .ThrowsAsync(new InvalidOperationException("Cache error"));
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -211,7 +211,7 @@ public class UpdateUserProfileCommandHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        // O domínio não valida mais campos vazios - isso é responsabilidade do FluentValidation
+        // O domï¿½nio nï¿½o valida mais campos vazios - isso ï¿½ responsabilidade do FluentValidation
         result.IsSuccess.Should().BeTrue();
 
         _userRepositoryMock.Verify(

@@ -45,7 +45,7 @@ public class GetUsersQueryHandlerTests
         pagedResult.TotalCount.Should().Be(totalCount);
         pagedResult.Page.Should().Be(query.Page);
         pagedResult.PageSize.Should().Be(query.PageSize);
-        pagedResult.TotalPages.Should().Be(3); // 25 / 10 = 3 p·ginas
+        pagedResult.TotalPages.Should().Be(3); // 25 / 10 = 3 p√°ginas
 
         _userRepositoryMock.Verify(
             x => x.GetPagedAsync(query.Page, query.PageSize, It.IsAny<CancellationToken>()),
@@ -128,7 +128,7 @@ public class GetUsersQueryHandlerTests
     public async Task HandleAsync_LargePageSize_ShouldStillWork()
     {
         // Arrange
-        var query = new GetUsersQuery(Page: 1, PageSize: 100, SearchTerm: null); // M·ximo permitido
+        var query = new GetUsersQuery(Page: 1, PageSize: 100, SearchTerm: null); // M√°ximo permitido
         var users = CreateTestUsers(50);
         var totalCount = 150;
 
@@ -146,7 +146,7 @@ public class GetUsersQueryHandlerTests
         var pagedResult = result.Value;
         pagedResult.Items.Should().HaveCount(50);
         pagedResult.TotalCount.Should().Be(totalCount);
-        pagedResult.TotalPages.Should().Be(2); // 150 / 100 = 2 p·ginas
+        pagedResult.TotalPages.Should().Be(2); // 150 / 100 = 2 p√°ginas
     }
 
     [Fact]

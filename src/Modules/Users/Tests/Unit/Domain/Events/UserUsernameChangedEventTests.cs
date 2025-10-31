@@ -100,8 +100,8 @@ public class UserUsernameChangedEventTests
         // Arrange
         var aggregateId = Guid.NewGuid();
         const int version = 1;
-        var oldUsername = new Username("abc"); // mínimo 3 caracteres
-        var newUsername = new Username("xyz"); // mínimo 3 caracteres
+        var oldUsername = new Username("abc"); // mÃ­nimo 3 caracteres
+        var newUsername = new Username("xyz"); // mÃ­nimo 3 caracteres
 
         // Act
         var domainEvent = new UserUsernameChangedEvent(aggregateId, version, oldUsername, newUsername);

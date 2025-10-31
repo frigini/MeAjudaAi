@@ -1,8 +1,10 @@
-﻿using MeAjudaAi.Modules.Users.Application.Commands;
+using MeAjudaAi.Modules.Users.API.Mappers;
+using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
-using MeAjudaAi.Modules.Users.API.Mappers;
+using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
@@ -36,11 +38,11 @@ public class UpdateUserProfileEndpoint : BaseEndpoint, IEndpoint
     /// - Códigos de resposta apropriados
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPut("/{id:guid}/profile", UpdateUserAsync)
+        => app.MapPut(ApiEndpoints.Users.UpdateProfile, UpdateUserAsync)
             .WithName("UpdateUserProfile")
             .WithSummary("Update user profile")
             .WithDescription("Updates profile information for an existing user")
-            .RequireAuthorization("SelfOrAdmin")
+            .RequireSelfOrAdmin()
             .Produces<Response<UserDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 

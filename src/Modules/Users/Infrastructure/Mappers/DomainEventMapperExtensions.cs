@@ -15,6 +15,8 @@ public static class DomainEventMapperExtensions
     /// <returns>Evento de integração para comunicação entre módulos</returns>
     public static UserRegisteredIntegrationEvent ToIntegrationEvent(this UserRegisteredDomainEvent domainEvent)
     {
+        ArgumentNullException.ThrowIfNull(domainEvent);
+
         return new UserRegisteredIntegrationEvent(
             Source: "Users",
             UserId: domainEvent.AggregateId,
@@ -36,6 +38,9 @@ public static class DomainEventMapperExtensions
     /// <returns>Evento de integração para comunicação entre módulos</returns>
     public static UserProfileUpdatedIntegrationEvent ToIntegrationEvent(this UserProfileUpdatedDomainEvent domainEvent, string email)
     {
+        ArgumentNullException.ThrowIfNull(domainEvent);
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
         return new UserProfileUpdatedIntegrationEvent(
             Source: "Users",
             UserId: domainEvent.AggregateId,
@@ -53,6 +58,8 @@ public static class DomainEventMapperExtensions
     /// <returns>Evento de integração para comunicação entre módulos</returns>
     public static UserDeletedIntegrationEvent ToIntegrationEvent(this UserDeletedDomainEvent domainEvent)
     {
+        ArgumentNullException.ThrowIfNull(domainEvent);
+
         return new UserDeletedIntegrationEvent(
             Source: "Users",
             UserId: domainEvent.AggregateId,

@@ -1,8 +1,9 @@
-﻿using MeAjudaAi.Modules.Users.Application.Commands;
+using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
@@ -97,7 +98,7 @@ internal sealed class DeleteUserCommandHandler(
         if (user == null)
         {
             logger.LogWarning("User deletion failed: User {UserId} not found", command.UserId);
-            return Result<Domain.Entities.User>.Failure(Error.NotFound("User not found"));
+            return Result<Domain.Entities.User>.Failure(Error.NotFound(ValidationMessages.NotFound.User));
         }
 
         logger.LogDebug("Found user {UserId}, proceeding with deletion process", command.UserId);
