@@ -1,6 +1,7 @@
 ﻿using MeAjudaAi.Shared.Contracts.Modules;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
+using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Functional;
 using System.Reflection;
 
@@ -24,11 +25,8 @@ public class ModuleApiArchitectureTests
 
         // Assert
         var violations = result.GetResult().FailingTypes;
-        if (violations != null)
-        {
-            violations.Should().BeEmpty(
+        violations?.Should().BeEmpty(
                 because: "Module API interfaces should be in the Shared.Contracts.Modules namespace hierarchy");
-        }
     }
 
     [Fact]
@@ -135,11 +133,8 @@ public class ModuleApiArchitectureTests
 
                 // Verifica se possui valor padrão
                 var cancellationParam = parameters.FirstOrDefault(p => p.ParameterType == typeof(CancellationToken));
-                if (cancellationParam != null)
-                {
-                    cancellationParam.HasDefaultValue.Should().BeTrue(
+                cancellationParam?.HasDefaultValue.Should().BeTrue(
                         because: $"CancellationToken parameter in {type.Name}.{method.Name} should have default value");
-                }
             }
         }
     }
@@ -160,11 +155,8 @@ public class ModuleApiArchitectureTests
 
         // Assert
         var violations = result.GetResult().FailingTypes;
-        if (violations != null)
-        {
-            violations.Should().BeEmpty(
+        violations?.Should().BeEmpty(
                 because: "Module API DTOs should be sealed records for immutability");
-        }
     }
 
     [Fact]
@@ -186,11 +178,8 @@ public class ModuleApiArchitectureTests
                 .NotHaveDependencyOnAny(GetOtherModuleNamespaces(moduleName));
 
             var violations = result.GetResult().FailingTypes;
-            if (violations != null)
-            {
-                violations.Should().BeEmpty(
+            violations?.Should().BeEmpty(
                     because: $"Module API in {moduleName} should not depend on other modules");
-            }
         }
     }
 
@@ -230,11 +219,8 @@ public class ModuleApiArchitectureTests
                 .BeSealed();
 
             var violations = result.GetResult().FailingTypes;
-            if (violations != null)
-            {
-                violations.Should().BeEmpty(
+            violations?.Should().BeEmpty(
                     because: "Module API implementations should be sealed to prevent inheritance");
-            }
         }
     }
 
@@ -258,13 +244,36 @@ public class ModuleApiArchitectureTests
         methods.Should().Contain("GetUsersBatchAsync", because: "Should allow batch operations");
     }
 
+    [Fact]
+    public void IProvidersModuleApi_ShouldHaveAllEssentialMethods()
+    {
+        // Arrange
+        var type = typeof(IProvidersModuleApi);
+
+        // Act
+        var methods = type.GetMethods()
+            .Where(m => !m.IsSpecialName && m.DeclaringType == type)
+            .Select(m => m.Name)
+            .ToList();
+
+        // Assert
+        methods.Should().Contain("GetProviderByIdAsync", because: "Should allow getting provider by ID");
+        methods.Should().Contain("GetProviderByUserIdAsync", because: "Should allow getting provider by user ID");
+        methods.Should().Contain("ProviderExistsAsync", because: "Should allow checking if provider exists");
+        methods.Should().Contain("UserIsProviderAsync", because: "Should allow checking if user is provider");
+        methods.Should().Contain("GetProvidersBatchAsync", because: "Should allow batch operations");
+        methods.Should().Contain("GetProvidersByCityAsync", because: "Should allow getting providers by city");
+        methods.Should().Contain("GetProvidersByStateAsync", because: "Should allow getting providers by state");
+        methods.Should().Contain("GetProvidersByTypeAsync", because: "Should allow getting providers by type");
+        methods.Should().Contain("GetProvidersByVerificationStatusAsync", because: "Should allow getting providers by verification status");
+    }
+
     private static Assembly[] GetModuleAssemblies()
     {
         // Obtém todos os assemblies que possuem implementações de Module API
-        return AppDomain.CurrentDomain.GetAssemblies()
+        return [.. AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => a.FullName?.Contains("MeAjudaAi.Modules") == true)
-            .Where(a => a.FullName?.Contains("Application") == true)
-            .ToArray();
+            .Where(a => a.FullName?.Contains("Application") == true)];
     }
 
     private static string GetModuleName(Assembly assembly)
@@ -277,10 +286,9 @@ public class ModuleApiArchitectureTests
 
     private static string[] GetOtherModuleNamespaces(string currentModule)
     {
-        var allModules = new[] { "Users", "Orders", "Services", "Payments" }; // Add known modules
-        return allModules
+        var allModules = new[] { "Users", "Providers" }; // Add known modules
+        return [.. allModules
             .Where(m => m != currentModule)
-            .Select(m => $"MeAjudaAi.Modules.{m}")
-            .ToArray();
+            .Select(m => $"MeAjudaAi.Modules.{m}")];
     }
 }

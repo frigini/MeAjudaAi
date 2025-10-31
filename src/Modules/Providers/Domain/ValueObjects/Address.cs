@@ -16,6 +16,20 @@ public class Address : ValueObject
     public string ZipCode { get; private set; }
     public string Country { get; private set; }
 
+    /// <summary>
+    /// Construtor privado para Entity Framework
+    /// </summary>
+    private Address()
+    {
+        Street = string.Empty;
+        Number = string.Empty;
+        Neighborhood = string.Empty;
+        City = string.Empty;
+        State = string.Empty;
+        ZipCode = string.Empty;
+        Country = string.Empty;
+    }
+
     public Address(
         string street,
         string number,

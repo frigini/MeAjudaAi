@@ -126,7 +126,7 @@ else if (EnvironmentHelpers.IsDevelopment(builder))
 
         var exposeHttpStr = builder.Configuration["Keycloak:ExposeHttpEndpoint"]
                            ?? Environment.GetEnvironmentVariable("KEYCLOAK_EXPOSE_HTTP");
-        options.ExposeHttpEndpoint = bool.TryParse(exposeHttpStr, out var exposeResult) ? exposeResult : true;
+        options.ExposeHttpEndpoint = !bool.TryParse(exposeHttpStr, out var exposeResult)||exposeResult;
     });
 
     var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
@@ -155,7 +155,8 @@ else if (EnvironmentHelpers.IsProduction(builder))
 
     var keycloak = builder.AddMeAjudaAiKeycloakProduction();
 
-    builder.AddAzureContainerAppEnvironment("cae");
+    // TODO: Verificar se AddAzureContainerAppEnvironment está disponível na versão atual do Aspire
+    // builder.AddAzureContainerAppEnvironment("cae");
 
     var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
         .WithReference(postgresql.MainDatabase, "DefaultConnection")

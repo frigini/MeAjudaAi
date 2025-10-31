@@ -3,8 +3,6 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.Logging;
@@ -31,7 +29,7 @@ internal sealed class CreateProviderCommandHandler(
     /// <param name="command">Comando de criação</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Resultado da operação com o DTO do prestador de serviços criado</returns>
-    public async Task<Result<ProviderDto>> Handle(CreateProviderCommand command, CancellationToken cancellationToken)
+    public async Task<Result<ProviderDto>> HandleAsync(CreateProviderCommand command, CancellationToken cancellationToken)
     {
         try
         {
@@ -42,7 +40,7 @@ internal sealed class CreateProviderCommandHandler(
             if (existingProvider != null)
             {
                 logger.LogWarning("Provider already exists for user {UserId}", command.UserId);
-                return Result.Failure<ProviderDto>("Provider already exists for this user");
+                return Result<ProviderDto>.Failure("Provider already exists for this user");
             }
 
             // Converte DTOs para objetos de domínio
@@ -62,12 +60,12 @@ internal sealed class CreateProviderCommandHandler(
             logger.LogInformation("Provider {ProviderId} created successfully for user {UserId}", 
                 provider.Id.Value, command.UserId);
 
-            return Result.Success(provider.ToDto());
+            return Result<ProviderDto>.Success(provider.ToDto());
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error creating provider for user {UserId}", command.UserId);
-            return Result.Failure<ProviderDto>($"Error creating provider: {ex.Message}");
+            return Result<ProviderDto>.Failure($"Error creating provider: {ex.Message}");
         }
     }
 }

@@ -1,4 +1,5 @@
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.Modules.Providers.API;
 using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Logging;
@@ -40,6 +41,7 @@ try
     builder.Services.AddSharedServices(builder.Configuration);
     builder.Services.AddApiServices(builder.Configuration, builder.Environment);
     builder.Services.AddUsersModule(builder.Configuration);
+    builder.Services.AddProvidersModule(builder.Configuration);
 
     var app = builder.Build();
 
@@ -49,6 +51,7 @@ try
     await app.UseSharedServicesAsync();
     app.UseApiServices(app.Environment);
     app.UseUsersModule();
+    app.UseProvidersModule();
 
     if (!app.Environment.IsEnvironment("Testing"))
     {

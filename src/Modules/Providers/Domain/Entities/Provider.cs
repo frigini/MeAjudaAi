@@ -80,6 +80,31 @@ public sealed class Provider : AggregateRoot<ProviderId>
     private Provider() { }
 
     /// <summary>
+    /// Construtor interno para testes que permite especificar o ID.
+    /// </summary>
+    internal Provider(
+        ProviderId id,
+        Guid userId,
+        string name,
+        EProviderType type,
+        BusinessProfile businessProfile)
+        : base(id)
+    {
+        ArgumentNullException.ThrowIfNull(businessProfile);
+
+        // Validações de regras de negócio específicas para criação
+        ValidateProviderCreation(userId, name);
+
+        UserId = userId;
+        Name = name.Trim();
+        Type = type;
+        BusinessProfile = businessProfile;
+        VerificationStatus = EVerificationStatus.Pending;
+
+        // Não adiciona eventos de domínio para testes
+    }
+
+    /// <summary>
     /// Cria um novo prestador de serviços no sistema.
     /// </summary>
     /// <param name="userId">ID do usuário no Keycloak</param>
@@ -139,7 +164,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         AddDomainEvent(new ProviderProfileUpdatedDomainEvent(
             Id.Value,
-            Version + 1,
+            1,
             Name,
             BusinessProfile.ContactInfo.Email,
             updatedBy));
@@ -165,7 +190,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         AddDomainEvent(new ProviderDocumentAddedDomainEvent(
             Id.Value,
-            Version + 1,
+            1,
             document.DocumentType,
             document.Number));
     }
@@ -174,21 +199,18 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// Remove um documento do prestador de serviços.
     /// </summary>
     /// <param name="documentType">Tipo do documento a ser removido</param>
-    public void RemoveDocument(DocumentType documentType)
+    public void RemoveDocument(EDocumentType documentType)
     {
         if (IsDeleted)
             throw new ProviderDomainException("Cannot remove document from deleted provider");
 
-        var document = _documents.FirstOrDefault(d => d.DocumentType == documentType);
-        if (document == null)
-            throw new ProviderDomainException($"Document of type {documentType} not found");
-
+        var document = _documents.FirstOrDefault(d => d.DocumentType == documentType) ?? throw new ProviderDomainException($"Document of type {documentType} not found");
         _documents.Remove(document);
         MarkAsUpdated();
 
         AddDomainEvent(new ProviderDocumentRemovedDomainEvent(
             Id.Value,
-            Version + 1,
+            1,
             documentType,
             document.Number));
     }
@@ -209,7 +231,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         AddDomainEvent(new ProviderQualificationAddedDomainEvent(
             Id.Value,
-            Version + 1,
+            1,
             qualification.Name,
             qualification.IssuingOrganization));
     }
@@ -226,17 +248,14 @@ public sealed class Provider : AggregateRoot<ProviderId>
         if (IsDeleted)
             throw new ProviderDomainException("Cannot remove qualification from deleted provider");
 
-        var qualification = _qualifications.FirstOrDefault(q => q.Name.Equals(qualificationName, StringComparison.OrdinalIgnoreCase));
-        if (qualification == null)
-            throw new ProviderDomainException($"Qualification '{qualificationName}' not found");
-
+        var qualification = _qualifications.FirstOrDefault(q => q.Name.Equals(qualificationName, StringComparison.OrdinalIgnoreCase)) ?? throw new ProviderDomainException($"Qualification '{qualificationName}' not found");
         _qualifications.Remove(qualification);
         MarkAsUpdated();
 
         AddDomainEvent(new ProviderQualificationRemovedDomainEvent(
             Id.Value,
-            Version + 1,
-            qualification.Name,
+            1,
+            qualificationName,
             qualification.IssuingOrganization));
     }
 
@@ -256,7 +275,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         AddDomainEvent(new ProviderVerificationStatusUpdatedDomainEvent(
             Id.Value,
-            Version + 1,
+            1,
             previousStatus,
             status,
             updatedBy));
@@ -277,9 +296,30 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         AddDomainEvent(new ProviderDeletedDomainEvent(
             Id.Value,
-            Version + 1,
+            1,
             Name,
             deletedBy));
+    }
+
+    /// <summary>
+    /// Marca o prestador de serviços como excluído logicamente.
+    /// </summary>
+    /// <param name="dateTimeProvider">Provedor de data/hora para auditoria</param>
+    /// <remarks>
+    /// Implementa exclusão lógica (soft delete) em vez de remoção física dos dados.
+    /// Dispara o evento ProviderDeletedDomainEvent quando a exclusão é realizada.
+    /// Se o prestador já estiver excluído, o método retorna sem fazer alterações.
+    /// </remarks>
+    public void MarkAsDeleted(IDateTimeProvider dateTimeProvider)
+    {
+        if (IsDeleted)
+            return;
+
+        IsDeleted = true;
+        DeletedAt = dateTimeProvider.CurrentDate();
+        MarkAsUpdated();
+
+        AddDomainEvent(new ProviderDeletedDomainEvent(Id.Value, 1, Name, null));
     }
 
     /// <summary>

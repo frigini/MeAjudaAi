@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Domain;
-using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Extensions;
 using System.Text.Json.Serialization;
 
@@ -10,32 +9,42 @@ namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 /// Documento de identificação do prestador de serviços.
 /// Implementa validação específica para cada tipo de documento brasileiro.
 /// </summary>
-public class Document : ValueObject
+public sealed class Document : ValueObject
 {
     public string Number { get; private set; }
     public EDocumentType DocumentType { get; private set; }
 
+    /// <summary>
+    /// Construtor privado para Entity Framework
+    /// </summary>
+    private Document()
+    {
+        Number = string.Empty;
+        DocumentType = EDocumentType.CPF;
+    }
+
     [JsonConstructor]
     public Document(string number, EDocumentType documentType)
     {
-        Number = number;
+        if (string.IsNullOrWhiteSpace(number))
+            throw new ArgumentException("Número do documento não pode ser vazio", nameof(number));
+
+        Number = number.Trim();
         DocumentType = documentType;
 
-        AddNotifications(new Contract<Notification>()
-            .Requires()
-            .IsTrue(Validate(), "Document.Number", ErrorMessages.InvalidDocument)
-        );
+        if (!IsValid())
+            throw new ArgumentException($"Documento do tipo {documentType} com número {number} é inválido", nameof(number));
     }
 
-    private bool Validate()
+    private bool IsValid()
     {
         return DocumentType switch
         {
             EDocumentType.CPF => Number.IsValidCpf(),
             EDocumentType.CNPJ => Number.IsValidCnpj(),
-            EDocumentType.RG => !string.IsNullOrWhiteSpace(Number) && Number.Length >= 5,
-            EDocumentType.CNH => !string.IsNullOrWhiteSpace(Number) && Number.Length >= 9,
-            EDocumentType.Passport => !string.IsNullOrWhiteSpace(Number) && Number.Length >= 6,
+            EDocumentType.RG => Number.Length >= 5,
+            EDocumentType.CNH => Number.Length >= 9,
+            EDocumentType.Passport => Number.Length >= 6,
             EDocumentType.Other => !string.IsNullOrWhiteSpace(Number),
             _ => false
         };

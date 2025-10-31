@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Shared.Database;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Repositories;
 
@@ -12,8 +11,56 @@ namespace MeAjudaAi.Modules.Providers.Domain.Repositories;
 /// Implementa o padrão Repository para encapsular a lógica de acesso a dados
 /// e manter a separação entre o domínio e a infraestrutura.
 /// </remarks>
-public interface IProviderRepository : IRepository<Provider, ProviderId>
+public interface IProviderRepository
 {
+    /// <summary>
+    /// Busca um prestador de serviços pelo seu identificador único.
+    /// </summary>
+    /// <param name="id">Identificador único do prestador</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <returns>O prestador encontrado ou null se não existir</returns>
+    Task<Provider?> GetByIdAsync(ProviderId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Busca múltiplos prestadores de serviços pelos seus identificadores únicos.
+    /// </summary>
+    /// <param name="ids">Lista de identificadores dos prestadores</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <returns>Lista de prestadores encontrados</returns>
+    Task<IReadOnlyList<Provider>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adiciona um novo prestador de serviços ao repositório.
+    /// </summary>
+    /// <param name="provider">Prestador a ser adicionado</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    Task AddAsync(Provider provider, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Atualiza um prestador de serviços existente no repositório.
+    /// </summary>
+    /// <param name="provider">Prestador com dados atualizados</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    Task UpdateAsync(Provider provider, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Remove um prestador de serviços do repositório (exclusão física).
+    /// </summary>
+    /// <param name="id">Identificador do prestador a ser removido</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <remarks>
+    /// Esta operação realiza exclusão física. Para exclusão lógica, use o método MarkAsDeleted da entidade Provider.
+    /// </remarks>
+    Task DeleteAsync(ProviderId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Verifica se um prestador de serviços existe no repositório.
+    /// </summary>
+    /// <param name="id">Identificador do prestador</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <returns>True se o prestador existir, false caso contrário</returns>
+    Task<bool> ExistsAsync(ProviderId id, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Busca um prestador de serviços pelo ID do usuário.
     /// </summary>

@@ -14,6 +14,16 @@ public class BusinessProfile : ValueObject
     public ContactInfo ContactInfo { get; private set; }
     public Address PrimaryAddress { get; private set; }
 
+    /// <summary>
+    /// Construtor privado para Entity Framework
+    /// </summary>
+    private BusinessProfile()
+    {
+        LegalName = string.Empty;
+        ContactInfo = null!;
+        PrimaryAddress = null!;
+    }
+
     public BusinessProfile(
         string legalName,
         ContactInfo contactInfo,

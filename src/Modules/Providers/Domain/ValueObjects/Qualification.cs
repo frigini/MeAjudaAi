@@ -14,6 +14,14 @@ public class Qualification : ValueObject
     public DateTime? ExpirationDate { get; private set; }
     public string? DocumentNumber { get; private set; }
 
+    /// <summary>
+    /// Construtor privado para Entity Framework
+    /// </summary>
+    private Qualification()
+    {
+        Name = string.Empty;
+    }
+
     public Qualification(
         string name,
         string? description = null,
@@ -24,6 +32,10 @@ public class Qualification : ValueObject
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Qualification name cannot be empty", nameof(name));
+
+        // Valida se a data de expiração não é anterior à data de emissão
+        if (issueDate.HasValue && expirationDate.HasValue && expirationDate.Value < issueDate.Value)
+            throw new ArgumentException("Expiration date cannot be before issue date", nameof(expirationDate));
 
         Name = name.Trim();
         Description = description?.Trim();

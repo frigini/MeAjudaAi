@@ -1,6 +1,8 @@
+using MeAjudaAi.Modules.Providers.Application.Services;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Providers.Infrastructure.Repositories;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,12 +28,15 @@ public static class Extensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(typeof(ProvidersDbContext).Assembly.FullName);
-                npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "providers");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
             });
         });
 
         // Registro do repositório
         services.AddScoped<IProviderRepository, ProviderRepository>();
+
+        // Registro do serviço de consultas
+        services.AddScoped<IProviderQueryService, ProviderQueryService>();
 
         return services;
     }

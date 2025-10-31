@@ -11,6 +11,14 @@ public class ContactInfo : ValueObject
     public string? PhoneNumber { get; private set; }
     public string? Website { get; private set; }
 
+    /// <summary>
+    /// Construtor privado para Entity Framework
+    /// </summary>
+    private ContactInfo()
+    {
+        Email = string.Empty;
+    }
+
     public ContactInfo(string email, string? phoneNumber = null, string? website = null)
     {
         if (string.IsNullOrWhiteSpace(email))
