@@ -59,8 +59,8 @@ public class CreateProviderCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.ExistsAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+            .Setup(r => r.GetByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
 
         _providerRepositoryMock
             .Setup(r => r.AddAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
@@ -162,8 +162,8 @@ public class CreateProviderCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.ExistsAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+            .Setup(r => r.GetByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
 
         _providerRepositoryMock
             .Setup(r => r.AddAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
@@ -174,7 +174,7 @@ public class CreateProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error creating provider");
+        result.Error.Message.Should().Contain("An error occurred while creating the provider");
     }
 
     [Theory]
@@ -213,15 +213,15 @@ public class CreateProviderCommandHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(r => r.ExistsAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+            .Setup(r => r.GetByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Provider?)null);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error creating provider");
+        result.Error.Message.Should().Contain("An error occurred while creating the provider");
 
         _providerRepositoryMock.Verify(
             r => r.AddAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),

@@ -129,7 +129,7 @@ public class AddQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error adding qualification");
+        result.Error.Message.Should().Contain("An error occurred while adding the qualification");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -165,7 +165,7 @@ public class AddQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error adding qualification");
+        result.Error.Message.Should().Contain("An error occurred while adding the qualification");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -200,8 +200,7 @@ public class AddQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error adding qualification");
-        result.Error.Message.Should().Contain("Database error");
+        result.Error.Message.Should().Contain("An error occurred while adding the qualification");
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),

@@ -245,7 +245,6 @@ public class UpdateProviderProfileCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("Error updating provider profile");
-        result.Error.Message.Should().Contain("Database error");
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),

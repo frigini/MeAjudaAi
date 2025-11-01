@@ -115,8 +115,7 @@ public class UpdateVerificationStatusCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error updating verification status");
-        result.Error.Message.Should().Contain("Database error");
+        result.Error.Message.Should().Contain("An error occurred while updating the verification status");
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),

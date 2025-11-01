@@ -23,8 +23,12 @@ public sealed class RequirePermissionAttribute : AuthorizeAttribute, IAuthorizat
     /// Inicializa o atributo com a permissão requerida.
     /// </summary>
     /// <param name="permission">A permissão necessária</param>
+    /// <exception cref="ArgumentException">Lançado quando permission é EPermission.None</exception>
     public RequirePermissionAttribute(EPermission permission)
     {
+        if (permission == EPermission.None)
+            throw new ArgumentException("EPermission.None não é uma permissão válida para autorização", nameof(permission));
+            
         Permission = permission;
         Policy = $"RequirePermission:{permission.GetValue()}";
     }

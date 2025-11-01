@@ -144,11 +144,13 @@ public class QualificationTests
     public void ToString_ShouldReturnFormattedString()
     {
         // Arrange
+        var issueDate = new DateTime(2023, 1, 1);
+        var expirationDate = new DateTime(2025, 1, 1);
         var qualification = new Qualification(
             "Professional Certification",
             issuingOrganization: "Professional Board",
-            issueDate: new DateTime(2023, 1, 1),
-            expirationDate: new DateTime(2025, 1, 1));
+            issueDate: issueDate,
+            expirationDate: expirationDate);
 
         // Act
         var result = qualification.ToString();
@@ -156,7 +158,7 @@ public class QualificationTests
         // Assert
         result.Should().Contain("Professional Certification");
         result.Should().Contain("Professional Board");
-        result.Should().Contain("1/1/2023");
-        result.Should().Contain("1/1/2025");
+        result.Should().Contain(issueDate.ToShortDateString());
+        result.Should().Contain(expirationDate.ToShortDateString());
     }
 }

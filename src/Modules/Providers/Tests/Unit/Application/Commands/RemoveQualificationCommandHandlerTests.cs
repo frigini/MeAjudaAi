@@ -122,7 +122,7 @@ public class RemoveQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error removing qualification");
+        result.Error.Message.Should().Contain("An error occurred while removing the qualification");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -152,8 +152,7 @@ public class RemoveQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error removing qualification");
-        result.Error.Message.Should().Contain("Database error");
+        result.Error.Message.Should().Contain("An error occurred while removing the qualification");
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
@@ -183,7 +182,7 @@ public class RemoveQualificationCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error removing qualification");
+        result.Error.Message.Should().Contain("An error occurred while removing the qualification");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),

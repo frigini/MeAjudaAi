@@ -1,7 +1,7 @@
 namespace MeAjudaAi.Shared.Contracts.Modules.Providers;
 
 /// <summary>
-/// Tipos de provvedores de serviços
+/// Tipos de provedores de serviços
 /// </summary>
 public enum EProviderType
 {

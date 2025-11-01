@@ -35,7 +35,7 @@ internal sealed class GetProviderByDocumentQueryHandler(
         try
         {
             var normalizedDocument = query.Document?.Trim();
-            
+
             if (string.IsNullOrWhiteSpace(normalizedDocument))
             {
                 logger.LogWarning("Invalid document provided for provider search");

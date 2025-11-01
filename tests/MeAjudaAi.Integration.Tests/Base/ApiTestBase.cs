@@ -1,5 +1,6 @@
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.AspNetCore.Authentication;
@@ -33,12 +34,32 @@ public abstract class ApiTestBase : IAsyncLifetime
                 builder.UseEnvironment("Testing");
                 builder.ConfigureServices(services =>
                 {
-                    // Substitute database with test container
-                    var dbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<UsersDbContext>));
-                    if (dbContextDescriptor != null)
-                        services.Remove(dbContextDescriptor);
+                    // Substitute database with test container - Remove all DbContext related services
+                    var usersDbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<UsersDbContext>));
+                    if (usersDbContextDescriptor != null)
+                        services.Remove(usersDbContextDescriptor);
 
+                    var providersDbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ProvidersDbContext>));
+                    if (providersDbContextDescriptor != null)
+                        services.Remove(providersDbContextDescriptor);
+
+                    // Also remove the actual DbContext services if they exist
+                    var usersDbContextService = services.SingleOrDefault(d => d.ServiceType == typeof(UsersDbContext));
+                    if (usersDbContextService != null)
+                        services.Remove(usersDbContextService);
+
+                    var providersDbContextService = services.SingleOrDefault(d => d.ServiceType == typeof(ProvidersDbContext));
+                    if (providersDbContextService != null)
+                        services.Remove(providersDbContextService);
+
+                    // Add test database contexts
                     services.AddDbContext<UsersDbContext>(options =>
+                    {
+                        options.UseNpgsql(_databaseFixture.ConnectionString);
+                        options.EnableSensitiveDataLogging();
+                    });
+
+                    services.AddDbContext<ProvidersDbContext>(options =>
                     {
                         options.UseNpgsql(_databaseFixture.ConnectionString);
                         options.EnableSensitiveDataLogging();
@@ -60,8 +81,11 @@ public abstract class ApiTestBase : IAsyncLifetime
 
         // Ensure database schema
         using var scope = _factory.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        await context.Database.EnsureCreatedAsync();
+        var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+        var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        
+        await usersContext.Database.EnsureCreatedAsync();
+        await providersContext.Database.EnsureCreatedAsync();
     }
 
     public async ValueTask DisposeAsync()

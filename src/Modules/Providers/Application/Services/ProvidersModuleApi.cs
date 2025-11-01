@@ -276,8 +276,8 @@ public sealed class ProvidersModuleApi(
             Id = providerDto.Id,
             Name = providerDto.Name,
             Email = providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
-            ProviderType = (EProviderType)(int)providerDto.Type,
-            VerificationStatus = (EVerificationStatus)(int)providerDto.VerificationStatus,
+            ProviderType = providerDto.Type,
+            VerificationStatus = providerDto.VerificationStatus,
             IsActive = !providerDto.IsDeleted
         };
     }

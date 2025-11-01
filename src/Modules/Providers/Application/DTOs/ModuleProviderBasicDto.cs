@@ -4,6 +4,7 @@ namespace MeAjudaAi.Modules.Providers.Application.DTOs;
 
 /// <summary>
 /// DTO com informações básicas do provider para comunicação entre módulos
+/// TEMP: Este é um DTO temporário que deve ser removido quando o namespace for resolvido
 /// </summary>
 public sealed record ModuleProviderBasicDto
 {

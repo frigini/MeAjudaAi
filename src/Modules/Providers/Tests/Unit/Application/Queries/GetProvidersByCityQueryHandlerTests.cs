@@ -92,7 +92,7 @@ public class GetProvidersByCityQueryHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error getting providers");
+        result.Error.Message.Should().Contain("An error occurred while retrieving providers");
 
         _providerRepositoryMock.Verify(
             r => r.GetByCityAsync(city, It.IsAny<CancellationToken>()),

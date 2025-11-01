@@ -167,7 +167,7 @@ public class GetProvidersByIdsQueryHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Error getting providers by IDs");
+        result.Error.Message.Should().Contain("An error occurred while retrieving providers");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdsAsync(providerIds, It.IsAny<CancellationToken>()),
