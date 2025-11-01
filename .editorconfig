@@ -139,6 +139,7 @@ dotnet_diagnostic.CA1819.severity = none  # Properties should not return arrays 
 dotnet_diagnostic.CA1024.severity = none  # Use properties where appropriate (test helpers)
 dotnet_diagnostic.CA2263.severity = none  # Prefer generic overloads (test assertions)
 dotnet_diagnostic.CA5351.severity = suggestion  # Broken cryptographic algorithms OK for test data
+dotnet_diagnostic.CA2201.severity = none  # Exception type System.Exception is not sufficiently specific (test mocks)
 
 # xUnit specific warnings
 dotnet_diagnostic.xUnit1051.severity = suggestion  # CancellationToken usage (can be relaxed but good to see)
