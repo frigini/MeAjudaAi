@@ -26,8 +26,7 @@
     </PackageReference>
     <PackageReference Include="Dapper" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="xunit" Condition="'$(UseXUnitV3)' != 'true'" />
-    <PackageReference Include="xunit.v3" Condition="'$(UseXUnitV3)' == 'true'" />
+    <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -38,7 +37,6 @@
     <!-- Geração de Dados para Teste -->
     <PackageReference Include="Bogus" />
     <PackageReference Include="AutoFixture" />
-    <PackageReference Include="AutoFixture.Xunit2" />
     <PackageReference Include="AutoFixture.AutoMoq" />
     
     <!-- Testes de Banco de Dados -->

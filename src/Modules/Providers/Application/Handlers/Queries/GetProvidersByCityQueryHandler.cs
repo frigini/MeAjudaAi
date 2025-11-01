@@ -35,7 +35,7 @@ internal sealed class GetProvidersByCityQueryHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting providers by city {City}", query.City);
-            return Result<IReadOnlyList<ProviderDto>>.Failure($"Error getting providers: {ex.Message}");
+            return Result<IReadOnlyList<ProviderDto>>.Failure("An error occurred while retrieving providers");
         }
     }
 }

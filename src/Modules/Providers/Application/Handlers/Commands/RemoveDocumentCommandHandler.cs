@@ -47,7 +47,7 @@ internal sealed class RemoveDocumentCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error removing document from provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure($"Error removing document: {ex.Message}");
+            return Result<ProviderDto>.Failure("An error occurred while removing the document");
         }
     }
 }

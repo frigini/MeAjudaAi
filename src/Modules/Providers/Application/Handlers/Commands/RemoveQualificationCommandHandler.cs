@@ -47,7 +47,7 @@ internal sealed class RemoveQualificationCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error removing qualification from provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure($"Error removing qualification: {ex.Message}");
+            return Result<ProviderDto>.Failure("An error occurred while removing the qualification");
         }
     }
 }

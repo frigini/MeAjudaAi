@@ -112,6 +112,9 @@ public static class ProviderMapper
     /// </summary>
     public static BusinessProfile ToDomain(this BusinessProfileDto dto)
     {
+        ArgumentNullException.ThrowIfNull(dto.ContactInfo);
+        ArgumentNullException.ThrowIfNull(dto.PrimaryAddress);
+
         return new BusinessProfile(
             dto.LegalName,
             new ContactInfo(dto.ContactInfo.Email, dto.ContactInfo.PhoneNumber, dto.ContactInfo.Website),

@@ -100,6 +100,9 @@ public class UpdateVerificationStatusEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
+        if (request is null)
+            return Results.BadRequest("Request body is required");
+
         var command = request.ToCommand(id);
         var result = await commandDispatcher.SendAsync<UpdateVerificationStatusCommand, Result<ProviderDto>>(
             command, cancellationToken);

@@ -32,8 +32,7 @@
     <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="xunit" Condition="'$(UseXUnitV3)' != 'true'" />
-    <PackageReference Include="xunit.v3" Condition="'$(UseXUnitV3)' == 'true'" />
+    <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -57,6 +56,10 @@
     <ProjectReference Include="..\..\src\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Users\Application\MeAjudaAi.Modules.Users.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Users\Tests\MeAjudaAi.Modules.Users.Tests.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Providers\Domain\MeAjudaAi.Modules.Providers.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Providers\Infrastructure\MeAjudaAi.Modules.Providers.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Providers\Application\MeAjudaAi.Modules.Providers.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Providers\API\MeAjudaAi.Modules.Providers.API.csproj" />
     <ProjectReference Include="..\..\src\Shared\MeAjudaAi.Shared.csproj" />
     <ProjectReference Include="..\MeAjudaAi.Shared.Tests\MeAjudaAi.Shared.Tests.csproj" />
   </ItemGroup>

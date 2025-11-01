@@ -6,6 +6,11 @@ namespace MeAjudaAi.Shared.Contracts.Modules.Providers;
 public enum EProviderType
 {
     /// <summary>
+    /// Valor padrão - nenhum tipo definido
+    /// </summary>
+    None = 0,
+
+    /// <summary>
     /// Prestador individual
     /// </summary>
     Individual = 1,

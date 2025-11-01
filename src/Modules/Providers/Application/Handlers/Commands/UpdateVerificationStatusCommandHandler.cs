@@ -38,7 +38,7 @@ internal sealed class UpdateVerificationStatusCommandHandler(
                 return Result<ProviderDto>.Failure("Provider not found");
             }
 
-            provider.UpdateVerificationStatus(command.Status);
+            provider.UpdateVerificationStatus(command.Status, command.UpdatedBy);
 
             await providerRepository.UpdateAsync(provider, cancellationToken);
 
@@ -48,7 +48,7 @@ internal sealed class UpdateVerificationStatusCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error updating verification status for provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure($"Error updating verification status: {ex.Message}");
+            return Result<ProviderDto>.Failure("An error occurred while updating the verification status");
         }
     }
 }

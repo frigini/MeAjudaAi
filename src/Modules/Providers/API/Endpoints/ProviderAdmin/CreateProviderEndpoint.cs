@@ -81,10 +81,16 @@ public class CreateProviderEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
+        if (request is null)
+            return Results.BadRequest("Request body is required");
+
         var command = request.ToCommand();
         var result = await commandDispatcher.SendAsync<CreateProviderCommand, Result<ProviderDto>>(
             command, cancellationToken);
 
-        return Handle(result, "GetProviderById", new { id = result.Value?.Id });
+        if (!result.IsSuccess)
+            return Handle(result);
+
+        return Handle(result, "GetProviderById", new { id = result.Value.Id });
     }
 }

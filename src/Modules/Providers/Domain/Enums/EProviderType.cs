@@ -5,6 +5,11 @@ namespace MeAjudaAi.Modules.Providers.Domain.Enums;
 /// </summary>
 public enum EProviderType
 {
+    /// <summary>
+    /// Tipo não definido
+    /// </summary>
+    None = 0,
+
     Individual = 1,
     Company = 2
 }

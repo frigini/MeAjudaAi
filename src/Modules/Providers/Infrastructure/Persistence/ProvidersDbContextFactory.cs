@@ -21,9 +21,17 @@ public class ProvidersDbContextFactory : IDesignTimeDbContextFactory<ProvidersDb
 
         var optionsBuilder = new DbContextOptionsBuilder<ProvidersDbContext>();
 
-        // Connection string padrão para desenvolvimento/migrações
-        var connectionString = configuration.GetConnectionString("DefaultConnection") 
-            ?? "Host=localhost;Database=MeAjudaAi;Username=postgres;Password=development123;Search Path=providers,public";
+        // Get connection string from secure configuration only
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "Database connection string 'DefaultConnection' is not configured. " +
+                "Please set the connection string in appsettings.json, environment variables, " +
+                "or a secure configuration store. For development, ensure appsettings.Development.json " +
+                "contains the proper connection string.");
+        }
 
         optionsBuilder.UseNpgsql(connectionString, options =>
         {

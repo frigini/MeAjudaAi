@@ -141,6 +141,11 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                 .HasMaxLength(20)
                 .IsRequired()
                 .HasColumnName("document_type");
+
+            doc.HasKey("ProviderId", "Id");
+            doc.ToTable("Document", "providers");
+            doc.WithOwner().HasForeignKey("ProviderId");
+            doc.HasIndex("ProviderId", "DocumentType").IsUnique();
         });
 
         // Configuração das qualificações como owned entities

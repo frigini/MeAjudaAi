@@ -35,7 +35,7 @@ internal sealed class GetProvidersByIdsQueryHandler(
         {
             logger.LogError(ex, "Error retrieving providers by IDs: {ProviderIds}", 
                 string.Join(", ", query.ProviderIds));
-            return Result<IReadOnlyList<ProviderDto>>.Failure($"Error getting providers by IDs: {ex.Message}");
+            return Result<IReadOnlyList<ProviderDto>>.Failure("An error occurred while retrieving providers");
         }
     }
 }

@@ -96,6 +96,9 @@ public class AddDocumentEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
+        if (request is null)
+            return Results.BadRequest("Request body is required");
+
         var command = request.ToCommand(id);
         var result = await commandDispatcher.SendAsync<AddDocumentCommand, Result<ProviderDto>>(
             command, cancellationToken);

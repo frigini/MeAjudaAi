@@ -146,6 +146,11 @@ public sealed class EnvironmentMetadata
 public enum EFailureType
 {
     /// <summary>
+    /// Tipo não definido
+    /// </summary>
+    None = 0,
+
+    /// <summary>
     /// Falha temporária (rede, timeout, etc.) - retry recomendado
     /// </summary>
     Transient,

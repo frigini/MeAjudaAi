@@ -1,9 +1,6 @@
 using FluentValidation;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
-<<<<<<< HEAD
-=======
 using MeAjudaAi.Shared.Constants;
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
 
 namespace MeAjudaAi.Modules.Users.Application.Validators;
 
@@ -16,31 +13,6 @@ public class UpdateUserProfileRequestValidator : AbstractValidator<UpdateUserPro
     {
         RuleFor(x => x.FirstName)
             .NotEmpty()
-<<<<<<< HEAD
-            .WithMessage("Nome é obrigatório")
-            .Length(2, 100)
-            .WithMessage("Nome deve ter entre 2 e 100 caracteres")
-            .Matches("^[a-zA-ZÀ-ÿ\\s]+$")
-            .WithMessage("Nome deve conter apenas letras e espaços");
-
-        RuleFor(x => x.LastName)
-            .NotEmpty()
-            .WithMessage("Sobrenome é obrigatório")
-            .Length(2, 100)
-            .WithMessage("Sobrenome deve ter entre 2 e 100 caracteres")
-            .Matches("^[a-zA-ZÀ-ÿ\\s]+$")
-            .WithMessage("Sobrenome deve conter apenas letras e espaços");
-
-        RuleFor(x => x.Email)
-            .NotEmpty()
-            .WithMessage("Email é obrigatório")
-            .EmailAddress()
-            .WithMessage("Email deve ter um formato válido")
-            .MaximumLength(255)
-            .WithMessage("Email não pode ter mais de 255 caracteres");
-    }
-}
-=======
             .WithMessage(ValidationMessages.Required.FirstName);
 
         RuleFor(x => x.FirstName)
@@ -76,4 +48,3 @@ public class UpdateUserProfileRequestValidator : AbstractValidator<UpdateUserPro
             .WithMessage(ValidationMessages.Length.EmailTooLong);
     }
 }
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921

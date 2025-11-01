@@ -100,16 +100,16 @@ public abstract class ProvidersIntegrationTestBase : IntegrationTestBase
         try
         {
             // Ordem importante devido aos foreign keys
-            await dbContext.Database.ExecuteSqlAsync($"DELETE FROM providers.\"Qualification\";");
-            await dbContext.Database.ExecuteSqlAsync($"DELETE FROM providers.\"Document\";");  
-            await dbContext.Database.ExecuteSqlAsync($"DELETE FROM providers.providers;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.\"Qualification\";");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.\"Document\";");  
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
         }
         catch (Exception)
         {
             // Se DELETE falhar, tentar TRUNCATE com cascata
             try
             {
-                await dbContext.Database.ExecuteSqlAsync($"TRUNCATE TABLE providers.\"Qualification\", providers.\"Document\", providers.providers RESTART IDENTITY CASCADE;");
+                await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE providers.\"Qualification\", providers.\"Document\", providers.providers RESTART IDENTITY CASCADE;");
             }
             catch
             {

@@ -43,7 +43,7 @@ internal sealed class UpdateProviderProfileCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error updating provider profile {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure($"Error updating provider profile: {ex.Message}");
+            return Result<ProviderDto>.Failure("Error updating provider profile. Please try again later.");
         }
     }
 }

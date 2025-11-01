@@ -1,9 +1,6 @@
 using FluentValidation;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
-<<<<<<< HEAD
-=======
 using MeAjudaAi.Shared.Constants;
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
 using MeAjudaAi.Shared.Security;
 
 namespace MeAjudaAi.Modules.Users.Application.Validators;
@@ -17,22 +14,6 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
     {
         RuleFor(x => x.Username)
             .NotEmpty()
-<<<<<<< HEAD
-            .WithMessage("Username is required")
-            .Length(3, 50)
-            .WithMessage("Username must be between 3 and 50 characters")
-            .Matches("^[a-zA-Z0-9._-]+$")
-            .WithMessage("Username must contain only letters, numbers, dots, hyphens or underscores");
-
-        RuleFor(x => x.Email)
-            .NotEmpty()
-            .WithMessage("Email is required")
-            .EmailAddress()
-            .WithMessage("Email must have a valid format")
-            .MaximumLength(255)
-            .WithMessage("Email cannot exceed 255 characters");
-
-=======
             .WithMessage(ValidationMessages.Required.Username);
 
         RuleFor(x => x.Username)
@@ -97,7 +78,6 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .When(x => !string.IsNullOrWhiteSpace(x.LastName));
 
         // Manter validação de password original (não está nas constantes)
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
         RuleFor(x => x.Password)
             .NotEmpty()
             .WithMessage("Password is required")
@@ -106,25 +86,6 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)")
             .WithMessage("Password must contain at least one lowercase letter, one uppercase letter and one number");
 
-<<<<<<< HEAD
-        RuleFor(x => x.FirstName)
-            .NotEmpty()
-            .WithMessage("First name is required")
-            .Length(2, 100)
-            .WithMessage("First name must be between 2 and 100 characters")
-            .Matches("^[a-zA-ZÀ-ÿ\\s]+$")
-            .WithMessage("First name must contain only letters and spaces");
-
-        RuleFor(x => x.LastName)
-            .NotEmpty()
-            .WithMessage("Last name is required")
-            .Length(2, 100)
-            .WithMessage("Last name must be between 2 and 100 characters")
-            .Matches("^[a-zA-ZÀ-ÿ\\s]+$")
-            .WithMessage("Last name must contain only letters and spaces");
-
-=======
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
         When(x => x.Roles != null, () =>
         {
             RuleForEach(x => x.Roles)
@@ -134,8 +95,4 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
                 .WithMessage($"Invalid role. Valid roles: {string.Join(", ", UserRoles.BasicRoles)}");
         });
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921

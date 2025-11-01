@@ -65,7 +65,7 @@ internal sealed class CreateProviderCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error creating provider for user {UserId}", command.UserId);
-            return Result<ProviderDto>.Failure($"Error creating provider: {ex.Message}");
+            return Result<ProviderDto>.Failure("An error occurred while creating the provider");
         }
     }
 }

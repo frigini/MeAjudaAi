@@ -48,7 +48,7 @@ internal sealed class AddDocumentCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error adding document to provider {ProviderId}", command.ProviderId);
-            return Result<ProviderDto>.Failure($"Error adding document: {ex.Message}");
+            return Result<ProviderDto>.Failure("An error occurred while adding the document");
         }
     }
 }

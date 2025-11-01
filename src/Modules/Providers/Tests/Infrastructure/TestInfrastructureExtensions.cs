@@ -116,15 +116,22 @@ internal class TestCacheService : MeAjudaAi.Shared.Caching.ICacheService
         return Task.CompletedTask;
     }
 
-    public Task<T> GetOrCreateAsync<T>(string key, Func<CancellationToken, ValueTask<T>> factory, TimeSpan? expiration = null, Microsoft.Extensions.Caching.Hybrid.HybridCacheEntryOptions? options = null, IReadOnlyCollection<string>? tags = null, CancellationToken cancellationToken = default)
+    public async Task<T> GetOrCreateAsync<T>(string key, Func<CancellationToken, ValueTask<T>> factory, TimeSpan? expiration = null, Microsoft.Extensions.Caching.Hybrid.HybridCacheEntryOptions? options = null, IReadOnlyCollection<string>? tags = null, CancellationToken cancellationToken = default)
     {
         if (_cache.TryGetValue(key, out var existingValue))
         {
-            return Task.FromResult((T)existingValue);
+            return (T)existingValue;
         }
 
-        var newValue = factory(cancellationToken).AsTask().Result;
+        var newValue = await factory(cancellationToken).AsTask();
         _cache[key] = newValue!;
-        return Task.FromResult(newValue);
+        return newValue;
+    }
+
+    public Task RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
+    {
+        // Para testes, removemos todas as chaves (implementação simplificada)
+        _cache.Clear();
+        return Task.CompletedTask;
     }
 }

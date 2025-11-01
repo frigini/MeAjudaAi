@@ -2,7 +2,6 @@ using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Shared.Tests.Auth;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Xunit.Abstractions;
 
 namespace MeAjudaAi.Integration.Tests.Providers;
 

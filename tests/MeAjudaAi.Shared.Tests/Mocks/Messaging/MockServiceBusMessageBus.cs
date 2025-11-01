@@ -194,6 +194,7 @@ public class MockServiceBusMessageBus : IMessageBus
 /// </summary>
 public enum MessageType
 {
+    None = 0,
     Send,
     Publish
 }

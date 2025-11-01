@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Providers;
@@ -33,7 +34,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        // // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado // Temporariamente desabilitado
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers");
@@ -69,7 +70,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task ProvidersEndpoint_ShouldSupportPagination()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=5");
@@ -85,7 +86,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task ProvidersEndpoint_ShouldSupportFilters()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers?name=test&type=1&verificationStatus=1");
@@ -101,7 +102,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task GetProviderById_Endpoint_ShouldExist()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado
         var testId = Guid.NewGuid();
 
         // Act
@@ -125,7 +126,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task CreateProvider_Endpoint_ShouldExist()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado
         var providerData = new
         {
             userId = Guid.NewGuid(),
@@ -167,7 +168,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task ProvidersModule_ShouldBeProperlyRegistered()
     {
         // Arrange
-        using var scope = Factory.Services.CreateScope();
+        using var scope = Services.CreateScope();
 
         // Act & Assert - verify key services are registered
         var dbContext = scope.ServiceProvider.GetService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>();

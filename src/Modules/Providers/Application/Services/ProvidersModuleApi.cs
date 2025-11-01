@@ -1,8 +1,8 @@
+using MeAjudaAi.Modules.Providers.Application.Contracts;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Contracts.Modules;
-using MeAjudaAi.Shared.Contracts.Modules.Providers;
-using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +24,7 @@ public sealed class ProvidersModuleApi(
     IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByTypeHandler,
     IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByVerificationStatusHandler,
     IServiceProvider serviceProvider,
-    ILogger<ProvidersModuleApi> logger) : IProvidersModuleApi, IModuleApi
+    ILogger<ProvidersModuleApi> logger) : IProvidersModuleApi
 {
     public string ModuleName => "Providers";
     public string ApiVersion => "1.0";
@@ -99,18 +99,36 @@ public sealed class ProvidersModuleApi(
         }
     }
 
-    public async Task<Result<ModuleProviderDto?>> GetProviderByIdAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<Result<ModuleProviderDto>> GetProviderByIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         var query = new GetProviderByIdQuery(providerId);
         var result = await getProviderByIdHandler.HandleAsync(query, cancellationToken);
 
         return result.Match(
             onSuccess: providerDto => providerDto == null
-                ? Result<ModuleProviderDto?>.Success(null)
-                : Result<ModuleProviderDto?>.Success(MapToModuleDto(providerDto)),
-            onFailure: error => error.StatusCode == 404
-                ? Result<ModuleProviderDto?>.Success(null)  // NotFound -> Success(null)
-                : Result<ModuleProviderDto?>.Failure(error) // Outros erros propagam
+                ? Result<ModuleProviderDto>.Failure(Error.NotFound($"Provider with ID '{providerId}' was not found"))
+                : Result<ModuleProviderDto>.Success(MapToModuleDto(providerDto)),
+            onFailure: error => Result<ModuleProviderDto>.Failure(error)
+        );
+    }
+
+    public async Task<Result<ModuleProviderDto>> GetProviderByDocumentAsync(string document, CancellationToken cancellationToken = default)
+    {
+        // Implementação temporária - seria necessário criar GetProviderByDocumentQuery
+        // Por enquanto, retorna NotFound
+        await Task.CompletedTask;
+        return Result<ModuleProviderDto>.Failure(Error.NotFound($"Provider with document '{document}' was not found"));
+    }
+
+    public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersBasicInfoAsync(IEnumerable<Guid> providerIds, CancellationToken cancellationToken = default)
+    {
+        var batchQuery = new GetProvidersByIdsQuery(providerIds.ToList());
+        var result = await getProvidersByIdsHandler.HandleAsync(batchQuery, cancellationToken);
+
+        return result.Match(
+            onSuccess: providerDtos => Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(
+                providerDtos.Select(MapToModuleBasicDto).ToList()),
+            onFailure: error => Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(error)
         );
     }
 
@@ -148,7 +166,7 @@ public sealed class ProvidersModuleApi(
         var result = await GetProviderByIdAsync(providerId, cancellationToken);
         return result.Match(
             onSuccess: provider => Result<bool>.Success(provider != null),
-            onFailure: _ => Result<bool>.Success(false) // Em caso de erro, assume que não existe
+            onFailure: error => Result<bool>.Failure(error)
         );
     }
 
@@ -157,7 +175,7 @@ public sealed class ProvidersModuleApi(
         var result = await GetProviderByUserIdAsync(userId, cancellationToken);
         return result.Match(
             onSuccess: provider => Result<bool>.Success(provider != null),
-            onFailure: _ => Result<bool>.Success(false) // Em caso de erro, assume que não é provider
+            onFailure: error => Result<bool>.Failure(error)
         );
     }
 
@@ -226,25 +244,19 @@ public sealed class ProvidersModuleApi(
     /// </summary>
     private static ModuleProviderDto MapToModuleDto(ProviderDto providerDto)
     {
-        return new ModuleProviderDto(
-            providerDto.Id,
-            providerDto.UserId,
-            providerDto.Name,
-            (EProviderType)(int)providerDto.Type,
-            (EVerificationStatus)(int)providerDto.VerificationStatus,
-            new ModuleProviderContactDto(
-                providerDto.BusinessProfile.ContactInfo.Email,
-                providerDto.BusinessProfile.ContactInfo.PhoneNumber,
-                providerDto.BusinessProfile.ContactInfo.Website
-            ),
-            new ModuleProviderLocationDto(
-                providerDto.BusinessProfile.PrimaryAddress.City,
-                providerDto.BusinessProfile.PrimaryAddress.State,
-                providerDto.BusinessProfile.PrimaryAddress.Country
-            ),
-            providerDto.CreatedAt,
-            !providerDto.IsDeleted
-        );
+        return new ModuleProviderDto
+        {
+            Id = providerDto.Id,
+            Name = providerDto.Name,
+            Email = providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
+            Document = providerDto.Documents?.FirstOrDefault()?.Number ?? string.Empty,
+            Phone = providerDto.BusinessProfile?.ContactInfo?.PhoneNumber,
+            ProviderType = (EProviderType)(int)providerDto.Type,
+            VerificationStatus = (EVerificationStatus)(int)providerDto.VerificationStatus,
+            CreatedAt = providerDto.CreatedAt,
+            UpdatedAt = providerDto.UpdatedAt ?? providerDto.CreatedAt,
+            IsActive = !providerDto.IsDeleted
+        };
     }
 
     /// <summary>
@@ -252,12 +264,14 @@ public sealed class ProvidersModuleApi(
     /// </summary>
     private static ModuleProviderBasicDto MapToModuleBasicDto(ProviderDto providerDto)
     {
-        return new ModuleProviderBasicDto(
-            providerDto.Id,
-            providerDto.UserId,
-            providerDto.Name,
-            (EProviderType)(int)providerDto.Type,
-            !providerDto.IsDeleted
-        );
+        return new ModuleProviderBasicDto
+        {
+            Id = providerDto.Id,
+            Name = providerDto.Name,
+            Email = providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
+            ProviderType = (EProviderType)(int)providerDto.Type,
+            VerificationStatus = (EVerificationStatus)(int)providerDto.VerificationStatus,
+            IsActive = !providerDto.IsDeleted
+        };
     }
 }

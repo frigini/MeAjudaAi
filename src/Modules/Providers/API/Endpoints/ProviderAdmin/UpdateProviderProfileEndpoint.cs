@@ -93,6 +93,9 @@ public class UpdateProviderProfileEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
+        if (request is null)
+            return Results.BadRequest("Request body is required");
+
         var command = request.ToCommand(id);
         var result = await commandDispatcher.SendAsync<UpdateProviderProfileCommand, Result<ProviderDto>>(
             command, cancellationToken);

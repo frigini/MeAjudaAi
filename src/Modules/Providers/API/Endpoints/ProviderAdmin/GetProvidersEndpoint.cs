@@ -78,10 +78,10 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
     {
         // Validação básica de parâmetros
         if (page < 1)
-            return Results.BadRequest("Page must be greater than 0");
+            return TypedResults.Problem(detail: "Page must be greater than 0", statusCode: StatusCodes.Status400BadRequest);
 
         if (pageSize < 1 || pageSize > 100)
-            return Results.BadRequest("PageSize must be between 1 and 100");
+            return TypedResults.Problem(detail: "PageSize must be between 1 and 100", statusCode: StatusCodes.Status400BadRequest);
 
         // Cria query com filtros
         var query = new GetProvidersQuery(

@@ -284,33 +284,14 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// <summary>
     /// Exclui logicamente o prestador de serviços do sistema.
     /// </summary>
-    /// <param name="deletedBy">Quem está fazendo a exclusão</param>
-    public void Delete(string? deletedBy = null)
-    {
-        if (IsDeleted)
-            throw new ProviderDomainException("Provider is already deleted");
-
-        IsDeleted = true;
-        DeletedAt = DateTime.UtcNow;
-        MarkAsUpdated();
-
-        AddDomainEvent(new ProviderDeletedDomainEvent(
-            Id.Value,
-            1,
-            Name,
-            deletedBy));
-    }
-
-    /// <summary>
-    /// Marca o prestador de serviços como excluído logicamente.
-    /// </summary>
     /// <param name="dateTimeProvider">Provedor de data/hora para auditoria</param>
+    /// <param name="deletedBy">Quem está fazendo a exclusão</param>
     /// <remarks>
     /// Implementa exclusão lógica (soft delete) em vez de remoção física dos dados.
     /// Dispara o evento ProviderDeletedDomainEvent quando a exclusão é realizada.
     /// Se o prestador já estiver excluído, o método retorna sem fazer alterações.
     /// </remarks>
-    public void MarkAsDeleted(IDateTimeProvider dateTimeProvider)
+    public void Delete(IDateTimeProvider dateTimeProvider, string? deletedBy = null)
     {
         if (IsDeleted)
             return;
@@ -319,7 +300,11 @@ public sealed class Provider : AggregateRoot<ProviderId>
         DeletedAt = dateTimeProvider.CurrentDate();
         MarkAsUpdated();
 
-        AddDomainEvent(new ProviderDeletedDomainEvent(Id.Value, 1, Name, null));
+        AddDomainEvent(new ProviderDeletedDomainEvent(
+            Id.Value,
+            1,
+            Name,
+            deletedBy));
     }
 
     /// <summary>

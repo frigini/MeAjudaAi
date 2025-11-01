@@ -41,7 +41,7 @@ internal sealed class GetProviderByUserIdQueryHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting provider by user ID {UserId}", query.UserId);
-            return Result<ProviderDto?>.Failure($"Error getting provider: {ex.Message}");
+            return Result<ProviderDto?>.Failure("Error getting provider");
         }
     }
 }

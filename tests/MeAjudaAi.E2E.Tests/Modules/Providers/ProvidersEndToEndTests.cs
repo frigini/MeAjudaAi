@@ -1,6 +1,5 @@
 using MeAjudaAi.E2E.Tests.Base;
 using System.Text.Json;
-using Xunit.Abstractions;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 

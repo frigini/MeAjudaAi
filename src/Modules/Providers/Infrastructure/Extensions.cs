@@ -25,6 +25,13 @@ public static class Extensions
         services.AddDbContext<ProvidersDbContext>(options =>
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "Connection string 'DefaultConnection' not found in configuration. " +
+                    "Please ensure the connection string is properly configured in appsettings.json or environment variables.");
+            }
+
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(typeof(ProvidersDbContext).Assembly.FullName);

@@ -17,6 +17,12 @@ internal sealed class GetProvidersByStateQueryHandler(
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(query.State))
+            {
+                logger.LogWarning("Invalid state parameter: state cannot be null or empty");
+                return Result<IReadOnlyList<ProviderDto>>.Failure("State parameter is required");
+            }
+
             logger.LogInformation("Getting providers by state {State}", query.State);
             var providers = await providerRepository.GetByStateAsync(query.State, cancellationToken);
             logger.LogInformation("Found {Count} providers in state {State}", providers.Count, query.State);
@@ -25,7 +31,7 @@ internal sealed class GetProvidersByStateQueryHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting providers by state {State}", query.State);
-            return Result<IReadOnlyList<ProviderDto>>.Failure($"Error getting providers: {ex.Message}");
+            return Result<IReadOnlyList<ProviderDto>>.Failure("An error occurred while retrieving providers");
         }
     }
 }

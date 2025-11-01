@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
+using MeAjudaAi.Modules.Providers.Application.Mappers;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Services;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
@@ -49,50 +50,8 @@ public class GetProvidersQueryHandler(
                 verificationStatusFilter: query.VerificationStatus.HasValue ? (EVerificationStatus)query.VerificationStatus.Value : null,
                 cancellationToken: cancellationToken);
 
-            // Converte para DTOs
-            var providerDtos = providers.Items.Select(provider => new ProviderDto(
-                Id: provider.Id.Value,
-                UserId: provider.UserId,
-                Name: provider.Name,
-                Type: provider.Type,
-                BusinessProfile: new BusinessProfileDto(
-                    LegalName: provider.BusinessProfile.LegalName,
-                    FantasyName: provider.BusinessProfile.FantasyName,
-                    Description: provider.BusinessProfile.Description,
-                    ContactInfo: new ContactInfoDto(
-                        Email: provider.BusinessProfile.ContactInfo.Email,
-                        PhoneNumber: provider.BusinessProfile.ContactInfo.PhoneNumber,
-                        Website: provider.BusinessProfile.ContactInfo.Website
-                    ),
-                    PrimaryAddress: new AddressDto(
-                        Street: provider.BusinessProfile.PrimaryAddress.Street,
-                        Number: provider.BusinessProfile.PrimaryAddress.Number,
-                        Complement: provider.BusinessProfile.PrimaryAddress.Complement,
-                        Neighborhood: provider.BusinessProfile.PrimaryAddress.Neighborhood,
-                        City: provider.BusinessProfile.PrimaryAddress.City,
-                        State: provider.BusinessProfile.PrimaryAddress.State,
-                        ZipCode: provider.BusinessProfile.PrimaryAddress.ZipCode,
-                        Country: provider.BusinessProfile.PrimaryAddress.Country
-                    )
-                ),
-                VerificationStatus: provider.VerificationStatus,
-                Documents: provider.Documents.Select(d => new DocumentDto(
-                    Number: d.Number,
-                    DocumentType: d.DocumentType
-                )).ToList(),
-                Qualifications: provider.Qualifications.Select(q => new QualificationDto(
-                    Name: q.Name,
-                    Description: q.Description,
-                    IssuingOrganization: q.IssuingOrganization,
-                    IssueDate: q.IssueDate,
-                    ExpirationDate: q.ExpirationDate,
-                    DocumentNumber: q.DocumentNumber
-                )).ToList(),
-                CreatedAt: provider.CreatedAt,
-                UpdatedAt: provider.UpdatedAt,
-                IsDeleted: provider.IsDeleted,
-                DeletedAt: provider.DeletedAt
-            )).ToList();
+            // Converte para DTOs usando o mapper existente
+            var providerDtos = providers.Items.Select(ProviderMapper.ToDto).ToList();
 
             var result = new PagedResult<ProviderDto>(
                 providerDtos,

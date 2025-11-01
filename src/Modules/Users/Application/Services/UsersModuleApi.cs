@@ -5,12 +5,9 @@ using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
-<<<<<<< HEAD
-=======
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
 
 namespace MeAjudaAi.Modules.Users.Application.Services;
 
@@ -18,20 +15,6 @@ namespace MeAjudaAi.Modules.Users.Application.Services;
 /// Implementação da API pública do módulo Users para outros módulos
 /// </summary>
 [ModuleApi("Users", "1.0")]
-<<<<<<< HEAD
-public sealed class UsersModuleApi(
-    IQueryHandler<GetUserByIdQuery, Result<UserDto>> getUserByIdHandler,
-    IQueryHandler<GetUserByEmailQuery, Result<UserDto>> getUserByEmailHandler,
-    IQueryHandler<GetUserByUsernameQuery, Result<UserDto>> getUserByUsernameHandler) : IUsersModuleApi, IModuleApi
-{
-    public string ModuleName => "Users";
-    public string ApiVersion => "1.0";
-
-    public Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
-    {
-        // Verifica se o módulo Users está funcionando
-        return Task.FromResult(true); // Por enquanto sempre true, pode incluir health checks
-=======
 public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
 {
     private readonly IQueryHandler<GetUserByIdQuery, Result<UserDto>> _getUserByIdHandler;
@@ -145,17 +128,12 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
             _logger.LogWarning(ex, "Basic operations test failed for Users module");
             return false;
         }
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
     }
 
     public async Task<Result<ModuleUserDto?>> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var query = new GetUserByIdQuery(userId);
-<<<<<<< HEAD
-        var result = await getUserByIdHandler.HandleAsync(query, cancellationToken);
-=======
         var result = await _getUserByIdHandler.HandleAsync(query, cancellationToken);
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
 
         return result.Match(
             onSuccess: userDto => userDto == null
@@ -176,11 +154,7 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
     public async Task<Result<ModuleUserDto?>> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         var query = new GetUserByEmailQuery(email);
-<<<<<<< HEAD
-        var result = await getUserByEmailHandler.HandleAsync(query, cancellationToken);
-=======
         var result = await _getUserByEmailHandler.HandleAsync(query, cancellationToken);
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
 
         return result.Match(
             onSuccess: userDto => userDto == null
@@ -202,22 +176,6 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
         IReadOnlyList<Guid> userIds,
         CancellationToken cancellationToken = default)
     {
-<<<<<<< HEAD
-        var users = new List<ModuleUserBasicDto>();
-
-        // Para cada ID, busca o usuário (otimização futura: query batch)
-        foreach (var userId in userIds)
-        {
-            var userResult = await GetUserByIdAsync(userId, cancellationToken);
-            if (userResult.IsSuccess && userResult.Value != null)
-            {
-                var user = userResult.Value;
-                users.Add(new ModuleUserBasicDto(user.Id, user.Username, user.Email, true));
-            }
-        }
-
-        return Result<IReadOnlyList<ModuleUserBasicDto>>.Success(users);
-=======
         // Usar query batch em vez de N queries individuais
         var batchQuery = new GetUsersByIdsQuery(userIds);
         var result = await _getUsersByIdsHandler.HandleAsync(batchQuery, cancellationToken);
@@ -227,7 +185,6 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
                 userDtos.Select(user => new ModuleUserBasicDto(user.Id, user.Username, user.Email, true)).ToList()),
             onFailure: error => Result<IReadOnlyList<ModuleUserBasicDto>>.Failure(error)
         );
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
     }
 
     public async Task<Result<bool>> UserExistsAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -251,18 +208,10 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
     public async Task<Result<bool>> UsernameExistsAsync(string username, CancellationToken cancellationToken = default)
     {
         var query = new GetUserByUsernameQuery(username);
-<<<<<<< HEAD
-        var result = await getUserByUsernameHandler.HandleAsync(query, cancellationToken);
-=======
         var result = await _getUserByUsernameHandler.HandleAsync(query, cancellationToken);
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921
 
         return result.IsSuccess
             ? Result<bool>.Success(true)  // Usuário encontrado = username existe
             : Result<bool>.Success(false); // Usuário não encontrado = username não existe
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 44e76d9c34933851c9d11d302fe61ae4d8806921

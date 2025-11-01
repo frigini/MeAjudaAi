@@ -24,6 +24,10 @@ public class ProviderId : ValueObject
         yield return Value;
     }
 
-    public static implicit operator Guid(ProviderId providerId) => providerId.Value;
+    public static implicit operator Guid(ProviderId providerId)
+    {
+        ArgumentNullException.ThrowIfNull(providerId);
+        return providerId.Value;
+    }
     public static implicit operator ProviderId(Guid guid) => new(guid);
 }

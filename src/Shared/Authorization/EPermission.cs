@@ -9,6 +9,12 @@ namespace MeAjudaAi.Shared.Authorization;
 /// </summary>
 public enum EPermission
 {
+    /// <summary>
+    /// Permissão não definida
+    /// </summary>
+    [Display(Name = "none")]
+    None = 0,
+
     // ===== SISTEMA - GLOBAL =====
     [Display(Name = "system:read")]
     SystemRead,

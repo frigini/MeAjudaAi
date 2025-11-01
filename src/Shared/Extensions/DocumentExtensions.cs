@@ -1,9 +1,11 @@
 using System.Text.RegularExpressions;
 
+using System.Security.Cryptography;
+
 namespace MeAjudaAi.Shared.Extensions;
 
 /// <summary>
-/// Extensões para validação de documentos brasileiros.
+/// Extensões para validação e manipulação de documentos brasileiros
 /// </summary>
 public static class DocumentExtensions
 {
@@ -102,13 +104,16 @@ public static class DocumentExtensions
     /// </summary>
     private static string GenerateValidDocument(int baseLength, int[] firstMultipliers, int[] secondMultipliers)
     {
-        var random = new Random();
+        var random = RandomNumberGenerator.Create();
         var document = new char[baseLength + 2];
 
         // Gera números aleatórios para os primeiros dígitos
         for (int i = 0; i < baseLength; i++)
         {
-            document[i] = random.Next(0, 10).ToString()[0];
+            var bytes = new byte[4];
+            random.GetBytes(bytes);
+            var randomNumber = Math.Abs(BitConverter.ToInt32(bytes, 0)) % 10;
+            document[i] = randomNumber.ToString()[0];
         }
 
         // Calcula o primeiro dígito verificador

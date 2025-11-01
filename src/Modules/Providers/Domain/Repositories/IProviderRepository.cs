@@ -49,9 +49,19 @@ public interface IProviderRepository
     /// <param name="id">Identificador do prestador a ser removido</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <remarks>
-    /// Esta operação realiza exclusão física. Para exclusão lógica, use o método MarkAsDeleted da entidade Provider.
+    /// Esta operação realiza exclusão física. Para exclusão lógica, use o método Delete da entidade Provider.
     /// </remarks>
     Task DeleteAsync(ProviderId id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Remove um prestador de serviços do repositório (exclusão física).
+    /// </summary>
+    /// <param name="provider">Prestador a ser removido</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <remarks>
+    /// Esta operação realiza exclusão física. Para exclusão lógica, use o método Delete da entidade Provider.
+    /// </remarks>
+    Task DeleteAsync(Provider provider, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Verifica se um prestador de serviços existe no repositório.
@@ -112,4 +122,14 @@ public interface IProviderRepository
     Task<IReadOnlyList<Provider>> GetByTypeAsync(
         EProviderType type, 
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Busca todos os prestadores de serviços ativos.
+    /// </summary>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Lista de todos os prestadores de serviços não deletados</returns>
+    /// <remarks>
+    /// Use com cuidado em produção - considere usar paginação para grandes volumes de dados.
+    /// </remarks>
+    Task<IReadOnlyList<Provider>> GetAllAsync(CancellationToken cancellationToken = default);
 }

@@ -38,7 +38,7 @@ internal sealed class DeleteProviderCommandHandler(
                 return Result.Failure("Provider not found");
             }
 
-            provider.MarkAsDeleted(dateTimeProvider);
+            provider.Delete(dateTimeProvider, command.DeletedBy);
             await providerRepository.UpdateAsync(provider, cancellationToken);
 
             logger.LogInformation("Provider {ProviderId} deleted successfully", command.ProviderId);
@@ -47,7 +47,7 @@ internal sealed class DeleteProviderCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error deleting provider {ProviderId}", command.ProviderId);
-            return Result.Failure($"Error deleting provider: {ex.Message}");
+            return Result.Failure("Error deleting provider");
         }
     }
 }

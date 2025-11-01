@@ -102,8 +102,10 @@ public class ProviderTests
         var type = EProviderType.Individual;
         var businessProfile = CreateValidBusinessProfile();
 
-        // Act & Assert
+        // Act & Assert - Testing that null name is rejected (intentional null)
+#pragma warning disable CS8604 // Possible null reference argument - This is intentional for testing
         var action = () => new Provider(userId, invalidName, type, businessProfile);
+#pragma warning restore CS8604
         action.Should().Throw<ProviderDomainException>()
             .WithMessage("Name cannot be empty");
     }
@@ -167,7 +169,7 @@ public class ProviderTests
         // Arrange
         var provider = CreateValidProvider();
         var dateTimeProvider = CreateMockDateTimeProvider();
-        provider.MarkAsDeleted(dateTimeProvider);
+        provider.Delete(dateTimeProvider);
         
         var newName = "Updated Name";
         var newBusinessProfile = CreateValidBusinessProfile();
@@ -313,7 +315,7 @@ public class ProviderTests
     }
 
     [Fact]
-    public void MarkAsDeleted_ShouldMarkProviderAsDeleted()
+    public void Delete_ShouldMarkProviderAsDeleted()
     {
         // Arrange
         var provider = CreateValidProvider();
@@ -321,7 +323,7 @@ public class ProviderTests
         var dateTimeProvider = CreateMockDateTimeProvider(fixedDate);
 
         // Act
-        provider.MarkAsDeleted(dateTimeProvider);
+        provider.Delete(dateTimeProvider);
 
         // Assert
         provider.IsDeleted.Should().BeTrue();
@@ -335,18 +337,18 @@ public class ProviderTests
     }
 
     [Fact]
-    public void MarkAsDeleted_WhenAlreadyDeleted_ShouldNotChangeState()
+    public void Delete_WhenAlreadyDeleted_ShouldNotChangeState()
     {
         // Arrange
         var provider = CreateValidProvider();
         var dateTimeProvider = CreateMockDateTimeProvider();
-        provider.MarkAsDeleted(dateTimeProvider);
+        provider.Delete(dateTimeProvider);
         
         var originalDeletedAt = provider.DeletedAt;
         var originalEventCount = provider.DomainEvents.Count;
 
         // Act
-        provider.MarkAsDeleted(dateTimeProvider);
+        provider.Delete(dateTimeProvider);
 
         // Assert
         provider.IsDeleted.Should().BeTrue();

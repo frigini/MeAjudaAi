@@ -50,6 +50,8 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
     public async Task GetProvidersAsync_WithTypeFilter_ShouldReturnOnlyMatchingType()
     {
         // Arrange
+        await CleanupDatabase();
+        
         var queryService = GetService<IProviderQueryService>();
         
         var businessProfile = CreateTestBusinessProfile("individual@test.com");

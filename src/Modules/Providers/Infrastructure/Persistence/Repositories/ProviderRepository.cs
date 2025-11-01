@@ -77,7 +77,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         return await context.Providers
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
-            .Where(p => !p.IsDeleted && p.BusinessProfile.PrimaryAddress.City.ToLower() == city.ToLower())
+            .Where(p => !p.IsDeleted && p.BusinessProfile.PrimaryAddress.City.Equals(city, StringComparison.OrdinalIgnoreCase))
             .ToListAsync(cancellationToken);
     }
 
@@ -89,7 +89,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         return await context.Providers
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
-            .Where(p => !p.IsDeleted && p.BusinessProfile.PrimaryAddress.State.ToLower() == state.ToLower())
+            .Where(p => !p.IsDeleted && p.BusinessProfile.PrimaryAddress.State.Equals(state, StringComparison.OrdinalIgnoreCase))
             .ToListAsync(cancellationToken);
     }
 
@@ -131,15 +131,6 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     }
 
     /// <summary>
-    /// Remove um prestador de serviços do repositório.
-    /// </summary>
-    public async Task DeleteAsync(Provider provider, CancellationToken cancellationToken = default)
-    {
-        context.Providers.Remove(provider);
-        await context.SaveChangesAsync(cancellationToken);
-    }
-
-    /// <summary>
     /// Busca todos os prestadores de serviços.
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -166,6 +157,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
             .Where(p => !p.IsDeleted)
+            .OrderBy(p => p.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
@@ -188,6 +180,15 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
             context.Providers.Remove(provider);
             await context.SaveChangesAsync(cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// Remove um prestador de serviços do repositório (exclusão física).
+    /// </summary>
+    public async Task DeleteAsync(Provider provider, CancellationToken cancellationToken = default)
+    {
+        context.Providers.Remove(provider);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>

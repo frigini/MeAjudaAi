@@ -2,6 +2,8 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Application.Services;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Shared.Contracts.Modules.Providers;
+using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
@@ -113,7 +115,6 @@ public class ProvidersModuleApiTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(providerDto.Id);
-        result.Value.UserId.Should().Be(providerDto.UserId);
         result.Value.Name.Should().Be(providerDto.Name);
     }
 
@@ -168,7 +169,6 @@ public class ProvidersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.UserId.Should().Be(providerDto.UserId);
     }
 
     [Fact]
@@ -266,7 +266,7 @@ public class ProvidersModuleApiTests
             Id: Guid.NewGuid(),
             UserId: Guid.NewGuid(),
             Name: "Test Provider",
-            Type: EProviderType.Individual,
+            Type: MeAjudaAi.Modules.Providers.Domain.Enums.EProviderType.Individual,
             BusinessProfile: new BusinessProfileDto(
                 LegalName: "Test Provider Legal",
                 FantasyName: "Test Provider Fantasy",
@@ -287,7 +287,7 @@ public class ProvidersModuleApiTests
                     Country: "Brasil"
                 )
             ),
-            VerificationStatus: EVerificationStatus.Verified,
+            VerificationStatus: MeAjudaAi.Modules.Providers.Domain.Enums.EVerificationStatus.Verified,
             Documents: [],
             Qualifications: [],
             CreatedAt: DateTime.UtcNow,

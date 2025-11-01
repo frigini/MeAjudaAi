@@ -6,6 +6,11 @@ namespace MeAjudaAi.Shared.Contracts.Modules.Providers;
 public enum EVerificationStatus
 {
     /// <summary>
+    /// Status não definido
+    /// </summary>
+    None = 0,
+
+    /// <summary>
     /// Pendente de verificação
     /// </summary>
     Pending = 1,

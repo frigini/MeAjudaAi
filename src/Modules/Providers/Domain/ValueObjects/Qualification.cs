@@ -52,8 +52,8 @@ public class Qualification : ValueObject
         yield return Name;
         yield return Description ?? string.Empty;
         yield return IssuingOrganization ?? string.Empty;
-        yield return IssueDate ?? DateTime.MinValue;
-        yield return ExpirationDate ?? DateTime.MinValue;
+        yield return (object?)IssueDate ?? typeof(DateTime?);
+        yield return (object?)ExpirationDate ?? typeof(DateTime?);
         yield return DocumentNumber ?? string.Empty;
     }
 
