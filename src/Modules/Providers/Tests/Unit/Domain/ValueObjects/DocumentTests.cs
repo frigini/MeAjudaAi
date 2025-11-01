@@ -27,7 +27,7 @@ public class DocumentTests
     public void Constructor_WithInvalidNumber_ShouldThrowArgumentException(string? invalidNumber)
     {
         // Act & Assert
-        var action = () => new Document(invalidNumber, EDocumentType.CPF);
+        var action = () => new Document(invalidNumber!, EDocumentType.CPF);
         action.Should().Throw<ArgumentException>()
             .WithMessage("Número do documento não pode ser vazio*");
     }

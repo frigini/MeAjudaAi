@@ -30,33 +30,34 @@ internal sealed class GetProviderByDocumentQueryHandler(
         GetProviderByDocumentQuery query,
         CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Searching for provider with document: {Document}", query.Document);
+        logger.LogInformation("Searching for provider by document request");
 
         try
         {
-            if (string.IsNullOrWhiteSpace(query.Document))
+            var normalizedDocument = query.Document?.Trim();
+            
+            if (string.IsNullOrWhiteSpace(normalizedDocument))
             {
                 logger.LogWarning("Invalid document provided for provider search");
                 return Result<ProviderDto?>.Failure(Error.BadRequest("Document cannot be empty"));
             }
 
-            var provider = await providerRepository.GetByDocumentAsync(query.Document, cancellationToken);
+            var provider = await providerRepository.GetByDocumentAsync(normalizedDocument, cancellationToken);
 
             if (provider == null)
             {
-                logger.LogInformation("Provider not found for document: {Document}", query.Document);
+                logger.LogInformation("Provider not found for document request");
                 return Result<ProviderDto?>.Success(null);
             }
 
             var providerDto = provider.ToDto();
-            logger.LogInformation("Provider found for document: {Document}, ID: {ProviderId}",
-                query.Document, provider.Id.Value);
+            logger.LogInformation("Provider found for document request, ID: {ProviderId}", provider.Id.Value);
 
             return Result<ProviderDto?>.Success(providerDto);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error occurred while searching for provider with document: {Document}", query.Document);
+            logger.LogError(ex, "Error occurred while searching for provider by document");
             return Result<ProviderDto?>.Failure(Error.Internal("An error occurred while searching for the provider"));
         }
     }

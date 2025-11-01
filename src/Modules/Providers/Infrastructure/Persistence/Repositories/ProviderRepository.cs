@@ -18,6 +18,14 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Repositories;
 public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRepository
 {
     /// <summary>
+    /// Base query with common includes for providers.
+    /// </summary>
+    private IQueryable<Provider> GetProvidersQuery() =>
+        context.Providers
+            .Include(p => p.Documents)
+            .Include(p => p.Qualifications);
+
+    /// <summary>
     /// Adiciona um novo prestador de serviços ao repositório.
     /// </summary>
     public async Task AddAsync(Provider provider, CancellationToken cancellationToken = default)
@@ -31,9 +39,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// </summary>
     public async Task<Provider?> GetByIdAsync(ProviderId id, CancellationToken cancellationToken = default)
     {
-        return await context.Providers
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
+        return await GetProvidersQuery()
             .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
     }
 
@@ -42,10 +48,9 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default)
     {
-        return await context.Providers
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
+        return await GetProvidersQuery()
             .Where(p => ids.Contains(p.Id.Value) && !p.IsDeleted)
+            .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
     }
 
@@ -54,9 +59,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// </summary>
     public async Task<Provider?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await context.Providers
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
+        return await GetProvidersQuery()
             .FirstOrDefaultAsync(p => p.UserId == userId && !p.IsDeleted, cancellationToken);
     }
 
@@ -65,9 +68,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// </summary>
     public async Task<Provider?> GetByDocumentAsync(string document, CancellationToken cancellationToken = default)
     {
-        return await context.Providers
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
+        return await GetProvidersQuery()
             .FirstOrDefaultAsync(p => p.Documents.Any(d => d.Number == document) && !p.IsDeleted, cancellationToken);
     }
 
@@ -85,10 +86,9 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByCityAsync(string city, CancellationToken cancellationToken = default)
     {
-        return await context.Providers
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
+        return await GetProvidersQuery()
             .Where(p => !p.IsDeleted && EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, city))
+            .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
     }
 
@@ -97,10 +97,9 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByStateAsync(string state, CancellationToken cancellationToken = default)
     {
-        return await context.Providers
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
+        return await GetProvidersQuery()
             .Where(p => !p.IsDeleted && EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, state))
+            .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
     }
 
@@ -111,10 +110,9 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         EVerificationStatus verificationStatus,
         CancellationToken cancellationToken = default)
     {
-        return await context.Providers
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
+        return await GetProvidersQuery()
             .Where(p => !p.IsDeleted && p.VerificationStatus == verificationStatus)
+            .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
     }
 
@@ -125,10 +123,9 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         EProviderType type,
         CancellationToken cancellationToken = default)
     {
-        return await context.Providers
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
+        return await GetProvidersQuery()
             .Where(p => !p.IsDeleted && p.Type == type)
+            .OrderBy(p => p.Id.Value)
             .ToListAsync(cancellationToken);
     }
 
@@ -142,18 +139,6 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     }
 
     /// <summary>
-    /// Busca todos os prestadores de serviços.
-    /// </summary>
-    public async Task<IReadOnlyList<Provider>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await context.Providers
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
-            .Where(p => !p.IsDeleted)
-            .ToListAsync(cancellationToken);
-    }
-
-    /// <summary>
     /// Busca prestadores de serviços com paginação.
     /// </summary>
     public async Task<PagedResult<Provider>> GetPagedAsync(
@@ -164,9 +149,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         var totalCount = await context.Providers
             .CountAsync(p => !p.IsDeleted, cancellationToken);
 
-        var providers = await context.Providers
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
+        var providers = await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
             .OrderBy(p => p.Id)
             .Skip((page - 1) * pageSize)
@@ -191,15 +174,6 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
             context.Providers.Remove(provider);
             await context.SaveChangesAsync(cancellationToken);
         }
-    }
-
-    /// <summary>
-    /// Remove um prestador de serviços do repositório (exclusão física).
-    /// </summary>
-    public async Task DeleteAsync(Provider provider, CancellationToken cancellationToken = default)
-    {
-        context.Providers.Remove(provider);
-        await context.SaveChangesAsync(cancellationToken);
     }
 
     /// <summary>

@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- Suppress warnings that are acceptable in test context -->
+    <NoWarn>$(NoWarn);CA2201</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

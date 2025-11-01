@@ -107,34 +107,25 @@ public sealed class ProvidersModuleApi(
         }
     }
 
-    public async Task<Result<ModuleProviderDto>> GetProviderByIdAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<Result<ModuleProviderDto?>> GetProviderByIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         var query = new GetProviderByIdQuery(providerId);
         var result = await getProviderByIdHandler.HandleAsync(query, cancellationToken);
 
         return result.Match(
-            onSuccess: providerDto => providerDto == null
-                ? Result<ModuleProviderDto>.Failure(Error.NotFound($"Provider with ID '{providerId}' was not found"))
-                : Result<ModuleProviderDto>.Success(MapToModuleDto(providerDto)),
-            onFailure: error => Result<ModuleProviderDto>.Failure(error)
+            onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : MapToModuleDto(providerDto)),
+            onFailure: error => Result<ModuleProviderDto?>.Failure(error)
         );
     }
 
-    public async Task<Result<ModuleProviderDto>> GetProviderByDocumentAsync(string document, CancellationToken cancellationToken = default)
+    public async Task<Result<ModuleProviderDto?>> GetProviderByDocumentAsync(string document, CancellationToken cancellationToken = default)
     {
         var query = new GetProviderByDocumentQuery(document);
         var result = await getProviderByDocumentHandler.HandleAsync(query, cancellationToken);
 
         return result.Match(
-            onSuccess: providerDto =>
-            {
-                if (providerDto == null)
-                {
-                    return Result<ModuleProviderDto>.Failure(Error.NotFound($"Provider with document '{document}' was not found"));
-                }
-                return Result<ModuleProviderDto>.Success(MapToModuleDto(providerDto));
-            },
-            onFailure: error => Result<ModuleProviderDto>.Failure(error)
+            onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : MapToModuleDto(providerDto)),
+            onFailure: error => Result<ModuleProviderDto?>.Failure(error)
         );
     }
 
@@ -150,16 +141,14 @@ public sealed class ProvidersModuleApi(
         );
     }
 
-    public async Task<Result<ModuleProviderDto>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<Result<ModuleProviderDto?>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var query = new GetProviderByUserIdQuery(userId);
         var result = await getProviderByUserIdHandler.HandleAsync(query, cancellationToken);
 
         return result.Match(
-            onSuccess: providerDto => providerDto == null
-                ? Result<ModuleProviderDto>.Failure(Error.NotFound($"Provider for user '{userId}' was not found"))
-                : Result<ModuleProviderDto>.Success(MapToModuleDto(providerDto)),
-            onFailure: error => Result<ModuleProviderDto>.Failure(error)
+            onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : MapToModuleDto(providerDto)),
+            onFailure: error => Result<ModuleProviderDto?>.Failure(error)
         );
     }
 
@@ -190,10 +179,8 @@ public sealed class ProvidersModuleApi(
     {
         var result = await GetProviderByUserIdAsync(userId, cancellationToken);
         return result.Match(
-            onSuccess: provider => Result<bool>.Success(true), // If we get a provider, user is a provider
-            onFailure: error => error.StatusCode == 404
-                ? Result<bool>.Success(false) // NotFound means user is not a provider
-                : Result<bool>.Failure(error) // Other errors propagate
+            onSuccess: provider => Result<bool>.Success(provider != null), // True if provider exists, false if null
+            onFailure: error => Result<bool>.Failure(error) // Propagate any errors
         );
     }
 
@@ -267,6 +254,8 @@ public sealed class ProvidersModuleApi(
             Id = providerDto.Id,
             Name = providerDto.Name,
             Email = providerDto.BusinessProfile?.ContactInfo?.Email ?? string.Empty,
+            // Takes the first document as there's no primary document concept yet
+            // TODO: Consider implementing a primary document flag if needed
             Document = providerDto.Documents?.FirstOrDefault()?.Number ?? string.Empty,
             Phone = providerDto.BusinessProfile?.ContactInfo?.PhoneNumber,
             ProviderType = (EProviderType)(int)providerDto.Type,

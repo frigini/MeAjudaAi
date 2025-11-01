@@ -13,12 +13,12 @@ public interface IProvidersModuleApi : IModuleApi
     /// <summary>
     /// Obtém informações de um provider por ID
     /// </summary>
-    Task<Result<ModuleProviderDto>> GetProviderByIdAsync(Guid providerId, CancellationToken cancellationToken = default);
+    Task<Result<ModuleProviderDto?>> GetProviderByIdAsync(Guid providerId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Obtém informações de um provider por documento
     /// </summary>
-    Task<Result<ModuleProviderDto>> GetProviderByDocumentAsync(string document, CancellationToken cancellationToken = default);
+    Task<Result<ModuleProviderDto?>> GetProviderByDocumentAsync(string document, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Obtém informações básicas de múltiplos providers por IDs
@@ -28,7 +28,7 @@ public interface IProvidersModuleApi : IModuleApi
     /// <summary>
     /// Obtém informações de um provider por ID do usuário
     /// </summary>
-    Task<Result<ModuleProviderDto>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Result<ModuleProviderDto?>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Obtém providers por lote de critérios

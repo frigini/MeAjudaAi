@@ -112,7 +112,7 @@ public class AddQualificationCommandHandlerTests
         var provider = ProviderBuilder.Create().WithId(providerId);
         var command = new AddQualificationCommand(
             ProviderId: providerId,
-            Name: name,
+            Name: name!,
             Description: description,
             IssuingOrganization: organization,
             IssueDate: new DateTime(2023, 1, 1),

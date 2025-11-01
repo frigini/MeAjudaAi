@@ -21,7 +21,7 @@ public static class RequestMapperExtensions
             Guid.Parse(request.UserId ?? throw new ArgumentNullException(nameof(request), "UserId is required")),
             request.Name,
             request.Type,
-            request.BusinessProfile
+            request.BusinessProfile ?? throw new ArgumentNullException(nameof(request), "BusinessProfile is required")
         );
     }
 

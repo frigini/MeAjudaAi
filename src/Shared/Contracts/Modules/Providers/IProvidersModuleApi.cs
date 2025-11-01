@@ -14,7 +14,7 @@ public interface IProvidersModuleApi : IModuleApi
     /// <param name="providerId">ID do provider</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Dados do provider ou erro</returns>
-    Task<Result<ModuleProviderDto>> GetProviderByIdAsync(Guid providerId, CancellationToken cancellationToken = default);
+    Task<Result<ModuleProviderDto?>> GetProviderByIdAsync(Guid providerId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Obtém um provider pelo ID do usuário
@@ -22,7 +22,7 @@ public interface IProvidersModuleApi : IModuleApi
     /// <param name="userId">ID do usuário</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Dados do provider ou erro</returns>
-    Task<Result<ModuleProviderDto>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Result<ModuleProviderDto?>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Obtém um provider pelo documento
@@ -30,7 +30,7 @@ public interface IProvidersModuleApi : IModuleApi
     /// <param name="document">Documento do provider</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Dados do provider ou erro</returns>
-    Task<Result<ModuleProviderDto>> GetProviderByDocumentAsync(string document, CancellationToken cancellationToken = default);
+    Task<Result<ModuleProviderDto?>> GetProviderByDocumentAsync(string document, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Verifica se um provider existe
