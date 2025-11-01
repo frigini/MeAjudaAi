@@ -10,11 +10,6 @@ namespace MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 public record CreateProviderRequest : Request
 {
     /// <summary>
-    /// ID do usuário que será associado ao prestador.
-    /// </summary>
-    public new Guid UserId { get; init; }
-
-    /// <summary>
     /// Nome do prestador.
     /// </summary>
     public string Name { get; init; } = string.Empty;

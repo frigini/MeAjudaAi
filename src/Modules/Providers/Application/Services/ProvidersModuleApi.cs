@@ -82,11 +82,18 @@ public sealed class ProvidersModuleApi(
     {
         try
         {
-            // Teste básico: tentar buscar por ID não existente (deve retornar success com null)
+            // Teste básico: tentar buscar por ID não existente (deve retornar NotFound ou Success com null)
             var testId = Guid.NewGuid();
             var result = await GetProviderByIdAsync(testId, cancellationToken);
 
-            return result.IsSuccess && result.Value == null; // Esperamos null para ID inexistente
+            // Sucesso se: 1) Success com null, 2) Failure com NotFound
+            if (result.IsSuccess && result.Value == null)
+                return true;
+            
+            if (!result.IsSuccess && result.Error.StatusCode == 404)
+                return true;
+
+            return false;
         }
         catch (OperationCanceledException)
         {

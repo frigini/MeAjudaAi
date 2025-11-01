@@ -310,10 +310,18 @@ public class ProviderRepositoryIntegrationTests : ProvidersIntegrationTestBase
             )
         );
 
-        return new Provider(
+        var provider = new Provider(
             userId ?? Guid.NewGuid(),
             name,
             type,
             businessProfile);
+
+        // Apply the requested verification status if different from default (Pending)
+        if (status != EVerificationStatus.Pending)
+        {
+            provider.UpdateVerificationStatus(status, "test-system");
+        }
+
+        return provider;
     }
 }

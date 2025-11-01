@@ -77,7 +77,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         return await context.Providers
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
-            .Where(p => !p.IsDeleted && p.BusinessProfile.PrimaryAddress.City.Equals(city, StringComparison.OrdinalIgnoreCase))
+            .Where(p => !p.IsDeleted && EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, city))
             .ToListAsync(cancellationToken);
     }
 
@@ -89,7 +89,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         return await context.Providers
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
-            .Where(p => !p.IsDeleted && p.BusinessProfile.PrimaryAddress.State.Equals(state, StringComparison.OrdinalIgnoreCase))
+            .Where(p => !p.IsDeleted && EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, state))
             .ToListAsync(cancellationToken);
     }
 
