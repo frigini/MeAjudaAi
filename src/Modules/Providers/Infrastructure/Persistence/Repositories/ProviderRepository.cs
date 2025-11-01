@@ -61,6 +61,17 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     }
 
     /// <summary>
+    /// Busca um prestador de serviços por documento (CPF, CNPJ, etc.).
+    /// </summary>
+    public async Task<Provider?> GetByDocumentAsync(string document, CancellationToken cancellationToken = default)
+    {
+        return await context.Providers
+            .Include(p => p.Documents)
+            .Include(p => p.Qualifications)
+            .FirstOrDefaultAsync(p => p.Documents.Any(d => d.Number == document) && !p.IsDeleted, cancellationToken);
+    }
+
+    /// <summary>
     /// Verifica se existe um prestador de serviços para o usuário especificado.
     /// </summary>
     public async Task<bool> ExistsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)

@@ -80,6 +80,14 @@ public interface IProviderRepository
     Task<Provider?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Busca um prestador de serviços por documento (CPF, CNPJ, etc.).
+    /// </summary>
+    /// <param name="document">Número do documento</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Prestador de serviços encontrado ou null se não existir</returns>
+    Task<Provider?> GetByDocumentAsync(string document, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Verifica se existe um prestador de serviços para o usuário especificado.
     /// </summary>
     /// <param name="userId">ID do usuário no Keycloak</param>

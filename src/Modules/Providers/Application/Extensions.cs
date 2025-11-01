@@ -19,6 +19,7 @@ public static class Extensions
         // Query Handlers - registro manual para garantir disponibilidade
         services.AddScoped<IQueryHandler<GetProviderByIdQuery, Result<ProviderDto?>>, GetProviderByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetProviderByUserIdQuery, Result<ProviderDto?>>, GetProviderByUserIdQueryHandler>();
+        services.AddScoped<IQueryHandler<GetProviderByDocumentQuery, Result<ProviderDto?>>, GetProviderByDocumentQueryHandler>();
         services.AddScoped<IQueryHandler<GetProvidersByIdsQuery, Result<IReadOnlyList<ProviderDto>>>, GetProvidersByIdsQueryHandler>();
         services.AddScoped<IQueryHandler<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>>, GetProvidersByCityQueryHandler>();
         services.AddScoped<IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>, GetProvidersByStateQueryHandler>();

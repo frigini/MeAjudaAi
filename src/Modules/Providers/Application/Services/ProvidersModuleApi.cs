@@ -18,6 +18,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Services;
 public sealed class ProvidersModuleApi(
     IQueryHandler<GetProviderByIdQuery, Result<ProviderDto?>> getProviderByIdHandler,
     IQueryHandler<GetProviderByUserIdQuery, Result<ProviderDto?>> getProviderByUserIdHandler,
+    IQueryHandler<GetProviderByDocumentQuery, Result<ProviderDto?>> getProviderByDocumentHandler,
     IQueryHandler<GetProvidersByIdsQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByIdsHandler,
     IQueryHandler<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByCityHandler,
     IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByStateHandler,
@@ -121,10 +122,20 @@ public sealed class ProvidersModuleApi(
 
     public async Task<Result<ModuleProviderDto>> GetProviderByDocumentAsync(string document, CancellationToken cancellationToken = default)
     {
-        // Implementação temporária - seria necessário criar GetProviderByDocumentQuery
-        // Por enquanto, retorna NotFound
-        await Task.CompletedTask;
-        return Result<ModuleProviderDto>.Failure(Error.NotFound($"Provider with document '{document}' was not found"));
+        var query = new GetProviderByDocumentQuery(document);
+        var result = await getProviderByDocumentHandler.HandleAsync(query, cancellationToken);
+
+        return result.Match(
+            onSuccess: providerDto =>
+            {
+                if (providerDto == null)
+                {
+                    return Result<ModuleProviderDto>.Failure(Error.NotFound($"Provider with document '{document}' was not found"));
+                }
+                return Result<ModuleProviderDto>.Success(MapToModuleDto(providerDto));
+            },
+            onFailure: error => Result<ModuleProviderDto>.Failure(error)
+        );
     }
 
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersBasicInfoAsync(IEnumerable<Guid> providerIds, CancellationToken cancellationToken = default)

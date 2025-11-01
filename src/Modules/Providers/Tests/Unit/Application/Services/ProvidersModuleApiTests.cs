@@ -17,6 +17,7 @@ public class ProvidersModuleApiTests
 {
     private readonly Mock<IQueryHandler<GetProviderByIdQuery, Result<ProviderDto?>>> _getProviderByIdHandler;
     private readonly Mock<IQueryHandler<GetProviderByUserIdQuery, Result<ProviderDto?>>> _getProviderByUserIdHandler;
+    private readonly Mock<IQueryHandler<GetProviderByDocumentQuery, Result<ProviderDto?>>> _getProviderByDocumentHandler;
     private readonly Mock<IQueryHandler<GetProvidersByIdsQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByIdsHandler;
     private readonly Mock<IQueryHandler<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByCityHandler;
     private readonly Mock<IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByStateHandler;
@@ -30,6 +31,7 @@ public class ProvidersModuleApiTests
     {
         _getProviderByIdHandler = new Mock<IQueryHandler<GetProviderByIdQuery, Result<ProviderDto?>>>();
         _getProviderByUserIdHandler = new Mock<IQueryHandler<GetProviderByUserIdQuery, Result<ProviderDto?>>>();
+        _getProviderByDocumentHandler = new Mock<IQueryHandler<GetProviderByDocumentQuery, Result<ProviderDto?>>>();
         _getProvidersByIdsHandler = new Mock<IQueryHandler<GetProvidersByIdsQuery, Result<IReadOnlyList<ProviderDto>>>>();
         _getProvidersByCityHandler = new Mock<IQueryHandler<GetProvidersByCityQuery, Result<IReadOnlyList<ProviderDto>>>>();
         _getProvidersByStateHandler = new Mock<IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>>();
@@ -41,6 +43,7 @@ public class ProvidersModuleApiTests
         _sut = new ProvidersModuleApi(
             _getProviderByIdHandler.Object,
             _getProviderByUserIdHandler.Object,
+            _getProviderByDocumentHandler.Object,
             _getProvidersByIdsHandler.Object,
             _getProvidersByCityHandler.Object,
             _getProvidersByStateHandler.Object,
