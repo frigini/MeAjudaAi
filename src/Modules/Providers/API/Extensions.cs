@@ -16,7 +16,7 @@ public static class Extensions
     /// <param name="configuration">Configuração da aplicação</param>
     /// <returns>Coleção de serviços para encadeamento</returns>
     public static IServiceCollection AddProvidersModule(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         IConfiguration configuration)
     {
         services.AddApplication();

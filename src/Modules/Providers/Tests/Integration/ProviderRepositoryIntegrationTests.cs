@@ -2,8 +2,8 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using MeAjudaAi.Shared.Time;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
@@ -286,8 +286,8 @@ public class ProviderRepositoryIntegrationTests : ProvidersIntegrationTestBase
     /// Helper method to create test providers
     /// </summary>
     private static Provider CreateTestProvider(
-        string name, 
-        EProviderType type, 
+        string name,
+        EProviderType type,
         EVerificationStatus status = EVerificationStatus.Pending,
         Guid? userId = null,
         string city = "São Paulo",

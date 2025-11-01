@@ -108,7 +108,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// Busca prestadores de serviços por status de verificação.
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByVerificationStatusAsync(
-        EVerificationStatus verificationStatus, 
+        EVerificationStatus verificationStatus,
         CancellationToken cancellationToken = default)
     {
         return await context.Providers
@@ -122,7 +122,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// Busca prestadores de serviços por tipo.
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByTypeAsync(
-        EProviderType type, 
+        EProviderType type,
         CancellationToken cancellationToken = default)
     {
         return await context.Providers
@@ -157,8 +157,8 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// Busca prestadores de serviços com paginação.
     /// </summary>
     public async Task<PagedResult<Provider>> GetPagedAsync(
-        int page, 
-        int pageSize, 
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default)
     {
         var totalCount = await context.Providers

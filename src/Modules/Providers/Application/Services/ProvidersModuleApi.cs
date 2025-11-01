@@ -90,7 +90,7 @@ public sealed class ProvidersModuleApi(
             // Sucesso se: 1) Success com null, 2) Failure com NotFound
             if (result.IsSuccess && result.Value == null)
                 return true;
-            
+
             if (!result.IsSuccess && result.Error.StatusCode == 404)
                 return true;
 
@@ -150,26 +150,24 @@ public sealed class ProvidersModuleApi(
         );
     }
 
-    public async Task<Result<ModuleProviderDto?>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<Result<ModuleProviderDto>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var query = new GetProviderByUserIdQuery(userId);
         var result = await getProviderByUserIdHandler.HandleAsync(query, cancellationToken);
 
         return result.Match(
             onSuccess: providerDto => providerDto == null
-                ? Result<ModuleProviderDto?>.Success(null)
-                : Result<ModuleProviderDto?>.Success(MapToModuleDto(providerDto)),
-            onFailure: error => error.StatusCode == 404
-                ? Result<ModuleProviderDto?>.Success(null)  // NotFound -> Success(null)
-                : Result<ModuleProviderDto?>.Failure(error) // Outros erros propagam
+                ? Result<ModuleProviderDto>.Failure(Error.NotFound($"Provider for user '{userId}' was not found"))
+                : Result<ModuleProviderDto>.Success(MapToModuleDto(providerDto)),
+            onFailure: error => Result<ModuleProviderDto>.Failure(error)
         );
     }
 
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersBatchAsync(
-        IReadOnlyList<Guid> providerIds, 
+        IEnumerable<Guid> providerIds,
         CancellationToken cancellationToken = default)
     {
-        var batchQuery = new GetProvidersByIdsQuery(providerIds);
+        var batchQuery = new GetProvidersByIdsQuery(providerIds.ToList());
         var result = await getProvidersByIdsHandler.HandleAsync(batchQuery, cancellationToken);
 
         return result.Match(
@@ -192,13 +190,15 @@ public sealed class ProvidersModuleApi(
     {
         var result = await GetProviderByUserIdAsync(userId, cancellationToken);
         return result.Match(
-            onSuccess: provider => Result<bool>.Success(provider != null),
-            onFailure: error => Result<bool>.Failure(error)
+            onSuccess: provider => Result<bool>.Success(true), // If we get a provider, user is a provider
+            onFailure: error => error.StatusCode == 404
+                ? Result<bool>.Success(false) // NotFound means user is not a provider
+                : Result<bool>.Failure(error) // Other errors propagate
         );
     }
 
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByCityAsync(
-        string city, 
+        string city,
         CancellationToken cancellationToken = default)
     {
         var query = new GetProvidersByCityQuery(city);
@@ -212,7 +212,7 @@ public sealed class ProvidersModuleApi(
     }
 
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByStateAsync(
-        string state, 
+        string state,
         CancellationToken cancellationToken = default)
     {
         var query = new GetProvidersByStateQuery(state);
@@ -226,7 +226,7 @@ public sealed class ProvidersModuleApi(
     }
 
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByTypeAsync(
-        EProviderType type, 
+        EProviderType type,
         CancellationToken cancellationToken = default)
     {
         // Mapear o enum compartilhado para o enum do domínio
@@ -242,7 +242,7 @@ public sealed class ProvidersModuleApi(
     }
 
     public async Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByVerificationStatusAsync(
-        EVerificationStatus status, 
+        EVerificationStatus status,
         CancellationToken cancellationToken = default)
     {
         // Mapear o enum compartilhado para o enum do domínio

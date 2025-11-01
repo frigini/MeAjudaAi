@@ -167,7 +167,7 @@ public class GetProvidersByTypeQueryHandlerTests
         // Arrange
         var providerType = EProviderType.Individual;
         var providers = new List<Provider>();
-        
+
         // Criar uma lista grande de prestadores
         for (int i = 0; i < 100; i++)
         {

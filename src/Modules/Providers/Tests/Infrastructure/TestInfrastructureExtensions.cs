@@ -1,10 +1,10 @@
+using MeAjudaAi.Modules.Providers.Application.Services;
+using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Repositories;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
-using MeAjudaAi.Modules.Providers.Application.Services;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
-using MeAjudaAi.Shared.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.Infrastructure;
 using MeAjudaAi.Shared.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,6 +1,6 @@
+using System.Reflection;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 

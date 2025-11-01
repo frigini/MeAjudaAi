@@ -15,17 +15,17 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         // Arrange
         await CleanupDatabase(); // Garantir isolamento
         var queryService = GetService<IProviderQueryService>();
-        
+
         // Criar dados de teste
         var businessProfile1 = CreateTestBusinessProfile("provider1@test.com");
         var businessProfile2 = CreateTestBusinessProfile("provider2@test.com");
-        
+
         var provider1 = await CreateProviderAsync(
             Guid.NewGuid(),
             "Test Provider 1",
             EProviderType.Individual,
             businessProfile1);
-            
+
         var provider2 = await CreateProviderAsync(
             Guid.NewGuid(),
             "Test Provider 2",
@@ -34,8 +34,8 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
 
         // Act
         var result = await queryService.GetProvidersAsync(
-            page: 1, 
-            pageSize: 10, 
+            page: 1,
+            pageSize: 10,
             nameFilter: "Test Provider");
 
         // Assert
@@ -51,9 +51,9 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
     {
         // Arrange
         await CleanupDatabase();
-        
+
         var queryService = GetService<IProviderQueryService>();
-        
+
         var businessProfile = CreateTestBusinessProfile("individual@test.com");
         await CreateProviderAsync(
             Guid.NewGuid(),
@@ -63,7 +63,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
 
         // Act
         var result = await queryService.GetProvidersAsync(
-            page: 1, 
+            page: 1,
             pageSize: 10,
             typeFilter: EProviderType.Individual);
 
@@ -79,7 +79,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         // Arrange
         await CleanupDatabase(); // Garantir isolamento
         var queryService = GetService<IProviderQueryService>();
-        
+
         // Criar múltiplos providers
         for (int i = 1; i <= 5; i++)
         {

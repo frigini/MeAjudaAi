@@ -1,5 +1,5 @@
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Domain.ValueObjects;
 

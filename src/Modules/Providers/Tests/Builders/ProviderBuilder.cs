@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.Builders;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Builders;
@@ -25,7 +25,7 @@ public class ProviderBuilder : BuilderBase<Provider>
             .CustomInstantiator(f =>
             {
                 Provider provider;
-                
+
                 if (_providerId != null)
                 {
                     // Usa o construtor interno para testes quando um ID específico é fornecido

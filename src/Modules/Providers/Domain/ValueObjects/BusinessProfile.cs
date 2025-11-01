@@ -50,6 +50,6 @@ public class BusinessProfile : ValueObject
         yield return PrimaryAddress;
     }
 
-    public override string ToString() => 
+    public override string ToString() =>
         $"Legal Name: {LegalName}, Fantasy Name: {FantasyName}, Description: {Description}";
 }

@@ -1,6 +1,5 @@
-using System.Text.RegularExpressions;
-
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 
 namespace MeAjudaAi.Shared.Extensions;
 

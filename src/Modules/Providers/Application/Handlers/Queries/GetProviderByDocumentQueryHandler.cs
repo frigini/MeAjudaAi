@@ -49,7 +49,7 @@ internal sealed class GetProviderByDocumentQueryHandler(
             }
 
             var providerDto = provider.ToDto();
-            logger.LogInformation("Provider found for document: {Document}, ID: {ProviderId}", 
+            logger.LogInformation("Provider found for document: {Document}, ID: {ProviderId}",
                 query.Document, provider.Id.Value);
 
             return Result<ProviderDto?>.Success(providerDto);

@@ -1,7 +1,7 @@
-using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Shared.Tests.Auth;
 using System.Net.Http.Json;
 using System.Text.Json;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests.Providers;
 
@@ -56,7 +56,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         {
             var content = await response.Content.ReadAsStringAsync();
             var createdProvider = JsonSerializer.Deserialize<JsonElement>(content);
-            
+
             Assert.True(createdProvider.TryGetProperty("id", out _));
             Assert.True(createdProvider.TryGetProperty("name", out var nameProperty));
             Assert.Equal("Test Provider Integration", nameProperty.GetString());
@@ -91,9 +91,9 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         {
             var content = await response.Content.ReadAsStringAsync();
             var providers = JsonSerializer.Deserialize<JsonElement>(content);
-            
+
             // Verificar que retorna uma lista (mesmo que vazia)
-            Assert.True(providers.ValueKind == JsonValueKind.Array || 
+            Assert.True(providers.ValueKind == JsonValueKind.Array ||
                        (providers.ValueKind == JsonValueKind.Object && providers.TryGetProperty("items", out _)));
         }
         else
@@ -116,7 +116,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         // Assert
         // Provider pode não existir (404) ou retornar dados (200)
         // O importante é que não seja erro 500
-        Assert.True(response.StatusCode == System.Net.HttpStatusCode.NotFound || 
+        Assert.True(response.StatusCode == System.Net.HttpStatusCode.NotFound ||
                    response.StatusCode == System.Net.HttpStatusCode.OK ||
                    response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
                    response.StatusCode == System.Net.HttpStatusCode.Forbidden);
@@ -136,9 +136,9 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         {
             var content = await response.Content.ReadAsStringAsync();
             var providers = JsonSerializer.Deserialize<JsonElement>(content);
-            
+
             // Verificar que retorna uma lista
-            Assert.True(providers.ValueKind == JsonValueKind.Array || 
+            Assert.True(providers.ValueKind == JsonValueKind.Array ||
                        (providers.ValueKind == JsonValueKind.Object && providers.TryGetProperty("items", out _)));
         }
         else
@@ -162,9 +162,9 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         {
             var content = await response.Content.ReadAsStringAsync();
             var providers = JsonSerializer.Deserialize<JsonElement>(content);
-            
+
             // Verificar que retorna uma lista
-            Assert.True(providers.ValueKind == JsonValueKind.Array || 
+            Assert.True(providers.ValueKind == JsonValueKind.Array ||
                        (providers.ValueKind == JsonValueKind.Object && providers.TryGetProperty("items", out _)));
         }
         else
@@ -193,10 +193,10 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         foreach (var endpoint in endpoints)
         {
             var response = await Client.GetAsync(endpoint);
-            
+
             // O importante é que não seja erro 500 (erro de servidor)
             Assert.NotEqual(System.Net.HttpStatusCode.InternalServerError, response.StatusCode);
-            
+
             // Log do status para debugging se necessário
             if (!response.IsSuccessStatusCode)
             {

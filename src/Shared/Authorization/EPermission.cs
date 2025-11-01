@@ -12,7 +12,7 @@ public enum EPermission
     /// <summary>
     /// Permissão não definida
     /// </summary>
-    [Display(Name = "none")]
+    [Display(Name = "system:none")]
     None = 0,
 
     // ===== SISTEMA - GLOBAL =====

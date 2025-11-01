@@ -57,6 +57,6 @@ public class Qualification : ValueObject
         yield return DocumentNumber ?? string.Empty;
     }
 
-    public override string ToString() => 
+    public override string ToString() =>
         $"Name: {Name}, Organization: {IssuingOrganization}, Issue Date: {IssueDate}, Expiration: {ExpirationDate}";
 }

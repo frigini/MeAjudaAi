@@ -1,8 +1,8 @@
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
 
 namespace MeAjudaAi.Integration.Tests.Providers;
 
@@ -44,24 +44,24 @@ public class ImplementedFeaturesTests : ApiTestBase
         {
             var content = await response.Content.ReadAsStringAsync();
             var jsonDocument = JsonDocument.Parse(content);
-            
+
             // Should be either a list or a paginated result
             jsonDocument.RootElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
-            
+
             if (jsonDocument.RootElement.ValueKind == JsonValueKind.Object)
             {
                 // If it's an object, it should have pagination properties
                 var hasItems = jsonDocument.RootElement.TryGetProperty("items", out _);
                 var hasTotalCount = jsonDocument.RootElement.TryGetProperty("totalCount", out _);
                 var hasPage = jsonDocument.RootElement.TryGetProperty("page", out _);
-                
+
                 (hasItems || hasTotalCount || hasPage).Should().BeTrue("Should be a paginated result");
             }
         }
         else
         {
             // If not successful, should not be a server error
-            response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError, 
+            response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
                 "Server should not crash on basic endpoint access");
         }
     }
@@ -76,9 +76,9 @@ public class ImplementedFeaturesTests : ApiTestBase
         var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=5");
 
         // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.BadRequest, 
+        response.StatusCode.Should().NotBe(HttpStatusCode.BadRequest,
             "Should accept pagination parameters");
-        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError, 
+        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
             "Should not crash with pagination parameters");
     }
 
@@ -92,9 +92,9 @@ public class ImplementedFeaturesTests : ApiTestBase
         var response = await Client.GetAsync("/api/v1/providers?name=test&type=1&verificationStatus=1");
 
         // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.BadRequest, 
+        response.StatusCode.Should().NotBe(HttpStatusCode.BadRequest,
             "Should accept filter parameters");
-        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError, 
+        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
             "Should not crash with filter parameters");
     }
 
@@ -109,9 +109,9 @@ public class ImplementedFeaturesTests : ApiTestBase
         var response = await Client.GetAsync($"/api/v1/providers/{testId}");
 
         // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed, 
+        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
             "GET by ID endpoint should exist");
-        
+
         // Can be 404 (not found), 401 (unauthorized), 400 (bad request), or 500, but not 405
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.NotFound,
@@ -157,9 +157,9 @@ public class ImplementedFeaturesTests : ApiTestBase
         var response = await Client.PostAsJsonAsync("/api/v1/providers", providerData);
 
         // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed, 
+        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
             "POST endpoint should exist");
-        
+
         // Can fail with various errors, but method should be allowed
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
     }

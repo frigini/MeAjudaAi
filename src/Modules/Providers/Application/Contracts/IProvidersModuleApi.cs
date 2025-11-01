@@ -28,17 +28,22 @@ public interface IProvidersModuleApi : IModuleApi
     /// <summary>
     /// Obtém informações de um provider por ID do usuário
     /// </summary>
-    Task<Result<ModuleProviderDto?>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Result<ModuleProviderDto>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Obtém providers por lote de critérios
     /// </summary>
-    Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersBatchAsync(IReadOnlyList<Guid> providerIds, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersBatchAsync(IEnumerable<Guid> providerIds, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Verifica se um provider existe
     /// </summary>
     Task<Result<bool>> ProviderExistsAsync(Guid providerId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Verifica se um usuário é um provider
+    /// </summary>
+    Task<Result<bool>> UserIsProviderAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Obtém providers por cidade

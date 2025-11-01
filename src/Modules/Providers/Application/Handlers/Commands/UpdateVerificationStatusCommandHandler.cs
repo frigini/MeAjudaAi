@@ -26,7 +26,7 @@ internal sealed class UpdateVerificationStatusCommandHandler(
     {
         try
         {
-            logger.LogInformation("Updating verification status for provider {ProviderId} to {Status}", 
+            logger.LogInformation("Updating verification status for provider {ProviderId} to {Status}",
                 command.ProviderId, command.Status);
 
             var providerId = new ProviderId(command.ProviderId);

@@ -32,7 +32,7 @@ public class GetProvidersQueryHandler(
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Resultado paginado com lista de prestadores</returns>
     public async Task<Result<PagedResult<ProviderDto>>> HandleAsync(
-        GetProvidersQuery query, 
+        GetProvidersQuery query,
         CancellationToken cancellationToken = default)
     {
         try
@@ -67,7 +67,7 @@ public class GetProvidersQueryHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, 
+            logger.LogError(ex,
                 "Erro ao buscar prestadores - Página: {Page}, Filtros: Nome='{Name}', Tipo={Type}, Status={Status}",
                 query.Page, query.Name, query.Type, query.VerificationStatus);
 

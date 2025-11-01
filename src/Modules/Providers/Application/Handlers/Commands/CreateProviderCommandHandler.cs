@@ -57,7 +57,7 @@ internal sealed class CreateProviderCommandHandler(
             // Persiste no repositório
             await providerRepository.AddAsync(provider, cancellationToken);
 
-            logger.LogInformation("Provider {ProviderId} created successfully for user {UserId}", 
+            logger.LogInformation("Provider {ProviderId} created successfully for user {UserId}",
                 provider.Id.Value, command.UserId);
 
             return Result<ProviderDto>.Success(provider.ToDto());

@@ -1,9 +1,9 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 
@@ -25,7 +25,7 @@ public class DeleteProviderCommandHandlerTests
         _dateTimeProviderMock = new Mock<IDateTimeProvider>();
         _loggerMock = new Mock<ILogger<DeleteProviderCommandHandler>>();
         _handler = new DeleteProviderCommandHandler(
-            _providerRepositoryMock.Object, 
+            _providerRepositoryMock.Object,
             _dateTimeProviderMock.Object,
             _loggerMock.Object);
     }
@@ -118,7 +118,7 @@ public class DeleteProviderCommandHandlerTests
         var userId = Guid.NewGuid();
         var name = "Test Provider";
         var type = EProviderType.Individual;
-        
+
         var address = new Address(
             street: "Rua Teste",
             number: "123",
@@ -137,7 +137,7 @@ public class DeleteProviderCommandHandlerTests
             legalName: "Provider Test LTDA",
             contactInfo: contactInfo,
             primaryAddress: address);
-        
+
         return new Provider(userId, name, type, businessProfile);
     }
 }

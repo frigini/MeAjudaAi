@@ -1,7 +1,7 @@
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Time;
 

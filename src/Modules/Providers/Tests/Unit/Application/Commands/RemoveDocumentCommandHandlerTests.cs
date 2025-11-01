@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
@@ -33,7 +33,7 @@ public class RemoveDocumentCommandHandlerTests
         var provider = ProviderBuilder.Create()
             .WithId(providerId)
             .WithDocument("11144477735", EDocumentType.CPF);
-        
+
         var command = new RemoveDocumentCommand(
             ProviderId: providerId,
             DocumentType: EDocumentType.CPF
@@ -100,7 +100,7 @@ public class RemoveDocumentCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var provider = ProviderBuilder.Create().WithId(providerId); // Sem documentos
-        
+
         var command = new RemoveDocumentCommand(
             ProviderId: providerId,
             DocumentType: EDocumentType.CPF
@@ -164,7 +164,7 @@ public class RemoveDocumentCommandHandlerTests
         var provider = ProviderBuilder.Create()
             .WithId(providerId)
             .WithDocument(documentNumber, documentType);
-        
+
         var command = new RemoveDocumentCommand(
             ProviderId: providerId,
             DocumentType: documentType

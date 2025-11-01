@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Repositories;
 
@@ -118,7 +118,7 @@ public interface IProviderRepository
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Lista de prestadores de serviços com o status especificado</returns>
     Task<IReadOnlyList<Provider>> GetByVerificationStatusAsync(
-        EVerificationStatus verificationStatus, 
+        EVerificationStatus verificationStatus,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -128,7 +128,7 @@ public interface IProviderRepository
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Lista de prestadores de serviços do tipo especificado</returns>
     Task<IReadOnlyList<Provider>> GetByTypeAsync(
-        EProviderType type, 
+        EProviderType type,
         CancellationToken cancellationToken = default);
 
     /// <summary>

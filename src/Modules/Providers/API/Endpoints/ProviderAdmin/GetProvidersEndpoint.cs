@@ -85,10 +85,10 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
 
         // Cria query com filtros
         var query = new GetProvidersQuery(
-            page, 
-            pageSize, 
-            name, 
-            type, 
+            page,
+            pageSize,
+            name,
+            type,
             verificationStatus);
 
         var result = await queryDispatcher.QueryAsync<GetProvidersQuery, Result<PagedResult<ProviderDto>>>(query);

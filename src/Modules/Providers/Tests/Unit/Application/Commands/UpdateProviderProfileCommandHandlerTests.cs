@@ -32,7 +32,7 @@ public class UpdateProviderProfileCommandHandlerTests
         var providerId = Guid.NewGuid();
         var updatedBy = Guid.NewGuid();
         var provider = ProviderBuilder.Create().WithId(providerId);
-        
+
         var businessProfileDto = new BusinessProfileDto(
             LegalName: "Prestador Atualizado Ltda",
             FantasyName: "Prestador Atualizado",
@@ -93,7 +93,7 @@ public class UpdateProviderProfileCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var updatedBy = Guid.NewGuid();
-        
+
         var businessProfileDto = new BusinessProfileDto(
             LegalName: "Prestador Ltda",
             FantasyName: "Prestador",
@@ -151,7 +151,7 @@ public class UpdateProviderProfileCommandHandlerTests
         var providerId = Guid.NewGuid();
         var updatedBy = Guid.NewGuid();
         var provider = ProviderBuilder.Create().WithId(providerId);
-        
+
         var businessProfileDto = new BusinessProfileDto(
             LegalName: "Prestador Ltda",
             FantasyName: "Prestador",
@@ -206,7 +206,7 @@ public class UpdateProviderProfileCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var updatedBy = Guid.NewGuid();
-        
+
         var businessProfileDto = new BusinessProfileDto(
             LegalName: "Prestador Ltda",
             FantasyName: "Prestador",

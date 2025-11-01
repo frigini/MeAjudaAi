@@ -1,11 +1,11 @@
-using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
@@ -86,7 +86,7 @@ public abstract class ProvidersIntegrationTestBase : IntegrationTestBase
     {
         var contactInfo = new ContactInfo(email, phone);
         var address = new Address("Test Street", "123", "Test Neighborhood", "Test City", "Test State", "12345-678", "Brazil");
-        
+
         return new BusinessProfile("Test Company Legal Name", contactInfo, address, "Test Company Fantasy", "Test company description");
     }
 
@@ -96,12 +96,12 @@ public abstract class ProvidersIntegrationTestBase : IntegrationTestBase
     protected async Task CleanupDatabase()
     {
         var dbContext = GetService<ProvidersDbContext>();
-        
+
         try
         {
             // Ordem importante devido aos foreign keys
             await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.\"Qualification\";");
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.\"Document\";");  
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.\"Document\";");
             await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
         }
         catch (Exception)

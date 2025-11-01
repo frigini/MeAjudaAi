@@ -36,11 +36,11 @@ public class QualificationTests
 
         // Act
         var qualification = new Qualification(
-            name, 
-            description, 
-            issuingOrganization, 
-            issueDate, 
-            expirationDate, 
+            name,
+            description,
+            issuingOrganization,
+            issueDate,
+            expirationDate,
             documentNumber);
 
         // Assert
@@ -107,7 +107,7 @@ public class QualificationTests
         // Arrange
         var issueDate = new DateTime(2023, 1, 1);
         var expirationDate = new DateTime(2025, 1, 1);
-        
+
         var qualification1 = new Qualification(
             "Test Qualification",
             "Description",

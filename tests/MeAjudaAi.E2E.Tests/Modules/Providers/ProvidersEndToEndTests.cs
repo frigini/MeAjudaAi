@@ -1,5 +1,5 @@
-using MeAjudaAi.E2E.Tests.Base;
 using System.Text.Json;
+using MeAjudaAi.E2E.Tests.Base;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 
@@ -56,7 +56,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         {
             var content = await response.Content.ReadAsStringAsync();
             _testOutput.WriteLine($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
-            
+
             // Se não conseguir criar, pelo menos verificar que não é erro 500
             response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
             return;
@@ -137,33 +137,33 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         {
             // Act 1: Criar Provider
             var createResponse = await PostJsonAsync("/api/v1/providers", providerData);
-            
+
             if (createResponse.IsSuccessStatusCode)
             {
                 var createContent = await createResponse.Content.ReadAsStringAsync();
                 var createdProvider = JsonSerializer.Deserialize<JsonElement>(createContent);
-                
+
                 if (createdProvider.TryGetProperty("id", out var idProperty))
                 {
                     providerId = Guid.Parse(idProperty.GetString()!);
-                    
+
                     // Act 2: Buscar Provider criado
                     var getResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
-                    
+
                     if (getResponse.IsSuccessStatusCode)
                     {
                         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-                        
+
                         var getContent = await getResponse.Content.ReadAsStringAsync();
                         var retrievedProvider = JsonSerializer.Deserialize<JsonElement>(getContent);
-                        
+
                         retrievedProvider.TryGetProperty("name", out var nameProperty).Should().BeTrue();
                         nameProperty.GetString().Should().Be("Complete Workflow Provider");
                     }
 
                     // Act 3: Buscar por UserId
                     var getUserResponse = await ApiClient.GetAsync($"/api/v1/providers/user/{userId}");
-                    
+
                     if (getUserResponse.IsSuccessStatusCode)
                     {
                         getUserResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -171,7 +171,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
 
                     // Act 4: Buscar por tipo
                     var getTypeResponse = await ApiClient.GetAsync("/api/v1/providers/type/0");
-                    
+
                     if (getTypeResponse.IsSuccessStatusCode)
                     {
                         getTypeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -224,11 +224,11 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         foreach (var endpoint in endpoints)
         {
             var response = await ApiClient.GetAsync(endpoint);
-            
+
             // O importante é que não seja erro 500 (crash do servidor)
-            response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError, 
+            response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
                 $"Endpoint {endpoint} should not crash the server");
-            
+
             _testOutput.WriteLine($"Endpoint {endpoint}: {response.StatusCode}");
         }
     }

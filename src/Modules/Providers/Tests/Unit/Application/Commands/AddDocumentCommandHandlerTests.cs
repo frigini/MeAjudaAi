@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
@@ -164,7 +164,7 @@ public class AddDocumentCommandHandlerTests
         var provider = ProviderBuilder.Create()
             .WithId(providerId)
             .WithDocument("98765432100", EDocumentType.CPF);
-        
+
         var command = new AddDocumentCommand(
             ProviderId: providerId,
             DocumentNumber: "11144477735",

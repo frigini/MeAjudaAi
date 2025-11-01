@@ -23,10 +23,10 @@ public record CreateProviderRequest : Request
     /// Perfil de negócio do prestador.
     /// </summary>
     public BusinessProfileDto BusinessProfile { get; init; } = new(
-        string.Empty, 
-        null, 
-        null, 
-        new ContactInfoDto(string.Empty, null, null), 
+        string.Empty,
+        null,
+        null,
+        new ContactInfoDto(string.Empty, null, null),
         new AddressDto(string.Empty, string.Empty, null, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty)
     );
 }

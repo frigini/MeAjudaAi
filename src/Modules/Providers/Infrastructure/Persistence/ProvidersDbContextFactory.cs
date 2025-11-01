@@ -23,7 +23,7 @@ public class ProvidersDbContextFactory : IDesignTimeDbContextFactory<ProvidersDb
 
         // Get connection string from secure configuration only
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-        
+
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException(

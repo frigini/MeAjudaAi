@@ -40,7 +40,7 @@ public class RemoveQualificationCommandHandlerTests
                 new DateTime(2025, 1, 1),
                 "AWS-SAA-123456"
             );
-        
+
         var command = new RemoveQualificationCommand(
             ProviderId: providerId,
             QualificationName: qualificationName
@@ -107,7 +107,7 @@ public class RemoveQualificationCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var provider = ProviderBuilder.Create().WithId(providerId); // Sem qualificações
-        
+
         var command = new RemoveQualificationCommand(
             ProviderId: providerId,
             QualificationName: "Certificação Inexistente"
@@ -168,7 +168,7 @@ public class RemoveQualificationCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var provider = ProviderBuilder.Create().WithId(providerId);
-        
+
         var command = new RemoveQualificationCommand(
             ProviderId: providerId,
             QualificationName: qualificationName
@@ -201,7 +201,7 @@ public class RemoveQualificationCommandHandlerTests
         var providerId = Guid.NewGuid();
         var qualificationToRemove = "Certificação AWS";
         var qualificationToKeep = "Certificação Azure";
-        
+
         var provider = ProviderBuilder.Create()
             .WithId(providerId)
             .WithQualification(
@@ -220,7 +220,7 @@ public class RemoveQualificationCommandHandlerTests
                 new DateTime(2025, 6, 1),
                 "AZ-305-789012"
             );
-        
+
         var command = new RemoveQualificationCommand(
             ProviderId: providerId,
             QualificationName: qualificationToRemove

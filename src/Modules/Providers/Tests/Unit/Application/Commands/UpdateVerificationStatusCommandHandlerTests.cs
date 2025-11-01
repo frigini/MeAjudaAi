@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
@@ -35,7 +35,7 @@ public class UpdateVerificationStatusCommandHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var provider = ProviderBuilder.Create().WithId(providerId);
-        
+
         var command = new UpdateVerificationStatusCommand(
             ProviderId: providerId,
             Status: status
@@ -131,7 +131,7 @@ public class UpdateVerificationStatusCommandHandlerTests
         var provider = ProviderBuilder.Create()
             .WithId(providerId)
             .WithVerificationStatus(EVerificationStatus.Pending);
-        
+
         var command = new UpdateVerificationStatusCommand(
             ProviderId: providerId,
             Status: EVerificationStatus.Verified
@@ -170,7 +170,7 @@ public class UpdateVerificationStatusCommandHandlerTests
         var provider = ProviderBuilder.Create()
             .WithId(providerId)
             .WithVerificationStatus(EVerificationStatus.Verified);
-        
+
         var command = new UpdateVerificationStatusCommand(
             ProviderId: providerId,
             Status: EVerificationStatus.Rejected

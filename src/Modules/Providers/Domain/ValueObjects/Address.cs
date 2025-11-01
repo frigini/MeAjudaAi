@@ -77,6 +77,6 @@ public class Address : ValueObject
         yield return Country;
     }
 
-    public override string ToString() => 
+    public override string ToString() =>
         $"{Street}, {Number}{(string.IsNullOrEmpty(Complement) ? "" : ", " + Complement)}, {Neighborhood}, {City}/{State}, {ZipCode}, {Country}";
 }

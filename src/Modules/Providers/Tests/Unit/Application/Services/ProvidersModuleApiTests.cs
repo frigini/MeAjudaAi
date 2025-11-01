@@ -107,7 +107,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
         var providerDto = CreateValidProviderDto();
-        
+
         _getProviderByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetProviderByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ProviderDto?>.Success(providerDto));
 
@@ -126,7 +126,7 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        
+
         _getProviderByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetProviderByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ProviderDto?>.Success(null));
 
@@ -144,7 +144,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
         var error = Error.Internal("Database error");
-        
+
         _getProviderByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetProviderByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ProviderDto?>.Failure(error));
 
@@ -162,7 +162,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var userId = Guid.NewGuid();
         var providerDto = CreateValidProviderDto();
-        
+
         _getProviderByUserIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetProviderByUserIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ProviderDto?>.Success(providerDto));
 
@@ -180,7 +180,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var providerIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
         var providerDtos = providerIds.Select(_ => CreateValidProviderDto()).ToList();
-        
+
         _getProvidersByIdsHandler.Setup(x => x.HandleAsync(It.IsAny<GetProvidersByIdsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IReadOnlyList<ProviderDto>>.Success(providerDtos));
 
@@ -199,7 +199,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
         var providerDto = CreateValidProviderDto();
-        
+
         _getProviderByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetProviderByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ProviderDto?>.Success(providerDto));
 
@@ -216,7 +216,7 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        
+
         _getProviderByIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetProviderByIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ProviderDto?>.Success(null));
 
@@ -234,7 +234,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var userId = Guid.NewGuid();
         var providerDto = CreateValidProviderDto();
-        
+
         _getProviderByUserIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetProviderByUserIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ProviderDto?>.Success(providerDto));
 
@@ -251,7 +251,7 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        
+
         _getProviderByUserIdHandler.Setup(x => x.HandleAsync(It.IsAny<GetProviderByUserIdQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ProviderDto?>.Success(null));
 

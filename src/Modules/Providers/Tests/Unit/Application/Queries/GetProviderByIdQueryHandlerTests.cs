@@ -1,9 +1,9 @@
 using MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Providers.Application.Queries;
-using MeAjudaAi.Modules.Providers.Domain.Repositories;
-using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Queries;
@@ -99,7 +99,7 @@ public class GetProviderByIdQueryHandlerTests
         var userId = Guid.NewGuid();
         var name = "Test Provider";
         var type = EProviderType.Individual;
-        
+
         var address = new Address(
             street: "Rua Teste",
             number: "123",
@@ -118,7 +118,7 @@ public class GetProviderByIdQueryHandlerTests
             legalName: "Provider Test LTDA",
             contactInfo: contactInfo,
             primaryAddress: address);
-        
+
         return new Provider(userId, name, type, businessProfile);
     }
 }

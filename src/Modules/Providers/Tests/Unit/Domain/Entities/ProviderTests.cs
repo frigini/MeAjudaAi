@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Domain.Entities;
@@ -21,7 +21,7 @@ public class ProviderTests
     {
         var address = new Address(
             street: "Rua Teste",
-            number: "123", 
+            number: "123",
             neighborhood: "Centro",
             city: "São Paulo",
             state: "SP",
@@ -81,7 +81,7 @@ public class ProviderTests
         provider.DomainEvents.Should().HaveCount(1);
         var domainEvent = provider.DomainEvents.Single();
         domainEvent.Should().BeOfType<ProviderRegisteredDomainEvent>();
-        
+
         var registeredEvent = (ProviderRegisteredDomainEvent)domainEvent;
         registeredEvent.AggregateId.Should().Be(provider.Id.Value);
         registeredEvent.Version.Should().Be(1);
@@ -153,11 +153,11 @@ public class ProviderTests
         // Assert
         provider.Name.Should().Be(newName);
         provider.BusinessProfile.Should().Be(newBusinessProfile);
-        
+
         provider.DomainEvents.Should().HaveCount(2); // Registered + Updated
         var updateEvent = provider.DomainEvents.Last();
         updateEvent.Should().BeOfType<ProviderProfileUpdatedDomainEvent>();
-        
+
         var profileUpdatedEvent = (ProviderProfileUpdatedDomainEvent)updateEvent;
         profileUpdatedEvent.Name.Should().Be(newName);
         profileUpdatedEvent.UpdatedBy.Should().Be(updatedBy);
@@ -170,7 +170,7 @@ public class ProviderTests
         var provider = CreateValidProvider();
         var dateTimeProvider = CreateMockDateTimeProvider();
         provider.Delete(dateTimeProvider);
-        
+
         var newName = "Updated Name";
         var newBusinessProfile = CreateValidBusinessProfile();
 
@@ -193,10 +193,10 @@ public class ProviderTests
         // Assert
         provider.Documents.Should().HaveCount(1);
         provider.Documents.Should().Contain(document);
-        
+
         var addEvent = provider.DomainEvents.Last();
         addEvent.Should().BeOfType<ProviderDocumentAddedDomainEvent>();
-        
+
         var documentAddedEvent = (ProviderDocumentAddedDomainEvent)addEvent;
         documentAddedEvent.DocumentType.Should().Be(EDocumentType.CPF);
         documentAddedEvent.DocumentNumber.Should().Be("11144477735");
@@ -209,7 +209,7 @@ public class ProviderTests
         var provider = CreateValidProvider();
         var document1 = new Document("11144477735", EDocumentType.CPF);
         var document2 = new Document("12345678909", EDocumentType.CPF);
-        
+
         provider.AddDocument(document1);
 
         // Act & Assert
@@ -231,7 +231,7 @@ public class ProviderTests
 
         // Assert
         provider.Documents.Should().BeEmpty();
-        
+
         var removeEvent = provider.DomainEvents.Last();
         removeEvent.Should().BeOfType<ProviderDocumentRemovedDomainEvent>();
     }
@@ -264,10 +264,10 @@ public class ProviderTests
         // Assert
         provider.Qualifications.Should().HaveCount(1);
         provider.Qualifications.Should().Contain(qualification);
-        
+
         var addEvent = provider.DomainEvents.Last();
         addEvent.Should().BeOfType<ProviderQualificationAddedDomainEvent>();
-        
+
         var qualificationAddedEvent = (ProviderQualificationAddedDomainEvent)addEvent;
         qualificationAddedEvent.QualificationName.Should().Be("Certified Professional");
         qualificationAddedEvent.IssuingOrganization.Should().Be("Certification Board");
@@ -286,7 +286,7 @@ public class ProviderTests
 
         // Assert
         provider.Qualifications.Should().BeEmpty();
-        
+
         var removeEvent = provider.DomainEvents.Last();
         removeEvent.Should().BeOfType<ProviderQualificationRemovedDomainEvent>();
     }
@@ -304,10 +304,10 @@ public class ProviderTests
 
         // Assert
         provider.VerificationStatus.Should().Be(newStatus);
-        
+
         var updateEvent = provider.DomainEvents.Last();
         updateEvent.Should().BeOfType<ProviderVerificationStatusUpdatedDomainEvent>();
-        
+
         var statusUpdatedEvent = (ProviderVerificationStatusUpdatedDomainEvent)updateEvent;
         statusUpdatedEvent.PreviousStatus.Should().Be(EVerificationStatus.Pending);
         statusUpdatedEvent.NewStatus.Should().Be(newStatus);
@@ -328,10 +328,10 @@ public class ProviderTests
         // Assert
         provider.IsDeleted.Should().BeTrue();
         provider.DeletedAt.Should().Be(fixedDate);
-        
+
         var deleteEvent = provider.DomainEvents.Last();
         deleteEvent.Should().BeOfType<ProviderDeletedDomainEvent>();
-        
+
         var deletedEvent = (ProviderDeletedDomainEvent)deleteEvent;
         deletedEvent.Name.Should().Be(provider.Name);
     }
@@ -343,7 +343,7 @@ public class ProviderTests
         var provider = CreateValidProvider();
         var dateTimeProvider = CreateMockDateTimeProvider();
         provider.Delete(dateTimeProvider);
-        
+
         var originalDeletedAt = provider.DeletedAt;
         var originalEventCount = provider.DomainEvents.Count;
 
@@ -362,7 +362,7 @@ public class ProviderTests
         var name = "Test Provider";
         var type = EProviderType.Individual;
         var businessProfile = CreateValidBusinessProfile();
-        
+
         return new Provider(userId, name, type, businessProfile);
     }
 }
