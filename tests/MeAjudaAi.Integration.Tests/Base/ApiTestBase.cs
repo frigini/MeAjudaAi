@@ -126,57 +126,35 @@ public abstract class ApiTestBase : IAsyncLifetime
             throw;
         }
 
-        // For ProvidersDbContext, use a more robust approach
+        // For ProvidersDbContext, use migrations for proper table structure
         try
         {
-            await providersContext.Database.EnsureCreatedAsync();
-            logger?.LogInformation("Providers database schema created successfully with EnsureCreatedAsync");
+            logger?.LogInformation("🔄 Running Providers migrations...");
+            await providersContext.Database.MigrateAsync();
+            logger?.LogInformation("✅ Providers database migrations completed successfully");
         }
         catch (Exception ex)
         {
-            logger?.LogWarning(ex, "EnsureCreatedAsync failed for Providers, attempting alternative approach");
+            logger?.LogWarning(ex, "⚠️ Migrations failed for Providers, trying EnsureCreatedAsync");
 
             try
             {
-                // Generate and execute the creation script manually
-                var createScript = providersContext.Database.GenerateCreateScript();
-                
-                // Split script by semicolons and execute each statement separately
-                var statements = createScript
-                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
-                    .Where(s => !string.IsNullOrWhiteSpace(s))
-                    .Select(s => s.Trim())
-                    .Where(s => !s.StartsWith("--") && !string.IsNullOrEmpty(s));
-
-                foreach (var statement in statements)
-                {
-                    try
-                    {
-                        await providersContext.Database.ExecuteSqlRawAsync(statement + ";");
-                    }
-                    catch (Exception sqlEx)
-                    {
-                        // Log but continue - some statements might fail if objects already exist
-                        logger?.LogWarning(sqlEx, "Failed to execute SQL statement: {Statement}", statement.Substring(0, Math.Min(100, statement.Length)));
-                    }
-                }
-
-                logger?.LogInformation("Providers database schema created using manual script execution");
+                await providersContext.Database.EnsureCreatedAsync();
+                logger?.LogInformation("✅ Providers database schema created with EnsureCreatedAsync");
             }
-            catch (Exception scriptEx)
+            catch (Exception ensureEx)
             {
-                logger?.LogError(scriptEx, "Failed to create Providers database schema with manual script");
-                
-                // Last resort: Create the basic table structure manually
+                logger?.LogWarning(ensureEx, "⚠️ EnsureCreatedAsync also failed, falling back to manual creation");
+
                 try
                 {
                     await CreateProvidersTableManually(providersContext, logger);
-                    logger?.LogInformation("Providers database schema created using manual table creation");
+                    logger?.LogInformation("✅ Providers database schema created using manual table creation");
                 }
                 catch (Exception manualEx)
                 {
-                    logger?.LogError(manualEx, "All attempts to create Providers database schema failed");
-                    throw;
+                    logger?.LogError(manualEx, "❌ All Providers table creation methods failed");
+                    throw new InvalidOperationException("Unable to initialize Providers database schema", manualEx);
                 }
             }
         }
@@ -185,13 +163,37 @@ public abstract class ApiTestBase : IAsyncLifetime
         try
         {
             var usersCount = await usersContext.Users.CountAsync();
-            var providersCount = await providersContext.Providers.CountAsync();
-            logger?.LogInformation("Database verification successful - Users: {UsersCount}, Providers: {ProvidersCount}", usersCount, providersCount);
+            logger?.LogInformation("Users database verification successful - Count: {UsersCount}", usersCount);
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "Database verification failed");
-            throw;
+            logger?.LogError(ex, "Users database verification failed");
+            throw new InvalidOperationException("Users database is not properly initialized", ex);
+        }
+
+        try
+        {
+            var providersCount = await providersContext.Providers.CountAsync();
+            logger?.LogInformation("Providers database verification successful - Count: {ProvidersCount}", providersCount);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Providers database verification failed - attempting emergency table creation");
+
+            // Emergency table creation as last resort
+            try
+            {
+                await CreateProvidersTableManually(providersContext, logger);
+
+                // Retry verification after manual creation
+                var providersCount = await providersContext.Providers.CountAsync();
+                logger?.LogInformation("Emergency table creation successful - Count: {ProvidersCount}", providersCount);
+            }
+            catch (Exception emergencyEx)
+            {
+                logger?.LogError(emergencyEx, "Emergency table creation also failed");
+                throw new InvalidOperationException("Providers database could not be initialized despite all attempts", emergencyEx);
+            }
         }
     }
 
@@ -205,7 +207,16 @@ public abstract class ApiTestBase : IAsyncLifetime
 
     private static async Task CreateProvidersTableManually(ProvidersDbContext context, ILogger? logger)
     {
-        // Create the main providers table with all necessary columns
+        logger?.LogInformation("🔨 Starting manual Providers table creation with clean slate");
+
+        // First, drop existing tables to ensure clean slate
+        await context.Database.ExecuteSqlRawAsync(@"
+            DROP TABLE IF EXISTS providers.""Qualification"" CASCADE;
+            DROP TABLE IF EXISTS providers.""Document"" CASCADE;
+            DROP TABLE IF EXISTS providers.providers CASCADE;
+        ");
+
+        // Create the main providers table with all necessary columns based on the EF Core model
         var createProvidersTable = @"
             CREATE TABLE IF NOT EXISTS providers.providers (
                 id uuid PRIMARY KEY,
@@ -215,6 +226,8 @@ public abstract class ApiTestBase : IAsyncLifetime
                 verification_status varchar(20) NOT NULL,
                 is_deleted boolean NOT NULL DEFAULT false,
                 deleted_at timestamp with time zone,
+                created_at timestamp with time zone NOT NULL DEFAULT NOW(),
+                updated_at timestamp with time zone,
                 legal_name varchar(200) NOT NULL,
                 fantasy_name varchar(200),
                 description varchar(1000),
@@ -231,16 +244,56 @@ public abstract class ApiTestBase : IAsyncLifetime
                 country varchar(50) NOT NULL
             );";
 
+        // Create the documents table (owned entity)
+        var createDocumentsTable = @"
+            CREATE TABLE IF NOT EXISTS providers.document (
+                provider_id uuid NOT NULL,
+                id serial PRIMARY KEY,
+                number varchar(50) NOT NULL,
+                document_type varchar(20) NOT NULL,
+                FOREIGN KEY (provider_id) REFERENCES providers.providers(id) ON DELETE CASCADE
+            );";
+
+        // Create the qualifications table (owned entity)  
+        var createQualificationsTable = @"
+            CREATE TABLE IF NOT EXISTS providers.qualification (
+                provider_id uuid NOT NULL,
+                id serial PRIMARY KEY,
+                name varchar(200) NOT NULL,
+                description varchar(1000),
+                issuing_organization varchar(200),
+                issue_date timestamp with time zone,
+                expiration_date timestamp with time zone,
+                document_number varchar(50),
+                FOREIGN KEY (provider_id) REFERENCES providers.providers(id) ON DELETE CASCADE
+            );";
+
         var createIndices = @"
             CREATE UNIQUE INDEX IF NOT EXISTS ix_providers_user_id ON providers.providers (user_id);
             CREATE INDEX IF NOT EXISTS ix_providers_name ON providers.providers (name);
             CREATE INDEX IF NOT EXISTS ix_providers_type ON providers.providers (type);
             CREATE INDEX IF NOT EXISTS ix_providers_verification_status ON providers.providers (verification_status);
-            CREATE INDEX IF NOT EXISTS ix_providers_is_deleted ON providers.providers (is_deleted);";
+            CREATE INDEX IF NOT EXISTS ix_providers_is_deleted ON providers.providers (is_deleted);
+            CREATE UNIQUE INDEX IF NOT EXISTS ix_document_provider_id_document_type ON providers.document (provider_id, document_type);";
 
-        await context.Database.ExecuteSqlRawAsync(createProvidersTable);
-        await context.Database.ExecuteSqlRawAsync(createIndices);
-        
-        logger?.LogInformation("Created providers table and indices manually");
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(createProvidersTable);
+            logger?.LogInformation("✅ Created providers table manually");
+
+            await context.Database.ExecuteSqlRawAsync(createDocumentsTable);
+            logger?.LogInformation("✅ Created documents table manually");
+
+            await context.Database.ExecuteSqlRawAsync(createQualificationsTable);
+            logger?.LogInformation("✅ Created qualifications table manually");
+
+            await context.Database.ExecuteSqlRawAsync(createIndices);
+            logger?.LogInformation("✅ Created indices manually");
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "❌ Failed to create tables manually");
+            throw;
+        }
     }
 }

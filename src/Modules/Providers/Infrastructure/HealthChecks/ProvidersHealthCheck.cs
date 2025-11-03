@@ -28,9 +28,9 @@ public class ProvidersHealthCheck(
 
             // Verifica se consegue acessar a tabela providers
             var providersCount = await dbContext.Providers.CountAsync(cancellationToken);
-            
+
             logger.LogDebug("Providers health check passed - {ProvidersCount} providers found", providersCount);
-            
+
             return HealthCheckResult.Healthy($"Providers database is accessible with {providersCount} providers");
         }
         catch (Exception ex)

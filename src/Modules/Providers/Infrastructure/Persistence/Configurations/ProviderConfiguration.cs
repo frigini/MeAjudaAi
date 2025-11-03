@@ -143,7 +143,7 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                 .HasColumnName("document_type");
 
             doc.HasKey("ProviderId", "Id");
-            doc.ToTable("Document", "providers");
+            doc.ToTable("document", "providers");
             doc.WithOwner().HasForeignKey("ProviderId");
             doc.HasIndex("ProviderId", "DocumentType").IsUnique();
         });
@@ -173,6 +173,10 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             qual.Property(q => q.DocumentNumber)
                 .HasMaxLength(50)
                 .HasColumnName("document_number");
+
+            qual.HasKey("ProviderId", "Id");
+            qual.ToTable("qualification", "providers");
+            qual.WithOwner().HasForeignKey("ProviderId");
         });
 
         // Índices

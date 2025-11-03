@@ -1,0 +1,64 @@
+using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace MeAjudaAi.Integration.Tests.Providers;
+
+/// <summary>
+/// Testes específicos para verificar se o banco de dados do módulo Providers está funcionando
+/// </summary>
+public class ProvidersDatabaseTest : ApiTestBase
+{
+    [Fact]
+    public async Task ProvidersDbContext_ShouldBeConfiguredCorrectly()
+    {
+        // Arrange
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+
+        // Act & Assert
+        var canConnect = await context.Database.CanConnectAsync();
+        canConnect.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ProvidersTable_ShouldExist()
+    {
+        // Arrange
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+
+        // Act & Assert
+        var providersCount = await context.Providers.CountAsync();
+        providersCount.Should().BeGreaterThanOrEqualTo(0);
+    }
+
+    [Fact]
+    public async Task ProvidersQueryService_ShouldBeRegistered()
+    {
+        // Arrange
+        using var scope = Services.CreateScope();
+        var queryService = scope.ServiceProvider.GetService<MeAjudaAi.Modules.Providers.Application.Services.IProviderQueryService>();
+
+        // Act & Assert
+        queryService.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task ProviderQueryService_ShouldBeAbleToQuery()
+    {
+        // Arrange
+        using var scope = Services.CreateScope();
+        var queryService = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Providers.Application.Services.IProviderQueryService>();
+
+        // Act
+        var result = await queryService.GetProvidersAsync(page: 1, pageSize: 10);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Items.Should().NotBeNull();
+        result.TotalCount.Should().BeGreaterThanOrEqualTo(0);
+    }
+}

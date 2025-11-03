@@ -20,7 +20,7 @@ public class AuthenticationTests : ApiTestBase
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Should return 401 Unauthorized when authentication fails
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized, 
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized,
             "Endpoint requires authentication and should return 401 when no valid authentication is provided");
     }
 

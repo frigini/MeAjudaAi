@@ -73,7 +73,7 @@ public static class Extensions
 
         // Adiciona health check específico para o módulo Providers
         services.AddHealthChecks()
-            .AddCheck<ProvidersHealthCheck>("providers", 
+            .AddCheck<ProvidersHealthCheck>("providers",
                 tags: ["ready", "database", "providers"]);
 
         // Registra o health check customizado

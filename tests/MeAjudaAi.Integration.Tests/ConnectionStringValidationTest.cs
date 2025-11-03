@@ -80,7 +80,7 @@ public class ConnectionStringValidationTest(ITestOutputHelper testOutput) : ApiT
         // Log connection strings (for debugging)
         var usersConnectionString = usersContext.Database.GetConnectionString();
         var providersConnectionString = providersContext.Database.GetConnectionString();
-        
+
         testOutput.WriteLine($"Users connection configured: {!string.IsNullOrEmpty(usersConnectionString)}");
         testOutput.WriteLine($"Providers connection configured: {!string.IsNullOrEmpty(providersConnectionString)}");
 

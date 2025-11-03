@@ -30,7 +30,7 @@ public class ConfigurableTestAuthenticationHandler(
             {
                 return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
             }
-            
+
             // Auto-configure como admin se não há configuração e permitimos usuários não autenticados
             ConfigureAdmin();
         }
