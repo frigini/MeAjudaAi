@@ -21,22 +21,46 @@ public static class Extensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Configuração do DbContext
-        services.AddDbContext<ProvidersDbContext>(options =>
+        // Configuração do DbContext - mais tolerante para ambientes de teste
+        services.AddDbContext<ProvidersDbContext>((serviceProvider, options) =>
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            // Usa PostgreSQL para todos os ambientes (TestContainers fornecerá database de teste)
+            var connectionString = configuration.GetConnectionString("DefaultConnection")
+                                  ?? configuration.GetConnectionString("Providers")
+                                  ?? configuration.GetConnectionString("meajudaai-db");
+
+            // Em ambientes de teste, permitir que seja configurado depois via override
+            var isTestEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing" ||
+                                   Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Testing";
+            
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new InvalidOperationException(
-                    "Connection string 'DefaultConnection' not found in configuration. " +
-                    "Please ensure the connection string is properly configured in appsettings.json or environment variables.");
+                if (isTestEnvironment)
+                {
+                    // Para testes, usar uma connection string temporária que será substituída
+                    connectionString = "Host=localhost;Database=temp_test;Username=postgres;Password=test";
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        "Connection string not found in configuration. " +
+                        "Please ensure a connection string is properly configured in appsettings.json or environment variables " +
+                        "with name 'DefaultConnection', 'Providers', or 'meajudaai-db'.");
+                }
             }
 
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(typeof(ProvidersDbContext).Assembly.FullName);
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
-            });
+                
+                // PERFORMANCE: Timeout mais longo para permitir criação do banco de dados
+                npgsqlOptions.CommandTimeout(60);
+            })
+            .UseSnakeCaseNamingConvention()
+            // Configurações consistentes para evitar problemas com compiled queries
+            .EnableServiceProviderCaching()
+            .EnableSensitiveDataLogging(false);
         });
 
         // Registro do repositório

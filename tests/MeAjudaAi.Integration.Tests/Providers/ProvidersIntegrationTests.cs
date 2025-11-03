@@ -1,7 +1,10 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Tests.Auth;
+using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 
 namespace MeAjudaAi.Integration.Tests.Providers;
 
@@ -71,9 +74,12 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         }
         else
         {
-            // Se falhou, pode ser por questões de permissão ou configuração
-            // Verificar que não é erro 500 (erro de servidor)
-            Assert.NotEqual(System.Net.HttpStatusCode.InternalServerError, response.StatusCode);
+            // Se falhou, capturar e exibir o erro real
+            var errorContent = await response.Content.ReadAsStringAsync();
+            
+            // Falha o teste com informações detalhadas sobre o erro
+            Assert.True(response.IsSuccessStatusCode, 
+                $"Expected success status code, but got {response.StatusCode}. Error content: {errorContent}");
         }
     }
 
@@ -98,8 +104,12 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         }
         else
         {
-            // Se falhou, verificar que não é erro 500
-            Assert.NotEqual(System.Net.HttpStatusCode.InternalServerError, response.StatusCode);
+            // Se falhou, capturar e exibir o erro real
+            var errorContent = await response.Content.ReadAsStringAsync();
+            
+            // Falha o teste com informações detalhadas sobre o erro
+            Assert.True(response.IsSuccessStatusCode, 
+                $"Expected success status code, but got {response.StatusCode}. Error content: {errorContent}");
         }
     }
 

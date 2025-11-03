@@ -1,6 +1,6 @@
 using MeAjudaAi.Integration.Tests.Infrastructure;
-using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.AspNetCore.Authentication;
@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -75,17 +76,72 @@ public abstract class ApiTestBase : IAsyncLifetime
                     if (claimsTransformationDescriptor != null)
                         services.Remove(claimsTransformationDescriptor);
                 });
+                
+                // Enable detailed logging for debugging
+                builder.ConfigureLogging(logging =>
+                {
+                    logging.ClearProviders();
+                    logging.AddConsole();
+                    logging.SetMinimumLevel(LogLevel.Debug);
+                    logging.AddFilter("Microsoft.AspNetCore", LogLevel.Debug);
+                    logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Debug);
+                    logging.AddFilter("MeAjudaAi", LogLevel.Debug);
+                });
             });
 
         Client = _factory.CreateClient();
 
-        // Ensure database schema
+        // Ensure database schema using EnsureCreatedAsync for testing
+        // Note: UsersDbContext has pending model changes that would require new migrations
         using var scope = _factory.Services.CreateScope();
         var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+
+        // Create the "providers" schema first (required for ProvidersDbContext)
+        await providersContext.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS providers;");
         
+        // For UsersDbContext, use EnsureCreatedAsync (works fine for users)
         await usersContext.Database.EnsureCreatedAsync();
-        await providersContext.Database.EnsureCreatedAsync();
+        
+        // For ProvidersDbContext, manually create tables since EnsureCreatedAsync doesn't work with custom schema
+        try 
+        {
+            await providersContext.Database.EnsureCreatedAsync();
+        }
+        catch
+        {
+            // If EnsureCreatedAsync fails, create tables manually
+            await providersContext.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS providers.providers (
+                    id uuid NOT NULL,
+                    user_id uuid NOT NULL,
+                    name varchar(255) NOT NULL,
+                    provider_type integer NOT NULL,
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone,
+                    deleted_at timestamp with time zone,
+                    CONSTRAINT pk_providers PRIMARY KEY (id)
+                );
+                
+                CREATE TABLE IF NOT EXISTS providers.""Document"" (
+                    id uuid NOT NULL,
+                    provider_id uuid NOT NULL,
+                    document_type integer NOT NULL,
+                    document_number varchar(255) NOT NULL,
+                    CONSTRAINT pk_document PRIMARY KEY (id),
+                    CONSTRAINT fk_document_providers_provider_id FOREIGN KEY (provider_id) REFERENCES providers.providers (id) ON DELETE CASCADE
+                );
+                
+                CREATE TABLE IF NOT EXISTS providers.""Qualification"" (
+                    id uuid NOT NULL,
+                    provider_id uuid NOT NULL,
+                    qualification_type integer NOT NULL,
+                    description varchar(1000) NOT NULL,
+                    CONSTRAINT pk_qualification PRIMARY KEY (id),
+                    CONSTRAINT fk_qualification_providers_provider_id FOREIGN KEY (provider_id) REFERENCES providers.providers (id) ON DELETE CASCADE
+                );
+            ");
+        }
     }
 
     public async ValueTask DisposeAsync()

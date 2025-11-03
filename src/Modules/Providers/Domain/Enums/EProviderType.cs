@@ -11,5 +11,15 @@ public enum EProviderType
     None = 0,
 
     Individual = 1,
-    Company = 2
+    Company = 2,
+
+    /// <summary>
+    /// Cooperativa
+    /// </summary>
+    Cooperative = 3,
+
+    /// <summary>
+    /// Autônomo
+    /// </summary>
+    Freelancer = 4
 }

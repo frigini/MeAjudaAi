@@ -86,10 +86,15 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByCityAsync(string city, CancellationToken cancellationToken = default)
     {
-        return await GetProvidersQuery()
-            .Where(p => !p.IsDeleted && EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, city))
-            .OrderBy(p => p.Id.Value)
+        // Usar client evaluation para contornar problemas de tradução EF Core com Value Objects
+        var providers = await GetProvidersQuery()
+            .Where(p => !p.IsDeleted)
             .ToListAsync(cancellationToken);
+        
+        return providers
+            .Where(p => p.BusinessProfile.PrimaryAddress.City.Contains(city, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(p => p.Id.Value)
+            .ToList();
     }
 
     /// <summary>
@@ -97,10 +102,15 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByStateAsync(string state, CancellationToken cancellationToken = default)
     {
-        return await GetProvidersQuery()
-            .Where(p => !p.IsDeleted && EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, state))
-            .OrderBy(p => p.Id.Value)
+        // Usar client evaluation para contornar problemas de tradução EF Core com Value Objects
+        var providers = await GetProvidersQuery()
+            .Where(p => !p.IsDeleted)
             .ToListAsync(cancellationToken);
+        
+        return providers
+            .Where(p => p.BusinessProfile.PrimaryAddress.State.Contains(state, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(p => p.Id.Value)
+            .ToList();
     }
 
     /// <summary>
@@ -110,10 +120,15 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         EVerificationStatus verificationStatus,
         CancellationToken cancellationToken = default)
     {
-        return await GetProvidersQuery()
-            .Where(p => !p.IsDeleted && p.VerificationStatus == verificationStatus)
-            .OrderBy(p => p.Id.Value)
+        // Usar client evaluation para contornar problemas de tradução EF Core com enums
+        var providers = await GetProvidersQuery()
+            .Where(p => !p.IsDeleted)
             .ToListAsync(cancellationToken);
+        
+        return providers
+            .Where(p => p.VerificationStatus == verificationStatus)
+            .OrderBy(p => p.Id.Value)
+            .ToList();
     }
 
     /// <summary>
@@ -123,10 +138,15 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         EProviderType type,
         CancellationToken cancellationToken = default)
     {
-        return await GetProvidersQuery()
-            .Where(p => !p.IsDeleted && p.Type == type)
-            .OrderBy(p => p.Id.Value)
+        // Usar client evaluation para contornar problemas de tradução EF Core com enums
+        var providers = await GetProvidersQuery()
+            .Where(p => !p.IsDeleted)
             .ToListAsync(cancellationToken);
+        
+        return providers
+            .Where(p => p.Type == type)
+            .OrderBy(p => p.Id.Value)
+            .ToList();
     }
 
     /// <summary>

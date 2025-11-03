@@ -244,4 +244,26 @@ public class GetProvidersByStateQueryHandlerTests
             r => r.GetByStateAsync(state, cancellationToken),
             Times.Once);
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task HandleAsync_WithInvalidState_ShouldReturnFailure(string? invalidState)
+    {
+        // Arrange
+        var query = new GetProvidersByStateQuery(invalidState!);
+
+        // Act
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Contain("State parameter is required");
+
+        // Verify repository method is never called
+        _providerRepositoryMock.Verify(
+            r => r.GetByStateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
 }

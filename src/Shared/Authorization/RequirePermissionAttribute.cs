@@ -28,7 +28,7 @@ public sealed class RequirePermissionAttribute : AuthorizeAttribute, IAuthorizat
     {
         if (permission == EPermission.None)
             throw new ArgumentException("EPermission.None não é uma permissão válida para autorização", nameof(permission));
-            
+
         Permission = permission;
         Policy = $"RequirePermission:{permission.GetValue()}";
     }

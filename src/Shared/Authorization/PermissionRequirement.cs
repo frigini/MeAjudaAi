@@ -27,7 +27,7 @@ public sealed class PermissionRequirement : IAuthorizationRequirement
     {
         if (permission == EPermission.None)
             throw new ArgumentException("EPermission.None não é uma permissão válida para autorização", nameof(permission));
-            
+
         Permission = permission;
     }
 }
