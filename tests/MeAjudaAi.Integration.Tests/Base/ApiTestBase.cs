@@ -26,6 +26,10 @@ public abstract class ApiTestBase : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
+        // Set environment variables for testing
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
+
         _databaseFixture = new SimpleDatabaseFixture();
         await _databaseFixture.InitializeAsync();
 
@@ -76,7 +80,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                     if (claimsTransformationDescriptor != null)
                         services.Remove(claimsTransformationDescriptor);
                 });
-                
+
                 // Enable detailed logging for debugging
                 builder.ConfigureLogging(logging =>
                 {
@@ -96,51 +100,98 @@ public abstract class ApiTestBase : IAsyncLifetime
         using var scope = _factory.Services.CreateScope();
         var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        var logger = scope.ServiceProvider.GetService<ILogger<ApiTestBase>>();
 
-        // Create the "providers" schema first (required for ProvidersDbContext)
-        await providersContext.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS providers;");
-        
+        // Create schemas first
+        try
+        {
+            await providersContext.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS providers;");
+            await usersContext.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS users;");
+            logger?.LogInformation("Database schemas created successfully");
+        }
+        catch (Exception ex)
+        {
+            logger?.LogWarning(ex, "Failed to create schemas, they may already exist");
+        }
+
         // For UsersDbContext, use EnsureCreatedAsync (works fine for users)
-        await usersContext.Database.EnsureCreatedAsync();
-        
-        // For ProvidersDbContext, manually create tables since EnsureCreatedAsync doesn't work with custom schema
-        try 
+        try
+        {
+            await usersContext.Database.EnsureCreatedAsync();
+            logger?.LogInformation("Users database schema created successfully");
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Failed to create Users database schema");
+            throw;
+        }
+
+        // For ProvidersDbContext, use a more robust approach
+        try
         {
             await providersContext.Database.EnsureCreatedAsync();
+            logger?.LogInformation("Providers database schema created successfully with EnsureCreatedAsync");
         }
-        catch
+        catch (Exception ex)
         {
-            // If EnsureCreatedAsync fails, create tables manually
-            await providersContext.Database.ExecuteSqlRawAsync(@"
-                CREATE TABLE IF NOT EXISTS providers.providers (
-                    id uuid NOT NULL,
-                    user_id uuid NOT NULL,
-                    name varchar(255) NOT NULL,
-                    provider_type integer NOT NULL,
-                    created_at timestamp with time zone NOT NULL,
-                    updated_at timestamp with time zone,
-                    deleted_at timestamp with time zone,
-                    CONSTRAINT pk_providers PRIMARY KEY (id)
-                );
+            logger?.LogWarning(ex, "EnsureCreatedAsync failed for Providers, attempting alternative approach");
+
+            try
+            {
+                // Generate and execute the creation script manually
+                var createScript = providersContext.Database.GenerateCreateScript();
                 
-                CREATE TABLE IF NOT EXISTS providers.""Document"" (
-                    id uuid NOT NULL,
-                    provider_id uuid NOT NULL,
-                    document_type integer NOT NULL,
-                    document_number varchar(255) NOT NULL,
-                    CONSTRAINT pk_document PRIMARY KEY (id),
-                    CONSTRAINT fk_document_providers_provider_id FOREIGN KEY (provider_id) REFERENCES providers.providers (id) ON DELETE CASCADE
-                );
+                // Split script by semicolons and execute each statement separately
+                var statements = createScript
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(s => s.Trim())
+                    .Where(s => !s.StartsWith("--") && !string.IsNullOrEmpty(s));
+
+                foreach (var statement in statements)
+                {
+                    try
+                    {
+                        await providersContext.Database.ExecuteSqlRawAsync(statement + ";");
+                    }
+                    catch (Exception sqlEx)
+                    {
+                        // Log but continue - some statements might fail if objects already exist
+                        logger?.LogWarning(sqlEx, "Failed to execute SQL statement: {Statement}", statement.Substring(0, Math.Min(100, statement.Length)));
+                    }
+                }
+
+                logger?.LogInformation("Providers database schema created using manual script execution");
+            }
+            catch (Exception scriptEx)
+            {
+                logger?.LogError(scriptEx, "Failed to create Providers database schema with manual script");
                 
-                CREATE TABLE IF NOT EXISTS providers.""Qualification"" (
-                    id uuid NOT NULL,
-                    provider_id uuid NOT NULL,
-                    qualification_type integer NOT NULL,
-                    description varchar(1000) NOT NULL,
-                    CONSTRAINT pk_qualification PRIMARY KEY (id),
-                    CONSTRAINT fk_qualification_providers_provider_id FOREIGN KEY (provider_id) REFERENCES providers.providers (id) ON DELETE CASCADE
-                );
-            ");
+                // Last resort: Create the basic table structure manually
+                try
+                {
+                    await CreateProvidersTableManually(providersContext, logger);
+                    logger?.LogInformation("Providers database schema created using manual table creation");
+                }
+                catch (Exception manualEx)
+                {
+                    logger?.LogError(manualEx, "All attempts to create Providers database schema failed");
+                    throw;
+                }
+            }
+        }
+
+        // Verify tables exist
+        try
+        {
+            var usersCount = await usersContext.Users.CountAsync();
+            var providersCount = await providersContext.Providers.CountAsync();
+            logger?.LogInformation("Database verification successful - Users: {UsersCount}, Providers: {ProvidersCount}", usersCount, providersCount);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Database verification failed");
+            throw;
         }
     }
 
@@ -150,5 +201,46 @@ public abstract class ApiTestBase : IAsyncLifetime
         _factory?.Dispose();
         if (_databaseFixture != null)
             await _databaseFixture.DisposeAsync();
+    }
+
+    private static async Task CreateProvidersTableManually(ProvidersDbContext context, ILogger? logger)
+    {
+        // Create the main providers table with all necessary columns
+        var createProvidersTable = @"
+            CREATE TABLE IF NOT EXISTS providers.providers (
+                id uuid PRIMARY KEY,
+                user_id uuid NOT NULL,
+                name varchar(100) NOT NULL,
+                type varchar(20) NOT NULL,
+                verification_status varchar(20) NOT NULL,
+                is_deleted boolean NOT NULL DEFAULT false,
+                deleted_at timestamp with time zone,
+                legal_name varchar(200) NOT NULL,
+                fantasy_name varchar(200),
+                description varchar(1000),
+                email varchar(255) NOT NULL,
+                phone_number varchar(20),
+                website varchar(255),
+                street varchar(200) NOT NULL,
+                number varchar(20) NOT NULL,
+                complement varchar(100),
+                neighborhood varchar(100) NOT NULL,
+                city varchar(100) NOT NULL,
+                state varchar(50) NOT NULL,
+                zip_code varchar(20) NOT NULL,
+                country varchar(50) NOT NULL
+            );";
+
+        var createIndices = @"
+            CREATE UNIQUE INDEX IF NOT EXISTS ix_providers_user_id ON providers.providers (user_id);
+            CREATE INDEX IF NOT EXISTS ix_providers_name ON providers.providers (name);
+            CREATE INDEX IF NOT EXISTS ix_providers_type ON providers.providers (type);
+            CREATE INDEX IF NOT EXISTS ix_providers_verification_status ON providers.providers (verification_status);
+            CREATE INDEX IF NOT EXISTS ix_providers_is_deleted ON providers.providers (is_deleted);";
+
+        await context.Database.ExecuteSqlRawAsync(createProvidersTable);
+        await context.Database.ExecuteSqlRawAsync(createIndices);
+        
+        logger?.LogInformation("Created providers table and indices manually");
     }
 }

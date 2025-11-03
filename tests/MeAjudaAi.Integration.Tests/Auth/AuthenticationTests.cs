@@ -13,51 +13,42 @@ public class AuthenticationTests : ApiTestBase
     [Fact]
     public async Task GetUsers_WithoutAuthentication_ShouldReturnUnauthorized()
     {
-        // Clear any authentication configuration to ensure unauthenticated state
+        // Clear any authentication configuration and disable unauthenticated access
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        ConfigurableTestAuthenticationHandler.SetAllowUnauthenticated(false);
 
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
-        // TODO: Fix authorization pipeline to return proper 401/403 instead of 500
-        // Currently there's an unhandled exception in the authorization system when processing unauthenticated requests
-        // This is likely in PermissionRequirementHandler or related authorization components
-
-        // TEMPORARY: Accept 500 as a known issue until we fix the authorization pipeline
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.InternalServerError  // Known issue - fix pending
-        );
-
-        if (response.StatusCode == HttpStatusCode.InternalServerError)
-        {
-            var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-            content.Should().Contain("Internal Server Error");
-        }
+        // Should return 401 Unauthorized when authentication fails
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized, 
+            "Endpoint requires authentication and should return 401 when no valid authentication is provided");
     }
 
     [Fact]
-    public async Task GetUsers_WithRegularUserAuthentication_ShouldReturnOk()
+    public async Task GetUsers_WithRegularUserAuthentication_ShouldReturnForbidden()
     {
-        // Arrange - usuário regular (se permitido)
+        // Arrange - usuário regular sem permissão UsersList
         ConfigurableTestAuthenticationHandler.ConfigureRegularUser();
 
         // Act
         var response = await Client.GetAsync("/api/v1/users", TestContext.Current.CancellationToken);
 
-        // Assert
-        // TODO: Same authorization pipeline issue as above - fix pending
-        // TEMPORARY: Accept 500 as a known issue until we fix the authorization pipeline
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.InternalServerError  // Known issue - fix pending
-        );
+        // Assert - usuário regular não deveria ter acesso à lista de usuários
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
+            "Regular users should not have permission to access the users list endpoint");
+    }
 
-        if (response.StatusCode == HttpStatusCode.InternalServerError)
-        {
-            var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-            content.Should().Contain("Internal Server Error");
-        }
+    [Fact]
+    public async Task GetUsers_WithAdminAuthentication_ShouldReturnOk()
+    {
+        // Arrange - usuário admin com todas as permissões
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/users", TestContext.Current.CancellationToken);
+
+        // Assert - admin deveria ter acesso à lista de usuários
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Admin users should have permission to access the users list endpoint");
     }
 }

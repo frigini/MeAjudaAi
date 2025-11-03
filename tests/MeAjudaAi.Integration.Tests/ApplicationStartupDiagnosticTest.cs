@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Mvc.Testing;
+using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Infrastructure;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
-using FluentAssertions;
 
 namespace MeAjudaAi.Integration.Tests;
 
@@ -38,21 +38,29 @@ public class ApplicationStartupDiagnosticTest(ITestOutputHelper testOutput) : IA
         try
         {
             testOutput.WriteLine("🔧 Creating WebApplicationFactory...");
-            
+
             factory = new WebApplicationFactory<Program>()
                 .WithWebHostBuilder(builder =>
                 {
                     builder.UseEnvironment("Testing");
                     testOutput.WriteLine("✅ Environment set to Testing");
-                    
+
                     builder.ConfigureServices(services =>
                     {
                         testOutput.WriteLine("🔧 Configuring test services...");
-                        
-                        // Add minimal test database context override if needed
-                        // (Database fixture should provide connection string)
+
+                        // Use the test database connection string
+                        if (_databaseFixture?.ConnectionString != null)
+                        {
+                            testOutput.WriteLine($"🔧 Using test database: {_databaseFixture.ConnectionString}");
+                            // Override the connection string configuration
+                            services.Configure<Dictionary<string, string>>(config =>
+                            {
+                                config["ConnectionStrings:DefaultConnection"] = _databaseFixture.ConnectionString;
+                            });
+                        }
                     });
-                    
+
                     builder.ConfigureLogging(logging =>
                     {
                         logging.ClearProviders();
@@ -62,18 +70,17 @@ public class ApplicationStartupDiagnosticTest(ITestOutputHelper testOutput) : IA
                 });
 
             testOutput.WriteLine("🚀 Attempting to create client...");
-            
+
             using var client = factory.CreateClient();
             testOutput.WriteLine("✅ Client created successfully");
 
             testOutput.WriteLine("🔍 Testing simple request...");
-            
+
             // Just try to make any request to see if app responds
             var response = await client.GetAsync("/");
             testOutput.WriteLine($"📍 Root endpoint response: {response.StatusCode}");
 
-            // If we get here without exception, startup worked
-            startupException.Should().BeNull("Application should start without exceptions");
+            // If we get here without exception, startup worked (no explicit assertion needed)
         }
         catch (Exception ex)
         {
@@ -81,7 +88,7 @@ public class ApplicationStartupDiagnosticTest(ITestOutputHelper testOutput) : IA
             testOutput.WriteLine($"❌ Startup exception: {ex.GetType().Name}");
             testOutput.WriteLine($"❌ Message: {ex.Message}");
             testOutput.WriteLine($"❌ Stack trace: {ex.StackTrace}");
-            
+
             // Look for inner exceptions
             var innerEx = ex.InnerException;
             while (innerEx != null)
@@ -90,7 +97,7 @@ public class ApplicationStartupDiagnosticTest(ITestOutputHelper testOutput) : IA
                 testOutput.WriteLine($"❌ Inner message: {innerEx.Message}");
                 innerEx = innerEx.InnerException;
             }
-            
+
             throw; // Re-throw to fail the test
         }
         finally

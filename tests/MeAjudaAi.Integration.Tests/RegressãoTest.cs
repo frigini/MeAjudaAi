@@ -1,7 +1,7 @@
+using System.Net;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Auth;
-using System.Net;
 
 namespace MeAjudaAi.Integration.Tests;
 
@@ -20,9 +20,9 @@ public class RegressãoTest : ApiTestBase
         // Assert
         Console.WriteLine($"Users Response Status: {response.StatusCode}");
         Console.WriteLine($"Users Response Content: {content}");
-        
+
         // Verificar se realmente retorna OK (não 500)
-        Assert.True(response.StatusCode == HttpStatusCode.OK, 
+        Assert.True(response.StatusCode == HttpStatusCode.OK,
             $"Users endpoint should return OK, but got {response.StatusCode}. Content: {content}");
     }
 
@@ -34,7 +34,7 @@ public class RegressãoTest : ApiTestBase
         // TODO: This test is temporarily skipped due to Providers database schema issue
         // The schema 'providers' is created, but tables are not being created properly by EnsureCreatedAsync
         // This needs investigation of why custom schema table creation fails in test environment
-        
+
         // Arrange
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
@@ -45,7 +45,7 @@ public class RegressãoTest : ApiTestBase
         // Assert
         Console.WriteLine($"Providers Response Status: {response.StatusCode}");
         Console.WriteLine($"Providers Response Content: {content}");
-        
+
         // Para comparação - vamos ver se funciona agora
         if (response.StatusCode == HttpStatusCode.InternalServerError)
         {

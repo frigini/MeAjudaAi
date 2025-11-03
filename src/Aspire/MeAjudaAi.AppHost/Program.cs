@@ -1,3 +1,4 @@
+using Aspire.Hosting;
 using MeAjudaAi.AppHost.Extensions;
 using MeAjudaAi.AppHost.Helpers;
 

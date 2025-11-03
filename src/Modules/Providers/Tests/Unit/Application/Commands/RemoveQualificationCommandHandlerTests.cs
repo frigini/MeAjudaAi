@@ -50,8 +50,10 @@ public class RemoveQualificationCommandHandlerTests
             .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
+        Provider? updatedProvider = null;
         _providerRepositoryMock
             .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
+            .Callback<Provider, CancellationToken>((p, ct) => updatedProvider = p)
             .Returns(Task.CompletedTask);
 
         // Act
@@ -62,6 +64,9 @@ public class RemoveQualificationCommandHandlerTests
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(providerId);
 
+        // Verify the qualification was removed from the result
+        result.Value!.Qualifications.Should().BeEmpty("the qualification should have been removed");
+
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Once);
@@ -69,6 +74,10 @@ public class RemoveQualificationCommandHandlerTests
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Once);
+
+        // Verify the provider passed to UpdateAsync has the qualification removed
+        updatedProvider.Should().NotBeNull();
+        updatedProvider!.Qualifications.Should().BeEmpty("the qualification should have been removed from the provider sent to repository");
     }
 
     [Fact]

@@ -19,13 +19,19 @@ public class ConfigurableTestAuthenticationHandler(
 
     private static readonly ConcurrentDictionary<string, UserConfig> _userConfigs = new();
     private static volatile string? _currentConfigKey;
+    private static volatile bool _allowUnauthenticated = false;
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        // Se não há configuração específica, assume admin por padrão para compatibilidade
+        // Se não há configuração e não permitimos usuários não autenticados, falha a autenticação
         if (_currentConfigKey == null || !_userConfigs.TryGetValue(_currentConfigKey, out _))
         {
-            // Auto-configure como admin se nenhuma configuração foi definida
+            if (!_allowUnauthenticated)
+            {
+                return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
+            }
+            
+            // Auto-configure como admin se não há configuração e permitimos usuários não autenticados
             ConfigureAdmin();
         }
 
@@ -71,6 +77,12 @@ public class ConfigurableTestAuthenticationHandler(
     {
         _userConfigs.Clear();
         _currentConfigKey = null;
+        _allowUnauthenticated = false;  // Default to requiring authentication
+    }
+
+    public static void SetAllowUnauthenticated(bool allow)
+    {
+        _allowUnauthenticated = allow;
     }
 
     private record UserConfig(string UserId, string UserName, string Email, string[] Roles);

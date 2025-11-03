@@ -90,7 +90,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         var providers = await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
             .ToListAsync(cancellationToken);
-        
+
         return providers
             .Where(p => p.BusinessProfile.PrimaryAddress.City.Contains(city, StringComparison.OrdinalIgnoreCase))
             .OrderBy(p => p.Id.Value)
@@ -106,7 +106,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         var providers = await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
             .ToListAsync(cancellationToken);
-        
+
         return providers
             .Where(p => p.BusinessProfile.PrimaryAddress.State.Contains(state, StringComparison.OrdinalIgnoreCase))
             .OrderBy(p => p.Id.Value)
@@ -124,7 +124,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         var providers = await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
             .ToListAsync(cancellationToken);
-        
+
         return providers
             .Where(p => p.VerificationStatus == verificationStatus)
             .OrderBy(p => p.Id.Value)
@@ -142,7 +142,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         var providers = await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
             .ToListAsync(cancellationToken);
-        
+
         return providers
             .Where(p => p.Type == type)
             .OrderBy(p => p.Id.Value)

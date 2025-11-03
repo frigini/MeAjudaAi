@@ -1,9 +1,10 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
+using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests;
 
@@ -23,15 +24,15 @@ public class ConnectionStringValidationTest(ITestOutputHelper testOutput) : ApiT
     {
         // Arrange: Obtém o contexto do banco de dados
         var dbContext = Services.GetRequiredService<ProvidersDbContext>();
-        
+
         // Act: Tenta conectar ao banco de dados
         var canConnect = await dbContext.Database.CanConnectAsync();
-        
+
         // Assert: Verifica se a conexão foi estabelecida com sucesso
         testOutput.WriteLine($"✅ Database connection established: {canConnect}");
         canConnect.Should().BeTrue("Database connection should work with our fallback strategy");
     }
-    
+
     /// <summary>
     /// ✅ Teste para validar que as tabelas do Provider estão criadas
     /// </summary>
@@ -40,7 +41,7 @@ public class ConnectionStringValidationTest(ITestOutputHelper testOutput) : ApiT
     {
         // Arrange
         var dbContext = Services.GetRequiredService<ProvidersDbContext>();
-        
+
         // Act: Verifica se as tabelas existem tentando uma query simples
         var tableExists = true;
         try
@@ -53,34 +54,38 @@ public class ConnectionStringValidationTest(ITestOutputHelper testOutput) : ApiT
             tableExists = false;
             testOutput.WriteLine($"❌ Error accessing Providers table: {ex.Message}");
         }
-        
+
         // Assert
         tableExists.Should().BeTrue("Providers table should exist and be accessible");
     }
-    
+
     /// <summary>
-    /// ✅ Teste para validar a configuração de connection string foi carregada corretamente
+    /// ✅ Teste para validar que os contextos de banco estão configurados corretamente
     /// </summary>
     [Fact]
-    public void ConnectionString_Configuration_Should_Be_Valid()
+    public async Task Database_Contexts_Should_Be_Configured()
     {
         // Arrange
-        var configuration = Services.GetRequiredService<IConfiguration>();
+        var usersContext = Services.GetRequiredService<UsersDbContext>();
+        var providersContext = Services.GetRequiredService<ProvidersDbContext>();
+
+        // Act: Verifica se os contextos conseguem conectar
+        var usersCanConnect = await usersContext.Database.CanConnectAsync();
+        var providersCanConnect = await providersContext.Database.CanConnectAsync();
+
+        // Log connection status
+        testOutput.WriteLine($"Users context can connect: {usersCanConnect}");
+        testOutput.WriteLine($"Providers context can connect: {providersCanConnect}");
+
+        // Log connection strings (for debugging)
+        var usersConnectionString = usersContext.Database.GetConnectionString();
+        var providersConnectionString = providersContext.Database.GetConnectionString();
         
-        // Act: Verifica todas as possíveis connection strings na ordem de fallback
-        var defaultConnection = configuration.GetConnectionString("DefaultConnection");
-        var providersConnection = configuration.GetConnectionString("Providers");
-        var meAjudaAiConnection = configuration.GetConnectionString("meajudaai-db");
-        
-        // Assert: Pelo menos uma connection string deve estar disponível
-        var hasValidConnection = !string.IsNullOrEmpty(defaultConnection) ||
-                               !string.IsNullOrEmpty(providersConnection) ||
-                               !string.IsNullOrEmpty(meAjudaAiConnection);
-        
-        testOutput.WriteLine($"DefaultConnection: {!string.IsNullOrEmpty(defaultConnection)}");
-        testOutput.WriteLine($"Providers: {!string.IsNullOrEmpty(providersConnection)}");
-        testOutput.WriteLine($"meajudaai-db: {!string.IsNullOrEmpty(meAjudaAiConnection)}");
-        
-        hasValidConnection.Should().BeTrue("At least one connection string should be configured");
+        testOutput.WriteLine($"Users connection configured: {!string.IsNullOrEmpty(usersConnectionString)}");
+        testOutput.WriteLine($"Providers connection configured: {!string.IsNullOrEmpty(providersConnectionString)}");
+
+        // Assert: Both contexts should be able to connect
+        usersCanConnect.Should().BeTrue("Users database context should be properly configured");
+        providersCanConnect.Should().BeTrue("Providers database context should be properly configured");
     }
 }
