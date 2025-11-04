@@ -31,11 +31,8 @@ public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBa
             var response = await Client.GetAsync(endpoint, TestContext.Current.CancellationToken);
             var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
-            // Admin should have access (200 OK) or at least not be forbidden/unauthorized
-            response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Unauthorized,
-                $"Admin should have access to {endpoint}");
-            response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Forbidden,
-                $"Admin should not be forbidden from {endpoint}");
+            // Admin should have successful access to all endpoints
+            response.IsSuccessStatusCode.Should().BeTrue($"Admin should have successful response for {endpoint}");
         }
     }
 
