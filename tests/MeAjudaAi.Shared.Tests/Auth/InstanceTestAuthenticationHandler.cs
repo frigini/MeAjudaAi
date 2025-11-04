@@ -39,7 +39,7 @@ public class InstanceTestAuthenticationHandler(
     protected override string GetTestUserId() => _configuration.UserId ?? base.GetTestUserId();
     protected override string GetTestUserName() => _configuration.UserName ?? base.GetTestUserName();
     protected override string GetTestUserEmail() => _configuration.Email ?? base.GetTestUserEmail();
-    protected override string[] GetTestUserRoles() => _configuration.Roles ?? base.GetTestUserRoles();
+    protected override string[] GetTestUserRoles() => _configuration.Roles?.ToArray() ?? base.GetTestUserRoles();
     protected override string GetAuthenticationScheme() => SchemeName;
 }
 
@@ -51,10 +51,10 @@ public interface ITestAuthenticationConfiguration
     string? UserId { get; }
     string? UserName { get; }
     string? Email { get; }
-    string[]? Roles { get; }
+    IReadOnlyList<string>? Roles { get; }
     bool HasUser { get; }
     bool AllowUnauthenticated { get; }
-    
+
     void ConfigureUser(string userId, string userName, string email, params string[] roles);
     void ConfigureAdmin(string userId = "admin-id", string userName = "admin", string email = "admin@test.com");
     void ConfigureRegularUser(string userId = "user-id", string userName = "user", string email = "user@test.com");
@@ -70,7 +70,7 @@ public class TestAuthenticationConfiguration : ITestAuthenticationConfiguration
     public string? UserId { get; private set; }
     public string? UserName { get; private set; }
     public string? Email { get; private set; }
-    public string[]? Roles { get; private set; }
+    public IReadOnlyList<string>? Roles { get; private set; }
     public bool HasUser => UserId != null;
     public bool AllowUnauthenticated { get; private set; }
 

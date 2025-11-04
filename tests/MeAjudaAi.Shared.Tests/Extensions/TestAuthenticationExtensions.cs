@@ -29,7 +29,7 @@ public static class TestAuthenticationExtensions
     {
         // Register the configuration as a singleton per test factory instance
         services.AddSingleton<ITestAuthenticationConfiguration, TestAuthenticationConfiguration>();
-        
+
         return services.AddAuthentication(InstanceTestAuthenticationHandler.SchemeName)
             .AddScheme<AuthenticationSchemeOptions, InstanceTestAuthenticationHandler>(
                 InstanceTestAuthenticationHandler.SchemeName, _ => { })

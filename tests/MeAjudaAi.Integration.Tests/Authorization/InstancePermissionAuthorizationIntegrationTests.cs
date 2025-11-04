@@ -32,9 +32,9 @@ public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBa
             var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // Admin should have access (200 OK) or at least not be forbidden/unauthorized
-            response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Unauthorized, 
+            response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Unauthorized,
                 $"Admin should have access to {endpoint}");
-            response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Forbidden, 
+            response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Forbidden,
                 $"Admin should not be forbidden from {endpoint}");
         }
     }
@@ -80,7 +80,7 @@ public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBa
     {
         // Arrange - Configure as admin first
         AuthConfig.ConfigureAdmin("test-admin", "admin-test", "admin@test.com");
-        
+
         // Verify admin configuration
         AuthConfig.HasUser.Should().BeTrue();
         AuthConfig.UserId.Should().Be("test-admin");
@@ -148,17 +148,17 @@ public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBa
         AuthConfig.ConfigureAdmin();
 
         var endpoint = "/api/v1/providers?PageNumber=1&PageSize=5";
-        
+
         // Make a single request and verify it's not a server error
         var response = await Client.GetAsync(endpoint);
-        
+
         // The key test is that we get consistent, expected responses (not server errors)
         // Rate limiting (429) is fine as it shows the API is working consistently
-        response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError, 
+        response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError,
             "API should not return server errors");
-        
+
         // Should be a valid HTTP response (200, 429, 401, 403, etc. are all valid)
-        ((int)response.StatusCode).Should().BeInRange(200, 499, 
+        ((int)response.StatusCode).Should().BeInRange(200, 499,
             "Response should be a valid client or success status code");
     }
 
@@ -187,7 +187,7 @@ public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBa
                 parseAction.Should().NotThrow($"Response from {endpoint} should be valid JSON");
 
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>(content);
-                
+
                 // Should be either an array or an object
                 jsonElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
             }
