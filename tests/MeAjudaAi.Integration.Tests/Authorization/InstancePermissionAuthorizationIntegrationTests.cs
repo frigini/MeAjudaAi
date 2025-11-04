@@ -46,8 +46,12 @@ public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBa
         var publicEndpoint = "/api/v1/providers?PageNumber=1&PageSize=10";
         var response = await Client.GetAsync(publicEndpoint, TestContext.Current.CancellationToken);
 
-        // Regular users might have access to providers (depends on authorization policy)
-        // The key is that they shouldn't get a 500 error or authentication failure
+        // Regular users should be able to access provider listings (public data)
+        // but this test accepts multiple outcomes to handle different authorization configurations:
+        // - OK: Provider data is publicly accessible to regular users
+        // - Forbidden: Provider access requires elevated permissions 
+        // - NotFound: Endpoint routing or configuration issues
+        // The key validation is ensuring no server errors (5xx) or authentication failures occur
         response.StatusCode.Should().BeOneOf(
             System.Net.HttpStatusCode.OK,
             System.Net.HttpStatusCode.Forbidden,
@@ -152,7 +156,9 @@ public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBa
         // The key test is that we get consistent, expected responses (not server errors)
         // Rate limiting (429) is fine as it shows the API is working consistently
         response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError,
-            "API should not return server errors");        // Should be a valid HTTP response (200, 429, 401, 403, etc. are all valid)
+            "API should not return server errors");
+
+        // Should be a valid HTTP response (200, 429, 401, 403, etc. are all valid)
         ((int)response.StatusCode).Should().BeInRange(200, 499,
             "Response should be a valid client or success status code");
     }
