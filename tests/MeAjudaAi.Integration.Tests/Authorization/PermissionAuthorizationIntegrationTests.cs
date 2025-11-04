@@ -171,7 +171,7 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
         _output.WriteLine($"Response content length: {content.Length}");
         if (content.Length < 1000)
             _output.WriteLine($"Response content: {content}");
-        
+
         _output.WriteLine("Response headers:");
         foreach (var header in response.Headers)
             _output.WriteLine($"  {header.Key}: {string.Join(", ", header.Value)}");

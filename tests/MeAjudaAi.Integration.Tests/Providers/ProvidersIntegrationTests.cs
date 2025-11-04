@@ -61,7 +61,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Created, 
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Created,
             "POST requests that create resources should return 201 Created");
         // Optionally verify Location:
         // response.Headers.Location.Should().NotBeNull();
@@ -113,7 +113,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Expect a consistent API response format - should be an object with data property
-        providers.ValueKind.Should().Be(JsonValueKind.Object, 
+        providers.ValueKind.Should().Be(JsonValueKind.Object,
             "API should return a structured response object");
         providers.TryGetProperty("data", out var dataElement).Should().BeTrue(
             "Response should contain 'data' property for consistency");
@@ -140,7 +140,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
 
         // Should be a valid response (either found or not found, no validation errors)
         response.StatusCode.Should().BeOneOf(
-            System.Net.HttpStatusCode.NotFound, 
+            System.Net.HttpStatusCode.NotFound,
             System.Net.HttpStatusCode.OK);
     }
 
@@ -155,9 +155,9 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
 
         // Assert
         var errorContent = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK, 
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK,
             $"because the endpoint should return OK. Response: {errorContent}");
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
@@ -184,9 +184,9 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
 
         // Assert
         var errorContent = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK, 
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK,
             $"because the endpoint should return OK. Response: {errorContent}");
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
