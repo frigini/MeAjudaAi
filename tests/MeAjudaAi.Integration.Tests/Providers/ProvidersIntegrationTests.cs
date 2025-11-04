@@ -69,26 +69,14 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Verifica se é uma response estruturada (com data)
-        if (responseJson.TryGetProperty("data", out var dataElement))
-        {
-            dataElement.TryGetProperty("id", out _).Should().BeTrue(
-                $"Response data should contain 'id' property. Full response: {content}");
-            dataElement.TryGetProperty("name", out var nameProperty).Should().BeTrue();
-            nameProperty.GetString().Should().Be("Test Provider Integration");
-        }
-        else
-        {
-            // Fallback para response direta
-            responseJson.TryGetProperty("id", out _).Should().BeTrue(
-                $"Response should contain 'id' property. Full response: {content}");
-            responseJson.TryGetProperty("name", out var nameProperty).Should().BeTrue();
-            nameProperty.GetString().Should().Be("Test Provider Integration");
-        }
+        var dataElement = GetResponseData(responseJson);
+        dataElement.TryGetProperty("id", out _).Should().BeTrue(
+            $"Response data should contain 'id' property. Full response: {content}");
+        dataElement.TryGetProperty("name", out var nameProperty).Should().BeTrue();
+        nameProperty.GetString().Should().Be("Test Provider Integration");
 
         // Cleanup - attempt to delete created provider
-        var idElement = responseJson.TryGetProperty("data", out var data)
-            ? data
-            : responseJson;
+        var idElement = GetResponseData(responseJson);
         if (idElement.TryGetProperty("id", out var idProperty))
         {
             var providerId = idProperty.GetString();
@@ -127,23 +115,35 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
     }
 
     [Fact]
-    public async Task GetProviderById_WithRandomId_ShouldNotReturnServerError()
+    public async Task GetProviderById_WithNonExistentId_ShouldHandleGracefully()
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
-        var randomId = Guid.NewGuid(); // Use random ID
+        var randomId = Guid.NewGuid(); // Use random ID that definitely doesn't exist
 
         // Act
         var response = await Client.GetAsync($"/api/v1/providers/{randomId}");
 
         // Assert
-        // Should not return server error - can be NotFound, OK, or other client errors
-        response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError);
-
-        // Should be a valid response (either found or not found, no validation errors)
+        // API should either return NotFound or OK with null/empty response
+        // Both are valid ways to handle non-existent resources
         response.StatusCode.Should().BeOneOf(
             System.Net.HttpStatusCode.NotFound,
             System.Net.HttpStatusCode.OK);
+
+        // If OK is returned, verify response indicates no provider found
+        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
+            
+            // Response should be null, empty, or indicate no data found
+            var isEmpty = responseJson.ValueKind == JsonValueKind.Null ||
+                         (responseJson.ValueKind == JsonValueKind.Object && 
+                          (!responseJson.TryGetProperty("data", out var data) || data.ValueKind == JsonValueKind.Null));
+            
+            isEmpty.Should().BeTrue($"OK response for non-existent provider should indicate no data. Response: {content}");
+        }
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         // Arrange
         AuthConfig.ConfigureAdmin();
 
-        // Act - Testar busca por tipo Individual
+        // Act - Test filtering by Individual type
         var response = await Client.GetAsync("/api/v1/providers/by-type/Individual");
 
         // Assert
@@ -163,7 +163,8 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Accept empty list or proper response structure
-        // Expect consistent API response format - don't accept error message responses
+        // NOTE: This test validates response format but doesn't verify actual filtering
+        // TODO: Enhance with provider seeding to verify only Individual type providers are returned
         var isValidResponse = providers.ValueKind == JsonValueKind.Array ||
                               (providers.ValueKind == JsonValueKind.Object &&
                                   providers.TryGetProperty("data", out _));
@@ -177,7 +178,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         // Arrange
         AuthConfig.ConfigureAdmin();
 
-        // Act - Testar busca por status Pending
+        // Act - Test filtering by Pending verification status
         var response = await Client.GetAsync("/api/v1/providers/by-verification-status/Pending");
 
         // Assert
@@ -188,7 +189,8 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Accept empty list or proper response structure
-        // Expect consistent API response format - don't accept error message responses
+        // NOTE: This test validates response format but doesn't verify actual filtering
+        // TODO: Enhance with provider seeding to verify only Pending status providers are returned
         var isValidResponse = providers.ValueKind == JsonValueKind.Array ||
                               (providers.ValueKind == JsonValueKind.Object &&
                                   providers.TryGetProperty("data", out _));
@@ -223,5 +225,12 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
             response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK,
                 $"Authenticated admin requests to {endpoint} should succeed.");
         }
+    }
+
+    private static JsonElement GetResponseData(JsonElement response)
+    {
+        return response.TryGetProperty("data", out var dataElement) 
+            ? dataElement 
+            : response;
     }
 }

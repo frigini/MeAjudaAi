@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 
@@ -16,6 +17,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using Xunit;
+
 namespace MeAjudaAi.Integration.Tests.Authorization;
 
 /// <summary>
@@ -31,7 +34,7 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
     }
 
     [Fact]
-    public async Task AuthenticatedEndpoint_WithAnyClaims_ShouldNotReturnUnauthorized()
+    public async Task RegularUser_WithoutPermissions_ShouldReturnForbidden()
     {
         // Arrange
         AuthConfig.ConfigureRegularUser();
