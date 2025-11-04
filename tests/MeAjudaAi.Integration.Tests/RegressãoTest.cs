@@ -10,20 +10,28 @@ public class RegressãoTest : ApiTestBase
     [Fact]
     public async Task UsersEndpoint_ShouldWork_WithoutErrors()
     {
-        // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        try
+        {
+            // Arrange
+            ConfigurableTestAuthenticationHandler.ClearConfiguration();
+            ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
-        // Act
-        var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=5", TestContext.Current.CancellationToken);
-        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            // Act
+            var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=5", TestContext.Current.CancellationToken);
+            var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
-        // Assert
-        Console.WriteLine($"Users Response Status: {response.StatusCode}");
-        Console.WriteLine($"Users Response Content: {content}");
+            // Assert
+            Console.WriteLine($"Users Response Status: {response.StatusCode}");
+            Console.WriteLine($"Users Response Content: {content}");
 
-        // Verificar se realmente retorna OK (não 500)
-        Assert.True(response.StatusCode == HttpStatusCode.OK,
-            $"Users endpoint should return OK, but got {response.StatusCode}. Content: {content}");
+            // Verificar se realmente retorna OK (não 500)
+            Assert.True(response.StatusCode == HttpStatusCode.OK,
+                $"Users endpoint should return OK, but got {response.StatusCode}. Content: {content}");
+        }
+        finally
+        {
+            ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        }
     }
 
     [Fact]
@@ -35,19 +43,27 @@ public class RegressãoTest : ApiTestBase
         // but based on CI output, Providers endpoints are now returning 200 OK.
         // Re-enabling to verify current status.
 
-        // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        try
+        {
+            // Arrange
+            ConfigurableTestAuthenticationHandler.ClearConfiguration();
+            ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=5", TestContext.Current.CancellationToken);
-        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            // Act
+            var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=5", TestContext.Current.CancellationToken);
+            var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
-        // Assert
-        Console.WriteLine($"Providers Response Status: {response.StatusCode}");
-        Console.WriteLine($"Providers Response Content: {content}");
+            // Assert
+            Console.WriteLine($"Providers Response Status: {response.StatusCode}");
+            Console.WriteLine($"Providers Response Content: {content}");
 
-        // Providers endpoint should return OK (not 500)
-        Assert.True(response.StatusCode == HttpStatusCode.OK,
-            $"Providers endpoint should return OK, but got {response.StatusCode}. Content: {content}");
+            // Providers endpoint should return OK (not 500)
+            Assert.True(response.StatusCode == HttpStatusCode.OK,
+                $"Providers endpoint should return OK, but got {response.StatusCode}. Content: {content}");
+        }
+        finally
+        {
+            ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        }
     }
 }

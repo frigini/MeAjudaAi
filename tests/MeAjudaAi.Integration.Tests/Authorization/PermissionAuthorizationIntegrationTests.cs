@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static MeAjudaAi.Modules.Users.API.Extensions;
+using static MeAjudaAi.Modules.Providers.API.Extensions;
 
 namespace MeAjudaAi.Integration.Tests.Authorization;
 
@@ -201,12 +202,14 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
                     .AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["ConnectionStrings:Database"] = "Server=localhost;Database=test;",
-                        ["Modules:Users:Enabled"] = "true"
+                        ["Modules:Users:Enabled"] = "true",
+                        ["Modules:Providers:Enabled"] = "true"
                     })
                     .Build();
 
-                // Adiciona módulo de usuários (autorização já está configurada no application setup)
+                // Adiciona módulo de usuários e providers (autorização já está configurada no application setup)
                 services.AddUsersModule(configuration);
+                services.AddProvidersModule(configuration);
 
                 // Remove ClaimsTransformation that causes hanging in tests
                 var claimsTransformationDescriptor = services.FirstOrDefault(d =>

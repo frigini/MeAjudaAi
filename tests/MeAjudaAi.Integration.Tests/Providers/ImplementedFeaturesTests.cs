@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests.Providers;
 
@@ -34,12 +35,16 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse()
     {
         // Arrange
-        // // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado // Temporariamente desabilitado
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers");
 
         // Assert
+        // Should not be a server error regardless of success/failure
+        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
+            "Server should not crash on basic endpoint access");
+
         if (response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync();
@@ -54,7 +59,7 @@ public class ImplementedFeaturesTests : ApiTestBase
                 var hasItems = jsonDocument.RootElement.TryGetProperty("items", out _);
                 var hasTotalCount = jsonDocument.RootElement.TryGetProperty("totalCount", out _);
                 var hasPage = jsonDocument.RootElement.TryGetProperty("page", out _);
-                
+
                 // Check if it's wrapped in a "data" property (API response wrapper)
                 var hasDataWrapper = jsonDocument.RootElement.TryGetProperty("data", out var dataElement);
                 if (hasDataWrapper && dataElement.ValueKind == JsonValueKind.Object)
@@ -62,7 +67,7 @@ public class ImplementedFeaturesTests : ApiTestBase
                     var dataHasItems = dataElement.TryGetProperty("items", out _);
                     var dataHasTotalCount = dataElement.TryGetProperty("totalCount", out _);
                     var dataHasPage = dataElement.TryGetProperty("page", out _);
-                    
+
                     (dataHasItems || dataHasTotalCount || dataHasPage).Should().BeTrue("Should be a paginated result in data wrapper");
                 }
                 else
@@ -70,12 +75,6 @@ public class ImplementedFeaturesTests : ApiTestBase
                     (hasItems || hasTotalCount || hasPage).Should().BeTrue("Should be a paginated result");
                 }
             }
-        }
-        else
-        {
-            // If not successful, should not be a server error
-            response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
-                "Server should not crash on basic endpoint access");
         }
     }
 
@@ -115,7 +114,6 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task GetProviderById_Endpoint_ShouldExist()
     {
         // Arrange
-        // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado
         var testId = Guid.NewGuid();
 
         // Act
@@ -125,14 +123,13 @@ public class ImplementedFeaturesTests : ApiTestBase
         response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
             "GET by ID endpoint should exist");
 
-        // Can be 404 (not found), 401 (unauthorized), 400 (bad request), or 500, but not 405
+        // Can be 404 (not found), 401 (unauthorized), 400 (bad request), or 200 (ok), but not 405 or 500
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.NotFound,
             HttpStatusCode.Unauthorized,
             HttpStatusCode.Forbidden,
             HttpStatusCode.BadRequest,
-            HttpStatusCode.OK,
-            HttpStatusCode.InternalServerError);
+            HttpStatusCode.OK);
     }
 
     [Fact]
@@ -204,7 +201,17 @@ public class ImplementedFeaturesTests : ApiTestBase
         if (response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync();
-            content.Should().Contain("providers", "Health check should include providers database");
+            
+            // Parse as JSON to ensure it's well-formed
+            var healthResponse = JsonSerializer.Deserialize<JsonElement>(content);
+            
+            // Assert top-level status exists and is not unhealthy
+            healthResponse.TryGetProperty("status", out var statusElement).Should().BeTrue("Health response should have status property");
+            var status = statusElement.GetString();
+            status.Should().NotBe("Unhealthy", "Health status should not be Unhealthy");
+            
+            // Assert providers is mentioned in the response (either in entries or elsewhere)
+            content.Should().Contain("providers", "Health check should include providers database reference");
         }
     }
 }

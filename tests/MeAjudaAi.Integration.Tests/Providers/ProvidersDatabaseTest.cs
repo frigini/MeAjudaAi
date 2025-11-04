@@ -44,7 +44,7 @@ public class ProvidersDatabaseTest : ApiTestBase
 
         // Act & Assert
         queryService.Should().NotBeNull();
-        
+
         return Task.CompletedTask;
     }
 

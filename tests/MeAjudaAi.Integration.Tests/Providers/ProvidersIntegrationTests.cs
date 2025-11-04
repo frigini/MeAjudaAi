@@ -60,15 +60,15 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
-        
+
         if (response.IsSuccessStatusCode)
         {
             var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
-            
+
             // Verifica se é uma response estruturada (com data)
             if (responseJson.TryGetProperty("data", out var dataElement))
             {
-                Assert.True(dataElement.TryGetProperty("id", out _), 
+                Assert.True(dataElement.TryGetProperty("id", out _),
                     $"Response data does not contain 'id' property. Full response: {content}");
                 Assert.True(dataElement.TryGetProperty("name", out var nameProperty));
                 Assert.Equal("Test Provider Integration", nameProperty.GetString());
@@ -83,7 +83,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
             else
             {
                 // Fallback para response direta
-                Assert.True(responseJson.TryGetProperty("id", out _), 
+                Assert.True(responseJson.TryGetProperty("id", out _),
                     $"Response does not contain 'id' property. Full response: {content}");
                 Assert.True(responseJson.TryGetProperty("name", out var nameProperty));
                 Assert.Equal("Test Provider Integration", nameProperty.GetString());
@@ -114,7 +114,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
-        
+
         if (response.IsSuccessStatusCode)
         {
             var providers = JsonSerializer.Deserialize<JsonElement>(content);
@@ -124,8 +124,8 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
                                (providers.ValueKind == JsonValueKind.Object && providers.TryGetProperty("items", out _)) ||
                                (providers.ValueKind == JsonValueKind.Object && providers.TryGetProperty("data", out var dataElement) &&
                                 (dataElement.ValueKind == JsonValueKind.Array || dataElement.TryGetProperty("items", out _)));
-            
-            Assert.True(isValidFormat, 
+
+            Assert.True(isValidFormat,
                 $"Expected array or object with 'items'/'data' property. Got: {content}");
         }
         else
