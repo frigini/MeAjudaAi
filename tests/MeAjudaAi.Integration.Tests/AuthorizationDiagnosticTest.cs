@@ -1,6 +1,7 @@
 using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests;
 
@@ -30,7 +31,9 @@ public class AuthorizationDiagnosticTest(ITestOutputHelper testOutput) : ApiTest
     [Fact]
     public async Task Users_Endpoint_Without_Auth_Should_Return_401_Not_500()
     {
-        // Arrange - Test Users endpoint without authorization to see if we get 401 instead of 500
+        // Arrange - Clear any auth configuration and disable unauthenticated access
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        ConfigurableTestAuthenticationHandler.SetAllowUnauthenticated(false);
 
         // Act
         var response = await Client.GetAsync("/api/v1/users");
@@ -47,7 +50,9 @@ public class AuthorizationDiagnosticTest(ITestOutputHelper testOutput) : ApiTest
     [Fact]
     public async Task Providers_Endpoint_Without_Auth_Should_Return_401_Not_500()
     {
-        // Arrange - Test Providers endpoint without authorization
+        // Arrange - Clear any auth configuration and disable unauthenticated access
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        ConfigurableTestAuthenticationHandler.SetAllowUnauthenticated(false);
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers");

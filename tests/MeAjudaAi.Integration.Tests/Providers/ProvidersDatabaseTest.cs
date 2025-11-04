@@ -36,7 +36,7 @@ public class ProvidersDatabaseTest : ApiTestBase
     }
 
     [Fact]
-    public async Task ProvidersQueryService_ShouldBeRegistered()
+    public Task ProviderQueryService_ShouldBeRegistered()
     {
         // Arrange
         using var scope = Services.CreateScope();
@@ -44,6 +44,8 @@ public class ProvidersDatabaseTest : ApiTestBase
 
         // Act & Assert
         queryService.Should().NotBeNull();
+        
+        return Task.CompletedTask;
     }
 
     [Fact]

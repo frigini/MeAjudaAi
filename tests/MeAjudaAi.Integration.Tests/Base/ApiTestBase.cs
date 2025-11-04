@@ -211,8 +211,8 @@ public abstract class ApiTestBase : IAsyncLifetime
 
         // First, drop existing tables to ensure clean slate
         await context.Database.ExecuteSqlRawAsync(@"
-            DROP TABLE IF EXISTS providers.""Qualification"" CASCADE;
-            DROP TABLE IF EXISTS providers.""Document"" CASCADE;
+            DROP TABLE IF EXISTS providers.qualification CASCADE;
+            DROP TABLE IF EXISTS providers.document CASCADE;
             DROP TABLE IF EXISTS providers.providers CASCADE;
         ");
 

@@ -32,21 +32,25 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
             type = 0, // Individual
             businessProfile = new
             {
-                taxId = "12345678000195",
-                companyName = "Test Company LTDA",
-                address = new
-                {
-                    street = "Rua Teste, 123",
-                    city = "São Paulo",
-                    state = "SP",
-                    postalCode = "01234-567",
-                    country = "Brasil"
-                },
+                legalName = "Test Company LTDA",
+                fantasyName = (string?)null,
+                description = (string?)null,
                 contactInfo = new
                 {
                     email = "test@provider.com",
-                    phone = "+55 11 99999-9999",
+                    phoneNumber = "+55 11 99999-9999",
                     website = "https://www.provider.com"
+                },
+                primaryAddress = new
+                {
+                    street = "Rua Teste",
+                    number = "123",
+                    complement = (string?)null,
+                    neighborhood = "Centro",
+                    city = "São Paulo",
+                    state = "SP",
+                    zipCode = "01234-567",
+                    country = "Brasil"
                 }
             }
         };
@@ -55,31 +59,47 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         var response = await Client.PostAsJsonAsync("/api/v1/providers", providerData);
 
         // Assert
+        var content = await response.Content.ReadAsStringAsync();
+        
         if (response.IsSuccessStatusCode)
         {
-            var content = await response.Content.ReadAsStringAsync();
-            var createdProvider = JsonSerializer.Deserialize<JsonElement>(content);
-
-            Assert.True(createdProvider.TryGetProperty("id", out _));
-            Assert.True(createdProvider.TryGetProperty("name", out var nameProperty));
-            Assert.Equal("Test Provider Integration", nameProperty.GetString());
-
-            // Cleanup - tentar deletar o provider criado
-            if (createdProvider.TryGetProperty("id", out var idProperty))
+            var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
+            
+            // Verifica se é uma response estruturada (com data)
+            if (responseJson.TryGetProperty("data", out var dataElement))
             {
-                var providerId = idProperty.GetString();
-                await Client.DeleteAsync($"/api/v1/providers/{providerId}");
-                // Ignorar falha no DELETE por questões de permissão em testes
+                Assert.True(dataElement.TryGetProperty("id", out _), 
+                    $"Response data does not contain 'id' property. Full response: {content}");
+                Assert.True(dataElement.TryGetProperty("name", out var nameProperty));
+                Assert.Equal("Test Provider Integration", nameProperty.GetString());
+
+                // Cleanup - tentar deletar o provider criado
+                if (dataElement.TryGetProperty("id", out var idProperty))
+                {
+                    var providerId = idProperty.GetString();
+                    await Client.DeleteAsync($"/api/v1/providers/{providerId}");
+                }
+            }
+            else
+            {
+                // Fallback para response direta
+                Assert.True(responseJson.TryGetProperty("id", out _), 
+                    $"Response does not contain 'id' property. Full response: {content}");
+                Assert.True(responseJson.TryGetProperty("name", out var nameProperty));
+                Assert.Equal("Test Provider Integration", nameProperty.GetString());
+
+                if (responseJson.TryGetProperty("id", out var idProperty))
+                {
+                    var providerId = idProperty.GetString();
+                    await Client.DeleteAsync($"/api/v1/providers/{providerId}");
+                }
             }
         }
         else
         {
             // Se falhou, capturar e exibir o erro real
-            var errorContent = await response.Content.ReadAsStringAsync();
-
-            // Falha o teste com informações detalhadas sobre o erro
             Assert.True(response.IsSuccessStatusCode,
-                $"Expected success status code, but got {response.StatusCode}. Error content: {errorContent}");
+                $"Expected success status code, but got {response.StatusCode}. Error content: {content}");
         }
     }
 
@@ -93,23 +113,26 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         var response = await Client.GetAsync("/api/v1/providers");
 
         // Assert
+        var content = await response.Content.ReadAsStringAsync();
+        
         if (response.IsSuccessStatusCode)
         {
-            var content = await response.Content.ReadAsStringAsync();
             var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
             // Verificar que retorna uma lista (mesmo que vazia)
-            Assert.True(providers.ValueKind == JsonValueKind.Array ||
-                       (providers.ValueKind == JsonValueKind.Object && providers.TryGetProperty("items", out _)));
+            var isValidFormat = providers.ValueKind == JsonValueKind.Array ||
+                               (providers.ValueKind == JsonValueKind.Object && providers.TryGetProperty("items", out _)) ||
+                               (providers.ValueKind == JsonValueKind.Object && providers.TryGetProperty("data", out var dataElement) &&
+                                (dataElement.ValueKind == JsonValueKind.Array || dataElement.TryGetProperty("items", out _)));
+            
+            Assert.True(isValidFormat, 
+                $"Expected array or object with 'items'/'data' property. Got: {content}");
         }
         else
         {
             // Se falhou, capturar e exibir o erro real
-            var errorContent = await response.Content.ReadAsStringAsync();
-
-            // Falha o teste com informações detalhadas sobre o erro
             Assert.True(response.IsSuccessStatusCode,
-                $"Expected success status code, but got {response.StatusCode}. Error content: {errorContent}");
+                $"Expected success status code, but got {response.StatusCode}. Error content: {content}");
         }
     }
 

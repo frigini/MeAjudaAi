@@ -36,7 +36,7 @@ public sealed class ProviderQueryService(ProvidersDbContext context) : IProvider
         // Aplica filtro por nome (busca parcial, case-insensitive)
         if (!string.IsNullOrWhiteSpace(nameFilter))
         {
-            query = query.Where(p => p.Name.Contains(nameFilter, StringComparison.OrdinalIgnoreCase));
+            query = query.Where(p => EF.Functions.ILike(p.Name, $"%{nameFilter}%"));
         }
 
         // Aplica filtro por tipo

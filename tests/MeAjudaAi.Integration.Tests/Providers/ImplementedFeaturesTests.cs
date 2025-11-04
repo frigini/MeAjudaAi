@@ -54,8 +54,21 @@ public class ImplementedFeaturesTests : ApiTestBase
                 var hasItems = jsonDocument.RootElement.TryGetProperty("items", out _);
                 var hasTotalCount = jsonDocument.RootElement.TryGetProperty("totalCount", out _);
                 var hasPage = jsonDocument.RootElement.TryGetProperty("page", out _);
-
-                (hasItems || hasTotalCount || hasPage).Should().BeTrue("Should be a paginated result");
+                
+                // Check if it's wrapped in a "data" property (API response wrapper)
+                var hasDataWrapper = jsonDocument.RootElement.TryGetProperty("data", out var dataElement);
+                if (hasDataWrapper && dataElement.ValueKind == JsonValueKind.Object)
+                {
+                    var dataHasItems = dataElement.TryGetProperty("items", out _);
+                    var dataHasTotalCount = dataElement.TryGetProperty("totalCount", out _);
+                    var dataHasPage = dataElement.TryGetProperty("page", out _);
+                    
+                    (dataHasItems || dataHasTotalCount || dataHasPage).Should().BeTrue("Should be a paginated result in data wrapper");
+                }
+                else
+                {
+                    (hasItems || hasTotalCount || hasPage).Should().BeTrue("Should be a paginated result");
+                }
             }
         }
         else
