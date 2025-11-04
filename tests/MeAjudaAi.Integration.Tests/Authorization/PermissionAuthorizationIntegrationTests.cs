@@ -40,21 +40,17 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert
-        Console.WriteLine($"Response status: {response.StatusCode}");
         var content = await response.Content.ReadAsStringAsync();
-        Console.WriteLine($"Response content: {content}");
+        LogResponseDiagnostics(response, content);
 
-        // Authenticated user should either succeed or be forbidden (lacking permissions)
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.Forbidden
-        );
+        // Regular authenticated user without permissions should be forbidden
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
-    public async Task EndpointWithPermissionRequirement_WithValidPermission_ShouldReturnSuccess()
+    public async Task AdminUser_ShouldHaveAccessToUsersEndpoint()
     {
-        // Arrange - Configure user with admin permissions (includes UsersRead)
+        // Arrange - Configure user with admin permissions
         AuthConfig.ConfigureAdmin();
 
         // Act - Use real users endpoint that requires permissions
@@ -65,7 +61,7 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
     }
 
     [Fact]
-    public async Task EndpointWithPermissionRequirement_WithoutPermission_ShouldReturnForbidden()
+    public async Task RegularUser_ShouldBeForbiddenFromUsersEndpoint()
     {
         // Arrange - Configure user with only basic permissions 
         AuthConfig.ConfigureRegularUser();
@@ -78,65 +74,13 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
     }
 
     [Fact]
-    public async Task EndpointWithMultiplePermissions_WithAllPermissions_ShouldReturnSuccess()
-    {
-        // Arrange - Configure admin user (has all permissions)
-        AuthConfig.ConfigureAdmin();
-
-        // Act - Use real users endpoint
-        var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
-
-        // Assert - Admin with all required permissions should succeed
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-    }
-
-    [Fact]
-    public async Task EndpointWithMultiplePermissions_WithPartialPermissions_ShouldReturnForbidden()
-    {
-        // Arrange - Configure user with only one of the required permissions
-        AuthConfig.ConfigureRegularUser();
-
-        // Act - Use real users endpoint that requires multiple permissions
-        var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
-
-        // Assert - User with partial permissions should be forbidden
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-    }
-
-    [Fact]
-    public async Task EndpointWithAnyPermission_WithOneOfRequiredPermissions_ShouldReturnSuccess()
-    {
-        // Arrange - Admin has required permissions
-        AuthConfig.ConfigureAdmin();
-
-        // Act - Use real API endpoint that requires permissions
-        var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
-
-        // Assert - Admin should succeed
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-    }
-
-    [Fact]
-    public async Task EndpointWithSystemAdminRequirement_WithSystemAdminClaim_ShouldReturnSuccess()
+    public async Task AdminUser_ShouldHaveAccessToProvidersEndpoint()
     {
         // Arrange - Admin has system admin claim
         AuthConfig.ConfigureAdmin();
 
         // Act - Use real API endpoint that requires admin permissions
         var response = await Client.GetAsync("/api/v1/providers", TestContext.Current.CancellationToken);
-
-        // Assert - Admin should succeed
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-    }
-
-    [Fact]
-    public async Task EndpointWithModulePermission_WithValidModulePermissions_ShouldReturnSuccess()
-    {
-        // Arrange - Admin has all required permissions
-        AuthConfig.ConfigureAdmin();
-
-        // Act - Use real API endpoint that requires specific module permissions
-        var response = await Client.GetAsync("/api/v1/users", TestContext.Current.CancellationToken);
 
         // Assert - Admin should succeed
         response.StatusCode.Should().Be(HttpStatusCode.OK);

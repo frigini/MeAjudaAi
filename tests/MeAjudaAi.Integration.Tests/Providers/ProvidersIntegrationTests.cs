@@ -92,7 +92,11 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         if (idElement.TryGetProperty("id", out var idProperty))
         {
             var providerId = idProperty.GetString();
-            await Client.DeleteAsync($"/api/v1/providers/{providerId}");
+            var deleteResponse = await Client.DeleteAsync($"/api/v1/providers/{providerId}");
+            if (!deleteResponse.IsSuccessStatusCode)
+            {
+                testOutput.WriteLine($"Cleanup failed: Could not delete provider {providerId}. Status: {deleteResponse.StatusCode}");
+            }
         }
         // When not success, the previous assertion will fail and surface content in the test log.
     }
@@ -159,13 +163,10 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Accept empty list or proper response structure
-        // For empty list, the API may return an array or an object with data property
+        // Expect consistent API response format - don't accept error message responses
         var isValidResponse = providers.ValueKind == JsonValueKind.Array ||
-                              (providers.ValueKind == JsonValueKind.Object && (
-                                  providers.TryGetProperty("items", out _) ||
-                                  providers.TryGetProperty("data", out _) ||
-                                  providers.TryGetProperty("message", out _)
-                              ));
+                              (providers.ValueKind == JsonValueKind.Object && 
+                                  providers.TryGetProperty("data", out _));
 
         isValidResponse.Should().BeTrue($"Invalid response format. Content: {content}");
     }
@@ -187,12 +188,10 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Accept empty list or proper response structure
+        // Expect consistent API response format - don't accept error message responses
         var isValidResponse = providers.ValueKind == JsonValueKind.Array ||
-                              (providers.ValueKind == JsonValueKind.Object && (
-                                  providers.TryGetProperty("items", out _) ||
-                                  providers.TryGetProperty("data", out _) ||
-                                  providers.TryGetProperty("message", out _)
-                              ));
+                              (providers.ValueKind == JsonValueKind.Object && 
+                                  providers.TryGetProperty("data", out _));
 
         isValidResponse.Should().BeTrue($"Invalid response format. Content: {content}");
     }
@@ -205,7 +204,9 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
 
         var endpoints = new[]
         {
-            "/api/v1/providers"
+            "/api/v1/providers",
+            "/api/v1/providers/by-type/Individual",
+            "/api/v1/providers/by-verification-status/Pending"
         };
 
         // Act & Assert
