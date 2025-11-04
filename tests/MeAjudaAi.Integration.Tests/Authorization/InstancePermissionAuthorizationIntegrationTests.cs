@@ -81,7 +81,9 @@ public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBa
         // Verify admin configuration
         AuthConfig.HasUser.Should().BeTrue();
         AuthConfig.UserId.Should().Be("test-admin");
-        AuthConfig.UserName.Should().Be("admin-test");        // Act - Clear configuration
+        AuthConfig.UserName.Should().Be("admin-test");
+
+        // Act - Clear configuration
         AuthConfig.ClearConfiguration();
 
         // Assert - Configuration should be cleared
