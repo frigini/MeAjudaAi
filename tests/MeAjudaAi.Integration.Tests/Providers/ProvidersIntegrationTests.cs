@@ -5,7 +5,6 @@ using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Tests.Auth;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Providers;
@@ -19,13 +18,13 @@ namespace MeAjudaAi.Integration.Tests.Providers;
 /// - Soft Delete de prestadores
 /// - Gerenciamento de documentos e qualificações
 /// </summary>
-public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBase
+public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceApiTestBase
 {
     [Fact]
     public async Task CreateProvider_WithValidData_ShouldReturnCreated()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         var providerData = new
         {
@@ -101,7 +100,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
     public async Task GetProviders_ShouldReturnProvidersList()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers");
@@ -126,7 +125,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
     public async Task GetProviderById_WithRandomId_ShouldNotReturnServerError()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
         var randomId = Guid.NewGuid(); // Use random ID
 
         // Act
@@ -148,7 +147,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
     public async Task GetProvidersByType_ShouldReturnFilteredList()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act - Testar busca por tipo Individual
         var response = await Client.GetAsync("/api/v1/providers/by-type/Individual");
@@ -178,7 +177,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
     public async Task GetProvidersByVerificationStatus_ShouldReturnFilteredList()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act - Testar busca por status Pending
         var response = await Client.GetAsync("/api/v1/providers/by-verification-status/Pending");
@@ -207,7 +206,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
     public async Task ProvidersEndpoints_ShouldNotReturn500Errors()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         var endpoints = new[]
         {

@@ -37,26 +37,41 @@ public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBa
     }
 
     [Fact]
-    public async Task RegularUser_ShouldHaveRestrictedAccess()
+    public async Task RegularUser_CanAccessPublicProviderListing()
     {
         // Arrange - Configure regular user using instance-based configuration
         AuthConfig.ConfigureRegularUser();
 
-        // Act & Assert - Test endpoints that regular users should/shouldn't access
+        // Act - Test public provider listing endpoint
         var publicEndpoint = "/api/v1/providers?PageNumber=1&PageSize=10";
         var response = await Client.GetAsync(publicEndpoint, TestContext.Current.CancellationToken);
 
-        // Regular users should be able to access provider listings (public data)
-        // but this test accepts multiple outcomes to handle different authorization configurations:
-        // - OK: Provider data is publicly accessible to regular users
-        // - Forbidden: Provider access requires elevated permissions 
-        // - NotFound: Endpoint routing or configuration issues
-        // The key validation is ensuring no server errors (5xx) or authentication failures occur
+        // Assert - Regular users should have access to public provider listings
+        // Allow for rate limiting as it's valid API behavior
         response.StatusCode.Should().BeOneOf(
             System.Net.HttpStatusCode.OK,
+            System.Net.HttpStatusCode.TooManyRequests);
+        response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Forbidden,
+            "Regular users should be able to access public provider listings (or be rate limited)");
+    }
+
+    [Fact]
+    public async Task RegularUser_CannotAccessAdminEndpoint()
+    {
+        // Arrange - Configure regular user using instance-based configuration
+        AuthConfig.ConfigureRegularUser();
+
+        // Act - Test admin-only endpoint (user management requires admin permissions)
+        var adminEndpoint = "/api/v1/users?PageNumber=1&PageSize=10";
+        var response = await Client.GetAsync(adminEndpoint, TestContext.Current.CancellationToken);
+
+        // Assert - Regular users should be forbidden from accessing admin endpoints
+        // Rate limiting is also acceptable as it shows the API is working
+        response.StatusCode.Should().BeOneOf(
             System.Net.HttpStatusCode.Forbidden,
-            System.Net.HttpStatusCode.NotFound
-        );
+            System.Net.HttpStatusCode.TooManyRequests)
+            .And.Subject.Should().NotBe(System.Net.HttpStatusCode.OK,
+            "Regular users should not have access to admin-only user management endpoints");
     }
 
     [Fact]
@@ -112,28 +127,70 @@ public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBa
         // This test verifies that there are no static state issues
         // by rapidly changing configurations and ensuring they take effect
 
-        // Test 1: Admin configuration
+        // Test 1: Admin configuration - should have access to admin endpoints
         AuthConfig.ConfigureAdmin("admin1", "Administrator 1", "admin1@test.com");
         var response1 = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=1", TestContext.Current.CancellationToken);
 
-        // Test 2: Regular user configuration
+        // Assert admin has access to user management
+        response1.StatusCode.Should().BeOneOf(
+            System.Net.HttpStatusCode.OK,
+            System.Net.HttpStatusCode.TooManyRequests);
+        response1.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Forbidden,
+            "Admin user should have access to user management endpoint (or be rate limited)");
+
+        if (response1.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            var content1 = await response1.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            content1.Should().NotBeNullOrEmpty("Admin response should contain user data");
+        }
+
+        // Test 2: Regular user configuration - should access providers but not users
         AuthConfig.ConfigureRegularUser("user1", "User 1", "user1@test.com");
         var response2 = await Client.GetAsync("/api/v1/providers?PageNumber=1&PageSize=1", TestContext.Current.CancellationToken);
+        var userAccessResponse = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=1", TestContext.Current.CancellationToken);
 
-        // Test 3: Clear and unauthenticated
+        // Assert regular user can access providers but not users
+        response2.StatusCode.Should().BeOneOf(
+            System.Net.HttpStatusCode.OK,
+            System.Net.HttpStatusCode.TooManyRequests);
+        response2.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Forbidden,
+            "Regular user should have access to provider listings");
+
+        userAccessResponse.StatusCode.Should().BeOneOf(
+            System.Net.HttpStatusCode.Forbidden,
+            System.Net.HttpStatusCode.TooManyRequests);
+        userAccessResponse.StatusCode.Should().NotBe(System.Net.HttpStatusCode.OK,
+            "Regular user should not have access to user management");
+
+        // Test 3: Clear and unauthenticated - should be denied access
         AuthConfig.ClearConfiguration();
         AuthConfig.SetAllowUnauthenticated(false);
         var response3 = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=1", TestContext.Current.CancellationToken);
 
-        // Test 4: Back to admin
+        // Assert unauthenticated requests are denied
+        response3.StatusCode.Should().BeOneOf(
+            System.Net.HttpStatusCode.Unauthorized,
+            System.Net.HttpStatusCode.Forbidden,
+            System.Net.HttpStatusCode.TooManyRequests);
+        response3.StatusCode.Should().NotBe(System.Net.HttpStatusCode.OK,
+            "Unauthenticated requests should be denied access");
+
+        // Test 4: Back to admin - should have access again with new identity
         AuthConfig.ConfigureAdmin("admin2", "Administrator 2", "admin2@test.com");
         var response4 = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=1", TestContext.Current.CancellationToken);
 
-        // All requests should get appropriate responses without hanging or crashing
-        response1.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError);
-        response2.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError);
-        response3.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError);
-        response4.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError);
+        // Assert new admin has access and identity is correct
+        response4.StatusCode.Should().BeOneOf(
+            System.Net.HttpStatusCode.OK,
+            System.Net.HttpStatusCode.TooManyRequests);
+        response4.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Forbidden,
+            "Second admin user should have access to user management endpoint (or be rate limited)");
+
+        if (response4.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            var content4 = await response4.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            content4.Should().NotBeNullOrEmpty("Second admin response should contain user data");
+        }
 
         // The last configuration should be admin2
         AuthConfig.UserId.Should().Be("admin2");
@@ -149,18 +206,55 @@ public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBa
         AuthConfig.ConfigureAdmin();
 
         var endpoint = "/api/v1/providers?PageNumber=1&PageSize=5";
+        var statusCodes = new List<System.Net.HttpStatusCode>();
 
-        // Make a single request and verify it's not a server error
-        var response = await Client.GetAsync(endpoint, TestContext.Current.CancellationToken);
+        // Make multiple identical requests to detect flakiness
+        // Use longer delays to avoid triggering rate limiting which is expected behavior
+        for (int i = 0; i < 5; i++)
+        {
+            var response = await Client.GetAsync(endpoint, TestContext.Current.CancellationToken);
+            statusCodes.Add(response.StatusCode);
 
-        // The key test is that we get consistent, expected responses (not server errors)
-        // Rate limiting (429) is fine as it shows the API is working consistently
-        response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError,
-            "API should not return server errors");
+            // None should be server errors
+            response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError,
+                $"Request {i + 1} should not return server error");
 
-        // Should be a valid HTTP response (200, 429, 401, 403, etc. are all valid)
-        ((int)response.StatusCode).Should().BeInRange(200, 499,
-            "Response should be a valid client or success status code");
+            // Should be valid HTTP response
+            ((int)response.StatusCode).Should().BeInRange(200, 499,
+                $"Request {i + 1} should be a valid client or success status code");
+
+            // Longer delay to avoid rate limiting and allow proper testing of consistency
+            if (i < 4) await Task.Delay(200, TestContext.Current.CancellationToken);
+        }
+
+        // Check for genuine flakiness: mixed success/auth responses indicate problems
+        // Rate limiting (all 429s) or consistent success (all 200s) are both acceptable
+        var distinctStatusCodes = statusCodes.Distinct().ToList();
+
+        if (distinctStatusCodes.Count > 1)
+        {
+            // Multiple different status codes - check if they're all valid and expected
+            var hasAuthenticationIssues = statusCodes.Any(sc => sc == System.Net.HttpStatusCode.Unauthorized);
+            var hasSuccessResponses = statusCodes.Any(sc => sc == System.Net.HttpStatusCode.OK);
+            var hasRateLimiting = statusCodes.Any(sc => sc == System.Net.HttpStatusCode.TooManyRequests);
+
+            // Authentication flakiness: mixture of success and auth failures
+            if (hasAuthenticationIssues && hasSuccessResponses)
+            {
+                statusCodes.Should().AllSatisfy(sc => sc.Should().NotBe(System.Net.HttpStatusCode.Unauthorized),
+                    $"Mixed success/unauthorized responses indicate authentication flakiness: [{string.Join(", ", statusCodes)}]");
+            }
+
+            // If we have rate limiting, that's acceptable behavior
+            if (hasRateLimiting)
+            {
+                statusCodes.Should().AllSatisfy(sc =>
+                    sc.Should().BeOneOf(System.Net.HttpStatusCode.OK, System.Net.HttpStatusCode.TooManyRequests),
+                    $"When rate limiting occurs, only 200 OK and 429 TooManyRequests should be present: [{string.Join(", ", statusCodes)}]");
+            }
+        }
+
+        statusCodes.Should().NotBeEmpty("Should have collected status codes");
     }
 
     [Fact]
