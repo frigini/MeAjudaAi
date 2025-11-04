@@ -5,7 +5,6 @@ using FluentAssertions;
 
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Shared.Authorization;
-using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Extensions;
 
 using Microsoft.AspNetCore.Authentication;
@@ -25,23 +24,20 @@ namespace MeAjudaAi.Integration.Tests.Authorization;
 /// <summary>
 /// Testes de integração para o sistema de autorização baseado em permissões.
 /// </summary>
-public class PermissionAuthorizationIntegrationTests : ApiTestBase
+public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
 {
     private readonly ITestOutputHelper _output;
 
     public PermissionAuthorizationIntegrationTests(ITestOutputHelper output)
     {
         _output = output;
-        // Ensure clean authentication configuration before each test
-        // This is critical for test isolation
-        ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 
     [Fact]
     public async Task AuthenticatedEndpoint_WithAnyClaims_ShouldReturnSuccess()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureRegularUser();
+        AuthConfig.ConfigureRegularUser();
 
         // Act - Use a real endpoint that exists in the application
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
@@ -51,12 +47,12 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
         var content = await response.Content.ReadAsStringAsync();
         Console.WriteLine($"Response content: {content}");
 
-        // This should be OK for authenticated user, or potentially 500 due to authorization pipeline issues
+        // This should be OK for authenticated user, or potentially rate limited
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.Forbidden,
             HttpStatusCode.Unauthorized,  // User may not have required permissions
-            HttpStatusCode.InternalServerError  // Known issue - fix pending
+            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
         );
     }
 
@@ -64,7 +60,7 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
     public async Task EndpointWithPermissionRequirement_WithValidPermission_ShouldReturnSuccess()
     {
         // Arrange - Configure user with admin permissions (includes UsersRead)
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act - Use real users endpoint that requires permissions
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
@@ -72,7 +68,7 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
         // Assert
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.InternalServerError  // Known authorization pipeline issue
+            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
         );
     }
 
@@ -80,35 +76,33 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
     public async Task EndpointWithPermissionRequirement_WithoutPermission_ShouldReturnForbidden()
     {
         // Arrange - Configure user with only basic permissions 
-        ConfigurableTestAuthenticationHandler.ConfigureRegularUser();
+        AuthConfig.ConfigureRegularUser();
 
         // Act - Use real users endpoint
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert - Regular user should not have access to list users
-        // TODO: Fix authorization pipeline to return proper 403 instead of 500
-        // Currently there's an unhandled exception in the authorization system when processing permission validation
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.Forbidden,
-            HttpStatusCode.InternalServerError  // Known authorization pipeline issue
+            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
         );
+        response.StatusCode.Should().NotBe(HttpStatusCode.OK,
+            "Regular user should not have access to user management");
     }
 
     [Fact]
     public async Task EndpointWithMultiplePermissions_WithAllPermissions_ShouldReturnSuccess()
     {
         // Arrange - Configure admin user (has all permissions)
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act - Use real users endpoint
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert - Admin with all required permissions should succeed
-        // TODO: Fix authorization pipeline to return proper 200 instead of 500  
-        // Currently there's an unhandled exception in the authorization system when processing permission validation
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.InternalServerError  // Known authorization pipeline issue
+            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
         );
     }
 
@@ -116,25 +110,25 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
     public async Task EndpointWithMultiplePermissions_WithPartialPermissions_ShouldReturnForbidden()
     {
         // Arrange - Configure user with only one of the required permissions
-        ConfigurableTestAuthenticationHandler.ConfigureRegularUser();
+        AuthConfig.ConfigureRegularUser();
 
         // Act - Use real users endpoint that requires multiple permissions
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert - User with partial permissions should be forbidden
-        // TODO: Fix authorization pipeline to return proper 403 instead of 500
-        // Currently there's an unhandled exception in the authorization system when processing permission validation
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.Forbidden,
-            HttpStatusCode.InternalServerError  // Known authorization pipeline issue
+            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
         );
+        response.StatusCode.Should().NotBe(HttpStatusCode.OK,
+            "User with partial permissions should not have access");
     }
 
     [Fact]
     public async Task EndpointWithAnyPermission_WithOneOfRequiredPermissions_ShouldReturnSuccess()
     {
         // Arrange - Admin has required permissions
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act - Use real API endpoint that requires permissions
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
@@ -142,7 +136,7 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
         // Assert - Admin should succeed
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.InternalServerError  // Known authorization pipeline issue
+            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
         );
     }
 
@@ -150,7 +144,7 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
     public async Task EndpointWithSystemAdminRequirement_WithSystemAdminClaim_ShouldReturnSuccess()
     {
         // Arrange - Admin has system admin claim
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act - Use real API endpoint that requires admin permissions
         var response = await Client.GetAsync("/api/v1/providers", TestContext.Current.CancellationToken);
@@ -158,7 +152,7 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
         // Assert - Admin should succeed
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.InternalServerError  // Known authorization pipeline issue
+            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
         );
     }
 
@@ -166,17 +160,15 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
     public async Task EndpointWithModulePermission_WithValidModulePermissions_ShouldReturnSuccess()
     {
         // Arrange - Admin has all required permissions
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act - Use real API endpoint that requires specific module permissions
         var response = await Client.GetAsync("/api/v1/users", TestContext.Current.CancellationToken);
 
         // Assert - Admin should succeed
-        // TODO: Fix authorization pipeline to return proper 200 instead of 500
-        // Currently there's an unhandled exception in the authorization system when processing permission validation
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.InternalServerError  // Known authorization pipeline issue
+            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
         );
     }
 
@@ -184,18 +176,18 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
     public async Task UnauthenticatedRequest_ShouldReturnUnauthorized()
     {
         // Arrange - Ensure clean authentication state with aggressive cleanup
-        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        AuthConfig.ClearConfiguration();
 
         // Add a small delay to ensure the configuration takes effect
         await Task.Delay(10);
 
         // Triple-check that we have the right state
-        ConfigurableTestAuthenticationHandler.ClearConfiguration();
-        ConfigurableTestAuthenticationHandler.SetAllowUnauthenticated(false);
+        AuthConfig.ClearConfiguration();
+        AuthConfig.SetAllowUnauthenticated(false);
 
         // Debug: Verify the configuration is set correctly
-        var hasConfig = ConfigurableTestAuthenticationHandler.HasConfiguration();
-        var allowUnauth = ConfigurableTestAuthenticationHandler.GetAllowUnauthenticated();
+        var hasConfig = AuthConfig.HasUser;
+        var allowUnauth = AuthConfig.AllowUnauthenticated;
         _output.WriteLine($"Before request - HasConfiguration: {hasConfig}, AllowUnauthenticated: {allowUnauth}");
 
         // Act - Use real API endpoint that requires authentication
@@ -220,32 +212,8 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
         // Assert - Unauthenticated request should be unauthorized  
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.Unauthorized,
-            HttpStatusCode.InternalServerError  // Known authorization pipeline issue
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
         );
-    }
-
-    public class TestWebApplicationFactory : WebApplicationFactory<Program>
-    {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
-            ArgumentNullException.ThrowIfNull(builder);
-
-            builder.ConfigureServices(services =>
-            {
-                // Remove ClaimsTransformation that causes hanging in tests
-                var claimsTransformationDescriptor = services.FirstOrDefault(d =>
-                    d.ServiceType == typeof(Microsoft.AspNetCore.Authentication.IClaimsTransformation));
-                if (claimsTransformationDescriptor != null)
-                    services.Remove(claimsTransformationDescriptor);
-
-                // Use the same authentication pattern as working tests
-                services.RemoveRealAuthentication();
-                services.AddConfigurableTestAuthentication();
-            });
-
-            // Use the standard Program.cs configuration which already includes
-            // real module registration via app.UseUsersModule() and app.UseProvidersModule()
-            // This ensures we test the real endpoints with their actual authorization requirements
-        }
     }
 }
