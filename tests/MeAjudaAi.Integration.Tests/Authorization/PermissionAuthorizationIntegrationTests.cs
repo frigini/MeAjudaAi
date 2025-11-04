@@ -1,10 +1,13 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+
 using FluentAssertions;
+
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Extensions;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -13,8 +16,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using static MeAjudaAi.Modules.Users.API.Extensions;
+
 using static MeAjudaAi.Modules.Providers.API.Extensions;
+using static MeAjudaAi.Modules.Users.API.Extensions;
 
 namespace MeAjudaAi.Integration.Tests.Authorization;
 
@@ -232,6 +236,15 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
 
                 app.UseEndpoints(endpoints =>
                 {
+                    // Map Users module endpoints
+                    var usersGroup = endpoints.MapGroup("/api/v1/users").RequireAuthorization();
+                    usersGroup.MapGet("", () => Results.Ok("Users endpoint"));
+
+                    // Map Providers module endpoints
+                    var providersGroup = endpoints.MapGroup("/api/v1/providers").RequireAuthorization();
+                    providersGroup.MapGet("", () => Results.Ok("Providers endpoint"));
+                    providersGroup.MapGet("{id:guid}", (Guid id) => Results.NotFound($"Provider {id} not found"));
+
                     // Endpoint simples apenas para testar autenticação
                     endpoints.MapGet("/test/authenticated", () => Results.Ok("Authenticated"))
                         .RequireAuthorization();

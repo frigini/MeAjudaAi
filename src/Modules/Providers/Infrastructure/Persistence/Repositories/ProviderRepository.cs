@@ -88,7 +88,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     {
         if (string.IsNullOrEmpty(input))
             return input;
-            
+
         return input
             .Replace("\\", "\\\\")  // Escape backslashes first
             .Replace("%", "\\%")    // Escape % wildcards

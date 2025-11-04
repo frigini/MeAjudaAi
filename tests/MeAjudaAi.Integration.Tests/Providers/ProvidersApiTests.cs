@@ -8,7 +8,8 @@ using MeAjudaAi.Shared.Tests.Auth;
 namespace MeAjudaAi.Integration.Tests.Providers;
 
 /// <summary>
-/// Testes de funcionalidades implementadas do módulo Providers
+/// Testes de integração para a API do módulo Providers.
+/// Valida endpoints, autenticação, autorização e respostas da API.
 /// </summary>
 /// <remarks>
 /// Verifica se as funcionalidades principais estão funcionando:
@@ -17,7 +18,7 @@ namespace MeAjudaAi.Integration.Tests.Providers;
 /// - Autorização está funcionando
 /// - Dados são persistidos corretamente
 /// </remarks>
-public class ImplementedFeaturesTests : ApiTestBase
+public class ProvidersApiTests : ApiTestBase
 {
     [Fact]
     public async Task ProvidersEndpoint_ShouldBeAccessible()

@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests;
 
-public class RegressãoTest : ApiTestBase
+public class RegressionTests : ApiTestBase
 {
     [Fact]
     public async Task UsersEndpoint_ShouldWork_WithoutErrors()

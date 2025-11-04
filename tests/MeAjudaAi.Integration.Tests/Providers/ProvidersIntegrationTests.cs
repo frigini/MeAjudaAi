@@ -137,22 +137,24 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
     }
 
     [Fact]
-    public async Task GetProviderById_WithValidId_ShouldReturnProvider()
+    public async Task GetProviderById_WithRandomId_ShouldNotReturnServerError()
     {
         // Arrange
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
-        var testId = Guid.NewGuid();
+        var randomId = Guid.NewGuid(); // Use random ID
 
         // Act
-        var response = await Client.GetAsync($"/api/v1/providers/{testId}");
+        var response = await Client.GetAsync($"/api/v1/providers/{randomId}");
 
         // Assert
-        // Provider pode não existir (404) ou retornar dados (200)
-        // O importante é que não seja erro 500
+        // Should not return server error - can be NotFound, OK, or other client errors
+        Assert.NotEqual(System.Net.HttpStatusCode.InternalServerError, response.StatusCode);
+
+        // Should be a valid response (not method not allowed, etc.)
         Assert.True(response.StatusCode == System.Net.HttpStatusCode.NotFound ||
                    response.StatusCode == System.Net.HttpStatusCode.OK ||
-                   response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
-                   response.StatusCode == System.Net.HttpStatusCode.Forbidden);
+                   response.StatusCode == System.Net.HttpStatusCode.BadRequest,
+                   $"Expected valid response code but got {response.StatusCode}");
     }
 
     [Fact]
