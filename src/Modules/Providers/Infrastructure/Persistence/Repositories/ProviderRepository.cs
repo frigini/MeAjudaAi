@@ -91,7 +91,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         ValidateSearchInput(city, nameof(city));
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
-            .Where(p => EF.Functions.ILike(EF.Property<string>(p, "city"), $"%{city}%"))
+            .Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.City, $"%{city}%"))
             .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
     }
@@ -103,7 +103,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         ValidateSearchInput(state, nameof(state));
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
-            .Where(p => EF.Functions.ILike(EF.Property<string>(p, "state"), $"%{state}%"))
+            .Where(p => EF.Functions.ILike(p.BusinessProfile.PrimaryAddress.State, $"%{state}%"))
             .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
     }

@@ -23,8 +23,8 @@ No arquivo `.github/workflows/pr-validation.yml`, adicione o novo módulo na se�
 ```bash
 MODULES=(
   "Users:src/Modules/Users/MeAjudaAi.Modules.Users.Tests/"
-  "Orders:src/Modules/Orders/MeAjudaAi.Modules.Orders.Tests/"     # ← Adicione aqui
-  "Payments:src/Modules/Payments/MeAjudaAi.Modules.Payments.Tests/" # ← E aqui
+  "Providers:src/Modules/Providers/MeAjudaAi.Modules.Providers.Tests/"
+  "Services:src/Modules/Services/MeAjudaAi.Modules.Services.Tests/"  # ← Nova linha
 )
 ```text
 ### 3. Atualizar o Workflow Aspire (se necessário)

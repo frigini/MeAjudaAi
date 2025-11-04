@@ -51,6 +51,7 @@ Estrutura modular que facilita futuras extrações para microserviços.
 src/
 ├── Modules/                    # Módulos de domínio
 │   ├── Users/                  # Gestão de usuários
+│   ├── Providers/              # Prestadores de serviços
 │   ├── Services/               # Catálogo de serviços (futuro)
 │   ├── Bookings/               # Agendamentos (futuro)
 │   └── Payments/               # Pagamentos (futuro)
@@ -91,7 +92,30 @@ public class UsersContext
 - **UserProfile**: Perfil detalhado (experiência, habilidades, localização)
 - **UserPreferences**: Preferências e configurações personalizadas
 
-#### 2. **Services Context** (Futuro)
+#### 2. **Providers Context** 
+**Responsabilidade**: Gestão completa de prestadores de serviços
+
+```csharp
+namespace MeAjudaAi.Modules.Providers.Domain;
+
+/// <summary>
+/// Contexto delimitado para gestão de prestadores de serviços
+/// </summary>
+public class ProvidersContext
+{
+    // Entidades principais
+    public DbSet<Provider> Providers { get; set; }
+}
+```
+
+**Conceitos do Domínio**:
+- **Provider**: Agregado raiz para prestadores de serviços com perfil empresarial
+- **BusinessProfile**: Perfil empresarial detalhado (razão social, contato, endereço)
+- **Document**: Documentos de verificação (CPF, CNPJ, certificações)
+- **Qualification**: Qualificações e habilitações profissionais
+- **VerificationStatus**: Status de verificação (Pending, Verified, Rejected, etc.)
+
+#### 3. **Services Context** (Futuro)
 **Responsabilidade**: Catálogo e gestão de serviços oferecidos
 
 **Conceitos Planejados**:
@@ -99,7 +123,7 @@ public class UsersContext
 - **Category**: Categorização hierárquica de serviços
 - **Pricing**: Modelos de precificação flexíveis
 
-#### 3. **Bookings Context** (Futuro)
+#### 4. **Bookings Context** (Futuro)
 **Responsabilidade**: Agendamento e execução de serviços
 
 **Conceitos Planejados**:
@@ -141,6 +165,38 @@ public class User : AggregateRoot<UserId>
 }
 ```
 
+#### Agregado Provider
+
+```csharp
+/// <summary>
+/// Agregado raiz para gestão de prestadores de serviços
+/// Responsável por manter a consistência dos dados do prestador
+/// </summary>
+public class Provider : AggregateRoot<ProviderId>
+{
+    /// <summary>Identificador do usuário associado</summary>
+    public Guid UserId { get; private set; }
+    
+    /// <summary>Nome do prestador</summary>
+    public string Name { get; private set; }
+    
+    /// <summary>Tipo do prestador (Individual ou Company)</summary>
+    public EProviderType Type { get; private set; }
+    
+    /// <summary>Perfil empresarial completo</summary>
+    public BusinessProfile BusinessProfile { get; private set; }
+    
+    /// <summary>Status de verificação atual</summary>
+    public EVerificationStatus VerificationStatus { get; private set; }
+    
+    /// <summary>Documentos de verificação</summary>
+    public IReadOnlyCollection<Document> Documents { get; }
+    
+    /// <summary>Qualificações profissionais</summary>  
+    public IReadOnlyCollection<Qualification> Qualifications { get; }
+}
+```
+
 ### **Value Objects**
 
 ```csharp
@@ -178,7 +234,56 @@ public sealed record Email
     public static implicit operator string(Email email) => email.Value;
     public static implicit operator Email(string email) => new(email);
 }
-`sql
+```
+
+#### Value Objects do Módulo Providers
+
+```csharp
+/// <summary>
+/// Value Object para identificador de prestador
+/// </summary>
+public sealed record ProviderId(Guid Value) : EntityId(Value)
+{
+    public static ProviderId New() => new(Guid.NewGuid());
+    public static ProviderId From(Guid value) => new(value);
+}
+
+/// <summary>
+/// Value Object para perfil empresarial
+/// </summary>
+public class BusinessProfile : ValueObject
+{
+    public string LegalName { get; private set; }
+    public string? FantasyName { get; private set; }
+    public string? Description { get; private set; }
+    public ContactInfo ContactInfo { get; private set; }
+    public Address PrimaryAddress { get; private set; }
+
+    public BusinessProfile(
+        string legalName,
+        ContactInfo contactInfo,
+        Address primaryAddress,
+        string? fantasyName = null,
+        string? description = null)
+    {
+        // Validações e inicialização
+    }
+}
+
+/// <summary>
+/// Value Object para documentos
+/// </summary>
+public class Document : ValueObject
+{
+    public string Number { get; private set; }
+    public EDocumentType DocumentType { get; private set; }
+    
+    public Document(string number, EDocumentType documentType)
+    {
+        // Validações e inicialização
+    }
+}
+```
 
 ### **Domain Events**
 
@@ -201,7 +306,69 @@ public sealed record UserProfileUpdatedDomainEvent(
     UserProfile UpdatedProfile,
     DateTime OccurredAt
 ) : DomainEvent(OccurredAt);
-`csharp
+```
+
+#### Domain Events do Módulo Providers
+
+```csharp
+/// <summary>
+/// Evento disparado quando um novo prestador é registrado
+/// </summary>
+public sealed record ProviderRegisteredDomainEvent(
+    Guid AggregateId,
+    int Version,
+    Guid UserId,
+    string Name,
+    EProviderType Type,
+    string Email
+) : DomainEvent(AggregateId, Version);
+
+/// <summary>
+/// Evento disparado quando um documento é adicionado
+/// </summary>
+public sealed record ProviderDocumentAddedDomainEvent(
+    Guid AggregateId,
+    int Version,
+    string DocumentNumber,
+    EDocumentType DocumentType
+) : DomainEvent(AggregateId, Version);
+
+/// <summary>
+/// Evento disparado quando o status de verificação é atualizado
+/// </summary>
+public sealed record ProviderVerificationStatusUpdatedDomainEvent(
+    Guid AggregateId,
+    int Version,
+    EVerificationStatus OldStatus,
+    EVerificationStatus NewStatus,
+    string? UpdatedBy
+) : DomainEvent(AggregateId, Version);
+
+/// <summary>
+/// Evento disparado quando um prestador é excluído
+/// </summary>
+public sealed record ProviderDeletedDomainEvent(
+    Guid AggregateId,
+    int Version,
+    string Reason
+) : DomainEvent(AggregateId, Version);
+```
+    int Version,
+    string DocumentNumber,
+    EDocumentType DocumentType
+) : DomainEvent(AggregateId, Version);
+
+/// <summary>
+/// Evento disparado quando status de verificação é atualizado
+/// </summary>
+public sealed record ProviderVerificationStatusUpdatedDomainEvent(
+    Guid AggregateId,
+    int Version,
+    EVerificationStatus OldStatus,
+    EVerificationStatus NewStatus,
+    string? UpdatedBy
+) : DomainEvent(AggregateId, Version);
+```
 
 ## ⚡ CQRS (Command Query Responsibility Segregation)
 
@@ -445,7 +612,7 @@ public abstract class AggregateRoot<TId> : Entity<TId> where TId : EntityId
 }
 `csharp
 
-### **Event Bus Implementation**
+### **Implementação do Event Bus**
 
 ```csharp
 /// <summary>
@@ -528,7 +695,7 @@ public sealed class SendWelcomeEmailHandler
 
 ## 🛡️ Padrões de Segurança
 
-### **Authentication & Authorization**
+### **Autenticação e Autorização**
 
 ```csharp
 /// <summary>
@@ -711,15 +878,15 @@ public sealed class UserMetrics
 
         _userRegistrationsCounter = meter.CreateCounter<int>(
             "user_registrations_total",
-            description: "Total number of user registrations");
+            description: "Total de registros de usuários");
 
         _registrationDuration = meter.CreateHistogram<double>(
             "user_registration_duration_ms",
-            description: "Duration of user registration process");
+            description: "Duração do processo de registro de usuário");
 
         _activeUsersGauge = meter.CreateObservableGauge<int>(
             "active_users_total",
-            description: "Current number of active users");
+            description: "Número atual de usuários ativos");
     }
 
     public void RecordUserRegistration(UserType userType, double durationMs)
@@ -874,6 +1041,34 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
     // Implementação usando handlers internos do módulo
     // Não expõe detalhes de implementação interna
 }
+```
+
+#### **API do Módulo Providers**
+
+```csharp
+/// <summary>
+/// Interface da API pública do módulo Providers
+/// Define contratos para comunicação entre módulos
+/// </summary>
+public interface IProvidersModuleApi : IModuleApi
+{
+    Task<Result<ModuleProviderDto?>> GetProviderByIdAsync(Guid providerId, CancellationToken cancellationToken = default);
+    Task<Result<ModuleProviderDto?>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersBatchAsync(IReadOnlyList<Guid> providerIds, CancellationToken cancellationToken = default);
+    Task<Result<bool>> ProviderExistsAsync(Guid providerId, CancellationToken cancellationToken = default);
+    Task<Result<bool>> IsProviderVerifiedAsync(Guid providerId, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Implementação da API do módulo Providers
+/// Localizada em: src/Modules/Providers/Application/Services/
+/// </summary>
+[ModuleApi("Providers", "1.0")]
+public sealed class ProvidersModuleApi : IProvidersModuleApi, IModuleApi
+{
+    // Implementação usando handlers internos do módulo
+    // Não expõe detalhes de implementação interna
+}
 `csharp
 
 ### **DTOs para Module APIs**
@@ -889,6 +1084,15 @@ src/Shared/MeAjudaAi.Shared/Contracts/Modules/Users/DTOs/
 ├── GetModuleUsersBatchRequest.cs
 ├── CheckUserExistsRequest.cs
 └── CheckUserExistsResponse.cs
+
+src/Shared/MeAjudaAi.Shared/Contracts/Modules/Providers/DTOs/
+├── ModuleProviderDto.cs
+├── ModuleProviderBasicDto.cs
+├── GetModuleProviderRequest.cs
+├── GetModuleProviderByUserIdRequest.cs
+├── GetModuleProvidersBatchRequest.cs
+├── CheckProviderExistsRequest.cs
+└── CheckProviderExistsResponse.cs
 ```yaml
 **Exemplo de DTO:**
 
@@ -904,6 +1108,35 @@ public sealed record ModuleUserDto(
     string FirstName,
     string LastName,
     string FullName
+);
+
+/// <summary>
+/// DTO simplificado de prestador para comunicação entre módulos
+/// Contém apenas dados essenciais e não expõe estruturas internas
+/// </summary>
+public sealed record ModuleProviderDto(
+    Guid Id,
+    string Name,
+    string Email,
+    string Document,
+    string? Phone,
+    EProviderType ProviderType,
+    EVerificationStatus VerificationStatus,
+    DateTime CreatedAt,
+    DateTime UpdatedAt,
+    bool IsActive
+);
+
+/// <summary>
+/// DTO básico de prestador para validações rápidas entre módulos
+/// </summary>
+public sealed record ModuleProviderBasicDto(
+    Guid Id,
+    string Name,
+    string Email,
+    EProviderType ProviderType,
+    EVerificationStatus VerificationStatus,
+    bool IsActive
 );
 `yaml
 
@@ -1187,8 +1420,8 @@ options.OperationFilter<ApiVersionOperationFilter>();
 
 #### **Importar em Clientes de API**
 
-**APIDog**: Import → From File → Selecionar arquivo  
-**Postman**: Import → File → Upload Files → Selecionar arquivo  
+**APIDog**: Importar → Do Arquivo → Selecionar arquivo  
+**Postman**: Importar → Arquivo → Fazer Envio de Arquivos → Selecionar arquivo  
 **Insomnia**: Import/Export → Import Data → Selecionar arquivo  
 **Bruno**: Import → OpenAPI → Selecionar arquivo  
 **Thunder Client**: Import → OpenAPI → Selecionar arquivo  
@@ -1206,7 +1439,7 @@ Especificação OpenAPI inclui:
 ```json
 // Health check response example
 {
-  "status": "Healthy",
+  "status": "Saudável",
   "timestamp": "2024-01-15T10:30:00Z",
   "version": "1.0.0",
   "environment": "Development",

@@ -1,4 +1,4 @@
-# Authentication & Authorization Documentation
+# Documentação de Autenticação e Autorização
 
 ## 📋 Visão Geral
 
@@ -35,7 +35,7 @@ Esta pasta contém documentação completa sobre os sistemas de autenticação e
 2. **IModulePermissionResolver** - Resolução modular de permissões
 3. **EPermissions** - Enum type-safe com todas as permissões do sistema
 4. **Permission Cache** - Sistema de cache distribuído para performance
-5. **Authorization Middleware** - Middleware para validação automática
+5. **Middleware de Autorização** - Middleware para validação automática
 
 ## 🚀 Configuração Rápida
 

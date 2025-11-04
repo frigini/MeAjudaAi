@@ -176,8 +176,9 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         AuthConfig.ConfigureAdmin();
 
         // Note: Since we can't directly set verification status during creation,
-        // this test validates response structure and format
-        // TODO: Enhance when verification status management endpoints are available
+        // this test validates response structure and format only
+        // TODO: [ISSUE] Enhance test to verify actual filtering behavior when verification 
+        // status management endpoints are available (update/approve/reject provider verification)
 
         // Act - Test filtering by Pending verification status
         var response = await Client.GetAsync("/api/v1/providers/by-verification-status/Pending");

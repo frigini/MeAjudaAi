@@ -53,7 +53,7 @@ public class GetProviderByIdQueryHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenProviderNotFound_ShouldReturnNull()
+    public async Task HandleAsync_WhenProviderNotFound_ShouldReturnNotFoundError()
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -67,8 +67,9 @@ public class GetProviderByIdQueryHandlerTests
         var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeNull();
+        result.IsFailure.Should().BeTrue();
+        result.Error.StatusCode.Should().Be(404);
+        result.Error.Message.Should().Be("Provider not found");
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),

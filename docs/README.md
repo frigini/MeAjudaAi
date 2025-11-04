@@ -28,7 +28,16 @@ Se você é novo no projeto, comece por aqui:
 | **[🛡️ Implementação de Autorização](./authorization_implementation.md)** | Sistema type-safe de permissões | Desenvolvedores |
 | **[🔑 Permissões Type-Safe](./type_safe_permissions.md)** | Detalhes do sistema baseado em EPermission | Desenvolvedores |
 | **[🖥️ Permissões Server-Side](./server_side_permissions.md)** | Resolução de permissões no servidor | Desenvolvedores backend |
-| **[ Integração Keycloak](./keycloak_integration.md)** | Configuração e integração detalhada | Administradores |
+| **[🔑 Integração Keycloak](./keycloak_integration.md)** | Configuração e integração detalhada | Administradores |
+
+### **📱 Módulos de Domínio**
+
+| Documento | Descrição | Para quem |
+|-----------|-----------|-----------|
+| **[👥 Módulo Users](./modules/users.md)** | Gestão de usuários, autenticação e perfis | Desenvolvedores |
+| **[🔧 Módulo Providers](./modules/providers.md)** | Prestadores de serviços, verificação e documentos | Desenvolvedores |
+| **[📋 Módulo Services](./modules/services.md)** | Catálogo de serviços (planejado) | Desenvolvedores |
+| **[📅 Módulo Bookings](./modules/bookings.md)** | Sistema de agendamentos (planejado) | Desenvolvedores |
 
 ### **🚀 Infraestrutura e Deploy**
 
@@ -52,7 +61,7 @@ Se você é novo no projeto, comece por aqui:
 | Documento | Descrição | Nível |
 |-----------|-----------|-------|
 | **[💀 Dead Letter Queue Strategy](./messaging/dead_letter_queue_strategy.md)** | Estratégia completa de DLQ com operações | Avançado |
-| **[📊 DLQ Implementation Summary](./messaging/dead_letter_queue_implementation_summary.md)** | Resumo da implementação | Intermediário |
+| **[📊 Resumo da Implementação DLQ](./messaging/dead_letter_queue_implementation_summary.md)** | Resumo da implementação | Intermediário |
 | **[� Message Bus Strategy](./messaging/message_bus_strategy.md)** | Estratégia de messaging por ambiente | Avançado |
 | **[🧪 Messaging Mocks](./messaging/messaging_mocks.md)** | Mocks para testes de messaging | Avançado |
 
@@ -107,7 +116,7 @@ Se você é novo no projeto, comece por aqui:
 
 ## 📈 Status da Documentação
 
-### ✅ **Completo e Atualizado (Outubro 2025)**
+### ✅ **Completo e Atualizado (Novembro 2025)**
 - ✅ Guia de Desenvolvimento com Testes Integrados
 - ✅ Sistema Completo de Autenticação e Autorização Type-Safe
 - ✅ Arquitetura Clean Architecture + DDD + CQRS
@@ -117,11 +126,14 @@ Se você é novo no projeto, comece por aqui:
 - ✅ Database Boundaries e Migration Strategy
 - ✅ Logging Estruturado e Observabilidade
 - ✅ Configuration Templates por Ambiente
+- ✅ Módulo Users - Gestão completa de usuários
+- ✅ Módulo Providers - Prestadores de serviços implementado
 
 ### 🔄 **Em Evolução**
-- � Documentação de APIs (com crescimento do projeto)
+- 🔄 Documentação de APIs (com crescimento do projeto)
 - 🔄 Guias de usuário final (futuro)
-- 🔄 Documentação de módulos específicos (conforme implementação)
+- 🔄 Módulo Services (planejado)
+- 🔄 Módulo Bookings (planejado)
 
 ## 🧹 Reorganização Recente
 
@@ -199,7 +211,7 @@ docs/
 
 ---
 
-*📅 Última atualização: Outubro 2025*  
+*📅 Última atualização: Novembro 2025*  
 *✨ Documentação reorganizada e consolidada pela equipe MeAjudaAi*
 
 | Documento | Descrição | Para quem |
