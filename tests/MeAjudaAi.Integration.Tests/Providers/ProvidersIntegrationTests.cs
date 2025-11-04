@@ -165,7 +165,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         // Accept empty list or proper response structure
         // Expect consistent API response format - don't accept error message responses
         var isValidResponse = providers.ValueKind == JsonValueKind.Array ||
-                              (providers.ValueKind == JsonValueKind.Object && 
+                              (providers.ValueKind == JsonValueKind.Object &&
                                   providers.TryGetProperty("data", out _));
 
         isValidResponse.Should().BeTrue($"Invalid response format. Content: {content}");
@@ -190,7 +190,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         // Accept empty list or proper response structure
         // Expect consistent API response format - don't accept error message responses
         var isValidResponse = providers.ValueKind == JsonValueKind.Array ||
-                              (providers.ValueKind == JsonValueKind.Object && 
+                              (providers.ValueKind == JsonValueKind.Object &&
                                   providers.TryGetProperty("data", out _));
 
         isValidResponse.Should().BeTrue($"Invalid response format. Content: {content}");

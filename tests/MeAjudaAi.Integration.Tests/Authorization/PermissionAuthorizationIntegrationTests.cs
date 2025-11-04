@@ -100,10 +100,7 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
         LogResponseDiagnostics(response, content);
 
         // Assert - Unauthenticated request should be unauthorized  
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     private void LogResponseDiagnostics(HttpResponseMessage response, string content)
