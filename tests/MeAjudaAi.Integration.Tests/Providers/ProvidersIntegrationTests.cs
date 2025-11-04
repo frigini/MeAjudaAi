@@ -65,7 +65,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         response.StatusCode.Should().BeOneOf(System.Net.HttpStatusCode.Created, System.Net.HttpStatusCode.OK);
         // Optionally verify Location:
         // response.Headers.Location.Should().NotBeNull();
-        
+
         var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Verifica se é uma response estruturada (com data)
@@ -109,7 +109,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         // Assert
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
         var content = await response.Content.ReadAsStringAsync();
-        
+
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Verificar que retorna uma lista (mesmo que vazia)
@@ -157,12 +157,11 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         if (response.StatusCode != System.Net.HttpStatusCode.OK)
         {
             var errorContent = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Expected OK but got {response.StatusCode}. Response: {errorContent}");
+            throw new HttpRequestException($"Expected OK but got {response.StatusCode}. Response: {errorContent}");
         }
-        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
         var content = await response.Content.ReadAsStringAsync();
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
-        
+
         // Accept empty list or proper response structure
         // For empty list, the API may return an array or an object with data property
         var isValidResponse = providers.ValueKind == JsonValueKind.Array ||
@@ -171,7 +170,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
                                   providers.TryGetProperty("data", out _) ||
                                   providers.TryGetProperty("message", out _)
                               ));
-        
+
         Assert.True(isValidResponse, $"Invalid response format. Content: {content}");
     }
 
@@ -188,12 +187,11 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         if (response.StatusCode != System.Net.HttpStatusCode.OK)
         {
             var errorContent = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Expected OK but got {response.StatusCode}. Response: {errorContent}");
+            throw new HttpRequestException($"Expected OK but got {response.StatusCode}. Response: {errorContent}");
         }
-        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
         var content = await response.Content.ReadAsStringAsync();
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
-        
+
         // Accept empty list or proper response structure
         var isValidResponse = providers.ValueKind == JsonValueKind.Array ||
                               (providers.ValueKind == JsonValueKind.Object && (
@@ -201,7 +199,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
                                   providers.TryGetProperty("data", out _) ||
                                   providers.TryGetProperty("message", out _)
                               ));
-        
+
         Assert.True(isValidResponse, $"Invalid response format. Content: {content}");
     }
 

@@ -185,10 +185,10 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
     {
         // Arrange - Ensure clean authentication state with aggressive cleanup
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
-        
+
         // Add a small delay to ensure the configuration takes effect
         await Task.Delay(10);
-        
+
         // Triple-check that we have the right state
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         ConfigurableTestAuthenticationHandler.SetAllowUnauthenticated(false);
@@ -232,20 +232,6 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
 
             builder.ConfigureServices(services =>
             {
-                // Cria configuração de teste
-                var configuration = new ConfigurationBuilder()
-                    .AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["ConnectionStrings:Database"] = "Server=localhost;Database=test;",
-                        ["Modules:Users:Enabled"] = "true",
-                        ["Modules:Providers:Enabled"] = "true"
-                    })
-                    .Build();
-
-                // Adiciona módulo de usuários e providers (autorização já está configurada no application setup)
-                services.AddUsersModule(configuration);
-                services.AddProvidersModule(configuration);
-
                 // Remove ClaimsTransformation that causes hanging in tests
                 var claimsTransformationDescriptor = services.FirstOrDefault(d =>
                     d.ServiceType == typeof(Microsoft.AspNetCore.Authentication.IClaimsTransformation));
@@ -255,73 +241,11 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
                 // Use the same authentication pattern as working tests
                 services.RemoveRealAuthentication();
                 services.AddConfigurableTestAuthentication();
-
-                services.AddAuthorization();
             });
 
-            builder.Configure(app =>
-            {
-                app.UseAuthentication();
-                app.UseRouting();
-                app.UseAuthorization();
-
-                app.UseEndpoints(endpoints =>
-                {
-                    // Map real module endpoints directly
-                    // Note: We can't use app.UseUsersModule() here because this is IApplicationBuilder, not WebApplication
-                    // So we'll need to map the real endpoints manually or find another approach
-                    
-                    // For now, let's use a minimal real endpoint setup that will work with the test infrastructure
-                    // We need to ensure these endpoints match what the tests expect
-                    
-                    // Users endpoints - these should match the real module structure
-                    var usersGroup = endpoints.MapGroup("/api/v1/users").RequireAuthorization();
-                    usersGroup.MapGet("", (int pageNumber = 1, int pageSize = 10, string? searchTerm = null) => 
-                        Results.Ok(new { 
-                            Items = Array.Empty<object>(), 
-                            TotalCount = 0, 
-                            Page = pageNumber, 
-                            PageSize = pageSize,
-                            TotalPages = 0
-                        }))
-                        .RequirePermission(Permission.UsersList);
-                    
-                    // Providers endpoints - these should match the real module structure  
-                    var providersGroup = endpoints.MapGroup("/api/v1/providers").RequireAuthorization();
-                    providersGroup.MapGet("", (int pageNumber = 1, int pageSize = 10, string? searchTerm = null) => 
-                        Results.Ok(new { 
-                            Items = Array.Empty<object>(), 
-                            TotalCount = 0, 
-                            Page = pageNumber, 
-                            PageSize = pageSize,
-                            TotalPages = 0
-                        }))
-                        .RequirePermission(Permission.ProvidersRead);
-
-                    // Endpoint simples apenas para testar autenticação
-                    endpoints.MapGet("/test/authenticated", () => Results.Ok("Authenticated"))
-                        .RequireAuthorization();
-
-                    // Endpoints de teste
-                    endpoints.MapGet("/test/users-read", () => Results.Ok("Success"))
-                        .RequirePermission(Permission.UsersRead)
-                        .RequireAuthorization();
-
-                    endpoints.MapDelete("/test/users-delete", () => Results.Ok("Success"))
-                        .RequirePermissions(Permission.UsersDelete, Permission.AdminUsers)
-                        .RequireAuthorization();
-
-                    endpoints.MapGet("/test/users-read-or-admin", () => Results.Ok("Success"))
-                        .RequireAuthorization();
-
-                    endpoints.MapGet("/test/system-admin", () => Results.Ok("Success"))
-                        .RequireAuthorization();
-
-                    endpoints.MapGet("/test/users-module-admin", () => Results.Ok("Success"))
-                        .RequirePermissions(Permission.AdminUsers, Permission.UsersList)
-                        .RequireAuthorization();
-                });
-            });
+            // Use the standard Program.cs configuration which already includes
+            // real module registration via app.UseUsersModule() and app.UseProvidersModule()
+            // This ensures we test the real endpoints with their actual authorization requirements
         }
     }
 }

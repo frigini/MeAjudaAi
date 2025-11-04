@@ -84,25 +84,23 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     }
 
     /// <summary>
-    /// Escapa caracteres especiais do padrão LIKE para tratar % e _ como literais.
-    /// </summary>
-    /// <summary>
     /// Busca prestadores de serviços por cidade.
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByCityAsync(string city, CancellationToken cancellationToken = default)
     {
+        ValidateSearchInput(city, nameof(city));
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
             .Where(p => EF.Functions.ILike(EF.Property<string>(p, "city"), $"%{city}%"))
             .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
     }
-
     /// <summary>
     /// Busca prestadores de serviços por estado.
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByStateAsync(string state, CancellationToken cancellationToken = default)
     {
+        ValidateSearchInput(state, nameof(state));
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
             .Where(p => EF.Functions.ILike(EF.Property<string>(p, "state"), $"%{state}%"))
@@ -192,5 +190,11 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     {
         return await context.Providers
             .AnyAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
+    }
+
+    private static void ValidateSearchInput(string input, string paramName)
+    {
+        if (input.Contains('%') || input.Contains('_'))
+            throw new ArgumentException($"{paramName} cannot contain wildcard characters (% or _)", paramName);
     }
 }
