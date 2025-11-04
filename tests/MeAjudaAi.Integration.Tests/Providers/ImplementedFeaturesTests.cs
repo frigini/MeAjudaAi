@@ -28,7 +28,11 @@ public class ImplementedFeaturesTests : ApiTestBase
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
         response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed);
-        // Can be 401 (unauthorized) or 200 (ok) but not 404/405 - endpoint should exist
+        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.OK);
     }
 
     [Fact]
@@ -41,39 +45,35 @@ public class ImplementedFeaturesTests : ApiTestBase
         var response = await Client.GetAsync("/api/v1/providers");
 
         // Assert
-        // Should not be a server error regardless of success/failure
-        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
-            "Server should not crash on basic endpoint access");
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Admin users should receive a successful response");
 
-        if (response.IsSuccessStatusCode)
+        var content = await response.Content.ReadAsStringAsync();
+        var jsonDocument = JsonDocument.Parse(content);
+
+        // Should be either a list or a paginated result
+        jsonDocument.RootElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
+
+        if (jsonDocument.RootElement.ValueKind == JsonValueKind.Object)
         {
-            var content = await response.Content.ReadAsStringAsync();
-            var jsonDocument = JsonDocument.Parse(content);
+            // If it's an object, it should have pagination properties
+            var hasItems = jsonDocument.RootElement.TryGetProperty("items", out _);
+            var hasTotalCount = jsonDocument.RootElement.TryGetProperty("totalCount", out _);
+            var hasPage = jsonDocument.RootElement.TryGetProperty("page", out _);
 
-            // Should be either a list or a paginated result
-            jsonDocument.RootElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
-
-            if (jsonDocument.RootElement.ValueKind == JsonValueKind.Object)
+            // Check if it's wrapped in a "data" property (API response wrapper)
+            var hasDataWrapper = jsonDocument.RootElement.TryGetProperty("data", out var dataElement);
+            if (hasDataWrapper && dataElement.ValueKind == JsonValueKind.Object)
             {
-                // If it's an object, it should have pagination properties
-                var hasItems = jsonDocument.RootElement.TryGetProperty("items", out _);
-                var hasTotalCount = jsonDocument.RootElement.TryGetProperty("totalCount", out _);
-                var hasPage = jsonDocument.RootElement.TryGetProperty("page", out _);
+                var dataHasItems = dataElement.TryGetProperty("items", out _);
+                var dataHasTotalCount = dataElement.TryGetProperty("totalCount", out _);
+                var dataHasPage = dataElement.TryGetProperty("page", out _);
 
-                // Check if it's wrapped in a "data" property (API response wrapper)
-                var hasDataWrapper = jsonDocument.RootElement.TryGetProperty("data", out var dataElement);
-                if (hasDataWrapper && dataElement.ValueKind == JsonValueKind.Object)
-                {
-                    var dataHasItems = dataElement.TryGetProperty("items", out _);
-                    var dataHasTotalCount = dataElement.TryGetProperty("totalCount", out _);
-                    var dataHasPage = dataElement.TryGetProperty("page", out _);
-
-                    (dataHasItems || dataHasTotalCount || dataHasPage).Should().BeTrue("Should be a paginated result in data wrapper");
-                }
-                else
-                {
-                    (hasItems || hasTotalCount || hasPage).Should().BeTrue("Should be a paginated result");
-                }
+                (dataHasItems || dataHasTotalCount || dataHasPage).Should().BeTrue("Should be a paginated result in data wrapper");
+            }
+            else
+            {
+                (hasItems || hasTotalCount || hasPage).Should().BeTrue("Should be a paginated result");
             }
         }
     }
@@ -88,10 +88,7 @@ public class ImplementedFeaturesTests : ApiTestBase
         var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=5");
 
         // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.BadRequest,
-            "Should accept pagination parameters");
-        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
-            "Should not crash with pagination parameters");
+        response.StatusCode.Should().Be(HttpStatusCode.OK, "Pagination parameters should be accepted under admin");
     }
 
     [Fact]
@@ -104,10 +101,7 @@ public class ImplementedFeaturesTests : ApiTestBase
         var response = await Client.GetAsync("/api/v1/providers?name=test&type=1&verificationStatus=1");
 
         // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.BadRequest,
-            "Should accept filter parameters");
-        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
-            "Should not crash with filter parameters");
+        response.StatusCode.Should().Be(HttpStatusCode.OK, "Filter parameters should be accepted under admin");
     }
 
     [Fact]
@@ -121,13 +115,8 @@ public class ImplementedFeaturesTests : ApiTestBase
         var response = await Client.GetAsync($"/api/v1/providers/{testId}");
 
         // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
-            "GET by ID endpoint should exist");
-
-        // Can be 404 (not found) or 200 (ok), but not 405
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.NotFound,
-            HttpStatusCode.OK);
+        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed, "GET by ID should exist");
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.OK);
     }
 
     [Fact]
@@ -165,11 +154,14 @@ public class ImplementedFeaturesTests : ApiTestBase
         var response = await Client.PostAsJsonAsync("/api/v1/providers", providerData);
 
         // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
-            "POST endpoint should exist");
-
-        // Can fail with various errors, but method should be allowed
+        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed, "POST should be allowed");
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
+        if (response.IsSuccessStatusCode)
+        {
+            response.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
+            // Optionally:
+            // response.Headers.Location.Should().NotBeNull("Location header should point to the created resource");
+        }
     }
 
     [Fact]

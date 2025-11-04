@@ -3,6 +3,9 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Providers.Application.Services;
+using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests.Providers;
@@ -183,13 +186,13 @@ public class ProvidersApiTests : ApiTestBase
         using var scope = Services.CreateScope();
 
         // Act & Assert - verify key services are registered
-        var dbContext = scope.ServiceProvider.GetService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>();
+        var dbContext = scope.ServiceProvider.GetService<ProvidersDbContext>();
         dbContext.Should().NotBeNull("ProvidersDbContext should be registered");
 
-        var repository = scope.ServiceProvider.GetService<MeAjudaAi.Modules.Providers.Domain.Repositories.IProviderRepository>();
+        var repository = scope.ServiceProvider.GetService<IProviderRepository>();
         repository.Should().NotBeNull("IProviderRepository should be registered");
 
-        var queryService = scope.ServiceProvider.GetService<MeAjudaAi.Modules.Providers.Application.Services.IProviderQueryService>();
+        var queryService = scope.ServiceProvider.GetService<IProviderQueryService>();
         queryService.Should().NotBeNull("IProviderQueryService should be registered");
     }
 

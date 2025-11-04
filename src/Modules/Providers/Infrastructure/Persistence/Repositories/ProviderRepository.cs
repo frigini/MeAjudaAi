@@ -48,9 +48,11 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// </summary>
     public async Task<IReadOnlyList<Provider>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default)
     {
+        // Convert Guids to ProviderIds for EF Core
+        var providerIds = ids.Select(id => new ProviderId(id)).ToList();
         return await GetProvidersQuery()
-            .Where(p => ids.Contains(p.Id.Value) && !p.IsDeleted)
-            .OrderBy(p => p.Id.Value)
+            .Where(p => providerIds.Contains(p.Id) && !p.IsDeleted)
+            .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
     }
 
@@ -103,7 +105,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
             .Where(p => EF.Functions.ILike(EF.Property<string>(p, "city"), $"%{EscapeLikePattern(city)}%"))
-            .OrderBy(p => p.Id.Value)
+            .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
     }
 
@@ -115,7 +117,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
             .Where(p => EF.Functions.ILike(EF.Property<string>(p, "state"), $"%{EscapeLikePattern(state)}%"))
-            .OrderBy(p => p.Id.Value)
+            .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
     }
 
@@ -129,7 +131,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
             .Where(p => p.VerificationStatus == verificationStatus)
-            .OrderBy(p => p.Id.Value)
+            .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
     }
 
@@ -143,7 +145,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
             .Where(p => p.Type == type)
-            .OrderBy(p => p.Id.Value)
+            .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
     }
 
@@ -169,7 +171,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
 
         var providers = await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
-            .OrderBy(p => p.Id.Value)
+            .OrderBy(p => p.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

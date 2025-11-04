@@ -1,3 +1,4 @@
+using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Integration.Tests.Infrastructure;
@@ -8,8 +9,9 @@ namespace MeAjudaAi.Integration.Tests.Auth;
 /// <summary>
 /// Testes para verificar se o sistema de autenticação mock está funcionando
 /// </summary>
-public class AuthenticationTests : ApiTestBase
+public class AuthenticationTests : ApiTestBase, IDisposable
 {
+    public void Dispose() => ConfigurableTestAuthenticationHandler.ClearConfiguration();
     [Fact]
     public async Task GetUsers_WithoutAuthentication_ShouldReturnUnauthorized()
     {

@@ -27,9 +27,13 @@ namespace MeAjudaAi.Integration.Tests.Authorization;
 /// </summary>
 public class PermissionAuthorizationIntegrationTests : ApiTestBase
 {
-    public PermissionAuthorizationIntegrationTests()
+    private readonly ITestOutputHelper _output;
+
+    public PermissionAuthorizationIntegrationTests(ITestOutputHelper output)
     {
-        // Clean up authentication configuration before each test
+        _output = output;
+        // Ensure clean authentication configuration before each test
+        // This is critical for test isolation
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 
@@ -179,12 +183,39 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
     [Fact]
     public async Task UnauthenticatedRequest_ShouldReturnUnauthorized()
     {
-        // Arrange
+        // Arrange - Ensure clean authentication state with aggressive cleanup
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        
+        // Add a small delay to ensure the configuration takes effect
+        await Task.Delay(10);
+        
+        // Triple-check that we have the right state
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         ConfigurableTestAuthenticationHandler.SetAllowUnauthenticated(false);
 
+        // Debug: Verify the configuration is set correctly
+        var hasConfig = ConfigurableTestAuthenticationHandler.HasConfiguration();
+        var allowUnauth = ConfigurableTestAuthenticationHandler.GetAllowUnauthenticated();
+        _output.WriteLine($"Before request - HasConfiguration: {hasConfig}, AllowUnauthenticated: {allowUnauth}");
+
         // Act - Use real API endpoint that requires authentication
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
+
+        // Debug output
+        _output.WriteLine($"Response status: {response.StatusCode}");
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        _output.WriteLine($"Response content length: {content.Length}");
+        if (content.Length < 1000)
+        {
+            _output.WriteLine($"Response content: {content}");
+        }
+
+        // For debugging: check if headers give us insight into authentication
+        _output.WriteLine("Response headers:");
+        foreach (var header in response.Headers)
+        {
+            _output.WriteLine($"  {header.Key}: {string.Join(", ", header.Value)}");
+        }
 
         // Assert - Unauthenticated request should be unauthorized  
         response.StatusCode.Should().BeOneOf(
@@ -236,25 +267,36 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
 
                 app.UseEndpoints(endpoints =>
                 {
-                    // Map Users module endpoints with proper permission checks
+                    // Map real module endpoints directly
+                    // Note: We can't use app.UseUsersModule() here because this is IApplicationBuilder, not WebApplication
+                    // So we'll need to map the real endpoints manually or find another approach
+                    
+                    // For now, let's use a minimal real endpoint setup that will work with the test infrastructure
+                    // We need to ensure these endpoints match what the tests expect
+                    
+                    // Users endpoints - these should match the real module structure
                     var usersGroup = endpoints.MapGroup("/api/v1/users").RequireAuthorization();
-                    usersGroup.MapGet("", () => Results.Ok("Users endpoint"))
-                        .RequirePermission(Permission.UsersRead);
-                    usersGroup.MapGet("{id:guid}", (Guid id) => Results.Ok($"User {id}"))
-                        .RequirePermission(Permission.UsersRead);
-                    usersGroup.MapPost("", () => Results.Created("/api/v1/users/123", "Created"))
-                        .RequirePermissions(Permission.UsersCreate, Permission.AdminUsers);
-                    usersGroup.MapDelete("{id:guid}", (Guid id) => Results.NoContent())
-                        .RequirePermissions(Permission.UsersDelete, Permission.AdminUsers);
-
-                    // Map Providers module endpoints with proper permission checks
+                    usersGroup.MapGet("", (int pageNumber = 1, int pageSize = 10, string? searchTerm = null) => 
+                        Results.Ok(new { 
+                            Items = Array.Empty<object>(), 
+                            TotalCount = 0, 
+                            Page = pageNumber, 
+                            PageSize = pageSize,
+                            TotalPages = 0
+                        }))
+                        .RequirePermission(Permission.UsersList);
+                    
+                    // Providers endpoints - these should match the real module structure  
                     var providersGroup = endpoints.MapGroup("/api/v1/providers").RequireAuthorization();
-                    providersGroup.MapGet("", () => Results.Ok("Providers endpoint"))
+                    providersGroup.MapGet("", (int pageNumber = 1, int pageSize = 10, string? searchTerm = null) => 
+                        Results.Ok(new { 
+                            Items = Array.Empty<object>(), 
+                            TotalCount = 0, 
+                            Page = pageNumber, 
+                            PageSize = pageSize,
+                            TotalPages = 0
+                        }))
                         .RequirePermission(Permission.ProvidersRead);
-                    providersGroup.MapGet("{id:guid}", (Guid id) => Results.NotFound($"Provider {id} not found"))
-                        .RequirePermission(Permission.ProvidersRead);
-                    providersGroup.MapPost("", () => Results.Created("/api/v1/providers/123", "Created"))
-                        .RequirePermissions(Permission.ProvidersCreate, Permission.AdminUsers);
 
                     // Endpoint simples apenas para testar autenticação
                     endpoints.MapGet("/test/authenticated", () => Results.Ok("Authenticated"))

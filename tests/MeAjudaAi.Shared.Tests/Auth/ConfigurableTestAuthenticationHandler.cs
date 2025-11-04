@@ -85,5 +85,16 @@ public class ConfigurableTestAuthenticationHandler(
         _allowUnauthenticated = allow;
     }
 
+    // Add method for better debugging in tests
+    public static bool HasConfiguration()
+    {
+        return _currentConfigKey != null && _userConfigs.ContainsKey(_currentConfigKey);
+    }
+
+    public static bool GetAllowUnauthenticated()
+    {
+        return _allowUnauthenticated;
+    }
+
     private record UserConfig(string UserId, string UserName, string Email, string[] Roles);
 }
