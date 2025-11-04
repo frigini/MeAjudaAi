@@ -31,7 +31,7 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
     }
 
     [Fact]
-    public async Task AuthenticatedEndpoint_WithAnyClaims_ShouldReturnSuccess()
+    public async Task AuthenticatedEndpoint_WithAnyClaims_ShouldNotReturnUnauthorized()
     {
         // Arrange
         AuthConfig.ConfigureRegularUser();
@@ -113,10 +113,7 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert - Admin should succeed
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]

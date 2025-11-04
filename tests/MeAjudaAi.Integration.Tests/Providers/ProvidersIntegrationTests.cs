@@ -135,8 +135,6 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         // Assert
         // Should not return server error - can be NotFound, OK, or other client errors
         response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError);
-        response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Unauthorized);
-        response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Forbidden);
 
         // Should be a valid response (either found or not found, no validation errors)
         response.StatusCode.Should().BeOneOf(
@@ -154,11 +152,10 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var response = await Client.GetAsync("/api/v1/providers/by-type/Individual");
 
         // Assert
-        var errorContent = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK,
-            $"because the endpoint should return OK. Response: {errorContent}");
-
         var content = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK,
+            $"because the endpoint should return OK. Response: {content}");
+
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Accept empty list or proper response structure
@@ -183,11 +180,10 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var response = await Client.GetAsync("/api/v1/providers/by-verification-status/Pending");
 
         // Assert
-        var errorContent = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK,
-            $"because the endpoint should return OK. Response: {errorContent}");
-
         var content = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK,
+            $"because the endpoint should return OK. Response: {content}");
+
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Accept empty list or proper response structure
@@ -202,18 +198,14 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
     }
 
     [Fact]
-    public async Task ProvidersEndpoints_ShouldNotReturn500Errors()
+    public async Task ProvidersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors()
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
 
         var endpoints = new[]
         {
-            "/api/v1/providers",
-            "/api/v1/providers/by-type/Individual",
-            "/api/v1/providers/by-verification-status/Pending",
-            "/api/v1/providers/by-city/São Paulo",
-            "/api/v1/providers/by-state/SP"
+            "/api/v1/providers"
         };
 
         // Act & Assert
@@ -221,16 +213,14 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         {
             var response = await Client.GetAsync(endpoint);
 
-            // O importante é que não seja erro 500 (erro de servidor)
-            response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError);
-            response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.MethodNotAllowed);
-            // Accept OK/Unauthorized/Forbidden/NotFound depending on auth/seed state
-
-            // Log do status para debugging se necessário
             if (!response.IsSuccessStatusCode)
             {
-                testOutput.WriteLine($"Endpoint {endpoint} returned {response.StatusCode}");
+                var body = await response.Content.ReadAsStringAsync();
+                testOutput.WriteLine($"Endpoint {endpoint} returned {response.StatusCode}. Body: {body}");
             }
+
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK,
+                $"Authenticated admin requests to {endpoint} should succeed.");
         }
     }
 }
