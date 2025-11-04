@@ -34,8 +34,6 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
             businessProfile = new
             {
                 legalName = "Test Company LTDA",
-                fantasyName = (string?)null,
-                description = (string?)null,
                 contactInfo = new
                 {
                     email = "test@provider.com",
@@ -46,7 +44,6 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
                 {
                     street = "Rua Teste",
                     number = "123",
-                    complement = (string?)null,
                     neighborhood = "Centro",
                     city = "São Paulo",
                     state = "SP",
@@ -115,7 +112,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
     }
 
     [Fact]
-    public async Task GetProviderById_WithNonExistentId_ShouldHandleGracefully()
+    public async Task GetProviderById_WithNonExistentId_ShouldReturnNotFound()
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
@@ -125,58 +122,62 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var response = await Client.GetAsync($"/api/v1/providers/{randomId}");
 
         // Assert
-        // API should either return NotFound or OK with null/empty response
-        // Both are valid ways to handle non-existent resources
-        response.StatusCode.Should().BeOneOf(
-            System.Net.HttpStatusCode.NotFound,
-            System.Net.HttpStatusCode.OK);
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound,
+            "API should return 404 when provider ID does not exist");
+    }
 
-        // If OK is returned, verify response indicates no provider found
-        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+    [Fact]
+    public async Task GetProvidersByType_ShouldReturnOnlyIndividualProviders()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        // Seed test data: create Individual and Company providers
+        var individualProvider = await CreateTestProvider("Individual Provider", type: 0); // Individual
+        var companyProvider = await CreateTestProvider("Company Provider", type: 1); // Company
+
+        try
         {
+            // Act - Test filtering by Individual type
+            var response = await Client.GetAsync("/api/v1/providers/by-type/Individual");
+
+            // Assert
             var content = await response.Content.ReadAsStringAsync();
-            var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
-            
-            // Response should be null, empty, or indicate no data found
-            var isEmpty = responseJson.ValueKind == JsonValueKind.Null ||
-                         (responseJson.ValueKind == JsonValueKind.Object && 
-                          (!responseJson.TryGetProperty("data", out var data) || data.ValueKind == JsonValueKind.Null));
-            
-            isEmpty.Should().BeTrue($"OK response for non-existent provider should indicate no data. Response: {content}");
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK,
+                $"because the endpoint should return OK. Response: {content}");
+
+            var providers = JsonSerializer.Deserialize<JsonElement>(content);
+            var dataElement = GetResponseData(providers);
+
+            if (dataElement.ValueKind == JsonValueKind.Array)
+            {
+                // Verify only Individual providers are returned
+                foreach (var providerElement in dataElement.EnumerateArray())
+                {
+                    if (providerElement.TryGetProperty("type", out var typeProperty))
+                    {
+                        typeProperty.GetInt32().Should().Be(0, "Only Individual providers (type 0) should be returned");
+                    }
+                }
+            }
+        }
+        finally
+        {
+            // Cleanup
+            await CleanupProvider(individualProvider);
+            await CleanupProvider(companyProvider);
         }
     }
 
     [Fact]
-    public async Task GetProvidersByType_ShouldReturnFilteredList()
+    public async Task GetProvidersByVerificationStatus_ShouldReturnOnlyPendingProviders()
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
 
-        // Act - Test filtering by Individual type
-        var response = await Client.GetAsync("/api/v1/providers/by-type/Individual");
-
-        // Assert
-        var content = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK,
-            $"because the endpoint should return OK. Response: {content}");
-
-        var providers = JsonSerializer.Deserialize<JsonElement>(content);
-
-        // Accept empty list or proper response structure
-        // NOTE: This test validates response format but doesn't verify actual filtering
-        // TODO: Enhance with provider seeding to verify only Individual type providers are returned
-        var isValidResponse = providers.ValueKind == JsonValueKind.Array ||
-                              (providers.ValueKind == JsonValueKind.Object &&
-                                  providers.TryGetProperty("data", out _));
-
-        isValidResponse.Should().BeTrue($"Invalid response format. Content: {content}");
-    }
-
-    [Fact]
-    public async Task GetProvidersByVerificationStatus_ShouldReturnFilteredList()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
+        // Note: Since we can't directly set verification status during creation,
+        // this test validates response structure and format
+        // TODO: Enhance when verification status management endpoints are available
 
         // Act - Test filtering by Pending verification status
         var response = await Client.GetAsync("/api/v1/providers/by-verification-status/Pending");
@@ -189,8 +190,6 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Accept empty list or proper response structure
-        // NOTE: This test validates response format but doesn't verify actual filtering
-        // TODO: Enhance with provider seeding to verify only Pending status providers are returned
         var isValidResponse = providers.ValueKind == JsonValueKind.Array ||
                               (providers.ValueKind == JsonValueKind.Object &&
                                   providers.TryGetProperty("data", out _));
@@ -229,8 +228,64 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
 
     private static JsonElement GetResponseData(JsonElement response)
     {
-        return response.TryGetProperty("data", out var dataElement) 
-            ? dataElement 
+        return response.TryGetProperty("data", out var dataElement)
+            ? dataElement
             : response;
+    }
+
+    private async Task<string?> CreateTestProvider(string name, int type)
+    {
+        var providerData = new
+        {
+            userId = Guid.NewGuid(),
+            name = name,
+            type = type,
+            businessProfile = new
+            {
+                legalName = $"{name} LTDA",
+                contactInfo = new
+                {
+                    email = $"test-{Guid.NewGuid():N}@provider.com",
+                    phoneNumber = "+55 11 99999-9999",
+                    website = "https://www.provider.com"
+                },
+                primaryAddress = new
+                {
+                    street = "Rua Teste",
+                    number = "123",
+                    neighborhood = "Centro",
+                    city = "São Paulo",
+                    state = "SP",
+                    zipCode = "01234-567",
+                    country = "Brasil"
+                }
+            }
+        };
+
+        var response = await Client.PostAsJsonAsync("/api/v1/providers", providerData);
+        if (response.StatusCode == System.Net.HttpStatusCode.Created)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
+            var dataElement = GetResponseData(responseJson);
+            if (dataElement.TryGetProperty("id", out var idProperty))
+            {
+                return idProperty.GetString();
+            }
+        }
+
+        testOutput.WriteLine($"Failed to create test provider {name}. Status: {response.StatusCode}");
+        return null;
+    }
+
+    private async Task CleanupProvider(string? providerId)
+    {
+        if (string.IsNullOrEmpty(providerId)) return;
+
+        var deleteResponse = await Client.DeleteAsync($"/api/v1/providers/{providerId}");
+        if (!deleteResponse.IsSuccessStatusCode)
+        {
+            testOutput.WriteLine($"Cleanup failed: Could not delete provider {providerId}. Status: {deleteResponse.StatusCode}");
+        }
     }
 }

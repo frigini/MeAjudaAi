@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
 using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Authorization;
@@ -94,7 +93,6 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
     {
         // Arrange - Ensure clean authentication state
         AuthConfig.ClearConfiguration();
-        AuthConfig.SetAllowUnauthenticated(false);
 
         // Act - Use real API endpoint that requires authentication
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
