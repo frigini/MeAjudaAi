@@ -29,7 +29,8 @@ public class ProvidersApiTests : ApiTestBase
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
         response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed);
-        // Can be 401 (unauthorized), 200 (ok), or 500 (server error) but not 404/405
+        // Endpoint exists if it returns anything other than 404 (Not Found) or 405 (Method Not Allowed)
+        // Can be 401 (Unauthorized), 403 (Forbidden), 200 (OK), etc.
     }
 
     [Fact]
@@ -83,7 +84,7 @@ public class ProvidersApiTests : ApiTestBase
     public async Task ProvidersEndpoint_ShouldSupportPagination()
     {
         // Arrange
-        // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=5");
@@ -99,7 +100,7 @@ public class ProvidersApiTests : ApiTestBase
     public async Task ProvidersEndpoint_ShouldSupportFilters()
     {
         // Arrange
-        // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers?name=test&type=1&verificationStatus=1");
@@ -137,7 +138,7 @@ public class ProvidersApiTests : ApiTestBase
     public async Task CreateProvider_Endpoint_ShouldExist()
     {
         // Arrange
-        // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
         var providerData = new
         {
             userId = Guid.NewGuid(),
@@ -211,8 +212,18 @@ public class ProvidersApiTests : ApiTestBase
             var status = statusElement.GetString();
             status.Should().NotBe("Unhealthy", "Health status should not be Unhealthy");
 
-            // Assert providers is mentioned in the response (either in entries or elsewhere)
-            content.Should().Contain("providers", "Health check should include providers database reference");
+            // Verify providers health check entry exists and is healthy
+            if (healthResponse.TryGetProperty("entries", out var entries))
+            {
+                var providersEntry = entries.EnumerateObject()
+                    .FirstOrDefault(e => e.Name.Contains("providers", StringComparison.OrdinalIgnoreCase));
+                providersEntry.Should().NotBe(default, "Health check should include providers entry");
+            }
+            else
+            {
+                // Fallback to string matching if entries structure is different
+                content.Should().Contain("providers", "Health check should include providers database reference");
+            }
         }
     }
 }

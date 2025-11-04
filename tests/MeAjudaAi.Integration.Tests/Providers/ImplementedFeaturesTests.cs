@@ -28,7 +28,7 @@ public class ImplementedFeaturesTests : ApiTestBase
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
         response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed);
-        // Can be 401 (unauthorized), 200 (ok), or 500 (server error) but not 404/405
+        // Can be 401 (unauthorized) or 200 (ok) but not 404/405 - endpoint should exist
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task ProvidersEndpoint_ShouldSupportPagination()
     {
         // Arrange
-        // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=5");
@@ -98,7 +98,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task ProvidersEndpoint_ShouldSupportFilters()
     {
         // Arrange
-        // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers?name=test&type=1&verificationStatus=1");
@@ -114,6 +114,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task GetProviderById_Endpoint_ShouldExist()
     {
         // Arrange
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
         var testId = Guid.NewGuid();
 
         // Act
@@ -123,12 +124,9 @@ public class ImplementedFeaturesTests : ApiTestBase
         response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
             "GET by ID endpoint should exist");
 
-        // Can be 404 (not found), 401 (unauthorized), 400 (bad request), or 200 (ok), but not 405 or 500
+        // Can be 404 (not found) or 200 (ok), but not 405
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.NotFound,
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.BadRequest,
             HttpStatusCode.OK);
     }
 
@@ -136,7 +134,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task CreateProvider_Endpoint_ShouldExist()
     {
         // Arrange
-        // ConfigurableTestAuthenticationHandler.ConfigureAdmin(); // Temporariamente desabilitado
+        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
         var providerData = new
         {
             userId = Guid.NewGuid(),
@@ -210,8 +208,17 @@ public class ImplementedFeaturesTests : ApiTestBase
             var status = statusElement.GetString();
             status.Should().NotBe("Unhealthy", "Health status should not be Unhealthy");
 
-            // Assert providers is mentioned in the response (either in entries or elsewhere)
-            content.Should().Contain("providers", "Health check should include providers database reference");
+            // Verify providers health check entry exists
+            if (healthResponse.TryGetProperty("entries", out var entries))
+            {
+                var hasProvidersEntry = entries.EnumerateObject()
+                    .Any(e => e.Name.Contains("providers", StringComparison.OrdinalIgnoreCase));
+                hasProvidersEntry.Should().BeTrue("Health check should include providers database entry");
+            }
+            else
+            {
+                content.Should().Contain("providers", "Health check should include providers database reference");
+            }
         }
     }
 }

@@ -236,14 +236,25 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
 
                 app.UseEndpoints(endpoints =>
                 {
-                    // Map Users module endpoints
+                    // Map Users module endpoints with proper permission checks
                     var usersGroup = endpoints.MapGroup("/api/v1/users").RequireAuthorization();
-                    usersGroup.MapGet("", () => Results.Ok("Users endpoint"));
+                    usersGroup.MapGet("", () => Results.Ok("Users endpoint"))
+                        .RequirePermission(Permission.UsersRead);
+                    usersGroup.MapGet("{id:guid}", (Guid id) => Results.Ok($"User {id}"))
+                        .RequirePermission(Permission.UsersRead);
+                    usersGroup.MapPost("", () => Results.Created("/api/v1/users/123", "Created"))
+                        .RequirePermissions(Permission.UsersCreate, Permission.AdminUsers);
+                    usersGroup.MapDelete("{id:guid}", (Guid id) => Results.NoContent())
+                        .RequirePermissions(Permission.UsersDelete, Permission.AdminUsers);
 
-                    // Map Providers module endpoints
+                    // Map Providers module endpoints with proper permission checks
                     var providersGroup = endpoints.MapGroup("/api/v1/providers").RequireAuthorization();
-                    providersGroup.MapGet("", () => Results.Ok("Providers endpoint"));
-                    providersGroup.MapGet("{id:guid}", (Guid id) => Results.NotFound($"Provider {id} not found"));
+                    providersGroup.MapGet("", () => Results.Ok("Providers endpoint"))
+                        .RequirePermission(Permission.ProvidersRead);
+                    providersGroup.MapGet("{id:guid}", (Guid id) => Results.NotFound($"Provider {id} not found"))
+                        .RequirePermission(Permission.ProvidersRead);
+                    providersGroup.MapPost("", () => Results.Created("/api/v1/providers/123", "Created"))
+                        .RequirePermissions(Permission.ProvidersCreate, Permission.AdminUsers);
 
                     // Endpoint simples apenas para testar autenticação
                     endpoints.MapGet("/test/authenticated", () => Results.Ok("Authenticated"))

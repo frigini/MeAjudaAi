@@ -169,7 +169,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
 
         var providers = await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
-            .OrderBy(p => p.Id)
+            .OrderBy(p => p.Id.Value)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

@@ -72,13 +72,6 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
                     $"Response data does not contain 'id' property. Full response: {content}");
                 Assert.True(dataElement.TryGetProperty("name", out var nameProperty));
                 Assert.Equal("Test Provider Integration", nameProperty.GetString());
-
-                // Cleanup - tentar deletar o provider criado
-                if (dataElement.TryGetProperty("id", out var idProperty))
-                {
-                    var providerId = idProperty.GetString();
-                    await Client.DeleteAsync($"/api/v1/providers/{providerId}");
-                }
             }
             else
             {
@@ -87,12 +80,16 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
                     $"Response does not contain 'id' property. Full response: {content}");
                 Assert.True(responseJson.TryGetProperty("name", out var nameProperty));
                 Assert.Equal("Test Provider Integration", nameProperty.GetString());
+            }
 
-                if (responseJson.TryGetProperty("id", out var idProperty))
-                {
-                    var providerId = idProperty.GetString();
-                    await Client.DeleteAsync($"/api/v1/providers/{providerId}");
-                }
+            // Cleanup - attempt to delete created provider
+            var idElement = responseJson.TryGetProperty("data", out var data)
+                ? data
+                : responseJson;
+            if (idElement.TryGetProperty("id", out var idProperty))
+            {
+                var providerId = idProperty.GetString();
+                await Client.DeleteAsync($"/api/v1/providers/{providerId}");
             }
         }
         else
@@ -150,11 +147,10 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
         // Should not return server error - can be NotFound, OK, or other client errors
         Assert.NotEqual(System.Net.HttpStatusCode.InternalServerError, response.StatusCode);
 
-        // Should be a valid response (not method not allowed, etc.)
+        // Should be a valid response (either found or not found, no validation errors)
         Assert.True(response.StatusCode == System.Net.HttpStatusCode.NotFound ||
-                   response.StatusCode == System.Net.HttpStatusCode.OK ||
-                   response.StatusCode == System.Net.HttpStatusCode.BadRequest,
-                   $"Expected valid response code but got {response.StatusCode}");
+                   response.StatusCode == System.Net.HttpStatusCode.OK,
+                   $"Expected NotFound or OK response but got {response.StatusCode}");
     }
 
     [Fact]

@@ -7,6 +7,13 @@ namespace MeAjudaAi.Integration.Tests;
 
 public class RegressionTests : ApiTestBase
 {
+    private readonly ITestOutputHelper _output;
+
+    public RegressionTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public async Task UsersEndpoint_ShouldWork_WithoutErrors()
     {
@@ -21,8 +28,8 @@ public class RegressionTests : ApiTestBase
             var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // Assert
-            Console.WriteLine($"Users Response Status: {response.StatusCode}");
-            Console.WriteLine($"Users Response Content: {content}");
+            _output.WriteLine($"Users Response Status: {response.StatusCode}");
+            _output.WriteLine($"Users Response Content: {content}");
 
             // Verificar se realmente retorna OK (não 500)
             Assert.True(response.StatusCode == HttpStatusCode.OK,
@@ -54,8 +61,8 @@ public class RegressionTests : ApiTestBase
             var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // Assert
-            Console.WriteLine($"Providers Response Status: {response.StatusCode}");
-            Console.WriteLine($"Providers Response Content: {content}");
+            _output.WriteLine($"Providers Response Status: {response.StatusCode}");
+            _output.WriteLine($"Providers Response Content: {content}");
 
             // Providers endpoint should return OK (not 500)
             Assert.True(response.StatusCode == HttpStatusCode.OK,
