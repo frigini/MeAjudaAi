@@ -61,7 +61,8 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().BeOneOf(System.Net.HttpStatusCode.Created, System.Net.HttpStatusCode.OK);
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Created, 
+            "POST requests that create resources should return 201 Created");
         // Optionally verify Location:
         // response.Headers.Location.Should().NotBeNull();
 
@@ -70,18 +71,18 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         // Verifica se é uma response estruturada (com data)
         if (responseJson.TryGetProperty("data", out var dataElement))
         {
-            Assert.True(dataElement.TryGetProperty("id", out _),
-                $"Response data does not contain 'id' property. Full response: {content}");
-            Assert.True(dataElement.TryGetProperty("name", out var nameProperty));
-            Assert.Equal("Test Provider Integration", nameProperty.GetString());
+            dataElement.TryGetProperty("id", out _).Should().BeTrue(
+                $"Response data should contain 'id' property. Full response: {content}");
+            dataElement.TryGetProperty("name", out var nameProperty).Should().BeTrue();
+            nameProperty.GetString().Should().Be("Test Provider Integration");
         }
         else
         {
             // Fallback para response direta
-            Assert.True(responseJson.TryGetProperty("id", out _),
-                $"Response does not contain 'id' property. Full response: {content}");
-            Assert.True(responseJson.TryGetProperty("name", out var nameProperty));
-            Assert.Equal("Test Provider Integration", nameProperty.GetString());
+            responseJson.TryGetProperty("id", out _).Should().BeTrue(
+                $"Response should contain 'id' property. Full response: {content}");
+            responseJson.TryGetProperty("name", out var nameProperty).Should().BeTrue();
+            nameProperty.GetString().Should().Be("Test Provider Integration");
         }
 
         // Cleanup - attempt to delete created provider
@@ -111,14 +112,14 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
 
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
-        // Verificar que retorna uma lista (mesmo que vazia)
-        var isValidFormat = providers.ValueKind == JsonValueKind.Array ||
-                           (providers.ValueKind == JsonValueKind.Object && providers.TryGetProperty("items", out _)) ||
-                           (providers.ValueKind == JsonValueKind.Object && providers.TryGetProperty("data", out var dataElement) &&
-                            (dataElement.ValueKind == JsonValueKind.Array || dataElement.TryGetProperty("items", out _)));
-
-        Assert.True(isValidFormat,
-            $"Expected array or object with 'items'/'data' property. Got: {content}");
+        // Expect a consistent API response format - should be an object with data property
+        providers.ValueKind.Should().Be(JsonValueKind.Object, 
+            "API should return a structured response object");
+        providers.TryGetProperty("data", out var dataElement).Should().BeTrue(
+            "Response should contain 'data' property for consistency");
+        dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
+        dataElement.ValueKind.Should().NotBe(JsonValueKind.Null,
+            "Data property should contain either an array of providers or a paginated response object");
     }
 
     [Fact]
@@ -133,14 +134,14 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
 
         // Assert
         // Should not return server error - can be NotFound, OK, or other client errors
-        Assert.NotEqual(System.Net.HttpStatusCode.InternalServerError, response.StatusCode);
-        Assert.NotEqual(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
-        Assert.NotEqual(System.Net.HttpStatusCode.Forbidden, response.StatusCode);
+        response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError);
+        response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Unauthorized);
+        response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.Forbidden);
 
         // Should be a valid response (either found or not found, no validation errors)
-        Assert.True(response.StatusCode == System.Net.HttpStatusCode.NotFound ||
-                   response.StatusCode == System.Net.HttpStatusCode.OK,
-                   $"Expected NotFound or OK response but got {response.StatusCode}");
+        response.StatusCode.Should().BeOneOf(
+            System.Net.HttpStatusCode.NotFound, 
+            System.Net.HttpStatusCode.OK);
     }
 
     [Fact]
@@ -153,11 +154,10 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var response = await Client.GetAsync("/api/v1/providers/by-type/Individual");
 
         // Assert
-        if (response.StatusCode != System.Net.HttpStatusCode.OK)
-        {
-            var errorContent = await response.Content.ReadAsStringAsync();
-            throw new HttpRequestException($"Expected OK but got {response.StatusCode}. Response: {errorContent}");
-        }
+        var errorContent = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK, 
+            $"because the endpoint should return OK. Response: {errorContent}");
+        
         var content = await response.Content.ReadAsStringAsync();
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
@@ -170,7 +170,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
                                   providers.TryGetProperty("message", out _)
                               ));
 
-        Assert.True(isValidResponse, $"Invalid response format. Content: {content}");
+        isValidResponse.Should().BeTrue($"Invalid response format. Content: {content}");
     }
 
     [Fact]
@@ -183,11 +183,10 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         var response = await Client.GetAsync("/api/v1/providers/by-verification-status/Pending");
 
         // Assert
-        if (response.StatusCode != System.Net.HttpStatusCode.OK)
-        {
-            var errorContent = await response.Content.ReadAsStringAsync();
-            throw new HttpRequestException($"Expected OK but got {response.StatusCode}. Response: {errorContent}");
-        }
+        var errorContent = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK, 
+            $"because the endpoint should return OK. Response: {errorContent}");
+        
         var content = await response.Content.ReadAsStringAsync();
         var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
@@ -199,7 +198,7 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
                                   providers.TryGetProperty("message", out _)
                               ));
 
-        Assert.True(isValidResponse, $"Invalid response format. Content: {content}");
+        isValidResponse.Should().BeTrue($"Invalid response format. Content: {content}");
     }
 
     [Fact]
@@ -223,8 +222,8 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
             var response = await Client.GetAsync(endpoint);
 
             // O importante é que não seja erro 500 (erro de servidor)
-            Assert.NotEqual(System.Net.HttpStatusCode.InternalServerError, response.StatusCode);
-            Assert.NotEqual(System.Net.HttpStatusCode.MethodNotAllowed, response.StatusCode);
+            response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.InternalServerError);
+            response.StatusCode.Should().NotBe(System.Net.HttpStatusCode.MethodNotAllowed);
             // Accept OK/Unauthorized/Forbidden/NotFound depending on auth/seed state
 
             // Log do status para debugging se necessário

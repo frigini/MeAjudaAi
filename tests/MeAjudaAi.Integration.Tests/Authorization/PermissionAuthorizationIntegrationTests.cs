@@ -16,9 +16,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-using static MeAjudaAi.Modules.Providers.API.Extensions;
-using static MeAjudaAi.Modules.Users.API.Extensions;
-
 namespace MeAjudaAi.Integration.Tests.Authorization;
 
 /// <summary>
@@ -47,12 +44,10 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
         var content = await response.Content.ReadAsStringAsync();
         Console.WriteLine($"Response content: {content}");
 
-        // This should be OK for authenticated user, or potentially rate limited
+        // Authenticated user should either succeed or be forbidden (lacking permissions)
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.Unauthorized,  // User may not have required permissions
-            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
+            HttpStatusCode.Forbidden
         );
     }
 
@@ -66,10 +61,7 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -82,12 +74,7 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert - Regular user should not have access to list users
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
-        );
-        response.StatusCode.Should().NotBe(HttpStatusCode.OK,
-            "Regular user should not have access to user management");
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -100,10 +87,7 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert - Admin with all required permissions should succeed
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -116,12 +100,7 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert - User with partial permissions should be forbidden
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
-        );
-        response.StatusCode.Should().NotBe(HttpStatusCode.OK,
-            "User with partial permissions should not have access");
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -150,10 +129,7 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
         var response = await Client.GetAsync("/api/v1/providers", TestContext.Current.CancellationToken);
 
         // Assert - Admin should succeed
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -166,54 +142,38 @@ public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
         var response = await Client.GetAsync("/api/v1/users", TestContext.Current.CancellationToken);
 
         // Assert - Admin should succeed
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task UnauthenticatedRequest_ShouldReturnUnauthorized()
     {
-        // Arrange - Ensure clean authentication state with aggressive cleanup
-        AuthConfig.ClearConfiguration();
-
-        // Add a small delay to ensure the configuration takes effect
-        await Task.Delay(10);
-
-        // Triple-check that we have the right state
+        // Arrange - Ensure clean authentication state
         AuthConfig.ClearConfiguration();
         AuthConfig.SetAllowUnauthenticated(false);
-
-        // Debug: Verify the configuration is set correctly
-        var hasConfig = AuthConfig.HasUser;
-        var allowUnauth = AuthConfig.AllowUnauthenticated;
-        _output.WriteLine($"Before request - HasConfiguration: {hasConfig}, AllowUnauthenticated: {allowUnauth}");
 
         // Act - Use real API endpoint that requires authentication
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
-        // Debug output
-        _output.WriteLine($"Response status: {response.StatusCode}");
         var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        _output.WriteLine($"Response content length: {content.Length}");
-        if (content.Length < 1000)
-        {
-            _output.WriteLine($"Response content: {content}");
-        }
-
-        // For debugging: check if headers give us insight into authentication
-        _output.WriteLine("Response headers:");
-        foreach (var header in response.Headers)
-        {
-            _output.WriteLine($"  {header.Key}: {string.Join(", ", header.Value)}");
-        }
+        LogResponseDiagnostics(response, content);
 
         // Assert - Unauthenticated request should be unauthorized  
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.TooManyRequests  // Rate limiting is acceptable
+            HttpStatusCode.Forbidden
         );
+    }
+
+    private void LogResponseDiagnostics(HttpResponseMessage response, string content)
+    {
+        _output.WriteLine($"Response status: {response.StatusCode}");
+        _output.WriteLine($"Response content length: {content.Length}");
+        if (content.Length < 1000)
+            _output.WriteLine($"Response content: {content}");
+        
+        _output.WriteLine("Response headers:");
+        foreach (var header in response.Headers)
+            _output.WriteLine($"  {header.Key}: {string.Join(", ", header.Value)}");
     }
 }

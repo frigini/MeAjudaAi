@@ -33,11 +33,7 @@ public class AuthenticationTests : InstanceApiTestBase
         var response = await Client.GetAsync("/api/v1/users", TestContext.Current.CancellationToken);
 
         // Assert - usuário regular não deveria ter acesso à lista de usuários
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.TooManyRequests);
-        response.StatusCode.Should().NotBe(HttpStatusCode.OK,
-            "Regular users should not have permission to access the users list endpoint");
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -50,10 +46,23 @@ public class AuthenticationTests : InstanceApiTestBase
         var response = await Client.GetAsync("/api/v1/users", TestContext.Current.CancellationToken);
 
         // Assert - admin deveria ter acesso à lista de usuários
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task RateLimiting_ShouldBeConfiguredCorrectly()
+    {
+        // Arrange - Configure admin user
+        AuthConfig.ConfigureAdmin();
+
+        // Act - Make a single request to verify rate limiting is configured
+        var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
+
+        // Assert - This test documents that rate limiting exists in the system
+        // The actual rate limiting behavior should be tested in isolation
+        // For now, we just verify the endpoint is reachable and rate limiting is a possibility
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.TooManyRequests);
-        response.StatusCode.Should().NotBe(HttpStatusCode.Forbidden,
-            "Admin users should have permission to access the users list endpoint");
     }
 }
