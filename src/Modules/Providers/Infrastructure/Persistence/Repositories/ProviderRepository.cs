@@ -86,17 +86,6 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     /// <summary>
     /// Escapa caracteres especiais do padrão LIKE para tratar % e _ como literais.
     /// </summary>
-    private static string EscapeLikePattern(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-            return input;
-
-        return input
-            .Replace("\\", "\\\\")  // Escape backslashes first
-            .Replace("%", "\\%")    // Escape % wildcards
-            .Replace("_", "\\_");   // Escape _ wildcards
-    }
-
     /// <summary>
     /// Busca prestadores de serviços por cidade.
     /// </summary>
@@ -104,7 +93,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     {
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
-            .Where(p => EF.Functions.ILike(EF.Property<string>(p, "city"), $"%{EscapeLikePattern(city)}%"))
+            .Where(p => EF.Functions.ILike(EF.Property<string>(p, "city"), $"%{city}%"))
             .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
     }
@@ -116,7 +105,7 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     {
         return await GetProvidersQuery()
             .Where(p => !p.IsDeleted)
-            .Where(p => EF.Functions.ILike(EF.Property<string>(p, "state"), $"%{EscapeLikePattern(state)}%"))
+            .Where(p => EF.Functions.ILike(EF.Property<string>(p, "state"), $"%{state}%"))
             .OrderBy(p => p.Id)
             .ToListAsync(cancellationToken);
     }
