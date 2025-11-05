@@ -4,7 +4,7 @@
 
 ## 🎯 Visão Geral
 
-O módulo Bookings será o coração do sistema de agendamentos da plataforma MeAjudaAi, responsável por conectar clientes e prestadores através de um sistema robusto de reservas e execução de serviços.
+O módulo Bookings será o coração do sistema de agendamentos da plataforma MeAjudaAi, responsável por conectar clientes e prestadores por meio de um sistema robusto de reservas e execução de serviços.
 
 ### **Responsabilidades Planejadas**
 - 🔄 **Agendamento de serviços** entre clientes e prestadores

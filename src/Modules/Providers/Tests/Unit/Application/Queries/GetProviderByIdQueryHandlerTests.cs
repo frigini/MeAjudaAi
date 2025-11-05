@@ -128,15 +128,13 @@ public class GetProviderByIdQueryHandlerTests
             contactInfo: contactInfo,
             primaryAddress: address);
 
-        var provider = new Provider(userId, name, type, businessProfile);
-        
-        // Se um ProviderId específico foi fornecido, precisamos usar reflexão para defini-lo
+        // Se um ProviderId específico foi fornecido, usa o construtor interno para testes
         if (providerId != null)
         {
-            var idField = typeof(Provider).GetField("_id", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            idField?.SetValue(provider, providerId);
+            return new Provider(providerId, userId, name, type, businessProfile);
         }
 
-        return provider;
+        // Caso contrário, usa o construtor público normal
+        return new Provider(userId, name, type, businessProfile);
     }
 }

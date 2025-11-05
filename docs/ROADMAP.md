@@ -29,7 +29,7 @@ Este documento detalha as funcionalidades planejadas para versões futuras da pl
 - 🔄 **Personalização automática** da experiência
 
 #### **Gamificação**
-- 🔄 **Sistema de pontos** e badges
+- 🔄 **Sistema de pontos** e distintivos
 - 🔄 **Programa de fidelidade** com benefícios
 - 🔄 **Challenges** e objetivos pessoais
 
@@ -51,7 +51,7 @@ Este documento detalha as funcionalidades planejadas para versões futuras da pl
 
 #### **Business Intelligence**
 - 🔄 **Dashboard analítico** para prestadores
-- 🔄 **Métricas de performance** e crescimento
+- 🔄 **Métricas de desempenho** e crescimento
 - 🔄 **Relatórios automatizados** de receita e demanda
 
 ## 📋 Novos Módulos Planejados
@@ -101,7 +101,7 @@ Este documento detalha as funcionalidades planejadas para versões futuras da pl
 - ⭐ **Satisfação média**: 4.5+ estrelas
 
 ### **Métricas Técnicas**
-- 🚀 **Performance**: <500ms response time
+- 🚀 **Desempenho**: <500ms response time
 - 🔒 **Segurança**: Zero vulnerabilidades críticas
 - 📈 **Disponibilidade**: 99.9% uptime
 
