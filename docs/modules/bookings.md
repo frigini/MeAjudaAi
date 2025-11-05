@@ -237,7 +237,7 @@ public record RecurringScheduleUpdatedDomainEvent(Guid ProviderId, ScheduleSetti
 
 #### **Analytics Queries**
 - 🔄 **GetBookingStatisticsQuery**: Estatísticas de agendamentos
-- 🔄 **GetProviderPerformanceQuery**: Performance do prestador
+- 🔄 **GetProviderPerformanceQuery**: Desempenho do prestador
 - 🔄 **GetPopularTimeSlotsQuery**: Horários mais populares
 
 ## 🌐 API Endpoints Planejados
@@ -491,7 +491,7 @@ CREATE TABLE bookings.BookingReviews (
 );
 ```
 
-### **Índices para Performance**
+### **Índices para Desempenho**
 ```sql
 -- Índices para consultas frequentes
 CREATE INDEX idx_bookings_customer ON bookings.Bookings(CustomerId, Status);
@@ -582,7 +582,7 @@ public class ProviderVerificationStatusHandler : INotificationHandler<ProviderVe
 - 🔄 **Photo sharing** para validação de execução
 
 ### **Analytics & Intelligence**
-- 🔄 **Provider performance** metrics
+- 🔄 **Métricas de desempenho** do prestador
 - 🔄 **Customer behavior** analysis
 - 🔄 **Peak time** identification
 - 🔄 **Revenue optimization** suggestions
@@ -601,11 +601,11 @@ public class ProviderVerificationStatusHandler : INotificationHandler<ProviderVe
 - ✅ **Event Handling**: Processamento de eventos de outros módulos
 - ✅ **External Services**: Notificações, pagamentos
 
-### **Testes de Performance**
-- ✅ **Availability Search**: Performance com grandes volumes
+### **Testes de Desempenho**
+- ✅ **Availability Search**: Desempenho com grandes volumes
 - ✅ **Concurrent Bookings**: Handling de reservas simultâneas
 - ✅ **Schedule Queries**: Otimização de consultas de agenda
-- ✅ **Real-time Updates**: Performance de atualizações em tempo real
+- ✅ **Real-time Updates**: Desempenho de atualizações em tempo real
 
 ### **Testes de Chaos Engineering**
 - ✅ **Double Booking Prevention**: Cenários de conflito
@@ -625,7 +625,7 @@ public class ProviderVerificationStatusHandler : INotificationHandler<ProviderVe
 ### **Operational Metrics**
 - **Response Time**: Tempo de resposta para confirmações
 - **System Availability**: Uptime do sistema de agendamentos
-- **Peak Load Handling**: Performance em horários de pico
+- **Peak Load Handling**: Desempenho em horários de pico
 - **Data Consistency**: Métricas de consistência de dados
 
 ## 📋 Roadmap de Implementação
@@ -657,7 +657,7 @@ public class ProviderVerificationStatusHandler : INotificationHandler<ProviderVe
 ## 🚨 Considerações de Segurança
 
 ### **Data Protection**
-- **PII Handling**: Proteção de dados pessoais
+- **Gerenciamento de PII**: Proteção de dados pessoais
 - **Payment Security**: Integração segura com gateways
 - **Location Privacy**: Proteção de dados de localização
 - **Communication Privacy**: Criptografia de mensagens

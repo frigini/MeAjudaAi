@@ -17,7 +17,7 @@ O módulo Users implementa um **Bounded Context** dedicado para gestão de ident
 ## 🏗️ Arquitetura do Módulo
 
 ### **Estrutura de Pastas**
-```
+```text
 src/Modules/Users/
 ├── API/                           # Camada de apresentação
 │   ├── Endpoints/                 # Minimal APIs
@@ -433,16 +433,11 @@ public class SomeOtherModuleService
 
 ## 🚀 Próximos Passos
 
-### **Funcionalidades Planejadas**
-- 🔄 **Avatar e fotos de perfil**
-- 🔄 **Preferências avançadas** (notificações, privacidade)
-- 🔄 **Histórico de atividades**
-- 🔄 **Integração com redes sociais**
-- 🔄 **Two-factor authentication**
+**Funcionalidades Futuras**: Consulte o [Roadmap do Projeto](../ROADMAP.md#-módulo-users---próximas-funcionalidades) para ver as funcionalidades planejadas para versões futuras do módulo Users.
 
-### **Melhorias Técnicas**
+### **Melhorias Técnicas em Desenvolvimento**
 - 🔄 **Cache distribuído** para consultas frequentes
-- 🔄 **Event Sourcing** para auditoria
+- 🔄 **Event Sourcing** para auditoria completa
 - 🔄 **Background sync** com Keycloak
 - 🔄 **Bulk operations** para gestão em massa
 

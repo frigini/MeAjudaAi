@@ -30,10 +30,11 @@ public class GetProviderByIdQueryHandlerTests
         // Arrange
         var providerId = Guid.NewGuid();
         var query = new GetProviderByIdQuery(providerId);
-        var provider = CreateValidProvider();
+        var providerIdValueObject = new ProviderId(providerId);
+        var provider = CreateValidProvider(providerIdValueObject);
 
         _providerRepositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(It.Is<ProviderId>(id => id.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -46,6 +47,9 @@ public class GetProviderByIdQueryHandlerTests
         result.Value.Name.Should().Be(provider.Name);
         result.Value.Type.Should().Be(provider.Type);
         result.Value.VerificationStatus.Should().Be(provider.VerificationStatus);
+        result.Value.BusinessProfile.Should().NotBeNull();
+        result.Value.BusinessProfile.ContactInfo.Should().NotBeNull();
+        result.Value.BusinessProfile.PrimaryAddress.Should().NotBeNull();
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
@@ -93,9 +97,13 @@ public class GetProviderByIdQueryHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("Error getting provider");
+
+        _providerRepositoryMock.Verify(
+            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
-    private static Provider CreateValidProvider()
+    private static Provider CreateValidProvider(ProviderId? providerId = null)
     {
         var userId = Guid.NewGuid();
         var name = "Test Provider";
@@ -120,6 +128,15 @@ public class GetProviderByIdQueryHandlerTests
             contactInfo: contactInfo,
             primaryAddress: address);
 
-        return new Provider(userId, name, type, businessProfile);
+        var provider = new Provider(userId, name, type, businessProfile);
+        
+        // Se um ProviderId específico foi fornecido, precisamos usar reflexão para defini-lo
+        if (providerId != null)
+        {
+            var idField = typeof(Provider).GetField("_id", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            idField?.SetValue(provider, providerId);
+        }
+
+        return provider;
     }
 }

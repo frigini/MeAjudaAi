@@ -325,7 +325,7 @@ public class Booking : AggregateRoot<BookingId>
 - **popular_categories**: Categorias mais procuradas
 
 ### **Technical Metrics**
-- **service_search_performance**: Performance de buscas
+- **service_search_desempenho**: Desempenho de buscas
 - **category_tree_load_time**: Tempo de carregamento da árvore
 - **service_availability_uptime**: Disponibilidade dos serviços
 
@@ -341,8 +341,8 @@ public class Booking : AggregateRoot<BookingId>
 - ✅ **Search Engine**: Busca e filtros avançados
 - ✅ **Module API**: Comunicação com outros módulos
 
-### **Testes de Performance**
-- ✅ **Busca de serviços**: Performance com grandes volumes
+### **Testes de Desempenho**
+- ✅ **Busca de serviços**: Desempenho com grandes volumes
 - ✅ **Árvore de categorias**: Carregamento eficiente
 - ✅ **Filtros complexos**: Otimização de queries
 
@@ -398,7 +398,7 @@ public class Booking : AggregateRoot<BookingId>
 3. **Pricing**: Flexibilidade vs. Simplicidade
 4. **Caching Strategy**: Níveis e invalidação
 
-### **Considerações de Performance**
+### **Considerações de Desempenho**
 - **Indexação eficiente** para buscas
 - **Cache de categorias** (raramente mudam)
 - **Pagination** para grandes volumes

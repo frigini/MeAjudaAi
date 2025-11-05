@@ -528,7 +528,7 @@ public static class ProvidersModuleServiceCollectionExtensions
 ### **Melhorias Técnicas**
 - 🔄 **Cache distribuído** para consultas frequentes
 - 🔄 **Event Sourcing** para auditoria completa
-- 🔄 **Background jobs** para verificações automáticas
+- 🔄 **Processamento em background** para verificações automáticas
 - 🔄 **Notificações** (email/SMS para mudanças de status)
 
 ---

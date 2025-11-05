@@ -353,22 +353,6 @@ public sealed record ProviderDeletedDomainEvent(
     string Reason
 ) : DomainEvent(AggregateId, Version);
 ```
-    int Version,
-    string DocumentNumber,
-    EDocumentType DocumentType
-) : DomainEvent(AggregateId, Version);
-
-/// <summary>
-/// Evento disparado quando status de verificação é atualizado
-/// </summary>
-public sealed record ProviderVerificationStatusUpdatedDomainEvent(
-    Guid AggregateId,
-    int Version,
-    EVerificationStatus OldStatus,
-    EVerificationStatus NewStatus,
-    string? UpdatedBy
-) : DomainEvent(AggregateId, Version);
-```
 
 ## ⚡ CQRS (Command Query Responsibility Segregation)
 

@@ -6,17 +6,27 @@ Este documento rastreia itens de débito técnico e melhorias planejadas identif
 
 ### Melhoria do Teste de Status de Verificação de Prestador
 **Arquivo**: `tests/MeAjudaAi.Integration.Tests/Providers/ProvidersIntegrationTests.cs`  
-**Linha**: ~180  
-**Situação**: Aguardando Criação de Issue  
+**Linha**: ~172-199  
+**Situação**: Aguardando Implementação de Funcionalidade Base  
 
 **Descrição**: 
 O teste `GetProvidersByVerificationStatus_ShouldReturnOnlyPendingProviders` atualmente apenas valida a estrutura da resposta devido à falta de endpoints de gerenciamento de status de verificação.
+
+**Problema Identificado**:
+- TODO comentário nas linhas 180-181 indica limitação atual
+- Teste não pode verificar comportamento real de filtragem
+- Não há como definir status de verificação durante criação de prestador
 
 **Melhoria Necessária**:
 - Implementar endpoints de gerenciamento de status de verificação de prestadores (aprovar/rejeitar/atualizar verificação)
 - Criar prestadores de teste com diferentes status de verificação
 - Melhorar o teste para verificar o comportamento real de filtragem (apenas prestadores com status Pending retornados)
 - Adicionar testes similares para outros status de verificação (Approved, Rejected, etc.)
+
+**Opções de Implementação**:
+1. **Abrir nova issue** para rastrear implementação de endpoints de gerenciamento de status
+2. **Implementar funcionalidade** de atualização de status de verificação
+3. **Criar testes mais abrangentes** quando endpoints estiverem disponíveis
 
 **Prioridade**: Média  
 **Dependências**: Endpoints de API para gerenciamento de status de verificação de prestadores  
