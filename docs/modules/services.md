@@ -372,7 +372,7 @@ public class Booking : AggregateRoot<BookingId>
 ## � Padrões Distribuídos e Comunicação Inter-Módulos
 
 ### **Event-Driven Communication**
-O módulo Services participa ativamente de workflows distribuídos através de Domain Events:
+O módulo Services participa ativamente de workflows distribuídos via Domain Events:
 
 ```csharp
 // Eventos disparados pelo módulo Services
@@ -485,7 +485,7 @@ public class ServicesModuleApi : IServicesModuleApi
 }
 ```
 
-### **Caching Distribuído para Performance**
+### **Caching Distribuído para Desempenho**
 Estratégia de cache para reduzir latência entre módulos:
 
 ```csharp
