@@ -140,6 +140,185 @@ public record UserProfileUpdatedDomainEvent(
     string FirstName,
     string LastName
 ) : DomainEvent(AggregateId, Version);
+
+/// <summary>
+/// Evento disparado quando usuário é suspenso
+/// </summary>
+public record UserSuspendedDomainEvent(
+    Guid AggregateId,
+    int Version,
+    string Reason,
+    DateTime SuspendedAt
+) : DomainEvent(AggregateId, Version);
+
+/// <summary>
+/// Evento disparado quando usuário é reativado
+/// </summary>
+public record UserReactivatedDomainEvent(
+    Guid AggregateId,
+    int Version,
+    DateTime ReactivatedAt
+) : DomainEvent(AggregateId, Version);
+```
+
+### **Padrões Distribuídos e Comunicação Inter-Módulos**
+
+#### **Event-Driven Architecture**
+O módulo Users é o **ponto de entrada** para muitos workflows distribuídos:
+
+```csharp
+// Handler para coordenar criação de usuário
+public class UserRegistrationSagaOrchestrator : ISagaOrchestrator
+{
+    public async Task HandleAsync(UserRegisteredDomainEvent evt)
+    {
+        var sagaId = Guid.NewGuid();
+        
+        try
+        {
+            // 1. Criar perfil de notificações
+            await _notificationService.CreateUserProfileAsync(evt.AggregateId, evt.Email);
+            
+            // 2. Inicializar preferências do usuário
+            await _preferencesService.InitializeDefaultPreferencesAsync(evt.AggregateId);
+            
+            // 3. Verificar se é um Provider baseado no contexto
+            var userType = await DetermineUserTypeAsync(evt.Username, evt.Email);
+            if (userType == UserType.Provider)
+            {
+                await _providerModule.InitializeProviderProfileAsync(evt.AggregateId);
+            }
+            
+            // 4. Enviar email de boas-vindas
+            await _emailService.SendWelcomeEmailAsync(evt.Email, $"{evt.Username}");
+            
+            await _sagaRepository.CompleteAsync(sagaId);
+        }
+        catch (Exception ex)
+        {
+            await CompensateUserRegistration(sagaId, evt.AggregateId, ex);
+        }
+    }
+}
+```
+
+#### **Module API para Consultas Síncronas**
+Interface para outros módulos consultarem dados de usuários:
+
+```csharp
+public interface IUsersModuleApi
+{
+    Task<UserDto> GetByIdAsync(Guid userId);
+    Task<UserDto> GetByEmailAsync(string email);
+    Task<bool> IsUserActiveAsync(Guid userId);
+    Task<UserContactInfoDto> GetUserContactAsync(Guid userId);
+    Task<IEnumerable<UserDto>> GetUsersByIdsAsync(IEnumerable<Guid> userIds);
+    Task<bool> ValidateUserExistsAsync(Guid userId);
+}
+
+// Implementação com cache distribuído para performance
+public class CachedUsersModuleApi : IUsersModuleApi
+{
+    private readonly IUsersModuleApi _inner;
+    private readonly IDistributedCache _cache;
+    
+    public async Task<UserDto> GetByIdAsync(Guid userId)
+    {
+        var cacheKey = $"user:{userId}";
+        var cached = await _cache.GetStringAsync(cacheKey);
+        
+        if (cached != null)
+            return JsonSerializer.Deserialize<UserDto>(cached);
+            
+        var user = await _inner.GetByIdAsync(userId);
+        
+        if (user != null)
+        {
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(user),
+                new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
+                    SlidingExpiration = TimeSpan.FromMinutes(10)
+                });
+        }
+        
+        return user;
+    }
+    
+    public async Task<bool> IsUserActiveAsync(Guid userId)
+    {
+        // Cache mais agressivo para verificações de status
+        var cacheKey = $"user:active:{userId}";
+        var cached = await _cache.GetStringAsync(cacheKey);
+        
+        if (cached != null)
+            return bool.Parse(cached);
+            
+        var isActive = await _inner.IsUserActiveAsync(userId);
+        
+        await _cache.SetStringAsync(cacheKey, isActive.ToString(),
+            new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            });
+            
+        return isActive;
+    }
+}
+```
+
+#### **Invalidação de Cache Distribuído**
+Coordenação de cache quando dados de usuário mudam:
+
+```csharp
+public class UserCacheInvalidationHandler : 
+    IEventHandler<UserProfileUpdatedDomainEvent>,
+    IEventHandler<UserSuspendedDomainEvent>,
+    IEventHandler<UserReactivatedDomainEvent>
+{
+    private readonly IDistributedCache _cache;
+    private readonly IEventBus _eventBus;
+    
+    public async Task HandleAsync(UserProfileUpdatedDomainEvent evt)
+    {
+        await InvalidateUserCacheAsync(evt.AggregateId);
+        
+        // Notificar outros módulos sobre atualização
+        await _eventBus.PublishAsync(new UserProfileChangedIntegrationEvent
+        {
+            UserId = evt.AggregateId,
+            FirstName = evt.FirstName,
+            LastName = evt.LastName,
+            ChangedAt = DateTime.UtcNow
+        });
+    }
+    
+    public async Task HandleAsync(UserSuspendedDomainEvent evt)
+    {
+        await InvalidateUserCacheAsync(evt.AggregateId);
+        
+        // Coordenar suspensão em outros módulos
+        await _eventBus.PublishAsync(new UserStatusChangedIntegrationEvent
+        {
+            UserId = evt.AggregateId,
+            Status = "Suspended",
+            Reason = evt.Reason,
+            ChangedAt = evt.SuspendedAt
+        });
+    }
+    
+    private async Task InvalidateUserCacheAsync(Guid userId)
+    {
+        var tasks = new[]
+        {
+            _cache.RemoveAsync($"user:{userId}"),
+            _cache.RemoveAsync($"user:active:{userId}"),
+            _cache.RemoveAsync($"user:contact:{userId}")
+        };
+        
+        await Task.WhenAll(tasks);
+    }
+}
 ```
 
 ## ⚡ CQRS Implementation

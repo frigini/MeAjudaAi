@@ -18,6 +18,8 @@ O módulo Bookings será o coração do sistema de agendamentos da plataforma Me
 
 ### **Domain Model (Conceitual)**
 
+> **📝 Nota de Implementação**: Os exemplos de código abaixo mostram a estrutura conceitual dos agregados. Durante a implementação, é essencial incluir métodos de domínio que demonstrem como as coleções são gerenciadas e os invariantes são protegidos (ex: `AddBookingMessage()`, `ChangeStatus()`, `BlockSlot()`). Isso garante que os limites do agregado sejam respeitados e as regras de negócio sejam aplicadas consistentemente.
+
 #### **Agregado Principal: Booking**
 ```csharp
 /// <summary>
@@ -175,6 +177,34 @@ public enum EBookingPriority
 ```
 
 ## 🔄 Domain Events Planejados
+
+### **Estratégia de Versionamento e Rastreabilidade**
+
+Os eventos do módulo Bookings implementarão versionamento semântico e IDs de correlação para rastreabilidade cross-module:
+
+```csharp
+public abstract record BookingDomainEvent
+{
+    public string EventVersion { get; init; } = "1.0.0";
+    public Guid CorrelationId { get; init; } = Guid.NewGuid();
+    public string OriginModule { get; init; } = "Bookings";
+    public DateTime EventTimestamp { get; init; } = SystemTime.UtcNow;
+    public Dictionary<string, string> Metadata { get; init; } = new();
+}
+
+// Exemplo de implementação com versionamento
+public record BookingRequestedDomainEvent : BookingDomainEvent
+{
+    public Guid BookingId { get; init; }
+    public Guid CustomerId { get; init; }
+    public Guid ProviderId { get; init; }
+    public DateTime RequestedTime { get; init; }
+    
+    // Metadados para correlação
+    public Guid? ParentWorkflowId { get; init; }
+    public string? SourceChannel { get; init; } // web, mobile, api
+}
+```
 
 ### **Eventos de Booking**
 ```csharp
@@ -509,6 +539,87 @@ CREATE INDEX idx_messages_booking ON bookings.BookingMessages(BookingId, SentAt)
 CREATE INDEX idx_status_history ON bookings.BookingStatusHistory(BookingId, ChangedAt);
 ```
 
+### **Estratégia de Retenção de Dados e Conformidade LGPD**
+
+#### **Políticas de Retenção**
+```sql
+-- Configuração de retenção por tipo de dado
+CREATE TABLE bookings.DataRetentionPolicies (
+    TableName varchar(100) PRIMARY KEY,
+    RetentionPeriodMonths int NOT NULL,
+    ArchivalRequired boolean NOT NULL DEFAULT false,
+    AnonymizationFields text[], -- Campos que devem ser anonimizados
+    PurgeAfterMonths int, -- Exclusão definitiva após arquivamento
+    
+    CreatedAt timestamp NOT NULL DEFAULT NOW(),
+    UpdatedAt timestamp NOT NULL DEFAULT NOW()
+);
+
+-- Inserir políticas padrão
+INSERT INTO bookings.DataRetentionPolicies VALUES 
+('Bookings', 36, true, '{"SpecialInstructions", "Location"}', 84),
+('BookingMessages', 24, false, '{"Message"}', 36),
+('BookingStatusHistory', 60, true, '{}', 120),
+('BookingReviews', 60, true, '{"Comment"}', NULL); -- Reviews mantidas indefinidamente (anonimizadas)
+```
+
+#### **Jobs de Arquivamento e LGPD**
+```csharp
+public class BookingDataRetentionService
+{
+    public async Task ExecuteRetentionPolicy()
+    {
+        // 1. Arquivar dados antigos
+        await ArchiveExpiredBookings();
+        
+        // 2. Anonimizar dados sensíveis
+        await AnonymizePersonalData();
+        
+        // 3. Processar solicitações LGPD
+        await ProcessDataSubjectRequests();
+    }
+    
+    private async Task AnonymizePersonalData()
+    {
+        // BookingMessages após 2 anos
+        await _dbContext.BookingMessages
+            .Where(m => m.SentAt < DateTime.UtcNow.AddMonths(-24))
+            .UpdateAsync(m => new BookingMessage 
+            { 
+                Message = "[ANONIMIZADO]",
+                UpdatedAt = DateTime.UtcNow 
+            });
+            
+        // Campos sensíveis em Bookings após 3 anos
+        await _dbContext.Bookings
+            .Where(b => b.CreatedAt < DateTime.UtcNow.AddMonths(-36))
+            .UpdateAsync(b => new Booking 
+            { 
+                SpecialInstructions = "[ANONIMIZADO]",
+                Location = "[ANONIMIZADO]"
+            });
+    }
+}
+```
+
+#### **Conformidade com Direitos do Titular**
+```csharp
+public interface IBookingLgpdService
+{
+    // Art. 18 - Direito de confirmação e acesso
+    Task<BookingPersonalDataReport> GetPersonalDataReportAsync(Guid userId);
+    
+    // Art. 18 - Direito de correção
+    Task<Result> CorrectPersonalDataAsync(Guid userId, BookingDataCorrectionRequest request);
+    
+    // Art. 18 - Direito de eliminação
+    Task<Result> DeletePersonalDataAsync(Guid userId, string legalBasis);
+    
+    // Art. 18 - Direito de anonimização
+    Task<Result> AnonymizePersonalDataAsync(Guid userId);
+}
+```
+
 ## 🔗 Integração com Outros Módulos
 
 ### **Dependências**
@@ -546,7 +657,323 @@ public class ProviderVerificationStatusHandler : INotificationHandler<ProviderVe
 }
 ```
 
-## 📊 Business Rules e Validações
+## � Transações Distribuídas e Fluxos de Compensação
+
+### **Padrão Saga para Workflows Cross-Module**
+
+O módulo Bookings implementará **Saga Pattern** para coordenar transações distribuídas que envolvem múltiplos módulos (Users, Providers, Services). Utilizamos uma abordagem **híbrida** combinando orquestração para workflows críticos e coreografia para eventos de notificação.
+
+#### **Outbox Pattern para Entrega Confiável**
+```csharp
+// Implementação do Outbox Pattern
+public class BookingOutboxEvent
+{
+    public Guid Id { get; set; }
+    public string EventType { get; set; }
+    public string EventData { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? ProcessedAt { get; set; }
+    public int RetryCount { get; set; }
+    public string? FailureReason { get; set; }
+}
+
+// Handler idempotente com retry
+public class BookingEventProcessor
+{
+    public async Task<Result> ProcessOutboxEvents()
+    {
+        var pendingEvents = await _outboxRepository.GetPendingEventsAsync();
+        
+        foreach (var outboxEvent in pendingEvents)
+        {
+            try
+            {
+                await ProcessEventWithRetry(outboxEvent);
+                await _outboxRepository.MarkAsProcessedAsync(outboxEvent.Id);
+            }
+            catch (Exception ex)
+            {
+                await HandleEventFailure(outboxEvent, ex);
+            }
+        }
+    }
+    
+    private async Task ProcessEventWithRetry(BookingOutboxEvent outboxEvent)
+    {
+        var retryPolicy = Policy
+            .Handle<Exception>()
+            .WaitAndRetryAsync(3, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))); // Exponential backoff
+                
+        await retryPolicy.ExecuteAsync(async () =>
+        {
+            await _eventBus.PublishAsync(DeserializeEvent(outboxEvent));
+        });
+    }
+}
+```
+
+### **Cenários de Compensação Específicos**
+
+#### **1. Cancelamento de Reserva com Reembolso**
+
+**Sequência de Comandos/Eventos:**
+```csharp
+// 1. Comando inicial
+public record CancelBookingWithRefundCommand(Guid BookingId, string Reason);
+
+// 2. Sequência de eventos coordenada
+public class BookingCancellationSaga
+{
+    public async Task Handle(CancelBookingWithRefundCommand command)
+    {
+        var sagaId = Guid.NewGuid();
+        
+        // Step 1: Cancelar booking
+        var cancelResult = await CancelBooking(command.BookingId, command.Reason);
+        if (cancelResult.IsFailure)
+        {
+            await PublishSagaFailedEvent(sagaId, "BookingCancellation", cancelResult.Error);
+            return;
+        }
+        
+        // Step 2: Liberar slot no Provider Schedule
+        var releaseSlotCmd = new ReleaseProviderSlotCommand(
+            booking.ProviderId, booking.ScheduledTime, booking.Duration);
+        var releaseResult = await _providerModuleApi.ReleaseSlotAsync(releaseSlotCmd);
+        
+        if (releaseResult.IsFailure)
+        {
+            // Compensação: Reverter cancelamento
+            await CompensateBookingCancellation(command.BookingId);
+            return;
+        }
+        
+        // Step 3: Processar reembolso
+        var refundCmd = new ProcessRefundCommand(booking.PaymentId, booking.Amount);
+        var refundResult = await _paymentModuleApi.ProcessRefundAsync(refundCmd);
+        
+        if (refundResult.IsFailure)
+        {
+            // Compensação: Re-bloquear slot + reverter cancelamento
+            await CompensateSlotRelease(booking.ProviderId, booking.ScheduledTime);
+            await CompensateBookingCancellation(command.BookingId);
+            return;
+        }
+        
+        // Sucesso: Publicar evento final
+        await PublishBookingCancelledWithRefundEvent(sagaId, command.BookingId);
+    }
+}
+```
+
+**Invariantes de Domínio:**
+- Booking só pode ser cancelado se status for `Confirmed` ou `Pending`
+- Reembolso só processa se não exceder janela de cancelamento (24h)
+- Slot só é liberado após confirmação de cancelamento no módulo Bookings
+
+**Tratamento de Falhas:**
+```csharp
+public class BookingCancellationCompensationHandler
+{
+    public async Task CompensateBookingCancellation(Guid bookingId)
+    {
+        var booking = await _bookingRepository.GetByIdAsync(bookingId);
+        if (booking != null && booking.Status == BookingStatus.Cancelled)
+        {
+            booking.Reinstate("Compensação de saga falhada");
+            await _bookingRepository.UpdateAsync(booking);
+            
+            // Log para monitoramento
+            _logger.LogWarning("Booking {BookingId} reinstated due to saga compensation", bookingId);
+        }
+    }
+}
+```
+
+#### **2. Suspensão de Prestador Afetando Reservas**
+
+**Sequência de Eventos:**
+```csharp
+// Evento originado no módulo Providers
+public record ProviderSuspendedDomainEvent(Guid ProviderId, string Reason, DateTime SuspendedAt);
+
+// Handler no módulo Bookings
+public class ProviderSuspensionHandler : INotificationHandler<ProviderSuspendedDomainEvent>
+{
+    public async Task Handle(ProviderSuspendedDomainEvent notification)
+    {
+        var sagaId = Guid.NewGuid();
+        
+        // 1. Buscar todas as reservas futuras do prestador
+        var futureBookings = await _bookingRepository
+            .GetFutureBookingsByProviderAsync(notification.ProviderId);
+        
+        foreach (var booking in futureBookings)
+        {
+            // 2. Cancelar reserva individual
+            var cancelResult = await CancelBookingDueToProviderIssue(booking.Id, notification.Reason);
+            
+            if (cancelResult.IsSuccess)
+            {
+                // 3. Processar reembolso automático
+                await ProcessAutomaticRefund(booking.PaymentId, booking.Amount);
+                
+                // 4. Notificar cliente
+                await NotifyCustomerOfCancellation(booking.CustomerId, booking.Id, notification.Reason);
+            }
+            else
+            {
+                // Marcar para retry manual
+                await _deadLetterQueue.AddFailedBookingCancellation(booking.Id, cancelResult.Error);
+            }
+        }
+        
+        await PublishProviderSuspensionProcessedEvent(sagaId, notification.ProviderId, futureBookings.Count);
+    }
+}
+```
+
+#### **3. Remoção de Serviço Afetando Agendamentos**
+
+**Compensação Coordenada:**
+```csharp
+public class ServiceRemovalSaga
+{
+    public async Task Handle(ServiceRemovedDomainEvent serviceRemovedEvent)
+    {
+        var sagaId = Guid.NewGuid();
+        var affectedBookings = new List<Booking>();
+        
+        try
+        {
+            // 1. Identificar bookings afetados
+            affectedBookings = await _bookingRepository
+                .GetBookingsByServiceAsync(serviceRemovedEvent.ServiceId);
+            
+            // 2. Para cada booking, executar compensação
+            foreach (var booking in affectedBookings)
+            {
+                // 2a. Cancelar booking
+                booking.CancelDueToServiceUnavailability("Serviço removido da plataforma");
+                
+                // 2b. Liberar slot do prestador
+                await _providerModuleApi.ReleaseSlotAsync(
+                    booking.ProviderId, booking.ScheduledTime, booking.Duration);
+                
+                // 2c. Processar reembolso
+                await ProcessFullRefund(booking.PaymentId, booking.Amount);
+                
+                // 2d. Registrar no histórico
+                await RecordServiceRemovalImpact(booking.Id, serviceRemovedEvent.ServiceId);
+            }
+            
+            await PublishServiceRemovalCompensationCompletedEvent(sagaId, affectedBookings.Count);
+        }
+        catch (Exception ex)
+        {
+            // Rollback parcial se necessário
+            await HandleServiceRemovalSagaFailure(sagaId, affectedBookings, ex);
+        }
+    }
+}
+```
+
+### **Monitoramento e Observabilidade**
+
+#### **Dead Letter Queue Management**
+```csharp
+public class BookingSagaMonitoringService
+{
+    public async Task ProcessDeadLetterEvents()
+    {
+        var deadLetterEvents = await _deadLetterRepository.GetUnprocessedEventsAsync();
+        
+        foreach (var deadEvent in deadLetterEvents)
+        {
+            // Análise automática do erro
+            var errorCategory = CategorizeSagaError(deadEvent.FailureReason);
+            
+            switch (errorCategory)
+            {
+                case SagaErrorCategory.TransientFailure:
+                    await RetryWithBackoff(deadEvent);
+                    break;
+                case SagaErrorCategory.BusinessRuleViolation:
+                    await TriggerManualReview(deadEvent);
+                    break;
+                case SagaErrorCategory.ExternalServiceUnavailable:
+                    await ScheduleDelayedRetry(deadEvent, TimeSpan.FromMinutes(30));
+                    break;
+            }
+        }
+    }
+}
+```
+
+#### **Reconciliation Jobs**
+```csharp
+public class BookingSagaReconciliationJob
+{
+    public async Task ReconcileIncompleteSagas()
+    {
+        // 1. Identificar sagas órfãs (iniciadas há mais de 1 hora sem finalização)
+        var orphanedSagas = await _sagaRepository.GetOrphanedSagasAsync(TimeSpan.FromHours(1));
+        
+        foreach (var saga in orphanedSagas)
+        {
+            // 2. Verificar estado atual dos recursos
+            var reconciliationResult = await ReconcileSagaState(saga);
+            
+            if (reconciliationResult.RequiresCompensation)
+            {
+                await TriggerCompensationWorkflow(saga);
+            }
+            else if (reconciliationResult.CanComplete)
+            {
+                await CompleteSaga(saga);
+            }
+            else
+            {
+                await MarkSagaForManualIntervention(saga);
+            }
+        }
+    }
+}
+```
+
+#### **Métricas de Observabilidade**
+```csharp
+public class BookingSagaMetrics
+{
+    private readonly IMetrics _metrics;
+    
+    public void RecordSagaStarted(string sagaType)
+    {
+        _metrics.IncrementCounter("booking_saga_started", new[] { ("type", sagaType) });
+    }
+    
+    public void RecordSagaCompleted(string sagaType, TimeSpan duration)
+    {
+        _metrics.RecordHistogram("booking_saga_duration", duration.TotalMilliseconds, 
+            new[] { ("type", sagaType), ("status", "completed") });
+    }
+    
+    public void RecordSagaFailed(string sagaType, string errorCategory)
+    {
+        _metrics.IncrementCounter("booking_saga_failed", 
+            new[] { ("type", sagaType), ("error_category", errorCategory) });
+    }
+    
+    public void RecordCompensationTriggered(string sagaType, string compensationAction)
+    {
+        _metrics.IncrementCounter("booking_saga_compensation", 
+            new[] { ("type", sagaType), ("action", compensationAction) });
+    }
+}
+```
+
+## �📊 Business Rules e Validações
 
 ### **Regras de Agendamento**
 1. **Antecedência Mínima**: Não permitir agendamentos com menos de X horas de antecedência
@@ -603,13 +1030,13 @@ public class ProviderVerificationStatusHandler : INotificationHandler<ProviderVe
 
 ### **Testes de Desempenho**
 - ✅ **Availability Search**: Desempenho com grandes volumes
-- ✅ **Concurrent Bookings**: Handling de reservas simultâneas
+- ✅ **Concurrent Bookings**: Operação de reservas simultâneas
 - ✅ **Schedule Queries**: Otimização de consultas de agenda
 - ✅ **Real-time Updates**: Desempenho de atualizações em tempo real
 
 ### **Testes de Chaos Engineering**
 - ✅ **Double Booking Prevention**: Cenários de conflito
-- ✅ **Provider Unavailability**: Handling de indisponibilidade súbita
+- ✅ **Provider Unavailability**: Operação em caso de indisponibilidade súbita
 - ✅ **Network Partitions**: Resiliência a falhas de rede
 - ✅ **Data Consistency**: Consistência em cenários de falha
 

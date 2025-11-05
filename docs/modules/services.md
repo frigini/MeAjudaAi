@@ -369,7 +369,153 @@ public class Booking : AggregateRoot<BookingId>
 - 🔄 Recomendações inteligentes
 - 🔄 Analytics e métricas avançadas
 
-## 📋 Dependências e Pré-requisitos
+## � Padrões Distribuídos e Comunicação Inter-Módulos
+
+### **Event-Driven Communication**
+O módulo Services participa ativamente de workflows distribuídos através de Domain Events:
+
+```csharp
+// Eventos disparados pelo módulo Services
+public record ServiceCreatedEvent(Guid ServiceId, Guid ProviderId, string CategoryId) : IDomainEvent;
+public record ServiceActivatedEvent(Guid ServiceId, Guid ProviderId) : IDomainEvent;
+public record ServicePriceUpdatedEvent(Guid ServiceId, decimal OldPrice, decimal NewPrice) : IDomainEvent;
+public record ServiceDeactivatedEvent(Guid ServiceId, Guid ProviderId, string Reason) : IDomainEvent;
+
+// Eventos consumidos de outros módulos
+public record ProviderVerificationStatusChangedEvent(Guid ProviderId, VerificationStatus Status) : IDomainEvent;
+public record ProviderSuspendedEvent(Guid ProviderId, string Reason) : IDomainEvent;
+```
+
+### **Saga Pattern para Criação de Serviços**
+Coordenação distribuída quando um novo serviço é criado:
+
+```csharp
+public class ServiceCreationSaga : ISagaOrchestrator
+{
+    public async Task HandleAsync(CreateServiceCommand command)
+    {
+        var sagaId = Guid.NewGuid();
+        
+        try
+        {
+            // 1. Validar provedor está verificado
+            var provider = await _moduleApi.Providers.GetByIdAsync(command.ProviderId);
+            if (provider.Status != ProviderStatus.Verified)
+                throw new ProviderNotVerifiedException();
+                
+            // 2. Criar serviço
+            var service = Service.Create(command.Name, command.Description, provider.Id);
+            await _serviceRepository.AddAsync(service);
+            
+            // 3. Indexar no sistema de busca
+            await _searchIndexer.IndexServiceAsync(service);
+            
+            // 4. Notificar outros módulos
+            await _eventBus.PublishAsync(new ServiceCreatedEvent(service.Id, provider.Id, service.CategoryId));
+            
+            // 5. Confirmar saga
+            await _sagaRepository.CompleteAsync(sagaId);
+        }
+        catch (Exception ex)
+        {
+            // Compensação: reverter operações realizadas
+            await CompensateServiceCreation(sagaId, ex);
+        }
+    }
+}
+```
+
+### **Eventual Consistency e Sincronização**
+Estratégias para manter consistência entre módulos:
+
+```csharp
+// Handler para mudanças no status do Provider
+public class ProviderStatusChangedHandler : IEventHandler<ProviderVerificationStatusChangedEvent>
+{
+    public async Task HandleAsync(ProviderVerificationStatusChangedEvent evt)
+    {
+        if (evt.Status == VerificationStatus.Suspended)
+        {
+            // Desativar todos os serviços do provedor
+            var services = await _serviceRepository.GetByProviderIdAsync(evt.ProviderId);
+            
+            foreach (var service in services)
+            {
+                service.Deactivate("Provider suspended");
+                await _eventBus.PublishAsync(new ServiceDeactivatedEvent(
+                    service.Id, evt.ProviderId, "Provider suspended"));
+            }
+            
+            await _serviceRepository.UpdateRangeAsync(services);
+        }
+    }
+}
+```
+
+### **Module API para Comunicação Síncrona**
+Interface para consultas diretas de outros módulos:
+
+```csharp
+public interface IServicesModuleApi
+{
+    Task<ServiceDto> GetByIdAsync(Guid serviceId);
+    Task<IEnumerable<ServiceDto>> GetByProviderIdAsync(Guid providerId);
+    Task<IEnumerable<ServiceDto>> SearchServicesAsync(ServiceSearchCriteria criteria);
+    Task<bool> IsServiceAvailableAsync(Guid serviceId);
+    Task<ServicePricingDto> GetServicePricingAsync(Guid serviceId);
+}
+
+// Implementação do Module API
+public class ServicesModuleApi : IServicesModuleApi
+{
+    private readonly IServiceRepository _serviceRepository;
+    private readonly IMapper _mapper;
+    
+    public async Task<ServiceDto> GetByIdAsync(Guid serviceId)
+    {
+        var service = await _serviceRepository.GetByIdAsync(serviceId);
+        return _mapper.Map<ServiceDto>(service);
+    }
+    
+    public async Task<bool> IsServiceAvailableAsync(Guid serviceId)
+    {
+        var service = await _serviceRepository.GetByIdAsync(serviceId);
+        return service?.IsActive == true && service.IsAvailable;
+    }
+}
+```
+
+### **Caching Distribuído para Performance**
+Estratégia de cache para reduzir latência entre módulos:
+
+```csharp
+public class CachedServicesModuleApi : IServicesModuleApi
+{
+    private readonly IServicesModuleApi _inner;
+    private readonly IDistributedCache _cache;
+    
+    public async Task<ServiceDto> GetByIdAsync(Guid serviceId)
+    {
+        var cacheKey = $"service:{serviceId}";
+        var cached = await _cache.GetStringAsync(cacheKey);
+        
+        if (cached != null)
+            return JsonSerializer.Deserialize<ServiceDto>(cached);
+            
+        var service = await _inner.GetByIdAsync(serviceId);
+        
+        await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(service),
+            new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15)
+            });
+            
+        return service;
+    }
+}
+```
+
+## �📋 Dependências e Pré-requisitos
 
 ### **Módulos Necessários**
 - ✅ **Users**: Já implementado

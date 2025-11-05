@@ -101,9 +101,18 @@ Este documento detalha as funcionalidades planejadas para versões futuras da pl
 - ⭐ **Satisfação média**: 4.5+ estrelas
 
 ### **Métricas Técnicas**
-- 🚀 **Desempenho**: <500ms response time
+- 🚀 **Desempenho**: SLOs tiered baseados na complexidade
+  - Consultas simples: <200ms (busca por ID, dados em cache)
+  - Consultas médias: <500ms (listagens com filtros básicos)  
+  - Consultas complexas: <1000ms (busca cross-module, agregações)
+  - Consultas analíticas: <3000ms (relatórios, dashboards)
 - 🔒 **Segurança**: Zero vulnerabilidades críticas
 - 📈 **Disponibilidade**: 99.9% uptime
+
+### **Baseline de Desempenho**
+- **Assumindo**: Cache distribuído configurado, índices otimizados
+- **Revisão**: Ajustes trimestrais baseados em métricas reais
+- **Monitoramento**: P50, P95, P99 para cada categoria de query
 
 ## 🔄 Processo de Roadmap
 
