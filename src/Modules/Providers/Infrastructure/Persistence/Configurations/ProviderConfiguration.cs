@@ -142,6 +142,11 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                 .IsRequired()
                 .HasColumnName("document_type");
 
+            doc.Property(d => d.IsPrimary)
+                .IsRequired()
+                .HasColumnName("is_primary")
+                .HasDefaultValue(false);
+
             doc.HasKey("ProviderId", "Id");
             doc.ToTable("document", "providers");
             doc.WithOwner().HasForeignKey("ProviderId");

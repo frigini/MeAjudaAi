@@ -185,6 +185,16 @@ public sealed class Provider : AggregateRoot<ProviderId>
         if (_documents.Any(d => d.DocumentType == document.DocumentType))
             throw new ProviderDomainException($"Document of type {document.DocumentType} already exists");
 
+        // Se o documento é marcado como primário, remove a flag de outros documentos
+        if (document.IsPrimary)
+        {
+            // Recrear todos os documentos como não-primários
+            for (int i = 0; i < _documents.Count; i++)
+            {
+                _documents[i] = _documents[i].WithPrimaryStatus(false);
+            }
+        }
+
         _documents.Add(document);
         MarkAsUpdated();
 
@@ -193,6 +203,46 @@ public sealed class Provider : AggregateRoot<ProviderId>
             1,
             document.DocumentType,
             document.Number));
+    }
+
+    /// <summary>
+    /// Define um documento como primário
+    /// </summary>
+    /// <param name="documentType">Tipo do documento a ser definido como primário</param>
+    public void SetPrimaryDocument(EDocumentType documentType)
+    {
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot set primary document on deleted provider");
+
+        var documentIndex = _documents.FindIndex(d => d.DocumentType == documentType);
+        if (documentIndex == -1)
+            throw new ProviderDomainException($"Document of type {documentType} not found");
+
+        // Remove a flag primária de todos os documentos
+        for (int i = 0; i < _documents.Count; i++)
+        {
+            _documents[i] = _documents[i].WithPrimaryStatus(i == documentIndex);
+        }
+        
+        MarkAsUpdated();
+    }
+
+    /// <summary>
+    /// Obtém o documento primário do prestador
+    /// </summary>
+    /// <returns>O documento primário ou null se não houver</returns>
+    public Document? GetPrimaryDocument()
+    {
+        return _documents.FirstOrDefault(d => d.IsPrimary);
+    }
+
+    /// <summary>
+    /// Obtém o documento primário ou o primeiro documento se não houver primário definido
+    /// </summary>
+    /// <returns>O documento primário ou o primeiro documento disponível</returns>
+    public Document? GetMainDocument()
+    {
+        return GetPrimaryDocument() ?? _documents.FirstOrDefault();
     }
 
     /// <summary>

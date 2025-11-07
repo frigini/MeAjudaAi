@@ -1,5 +1,3 @@
-using MeAjudaAi.Shared.Contracts.Modules.Providers;
-
 namespace MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
 
 /// <summary>
@@ -25,12 +23,12 @@ public sealed record ModuleProviderBasicDto
     /// <summary>
     /// Tipo do provider
     /// </summary>
-    public required EProviderType ProviderType { get; init; }
+    public required string ProviderType { get; init; }
 
     /// <summary>
     /// Status de verificação
     /// </summary>
-    public required EVerificationStatus VerificationStatus { get; init; }
+    public required string VerificationStatus { get; init; }
 
     /// <summary>
     /// Se o provider está ativo

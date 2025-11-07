@@ -20,38 +20,40 @@ public static class MigrationDiscoveryExtensions
         this IServiceProvider serviceProvider,
         CancellationToken cancellationToken = default)
     {
-        var dbContextTypes = DiscoverDbContextTypes();
+        var dbContextTypes = DiscoverDbContextTypes;
 
         foreach (var contextType in dbContextTypes)
         {
             try
             {
-                var context = serviceProvider.GetService(contextType) as DbContext;
-                if (context != null)
+                if (serviceProvider.GetService(contextType) is DbContext context)
                 {
                     // Configura warnings para permitir aplicação de migrações em testes
                     context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
 
-                    // Primeiro, garantir que o banco existe
-                    await context.Database.EnsureCreatedAsync(cancellationToken);
-
-                    // Tentar aplicar migrações mesmo com alterações pendentes
+                    // ALWAYS use migrations, never EnsureCreated
                     try
                     {
                         await context.Database.MigrateAsync(cancellationToken);
+                        Console.WriteLine($"✅ Applied migrations for {contextType.Name}");
                     }
-                    catch (Exception migrationEx) when (migrationEx.Message.Contains("PendingModelChangesWarning"))
+                    catch (Exception ex)
                     {
-                        // Se falhar devido a alterações pendentes, tentar aplicar de forma forçada
-                        // Recria o contexto com configuração especial para testes
-                        var scope = serviceProvider.CreateScope();
-                        var testContext = scope.ServiceProvider.GetService(contextType) as DbContext;
-                        if (testContext != null)
+                        Console.WriteLine($"⚠️ Failed to apply migrations for {contextType.Name}: {ex.Message}");
+
+                        // Try to delete and recreate with migrations
+                        try
                         {
-                            // Usar EnsureCreated como fallback para testes
-                            await testContext.Database.EnsureCreatedAsync(cancellationToken);
+                            await context.Database.EnsureDeletedAsync(cancellationToken);
+                            await context.Database.MigrateAsync(cancellationToken);
+                            Console.WriteLine($"✅ Recreated and migrated {contextType.Name}");
                         }
-                        scope?.Dispose();
+                        catch (Exception ex2)
+                        {
+                            Console.WriteLine($"❌ Complete failure for {contextType.Name}: {ex2.Message}");
+                            // Don't use EnsureCreated anymore - fail early to identify migration issues
+                            throw;
+                        }
                     }
                 }
             }
@@ -67,49 +69,52 @@ public static class MigrationDiscoveryExtensions
     /// Descobre todos os tipos de DbContext em assemblies carregados que seguem a convenção de nome de módulo.
     /// </summary>
     /// <returns>Um enumerable de tipos DbContext encontrados em assemblies de módulos</returns>
-    private static IEnumerable<Type> DiscoverDbContextTypes()
+    private static IEnumerable<Type> DiscoverDbContextTypes
     {
-        var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(assembly => !assembly.IsDynamic &&
-                              (assembly.FullName?.Contains("MeAjudaAi") == true ||
-                               assembly.FullName?.Contains("Users") == true ||
-                               assembly.FullName?.Contains("Infrastructure") == true));
-
-        var dbContextTypes = new List<Type>();
-
-        foreach (var assembly in loadedAssemblies)
+        get
         {
-            try
-            {
-                var contextTypes = assembly.GetTypes()
-                    .Where(type => type.IsClass &&
-                                  !type.IsAbstract &&
-                                  typeof(DbContext).IsAssignableFrom(type) &&
-                                  type.Name.EndsWith("DbContext"))
-                    .ToList();
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(assembly => !assembly.IsDynamic &&
+                                  (assembly.FullName?.Contains("MeAjudaAi") == true ||
+                                   assembly.FullName?.Contains("Users") == true ||
+                                   assembly.FullName?.Contains("Infrastructure") == true));
 
-                dbContextTypes.AddRange(contextTypes);
-            }
-            catch (ReflectionTypeLoadException ex)
-            {
-                // Trata assemblies que não podem ser totalmente carregados
-                var loadableTypes = ex.Types.Where(t => t != null);
-                var contextTypes = loadableTypes
-                    .Where(type => type!.IsClass &&
-                                  !type.IsAbstract &&
-                                  typeof(DbContext).IsAssignableFrom(type) &&
-                                  type.Name.EndsWith("DbContext"))
-                    .ToList();
+            var dbContextTypes = new List<Type>();
 
-                dbContextTypes.AddRange(contextTypes!);
-            }
-            catch (Exception)
+            foreach (var assembly in loadedAssemblies)
             {
-                // Continua com outros assemblies em caso de falha na descoberta
+                try
+                {
+                    var contextTypes = assembly.GetTypes()
+                        .Where(type => type.IsClass &&
+                                      !type.IsAbstract &&
+                                      typeof(DbContext).IsAssignableFrom(type) &&
+                                      type.Name.EndsWith("DbContext"))
+                        .ToList();
+
+                    dbContextTypes.AddRange(contextTypes);
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    // Trata assemblies que não podem ser totalmente carregados
+                    var loadableTypes = ex.Types.Where(t => t != null);
+                    var contextTypes = loadableTypes
+                        .Where(type => type!.IsClass &&
+                                      !type.IsAbstract &&
+                                      typeof(DbContext).IsAssignableFrom(type) &&
+                                      type.Name.EndsWith("DbContext"))
+                        .ToList();
+
+                    dbContextTypes.AddRange(contextTypes!);
+                }
+                catch (Exception)
+                {
+                    // Continua com outros assemblies em caso de falha na descoberta
+                }
             }
+
+            return dbContextTypes;
         }
-
-        return dbContextTypes;
     }
 
     /// <summary>
@@ -123,14 +128,13 @@ public static class MigrationDiscoveryExtensions
         this IServiceProvider serviceProvider,
         CancellationToken cancellationToken = default)
     {
-        var dbContextTypes = DiscoverDbContextTypes();
+        var dbContextTypes = DiscoverDbContextTypes;
 
         foreach (var contextType in dbContextTypes)
         {
             try
             {
-                var context = serviceProvider.GetService(contextType) as DbContext;
-                if (context != null)
+                if (serviceProvider.GetService(contextType) is DbContext context)
                 {
                     await context.Database.EnsureCreatedAsync(cancellationToken);
                     await context.Database.MigrateAsync(cancellationToken);
@@ -149,6 +153,6 @@ public static class MigrationDiscoveryExtensions
     /// <returns>Uma lista de nomes de tipos DbContext que foram descobertos</returns>
     public static IEnumerable<string> GetDiscoveredDbContextNames()
     {
-        return DiscoverDbContextTypes().Select(t => t.FullName ?? t.Name);
+        return DiscoverDbContextTypes.Select(t => t.FullName ?? t.Name);
     }
 }

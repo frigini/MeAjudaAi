@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Users.Application.DTOs;
+using MeAjudaAi.Modules.Users.Application.ModuleApi;
 using MeAjudaAi.Modules.Users.Application.Queries;
 using MeAjudaAi.Modules.Users.Application.Services;
 using MeAjudaAi.Shared.Constants;

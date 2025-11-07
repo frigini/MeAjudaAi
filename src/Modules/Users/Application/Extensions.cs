@@ -1,4 +1,6 @@
-using MeAjudaAi.Modules.Users.Application.Caching;
+using MeAjudaAi.Modules.Users.Application.ModuleApi;
+using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
+using MeAjudaAi.Modules.Users.Application.Services.Implementations;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;

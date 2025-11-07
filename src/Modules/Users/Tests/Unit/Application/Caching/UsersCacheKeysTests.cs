@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Users.Application.Caching;
+using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Caching;
 

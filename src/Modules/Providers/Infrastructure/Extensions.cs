@@ -1,13 +1,11 @@
-using MeAjudaAi.Modules.Providers.Application.Services;
+using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
-using MeAjudaAi.Modules.Providers.Infrastructure.HealthChecks;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure;
 
@@ -70,14 +68,6 @@ public static class Extensions
 
         // Registro do serviço de consultas
         services.AddScoped<IProviderQueryService, ProviderQueryService>();
-
-        // Adiciona health check específico para o módulo Providers
-        services.AddHealthChecks()
-            .AddCheck<ProvidersHealthCheck>("providers",
-                tags: ["ready", "database", "providers"]);
-
-        // Registra o health check customizado
-        services.AddScoped<ProvidersHealthCheck>();
 
         return services;
     }

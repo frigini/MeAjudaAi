@@ -88,7 +88,8 @@ public static class ProviderMapper
     {
         return new DocumentDto(
             document.Number,
-            document.DocumentType
+            document.DocumentType,
+            document.IsPrimary
         );
     }
 
@@ -138,7 +139,7 @@ public static class ProviderMapper
     /// </summary>
     public static Document ToDomain(this DocumentDto dto)
     {
-        return new Document(dto.Number, dto.DocumentType);
+        return new Document(dto.Number, dto.DocumentType, dto.IsPrimary);
     }
 
     /// <summary>
@@ -151,8 +152,6 @@ public static class ProviderMapper
             dto.Description,
             dto.IssuingOrganization,
             dto.IssueDate,
-            dto.ExpirationDate,
-            dto.DocumentNumber
-        );
+            dto.ExpirationDate);
     }
 }

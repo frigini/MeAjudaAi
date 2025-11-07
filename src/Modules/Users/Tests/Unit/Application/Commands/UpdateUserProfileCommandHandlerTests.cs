@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Users.Application.Caching;
+using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Users.Domain.Entities;

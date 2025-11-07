@@ -99,23 +99,48 @@ public abstract class ProvidersIntegrationTestBase : IntegrationTestBase
 
         try
         {
-            // Ordem importante devido aos foreign keys
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.\"Qualification\";");
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.\"Document\";");
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
+            // Use EF Core change tracking for safer cleanup
+            // Only providers table is exposed as DbSet, child entities are accessed through navigation properties
+            var providers = await dbContext.Providers
+                .Include(p => p.Documents)
+                .Include(p => p.Qualifications)
+                .ToListAsync();
+
+            if (providers.Any())
+            {
+                dbContext.Providers.RemoveRange(providers);
+                await dbContext.SaveChangesAsync();
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Se DELETE falhar, tentar TRUNCATE com cascata
+            Console.WriteLine($"EF Core cleanup failed: {ex.Message}. Trying raw SQL...");
+            
+            // Fallback to raw SQL if EF Core fails
             try
             {
-                await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE providers.\"Qualification\", providers.\"Document\", providers.providers RESTART IDENTITY CASCADE;");
+                // Use correct table names (lowercase without quotes for most cases)
+                await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.qualification;");
+                await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.document;");
+                await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
             }
-            catch
+            catch (Exception ex2)
             {
-                // Se ainda falhar, recriar o schema
-                await dbContext.Database.EnsureDeletedAsync();
-                await dbContext.Database.EnsureCreatedAsync();
+                Console.WriteLine($"Raw SQL cleanup failed: {ex2.Message}. Trying TRUNCATE...");
+                
+                // Se DELETE falhar, tentar TRUNCATE com cascata
+                try
+                {
+                    await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE providers.qualification, providers.document, providers.providers RESTART IDENTITY CASCADE;");
+                }
+                catch (Exception ex3)
+                {
+                    Console.WriteLine($"TRUNCATE failed: {ex3.Message}. Recreating database...");
+                    
+                    // Se ainda falhar, recriar o schema
+                    await dbContext.Database.EnsureDeletedAsync();
+                    await dbContext.Database.EnsureCreatedAsync();
+                }
             }
         }
     }

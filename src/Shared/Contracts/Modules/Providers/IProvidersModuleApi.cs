@@ -49,6 +49,14 @@ public interface IProvidersModuleApi : IModuleApi
     Task<Result<bool>> UserIsProviderAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Verifica se um documento já está em uso
+    /// </summary>
+    /// <param name="document">Documento a ser verificado</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>True se o documento já está em uso</returns>
+    Task<Result<bool>> DocumentExistsAsync(string document, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Obtém informações básicas de providers por IDs (operação em lote)
     /// </summary>
     /// <param name="providerIds">Lista de IDs dos providers</param>
@@ -86,7 +94,7 @@ public interface IProvidersModuleApi : IModuleApi
     /// <param name="providerType">Tipo do provider</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Lista de providers do tipo especificado</returns>
-    Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByTypeAsync(EProviderType providerType, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByTypeAsync(string providerType, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Obtém providers por status de verificação
@@ -94,5 +102,5 @@ public interface IProvidersModuleApi : IModuleApi
     /// <param name="verificationStatus">Status de verificação</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Lista de providers com o status especificado</returns>
-    Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByVerificationStatusAsync(EVerificationStatus verificationStatus, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByVerificationStatusAsync(string verificationStatus, CancellationToken cancellationToken = default);
 }

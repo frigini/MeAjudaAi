@@ -1,4 +1,5 @@
-using MeAjudaAi.Modules.Users.Application.Caching;
+using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
+using MeAjudaAi.Modules.Users.Application.Services.Implementations;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;

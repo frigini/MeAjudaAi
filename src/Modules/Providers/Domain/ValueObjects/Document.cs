@@ -14,6 +14,7 @@ public sealed class Document : ValueObject
 {
     public string Number { get; private set; }
     public EDocumentType DocumentType { get; private set; }
+    public bool IsPrimary { get; private set; }
 
     /// <summary>
     /// Construtor privado para Entity Framework
@@ -22,10 +23,11 @@ public sealed class Document : ValueObject
     {
         Number = string.Empty;
         DocumentType = EDocumentType.CPF;
+        IsPrimary = false;
     }
 
     [JsonConstructor]
-    public Document(string number, EDocumentType documentType)
+    public Document(string number, EDocumentType documentType, bool isPrimary = false)
     {
         if (string.IsNullOrWhiteSpace(number))
             throw new ArgumentException("Número do documento não pode ser vazio", nameof(number));
@@ -38,9 +40,20 @@ public sealed class Document : ValueObject
         };
 
         DocumentType = documentType;
+        IsPrimary = isPrimary;
 
         if (!IsValid())
             throw new ArgumentException($"Documento do tipo {documentType} com número {number} é inválido", nameof(number));
+    }
+
+    /// <summary>
+    /// Cria uma nova instância do documento com o status primário alterado
+    /// </summary>
+    /// <param name="isPrimary">Se o documento deve ser primário</param>
+    /// <returns>Nova instância do documento com o status primário atualizado</returns>
+    public Document WithPrimaryStatus(bool isPrimary)
+    {
+        return new Document(Number, DocumentType, isPrimary);
     }
 
     private bool IsValid()
@@ -91,7 +104,8 @@ public sealed class Document : ValueObject
     {
         yield return Number;
         yield return DocumentType;
+        yield return IsPrimary;
     }
 
-    public override string ToString() => $"{DocumentType}: {Number}";
+    public override string ToString() => $"{DocumentType}: {Number}{(IsPrimary ? " (Primary)" : "")}";
 }

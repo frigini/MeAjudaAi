@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Providers.Application.Services;
+using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
