@@ -1,5 +1,8 @@
 using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Modules.Providers.Application.DTOs;
+using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 
@@ -11,6 +14,9 @@ public class ProvidersModuleTests : TestContainerTestBase
     [Fact]
     public async Task GetProviders_ShouldReturnOkWithPaginatedResult()
     {
+        // Arrange
+        AuthenticateAsAdmin(); // Endpoint requer autorização
+
         // Act
         var response = await ApiClient.GetAsync("/api/v1/providers?pageNumber=1&pageSize=10");
 
@@ -35,6 +41,7 @@ public class ProvidersModuleTests : TestContainerTestBase
     public async Task CreateProvider_WithValidData_ShouldReturnCreatedOrConflict()
     {
         // Arrange
+        AuthenticateAsAdmin(); // Endpoint requer autorização
         var createProviderRequest = new CreateProviderRequest
         {
             UserId = Guid.NewGuid(),
@@ -80,9 +87,10 @@ public class ProvidersModuleTests : TestContainerTestBase
             var content = await response.Content.ReadAsStringAsync();
             content.Should().NotBeNullOrEmpty();
 
-            var createdProvider = System.Text.Json.JsonSerializer.Deserialize<CreateProviderResponse>(content, JsonOptions);
+            var createdProvider = System.Text.Json.JsonSerializer.Deserialize<Response<ProviderDto>>(content, JsonOptions);
             createdProvider.Should().NotBeNull();
-            createdProvider!.ProviderId.Should().NotBeEmpty();
+            createdProvider!.Data.Should().NotBeNull();
+            createdProvider.Data!.Id.Should().NotBeEmpty();
         }
     }
 
@@ -90,6 +98,7 @@ public class ProvidersModuleTests : TestContainerTestBase
     public async Task CreateProvider_WithInvalidData_ShouldReturnBadRequest()
     {
         // Arrange
+        AuthenticateAsAdmin(); // Endpoint requer autorização
         var invalidRequest = new CreateProviderRequest
         {
             UserId = Guid.Empty, // Inválido: GUID vazio
@@ -145,27 +154,28 @@ public class ProvidersModuleTests : TestContainerTestBase
     public async Task UpdateProvider_WithNonExistentId_ShouldReturnNotFound()
     {
         // Arrange
+        AuthenticateAsAdmin(); // Endpoint requer autorização
         var nonExistentId = Guid.NewGuid();
-        var updateRequest = new UpdateProviderRequest
+        var updateRequest = new UpdateProviderProfileRequest
         {
             Name = "Updated Provider Name",
-            BusinessProfile = new BusinessProfileRequest
-            {
-                LegalName = "Updated Legal Name",
-                ContactInfo = new ContactInfoRequest
-                {
-                    Email = $"updated_{Guid.NewGuid():N}@example.com"
-                },
-                PrimaryAddress = new AddressRequest
-                {
-                    Street = "Updated Street",
-                    Number = "456",
-                    City = "Updated City",
-                    State = "UP",
-                    ZipCode = "54321-987",
-                    Country = "Brasil"
-                }
-            }
+            BusinessProfile = new BusinessProfileDto(
+                LegalName: "Updated Legal Name",
+                FantasyName: null,
+                Description: null,
+                ContactInfo: new ContactInfoDto(
+                    Email: $"updated_{Guid.NewGuid():N}@example.com",
+                    PhoneNumber: null,
+                    Website: null),
+                PrimaryAddress: new AddressDto(
+                    Street: "Updated Street",
+                    Number: "456",
+                    Complement: null,
+                    Neighborhood: "Updated Neighborhood",
+                    City: "Updated City",
+                    State: "UP",
+                    ZipCode: "54321-987",
+                    Country: "Brasil"))
         };
 
         // Act
@@ -179,6 +189,7 @@ public class ProvidersModuleTests : TestContainerTestBase
     public async Task DeleteProvider_WithNonExistentId_ShouldReturnNotFound()
     {
         // Arrange
+        AuthenticateAsAdmin(); // Endpoint requer autorização
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -191,7 +202,10 @@ public class ProvidersModuleTests : TestContainerTestBase
     [Fact]
     public async Task ProviderEndpoints_ShouldHandleInvalidGuids()
     {
-        // Act & Assert - Quando o constraint de GUID não bate, a rota retorna 404 
+        // Arrange
+        AuthenticateAsAdmin(); // Endpoint requer autorização
+
+        // Act & Assert - Quando o constraint de GUID não bate, a rota retorna 404
         var invalidGuidResponse = await ApiClient.GetAsync("/api/v1/providers/invalid-guid");
         invalidGuidResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -199,6 +213,9 @@ public class ProvidersModuleTests : TestContainerTestBase
     [Fact]
     public async Task GetProvidersByCity_ShouldReturnOkOrNotFound()
     {
+        // Arrange
+        AuthenticateAsAdmin(); // Endpoint requer autorização
+
         // Act
         var response = await ApiClient.GetAsync("/api/v1/providers/by-city/TestCity");
 
@@ -212,6 +229,9 @@ public class ProvidersModuleTests : TestContainerTestBase
     [Fact]
     public async Task GetProvidersByState_ShouldReturnOkOrNotFound()
     {
+        // Arrange
+        AuthenticateAsAdmin(); // Endpoint requer autorização
+
         // Act
         var response = await ApiClient.GetAsync("/api/v1/providers/by-state/SP");
 
@@ -275,14 +295,4 @@ public record AddressRequest
     public string Country { get; init; } = string.Empty;
 }
 
-public record UpdateProviderRequest
-{
-    public string Name { get; init; } = string.Empty;
-    public BusinessProfileRequest BusinessProfile { get; init; } = new();
-}
 
-public record CreateProviderResponse
-{
-    public Guid ProviderId { get; init; }
-    public string Message { get; init; } = string.Empty;
-}

@@ -1,4 +1,5 @@
 using Bogus;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
@@ -131,14 +132,20 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     }
 
                     // Configura apenas autenticação de teste como esquema padrão
-                    services.AddAuthentication("Test")
-                        .AddScheme<AuthenticationSchemeOptions, ConfigurableTestAuthenticationHandler>(
-                            "Test", options => { });
-
-                    // Configurar aplicação automática de migrações apenas para testes
+                services.AddAuthentication(ConfigurableTestAuthenticationHandler.SchemeName)
+                    .AddScheme<AuthenticationSchemeOptions, ConfigurableTestAuthenticationHandler>(
+                        ConfigurableTestAuthenticationHandler.SchemeName, options => { });                    // Configurar aplicação automática de migrações apenas para testes
                     services.AddScoped<Func<UsersDbContext>>(provider => () =>
                     {
                         var context = provider.GetRequiredService<UsersDbContext>();
+                        // Aplicar migrações apenas em testes
+                        context.Database.Migrate();
+                        return context;
+                    });
+
+                    services.AddScoped<Func<ProvidersDbContext>>(provider => () =>
+                    {
+                        var context = provider.GetRequiredService<ProvidersDbContext>();
                         // Aplicar migrações apenas em testes
                         context.Database.Migrate();
                         return context;
@@ -202,11 +209,16 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     private async Task ApplyMigrationsAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+        
+        // Aplicar migrações no UsersDbContext
+        var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+        await usersContext.Database.EnsureDeletedAsync();
+        await usersContext.Database.EnsureCreatedAsync();
 
-        // Para E2E tests, sempre recriar o banco do zero
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.EnsureCreatedAsync();
+        // Aplicar migrações no ProvidersDbContext
+        var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        await providersContext.Database.EnsureDeletedAsync();
+        await providersContext.Database.EnsureCreatedAsync();
     }
 
     // Helper methods usando serialização compartilhada

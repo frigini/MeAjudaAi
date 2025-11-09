@@ -29,7 +29,7 @@ internal sealed class UpdateProviderProfileCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result<ProviderDto>.Failure("Provider not found");
+                return Result<ProviderDto>.Failure(Error.NotFound("Provider not found"));
             }
 
             var businessProfile = command.BusinessProfile.ToDomain();

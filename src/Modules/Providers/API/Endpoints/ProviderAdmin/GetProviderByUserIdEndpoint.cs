@@ -84,6 +84,9 @@ public class GetProviderByUserIdEndpoint : BaseEndpoint, IEndpoint
         var result = await queryDispatcher.QueryAsync<GetProviderByUserIdQuery, Result<ProviderDto?>>(
             query, cancellationToken);
 
+        if (result.IsSuccess && result.Value == null)
+            return NotFound("Provider not found for the specified user");
+
         return Handle(result);
     }
 }

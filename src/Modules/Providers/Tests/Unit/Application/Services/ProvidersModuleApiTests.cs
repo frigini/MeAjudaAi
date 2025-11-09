@@ -120,6 +120,8 @@ public class ProvidersModuleApiTests
         result.Should().BeFalse();
     }
 
+
+
     [Fact]
     public async Task GetProviderByIdAsync_WithExistingProvider_ShouldReturnProvider()
     {
@@ -312,6 +314,25 @@ public class ProvidersModuleApiTests
     }
 
     [Fact]
+    public async Task UserIsProviderAsync_WithUserNotBeingProvider_ShouldReturnFalse()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+
+        _getProviderByUserIdHandlerMock.Setup(x => x.HandleAsync(
+                It.Is<GetProviderByUserIdQuery>(q => q.UserId == userId),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ProviderDto?>.Success(null));
+
+        // Act
+        var result = await _sut.UserIsProviderAsync(userId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task DocumentExistsAsync_WithExistingDocument_ShouldReturnTrue()
     {
         // Arrange
@@ -356,6 +377,20 @@ public class ProvidersModuleApiTests
     }
 
     [Fact]
+    public async Task GetProvidersByTypeAsync_WithInvalidTypeString_ShouldReturnFailure()
+    {
+        // Arrange
+        var invalidTypeString = "InvalidType";
+
+        // Act
+        var result = await _sut.GetProvidersByTypeAsync(invalidTypeString);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.StatusCode.Should().Be(400);
+    }
+
+    [Fact]
     public async Task GetProvidersByVerificationStatusAsync_WithValidStatusString_ShouldReturnProviders()
     {
         // Arrange
@@ -372,6 +407,100 @@ public class ProvidersModuleApiTests
 
         // Act
         var result = await _sut.GetProvidersByVerificationStatusAsync(statusString);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task GetProvidersByVerificationStatusAsync_WithInvalidStatusString_ShouldReturnFailure()
+    {
+        // Arrange
+        var invalidStatusString = "InvalidStatus";
+
+        // Act
+        var result = await _sut.GetProvidersByVerificationStatusAsync(invalidStatusString);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.StatusCode.Should().Be(400);
+    }
+
+    [Fact]
+    public async Task GetProvidersBasicInfoAsync_WithValidProviderIds_ShouldReturnBasicInfo()
+    {
+        // Arrange
+        var providerIds = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        var providers = providerIds.Select(CreateTestProviderDto).ToList();
+
+        _getProvidersByIdsHandlerMock.Setup(x => x.HandleAsync(
+                It.Is<GetProvidersByIdsQuery>(q => q.ProviderIds.SequenceEqual(providerIds)),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<IReadOnlyList<ProviderDto>>.Success(providers));
+
+        // Act
+        var result = await _sut.GetProvidersBasicInfoAsync(providerIds);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetProvidersBatchAsync_WithValidProviderIds_ShouldReturnProviders()
+    {
+        // Arrange
+        var providerIds = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        var providers = providerIds.Select(CreateTestProviderDto).ToList();
+
+        _getProvidersByIdsHandlerMock.Setup(x => x.HandleAsync(
+                It.Is<GetProvidersByIdsQuery>(q => q.ProviderIds.SequenceEqual(providerIds)),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<IReadOnlyList<ProviderDto>>.Success(providers));
+
+        // Act
+        var result = await _sut.GetProvidersBatchAsync(providerIds);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetProvidersByCityAsync_WithValidCity_ShouldReturnProviders()
+    {
+        // Arrange
+        var city = "São Paulo";
+        var providers = new List<ProviderDto> { CreateTestProviderDto(Guid.NewGuid()) };
+
+        _getProvidersByCityHandlerMock.Setup(x => x.HandleAsync(
+                It.Is<GetProvidersByCityQuery>(q => q.City == city),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<IReadOnlyList<ProviderDto>>.Success(providers));
+
+        // Act
+        var result = await _sut.GetProvidersByCityAsync(city);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task GetProvidersByStateAsync_WithValidState_ShouldReturnProviders()
+    {
+        // Arrange
+        var state = "SP";
+        var providers = new List<ProviderDto> { CreateTestProviderDto(Guid.NewGuid()) };
+
+        _getProvidersByStateHandlerMock.Setup(x => x.HandleAsync(
+                It.Is<GetProvidersByStateQuery>(q => q.State == state),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<IReadOnlyList<ProviderDto>>.Success(providers));
+
+        // Act
+        var result = await _sut.GetProvidersByStateAsync(state);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
