@@ -16,8 +16,9 @@ public static class RequestMapperExtensions
     /// <param name="request">Requisição de criação de prestador</param>
     /// <returns>CreateProviderCommand com propriedades mapeadas</returns>
     /// <remarks>
-    /// ArgumentNullException aqui captura erros de programação - a validação de entrada do usuário
-    /// deve ser feita via FluentValidation antes de chegar neste ponto.
+    /// ArgumentException aqui captura erros de programação para propriedades obrigatórias.
+    /// FormatException pode ser lançada por Guid.Parse se UserId contém uma string GUID inválida.
+    /// A validação de entrada do usuário deve ser feita via FluentValidation antes de chegar neste ponto.
     /// </remarks>
     public static CreateProviderCommand ToCommand(this CreateProviderRequest request)
     {
