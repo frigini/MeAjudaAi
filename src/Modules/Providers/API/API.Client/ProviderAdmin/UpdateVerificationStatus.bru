@@ -1,0 +1,72 @@
+meta {
+  name: Update Verification Status
+  type: http
+  seq: 10
+}
+
+put {
+  url: {{baseUrl}}/api/v1/providers/{{providerId}}/verification-status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "status": 2
+  }
+}
+
+docs {
+  # Update Verification Status
+  
+  Atualiza o status de verificação de um prestador (operação administrativa).
+  
+  ## Autorização
+  - **Permissão**: ProvidersAdminUpdate (apenas administradores)
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `id` (guid): ID único do prestador
+  
+  ## Body Parameters
+  - `status` (int): Novo status de verificação
+  
+  ## Status Disponíveis
+  - `0`: Pendente
+  - `1`: Em Análise
+  - `2`: Verificado
+  - `3`: Rejeitado
+  - `4`: Suspenso
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "name": "Dr. João Silva",
+      "verificationStatus": 2,  
+      "verifiedAt": "2025-01-01T12:00:00Z",
+      "updatedAt": "2025-01-01T12:00:00Z"
+    },
+    "message": "Verification status updated successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Status atualizado com sucesso
+  - **400**: Status inválido
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão (requer privilégios administrativos)
+  - **404**: Prestador não encontrado
+}

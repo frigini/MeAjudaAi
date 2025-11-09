@@ -335,6 +335,7 @@ Para adicionar novos scripts ou modificar existentes:
 
 Gerencia migrações usando comandos `dotnet ef` diretamente.
 
+**Windows (PowerShell):**
 ```powershell
 # Aplicar todas as migrações para todos os módulos
 .\scripts\ef-migrate.ps1
@@ -349,10 +350,30 @@ Gerencia migrações usando comandos `dotnet ef` diretamente.
 .\scripts\ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewUserField"
 ```
 
+**Unix/Linux/macOS (PowerShell Core):**
+```bash
+# Aplicar todas as migrações para todos os módulos
+./scripts/ef-migrate.ps1
+
+# Aplicar migrações para um módulo específico
+./scripts/ef-migrate.ps1 -Module Providers
+
+# Ver status das migrações
+./scripts/ef-migrate.ps1 -Command status
+
+# Adicionar nova migração
+./scripts/ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewUserField"
+```
+
+**📋 Requisitos:**
+- PowerShell 7+ (para Unix/Linux/macOS: instale via `snap install powershell --classic` ou similar)
+- Variáveis de ambiente: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+
 ### migrate-all.ps1 - **Avançado**
 
 Ferramenta customizada que descobre automaticamente todos os DbContexts.
 
+**Windows (PowerShell):**
 ```powershell
 # Aplicar migrações
 .\scripts\migrate-all.ps1
@@ -362,6 +383,18 @@ Ferramenta customizada que descobre automaticamente todos os DbContexts.
 
 # Resetar bancos (CUIDADO!)
 .\scripts\migrate-all.ps1 -Command reset
+```
+
+**Unix/Linux/macOS (PowerShell Core):**
+```bash
+# Aplicar migrações
+./scripts/migrate-all.ps1
+
+# Ver status detalhado
+./scripts/migrate-all.ps1 -Command status
+
+# Resetar bancos (CUIDADO!)
+./scripts/migrate-all.ps1 -Command reset
 ```
 
 **Módulos Suportados:**

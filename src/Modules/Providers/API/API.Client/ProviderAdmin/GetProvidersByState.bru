@@ -1,0 +1,62 @@
+meta {
+  name: Get Providers by State
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/v1/providers/by-state/{{testState}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Get Providers by State
+  
+  Lista prestadores filtrados por estado.
+  
+  ## Autorização
+  - **Permissão**: ProvidersRead
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `state` (string): Sigla do estado (ex: SP, RJ)
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "uuid",
+        "userId": "uuid",
+        "name": "João Silva",
+        "type": 1,
+        "verificationStatus": 2,
+        "businessProfile": {
+          "city": "São Paulo",
+          "state": "SP",
+          "address": "Rua das Flores, 123"
+        },
+        "isActive": true
+      }
+    ],
+    "message": "Providers retrieved successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso (pode retornar lista vazia)
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+}

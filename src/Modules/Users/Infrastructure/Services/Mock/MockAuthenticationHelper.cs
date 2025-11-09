@@ -13,8 +13,9 @@ internal static class MockAuthenticationHelper
 {
     // Fixed deterministic values for consistent testing
     private static readonly Guid FixedUserId = Guid.Parse("550e8400-e29b-41d4-a716-446655440000");
-    private static readonly DateTime FixedExpirationTime = new DateTime(2024, 12, 31, 23, 59, 59, DateTimeKind.Utc);
-    
+    private static readonly DateTime FixedExpirationTime = new DateTime(9999, 12, 31, 23, 59, 59, DateTimeKind.Utc);
+    private static int _keycloakIdCounter = 0;
+
     public static AuthenticationResult CreateMockAuthenticationResult(string[]? roles = null)
     {
         return new AuthenticationResult(
@@ -25,7 +26,7 @@ internal static class MockAuthenticationHelper
             Roles: roles ?? new[] { "user" }
         );
     }
-    
+
     public static TokenValidationResult CreateMockTokenValidationResult(string[]? roles = null)
     {
         return new TokenValidationResult(
@@ -39,9 +40,16 @@ internal static class MockAuthenticationHelper
             }
         );
     }
-    
-    public static string CreateMockKeycloakId()
+
+    public static string CreateMockKeycloakId(string? userSpecificValue = null)
     {
-        return $"keycloak-{FixedUserId}";
+        if (!string.IsNullOrEmpty(userSpecificValue))
+        {
+            return $"keycloak-{userSpecificValue}";
+        }
+        
+        // Generate unique ID using counter for thread safety
+        var uniqueId = Interlocked.Increment(ref _keycloakIdCounter);
+        return $"keycloak-{FixedUserId}-{uniqueId}";
     }
 }

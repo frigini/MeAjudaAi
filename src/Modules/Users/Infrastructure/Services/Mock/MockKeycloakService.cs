@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Shared.Functional;
@@ -12,19 +13,19 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Services.Mock;
 /// </summary>
 internal sealed class MockKeycloakService : IKeycloakService
 {
-    // In-memory storage for roles per keycloak user (for testing purposes)
-    private static readonly Dictionary<string, string[]> _userRoles = new();
+    // Thread-safe in-memory storage for roles per keycloak user (for testing purposes)
+    private static readonly ConcurrentDictionary<string, string[]> _userRoles = new();
 
     public Task<Result<string>> CreateUserAsync(string username, string email, string firstName, string lastName, string password, IEnumerable<string> roles, CancellationToken cancellationToken = default)
     {
         var keycloakId = MockAuthenticationHelper.CreateMockKeycloakId();
-        
+
         // Store roles for this mock user for potential future validation
         if (roles != null)
         {
-            _userRoles[keycloakId] = roles.ToArray();
+            _userRoles.TryAdd(keycloakId, roles.ToArray());
         }
-        
+
         return Task.FromResult(Result<string>.Success(keycloakId));
     }
 
@@ -42,8 +43,8 @@ internal sealed class MockKeycloakService : IKeycloakService
 
     public Task<Result> DeactivateUserAsync(string keycloakId, CancellationToken cancellationToken = default)
     {
-        // Remove from our mock storage when deactivated
-        _userRoles.Remove(keycloakId);
+        // Remove from our mock storage when deactivated using thread-safe method
+        _userRoles.TryRemove(keycloakId, out _);
         return Task.FromResult(Result.Success());
     }
 }

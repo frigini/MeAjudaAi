@@ -149,4 +149,20 @@ public static class RequestMapperExtensions
     {
         return new RemoveDocumentCommand(providerId, documentType);
     }
+
+    /// <summary>
+    /// Mapeia GetProvidersRequest para GetProvidersQuery.
+    /// </summary>
+    /// <param name="request">Requisição de listagem de prestadores</param>
+    /// <returns>GetProvidersQuery com os parâmetros especificados</returns>
+    public static GetProvidersQuery ToProvidersQuery(this GetProvidersRequest request)
+    {
+        return new GetProvidersQuery(
+            Page: request.PageNumber,
+            PageSize: request.PageSize,
+            Name: request.Name,
+            Type: request.Type,
+            VerificationStatus: request.VerificationStatus
+        );
+    }
 }

@@ -1,0 +1,66 @@
+meta {
+  name: Get Provider by User ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/providers/by-user/{{userId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Get Provider by User ID
+  
+  Obtém o prestador associado a um usuário específico.
+  
+  ## Autorização
+  - **Permissão**: ProvidersRead ou SelfOrAdmin
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `userId` (guid): ID único do usuário
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "userId": "uuid",
+      "name": "João Silva",
+      "type": 1,
+      "verificationStatus": 2,
+      "businessProfile": {
+        "description": "Médico especialista",
+        "address": "Rua das Flores, 123",
+        "city": "São Paulo",
+        "state": "SP",
+        "phone": "(11) 99999-9999"
+      },
+      "qualifications": [],
+      "documents": [],
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00Z"
+    },
+    "message": "Provider retrieved successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+  - **404**: Prestador não encontrado para este usuário
+}

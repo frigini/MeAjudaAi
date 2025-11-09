@@ -6,13 +6,13 @@ using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Endpoints.OpenApi;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Models;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.OpenApi.Models;
 
 namespace MeAjudaAi.Modules.Users.API.Endpoints.UserAdmin;
 
@@ -69,50 +69,9 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
             .Produces<RateLimitErrorResponse>(StatusCodes.Status429TooManyRequests, "application/json")
             .Produces<InternalServerErrorResponse>(StatusCodes.Status500InternalServerError, "application/json")
             .RequirePermission(Permission.UsersList)
-            .WithOpenApi(operation =>
-            {
-                operation.Parameters.Add(new OpenApiParameter
-                {
-                    Name = "searchTerm",
-                    In = ParameterLocation.Query,
-                    Description = "Termo de busca para filtrar por email, username, nome ou sobrenome",
-                    Required = false,
-                    Schema = new OpenApiSchema { Type = "string", Example = new Microsoft.OpenApi.Any.OpenApiString("joão") }
-                });
-
-                operation.Parameters.Add(new OpenApiParameter
-                {
-                    Name = "pageNumber",
-                    In = ParameterLocation.Query,
-                    Description = "Número da página (base 1)",
-                    Required = false,
-                    Schema = new OpenApiSchema
-                    {
-                        Type = "integer",
-                        Minimum = 1,
-                        Default = new Microsoft.OpenApi.Any.OpenApiInteger(1),
-                        Example = new Microsoft.OpenApi.Any.OpenApiInteger(1)
-                    }
-                });
-
-                operation.Parameters.Add(new OpenApiParameter
-                {
-                    Name = "pageSize",
-                    In = ParameterLocation.Query,
-                    Description = "Quantidade de itens por página",
-                    Required = false,
-                    Schema = new OpenApiSchema
-                    {
-                        Type = "integer",
-                        Minimum = 1,
-                        Maximum = 100,
-                        Default = new Microsoft.OpenApi.Any.OpenApiInteger(10),
-                        Example = new Microsoft.OpenApi.Any.OpenApiInteger(10)
-                    }
-                });
-
-                return operation;
-            });
+            .WithOpenApi(operation => operation
+                .AddSearchTermParameter("Termo de busca para filtrar por email, username, nome ou sobrenome", "joão")
+                .AddPaginationParameters(10, 100));
 
     /// <summary>
     /// Processa requisição de consulta de usuários de forma assíncrona.

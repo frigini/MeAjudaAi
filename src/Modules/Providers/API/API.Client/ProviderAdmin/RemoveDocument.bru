@@ -1,0 +1,55 @@
+meta {
+  name: Remove Document
+  type: http
+  seq: 13
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/providers/{{providerId}}/documents/{{documentId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Remove Document
+  
+  Remove um documento de verificação do prestador.
+  
+  ## Autorização
+  - **Permissão**: ProvidersUpdate ou SelfOrAdmin
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `id` (guid): ID único do prestador
+  - `documentId` (guid): ID único do documento
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": null,
+    "message": "Document removed successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Documento removido com sucesso
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+  - **404**: Prestador ou documento não encontrado
+  - **409**: Documento já verificado (não pode ser removido)
+  
+  ## Observações
+  - Documentos já verificados não podem ser removidos
+  - Apenas o próprio prestador ou administradores podem remover documentos
+}

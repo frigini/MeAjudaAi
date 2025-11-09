@@ -1,0 +1,82 @@
+meta {
+  name: Get Provider by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/providers/{{providerId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Get Provider by ID
+  
+  Obtém um prestador específico pelo seu ID.
+  
+  ## Autorização
+  - **Permissão**: ProvidersRead ou SelfOrAdmin
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `id` (guid): ID único do prestador
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "userId": "uuid",
+      "name": "João Silva",
+      "type": 1,
+      "verificationStatus": 2,
+      "businessProfile": {
+        "description": "Médico especialista em cardiologia",
+        "address": "Rua das Flores, 123",
+        "city": "São Paulo",
+        "state": "SP",
+        "zipCode": "01234-567",
+        "phone": "(11) 99999-9999",
+        "email": "joao@exemplo.com"
+      },
+      "qualifications": [
+        {
+          "title": "Especialização em Cardiologia",
+          "institution": "Universidade de São Paulo",
+          "year": 2020
+        }
+      ],
+      "documents": [
+        {
+          "id": "uuid",
+          "type": 1,
+          "number": "123456789",
+          "verifiedAt": "2025-01-01T00:00:00Z"
+        }
+      ],
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00Z",
+      "updatedAt": "2025-01-01T00:00:00Z"
+    },
+    "message": "Provider retrieved successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+  - **404**: Prestador não encontrado
+}
