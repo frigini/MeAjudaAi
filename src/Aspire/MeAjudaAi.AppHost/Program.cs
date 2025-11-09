@@ -1,3 +1,4 @@
+using Aspire.Hosting;
 using MeAjudaAi.AppHost.Extensions;
 using MeAjudaAi.AppHost.Helpers;
 
@@ -179,7 +180,10 @@ internal static class Program
 
         var keycloak = builder.AddMeAjudaAiKeycloakProduction();
 
-        _ = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
+        // TODO: Verificar se AddAzureContainerAppEnvironment está disponível na versão atual do Aspire
+        // builder.AddAzureContainerAppEnvironment("cae");
+
+        var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
             .WithReference(postgresql.MainDatabase, "DefaultConnection")
             .WithReference(redis)
             .WaitFor(postgresql.MainDatabase)

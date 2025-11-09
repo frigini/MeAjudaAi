@@ -15,7 +15,7 @@ src/Modules/{ModuleName}/
 ├── MeAjudaAi.Modules.{ModuleName}.Domain/
 ├── MeAjudaAi.Modules.{ModuleName}.Infrastructure/
 └── MeAjudaAi.Modules.{ModuleName}.Tests/      # ← Testes unitários
-```bash
+```
 ### 2. Atualizar o Workflow de PR
 
 No arquivo `.github/workflows/pr-validation.yml`, adicione o novo módulo na seção `MODULES`:
@@ -23,17 +23,17 @@ No arquivo `.github/workflows/pr-validation.yml`, adicione o novo módulo na se�
 ```bash
 MODULES=(
   "Users:src/Modules/Users/MeAjudaAi.Modules.Users.Tests/"
-  "Orders:src/Modules/Orders/MeAjudaAi.Modules.Orders.Tests/"     # ← Adicione aqui
-  "Payments:src/Modules/Payments/MeAjudaAi.Modules.Payments.Tests/" # ← E aqui
+  "Providers:src/Modules/Providers/MeAjudaAi.Modules.Providers.Tests/"
+  "Services:src/Modules/Services/MeAjudaAi.Modules.Services.Tests/"  # ← Nova linha
 )
-```text
+```
 ### 3. Atualizar o Workflow Aspire (se necessário)
 
 No arquivo `.github/workflows/aspire-ci-cd.yml`, se o módulo tiver testes específicos que precisam ser executados no pipeline de deploy, adicione-os na seção de testes:
 
 ```bash
 dotnet test src/Modules/{ModuleName}/MeAjudaAi.Modules.{ModuleName}.Tests/ --no-build --configuration Release
-```text
+```
 ### 4. Cobertura de Código
 
 O sistema automaticamente:
@@ -59,28 +59,28 @@ Após adicionar um novo módulo:
 
 ## Exemplo Completo
 
-Para adicionar o módulo "Orders":
+Para adicionar o módulo "Providers":
 
 1. **Estrutura criada:**
    ```
-   src/Modules/Orders/
-   ├── MeAjudaAi.Modules.Orders.API/
-   ├── MeAjudaAi.Modules.Orders.Application/
-   ├── MeAjudaAi.Modules.Orders.Domain/
-   ├── MeAjudaAi.Modules.Orders.Infrastructure/
-   └── MeAjudaAi.Modules.Orders.Tests/
+   src/Modules/Providers/
+   ├── MeAjudaAi.Modules.Providers.API/
+   ├── MeAjudaAi.Modules.Providers.Application/
+   ├── MeAjudaAi.Modules.Providers.Domain/
+   ├── MeAjudaAi.Modules.Providers.Infrastructure/
+   └── MeAjudaAi.Modules.Providers.Tests/
    ```
 
 2. **Atualização no workflow:**
    ```bash
    MODULES=(
      "Users:src/Modules/Users/MeAjudaAi.Modules.Users.Tests/"
-     "Orders:src/Modules/Orders/MeAjudaAi.Modules.Orders.Tests/"  # ← Nova linha
+     "Providers:src/Modules/Providers/MeAjudaAi.Modules.Providers.Tests/"  # ← Nova linha
    )
    ```
 
 3. **Resultado esperado:**
-   - Testes unitários do Orders executados ✅
-   - Cobertura coletada apenas para classes Orders ✅
+   - Testes unitários do Providers executados ✅
+   - Cobertura coletada apenas para classes Providers ✅
    - Relatório separado gerado ✅
    - Sem DLLs duplicadas ✅

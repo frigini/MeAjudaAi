@@ -22,6 +22,21 @@ public static class TestAuthenticationExtensions
     }
 
     /// <summary>
+    /// Adiciona autenticação baseada em instância para testes - elimina problemas de estado estático
+    /// Cada factory de teste obtém sua própria configuração de autenticação isolada
+    /// </summary>
+    public static IServiceCollection AddInstanceTestAuthentication(this IServiceCollection services)
+    {
+        // Register the configuration as a singleton per test factory instance
+        services.AddSingleton<ITestAuthenticationConfiguration, TestAuthenticationConfiguration>();
+
+        return services.AddAuthentication(InstanceTestAuthenticationHandler.SchemeName)
+            .AddScheme<AuthenticationSchemeOptions, InstanceTestAuthenticationHandler>(
+                InstanceTestAuthenticationHandler.SchemeName, _ => { })
+            .Services;
+    }
+
+    /// <summary>
     /// Adiciona autenticação para testes Aspire
     /// Autentica baseado na presença do Authorization header
     /// </summary>

@@ -1,0 +1,79 @@
+meta {
+  name: Get Providers (Paginated)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/providers?pageNumber=1&pageSize=10&name={{testName}}&type={{testType}}&verificationStatus={{testVerificationStatus}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Providers (Paginated)
+  
+  Lista todos os prestadores de serviços do sistema com paginação e filtros.
+  
+  ## Autorização
+  - **Permissão**: ProvidersList
+  - **Requer token**: Sim
+  
+  ## Parâmetros Query
+  - `pageNumber` (int): Número da página (padrão: 1)
+  - `pageSize` (int): Items por página (padrão: 10, máximo: 100)
+  - `name` (string): Filtro por nome do prestador (opcional)
+  - `type` (int): Filtro por tipo de serviço (opcional)
+  - `verificationStatus` (int): Status de verificação (opcional)
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "items": [
+        {
+          "id": "uuid",
+          "userId": "uuid",
+          "name": "João Silva",
+          "type": 1,
+          "verificationStatus": 2,
+          "businessProfile": {
+            "description": "Médico especialista",
+            "address": "Rua das Flores, 123",
+            "city": "São Paulo",
+            "state": "SP",
+            "phone": "(11) 99999-9999"
+          },
+          "qualifications": [],
+          "documents": [],
+          "isActive": true,
+          "createdAt": "2025-01-01T00:00:00Z"
+        }
+      ],
+      "totalCount": 50,
+      "pageNumber": 1,
+      "pageSize": 10,
+      "totalPages": 5,
+      "hasPreviousPage": false,
+      "hasNextPage": true
+    },
+    "message": "Providers retrieved successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **400**: Parâmetros inválidos
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+}

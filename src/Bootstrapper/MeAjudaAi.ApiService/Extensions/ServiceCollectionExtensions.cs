@@ -1,6 +1,10 @@
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Authorization.Middleware;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
@@ -41,13 +45,19 @@ public static class ServiceCollectionExtensions
         services.AddMemoryCache();
 
         // Adiciona autenticação segura baseada no ambiente
-        // Para testes de integração ou Testing environment, não configuramos nada aqui
-        // pois será configurado pelo WebApplicationFactory nos testes
+        // Configuração de autenticação baseada no ambiente
         var it = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
         if (!string.Equals(it, "true", StringComparison.OrdinalIgnoreCase) && !environment.IsEnvironment("Testing"))
         {
             // Usa a extensão segura do Keycloak com validação completa de tokens
             services.AddEnvironmentAuthentication(configuration, environment);
+        }
+        else
+        {
+            // Para testing environment, adiciona authentication handler customizado
+            services.AddAuthentication("Test")
+                .AddScheme<TestAuthenticationSchemeOptions, TestAuthenticationHandler>("Test", options => { });
+            services.AddSingleton<IClaimsTransformation, NoOpClaimsTransformation>();
         }
 
         // Adiciona serviços de autorização
@@ -93,5 +103,16 @@ public static class ServiceCollectionExtensions
         app.UseAuthorization();
 
         return app;
+    }
+}
+
+/// <summary>
+/// No-op implementation of IClaimsTransformation for cases where minimal transformation is needed
+/// </summary>
+public class NoOpClaimsTransformation : IClaimsTransformation
+{
+    public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
+    {
+        return Task.FromResult(principal);
     }
 }

@@ -1,0 +1,62 @@
+meta {
+  name: Get Providers by City
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v1/providers/by-city/{{testCity}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Get Providers by City
+  
+  Lista prestadores filtrados por cidade.
+  
+  ## Autorização
+  - **Permissão**: ProvidersRead
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `city` (string): Nome da cidade
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "uuid",
+        "userId": "uuid",
+        "name": "João Silva",
+        "type": 1,
+        "verificationStatus": 2,
+        "businessProfile": {
+          "city": "São Paulo",
+          "state": "SP",
+          "address": "Rua das Flores, 123"
+        },
+        "isActive": true
+      }
+    ],
+    "message": "Providers retrieved successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso (pode retornar lista vazia)
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+}

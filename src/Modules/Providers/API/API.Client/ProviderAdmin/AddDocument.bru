@@ -1,0 +1,75 @@
+meta {
+  name: Add Document
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/api/v1/providers/{{providerId}}/documents
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "documentType": 1,
+    "number": "CRM123456SP"
+  }
+}
+
+docs {
+  # Add Document
+  
+  Adiciona um documento de verificação ao prestador.
+  
+  ## Autorização
+  - **Permissão**: ProvidersUpdate ou SelfOrAdmin
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `providerId` (guid): ID único do prestador
+  
+  ## Body Parameters
+  - `documentType` (int): Tipo do documento
+  - `number` (string): Número do documento
+  
+  ## Tipos de Documento
+  - `1`: CRM (Conselho Regional de Medicina)
+  - `2`: CRO (Conselho Regional de Odontologia)
+  - `3`: CRP (Conselho Regional de Psicologia)
+  - `4`: CREFITO (Conselho Regional de Fisioterapia)
+  - `5`: CRN (Conselho Regional de Nutrição)
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "providerId": "uuid",
+      "type": 1,
+      "number": "CRM123456SP",
+      "verifiedAt": null,
+      "createdAt": "2025-01-01T12:00:00Z"
+    },
+    "message": "Document added successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **201**: Documento adicionado com sucesso
+  - **400**: Dados inválidos ou documento já existe
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+  - **404**: Prestador não encontrado
+}

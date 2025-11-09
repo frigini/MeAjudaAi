@@ -28,7 +28,17 @@ Se você é novo no projeto, comece por aqui:
 | **[🛡️ Implementação de Autorização](./authorization_implementation.md)** | Sistema type-safe de permissões | Desenvolvedores |
 | **[🔑 Permissões Type-Safe](./type_safe_permissions.md)** | Detalhes do sistema baseado em EPermission | Desenvolvedores |
 | **[🖥️ Permissões Server-Side](./server_side_permissions.md)** | Resolução de permissões no servidor | Desenvolvedores backend |
-| **[ Integração Keycloak](./keycloak_integration.md)** | Configuração e integração detalhada | Administradores |
+| **[🔑 Integração Keycloak](./keycloak_integration.md)** | Configuração e integração detalhada | Administradores |
+
+### **📱 Módulos de Domínio**
+
+| Documento | Descrição | Para quem |
+|-----------|-----------|-----------|
+| **[👥 Módulo Users](./modules/users.md)** | Gestão de usuários, autenticação e perfis | Desenvolvedores |
+| **[🔧 Módulo Providers](./modules/providers.md)** | Prestadores de serviços, verificação e documentos | Desenvolvedores |
+| **[📋 Módulo Services](./modules/services.md)** | Catálogo de serviços (planejado) | Desenvolvedores |
+| **[📅 Módulo Bookings](./modules/bookings.md)** | Sistema de agendamentos (planejado) | Desenvolvedores |
+| **[🗺️ Roadmap do Projeto](./ROADMAP.md)** | Funcionalidades futuras e planejamento | Todos |
 
 ### **🚀 Infraestrutura e Deploy**
 
@@ -52,7 +62,7 @@ Se você é novo no projeto, comece por aqui:
 | Documento | Descrição | Nível |
 |-----------|-----------|-------|
 | **[💀 Dead Letter Queue Strategy](./messaging/dead_letter_queue_strategy.md)** | Estratégia completa de DLQ com operações | Avançado |
-| **[📊 DLQ Implementation Summary](./messaging/dead_letter_queue_implementation_summary.md)** | Resumo da implementação | Intermediário |
+| **[📊 Resumo da Implementação DLQ](./messaging/dead_letter_queue_implementation_summary.md)** | Resumo da implementação | Intermediário |
 | **[� Message Bus Strategy](./messaging/message_bus_strategy.md)** | Estratégia de messaging por ambiente | Avançado |
 | **[🧪 Messaging Mocks](./messaging/messaging_mocks.md)** | Mocks para testes de messaging | Avançado |
 
@@ -107,7 +117,7 @@ Se você é novo no projeto, comece por aqui:
 
 ## 📈 Status da Documentação
 
-### ✅ **Completo e Atualizado (Outubro 2025)**
+### ✅ **Completo e Atualizado (Novembro 2025)**
 - ✅ Guia de Desenvolvimento com Testes Integrados
 - ✅ Sistema Completo de Autenticação e Autorização Type-Safe
 - ✅ Arquitetura Clean Architecture + DDD + CQRS
@@ -117,11 +127,14 @@ Se você é novo no projeto, comece por aqui:
 - ✅ Database Boundaries e Migration Strategy
 - ✅ Logging Estruturado e Observabilidade
 - ✅ Configuration Templates por Ambiente
+- ✅ Módulo Users - Gestão completa de usuários
+- ✅ Módulo Providers - Prestadores de serviços implementado
 
 ### 🔄 **Em Evolução**
-- � Documentação de APIs (com crescimento do projeto)
+- 🔄 Documentação de APIs (com crescimento do projeto)
 - 🔄 Guias de usuário final (futuro)
-- 🔄 Documentação de módulos específicos (conforme implementação)
+- 🔄 Módulo Services (planejado)
+- 🔄 Módulo Bookings (planejado)
 
 ## 🧹 Reorganização Recente
 
@@ -199,131 +212,5 @@ docs/
 
 ---
 
-*📅 Última atualização: Outubro 2025*  
+*📅 Última atualização: Novembro 2025*  
 *✨ Documentação reorganizada e consolidada pela equipe MeAjudaAi*
-
-| Documento | Descrição | Para quem |
-|-----------|-----------|-----------|
-| **[🔐 Guia de Autenticação](./authentication.md)** | Keycloak, JWT e configuração completa de auth | Desenvolvedores |
-| **[🛡️ Autenticação](./architecture.md#padroes-de-seguranca)** | JWT, Keycloak e autorização | Desenvolvedores |
-| **[🔒 Validação](./architecture.md#validation-pattern)** | FluentValidation e input validation | Desenvolvedores |
-| **[🧪 Testes de Autenticação](./testing/)** | TestAuthenticationHandler e exemplos | Desenvolvedores |
-| **[🚨 Security Scan](./ci_cd.md#-configuração-do-azure-devops)** | Análise de segurança e vulnerabilidades | DevOps |
-
-## 🔧 Documentação Técnica Avançada
-
-Para implementações específicas e detalhes técnicos:
-
-### **Implementações Detalhadas**
-
-| Documento | Descrição | Nível |
-|-----------|-----------|-------|
-| **[📨 MessageBus Strategy](./technical/message_bus_environment_strategy.md)** | Estratégia de messaging por ambiente | Avançado |
-| **[🧪 Messaging Mocks](./technical/messaging_mocks_implementation.md)** | Mocks para Azure Service Bus e RabbitMQ | Avançado |
-| **[🏭 DbContext Factory](./technical/db_context_factory_pattern.md)** | Factory pattern para Entity Framework | Intermediário |
-| **[🔐 Keycloak Config](./technical/keycloak_configuration.md)** | Configuração detalhada do Keycloak | Intermediário |
-| **[🗄️ Database Boundaries](./technical/database_boundaries.md)** | Estratégia de schemas modulares | Avançado |
-
-## 🎯 Guias por Cenário
-
-### **🆕 Novo Desenvolvedor**
-1. Leia o [README principal](../README.md) para entender o projeto
-2. Siga o [Guia de Desenvolvimento](./development.md) para setup
-3. Consulte as [Diretrizes de Desenvolvimento](./development.md) para padrões
-4. Configure [Autenticação](./authentication.md) para desenvolvimento
-5. Estude a [Arquitetura](./architecture.md) para entender os padrões
-6. Consulte a [Infraestrutura](./infrastructure.md) para ambientes
-
-### **🏗️ Arquiteto de Software**
-1. Analise a [Arquitetura](./architecture.md) completa
-2. Revise os [padrões DDD](./architecture.md#-domain-driven-design-ddd)
-3. Entenda a [estratégia de dados](./technical/database_boundaries.md)
-4. Avalie as [estratégias de messaging](./technical/message_bus_environment_strategy.md)
-
-### **🚀 DevOps Engineer**
-1. Configure a [Infraestrutura](./infrastructure.md)
-2. Implemente os [pipelines CI/CD](./ci_cd.md)
-3. Gerencie os [recursos Azure](./infrastructure.md#recursos-azure)
-4. Configure [monitoramento](./ci_cd.md#-monitoramento-e-métricas)
-
-### **🧪 QA Engineer**
-1. Entenda as [estratégias de teste](./development.md#-diretrizes-de-testes)
-2. Configure os [ambientes de teste](./infrastructure.md#docker-compose-alternativo)
-3. Implemente [testes E2E](./development.md#-diretrizes-de-testes)
-4. Use os [mocks disponíveis](./technical/messaging_mocks_implementation.md)
-
-## 📈 Status da Documentação
-
-### ✅ **Completo e Atualizado**
-- ✅ Guia de Desenvolvimento
-- ✅ Diretrizes de Desenvolvimento e Padrões de Código
-- ✅ Guia Completo de Autenticação e Segurança
-- ✅ Documentação de Testes de Autenticação
-- ✅ Arquitetura e Padrões
-- ✅ Infraestrutura e Deploy
-- ✅ CI/CD e Automação
-- ✅ Configurações de Segurança
-
-### 🔄 **Em Evolução**
-- 🔄 Documentação de APIs (com crescimento do projeto)
-- 🔄 Guias de usuário final (futuro)
-- 🔄 Documentação de módulos específicos (conforme implementação)
-
-## 🤝 Como Contribuir
-
-### **Melhorar Documentação Existente**
-1. Identifique informações desatualizadas ou confusas
-2. Abra uma [issue](https://github.com/frigini/MeAjudaAi/issues) ou PR
-3. Use o padrão de commits semânticos: `docs(scope): description`
-
-### **Adicionar Nova Documentação**
-1. Siga a estrutura e formatação existente
-2. Use Markdown com emojis para melhor legibilidade
-3. Inclua exemplos práticos e código quando aplicável
-4. Atualize este índice com novas adições
-
-### **Padrões de Documentação**
-- **Títulos**: Use emojis para identificação visual
-- **Código**: Sempre com syntax highlighting apropriado
-- **Links**: Use referências relativas para documentos internos
-- **Idioma**: Português brasileiro para toda documentação
-- **Estrutura**: Siga o padrão estabelecido nos documentos existentes
-
-## 🔗 Links Úteis
-
-### **Repositório e Projeto**
-- 🏠 [Repositório GitHub](https://github.com/frigini/MeAjudaAi)
-- 🐛 [Issues e Bugs](https://github.com/frigini/MeAjudaAi/issues)
-- 📋 [Project Board](https://github.com/frigini/MeAjudaAi/projects)
-
-### **Tecnologias Utilizadas**
-- 🟣 [.NET 9](https://docs.microsoft.com/dotnet/)
-- 🐘 [PostgreSQL](https://www.postgresql.org/docs/)
-- 🔑 [Keycloak](https://www.keycloak.org/documentation)
-- ☁️ [Azure](https://docs.microsoft.com/azure/)
-- 🚀 [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/)
-
-### **Padrões e Arquitetura**
-- 🏗️ [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-- 📐 [Domain-Driven Design](https://martinfowler.com/bliki/DomainDrivenDesign.html)
-- ⚡ [CQRS Pattern](https://docs.microsoft.com/azure/architecture/patterns/cqrs)
-- 🔄 [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
-
----
-
-## 📞 Suporte
-
-**Encontrou algum problema na documentação?**
-- 📧 Abra uma [issue](https://github.com/frigini/MeAjudaAi/issues)
-- 💬 Entre em contato com a equipe de desenvolvimento
-- 🔄 Sugira melhorias via pull request
-
-**Precisa de ajuda com desenvolvimento?**
-- 📖 Consulte primeiro os guias relevantes
-- 🛠️ Verifique os troubleshooting guides
-- 🤝 Entre em contato com mentores da equipe
-
----
-
-*📅 Última atualização: Dezembro 2024*  
-*✨ Documentação mantida pela equipe de desenvolvimento MeAjudaAi*

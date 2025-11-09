@@ -1,0 +1,98 @@
+meta {
+  name: Update Provider Profile
+  type: http
+  seq: 9
+}
+
+put {
+  url: {{baseUrl}}/api/v1/providers/{{providerId}}/profile
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "name": "Dr. João Silva Cardiologista",
+    "businessProfile": {
+      "description": "Médico cardiologista especialista em arritmias cardíacas",
+      "address": "Av. Paulista, 1000 - Conjunto 505",
+      "city": "São Paulo",
+      "state": "SP",
+      "zipCode": "01310-100",
+      "phone": "(11) 3333-4444",
+      "email": "joao.silva@cardio.com.br",
+      "website": "https://www.drjoaocardiologista.com.br",
+      "operatingHours": "Segunda a Sexta: 8h às 17h"
+    }
+  }
+}
+
+docs {
+  # Update Provider Profile
+  
+  Atualiza o perfil de um prestador existente.
+  
+  ## Autorização
+  - **Permissão**: ProvidersUpdate ou SelfOrAdmin
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `providerId` (guid): ID único do prestador
+  
+  ## Body Parameters
+  - `name` (string): Novo nome do prestador
+  - `businessProfile` (object): Novo perfil profissional
+    - `description` (string): Descrição atualizada
+    - `address` (string): Novo endereço
+    - `city` (string): Cidade
+    - `state` (string): Estado
+    - `zipCode` (string): CEP
+    - `phone` (string): Telefone
+    - `email` (string): Email profissional
+    - `website` (string, opcional): Site
+    - `operatingHours` (string, opcional): Horário
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "userId": "uuid",
+      "name": "Dr. João Silva Cardiologista",
+      "type": 1,
+      "verificationStatus": 2,
+      "businessProfile": {
+        "description": "Médico cardiologista especialista em arritmias cardíacas",
+        "address": "Av. Paulista, 1000 - Conjunto 505",
+        "city": "São Paulo",
+        "state": "SP",
+        "zipCode": "01310-100",
+        "phone": "(11) 3333-4444",
+        "email": "joao.silva@cardio.com.br",
+        "website": "https://joaosilva.cardio.com.br",
+        "operatingHours": "Segunda a Sexta: 8h às 18h"
+      },
+      "updatedAt": "2025-01-01T12:00:00Z"
+    },
+    "message": "Provider profile updated successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Atualizado com sucesso
+  - **400**: Dados inválidos
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+  - **404**: Prestador não encontrado
+}

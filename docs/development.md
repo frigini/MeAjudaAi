@@ -620,8 +620,26 @@ cd src/Aspire/MeAjudaAi.AppHost && dotnet run
 cd src/Bootstrapper/MeAjudaAi.ApiService && dotnet run
 
 # Migrations EF Core
-dotnet ef migrations add NomeDaMigration --context UsersDbContext
+dotnet ef migrations add NomeDaMigração --context UsersDbContext
 dotnet ef database update --context UsersDbContext
+
+# Migrations usando script personalizado (recomendado)
+# Configure primeiro as variáveis de ambiente:
+$env:DB_HOST="localhost"       # padrão: localhost
+$env:DB_PORT="5432"            # padrão: 5432
+$env:DB_NAME="MeAjudaAi"       # padrão: MeAjudaAi
+$env:DB_USER="postgres"        # padrão: postgres
+$env:DB_PASSWORD="suasenha"    # obrigatório
+
+# Depois execute (Windows):
+.\scripts\ef-migrate.ps1                                    # Aplica migrações para todos os módulos
+.\scripts\ef-migrate.ps1 -Module Users                      # Aplica para módulo específico
+.\scripts\ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewField"  # Adiciona nova migração
+
+# Ou no Unix/Linux/macOS (PowerShell Core):
+./scripts/ef-migrate.ps1                                    # Aplica migrações para todos os módulos
+./scripts/ef-migrate.ps1 -Module Users                      # Aplica para módulo específico
+./scripts/ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewField"  # Adiciona nova migração
 
 # Análise de código
 dotnet format

@@ -27,6 +27,30 @@ public static class ApiEndpoints
     }
 
     /// <summary>
+    /// Endpoints do módulo de prestadores de serviços (ProviderAdmin)
+    /// </summary>
+    /// <remarks>
+    /// Todos estes endpoints existem em ProviderAdmin/ e estão funcionais.
+    /// </remarks>
+    public static class Providers
+    {
+        // Endpoints existentes e implementados
+        public const string Create = "/";                    // POST   CreateProviderEndpoint
+        public const string GetAll = "/";                   // GET    GetProvidersEndpoint  
+        public const string GetById = "/{id:guid}";         // GET    GetProviderByIdEndpoint
+        public const string Delete = "/{id:guid}";          // DELETE DeleteProviderEndpoint
+        public const string GetByUserId = "/by-user/{userId:guid}"; // GET GetProviderByUserIdEndpoint
+        public const string GetByCity = "/by-city/{city}";  // GET    GetProvidersByCityEndpoint
+        public const string GetByState = "/by-state/{state}"; // GET   GetProvidersByStateEndpoint
+        public const string GetByType = "/by-type/{type}";  // GET    GetProvidersByTypeEndpoint
+        public const string GetByVerificationStatus = "/by-verification-status/{status}"; // GET GetProvidersByVerificationStatusEndpoint
+        public const string UpdateProfile = "/{id:guid}/profile"; // PUT UpdateProviderProfileEndpoint
+        public const string UpdateVerificationStatus = "/{id:guid}/verification-status"; // PUT UpdateVerificationStatusEndpoint
+        public const string AddDocument = "/{id:guid}/documents"; // POST AddDocumentEndpoint
+        public const string RemoveDocument = "/{id:guid}/documents/{documentType}"; // DELETE RemoveDocumentEndpoint
+    }
+
+    /// <summary>
     /// Endpoints de sistema (Health checks e monitoramento)
     /// </summary>
     /// <remarks>

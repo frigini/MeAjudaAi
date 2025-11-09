@@ -1,0 +1,75 @@
+meta {
+  name: Get Providers by Verification Status
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/v1/providers/by-verification-status/{{testVerificationStatus}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Providers by Verification Status
+  
+  Lista prestadores filtrados por status de verificação.
+  
+  ## Autorização
+  - **Permissão**: ProvidersRead
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `testVerificationStatus` (int): Status de verificação (ID numérico)
+  
+  ## Status Disponíveis
+  - `0`: Nenhum (None)
+  - `1`: Pendente (Pending)
+  - `2`: Em Análise (InProgress)
+  - `3`: Verificado (Verified)
+  - `4`: Rejeitado (Rejected)
+  - `5`: Suspenso (Suspended)
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "uuid",
+        "userId": "uuid",
+        "name": "Dr. João Silva",
+        "type": 1,
+        "verificationStatus": 2,
+        "businessProfile": {
+          "description": "Médico cardiologista verificado",
+          "city": "São Paulo",
+          "state": "SP"
+        },
+        "documents": [
+          {
+            "type": 1,
+            "verifiedAt": "2025-01-01T00:00:00Z"
+          }
+        ],
+        "isActive": true
+      }
+    ],
+    "message": "Providers retrieved successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso (pode retornar lista vazia)
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+}

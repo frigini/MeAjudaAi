@@ -1,0 +1,55 @@
+meta {
+  name: Delete Provider
+  type: http
+  seq: 11
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/providers/{{providerId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Delete Provider
+  
+  Remove um prestador do sistema (soft delete).
+  
+  ## Autorização
+  - **Permissão**: ProvidersDelete ou SelfOrAdmin
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `id` (guid): ID único do prestador
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": null,
+    "message": "Provider deleted successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Deletado com sucesso
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+  - **404**: Prestador não encontrado
+  - **409**: Prestador possui agendamentos ativos (não pode ser deletado)
+  
+  ## Observações
+  - Esta operação realiza um "soft delete" (marca como inativo)
+  - Prestadores com serviços/agendamentos ativos não podem ser removidos
+  - Apenas administradores podem deletar prestadores de outros usuários
+}

@@ -1,0 +1,100 @@
+meta {
+  name: Create Provider
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/v1/providers
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "userId": "{{userId}}",
+    "name": "Dr. João Silva",
+    "type": 1,
+    "businessProfile": {
+      "description": "Médico cardiologista com 15 anos de experiência",
+      "address": "Rua das Flores, 123",
+      "city": "São Paulo",
+      "state": "SP",
+      "zipCode": "01234-567",
+      "phone": "(11) 99999-9999",
+      "email": "joao.silva@clinica.com",
+      "website": "https://www.drjoaosilva.com.br",
+      "operatingHours": "Segunda a Sexta: 8h às 18h"
+    }
+  }
+}
+
+docs {
+  # Create Provider
+  
+  Cria um novo prestador de serviços no sistema.
+  
+  ## Autorização
+  - **Permissão**: ProvidersCreate
+  - **Requer token**: Sim
+  
+  ## Body Parameters
+  - `userId` (guid): ID do usuário que será o prestador
+  - `name` (string): Nome do prestador
+  - `type` (int): Tipo do prestador (1=Médico, 2=Dentista, etc.)
+  - `businessProfile` (object): Perfil profissional
+    - `description` (string): Descrição dos serviços
+    - `address` (string): Endereço completo
+    - `city` (string): Cidade
+    - `state` (string): Estado (sigla)
+    - `zipCode` (string): CEP
+    - `phone` (string): Telefone
+    - `email` (string): Email profissional
+    - `website` (string, opcional): Site
+    - `operatingHours` (string, opcional): Horário de funcionamento
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "userId": "uuid",
+      "name": "Dr. João Silva",
+      "type": 1,
+      "verificationStatus": 0,
+      "businessProfile": {
+        "description": "Médico cardiologista com 15 anos de experiência",
+        "address": "Rua das Flores, 123",
+        "city": "São Paulo",
+        "state": "SP",
+        "zipCode": "01234-567",
+        "phone": "(11) 99999-9999",
+        "email": "joao.silva@clinica.com"
+      },
+      "qualifications": [],
+      "documents": [],
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00Z"
+    },
+    "message": "Provider created successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **201**: Criado com sucesso
+  - **400**: Dados inválidos
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+  - **409**: Usuário já possui prestador
+}

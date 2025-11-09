@@ -1,0 +1,68 @@
+meta {
+  name: Get Providers by Type
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/v1/providers/by-type/{{testType}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Providers by Type
+  
+  Lista prestadores filtrados por tipo de serviço.
+  
+  ## Autorização
+  - **Permissão**: ProvidersRead
+  - **Requer token**: Sim
+  
+  ## Parâmetros Path
+  - `testType` (int): Tipo do prestador (ID numérico)
+  
+  ## Tipos Disponíveis
+  - `1`: Médico
+  - `2`: Dentista
+  - `3`: Psicólogo
+  - `4`: Fisioterapeuta
+  - `5`: Nutricionista
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "uuid",
+        "userId": "uuid", 
+        "name": "Dr. João Silva",
+        "type": 1,
+        "verificationStatus": 2,
+        "businessProfile": {
+          "description": "Médico cardiologista",
+          "city": "São Paulo",
+          "state": "SP"
+        },
+        "isActive": true
+      }
+    ],
+    "message": "Providers retrieved successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Sucesso (pode retornar lista vazia)
+  - **401**: Token inválido/expirado
+  - **403**: Sem permissão
+}

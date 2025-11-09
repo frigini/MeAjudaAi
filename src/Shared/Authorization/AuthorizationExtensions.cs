@@ -47,8 +47,8 @@ public static class AuthorizationExtensions
         // Configura políticas de autorização
         services.AddAuthorization(options =>
         {
-            // Registra políticas para cada permissão (EPermission)
-            foreach (EPermission permission in Enum.GetValues<EPermission>())
+            // Registra políticas para cada permissão (EPermission), exceto None
+            foreach (EPermission permission in Enum.GetValues<EPermission>().Where(p => p != EPermission.None))
             {
                 var policyName = $"RequirePermission:{permission.GetValue()}";
                 options.AddPolicy(policyName, policy =>

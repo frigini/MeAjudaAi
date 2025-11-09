@@ -69,7 +69,7 @@ public class DeadLetterServiceTests
         var delay = _deadLetterService.CalculateRetryDelay(highAttemptCount);
 
         // Assert
-        delay.TotalSeconds.Should().BeLessOrEqualTo(300); // Máximo 5 minutos para NoOpDeadLetterService
+        delay.TotalSeconds.Should().BeLessThanOrEqualTo(300.0); // Máximo 5 minutos para NoOpDeadLetterService
     }
 
     [Fact]

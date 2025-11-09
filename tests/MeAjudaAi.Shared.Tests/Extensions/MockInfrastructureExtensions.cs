@@ -227,6 +227,7 @@ public static class TestTypeDetector
 
 public enum TestType
 {
+    None = 0,
     Unit,
     Integration,
     E2E

@@ -62,7 +62,7 @@
     <PackageReference Include="Rebus" />
     <PackageReference Include="Rebus.AzureServiceBus" />
     <PackageReference Include="Rebus.RabbitMq" />
-    <!-- <PackageReference Include="Rebus.ServiceProvider" /> -->
+    <PackageReference Include="Rebus.ServiceProvider" />
     
     <!-- System -->
     <PackageReference Include="Microsoft.CSharp" />

@@ -329,4 +329,80 @@ Para adicionar novos scripts ou modificar existentes:
 
 ---
 
+## 🔧 Ferramentas de Migração de Banco de Dados
+
+### ef-migrate.ps1 - **Recomendado**
+
+Gerencia migrações usando comandos `dotnet ef` diretamente.
+
+**Windows (PowerShell):**
+```powershell
+# Aplicar todas as migrações para todos os módulos
+.\scripts\ef-migrate.ps1
+
+# Aplicar migrações para um módulo específico
+.\scripts\ef-migrate.ps1 -Module Providers
+
+# Ver status das migrações
+.\scripts\ef-migrate.ps1 -Command status
+
+# Adicionar nova migração
+.\scripts\ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewUserField"
+```
+
+**Unix/Linux/macOS (PowerShell Core):**
+```bash
+# Aplicar todas as migrações para todos os módulos
+./scripts/ef-migrate.ps1
+
+# Aplicar migrações para um módulo específico
+./scripts/ef-migrate.ps1 -Module Providers
+
+# Ver status das migrações
+./scripts/ef-migrate.ps1 -Command status
+
+# Adicionar nova migração
+./scripts/ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewUserField"
+```
+
+**📋 Requisitos:**
+- PowerShell 7+ (para Unix/Linux/macOS: instale via `snap install powershell --classic` ou similar)
+- Variáveis de ambiente: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+
+### migrate-all.ps1 - **Avançado**
+
+Ferramenta customizada que descobre automaticamente todos os DbContexts.
+
+**Windows (PowerShell):**
+```powershell
+# Aplicar migrações
+.\scripts\migrate-all.ps1
+
+# Ver status detalhado
+.\scripts\migrate-all.ps1 -Command status
+
+# Resetar bancos (CUIDADO!)
+.\scripts\migrate-all.ps1 -Command reset
+```
+
+**Unix/Linux/macOS (PowerShell Core):**
+```bash
+# Aplicar migrações
+./scripts/migrate-all.ps1
+
+# Ver status detalhado
+./scripts/migrate-all.ps1 -Command status
+
+# Resetar bancos (CUIDADO!)
+./scripts/migrate-all.ps1 -Command reset
+```
+
+**Módulos Suportados:**
+- Users (`meajudaai_users`)
+- Providers (`meajudaai_providers`)
+- Services (`meajudaai_services`)
+- Orders (`meajudaai_orders`)
+
+---
+
 **💡 Dica:** Use `./scripts/[script].sh --help` para ver todas as opções disponíveis de cada script!

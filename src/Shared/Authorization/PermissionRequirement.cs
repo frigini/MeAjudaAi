@@ -22,8 +22,12 @@ public sealed class PermissionRequirement : IAuthorizationRequirement
     /// Inicializa o requirement com a permissão requerida.
     /// </summary>
     /// <param name="permission">A permissão necessária</param>
+    /// <exception cref="ArgumentException">Lançado quando permission é EPermission.None</exception>
     public PermissionRequirement(EPermission permission)
     {
+        if (permission == EPermission.None)
+            throw new ArgumentException("EPermission.None não é uma permissão válida para autorização", nameof(permission));
+
         Permission = permission;
     }
 }

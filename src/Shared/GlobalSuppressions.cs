@@ -35,3 +35,16 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Maintainability", "CA1508:Avoid dead conditional code",
     Scope = "namespaceanddescendants", Target = "~N:MeAjudaAi.Shared.Caching",
     Justification = "Generic type checks may appear as dead code but are needed for runtime behavior")]
+
+// CA1008: Enums should have zero value - Suprimimos para enums de negócio onde "None" não faz sentido
+[assembly: SuppressMessage("Design", "CA1008:Enums should have zero value",
+    Justification = "Enums de negócio não precisam de valor zero/None",
+    Scope = "type", Target = "~T:MeAjudaAi.Modules.Providers.Domain.Enums.EDocumentType")]
+
+[assembly: SuppressMessage("Design", "CA1008:Enums should have zero value",
+    Justification = "Enums de negócio não precisam de valor zero/None",
+    Scope = "type", Target = "~T:MeAjudaAi.Modules.Providers.Domain.Enums.EProviderType")]
+
+[assembly: SuppressMessage("Design", "CA1008:Enums should have zero value",
+    Justification = "Enums de negócio não precisam de valor zero/None",
+    Scope = "type", Target = "~T:MeAjudaAi.Modules.Providers.Domain.Enums.EVerificationStatus")]

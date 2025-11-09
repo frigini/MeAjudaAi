@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.Modules.Providers.API;
 using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
@@ -80,6 +81,7 @@ public partial class Program
         builder.Services.AddSharedServices(builder.Configuration);
         builder.Services.AddApiServices(builder.Configuration, builder.Environment);
         builder.Services.AddUsersModule(builder.Configuration);
+        builder.Services.AddProvidersModule(builder.Configuration);
     }
 
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
@@ -96,6 +98,7 @@ public partial class Program
         await app.UseSharedServicesAsync();
         app.UseApiServices(app.Environment);
         app.UseUsersModule();
+        app.UseProvidersModule();
     }
 
     private static void LogStartupComplete(WebApplication app)
