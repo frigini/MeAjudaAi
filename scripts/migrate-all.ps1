@@ -53,7 +53,7 @@ function Write-ColoredOutput {
 }
 
 # Verificar se estamos no diretório raiz do projeto
-$solutionFile = Get-ChildItem -Name "*.sln" -ErrorAction SilentlyContinue
+$solutionFile = @(Get-ChildItem -Name "*.sln" -ErrorAction SilentlyContinue)
 if (-not $solutionFile) {
     Write-ColoredOutput "❌ Arquivo .sln não encontrado. Execute este script no diretório raiz do projeto." $Red
     exit 1

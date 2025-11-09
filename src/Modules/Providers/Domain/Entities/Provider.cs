@@ -276,6 +276,10 @@ public sealed class Provider : AggregateRoot<ProviderId>
         if (IsDeleted)
             throw new ProviderDomainException("Cannot add qualification to deleted provider");
 
+        // Check for duplicate qualifications by name (case-insensitive)
+        if (_qualifications.Any(q => q.Name.Equals(qualification.Name, StringComparison.OrdinalIgnoreCase)))
+            throw new ProviderDomainException($"A qualification with the name '{qualification.Name}' already exists");
+
         _qualifications.Add(qualification);
         MarkAsUpdated();
 

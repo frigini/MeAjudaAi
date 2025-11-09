@@ -115,7 +115,7 @@ public sealed class ProvidersModuleApi(
 
         return result.Match(
             onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : MapToModuleDto(providerDto)),
-            onFailure: error => Result<ModuleProviderDto?>.Failure(error)
+            onFailure: error => error.StatusCode == 404 ? Result<ModuleProviderDto?>.Success(null) : Result<ModuleProviderDto?>.Failure(error)
         );
     }
 
@@ -126,7 +126,7 @@ public sealed class ProvidersModuleApi(
 
         return result.Match(
             onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : MapToModuleDto(providerDto)),
-            onFailure: error => Result<ModuleProviderDto?>.Failure(error)
+            onFailure: error => error.StatusCode == 404 ? Result<ModuleProviderDto?>.Success(null) : Result<ModuleProviderDto?>.Failure(error)
         );
     }
 
@@ -150,7 +150,7 @@ public sealed class ProvidersModuleApi(
 
         return result.Match(
             onSuccess: providerDto => Result<ModuleProviderDto?>.Success(providerDto == null ? null : MapToModuleDto(providerDto)),
-            onFailure: error => Result<ModuleProviderDto?>.Failure(error)
+            onFailure: error => error.StatusCode == 404 ? Result<ModuleProviderDto?>.Success(null) : Result<ModuleProviderDto?>.Failure(error)
         );
     }
 

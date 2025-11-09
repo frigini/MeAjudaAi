@@ -274,6 +274,38 @@ public class ProviderTests
     }
 
     [Fact]
+    public void AddQualification_WithDuplicateName_ShouldThrowProviderDomainException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var qualification1 = new Qualification("Test Qualification", "First description");
+        var qualification2 = new Qualification("Test Qualification", "Second description");
+
+        provider.AddQualification(qualification1);
+
+        // Act & Assert
+        var action = () => provider.AddQualification(qualification2);
+        action.Should().Throw<ProviderDomainException>()
+            .WithMessage("A qualification with the name 'Test Qualification' already exists");
+    }
+
+    [Fact]
+    public void AddQualification_WithDuplicateNameDifferentCase_ShouldThrowProviderDomainException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var qualification1 = new Qualification("Test Qualification", "First description");
+        var qualification2 = new Qualification("TEST QUALIFICATION", "Second description");
+
+        provider.AddQualification(qualification1);
+
+        // Act & Assert
+        var action = () => provider.AddQualification(qualification2);
+        action.Should().Throw<ProviderDomainException>()
+            .WithMessage("A qualification with the name 'TEST QUALIFICATION' already exists");
+    }
+
+    [Fact]
     public void RemoveQualification_WithExistingQualification_ShouldRemoveQualification()
     {
         // Arrange

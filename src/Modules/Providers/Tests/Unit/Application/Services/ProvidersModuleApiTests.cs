@@ -85,8 +85,15 @@ public class ProvidersModuleApiTests
         // Arrange
         var healthCheckServiceMock = new Mock<HealthCheckService>();
         var healthReport = new HealthReport(
-            new Dictionary<string, HealthReportEntry>(),
-            HealthStatus.Healthy,
+            new Dictionary<string, HealthReportEntry>
+            {
+                ["test"] = new HealthReportEntry(
+                    HealthStatus.Healthy,
+                    "Test service is healthy",
+                    TimeSpan.FromMilliseconds(50),
+                    null,
+                    null)
+            },
             TimeSpan.FromMilliseconds(100));
 
         healthCheckServiceMock.Setup(x => x.CheckHealthAsync(
@@ -125,7 +132,6 @@ public class ProvidersModuleApiTests
                     null,
                     null)
             },
-            HealthStatus.Unhealthy,
             TimeSpan.FromMilliseconds(100));
 
         healthCheckServiceMock.Setup(x => x.CheckHealthAsync(

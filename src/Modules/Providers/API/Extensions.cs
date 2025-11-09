@@ -36,7 +36,7 @@ public static class Extensions
     {
         // Garantir que as migrações estão aplicadas
         EnsureDatabaseMigrations(app);
-        
+
         app.MapProvidersEndpoints();
 
         return app;
@@ -46,14 +46,14 @@ public static class Extensions
     {
         // Só aplica migrações se não estivermos em ambiente de testes unitários
         if (app?.Services == null) return;
-        
+
         try
         {
             // Criar um escopo para obter o context e aplicar migrações
             using var scope = app.Services.CreateScope();
             var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.ProvidersDbContext>();
             if (context == null) return;
-            
+
             context.Database.Migrate();
         }
         catch (Exception ex)
@@ -64,7 +64,7 @@ public static class Extensions
                 using var scope = app.Services.CreateScope();
                 var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.ProvidersDbContext>>();
                 logger?.LogWarning(ex, "Falha ao aplicar migrações do módulo Providers. Usando EnsureCreated como fallback.");
-                
+
                 var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.ProvidersDbContext>();
                 if (context != null)
                 {

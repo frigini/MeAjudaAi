@@ -18,7 +18,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// - Autorização está funcionando
 /// - Dados são persistidos corretamente
 /// </remarks>
-public class UsersApiTests : ApiTestBase
+public class UsersApiTests : InstanceApiTestBase
 {
     [Fact]
     public async Task UsersEndpoint_ShouldBeAccessible()
@@ -40,7 +40,7 @@ public class UsersApiTests : ApiTestBase
     public async Task UsersEndpoint_WithAuthentication_ShouldReturnValidResponse()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/users");
@@ -66,7 +66,7 @@ public class UsersApiTests : ApiTestBase
     public async Task GetUserById_WithNonExistentId_ShouldReturnNotFound()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
         var randomId = Guid.NewGuid(); // Use random ID that definitely doesn't exist
 
         // Act
@@ -81,7 +81,7 @@ public class UsersApiTests : ApiTestBase
     public async Task GetUserByEmail_WithNonExistentEmail_ShouldReturnNotFound()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
         var randomEmail = $"nonexistent-{Guid.NewGuid():N}@example.com";
 
         // Act
@@ -96,7 +96,7 @@ public class UsersApiTests : ApiTestBase
     public async Task CreateUser_WithValidData_ShouldReturnCreated()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         var userData = new
         {
@@ -137,7 +137,7 @@ public class UsersApiTests : ApiTestBase
     public async Task UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         var endpoints = new[]
         {

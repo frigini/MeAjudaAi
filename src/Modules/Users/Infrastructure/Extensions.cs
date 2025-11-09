@@ -93,8 +93,10 @@ public static class Extensions
 
         // Verifica também se existe uma seção de configuração do Keycloak com valores válidos
         var keycloakSection = configuration.GetSection("Keycloak");
-        var hasValidKeycloakConfig = !string.IsNullOrEmpty(keycloakSection["BaseUrl"]) || 
-                                   !string.IsNullOrEmpty(keycloakSection["Realm"]);
+        var hasValidKeycloakConfig = !string.IsNullOrEmpty(keycloakSection["BaseUrl"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["Realm"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["ClientId"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["ClientSecret"]);
 
         // Se Keycloak está explicitamente desabilitado OU não há configuração válida, usa mock
         var shouldUseMock = !keycloakEnabled || !hasValidKeycloakConfig;
@@ -121,8 +123,10 @@ public static class Extensions
 
         // Verifica também se existe uma seção de configuração do Keycloak com valores válidos
         var keycloakSection = configuration.GetSection("Keycloak");
-        var hasValidKeycloakConfig = !string.IsNullOrEmpty(keycloakSection["BaseUrl"]) || 
-                                   !string.IsNullOrEmpty(keycloakSection["Realm"]);
+        var hasValidKeycloakConfig = !string.IsNullOrEmpty(keycloakSection["BaseUrl"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["Realm"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["ClientId"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["ClientSecret"]);
 
         // Se Keycloak está explicitamente desabilitado OU não há configuração válida, usa mock
         var shouldUseMock = !keycloakEnabled || !hasValidKeycloakConfig;

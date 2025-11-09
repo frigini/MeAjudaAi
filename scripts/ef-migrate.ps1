@@ -8,6 +8,13 @@
     Este script aplica migrações usando comandos dotnet ef para cada módulo individualmente.
     Mais simples e direto que a ferramenta customizada.
 
+    Configuração de banco de dados via variáveis de ambiente:
+    - DB_HOST (padrão: localhost)
+    - DB_PORT (padrão: 5432)
+    - DB_NAME (padrão: MeAjudaAi)
+    - DB_USER (padrão: postgres)
+    - DB_PASSWORD (obrigatório - será solicitado se não definido)
+
 .PARAMETER Command
     O comando a ser executado:
     - migrate: Aplica todas as migrações (padrão)
@@ -47,19 +54,47 @@ param(
     [string]$MigrationName = $null
 )
 
+# Função para obter configuração do banco de dados
+function Get-DatabaseConfig {
+    $dbHost = $env:DB_HOST ?? "localhost"
+    $dbPort = $env:DB_PORT ?? "5432"
+    $dbName = $env:DB_NAME ?? "MeAjudaAi"
+    $dbUser = $env:DB_USER ?? "postgres"
+    $dbPassword = $env:DB_PASSWORD
+    
+    if (-not $dbPassword) {
+        Write-ColoredOutput "❌ Variável de ambiente DB_PASSWORD não definida." $Red
+        Write-ColoredOutput "Configure as seguintes variáveis de ambiente:" $Yellow
+        Write-ColoredOutput "  DB_HOST (padrão: localhost)" $Yellow
+        Write-ColoredOutput "  DB_PORT (padrão: 5432)" $Yellow
+        Write-ColoredOutput "  DB_NAME (padrão: MeAjudaAi)" $Yellow
+        Write-ColoredOutput "  DB_USER (padrão: postgres)" $Yellow
+        Write-ColoredOutput "  DB_PASSWORD (obrigatório)" $Yellow
+        Write-Host
+        Write-ColoredOutput "Exemplo:" $Blue
+        Write-ColoredOutput "`$env:DB_PASSWORD='suasenha'; .\ef-migrate.ps1" $Blue
+        exit 1
+    }
+    
+    return "Host=$dbHost;Port=$dbPort;Database=$dbName;Username=$dbUser;Password=$dbPassword"
+}
+
+# Obter string de conexão
+$connectionString = Get-DatabaseConfig
+
 # Definir módulos e seus contextos
 $Modules = @{
     "Users" = @{
         "Project" = "src/Modules/Users/Infrastructure/MeAjudaAi.Modules.Users.Infrastructure.csproj"
         "Context" = "UsersDbContext"
         "OutputDir" = "Persistence/Migrations"
-        "ConnectionString" = "Host=localhost;Port=5432;Database=MeAjudaAi;Username=postgres;Password=development123"
+        "ConnectionString" = $connectionString
     }
     "Providers" = @{
         "Project" = "src/Modules/Providers/Infrastructure/MeAjudaAi.Modules.Providers.Infrastructure.csproj"
         "Context" = "ProvidersDbContext"
         "OutputDir" = "Persistence/Migrations"
-        "ConnectionString" = "Host=localhost;Port=5432;Database=MeAjudaAi;Username=postgres;Password=development123"
+        "ConnectionString" = $connectionString
     }
 }
 
@@ -148,6 +183,7 @@ foreach ($ModuleName in $ModulesToProcess) {
     # Verificar se o projeto existe
     if (-not (Test-Path $moduleInfo.Project)) {
         Write-ColoredOutput "❌ Projeto não encontrado: $($moduleInfo.Project)" $Red
+        $failedCount++
         continue
     }
     

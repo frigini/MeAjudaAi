@@ -22,7 +22,7 @@ internal sealed class MockUserDomainService : IUserDomainService
             lastName,
             $"mock-keycloak-{Guid.NewGuid()}"
         );
-        
+
         return Task.FromResult(Result<User>.Success(user));
     }
 

@@ -31,7 +31,7 @@ public sealed class ProviderQueryService(ProvidersDbContext context) : IProvider
         // Valida parâmetros de paginação
         if (page < 1)
             throw new ArgumentOutOfRangeException(nameof(page), "Page must be greater than 0");
-        
+
         if (pageSize < 1)
             throw new ArgumentOutOfRangeException(nameof(pageSize), "PageSize must be greater than 0");
 
