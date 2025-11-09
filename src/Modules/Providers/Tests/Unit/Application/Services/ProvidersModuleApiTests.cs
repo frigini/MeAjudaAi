@@ -101,8 +101,6 @@ public class ProvidersModuleApiTests
         result.Should().BeTrue();
     }
 
-
-
     [Fact]
     public async Task IsAvailableAsync_WithFailingBasicOperations_ShouldReturnFalse()
     {
