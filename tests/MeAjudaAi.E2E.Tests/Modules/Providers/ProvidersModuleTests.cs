@@ -1,8 +1,9 @@
 using System.Net.Http.Json;
+
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
+using MeAjudaAi.Shared.Contracts;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 

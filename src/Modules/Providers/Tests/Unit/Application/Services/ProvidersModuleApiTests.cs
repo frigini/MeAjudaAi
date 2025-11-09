@@ -80,6 +80,9 @@ public class ProvidersModuleApiTests
         result.Should().Be("1.0");
     }
 
+    // Note: These tests bypass HealthCheckService by returning null to avoid complex mocking.
+    // The health check filtering logic (tags: "providers", "database") is not covered here.
+    // Consider adding integration tests for full health check validation.
     [Fact]
     public async Task IsAvailableAsync_WithHealthySystem_ShouldReturnTrue()
     {
@@ -119,8 +122,6 @@ public class ProvidersModuleApiTests
         // Assert
         result.Should().BeFalse();
     }
-
-
 
     [Fact]
     public async Task GetProviderByIdAsync_WithExistingProvider_ShouldReturnProvider()

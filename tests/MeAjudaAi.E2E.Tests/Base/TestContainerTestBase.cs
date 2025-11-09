@@ -132,9 +132,11 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     }
 
                     // Configura apenas autenticação de teste como esquema padrão
-                services.AddAuthentication(ConfigurableTestAuthenticationHandler.SchemeName)
-                    .AddScheme<AuthenticationSchemeOptions, ConfigurableTestAuthenticationHandler>(
-                        ConfigurableTestAuthenticationHandler.SchemeName, options => { });                    // Configurar aplicação automática de migrações apenas para testes
+                    services.AddAuthentication(ConfigurableTestAuthenticationHandler.SchemeName)
+                        .AddScheme<AuthenticationSchemeOptions, ConfigurableTestAuthenticationHandler>(
+                            ConfigurableTestAuthenticationHandler.SchemeName, options => { });
+
+                    // Configurar aplicação automática de migrações apenas para testes
                     services.AddScoped<Func<UsersDbContext>>(provider => () =>
                     {
                         var context = provider.GetRequiredService<UsersDbContext>();
@@ -209,7 +211,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     private async Task ApplyMigrationsAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        
+
         // Aplicar migrações no UsersDbContext
         var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         await usersContext.Database.EnsureDeletedAsync();
