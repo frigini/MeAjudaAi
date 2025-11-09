@@ -53,6 +53,14 @@ public class UpdateProviderProfileRequestValidator : AbstractValidator<UpdatePro
                     .NotEmpty()
                     .WithMessage("PrimaryAddress.Street is required");
 
+                RuleFor(x => x.BusinessProfile!.PrimaryAddress!.Number)
+                    .NotEmpty()
+                    .WithMessage("PrimaryAddress.Number is required");
+
+                RuleFor(x => x.BusinessProfile!.PrimaryAddress!.Neighborhood)
+                    .NotEmpty()
+                    .WithMessage("PrimaryAddress.Neighborhood is required");
+
                 RuleFor(x => x.BusinessProfile!.PrimaryAddress!.City)
                     .NotEmpty()
                     .WithMessage("PrimaryAddress.City is required");

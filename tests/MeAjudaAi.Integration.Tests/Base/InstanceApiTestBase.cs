@@ -61,13 +61,21 @@ public abstract class InstanceApiTestBase : IAsyncLifetime
                     // Add test database contexts
                     services.AddDbContext<UsersDbContext>(options =>
                     {
-                        options.UseNpgsql(_databaseFixture.ConnectionString);
+                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
+                        });
                         options.EnableSensitiveDataLogging();
                     });
 
                     services.AddDbContext<ProvidersDbContext>(options =>
                     {
-                        options.UseNpgsql(_databaseFixture.ConnectionString);
+                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Providers.Infrastructure");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
+                        });
                         options.EnableSensitiveDataLogging();
                     });
 
@@ -255,6 +263,7 @@ public abstract class InstanceApiTestBase : IAsyncLifetime
                 id serial PRIMARY KEY,
                 number varchar(50) NOT NULL,
                 document_type varchar(20) NOT NULL,
+                is_primary boolean NOT NULL DEFAULT false,
                 FOREIGN KEY (provider_id) REFERENCES providers.providers(id) ON DELETE CASCADE
             );";
 

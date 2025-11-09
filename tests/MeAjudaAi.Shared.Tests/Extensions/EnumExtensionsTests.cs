@@ -53,7 +53,7 @@ public class EnumExtensionsTests
             // Assert
             result.IsSuccess.Should().BeFalse();
             result.Error.Should().NotBeNull();
-            
+
             if (string.IsNullOrWhiteSpace(value))
             {
                 result.Error.Message.Should().StartWith("Value cannot be null or empty");

@@ -14,7 +14,7 @@ public static class EnumExtensions
     /// <param name="value">String a ser convertida</param>
     /// <param name="ignoreCase">Se deve ignorar case (padrão: true)</param>
     /// <returns>Result com enum convertido ou erro</returns>
-    public static Result<TEnum> ToEnum<TEnum>(this string value, bool ignoreCase = true) 
+    public static Result<TEnum> ToEnum<TEnum>(this string value, bool ignoreCase = true)
         where TEnum : struct, Enum
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -41,7 +41,7 @@ public static class EnumExtensions
     /// <param name="defaultValue">Valor padrão se conversão falhar</param>
     /// <param name="ignoreCase">Se deve ignorar case (padrão: true)</param>
     /// <returns>Enum convertido ou valor padrão</returns>
-    public static TEnum ToEnumOrDefault<TEnum>(this string value, TEnum defaultValue, bool ignoreCase = true) 
+    public static TEnum ToEnumOrDefault<TEnum>(this string value, TEnum defaultValue, bool ignoreCase = true)
         where TEnum : struct, Enum
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -57,7 +57,7 @@ public static class EnumExtensions
     /// <param name="value">String a ser verificada</param>
     /// <param name="ignoreCase">Se deve ignorar case (padrão: true)</param>
     /// <returns>True se é um valor válido</returns>
-    public static bool IsValidEnum<TEnum>(this string value, bool ignoreCase = true) 
+    public static bool IsValidEnum<TEnum>(this string value, bool ignoreCase = true)
         where TEnum : struct, Enum
     {
         if (string.IsNullOrWhiteSpace(value))

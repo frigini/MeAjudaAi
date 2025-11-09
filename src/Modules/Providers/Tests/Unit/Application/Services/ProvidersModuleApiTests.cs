@@ -149,7 +149,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
         var providerDto = CreateTestProviderDto(providerId);
-        
+
         _getProviderByIdHandlerMock.Setup(x => x.HandleAsync(
                 It.Is<GetProviderByIdQuery>(q => q.ProviderId == providerId),
                 It.IsAny<CancellationToken>()))
@@ -170,7 +170,7 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        
+
         _getProviderByIdHandlerMock.Setup(x => x.HandleAsync(
                 It.Is<GetProviderByIdQuery>(q => q.ProviderId == providerId),
                 It.IsAny<CancellationToken>()))
@@ -190,7 +190,7 @@ public class ProvidersModuleApiTests
         // Arrange
         var providerId = Guid.NewGuid();
         var providerDto = CreateTestProviderDto(providerId);
-        
+
         _getProviderByIdHandlerMock.Setup(x => x.HandleAsync(
                 It.IsAny<GetProviderByIdQuery>(),
                 It.IsAny<CancellationToken>()))
@@ -209,7 +209,7 @@ public class ProvidersModuleApiTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        
+
         _getProviderByIdHandlerMock.Setup(x => x.HandleAsync(
                 It.IsAny<GetProviderByIdQuery>(),
                 It.IsAny<CancellationToken>()))

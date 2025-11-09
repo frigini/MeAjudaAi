@@ -25,9 +25,10 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
         // Arrange
         AuthConfig.ConfigureAdmin();
 
+        var userId = Guid.NewGuid();
         var providerData = new
         {
-            userId = Guid.NewGuid(),
+            userId = userId.ToString(),
             name = "Test Provider Integration",
             type = 0, // Individual
             businessProfile = new
@@ -57,6 +58,8 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : InstanceA
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
+        testOutput.WriteLine($"Response Status: {response.StatusCode}");
+        testOutput.WriteLine($"Response Content: {content}");
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.Created,
             "POST requests that create resources should return 201 Created");
         // Optionally verify Location:

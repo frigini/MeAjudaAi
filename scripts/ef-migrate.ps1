@@ -40,7 +40,7 @@ param(
     [string]$Command = "migrate",
     
     [Parameter()]
-    [ValidateSet("Users", "Providers", "Services", "Orders")]
+    [ValidateSet("Users", "Providers")]
     [string]$Module = $null,
     
     [Parameter()]
@@ -164,11 +164,14 @@ foreach ($ModuleName in $ModulesToProcess) {
         "add" {
             if (-not $MigrationName) {
                 Write-ColoredOutput "❌ Nome da migração é obrigatório para o comando 'add'" $Red
+                $failedCount++
                 continue
             }
             $efCommand = "migrations add `"$MigrationName`" --output-dir `"$($moduleInfo.OutputDir)`""
             if (Invoke-EFCommand $ModuleName $moduleInfo $efCommand) {
                 $successCount++
+            } else {
+                $failedCount++
             }
         }
         
@@ -176,6 +179,8 @@ foreach ($ModuleName in $ModulesToProcess) {
             $efCommand = "migrations remove"
             if (Invoke-EFCommand $ModuleName $moduleInfo $efCommand) {
                 $successCount++
+            } else {
+                $failedCount++
             }
         }
         
@@ -192,6 +197,8 @@ foreach ($ModuleName in $ModulesToProcess) {
             $efCommand = "migrations list"
             if (Invoke-EFCommand $ModuleName $moduleInfo $efCommand) {
                 $successCount++
+            } else {
+                $failedCount++
             }
         }
     }

@@ -1,12 +1,12 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Auth;
-using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 
@@ -215,17 +215,17 @@ public class ProvidersApiTests : ApiTestBase
             var status = statusElement.GetString();
             status.Should().NotBe("Unhealthy", "Health status should not be Unhealthy");
 
-            // Verifica se a entrada do health check de providers existe e está saudável
+            // Verifica se a entrada do health check de database existe (providers não tem health check específico)
             if (healthResponse.TryGetProperty("entries", out var entries))
             {
-                var providersEntry = entries.EnumerateObject()
-                    .FirstOrDefault(e => e.Name.Contains("providers", StringComparison.OrdinalIgnoreCase));
-                providersEntry.Should().NotBe(default, "Health check should include providers entry");
+                var databaseEntry = entries.EnumerateObject()
+                    .FirstOrDefault(e => e.Name.Contains("database", StringComparison.OrdinalIgnoreCase));
+                databaseEntry.Should().NotBe(default, "Health check should include database entry");
             }
             else
             {
                 // Fallback para correspondência de string se a estrutura de entradas for diferente
-                content.Should().Contain("providers", "Health check should include providers database reference");
+                content.Should().Contain("database", "Health check should include database reference");
             }
         }
     }

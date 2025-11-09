@@ -135,7 +135,7 @@ public sealed class ProvidersModuleApi(
         logger.LogDebug("Getting basic provider info for {Count} provider IDs", providerIds.Count());
 
         var result = await getProvidersByIdsHandler.HandleAsync(new GetProvidersByIdsQuery(providerIds.ToList()), cancellationToken);
-        
+
         return result.Match(
             onSuccess: providerDtos => Result<IReadOnlyList<ModuleProviderBasicDto>>.Success(
                 providerDtos.Select(MapToModuleBasicDto).ToList()),
@@ -232,7 +232,7 @@ public sealed class ProvidersModuleApi(
         {
             return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(enumResult.Error);
         }
-        
+
         var query = new GetProvidersByTypeQuery(enumResult.Value);
         var result = await getProvidersByTypeHandler.HandleAsync(query, cancellationToken);
 
@@ -252,7 +252,7 @@ public sealed class ProvidersModuleApi(
         {
             return Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(enumResult.Error);
         }
-        
+
         var query = new GetProvidersByVerificationStatusQuery(enumResult.Value);
         var result = await getProvidersByVerificationStatusHandler.HandleAsync(query, cancellationToken);
 

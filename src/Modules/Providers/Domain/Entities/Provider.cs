@@ -223,7 +223,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         {
             _documents[i] = _documents[i].WithPrimaryStatus(i == documentIndex);
         }
-        
+
         MarkAsUpdated();
     }
 

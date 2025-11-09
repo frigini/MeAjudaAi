@@ -28,6 +28,13 @@ public sealed class ProviderQueryService(ProvidersDbContext context) : IProvider
         EVerificationStatus? verificationStatusFilter = null,
         CancellationToken cancellationToken = default)
     {
+        // Valida parâmetros de paginação
+        if (page < 1)
+            throw new ArgumentOutOfRangeException(nameof(page), "Page must be greater than 0");
+        
+        if (pageSize < 1)
+            throw new ArgumentOutOfRangeException(nameof(pageSize), "PageSize must be greater than 0");
+
         var query = context.Providers
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
@@ -51,8 +58,8 @@ public sealed class ProviderQueryService(ProvidersDbContext context) : IProvider
             query = query.Where(p => p.VerificationStatus == verificationStatusFilter.Value);
         }
 
-        // Ordena por data de criação (mais recentes primeiro)
-        query = query.OrderByDescending(p => p.CreatedAt);
+        // Ordena por data de criação (mais recentes primeiro) com ID como tiebreaker para determinismo
+        query = query.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id);
 
         // Conta total de registros
         var totalCount = await query.CountAsync(cancellationToken);

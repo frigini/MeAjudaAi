@@ -1,9 +1,9 @@
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Shared.Tests.Auth;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
 
@@ -100,7 +100,7 @@ public class UsersApiTests : ApiTestBase
 
         var userData = new
         {
-            username = $"testuser{Guid.NewGuid():N}",
+            username = $"test{Guid.NewGuid():N}"[..20], // Limit to 20 chars
             email = $"test-{Guid.NewGuid():N}@example.com",
             firstName = "Test",
             lastName = "User",

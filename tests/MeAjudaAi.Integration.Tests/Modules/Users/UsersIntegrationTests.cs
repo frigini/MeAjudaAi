@@ -1,9 +1,9 @@
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Shared.Tests.Auth;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
 
@@ -27,7 +27,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : InstanceApiTe
 
         var userData = new
         {
-            username = $"testuser{Guid.NewGuid():N}",
+            username = $"test{Guid.NewGuid():N}"[..20], // Limit to 20 chars
             email = $"test-{Guid.NewGuid():N}@example.com",
             firstName = "Test",
             lastName = "User",
@@ -155,7 +155,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : InstanceApiTe
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var userData = new
         {
-            username = $"testuser{uniqueId}",
+            username = $"test{uniqueId}",
             email = $"test-{uniqueId}@example.com",
             firstName = "Test",
             lastName = "User",
@@ -230,7 +230,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : InstanceApiTe
     {
         var userData = new
         {
-            username = username,
+            username = username.Length > 20 ? username[..20] : username,
             email = email,
             firstName = "Test",
             lastName = "User",

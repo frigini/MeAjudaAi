@@ -63,6 +63,15 @@ public static class Extensions
             .EnableSensitiveDataLogging(false);
         });
 
+        // AUTO-MIGRATION: Configura factory para auto-aplicar migrations quando necessário
+        services.AddScoped<Func<ProvidersDbContext>>(provider => () =>
+        {
+            var context = provider.GetRequiredService<ProvidersDbContext>();
+            // Aplica migrações pendentes - ABORDAGEM PREGUIÇOSA
+            context.Database.Migrate();
+            return context;
+        });
+
         // Registro do repositório
         services.AddScoped<IProviderRepository, ProviderRepository>();
 

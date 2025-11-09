@@ -1,9 +1,9 @@
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Shared.Tests.Auth;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 
@@ -200,16 +200,16 @@ public class ImplementedFeaturesTests : ApiTestBase
             var status = statusElement.GetString();
             status.Should().NotBe("Unhealthy", "Health status should not be Unhealthy");
 
-            // Verify providers health check entry exists
+            // Verify database health check entry exists (providers no longer has specific health check)
             if (healthResponse.TryGetProperty("entries", out var entries))
             {
-                var hasProvidersEntry = entries.EnumerateObject()
-                    .Any(e => e.Name.Contains("providers", StringComparison.OrdinalIgnoreCase));
-                hasProvidersEntry.Should().BeTrue("Health check should include providers database entry");
+                var hasDatabaseEntry = entries.EnumerateObject()
+                    .Any(e => e.Name.Contains("database", StringComparison.OrdinalIgnoreCase));
+                hasDatabaseEntry.Should().BeTrue("Health check should include database entry");
             }
             else
             {
-                content.Should().Contain("providers", "Health check should include providers database reference");
+                content.Should().Contain("database", "Health check should include database reference");
             }
         }
     }

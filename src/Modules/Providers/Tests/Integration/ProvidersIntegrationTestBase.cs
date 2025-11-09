@@ -115,7 +115,7 @@ public abstract class ProvidersIntegrationTestBase : IntegrationTestBase
         catch (Exception ex)
         {
             Console.WriteLine($"EF Core cleanup failed: {ex.Message}. Trying raw SQL...");
-            
+
             // Fallback to raw SQL if EF Core fails
             try
             {
@@ -127,7 +127,7 @@ public abstract class ProvidersIntegrationTestBase : IntegrationTestBase
             catch (Exception ex2)
             {
                 Console.WriteLine($"Raw SQL cleanup failed: {ex2.Message}. Trying TRUNCATE...");
-                
+
                 // Se DELETE falhar, tentar TRUNCATE com cascata
                 try
                 {
@@ -136,7 +136,7 @@ public abstract class ProvidersIntegrationTestBase : IntegrationTestBase
                 catch (Exception ex3)
                 {
                     Console.WriteLine($"TRUNCATE failed: {ex3.Message}. Recreating database...");
-                    
+
                     // Se ainda falhar, recriar o schema
                     await dbContext.Database.EnsureDeletedAsync();
                     await dbContext.Database.EnsureCreatedAsync();

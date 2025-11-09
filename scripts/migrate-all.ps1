@@ -66,16 +66,37 @@ Write-Host
 
 # Verificar se o PostgreSQL está rodando
 try {
-    $pgResult = & docker ps --filter "name=postgres" --format "table {{.Names}}" 2>$null
-    if ($pgResult -match "postgres") {
-        Write-ColoredOutput "✅ PostgreSQL container encontrado" $Green
+    # Verificar se existe algum container com nome "postgres" 
+    $existingContainer = & docker ps -a --filter "name=postgres" --format "{{.Names}}" 2>$null
+    
+    if ($existingContainer -match "postgres") {
+        # Verificar se está rodando
+        $runningContainer = & docker ps --filter "name=postgres" --format "{{.Names}}" 2>$null
+        if ($runningContainer -match "postgres") {
+            Write-ColoredOutput "✅ PostgreSQL container já está rodando" $Green
+        } else {
+            Write-ColoredOutput "⚠️  PostgreSQL container existe mas não está rodando. Iniciando..." $Yellow
+            & docker start postgres
+            if ($LASTEXITCODE -ne 0) {
+                Write-ColoredOutput "❌ Erro ao iniciar container PostgreSQL existente" $Red
+                exit 1
+            }
+            Start-Sleep -Seconds 5
+            Write-ColoredOutput "✅ PostgreSQL container iniciado" $Green
+        }
     } else {
-        Write-ColoredOutput "⚠️  PostgreSQL container não encontrado. Tentando iniciar..." $Yellow
+        Write-ColoredOutput "⚠️  PostgreSQL container não encontrado. Criando novo..." $Yellow
         & docker run -d --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:15
+        if ($LASTEXITCODE -ne 0) {
+            Write-ColoredOutput "❌ Erro ao criar container PostgreSQL" $Red
+            exit 1
+        }
         Start-Sleep -Seconds 5
+        Write-ColoredOutput "✅ PostgreSQL container criado e iniciado" $Green
     }
 } catch {
-    Write-ColoredOutput "⚠️  Não foi possível verificar o PostgreSQL. Continuando..." $Yellow
+    Write-ColoredOutput "❌ Erro ao verificar/iniciar PostgreSQL: $_" $Red
+    exit 1
 }
 
 # Construir a ferramenta de migração

@@ -1,3 +1,4 @@
+using System.Reflection;
 using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
@@ -10,7 +11,6 @@ using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace MeAjudaAi.Modules.Providers.Application;
 
@@ -41,7 +41,7 @@ public static class Extensions
         services.AddScoped<ICommandHandler<UpdateVerificationStatusCommand, Result<ProviderDto>>, UpdateVerificationStatusCommandHandler>();
 
         // Module API - registro da API pública para comunicação entre módulos
-        services.AddScoped<MeAjudaAi.Shared.Contracts.Modules.Providers.IProvidersModuleApi, 
+        services.AddScoped<MeAjudaAi.Shared.Contracts.Modules.Providers.IProvidersModuleApi,
             MeAjudaAi.Modules.Providers.Application.ModuleApi.ProvidersModuleApi>();
 
         // Validators - registro dos validadores FluentValidation
