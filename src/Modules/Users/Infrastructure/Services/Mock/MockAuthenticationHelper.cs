@@ -47,7 +47,7 @@ internal static class MockAuthenticationHelper
         {
             return $"keycloak-{userSpecificValue}";
         }
-        
+
         // Generate unique ID using counter for thread safety
         var uniqueId = Interlocked.Increment(ref _keycloakIdCounter);
         return $"keycloak-{FixedUserId}-{uniqueId}";

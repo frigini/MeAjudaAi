@@ -6,7 +6,8 @@ Esta coleção do Bruno contém todos os endpoints do módulo de usuários da ap
 
 ```
 API.Client/
-├── collection.bru               # Configuração local da collection
+├── collection.bru.example       # Template de configuração (copie para collection.bru)
+├── collection.bru               # Configuração local (não versionado - criar local)
 ├── README.md                    # Documentação completa  
 └── UserAdmin/
     ├── GetUsers.bru            # GET /api/v1/users (paginado)
@@ -31,7 +32,13 @@ API.Client/
 
 ### 2. Configuração Inicial
 
-#### ⚡ **IMPORTANTE: Execute PRIMEIRO a configuração compartilhada**
+#### ⚡ **PRIMEIRO: Crie seu arquivo de configuração local**
+```bash
+# No diretório API.Client
+cp collection.bru.example collection.bru
+```
+
+#### ⚡ **Execute PRIMEIRO a configuração compartilhada**
 1. **Navegue para**: `src/Shared/API.Collections/Setup/`
 2. **Execute**: `SetupGetKeycloakToken.bru` para autenticar
 3. **Resultado**: Token de acesso será definido automaticamente para TODOS os módulos

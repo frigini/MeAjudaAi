@@ -16,6 +16,14 @@ internal sealed class MockKeycloakService : IKeycloakService
     // Thread-safe in-memory storage for roles per keycloak user (for testing purposes)
     private static readonly ConcurrentDictionary<string, string[]> _userRoles = new();
 
+    /// <summary>
+    /// Resets the internal state of the mock service for test isolation
+    /// </summary>
+    public void Reset()
+    {
+        _userRoles.Clear();
+    }
+
     public Task<Result<string>> CreateUserAsync(string username, string email, string firstName, string lastName, string password, IEnumerable<string> roles, CancellationToken cancellationToken = default)
     {
         var keycloakId = MockAuthenticationHelper.CreateMockKeycloakId();

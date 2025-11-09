@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests;
 
-public class RegressionTests : ApiTestBase
+public class RegressionTests : InstanceApiTestBase
 {
     private readonly ITestOutputHelper _output;
 
@@ -20,8 +20,8 @@ public class RegressionTests : ApiTestBase
         try
         {
             // Arrange
-            ConfigurableTestAuthenticationHandler.ClearConfiguration();
-            ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+            AuthConfig.ClearConfiguration();
+            AuthConfig.ConfigureAdmin();
 
             // Act
             var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=5", TestContext.Current.CancellationToken);
@@ -37,7 +37,7 @@ public class RegressionTests : ApiTestBase
         }
         finally
         {
-            ConfigurableTestAuthenticationHandler.ClearConfiguration();
+            AuthConfig.ClearConfiguration();
         }
     }
 
@@ -53,8 +53,8 @@ public class RegressionTests : ApiTestBase
         try
         {
             // Arrange
-            ConfigurableTestAuthenticationHandler.ClearConfiguration();
-            ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+            AuthConfig.ClearConfiguration();
+            AuthConfig.ConfigureAdmin();
 
             // Act
             var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=5", TestContext.Current.CancellationToken);
@@ -70,7 +70,7 @@ public class RegressionTests : ApiTestBase
         }
         finally
         {
-            ConfigurableTestAuthenticationHandler.ClearConfiguration();
+            AuthConfig.ClearConfiguration();
         }
     }
 }

@@ -47,13 +47,22 @@ public abstract class BaseTestAuthenticationHandler(
             // Add permissions based on role for test environment
             if (role.Equals("admin", StringComparison.OrdinalIgnoreCase))
             {
-                // Add all admin permissions
+                // Add all admin permissions for Users
                 claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersList.GetValue()));
                 claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue()));
                 claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersCreate.GetValue()));
                 claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersUpdate.GetValue()));
                 claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersDelete.GetValue()));
                 claims.Add(new Claim(CustomClaimTypes.Permission, Permission.AdminUsers.GetValue()));
+
+                // Add all admin permissions for Providers
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersList.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersRead.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersCreate.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersUpdate.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersDelete.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersApprove.GetValue()));
+
                 claims.Add(new Claim(CustomClaimTypes.IsSystemAdmin, "true"));
             }
             else if (role.Equals("user", StringComparison.OrdinalIgnoreCase))
@@ -61,6 +70,10 @@ public abstract class BaseTestAuthenticationHandler(
                 // Add basic user permissions
                 claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersProfile.GetValue()));
                 claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue()));
+
+                // Add read access to providers list (public access for customers)
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersList.GetValue()));
+                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersRead.GetValue()));
             }
         }
 

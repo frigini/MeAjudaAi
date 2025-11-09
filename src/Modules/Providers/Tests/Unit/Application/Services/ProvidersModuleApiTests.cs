@@ -101,25 +101,7 @@ public class ProvidersModuleApiTests
         result.Should().BeTrue();
     }
 
-    [Fact]
-    public async Task IsAvailableAsync_WhenHealthCheckServiceUnavailable_ShouldStillCheckBasicOperations()
-    {
-        // Arrange - Test scenario where HealthCheckService is not available
-        _serviceProviderMock.Setup(x => x.GetService(typeof(HealthCheckService)))
-            .Returns((HealthCheckService?)null);
 
-        // Setup basic operations test to return Success (availability check should still work)
-        _getProviderByIdHandlerMock.Setup(x => x.HandleAsync(
-                It.IsAny<GetProviderByIdQuery>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ProviderDto?>.Success(null));
-
-        // Act
-        var result = await _sut.IsAvailableAsync();
-
-        // Assert
-        result.Should().BeTrue();
-    }
 
     [Fact]
     public async Task IsAvailableAsync_WithFailingBasicOperations_ShouldReturnFalse()

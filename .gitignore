@@ -126,3 +126,6 @@ postgres_data/
 **/meajudaai*.json
 *.openapi.json
 *.swagger.json
+
+# Bruno API Client collections with credentials
+**/collection.bru

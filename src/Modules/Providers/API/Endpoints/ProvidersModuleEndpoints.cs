@@ -43,7 +43,7 @@ public static class ProvidersModuleEndpoints
     {
         // Usa o sistema unificado de versionamento via BaseEndpoint
         var endpoints = BaseEndpoint.CreateVersionedGroup(app, "providers", "Providers");
-            // Remove .RequireAuthorization() global - cada endpoint define sua própria autorização
+        // Remove .RequireAuthorization() global - cada endpoint define sua própria autorização
 
         // Endpoints de gestão de prestadores
         endpoints.MapEndpoint<GetProvidersEndpoint>()

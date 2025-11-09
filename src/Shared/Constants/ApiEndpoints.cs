@@ -47,7 +47,7 @@ public static class ApiEndpoints
         public const string UpdateProfile = "/{id:guid}/profile"; // PUT UpdateProviderProfileEndpoint
         public const string UpdateVerificationStatus = "/{id:guid}/verification-status"; // PUT UpdateVerificationStatusEndpoint
         public const string AddDocument = "/{id:guid}/documents"; // POST AddDocumentEndpoint
-        public const string RemoveDocument = "/{id:guid}/documents/{documentId:guid}"; // DELETE RemoveDocumentEndpoint
+        public const string RemoveDocument = "/{id:guid}/documents/{documentType}"; // DELETE RemoveDocumentEndpoint
     }
 
     /// <summary>

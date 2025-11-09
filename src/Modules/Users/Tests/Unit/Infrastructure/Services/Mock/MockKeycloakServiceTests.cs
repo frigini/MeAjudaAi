@@ -16,6 +16,7 @@ public class MockKeycloakServiceTests
     public MockKeycloakServiceTests()
     {
         _service = new MockKeycloakService();
+        _service.Reset(); // Clear shared state between tests
     }
 
     [Fact]

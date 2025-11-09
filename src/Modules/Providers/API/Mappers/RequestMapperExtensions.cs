@@ -15,6 +15,10 @@ public static class RequestMapperExtensions
     /// </summary>
     /// <param name="request">Requisição de criação de prestador</param>
     /// <returns>CreateProviderCommand com propriedades mapeadas</returns>
+    /// <remarks>
+    /// ArgumentNullException aqui captura erros de programação - a validação de entrada do usuário
+    /// deve ser feita via FluentValidation antes de chegar neste ponto.
+    /// </remarks>
     public static CreateProviderCommand ToCommand(this CreateProviderRequest request)
     {
         return new CreateProviderCommand(

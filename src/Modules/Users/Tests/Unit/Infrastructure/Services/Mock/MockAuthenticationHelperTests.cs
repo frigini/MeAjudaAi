@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Users.Infrastructure.Services.Mock;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Services.Mock;
 
@@ -23,7 +24,7 @@ public class MockAuthenticationHelperTests
         id1.Should().NotBe(id2);
         id2.Should().NotBe(id3);
         id1.Should().NotBe(id3);
-        
+
         // All should start with "keycloak-" prefix
         id1.Should().StartWith("keycloak-");
         id2.Should().StartWith("keycloak-");
@@ -41,7 +42,7 @@ public class MockAuthenticationHelperTests
         // Assert
         id1.Should().Be(id2); // Same user should get same ID
         id1.Should().NotBe(id3); // Different users should get different IDs
-        
+
         id1.Should().Be("keycloak-user123");
         id3.Should().Be("keycloak-user456");
     }
@@ -70,8 +71,8 @@ public class MockAuthenticationHelperTests
         result.UserId.Should().NotBe(Guid.Empty);
         result.Roles.Should().NotBeNull();
         result.Claims.Should().NotBeNull().And.NotBeEmpty();
-        result.Claims.Should().ContainKey("sub");
-        result.Claims.Should().ContainKey("preferred_username");
-        result.Claims.Should().ContainKey("email");
+        result.Claims.Should().ContainKey(AuthConstants.Claims.Subject);
+        result.Claims.Should().ContainKey(AuthConstants.Claims.PreferredUsername);
+        result.Claims.Should().ContainKey(AuthConstants.Claims.Email);
     }
 }

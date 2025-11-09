@@ -1,19 +1,27 @@
+// Configure these variables with your local environment values
 // Configure estas variáveis com os valores do seu ambiente local
+// DO NOT commit real credentials to version control
 // NÃO faça commit de credenciais reais no controle de versão
+// Use environment variables or a local .env file for sensitive data
 // Use variáveis de ambiente ou um arquivo .env local para dados sensíveis
 vars {
+  // API base URLs
   baseUrl: http://localhost:5000
   keycloakUrl: http://localhost:8080
+  // Keycloak configuration
   realm: meajudaai-realm
   clientId: meajudaai-client
+  // Admin credentials (leave empty, set via environment)
   adminUser: your-admin-username
   adminPassword: 
   accessToken: 
+  // Entity IDs (populated during test execution)
   providerId: 
   userId: 
+  // Test data for provider creation
   testName: João Silva
   testCity: São Paulo
   testState: SP
-  testType: 1
-  testVerificationStatus: 2
+  testType: 1  // e.g., 1 = Individual, 2 = Company
+  testVerificationStatus: 2  // e.g., 1 = Pending, 2 = Verified
 }

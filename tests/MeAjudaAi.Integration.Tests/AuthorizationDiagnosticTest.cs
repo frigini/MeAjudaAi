@@ -10,7 +10,7 @@ namespace MeAjudaAi.Integration.Tests;
 /// 
 /// Verifica se o problema está na configuração de autorização
 /// </summary>
-public class AuthorizationDiagnosticTest(ITestOutputHelper testOutput) : ApiTestBase
+public class AuthorizationDiagnosticTest(ITestOutputHelper testOutput) : AuthorizationTestBase
 {
     [Fact]
     public async Task Health_Check_Endpoint_Should_Work_Without_Auth()
