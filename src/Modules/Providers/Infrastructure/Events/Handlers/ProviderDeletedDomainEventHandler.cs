@@ -27,6 +27,7 @@ public sealed class ProviderDeletedDomainEventHandler(
 
             // Buscar apenas o UserId do provider, mesmo se soft-deleted ou removido
             var userId = await context.Providers
+                .AsNoTracking()
                 .IgnoreQueryFilters()
                 .Where(p => p.Id.Value == domainEvent.AggregateId)
                 .Select(p => (Guid?)p.UserId)

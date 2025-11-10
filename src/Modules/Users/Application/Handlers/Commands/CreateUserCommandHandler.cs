@@ -22,7 +22,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="userDomainService">Serviço de domínio para operações de usuário</param>
 /// <param name="userRepository">Repositório para persistência de usuários</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
-internal sealed class CreateUserCommandHandler(
+public sealed class CreateUserCommandHandler(
     IUserDomainService userDomainService,
     IUserRepository userRepository,
     ILogger<CreateUserCommandHandler> logger

@@ -132,7 +132,12 @@ public static class Extensions
             services.AddScoped<IUserDomainService, KeycloakUserDomainService>();
             services.AddScoped<IAuthenticationDomainService, KeycloakAuthenticationDomainService>();
         }
-        // Quando shouldUseMock é true, não registra nada (será necessário configurar manualmente para testes)
+        else
+        {
+            // Registra implementações mock quando Keycloak não está disponível ou configurado
+            services.AddScoped<IUserDomainService, MockUserDomainService>();
+            services.AddScoped<IAuthenticationDomainService, MockAuthenticationDomainService>();
+        }
 
         return services;
     }

@@ -115,6 +115,20 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
                     });
 
+                    // Reconfigurar ProvidersDbContext com TestContainer connection string
+                    var providersDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ProvidersDbContext>));
+                    if (providersDescriptor != null)
+                        services.Remove(providersDescriptor);
+
+                    services.AddDbContext<ProvidersDbContext>(options =>
+                    {
+                        options.UseNpgsql(_postgresContainer.GetConnectionString())
+                               .UseSnakeCaseNamingConvention()
+                               .EnableSensitiveDataLogging(false)
+                               .ConfigureWarnings(warnings =>
+                                   warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                    });
+
                     // Substituir IKeycloakService por MockKeycloakService para testes
                     var keycloakDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IKeycloakService));
                     if (keycloakDescriptor != null)
@@ -148,8 +162,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     services.AddScoped<Func<ProvidersDbContext>>(provider => () =>
                     {
                         var context = provider.GetRequiredService<ProvidersDbContext>();
-                        // Aplicar migrações apenas em testes
-                        context.Database.Migrate();
+                        // Em testes E2E, o EnsureCreated já foi chamado no UseProvidersModule
                         return context;
                     });
                 });
@@ -215,12 +228,12 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         // Aplicar migrações no UsersDbContext
         var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         await usersContext.Database.EnsureDeletedAsync();
-        await usersContext.Database.EnsureCreatedAsync();
+        await usersContext.Database.MigrateAsync();
 
-        // Aplicar migrações no ProvidersDbContext
+        // Para ProvidersDbContext, limpar o banco pois o EnsureCreated será chamado no UseProvidersModule
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
         await providersContext.Database.EnsureDeletedAsync();
-        await providersContext.Database.EnsureCreatedAsync();
+        // Não chamar EnsureCreated aqui pois será feito pelo UseProvidersModule
     }
 
     // Helper methods usando serialização compartilhada

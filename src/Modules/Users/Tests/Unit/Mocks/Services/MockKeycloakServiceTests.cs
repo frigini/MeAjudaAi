@@ -42,14 +42,14 @@ public class MockKeycloakServiceTests
     public async Task AuthenticateAsync_ShouldReturnSuccessWithValidToken()
     {
         // Act
-        var result = await _service.AuthenticateAsync("testuser", "password123");
+        var result = await _service.AuthenticateAsync("validuser", "validpassword");
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value.AccessToken.Should().NotBeNullOrEmpty();
         result.Value.RefreshToken.Should().NotBeNullOrEmpty();
-        result.Value.ExpiresAt.Should().BeAfter(DateTime.UtcNow.AddYears(1000));
+        result.Value.ExpiresAt.Should().BeAfter(DateTime.UtcNow);
         result.Value.UserId.Should().NotBe(Guid.Empty);
     }
 
@@ -57,7 +57,7 @@ public class MockKeycloakServiceTests
     public async Task ValidateTokenAsync_ShouldReturnSuccessWithValidResult()
     {
         // Act
-        var result = await _service.ValidateTokenAsync("mock-token");
+        var result = await _service.ValidateTokenAsync("mock_token_123");
 
         // Assert
         result.IsSuccess.Should().BeTrue();

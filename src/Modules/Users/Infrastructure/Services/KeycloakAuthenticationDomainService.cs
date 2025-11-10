@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Services;
 
-internal class KeycloakAuthenticationDomainService(IKeycloakService keycloakService) : IAuthenticationDomainService
+public class KeycloakAuthenticationDomainService(IKeycloakService keycloakService) : IAuthenticationDomainService
 {
     public async Task<Result<AuthenticationResult>> AuthenticateAsync(
         string usernameOrEmail,

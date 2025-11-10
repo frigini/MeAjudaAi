@@ -1,8 +1,5 @@
 using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
-using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
-using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
@@ -137,11 +134,4 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         result.TotalPages.Should().Be(0);
     }
 
-    /// <summary>
-    /// Limpeza específica do teste (opcional)
-    /// </summary>
-    private async Task OnTestDisposeAsync()
-    {
-        await CleanupDatabase();
-    }
 }

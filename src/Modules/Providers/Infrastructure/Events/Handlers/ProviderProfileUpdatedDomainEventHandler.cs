@@ -27,6 +27,7 @@ public sealed class ProviderProfileUpdatedDomainEventHandler(
 
             // Busca o prestador para garantir que temos os dados mais recentes
             var provider = await context.Providers
+                .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == new Domain.ValueObjects.ProviderId(domainEvent.AggregateId), cancellationToken);
 
             if (provider == null)

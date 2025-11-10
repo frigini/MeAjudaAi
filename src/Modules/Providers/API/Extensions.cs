@@ -54,7 +54,21 @@ public static class Extensions
             var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.ProvidersDbContext>();
             if (context == null) return;
 
-            context.Database.Migrate();
+            // Verificar se estamos em ambiente de teste (TestContainers ou similar)
+            var isTestEnvironment = app.Environment.EnvironmentName == "Test" || 
+                                   app.Environment.EnvironmentName == "Testing" ||
+                                   context.Database.GetConnectionString()?.Contains("localhost") == true;
+
+            if (isTestEnvironment)
+            {
+                // Em testes, usar EnsureCreated para evitar problemas de migrações pendentes
+                context.Database.EnsureCreated();
+            }
+            else
+            {
+                // Em produção, usar migrações normais
+                context.Database.Migrate();
+            }
         }
         catch (Exception ex)
         {

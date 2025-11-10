@@ -19,7 +19,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 /// </remarks>
 /// <param name="userRepository">Repositório para consultas de usuários</param>
 /// <param name="logger">Logger para auditoria e rastreamento das operações</param>
-internal sealed class GetUsersQueryHandler(
+public sealed class GetUsersQueryHandler(
     IUserRepository userRepository,
     ILogger<GetUsersQueryHandler> logger
 ) : IQueryHandler<GetUsersQuery, Result<PagedResult<UserDto>>>
