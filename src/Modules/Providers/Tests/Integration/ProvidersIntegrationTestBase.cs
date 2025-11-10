@@ -6,7 +6,6 @@ using MeAjudaAi.Modules.Providers.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -65,7 +64,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         var options = GetTestOptions();
         
         _container = new PostgreSqlBuilder()
-            .WithImage("postgres:15-alpine")
+            .WithImage(options.Database.PostgresImage)
             .WithDatabase(options.Database.DatabaseName)
             .WithUsername(options.Database.Username)
             .WithPassword(options.Database.Password)
@@ -110,14 +109,14 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     {
         var dbContext = _serviceProvider!.GetRequiredService<ProvidersDbContext>();
         
-        // Criar banco e aplicar migrações
+        // Criar banco e esquema sem executar migrations
         await dbContext.Database.EnsureCreatedAsync();
         
         // Verificar isolamento
         var count = await dbContext.Providers.CountAsync();
         if (count > 0)
         {
-            throw new InvalidOperationException($"Database isolation failed: found {count} existing providers in new database");
+            throw new InvalidOperationException($"Database isolation failed for '{GetTestOptions().Database.DatabaseName}': found {count} existing providers in new database");
         }
     }
 
@@ -169,7 +168,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         catch (Exception ex)
         {
             // Fallback para DELETE se TRUNCATE falhar
-            Console.WriteLine($"TRUNCATE failed: {ex.Message}. Using DELETE fallback...");
+            var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
+            logger.LogWarning(ex, "TRUNCATE failed: {Message}. Using DELETE fallback...", ex.Message);
             
             await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.qualification;");
             await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.document;");
@@ -200,7 +200,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"TRUNCATE failed: {ex.Message}. Trying DELETE...");
+            var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
+            logger.LogWarning(ex, "TRUNCATE failed: {Message}. Trying DELETE...", ex.Message);
         }
 
         try
@@ -213,7 +214,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"DELETE failed: {ex.Message}. Recreating database...");
+            var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
+            logger.LogError(ex, "DELETE failed: {Message}. Recreating database...", ex.Message);
         }
 
         // Estratégia 3: Recriar database

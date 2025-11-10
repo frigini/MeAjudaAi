@@ -128,16 +128,14 @@ public class GetProviderByIdQueryHandlerTests
             contactInfo: contactInfo,
             primaryAddress: address);
 
-        // Se um ProviderId específico foi fornecido, usa o construtor interno para testes
+        // Se um ProviderId específico foi fornecido, usa o construtor que aceita ProviderId explícito
+        // e não emite eventos de domínio
         if (providerId != null)
         {
-            var testContactInfo = new ContactInfo("test@company.com", "123456789");
-            var testAddress = new Address("Main St", "123", "Downtown", "Test City", "Test State", "12345");
-            var testBusinessProfile = new BusinessProfile("Test Company", testContactInfo, testAddress);
-            return new Provider(userId, name, type, testBusinessProfile);
+            return new Provider(providerId, userId, name, type, businessProfile);
         }
 
-        // Caso contrário, usa o construtor público normal
+        // Caso contrário, usa o construtor público normal que gera ProviderId automaticamente
         return new Provider(userId, name, type, businessProfile);
     }
 }

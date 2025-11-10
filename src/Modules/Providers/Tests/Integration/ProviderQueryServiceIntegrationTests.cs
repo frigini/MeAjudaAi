@@ -113,37 +113,9 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         await ForceCleanDatabase();
         
         var queryService = GetService<IProviderQueryService>();
-        var dbContext = GetService<ProvidersDbContext>();
         
-        // Criar um teste completamente isolado usando InMemory
-        var options = new DbContextOptionsBuilder<ProvidersDbContext>()
-            .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid():N}")
-            .Options;
-        
-        await using var isolatedContext = new ProvidersDbContext(options);
-        var isolatedQueryService = new ProviderQueryService(isolatedContext);
-
-        // Debug: Verificar se o contexto InMemory está realmente vazio
-        var directCount = await isolatedContext.Providers.CountAsync();
-        if (directCount != 0)
-        {
-            throw new InvalidOperationException($"InMemory context not empty: {directCount} providers found");
-        }
-
-        // Debug: Criar a query manualmente igual ao serviço faz
-        var debugQuery = isolatedContext.Providers
-            .Include(p => p.Documents)
-            .Include(p => p.Qualifications)
-            .Where(p => !p.IsDeleted);
-        
-        var debugCount = await debugQuery.CountAsync();
-        if (debugCount != 0)
-        {
-            throw new InvalidOperationException($"Debug query found {debugCount} providers when should be 0");
-        }
-
-        // Act - teste com banco completamente vazio
-        var resultWithoutFilter = await isolatedQueryService.GetProvidersAsync(page: 1, pageSize: 10);
+        // Act - teste com banco vazio usando container-backed services
+        var resultWithoutFilter = await queryService.GetProvidersAsync(page: 1, pageSize: 10);
 
         // Assert - o banco deve estar vazio
         resultWithoutFilter.Should().NotBeNull();
@@ -151,9 +123,9 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         resultWithoutFilter.TotalCount.Should().Be(0);
         resultWithoutFilter.TotalPages.Should().Be(0);
         
-        // Act - Agora com filtro único 
+        // Act - Agora com filtro único que não existe
         var uniqueFilter = $"VERY_UNIQUE_TEST_FILTER__{Guid.NewGuid():N}";
-        var result = await isolatedQueryService.GetProvidersAsync(
+        var result = await queryService.GetProvidersAsync(
             page: 1, 
             pageSize: 10,
             nameFilter: uniqueFilter);
@@ -168,7 +140,7 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
     /// <summary>
     /// Limpeza específica do teste (opcional)
     /// </summary>
-    protected async Task OnTestDisposeAsync()
+    private async Task OnTestDisposeAsync()
     {
         await CleanupDatabase();
     }

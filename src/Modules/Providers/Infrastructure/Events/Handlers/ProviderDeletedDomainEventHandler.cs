@@ -25,13 +25,16 @@ public sealed class ProviderDeletedDomainEventHandler(
         {
             logger.LogInformation("Handling ProviderDeletedDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
 
-            // Buscar provider para obter UserId antes da exclusão
-            var provider = await context.Providers
-                .FirstOrDefaultAsync(p => p.Id.Value == domainEvent.AggregateId, cancellationToken);
+            // Buscar apenas o UserId do provider, mesmo se soft-deleted ou removido
+            var userId = await context.Providers
+                .IgnoreQueryFilters()
+                .Where(p => p.Id.Value == domainEvent.AggregateId)
+                .Select(p => (Guid?)p.UserId)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (provider != null)
+            if (userId.HasValue)
             {
-                var integrationEvent = domainEvent.ToIntegrationEvent(provider.UserId);
+                var integrationEvent = domainEvent.ToIntegrationEvent(userId.Value);
                 await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
 
                 logger.LogInformation("Successfully published ProviderDeleted integration event for provider {ProviderId}", domainEvent.AggregateId);

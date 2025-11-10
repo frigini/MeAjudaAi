@@ -38,6 +38,7 @@ public sealed class TestProviderQueryService : IProviderQueryService
             throw new ArgumentOutOfRangeException(nameof(pageSize), "PageSize must be greater than 0");
 
         var query = _context.Providers
+            .AsNoTracking()
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
             .Where(p => !p.IsDeleted);

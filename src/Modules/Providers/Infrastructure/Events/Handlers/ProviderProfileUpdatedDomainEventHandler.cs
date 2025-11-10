@@ -36,8 +36,7 @@ public sealed class ProviderProfileUpdatedDomainEventHandler(
             }
 
             // Cria evento de integração para sistemas externos usando mapper
-            var updatedFields = new[] { "Name", "Email" }; // Determinar quais campos foram atualizados
-            var integrationEvent = domainEvent.ToIntegrationEvent(provider.UserId, updatedFields);
+            var integrationEvent = domainEvent.ToIntegrationEvent(provider.UserId, domainEvent.UpdatedFields);
 
             await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
 

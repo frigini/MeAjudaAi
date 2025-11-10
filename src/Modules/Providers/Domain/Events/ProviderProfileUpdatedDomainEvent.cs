@@ -10,10 +10,12 @@ namespace MeAjudaAi.Modules.Providers.Domain.Events;
 /// <param name="Name">Novo nome do prestador de serviços</param>
 /// <param name="Email">Novo email de contato</param>
 /// <param name="UpdatedBy">Quem fez a atualização</param>
+/// <param name="UpdatedFields">Lista dos campos que foram atualizados</param>
 public record ProviderProfileUpdatedDomainEvent(
     Guid AggregateId,
     int Version,
     string Name,
     string Email,
-    string? UpdatedBy
+    string? UpdatedBy,
+    string[] UpdatedFields
 ) : DomainEvent(AggregateId, Version);
