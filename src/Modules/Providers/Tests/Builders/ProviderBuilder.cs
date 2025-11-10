@@ -26,9 +26,9 @@ public class ProviderBuilder : BuilderBase<Provider>
             {
                 Provider provider;
 
+                // Se um ID específico foi fornecido, usa o construtor interno para testes
                 if (_providerId != null)
                 {
-                    // Usa o construtor interno para testes quando um ID específico é fornecido
                     provider = new Provider(
                         _providerId,
                         _userId ?? f.Random.Guid(),
@@ -39,7 +39,7 @@ public class ProviderBuilder : BuilderBase<Provider>
                 }
                 else
                 {
-                    // Usa o construtor público normal
+                    // Usa o construtor público que gera um novo ID
                     provider = new Provider(
                         _userId ?? f.Random.Guid(),
                         _name ?? f.Company.CompanyName(),

@@ -6,7 +6,6 @@ using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Users.Infrastructure.Services;
-using MeAjudaAi.Modules.Users.Infrastructure.Services.Mock;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
@@ -101,16 +100,12 @@ public static class Extensions
         // Se Keycloak está explicitamente desabilitado OU não há configuração válida, usa mock
         var shouldUseMock = !keycloakEnabled || !hasValidKeycloakConfig;
 
-        if (shouldUseMock)
-        {
-            // Registra implementação mock quando Keycloak está desabilitado ou sem configuração
-            services.AddScoped<IKeycloakService, MockKeycloakService>();
-        }
-        else
+        if (!shouldUseMock)
         {
             // Registra serviço real quando Keycloak está habilitado e configurado
             services.AddHttpClient<IKeycloakService, KeycloakService>();
         }
+        // Quando shouldUseMock é true, não registra nada (será necessário configurar manualmente para testes)
 
         return services;
     }
@@ -131,18 +126,13 @@ public static class Extensions
         // Se Keycloak está explicitamente desabilitado OU não há configuração válida, usa mock
         var shouldUseMock = !keycloakEnabled || !hasValidKeycloakConfig;
 
-        if (shouldUseMock)
-        {
-            // Registra implementações mock quando Keycloak está desabilitado ou sem configuração
-            services.AddScoped<IUserDomainService, MockUserDomainService>();
-            services.AddScoped<IAuthenticationDomainService, MockAuthenticationDomainService>();
-        }
-        else
+        if (!shouldUseMock)
         {
             // Registra serviços reais quando Keycloak está habilitado e configurado
             services.AddScoped<IUserDomainService, KeycloakUserDomainService>();
             services.AddScoped<IAuthenticationDomainService, KeycloakAuthenticationDomainService>();
         }
+        // Quando shouldUseMock é true, não registra nada (será necessário configurar manualmente para testes)
 
         return services;
     }

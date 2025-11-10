@@ -80,9 +80,9 @@ public sealed class Provider : AggregateRoot<ProviderId>
     private Provider() { }
 
     /// <summary>
-    /// Construtor interno para testes que permite especificar o ID.
+    /// Construtor para testes que permite especificar o ID.
     /// </summary>
-    internal Provider(
+    public Provider(
         ProviderId id,
         Guid userId,
         string name,

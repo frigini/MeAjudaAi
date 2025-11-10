@@ -5,20 +5,16 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
 
-namespace MeAjudaAi.Modules.Providers.Infrastructure.Queries;
+namespace MeAjudaAi.Modules.Providers.Tests.Infrastructure;
 
 /// <summary>
-/// Implementação do serviço de consultas de prestadores de serviços.
+/// Versão de teste do ProviderQueryService usando construtor tradicional
 /// </summary>
-/// <remarks>
-/// Implementa consultas complexas e paginadas específicas da infraestrutura
-/// que não fazem parte do domínio principal.
-/// </remarks>
-public sealed class ProviderQueryService : IProviderQueryService
+public sealed class TestProviderQueryService : IProviderQueryService
 {
     private readonly ProvidersDbContext _context;
 
-    public ProviderQueryService(ProvidersDbContext context)
+    public TestProviderQueryService(ProvidersDbContext context)
     {
         _context = context;
     }
@@ -78,8 +74,8 @@ public sealed class ProviderQueryService : IProviderQueryService
 
         return new PagedResult<Provider>(
             providers,
+            totalCount,
             page,
-            pageSize,
-            totalCount);
+            pageSize);
     }
 }

@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <param name="providerRepository">Repositório para acesso aos dados</param>
 /// <param name="dateTimeProvider">Provedor de data/hora para auditoria</param>
 /// <param name="logger">Logger estruturado</param>
-internal sealed class DeleteProviderCommandHandler(
+public sealed class DeleteProviderCommandHandler(
     IProviderRepository providerRepository,
     IDateTimeProvider dateTimeProvider,
     ILogger<DeleteProviderCommandHandler> logger

@@ -6,6 +6,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     
     <!-- Configurações de qualidade de código -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -60,6 +61,10 @@
     <NoWarn>$(NoWarn);CA2000</NoWarn> <!-- Dispose objects in test mocks -->
     <NoWarn>$(NoWarn);CA2213</NoWarn> <!-- Disposable fields in test infrastructure -->
     <NoWarn>$(NoWarn);CA1816</NoWarn> <!-- Dispose methods should call GC.SuppressFinalize -->
+    
+    <!-- Assembly version warnings - temporary -->
+    <NoWarn>$(NoWarn);CA1016</NoWarn> <!-- Assembly version warnings -->
+    <NoWarn>$(NoWarn);S3904</NoWarn> <!-- Assembly version warnings from SonarAnalyzer -->
     
     <!-- Code Analysis - String and Culture -->
     <NoWarn>$(NoWarn);CA1304</NoWarn> <!-- String culture specification -->

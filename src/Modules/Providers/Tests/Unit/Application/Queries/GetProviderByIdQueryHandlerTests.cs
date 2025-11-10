@@ -131,7 +131,10 @@ public class GetProviderByIdQueryHandlerTests
         // Se um ProviderId específico foi fornecido, usa o construtor interno para testes
         if (providerId != null)
         {
-            return new Provider(providerId, userId, name, type, businessProfile);
+            var testContactInfo = new ContactInfo("test@company.com", "123456789");
+            var testAddress = new Address("Main St", "123", "Downtown", "Test City", "Test State", "12345");
+            var testBusinessProfile = new BusinessProfile("Test Company", testContactInfo, testAddress);
+            return new Provider(userId, name, type, testBusinessProfile);
         }
 
         // Caso contrário, usa o construtor público normal

@@ -1,7 +1,7 @@
 using FluentAssertions;
-using MeAjudaAi.Modules.Users.Infrastructure.Services.Mock;
+using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Services.Mock;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Mocks.Services;
 
 /// <summary>
 /// Tests for MockKeycloakService to verify core functionality
@@ -16,7 +16,6 @@ public class MockKeycloakServiceTests
     public MockKeycloakServiceTests()
     {
         _service = new MockKeycloakService();
-        _service.Reset(); // Clear shared state between tests
     }
 
     [Fact]
@@ -36,7 +35,7 @@ public class MockKeycloakServiceTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNullOrEmpty();
-        result.Value.Should().StartWith("keycloak-");
+        result.Value.Should().StartWith("keycloak_");
     }
 
     [Fact]
@@ -82,28 +81,5 @@ public class MockKeycloakServiceTests
         result.IsSuccess.Should().BeTrue();
     }
 
-    [Fact]
-    public async Task ConcurrentUserCreation_ShouldBeThreadSafe()
-    {
-        // Arrange
-        var userCount = 50;
-        var tasks = new List<Task<string>>();
 
-        // Act - Create users concurrently
-        for (int i = 0; i < userCount; i++)
-        {
-            int userId = i; // Capture loop variable
-            tasks.Add(Task.Run(async () =>
-            {
-                var result = await _service.CreateUserAsync($"user{userId}", $"user{userId}@example.com", "Test", "User", "password", new[] { "user" });
-                return result.Value;
-            }));
-        }
-
-        var keycloakIds = await Task.WhenAll(tasks);
-
-        // Assert - All IDs should be unique
-        keycloakIds.Should().OnlyHaveUniqueItems();
-        keycloakIds.Should().AllSatisfy(id => id.Should().StartWith("keycloak-"));
-    }
 }

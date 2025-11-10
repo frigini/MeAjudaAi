@@ -115,8 +115,19 @@ public class ProviderRepositoryIntegrationTests : ProvidersIntegrationTestBase
         // Act
         var updatedBusinessProfile = new BusinessProfile(
             "New Name Legal",
-            provider.BusinessProfile.ContactInfo,
-            provider.BusinessProfile.PrimaryAddress,
+            new ContactInfo(
+                provider.BusinessProfile.ContactInfo.Email,
+                provider.BusinessProfile.ContactInfo.PhoneNumber,
+                provider.BusinessProfile.ContactInfo.Website),
+            new Address(
+                provider.BusinessProfile.PrimaryAddress.Street,
+                provider.BusinessProfile.PrimaryAddress.Number,
+                provider.BusinessProfile.PrimaryAddress.Neighborhood,
+                provider.BusinessProfile.PrimaryAddress.City,
+                provider.BusinessProfile.PrimaryAddress.State,
+                provider.BusinessProfile.PrimaryAddress.ZipCode,
+                provider.BusinessProfile.PrimaryAddress.Country,
+                provider.BusinessProfile.PrimaryAddress.Complement),
             description: "Updated description");
         provider.UpdateProfile("New Name", updatedBusinessProfile);
         await repository.UpdateAsync(provider);

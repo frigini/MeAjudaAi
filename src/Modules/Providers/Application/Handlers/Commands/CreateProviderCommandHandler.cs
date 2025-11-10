@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// </remarks>
 /// <param name="providerRepository">Repositório para persistência de prestadores de serviços</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
-internal sealed class CreateProviderCommandHandler(
+public sealed class CreateProviderCommandHandler(
     IProviderRepository providerRepository,
     ILogger<CreateProviderCommandHandler> logger
 ) : ICommandHandler<CreateProviderCommand, Result<ProviderDto>>

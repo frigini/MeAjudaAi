@@ -1,8 +1,8 @@
 using FluentAssertions;
-using MeAjudaAi.Modules.Users.Infrastructure.Services.Mock;
+using MeAjudaAi.Modules.Users.Tests.Mocks.Services;
 using MeAjudaAi.Shared.Constants;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Services.Mock;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.Mocks.Services;
 
 /// <summary>
 /// Tests for MockAuthenticationHelper to verify deterministic and unique behavior

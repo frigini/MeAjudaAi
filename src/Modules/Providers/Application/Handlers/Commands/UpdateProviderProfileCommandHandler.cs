@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// <summary>
 /// Handler responsável por processar comandos de atualização de perfil do prestador de serviços.
 /// </summary>
-internal sealed class UpdateProviderProfileCommandHandler(
+public sealed class UpdateProviderProfileCommandHandler(
     IProviderRepository providerRepository,
     ILogger<UpdateProviderProfileCommandHandler> logger
 ) : ICommandHandler<UpdateProviderProfileCommand, Result<ProviderDto>>

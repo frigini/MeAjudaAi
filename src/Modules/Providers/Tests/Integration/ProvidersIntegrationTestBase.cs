@@ -4,33 +4,49 @@ using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Infrastructure;
+using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Xunit;
+using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
 /// <summary>
 /// Classe base para testes de integração específicos do módulo Providers.
+/// Usa isolamento completo com database único por classe de teste.
 /// </summary>
-public abstract class ProvidersIntegrationTestBase : IntegrationTestBase
+public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
 {
+    private PostgreSqlContainer? _container;
+    private ServiceProvider? _serviceProvider;
+    private readonly string _testClassId;
+    
+    protected ProvidersIntegrationTestBase()
+    {
+        _testClassId = $"{GetType().Name}_{Guid.NewGuid():N}";
+    }
+
     /// <summary>
     /// Configurações padrão para testes do módulo Providers
     /// </summary>
-    protected override TestInfrastructureOptions GetTestOptions()
+    protected TestInfrastructureOptions GetTestOptions()
     {
         return new TestInfrastructureOptions
         {
             Database = new TestDatabaseOptions
             {
-                DatabaseName = $"MeAjudaAi", // Usar banco de desenvolvimento
-                Username = "postgres",
-                Password = "development123",
-                Schema = "providers"
+                DatabaseName = $"providers_test_{_testClassId}",
+                Username = "test_user",
+                Password = "test_password",
+                Schema = "providers",
+                UseInMemoryDatabase = false
             },
             Cache = new TestCacheOptions
             {
-                Enabled = false // Não usa cache por padrão
+                Enabled = false
             },
             ExternalServices = new TestExternalServicesOptions
             {
@@ -41,21 +57,68 @@ public abstract class ProvidersIntegrationTestBase : IntegrationTestBase
     }
 
     /// <summary>
+    /// Inicialização executada antes de cada classe de teste
+    /// </summary>
+    public async ValueTask InitializeAsync()
+    {
+        // Criar container PostgreSQL isolado para esta classe de teste
+        var options = GetTestOptions();
+        
+        _container = new PostgreSqlBuilder()
+            .WithImage("postgres:15-alpine")
+            .WithDatabase(options.Database.DatabaseName)
+            .WithUsername(options.Database.Username)
+            .WithPassword(options.Database.Password)
+            .WithPortBinding(0, true) // Porta aleatória
+            .Build();
+
+        await _container.StartAsync();
+        
+        // Configurar serviços com container isolado
+        var services = new ServiceCollection();
+        
+        // Registrar o container específico
+        services.AddSingleton(_container);
+        
+        // Configurar logging otimizado
+        services.AddLogging(builder =>
+        {
+            builder.ConfigureTestLogging();
+        });
+        
+        // Configurar serviços específicos do módulo
+        ConfigureModuleServices(services, options);
+        
+        _serviceProvider = services.BuildServiceProvider();
+        
+        // Inicializar banco de dados
+        await InitializeDatabaseAsync();
+    }
+    
+    /// <summary>
     /// Configura serviços específicos do módulo Providers
     /// </summary>
-    protected override void ConfigureModuleServices(IServiceCollection services, TestInfrastructureOptions options)
+    private void ConfigureModuleServices(IServiceCollection services, TestInfrastructureOptions options)
     {
         services.AddProvidersTestInfrastructure(options);
     }
-
+    
     /// <summary>
-    /// Setup específico do módulo Providers (configurações adicionais se necessário)
+    /// Inicializa o banco de dados isolado
     /// </summary>
-    protected override async Task OnModuleInitializeAsync(IServiceProvider serviceProvider)
+    private async Task InitializeDatabaseAsync()
     {
-        // Qualquer setup específico adicional do módulo Providers pode ser feito aqui
-        // As migrações são aplicadas automaticamente pelo sistema de auto-descoberta
-        await Task.CompletedTask;
+        var dbContext = _serviceProvider!.GetRequiredService<ProvidersDbContext>();
+        
+        // Criar banco e aplicar migrações
+        await dbContext.Database.EnsureCreatedAsync();
+        
+        // Verificar isolamento
+        var count = await dbContext.Providers.CountAsync();
+        if (count > 0)
+        {
+            throw new InvalidOperationException($"Database isolation failed: found {count} existing providers in new database");
+        }
     }
 
     /// <summary>
@@ -92,6 +155,7 @@ public abstract class ProvidersIntegrationTestBase : IntegrationTestBase
 
     /// <summary>
     /// Limpa dados das tabelas para isolamento entre testes
+    /// Usando banco isolado, cleanup é mais simples e confiável
     /// </summary>
     protected async Task CleanupDatabase()
     {
@@ -99,49 +163,106 @@ public abstract class ProvidersIntegrationTestBase : IntegrationTestBase
 
         try
         {
-            // Use EF Core change tracking for safer cleanup
-            // Only providers table is exposed as DbSet, child entities are accessed through navigation properties
-            var providers = await dbContext.Providers
-                .Include(p => p.Documents)
-                .Include(p => p.Qualifications)
-                .ToListAsync();
-
-            if (providers.Any())
-            {
-                dbContext.Providers.RemoveRange(providers);
-                await dbContext.SaveChangesAsync();
-            }
+            // Com banco isolado, podemos usar TRUNCATE com segurança
+            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE providers.providers CASCADE;");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"EF Core cleanup failed: {ex.Message}. Trying raw SQL...");
-
-            // Fallback to raw SQL if EF Core fails
-            try
-            {
-                // Use correct table names (lowercase without quotes for most cases)
-                await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.qualification;");
-                await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.document;");
-                await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
-            }
-            catch (Exception ex2)
-            {
-                Console.WriteLine($"Raw SQL cleanup failed: {ex2.Message}. Trying TRUNCATE...");
-
-                // Se DELETE falhar, tentar TRUNCATE com cascata
-                try
-                {
-                    await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE providers.qualification, providers.document, providers.providers RESTART IDENTITY CASCADE;");
-                }
-                catch (Exception ex3)
-                {
-                    Console.WriteLine($"TRUNCATE failed: {ex3.Message}. Recreating database...");
-
-                    // Se ainda falhar, recriar o schema
-                    await dbContext.Database.EnsureDeletedAsync();
-                    await dbContext.Database.EnsureCreatedAsync();
-                }
-            }
+            // Fallback para DELETE se TRUNCATE falhar
+            Console.WriteLine($"TRUNCATE failed: {ex.Message}. Using DELETE fallback...");
+            
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.qualification;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.document;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
         }
+        
+        // Verificar se limpeza foi bem-sucedida
+        var remainingCount = await dbContext.Providers.CountAsync();
+        if (remainingCount > 0)
+        {
+            throw new InvalidOperationException($"Database cleanup failed: {remainingCount} providers remain");
+        }
+    }
+
+    /// <summary>
+    /// Força limpeza mais agressiva do banco de dados
+    /// Com isolamento completo, é mais simples e confiável
+    /// </summary>
+    protected async Task ForceCleanDatabase()
+    {
+        var dbContext = GetService<ProvidersDbContext>();
+        
+        try
+        {
+            // Estratégia 1: TRUNCATE CASCADE
+            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE providers.providers CASCADE;");
+            return;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"TRUNCATE failed: {ex.Message}. Trying DELETE...");
+        }
+
+        try
+        {
+            // Estratégia 2: DELETE em ordem reversa
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.qualification;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.document;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
+            return;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DELETE failed: {ex.Message}. Recreating database...");
+        }
+
+        // Estratégia 3: Recriar database
+        await dbContext.Database.EnsureDeletedAsync();
+        await dbContext.Database.EnsureCreatedAsync();
+    }
+
+    /// <summary>
+    /// Limpeza executada após cada classe de teste
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        if (_serviceProvider != null)
+        {
+            await _serviceProvider.DisposeAsync();
+        }
+        
+        if (_container != null)
+        {
+            await _container.StopAsync();
+            await _container.DisposeAsync();
+        }
+    }
+    
+    /// <summary>
+    /// Obtém um serviço do provider isolado
+    /// </summary>
+    protected T GetService<T>() where T : notnull
+    {
+        if (_serviceProvider == null)
+            throw new InvalidOperationException("Service provider not initialized");
+        return _serviceProvider.GetRequiredService<T>();
+    }
+    
+    /// <summary>
+    /// Obtém um serviço de um escopo específico
+    /// </summary>
+    protected T GetScopedService<T>(IServiceScope scope) where T : notnull
+    {
+        return scope.ServiceProvider.GetRequiredService<T>();
+    }
+    
+    /// <summary>
+    /// Cria um escopo de serviços para o teste
+    /// </summary>
+    protected IServiceScope CreateScope()
+    {
+        if (_serviceProvider == null)
+            throw new InvalidOperationException("Service provider not initialized");
+        return _serviceProvider.CreateScope();
     }
 }
