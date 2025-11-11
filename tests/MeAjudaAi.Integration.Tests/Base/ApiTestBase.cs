@@ -133,7 +133,8 @@ public abstract class ApiTestBase : IAsyncLifetime
         }
         catch (Exception ex)
         {
-            logger?.LogWarning(ex, "Falha ao limpar banco existente, ele pode não existir");
+            logger?.LogError(ex, "❌ Falha crítica ao limpar banco existente: {Message}", ex.Message);
+            throw new InvalidOperationException("Não foi possível limpar o banco de dados antes dos testes", ex);
         }
 
         // Aplica migrações no UsersDbContext primeiro (cria database e schema users)
