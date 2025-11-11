@@ -164,7 +164,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     services.AddScoped<Func<ProvidersDbContext>>(provider => () =>
                     {
                         var context = provider.GetRequiredService<ProvidersDbContext>();
-                        // Em testes E2E, o EnsureCreated já foi chamado no UseProvidersModule
+                        // Migrations are applied explicitly in ApplyMigrationsAsync, no action needed here
                         return context;
                     });
                 });
@@ -323,12 +323,8 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     }
 
     protected async Task<HttpResponseMessage> PostJsonAsync<T>(Uri requestUri, T content)
-    {
-        throw new NotImplementedException();
-    }
+        => await PostJsonAsync(requestUri.ToString(), content);
 
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T content)
-    {
-        throw new NotImplementedException();
-    }
+        => await PutJsonAsync(requestUri.ToString(), content);
 }

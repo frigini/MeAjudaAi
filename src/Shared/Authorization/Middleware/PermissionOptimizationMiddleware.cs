@@ -204,8 +204,8 @@ public sealed class PermissionOptimizationMiddleware(
             });
         }
 
-        // Orders module (futuro)
-        else if (path.StartsWith("/api/orders"))
+        // Orders module (futuro) - TODO: Implement with versioned path
+        else if (path.StartsWith("/api/v1/orders"))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
@@ -217,8 +217,8 @@ public sealed class PermissionOptimizationMiddleware(
             });
         }
 
-        // Reports module (futuro)
-        else if (path.StartsWith("/api/reports"))
+        // Reports module (futuro) - TODO: Implement with versioned path
+        else if (path.StartsWith("/api/v1/reports"))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
@@ -230,7 +230,7 @@ public sealed class PermissionOptimizationMiddleware(
         }
 
         // Admin endpoints
-        else if (path.StartsWith("/api/admin") || path.Contains("/admin"))
+        else if (path.StartsWith("/api/v1/admin") || path.Contains("/admin"))
         {
             permissions.Add(EPermission.AdminSystem);
         }
