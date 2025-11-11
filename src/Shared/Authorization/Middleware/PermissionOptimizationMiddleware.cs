@@ -155,7 +155,7 @@ public sealed class PermissionOptimizationMiddleware(
             return;
 
         // Para operações de leitura em endpoints específicos, pode usar cache mais agressivo
-        if (path.StartsWith("/api/users/profile", StringComparison.OrdinalIgnoreCase) ||
+        if (path.StartsWith("/api/v1/users/profile", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith(ApiEndpoints.System.Health, StringComparison.OrdinalIgnoreCase))
         {
             context.Items["UseAggressivePermissionCache"] = true;
@@ -163,7 +163,8 @@ public sealed class PermissionOptimizationMiddleware(
         }
         else if (path.StartsWith("/api/") && context.Request.Method == "GET")
         {
-            // Operações GET em APIs podem usar cache intermediário
+            // Catch-all para operações GET em qualquer versão da API - cache intermediário
+            // Suporta múltiplas versões da API (v1, v2, etc.) para compatibilidade
             context.Items["UseAggressivePermissionCache"] = false;
             context.Items["PermissionCacheDuration"] = TimeSpan.FromMinutes(10);
         }
@@ -177,7 +178,7 @@ public sealed class PermissionOptimizationMiddleware(
         var permissions = new List<EPermission>();
 
         // Users module
-        if (path.StartsWith("/api/users"))
+        if (path.StartsWith("/api/v1/users"))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
@@ -191,8 +192,8 @@ public sealed class PermissionOptimizationMiddleware(
             });
         }
 
-        // Providers module (futuro)
-        else if (path.StartsWith("/api/providers"))
+        // Providers module
+        else if (path.StartsWith("/api/v1/providers"))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
@@ -204,8 +205,8 @@ public sealed class PermissionOptimizationMiddleware(
             });
         }
 
-        // Orders module (futuro)
-        else if (path.StartsWith("/api/orders"))
+        // Orders module (futuro) - Aguardando implementação do módulo completo
+        else if (path.StartsWith("/api/v1/orders"))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
@@ -217,8 +218,8 @@ public sealed class PermissionOptimizationMiddleware(
             });
         }
 
-        // Reports module (futuro)
-        else if (path.StartsWith("/api/reports"))
+        // Reports module (futuro) - Aguardando implementação do módulo completo
+        else if (path.StartsWith("/api/v1/reports"))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
@@ -229,13 +230,26 @@ public sealed class PermissionOptimizationMiddleware(
             });
         }
 
-        // Admin endpoints
-        else if (path.StartsWith("/api/admin") || path.Contains("/admin"))
+        // Admin endpoints - Verifica /api/v1/admin ou qualquer segmento "admin" no path
+        else if (path.StartsWith("/api/v1/admin") || IsAdminPath(path))
         {
             permissions.Add(EPermission.AdminSystem);
         }
 
         return permissions;
+    }
+
+    /// <summary>
+    /// Verifica se o path contém "admin" como um segmento distinto.
+    /// </summary>
+    private static bool IsAdminPath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return false;
+
+        var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Any(segment => 
+            string.Equals(segment, "admin", StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

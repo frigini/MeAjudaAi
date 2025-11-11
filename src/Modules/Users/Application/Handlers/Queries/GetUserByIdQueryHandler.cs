@@ -79,8 +79,8 @@ internal sealed class GetUserByIdQueryHandler(
             }
 
             logger.LogInformation(
-                "User found successfully (cache hit/miss handled). CorrelationId: {CorrelationId}, UserId: {UserId}, Email: {Email}",
-                correlationId, query.UserId, userDto.Email);
+                "User found successfully (cache hit/miss handled). CorrelationId: {CorrelationId}, UserId: {UserId}",
+                correlationId, query.UserId);
 
             return Result<UserDto>.Success(userDto);
         }
@@ -90,7 +90,7 @@ internal sealed class GetUserByIdQueryHandler(
                 "Failed to retrieve user by ID. CorrelationId: {CorrelationId}, UserId: {UserId}",
                 correlationId, query.UserId);
 
-            return Result<UserDto>.Failure($"Failed to retrieve user: {ex.Message}");
+            return Result<UserDto>.Failure(Error.Internal("Failed to retrieve user"));
         }
     }
 }

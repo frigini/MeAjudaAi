@@ -107,11 +107,25 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
     public async Task GetProvidersAsync_EmptyDatabase_ShouldReturnEmptyResult()
     {
         // Arrange
-        await CleanupDatabase(); // Garantir isolamento
+        await ForceCleanDatabase();
+        
         var queryService = GetService<IProviderQueryService>();
+        
+        // Act - teste com banco vazio usando container-backed services
+        var resultWithoutFilter = await queryService.GetProvidersAsync(page: 1, pageSize: 10);
 
-        // Act
-        var result = await queryService.GetProvidersAsync(page: 1, pageSize: 10);
+        // Assert - o banco deve estar vazio
+        resultWithoutFilter.Should().NotBeNull();
+        resultWithoutFilter.Items.Should().BeEmpty();
+        resultWithoutFilter.TotalCount.Should().Be(0);
+        resultWithoutFilter.TotalPages.Should().Be(0);
+        
+        // Act - Agora com filtro único que não existe
+        var uniqueFilter = $"VERY_UNIQUE_TEST_FILTER__{Guid.NewGuid():N}";
+        var result = await queryService.GetProvidersAsync(
+            page: 1, 
+            pageSize: 10,
+            nameFilter: uniqueFilter);
 
         // Assert
         result.Should().NotBeNull();
@@ -120,9 +134,4 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         result.TotalPages.Should().Be(0);
     }
 
-    protected override async Task OnDisposeAsync()
-    {
-        await CleanupDatabase();
-        await base.OnDisposeAsync();
-    }
 }

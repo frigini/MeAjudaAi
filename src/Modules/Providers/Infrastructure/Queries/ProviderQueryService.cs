@@ -14,8 +14,14 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 /// Implementa consultas complexas e paginadas específicas da infraestrutura
 /// que não fazem parte do domínio principal.
 /// </remarks>
-public sealed class ProviderQueryService(ProvidersDbContext context) : IProviderQueryService
+public sealed class ProviderQueryService : IProviderQueryService
 {
+    private readonly ProvidersDbContext _context;
+
+    public ProviderQueryService(ProvidersDbContext context)
+    {
+        _context = context;
+    }
 
     /// <summary>
     /// Busca prestadores de serviços com paginação e filtros opcionais.
@@ -35,7 +41,7 @@ public sealed class ProviderQueryService(ProvidersDbContext context) : IProvider
         if (pageSize < 1)
             throw new ArgumentOutOfRangeException(nameof(pageSize), "PageSize must be greater than 0");
 
-        var query = context.Providers
+        var query = _context.Providers
             .Include(p => p.Documents)
             .Include(p => p.Qualifications)
             .Where(p => !p.IsDeleted);
@@ -72,8 +78,8 @@ public sealed class ProviderQueryService(ProvidersDbContext context) : IProvider
 
         return new PagedResult<Provider>(
             providers,
-            totalCount,
             page,
-            pageSize);
+            pageSize,
+            totalCount);
     }
 }

@@ -30,7 +30,8 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                         .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
@@ -53,7 +54,8 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                         .HasColumnName("type");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
@@ -215,11 +217,13 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                     b.OwnsMany("MeAjudaAi.Modules.Providers.Domain.ValueObjects.Document", "Documents", b1 =>
                         {
                             b1.Property<Guid>("ProviderId")
-                                .HasColumnType("uuid");
+                                .HasColumnType("uuid")
+                                .HasColumnName("provider_id");
 
                             b1.Property<int>("Id")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("integer");
+                                .HasColumnType("integer")
+                                .HasColumnName("id");
 
                             NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
 
@@ -255,11 +259,13 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                     b.OwnsMany("MeAjudaAi.Modules.Providers.Domain.ValueObjects.Qualification", "Qualifications", b1 =>
                         {
                             b1.Property<Guid>("ProviderId")
-                                .HasColumnType("uuid");
+                                .HasColumnType("uuid")
+                                .HasColumnName("provider_id");
 
                             b1.Property<int>("Id")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("integer");
+                                .HasColumnType("integer")
+                                .HasColumnName("id");
 
                             NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
 

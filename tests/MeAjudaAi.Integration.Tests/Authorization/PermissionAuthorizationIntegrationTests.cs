@@ -23,7 +23,7 @@ namespace MeAjudaAi.Integration.Tests.Authorization;
 /// <summary>
 /// Testes de integração para o sistema de autorização baseado em permissões.
 /// </summary>
-public class PermissionAuthorizationIntegrationTests : InstanceApiTestBase
+public class PermissionAuthorizationIntegrationTests : ApiTestBase
 {
     private readonly ITestOutputHelper _output;
 

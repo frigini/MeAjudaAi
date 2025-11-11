@@ -39,12 +39,7 @@ public static class ProvidersTestInfrastructureExtensions
         // Para testes, usar implementação simples sem dependências complexas
         services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, TestCacheService>();
 
-        // Configurar banco de dados específico do módulo Providers
-        services.AddTestDatabase<ProvidersDbContext>(
-            options.Database,
-            "MeAjudaAi.Modules.Providers.Infrastructure");
-
-        // Configurar DbContext específico
+        // Configurar DbContext específico para PostgreSQL com TestContainers (isolado por teste)
         services.AddDbContext<ProvidersDbContext>((serviceProvider, dbOptions) =>
         {
             var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();
@@ -61,7 +56,7 @@ public static class ProvidersTestInfrastructureExtensions
                 // Suprimir warnings de pending model changes em testes
                 warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning);
             });
-        });
+        }, ServiceLifetime.Scoped); // Garantir que seja Scoped
 
         // Adicionar repositórios específicos do Providers
         services.AddScoped<IProviderRepository, ProviderRepository>();

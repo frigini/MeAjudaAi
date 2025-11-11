@@ -170,12 +170,18 @@ MeAjudaAi/
 │   ├── Bootstrapper/               # API service bootstrapper
 │   │   └── MeAjudaAi.ApiService/   # Ponto de entrada da API
 │   ├── Modules/                    # Módulos de domínio
-│   │   └── Users/                  # Módulo de usuários
+│   │   ├── Users/                  # Módulo de usuários
+│   │   │   ├── API/                # Endpoints e controllers
+│   │   │   ├── Application/        # Use cases e handlers CQRS
+│   │   │   ├── Domain/             # Entidades, value objects, eventos
+│   │   │   ├── Infrastructure/     # Persistência e serviços externos
+│   │   │   └── Tests/              # Testes do módulo
+│   │   └── Providers/              # Módulo de prestadores
 │   │       ├── API/                # Endpoints e controllers
 │   │       ├── Application/        # Use cases e handlers CQRS
 │   │       ├── Domain/             # Entidades, value objects, eventos
-│   │       ├── Infrastructure/     # Persistência e serviços externos
-│   │       └── Tests/              # Testes do módulo
+│   │       ├── Infrastructure/     # Persistência e event handlers
+│   │       └── Tests/              # Testes unitários e integração
 │   └── Shared/                     # Componentes compartilhados
 │       └── MeAjudaAi.Shared/       # Abstrações e utilities
 ├── tests/                          # Testes de integração
@@ -192,6 +198,12 @@ MeAjudaAi/
 - **Domain**: Gestão de usuários, perfis e autenticação
 - **Features**: Registro, login, perfis, papéis (cliente, prestador, admin)
 - **Integração**: Keycloak para autenticação OAuth2/OIDC
+
+### 🏢 Módulo Providers
+- **Domain**: Gestão de prestadores de serviços e verificação
+- **Features**: Cadastro, perfis empresariais, documentos, qualificações, status de verificação
+- **Eventos**: Sistema completo de eventos de domínio e integração para comunicação inter-modular
+- **Arquitetura**: Clean Architecture com CQRS, DDD e event-driven design
 
 ### 🔮 Módulos Futuros
 - **Services**: Catálogo de serviços e categorias
@@ -250,6 +262,21 @@ dotnet test src/Modules/Users/Tests/
 - **Integration Events**: Eventos para comunicação entre módulos
 - **Value Objects**: Para conceitos de domínio imutáveis
 - **Aggregates**: Para consistência transacional
+
+#### Implementação de Eventos - Módulo Providers
+
+O módulo Providers implementa um sistema completo de eventos para comunicação inter-modular:
+
+**Domain Events:**
+- `ProviderRegisteredDomainEvent` - Novo prestador cadastrado
+- `ProviderDeletedDomainEvent` - Prestador removido do sistema
+- `ProviderVerificationStatusUpdatedDomainEvent` - Status de verificação alterado
+- `ProviderProfileUpdatedDomainEvent` - Perfil do prestador atualizado
+
+**Integration Events:**
+- Conversão automática via Domain Event Handlers
+- Publicação em message bus para outros módulos
+- Suporte completo a event sourcing e auditoria
 
 ### Estrutura de Commits
 

@@ -52,6 +52,11 @@ public class TestDatabaseOptions
     /// Se deve aplicar migrations automaticamente
     /// </summary>
     public bool AutoMigrate { get; set; } = true;
+
+    /// <summary>
+    /// Se deve usar InMemory database ao invés de PostgreSQL
+    /// </summary>
+    public bool UseInMemoryDatabase { get; set; } = false;
 }
 
 public class TestCacheOptions

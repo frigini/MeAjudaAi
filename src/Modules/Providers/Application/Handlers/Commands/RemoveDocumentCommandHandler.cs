@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 /// </summary>
 /// <param name="providerRepository">Repositório para acesso aos dados</param>
 /// <param name="logger">Logger estruturado</param>
-internal sealed class RemoveDocumentCommandHandler(
+public sealed class RemoveDocumentCommandHandler(
     IProviderRepository providerRepository,
     ILogger<RemoveDocumentCommandHandler> logger
 ) : ICommandHandler<RemoveDocumentCommand, Result<ProviderDto>>

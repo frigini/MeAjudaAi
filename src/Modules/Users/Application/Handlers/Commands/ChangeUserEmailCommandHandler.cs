@@ -31,7 +31,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// </remarks>
 /// <param name="userRepository">Repositório para operações de usuário</param>
 /// <param name="logger">Logger estruturado para auditoria detalhada</param>
-internal sealed class ChangeUserEmailCommandHandler(
+public sealed class ChangeUserEmailCommandHandler(
     IUserRepository userRepository,
     ILogger<ChangeUserEmailCommandHandler> logger
 ) : ICommandHandler<ChangeUserEmailCommand, Result<UserDto>>

@@ -15,7 +15,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 /// Implementa a lógica de negócio para buscar prestadores utilizando número de documento,
 /// integrando com o repositório de dados e aplicando as regras de mapeamento necessárias.
 /// </remarks>
-internal sealed class GetProviderByDocumentQueryHandler(
+public sealed class GetProviderByDocumentQueryHandler(
     IProviderRepository providerRepository,
     ILogger<GetProviderByDocumentQueryHandler> logger)
     : IQueryHandler<GetProviderByDocumentQuery, Result<ProviderDto?>>

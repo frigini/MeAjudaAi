@@ -71,20 +71,22 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         ["Keycloak:Enabled"] = "false",
                         ["Cache:Enabled"] = "false", // Disable Redis for now
                         ["Cache:ConnectionString"] = _redisContainer.GetConnectionString(),
-                        // Configuração de Rate Limiting para testes - valores muito altos para evitar bloqueios
-                        ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "10000",
-                        ["AdvancedRateLimit:Anonymous:RequestsPerHour"] = "100000",
-                        ["AdvancedRateLimit:Anonymous:RequestsPerDay"] = "1000000",
-                        ["AdvancedRateLimit:Authenticated:RequestsPerMinute"] = "10000",
-                        ["AdvancedRateLimit:Authenticated:RequestsPerHour"] = "100000",
-                        ["AdvancedRateLimit:Authenticated:RequestsPerDay"] = "1000000",
-                        ["AdvancedRateLimit:General:WindowInSeconds"] = "60",
-                        ["AdvancedRateLimit:General:EnableIpWhitelist"] = "false",
+                        // Desabilitar completamente Rate Limiting nos testes E2E
+                        ["AdvancedRateLimit:General:Enabled"] = "false",
+                        // Valores de fallback muito altos caso não consiga desabilitar
+                        ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "999999",
+                        ["AdvancedRateLimit:Anonymous:RequestsPerHour"] = "999999",
+                        ["AdvancedRateLimit:Anonymous:RequestsPerDay"] = "999999",
+                        ["AdvancedRateLimit:Authenticated:RequestsPerMinute"] = "999999",
+                        ["AdvancedRateLimit:Authenticated:RequestsPerHour"] = "999999",
+                        ["AdvancedRateLimit:Authenticated:RequestsPerDay"] = "999999",
+                        ["AdvancedRateLimit:General:WindowInSeconds"] = "3600",
+                        ["AdvancedRateLimit:General:EnableIpWhitelist"] = "true",
                         // Configuração legada também para garantir
-                        ["RateLimit:DefaultRequestsPerMinute"] = "10000",
-                        ["RateLimit:AuthRequestsPerMinute"] = "10000",
-                        ["RateLimit:SearchRequestsPerMinute"] = "10000",
-                        ["RateLimit:WindowInSeconds"] = "60"
+                        ["RateLimit:DefaultRequestsPerMinute"] = "999999",
+                        ["RateLimit:AuthRequestsPerMinute"] = "999999",
+                        ["RateLimit:SearchRequestsPerMinute"] = "999999",
+                        ["RateLimit:WindowInSeconds"] = "3600"
                     });
 
                     // Adicionar ambiente de teste
@@ -107,6 +109,20 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
                     // Reconfigurar DbContext com TestContainer connection string
                     services.AddDbContext<UsersDbContext>(options =>
+                    {
+                        options.UseNpgsql(_postgresContainer.GetConnectionString())
+                               .UseSnakeCaseNamingConvention()
+                               .EnableSensitiveDataLogging(false)
+                               .ConfigureWarnings(warnings =>
+                                   warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                    });
+
+                    // Reconfigurar ProvidersDbContext com TestContainer connection string
+                    var providersDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ProvidersDbContext>));
+                    if (providersDescriptor != null)
+                        services.Remove(providersDescriptor);
+
+                    services.AddDbContext<ProvidersDbContext>(options =>
                     {
                         options.UseNpgsql(_postgresContainer.GetConnectionString())
                                .UseSnakeCaseNamingConvention()
@@ -148,8 +164,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     services.AddScoped<Func<ProvidersDbContext>>(provider => () =>
                     {
                         var context = provider.GetRequiredService<ProvidersDbContext>();
-                        // Aplicar migrações apenas em testes
-                        context.Database.Migrate();
+                        // Migrations are applied explicitly in ApplyMigrationsAsync, no action needed here
                         return context;
                     });
                 });
@@ -212,15 +227,16 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     {
         using var scope = _factory.Services.CreateScope();
 
-        // Aplicar migrações no UsersDbContext
+        // Garantir que o banco está limpo primeiro
         var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         await usersContext.Database.EnsureDeletedAsync();
-        await usersContext.Database.EnsureCreatedAsync();
 
-        // Aplicar migrações no ProvidersDbContext
+        // Aplicar migrações no UsersDbContext (isso cria o banco e o schema users)
+        await usersContext.Database.MigrateAsync();
+
+        // Para ProvidersDbContext, só aplicar migrações (o banco já existe, só precisamos do schema providers)
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
-        await providersContext.Database.EnsureDeletedAsync();
-        await providersContext.Database.EnsureCreatedAsync();
+        await providersContext.Database.MigrateAsync();
     }
 
     // Helper methods usando serialização compartilhada
@@ -307,12 +323,8 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     }
 
     protected async Task<HttpResponseMessage> PostJsonAsync<T>(Uri requestUri, T content)
-    {
-        throw new NotImplementedException();
-    }
+        => await PostJsonAsync(requestUri.ToString(), content);
 
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T content)
-    {
-        throw new NotImplementedException();
-    }
+        => await PutJsonAsync(requestUri.ToString(), content);
 }

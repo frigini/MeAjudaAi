@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 /// </summary>
 /// <param name="providerRepository">Repositório para acesso aos dados</param>
 /// <param name="logger">Logger estruturado</param>
-internal sealed class GetProviderByIdQueryHandler(
+public sealed class GetProviderByIdQueryHandler(
     IProviderRepository providerRepository,
     ILogger<GetProviderByIdQueryHandler> logger
 ) : IQueryHandler<GetProviderByIdQuery, Result<ProviderDto?>>

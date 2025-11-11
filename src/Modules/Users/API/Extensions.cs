@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.API;
@@ -56,6 +57,12 @@ public static class Extensions
     {
         // Só aplica migrações se não estivermos em ambiente de testes unitários
         if (app?.Services == null) return;
+
+        // Em ambiente de teste E2E, pular migrações automáticas - elas são gerenciadas pelo TestContainer
+        if (app.Environment.IsEnvironment("Test") || app.Environment.IsEnvironment("Testing"))
+        {
+            return;
+        }
 
         try
         {

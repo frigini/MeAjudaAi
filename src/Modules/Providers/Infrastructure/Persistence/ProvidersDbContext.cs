@@ -11,12 +11,15 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 /// Implementa o padrão DbContext do Entity Framework Core para persistência
 /// das entidades do domínio de prestadores de serviços.
 /// </remarks>
-/// <remarks>
-/// Inicializa uma nova instância do contexto.
-/// </remarks>
-/// <param name="options">Opções de configuração do contexto</param>
-public class ProvidersDbContext(DbContextOptions<ProvidersDbContext> options) : DbContext(options)
+public class ProvidersDbContext : DbContext
 {
+    /// <summary>
+    /// Inicializa uma nova instância do contexto.
+    /// </summary>
+    /// <param name="options">Opções de configuração do contexto</param>
+    public ProvidersDbContext(DbContextOptions<ProvidersDbContext> options) : base(options)
+    {
+    }
     /// <summary>
     /// Conjunto de dados para prestadores de serviços.
     /// </summary>

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.Application.Handlers.Queries;
 
-internal sealed class GetProvidersByStateQueryHandler(
+public sealed class GetProvidersByStateQueryHandler(
     IProviderRepository providerRepository,
     ILogger<GetProvidersByStateQueryHandler> logger
 ) : IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>

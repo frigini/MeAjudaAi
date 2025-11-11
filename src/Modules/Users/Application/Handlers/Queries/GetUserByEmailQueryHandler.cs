@@ -54,9 +54,23 @@ internal sealed class GetUserByEmailQueryHandler(
 
         try
         {
+            // Validate and create email value object
+            Email email;
+            if (!Email.IsValid(query.Email))
+            {
+                logger.LogWarning(
+                    "Invalid email format. CorrelationId: {CorrelationId}, Email: {Email}",
+                    correlationId, query.Email);
+                return Result<UserDto>.Failure(Error.BadRequest("Invalid email format"));
+            }
+            else
+            {
+                email = new Email(query.Email);
+            }
+
             // Busca o usuário pelo email utilizando value object
             var user = await userRepository.GetByEmailAsync(
-                new Email(query.Email), cancellationToken);
+                email, cancellationToken);
 
             if (user == null)
             {
@@ -79,7 +93,7 @@ internal sealed class GetUserByEmailQueryHandler(
                 "Failed to retrieve user by email. CorrelationId: {CorrelationId}, Email: {Email}",
                 correlationId, query.Email);
 
-            return Result<UserDto>.Failure($"Failed to retrieve user: {ex.Message}");
+            return Result<UserDto>.Failure(Error.Internal("Failed to retrieve user"));
         }
     }
 }

@@ -23,7 +23,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="userRepository">Repositório para persistência de usuários</param>
 /// <param name="usersCacheService">Serviço de cache para invalidação</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
-internal sealed class UpdateUserProfileCommandHandler(
+public sealed class UpdateUserProfileCommandHandler(
     IUserRepository userRepository,
     IUsersCacheService usersCacheService,
     ILogger<UpdateUserProfileCommandHandler> logger

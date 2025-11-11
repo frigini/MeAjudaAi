@@ -67,6 +67,7 @@ public class RoleLimits
 
 public class GeneralSettings
 {
+    public bool Enabled { get; set; } = true;
     [Range(1, 86400)] public int WindowInSeconds { get; set; } = 60;
     public bool EnableIpWhitelist { get; set; } = false;
     public List<string> WhitelistedIps { get; set; } = [];

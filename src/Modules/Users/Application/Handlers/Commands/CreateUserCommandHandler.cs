@@ -88,7 +88,7 @@ internal sealed class CreateUserCommandHandler(
             stopwatch.Stop();
             logger.LogError(ex, "Unexpected error creating user for email {Email} after {ElapsedMs}ms",
                 command.Email, stopwatch.ElapsedMilliseconds);
-            return Result<UserDto>.Failure($"Failed to create user: {ex.Message}");
+            return Result<UserDto>.Failure("Failed to create user due to an unexpected error");
         }
     }
 

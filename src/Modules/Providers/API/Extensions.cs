@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.API;
@@ -54,6 +55,13 @@ public static class Extensions
             var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.ProvidersDbContext>();
             if (context == null) return;
 
+            // Em ambiente de teste E2E, pular migrações automáticas - elas são gerenciadas pelo TestContainer
+            if (app.Environment.IsEnvironment("Test") || app.Environment.IsEnvironment("Testing"))
+            {
+                return;
+            }
+
+            // Em produção, usar migrações normais
             context.Database.Migrate();
         }
         catch (Exception ex)

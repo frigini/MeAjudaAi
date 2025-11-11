@@ -40,7 +40,7 @@ public class ProvidersApiTests : ApiTestBase
     public async Task ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers");
@@ -87,7 +87,7 @@ public class ProvidersApiTests : ApiTestBase
     public async Task ProvidersEndpoint_ShouldSupportPagination()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=5");
@@ -103,7 +103,7 @@ public class ProvidersApiTests : ApiTestBase
     public async Task ProvidersEndpoint_ShouldSupportFilters()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers?name=test&type=1&verificationStatus=1");
@@ -141,7 +141,7 @@ public class ProvidersApiTests : ApiTestBase
     public async Task CreateProvider_Endpoint_ShouldExist()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
         var providerData = new
         {
             userId = Guid.NewGuid(),

@@ -11,7 +11,7 @@ namespace MeAjudaAi.Integration.Tests.Authorization;
 /// Elimina condições de corrida e flakiness causados por estado estático
 /// </summary>
 [Collection("IntegrationTests")]
-public class InstancePermissionAuthorizationIntegrationTests : InstanceApiTestBase
+public class InstancePermissionAuthorizationIntegrationTests : ApiTestBase
 {
     [Fact]
     public async Task AdminUser_ShouldHaveAccessToAllEndpoints()

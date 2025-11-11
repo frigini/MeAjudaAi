@@ -71,8 +71,7 @@ public class GetProvidersQueryHandler(
                 "Erro ao buscar prestadores - Página: {Page}, Filtros: Nome='{Name}', Tipo={Type}, Status={Status}",
                 query.Page, query.Name, query.Type, query.VerificationStatus);
 
-            return Result<PagedResult<ProviderDto>>.Failure(Error.Internal(
-                "Erro interno ao buscar prestadores"));
+            return Result<PagedResult<ProviderDto>>.Failure(Error.Internal("Erro interno ao buscar prestadores"));
         }
     }
 }

@@ -80,9 +80,9 @@ public sealed class Provider : AggregateRoot<ProviderId>
     private Provider() { }
 
     /// <summary>
-    /// Construtor interno para testes que permite especificar o ID.
+    /// Construtor para testes que permite especificar o ID.
     /// </summary>
-    internal Provider(
+    public Provider(
         ProviderId id,
         Guid userId,
         string name,
@@ -158,7 +158,26 @@ public sealed class Provider : AggregateRoot<ProviderId>
         if (IsDeleted)
             throw new ProviderDomainException("Cannot update deleted provider");
 
-        Name = name.Trim();
+        // Track which fields are being updated
+        var updatedFields = new List<string>();
+        
+        var newName = name.Trim();
+        if (Name != newName)
+            updatedFields.Add("Name");
+            
+        if (!BusinessProfile.ContactInfo.Email.Equals(businessProfile.ContactInfo.Email, StringComparison.OrdinalIgnoreCase))
+            updatedFields.Add("Email");
+            
+        if (BusinessProfile.LegalName != businessProfile.LegalName)
+            updatedFields.Add("LegalName");
+            
+        if (BusinessProfile.FantasyName != businessProfile.FantasyName)
+            updatedFields.Add("FantasyName");
+            
+        if (BusinessProfile.Description != businessProfile.Description)
+            updatedFields.Add("Description");
+
+        Name = newName;
         BusinessProfile = businessProfile;
         MarkAsUpdated();
 
@@ -167,7 +186,8 @@ public sealed class Provider : AggregateRoot<ProviderId>
             1,
             Name,
             BusinessProfile.ContactInfo.Email,
-            updatedBy));
+            updatedBy,
+            updatedFields.ToArray()));
     }
 
     /// <summary>

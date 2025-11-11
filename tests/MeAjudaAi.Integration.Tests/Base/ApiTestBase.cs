@@ -13,8 +13,9 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Integration.Tests.Base;
 
 /// <summary>
-/// Classe base simplificada para testes de integração
-/// Cria containers individuais para máxima compatibilidade com CI
+/// Classe base unificada para testes de integração com suporte a autenticação baseada em instância.
+/// Elimina condições de corrida e instabilidade causadas por estado estático.
+/// Cria containers individuais para máxima compatibilidade com CI.
 /// </summary>
 public abstract class ApiTestBase : IAsyncLifetime
 {
@@ -23,10 +24,11 @@ public abstract class ApiTestBase : IAsyncLifetime
 
     protected HttpClient Client { get; private set; } = null!;
     protected IServiceProvider Services => _factory!.Services;
+    protected ITestAuthenticationConfiguration AuthConfig { get; private set; } = null!;
 
     public async ValueTask InitializeAsync()
     {
-        // Set environment variables for testing
+        // Define variáveis de ambiente para testes
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
 
@@ -39,7 +41,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                 builder.UseEnvironment("Testing");
                 builder.ConfigureServices(services =>
                 {
-                    // Substitute database with test container - Remove all DbContext related services
+                    // Substitui banco de dados por container de teste - Remove todos os serviços relacionados ao DbContext
                     var usersDbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<UsersDbContext>));
                     if (usersDbContextDescriptor != null)
                         services.Remove(usersDbContextDescriptor);
@@ -48,7 +50,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                     if (providersDbContextDescriptor != null)
                         services.Remove(providersDbContextDescriptor);
 
-                    // Also remove the actual DbContext services if they exist
+                    // Remove também os serviços DbContext se existirem
                     var usersDbContextService = services.SingleOrDefault(d => d.ServiceType == typeof(UsersDbContext));
                     if (usersDbContextService != null)
                         services.Remove(usersDbContextService);
@@ -57,31 +59,43 @@ public abstract class ApiTestBase : IAsyncLifetime
                     if (providersDbContextService != null)
                         services.Remove(providersDbContextService);
 
-                    // Add test database contexts
+                    // Adiciona contextos de banco de dados para testes
                     services.AddDbContext<UsersDbContext>(options =>
                     {
-                        options.UseNpgsql(_databaseFixture.ConnectionString);
+                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
+                        });
                         options.EnableSensitiveDataLogging();
+                        options.ConfigureWarnings(warnings =>
+                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
                     });
 
                     services.AddDbContext<ProvidersDbContext>(options =>
                     {
-                        options.UseNpgsql(_databaseFixture.ConnectionString);
+                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Providers.Infrastructure");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
+                        });
                         options.EnableSensitiveDataLogging();
+                        options.ConfigureWarnings(warnings =>
+                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
                     });
 
-                    // Add test authentication to override any existing authentication
+                    // Adiciona autenticação de teste baseada em instância para evitar estado estático
                     services.RemoveRealAuthentication();
-                    services.AddConfigurableTestAuthentication();
+                    services.AddInstanceTestAuthentication();
 
-                    // Remove ClaimsTransformation that causes hanging in tests
+                    // Remove ClaimsTransformation que causa travamentos nos testes
                     var claimsTransformationDescriptor = services.FirstOrDefault(d =>
                         d.ServiceType == typeof(IClaimsTransformation));
                     if (claimsTransformationDescriptor != null)
                         services.Remove(claimsTransformationDescriptor);
                 });
 
-                // Enable detailed logging for debugging
+                // Habilita logging detalhado para debug
                 builder.ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
@@ -95,105 +109,81 @@ public abstract class ApiTestBase : IAsyncLifetime
 
         Client = _factory.CreateClient();
 
-        // Ensure database schema using EnsureCreatedAsync for testing
-        // Note: UsersDbContext has pending model changes that would require new migrations
+        // Obtém a configuração de autenticação da instância do container DI
+        AuthConfig = _factory.Services.GetRequiredService<ITestAuthenticationConfiguration>();
+
+        // Aplica migrações do banco de dados para testes
+        // Nota: Ambos os módulos usam setup baseado em migrações para consistência com produção
         using var scope = _factory.Services.CreateScope();
         var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
         var logger = scope.ServiceProvider.GetService<ILogger<ApiTestBase>>();
 
-        // Create schemas first
+        // Aplica migrações exatamente como nos testes E2E
+        await ApplyMigrationsAsync(usersContext, providersContext, logger);
+    }
+
+    private static async Task ApplyMigrationsAsync(UsersDbContext usersContext, ProvidersDbContext providersContext, ILogger? logger)
+    {
+        // Garante estado limpo do banco de dados (como nos testes E2E)
         try
         {
-            await providersContext.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS providers;");
-            await usersContext.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS users;");
-            logger?.LogInformation("Database schemas created successfully");
+            await usersContext.Database.EnsureDeletedAsync();
+            logger?.LogInformation("🧹 Banco de dados existente limpo");
         }
         catch (Exception ex)
         {
-            logger?.LogWarning(ex, "Failed to create schemas, they may already exist");
+            logger?.LogError(ex, "❌ Falha crítica ao limpar banco existente: {Message}", ex.Message);
+            throw new InvalidOperationException("Não foi possível limpar o banco de dados antes dos testes", ex);
         }
 
-        // For UsersDbContext, use EnsureCreatedAsync (works fine for users)
+        // Aplica migrações no UsersDbContext primeiro (cria database e schema users)
         try
         {
-            await usersContext.Database.EnsureCreatedAsync();
-            logger?.LogInformation("Users database schema created successfully");
+            logger?.LogInformation("🔄 Aplicando migrações do módulo Users...");
+            await usersContext.Database.MigrateAsync();
+            logger?.LogInformation("✅ Migrações do banco Users completadas com sucesso");
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "Failed to create Users database schema");
-            throw;
+            logger?.LogError(ex, "❌ Falha ao aplicar migrações do Users: {Message}", ex.Message);
+            throw new InvalidOperationException("Não foi possível aplicar migrações do banco Users", ex);
         }
 
-        // For ProvidersDbContext, use migrations for proper table structure
+        // Aplica migrações no ProvidersDbContext (banco já existe, só precisa do schema providers)
         try
         {
-            logger?.LogInformation("🔄 Running Providers migrations...");
+            logger?.LogInformation("🔄 Aplicando migrações do módulo Providers...");
             await providersContext.Database.MigrateAsync();
-            logger?.LogInformation("✅ Providers database migrations completed successfully");
+            logger?.LogInformation("✅ Migrações do banco Providers completadas com sucesso");
         }
         catch (Exception ex)
         {
-            logger?.LogWarning(ex, "⚠️ Migrations failed for Providers, trying EnsureCreatedAsync");
-
-            try
-            {
-                await providersContext.Database.EnsureCreatedAsync();
-                logger?.LogInformation("✅ Providers database schema created with EnsureCreatedAsync");
-            }
-            catch (Exception ensureEx)
-            {
-                logger?.LogWarning(ensureEx, "⚠️ EnsureCreatedAsync also failed, falling back to manual creation");
-
-                try
-                {
-                    await CreateProvidersTableManually(providersContext, logger);
-                    logger?.LogInformation("✅ Providers database schema created using manual table creation");
-                }
-                catch (Exception manualEx)
-                {
-                    logger?.LogError(manualEx, "❌ All Providers table creation methods failed");
-                    throw new InvalidOperationException("Unable to initialize Providers database schema", manualEx);
-                }
-            }
+            logger?.LogError(ex, "❌ Falha ao aplicar migrações do Providers: {Message}", ex.Message);
+            throw new InvalidOperationException("Não foi possível aplicar migrações do banco Providers", ex);
         }
 
-        // Verify tables exist
+        // Verifica se as tabelas existem
         try
         {
             var usersCount = await usersContext.Users.CountAsync();
-            logger?.LogInformation("Users database verification successful - Count: {UsersCount}", usersCount);
+            logger?.LogInformation("Verificação do banco Users bem-sucedida - Contagem: {UsersCount}", usersCount);
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "Users database verification failed");
-            throw new InvalidOperationException("Users database is not properly initialized", ex);
+            logger?.LogError(ex, "Verificação do banco Users falhou");
+            throw new InvalidOperationException("Banco Users não foi inicializado corretamente", ex);
         }
 
         try
         {
             var providersCount = await providersContext.Providers.CountAsync();
-            logger?.LogInformation("Providers database verification successful - Count: {ProvidersCount}", providersCount);
+            logger?.LogInformation("Verificação do banco Providers bem-sucedida - Contagem: {ProvidersCount}", providersCount);
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "Providers database verification failed - attempting emergency table creation");
-
-            // Emergency table creation as last resort
-            try
-            {
-                await CreateProvidersTableManually(providersContext, logger);
-
-                // Retry verification after manual creation
-                var providersCount = await providersContext.Providers.CountAsync();
-                logger?.LogInformation("Emergency table creation successful - Count: {ProvidersCount}", providersCount);
-            }
-            catch (Exception emergencyEx)
-            {
-                logger?.LogError(emergencyEx, "Emergency table creation also failed");
-                throw new InvalidOperationException("Providers database could not be initialized despite all attempts", emergencyEx);
-            }
+            logger?.LogError(ex, "Verificação do banco Providers falhou");
+            throw new InvalidOperationException("Banco Providers não foi inicializado corretamente", ex);
         }
     }
 
@@ -207,16 +197,16 @@ public abstract class ApiTestBase : IAsyncLifetime
 
     private static async Task CreateProvidersTableManually(ProvidersDbContext context, ILogger? logger)
     {
-        logger?.LogInformation("🔨 Starting manual Providers table creation with clean slate");
+        logger?.LogInformation("🔨 Iniciando criação manual das tabelas do Providers com estado limpo");
 
-        // First, drop existing tables to ensure clean slate
+        // Primeiro, remove tabelas existentes para garantir estado limpo
         await context.Database.ExecuteSqlRawAsync(@"
             DROP TABLE IF EXISTS providers.qualification CASCADE;
             DROP TABLE IF EXISTS providers.document CASCADE;
             DROP TABLE IF EXISTS providers.providers CASCADE;
         ");
 
-        // Create the main providers table with all necessary columns based on the EF Core model
+        // Cria a tabela principal providers com todas as colunas necessárias baseadas no modelo EF Core
         var createProvidersTable = @"
             CREATE TABLE IF NOT EXISTS providers.providers (
                 id uuid PRIMARY KEY,
@@ -244,7 +234,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                 country varchar(50) NOT NULL
             );";
 
-        // Create the documents table (owned entity)
+        // Cria a tabela de documentos (entidade owned)
         var createDocumentsTable = @"
             CREATE TABLE IF NOT EXISTS providers.document (
                 provider_id uuid NOT NULL,
@@ -255,7 +245,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                 FOREIGN KEY (provider_id) REFERENCES providers.providers(id) ON DELETE CASCADE
             );";
 
-        // Create the qualifications table (owned entity)  
+        // Cria a tabela de qualificações (entidade owned)
         var createQualificationsTable = @"
             CREATE TABLE IF NOT EXISTS providers.qualification (
                 provider_id uuid NOT NULL,
@@ -280,20 +270,20 @@ public abstract class ApiTestBase : IAsyncLifetime
         try
         {
             await context.Database.ExecuteSqlRawAsync(createProvidersTable);
-            logger?.LogInformation("✅ Created providers table manually");
+            logger?.LogInformation("✅ Tabela providers criada manualmente");
 
             await context.Database.ExecuteSqlRawAsync(createDocumentsTable);
-            logger?.LogInformation("✅ Created documents table manually");
+            logger?.LogInformation("✅ Tabela documents criada manualmente");
 
             await context.Database.ExecuteSqlRawAsync(createQualificationsTable);
-            logger?.LogInformation("✅ Created qualifications table manually");
+            logger?.LogInformation("✅ Tabela qualifications criada manualmente");
 
             await context.Database.ExecuteSqlRawAsync(createIndices);
-            logger?.LogInformation("✅ Created indices manually");
+            logger?.LogInformation("✅ Índices criados manualmente");
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "❌ Failed to create tables manually");
+            logger?.LogError(ex, "❌ Falha ao criar tabelas manualmente");
             throw;
         }
     }

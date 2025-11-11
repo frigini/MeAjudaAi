@@ -35,7 +35,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="userRepository">Repositório para operações de usuário</param>
 /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
 /// <param name="logger">Logger estruturado para auditoria detalhada</param>
-internal sealed class ChangeUserUsernameCommandHandler(
+public sealed class ChangeUserUsernameCommandHandler(
     IUserRepository userRepository,
     IDateTimeProvider dateTimeProvider,
     ILogger<ChangeUserUsernameCommandHandler> logger

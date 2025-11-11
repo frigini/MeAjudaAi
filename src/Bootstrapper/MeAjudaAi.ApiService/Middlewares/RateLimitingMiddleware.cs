@@ -30,10 +30,17 @@ public class RateLimitingMiddleware(
     }
     public async Task InvokeAsync(HttpContext context)
     {
+        var currentOptions = options.CurrentValue;
+
+        // Bypass rate limiting if explicitly disabled
+        if (!currentOptions.General.Enabled)
+        {
+            await next(context);
+            return;
+        }
+
         var clientIp = GetClientIpAddress(context);
         var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
-
-        var currentOptions = options.CurrentValue;
 
         // Check IP whitelist first - bypass rate limiting if IP is whitelisted
         if (currentOptions.General.EnableIpWhitelist &&
