@@ -22,7 +22,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="userDomainService">Serviço de domínio para operações complexas de usuário</param>
 /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
-public sealed class DeleteUserCommandHandler(
+internal sealed class DeleteUserCommandHandler(
     IUserRepository userRepository,
     IUserDomainService userDomainService,
     IDateTimeProvider dateTimeProvider,

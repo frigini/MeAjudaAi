@@ -36,27 +36,27 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         // Act & Assert - Operações que o usuário básico PODE fazer
 
         // 1. Ver seu próprio perfil
-        var profileResponse = await _client.GetAsync("/api/users/profile");
+        var profileResponse = await _client.GetAsync("/api/v1/users/profile");
         Assert.Equal(HttpStatusCode.OK, profileResponse.StatusCode);
 
         // 2. Ler informações básicas de usuários
-        var readResponse = await _client.GetAsync("/api/users/basic-info");
+        var readResponse = await _client.GetAsync("/api/v1/users/basic-info");
         Assert.Equal(HttpStatusCode.OK, readResponse.StatusCode);
 
         // Act & Assert - Operações que o usuário básico NÃO PODE fazer
 
         // 3. Criar usuários (deve retornar Forbidden)
         var createUserPayload = new { name = "New User", email = "new@test.com" };
-        var createResponse = await _client.PostAsync("/api/users",
+        var createResponse = await _client.PostAsync("/api/v1/users",
             new StringContent(JsonSerializer.Serialize(createUserPayload), Encoding.UTF8, "application/json"));
         Assert.Equal(HttpStatusCode.Forbidden, createResponse.StatusCode);
 
         // 4. Deletar usuários (deve retornar Forbidden)
-        var deleteResponse = await _client.DeleteAsync("/api/users/some-user-id");
+        var deleteResponse = await _client.DeleteAsync("/api/v1/users/some-user-id");
         Assert.Equal(HttpStatusCode.Forbidden, deleteResponse.StatusCode);
 
         // 5. Acessar área administrativa (deve retornar Forbidden)
-        var adminResponse = await _client.GetAsync("/api/users/admin");
+        var adminResponse = await _client.GetAsync("/api/v1/users/admin");
         Assert.Equal(HttpStatusCode.Forbidden, adminResponse.StatusCode);
     }
 
@@ -78,29 +78,29 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         // Act & Assert - Operações administrativas que PODE fazer
 
         // 1. Listar todos os usuários
-        var listResponse = await _client.GetAsync("/api/users");
+        var listResponse = await _client.GetAsync("/api/v1/users");
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
 
         // 2. Criar usuários
         var createUserPayload = new { name = "Admin Created User", email = "admin@test.com" };
-        var createResponse = await _client.PostAsync("/api/users",
+        var createResponse = await _client.PostAsync("/api/v1/users",
             new StringContent(JsonSerializer.Serialize(createUserPayload), Encoding.UTF8, "application/json"));
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
         // 3. Atualizar usuários
         var updatePayload = new { name = "Updated Name" };
-        var updateResponse = await _client.PutAsync("/api/users/some-user-id",
+        var updateResponse = await _client.PutAsync("/api/v1/users/some-user-id",
             new StringContent(JsonSerializer.Serialize(updatePayload), Encoding.UTF8, "application/json"));
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
 
         // 4. Acessar área administrativa de usuários
-        var adminResponse = await _client.GetAsync("/api/users/admin");
+        var adminResponse = await _client.GetAsync("/api/v1/users/admin");
         Assert.Equal(HttpStatusCode.OK, adminResponse.StatusCode);
 
         // Act & Assert - Operações que NÃO PODE fazer (sem permissão de delete)
 
         // 5. Deletar usuários (deve retornar Forbidden - precisa de permissão específica)
-        var deleteResponse = await _client.DeleteAsync("/api/users/some-user-id");
+        var deleteResponse = await _client.DeleteAsync("/api/v1/users/some-user-id");
         Assert.Equal(HttpStatusCode.Forbidden, deleteResponse.StatusCode);
 
         // 6. Operações de sistema (deve retornar Forbidden)
@@ -128,18 +128,18 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         // Act & Assert - Deve ter acesso completo
 
         // 1. Todas as operações de usuários
-        var listResponse = await _client.GetAsync("/api/users");
+        var listResponse = await _client.GetAsync("/api/v1/users");
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
 
-        var createResponse = await _client.PostAsync("/api/users",
+        var createResponse = await _client.PostAsync("/api/v1/users",
             new StringContent(JsonSerializer.Serialize(new { name = "System User" }), Encoding.UTF8, "application/json"));
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
-        var updateResponse = await _client.PutAsync("/api/users/some-user-id",
+        var updateResponse = await _client.PutAsync("/api/v1/users/some-user-id",
             new StringContent(JsonSerializer.Serialize(new { name = "Updated" }), Encoding.UTF8, "application/json"));
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
 
-        var deleteResponse = await _client.DeleteAsync("/api/users/some-user-id");
+        var deleteResponse = await _client.DeleteAsync("/api/v1/users/some-user-id");
         Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
 
         // 2. Operações de sistema
@@ -147,7 +147,7 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         Assert.Equal(HttpStatusCode.OK, systemResponse.StatusCode);
 
         // 3. Área administrativa completa
-        var adminResponse = await _client.GetAsync("/api/users/admin");
+        var adminResponse = await _client.GetAsync("/api/v1/users/admin");
         Assert.Equal(HttpStatusCode.OK, adminResponse.StatusCode);
     }
 
@@ -164,11 +164,11 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", usersOnlyToken);
 
         // Act & Assert - Acesso ao módulo Users
-        var usersResponse = await _client.GetAsync("/api/users");
+        var usersResponse = await _client.GetAsync("/api/v1/users");
         Assert.Equal(HttpStatusCode.OK, usersResponse.StatusCode);
 
         // Act & Assert - Sem acesso a outros módulos (quando implementados)
-        var providersResponse = await _client.GetAsync("/api/providers");
+        var providersResponse = await _client.GetAsync("/api/v1/providers");
         Assert.Equal(HttpStatusCode.Forbidden, providersResponse.StatusCode);
 
         var ordersResponse = await _client.GetAsync("/api/orders");
@@ -197,8 +197,8 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminUserToken);
 
         // Act & Assert - Operação que apenas admin pode fazer
-        var basicUserDeleteResponse = await basicClient.DeleteAsync("/api/users/test-user");
-        var adminUserDeleteResponse = await adminClient.DeleteAsync("/api/users/test-user");
+        var basicUserDeleteResponse = await basicClient.DeleteAsync("/api/v1/users/test-user");
+        var adminUserDeleteResponse = await adminClient.DeleteAsync("/api/v1/users/test-user");
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, basicUserDeleteResponse.StatusCode);
@@ -222,7 +222,7 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
 
         for (int i = 0; i < 5; i++)
         {
-            var response = await _client.GetAsync("/api/users/profile");
+            var response = await _client.GetAsync("/api/v1/users/profile");
             responses.Add(response);
         }
 
@@ -241,7 +241,7 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "invalid-token");
 
         // Act
-        var response = await _client.GetAsync("/api/users/profile");
+        var response = await _client.GetAsync("/api/v1/users/profile");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -259,7 +259,7 @@ public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFacto
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", limitedToken);
 
         // Act
-        var createResponse = await _client.PostAsync("/api/users",
+        var createResponse = await _client.PostAsync("/api/v1/users",
             new StringContent(JsonSerializer.Serialize(new { name = "Test" }), Encoding.UTF8, "application/json"));
 
         // Assert

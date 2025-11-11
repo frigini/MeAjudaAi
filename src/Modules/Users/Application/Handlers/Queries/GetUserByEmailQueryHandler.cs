@@ -19,7 +19,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 /// </remarks>
 /// <param name="userRepository">Repositório para consultas de usuários</param>
 /// <param name="logger">Logger para auditoria e rastreamento das operações</param>
-public sealed class GetUserByEmailQueryHandler(
+internal sealed class GetUserByEmailQueryHandler(
     IUserRepository userRepository,
     ILogger<GetUserByEmailQueryHandler> logger
 ) : IQueryHandler<GetUserByEmailQuery, Result<UserDto>>
@@ -79,7 +79,7 @@ public sealed class GetUserByEmailQueryHandler(
                 "Failed to retrieve user by email. CorrelationId: {CorrelationId}, Email: {Email}",
                 correlationId, query.Email);
 
-            return Result<UserDto>.Failure($"Failed to retrieve user: {ex.Message}");
+            return Result<UserDto>.Failure(Error.Internal("Failed to retrieve user"));
         }
     }
 }

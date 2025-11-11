@@ -67,6 +67,8 @@ public abstract class InstanceApiTestBase : IAsyncLifetime
                             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
                         });
                         options.EnableSensitiveDataLogging();
+                        options.ConfigureWarnings(warnings =>
+                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
                     });
 
                     services.AddDbContext<ProvidersDbContext>(options =>
@@ -77,6 +79,8 @@ public abstract class InstanceApiTestBase : IAsyncLifetime
                             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
                         });
                         options.EnableSensitiveDataLogging();
+                        options.ConfigureWarnings(warnings =>
+                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
                     });
 
                     // Add instance-based test authentication instead of static
@@ -114,61 +118,47 @@ public abstract class InstanceApiTestBase : IAsyncLifetime
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
         var logger = scope.ServiceProvider.GetService<ILogger<InstanceApiTestBase>>();
 
-        // Create schemas first
+        // Apply migrations exactly like E2E tests
+        await ApplyMigrationsAsync(usersContext, providersContext, logger);
+    }
+
+    private static async Task ApplyMigrationsAsync(UsersDbContext usersContext, ProvidersDbContext providersContext, ILogger? logger)
+    {
+        // Ensure clean database state (like E2E tests)
         try
         {
-            await providersContext.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS providers;");
-            await usersContext.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS users;");
-            logger?.LogInformation("Database schemas created successfully");
+            await usersContext.Database.EnsureDeletedAsync();
+            logger?.LogInformation("🧹 Cleaned existing database");
         }
         catch (Exception ex)
         {
-            logger?.LogWarning(ex, "Failed to create schemas, they may already exist");
+            logger?.LogWarning(ex, "Failed to clean existing database, it may not exist");
         }
 
-        // For UsersDbContext, use EnsureCreatedAsync (works fine for users)
+        // Apply migrations on UsersDbContext first (creates database and users schema)
         try
         {
-            await usersContext.Database.EnsureCreatedAsync();
-            logger?.LogInformation("Users database schema created successfully");
+            logger?.LogInformation("🔄 Applying Users migrations...");
+            await usersContext.Database.MigrateAsync();
+            logger?.LogInformation("✅ Users database migrations completed successfully");
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "Failed to create Users database schema");
-            throw;
+            logger?.LogError(ex, "❌ Failed to apply Users migrations: {Message}", ex.Message);
+            throw new InvalidOperationException("Unable to apply Users database migrations", ex);
         }
 
-        // For ProvidersDbContext, use migrations for proper table structure
+        // Apply migrations on ProvidersDbContext (database exists, only need providers schema)
         try
         {
-            logger?.LogInformation("🔄 Running Providers migrations...");
+            logger?.LogInformation("🔄 Applying Providers migrations...");
             await providersContext.Database.MigrateAsync();
             logger?.LogInformation("✅ Providers database migrations completed successfully");
         }
         catch (Exception ex)
         {
-            logger?.LogWarning(ex, "⚠️ Migrations failed for Providers, trying EnsureCreatedAsync");
-
-            try
-            {
-                await providersContext.Database.EnsureCreatedAsync();
-                logger?.LogInformation("✅ Providers database schema created with EnsureCreatedAsync");
-            }
-            catch (Exception ensureEx)
-            {
-                logger?.LogWarning(ensureEx, "⚠️ EnsureCreatedAsync also failed, falling back to manual creation");
-
-                try
-                {
-                    await CreateProvidersTableManually(providersContext, logger);
-                    logger?.LogInformation("✅ Providers database schema created using manual table creation");
-                }
-                catch (Exception manualEx)
-                {
-                    logger?.LogError(manualEx, "❌ All Providers table creation methods failed");
-                    throw new InvalidOperationException("Unable to initialize Providers database schema", manualEx);
-                }
-            }
+            logger?.LogError(ex, "❌ Failed to apply Providers migrations: {Message}", ex.Message);
+            throw new InvalidOperationException("Unable to apply Providers database migrations", ex);
         }
 
         // Verify tables exist
@@ -190,22 +180,8 @@ public abstract class InstanceApiTestBase : IAsyncLifetime
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "Providers database verification failed - attempting emergency table creation");
-
-            // Emergency table creation as last resort
-            try
-            {
-                await CreateProvidersTableManually(providersContext, logger);
-
-                // Retry verification after manual creation
-                var providersCount = await providersContext.Providers.CountAsync();
-                logger?.LogInformation("Emergency table creation successful - Count: {ProvidersCount}", providersCount);
-            }
-            catch (Exception emergencyEx)
-            {
-                logger?.LogError(emergencyEx, "Emergency table creation also failed");
-                throw new InvalidOperationException("Providers database could not be initialized despite all attempts", emergencyEx);
-            }
+            logger?.LogError(ex, "Providers database verification failed");
+            throw new InvalidOperationException("Providers database is not properly initialized", ex);
         }
     }
 

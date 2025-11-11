@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Providers.API;
@@ -54,10 +55,9 @@ public static class Extensions
             var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.ProvidersDbContext>();
             if (context == null) return;
 
-            // Verificar se estamos em ambiente de teste (TestContainers ou similar)
-            var isTestEnvironment = app.Environment.EnvironmentName == "Test" || 
-                                   app.Environment.EnvironmentName == "Testing" ||
-                                   context.Database.GetConnectionString()?.Contains("localhost") == true;
+            // Verificar se estamos em ambiente de teste
+            var isTestEnvironment = app.Environment.IsEnvironment("Test") || 
+                                   app.Environment.IsEnvironment("Testing");
 
             if (isTestEnvironment)
             {

@@ -25,19 +25,21 @@ public sealed class ProviderProfileUpdatedDomainEventHandler(
         {
             logger.LogInformation("Handling ProviderProfileUpdatedDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
 
-            // Busca o prestador para garantir que temos os dados mais recentes
-            var provider = await context.Providers
+            // Busca apenas o UserId do prestador
+            var userId = await context.Providers
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == new Domain.ValueObjects.ProviderId(domainEvent.AggregateId), cancellationToken);
+                .Where(p => p.Id == new Domain.ValueObjects.ProviderId(domainEvent.AggregateId))
+                .Select(p => (Guid?)p.UserId)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (provider == null)
+            if (!userId.HasValue)
             {
                 logger.LogWarning("Provider {ProviderId} not found when handling ProviderProfileUpdatedDomainEvent", domainEvent.AggregateId);
                 return;
             }
 
             // Cria evento de integração para sistemas externos usando mapper
-            var integrationEvent = domainEvent.ToIntegrationEvent(provider.UserId, domainEvent.UpdatedFields);
+            var integrationEvent = domainEvent.ToIntegrationEvent(userId.Value, domainEvent.UpdatedFields);
 
             await messageBus.PublishAsync(integrationEvent, cancellationToken: cancellationToken);
 

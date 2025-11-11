@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Services;
 /// Mock implementation of IAuthenticationDomainService for environments where Keycloak is not available.
 /// Provides basic authentication logic for testing and development scenarios.
 /// </summary>
-public class MockAuthenticationDomainService : IAuthenticationDomainService
+internal class MockAuthenticationDomainService : IAuthenticationDomainService
 {
     /// <summary>
     /// Authenticates users with mock credentials for testing purposes.
@@ -52,11 +52,6 @@ public class MockAuthenticationDomainService : IAuthenticationDomainService
             return Task.FromResult(Result<TokenValidationResult>.Success(result));
         }
 
-        var invalidResult = new TokenValidationResult(
-            UserId: null,
-            Roles: [],
-            Claims: []
-        );
-        return Task.FromResult(Result<TokenValidationResult>.Success(invalidResult));
+        return Task.FromResult(Result<TokenValidationResult>.Failure("Invalid token"));
     }
 }

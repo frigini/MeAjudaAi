@@ -22,7 +22,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="userDomainService">Serviço de domínio para operações de usuário</param>
 /// <param name="userRepository">Repositório para persistência de usuários</param>
 /// <param name="logger">Logger estruturado para auditoria e debugging</param>
-public sealed class CreateUserCommandHandler(
+internal sealed class CreateUserCommandHandler(
     IUserDomainService userDomainService,
     IUserRepository userRepository,
     ILogger<CreateUserCommandHandler> logger
@@ -88,7 +88,7 @@ public sealed class CreateUserCommandHandler(
             stopwatch.Stop();
             logger.LogError(ex, "Unexpected error creating user for email {Email} after {ElapsedMs}ms",
                 command.Email, stopwatch.ElapsedMilliseconds);
-            return Result<UserDto>.Failure($"Failed to create user: {ex.Message}");
+            return Result<UserDto>.Failure("Failed to create user due to an unexpected error");
         }
     }
 
