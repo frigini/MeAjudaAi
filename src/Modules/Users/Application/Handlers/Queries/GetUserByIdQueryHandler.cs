@@ -22,7 +22,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Queries;
 /// <param name="userRepository">Repositório para consultas de usuários</param>
 /// <param name="usersCacheService">Serviço de cache específico para usuários</param>
 /// <param name="logger">Logger para auditoria e rastreamento das operações</param>
-public sealed class GetUserByIdQueryHandler(
+internal sealed class GetUserByIdQueryHandler(
     IUserRepository userRepository,
     IUsersCacheService usersCacheService,
     ILogger<GetUserByIdQueryHandler> logger

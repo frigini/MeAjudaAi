@@ -39,7 +39,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers");
@@ -82,7 +82,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task ProvidersEndpoint_ShouldSupportPagination()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=5");
@@ -95,7 +95,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task ProvidersEndpoint_ShouldSupportFilters()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
 
         // Act
         var response = await Client.GetAsync("/api/v1/providers?name=test&type=1&verificationStatus=1");
@@ -108,7 +108,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task GetProviderById_Endpoint_ShouldExist()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
         var testId = Guid.NewGuid();
 
         // Act
@@ -123,7 +123,7 @@ public class ImplementedFeaturesTests : ApiTestBase
     public async Task CreateProvider_Endpoint_ShouldExist()
     {
         // Arrange
-        ConfigurableTestAuthenticationHandler.ConfigureAdmin();
+        AuthConfig.ConfigureAdmin();
         var providerData = new
         {
             userId = Guid.NewGuid(),

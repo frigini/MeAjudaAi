@@ -25,6 +25,20 @@ public sealed partial record Email
     public static implicit operator string(Email email) => email.Value;
     public static implicit operator Email(string email) => new(email);
 
+    /// <summary>
+    /// Validates if the email format is valid without creating an instance.
+    /// </summary>
+    /// <param name="email">Email string to validate</param>
+    /// <returns>True if email format is valid, false otherwise</returns>
+    public static bool IsValid(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return false;
+        if (email.Length > ValidationConstants.UserLimits.EmailMaxLength)
+            return false;
+        return EmailRegex.IsMatch(email);
+    }
+
     [GeneratedRegex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
     private static partial Regex EmailGeneratedRegex();
 }

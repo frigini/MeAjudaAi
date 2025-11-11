@@ -52,10 +52,10 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
         // Configuração das propriedades de auditoria da BaseEntity
         builder.Property(p => p.CreatedAt)
             .IsRequired()
-            .HasColumnName("CreatedAt");
+            .HasColumnName("created_at");
 
         builder.Property(p => p.UpdatedAt)
-            .HasColumnName("UpdatedAt");
+            .HasColumnName("updated_at");
 
         // Configuração do BusinessProfile como owned builder
         builder.OwnsOne(p => p.BusinessProfile, bp =>
@@ -158,8 +158,8 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             doc.HasKey("ProviderId", "Id");
             doc.ToTable("document", "providers");
             doc.WithOwner().HasForeignKey("ProviderId");
-            doc.Property("ProviderId").HasColumnName("ProviderId");
-            doc.Property("Id").HasColumnName("Id");
+            doc.Property("ProviderId").HasColumnName("provider_id");
+            doc.Property("Id").HasColumnName("id");
             doc.HasIndex("ProviderId", "DocumentType").IsUnique();
         });
 
@@ -192,8 +192,8 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             qual.HasKey("ProviderId", "Id");
             qual.ToTable("qualification", "providers");
             qual.WithOwner().HasForeignKey("ProviderId");
-            qual.Property("ProviderId").HasColumnName("ProviderId");
-            qual.Property("Id").HasColumnName("Id");
+            qual.Property("ProviderId").HasColumnName("provider_id");
+            qual.Property("Id").HasColumnName("id");
         });
 
         // Índices

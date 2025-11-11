@@ -54,6 +54,15 @@ internal sealed class GetUserByEmailQueryHandler(
 
         try
         {
+            // Validate email format
+            if (!Email.IsValid(query.Email))
+            {
+                logger.LogWarning(
+                    "Invalid email format. CorrelationId: {CorrelationId}, Email: {Email}",
+                    correlationId, query.Email);
+                return Result<UserDto>.Failure(Error.BadRequest("Invalid email format"));
+            }
+
             // Busca o usuário pelo email utilizando value object
             var user = await userRepository.GetByEmailAsync(
                 new Email(query.Email), cancellationToken);

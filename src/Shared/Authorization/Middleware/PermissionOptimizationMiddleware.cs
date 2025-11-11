@@ -155,7 +155,7 @@ public sealed class PermissionOptimizationMiddleware(
             return;
 
         // Para operações de leitura em endpoints específicos, pode usar cache mais agressivo
-        if (path.StartsWith("/api/users/profile", StringComparison.OrdinalIgnoreCase) ||
+        if (path.StartsWith("/api/v1/users/profile", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith(ApiEndpoints.System.Health, StringComparison.OrdinalIgnoreCase))
         {
             context.Items["UseAggressivePermissionCache"] = true;
@@ -177,7 +177,7 @@ public sealed class PermissionOptimizationMiddleware(
         var permissions = new List<EPermission>();
 
         // Users module
-        if (path.StartsWith("/api/users"))
+        if (path.StartsWith("/api/v1/users"))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {
@@ -192,7 +192,7 @@ public sealed class PermissionOptimizationMiddleware(
         }
 
         // Providers module (futuro)
-        else if (path.StartsWith("/api/providers"))
+        else if (path.StartsWith("/api/v1/providers"))
         {
             permissions.AddRange(method.ToUpperInvariant() switch
             {

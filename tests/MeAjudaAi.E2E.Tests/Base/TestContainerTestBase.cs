@@ -72,8 +72,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         ["Cache:Enabled"] = "false", // Disable Redis for now
                         ["Cache:ConnectionString"] = _redisContainer.GetConnectionString(),
                         // Desabilitar completamente Rate Limiting nos testes E2E
-                        ["AdvancedRateLimit:Enabled"] = "false",
-                        ["RateLimit:Enabled"] = "false",
+                        ["AdvancedRateLimit:General:Enabled"] = "false",
                         // Valores de fallback muito altos caso não consiga desabilitar
                         ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "999999",
                         ["AdvancedRateLimit:Anonymous:RequestsPerHour"] = "999999",

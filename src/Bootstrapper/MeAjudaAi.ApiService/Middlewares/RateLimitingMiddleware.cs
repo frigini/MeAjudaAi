@@ -13,8 +13,7 @@ public class RateLimitingMiddleware(
     RequestDelegate next,
     IMemoryCache cache,
     IOptionsMonitor<RateLimitOptions> options,
-    ILogger<RateLimitingMiddleware> logger,
-    IConfiguration configuration)
+    ILogger<RateLimitingMiddleware> logger)
 {
     /// <summary>
     /// Classe contador simples para rate limiting.
@@ -31,12 +30,10 @@ public class RateLimitingMiddleware(
     }
     public async Task InvokeAsync(HttpContext context)
     {
-        // Bypass rate limiting if explicitly disabled for testing
-        var rateLimitEnabled = configuration.GetValue<bool?>("AdvancedRateLimit:Enabled") ?? 
-                              configuration.GetValue<bool?>("RateLimit:Enabled") ?? 
-                              true; // Default to enabled
+        var currentOptions = options.CurrentValue;
 
-        if (!rateLimitEnabled)
+        // Bypass rate limiting if explicitly disabled
+        if (!currentOptions.General.Enabled)
         {
             await next(context);
             return;
@@ -44,8 +41,6 @@ public class RateLimitingMiddleware(
 
         var clientIp = GetClientIpAddress(context);
         var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
-
-        var currentOptions = options.CurrentValue;
 
         // Check IP whitelist first - bypass rate limiting if IP is whitelisted
         if (currentOptions.General.EnableIpWhitelist &&

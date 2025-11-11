@@ -18,7 +18,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// - Autorização está funcionando
 /// - Dados são persistidos corretamente
 /// </remarks>
-public class UsersApiTests : InstanceApiTestBase
+public class UsersApiTests : ApiTestBase
 {
     [Fact]
     public async Task UsersEndpoint_ShouldBeAccessible()

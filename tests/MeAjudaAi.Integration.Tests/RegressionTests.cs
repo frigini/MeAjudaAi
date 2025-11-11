@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests;
 
-public class RegressionTests : InstanceApiTestBase
+public class RegressionTests : ApiTestBase
 {
     private readonly ITestOutputHelper _output;
 
