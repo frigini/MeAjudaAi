@@ -122,6 +122,10 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Never);
+
+        _providerRepositoryMock.Verify(
+            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Theory]
@@ -147,6 +151,10 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
 
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+
+        _providerRepositoryMock.Verify(
+            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 

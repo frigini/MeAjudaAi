@@ -54,6 +54,7 @@ public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
                 - 📧 Notificação automática ao prestador (futuro)
                 - 📋 Auditoria completa da solicitação
                 - ⚖️ Motivo obrigatório para rastreabilidade
+                - 🔐 Identificação do solicitante extraída da autenticação
                 
                 **Fluxo após correção:**
                 1. Prestador recebe notificação com motivo da correção
@@ -61,15 +62,18 @@ public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
                 3. Prestador conclui informações básicas novamente
                 4. Sistema retorna para verificação de documentos
                 
-                **Campos obrigatórios:**
+                **Campos obrigatórios no request body:**
                 - Reason: Motivo detalhado da correção necessária
-                - RequestedBy: Identificador do verificador/administrador
+                
+                **Campos derivados do servidor:**
+                - RequestedBy: Extraído automaticamente do contexto de autenticação (claims: name, sub ou email)
                 
                 **Validações aplicadas:**
                 - Prestador em status PendingDocumentVerification
                 - Motivo não pode ser vazio
                 - Prestador existente e ativo
-                - Autorização administrativa
+                - Autorização administrativa verificada
+                - Identidade do solicitante autenticada
                 """)
             .RequireAuthorization("AdminOnly")
             .Produces(StatusCodes.Status200OK)
