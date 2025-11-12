@@ -358,14 +358,17 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// </summary>
     /// <param name="status">Novo status de verificação</param>
     /// <param name="updatedBy">Quem está fazendo a atualização</param>
-    public void UpdateVerificationStatus(EVerificationStatus status, string? updatedBy = null)
+    /// <param name="skipMarkAsUpdated">Se true, não chama MarkAsUpdated (útil quando chamado junto com UpdateStatus)</param>
+    public void UpdateVerificationStatus(EVerificationStatus status, string? updatedBy = null, bool skipMarkAsUpdated = false)
     {
         if (IsDeleted)
             throw new ProviderDomainException("Cannot update verification status of deleted provider");
 
         var previousStatus = VerificationStatus;
         VerificationStatus = status;
-        MarkAsUpdated();
+        
+        if (!skipMarkAsUpdated)
+            MarkAsUpdated();
 
         AddDomainEvent(new ProviderVerificationStatusUpdatedDomainEvent(
             Id.Value,
@@ -391,6 +394,9 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         // Valida transições de estado permitidas
         ValidateStatusTransition(Status, newStatus);
+
+        // Valida que os motivos obrigatórios estejam preenchidos
+        ValidateRequiredReasons(newStatus);
 
         var previousStatus = Status;
         Status = newStatus;
@@ -440,7 +446,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
             throw new ProviderDomainException("Can only activate providers in PendingDocumentVerification status");
 
         UpdateStatus(EProviderStatus.Active, updatedBy);
-        UpdateVerificationStatus(EVerificationStatus.Verified, updatedBy);
+        UpdateVerificationStatus(EVerificationStatus.Verified, updatedBy, skipMarkAsUpdated: true);
     }
 
     /// <summary>
@@ -461,7 +467,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         SuspensionReason = reason;
         UpdateStatus(EProviderStatus.Suspended, updatedBy);
-        UpdateVerificationStatus(EVerificationStatus.Suspended, updatedBy);
+        UpdateVerificationStatus(EVerificationStatus.Suspended, updatedBy, skipMarkAsUpdated: true);
     }
 
     /// <summary>
@@ -482,7 +488,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         RejectionReason = reason;
         UpdateStatus(EProviderStatus.Rejected, updatedBy);
-        UpdateVerificationStatus(EVerificationStatus.Rejected, updatedBy);
+        UpdateVerificationStatus(EVerificationStatus.Rejected, updatedBy, skipMarkAsUpdated: true);
     }
 
     /// <summary>
@@ -523,6 +529,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         var allowedTransitions = new Dictionary<EProviderStatus, EProviderStatus[]>
         {
             [EProviderStatus.PendingBasicInfo] = [EProviderStatus.PendingDocumentVerification, EProviderStatus.Rejected],
+            // TODO: Implementar método público para retornar de PendingDocumentVerification para PendingBasicInfo (ex: RequireBasicInfoCorrection)
             [EProviderStatus.PendingDocumentVerification] = [EProviderStatus.Active, EProviderStatus.Rejected, EProviderStatus.PendingBasicInfo],
             [EProviderStatus.Active] = [EProviderStatus.Suspended],
             [EProviderStatus.Suspended] = [EProviderStatus.Active, EProviderStatus.Rejected],
@@ -553,6 +560,23 @@ public sealed class Provider : AggregateRoot<ProviderId>
         // Limpa o motivo de rejeição se não estiver mais no estado Rejected
         if (newStatus != EProviderStatus.Rejected)
             RejectionReason = null;
+    }
+
+    /// <summary>
+    /// Valida que os motivos obrigatórios estejam preenchidos ao transicionar para Suspended ou Rejected.
+    /// </summary>
+    /// <param name="newStatus">Novo status do prestador</param>
+    /// <remarks>
+    /// Este método garante a invariante de auditoria: transições para Suspended requerem SuspensionReason
+    /// e transições para Rejected requerem RejectionReason.
+    /// </remarks>
+    private void ValidateRequiredReasons(EProviderStatus newStatus)
+    {
+        if (newStatus == EProviderStatus.Suspended && string.IsNullOrWhiteSpace(SuspensionReason))
+            throw new ProviderDomainException("SuspensionReason is required when transitioning to Suspended status");
+
+        if (newStatus == EProviderStatus.Rejected && string.IsNullOrWhiteSpace(RejectionReason))
+            throw new ProviderDomainException("RejectionReason is required when transitioning to Rejected status");
     }
 
     /// <summary>
