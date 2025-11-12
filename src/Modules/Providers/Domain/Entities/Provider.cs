@@ -395,6 +395,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         var previousStatus = Status;
         Status = newStatus;
         MarkAsUpdated();
+        ClearReasonFieldsIfNeeded(newStatus);
 
         // Dispara eventos de domínio específicos baseado na transição
         if (newStatus == EProviderStatus.PendingDocumentVerification && previousStatus == EProviderStatus.PendingBasicInfo)
@@ -485,6 +486,32 @@ public sealed class Provider : AggregateRoot<ProviderId>
     }
 
     /// <summary>
+    /// Exclui logicamente o prestador de serviços do sistema.
+    /// </summary>
+    /// <param name="dateTimeProvider">Provedor de data/hora para auditoria</param>
+    /// <param name="deletedBy">Quem está fazendo a exclusão</param>
+    /// <remarks>
+    /// Implementa exclusão lógica (soft delete) em vez de remoção física dos dados.
+    /// Dispara o evento ProviderDeletedDomainEvent quando a exclusão é realizada.
+    /// Se o prestador já estiver excluído, o método retorna sem fazer alterações.
+    /// </remarks>
+    public void Delete(IDateTimeProvider dateTimeProvider, string? deletedBy = null)
+    {
+        if (IsDeleted)
+            return;
+
+        IsDeleted = true;
+        DeletedAt = dateTimeProvider.CurrentDate();
+        MarkAsUpdated();
+
+        AddDomainEvent(new ProviderDeletedDomainEvent(
+            Id.Value,
+            1,
+            Name,
+            deletedBy));
+    }
+
+    /// <summary>
     /// Valida se uma transição de status é permitida pelas regras de negócio.
     /// </summary>
     private static void ValidateStatusTransition(EProviderStatus currentStatus, EProviderStatus newStatus)
@@ -510,29 +537,22 @@ public sealed class Provider : AggregateRoot<ProviderId>
     }
 
     /// <summary>
-    /// Exclui logicamente o prestador de serviços do sistema.
+    /// Limpa os campos de motivo (SuspensionReason e RejectionReason) quando o status não corresponde mais ao motivo armazenado.
     /// </summary>
-    /// <param name="dateTimeProvider">Provedor de data/hora para auditoria</param>
-    /// <param name="deletedBy">Quem está fazendo a exclusão</param>
+    /// <param name="newStatus">Novo status do prestador</param>
     /// <remarks>
-    /// Implementa exclusão lógica (soft delete) em vez de remoção física dos dados.
-    /// Dispara o evento ProviderDeletedDomainEvent quando a exclusão é realizada.
-    /// Se o prestador já estiver excluído, o método retorna sem fazer alterações.
+    /// Este método garante a invariante de que os motivos de suspensão e rejeição
+    /// só existem enquanto o prestador está nos estados Suspended ou Rejected, respectivamente.
     /// </remarks>
-    public void Delete(IDateTimeProvider dateTimeProvider, string? deletedBy = null)
+    private void ClearReasonFieldsIfNeeded(EProviderStatus newStatus)
     {
-        if (IsDeleted)
-            return;
+        // Limpa o motivo de suspensão se não estiver mais no estado Suspended
+        if (newStatus != EProviderStatus.Suspended)
+            SuspensionReason = null;
 
-        IsDeleted = true;
-        DeletedAt = dateTimeProvider.CurrentDate();
-        MarkAsUpdated();
-
-        AddDomainEvent(new ProviderDeletedDomainEvent(
-            Id.Value,
-            1,
-            Name,
-            deletedBy));
+        // Limpa o motivo de rejeição se não estiver mais no estado Rejected
+        if (newStatus != EProviderStatus.Rejected)
+            RejectionReason = null;
     }
 
     /// <summary>
