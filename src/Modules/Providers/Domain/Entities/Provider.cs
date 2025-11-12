@@ -437,6 +437,30 @@ public sealed class Provider : AggregateRoot<ProviderId>
     }
 
     /// <summary>
+    /// Retorna o prestador para correção de informações básicas durante a verificação de documentos.
+    /// </summary>
+    /// <param name="reason">Motivo da correção necessária (obrigatório)</param>
+    /// <param name="updatedBy">Quem está solicitando a correção</param>
+    public void RequireBasicInfoCorrection(string reason, string? updatedBy = null)
+    {
+        if (Status != EProviderStatus.PendingDocumentVerification)
+            throw new ProviderDomainException("Can only require basic info correction during document verification");
+
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ProviderDomainException("Correction reason is required");
+
+        UpdateStatus(EProviderStatus.PendingBasicInfo, updatedBy);
+        
+        AddDomainEvent(new ProviderBasicInfoCorrectionRequiredDomainEvent(
+            Id.Value,
+            1,
+            UserId,
+            Name,
+            reason,
+            updatedBy));
+    }
+
+    /// <summary>
     /// Ativa o prestador após verificação bem-sucedida dos documentos.
     /// </summary>
     /// <param name="updatedBy">Quem está fazendo a ativação</param>
@@ -444,6 +468,19 @@ public sealed class Provider : AggregateRoot<ProviderId>
     {
         if (Status != EProviderStatus.PendingDocumentVerification)
             throw new ProviderDomainException("Can only activate providers in PendingDocumentVerification status");
+
+        UpdateStatus(EProviderStatus.Active, updatedBy);
+        UpdateVerificationStatus(EVerificationStatus.Verified, updatedBy, skipMarkAsUpdated: true);
+    }
+
+    /// <summary>
+    /// Reativa um prestador previamente suspenso.
+    /// </summary>
+    /// <param name="updatedBy">Quem está fazendo a reativação</param>
+    public void Reactivate(string? updatedBy = null)
+    {
+        if (Status != EProviderStatus.Suspended)
+            throw new ProviderDomainException("Can only reactivate providers in Suspended status");
 
         UpdateStatus(EProviderStatus.Active, updatedBy);
         UpdateVerificationStatus(EVerificationStatus.Verified, updatedBy, skipMarkAsUpdated: true);
@@ -529,7 +566,6 @@ public sealed class Provider : AggregateRoot<ProviderId>
         var allowedTransitions = new Dictionary<EProviderStatus, EProviderStatus[]>
         {
             [EProviderStatus.PendingBasicInfo] = [EProviderStatus.PendingDocumentVerification, EProviderStatus.Rejected],
-            // TODO: Implementar método público para retornar de PendingDocumentVerification para PendingBasicInfo (ex: RequireBasicInfoCorrection)
             [EProviderStatus.PendingDocumentVerification] = [EProviderStatus.Active, EProviderStatus.Rejected, EProviderStatus.PendingBasicInfo],
             [EProviderStatus.Active] = [EProviderStatus.Suspended],
             [EProviderStatus.Suspended] = [EProviderStatus.Active, EProviderStatus.Rejected],

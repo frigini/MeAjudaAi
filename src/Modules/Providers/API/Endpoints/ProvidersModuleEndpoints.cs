@@ -58,6 +58,7 @@ public static class ProvidersModuleEndpoints
             .MapEndpoint<AddDocumentEndpoint>()
             .MapEndpoint<RemoveDocumentEndpoint>()
             .MapEndpoint<UpdateVerificationStatusEndpoint>()
+            .MapEndpoint<RequireBasicInfoCorrectionEndpoint>()
             .MapEndpoint<DeleteProviderEndpoint>();
     }
 }
