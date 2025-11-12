@@ -11,11 +11,14 @@ public sealed record ProviderDto(
     string Name,
     EProviderType Type,
     BusinessProfileDto BusinessProfile,
+    EProviderStatus Status,
     EVerificationStatus VerificationStatus,
     IReadOnlyList<DocumentDto> Documents,
     IReadOnlyList<QualificationDto> Qualifications,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     bool IsDeleted,
-    DateTime? DeletedAt
+    DateTime? DeletedAt,
+    string? SuspensionReason = null,
+    string? RejectionReason = null
 );

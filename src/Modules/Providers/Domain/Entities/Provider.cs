@@ -48,6 +48,14 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public BusinessProfile BusinessProfile { get; private set; } = null!;
 
     /// <summary>
+    /// Status do fluxo de registro do prestador de serviços.
+    /// </summary>
+    /// <remarks>
+    /// Controla o progresso do prestador através do processo de registro multi-etapas.
+    /// </remarks>
+    public EProviderStatus Status { get; private set; }
+
+    /// <summary>
     /// Status de verificação do prestador de serviços.
     /// </summary>
     public EVerificationStatus VerificationStatus { get; private set; }
@@ -75,6 +83,16 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public DateTime? DeletedAt { get; private set; }
 
     /// <summary>
+    /// Motivo da suspensão do prestador (obrigatório quando Status = Suspended).
+    /// </summary>
+    public string? SuspensionReason { get; private set; }
+
+    /// <summary>
+    /// Motivo da rejeição do prestador (obrigatório quando Status = Rejected).
+    /// </summary>
+    public string? RejectionReason { get; private set; }
+
+    /// <summary>
     /// Construtor privado para uso do Entity Framework.
     /// </summary>
     private Provider() { }
@@ -99,6 +117,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         Name = name.Trim();
         Type = type;
         BusinessProfile = businessProfile;
+        Status = EProviderStatus.PendingBasicInfo;
         VerificationStatus = EVerificationStatus.Pending;
 
         // Não adiciona eventos de domínio para testes
@@ -131,6 +150,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         Name = name.Trim();
         Type = type;
         BusinessProfile = businessProfile;
+        Status = EProviderStatus.PendingBasicInfo;
         VerificationStatus = EVerificationStatus.Pending;
 
         AddDomainEvent(new ProviderRegisteredDomainEvent(
@@ -338,14 +358,17 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// </summary>
     /// <param name="status">Novo status de verificação</param>
     /// <param name="updatedBy">Quem está fazendo a atualização</param>
-    public void UpdateVerificationStatus(EVerificationStatus status, string? updatedBy = null)
+    /// <param name="skipMarkAsUpdated">Se true, não chama MarkAsUpdated (útil quando chamado junto com UpdateStatus)</param>
+    public void UpdateVerificationStatus(EVerificationStatus status, string? updatedBy = null, bool skipMarkAsUpdated = false)
     {
         if (IsDeleted)
             throw new ProviderDomainException("Cannot update verification status of deleted provider");
 
         var previousStatus = VerificationStatus;
         VerificationStatus = status;
-        MarkAsUpdated();
+        
+        if (!skipMarkAsUpdated)
+            MarkAsUpdated();
 
         AddDomainEvent(new ProviderVerificationStatusUpdatedDomainEvent(
             Id.Value,
@@ -353,6 +376,156 @@ public sealed class Provider : AggregateRoot<ProviderId>
             previousStatus,
             status,
             updatedBy));
+    }
+
+    /// <summary>
+    /// Atualiza o status do fluxo de registro do prestador de serviços.
+    /// </summary>
+    /// <param name="newStatus">Novo status de registro</param>
+    /// <param name="updatedBy">Quem está fazendo a atualização</param>
+    /// <remarks>
+    /// Este método gerencia as transições entre diferentes etapas do processo de registro multi-etapas.
+    /// Valida que as transições de estado sejam válidas de acordo com as regras de negócio.
+    /// </remarks>
+    public void UpdateStatus(EProviderStatus newStatus, string? updatedBy = null)
+    {
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot update status of deleted provider");
+
+        // Valida transições de estado permitidas
+        ValidateStatusTransition(Status, newStatus);
+
+        // Valida que os motivos obrigatórios estejam preenchidos
+        ValidateRequiredReasons(newStatus);
+
+        var previousStatus = Status;
+        Status = newStatus;
+        MarkAsUpdated();
+        ClearReasonFieldsIfNeeded(newStatus);
+
+        // Dispara eventos de domínio específicos baseado na transição
+        if (newStatus == EProviderStatus.PendingDocumentVerification && previousStatus == EProviderStatus.PendingBasicInfo)
+        {
+            AddDomainEvent(new ProviderAwaitingVerificationDomainEvent(
+                Id.Value,
+                1,
+                UserId,
+                Name,
+                updatedBy));
+        }
+        else if (newStatus == EProviderStatus.Active && previousStatus == EProviderStatus.PendingDocumentVerification)
+        {
+            AddDomainEvent(new ProviderActivatedDomainEvent(
+                Id.Value,
+                1,
+                UserId,
+                Name,
+                updatedBy));
+        }
+    }
+
+    /// <summary>
+    /// Completa o preenchimento das informações básicas e avança para a etapa de verificação de documentos.
+    /// </summary>
+    /// <param name="updatedBy">Quem está fazendo a atualização</param>
+    public void CompleteBasicInfo(string? updatedBy = null)
+    {
+        if (Status != EProviderStatus.PendingBasicInfo)
+            throw new ProviderDomainException("Cannot complete basic info when not in PendingBasicInfo status");
+
+        UpdateStatus(EProviderStatus.PendingDocumentVerification, updatedBy);
+    }
+
+    /// <summary>
+    /// Retorna o prestador para correção de informações básicas durante a verificação de documentos.
+    /// </summary>
+    /// <param name="reason">Motivo da correção necessária (obrigatório)</param>
+    /// <param name="updatedBy">Quem está solicitando a correção</param>
+    public void RequireBasicInfoCorrection(string reason, string? updatedBy = null)
+    {
+        if (Status != EProviderStatus.PendingDocumentVerification)
+            throw new ProviderDomainException("Can only require basic info correction during document verification");
+
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ProviderDomainException("Correction reason is required");
+
+        UpdateStatus(EProviderStatus.PendingBasicInfo, updatedBy);
+        
+        AddDomainEvent(new ProviderBasicInfoCorrectionRequiredDomainEvent(
+            Id.Value,
+            1,
+            UserId,
+            Name,
+            reason,
+            updatedBy));
+    }
+
+    /// <summary>
+    /// Ativa o prestador após verificação bem-sucedida dos documentos.
+    /// </summary>
+    /// <param name="updatedBy">Quem está fazendo a ativação</param>
+    public void Activate(string? updatedBy = null)
+    {
+        if (Status != EProviderStatus.PendingDocumentVerification)
+            throw new ProviderDomainException("Can only activate providers in PendingDocumentVerification status");
+
+        UpdateStatus(EProviderStatus.Active, updatedBy);
+        UpdateVerificationStatus(EVerificationStatus.Verified, updatedBy, skipMarkAsUpdated: true);
+    }
+
+    /// <summary>
+    /// Reativa um prestador previamente suspenso.
+    /// </summary>
+    /// <param name="updatedBy">Quem está fazendo a reativação</param>
+    public void Reactivate(string? updatedBy = null)
+    {
+        if (Status != EProviderStatus.Suspended)
+            throw new ProviderDomainException("Can only reactivate providers in Suspended status");
+
+        UpdateStatus(EProviderStatus.Active, updatedBy);
+        UpdateVerificationStatus(EVerificationStatus.Verified, updatedBy, skipMarkAsUpdated: true);
+    }
+
+    /// <summary>
+    /// Suspende o prestador de serviços.
+    /// </summary>
+    /// <param name="reason">Motivo da suspensão (obrigatório)</param>
+    /// <param name="updatedBy">Quem está fazendo a suspensão</param>
+    public void Suspend(string reason, string? updatedBy = null)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ProviderDomainException("Suspension reason is required");
+
+        if (Status == EProviderStatus.Suspended)
+            return;
+
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot suspend deleted provider");
+
+        SuspensionReason = reason;
+        UpdateStatus(EProviderStatus.Suspended, updatedBy);
+        UpdateVerificationStatus(EVerificationStatus.Suspended, updatedBy, skipMarkAsUpdated: true);
+    }
+
+    /// <summary>
+    /// Rejeita o registro do prestador de serviços.
+    /// </summary>
+    /// <param name="reason">Motivo da rejeição (obrigatório)</param>
+    /// <param name="updatedBy">Quem está fazendo a rejeição</param>
+    public void Reject(string reason, string? updatedBy = null)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ProviderDomainException("Rejection reason is required");
+
+        if (Status == EProviderStatus.Rejected)
+            return;
+
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot reject deleted provider");
+
+        RejectionReason = reason;
+        UpdateStatus(EProviderStatus.Rejected, updatedBy);
+        UpdateVerificationStatus(EVerificationStatus.Rejected, updatedBy, skipMarkAsUpdated: true);
     }
 
     /// <summary>
@@ -379,6 +552,67 @@ public sealed class Provider : AggregateRoot<ProviderId>
             1,
             Name,
             deletedBy));
+    }
+
+    /// <summary>
+    /// Valida se uma transição de status é permitida pelas regras de negócio.
+    /// </summary>
+    private static void ValidateStatusTransition(EProviderStatus currentStatus, EProviderStatus newStatus)
+    {
+        // Permite manter o mesmo status
+        if (currentStatus == newStatus)
+            return;
+
+        var allowedTransitions = new Dictionary<EProviderStatus, EProviderStatus[]>
+        {
+            [EProviderStatus.PendingBasicInfo] = [EProviderStatus.PendingDocumentVerification, EProviderStatus.Rejected],
+            [EProviderStatus.PendingDocumentVerification] = [EProviderStatus.Active, EProviderStatus.Rejected, EProviderStatus.PendingBasicInfo],
+            [EProviderStatus.Active] = [EProviderStatus.Suspended],
+            [EProviderStatus.Suspended] = [EProviderStatus.Active, EProviderStatus.Rejected],
+            [EProviderStatus.Rejected] = [EProviderStatus.PendingBasicInfo]
+        };
+
+        if (!allowedTransitions.TryGetValue(currentStatus, out var allowed) || !allowed.Contains(newStatus))
+        {
+            throw new ProviderDomainException(
+                $"Invalid status transition from {currentStatus} to {newStatus}");
+        }
+    }
+
+    /// <summary>
+    /// Limpa os campos de motivo (SuspensionReason e RejectionReason) quando o status não corresponde mais ao motivo armazenado.
+    /// </summary>
+    /// <param name="newStatus">Novo status do prestador</param>
+    /// <remarks>
+    /// Este método garante a invariante de que os motivos de suspensão e rejeição
+    /// só existem enquanto o prestador está nos estados Suspended ou Rejected, respectivamente.
+    /// </remarks>
+    private void ClearReasonFieldsIfNeeded(EProviderStatus newStatus)
+    {
+        // Limpa o motivo de suspensão se não estiver mais no estado Suspended
+        if (newStatus != EProviderStatus.Suspended)
+            SuspensionReason = null;
+
+        // Limpa o motivo de rejeição se não estiver mais no estado Rejected
+        if (newStatus != EProviderStatus.Rejected)
+            RejectionReason = null;
+    }
+
+    /// <summary>
+    /// Valida que os motivos obrigatórios estejam preenchidos ao transicionar para Suspended ou Rejected.
+    /// </summary>
+    /// <param name="newStatus">Novo status do prestador</param>
+    /// <remarks>
+    /// Este método garante a invariante de auditoria: transições para Suspended requerem SuspensionReason
+    /// e transições para Rejected requerem RejectionReason.
+    /// </remarks>
+    private void ValidateRequiredReasons(EProviderStatus newStatus)
+    {
+        if (newStatus == EProviderStatus.Suspended && string.IsNullOrWhiteSpace(SuspensionReason))
+            throw new ProviderDomainException("SuspensionReason is required when transitioning to Suspended status");
+
+        if (newStatus == EProviderStatus.Rejected && string.IsNullOrWhiteSpace(RejectionReason))
+            throw new ProviderDomainException("RejectionReason is required when transitioning to Rejected status");
     }
 
     /// <summary>

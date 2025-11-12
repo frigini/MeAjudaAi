@@ -230,6 +230,7 @@ public class ProvidersModuleApiTests
                     Country: "Brasil"
                 )
             ),
+            Status: EProviderStatus.PendingBasicInfo,
             VerificationStatus: EVerificationStatus.Pending,
             Documents: new List<DocumentDto>
             {
@@ -243,7 +244,9 @@ public class ProvidersModuleApiTests
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null,
             IsDeleted: false,
-            DeletedAt: null
+            DeletedAt: null,
+            SuspensionReason: null,
+            RejectionReason: null
         );
     }
 

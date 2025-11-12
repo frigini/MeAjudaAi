@@ -20,13 +20,16 @@ public static class ProviderMapper
             provider.Name,
             provider.Type,
             provider.BusinessProfile.ToDto(),
+            provider.Status,
             provider.VerificationStatus,
             provider.Documents.Select(d => d.ToDto()).ToList(),
             provider.Qualifications.Select(q => q.ToDto()).ToList(),
             provider.CreatedAt,
             provider.UpdatedAt,
             provider.IsDeleted,
-            provider.DeletedAt
+            provider.DeletedAt,
+            provider.SuspensionReason,
+            provider.RejectionReason
         );
     }
 
