@@ -366,3 +366,29 @@ This section outlines the strategy for the client-facing web applications, inclu
 ### 6.4. Initial Implementation Focus
 -   The initial development effort will focus on building the **Admin Portal** (as defined in section 5.1) and the **Customer (User) Profile Management** features (section 5.2).
 -   This provides immediate value by enabling platform administration and giving users a space to manage their information, laying the groundwork for more complex features.
+
+---
+
+## 7. .NET and C# Upgrade Strategy
+
+### 7.1. Current Status
+The project is currently built on **.NET 9.0 Preview**. This forward-leaning approach allows the team to innovate with the latest language and runtime features.
+
+### 7.2. Upgrade Plan
+-   **Stabilize on .NET 9**: Finalize the upgrade to the stable release of .NET 9.0 upon its release (expected November 2024).
+-   **Transition to .NET 10**: Plan and execute the migration to .NET 10, which is expected to be released in November 2025. This will be a key initiative to keep the platform at the forefront of performance and security.
+-   **Continuous Dependency Updates**: Implement a regular schedule for reviewing and updating all NuGet packages. Utilize tools like `dotnet outdated` and configure Dependabot to automate the discovery of new versions, ensuring the project remains secure and up-to-date.
+
+### 7.3. Key .NET 10 Breaking Changes to Anticipate
+The team should proactively monitor and prepare for upcoming breaking changes in .NET 10, including:
+-   **ASP.NET Core Security**: Cookie-based login redirects will be disabled by default for API-first endpoints, which will instead return `401 Unauthorized` status codes. This aligns with modern security best practices for web APIs.
+-   **Interop and Deployment**: The `DllImport` search path is being tightened, and single-file applications will no longer probe the executable's directory for native libraries by default. This requires careful validation of native dependency loading.
+-   **Core Libraries**: `System.Linq.AsyncEnumerable` is being integrated directly into the core libraries, which may require namespace adjustments. Additionally, W3C Trace Context will become the default, potentially impacting distributed tracing and observability setups.
+
+### 7.4. Opportunities with C# 14
+The upgrade to .NET 10 will be accompanied by C# 14, which introduces powerful features to streamline development. The team should plan to adopt these to improve code clarity and maintainability:
+-   **`field` Keyword**: This keyword provides direct access to the backing field of an auto-property, eliminating the need for explicit backing fields and simplifying property logic.
+-   **Extension Members**: The ability to define extension properties, static methods, and operators will allow for cleaner and more organized code, especially when augmenting external types.
+-   **Partial Constructors and Events**: This will be particularly beneficial for our modular architecture, allowing source generators to augment constructors and events without manual intervention.
+-   **Null-Conditional Assignments**: A new, more concise syntax for conditional assignments (`x ??= y`) will reduce boilerplate code.
+-   **File-Based Apps**: The new capability to run standalone C# files with `dotnet run` will make scripting, prototyping, and creating small utilities for the project significantly easier.
