@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <!-- .NET & Microsoft Core -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     
     <!-- ASP.NET Core -->
