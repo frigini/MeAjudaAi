@@ -82,31 +82,41 @@ public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
     /// <param name="id">ID único do prestador</param>
     /// <param name="request">Dados da solicitação de correção</param>
     /// <param name="commandDispatcher">Dispatcher para envio de comandos CQRS</param>
+    /// <param name="httpContext">Contexto HTTP para obter o usuário autenticado</param>
     /// <param name="cancellationToken">Token de cancelamento da operação</param>
     /// <returns>
     /// Resultado HTTP contendo:
     /// - 200 OK: Correção solicitada com sucesso
     /// - 400 Bad Request: Erro de validação ou solicitação
+    /// - 401 Unauthorized: Usuário não autenticado
     /// - 404 Not Found: Prestador não encontrado
     /// </returns>
     /// <remarks>
     /// Fluxo de execução:
     /// 1. Valida ID do prestador e autorização
-    /// 2. Converte request em comando CQRS
-    /// 3. Envia comando através do dispatcher
-    /// 4. Processa resultado e retorna confirmação
-    /// 5. Emite evento de domínio para notificação
+    /// 2. Extrai identidade do usuário autenticado do contexto HTTP
+    /// 3. Converte request em comando CQRS com identidade verificada
+    /// 4. Envia comando através do dispatcher
+    /// 5. Processa resultado e retorna confirmação
+    /// 6. Emite evento de domínio para notificação
     /// </remarks>
     private static async Task<IResult> RequireBasicInfoCorrectionAsync(
         Guid id,
         [FromBody] RequireBasicInfoCorrectionRequest request,
         ICommandDispatcher commandDispatcher,
+        HttpContext httpContext,
         CancellationToken cancellationToken)
     {
         if (request is null)
             return Results.BadRequest("Request body is required");
 
-        var command = request.ToCommand(id);
+        // Extrai a identidade do usuário autenticado do contexto HTTP
+        var requestedBy = httpContext.User.Identity?.Name 
+            ?? httpContext.User.FindFirst("sub")?.Value 
+            ?? httpContext.User.FindFirst("email")?.Value
+            ?? "system";
+
+        var command = request.ToCommand(id, requestedBy);
         var result = await commandDispatcher.SendAsync<RequireBasicInfoCorrectionCommand, Result>(
             command, cancellationToken);
 

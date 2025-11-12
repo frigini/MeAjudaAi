@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
@@ -65,8 +66,17 @@ public sealed class RequireBasicInfoCorrectionCommandHandler(
             
             return Result.Success();
         }
+        catch (ProviderDomainException ex)
+        {
+            // Preserve domain validation messages for actionable feedback
+            logger.LogWarning(ex, 
+                "Domain validation failed when requiring basic info correction for provider {ProviderId}: {Message}", 
+                command.ProviderId, ex.Message);
+            return Result.Failure(ex.Message);
+        }
         catch (Exception ex)
         {
+            // Generic error for unexpected failures
             logger.LogError(ex, "Error requiring basic info correction for provider {ProviderId}", command.ProviderId);
             return Result.Failure("Failed to require basic info correction");
         }

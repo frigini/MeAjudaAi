@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
@@ -154,7 +155,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
     [InlineData(EProviderStatus.Active)]
     [InlineData(EProviderStatus.Suspended)]
     [InlineData(EProviderStatus.Rejected)]
-    public async Task HandleAsync_WhenProviderNotInPendingDocumentVerification_ShouldReturnFailureResult(EProviderStatus status)
+    public async Task HandleAsync_WhenProviderNotInPendingDocumentVerification_ShouldReturnDomainValidationMessage(EProviderStatus status)
     {
         // Arrange
         var providerId = Guid.NewGuid();
@@ -195,7 +196,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.ToString().Should().Contain("Failed to require basic info correction");
+        result.Error.ToString().Should().Contain("Can only require basic info correction during document verification");
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
@@ -294,7 +295,12 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         provider.DomainEvents.Should().NotBeEmpty();
-        provider.DomainEvents.Should().Contain(e => 
-            e.GetType().Name == "ProviderBasicInfoCorrectionRequiredDomainEvent");
+        
+        var correctionEvent = provider.DomainEvents
+            .OfType<ProviderBasicInfoCorrectionRequiredDomainEvent>()
+            .Should().ContainSingle().Subject;
+        
+        correctionEvent.Reason.Should().Be("Contact information needs verification");
+        correctionEvent.RequestedBy.Should().Be("verifier@test.com");
     }
 }

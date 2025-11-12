@@ -79,13 +79,14 @@ public static class RequestMapperExtensions
     /// </summary>
     /// <param name="request">Requisição de correção de informações básicas</param>
     /// <param name="providerId">ID do prestador</param>
+    /// <param name="requestedBy">Identificador autenticado do administrador/verificador solicitando a correção</param>
     /// <returns>RequireBasicInfoCorrectionCommand com propriedades mapeadas</returns>
-    public static RequireBasicInfoCorrectionCommand ToCommand(this RequireBasicInfoCorrectionRequest request, Guid providerId)
+    public static RequireBasicInfoCorrectionCommand ToCommand(this RequireBasicInfoCorrectionRequest request, Guid providerId, string requestedBy)
     {
         return new RequireBasicInfoCorrectionCommand(
             providerId,
             request.Reason,
-            request.RequestedBy
+            requestedBy
         );
     }
 

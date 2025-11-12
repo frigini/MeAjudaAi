@@ -15,9 +15,4 @@ public record RequireBasicInfoCorrectionRequest : Request
     /// precisam ser corrigidas ou complementadas.
     /// </remarks>
     public string Reason { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Identificador de quem está solicitando a correção (verificador/administrador).
-    /// </summary>
-    public string RequestedBy { get; init; } = string.Empty;
 }
