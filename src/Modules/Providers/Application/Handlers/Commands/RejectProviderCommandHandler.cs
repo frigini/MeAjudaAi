@@ -32,7 +32,19 @@ public sealed class RejectProviderCommandHandler(
         try
         {
             logger.LogInformation("Rejecting provider {ProviderId}. Reason: {Reason}", 
-                command.ProviderId, command.Reason ?? "Not specified");
+                command.ProviderId, command.Reason);
+
+            if (string.IsNullOrWhiteSpace(command.Reason))
+            {
+                logger.LogWarning("Rejection reason is required but was not provided");
+                return Result.Failure("Rejection reason is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(command.RejectedBy))
+            {
+                logger.LogWarning("RejectedBy is required but was not provided");
+                return Result.Failure("RejectedBy is required");
+            }
 
             var provider = await providerRepository.GetByIdAsync(new ProviderId(command.ProviderId), cancellationToken);
             if (provider == null)
@@ -41,7 +53,7 @@ public sealed class RejectProviderCommandHandler(
                 return Result.Failure("Provider not found");
             }
 
-            provider.Reject(command.RejectedBy);
+            provider.Reject(command.Reason, command.RejectedBy);
 
             await providerRepository.UpdateAsync(provider, cancellationToken);
 
@@ -51,7 +63,7 @@ public sealed class RejectProviderCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error rejecting provider {ProviderId}", command.ProviderId);
-            return Result.Failure(ex.Message);
+            return Result.Failure("Failed to reject provider");
         }
     }
 }

@@ -480,11 +480,28 @@ public class ProviderTests
         provider.Activate();
 
         // Act
-        provider.Suspend("admin@test.com");
+        provider.Suspend("Violation of terms of service", "admin@test.com");
 
         // Assert
         provider.Status.Should().Be(EProviderStatus.Suspended);
         provider.VerificationStatus.Should().Be(EVerificationStatus.Suspended);
+        provider.SuspensionReason.Should().Be("Violation of terms of service");
+    }
+
+    [Fact]
+    public void Suspend_WithoutReason_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        provider.CompleteBasicInfo();
+        provider.Activate();
+
+        // Act
+        var act = () => provider.Suspend("", "admin@test.com");
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage("Suspension reason is required");
     }
 
     [Fact]
@@ -494,11 +511,11 @@ public class ProviderTests
         var provider = CreateValidProvider();
         provider.CompleteBasicInfo();
         provider.Activate();
-        provider.Suspend();
+        provider.Suspend("Initial reason", "admin@test.com");
         var previousUpdateTime = provider.UpdatedAt;
 
         // Act
-        provider.Suspend();
+        provider.Suspend("Another reason", "admin@test.com");
 
         // Assert
         provider.Status.Should().Be(EProviderStatus.Suspended);
@@ -513,11 +530,27 @@ public class ProviderTests
         provider.CompleteBasicInfo();
 
         // Act
-        provider.Reject("admin@test.com");
+        provider.Reject("Invalid documentation provided", "admin@test.com");
 
         // Assert
         provider.Status.Should().Be(EProviderStatus.Rejected);
         provider.VerificationStatus.Should().Be(EVerificationStatus.Rejected);
+        provider.RejectionReason.Should().Be("Invalid documentation provided");
+    }
+
+    [Fact]
+    public void Reject_WithoutReason_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        provider.CompleteBasicInfo();
+
+        // Act
+        var act = () => provider.Reject("", "admin@test.com");
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage("Rejection reason is required");
     }
 
     [Fact]
@@ -583,12 +616,12 @@ public class ProviderTests
         {
             provider.CompleteBasicInfo();
             provider.Activate();
-            provider.Suspend();
+            provider.Suspend("Test suspension", "admin@test.com");
         }
         else if (from == EProviderStatus.Rejected)
         {
             provider.CompleteBasicInfo();
-            provider.Reject();
+            provider.Reject("Test rejection", "admin@test.com");
         }
 
         // Act

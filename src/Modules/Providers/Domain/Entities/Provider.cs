@@ -83,6 +83,16 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public DateTime? DeletedAt { get; private set; }
 
     /// <summary>
+    /// Motivo da suspensão do prestador (obrigatório quando Status = Suspended).
+    /// </summary>
+    public string? SuspensionReason { get; private set; }
+
+    /// <summary>
+    /// Motivo da rejeição do prestador (obrigatório quando Status = Rejected).
+    /// </summary>
+    public string? RejectionReason { get; private set; }
+
+    /// <summary>
     /// Construtor privado para uso do Entity Framework.
     /// </summary>
     private Provider() { }
@@ -435,15 +445,20 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// <summary>
     /// Suspende o prestador de serviços.
     /// </summary>
+    /// <param name="reason">Motivo da suspensão (obrigatório)</param>
     /// <param name="updatedBy">Quem está fazendo a suspensão</param>
-    public void Suspend(string? updatedBy = null)
+    public void Suspend(string reason, string? updatedBy = null)
     {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ProviderDomainException("Suspension reason is required");
+
         if (Status == EProviderStatus.Suspended)
             return;
 
         if (IsDeleted)
             throw new ProviderDomainException("Cannot suspend deleted provider");
 
+        SuspensionReason = reason;
         UpdateStatus(EProviderStatus.Suspended, updatedBy);
         UpdateVerificationStatus(EVerificationStatus.Suspended, updatedBy);
     }
@@ -451,15 +466,20 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// <summary>
     /// Rejeita o registro do prestador de serviços.
     /// </summary>
+    /// <param name="reason">Motivo da rejeição (obrigatório)</param>
     /// <param name="updatedBy">Quem está fazendo a rejeição</param>
-    public void Reject(string? updatedBy = null)
+    public void Reject(string reason, string? updatedBy = null)
     {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ProviderDomainException("Rejection reason is required");
+
         if (Status == EProviderStatus.Rejected)
             return;
 
         if (IsDeleted)
             throw new ProviderDomainException("Cannot reject deleted provider");
 
+        RejectionReason = reason;
         UpdateStatus(EProviderStatus.Rejected, updatedBy);
         UpdateVerificationStatus(EVerificationStatus.Rejected, updatedBy);
     }

@@ -8,9 +8,9 @@ namespace MeAjudaAi.Modules.Providers.Application.Commands;
 /// </summary>
 /// <param name="ProviderId">Identificador do prestador de serviços</param>
 /// <param name="RejectedBy">Quem está executando a rejeição</param>
-/// <param name="Reason">Motivo da rejeição (opcional)</param>
+/// <param name="Reason">Motivo da rejeição (obrigatório para auditoria)</param>
 public sealed record RejectProviderCommand(
     Guid ProviderId,
-    string? RejectedBy = null,
-    string? Reason = null
+    string RejectedBy,
+    string Reason
 ) : Command<Result>;

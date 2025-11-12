@@ -50,7 +50,7 @@ public sealed class ActivateProviderCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error activating provider {ProviderId}", command.ProviderId);
-            return Result.Failure(ex.Message);
+            return Result.Failure("Failed to activate provider");
         }
     }
 }

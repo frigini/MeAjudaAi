@@ -244,7 +244,9 @@ public class ProvidersModuleApiTests
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null,
             IsDeleted: false,
-            DeletedAt: null
+            DeletedAt: null,
+            SuspensionReason: null,
+            RejectionReason: null
         );
     }
 

@@ -27,7 +27,9 @@ public static class ProviderMapper
             provider.CreatedAt,
             provider.UpdatedAt,
             provider.IsDeleted,
-            provider.DeletedAt
+            provider.DeletedAt,
+            provider.SuspensionReason,
+            provider.RejectionReason
         );
     }
 

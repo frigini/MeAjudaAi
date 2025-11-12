@@ -57,6 +57,14 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
         builder.Property(p => p.DeletedAt)
             .HasColumnName("deleted_at");
 
+        builder.Property(p => p.SuspensionReason)
+            .HasMaxLength(1000)
+            .HasColumnName("suspension_reason");
+
+        builder.Property(p => p.RejectionReason)
+            .HasMaxLength(1000)
+            .HasColumnName("rejection_reason");
+
         // Configuração das propriedades de auditoria da BaseEntity
         builder.Property(p => p.CreatedAt)
             .IsRequired()

@@ -32,7 +32,19 @@ public sealed class SuspendProviderCommandHandler(
         try
         {
             logger.LogInformation("Suspending provider {ProviderId}. Reason: {Reason}", 
-                command.ProviderId, command.Reason ?? "Not specified");
+                command.ProviderId, command.Reason);
+
+            if (string.IsNullOrWhiteSpace(command.Reason))
+            {
+                logger.LogWarning("Suspension reason is required but was not provided");
+                return Result.Failure("Suspension reason is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(command.SuspendedBy))
+            {
+                logger.LogWarning("SuspendedBy is required but was not provided");
+                return Result.Failure("SuspendedBy is required");
+            }
 
             var provider = await providerRepository.GetByIdAsync(new ProviderId(command.ProviderId), cancellationToken);
             if (provider == null)
@@ -41,7 +53,7 @@ public sealed class SuspendProviderCommandHandler(
                 return Result.Failure("Provider not found");
             }
 
-            provider.Suspend(command.SuspendedBy);
+            provider.Suspend(command.Reason, command.SuspendedBy);
 
             await providerRepository.UpdateAsync(provider, cancellationToken);
 
@@ -51,7 +63,7 @@ public sealed class SuspendProviderCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error suspending provider {ProviderId}", command.ProviderId);
-            return Result.Failure(ex.Message);
+            return Result.Failure("Failed to suspend provider");
         }
     }
 }

@@ -50,7 +50,7 @@ public sealed class CompleteBasicInfoCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error completing basic info for provider {ProviderId}", command.ProviderId);
-            return Result.Failure(ex.Message);
+            return Result.Failure("Failed to complete provider basic info");
         }
     }
 }
