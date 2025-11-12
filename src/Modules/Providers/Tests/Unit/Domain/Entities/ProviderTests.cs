@@ -397,4 +397,215 @@ public class ProviderTests
 
         return new Provider(userId, name, type, businessProfile);
     }
+
+    #region Status Transition Tests
+
+    [Fact]
+    public void Constructor_ShouldSetInitialStatusToPendingBasicInfo()
+    {
+        // Arrange & Act
+        var provider = CreateValidProvider();
+
+        // Assert
+        provider.Status.Should().Be(EProviderStatus.PendingBasicInfo);
+    }
+
+    [Fact]
+    public void CompleteBasicInfo_WhenInPendingBasicInfo_ShouldTransitionToPendingDocumentVerification()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        provider.ClearDomainEvents(); // Clear registration event
+
+        // Act
+        provider.CompleteBasicInfo("admin@test.com");
+
+        // Assert
+        provider.Status.Should().Be(EProviderStatus.PendingDocumentVerification);
+        provider.DomainEvents.Should().ContainSingle(e => e is ProviderAwaitingVerificationDomainEvent);
+    }
+
+    [Fact]
+    public void CompleteBasicInfo_WhenNotInPendingBasicInfo_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        provider.CompleteBasicInfo(); // Transition to PendingDocumentVerification
+
+        // Act
+        var act = () => provider.CompleteBasicInfo();
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage("Cannot complete basic info when not in PendingBasicInfo status");
+    }
+
+    [Fact]
+    public void Activate_WhenInPendingDocumentVerification_ShouldTransitionToActive()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        provider.CompleteBasicInfo();
+        provider.ClearDomainEvents();
+
+        // Act
+        provider.Activate("admin@test.com");
+
+        // Assert
+        provider.Status.Should().Be(EProviderStatus.Active);
+        provider.VerificationStatus.Should().Be(EVerificationStatus.Verified);
+        provider.DomainEvents.Should().ContainSingle(e => e is ProviderActivatedDomainEvent);
+    }
+
+    [Fact]
+    public void Activate_WhenNotInPendingDocumentVerification_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+
+        // Act
+        var act = () => provider.Activate();
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage("Can only activate providers in PendingDocumentVerification status");
+    }
+
+    [Fact]
+    public void Suspend_WhenActive_ShouldTransitionToSuspended()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        provider.CompleteBasicInfo();
+        provider.Activate();
+
+        // Act
+        provider.Suspend("admin@test.com");
+
+        // Assert
+        provider.Status.Should().Be(EProviderStatus.Suspended);
+        provider.VerificationStatus.Should().Be(EVerificationStatus.Suspended);
+    }
+
+    [Fact]
+    public void Suspend_WhenAlreadySuspended_ShouldNotChange()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        provider.CompleteBasicInfo();
+        provider.Activate();
+        provider.Suspend();
+        var previousUpdateTime = provider.UpdatedAt;
+
+        // Act
+        provider.Suspend();
+
+        // Assert
+        provider.Status.Should().Be(EProviderStatus.Suspended);
+        provider.UpdatedAt.Should().Be(previousUpdateTime);
+    }
+
+    [Fact]
+    public void Reject_WhenInPendingDocumentVerification_ShouldTransitionToRejected()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        provider.CompleteBasicInfo();
+
+        // Act
+        provider.Reject("admin@test.com");
+
+        // Assert
+        provider.Status.Should().Be(EProviderStatus.Rejected);
+        provider.VerificationStatus.Should().Be(EVerificationStatus.Rejected);
+    }
+
+    [Fact]
+    public void UpdateStatus_WithInvalidTransition_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+
+        // Act - Try to go directly from PendingBasicInfo to Active (not allowed)
+        var act = () => provider.UpdateStatus(EProviderStatus.Active);
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage("Invalid status transition from PendingBasicInfo to Active");
+    }
+
+    [Fact]
+    public void UpdateStatus_WhenProviderIsDeleted_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var dateTimeProvider = CreateMockDateTimeProvider();
+        provider.Delete(dateTimeProvider);
+
+        // Act
+        var act = () => provider.UpdateStatus(EProviderStatus.Active);
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage("Cannot update status of deleted provider");
+    }
+
+    [Theory]
+    [InlineData(EProviderStatus.PendingBasicInfo, EProviderStatus.PendingDocumentVerification, true)]
+    [InlineData(EProviderStatus.PendingBasicInfo, EProviderStatus.Rejected, true)]
+    [InlineData(EProviderStatus.PendingDocumentVerification, EProviderStatus.Active, true)]
+    [InlineData(EProviderStatus.PendingDocumentVerification, EProviderStatus.Rejected, true)]
+    [InlineData(EProviderStatus.PendingDocumentVerification, EProviderStatus.PendingBasicInfo, true)]
+    [InlineData(EProviderStatus.Active, EProviderStatus.Suspended, true)]
+    [InlineData(EProviderStatus.Suspended, EProviderStatus.Active, true)]
+    [InlineData(EProviderStatus.Suspended, EProviderStatus.Rejected, true)]
+    [InlineData(EProviderStatus.Rejected, EProviderStatus.PendingBasicInfo, true)]
+    [InlineData(EProviderStatus.PendingBasicInfo, EProviderStatus.Active, false)]
+    [InlineData(EProviderStatus.PendingBasicInfo, EProviderStatus.Suspended, false)]
+    [InlineData(EProviderStatus.Active, EProviderStatus.PendingBasicInfo, false)]
+    public void StatusTransitions_ShouldFollowDefinedRules(EProviderStatus from, EProviderStatus to, bool shouldSucceed)
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        
+        // Set the provider to the "from" status
+        // This is a bit hacky but necessary for testing
+        if (from == EProviderStatus.PendingDocumentVerification)
+        {
+            provider.CompleteBasicInfo();
+        }
+        else if (from == EProviderStatus.Active)
+        {
+            provider.CompleteBasicInfo();
+            provider.Activate();
+        }
+        else if (from == EProviderStatus.Suspended)
+        {
+            provider.CompleteBasicInfo();
+            provider.Activate();
+            provider.Suspend();
+        }
+        else if (from == EProviderStatus.Rejected)
+        {
+            provider.CompleteBasicInfo();
+            provider.Reject();
+        }
+
+        // Act
+        var act = () => provider.UpdateStatus(to);
+
+        // Assert
+        if (shouldSucceed)
+        {
+            act.Should().NotThrow();
+            provider.Status.Should().Be(to);
+        }
+        else
+        {
+            act.Should().Throw<ProviderDomainException>()
+                .WithMessage($"Invalid status transition from {from} to {to}");
+        }
+    }
+
+    #endregion
 }

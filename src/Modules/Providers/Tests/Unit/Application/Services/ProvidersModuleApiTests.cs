@@ -230,6 +230,7 @@ public class ProvidersModuleApiTests
                     Country: "Brasil"
                 )
             ),
+            Status: EProviderStatus.PendingBasicInfo,
             VerificationStatus: EVerificationStatus.Pending,
             Documents: new List<DocumentDto>
             {

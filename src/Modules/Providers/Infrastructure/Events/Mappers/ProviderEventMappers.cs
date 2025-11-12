@@ -73,4 +73,34 @@ public static class ProviderEventMappers
             NewEmail: domainEvent.Email
         );
     }
+
+    /// <summary>
+    /// Converte ProviderAwaitingVerificationDomainEvent para ProviderAwaitingVerificationIntegrationEvent.
+    /// </summary>
+    public static ProviderAwaitingVerificationIntegrationEvent ToIntegrationEvent(this ProviderAwaitingVerificationDomainEvent domainEvent)
+    {
+        return new ProviderAwaitingVerificationIntegrationEvent(
+            Source: ModuleName,
+            ProviderId: domainEvent.AggregateId,
+            UserId: domainEvent.UserId,
+            Name: domainEvent.Name,
+            UpdatedBy: domainEvent.UpdatedBy,
+            TransitionedAt: DateTime.UtcNow
+        );
+    }
+
+    /// <summary>
+    /// Converte ProviderActivatedDomainEvent para ProviderActivatedIntegrationEvent.
+    /// </summary>
+    public static ProviderActivatedIntegrationEvent ToIntegrationEvent(this ProviderActivatedDomainEvent domainEvent)
+    {
+        return new ProviderActivatedIntegrationEvent(
+            Source: ModuleName,
+            ProviderId: domainEvent.AggregateId,
+            UserId: domainEvent.UserId,
+            Name: domainEvent.Name,
+            ActivatedBy: domainEvent.ActivatedBy,
+            ActivatedAt: DateTime.UtcNow
+        );
+    }
 }

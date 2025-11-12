@@ -48,6 +48,14 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public BusinessProfile BusinessProfile { get; private set; } = null!;
 
     /// <summary>
+    /// Status do fluxo de registro do prestador de serviços.
+    /// </summary>
+    /// <remarks>
+    /// Controla o progresso do prestador através do processo de registro multi-etapas.
+    /// </remarks>
+    public EProviderStatus Status { get; private set; }
+
+    /// <summary>
     /// Status de verificação do prestador de serviços.
     /// </summary>
     public EVerificationStatus VerificationStatus { get; private set; }
@@ -99,6 +107,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         Name = name.Trim();
         Type = type;
         BusinessProfile = businessProfile;
+        Status = EProviderStatus.PendingBasicInfo;
         VerificationStatus = EVerificationStatus.Pending;
 
         // Não adiciona eventos de domínio para testes
@@ -131,6 +140,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
         Name = name.Trim();
         Type = type;
         BusinessProfile = businessProfile;
+        Status = EProviderStatus.PendingBasicInfo;
         VerificationStatus = EVerificationStatus.Pending;
 
         AddDomainEvent(new ProviderRegisteredDomainEvent(
@@ -353,6 +363,130 @@ public sealed class Provider : AggregateRoot<ProviderId>
             previousStatus,
             status,
             updatedBy));
+    }
+
+    /// <summary>
+    /// Atualiza o status do fluxo de registro do prestador de serviços.
+    /// </summary>
+    /// <param name="newStatus">Novo status de registro</param>
+    /// <param name="updatedBy">Quem está fazendo a atualização</param>
+    /// <remarks>
+    /// Este método gerencia as transições entre diferentes etapas do processo de registro multi-etapas.
+    /// Valida que as transições de estado sejam válidas de acordo com as regras de negócio.
+    /// </remarks>
+    public void UpdateStatus(EProviderStatus newStatus, string? updatedBy = null)
+    {
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot update status of deleted provider");
+
+        // Valida transições de estado permitidas
+        ValidateStatusTransition(Status, newStatus);
+
+        var previousStatus = Status;
+        Status = newStatus;
+        MarkAsUpdated();
+
+        // Dispara eventos de domínio específicos baseado na transição
+        if (newStatus == EProviderStatus.PendingDocumentVerification && previousStatus == EProviderStatus.PendingBasicInfo)
+        {
+            AddDomainEvent(new ProviderAwaitingVerificationDomainEvent(
+                Id.Value,
+                1,
+                UserId,
+                Name,
+                updatedBy));
+        }
+        else if (newStatus == EProviderStatus.Active && previousStatus == EProviderStatus.PendingDocumentVerification)
+        {
+            AddDomainEvent(new ProviderActivatedDomainEvent(
+                Id.Value,
+                1,
+                UserId,
+                Name,
+                updatedBy));
+        }
+    }
+
+    /// <summary>
+    /// Completa o preenchimento das informações básicas e avança para a etapa de verificação de documentos.
+    /// </summary>
+    /// <param name="updatedBy">Quem está fazendo a atualização</param>
+    public void CompleteBasicInfo(string? updatedBy = null)
+    {
+        if (Status != EProviderStatus.PendingBasicInfo)
+            throw new ProviderDomainException("Cannot complete basic info when not in PendingBasicInfo status");
+
+        UpdateStatus(EProviderStatus.PendingDocumentVerification, updatedBy);
+    }
+
+    /// <summary>
+    /// Ativa o prestador após verificação bem-sucedida dos documentos.
+    /// </summary>
+    /// <param name="updatedBy">Quem está fazendo a ativação</param>
+    public void Activate(string? updatedBy = null)
+    {
+        if (Status != EProviderStatus.PendingDocumentVerification)
+            throw new ProviderDomainException("Can only activate providers in PendingDocumentVerification status");
+
+        UpdateStatus(EProviderStatus.Active, updatedBy);
+        UpdateVerificationStatus(EVerificationStatus.Verified, updatedBy);
+    }
+
+    /// <summary>
+    /// Suspende o prestador de serviços.
+    /// </summary>
+    /// <param name="updatedBy">Quem está fazendo a suspensão</param>
+    public void Suspend(string? updatedBy = null)
+    {
+        if (Status == EProviderStatus.Suspended)
+            return;
+
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot suspend deleted provider");
+
+        UpdateStatus(EProviderStatus.Suspended, updatedBy);
+        UpdateVerificationStatus(EVerificationStatus.Suspended, updatedBy);
+    }
+
+    /// <summary>
+    /// Rejeita o registro do prestador de serviços.
+    /// </summary>
+    /// <param name="updatedBy">Quem está fazendo a rejeição</param>
+    public void Reject(string? updatedBy = null)
+    {
+        if (Status == EProviderStatus.Rejected)
+            return;
+
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot reject deleted provider");
+
+        UpdateStatus(EProviderStatus.Rejected, updatedBy);
+        UpdateVerificationStatus(EVerificationStatus.Rejected, updatedBy);
+    }
+
+    /// <summary>
+    /// Valida se uma transição de status é permitida pelas regras de negócio.
+    /// </summary>
+    private static void ValidateStatusTransition(EProviderStatus currentStatus, EProviderStatus newStatus)
+    {
+        // Permite manter o mesmo status
+        if (currentStatus == newStatus)
+            return;
+
+        var allowedTransitions = new Dictionary<EProviderStatus, EProviderStatus[]>
+        {
+            [EProviderStatus.PendingBasicInfo] = [EProviderStatus.PendingDocumentVerification, EProviderStatus.Rejected],
+            [EProviderStatus.PendingDocumentVerification] = [EProviderStatus.Active, EProviderStatus.Rejected, EProviderStatus.PendingBasicInfo],
+            [EProviderStatus.Active] = [EProviderStatus.Suspended],
+            [EProviderStatus.Suspended] = [EProviderStatus.Active, EProviderStatus.Rejected],
+            [EProviderStatus.Rejected] = [EProviderStatus.PendingBasicInfo]
+        };
+
+        if (!allowedTransitions.TryGetValue(currentStatus, out var allowed) || !allowed.Contains(newStatus))
+        {
+            throw new ProviderDomainException(
+                $"Invalid status transition from {currentStatus} to {newStatus}");
+        }
     }
 
     /// <summary>

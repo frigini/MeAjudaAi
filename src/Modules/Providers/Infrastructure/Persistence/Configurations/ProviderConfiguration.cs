@@ -34,6 +34,14 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             .IsRequired()
             .HasColumnName("type");
 
+        builder.Property(p => p.Status)
+            .HasConversion(
+                status => status.ToString(),
+                value => Enum.Parse<EProviderStatus>(value))
+            .HasMaxLength(30)
+            .IsRequired()
+            .HasColumnName("status");
+
         builder.Property(p => p.VerificationStatus)
             .HasConversion(
                 status => status.ToString(),
@@ -206,6 +214,9 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
 
         builder.HasIndex(p => p.Type)
             .HasDatabaseName("ix_providers_type");
+
+        builder.HasIndex(p => p.Status)
+            .HasDatabaseName("ix_providers_status");
 
         builder.HasIndex(p => p.VerificationStatus)
             .HasDatabaseName("ix_providers_verification_status");

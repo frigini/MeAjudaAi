@@ -11,6 +11,7 @@ public sealed record ProviderDto(
     string Name,
     EProviderType Type,
     BusinessProfileDto BusinessProfile,
+    EProviderStatus Status,
     EVerificationStatus VerificationStatus,
     IReadOnlyList<DocumentDto> Documents,
     IReadOnlyList<QualificationDto> Qualifications,
