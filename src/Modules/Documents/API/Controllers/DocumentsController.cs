@@ -2,7 +2,8 @@ using Asp.Versioning;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Queries;
-using MediatR;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,13 @@ namespace MeAjudaAi.Modules.Documents.API.Controllers;
 [Authorize]
 public class DocumentsController : ControllerBase
 {
-    private readonly IMediator _mediator;
+    private readonly ICommandDispatcher _commandDispatcher;
+    private readonly IQueryDispatcher _queryDispatcher;
 
-    public DocumentsController(IMediator mediator)
+    public DocumentsController(ICommandDispatcher commandDispatcher, IQueryDispatcher queryDispatcher)
     {
-        _mediator = mediator;
+        _commandDispatcher = commandDispatcher;
+        _queryDispatcher = queryDispatcher;
     }
 
     /// <summary>
@@ -39,7 +42,7 @@ public class DocumentsController : ControllerBase
             request.ContentType,
             request.FileSizeBytes);
 
-        var response = await _mediator.Send(command, cancellationToken);
+        var response = await _commandDispatcher.SendAsync<UploadDocumentCommand, UploadDocumentResponse>(command, cancellationToken);
         return Ok(response);
     }
 
@@ -54,7 +57,7 @@ public class DocumentsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var query = new GetDocumentStatusQuery(documentId);
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await _queryDispatcher.QueryAsync<GetDocumentStatusQuery, DocumentDto?>(query, cancellationToken);
 
         if (result == null)
             return NotFound();
@@ -72,7 +75,7 @@ public class DocumentsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var query = new GetProviderDocumentsQuery(providerId);
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await _queryDispatcher.QueryAsync<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>(query, cancellationToken);
         return Ok(result);
     }
 
@@ -87,7 +90,7 @@ public class DocumentsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new RequestVerificationCommand(documentId);
-        await _mediator.Send(command, cancellationToken);
+        await _commandDispatcher.SendAsync(command, cancellationToken);
         return Accepted();
     }
 }

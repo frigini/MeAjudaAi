@@ -1,13 +1,17 @@
 using Azure.AI.FormRecognizer.DocumentAnalysis;
 using Azure.Storage.Blobs;
+using MeAjudaAi.Modules.Documents.Application.Commands;
+using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
-using MeAjudaAi.Modules.Documents.Domain.Aggregates;
+using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.BackgroundServices;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using MeAjudaAi.Shared.Application.Interfaces;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,11 +37,12 @@ public static class DocumentsModule
         // Repositories
         services.AddScoped<IDocumentRepository, DocumentRepository>();
 
-        // MediatR Handlers
-        services.AddMediatR(cfg =>
-        {
-            cfg.RegisterServicesFromAssemblyContaining<UploadDocumentCommandHandler>();
-        });
+        // Command Handlers
+        services.AddScoped<ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>, UploadDocumentCommandHandler>();
+        
+        // Query Handlers
+        services.AddScoped<IQueryHandler<GetDocumentStatusQuery, DocumentDto?>, GetDocumentStatusQueryHandler>();
+        services.AddScoped<IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>, GetProviderDocumentsQueryHandler>();
 
         // Azure Services
         services.AddSingleton(sp =>

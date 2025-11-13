@@ -1,5 +1,8 @@
-using MediatR;
+using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Documents.Application.Commands;
 
-public record RequestVerificationCommand(Guid DocumentId) : IRequest;
+public record RequestVerificationCommand(Guid DocumentId) : ICommand
+{
+    public Guid CorrelationId { get; init; } = Guid.NewGuid();
+}

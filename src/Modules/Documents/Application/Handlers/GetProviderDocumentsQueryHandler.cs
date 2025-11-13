@@ -2,12 +2,12 @@ using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Aggregates;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
-using MediatR;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
-public class GetProviderDocumentsQueryHandler : IRequestHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>
+public class GetProviderDocumentsQueryHandler : IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>
 {
     private readonly IDocumentRepository _documentRepository;
     private readonly ILogger<GetProviderDocumentsQueryHandler> _logger;
@@ -20,9 +20,9 @@ public class GetProviderDocumentsQueryHandler : IRequestHandler<GetProviderDocum
         _logger = logger;
     }
 
-    public async Task<IEnumerable<DocumentDto>> Handle(GetProviderDocumentsQuery request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<DocumentDto>> HandleAsync(GetProviderDocumentsQuery query, CancellationToken cancellationToken)
     {
-        var documents = await _documentRepository.GetByProviderIdAsync(request.ProviderId, cancellationToken);
+        var documents = await _documentRepository.GetByProviderIdAsync(query.ProviderId, cancellationToken);
 
         return documents.Select(d => new DocumentDto(
             d.Id,
