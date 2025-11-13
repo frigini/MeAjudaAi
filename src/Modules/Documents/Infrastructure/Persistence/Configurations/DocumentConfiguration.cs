@@ -1,0 +1,71 @@
+using MeAjudaAi.Modules.Documents.Domain.Aggregates;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Configurations;
+
+public class DocumentConfiguration : IEntityTypeConfiguration<Document>
+{
+    public void Configure(EntityTypeBuilder<Document> builder)
+    {
+        builder.ToTable("documents");
+
+        builder.HasKey(d => d.Id);
+
+        builder.Property(d => d.Id)
+            .HasColumnName("id")
+            .ValueGeneratedNever();
+
+        builder.Property(d => d.ProviderId)
+            .HasColumnName("provider_id")
+            .IsRequired();
+
+        builder.Property(d => d.DocumentType)
+            .HasColumnName("document_type")
+            .IsRequired()
+            .HasConversion<int>();
+
+        builder.Property(d => d.FileUrl)
+            .HasColumnName("file_url")
+            .HasMaxLength(2048)
+            .IsRequired();
+
+        builder.Property(d => d.FileName)
+            .HasColumnName("file_name")
+            .HasMaxLength(512)
+            .IsRequired();
+
+        builder.Property(d => d.Status)
+            .HasColumnName("status")
+            .IsRequired()
+            .HasConversion<int>();
+
+        builder.Property(d => d.UploadedAt)
+            .HasColumnName("uploaded_at")
+            .IsRequired();
+
+        builder.Property(d => d.VerifiedAt)
+            .HasColumnName("verified_at");
+
+        builder.Property(d => d.RejectionReason)
+            .HasColumnName("rejection_reason")
+            .HasMaxLength(1000);
+
+        builder.Property(d => d.OcrData)
+            .HasColumnName("ocr_data")
+            .HasColumnType("jsonb");
+
+        // Índices
+        builder.HasIndex(d => d.ProviderId)
+            .HasDatabaseName("ix_documents_provider_id");
+
+        builder.HasIndex(d => d.Status)
+            .HasDatabaseName("ix_documents_status");
+
+        builder.HasIndex(d => new { d.ProviderId, d.DocumentType })
+            .HasDatabaseName("ix_documents_provider_type");
+
+        // Ignora eventos de domínio (armazenados em memória)
+        builder.Ignore(d => d.DomainEvents);
+    }
+}
