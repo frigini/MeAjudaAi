@@ -14,8 +14,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Shared\MeAjudaAi.Shared.csproj" />
-    <ProjectReference Include="..\Application\Documents.Application.csproj" />
-    <ProjectReference Include="..\Infrastructure\Documents.Infrastructure.csproj" />
+    <ProjectReference Include="..\Application\MeAjudaAi.Modules.Documents.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\MeAjudaAi.Modules.Documents.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

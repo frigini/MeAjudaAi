@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Documents.Domain.Aggregates;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
@@ -16,7 +16,7 @@ public class DocumentsDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         // Define schema isolado para o módulo
-        modelBuilder.HasDefaultSchema("meajudaai_documents");
+        modelBuilder.HasDefaultSchema("documents");
 
         // Aplica configurações
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DocumentsDbContext).Assembly);

@@ -11,11 +11,14 @@ database/
 │   ├── users/                    # Users module schema and permissions
 │   │   ├── 00-roles.sql          # Database roles for users module
 │   │   └── 01-permissions.sql    # Permissions setup for users module
-│   └── providers/                # Providers module schema and permissions
-│       ├── 00-roles.sql          # Database roles for providers module
-│       └── 01-permissions.sql    # Permissions setup for providers module
+│   ├── providers/                # Providers module schema and permissions
+│   │   ├── 00-roles.sql          # Database roles for providers module
+│   │   └── 01-permissions.sql    # Permissions setup for providers module
+│   └── documents/                # Documents module schema and permissions
+│       ├── 00-roles.sql          # Database roles for documents module (includes hangfire_role)
+│       └── 01-permissions.sql    # Permissions setup for documents and hangfire schemas
 └── views/                        # Cross-module database views
-    └── cross-module-views.sql    # Views that span multiple modules
+    └── cross-module-views.sql    # Views that span multiple modules (includes document status views)
 ```
 
 ## Execution Order
@@ -38,6 +41,17 @@ To add a new module:
 2. Add `00-roles.sql` for database roles
 3. Add `01-permissions.sql` for permissions setup
 4. The initialization script will automatically detect and execute them
+
+## Hangfire Background Jobs
+
+The `documents` module includes setup for **Hangfire** background job processing:
+
+- **Schema**: `hangfire` - Isolated schema for Hangfire tables
+- **Role**: `hangfire_role` - Dedicated role with full permissions on hangfire schema
+- **Access**: Hangfire has SELECT/UPDATE access to `meajudaai_documents` schema for DocumentVerificationJob
+- **Configuration**: Hangfire automatically creates its tables on first run (PrepareSchemaIfNecessary=true)
+
+The Hangfire dashboard is available at `/hangfire` endpoint when the application is running.
 
 ## Usage
 

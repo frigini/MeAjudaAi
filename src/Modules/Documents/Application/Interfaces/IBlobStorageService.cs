@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Application.Interfaces;
+namespace MeAjudaAi.Modules.Documents.Application.Interfaces;
 
 /// <summary>
 /// Serviço para gerenciamento de arquivos no Azure Blob Storage

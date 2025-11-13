@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("meajudaai_documents")
+                .HasDefaultSchema("documents")
                 .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -87,7 +87,7 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
                     b.HasIndex("ProviderId", "DocumentType")
                         .HasDatabaseName("ix_documents_provider_type");
 
-                    b.ToTable("documents", "meajudaai_documents");
+                    b.ToTable("documents", "documents");
                 });
 #pragma warning restore 612, 618
         }

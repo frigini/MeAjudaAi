@@ -4,11 +4,14 @@ using MeAjudaAi.Shared.Common.Constants;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Monitoring;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Time;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -80,6 +83,9 @@ public static class ServiceCollectionExtensions
         services.AddCommands();
         services.AddQueries();
         services.AddEvents();
+        
+        // Background Jobs com Hangfire
+        services.AddHangfireJobs(configuration);
 
         return services;
     }
@@ -119,6 +125,9 @@ public static class ServiceCollectionExtensions
             services.AddCommands();
             services.AddQueries();
             services.AddEvents();
+            
+            // Background Jobs com Hangfire
+            services.AddHangfireJobs(configuration);
         }
 
         // Adiciona monitoramento avançado complementar ao Aspire
@@ -131,6 +140,14 @@ public static class ServiceCollectionExtensions
     {
         app.UseErrorHandling();
         app.UseAdvancedMonitoring(); // Adiciona middleware de métricas
+        
+        // Hangfire Dashboard (disponível em /hangfire)
+        app.UseHangfireDashboard("/hangfire", new DashboardOptions
+        {
+            Authorization = new[] { new HangfireAuthorizationFilter() },
+            StatsPollingInterval = 5000, // 5 segundos
+            DisplayStorageConnectionString = false
+        });
 
         return app;
     }
@@ -190,5 +207,40 @@ public static class ServiceCollectionExtensions
         }
 
         return app;
+    }
+
+    private static IServiceCollection AddHangfireJobs(this IServiceCollection services, IConfiguration configuration)
+    {
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+                              ?? configuration.GetConnectionString("meajudaai-db")
+                              ?? throw new InvalidOperationException("Connection string 'DefaultConnection' ou 'meajudaai-db' não encontrada");
+
+        // Configura Hangfire com PostgreSQL
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(connectionString, new PostgreSqlStorageOptions
+            {
+                SchemaName = "hangfire",
+                QueuePollInterval = TimeSpan.FromSeconds(15),
+                JobExpirationCheckInterval = TimeSpan.FromHours(1),
+                CountersAggregateInterval = TimeSpan.FromMinutes(5),
+                PrepareSchemaIfNecessary = true,
+                InvisibilityTimeout = TimeSpan.FromMinutes(30)
+            }));
+
+        // Adiciona servidor Hangfire para processar jobs
+        services.AddHangfireServer(options =>
+        {
+            options.WorkerCount = Environment.ProcessorCount * 2;
+            options.Queues = new[] { "default", "critical", "low" };
+            options.ServerName = $"{Environment.MachineName}-{Guid.NewGuid().ToString()[..8]}";
+        });
+
+        // Registra nosso wrapper do Hangfire
+        services.AddSingleton<IBackgroundJobService, HangfireBackgroundJobService>();
+
+        return services;
     }
 }

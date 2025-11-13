@@ -1,6 +1,6 @@
 using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.Documents.Domain.Aggregates;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +23,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var uploadRequest = new
         {
             ProviderId = providerId,
-            DocumentType = (int)DocumentType.IdentityDocument,
+            DocumentType = (int)EDocumentType.IdentityDocument,
             FileName = "identity-card.pdf",
             ContentType = "application/pdf",
             FileSizeBytes = 102400
@@ -48,9 +48,9 @@ public class DocumentsEndToEndTests : TestContainerTestBase
                 var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
                 
                 document.Should().NotBeNull();
-                document!.ProviderId.Should().Be(providerId);
-                document.Status.Should().Be(DocumentStatus.Uploaded);
-                document.DocumentType.Should().Be(DocumentType.IdentityDocument);
+                document.ProviderId.Should().Be(providerId);
+                document.Status.Should().Be(EDocumentStatus.Uploaded);
+                document.DocumentType.Should().Be(EDocumentType.IdentityDocument);
             });
         }
         else
@@ -76,7 +76,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             
             var document = Document.Create(
                 providerId,
-                DocumentType.ProofOfResidence,
+                EDocumentType.ProofOfResidence,
                 "proof-residence.pdf",
                 "https://storage.test.com/proof.pdf");
 
@@ -111,9 +111,9 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
             
-            var doc1 = Document.Create(providerId, DocumentType.IdentityDocument, "id.pdf", "url1");
-            var doc2 = Document.Create(providerId, DocumentType.ProofOfResidence, "proof.pdf", "url2");
-            var doc3 = Document.Create(providerId, DocumentType.CriminalRecord, "record.pdf", "url3");
+            var doc1 = Document.Create(providerId, EDocumentType.IdentityDocument, "id.pdf", "url1");
+            var doc2 = Document.Create(providerId, EDocumentType.ProofOfResidence, "proof.pdf", "url2");
+            var doc3 = Document.Create(providerId, EDocumentType.CriminalRecord, "record.pdf", "url3");
 
             dbContext.Documents.AddRange(doc1, doc2, doc3);
             await dbContext.SaveChangesAsync();
@@ -147,7 +147,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             
             var document = Document.Create(
                 providerId,
-                DocumentType.CriminalRecord,
+                EDocumentType.CriminalRecord,
                 "criminal-record.pdf",
                 "https://storage.test.com/record.pdf");
 
@@ -155,10 +155,10 @@ public class DocumentsEndToEndTests : TestContainerTestBase
 
             // Test status transitions
             document.MarkAsPendingVerification();
-            document.Status.Should().Be(DocumentStatus.PendingVerification);
+            document.Status.Should().Be(EDocumentStatus.PendingVerification);
 
             document.MarkAsVerified("{\"verified\": true}");
-            document.Status.Should().Be(DocumentStatus.Verified);
+            document.Status.Should().Be(EDocumentStatus.Verified);
             document.VerifiedAt.Should().NotBeNull();
 
             dbContext.Documents.Add(document);
@@ -172,7 +172,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
             
             document.Should().NotBeNull();
-            document!.Status.Should().Be(DocumentStatus.Verified);
+            document!.Status.Should().Be(EDocumentStatus.Verified);
             document.OcrData.Should().NotBeNull();
         });
     }
@@ -189,9 +189,9 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
             
-            var doc1 = Document.Create(provider1, DocumentType.IdentityDocument, "p1-id.pdf", "url1");
-            var doc2 = Document.Create(provider1, DocumentType.ProofOfResidence, "p1-proof.pdf", "url2");
-            var doc3 = Document.Create(provider2, DocumentType.CriminalRecord, "p2-record.pdf", "url3");
+            var doc1 = Document.Create(provider1, EDocumentType.IdentityDocument, "p1-id.pdf", "url1");
+            var doc2 = Document.Create(provider1, EDocumentType.ProofOfResidence, "p1-proof.pdf", "url2");
+            var doc3 = Document.Create(provider2, EDocumentType.CriminalRecord, "p2-record.pdf", "url3");
 
             dbContext.Documents.AddRange(doc1, doc2, doc3);
             await dbContext.SaveChangesAsync();

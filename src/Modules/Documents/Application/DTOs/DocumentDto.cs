@@ -5,10 +5,10 @@ namespace MeAjudaAi.Modules.Documents.Application.DTOs;
 public record DocumentDto(
     Guid Id,
     Guid ProviderId,
-    DocumentType DocumentType,
+    EDocumentType DocumentType,
     string FileName,
     string FileUrl,
-    DocumentStatus Status,
+    EDocumentStatus Status,
     DateTime UploadedAt,
     DateTime? VerifiedAt,
     string? RejectionReason,

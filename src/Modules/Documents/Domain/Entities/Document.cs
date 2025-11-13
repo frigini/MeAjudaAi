@@ -1,13 +1,14 @@
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Events;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
 
-namespace MeAjudaAi.Modules.Documents.Domain.Aggregates;
+namespace MeAjudaAi.Modules.Documents.Domain.Entities;
 
 /// <summary>
 /// Aggregate root representando um documento enviado por um provedor
 /// </summary>
-public class Document : BaseEntity
+public sealed class Document : AggregateRoot<DocumentId>
 {
     /// <summary>
     /// ID do provedor que enviou o documento
@@ -17,7 +18,7 @@ public class Document : BaseEntity
     /// <summary>
     /// Tipo do documento
     /// </summary>
-    public DocumentType DocumentType { get; private set; }
+    public EDocumentType DocumentType { get; private set; }
     
     /// <summary>
     /// URL do arquivo no blob storage
@@ -32,7 +33,7 @@ public class Document : BaseEntity
     /// <summary>
     /// Status atual do documento
     /// </summary>
-    public DocumentStatus Status { get; private set; }
+    public EDocumentStatus Status { get; private set; }
     
     /// <summary>
     /// Data de upload do documento
@@ -54,58 +55,67 @@ public class Document : BaseEntity
     /// </summary>
     public string? OcrData { get; private set; }
 
-    // EF Core
+    /// <summary>
+    /// Construtor privado para uso do Entity Framework.
+    /// </summary>
     private Document() { }
 
+    /// <summary>
+    /// Cria um novo documento no sistema.
+    /// </summary>
+    /// <param name="providerId">ID do provedor que enviou o documento</param>
+    /// <param name="documentType">Tipo do documento</param>
+    /// <param name="fileName">Nome original do arquivo</param>
+    /// <param name="fileUrl">URL do arquivo no blob storage</param>
+    /// <remarks>
+    /// Este construtor dispara automaticamente o evento DocumentUploadedDomainEvent.
+    /// </remarks>
     private Document(
-        Guid id,
         Guid providerId,
-        DocumentType documentType,
+        EDocumentType documentType,
         string fileName,
         string fileUrl)
+        : base(DocumentId.New())
     {
-        Id = id;
         ProviderId = providerId;
         DocumentType = documentType;
         FileName = fileName;
         FileUrl = fileUrl;
-        Status = DocumentStatus.Uploaded;
+        Status = EDocumentStatus.Uploaded;
         UploadedAt = DateTime.UtcNow;
+
+        AddDomainEvent(new DocumentUploadedDomainEvent(
+            Id,
+            1,
+            ProviderId,
+            DocumentType,
+            FileUrl));
     }
 
+    /// <summary>
+    /// Factory method para criar um novo documento.
+    /// </summary>
     public static Document Create(
         Guid providerId,
-        DocumentType documentType,
+        EDocumentType documentType,
         string fileName,
         string fileUrl)
     {
-        var document = new Document(
-            Guid.NewGuid(),
-            providerId,
-            documentType,
-            fileName,
-            fileUrl);
-
-        document.AddDomainEvent(new DocumentUploadedDomainEvent(
-            document.Id,
-            document.ProviderId,
-            document.DocumentType,
-            document.FileUrl));
-
-        return document;
+        return new Document(providerId, documentType, fileName, fileUrl);
     }
 
     public void MarkAsVerified(string? ocrData = null)
     {
-        if (Status == DocumentStatus.Verified)
+        if (Status == EDocumentStatus.Verified)
             return;
 
-        Status = DocumentStatus.Verified;
+        Status = EDocumentStatus.Verified;
         VerifiedAt = DateTime.UtcNow;
         OcrData = ocrData;
 
         AddDomainEvent(new DocumentVerifiedDomainEvent(
             Id,
+            1,
             ProviderId,
             DocumentType,
             ocrData));
@@ -113,15 +123,16 @@ public class Document : BaseEntity
 
     public void MarkAsRejected(string reason)
     {
-        if (Status == DocumentStatus.Rejected)
+        if (Status == EDocumentStatus.Rejected)
             return;
 
-        Status = DocumentStatus.Rejected;
+        Status = EDocumentStatus.Rejected;
         VerifiedAt = DateTime.UtcNow;
         RejectionReason = reason;
 
         AddDomainEvent(new DocumentRejectedDomainEvent(
             Id,
+            1,
             ProviderId,
             DocumentType,
             reason));
@@ -129,15 +140,15 @@ public class Document : BaseEntity
 
     public void MarkAsFailed(string reason)
     {
-        Status = DocumentStatus.Failed;
+        Status = EDocumentStatus.Failed;
         RejectionReason = reason;
     }
 
     public void MarkAsPendingVerification()
     {
-        if (Status != DocumentStatus.Uploaded)
+        if (Status != EDocumentStatus.Uploaded)
             return;
 
-        Status = DocumentStatus.PendingVerification;
+        Status = EDocumentStatus.PendingVerification;
     }
 }

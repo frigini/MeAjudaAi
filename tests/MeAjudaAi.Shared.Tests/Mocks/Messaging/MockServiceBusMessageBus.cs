@@ -10,7 +10,7 @@ public class MockServiceBusMessageBus : IMessageBus
 {
     private readonly Mock<IMessageBus> _mockMessageBus;
     private readonly ILogger<MockServiceBusMessageBus> _logger;
-    private readonly List<(object message, string? destination, MessageType type)> _publishedMessages;
+    private readonly List<(object message, string destination, EMessageType type)> _publishedMessages = [];
 
     public MockServiceBusMessageBus(ILogger<MockServiceBusMessageBus> logger)
     {
@@ -24,7 +24,7 @@ public class MockServiceBusMessageBus : IMessageBus
     /// <summary>
     /// Lista de mensagens publicadas durante os testes
     /// </summary>
-    public IReadOnlyList<(object message, string? destination, MessageType type)> PublishedMessages
+    public IReadOnlyList<(object message, string? destination, EMessageType type)> PublishedMessages
         => _publishedMessages.AsReadOnly();
 
     /// <summary>
@@ -40,7 +40,7 @@ public class MockServiceBusMessageBus : IMessageBus
         _logger.LogInformation("Mock Service Bus: Sending message of type {MessageType} to queue {QueueName}",
             typeof(TMessage).Name, queueName);
 
-        _publishedMessages.Add((message!, queueName, MessageType.Send));
+        _publishedMessages.Add((message!, queueName, EMessageType.Send));
 
         return _mockMessageBus.Object.SendAsync(message, queueName, cancellationToken);
     }
@@ -50,7 +50,7 @@ public class MockServiceBusMessageBus : IMessageBus
         _logger.LogInformation("Mock Service Bus: Publishing event of type {EventType} to topic {TopicName}",
             typeof(TMessage).Name, topicName);
 
-        _publishedMessages.Add((@event!, topicName, MessageType.Publish));
+        _publishedMessages.Add((@event!, topicName, EMessageType.Publish));
 
         return _mockMessageBus.Object.PublishAsync(@event, topicName, cancellationToken);
     }
@@ -84,7 +84,7 @@ public class MockServiceBusMessageBus : IMessageBus
     public bool WasMessageSent<T>(Func<T, bool>? predicate = null) where T : class
     {
         var messagesOfType = _publishedMessages
-            .Where(x => x.message is T && x.type == MessageType.Send)
+            .Where(x => x.message is T && x.type == EMessageType.Send)
             .Select(x => (T)x.message);
 
         return predicate == null
@@ -98,7 +98,7 @@ public class MockServiceBusMessageBus : IMessageBus
     public bool WasEventPublished<T>(Func<T, bool>? predicate = null) where T : class
     {
         var eventsOfType = _publishedMessages
-            .Where(x => x.message is T && x.type == MessageType.Publish)
+            .Where(x => x.message is T && x.type == EMessageType.Publish)
             .Select(x => (T)x.message);
 
         return predicate == null
@@ -120,7 +120,7 @@ public class MockServiceBusMessageBus : IMessageBus
     public IEnumerable<T> GetSentMessages<T>() where T : class
     {
         return _publishedMessages
-            .Where(x => x.message is T && x.type == MessageType.Send)
+            .Where(x => x.message is T && x.type == EMessageType.Send)
             .Select(x => (T)x.message);
     }
 
@@ -130,7 +130,7 @@ public class MockServiceBusMessageBus : IMessageBus
     public IEnumerable<T> GetPublishedEvents<T>() where T : class
     {
         return _publishedMessages
-            .Where(x => x.message is T && x.type == MessageType.Publish)
+            .Where(x => x.message is T && x.type == EMessageType.Publish)
             .Select(x => (T)x.message);
     }
 
@@ -149,7 +149,7 @@ public class MockServiceBusMessageBus : IMessageBus
     /// </summary>
     public bool WasMessageSentToQueue(string queueName)
     {
-        return _publishedMessages.Any(x => x.destination == queueName && x.type == MessageType.Send);
+        return _publishedMessages.Any(x => x.destination == queueName && x.type == EMessageType.Send);
     }
 
     /// <summary>
@@ -157,7 +157,7 @@ public class MockServiceBusMessageBus : IMessageBus
     /// </summary>
     public bool WasEventPublishedToTopic(string topicName)
     {
-        return _publishedMessages.Any(x => x.destination == topicName && x.type == MessageType.Publish);
+        return _publishedMessages.Any(x => x.destination == topicName && x.type == EMessageType.Publish);
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public class MockServiceBusMessageBus : IMessageBus
 /// <summary>
 /// Tipo de mensagem para tracking
 /// </summary>
-public enum MessageType
+public enum EMessageType
 {
     None = 0,
     Send,

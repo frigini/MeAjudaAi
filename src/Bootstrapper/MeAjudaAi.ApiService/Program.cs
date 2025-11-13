@@ -101,7 +101,7 @@ public partial class Program
         app.UseApiServices(app.Environment);
         app.UseUsersModule();
         app.UseProvidersModule();
-        // Documents module não requer UseXxxModule pois usa apenas controllers
+        app.UseDocumentsModule();
     }
 
     private static void LogStartupComplete(WebApplication app)

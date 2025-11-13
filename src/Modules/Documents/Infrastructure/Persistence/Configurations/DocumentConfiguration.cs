@@ -1,4 +1,5 @@
-using MeAjudaAi.Modules.Documents.Domain.Aggregates;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
+using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,6 +14,9 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.HasKey(d => d.Id);
 
         builder.Property(d => d.Id)
+            .HasConversion(
+                id => id.Value,
+                value => new DocumentId(value))
             .HasColumnName("id")
             .ValueGeneratedNever();
 

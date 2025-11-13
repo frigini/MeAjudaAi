@@ -1,23 +1,15 @@
 using Azure;
 using Azure.AI.FormRecognizer.DocumentAnalysis;
-using MeAjudaAi.Shared.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 
-public class AzureDocumentIntelligenceService : IDocumentIntelligenceService
+public class AzureDocumentIntelligenceService(DocumentAnalysisClient client, ILogger<AzureDocumentIntelligenceService> logger) : IDocumentIntelligenceService
 {
-    private readonly DocumentAnalysisClient _client;
-    private readonly ILogger<AzureDocumentIntelligenceService> _logger;
-
-    public AzureDocumentIntelligenceService(
-        DocumentAnalysisClient client,
-        ILogger<AzureDocumentIntelligenceService> logger)
-    {
-        _client = client;
-        _logger = logger;
-    }
+    private readonly DocumentAnalysisClient _client = client ?? throw new ArgumentNullException(nameof(client));
+    private readonly ILogger<AzureDocumentIntelligenceService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<OcrResult> AnalyzeDocumentAsync(
         string blobUrl,

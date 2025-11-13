@@ -1,5 +1,12 @@
 -- Users Module - Permissions
 -- Grant permissions for users module
+
+-- Create users schema if it doesn't exist
+CREATE SCHEMA IF NOT EXISTS users;
+
+-- Set explicit schema ownership
+ALTER SCHEMA users OWNER TO users_owner;
+
 GRANT USAGE ON SCHEMA users TO users_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA users TO users_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA users TO users_role;

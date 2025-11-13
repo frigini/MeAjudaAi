@@ -4,6 +4,7 @@ using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
+using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Shared.Tests.Auth;
 
@@ -38,12 +39,14 @@ public class DocumentsApiTests : ApiTestBase
         AuthConfig.ConfigureUser(Guid.NewGuid().ToString(), "provider", "provider@test.com", "provider");
 
         var providerId = Guid.NewGuid();
-        var request = new UploadDocumentRequest(
-            providerId,
-            DocumentType.IdentityDocument,
-            "identity-card.pdf",
-            "application/pdf",
-            102400); // 100KB
+        var request = new UploadDocumentRequest
+        {
+            ProviderId = providerId,
+            DocumentType = EDocumentType.IdentityDocument,
+            FileName = "identity-card.pdf",
+            ContentType = "application/pdf",
+            FileSizeBytes = 102400
+        };
 
         // Act
         var response = await Client.PostAsJsonAsync("/api/v1/documents/upload", request);
@@ -73,12 +76,14 @@ public class DocumentsApiTests : ApiTestBase
         AuthConfig.ConfigureUser(Guid.NewGuid().ToString(), "provider", "provider@test.com", "provider");
         
         var providerId = Guid.NewGuid();
-        var uploadRequest = new UploadDocumentRequest(
-            providerId,
-            DocumentType.ProofOfResidence,
-            "test-document.pdf",
-            "application/pdf",
-            51200); // 50KB
+        var uploadRequest = new UploadDocumentRequest
+        {
+            ProviderId = providerId,
+            DocumentType = EDocumentType.ProofOfResidence,
+            FileName = "test-document.pdf",
+            ContentType = "application/pdf",
+            FileSizeBytes = 51200
+        };
 
         var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest);
         
@@ -98,7 +103,7 @@ public class DocumentsApiTests : ApiTestBase
         var document = await response.Content.ReadFromJsonAsync<DocumentDto>();
         document.Should().NotBeNull();
         document!.Id.Should().Be(uploadResult.DocumentId);
-        document.Status.Should().Be(DocumentStatus.Uploaded);
+        document.Status.Should().Be(EDocumentStatus.Uploaded);
     }
 
     [Fact]

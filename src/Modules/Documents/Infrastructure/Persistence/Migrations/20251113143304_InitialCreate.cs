@@ -12,11 +12,11 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
-                name: "meajudaai_documents");
+                name: "documents");
 
             migrationBuilder.CreateTable(
                 name: "documents",
-                schema: "meajudaai_documents",
+                schema: "documents",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -39,19 +39,19 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "ix_documents_provider_id",
-                schema: "meajudaai_documents",
+                schema: "documents",
                 table: "documents",
                 column: "provider_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_documents_provider_type",
-                schema: "meajudaai_documents",
+                schema: "documents",
                 table: "documents",
                 columns: new[] { "provider_id", "document_type" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_documents_status",
-                schema: "meajudaai_documents",
+                schema: "documents",
                 table: "documents",
                 column: "status");
         }
@@ -61,7 +61,7 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
         {
             migrationBuilder.DropTable(
                 name: "documents",
-                schema: "meajudaai_documents");
+                schema: "documents");
         }
     }
 }

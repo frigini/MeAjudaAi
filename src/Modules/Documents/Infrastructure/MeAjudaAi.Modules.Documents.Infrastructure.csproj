@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.AI.FormRecognizer" />
     <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="EFCore.NamingConventions" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
@@ -18,8 +19,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Shared\MeAjudaAi.Shared.csproj" />
-    <ProjectReference Include="..\Domain\Documents.Domain.csproj" />
-    <ProjectReference Include="..\Application\Documents.Application.csproj" />
+    <ProjectReference Include="..\Domain\MeAjudaAi.Modules.Documents.Domain.csproj" />
+    <ProjectReference Include="..\Application\MeAjudaAi.Modules.Documents.Application.csproj" />
   </ItemGroup>
 
 </Project>

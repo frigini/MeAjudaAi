@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Documents.Domain.Aggregates;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 
 namespace MeAjudaAi.Modules.Documents.Domain.Repositories;
 

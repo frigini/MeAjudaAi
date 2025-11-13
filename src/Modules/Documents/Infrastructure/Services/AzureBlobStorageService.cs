@@ -1,23 +1,15 @@
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
-using MeAjudaAi.Shared.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 
-public class AzureBlobStorageService : IBlobStorageService
+public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogger<AzureBlobStorageService> logger) : IBlobStorageService
 {
-    private readonly BlobContainerClient _containerClient;
-    private readonly ILogger<AzureBlobStorageService> _logger;
-
-    public AzureBlobStorageService(
-        BlobServiceClient blobServiceClient,
-        ILogger<AzureBlobStorageService> logger)
-    {
-        _containerClient = blobServiceClient.GetBlobContainerClient("documents");
-        _logger = logger;
-    }
+    private readonly BlobContainerClient _containerClient = blobServiceClient.GetBlobContainerClient("documents");
+    private readonly ILogger<AzureBlobStorageService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<(string UploadUrl, DateTime ExpiresAt)> GenerateUploadUrlAsync(
         string blobName,

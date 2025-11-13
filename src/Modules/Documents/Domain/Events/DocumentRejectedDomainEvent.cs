@@ -3,15 +3,18 @@ using MeAjudaAi.Shared.Events;
 
 namespace MeAjudaAi.Modules.Documents.Domain.Events;
 
+/// <summary>
+/// Evento de domínio disparado quando um documento é rejeitado na verificação.
+/// </summary>
+/// <param name="AggregateId">Identificador único do documento</param>
+/// <param name="Version">Versão do agregado no momento do evento</param>
+/// <param name="ProviderId">Identificador do prestador</param>
+/// <param name="DocumentType">Tipo do documento rejeitado</param>
+/// <param name="RejectionReason">Motivo da rejeição</param>
 public record DocumentRejectedDomainEvent(
-    Guid DocumentId,
+    Guid AggregateId,
+    int Version,
     Guid ProviderId,
-    DocumentType DocumentType,
-    string RejectionReason) : IDomainEvent
-{
-    public Guid Id { get; } = Guid.NewGuid();
-    public DateTime OccurredAt { get; } = DateTime.UtcNow;
-    public string EventType => GetType().Name;
-    public Guid AggregateId => DocumentId;
-    public int Version => 1;
-}
+    EDocumentType DocumentType,
+    string RejectionReason
+) : DomainEvent(AggregateId, Version);

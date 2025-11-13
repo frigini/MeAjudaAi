@@ -3,7 +3,7 @@ namespace MeAjudaAi.Modules.Documents.Domain.Enums;
 /// <summary>
 /// Status de um documento no processo de verificação
 /// </summary>
-public enum DocumentStatus
+public enum EDocumentStatus
 {
     /// <summary>
     /// Documento foi enviado mas ainda não processado

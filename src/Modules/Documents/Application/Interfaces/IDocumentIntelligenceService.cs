@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Application.Interfaces;
+namespace MeAjudaAi.Modules.Documents.Application.Interfaces;
 
 /// <summary>
 /// Resultado do processamento OCR de um documento

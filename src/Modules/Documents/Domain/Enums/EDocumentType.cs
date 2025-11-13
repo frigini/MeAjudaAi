@@ -1,9 +1,9 @@
 namespace MeAjudaAi.Modules.Documents.Domain.Enums;
 
 /// <summary>
-/// Tipos de documentos aceitos no sistema
+/// Tipos de documentos suportados pelo sistema
 /// </summary>
-public enum DocumentType
+public enum EDocumentType
 {
     /// <summary>
     /// Documentos de identidade (RG, CPF, CNH)

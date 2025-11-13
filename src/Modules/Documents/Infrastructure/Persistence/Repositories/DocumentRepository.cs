@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Documents.Domain.Aggregates;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
@@ -6,14 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Repositories;
 
-public sealed class DocumentRepository : IDocumentRepository
+public sealed class DocumentRepository(DocumentsDbContext context) : IDocumentRepository
 {
-    private readonly DocumentsDbContext _context;
-
-    public DocumentRepository(DocumentsDbContext context)
-    {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-    }
+    private readonly DocumentsDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     public async Task<Document?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {

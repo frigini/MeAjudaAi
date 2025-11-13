@@ -1,35 +1,32 @@
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
-using MeAjudaAi.Modules.Documents.Domain.Aggregates;
+using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
+using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
-using MeAjudaAi.Shared.Application.Interfaces;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Jobs;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
-public class UploadDocumentCommandHandler : ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>
+public class UploadDocumentCommandHandler(
+    IDocumentRepository documentRepository,
+    IBlobStorageService blobStorageService,
+    IBackgroundJobService backgroundJobService,
+    ILogger<UploadDocumentCommandHandler> logger) : ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>
 {
-    private readonly IDocumentRepository _documentRepository;
-    private readonly IBlobStorageService _blobStorageService;
-    private readonly ILogger<UploadDocumentCommandHandler> _logger;
-
-    public UploadDocumentCommandHandler(
-        IDocumentRepository documentRepository,
-        IBlobStorageService blobStorageService,
-        ILogger<UploadDocumentCommandHandler> logger)
-    {
-        _documentRepository = documentRepository;
-        _blobStorageService = blobStorageService;
-        _logger = logger;
-    }
+    private readonly IDocumentRepository _documentRepository = documentRepository ?? throw new ArgumentNullException(nameof(documentRepository));
+    private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
+    private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
+    private readonly ILogger<UploadDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<UploadDocumentResponse> HandleAsync(UploadDocumentCommand command, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Gerando URL de upload para documento do provedor {ProviderId}", command.ProviderId);
 
-        if (!Enum.TryParse<DocumentType>(command.DocumentType, true, out var documentType))
+        if (!Enum.TryParse<EDocumentType>(command.DocumentType, true, out var documentType))
         {
             throw new ArgumentException($"Tipo de documento inválido: {command.DocumentType}");
         }
@@ -68,6 +65,10 @@ public class UploadDocumentCommandHandler : ICommandHandler<UploadDocumentComman
 
         _logger.LogInformation("Documento {DocumentId} criado para provedor {ProviderId}", 
             document.Id, command.ProviderId);
+
+        // Enfileira job de verificação do documento
+        await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
+            service => service.ProcessDocumentAsync(document.Id, CancellationToken.None));
 
         return new UploadDocumentResponse(
             document.Id,

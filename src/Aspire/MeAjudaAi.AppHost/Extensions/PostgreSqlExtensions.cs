@@ -150,12 +150,15 @@ public static class PostgreSqlExtensions
         }
         else
         {
-            // Local testing - create PostgreSQL container
+            // Local testing - create PostgreSQL container with initialization scripts
             var postgres = builder.AddPostgres("postgres-local")
-                .WithImageTag("13-alpine") // Usa PostgreSQL 13 para melhor compatibilidade
+                .WithImageTag("16-alpine") // PostgreSQL 16 (updated from 13)
                 .WithEnvironment("POSTGRES_DB", options.MainDatabase)
                 .WithEnvironment("POSTGRES_USER", options.Username)
                 .WithEnvironment("POSTGRES_PASSWORD", options.Password);
+
+            // Mount database initialization scripts
+            MountInitializationScripts(postgres, builder);
 
             var mainDb = postgres.AddDatabase("meajudaai-db-local", options.MainDatabase);
 
@@ -176,10 +179,13 @@ public static class PostgreSqlExtensions
         // Setup completo de desenvolvimento
         var postgresBuilder = builder.AddPostgres("postgres-local")
             .WithDataVolume()
-            .WithImageTag("13-alpine")
+            .WithImageTag("16-alpine") // PostgreSQL 16 (updated from 13)
             .WithEnvironment("POSTGRES_DB", options.MainDatabase)
             .WithEnvironment("POSTGRES_USER", options.Username)
             .WithEnvironment("POSTGRES_PASSWORD", options.Password);
+
+        // Mount database initialization scripts
+        MountInitializationScripts(postgresBuilder, builder);
 
         if (options.IncludePgAdmin)
         {
@@ -190,9 +196,12 @@ public static class PostgreSqlExtensions
 
         // Abordagem de banco único - todos os módulos usam o mesmo banco com schemas diferentes
         // - schema users (módulo de usuários)
+        // - schema providers (módulo de prestadores)
+        // - schema documents (módulo de documentos)
+        // - schema hangfire (background jobs - Hangfire)
         // - schema identity (Keycloak)
+        // - schema meajudaai_app (cross-cutting objects)
         // - schema public (tabelas compartilhadas/comuns)
-        // - módulos futuros terão seus próprios schemas
 
         return new MeAjudaAiPostgreSqlResult
         {
@@ -216,5 +225,33 @@ public static class PostgreSqlExtensions
     private static bool IsTestEnvironment(IDistributedApplicationBuilder builder)
     {
         return EnvironmentHelpers.IsTesting(builder);
+    }
+
+    /// <summary>
+    /// Monta os scripts de inicialização do banco de dados no container PostgreSQL
+    /// </summary>
+    private static void MountInitializationScripts(
+        IResourceBuilder<PostgresServerResource> postgresBuilder,
+        IDistributedApplicationBuilder builder)
+    {
+        // Caminho relativo dos scripts de inicialização
+        // De: src/Aspire/MeAjudaAi.AppHost
+        // Para: infrastructure/database
+        var appDirectory = builder.AppHostDirectory;
+        var infrastructurePath = Path.Combine(appDirectory, "..", "..", "..", "infrastructure", "database");
+        var absolutePath = Path.GetFullPath(infrastructurePath);
+
+        if (!Directory.Exists(absolutePath))
+        {
+            Console.WriteLine($"WARNING: Database initialization scripts not found at: {absolutePath}");
+            Console.WriteLine("Database will be created without initial roles and permissions.");
+            return;
+        }
+
+        // Monta a pasta database como /docker-entrypoint-initdb.d
+        // PostgreSQL executa automaticamente scripts .sql e .sh nessa pasta na inicialização
+        postgresBuilder.WithBindMount(absolutePath, "/docker-entrypoint-initdb.d", isReadOnly: true);
+
+        Console.WriteLine($"INFO: Mounted database initialization scripts from: {absolutePath}");
     }
 }
