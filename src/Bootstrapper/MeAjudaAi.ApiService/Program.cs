@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Providers.API;
 using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.ServiceDefaults;
@@ -82,6 +83,7 @@ public partial class Program
         builder.Services.AddApiServices(builder.Configuration, builder.Environment);
         builder.Services.AddUsersModule(builder.Configuration);
         builder.Services.AddProvidersModule(builder.Configuration);
+        builder.Services.AddDocumentsModule(builder.Configuration);
     }
 
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
@@ -99,6 +101,7 @@ public partial class Program
         app.UseApiServices(app.Environment);
         app.UseUsersModule();
         app.UseProvidersModule();
+        // Documents module não requer UseXxxModule pois usa apenas controllers
     }
 
     private static void LogStartupComplete(WebApplication app)
