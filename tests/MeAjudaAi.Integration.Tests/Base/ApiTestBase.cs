@@ -98,7 +98,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                         options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
                         {
                             npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Documents.Infrastructure");
-                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_documents");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "documents");
                         });
                         options.EnableSensitiveDataLogging();
                         options.ConfigureWarnings(warnings =>

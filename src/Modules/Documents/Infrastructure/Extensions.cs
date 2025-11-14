@@ -30,12 +30,24 @@ public static class Extensions
                               ?? configuration.GetConnectionString("Documents")
                               ?? configuration.GetConnectionString("meajudaai-db");
 
+        // In test environments, allow placeholder connection string since tests will replace the DbContext
+        var isTestEnvironment = string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase)
+                               || string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
+
         if (string.IsNullOrEmpty(connectionString))
         {
-            throw new InvalidOperationException(
-                "Database connection string is not configured. "
-                + "Please set one of the following configuration keys: "
-                + "'ConnectionStrings:DefaultConnection', 'ConnectionStrings:Documents', or 'ConnectionStrings:meajudaai-db'");
+            if (isTestEnvironment)
+            {
+                // Use placeholder for integration tests - will be replaced by test infrastructure
+                connectionString = "Host=localhost;Database=test;Username=test;Password=test";
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    "Database connection string is not configured. "
+                    + "Please set one of the following configuration keys: "
+                    + "'ConnectionStrings:DefaultConnection', 'ConnectionStrings:Documents', or 'ConnectionStrings:meajudaai-db'");
+            }
         }
 
         services.AddDbContext<DocumentsDbContext>((serviceProvider, options) =>

@@ -75,9 +75,9 @@ public class DocumentTests
         document.MarkAsVerified("{\"verified\": true}"); // Change to Verified status
 
         // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() => 
+        var exception = Assert.Throws<InvalidOperationException>(() =>
             document.MarkAsPendingVerification());
-        
+
         exception.Message.Should().Contain("Cannot mark document as pending verification from state Verified");
         document.Status.Should().Be(EDocumentStatus.Verified); // Should remain Verified
     }
@@ -264,7 +264,7 @@ public class DocumentTests
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() =>
             Document.Create(Guid.Empty, EDocumentType.IdentityDocument, "test.pdf", "blob-key"));
-        
+
         exception.ParamName.Should().Be("providerId");
         exception.Message.Should().Contain("Provider ID cannot be empty");
     }
@@ -278,7 +278,7 @@ public class DocumentTests
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
             Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, fileName, "blob-key"));
-        
+
         exception.ParamName.Should().Be("fileName");
     }
 
@@ -291,7 +291,7 @@ public class DocumentTests
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
             Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", fileUrl));
-        
+
         exception.ParamName.Should().Be("fileUrl");
     }
 
