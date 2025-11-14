@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 
-namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
+namespace MeAjudaAi.Modules.Documents.Tests.Mocks;
 
 /// <summary>
 /// Mock implementation of IBlobStorageService for testing environments

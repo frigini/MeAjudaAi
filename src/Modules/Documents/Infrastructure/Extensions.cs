@@ -78,44 +78,31 @@ public static class Extensions
 
     private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // Verificar se está em ambiente de teste
-        var isTestEnvironment = string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase)
-                               || string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase);
-
-        if (isTestEnvironment)
+        // Registrar Azure clients
+        var storageConnectionString = configuration["Azure:Storage:ConnectionString"];
+        if (!string.IsNullOrEmpty(storageConnectionString))
         {
-            // Usar mocks em ambiente de teste
-            services.AddScoped<IBlobStorageService, MockBlobStorageService>();
-            services.AddScoped<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
+            services.AddSingleton(sp =>
+                new Azure.Storage.Blobs.BlobServiceClient(storageConnectionString));
         }
-        else
+
+        var documentIntelligenceEndpoint = configuration["Azure:DocumentIntelligence:Endpoint"];
+        var documentIntelligenceApiKey = configuration["Azure:DocumentIntelligence:ApiKey"];
+        if (!string.IsNullOrEmpty(documentIntelligenceEndpoint) && !string.IsNullOrEmpty(documentIntelligenceApiKey))
         {
-            // Registrar Azure clients para produção
-            var storageConnectionString = configuration["Azure:Storage:ConnectionString"];
-            if (!string.IsNullOrEmpty(storageConnectionString))
-            {
-                services.AddSingleton(sp =>
-                    new Azure.Storage.Blobs.BlobServiceClient(storageConnectionString));
-            }
+            services.AddSingleton(sp =>
+                new Azure.AI.DocumentIntelligence.DocumentIntelligenceClient(
+                    new Uri(documentIntelligenceEndpoint),
+                    new Azure.AzureKeyCredential(documentIntelligenceApiKey)));
 
-            var documentIntelligenceEndpoint = configuration["Azure:DocumentIntelligence:Endpoint"];
-            var documentIntelligenceApiKey = configuration["Azure:DocumentIntelligence:ApiKey"];
-            if (!string.IsNullOrEmpty(documentIntelligenceEndpoint) && !string.IsNullOrEmpty(documentIntelligenceApiKey))
-            {
-                services.AddSingleton(sp =>
-                    new Azure.AI.DocumentIntelligence.DocumentIntelligenceClient(
-                        new Uri(documentIntelligenceEndpoint),
-                        new Azure.AzureKeyCredential(documentIntelligenceApiKey)));
+            // Azure Document Intelligence (OCR) - only if configured
+            services.AddScoped<IDocumentIntelligenceService, AzureDocumentIntelligenceService>();
+        }
 
-                // Azure Document Intelligence (OCR) - only if configured
-                services.AddScoped<IDocumentIntelligenceService, AzureDocumentIntelligenceService>();
-            }
-
-            if (!string.IsNullOrEmpty(storageConnectionString))
-            {
-                // Azure Storage - only if configured
-                services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
-            }
+        if (!string.IsNullOrEmpty(storageConnectionString))
+        {
+            // Azure Storage - only if configured
+            services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
         }
 
         return services;
