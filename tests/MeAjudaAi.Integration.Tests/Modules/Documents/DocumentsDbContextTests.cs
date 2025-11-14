@@ -161,6 +161,7 @@ public class DocumentsDbContextTests : ApiTestBase
         await dbContext.SaveChangesAsync();
 
         // Act
+        document.MarkAsPendingVerification();
         document.MarkAsVerified("{\"test\":\"data\"}");
 
         await dbContext.SaveChangesAsync();

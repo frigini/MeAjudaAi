@@ -104,6 +104,7 @@ public class DocumentsIntegrationTests : ApiTestBase
 
         await repository.AddAsync(doc1);
         await repository.AddAsync(doc2);
+        await repository.SaveChangesAsync();
 
         // Act
         var provider1Docs = await repository.GetByProviderIdAsync(provider1Id);
@@ -134,17 +135,20 @@ public class DocumentsIntegrationTests : ApiTestBase
 
         await repository.AddAsync(document);
 
-        // Act
-        document.MarkAsVerified("{\"verified\":true}");
-        await repository.UpdateAsync(document);
+        // Persist the initial document
+        using var dbContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
+        await dbContext.SaveChangesAsync();
 
-        // Assert
+            // Act
+            document.MarkAsPendingVerification();
+            document.MarkAsVerified("{\"verified\":true}");
+            await repository.UpdateAsync(document);
+            await dbContext.SaveChangesAsync();        // Assert
         var updated = await repository.GetByIdAsync(document.Id);
         updated.Should().NotBeNull();
         updated!.Status.Should().Be(MeAjudaAi.Modules.Documents.Domain.Enums.EDocumentStatus.Verified);
 
         // Cleanup
-        using var dbContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
         dbContext.Documents.Remove(updated);
         await dbContext.SaveChangesAsync();
     }
@@ -208,9 +212,15 @@ public class DocumentsIntegrationTests : ApiTestBase
 
         await repository.AddAsync(document);
 
-        // Step 3: Mark as verified (simulating OCR completion)
+        // Persist the document
+        using var dbContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
+        await dbContext.SaveChangesAsync();
+
+        // Step 3: Mark as pending verification, then verified (simulating OCR completion)
+        document.MarkAsPendingVerification();
         document.MarkAsVerified("{\"ocr\":\"completed\"}");
         await repository.UpdateAsync(document);
+        await dbContext.SaveChangesAsync();
 
         // Step 4: Retrieve and verify
         var retrieved = await repository.GetByIdAsync(document.Id);
@@ -218,7 +228,6 @@ public class DocumentsIntegrationTests : ApiTestBase
         retrieved!.Status.Should().Be(MeAjudaAi.Modules.Documents.Domain.Enums.EDocumentStatus.Verified);
 
         // Cleanup
-        using var dbContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
         dbContext.Documents.Remove(retrieved);
         await dbContext.SaveChangesAsync();
     }
