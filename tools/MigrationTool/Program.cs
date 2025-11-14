@@ -23,6 +23,7 @@ class Program
     {
         ["Users"] = "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=test123",
         ["Providers"] = "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=test123",
+        ["Documents"] = "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=test123",
         ["Services"] = "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=test123",
         ["Orders"] = "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=test123"
     };
