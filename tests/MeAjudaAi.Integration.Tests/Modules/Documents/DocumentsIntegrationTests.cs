@@ -139,11 +139,13 @@ public class DocumentsIntegrationTests : ApiTestBase
         using var dbContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
         await dbContext.SaveChangesAsync();
 
-            // Act
-            document.MarkAsPendingVerification();
-            document.MarkAsVerified("{\"verified\":true}");
-            await repository.UpdateAsync(document);
-            await dbContext.SaveChangesAsync();        // Assert
+        // Act
+        document.MarkAsPendingVerification();
+        document.MarkAsVerified("{\"verified\":true}");
+        await repository.UpdateAsync(document);
+        await dbContext.SaveChangesAsync();
+
+        // Assert
         var updated = await repository.GetByIdAsync(document.Id);
         updated.Should().NotBeNull();
         updated!.Status.Should().Be(MeAjudaAi.Modules.Documents.Domain.Enums.EDocumentStatus.Verified);
