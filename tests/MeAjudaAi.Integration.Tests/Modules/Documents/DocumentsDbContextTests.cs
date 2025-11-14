@@ -1,5 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Documents.Domain.Entities;
+using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +33,7 @@ public class DocumentsDbContextTests : ApiTestBase
         var dbContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
 
         // Act
-        var schema = dbContext.Model.FindEntityType(typeof(MeAjudaAi.Modules.Documents.Domain.Entities.Document))
+        var schema = dbContext.Model.FindEntityType(typeof(Document))
             ?.GetSchema();
 
         // Assert
@@ -47,20 +49,23 @@ public class DocumentsDbContextTests : ApiTestBase
 
         // Act
         var connection = dbContext.Database.GetDbConnection();
-        await connection.OpenAsync();
+        await using (connection)
+        {
+            await connection.OpenAsync();
 
-        var command = connection.CreateCommand();
-        command.CommandText = @"
-            SELECT schemaname 
-            FROM pg_tables 
-            WHERE tablename = '__EFMigrationsHistory' 
-            AND schemaname = 'documents'";
+            await using var command = connection.CreateCommand();
+            command.CommandText = @"
+                SELECT schemaname 
+                FROM pg_tables 
+                WHERE tablename = '__EFMigrationsHistory' 
+                AND schemaname = 'documents'";
 
-        var result = await command.ExecuteScalarAsync();
+            var result = await command.ExecuteScalarAsync();
 
-        // Assert
-        result.Should().NotBeNull("__EFMigrationsHistory should exist in 'documents' schema");
-        result.Should().Be("documents");
+            // Assert
+            result.Should().NotBeNull("__EFMigrationsHistory should exist in 'documents' schema");
+            result.Should().Be("documents");
+        }
     }
 
     [Fact]
@@ -72,19 +77,23 @@ public class DocumentsDbContextTests : ApiTestBase
 
         // Act
         var connection = dbContext.Database.GetDbConnection();
-        await connection.OpenAsync();
+        await using (connection)
+        {
+            await connection.OpenAsync();
 
-        var command = connection.CreateCommand();
-        command.CommandText = @"
-            SELECT COUNT(*) 
-            FROM information_schema.tables 
-            WHERE table_schema = 'documents' 
-            AND table_name = 'documents'";
+            await using var command = connection.CreateCommand();
+            command.CommandText = @"
+                SELECT COUNT(*) 
+                FROM information_schema.tables 
+                WHERE table_schema = 'documents' 
+                AND table_name = 'documents'";
 
-        var count = (long)(await command.ExecuteScalarAsync())!;
+            var result = await command.ExecuteScalarAsync();
+            var count = Convert.ToInt64(result ?? 0);
 
-        // Assert
-        count.Should().Be(1, "documents table should exist in documents schema");
+            // Assert
+            count.Should().Be(1, "documents table should exist in documents schema");
+        }
     }
 
     [Fact]
@@ -96,21 +105,24 @@ public class DocumentsDbContextTests : ApiTestBase
 
         // Act
         var connection = dbContext.Database.GetDbConnection();
-        await connection.OpenAsync();
+        await using (connection)
+        {
+            await connection.OpenAsync();
 
-        var command = connection.CreateCommand();
-        command.CommandText = @"
-            SELECT column_name 
-            FROM information_schema.columns 
-            WHERE table_schema = 'documents' 
-            AND table_name = 'documents' 
-            AND column_name = 'provider_id'";
+            await using var command = connection.CreateCommand();
+            command.CommandText = @"
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_schema = 'documents' 
+                AND table_name = 'documents' 
+                AND column_name = 'provider_id'";
 
-        var columnName = await command.ExecuteScalarAsync();
+            var columnName = await command.ExecuteScalarAsync();
 
-        // Assert
-        columnName.Should().NotBeNull("provider_id column should exist (snake_case, not PascalCase)");
-        columnName.Should().Be("provider_id");
+            // Assert
+            columnName.Should().NotBeNull("provider_id column should exist (snake_case, not PascalCase)");
+            columnName.Should().Be("provider_id");
+        }
     }
 
     [Fact]
@@ -120,9 +132,9 @@ public class DocumentsDbContextTests : ApiTestBase
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
 
-        var document = MeAjudaAi.Modules.Documents.Domain.Entities.Document.Create(
+        var document = Document.Create(
             Guid.NewGuid(),
-            MeAjudaAi.Modules.Documents.Domain.Enums.EDocumentType.IdentityDocument,
+            EDocumentType.IdentityDocument,
             "test-blob.pdf",
             "https://storage.blob.core.windows.net/documents/test-blob.pdf");
 
@@ -151,9 +163,9 @@ public class DocumentsDbContextTests : ApiTestBase
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
 
-        var document = MeAjudaAi.Modules.Documents.Domain.Entities.Document.Create(
+        var document = Document.Create(
             Guid.NewGuid(),
-            MeAjudaAi.Modules.Documents.Domain.Enums.EDocumentType.ProofOfResidence,
+            EDocumentType.ProofOfResidence,
             "test-change-tracking.pdf",
             "https://storage.blob.core.windows.net/documents/test-change-tracking.pdf");
 
@@ -168,7 +180,7 @@ public class DocumentsDbContextTests : ApiTestBase
 
         // Assert
         var updated = await dbContext.Documents.FirstAsync(d => d.Id == document.Id);
-        updated.Status.Should().Be(MeAjudaAi.Modules.Documents.Domain.Enums.EDocumentStatus.Verified);
+        updated.Status.Should().Be(EDocumentStatus.Verified);
 
         // Cleanup
         dbContext.Documents.Remove(updated);
