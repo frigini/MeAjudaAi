@@ -37,7 +37,7 @@ public static class Extensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Documents.Infrastructure");
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_documents");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "documents");
                 npgsqlOptions.CommandTimeout(60);
             })
             .UseSnakeCaseNamingConvention()

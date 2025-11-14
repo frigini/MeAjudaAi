@@ -21,7 +21,8 @@ public sealed class Document : AggregateRoot<DocumentId>
     public EDocumentType DocumentType { get; private set; }
 
     /// <summary>
-    /// URL do arquivo no blob storage
+    /// Identificador do blob no Azure Storage (blob name/key, não URL completa).
+    /// Usado como chave para operações de storage (upload, download, verificação).
     /// </summary>
     public string FileUrl { get; private set; } = string.Empty;
 
@@ -46,7 +47,8 @@ public sealed class Document : AggregateRoot<DocumentId>
     public DateTime? VerifiedAt { get; private set; }
 
     /// <summary>
-    /// Motivo de rejeição (se Status == Rejected)
+    /// Motivo de rejeição de negócio (Status == Rejected) ou falha técnica (Status == Failed).
+    /// Contém descrição legível do motivo pelo qual o documento não foi aceito.
     /// </summary>
     public string? RejectionReason { get; private set; }
 

@@ -49,47 +49,40 @@ public static class Extensions
             return;
         }
 
+        using var scope = app.Services.CreateScope();
+        var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.DocumentsDbContext>();
+        if (context == null)
+        {
+            var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.DocumentsDbContext>>();
+            logger?.LogWarning("DocumentsDbContext not registered. Skipping migrations.");
+            return;
+        }
+
+        var contextLogger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.DocumentsDbContext>>();
+
         try
         {
-            // Criar um escopo para obter o context e logger
-            using var scope = app.Services.CreateScope();
-            var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.DocumentsDbContext>();
-            if (context == null) return;
-
-            var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.DocumentsDbContext>>();
-
-            try
-            {
-                // Em produção, usar migrações normais
-                // Nota: Em ambientes com múltiplas instâncias, considere executar migrações
-                // via pipeline de deployment ao invés de startup automático
-                context.Database.Migrate();
-            }
-            catch (Exception ex)
-            {
-                // Log do erro, mas tenta fallback
-                logger?.LogWarning(ex, "Falha ao aplicar migrações do módulo Documents. Usando EnsureCreated como fallback.");
-
-                // Tenta EnsureCreated como fallback (apenas em desenvolvimento)
-                if (app.Environment.IsDevelopment())
-                {
-                    context.Database.EnsureCreated();
-                }
-                else
-                {
-                    // Em produção, não fazer fallback silencioso - relançar para visão do problema
-                    logger?.LogError(ex, "Erro crítico ao aplicar migrações do módulo Documents em ambiente de produção.");
-                    throw;
-                }
-            }
+            // Em produção, usar migrações normais
+            // Nota: Em ambientes com múltiplas instâncias, considere executar migrações
+            // via pipeline de deployment ao invés de startup automático
+            context.Database.Migrate();
         }
         catch (Exception ex)
         {
-            // Em ambiente de teste (Test/Testing), já retornou anteriormente
-            // Qualquer exceção aqui é de ambiente não-teste e deve ser relançada
-            var logger = app.Services.GetService<ILogger<Infrastructure.Persistence.DocumentsDbContext>>();
-            logger?.LogDebug(ex, "Migration failed in non-test environment");
-            throw;
+            // Log do erro, mas tenta fallback
+            contextLogger?.LogWarning(ex, "Falha ao aplicar migrações do módulo Documents. Usando EnsureCreated como fallback.");
+
+            // Tenta EnsureCreated como fallback (apenas em desenvolvimento)
+            if (app.Environment.IsDevelopment())
+            {
+                context.Database.EnsureCreated();
+            }
+            else
+            {
+                // Em produção, não fazer fallback silencioso - relançar para visão do problema
+                contextLogger?.LogError(ex, "Erro crítico ao aplicar migrações do módulo Documents em ambiente de produção.");
+                throw;
+            }
         }
     }
 }

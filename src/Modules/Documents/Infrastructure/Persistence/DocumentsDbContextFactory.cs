@@ -1,4 +1,3 @@
-using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
@@ -13,16 +12,17 @@ public class DocumentsDbContextFactory : IDesignTimeDbContextFactory<DocumentsDb
     {
         var optionsBuilder = new DbContextOptionsBuilder<DocumentsDbContext>();
 
-        // Try to read from environment first, fallback to default
-        // Allows developers to override via: $env:EFCORE_CONNECTION_STRING="Host=remote;..."
+        // Require EFCORE_CONNECTION_STRING to be set - fail fast instead of using insecure defaults
         var connectionString = Environment.GetEnvironmentVariable("EFCORE_CONNECTION_STRING")
-                              ?? "Host=localhost;Database=meajudaai;Username=postgres;Password=postgres";
+            ?? throw new InvalidOperationException(
+                "EFCORE_CONNECTION_STRING is not set; set this environment variable to configure the database connection. "
+                + "Example: $env:EFCORE_CONNECTION_STRING=\"Host=localhost;Database=meajudaai;Username=postgres;Password=postgres\"");
 
         optionsBuilder.UseNpgsql(
             connectionString,
             npgsqlOptions =>
             {
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_documents");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "documents");
             });
 
         return new DocumentsDbContext(optionsBuilder.Options);

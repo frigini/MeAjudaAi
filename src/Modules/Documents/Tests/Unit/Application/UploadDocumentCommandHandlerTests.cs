@@ -29,6 +29,14 @@ public class UploadDocumentCommandHandlerTests
         _mockJobService = new Mock<IBackgroundJobService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<UploadDocumentCommandHandler>>();
+
+        // Configure default behavior for background job service
+        _mockJobService
+            .Setup(x => x.EnqueueAsync<IDocumentVerificationService>(
+                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
+                It.IsAny<TimeSpan?>()))
+            .Returns(Task.CompletedTask);
+
         _handler = new UploadDocumentCommandHandler(
             _mockRepository.Object,
             _mockBlobStorage.Object,
