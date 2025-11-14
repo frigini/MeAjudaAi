@@ -85,16 +85,11 @@ public static class Extensions
         }
         catch (Exception ex)
         {
-            // Em ambiente de teste (Test/Testing), ignora silenciosamente para não quebrar testes unitários
-            // Qualquer outra exceção aqui significa que já passou pelos checks de ambiente acima e deve ser rethrown
-            if (!app.Environment.IsEnvironment("Test") && !app.Environment.IsEnvironment("Testing"))
-            {
-                throw;
-            }
-
-            // Em ambiente de teste, logging opcional para debug
+            // Em ambiente de teste (Test/Testing), já retornou anteriormente
+            // Qualquer exceção aqui é de ambiente não-teste e deve ser relançada
             var logger = app.Services.GetService<ILogger<Infrastructure.Persistence.DocumentsDbContext>>();
-            logger?.LogDebug(ex, "Migration skipped in test environment");
+            logger?.LogDebug(ex, "Migration failed in non-test environment");
+            throw;
         }
     }
 }

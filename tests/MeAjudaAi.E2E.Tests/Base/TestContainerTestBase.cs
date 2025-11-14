@@ -63,6 +63,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                 {
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
+                        // All modules share the same test database instance
                         ["ConnectionStrings:DefaultConnection"] = _postgresContainer.GetConnectionString(),
                         ["ConnectionStrings:meajudaai-db"] = _postgresContainer.GetConnectionString(),
                         ["ConnectionStrings:UsersDb"] = _postgresContainer.GetConnectionString(),

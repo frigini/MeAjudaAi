@@ -23,7 +23,7 @@ public class MockBackgroundJobService : IBackgroundJobService
         {
             lock (_lock)
             {
-                return _enqueuedJobs.ToList().AsReadOnly();
+                return _enqueuedJobs.ToList();
             }
         }
     }
@@ -38,7 +38,7 @@ public class MockBackgroundJobService : IBackgroundJobService
         {
             lock (_lock)
             {
-                return _recurringJobs.ToList().AsReadOnly();
+                return _recurringJobs.ToList();
             }
         }
     }
@@ -49,9 +49,9 @@ public class MockBackgroundJobService : IBackgroundJobService
         lock (_lock)
         {
             _enqueuedJobs.Add(new EnqueuedJobEntry(
+                JobId: Guid.NewGuid().ToString(),
                 MethodCall: methodCall,
-                Delay: delay,
-                JobId: Guid.NewGuid().ToString()));
+                Delay: delay));
         }
         return Task.CompletedTask;
     }

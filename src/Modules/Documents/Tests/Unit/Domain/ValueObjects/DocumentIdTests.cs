@@ -93,6 +93,8 @@ public class DocumentIdTests
 
         // Act & Assert
         documentId1.Should().NotBe(documentId2);
+        // Note: While hash contract only requires equal objects to have equal hashes,
+        // GUID hash collisions are astronomically unlikely in practice
         documentId1.GetHashCode().Should().NotBe(documentId2.GetHashCode());
     }
 

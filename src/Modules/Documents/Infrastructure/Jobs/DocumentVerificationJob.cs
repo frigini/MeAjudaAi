@@ -52,7 +52,7 @@ public class DocumentVerificationJob(
         try
         {
             // Marca como PendingVerification apenas se ainda não estiver
-            if (document.Status == EDocumentStatus.Uploaded)
+            if (document.Status == EDocumentStatus.Uploaded || document.Status == EDocumentStatus.Failed)
             {
                 document.MarkAsPendingVerification();
             }

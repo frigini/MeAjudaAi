@@ -77,6 +77,8 @@ public class UploadDocumentCommandHandler(
         }
 
         var mediaType = command.ContentType.Split(';')[0].Trim().ToLowerInvariant();
+        // TODO: Consider making file size limit and allowed types configurable via appsettings.json
+        // when different requirements emerge for different deployment environments
         var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/jpg", "application/pdf" };
         if (!allowedContentTypes.Contains(mediaType))
         {

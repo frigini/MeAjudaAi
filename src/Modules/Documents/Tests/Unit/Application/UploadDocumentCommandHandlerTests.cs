@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Linq.Expressions;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
@@ -214,6 +215,46 @@ public class UploadDocumentCommandHandlerTests
             () => _handler.HandleAsync(command, CancellationToken.None));
 
         exception.Message.Should().Contain("não permitido");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithContentTypeParameters_ShouldAcceptMediaType()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
+        var command = new UploadDocumentCommand(
+            providerId,
+            "IdentityDocument",
+            "test.pdf",
+            "application/pdf; charset=utf-8", // Content-Type with parameters
+            102400);
+
+        _mockBlobStorage
+            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
+
+        _mockRepository
+            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _mockRepository
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _mockJobService
+            .Setup(x => x.EnqueueAsync<IDocumentVerificationService>(
+                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
+                It.IsAny<TimeSpan?>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.UploadUrl.Should().NotBeEmpty();
     }
 
     [Fact]

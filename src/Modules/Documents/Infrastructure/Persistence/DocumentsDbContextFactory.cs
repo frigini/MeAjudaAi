@@ -13,10 +13,13 @@ public class DocumentsDbContextFactory : IDesignTimeDbContextFactory<DocumentsDb
     {
         var optionsBuilder = new DbContextOptionsBuilder<DocumentsDbContext>();
 
-        // Connection string padrão para migrations
-        // Em produção, isso virá da configuração
+        // Try to read from environment first, fallback to default
+        // Allows developers to override via: $env:EFCORE_CONNECTION_STRING="Host=remote;..."
+        var connectionString = Environment.GetEnvironmentVariable("EFCORE_CONNECTION_STRING")
+                              ?? "Host=localhost;Database=meajudaai;Username=postgres;Password=postgres";
+
         optionsBuilder.UseNpgsql(
-            "Host=localhost;Database=meajudaai;Username=postgres;Password=postgres",
+            connectionString,
             npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_documents");

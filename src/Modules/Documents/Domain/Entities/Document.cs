@@ -166,8 +166,13 @@ public sealed class Document : AggregateRoot<DocumentId>
         RejectionReason = reason;
         MarkAsUpdated();
 
-        // Emitir evento de domínio para observabilidade de falhas
-        // Nota: Considere criar DocumentFailedDomainEvent se necessário rastrear falhas separadamente
+        // Emitir evento de domínio para observabilidade de falhas técnicas
+        AddDomainEvent(new DocumentFailedDomainEvent(
+            Id,
+            1,
+            ProviderId,
+            DocumentType,
+            reason));
     }
 
     public void MarkAsPendingVerification()
