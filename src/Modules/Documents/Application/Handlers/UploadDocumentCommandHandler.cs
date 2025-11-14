@@ -33,7 +33,7 @@ public class UploadDocumentCommandHandler(
             throw new UnauthorizedAccessException("HTTP context not available");
 
         var user = httpContext.User;
-        if (user == null || !user.Identity?.IsAuthenticated == true)
+        if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
             throw new UnauthorizedAccessException("User is not authenticated");
 
         var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;

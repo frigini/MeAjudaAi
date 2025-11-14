@@ -19,7 +19,7 @@ public class DocumentsDbContextFactory : IDesignTimeDbContextFactory<DocumentsDb
             "Host=localhost;Database=meajudaai;Username=postgres;Password=postgres",
             npgsqlOptions =>
             {
-                npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history", "meajudaai_documents");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_documents");
             });
 
         return new DocumentsDbContext(optionsBuilder.Options);

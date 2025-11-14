@@ -67,7 +67,7 @@ public class DocumentTests
     }
 
     [Fact]
-    public void MarkAsPendingVerification_WhenNotUploaded_ShouldNotChangeStatus()
+    public void MarkAsPendingVerification_WhenVerified_ShouldNotChangeStatus()
     {
         // Arrange
         var document = CreateTestDocument();
@@ -79,6 +79,23 @@ public class DocumentTests
 
         // Assert
         document.Status.Should().Be(EDocumentStatus.Verified); // Should remain Verified
+    }
+
+    [Fact]
+    public void MarkAsPendingVerification_WhenFailed_ShouldAllowRetry()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsFailed("OCR service unavailable");
+        document.Status.Should().Be(EDocumentStatus.Failed);
+        document.RejectionReason.Should().Be("OCR service unavailable");
+
+        // Act - retry should be allowed
+        document.MarkAsPendingVerification();
+
+        // Assert
+        document.Status.Should().Be(EDocumentStatus.PendingVerification);
+        document.RejectionReason.Should().BeNull(); // Cleared for retry
     }
 
     [Fact]

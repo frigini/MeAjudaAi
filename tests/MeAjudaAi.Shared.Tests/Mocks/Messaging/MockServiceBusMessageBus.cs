@@ -189,7 +189,9 @@ public class MockServiceBusMessageBus : IMessageBus
 }
 
 /// <summary>
-/// Tipo de mensagem para tracking
+/// Tipo de mensagem para tracking.
+/// Nota: Usa prefixo 'E' para consistência com convenções do projeto,
+/// embora a convenção moderna C# prefira 'MessageType'.
 /// </summary>
 public enum EMessageType
 {

@@ -15,6 +15,7 @@ public class MockBackgroundJobService : IBackgroundJobService
 
     /// <summary>
     /// Jobs enfileirados para execução imediata ou com delay.
+    /// Retorna um snapshot imutável para evitar problemas de concorrência.
     /// </summary>
     public IReadOnlyList<EnqueuedJobEntry> EnqueuedJobs
     {
@@ -22,13 +23,14 @@ public class MockBackgroundJobService : IBackgroundJobService
         {
             lock (_lock)
             {
-                return _enqueuedJobs.AsReadOnly();
+                return _enqueuedJobs.ToList().AsReadOnly();
             }
         }
     }
 
     /// <summary>
     /// Jobs recorrentes agendados.
+    /// Retorna um snapshot imutável para evitar problemas de concorrência.
     /// </summary>
     public IReadOnlyList<RecurringJobEntry> RecurringJobs
     {
@@ -36,13 +38,14 @@ public class MockBackgroundJobService : IBackgroundJobService
         {
             lock (_lock)
             {
-                return _recurringJobs.AsReadOnly();
+                return _recurringJobs.ToList().AsReadOnly();
             }
         }
     }
 
     public Task EnqueueAsync<T>(Expression<Func<T, Task>> methodCall, TimeSpan? delay = null) where T : notnull
     {
+        ArgumentNullException.ThrowIfNull(methodCall);
         lock (_lock)
         {
             _enqueuedJobs.Add(new EnqueuedJobEntry(
@@ -55,18 +58,22 @@ public class MockBackgroundJobService : IBackgroundJobService
 
     public Task EnqueueAsync(Expression<Func<Task>> methodCall, TimeSpan? delay = null)
     {
+        ArgumentNullException.ThrowIfNull(methodCall);
         lock (_lock)
         {
             _enqueuedJobs.Add(new EnqueuedJobEntry(
+                JobId: Guid.NewGuid().ToString(),
                 MethodCall: methodCall,
-                Delay: delay,
-                JobId: Guid.NewGuid().ToString()));
+                Delay: delay));
         }
         return Task.CompletedTask;
     }
 
     public Task ScheduleRecurringAsync(string jobId, Expression<Func<Task>> methodCall, string cronExpression)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(jobId);
+        ArgumentNullException.ThrowIfNull(methodCall);
+        ArgumentException.ThrowIfNullOrWhiteSpace(cronExpression);
         lock (_lock)
         {
             _recurringJobs.Add(new RecurringJobEntry(
@@ -94,9 +101,9 @@ public class MockBackgroundJobService : IBackgroundJobService
 /// Representa um job enfileirado.
 /// </summary>
 public record EnqueuedJobEntry(
+    string JobId,
     LambdaExpression MethodCall,
-    TimeSpan? Delay,
-    string JobId);
+    TimeSpan? Delay);
 
 /// <summary>
 /// Representa um job recorrente agendado.

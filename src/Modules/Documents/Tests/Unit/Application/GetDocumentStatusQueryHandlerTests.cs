@@ -83,7 +83,10 @@ public class GetDocumentStatusQueryHandlerTests
 
         // Transicionar documento para testar mapeamento com valores não-nulos
         document.MarkAsPendingVerification();
-        document.MarkAsVerified("{\"cpf\":\"98765432100\"}"); _mockRepository.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+        document.MarkAsVerified("{\"cpf\":\"98765432100\"}");
+
+        _mockRepository
+            .Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
         var query = new GetDocumentStatusQuery(documentId);

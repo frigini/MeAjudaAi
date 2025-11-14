@@ -160,6 +160,9 @@ public static class ServiceCollectionExtensions
     public static async Task<IApplicationBuilder> UseSharedServicesAsync(this IApplicationBuilder app)
     {
         app.UseErrorHandling();
+        // Note: UseAdvancedMonitoring requires BusinessMetrics registration during service configuration.
+        // The async path doesn't currently register these services in the same way as the sync path.
+        // TODO: Align middleware registration between sync/async paths or conditionally apply monitoring.
 
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
                          Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??

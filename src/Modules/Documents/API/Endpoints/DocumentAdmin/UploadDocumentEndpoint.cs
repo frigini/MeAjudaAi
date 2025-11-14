@@ -55,6 +55,9 @@ public class UploadDocumentEndpoint : BaseEndpoint, IEndpoint
             request.ContentType,
             request.FileSizeBytes);
 
+        // Note: UploadDocumentCommandHandler returns UploadDocumentResponse directly.
+        // If handler is refactored to return Result<UploadDocumentResponse> in the future,
+        // consider using BaseEndpoint.Handle(result) for consistent error/status mapping.
         var response = await commandDispatcher.SendAsync<UploadDocumentCommand, UploadDocumentResponse>(
             command, cancellationToken);
 

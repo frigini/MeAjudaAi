@@ -18,6 +18,10 @@ public static class ServiceCollectionExtensions
         // Valida a configuração de segurança logo no início do startup
         SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
 
+        // Detecta se estamos em ambiente de teste (integração ou E2E)
+        var isTestEnvironment = string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase) ||
+                               environment.IsEnvironment("Testing");
+
         // Registro da configuração de Rate Limit com validação usando Options pattern
         // Suporte tanto para nova seção "AdvancedRateLimit" quanto para legado "RateLimit"
         var optionsBuilder = services.AddOptions<RateLimitOptions>()
@@ -26,9 +30,6 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations(); // Valida atributos [Required] etc.
 
         // Apenas valida na inicialização se NÃO estiver em ambiente de teste
-        // Detecta se estamos em ambiente de teste (integração ou E2E)
-        var isTestEnvironment = string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase) ||
-                               environment.IsEnvironment("Testing");
 
         if (!isTestEnvironment)
         {
@@ -55,8 +56,7 @@ public static class ServiceCollectionExtensions
 
         // Adiciona autenticação segura baseada no ambiente
         // Configuração de autenticação baseada no ambiente
-        var it = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
-        if (!string.Equals(it, "true", StringComparison.OrdinalIgnoreCase) && !environment.IsEnvironment("Testing"))
+        if (!isTestEnvironment)
         {
             // Usa a extensão segura do Keycloak com validação completa de tokens
             services.AddEnvironmentAuthentication(configuration, environment);

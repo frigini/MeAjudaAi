@@ -234,4 +234,117 @@ public class UploadDocumentCommandHandlerTests
         await Assert.ThrowsAsync<ArgumentException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
     }
+
+    [Fact]
+    public async Task HandleAsync_WithUnauthorizedUser_ShouldThrowUnauthorizedAccessException()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var differentUserId = Guid.NewGuid();
+        SetupAuthenticatedUser(differentUserId); // User doesn't match provider
+
+        var command = new UploadDocumentCommand(
+            providerId,
+            "IdentityDocument",
+            "test.pdf",
+            "application/pdf",
+            102400);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.Message.Should().Contain("not authorized");
+
+        // Verify warning was logged
+        _mockLogger.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("attempted to upload")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithAdminUser_ShouldAllowUploadForAnyProvider()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var adminUserId = Guid.NewGuid();
+        SetupAuthenticatedUser(adminUserId, "admin"); // Admin user with different ID
+
+        var command = new UploadDocumentCommand(
+            providerId,
+            "IdentityDocument",
+            "test.pdf",
+            "application/pdf",
+            102400);
+
+        var uploadUrl = "https://storage/upload-url";
+        var expiresAt = DateTime.UtcNow.AddHours(1);
+
+        _mockBlobStorage
+            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((uploadUrl, expiresAt));
+
+        _mockRepository
+            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _mockRepository
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert - Should succeed even though admin user ID != provider ID
+        result.Should().NotBeNull();
+        result.DocumentId.Should().NotBeEmpty();
+        result.UploadUrl.Should().Be(uploadUrl);
+
+        _mockRepository.Verify(
+            x => x.AddAsync(It.Is<Document>(d => d.ProviderId == providerId), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithSystemAdminUser_ShouldAllowUploadForAnyProvider()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var systemAdminUserId = Guid.NewGuid();
+        SetupAuthenticatedUser(systemAdminUserId, "system-admin"); // System admin
+
+        var command = new UploadDocumentCommand(
+            providerId,
+            "IdentityDocument",
+            "test.pdf",
+            "application/pdf",
+            102400);
+
+        var uploadUrl = "https://storage/upload-url";
+        var expiresAt = DateTime.UtcNow.AddHours(1);
+
+        _mockBlobStorage
+            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((uploadUrl, expiresAt));
+
+        _mockRepository
+            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _mockRepository
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert - Should succeed for system-admin role
+        result.Should().NotBeNull();
+        result.DocumentId.Should().NotBeEmpty();
+    }
 }

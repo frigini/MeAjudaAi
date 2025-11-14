@@ -31,6 +31,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         // Define variáveis de ambiente para testes
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
+        Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
 
         _databaseFixture = new SimpleDatabaseFixture();
         await _databaseFixture.InitializeAsync();
@@ -97,7 +98,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                         options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
                         {
                             npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Documents.Infrastructure");
-                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "documents");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_documents");
                         });
                         options.EnableSensitiveDataLogging();
                         options.ConfigureWarnings(warnings =>

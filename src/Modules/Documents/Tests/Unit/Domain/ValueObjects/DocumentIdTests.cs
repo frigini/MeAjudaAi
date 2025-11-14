@@ -27,7 +27,8 @@ public class DocumentIdTests
         // Act & Assert
         var act = () => new DocumentId(emptyGuid);
         act.Should().Throw<ArgumentException>()
-            .WithMessage("DocumentId cannot be empty");
+            .WithMessage("DocumentId cannot be empty*")
+            .And.ParamName.Should().Be("value");
     }
 
     [Fact]

@@ -144,6 +144,11 @@ public class DocumentVerificationJob(
     /// <summary>
     /// Detecta se uma exceção é transitória (rede, timeout, serviço indisponível)
     /// ou permanente (formato inválido, validação falhou).
+    /// 
+    /// Nota: Esta implementação MVP usa pattern matching em mensagens, que pode ser
+    /// fragile para localização. Para hardening futuro, considere:
+    /// - Checar tipos específicos de exceção do Azure (RequestFailedException com error codes)
+    /// - Centralizar detecção de erros transitórios em biblioteca compartilhada de resiliência
     /// </summary>
     private static bool IsTransientException(Exception ex)
     {

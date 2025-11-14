@@ -172,9 +172,18 @@ public sealed class Document : AggregateRoot<DocumentId>
 
     public void MarkAsPendingVerification()
     {
-        if (Status != EDocumentStatus.Uploaded)
+        // Allow transition from Uploaded or Failed (for retries)
+        if (Status != EDocumentStatus.Uploaded && Status != EDocumentStatus.Failed)
             return;
 
         Status = EDocumentStatus.PendingVerification;
+
+        // Clear previous failure reason when retrying
+        if (RejectionReason != null)
+        {
+            RejectionReason = null;
+        }
+
+        MarkAsUpdated();
     }
 }

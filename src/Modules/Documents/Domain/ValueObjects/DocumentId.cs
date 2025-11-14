@@ -12,8 +12,8 @@ public sealed class DocumentId : ValueObject
 
     public DocumentId(Guid value)
     {
-        if (value == Guid.Empty)
-            throw new ArgumentException("DocumentId cannot be empty");
+        if (!UuidGenerator.IsValid(value))
+            throw new ArgumentException("DocumentId cannot be empty", nameof(value));
         Value = value;
     }
 
