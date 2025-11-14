@@ -45,7 +45,7 @@ node generate-postman-collections.js
 ## 📂 Output
 
 As coleções são geradas em:
-```
+```text
 src/Shared/API.Collections/Generated/
 ├── MeAjudaAi-Users-Collection.json
 ├── MeAjudaAi-Providers-Collection.json
@@ -107,7 +107,7 @@ environments: {
 Cada coleção gerada contém:
 
 ### Pasta por Módulo
-```
+```text
 📁 Users
   ├── 📄 GET /api/v1/users
   ├── 📄 GET /api/v1/users/{id}
@@ -156,16 +156,16 @@ public class NovoModuloController : ControllerBase
 
 ### Troubleshooting
 
-**Erro: "Cannot fetch swagger spec"**
+#### Erro: "Cannot fetch swagger spec"
 - Certifique-se de que a API está rodando
 - Verifique a URL: `http://localhost:5000/api-docs/v1/swagger.json`
 - Confirme que o Swagger está habilitado em Development
 
-**Erro: "Module X not found"**
+#### Erro: "Module X not found"
 - Verifique se o controller tem a tag correta: `[Tags("X")]`
 - Confirme que o endpoint está no Swagger: navegue para `/swagger`
 
-**Coleção vazia**
+#### Coleção vazia
 - Verifique se há endpoints públicos (sem `[Authorize]`) para teste
 - Confirme que a versão da API está correta (v1)
 

@@ -74,7 +74,7 @@ Cada módulo usa seu próprio schema:
 
 ## 📊 Output de Exemplo
 
-```
+```text
 🔧 MeAjudaAi Migration Tool
 📋 Comando: status
 
@@ -115,11 +115,11 @@ O auto-discovery detectará automaticamente o `DbContext` do novo módulo.
 
 ### Troubleshooting
 
-**Erro: "Cannot find DbContext"**
+#### Erro: "Cannot find DbContext"
 - Certifique-se de que o assembly `*.Infrastructure.dll` foi compilado
 - Verifique se o namespace contém "MeAjudaAi" e "Infrastructure"
 
-**Erro: "Connection failed"**
+#### Erro: "Connection failed"
 - Verifique se o PostgreSQL está rodando
 - Confirme usuário/senha na connection string
 - Teste conexão com `psql -h localhost -U postgres -d meajudaai`

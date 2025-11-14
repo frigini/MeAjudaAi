@@ -1,4 +1,5 @@
 using MeAjudaAi.Integration.Tests.Infrastructure;
+using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Auth;
@@ -51,7 +52,8 @@ public abstract class ApiTestBase : IAsyncLifetime
                     if (providersDbContextDescriptor != null)
                         services.Remove(providersDbContextDescriptor);
 
-                    var documentsDbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>));
+                    // Documents module
+                    var documentsDbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DocumentsDbContext));
                     if (documentsDbContextDescriptor != null)
                         services.Remove(documentsDbContextDescriptor);
 
@@ -138,7 +140,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         using var scope = _factory.Services.CreateScope();
         var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
-        var documentsContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>();
+        var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
         var logger = scope.ServiceProvider.GetService<ILogger<ApiTestBase>>();
 
         // Aplica migrações exatamente como nos testes E2E
@@ -148,7 +150,7 @@ public abstract class ApiTestBase : IAsyncLifetime
     private static async Task ApplyMigrationsAsync(
         UsersDbContext usersContext,
         ProvidersDbContext providersContext,
-        MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext documentsContext,
+        DocumentsDbContext documentsContext,
         ILogger? logger)
     {
         // Garante estado limpo do banco de dados (como nos testes E2E)
