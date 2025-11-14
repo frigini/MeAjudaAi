@@ -68,7 +68,7 @@ public sealed class Document : AggregateRoot<DocumentId>
     /// <param name="providerId">ID do provedor que enviou o documento</param>
     /// <param name="documentType">Tipo do documento</param>
     /// <param name="fileName">Nome original do arquivo</param>
-    /// <param name="fileUrl">URL do arquivo no blob storage</param>
+    /// <param name="fileUrl">Identificador do blob (blob name/key) no storage, não URL completa</param>
     /// <remarks>
     /// Este construtor dispara automaticamente o evento DocumentUploadedDomainEvent.
     /// </remarks>
@@ -174,6 +174,10 @@ public sealed class Document : AggregateRoot<DocumentId>
 
     public void MarkAsFailed(string reason)
     {
+        // Nota: Este método intencionalmente não tem guard de estado,
+        // permitindo falha de qualquer estado (ex: retry de Failed, timeout durante PendingVerification).
+        // Se futuramente houver necessidade de restringir, adicionar guard similar aos outros métodos.
+
         // Invariante: Motivo de falha não pode ser vazio
         if (string.IsNullOrWhiteSpace(reason))
         {

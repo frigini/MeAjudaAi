@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -49,7 +50,7 @@ public class UploadDocumentCommandHandlerTests
     {
         var claims = new List<Claim>
         {
-            new("sub", userId.ToString()),
+            new(AuthConstants.Claims.Subject, userId.ToString()),
             new(ClaimTypes.Role, role)
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
@@ -170,9 +171,12 @@ public class UploadDocumentCommandHandlerTests
             "application/pdf",
             204800);
 
+        var uploadUrl = "upload-url";
+        var expiresAt = DateTime.UtcNow.AddHours(1);
+
         _mockBlobStorage
             .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), "application/pdf", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(("upload-url", DateTime.UtcNow.AddHours(1)));
+            .ReturnsAsync((uploadUrl, expiresAt));
 
         _mockRepository
             .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
@@ -181,9 +185,13 @@ public class UploadDocumentCommandHandlerTests
         _mockRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         // Act
-        await _handler.HandleAsync(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
+        result.Should().NotBeNull();
+        result.UploadUrl.Should().Be(uploadUrl);
+        result.ExpiresAt.Should().BeCloseTo(expiresAt, TimeSpan.FromSeconds(1));
+
         _mockBlobStorage.Verify(
             x => x.GenerateUploadUrlAsync(
                 It.IsAny<string>(),

@@ -258,6 +258,43 @@ public class DocumentTests
         document.Status.Should().Be(EDocumentStatus.Uploaded);
     }
 
+    [Fact]
+    public void Create_WithEmptyProviderId_ShouldThrowArgumentException()
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() =>
+            Document.Create(Guid.Empty, EDocumentType.IdentityDocument, "test.pdf", "blob-key"));
+        
+        exception.ParamName.Should().Be("providerId");
+        exception.Message.Should().Contain("Provider ID cannot be empty");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Create_WithInvalidFileName_ShouldThrowArgumentNullException(string fileName)
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, fileName, "blob-key"));
+        
+        exception.ParamName.Should().Be("fileName");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Create_WithInvalidFileUrl_ShouldThrowArgumentNullException(string fileUrl)
+    {
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", fileUrl));
+        
+        exception.ParamName.Should().Be("fileUrl");
+    }
+
     private static Document CreateTestDocument()
     {
         return Document.Create(
