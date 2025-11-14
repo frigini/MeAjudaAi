@@ -52,8 +52,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                     if (providersDbContextDescriptor != null)
                         services.Remove(providersDbContextDescriptor);
 
-                    // Documents module
-                    var documentsDbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DocumentsDbContext));
+                    var documentsDbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<DocumentsDbContext>));
                     if (documentsDbContextDescriptor != null)
                         services.Remove(documentsDbContextDescriptor);
 
@@ -66,7 +65,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                     if (providersDbContextService != null)
                         services.Remove(providersDbContextService);
 
-                    var documentsDbContextService = services.SingleOrDefault(d => d.ServiceType == typeof(MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext));
+                    var documentsDbContextService = services.SingleOrDefault(d => d.ServiceType == typeof(DocumentsDbContext));
                     if (documentsDbContextService != null)
                         services.Remove(documentsDbContextService);
 

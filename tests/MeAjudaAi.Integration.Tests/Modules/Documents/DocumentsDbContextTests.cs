@@ -13,7 +13,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 public class DocumentsDbContextTests : ApiTestBase
 {
     [Fact]
-    public async Task DocumentsDbContext_ShouldBeRegisteredInDependencyInjection()
+    public void DocumentsDbContext_ShouldBeRegisteredInDependencyInjection()
     {
         // Arrange & Act
         using var scope = Services.CreateScope();
@@ -24,7 +24,7 @@ public class DocumentsDbContextTests : ApiTestBase
     }
 
     [Fact]
-    public async Task DocumentsDbContext_ShouldUseCorrectSchema()
+    public void DocumentsDbContext_ShouldUseCorrectSchema()
     {
         // Arrange
         using var scope = Services.CreateScope();

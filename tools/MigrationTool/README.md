@@ -4,7 +4,7 @@ Ferramenta CLI para gerenciar migrações de banco de dados de todos os módulos
 
 ## 📋 Visão Geral
 
-O Migration Tool automatiza a aplicação de migrações em todos os módulos (Users, Providers, Documents, Services, Orders), eliminando a necessidade de executar comandos `dotnet ef` manualmente para cada módulo.
+O Migration Tool automatiza a aplicação de migrações em todos os módulos (Users, Providers, Documents), eliminando a necessidade de executar comandos `dotnet ef` manualmente para cada módulo.
 
 ## 🚀 Uso
 
@@ -47,10 +47,9 @@ Por padrão, usa `localhost:5432` com usuário `postgres` e senha `test123`. Par
 ```csharp
 private static readonly Dictionary<string, string> _connectionStrings = new()
 {
-    ["Users"] = "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=SuaSenha",
-    ["Providers"] = "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=SuaSenha",
-    ["Documents"] = "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=SuaSenha",
-    // ...
+    ["Users"] = "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=YOUR_PASSWORD",
+    ["Providers"] = "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=YOUR_PASSWORD",
+    ["Documents"] = "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=YOUR_PASSWORD"
 };
 ```
 
@@ -62,8 +61,6 @@ Cada módulo usa seu próprio schema:
 - **Users** → `users`
 - **Providers** → `providers`
 - **Documents** → `documents`
-- **Services** → `services`
-- **Orders** → `orders`
 
 ## 🔍 Como Funciona
 

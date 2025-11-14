@@ -15,7 +15,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 public class DocumentsIntegrationTests : ApiTestBase
 {
     [Fact]
-    public async Task DocumentRepository_ShouldBeRegisteredInDI()
+    public void DocumentRepository_ShouldBeRegisteredInDI()
     {
         // Arrange & Act
         using var scope = Services.CreateScope();
@@ -26,7 +26,7 @@ public class DocumentsIntegrationTests : ApiTestBase
     }
 
     [Fact]
-    public async Task BlobStorageService_ShouldBeRegisteredInDI()
+    public void BlobStorageService_ShouldBeRegisteredInDI()
     {
         // Arrange & Act
         using var scope = Services.CreateScope();
@@ -37,7 +37,7 @@ public class DocumentsIntegrationTests : ApiTestBase
     }
 
     [Fact]
-    public async Task DocumentIntelligenceService_ShouldBeRegisteredInDI()
+    public void DocumentIntelligenceService_ShouldBeRegisteredInDI()
     {
         // Arrange & Act
         using var scope = Services.CreateScope();
