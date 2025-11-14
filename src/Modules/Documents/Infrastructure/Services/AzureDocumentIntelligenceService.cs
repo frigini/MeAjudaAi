@@ -1,14 +1,15 @@
+using System.Text.Json;
 using Azure;
-using Azure.AI.FormRecognizer.DocumentAnalysis;
+using Azure.AI.DocumentIntelligence;
+using MeAjudaAi.Modules.Documents.Application.Constants;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 
-public class AzureDocumentIntelligenceService(DocumentAnalysisClient client, ILogger<AzureDocumentIntelligenceService> logger) : IDocumentIntelligenceService
+public class AzureDocumentIntelligenceService(DocumentIntelligenceClient client, ILogger<AzureDocumentIntelligenceService> logger) : IDocumentIntelligenceService
 {
-    private readonly DocumentAnalysisClient _client = client ?? throw new ArgumentNullException(nameof(client));
+    private readonly DocumentIntelligenceClient _client = client ?? throw new ArgumentNullException(nameof(client));
     private readonly ILogger<AzureDocumentIntelligenceService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<OcrResult> AnalyzeDocumentAsync(
@@ -16,23 +17,31 @@ public class AzureDocumentIntelligenceService(DocumentAnalysisClient client, ILo
         string documentType,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(documentType))
+        {
+            throw new ArgumentNullException(nameof(documentType), "Document type cannot be null or empty");
+        }
+
         try
         {
             _logger.LogInformation("Iniciando análise OCR para documento tipo {DocumentType}", documentType);
 
-            // Azure Document Intelligence usa modelos pré-construídos
-            // Para documentos brasileiros, usamos o modelo "prebuilt-idDocument"
+            // Use centralized constants for model IDs to avoid magic strings
             string modelId = documentType.ToLowerInvariant() switch
             {
-                "identitydocument" => "prebuilt-idDocument",
-                "prooofresidence" => "prebuilt-document", // Modelo genérico para comprovantes
-                _ => "prebuilt-document"
+                DocumentModelConstants.DocumentTypes.IdentityDocument => DocumentModelConstants.ModelIds.IdentityDocument,
+                DocumentModelConstants.DocumentTypes.ProofOfResidence => DocumentModelConstants.ModelIds.GenericDocument,
+                DocumentModelConstants.DocumentTypes.CriminalRecord => DocumentModelConstants.ModelIds.GenericDocument,
+                _ => DocumentModelConstants.ModelIds.GenericDocument
             };
 
-            var operation = await _client.AnalyzeDocumentFromUriAsync(
+            // Usar AnalyzeDocumentAsync da nova API Azure.AI.DocumentIntelligence
+            // A API mudou: agora usa BinaryData ou Uri diretamente
+            var uriSource = new Uri(blobUrl);
+            var operation = await _client.AnalyzeDocumentAsync(
                 WaitUntil.Completed,
                 modelId,
-                new Uri(blobUrl),
+                uriSource,
                 cancellationToken: cancellationToken);
 
             var result = operation.Value;
@@ -60,9 +69,9 @@ public class AzureDocumentIntelligenceService(DocumentAnalysisClient client, ILo
 
             var averageConfidence = fieldCount > 0 ? totalConfidence / fieldCount : 0;
 
-            var extractedData = JsonSerializer.Serialize(fields, new JsonSerializerOptions 
-            { 
-                WriteIndented = true 
+            var extractedData = JsonSerializer.Serialize(fields, new JsonSerializerOptions
+            {
+                WriteIndented = true
             });
 
             _logger.LogInformation(

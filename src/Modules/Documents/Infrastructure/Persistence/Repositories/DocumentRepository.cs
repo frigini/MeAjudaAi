@@ -30,10 +30,11 @@ public sealed class DocumentRepository(DocumentsDbContext context) : IDocumentRe
         await _context.Documents.AddAsync(document, cancellationToken);
     }
 
-    public async Task UpdateAsync(Document document, CancellationToken cancellationToken = default)
+    public Task UpdateAsync(Document document, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
         _context.Documents.Update(document);
+        return Task.CompletedTask;
     }
 
     public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)

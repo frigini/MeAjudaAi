@@ -11,7 +11,7 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
     private readonly BlobContainerClient _containerClient = blobServiceClient.GetBlobContainerClient("documents");
     private readonly ILogger<AzureBlobStorageService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public async Task<(string UploadUrl, DateTime ExpiresAt)> GenerateUploadUrlAsync(
+    public Task<(string UploadUrl, DateTime ExpiresAt)> GenerateUploadUrlAsync(
         string blobName,
         string contentType,
         CancellationToken cancellationToken = default)
@@ -43,7 +43,7 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
             _logger.LogInformation("SAS token de upload gerado para blob {BlobName}, expira em {ExpiresAt}",
                 blobName, expiresAt);
 
-            return (sasUri.ToString(), expiresAt);
+            return Task.FromResult((sasUri.ToString(), expiresAt));
         }
         catch (RequestFailedException ex)
         {
@@ -52,7 +52,7 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
         }
     }
 
-    public async Task<(string DownloadUrl, DateTime ExpiresAt)> GenerateDownloadUrlAsync(
+    public Task<(string DownloadUrl, DateTime ExpiresAt)> GenerateDownloadUrlAsync(
         string blobName,
         CancellationToken cancellationToken = default)
     {
@@ -82,7 +82,7 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
             _logger.LogInformation("SAS token de download gerado para blob {BlobName}, expira em {ExpiresAt}",
                 blobName, expiresAt);
 
-            return (sasUri.ToString(), expiresAt);
+            return Task.FromResult((sasUri.ToString(), expiresAt));
         }
         catch (RequestFailedException ex)
         {
@@ -96,7 +96,8 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
         try
         {
             var blobClient = _containerClient.GetBlobClient(blobName);
-            return await blobClient.ExistsAsync(cancellationToken);
+            var response = await blobClient.ExistsAsync(cancellationToken);
+            return response.Value;
         }
         catch (RequestFailedException ex)
         {

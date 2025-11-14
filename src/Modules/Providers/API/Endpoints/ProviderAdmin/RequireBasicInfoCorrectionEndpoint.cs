@@ -115,8 +115,8 @@ public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
             return Results.BadRequest("Request body is required");
 
         // Extrai a identidade do usuário autenticado do contexto HTTP
-        var requestedBy = httpContext.User.Identity?.Name 
-            ?? httpContext.User.FindFirst("sub")?.Value 
+        var requestedBy = httpContext.User.Identity?.Name
+            ?? httpContext.User.FindFirst("sub")?.Value
             ?? httpContext.User.FindFirst("email")?.Value
             ?? "system";
 

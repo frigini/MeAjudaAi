@@ -12,7 +12,7 @@ public class DocumentsDbContextFactory : IDesignTimeDbContextFactory<DocumentsDb
     public DocumentsDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<DocumentsDbContext>();
-        
+
         // Connection string padrão para migrations
         // Em produção, isso virá da configuração
         optionsBuilder.UseNpgsql(

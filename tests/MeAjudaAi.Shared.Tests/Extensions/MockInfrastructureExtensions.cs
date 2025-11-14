@@ -1,8 +1,8 @@
+using System.Reflection;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 
 namespace MeAjudaAi.Shared.Tests.Extensions;
 
@@ -196,7 +196,8 @@ public static class TestTypeDetector
 {
     public static ETestType DetectTestType()
     {
-        var testAssembly = Assembly.GetEntryAssembly()?.GetName().Name;
+        // Assembly.GetEntryAssembly() pode retornar null no xUnit, usar fallback
+        var testAssembly = (Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly()).GetName().Name;
 
         return testAssembly switch
         {

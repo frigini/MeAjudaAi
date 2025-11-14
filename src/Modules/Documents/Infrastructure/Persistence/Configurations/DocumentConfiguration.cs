@@ -9,7 +9,8 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
 {
     public void Configure(EntityTypeBuilder<Document> builder)
     {
-        builder.ToTable("documents");
+        // Explicit schema to ensure correct table location even if default schema changes
+        builder.ToTable("documents", "documents");
 
         builder.HasKey(d => d.Id);
 
@@ -58,6 +59,14 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.Property(d => d.OcrData)
             .HasColumnName("ocr_data")
             .HasColumnType("jsonb");
+
+        // Propriedades herdadas de BaseEntity
+        builder.Property("CreatedAt")
+            .HasColumnName("created_at")
+            .IsRequired();
+
+        builder.Property("UpdatedAt")
+            .HasColumnName("updated_at");
 
         // Índices
         builder.HasIndex(d => d.ProviderId)

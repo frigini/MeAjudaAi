@@ -67,6 +67,20 @@ public class DocumentTests
     }
 
     [Fact]
+    public void MarkAsPendingVerification_WhenNotUploaded_ShouldNotChangeStatus()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsVerified("{\"verified\": true}"); // Change to Verified status
+        
+        // Act
+        document.MarkAsPendingVerification();
+        
+        // Assert
+        document.Status.Should().Be(EDocumentStatus.Verified); // Should remain Verified
+    }
+
+    [Fact]
     public void MarkAsVerified_WithOcrData_ShouldUpdateStatusAndData()
     {
         // Arrange
@@ -100,6 +114,23 @@ public class DocumentTests
         domainEvent.AggregateId.Should().Be(document.Id);
         domainEvent.ProviderId.Should().Be(document.ProviderId);
         domainEvent.DocumentType.Should().Be(document.DocumentType);
+        domainEvent.HasOcrData.Should().BeTrue();
+    }
+
+    [Fact]
+    public void MarkAsVerified_WhenAlreadyVerified_ShouldBeIdempotent()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsVerified("{\"first\": true}");
+        document.ClearDomainEvents();
+        
+        // Act
+        document.MarkAsVerified("{\"second\": true}");
+        
+        // Assert
+        document.DomainEvents.Should().BeEmpty(); // No new events
+        document.OcrData.Should().Be("{\"first\": true}"); // Data unchanged
     }
 
     [Fact]

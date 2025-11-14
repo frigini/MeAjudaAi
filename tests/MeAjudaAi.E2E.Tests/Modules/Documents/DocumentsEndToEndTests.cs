@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
@@ -33,11 +34,13 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var response = await PostJsonAsync("/api/v1/documents/upload", uploadRequest);
 
         // Assert
+        // TODO: Configure Azurite or mock blob storage in test setup to ensure deterministic behavior
+        // Currently allowing both success and storage-related failures for E2E environment compatibility
         if (response.StatusCode == HttpStatusCode.OK)
         {
             var content = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-            
+
             result.TryGetProperty("documentId", out var documentIdElement).Should().BeTrue();
             var documentId = Guid.Parse(documentIdElement.GetString()!);
 
@@ -46,7 +49,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             {
                 var dbContext = services.GetRequiredService<DocumentsDbContext>();
                 var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
-                
+
                 document.Should().NotBeNull();
                 document.ProviderId.Should().Be(providerId);
                 document.Status.Should().Be(EDocumentStatus.Uploaded);
@@ -56,6 +59,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         else
         {
             // Upload may fail in test environment due to missing blob storage
+            // TODO: Remove this fallback once blob storage mock/Azurite is configured
             response.StatusCode.Should().BeOneOf(
                 HttpStatusCode.ServiceUnavailable,
                 HttpStatusCode.InternalServerError);
@@ -73,7 +77,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
-            
+
             var document = Document.Create(
                 providerId,
                 EDocumentType.ProofOfResidence,
@@ -92,10 +96,10 @@ public class DocumentsEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        
+
         result.TryGetProperty("id", out var idElement).Should().BeTrue();
         Guid.Parse(idElement.GetString()!).Should().Be(documentId);
     }
@@ -110,7 +114,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
-            
+
             var doc1 = Document.Create(providerId, EDocumentType.IdentityDocument, "id.pdf", "url1");
             var doc2 = Document.Create(providerId, EDocumentType.ProofOfResidence, "proof.pdf", "url2");
             var doc3 = Document.Create(providerId, EDocumentType.CriminalRecord, "record.pdf", "url3");
@@ -126,10 +130,10 @@ public class DocumentsEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var documents = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        
+
         documents.ValueKind.Should().Be(JsonValueKind.Array);
         documents.GetArrayLength().Should().Be(3);
     }
@@ -144,7 +148,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
-            
+
             var document = Document.Create(
                 providerId,
                 EDocumentType.CriminalRecord,
@@ -170,7 +174,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
             var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
-            
+
             document.Should().NotBeNull();
             document!.Status.Should().Be(EDocumentStatus.Verified);
             document.OcrData.Should().NotBeNull();
@@ -188,7 +192,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
-            
+
             var doc1 = Document.Create(provider1, EDocumentType.IdentityDocument, "p1-id.pdf", "url1");
             var doc2 = Document.Create(provider1, EDocumentType.ProofOfResidence, "p1-proof.pdf", "url2");
             var doc3 = Document.Create(provider2, EDocumentType.CriminalRecord, "p2-record.pdf", "url3");
@@ -201,11 +205,11 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
-            
+
             var provider1Docs = await dbContext.Documents
                 .Where(d => d.ProviderId == provider1)
                 .ToListAsync();
-            
+
             var provider2Docs = await dbContext.Documents
                 .Where(d => d.ProviderId == provider2)
                 .ToListAsync();

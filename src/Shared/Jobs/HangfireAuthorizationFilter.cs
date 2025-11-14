@@ -1,29 +1,36 @@
 using Hangfire.Dashboard;
+using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Shared.Jobs;
 
 /// <summary>
 /// Filtro de autorização para o Hangfire Dashboard.
-/// 
-/// IMPORTANTE: Em produção, implemente autenticação adequada.
-/// Esta implementação permite acesso apenas em desenvolvimento.
+/// Em produção, apenas administradores do sistema podem acessar.
 /// </summary>
 public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
 {
     public bool Authorize(DashboardContext context)
     {
         var httpContext = context.GetHttpContext();
+
+        // Verificar ambiente usando ambas as variáveis de ambiente
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
+                         Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
+                         "Production";
         
-        // Em desenvolvimento, permite acesso livre
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+        // Em desenvolvimento ou testes, permite acesso livre
         if (environment == "Development" || environment == "Testing")
         {
             return true;
         }
 
-        // Em produção, requer autenticação
-        // TODO: Implementar verificação de claims/roles apropriadas
-        // Exemplo: return httpContext.User.IsInRole("Admin");
-        return httpContext.User.Identity?.IsAuthenticated ?? false;
+        // Em produção, requer autenticação E role de administrador do sistema
+        if (httpContext?.User?.Identity?.IsAuthenticated != true)
+        {
+            return false;
+        }
+
+        // Apenas administradores do sistema podem acessar o dashboard
+        return httpContext.User.IsSystemAdmin();
     }
 }

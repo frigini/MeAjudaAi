@@ -46,7 +46,7 @@ public class UploadDocumentEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         if (request is null)
-            return Results.BadRequest("Request body is required");
+            return BaseEndpoint.BadRequest("Request body is required");
 
         var command = new UploadDocumentCommand(
             request.ProviderId,

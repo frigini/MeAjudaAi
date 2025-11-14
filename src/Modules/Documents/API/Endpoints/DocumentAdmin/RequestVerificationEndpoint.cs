@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -41,7 +42,16 @@ public class RequestVerificationEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         var command = new RequestVerificationCommand(documentId);
-        await commandDispatcher.SendAsync(command, cancellationToken);
+        var result = await commandDispatcher.SendAsync<RequestVerificationCommand, Result>(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return result.Error.StatusCode switch
+            {
+                404 => Results.NotFound(new { error = result.Error.Message }),
+                _ => Results.BadRequest(new { error = result.Error.Message })
+            };
+        }
 
         return Results.Accepted();
     }

@@ -180,20 +180,20 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         // Track which fields are being updated
         var updatedFields = new List<string>();
-        
+
         var newName = name.Trim();
         if (Name != newName)
             updatedFields.Add("Name");
-            
+
         if (!BusinessProfile.ContactInfo.Email.Equals(businessProfile.ContactInfo.Email, StringComparison.OrdinalIgnoreCase))
             updatedFields.Add("Email");
-            
+
         if (BusinessProfile.LegalName != businessProfile.LegalName)
             updatedFields.Add("LegalName");
-            
+
         if (BusinessProfile.FantasyName != businessProfile.FantasyName)
             updatedFields.Add("FantasyName");
-            
+
         if (BusinessProfile.Description != businessProfile.Description)
             updatedFields.Add("Description");
 
@@ -366,7 +366,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
 
         var previousStatus = VerificationStatus;
         VerificationStatus = status;
-        
+
         if (!skipMarkAsUpdated)
             MarkAsUpdated();
 
@@ -450,7 +450,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
             throw new ProviderDomainException("Correction reason is required");
 
         UpdateStatus(EProviderStatus.PendingBasicInfo, updatedBy);
-        
+
         AddDomainEvent(new ProviderBasicInfoCorrectionRequiredDomainEvent(
             Id.Value,
             1,

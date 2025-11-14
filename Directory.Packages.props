@@ -85,7 +85,7 @@
     <PackageVersion Include="MediatR" Version="13.0.0" />
     
     <!-- Azure -->
-    <PackageVersion Include="Azure.AI.FormRecognizer" Version="4.1.0" />
+    <PackageVersion Include="Azure.AI.DocumentIntelligence" Version="1.0.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.24.0" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
     

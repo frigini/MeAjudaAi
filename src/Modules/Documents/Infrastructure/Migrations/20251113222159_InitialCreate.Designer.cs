@@ -3,17 +3,20 @@ using System;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
+namespace MeAjudaAi.Modules.Documents.Infrastructure.Migrations
 {
     [DbContext(typeof(DocumentsDbContext))]
-    partial class DocumentsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251113222159_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,14 +26,15 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("MeAjudaAi.Modules.Documents.Domain.Aggregates.Document", b =>
+            modelBuilder.Entity("MeAjudaAi.Modules.Documents.Domain.Entities.Document", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<int>("DocumentType")
                         .HasColumnType("integer")
@@ -66,7 +70,8 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
                         .HasColumnName("status");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("timestamp with time zone")

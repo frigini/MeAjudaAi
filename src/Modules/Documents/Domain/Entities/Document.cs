@@ -14,42 +14,42 @@ public sealed class Document : AggregateRoot<DocumentId>
     /// ID do provedor que enviou o documento
     /// </summary>
     public Guid ProviderId { get; private set; }
-    
+
     /// <summary>
     /// Tipo do documento
     /// </summary>
     public EDocumentType DocumentType { get; private set; }
-    
+
     /// <summary>
     /// URL do arquivo no blob storage
     /// </summary>
     public string FileUrl { get; private set; } = string.Empty;
-    
+
     /// <summary>
     /// Nome original do arquivo
     /// </summary>
     public string FileName { get; private set; } = string.Empty;
-    
+
     /// <summary>
     /// Status atual do documento
     /// </summary>
     public EDocumentStatus Status { get; private set; }
-    
+
     /// <summary>
     /// Data de upload do documento
     /// </summary>
     public DateTime UploadedAt { get; private set; }
-    
+
     /// <summary>
     /// Data da última verificação (se houver)
     /// </summary>
     public DateTime? VerifiedAt { get; private set; }
-    
+
     /// <summary>
     /// Motivo de rejeição (se Status == Rejected)
     /// </summary>
     public string? RejectionReason { get; private set; }
-    
+
     /// <summary>
     /// Dados extraídos por OCR (JSON serializado)
     /// </summary>
@@ -118,7 +118,7 @@ public sealed class Document : AggregateRoot<DocumentId>
             1,
             ProviderId,
             DocumentType,
-            ocrData));
+            !string.IsNullOrEmpty(ocrData)));
     }
 
     public void MarkAsRejected(string reason)

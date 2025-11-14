@@ -17,7 +17,7 @@ public class GetDocumentStatusEndpoint : BaseEndpoint, IEndpoint
     /// Configura o mapeamento do endpoint de consulta de status.
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/{documentId:guid}", GetDocumentStatusAsync)
+        => app.MapGet("/{documentId:guid}/status", GetDocumentStatusAsync)
             .WithName("GetDocumentStatus")
             .WithSummary("Consultar status de documento")
             .WithDescription("""

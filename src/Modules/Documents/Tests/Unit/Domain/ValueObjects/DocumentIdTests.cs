@@ -129,7 +129,7 @@ public class DocumentIdTests
         var documentId = new DocumentId(guid);
 
         // Act
-        var result = documentId.Value.ToString();
+        var result = documentId.ToString();
 
         // Assert
         result.Should().Be(guid.ToString());

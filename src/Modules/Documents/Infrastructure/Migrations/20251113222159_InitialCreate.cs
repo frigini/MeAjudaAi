@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
+namespace MeAjudaAi.Modules.Documents.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -29,8 +29,8 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
                     verified_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     rejection_reason = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
                     ocr_data = table.Column<string>(type: "jsonb", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {

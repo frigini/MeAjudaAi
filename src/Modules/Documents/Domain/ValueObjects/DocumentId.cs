@@ -30,4 +30,6 @@ public class DocumentId : ValueObject
         return documentId.Value;
     }
     public static implicit operator DocumentId(Guid guid) => new(guid);
+
+    public override string ToString() => Value.ToString();
 }

@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,7 +15,7 @@ public static class Extensions
     {
         // Command Handlers - registro manual
         services.AddScoped<ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>, UploadDocumentCommandHandler>();
-        services.AddScoped<ICommandHandler<RequestVerificationCommand>, RequestVerificationCommandHandler>();
+        services.AddScoped<ICommandHandler<RequestVerificationCommand, Result>, RequestVerificationCommandHandler>();
 
         // Query Handlers - registro manual
         services.AddScoped<IQueryHandler<GetDocumentStatusQuery, DocumentDto?>, GetDocumentStatusQueryHandler>();

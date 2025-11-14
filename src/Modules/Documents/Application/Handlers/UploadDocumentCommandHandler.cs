@@ -26,21 +26,30 @@ public class UploadDocumentCommandHandler(
     {
         _logger.LogInformation("Gerando URL de upload para documento do provedor {ProviderId}", command.ProviderId);
 
-        if (!Enum.TryParse<EDocumentType>(command.DocumentType, true, out var documentType))
+        // Validação de tipo de documento com enum definido
+        if (!Enum.TryParse<EDocumentType>(command.DocumentType, true, out var documentType) ||
+            !Enum.IsDefined(typeof(EDocumentType), documentType))
         {
             throw new ArgumentException($"Tipo de documento inválido: {command.DocumentType}");
         }
 
-        // Validações básicas
+        // Validação de tamanho de arquivo
         if (command.FileSizeBytes > 10 * 1024 * 1024) // 10MB
         {
             throw new ArgumentException("Arquivo muito grande. Máximo: 10MB");
         }
 
-        var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/jpg", "application/pdf" };
-        if (!allowedContentTypes.Contains(command.ContentType.ToLowerInvariant()))
+        // Validação null-safe e tolerante a parâmetros de content-type
+        if (string.IsNullOrWhiteSpace(command.ContentType))
         {
-            throw new ArgumentException($"Tipo de arquivo não permitido: {command.ContentType}");
+            throw new ArgumentException("Content-Type é obrigatório");
+        }
+
+        var mediaType = command.ContentType.Split(';')[0].Trim().ToLowerInvariant();
+        var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/jpg", "application/pdf" };
+        if (!allowedContentTypes.Contains(mediaType))
+        {
+            throw new ArgumentException($"Tipo de arquivo não permitido: {mediaType}");
         }
 
         // Gera nome único do blob
@@ -63,7 +72,7 @@ public class UploadDocumentCommandHandler(
         await _documentRepository.AddAsync(document, cancellationToken);
         await _documentRepository.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Documento {DocumentId} criado para provedor {ProviderId}", 
+        _logger.LogInformation("Documento {DocumentId} criado para provedor {ProviderId}",
             document.Id, command.ProviderId);
 
         // Enfileira job de verificação do documento

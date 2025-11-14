@@ -74,7 +74,7 @@ public class DocumentsApiTests : ApiTestBase
     {
         // Arrange
         AuthConfig.ConfigureUser(Guid.NewGuid().ToString(), "provider", "provider@test.com", "provider");
-        
+
         var providerId = Guid.NewGuid();
         var uploadRequest = new UploadDocumentRequest
         {
@@ -86,7 +86,7 @@ public class DocumentsApiTests : ApiTestBase
         };
 
         var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest);
-        
+
         if (uploadResponse.StatusCode != HttpStatusCode.OK)
         {
             // Skip test if upload failed (acceptable in test environment)

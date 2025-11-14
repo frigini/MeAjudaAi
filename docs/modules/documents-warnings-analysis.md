@@ -151,7 +151,7 @@ return _sentMessages.AsReadOnly(); // ReadOnlyCollection<(object, string, EMessa
 **Impacto**: ⚠️ Infraestrutura, NÃO código do módulo Documents
 
 **Análise**:
-```
+```text
 Npgsql.PostgresException : 28P01: password authentication failed for user "postgres"
    at Hangfire.PostgreSql.PostgreSqlStorage.CreateAndOpenConnection()
 ```

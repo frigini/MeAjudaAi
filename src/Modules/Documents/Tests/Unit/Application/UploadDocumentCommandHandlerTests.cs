@@ -25,7 +25,7 @@ public class UploadDocumentCommandHandlerTests
         _mockJobService = new Mock<IBackgroundJobService>();
         _mockLogger = new Mock<ILogger<UploadDocumentCommandHandler>>();
         _handler = new UploadDocumentCommandHandler(
-            _mockRepository.Object, 
+            _mockRepository.Object,
             _mockBlobStorage.Object,
             _mockJobService.Object,
             _mockLogger.Object);
@@ -68,7 +68,7 @@ public class UploadDocumentCommandHandlerTests
         result.ExpiresAt.Should().BeCloseTo(expiresAt, TimeSpan.FromSeconds(1));
 
         _mockRepository.Verify(
-            x => x.AddAsync(It.Is<Document>(d => 
+            x => x.AddAsync(It.Is<Document>(d =>
                 d.ProviderId == providerId &&
                 d.DocumentType == EDocumentType.IdentityDocument &&
                 d.FileName == "test.pdf" &&
@@ -95,6 +95,10 @@ public class UploadDocumentCommandHandlerTests
         _mockBlobStorage
             .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(("upload", DateTime.UtcNow.AddHours(1)));
+
+        _mockRepository
+            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         _mockRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
@@ -123,6 +127,10 @@ public class UploadDocumentCommandHandlerTests
             .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), "application/pdf", It.IsAny<CancellationToken>()))
             .ReturnsAsync(("upload-url", DateTime.UtcNow.AddHours(1)));
 
+        _mockRepository
+            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
         _mockRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         // Act
@@ -135,5 +143,60 @@ public class UploadDocumentCommandHandlerTests
                 "application/pdf",
                 It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithOversizedFile_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var command = new UploadDocumentCommand(
+            Guid.NewGuid(),
+            "IdentityDocument",
+            "large.pdf",
+            "application/pdf",
+            11 * 1024 * 1024); // 11MB, excede o limite de 10MB
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.Message.Should().Contain("10MB");
+    }
+
+    [Theory]
+    [InlineData("text/plain")]
+    [InlineData("application/exe")]
+    [InlineData("text/html")]
+    public async Task HandleAsync_WithInvalidContentType_ShouldThrowArgumentException(string contentType)
+    {
+        // Arrange
+        var command = new UploadDocumentCommand(
+            Guid.NewGuid(),
+            "IdentityDocument",
+            "test.pdf",
+            contentType,
+            102400);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.Message.Should().Contain("não permitido");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithInvalidDocumentType_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var command = new UploadDocumentCommand(
+            Guid.NewGuid(),
+            "InvalidType",
+            "test.pdf",
+            "application/pdf",
+            102400);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => _handler.HandleAsync(command, CancellationToken.None));
     }
 }

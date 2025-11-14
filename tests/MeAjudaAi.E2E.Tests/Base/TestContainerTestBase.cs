@@ -1,4 +1,5 @@
 using Bogus;
+using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
@@ -63,7 +64,12 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["ConnectionStrings:DefaultConnection"] = _postgresContainer.GetConnectionString(),
+                        ["ConnectionStrings:meajudaai-db"] = _postgresContainer.GetConnectionString(),
+                        ["ConnectionStrings:UsersDb"] = _postgresContainer.GetConnectionString(),
+                        ["ConnectionStrings:ProvidersDb"] = _postgresContainer.GetConnectionString(),
+                        ["ConnectionStrings:DocumentsDb"] = _postgresContainer.GetConnectionString(),
                         ["ConnectionStrings:Redis"] = _redisContainer.GetConnectionString(),
+                        ["Hangfire:Enabled"] = "false", // Desabilitar Hangfire nos testes E2E
                         ["Logging:LogLevel:Default"] = "Warning",
                         ["Logging:LogLevel:Microsoft"] = "Error",
                         ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Error",
@@ -73,14 +79,14 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         ["Cache:ConnectionString"] = _redisContainer.GetConnectionString(),
                         // Desabilitar completamente Rate Limiting nos testes E2E
                         ["AdvancedRateLimit:General:Enabled"] = "false",
-                        // Valores de fallback muito altos caso não consiga desabilitar
-                        ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "999999",
-                        ["AdvancedRateLimit:Anonymous:RequestsPerHour"] = "999999",
-                        ["AdvancedRateLimit:Anonymous:RequestsPerDay"] = "999999",
-                        ["AdvancedRateLimit:Authenticated:RequestsPerMinute"] = "999999",
-                        ["AdvancedRateLimit:Authenticated:RequestsPerHour"] = "999999",
-                        ["AdvancedRateLimit:Authenticated:RequestsPerDay"] = "999999",
-                        ["AdvancedRateLimit:General:WindowInSeconds"] = "3600",
+                        // Valores válidos caso não consiga desabilitar completamente
+                        ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "10000",
+                        ["AdvancedRateLimit:Anonymous:RequestsPerHour"] = "100000",
+                        ["AdvancedRateLimit:Anonymous:RequestsPerDay"] = "1000000",
+                        ["AdvancedRateLimit:Authenticated:RequestsPerMinute"] = "10000",
+                        ["AdvancedRateLimit:Authenticated:RequestsPerHour"] = "100000",
+                        ["AdvancedRateLimit:Authenticated:RequestsPerDay"] = "1000000",
+                        ["AdvancedRateLimit:General:WindowInSeconds"] = "60",
                         ["AdvancedRateLimit:General:EnableIpWhitelist"] = "true",
                         // Configuração legada também para garantir
                         ["RateLimit:DefaultRequestsPerMinute"] = "999999",
@@ -123,6 +129,20 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         services.Remove(providersDescriptor);
 
                     services.AddDbContext<ProvidersDbContext>(options =>
+                    {
+                        options.UseNpgsql(_postgresContainer.GetConnectionString())
+                               .UseSnakeCaseNamingConvention()
+                               .EnableSensitiveDataLogging(false)
+                               .ConfigureWarnings(warnings =>
+                                   warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                    });
+
+                    // Reconfigurar DocumentsDbContext com TestContainer connection string
+                    var documentsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<DocumentsDbContext>));
+                    if (documentsDescriptor != null)
+                        services.Remove(documentsDescriptor);
+
+                    services.AddDbContext<DocumentsDbContext>(options =>
                     {
                         options.UseNpgsql(_postgresContainer.GetConnectionString())
                                .UseSnakeCaseNamingConvention()
@@ -237,6 +257,10 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         // Para ProvidersDbContext, só aplicar migrações (o banco já existe, só precisamos do schema providers)
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
         await providersContext.Database.MigrateAsync();
+
+        // Para DocumentsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema documents)
+        var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
+        await documentsContext.Database.MigrateAsync();
     }
 
     // Helper methods usando serialização compartilhada

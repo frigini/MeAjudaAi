@@ -20,6 +20,10 @@ public class DocumentVerificationJob(
     private readonly IDocumentIntelligenceService _documentIntelligenceService = documentIntelligenceService ?? throw new ArgumentNullException(nameof(documentIntelligenceService));
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
     private readonly ILogger<DocumentVerificationJob> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    
+    // TODO: Tornar configurável via appsettings.json quando necessário
+    // Para MVP, mantendo valor fixo documentado
+    private const float MinimumConfidence = 0.7f;
 
     public async Task ProcessDocumentAsync(Guid documentId, CancellationToken cancellationToken = default)
     {
@@ -33,7 +37,7 @@ public class DocumentVerificationJob(
         }
 
         // Só processa documentos que estão Uploaded ou PendingVerification
-        if (document.Status != EDocumentStatus.Uploaded && 
+        if (document.Status != EDocumentStatus.Uploaded &&
             document.Status != EDocumentStatus.PendingVerification)
         {
             _logger.LogInformation(
@@ -45,9 +49,11 @@ public class DocumentVerificationJob(
 
         try
         {
-            document.MarkAsPendingVerification();
-            await _documentRepository.UpdateAsync(document, cancellationToken);
-            await _documentRepository.SaveChangesAsync(cancellationToken);
+            // Marca como PendingVerification apenas se ainda não estiver
+            if (document.Status == EDocumentStatus.Uploaded)
+            {
+                document.MarkAsPendingVerification();
+            }
 
             // Verifica se arquivo existe no blob storage
             var exists = await _blobStorageService.ExistsAsync(document.FileUrl, cancellationToken);
@@ -55,6 +61,8 @@ public class DocumentVerificationJob(
             {
                 _logger.LogWarning("Arquivo não encontrado no blob storage: {BlobName}", document.FileUrl);
                 document.MarkAsFailed("Arquivo não encontrado no blob storage");
+                
+                // Salva status final (Failed) em uma única operação
                 await _documentRepository.UpdateAsync(document, cancellationToken);
                 await _documentRepository.SaveChangesAsync(cancellationToken);
                 return;
@@ -72,7 +80,7 @@ public class DocumentVerificationJob(
                 document.DocumentType.ToString(),
                 cancellationToken);
 
-            if (ocrResult.Success && ocrResult.Confidence >= 0.7f)
+            if (ocrResult.Success && ocrResult.Confidence >= MinimumConfidence)
             {
                 _logger.LogInformation(
                     "OCR bem-sucedido para documento {DocumentId} (Confiança: {Confidence:P0})",
@@ -103,11 +111,15 @@ public class DocumentVerificationJob(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao processar documento {DocumentId}", documentId);
-            
+
+            // NOTE: MarkAsFailed é usado tanto para erros transitórios (ex: timeout OCR)
+            // quanto permanentes (ex: formato inválido). O sistema de retry do Hangfire
+            // tentará reprocessar automaticamente. Para distinção mais precisa,
+            // considere adicionar EDocumentStatus.TransientFailure no futuro.
             document.MarkAsFailed($"Erro durante processamento: {ex.Message}");
             await _documentRepository.UpdateAsync(document, cancellationToken);
             await _documentRepository.SaveChangesAsync(cancellationToken);
-            
+
             throw; // Re-throw para permitir retry pelo sistema de jobs
         }
     }

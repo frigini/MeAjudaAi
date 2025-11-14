@@ -600,7 +600,7 @@ public class ProviderTests
     {
         // Arrange
         var provider = CreateValidProvider();
-        
+
         // Set the provider to the "from" status
         // This is a bit hacky but necessary for testing
         if (from == EProviderStatus.PendingDocumentVerification)
@@ -648,7 +648,7 @@ public class ProviderTests
                 var act = () => provider.UpdateStatus(to);
                 act.Should().NotThrow();
             }
-            
+
             provider.Status.Should().Be(to);
         }
         else
@@ -685,7 +685,7 @@ public class ProviderTests
     {
         // Arrange
         var provider = CreateValidProvider();
-        
+
         // Set provider to the specified status
         if (currentStatus == EProviderStatus.PendingDocumentVerification)
         {
@@ -736,7 +736,7 @@ public class ProviderTests
     {
         // Arrange
         var provider = CreateValidProvider();
-        
+
         // Set provider to the specified status
         if (currentStatus == EProviderStatus.Active)
         {

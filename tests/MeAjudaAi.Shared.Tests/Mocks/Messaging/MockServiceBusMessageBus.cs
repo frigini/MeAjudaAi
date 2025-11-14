@@ -10,7 +10,7 @@ public class MockServiceBusMessageBus : IMessageBus
 {
     private readonly Mock<IMessageBus> _mockMessageBus;
     private readonly ILogger<MockServiceBusMessageBus> _logger;
-    private readonly List<(object message, string destination, EMessageType type)> _publishedMessages = [];
+    private readonly List<(object message, string? destination, EMessageType type)> _publishedMessages = [];
 
     public MockServiceBusMessageBus(ILogger<MockServiceBusMessageBus> logger)
     {

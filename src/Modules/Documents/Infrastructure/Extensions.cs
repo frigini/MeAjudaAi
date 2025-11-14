@@ -1,3 +1,4 @@
+using EFCore.NamingConventions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
@@ -6,7 +7,6 @@ using MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Jobs;
-using EFCore.NamingConventions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,11 +58,42 @@ public static class Extensions
 
     private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // Azure Storage
-        services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
+        // Verificar se está em ambiente de teste
+        var isTestEnvironment = Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true" 
+                               || Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing";
 
-        // Azure Document Intelligence (OCR)
-        services.AddScoped<IDocumentIntelligenceService, AzureDocumentIntelligenceService>();
+        if (isTestEnvironment)
+        {
+            // Usar mocks em ambiente de teste
+            services.AddScoped<IBlobStorageService, MockBlobStorageService>();
+            services.AddScoped<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
+        }
+        else
+        {
+            // Registrar Azure clients para produção
+            var storageConnectionString = configuration["Azure:Storage:ConnectionString"];
+            if (!string.IsNullOrEmpty(storageConnectionString))
+            {
+                services.AddSingleton(sp => 
+                    new Azure.Storage.Blobs.BlobServiceClient(storageConnectionString));
+            }
+
+            var documentIntelligenceEndpoint = configuration["Azure:DocumentIntelligence:Endpoint"];
+            var documentIntelligenceApiKey = configuration["Azure:DocumentIntelligence:ApiKey"];
+            if (!string.IsNullOrEmpty(documentIntelligenceEndpoint) && !string.IsNullOrEmpty(documentIntelligenceApiKey))
+            {
+                services.AddSingleton(sp => 
+                    new Azure.AI.DocumentIntelligence.DocumentIntelligenceClient(
+                        new Uri(documentIntelligenceEndpoint),
+                        new Azure.AzureKeyCredential(documentIntelligenceApiKey)));
+            }
+
+            // Azure Storage
+            services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
+
+            // Azure Document Intelligence (OCR)
+            services.AddScoped<IDocumentIntelligenceService, AzureDocumentIntelligenceService>();
+        }
 
         return services;
     }

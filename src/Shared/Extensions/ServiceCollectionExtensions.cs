@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.PostgreSql;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Common.Constants;
@@ -10,8 +12,6 @@ using MeAjudaAi.Shared.Monitoring;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Time;
-using Hangfire;
-using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -83,7 +83,7 @@ public static class ServiceCollectionExtensions
         services.AddCommands();
         services.AddQueries();
         services.AddEvents();
-        
+
         // Background Jobs com Hangfire
         services.AddHangfireJobs(configuration);
 
@@ -125,7 +125,7 @@ public static class ServiceCollectionExtensions
             services.AddCommands();
             services.AddQueries();
             services.AddEvents();
-            
+
             // Background Jobs com Hangfire
             services.AddHangfireJobs(configuration);
         }
@@ -136,18 +136,23 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IApplicationBuilder UseSharedServices(this IApplicationBuilder app)
+    public static IApplicationBuilder UseSharedServices(this IApplicationBuilder app, IConfiguration configuration)
     {
         app.UseErrorHandling();
         app.UseAdvancedMonitoring(); // Adiciona middleware de métricas
-        
-        // Hangfire Dashboard (disponível em /hangfire)
-        app.UseHangfireDashboard("/hangfire", new DashboardOptions
+
+        // Hangfire Dashboard (disponível em /hangfire) - apenas se explicitamente habilitado
+        var dashboardEnabled = configuration.GetValue<bool>("Hangfire:DashboardEnabled", false);
+        if (dashboardEnabled)
         {
-            Authorization = new[] { new HangfireAuthorizationFilter() },
-            StatsPollingInterval = 5000, // 5 segundos
-            DisplayStorageConnectionString = false
-        });
+            var dashboardPath = configuration.GetValue<string>("Hangfire:DashboardPath", "/hangfire");
+            app.UseHangfireDashboard(dashboardPath, new DashboardOptions
+            {
+                Authorization = new[] { new HangfireAuthorizationFilter() },
+                StatsPollingInterval = 5000, // 5 segundos
+                DisplayStorageConnectionString = false
+            });
+        }
 
         return app;
     }
@@ -166,15 +171,33 @@ public static class ServiceCollectionExtensions
                                  integrationTests == "true" ||
                                  integrationTests == "1";
 
-        // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
-        if (app is WebApplication webApp && !isTestingEnvironment)
+        // Configurar Hangfire Dashboard se habilitado
+        if (app is WebApplication webApp)
         {
             var configuration = webApp.Services.GetRequiredService<IConfiguration>();
+            var dashboardEnabled = configuration.GetValue<bool>("Hangfire:DashboardEnabled", false);
+            
+            if (dashboardEnabled)
+            {
+                var dashboardPath = configuration.GetValue<string>("Hangfire:DashboardPath", "/hangfire");
+                app.UseHangfireDashboard(dashboardPath, new DashboardOptions
+                {
+                    Authorization = new[] { new HangfireAuthorizationFilter() },
+                    StatsPollingInterval = 5000, // 5 segundos
+                    DisplayStorageConnectionString = false
+                });
+            }
+        }
+
+        // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
+        if (app is WebApplication webApp2 && !isTestingEnvironment)
+        {
+            var configuration = webApp2.Services.GetRequiredService<IConfiguration>();
             var isMessagingEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
 
             if (isMessagingEnabled)
             {
-                await webApp.EnsureMessagingInfrastructureAsync();
+                await webApp2.EnsureMessagingInfrastructureAsync();
             }
 
             // Cache warmup em background para não bloquear startup
@@ -185,7 +208,7 @@ public static class ServiceCollectionExtensions
                 {
                     try
                     {
-                        using var scope = webApp.Services.CreateScope();
+                        using var scope = webApp2.Services.CreateScope();
                         var warmupService = scope.ServiceProvider.GetService<ICacheWarmupService>();
                         if (warmupService != null)
                         {
@@ -193,13 +216,13 @@ public static class ServiceCollectionExtensions
                         }
                         else
                         {
-                            var logger = webApp.Services.GetService<ILogger<ICacheWarmupService>>();
+                            var logger = webApp2.Services.GetService<ILogger<ICacheWarmupService>>();
                             logger?.LogDebug("ICacheWarmupService não registrado - esperado em ambientes de teste");
                         }
                     }
                     catch (Exception ex)
                     {
-                        var logger = webApp.Services.GetRequiredService<ILogger<ICacheWarmupService>>();
+                        var logger = webApp2.Services.GetRequiredService<ILogger<ICacheWarmupService>>();
                         logger.LogWarning(ex, "Falha ao aquecer o cache durante a inicialização - pode ser esperado em testes");
                     }
                 });
@@ -209,11 +232,38 @@ public static class ServiceCollectionExtensions
         return app;
     }
 
+    [Obsolete]
     private static IServiceCollection AddHangfireJobs(this IServiceCollection services, IConfiguration configuration)
     {
+        // Desabilitar Hangfire em ambientes de teste ou quando explicitamente configurado
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
+                         Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+        var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
+        
+        var isTestingEnvironment = environment == "Testing" ||
+                                 environment?.Equals("Testing", StringComparison.OrdinalIgnoreCase) == true ||
+                                 integrationTests == "true" ||
+                                 integrationTests == "1";
+        
+        var hangfireEnabled = configuration.GetValue<bool>("Hangfire:Enabled", true);
+        
+        // Usar mesma cadeia de resolução de connection string que AddPostgres para evitar falhas em ambientes válidos
         var connectionString = configuration.GetConnectionString("DefaultConnection")
+                              ?? configuration.GetConnectionString("meajudaai-db-local")
                               ?? configuration.GetConnectionString("meajudaai-db")
-                              ?? throw new InvalidOperationException("Connection string 'DefaultConnection' ou 'meajudaai-db' não encontrada");
+                              ?? configuration["Postgres:ConnectionString"];
+        
+        // Se não há connection string, desabilitar Hangfire automaticamente
+        if (!hangfireEnabled || isTestingEnvironment || string.IsNullOrEmpty(connectionString))
+        {
+            // Registrar implementação nula para IBackgroundJobService quando Hangfire está desabilitado
+            services.AddSingleton<IBackgroundJobService, NoOpBackgroundJobService>();
+            return services;
+        }
+
+        // Ler configurações do Hangfire do IConfiguration ao invés de hardcode
+        var workerCount = configuration.GetValue<int?>("Hangfire:WorkerCount") ?? Environment.ProcessorCount * 2;
+        var pollingIntervalSeconds = configuration.GetValue<int>("Hangfire:PollingIntervalSeconds", 15);
 
         // Configura Hangfire com PostgreSQL
         services.AddHangfire(config => config
@@ -223,7 +273,7 @@ public static class ServiceCollectionExtensions
             .UsePostgreSqlStorage(connectionString, new PostgreSqlStorageOptions
             {
                 SchemaName = "hangfire",
-                QueuePollInterval = TimeSpan.FromSeconds(15),
+                QueuePollInterval = TimeSpan.FromSeconds(pollingIntervalSeconds),
                 JobExpirationCheckInterval = TimeSpan.FromHours(1),
                 CountersAggregateInterval = TimeSpan.FromMinutes(5),
                 PrepareSchemaIfNecessary = true,
@@ -233,7 +283,7 @@ public static class ServiceCollectionExtensions
         // Adiciona servidor Hangfire para processar jobs
         services.AddHangfireServer(options =>
         {
-            options.WorkerCount = Environment.ProcessorCount * 2;
+            options.WorkerCount = workerCount;
             options.Queues = new[] { "default", "critical", "low" };
             options.ServerName = $"{Environment.MachineName}-{Guid.NewGuid().ToString()[..8]}";
         });

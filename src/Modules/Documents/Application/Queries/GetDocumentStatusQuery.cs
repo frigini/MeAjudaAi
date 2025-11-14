@@ -3,7 +3,8 @@ using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Documents.Application.Queries;
 
-public record GetDocumentStatusQuery(Guid DocumentId) : IQuery<DocumentDto?>
-{
-    public Guid CorrelationId { get; init; } = Guid.NewGuid();
-}
+/// <summary>
+/// Query para consultar o status de um documento específico.
+/// Utiliza CorrelationId gerado centralmente via UuidGenerator.
+/// </summary>
+public record GetDocumentStatusQuery(Guid DocumentId) : Query<DocumentDto?>;

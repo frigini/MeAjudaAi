@@ -25,7 +25,7 @@ internal class MockAuthenticationDomainService : IAuthenticationDomainService
         {
             var deterministicUserId = GenerateDeterministicGuid(usernameOrEmail);
             var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            
+
             var result = new AuthenticationResult(
                 UserId: deterministicUserId,
                 AccessToken: $"mock_token_{deterministicUserId}_{timestamp}",
@@ -52,7 +52,7 @@ internal class MockAuthenticationDomainService : IAuthenticationDomainService
             // Extrair o userId do token: "mock_token_{userId}_{timestamp}"
             var parts = token.Split('_');
             Guid userId;
-            
+
             if (parts.Length >= 3 && Guid.TryParse(parts[2], out userId))
             {
                 // Use o userId extraído do token
@@ -87,10 +87,10 @@ internal class MockAuthenticationDomainService : IAuthenticationDomainService
     {
         // Normalize the input to lowercase for consistency
         var normalizedInput = input.ToLowerInvariant();
-        
+
         // Generate MD5 hash of the normalized input
         var hash = MD5.HashData(Encoding.UTF8.GetBytes(normalizedInput));
-        
+
         // Use the first 16 bytes of the hash to create a GUID
         return new Guid(hash);
     }

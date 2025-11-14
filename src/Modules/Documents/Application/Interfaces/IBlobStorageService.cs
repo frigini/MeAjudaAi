@@ -30,10 +30,15 @@ public interface IBlobStorageService
     /// <summary>
     /// Verifica se um blob existe
     /// </summary>
+    /// <param name="blobName">Nome/caminho do blob</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>True se o blob existe, false caso contrário</returns>
     Task<bool> ExistsAsync(string blobName, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deleta um blob
     /// </summary>
+    /// <param name="blobName">Nome/caminho do blob</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
     Task DeleteAsync(string blobName, CancellationToken cancellationToken = default);
 }

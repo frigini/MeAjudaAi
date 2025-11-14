@@ -90,13 +90,35 @@ public class HangfireBackgroundJobService : IBackgroundJobService
     {
         try
         {
+            // Usar timezone cross-platform (IANA) com fallback para UTC
+            TimeZoneInfo timeZone;
+            try
+            {
+                // Tentar IANA ID primeiro (funciona em Linux/Windows no .NET 9+)
+                timeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo"); // UTC-3 (Brasília)
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                try
+                {
+                    // Fallback para Windows ID
+                    timeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+                }
+                catch (TimeZoneNotFoundException)
+                {
+                    // Fallback final para UTC
+                    _logger.LogWarning("Timezone America/Sao_Paulo não encontrado, usando UTC");
+                    timeZone = TimeZoneInfo.Utc;
+                }
+            }
+
             _recurringJobManager.AddOrUpdate(
                 jobId,
                 methodCall,
                 cronExpression,
                 new RecurringJobOptions
                 {
-                    TimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time") // UTC-3 (Brasília)
+                    TimeZone = timeZone
                 });
 
             _logger.LogInformation(

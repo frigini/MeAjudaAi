@@ -17,7 +17,7 @@ public class GetDocumentStatusQueryHandler(
     public async Task<DocumentDto?> HandleAsync(GetDocumentStatusQuery query, CancellationToken cancellationToken = default)
     {
         var document = await _documentRepository.GetByIdAsync(query.DocumentId, cancellationToken);
-        
+
         if (document == null)
         {
             _logger.LogWarning("Documento {DocumentId} não encontrado", query.DocumentId);

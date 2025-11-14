@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.AI.FormRecognizer" />
+    <PackageReference Include="Azure.AI.DocumentIntelligence" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="EFCore.NamingConventions" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

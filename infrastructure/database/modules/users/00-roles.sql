@@ -44,7 +44,7 @@ BEGIN
         SELECT 1 FROM pg_auth_members m 
         JOIN pg_roles r1 ON m.roleid = r1.oid 
         JOIN pg_roles r2 ON m.member = r2.oid 
-        WHERE r1.rolname = 'meajudaai_app_role' AND r2.rolname = 'users_role'
+        WHERE r1.rolname = 'users_role' AND r2.rolname = 'meajudaai_app_role'
     ) THEN
         GRANT users_role TO meajudaai_app_role;
     END IF;
@@ -58,7 +58,7 @@ BEGIN
         SELECT 1 FROM pg_auth_members m 
         JOIN pg_roles r1 ON m.roleid = r1.oid 
         JOIN pg_roles r2 ON m.member = r2.oid 
-        WHERE r1.rolname = 'meajudaai_app_owner' AND r2.rolname = 'users_owner'
+        WHERE r1.rolname = 'users_owner' AND r2.rolname = 'meajudaai_app_owner'
     ) THEN
         GRANT users_owner TO meajudaai_app_owner;
     END IF;
