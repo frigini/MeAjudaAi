@@ -59,7 +59,7 @@ public static class Extensions
     private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         // Verificar se está em ambiente de teste
-        var isTestEnvironment = Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true" 
+        var isTestEnvironment = Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true"
                                || Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing";
 
         if (isTestEnvironment)
@@ -74,7 +74,7 @@ public static class Extensions
             var storageConnectionString = configuration["Azure:Storage:ConnectionString"];
             if (!string.IsNullOrEmpty(storageConnectionString))
             {
-                services.AddSingleton(sp => 
+                services.AddSingleton(sp =>
                     new Azure.Storage.Blobs.BlobServiceClient(storageConnectionString));
             }
 
@@ -82,7 +82,7 @@ public static class Extensions
             var documentIntelligenceApiKey = configuration["Azure:DocumentIntelligence:ApiKey"];
             if (!string.IsNullOrEmpty(documentIntelligenceEndpoint) && !string.IsNullOrEmpty(documentIntelligenceApiKey))
             {
-                services.AddSingleton(sp => 
+                services.AddSingleton(sp =>
                     new Azure.AI.DocumentIntelligence.DocumentIntelligenceClient(
                         new Uri(documentIntelligenceEndpoint),
                         new Azure.AzureKeyCredential(documentIntelligenceApiKey)));

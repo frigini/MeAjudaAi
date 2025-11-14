@@ -9,7 +9,7 @@ public interface IBlobStorageService
     /// Gera uma URL com SAS token para upload direto ao blob storage
     /// </summary>
     /// <param name="blobName">Nome/caminho do blob</param>
-    /// <param name="contentType">Content-Type do arquivo</param>
+    /// <param name="contentType">Content-Type do arquivo (atualmente não utilizado nas permissões SAS, mas mantido para possível uso futuro em headers ou validação)</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Tupla com (URL de upload, data de expiração)</returns>
     Task<(string UploadUrl, DateTime ExpiresAt)> GenerateUploadUrlAsync(

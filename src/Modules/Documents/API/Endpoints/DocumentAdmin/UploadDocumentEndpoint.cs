@@ -29,7 +29,7 @@ public class UploadDocumentEndpoint : BaseEndpoint, IEndpoint
                 1. Valida informações do documento
                 2. Gera SAS token com 1 hora de validade
                 3. Cria registro de documento no banco com status Uploaded
-                4. Retorna URL de upload e URL de download
+                4. Retorna URL de upload (com blob name e data de expiração)
                 
                 **Tipos de documentos suportados:**
                 - IdentityDocument: RG, CNH, CPF

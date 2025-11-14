@@ -19,7 +19,11 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
                 id => id.Value,
                 value => new DocumentId(value))
             .HasColumnName("id")
-            .ValueGeneratedNever();
+            .ValueGeneratedNever()
+            .Metadata.SetValueComparer(new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<DocumentId>(
+                (l, r) => l != null && r != null && l.Value == r.Value,
+                v => v.Value.GetHashCode(),
+                v => new DocumentId(v.Value)));
 
         builder.Property(d => d.ProviderId)
             .HasColumnName("provider_id")
@@ -60,12 +64,12 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
             .HasColumnName("ocr_data")
             .HasColumnType("jsonb");
 
-        // Propriedades herdadas de BaseEntity
-        builder.Property("CreatedAt")
+        // Propriedades herdadas de BaseEntity - usando expressões type-safe
+        builder.Property<DateTime>(nameof(Document.CreatedAt))
             .HasColumnName("created_at")
             .IsRequired();
 
-        builder.Property("UpdatedAt")
+        builder.Property<DateTime?>(nameof(Document.UpdatedAt))
             .HasColumnName("updated_at");
 
         // Índices

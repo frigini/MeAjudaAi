@@ -251,6 +251,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         await usersContext.Database.EnsureDeletedAsync();
 
+        // Centralizar connection string para evitar duplicação
+        var connectionString = _postgresContainer.GetConnectionString();
+
         // Aplicar migrações no UsersDbContext (isso cria o banco e o schema users)
         await usersContext.Database.MigrateAsync();
 

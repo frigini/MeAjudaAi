@@ -9,6 +9,7 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
 /// <summary>
 /// Job para processar verificação de documentos individuais.
 /// Este job é enfileirado quando um documento é enviado.
+/// NOTA: Document.FileUrl é usado como blob name (chave) para operações de storage.
 /// </summary>
 public class DocumentVerificationJob(
     IDocumentRepository documentRepository,
@@ -20,7 +21,7 @@ public class DocumentVerificationJob(
     private readonly IDocumentIntelligenceService _documentIntelligenceService = documentIntelligenceService ?? throw new ArgumentNullException(nameof(documentIntelligenceService));
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
     private readonly ILogger<DocumentVerificationJob> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    
+
     // TODO: Tornar configurável via appsettings.json quando necessário
     // Para MVP, mantendo valor fixo documentado
     private const float MinimumConfidence = 0.7f;
@@ -36,9 +37,10 @@ public class DocumentVerificationJob(
             return;
         }
 
-        // Só processa documentos que estão Uploaded ou PendingVerification
+        // Só processa documentos que estão Uploaded, PendingVerification ou Failed (para retry)
         if (document.Status != EDocumentStatus.Uploaded &&
-            document.Status != EDocumentStatus.PendingVerification)
+            document.Status != EDocumentStatus.PendingVerification &&
+            document.Status != EDocumentStatus.Failed)
         {
             _logger.LogInformation(
                 "Documento {DocumentId} já foi processado (Status: {Status})",
@@ -61,7 +63,7 @@ public class DocumentVerificationJob(
             {
                 _logger.LogWarning("Arquivo não encontrado no blob storage: {BlobName}", document.FileUrl);
                 document.MarkAsFailed("Arquivo não encontrado no blob storage");
-                
+
                 // Salva status final (Failed) em uma única operação
                 await _documentRepository.UpdateAsync(document, cancellationToken);
                 await _documentRepository.SaveChangesAsync(cancellationToken);
@@ -112,15 +114,47 @@ public class DocumentVerificationJob(
         {
             _logger.LogError(ex, "Erro ao processar documento {DocumentId}", documentId);
 
-            // NOTE: MarkAsFailed é usado tanto para erros transitórios (ex: timeout OCR)
-            // quanto permanentes (ex: formato inválido). O sistema de retry do Hangfire
-            // tentará reprocessar automaticamente. Para distinção mais precisa,
-            // considere adicionar EDocumentStatus.TransientFailure no futuro.
+            // Detectar erros transitórios (network, timeout, OCR indisponível) vs permanentes
+            var isTransient = IsTransientException(ex);
+
+            if (isTransient)
+            {
+                // Para erros transitórios, apenas rethrow sem marcar como Failed
+                // para permitir que Hangfire tente novamente
+                _logger.LogWarning(
+                    "Erro transitório ao processar documento {DocumentId}: {Message}. Hangfire tentará novamente.",
+                    documentId,
+                    ex.Message);
+                throw;
+            }
+
+            // Para erros permanentes, marcar como Failed para evitar retries desnecessários
+            _logger.LogError(
+                "Erro permanente ao processar documento {DocumentId}: {Message}. Marcando como Failed.",
+                documentId,
+                ex.Message);
             document.MarkAsFailed($"Erro durante processamento: {ex.Message}");
             await _documentRepository.UpdateAsync(document, cancellationToken);
             await _documentRepository.SaveChangesAsync(cancellationToken);
 
-            throw; // Re-throw para permitir retry pelo sistema de jobs
+            // Não rethrow para erros permanentes - job concluído com falha documentada
         }
+    }
+
+    /// <summary>
+    /// Detecta se uma exceção é transitória (rede, timeout, serviço indisponível)
+    /// ou permanente (formato inválido, validação falhou).
+    /// </summary>
+    private static bool IsTransientException(Exception ex)
+    {
+        // Tipos de exceções transitórias comuns
+        return ex is HttpRequestException
+            || ex is TimeoutException
+            || ex is OperationCanceledException
+            || (ex.InnerException != null && IsTransientException(ex.InnerException))
+            || ex.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase)
+            || ex.Message.Contains("network", StringComparison.OrdinalIgnoreCase)
+            || ex.Message.Contains("unavailable", StringComparison.OrdinalIgnoreCase)
+            || ex.Message.Contains("connection", StringComparison.OrdinalIgnoreCase);
     }
 }

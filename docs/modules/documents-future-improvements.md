@@ -98,8 +98,8 @@ public void MarkAsFailed(string failureReason)
 ⏸️ **Adiado para v2**
 
 ### Justificativa
-- **Contexto atual**: `Failed` é usado apenas para erros técnicos (OCR timeout, service unavailable)
-- **Rejected** é para rejeição de negócio (documento ilegível, inválido)
+- **Contexto atual**: `Failed` é usado apenas para erros técnicos (OCR timeout, service unavailable).
+- **Rejected** é para rejeição de negócio (documento ilegível, inválido).
 
 **Prós da separação**:
 - Semântica mais clara

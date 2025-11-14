@@ -5,49 +5,103 @@ namespace MeAjudaAi.Shared.Tests.Mocks.Jobs;
 
 /// <summary>
 /// Mock do serviço de background jobs para uso em testes.
-/// Apenas registra os jobs enfileirados sem executá-los.
+/// Armazena expressões de jobs enfileirados para verificação nos testes.
 /// </summary>
 public class MockBackgroundJobService : IBackgroundJobService
 {
-    private readonly List<(Type JobType, object? State, TimeSpan? Delay)> _enqueuedJobs = [];
+    private readonly object _lock = new();
+    private readonly List<EnqueuedJobEntry> _enqueuedJobs = [];
+    private readonly List<RecurringJobEntry> _recurringJobs = [];
 
-    public IReadOnlyList<(Type JobType, object? State, TimeSpan? Delay)> EnqueuedJobs => _enqueuedJobs.AsReadOnly();
-
-    public string Enqueue<T>(object? state = null) where T : class
+    /// <summary>
+    /// Jobs enfileirados para execução imediata ou com delay.
+    /// </summary>
+    public IReadOnlyList<EnqueuedJobEntry> EnqueuedJobs
     {
-        _enqueuedJobs.Add((typeof(T), state, null));
-        return Guid.NewGuid().ToString();
+        get
+        {
+            lock (_lock)
+            {
+                return _enqueuedJobs.AsReadOnly();
+            }
+        }
     }
 
-    public string Schedule<T>(TimeSpan delay, object? state = null) where T : class
+    /// <summary>
+    /// Jobs recorrentes agendados.
+    /// </summary>
+    public IReadOnlyList<RecurringJobEntry> RecurringJobs
     {
-        _enqueuedJobs.Add((typeof(T), state, delay));
-        return Guid.NewGuid().ToString();
-    }
-
-    public bool Delete(string jobId)
-    {
-        // Mock - sempre retorna true
-        return true;
-    }
-
-    public void Clear()
-    {
-        _enqueuedJobs.Clear();
+        get
+        {
+            lock (_lock)
+            {
+                return _recurringJobs.AsReadOnly();
+            }
+        }
     }
 
     public Task EnqueueAsync<T>(Expression<Func<T, Task>> methodCall, TimeSpan? delay = null) where T : notnull
     {
-        throw new NotImplementedException();
+        lock (_lock)
+        {
+            _enqueuedJobs.Add(new EnqueuedJobEntry(
+                MethodCall: methodCall,
+                Delay: delay,
+                JobId: Guid.NewGuid().ToString()));
+        }
+        return Task.CompletedTask;
     }
 
     public Task EnqueueAsync(Expression<Func<Task>> methodCall, TimeSpan? delay = null)
     {
-        throw new NotImplementedException();
+        lock (_lock)
+        {
+            _enqueuedJobs.Add(new EnqueuedJobEntry(
+                MethodCall: methodCall,
+                Delay: delay,
+                JobId: Guid.NewGuid().ToString()));
+        }
+        return Task.CompletedTask;
     }
 
     public Task ScheduleRecurringAsync(string jobId, Expression<Func<Task>> methodCall, string cronExpression)
     {
-        throw new NotImplementedException();
+        lock (_lock)
+        {
+            _recurringJobs.Add(new RecurringJobEntry(
+                JobId: jobId,
+                MethodCall: methodCall,
+                CronExpression: cronExpression));
+        }
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Limpa todos os jobs registrados.
+    /// </summary>
+    public void Clear()
+    {
+        lock (_lock)
+        {
+            _enqueuedJobs.Clear();
+            _recurringJobs.Clear();
+        }
     }
 }
+
+/// <summary>
+/// Representa um job enfileirado.
+/// </summary>
+public record EnqueuedJobEntry(
+    LambdaExpression MethodCall,
+    TimeSpan? Delay,
+    string JobId);
+
+/// <summary>
+/// Representa um job recorrente agendado.
+/// </summary>
+public record RecurringJobEntry(
+    string JobId,
+    LambdaExpression MethodCall,
+    string CronExpression);

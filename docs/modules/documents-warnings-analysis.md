@@ -19,7 +19,7 @@ Após análise completa de todos os warnings do módulo Documents e correção d
 ### 1. ✅ CORRIGIDO - CA1823: Unused field '_logger'
 
 **Arquivo**: `GetProviderDocumentsQueryHandler.cs`  
-**Problema**: Campo `_logger` declarado mas nunca utilizado  
+**Problema**: ### CS0169: Campo _logger declarado, mas nunca utilizado (GetProviderDocumentsQueryHandler)  
 **Ação**: Removido campo e parâmetro do construtor primário
 
 ```diff

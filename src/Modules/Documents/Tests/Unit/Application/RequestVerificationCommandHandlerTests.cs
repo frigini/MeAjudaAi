@@ -69,6 +69,7 @@ public class RequestVerificationCommandHandlerTests
         result.Error.Should().NotBeNull();
         result.Error!.StatusCode.Should().Be(404);
         _mockRepository.Verify(x => x.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockRepository.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

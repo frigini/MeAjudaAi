@@ -50,6 +50,10 @@ public abstract class ApiTestBase : IAsyncLifetime
                     if (providersDbContextDescriptor != null)
                         services.Remove(providersDbContextDescriptor);
 
+                    var documentsDbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>));
+                    if (documentsDbContextDescriptor != null)
+                        services.Remove(documentsDbContextDescriptor);
+
                     // Remove também os serviços DbContext se existirem
                     var usersDbContextService = services.SingleOrDefault(d => d.ServiceType == typeof(UsersDbContext));
                     if (usersDbContextService != null)
@@ -58,6 +62,10 @@ public abstract class ApiTestBase : IAsyncLifetime
                     var providersDbContextService = services.SingleOrDefault(d => d.ServiceType == typeof(ProvidersDbContext));
                     if (providersDbContextService != null)
                         services.Remove(providersDbContextService);
+
+                    var documentsDbContextService = services.SingleOrDefault(d => d.ServiceType == typeof(MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext));
+                    if (documentsDbContextService != null)
+                        services.Remove(documentsDbContextService);
 
                     // Adiciona contextos de banco de dados para testes
                     services.AddDbContext<UsersDbContext>(options =>
@@ -78,6 +86,18 @@ public abstract class ApiTestBase : IAsyncLifetime
                         {
                             npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Providers.Infrastructure");
                             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
+                        });
+                        options.EnableSensitiveDataLogging();
+                        options.ConfigureWarnings(warnings =>
+                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                    });
+
+                    services.AddDbContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(options =>
+                    {
+                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Documents.Infrastructure");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "documents");
                         });
                         options.EnableSensitiveDataLogging();
                         options.ConfigureWarnings(warnings =>
@@ -113,17 +133,22 @@ public abstract class ApiTestBase : IAsyncLifetime
         AuthConfig = _factory.Services.GetRequiredService<ITestAuthenticationConfiguration>();
 
         // Aplica migrações do banco de dados para testes
-        // Nota: Ambos os módulos usam setup baseado em migrações para consistência com produção
+        // Nota: Todos os módulos usam setup baseado em migrações para consistência com produção
         using var scope = _factory.Services.CreateScope();
         var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        var documentsContext = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>();
         var logger = scope.ServiceProvider.GetService<ILogger<ApiTestBase>>();
 
         // Aplica migrações exatamente como nos testes E2E
-        await ApplyMigrationsAsync(usersContext, providersContext, logger);
+        await ApplyMigrationsAsync(usersContext, providersContext, documentsContext, logger);
     }
 
-    private static async Task ApplyMigrationsAsync(UsersDbContext usersContext, ProvidersDbContext providersContext, ILogger? logger)
+    private static async Task ApplyMigrationsAsync(
+        UsersDbContext usersContext,
+        ProvidersDbContext providersContext,
+        MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext documentsContext,
+        ILogger? logger)
     {
         // Garante estado limpo do banco de dados (como nos testes E2E)
         try
@@ -163,6 +188,19 @@ public abstract class ApiTestBase : IAsyncLifetime
             throw new InvalidOperationException("Não foi possível aplicar migrações do banco Providers", ex);
         }
 
+        // Aplica migrações no DocumentsDbContext (banco já existe, só precisa do schema documents)
+        try
+        {
+            logger?.LogInformation("🔄 Aplicando migrações do módulo Documents...");
+            await documentsContext.Database.MigrateAsync();
+            logger?.LogInformation("✅ Migrações do banco Documents completadas com sucesso");
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "❌ Falha ao aplicar migrações do Documents: {Message}", ex.Message);
+            throw new InvalidOperationException("Não foi possível aplicar migrações do banco Documents", ex);
+        }
+
         // Verifica se as tabelas existem
         try
         {
@@ -184,6 +222,17 @@ public abstract class ApiTestBase : IAsyncLifetime
         {
             logger?.LogError(ex, "Verificação do banco Providers falhou");
             throw new InvalidOperationException("Banco Providers não foi inicializado corretamente", ex);
+        }
+
+        try
+        {
+            var documentsCount = await documentsContext.Documents.CountAsync();
+            logger?.LogInformation("Verificação do banco Documents bem-sucedida - Contagem: {DocumentsCount}", documentsCount);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Verificação do banco Documents falhou");
+            throw new InvalidOperationException("Banco Documents não foi inicializado corretamente", ex);
         }
     }
 

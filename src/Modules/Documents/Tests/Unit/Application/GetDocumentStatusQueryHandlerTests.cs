@@ -81,7 +81,9 @@ public class GetDocumentStatusQueryHandlerTests
             "test.pdf",
             "blob-url");
 
-        _mockRepository.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+        // Transicionar documento para testar mapeamento com valores não-nulos
+        document.MarkAsPendingVerification();
+        document.MarkAsVerified("{\"cpf\":\"98765432100\"}"); _mockRepository.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
         var query = new GetDocumentStatusQuery(documentId);
@@ -98,8 +100,10 @@ public class GetDocumentStatusQueryHandlerTests
         result.FileUrl.Should().Be(document.FileUrl);
         result.Status.Should().Be(document.Status);
         result.UploadedAt.Should().Be(document.UploadedAt);
+        result.VerifiedAt.Should().NotBeNull();
         result.VerifiedAt.Should().Be(document.VerifiedAt);
         result.RejectionReason.Should().Be(document.RejectionReason);
+        result.OcrData.Should().NotBeNullOrEmpty();
         result.OcrData.Should().Be(document.OcrData);
     }
 

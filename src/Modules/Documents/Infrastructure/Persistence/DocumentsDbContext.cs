@@ -32,6 +32,9 @@ public class DocumentsDbContext : BaseDbContext
 
     protected override async Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
     {
+        // Nota: Se mais agregados com eventos de domínio forem adicionados a este contexto,
+        // considere generalizar esta query usando um tipo base comum (ex: IAggregateRoot)
+        // para capturar eventos de todas as entidades automaticamente
         var domainEvents = ChangeTracker
             .Entries<Document>()
             .Where(entry => entry.Entity.DomainEvents.Count > 0)
@@ -43,6 +46,7 @@ public class DocumentsDbContext : BaseDbContext
 
     protected override void ClearDomainEvents()
     {
+        // Nota: Se mais agregados forem adicionados, generalize para capturar todos
         var entities = ChangeTracker
             .Entries<Document>()
             .Where(entry => entry.Entity.DomainEvents.Count > 0)

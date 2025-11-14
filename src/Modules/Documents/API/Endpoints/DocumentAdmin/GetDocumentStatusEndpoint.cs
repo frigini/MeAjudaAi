@@ -43,7 +43,7 @@ public class GetDocumentStatusEndpoint : BaseEndpoint, IEndpoint
             query, cancellationToken);
 
         if (result == null)
-            return Results.NotFound();
+            return NotFound("Documento não encontrado");
 
         return Results.Ok(result);
     }

@@ -17,9 +17,10 @@ public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
                          Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
                          "Production";
-        
+
         // Em desenvolvimento ou testes, permite acesso livre
-        if (environment == "Development" || environment == "Testing")
+        if (string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(environment, "Testing", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }

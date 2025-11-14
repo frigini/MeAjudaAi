@@ -11,6 +11,7 @@ using Serilog.Context;
 
 public partial class Program
 {
+    [Obsolete("Main method will be refactored in future version")]
     public static async Task Main(string[] args)
     {
         try
@@ -74,6 +75,7 @@ public partial class Program
         }
     }
 
+    [Obsolete("Services now configured inline in Main method")]
     private static void ConfigureServices(WebApplicationBuilder builder)
     {
         // Configurações via ServiceDefaults e Shared (sem duplicar Serilog)

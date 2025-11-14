@@ -71,11 +71,12 @@ public class DocumentTests
     {
         // Arrange
         var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
         document.MarkAsVerified("{\"verified\": true}"); // Change to Verified status
-        
+
         // Act
         document.MarkAsPendingVerification();
-        
+
         // Assert
         document.Status.Should().Be(EDocumentStatus.Verified); // Should remain Verified
     }
@@ -85,6 +86,7 @@ public class DocumentTests
     {
         // Arrange
         var document = CreateTestDocument();
+        document.MarkAsPendingVerification(); // Transição para estado permitido
         var ocrData = "{\"documentNumber\": \"123456789\"}";
 
         // Act
@@ -103,6 +105,7 @@ public class DocumentTests
     {
         // Arrange
         var document = CreateTestDocument();
+        document.MarkAsPendingVerification(); // Transição para estado permitido
         document.ClearDomainEvents(); // Limpar evento de criação
 
         // Act
@@ -118,19 +121,16 @@ public class DocumentTests
     }
 
     [Fact]
-    public void MarkAsVerified_WhenAlreadyVerified_ShouldBeIdempotent()
+    public void MarkAsVerified_WhenNotInPendingVerification_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var document = CreateTestDocument();
-        document.MarkAsVerified("{\"first\": true}");
-        document.ClearDomainEvents();
-        
-        // Act
-        document.MarkAsVerified("{\"second\": true}");
-        
-        // Assert
-        document.DomainEvents.Should().BeEmpty(); // No new events
-        document.OcrData.Should().Be("{\"first\": true}"); // Data unchanged
+        // Status é Uploaded, não PendingVerification
+
+        // Act & Assert
+        var act = () => document.MarkAsVerified("{\"data\": true}");
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*must be in PendingVerification status*");
     }
 
     [Fact]
@@ -138,6 +138,7 @@ public class DocumentTests
     {
         // Arrange
         var document = CreateTestDocument();
+        document.MarkAsPendingVerification(); // Transição para estado permitido
         var rejectionReason = "Document is not legible";
 
         // Act
@@ -154,6 +155,7 @@ public class DocumentTests
     {
         // Arrange
         var document = CreateTestDocument();
+        document.MarkAsPendingVerification(); // Transição para estado permitido
         document.ClearDomainEvents(); // Limpar evento de criação
 
         // Act
@@ -164,6 +166,32 @@ public class DocumentTests
         var domainEvent = document.DomainEvents.First().Should().BeOfType<DocumentRejectedDomainEvent>().Subject;
         domainEvent.AggregateId.Should().Be(document.Id);
         domainEvent.RejectionReason.Should().Be("Invalid document");
+    }
+
+    [Fact]
+    public void MarkAsRejected_WithEmptyReason_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+
+        // Act & Assert
+        var act = () => document.MarkAsRejected("");
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*Rejection reason cannot be empty*");
+    }
+
+    [Fact]
+    public void MarkAsRejected_WhenNotInPendingVerification_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        // Status é Uploaded, não PendingVerification
+
+        // Act & Assert
+        var act = () => document.MarkAsRejected("Some reason");
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*must be in PendingVerification status*");
     }
 
     [Fact]
@@ -179,6 +207,18 @@ public class DocumentTests
         // Assert
         document.Status.Should().Be(EDocumentStatus.Failed);
         document.RejectionReason.Should().Be(failureReason);
+    }
+
+    [Fact]
+    public void MarkAsFailed_WithEmptyReason_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+
+        // Act & Assert
+        var act = () => document.MarkAsFailed("");
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*Failure reason cannot be empty*");
     }
 
     [Theory]

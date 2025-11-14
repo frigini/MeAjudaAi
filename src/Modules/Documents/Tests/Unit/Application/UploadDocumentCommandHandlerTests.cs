@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
@@ -6,6 +7,7 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Shared.Jobs;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
@@ -15,6 +17,7 @@ public class UploadDocumentCommandHandlerTests
     private readonly Mock<IDocumentRepository> _mockRepository;
     private readonly Mock<IBlobStorageService> _mockBlobStorage;
     private readonly Mock<IBackgroundJobService> _mockJobService;
+    private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ILogger<UploadDocumentCommandHandler>> _mockLogger;
     private readonly UploadDocumentCommandHandler _handler;
 
@@ -23,12 +26,28 @@ public class UploadDocumentCommandHandlerTests
         _mockRepository = new Mock<IDocumentRepository>();
         _mockBlobStorage = new Mock<IBlobStorageService>();
         _mockJobService = new Mock<IBackgroundJobService>();
+        _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<UploadDocumentCommandHandler>>();
         _handler = new UploadDocumentCommandHandler(
             _mockRepository.Object,
             _mockBlobStorage.Object,
             _mockJobService.Object,
+            _mockHttpContextAccessor.Object,
             _mockLogger.Object);
+    }
+
+    private void SetupAuthenticatedUser(Guid userId, string role = "provider")
+    {
+        var claims = new List<Claim>
+        {
+            new("sub", userId.ToString()),
+            new(ClaimTypes.Role, role)
+        };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var principal = new ClaimsPrincipal(identity);
+        var httpContext = new DefaultHttpContext { User = principal };
+
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
     }
 
     [Fact]
@@ -36,6 +55,7 @@ public class UploadDocumentCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
         var command = new UploadDocumentCommand(
             providerId,
             "IdentityDocument",
@@ -85,8 +105,11 @@ public class UploadDocumentCommandHandlerTests
     public async Task HandleAsync_WithProofOfResidence_ShouldCreateCorrectDocumentType()
     {
         // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
         var command = new UploadDocumentCommand(
-            Guid.NewGuid(),
+            providerId,
             "ProofOfResidence",
             "proof.pdf",
             "application/pdf",
@@ -115,9 +138,12 @@ public class UploadDocumentCommandHandlerTests
     public async Task HandleAsync_ShouldGenerateBlobStorageUrl()
     {
         // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
         var fileName = "criminal-record.pdf";
         var command = new UploadDocumentCommand(
-            Guid.NewGuid(),
+            providerId,
             "CriminalRecord",
             fileName,
             "application/pdf",
@@ -149,8 +175,11 @@ public class UploadDocumentCommandHandlerTests
     public async Task HandleAsync_WithOversizedFile_ShouldThrowArgumentException()
     {
         // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
         var command = new UploadDocumentCommand(
-            Guid.NewGuid(),
+            providerId,
             "IdentityDocument",
             "large.pdf",
             "application/pdf",
@@ -170,8 +199,11 @@ public class UploadDocumentCommandHandlerTests
     public async Task HandleAsync_WithInvalidContentType_ShouldThrowArgumentException(string contentType)
     {
         // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
         var command = new UploadDocumentCommand(
-            Guid.NewGuid(),
+            providerId,
             "IdentityDocument",
             "test.pdf",
             contentType,
@@ -188,8 +220,11 @@ public class UploadDocumentCommandHandlerTests
     public async Task HandleAsync_WithInvalidDocumentType_ShouldThrowArgumentException()
     {
         // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
         var command = new UploadDocumentCommand(
-            Guid.NewGuid(),
+            providerId,
             "InvalidType",
             "test.pdf",
             "application/pdf",

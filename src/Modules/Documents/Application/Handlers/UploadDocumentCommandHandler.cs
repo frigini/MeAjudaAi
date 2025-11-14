@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Jobs;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
@@ -15,15 +16,45 @@ public class UploadDocumentCommandHandler(
     IDocumentRepository documentRepository,
     IBlobStorageService blobStorageService,
     IBackgroundJobService backgroundJobService,
+    IHttpContextAccessor httpContextAccessor,
     ILogger<UploadDocumentCommandHandler> logger) : ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>
 {
     private readonly IDocumentRepository _documentRepository = documentRepository ?? throw new ArgumentNullException(nameof(documentRepository));
     private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
     private readonly IBackgroundJobService _backgroundJobService = backgroundJobService ?? throw new ArgumentNullException(nameof(backgroundJobService));
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     private readonly ILogger<UploadDocumentCommandHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<UploadDocumentResponse> HandleAsync(UploadDocumentCommand command, CancellationToken cancellationToken = default)
     {
+        // Resource-level authorization: user must match the ProviderId or have admin permissions
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext == null)
+            throw new UnauthorizedAccessException("HTTP context not available");
+
+        var user = httpContext.User;
+        if (user == null || !user.Identity?.IsAuthenticated == true)
+            throw new UnauthorizedAccessException("User is not authenticated");
+
+        var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
+        if (string.IsNullOrEmpty(userId))
+            throw new UnauthorizedAccessException("User ID not found in token");
+
+        // Check if user matches the provider ID (convert userId to Guid)
+        if (!Guid.TryParse(userId, out var userGuid) || userGuid != command.ProviderId)
+        {
+            // Check if user has admin role
+            var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
+            if (!isAdmin)
+            {
+                _logger.LogWarning(
+                    "User {UserId} attempted to upload document for provider {ProviderId} without authorization",
+                    userId, command.ProviderId);
+                throw new UnauthorizedAccessException(
+                    "You are not authorized to upload documents for this provider");
+            }
+        }
+
         _logger.LogInformation("Gerando URL de upload para documento do provedor {ProviderId}", command.ProviderId);
 
         // Validação de tipo de documento com enum definido

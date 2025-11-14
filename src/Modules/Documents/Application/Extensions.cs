@@ -13,6 +13,9 @@ public static class Extensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        // HttpContextAccessor required for authorization checks in handlers
+        services.AddHttpContextAccessor();
+
         // Command Handlers - registro manual
         services.AddScoped<ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>, UploadDocumentCommandHandler>();
         services.AddScoped<ICommandHandler<RequestVerificationCommand, Result>, RequestVerificationCommandHandler>();

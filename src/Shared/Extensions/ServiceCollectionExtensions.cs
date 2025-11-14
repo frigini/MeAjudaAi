@@ -42,6 +42,7 @@ internal class MockHostEnvironment : IHostEnvironment
 
 public static class ServiceCollectionExtensions
 {
+    [Obsolete("Use AddSharedServices with IHostEnvironment parameter instead")]
     public static IServiceCollection AddSharedServices(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -84,12 +85,10 @@ public static class ServiceCollectionExtensions
         services.AddQueries();
         services.AddEvents();
 
-        // Background Jobs com Hangfire
-        services.AddHangfireJobs(configuration);
-
         return services;
     }
 
+    [Obsolete("Use AddCoreSharedServices, AddInfrastructureServices, and AddBackgroundJobs instead")]
     public static IServiceCollection AddSharedServices(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -125,9 +124,6 @@ public static class ServiceCollectionExtensions
             services.AddCommands();
             services.AddQueries();
             services.AddEvents();
-
-            // Background Jobs com Hangfire
-            services.AddHangfireJobs(configuration);
         }
 
         // Adiciona monitoramento avançado complementar ao Aspire
@@ -136,12 +132,8 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IApplicationBuilder UseSharedServices(this IApplicationBuilder app, IConfiguration configuration)
+    private static void ConfigureHangfireDashboard(IApplicationBuilder app, IConfiguration configuration)
     {
-        app.UseErrorHandling();
-        app.UseAdvancedMonitoring(); // Adiciona middleware de métricas
-
-        // Hangfire Dashboard (disponível em /hangfire) - apenas se explicitamente habilitado
         var dashboardEnabled = configuration.GetValue<bool>("Hangfire:DashboardEnabled", false);
         if (dashboardEnabled)
         {
@@ -149,10 +141,18 @@ public static class ServiceCollectionExtensions
             app.UseHangfireDashboard(dashboardPath, new DashboardOptions
             {
                 Authorization = new[] { new HangfireAuthorizationFilter() },
-                StatsPollingInterval = 5000, // 5 segundos
+                StatsPollingInterval = 5000,
                 DisplayStorageConnectionString = false
             });
         }
+    }
+
+    public static IApplicationBuilder UseSharedServices(this IApplicationBuilder app, IConfiguration configuration)
+    {
+        app.UseErrorHandling();
+        app.UseAdvancedMonitoring();
+
+        ConfigureHangfireDashboard(app, configuration);
 
         return app;
     }
@@ -171,126 +171,55 @@ public static class ServiceCollectionExtensions
                                  integrationTests == "true" ||
                                  integrationTests == "1";
 
-        // Configurar Hangfire Dashboard se habilitado
         if (app is WebApplication webApp)
         {
             var configuration = webApp.Services.GetRequiredService<IConfiguration>();
-            var dashboardEnabled = configuration.GetValue<bool>("Hangfire:DashboardEnabled", false);
-            
-            if (dashboardEnabled)
+
+            // Configurar Hangfire Dashboard se habilitado
+            ConfigureHangfireDashboard(app, configuration);
+
+            // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
+            if (!isTestingEnvironment)
             {
-                var dashboardPath = configuration.GetValue<string>("Hangfire:DashboardPath", "/hangfire");
-                app.UseHangfireDashboard(dashboardPath, new DashboardOptions
+                var isMessagingEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
+
+                if (isMessagingEnabled)
                 {
-                    Authorization = new[] { new HangfireAuthorizationFilter() },
-                    StatsPollingInterval = 5000, // 5 segundos
-                    DisplayStorageConnectionString = false
-                });
-            }
-        }
+                    await webApp.EnsureMessagingInfrastructureAsync();
+                }
 
-        // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
-        if (app is WebApplication webApp2 && !isTestingEnvironment)
-        {
-            var configuration = webApp2.Services.GetRequiredService<IConfiguration>();
-            var isMessagingEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
-
-            if (isMessagingEnabled)
-            {
-                await webApp2.EnsureMessagingInfrastructureAsync();
-            }
-
-            // Cache warmup em background para não bloquear startup
-            var isCacheWarmupEnabled = configuration.GetValue<bool>("Cache:WarmupEnabled", true);
-            if (isCacheWarmupEnabled)
-            {
-                _ = Task.Run(async () =>
+                // Cache warmup em background para não bloquear startup
+                var isCacheWarmupEnabled = configuration.GetValue<bool>("Cache:WarmupEnabled", true);
+                if (isCacheWarmupEnabled)
                 {
-                    try
+                    _ = Task.Run(async () =>
                     {
-                        using var scope = webApp2.Services.CreateScope();
-                        var warmupService = scope.ServiceProvider.GetService<ICacheWarmupService>();
-                        if (warmupService != null)
+                        try
                         {
-                            await warmupService.WarmupAsync();
+                            using var scope = webApp.Services.CreateScope();
+                            var warmupService = scope.ServiceProvider.GetService<ICacheWarmupService>();
+                            if (warmupService != null)
+                            {
+                                await warmupService.WarmupAsync();
+                            }
+                            else
+                            {
+                                var logger = webApp.Services.GetService<ILogger<ICacheWarmupService>>();
+                                logger?.LogDebug("ICacheWarmupService não registrado - esperado em ambientes de teste");
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            var logger = webApp2.Services.GetService<ILogger<ICacheWarmupService>>();
-                            logger?.LogDebug("ICacheWarmupService não registrado - esperado em ambientes de teste");
+                            var logger = webApp.Services.GetRequiredService<ILogger<ICacheWarmupService>>();
+                            logger.LogWarning(ex, "Falha ao aquecer o cache durante a inicialização - pode ser esperado em testes");
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        var logger = webApp2.Services.GetRequiredService<ILogger<ICacheWarmupService>>();
-                        logger.LogWarning(ex, "Falha ao aquecer o cache durante a inicialização - pode ser esperado em testes");
-                    }
-                });
+                    });
+                }
             }
         }
 
         return app;
     }
 
-    [Obsolete]
-    private static IServiceCollection AddHangfireJobs(this IServiceCollection services, IConfiguration configuration)
-    {
-        // Desabilitar Hangfire em ambientes de teste ou quando explicitamente configurado
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
-                         Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-        var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
-        
-        var isTestingEnvironment = environment == "Testing" ||
-                                 environment?.Equals("Testing", StringComparison.OrdinalIgnoreCase) == true ||
-                                 integrationTests == "true" ||
-                                 integrationTests == "1";
-        
-        var hangfireEnabled = configuration.GetValue<bool>("Hangfire:Enabled", true);
-        
-        // Usar mesma cadeia de resolução de connection string que AddPostgres para evitar falhas em ambientes válidos
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-                              ?? configuration.GetConnectionString("meajudaai-db-local")
-                              ?? configuration.GetConnectionString("meajudaai-db")
-                              ?? configuration["Postgres:ConnectionString"];
-        
-        // Se não há connection string, desabilitar Hangfire automaticamente
-        if (!hangfireEnabled || isTestingEnvironment || string.IsNullOrEmpty(connectionString))
-        {
-            // Registrar implementação nula para IBackgroundJobService quando Hangfire está desabilitado
-            services.AddSingleton<IBackgroundJobService, NoOpBackgroundJobService>();
-            return services;
-        }
 
-        // Ler configurações do Hangfire do IConfiguration ao invés de hardcode
-        var workerCount = configuration.GetValue<int?>("Hangfire:WorkerCount") ?? Environment.ProcessorCount * 2;
-        var pollingIntervalSeconds = configuration.GetValue<int>("Hangfire:PollingIntervalSeconds", 15);
-
-        // Configura Hangfire com PostgreSQL
-        services.AddHangfire(config => config
-            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-            .UsePostgreSqlStorage(connectionString, new PostgreSqlStorageOptions
-            {
-                SchemaName = "hangfire",
-                QueuePollInterval = TimeSpan.FromSeconds(pollingIntervalSeconds),
-                JobExpirationCheckInterval = TimeSpan.FromHours(1),
-                CountersAggregateInterval = TimeSpan.FromMinutes(5),
-                PrepareSchemaIfNecessary = true,
-                InvisibilityTimeout = TimeSpan.FromMinutes(30)
-            }));
-
-        // Adiciona servidor Hangfire para processar jobs
-        services.AddHangfireServer(options =>
-        {
-            options.WorkerCount = workerCount;
-            options.Queues = new[] { "default", "critical", "low" };
-            options.ServerName = $"{Environment.MachineName}-{Guid.NewGuid().ToString()[..8]}";
-        });
-
-        // Registra nosso wrapper do Hangfire
-        services.AddSingleton<IBackgroundJobService, HangfireBackgroundJobService>();
-
-        return services;
-    }
 }

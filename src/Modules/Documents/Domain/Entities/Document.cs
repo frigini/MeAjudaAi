@@ -106,12 +106,17 @@ public sealed class Document : AggregateRoot<DocumentId>
 
     public void MarkAsVerified(string? ocrData = null)
     {
-        if (Status == EDocumentStatus.Verified)
-            return;
+        // Invariante: Só pode verificar documentos em estado PendingVerification
+        if (Status != EDocumentStatus.PendingVerification)
+        {
+            throw new InvalidOperationException(
+                $"Cannot verify document in status {Status}. Document must be in PendingVerification status.");
+        }
 
         Status = EDocumentStatus.Verified;
         VerifiedAt = DateTime.UtcNow;
         OcrData = ocrData;
+        MarkAsUpdated();
 
         AddDomainEvent(new DocumentVerifiedDomainEvent(
             Id,
@@ -123,12 +128,23 @@ public sealed class Document : AggregateRoot<DocumentId>
 
     public void MarkAsRejected(string reason)
     {
-        if (Status == EDocumentStatus.Rejected)
-            return;
+        // Invariante: Motivo de rejeição não pode ser vazio
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new ArgumentException("Rejection reason cannot be empty", nameof(reason));
+        }
+
+        // Invariante: Só pode rejeitar documentos em estado PendingVerification
+        if (Status != EDocumentStatus.PendingVerification)
+        {
+            throw new InvalidOperationException(
+                $"Cannot reject document in status {Status}. Document must be in PendingVerification status.");
+        }
 
         Status = EDocumentStatus.Rejected;
         VerifiedAt = DateTime.UtcNow;
         RejectionReason = reason;
+        MarkAsUpdated();
 
         AddDomainEvent(new DocumentRejectedDomainEvent(
             Id,
@@ -140,8 +156,18 @@ public sealed class Document : AggregateRoot<DocumentId>
 
     public void MarkAsFailed(string reason)
     {
+        // Invariante: Motivo de falha não pode ser vazio
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new ArgumentException("Failure reason cannot be empty", nameof(reason));
+        }
+
         Status = EDocumentStatus.Failed;
         RejectionReason = reason;
+        MarkAsUpdated();
+
+        // Emitir evento de domínio para observabilidade de falhas
+        // Nota: Considere criar DocumentFailedDomainEvent se necessário rastrear falhas separadamente
     }
 
     public void MarkAsPendingVerification()

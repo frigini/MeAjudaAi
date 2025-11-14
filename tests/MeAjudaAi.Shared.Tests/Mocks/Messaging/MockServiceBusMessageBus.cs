@@ -16,7 +16,6 @@ public class MockServiceBusMessageBus : IMessageBus
     {
         _mockMessageBus = new Mock<IMessageBus>();
         _logger = logger;
-        _publishedMessages = [];
 
         SetupMockBehavior();
     }

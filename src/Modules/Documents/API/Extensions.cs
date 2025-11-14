@@ -61,13 +61,15 @@ public static class Extensions
             try
             {
                 // Em produção, usar migrações normais
+                // Nota: Em ambientes com múltiplas instâncias, considere executar migrações
+                // via pipeline de deployment ao invés de startup automático
                 context.Database.Migrate();
             }
             catch (Exception ex)
             {
                 // Log do erro, mas tenta fallback
                 logger?.LogWarning(ex, "Falha ao aplicar migrações do módulo Documents. Usando EnsureCreated como fallback.");
-                
+
                 // Tenta EnsureCreated como fallback (apenas em desenvolvimento)
                 if (app.Environment.IsDevelopment())
                 {
@@ -81,10 +83,14 @@ public static class Extensions
                 }
             }
         }
-        catch (Exception) when (app.Environment.IsEnvironment("Test") || app.Environment.IsEnvironment("Testing"))
+        catch (Exception)
         {
             // Em ambiente de teste, ignora silenciosamente para não quebrar testes unitários
             // que não precisam de migrações
+            if (!app.Environment.IsEnvironment("Test") && !app.Environment.IsEnvironment("Testing"))
+            {
+                throw;
+            }
         }
     }
 }

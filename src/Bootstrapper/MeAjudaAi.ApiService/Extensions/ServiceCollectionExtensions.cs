@@ -24,11 +24,12 @@ public static class ServiceCollectionExtensions
             .BindConfiguration(RateLimitOptions.SectionName) // "AdvancedRateLimit"
             .BindConfiguration("RateLimit") // fallback para configuração legada
             .ValidateDataAnnotations(); // Valida atributos [Required] etc.
-        
+
         // Apenas valida na inicialização se NÃO estiver em ambiente de teste
-        var isTestEnvironment = Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true" 
-                               || environment.IsEnvironment("Testing");
-        
+        // Detecta se estamos em ambiente de teste (integração ou E2E)
+        var isTestEnvironment = string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase) ||
+                               environment.IsEnvironment("Testing");
+
         if (!isTestEnvironment)
         {
             optionsBuilder.ValidateOnStart() // Valida na inicialização da aplicação

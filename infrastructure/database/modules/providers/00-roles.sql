@@ -1,4 +1,4 @@
--- PROVIDERS Module - Database Roles (EXAMPLE - Module not implemented yet)
+-- PROVIDERS Module - Database Roles
 -- Create dedicated role for providers module (NOLOGIN role for permission grouping)
 --
 -- NOTE: Creating meajudaai_app_role in every module is safe but creates duplication.
@@ -73,7 +73,7 @@ $$ LANGUAGE plpgsql;
 -- migrations that read passwords from secure session GUCs or configuration, not in versioned DDL.
 -- Example: CREATE USER providers_login_user WITH PASSWORD current_setting('app.providers_password') IN ROLE providers_role;
 
--- Document roles
+-- Provider roles
 COMMENT ON ROLE providers_role IS 'Permission grouping role for providers schema';
 COMMENT ON ROLE providers_owner IS 'Owner role for providers schema objects';
 COMMENT ON ROLE meajudaai_app_role IS 'App-wide role for cross-module access';

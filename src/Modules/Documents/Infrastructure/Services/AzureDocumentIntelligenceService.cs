@@ -17,9 +17,20 @@ public class AzureDocumentIntelligenceService(DocumentIntelligenceClient client,
         string documentType,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(blobUrl))
+        {
+            throw new ArgumentException("Blob URL cannot be null or empty", nameof(blobUrl));
+        }
+
         if (string.IsNullOrWhiteSpace(documentType))
         {
-            throw new ArgumentNullException(nameof(documentType), "Document type cannot be null or empty");
+            throw new ArgumentException("Document type cannot be null or empty", nameof(documentType));
+        }
+
+        // Validar formato da URL para falhar rápido antes de chamar a API
+        if (!Uri.TryCreate(blobUrl, UriKind.Absolute, out var validatedUri))
+        {
+            throw new ArgumentException($"Invalid blob URL format: {blobUrl}", nameof(blobUrl));
         }
 
         try
@@ -37,11 +48,10 @@ public class AzureDocumentIntelligenceService(DocumentIntelligenceClient client,
 
             // Usar AnalyzeDocumentAsync da nova API Azure.AI.DocumentIntelligence
             // A API mudou: agora usa BinaryData ou Uri diretamente
-            var uriSource = new Uri(blobUrl);
             var operation = await _client.AnalyzeDocumentAsync(
                 WaitUntil.Completed,
                 modelId,
-                uriSource,
+                validatedUri,
                 cancellationToken: cancellationToken);
 
             var result = operation.Value;

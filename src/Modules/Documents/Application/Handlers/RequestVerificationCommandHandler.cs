@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 public class RequestVerificationCommandHandler(
     IDocumentRepository repository,
-    ILogger<RequestVerificationCommandHandler> logger) 
+    ILogger<RequestVerificationCommandHandler> logger)
     : ICommandHandler<RequestVerificationCommand, Result>
 {
     public async Task<Result> HandleAsync(RequestVerificationCommand command, CancellationToken cancellationToken = default)
@@ -25,11 +25,12 @@ public class RequestVerificationCommandHandler(
         // Atualizar status do documento para PendingVerification
         document.MarkAsPendingVerification();
         await repository.UpdateAsync(document, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
 
         // Enfileirar job de verificação manual (nota: idealmente criar um job dedicado DocumentVerificationJob)
         // Por enquanto, apenas marcar como pending - o job de verificação será implementado posteriormente
         logger.LogInformation("Document {DocumentId} marked for manual verification", command.DocumentId);
-        
+
         return Result.Success();
     }
 }

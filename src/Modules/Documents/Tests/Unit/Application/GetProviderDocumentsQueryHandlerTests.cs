@@ -75,6 +75,11 @@ public class GetProviderDocumentsQueryHandlerTests
             "test.pdf",
             "blob-url");
 
+        // Transicionar documento para testar propriedades opcionais com valores não-nulos
+        document.MarkAsPendingVerification();
+        document.MarkAsVerified("{\"cpf\":\"12345678900\"}");
+        // Não podemos marcar como rejeitado após verificado - testar apenas verified state
+
         _mockRepository.Setup(x => x.GetByProviderIdAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Document> { document });
 
@@ -92,6 +97,11 @@ public class GetProviderDocumentsQueryHandlerTests
         dto.FileUrl.Should().Be(document.FileUrl);
         dto.Status.Should().Be(document.Status);
         dto.UploadedAt.Should().Be(document.UploadedAt);
+        dto.VerifiedAt.Should().NotBeNull();
+        dto.VerifiedAt.Should().Be(document.VerifiedAt);
+        dto.RejectionReason.Should().BeNull(); // Verified, não rejected
+        dto.OcrData.Should().NotBeNullOrEmpty();
+        dto.OcrData.Should().Be(document.OcrData);
     }
 
     [Fact]

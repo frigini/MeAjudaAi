@@ -196,8 +196,8 @@ public static class TestTypeDetector
 {
     public static ETestType DetectTestType()
     {
-        // Assembly.GetEntryAssembly() pode retornar null no xUnit, usar fallback
-        var testAssembly = (Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly()).GetName().Name;
+        // xUnit pode retornar null em GetEntryAssembly(), então usamos fallback
+        var testAssembly = (Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly())?.GetName().Name;
 
         return testAssembly switch
         {

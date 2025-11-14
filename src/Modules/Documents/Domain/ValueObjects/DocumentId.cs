@@ -6,7 +6,7 @@ namespace MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 /// <summary>
 /// Identificador único do documento.
 /// </summary>
-public class DocumentId : ValueObject
+public sealed class DocumentId : ValueObject
 {
     public Guid Value { get; }
 
