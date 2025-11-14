@@ -67,17 +67,18 @@ public class DocumentTests
     }
 
     [Fact]
-    public void MarkAsPendingVerification_WhenVerified_ShouldNotChangeStatus()
+    public void MarkAsPendingVerification_WhenVerified_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var document = CreateTestDocument();
         document.MarkAsPendingVerification();
         document.MarkAsVerified("{\"verified\": true}"); // Change to Verified status
 
-        // Act
-        document.MarkAsPendingVerification();
-
-        // Assert
+        // Act & Assert
+        var exception = Assert.Throws<InvalidOperationException>(() => 
+            document.MarkAsPendingVerification());
+        
+        exception.Message.Should().Contain("Cannot mark document as pending verification from state Verified");
         document.Status.Should().Be(EDocumentStatus.Verified); // Should remain Verified
     }
 

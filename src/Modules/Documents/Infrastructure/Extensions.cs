@@ -30,6 +30,14 @@ public static class Extensions
                               ?? configuration.GetConnectionString("Documents")
                               ?? configuration.GetConnectionString("meajudaai-db");
 
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException(
+                "Database connection string is not configured. "
+                + "Please set one of the following configuration keys: "
+                + "'ConnectionStrings:DefaultConnection', 'ConnectionStrings:Documents', or 'ConnectionStrings:meajudaai-db'");
+        }
+
         services.AddDbContext<DocumentsDbContext>((serviceProvider, options) =>
         {
             var metricsInterceptor = serviceProvider.GetService<DatabaseMetricsInterceptor>();
@@ -59,8 +67,8 @@ public static class Extensions
     private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         // Verificar se está em ambiente de teste
-        var isTestEnvironment = Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true"
-                               || Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing";
+        var isTestEnvironment = string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase)
+                               || string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Testing", StringComparison.OrdinalIgnoreCase);
 
         if (isTestEnvironment)
         {
@@ -86,13 +94,16 @@ public static class Extensions
                     new Azure.AI.DocumentIntelligence.DocumentIntelligenceClient(
                         new Uri(documentIntelligenceEndpoint),
                         new Azure.AzureKeyCredential(documentIntelligenceApiKey)));
+
+                // Azure Document Intelligence (OCR) - only if configured
+                services.AddScoped<IDocumentIntelligenceService, AzureDocumentIntelligenceService>();
             }
 
-            // Azure Storage
-            services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
-
-            // Azure Document Intelligence (OCR)
-            services.AddScoped<IDocumentIntelligenceService, AzureDocumentIntelligenceService>();
+            if (!string.IsNullOrEmpty(storageConnectionString))
+            {
+                // Azure Storage - only if configured
+                services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
+            }
         }
 
         return services;

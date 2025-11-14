@@ -108,6 +108,12 @@ public class UploadDocumentCommandHandlerTests
         _mockRepository.Verify(
             x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
+
+        _mockJobService.Verify(
+            x => x.EnqueueAsync<IDocumentVerificationService>(
+                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
+                It.IsAny<TimeSpan?>()),
+            Times.Once);
     }
 
     [Fact]
@@ -140,6 +146,12 @@ public class UploadDocumentCommandHandlerTests
         // Assert
         _mockRepository.Verify(
             x => x.AddAsync(It.Is<Document>(d => d.DocumentType == EDocumentType.ProofOfResidence), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _mockJobService.Verify(
+            x => x.EnqueueAsync<IDocumentVerificationService>(
+                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
+                It.IsAny<TimeSpan?>()),
             Times.Once);
     }
 
@@ -177,6 +189,12 @@ public class UploadDocumentCommandHandlerTests
                 It.IsAny<string>(),
                 "application/pdf",
                 It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _mockJobService.Verify(
+            x => x.EnqueueAsync<IDocumentVerificationService>(
+                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
+                It.IsAny<TimeSpan?>()),
             Times.Once);
     }
 
@@ -251,18 +269,18 @@ public class UploadDocumentCommandHandlerTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        _mockJobService
-            .Setup(x => x.EnqueueAsync<IDocumentVerificationService>(
-                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
-                It.IsAny<TimeSpan?>()))
-            .Returns(Task.CompletedTask);
-
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.UploadUrl.Should().NotBeEmpty();
+
+        _mockJobService.Verify(
+            x => x.EnqueueAsync<IDocumentVerificationService>(
+                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
+                It.IsAny<TimeSpan?>()),
+            Times.Once);
     }
 
     [Fact]
@@ -357,6 +375,12 @@ public class UploadDocumentCommandHandlerTests
         _mockRepository.Verify(
             x => x.AddAsync(It.Is<Document>(d => d.ProviderId == providerId), It.IsAny<CancellationToken>()),
             Times.Once);
+
+        _mockJobService.Verify(
+            x => x.EnqueueAsync<IDocumentVerificationService>(
+                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
+                It.IsAny<TimeSpan?>()),
+            Times.Once);
     }
 
     [Fact]
@@ -395,5 +419,11 @@ public class UploadDocumentCommandHandlerTests
         // Assert - Should succeed for system-admin role
         result.Should().NotBeNull();
         result.DocumentId.Should().NotBeEmpty();
+
+        _mockJobService.Verify(
+            x => x.EnqueueAsync<IDocumentVerificationService>(
+                It.IsAny<Expression<Func<IDocumentVerificationService, Task>>>(),
+                It.IsAny<TimeSpan?>()),
+            Times.Once);
     }
 }

@@ -103,7 +103,23 @@ public sealed class Document : AggregateRoot<DocumentId>
         string fileName,
         string fileUrl)
     {
-        return new Document(providerId, documentType, fileName, fileUrl);
+        // Validar inputs antes de criar o agregado
+        if (providerId == Guid.Empty)
+        {
+            throw new ArgumentException("Provider ID cannot be empty", nameof(providerId));
+        }
+
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            throw new ArgumentNullException(nameof(fileName), "File name cannot be null or empty");
+        }
+
+        if (string.IsNullOrWhiteSpace(fileUrl))
+        {
+            throw new ArgumentNullException(nameof(fileUrl), "File URL cannot be null or empty");
+        }
+
+        return new Document(providerId, documentType, fileName.Trim(), fileUrl.Trim());
     }
 
     public void MarkAsVerified(string? ocrData = null)
@@ -179,9 +195,12 @@ public sealed class Document : AggregateRoot<DocumentId>
 
     public void MarkAsPendingVerification()
     {
-        // Allow transition from Uploaded or Failed (for retries)
+        // Invariante: Só pode marcar como pending de estados Uploaded ou Failed (retry)
         if (Status != EDocumentStatus.Uploaded && Status != EDocumentStatus.Failed)
-            return;
+        {
+            throw new InvalidOperationException(
+                $"Cannot mark document as pending verification from state {Status}. Document must be Uploaded or Failed.");
+        }
 
         Status = EDocumentStatus.PendingVerification;
 
