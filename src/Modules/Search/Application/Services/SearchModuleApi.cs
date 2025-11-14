@@ -1,0 +1,82 @@
+using MeAjudaAi.Modules.Search.Application.DTOs;
+using MeAjudaAi.Modules.Search.Application.Queries;
+using MeAjudaAi.Modules.Search.Domain.Enums;
+using MeAjudaAi.Shared.Contracts.Modules.Search;
+using MeAjudaAi.Shared.Contracts.Modules.Search.DTOs;
+using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Queries;
+
+namespace MeAjudaAi.Modules.Search.Application.Services;
+
+/// <summary>
+/// Implementation of the Search module's public API.
+/// </summary>
+public sealed class SearchModuleApi : ISearchModuleApi
+{
+    private readonly IQueryDispatcher _queryDispatcher;
+
+    public SearchModuleApi(IQueryDispatcher queryDispatcher)
+    {
+        _queryDispatcher = queryDispatcher;
+    }
+
+    public async Task<Result<ModulePagedSearchResultDto>> SearchProvidersAsync(
+        double latitude,
+        double longitude,
+        double radiusInKm,
+        Guid[]? serviceIds = null,
+        decimal? minRating = null,
+        SubscriptionTier[]? subscriptionTiers = null,
+        int pageNumber = 1,
+        int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        // Map module DTOs to domain enums
+        ESubscriptionTier[]? domainTiers = subscriptionTiers?.Select(t => (ESubscriptionTier)t).ToArray();
+
+        var query = new SearchProvidersQuery(
+            latitude,
+            longitude,
+            radiusInKm,
+            serviceIds,
+            minRating,
+            domainTiers,
+            pageNumber,
+            pageSize);
+
+        var result = await _queryDispatcher.QueryAsync<SearchProvidersQuery, Result<PagedSearchResultDto<SearchableProviderDto>>>(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return Result<ModulePagedSearchResultDto>.Failure(result.Error);
+        }
+
+        // Map internal DTOs to module DTOs
+        var moduleResult = new ModulePagedSearchResultDto
+        {
+            Items = result.Value!.Items.Select(p => new ModuleSearchableProviderDto
+            {
+                ProviderId = p.ProviderId,
+                Name = p.Name,
+                Description = p.Description,
+                Location = new ModuleLocationDto
+                {
+                    Latitude = p.Location.Latitude,
+                    Longitude = p.Location.Longitude
+                },
+                AverageRating = p.AverageRating,
+                TotalReviews = p.TotalReviews,
+                SubscriptionTier = (SubscriptionTier)p.SubscriptionTier,
+                ServiceIds = p.ServiceIds,
+                DistanceInKm = p.DistanceInKm,
+                City = p.City,
+                State = p.State
+            }).ToList(),
+            TotalCount = result.Value.TotalCount,
+            PageNumber = result.Value.PageNumber,
+            PageSize = result.Value.PageSize
+        };
+
+        return Result<ModulePagedSearchResultDto>.Success(moduleResult);
+    }
+}

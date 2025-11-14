@@ -286,7 +286,7 @@ public class ModuleApiArchitectureTests
 
     private static string[] GetOtherModuleNamespaces(string currentModule)
     {
-        var allModules = new[] { "Users", "Providers" }; // Add known modules
+        var allModules = new[] { "Users", "Providers", "Documents", "Search" }; // Add known modules
         return [.. allModules
             .Where(m => m != currentModule)
             .Select(m => $"MeAjudaAi.Modules.{m}")];

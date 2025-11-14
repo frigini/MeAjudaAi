@@ -1,0 +1,201 @@
+using MeAjudaAi.Modules.Search.Domain.Entities;
+using MeAjudaAi.Modules.Search.Domain.Enums;
+using MeAjudaAi.Modules.Search.Domain.ValueObjects;
+using MeAjudaAi.Modules.Search.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Geolocation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Testcontainers.PostgreSql;
+
+namespace MeAjudaAi.Modules.Search.Tests.Integration;
+
+/// <summary>
+/// Classe base para testes de integração do módulo Search.
+/// Usa Testcontainers PostgreSQL com extensão PostGIS.
+/// </summary>
+public abstract class SearchIntegrationTestBase : IAsyncLifetime
+{
+    private PostgreSqlContainer? _container;
+    private ServiceProvider? _serviceProvider;
+    private readonly string _testClassId;
+
+    protected SearchIntegrationTestBase()
+    {
+        _testClassId = $"{GetType().Name}_{Guid.NewGuid():N}";
+    }
+
+    /// <summary>
+    /// Inicialização executada antes de cada classe de teste
+    /// </summary>
+    public async ValueTask InitializeAsync()
+    {
+        // Criar container PostgreSQL com PostGIS
+        _container = new PostgreSqlBuilder()
+            .WithImage("postgis/postgis:16-3.4") // Imagem com PostGIS
+            .WithDatabase($"search_test_{_testClassId}")
+            .WithUsername("test_user")
+            .WithPassword("test_password")
+            .WithPortBinding(0, true) // Porta aleatória
+            .Build();
+
+        await _container.StartAsync();
+
+        // Configurar serviços
+        var services = new ServiceCollection();
+
+        services.AddSingleton(_container);
+
+        services.AddLogging(builder =>
+        {
+            builder.SetMinimumLevel(LogLevel.Warning);
+            builder.AddConsole();
+        });
+
+        // Configurar DbContext com connection string do container
+        services.AddDbContext<SearchDbContext>(options =>
+        {
+            options.UseNpgsql(
+                _container.GetConnectionString(),
+                npgsqlOptions =>
+                {
+                    npgsqlOptions.UseNetTopologySuite();
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
+                });
+        });
+
+        // Registrar repositório
+        services.AddScoped<MeAjudaAi.Modules.Search.Domain.Repositories.ISearchableProviderRepository, 
+            MeAjudaAi.Modules.Search.Infrastructure.Persistence.Repositories.SearchableProviderRepository>();
+
+        _serviceProvider = services.BuildServiceProvider();
+
+        // Inicializar banco de dados
+        await InitializeDatabaseAsync();
+    }
+
+    /// <summary>
+    /// Inicializa o banco de dados com PostGIS
+    /// </summary>
+    private async Task InitializeDatabaseAsync()
+    {
+        var dbContext = _serviceProvider!.GetRequiredService<SearchDbContext>();
+
+        // Criar banco de dados
+        await dbContext.Database.EnsureCreatedAsync();
+
+        // Verificar se PostGIS está disponível
+        var hasPostGIS = await dbContext.Database
+            .ExecuteSqlRawAsync("SELECT 1 FROM pg_extension WHERE extname = 'postgis'");
+
+        if (hasPostGIS == 0)
+        {
+            throw new InvalidOperationException("PostGIS extension is not available in the test database");
+        }
+
+        // Verificar isolamento
+        var count = await dbContext.SearchableProviders.CountAsync();
+        if (count > 0)
+        {
+            throw new InvalidOperationException($"Database isolation failed: found {count} existing providers");
+        }
+    }
+
+    /// <summary>
+    /// Cria um SearchableProvider para teste
+    /// </summary>
+    protected SearchableProvider CreateTestSearchableProvider(
+        string name,
+        double latitude,
+        double longitude,
+        ESubscriptionTier tier = ESubscriptionTier.Free,
+        string? description = null,
+        string? city = null,
+        string? state = null)
+    {
+        var providerId = Guid.NewGuid();
+        var location = new GeoPoint(latitude, longitude);
+
+        var provider = SearchableProvider.Create(
+            providerId,
+            name,
+            location,
+            tier,
+            description,
+            city,
+            state);
+
+        return provider;
+    }
+
+    /// <summary>
+    /// Persiste um SearchableProvider no banco de dados
+    /// </summary>
+    protected async Task<SearchableProvider> PersistSearchableProviderAsync(SearchableProvider provider)
+    {
+        var dbContext = GetService<SearchDbContext>();
+        await dbContext.SearchableProviders.AddAsync(provider);
+        await dbContext.SaveChangesAsync();
+        return provider;
+    }
+
+    /// <summary>
+    /// Limpa dados das tabelas
+    /// </summary>
+    protected async Task CleanupDatabase()
+    {
+        var dbContext = GetService<SearchDbContext>();
+
+        try
+        {
+            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE search.searchable_providers CASCADE;");
+        }
+        catch
+        {
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM search.searchable_providers;");
+        }
+
+        var remainingCount = await dbContext.SearchableProviders.CountAsync();
+        if (remainingCount > 0)
+        {
+            throw new InvalidOperationException($"Database cleanup failed: {remainingCount} providers remain");
+        }
+    }
+
+    /// <summary>
+    /// Limpeza executada após cada classe de teste
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        if (_serviceProvider != null)
+        {
+            await _serviceProvider.DisposeAsync();
+        }
+
+        if (_container != null)
+        {
+            await _container.StopAsync();
+            await _container.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Obtém um serviço do provider
+    /// </summary>
+    protected T GetService<T>() where T : notnull
+    {
+        if (_serviceProvider == null)
+            throw new InvalidOperationException("Service provider not initialized");
+        return _serviceProvider.GetRequiredService<T>();
+    }
+
+    /// <summary>
+    /// Cria um escopo de serviços
+    /// </summary>
+    protected IServiceScope CreateScope()
+    {
+        if (_serviceProvider == null)
+            throw new InvalidOperationException("Service provider not initialized");
+        return _serviceProvider.CreateScope();
+    }
+}
