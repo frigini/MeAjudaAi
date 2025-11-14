@@ -7,4 +7,21 @@ namespace MeAjudaAi.Modules.Providers.Application.Queries;
 /// <summary>
 /// Query para buscar prestador de serviços por ID.
 /// </summary>
-public sealed record GetProviderByIdQuery(Guid ProviderId) : Query<Result<ProviderDto?>>;
+public sealed record GetProviderByIdQuery(Guid ProviderId) : Query<Result<ProviderDto?>>, ICacheableQuery
+{
+    public string GetCacheKey()
+    {
+        return $"provider:id:{ProviderId}";
+    }
+
+    public TimeSpan GetCacheExpiration()
+    {
+        // Cache por 15 minutos para dados de prestador individual
+        return TimeSpan.FromMinutes(15);
+    }
+
+    public IReadOnlyCollection<string>? GetCacheTags()
+    {
+        return ["providers", $"provider:{ProviderId}"];
+    }
+}

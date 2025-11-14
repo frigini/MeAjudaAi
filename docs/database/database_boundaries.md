@@ -288,4 +288,84 @@ Based on Milan Jovanović's excellent articles:
 
 ---
 
-Esta estratégia garante boundaries enforceáveis enquanto mantém a simplicidade operacional de um modular monolith.
+## 🔒 Schema Isolation for Users Module
+
+The `SchemaPermissionsManager` implements **security isolation for the Users module** using the existing SQL scripts in `infrastructure/database/schemas/`.
+
+### 🎯 Objectives
+
+- **Data Isolation**: The Users module only accesses the `users` schema.
+- **Security**: The `users_role` cannot access other data.
+- **Reusability**: Uses existing infrastructure scripts.
+- **Flexibility**: Can be enabled/disabled by configuration.
+
+### 🚀 How to Use
+
+#### 1. Development (Current Default)
+```csharp
+// Program.cs - current mode (without isolation)
+services.AddUsersModule(configuration);
+```
+
+#### 2. Production (With Isolation)
+```csharp
+// Program.cs - secure mode
+if (app.Environment.IsProduction())
+{
+    await services.AddUsersModuleWithSchemaIsolationAsync(configuration);
+}
+else
+{
+    services.AddUsersModule(configuration);
+}
+```
+
+#### 3. Configuration (appsettings.Production.json)
+```json
+{
+  "Database": {
+    "EnableSchemaIsolation": true
+  },
+  "ConnectionStrings": {
+    "meajudaai-db-admin": "Host=prod-db;Database=meajudaai;Username=admin;Password=admin_password;"
+  },
+  "Postgres": {
+    "UsersRolePassword": "users_secure_password_123",
+    "AppRolePassword": "app_secure_password_456"
+  }
+}
+```
+
+### 🔧 Existing Scripts Used
+
+- **00-create-roles-users-only.sql**: Creates `users_role` and `meajudaai_app_role`.
+- **02-grant-permissions-users-only.sql**: Grants specific permissions for the Users module.
+
+> **📝 Note on Schemas**: The `users` schema is created automatically by Entity Framework Core through the `HasDefaultSchema("users")` configuration. There is no need for specific schema creation scripts.
+
+### ⚡ Benefits
+
+- ✅ **Reuses existing infrastructure**: Uses already tested scripts.
+- ✅ **Zero manual configuration**: Automatic setup when needed.
+- ✅ **Flexible**: Can be enabled only in production.
+- ✅ **Secure**: Real isolation for the Users module.
+- ✅ **Consistent**: Aligned with the current project structure.
+- ✅ **Simplified**: EF Core manages schema creation automatically.
+
+### 📊 Usage Scenarios
+
+| Environment | Configuration | Behavior |
+|---|---|---|
+| **Development** | `EnableSchemaIsolation: false` | Uses default admin user |
+| **Test** | `EnableSchemaIsolation: false` | TestContainers with a single user |
+| **Staging** | `EnableSchemaIsolation: true` | Dedicated `users_role` user |
+| **Production** | `EnableSchemaIsolation: true` | Maximum security for Users |
+
+### 🛡️ Security Structure
+
+- **users_role**: Exclusive access to the `users` schema.
+- **meajudaai_app_role**: Cross-cutting access for general operations.
+- **Isolation**: The `users` schema is isolated from other data.
+- **Search path**: `users,public` - prioritizes module data.
+
+This solution **fully leverages** your existing infrastructure! 🚀

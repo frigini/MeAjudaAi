@@ -19,4 +19,24 @@ public record GetProvidersQuery(
     string? Name = null,
     int? Type = null,
     int? VerificationStatus = null
-) : Query<Result<PagedResult<ProviderDto>>>;
+) : Query<Result<PagedResult<ProviderDto>>>, ICacheableQuery
+{
+    public string GetCacheKey()
+    {
+        var nameKey = string.IsNullOrEmpty(Name) ? "all" : Name.ToLowerInvariant();
+        var typeKey = Type?.ToString() ?? "all";
+        var statusKey = VerificationStatus?.ToString() ?? "all";
+        return $"providers:list:page:{Page}:size:{PageSize}:name:{nameKey}:type:{typeKey}:status:{statusKey}";
+    }
+
+    public TimeSpan GetCacheExpiration()
+    {
+        // Cache por 5 minutos para listagens (podem mudar frequentemente)
+        return TimeSpan.FromMinutes(5);
+    }
+
+    public IReadOnlyCollection<string>? GetCacheTags()
+    {
+        return ["providers", "providers-list"];
+    }
+}
