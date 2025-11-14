@@ -1,4 +1,6 @@
 using MeAjudaAi.Integration.Tests.Infrastructure;
+using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Auth;
@@ -31,6 +33,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         // Define variáveis de ambiente para testes
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
+        Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
 
         _databaseFixture = new SimpleDatabaseFixture();
         await _databaseFixture.InitializeAsync();
@@ -42,22 +45,9 @@ public abstract class ApiTestBase : IAsyncLifetime
                 builder.ConfigureServices(services =>
                 {
                     // Substitui banco de dados por container de teste - Remove todos os serviços relacionados ao DbContext
-                    var usersDbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<UsersDbContext>));
-                    if (usersDbContextDescriptor != null)
-                        services.Remove(usersDbContextDescriptor);
-
-                    var providersDbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ProvidersDbContext>));
-                    if (providersDbContextDescriptor != null)
-                        services.Remove(providersDbContextDescriptor);
-
-                    // Remove também os serviços DbContext se existirem
-                    var usersDbContextService = services.SingleOrDefault(d => d.ServiceType == typeof(UsersDbContext));
-                    if (usersDbContextService != null)
-                        services.Remove(usersDbContextService);
-
-                    var providersDbContextService = services.SingleOrDefault(d => d.ServiceType == typeof(ProvidersDbContext));
-                    if (providersDbContextService != null)
-                        services.Remove(providersDbContextService);
+                    RemoveDbContextRegistrations<UsersDbContext>(services);
+                    RemoveDbContextRegistrations<ProvidersDbContext>(services);
+                    RemoveDbContextRegistrations<DocumentsDbContext>(services);
 
                     // Adiciona contextos de banco de dados para testes
                     services.AddDbContext<UsersDbContext>(options =>
@@ -83,6 +73,21 @@ public abstract class ApiTestBase : IAsyncLifetime
                         options.ConfigureWarnings(warnings =>
                             warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
                     });
+
+                    services.AddDbContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(options =>
+                    {
+                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Documents.Infrastructure");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "documents");
+                        });
+                        options.EnableSensitiveDataLogging();
+                        options.ConfigureWarnings(warnings =>
+                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                    });
+
+                    // Adiciona mocks de serviços para testes
+                    services.AddDocumentsTestServices();
 
                     // Adiciona autenticação de teste baseada em instância para evitar estado estático
                     services.RemoveRealAuthentication();
@@ -113,17 +118,22 @@ public abstract class ApiTestBase : IAsyncLifetime
         AuthConfig = _factory.Services.GetRequiredService<ITestAuthenticationConfiguration>();
 
         // Aplica migrações do banco de dados para testes
-        // Nota: Ambos os módulos usam setup baseado em migrações para consistência com produção
+        // Nota: Todos os módulos usam setup baseado em migrações para consistência com produção
         using var scope = _factory.Services.CreateScope();
         var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
+        var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
         var logger = scope.ServiceProvider.GetService<ILogger<ApiTestBase>>();
 
         // Aplica migrações exatamente como nos testes E2E
-        await ApplyMigrationsAsync(usersContext, providersContext, logger);
+        await ApplyMigrationsAsync(usersContext, providersContext, documentsContext, logger);
     }
 
-    private static async Task ApplyMigrationsAsync(UsersDbContext usersContext, ProvidersDbContext providersContext, ILogger? logger)
+    private static async Task ApplyMigrationsAsync(
+        UsersDbContext usersContext,
+        ProvidersDbContext providersContext,
+        DocumentsDbContext documentsContext,
+        ILogger? logger)
     {
         // Garante estado limpo do banco de dados (como nos testes E2E)
         try
@@ -137,54 +147,15 @@ public abstract class ApiTestBase : IAsyncLifetime
             throw new InvalidOperationException("Não foi possível limpar o banco de dados antes dos testes", ex);
         }
 
-        // Aplica migrações no UsersDbContext primeiro (cria database e schema users)
-        try
-        {
-            logger?.LogInformation("🔄 Aplicando migrações do módulo Users...");
-            await usersContext.Database.MigrateAsync();
-            logger?.LogInformation("✅ Migrações do banco Users completadas com sucesso");
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "❌ Falha ao aplicar migrações do Users: {Message}", ex.Message);
-            throw new InvalidOperationException("Não foi possível aplicar migrações do banco Users", ex);
-        }
-
-        // Aplica migrações no ProvidersDbContext (banco já existe, só precisa do schema providers)
-        try
-        {
-            logger?.LogInformation("🔄 Aplicando migrações do módulo Providers...");
-            await providersContext.Database.MigrateAsync();
-            logger?.LogInformation("✅ Migrações do banco Providers completadas com sucesso");
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "❌ Falha ao aplicar migrações do Providers: {Message}", ex.Message);
-            throw new InvalidOperationException("Não foi possível aplicar migrações do banco Providers", ex);
-        }
+        // Aplica migrações em todos os módulos
+        await ApplyMigrationForContextAsync(usersContext, "Users", logger, "UsersDbContext primeiro (cria database e schema users)");
+        await ApplyMigrationForContextAsync(providersContext, "Providers", logger, "ProvidersDbContext (banco já existe, só precisa do schema providers)");
+        await ApplyMigrationForContextAsync(documentsContext, "Documents", logger, "DocumentsDbContext (banco já existe, só precisa do schema documents)");
 
         // Verifica se as tabelas existem
-        try
-        {
-            var usersCount = await usersContext.Users.CountAsync();
-            logger?.LogInformation("Verificação do banco Users bem-sucedida - Contagem: {UsersCount}", usersCount);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "Verificação do banco Users falhou");
-            throw new InvalidOperationException("Banco Users não foi inicializado corretamente", ex);
-        }
-
-        try
-        {
-            var providersCount = await providersContext.Providers.CountAsync();
-            logger?.LogInformation("Verificação do banco Providers bem-sucedida - Contagem: {ProvidersCount}", providersCount);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "Verificação do banco Providers falhou");
-            throw new InvalidOperationException("Banco Providers não foi inicializado corretamente", ex);
-        }
+        await VerifyContextAsync(usersContext, "Users", () => usersContext.Users.CountAsync(), logger);
+        await VerifyContextAsync(providersContext, "Providers", () => providersContext.Providers.CountAsync(), logger);
+        await VerifyContextAsync(documentsContext, "Documents", () => documentsContext.Documents.CountAsync(), logger);
     }
 
     public async ValueTask DisposeAsync()
@@ -193,5 +164,66 @@ public abstract class ApiTestBase : IAsyncLifetime
         _factory?.Dispose();
         if (_databaseFixture != null)
             await _databaseFixture.DisposeAsync();
+    }
+
+    /// <summary>
+    /// Remove DbContextOptions e DbContext registrations do DI container.
+    /// </summary>
+    private static void RemoveDbContextRegistrations<TContext>(IServiceCollection services) where TContext : DbContext
+    {
+        var optionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
+        if (optionsDescriptor != null)
+            services.Remove(optionsDescriptor);
+
+        var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
+        if (contextDescriptor != null)
+            services.Remove(contextDescriptor);
+    }
+
+    /// <summary>
+    /// Aplica migrações para um DbContext específico com tratamento de erros padronizado.
+    /// </summary>
+    private static async Task ApplyMigrationForContextAsync<TContext>(
+        TContext context,
+        string moduleName,
+        ILogger? logger,
+        string? description = null) where TContext : DbContext
+    {
+        try
+        {
+            var message = description != null
+                ? $"🔄 Aplicando migrações do módulo {moduleName} ({description})..."
+                : $"🔄 Aplicando migrações do módulo {moduleName}...";
+            logger?.LogInformation(message);
+
+            await context.Database.MigrateAsync();
+            logger?.LogInformation("✅ Migrações do banco {Module} completadas com sucesso", moduleName);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "❌ Falha ao aplicar migrações do {Module}: {Message}", moduleName, ex.Message);
+            throw new InvalidOperationException($"Não foi possível aplicar migrações do banco {moduleName}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Verifica se um DbContext está funcionando corretamente executando uma query de contagem.
+    /// </summary>
+    private static async Task VerifyContextAsync<TContext>(
+        TContext context,
+        string moduleName,
+        Func<Task<int>> countQuery,
+        ILogger? logger) where TContext : DbContext
+    {
+        try
+        {
+            var count = await countQuery();
+            logger?.LogInformation("Verificação do banco {Module} bem-sucedida - Contagem: {Count}", moduleName, count);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Verificação do banco {Module} falhou", moduleName);
+            throw new InvalidOperationException($"Banco {moduleName} não foi inicializado corretamente", ex);
+        }
     }
 }

@@ -1,9 +1,12 @@
+using Hangfire;
+using Hangfire.PostgreSql;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Common.Constants;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;
+using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Monitoring;
 using MeAjudaAi.Shared.Queries;
@@ -39,6 +42,7 @@ internal class MockHostEnvironment : IHostEnvironment
 
 public static class ServiceCollectionExtensions
 {
+    [Obsolete("Use AddSharedServices with IHostEnvironment parameter instead")]
     public static IServiceCollection AddSharedServices(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -84,6 +88,7 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    [Obsolete("Use AddCoreSharedServices, AddInfrastructureServices, and AddBackgroundJobs instead")]
     public static IServiceCollection AddSharedServices(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -127,10 +132,27 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IApplicationBuilder UseSharedServices(this IApplicationBuilder app)
+    private static void ConfigureHangfireDashboard(IApplicationBuilder app, IConfiguration configuration)
+    {
+        var dashboardEnabled = configuration.GetValue<bool>("Hangfire:DashboardEnabled", false);
+        if (dashboardEnabled)
+        {
+            var dashboardPath = configuration.GetValue<string>("Hangfire:DashboardPath", "/hangfire");
+            app.UseHangfireDashboard(dashboardPath, new DashboardOptions
+            {
+                Authorization = new[] { new HangfireAuthorizationFilter() },
+                StatsPollingInterval = 5000,
+                DisplayStorageConnectionString = false
+            });
+        }
+    }
+
+    public static IApplicationBuilder UseSharedServices(this IApplicationBuilder app, IConfiguration configuration)
     {
         app.UseErrorHandling();
-        app.UseAdvancedMonitoring(); // Adiciona middleware de métricas
+        app.UseAdvancedMonitoring();
+
+        ConfigureHangfireDashboard(app, configuration);
 
         return app;
     }
@@ -138,6 +160,9 @@ public static class ServiceCollectionExtensions
     public static async Task<IApplicationBuilder> UseSharedServicesAsync(this IApplicationBuilder app)
     {
         app.UseErrorHandling();
+        // Note: UseAdvancedMonitoring requires BusinessMetrics registration during service configuration.
+        // The async path doesn't currently register these services in the same way as the sync path.
+        // TODO: Align middleware registration between sync/async paths or conditionally apply monitoring.
 
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
                          Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
@@ -149,46 +174,55 @@ public static class ServiceCollectionExtensions
                                  integrationTests == "true" ||
                                  integrationTests == "1";
 
-        // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
-        if (app is WebApplication webApp && !isTestingEnvironment)
+        if (app is WebApplication webApp)
         {
             var configuration = webApp.Services.GetRequiredService<IConfiguration>();
-            var isMessagingEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
 
-            if (isMessagingEnabled)
-            {
-                await webApp.EnsureMessagingInfrastructureAsync();
-            }
+            // Configurar Hangfire Dashboard se habilitado
+            ConfigureHangfireDashboard(app, configuration);
 
-            // Cache warmup em background para não bloquear startup
-            var isCacheWarmupEnabled = configuration.GetValue<bool>("Cache:WarmupEnabled", true);
-            if (isCacheWarmupEnabled)
+            // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
+            if (!isTestingEnvironment)
             {
-                _ = Task.Run(async () =>
+                var isMessagingEnabled = configuration.GetValue<bool>("Messaging:Enabled", true);
+
+                if (isMessagingEnabled)
                 {
-                    try
+                    await webApp.EnsureMessagingInfrastructureAsync();
+                }
+
+                // Cache warmup em background para não bloquear startup
+                var isCacheWarmupEnabled = configuration.GetValue<bool>("Cache:WarmupEnabled", true);
+                if (isCacheWarmupEnabled)
+                {
+                    _ = Task.Run(async () =>
                     {
-                        using var scope = webApp.Services.CreateScope();
-                        var warmupService = scope.ServiceProvider.GetService<ICacheWarmupService>();
-                        if (warmupService != null)
+                        try
                         {
-                            await warmupService.WarmupAsync();
+                            using var scope = webApp.Services.CreateScope();
+                            var warmupService = scope.ServiceProvider.GetService<ICacheWarmupService>();
+                            if (warmupService != null)
+                            {
+                                await warmupService.WarmupAsync();
+                            }
+                            else
+                            {
+                                var logger = webApp.Services.GetService<ILogger<ICacheWarmupService>>();
+                                logger?.LogDebug("ICacheWarmupService não registrado - esperado em ambientes de teste");
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            var logger = webApp.Services.GetService<ILogger<ICacheWarmupService>>();
-                            logger?.LogDebug("ICacheWarmupService não registrado - esperado em ambientes de teste");
+                            var logger = webApp.Services.GetRequiredService<ILogger<ICacheWarmupService>>();
+                            logger.LogWarning(ex, "Falha ao aquecer o cache durante a inicialização - pode ser esperado em testes");
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        var logger = webApp.Services.GetRequiredService<ILogger<ICacheWarmupService>>();
-                        logger.LogWarning(ex, "Falha ao aquecer o cache durante a inicialização - pode ser esperado em testes");
-                    }
-                });
+                    });
+                }
             }
         }
 
         return app;
     }
+
+
 }

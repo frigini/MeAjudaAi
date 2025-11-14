@@ -3,13 +3,13 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Tests.Infrastructure;
-using MeAjudaAi.Shared.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Xunit;
 using Testcontainers.PostgreSql;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
@@ -22,7 +22,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     private PostgreSqlContainer? _container;
     private ServiceProvider? _serviceProvider;
     private readonly string _testClassId;
-    
+
     protected ProvidersIntegrationTestBase()
     {
         _testClassId = $"{GetType().Name}_{Guid.NewGuid():N}";
@@ -62,7 +62,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     {
         // Criar container PostgreSQL isolado para esta classe de teste
         var options = GetTestOptions();
-        
+
         _container = new PostgreSqlBuilder()
             .WithImage(options.Database.PostgresImage)
             .WithDatabase(options.Database.DatabaseName)
@@ -72,28 +72,28 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             .Build();
 
         await _container.StartAsync();
-        
+
         // Configurar serviços com container isolado
         var services = new ServiceCollection();
-        
+
         // Registrar o container específico
         services.AddSingleton(_container);
-        
+
         // Configurar logging otimizado
         services.AddLogging(builder =>
         {
             builder.ConfigureTestLogging();
         });
-        
+
         // Configurar serviços específicos do módulo
         ConfigureModuleServices(services, options);
-        
+
         _serviceProvider = services.BuildServiceProvider();
-        
+
         // Inicializar banco de dados
         await InitializeDatabaseAsync();
     }
-    
+
     /// <summary>
     /// Configura serviços específicos do módulo Providers
     /// </summary>
@@ -101,17 +101,17 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     {
         services.AddProvidersTestInfrastructure(options);
     }
-    
+
     /// <summary>
     /// Inicializa o banco de dados isolado
     /// </summary>
     private async Task InitializeDatabaseAsync()
     {
         var dbContext = _serviceProvider!.GetRequiredService<ProvidersDbContext>();
-        
+
         // Criar banco e esquema sem executar migrations
         await dbContext.Database.EnsureCreatedAsync();
-        
+
         // Verificar isolamento
         var count = await dbContext.Providers.CountAsync();
         if (count > 0)
@@ -170,12 +170,12 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             // Fallback para DELETE se TRUNCATE falhar
             var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
             logger.LogWarning(ex, "TRUNCATE failed: {Message}. Using DELETE fallback...", ex.Message);
-            
+
             await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.qualification;");
             await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.document;");
             await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
         }
-        
+
         // Verificar se limpeza foi bem-sucedida
         var remainingCount = await dbContext.Providers.CountAsync();
         if (remainingCount > 0)
@@ -191,7 +191,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     protected async Task ForceCleanDatabase()
     {
         var dbContext = GetService<ProvidersDbContext>();
-        
+
         try
         {
             // Estratégia 1: TRUNCATE CASCADE
@@ -232,14 +232,14 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         {
             await _serviceProvider.DisposeAsync();
         }
-        
+
         if (_container != null)
         {
             await _container.StopAsync();
             await _container.DisposeAsync();
         }
     }
-    
+
     /// <summary>
     /// Obtém um serviço do provider isolado
     /// </summary>
@@ -249,7 +249,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             throw new InvalidOperationException("Service provider not initialized");
         return _serviceProvider.GetRequiredService<T>();
     }
-    
+
     /// <summary>
     /// Obtém um serviço de um escopo específico
     /// </summary>
@@ -257,7 +257,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     {
         return scope.ServiceProvider.GetRequiredService<T>();
     }
-    
+
     /// <summary>
     /// Cria um escopo de serviços para o teste
     /// </summary>

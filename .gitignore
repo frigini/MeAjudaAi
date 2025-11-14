@@ -129,3 +129,8 @@ postgres_data/
 
 # Bruno API Client collections with credentials
 **/collection.bru
+
+# Analysis reports (temporary/generated)
+legacy-analysis-report.*
+*-analysis-report.html
+*-analysis-report.json

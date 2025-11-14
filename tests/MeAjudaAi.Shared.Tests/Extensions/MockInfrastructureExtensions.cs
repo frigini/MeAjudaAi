@@ -1,3 +1,4 @@
+using System.Reflection;
 using MeAjudaAi.Shared.Tests.Mocks.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -193,16 +194,17 @@ public static class TestEnvironmentProfiles
 /// </summary>
 public static class TestTypeDetector
 {
-    public static TestType DetectTestType()
+    public static ETestType DetectTestType()
     {
-        var testAssembly = System.Reflection.Assembly.GetCallingAssembly().GetName().Name;
+        // xUnit pode retornar null em GetEntryAssembly(), então usamos fallback
+        var testAssembly = (Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly())?.GetName().Name;
 
         return testAssembly switch
         {
-            var name when name?.Contains("Unit") == true => TestType.Unit,
-            var name when name?.Contains("Integration") == true => TestType.Integration,
-            var name when name?.Contains("E2E") == true => TestType.E2E,
-            _ => TestType.Integration // Default
+            var name when name?.Contains("Unit") == true => ETestType.Unit,
+            var name when name?.Contains("Integration") == true => ETestType.Integration,
+            var name when name?.Contains("E2E") == true => ETestType.E2E,
+            _ => ETestType.Integration // Default
         };
     }
 
@@ -212,20 +214,20 @@ public static class TestTypeDetector
 
         switch (testType)
         {
-            case TestType.Unit:
+            case ETestType.Unit:
                 TestEnvironmentProfiles.ConfigureForUnitTests(services);
                 break;
-            case TestType.Integration:
+            case ETestType.Integration:
                 TestEnvironmentProfiles.ConfigureForIntegrationTests(services);
                 break;
-            case TestType.E2E:
+            case ETestType.E2E:
                 TestEnvironmentProfiles.ConfigureForE2ETests(services);
                 break;
         }
     }
 }
 
-public enum TestType
+public enum ETestType
 {
     None = 0,
     Unit,

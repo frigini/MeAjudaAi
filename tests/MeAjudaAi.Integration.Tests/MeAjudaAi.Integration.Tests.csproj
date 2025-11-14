@@ -60,6 +60,11 @@
     <ProjectReference Include="..\..\src\Modules\Providers\Infrastructure\MeAjudaAi.Modules.Providers.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Providers\Application\MeAjudaAi.Modules.Providers.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Providers\API\MeAjudaAi.Modules.Providers.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\Domain\MeAjudaAi.Modules.Documents.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\Infrastructure\MeAjudaAi.Modules.Documents.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\Application\MeAjudaAi.Modules.Documents.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\API\MeAjudaAi.Modules.Documents.API.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\Tests\MeAjudaAi.Modules.Documents.Tests.csproj" />
     <ProjectReference Include="..\..\src\Shared\MeAjudaAi.Shared.csproj" />
     <ProjectReference Include="..\MeAjudaAi.Shared.Tests\MeAjudaAi.Shared.Tests.csproj" />
   </ItemGroup>

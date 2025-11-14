@@ -19,6 +19,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
     
     <!-- API Versioning -->
+    <PackageVersion Include="Asp.Versioning.Http" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     
@@ -81,6 +82,8 @@
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
     
     <!-- Azure -->
+    <PackageVersion Include="Azure.AI.DocumentIntelligence" Version="1.0.0" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.24.0" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
     
     <!-- Messaging -->
@@ -89,6 +92,11 @@
     <PackageVersion Include="Rebus.AzureServiceBus" Version="10.4.1" />
     <PackageVersion Include="Rebus.RabbitMq" Version="10.0.2" />
     <PackageVersion Include="Rebus.ServiceProvider" Version="10.5.0" />
+    
+    <!-- Background Jobs -->
+    <PackageVersion Include="Hangfire.Core" Version="1.8.21" />
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.21" />
+    <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.12" />
     
     <!-- Dependency Injection -->
     <PackageVersion Include="Scrutor" Version="6.1.0" />

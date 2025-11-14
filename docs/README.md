@@ -51,9 +51,18 @@ Se você é novo no projeto, comece por aqui:
 ### **⚙️ Configuração e Constantes**
 
 | Documento | Descrição | Para quem |
-|-----------|-----------|-----------|
+|-----------|-----------|--------|
 | **[📋 Templates de Configuração](./configuration-templates/)** | Templates para todos os ambientes | Desenvolvedores |
 | **[🔧 Sistema de Constantes](./constants_system.md)** | Gestão centralizada de constantes | Desenvolvedores |
+
+### **📚 Guias e Relatórios**
+
+| Documento | Descrição | Para quem |
+|-----------|-----------|--------|
+| **[📝 EditorConfig Implementation Guide](./guides/editorconfig-implementation-guide.md)** | Guia de implementação do EditorConfig | Desenvolvedores |
+| **[🔒 Security Improvements Report](./reports/security-improvements-report.md)** | Relatório de melhorias de segurança | Arquitetos, DevOps |
+| **[📋 PLAN.md](./PLAN.md)** | Plano geral do projeto | Todos |
+| **[🚀 WARP.md](./WARP.md)** | Documentação WARP | Todos |
 
 ## 📁 Documentação Especializada
 
@@ -155,7 +164,15 @@ docs/
 ├── 📁 configuration-templates/ (7 templates)
 ├── 📁 database/ (5 documentos)
 ├── 📁 logging/ (4 documentos)
-└── 📁 messaging/ (4 documentos)
+├── 📁 messaging/ (4 documentos)
+├── 📁 guides/ (guias de implementação)
+│   └── editorconfig-implementation-guide.md
+├── 📁 reports/ (relatórios de análise)
+│   └── security-improvements-report.md
+└── 📁 modules/ (documentação de módulos)
+    ├── users.md
+    ├── providers.md
+    └── documents.md
 ```
 
 ## 🤝 Como Contribuir
@@ -212,5 +229,6 @@ docs/
 
 ---
 
-*📅 Última atualização: Novembro 2025*  
-*✨ Documentação reorganizada e consolidada pela equipe MeAjudaAi*
+*📅 Última atualização: 14 de Novembro de 2025*  
+*✨ Documentação reorganizada e consolidada pela equipe MeAjudaAi*  
+*📂 Arquivos reorganizados: guias → docs/guides/, relatórios → docs/reports/*

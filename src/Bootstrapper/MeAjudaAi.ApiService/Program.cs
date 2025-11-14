@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Providers.API;
 using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.ServiceDefaults;
@@ -10,6 +11,7 @@ using Serilog.Context;
 
 public partial class Program
 {
+    [Obsolete("Main method will be refactored in future version")]
     public static async Task Main(string[] args)
     {
         try
@@ -73,6 +75,7 @@ public partial class Program
         }
     }
 
+    [Obsolete("Services now configured inline in Main method")]
     private static void ConfigureServices(WebApplicationBuilder builder)
     {
         // Configurações via ServiceDefaults e Shared (sem duplicar Serilog)
@@ -82,6 +85,7 @@ public partial class Program
         builder.Services.AddApiServices(builder.Configuration, builder.Environment);
         builder.Services.AddUsersModule(builder.Configuration);
         builder.Services.AddProvidersModule(builder.Configuration);
+        builder.Services.AddDocumentsModule(builder.Configuration);
     }
 
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
@@ -99,6 +103,7 @@ public partial class Program
         app.UseApiServices(app.Environment);
         app.UseUsersModule();
         app.UseProvidersModule();
+        app.UseDocumentsModule();
     }
 
     private static void LogStartupComplete(WebApplication app)

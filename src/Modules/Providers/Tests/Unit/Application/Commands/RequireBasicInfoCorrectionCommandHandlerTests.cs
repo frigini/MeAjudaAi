@@ -34,7 +34,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         var provider = ProviderBuilder.Create()
             .WithId(providerId)
             .Build();
-        
+
         provider.CompleteBasicInfo(); // Transition to PendingDocumentVerification
 
         var command = new RequireBasicInfoCorrectionCommand(
@@ -170,7 +170,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         var provider = ProviderBuilder.Create()
             .WithId(providerId)
             .Build();
-        
+
         // Transition provider to the specified status
         if (status == EProviderStatus.Active)
         {
@@ -246,7 +246,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         var provider = ProviderBuilder.Create()
             .WithId(providerId)
             .Build();
-        
+
         provider.CompleteBasicInfo(); // Transition to PendingDocumentVerification
 
         var command = new RequireBasicInfoCorrectionCommand(
@@ -280,7 +280,7 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         var provider = ProviderBuilder.Create()
             .WithId(providerId)
             .Build();
-        
+
         provider.CompleteBasicInfo(); // Transition to PendingDocumentVerification
 
         var command = new RequireBasicInfoCorrectionCommand(
@@ -303,11 +303,11 @@ public class RequireBasicInfoCorrectionCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         provider.DomainEvents.Should().NotBeEmpty();
-        
+
         var correctionEvent = provider.DomainEvents
             .OfType<ProviderBasicInfoCorrectionRequiredDomainEvent>()
             .Should().ContainSingle().Subject;
-        
+
         correctionEvent.Reason.Should().Be("Contact information needs verification");
         correctionEvent.RequestedBy.Should().Be("verifier@test.com");
     }

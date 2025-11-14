@@ -7,6 +7,7 @@ internal static class Extensions
     public static IServiceCollection AddEvents(this IServiceCollection services)
     {
         services.AddSingleton<IEventDispatcher, EventDispatcher>();
+        services.AddScoped<IDomainEventProcessor, DomainEventProcessor>();
 
         services.Scan(scan => scan
             .FromAssembliesOf(typeof(IEvent))

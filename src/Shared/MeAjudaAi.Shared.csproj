@@ -65,6 +65,11 @@
     <PackageReference Include="Rebus.RabbitMq" />
     <PackageReference Include="Rebus.ServiceProvider" />
     
+    <!-- Background Jobs -->
+    <PackageReference Include="Hangfire.Core" />
+    <PackageReference Include="Hangfire.AspNetCore" />
+    <PackageReference Include="Hangfire.PostgreSql" />
+    
     <!-- System -->
     <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="System.Text.Json" />

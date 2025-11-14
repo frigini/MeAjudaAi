@@ -34,7 +34,7 @@ public sealed class RequireBasicInfoCorrectionCommandHandler(
         try
         {
             logger.LogInformation(
-                "Requiring basic info correction for provider {ProviderId}. Reason: {Reason}, Requested by: {RequestedBy}", 
+                "Requiring basic info correction for provider {ProviderId}. Reason: {Reason}, Requested by: {RequestedBy}",
                 command.ProviderId, command.Reason, command.RequestedBy);
 
             if (string.IsNullOrWhiteSpace(command.Reason))
@@ -61,16 +61,16 @@ public sealed class RequireBasicInfoCorrectionCommandHandler(
             await providerRepository.UpdateAsync(provider, cancellationToken);
 
             logger.LogInformation(
-                "Basic info correction required for provider {ProviderId}. Provider returned to PendingBasicInfo status", 
+                "Basic info correction required for provider {ProviderId}. Provider returned to PendingBasicInfo status",
                 command.ProviderId);
-            
+
             return Result.Success();
         }
         catch (ProviderDomainException ex)
         {
             // Preserve domain validation messages for actionable feedback
-            logger.LogWarning(ex, 
-                "Domain validation failed when requiring basic info correction for provider {ProviderId}: {Message}", 
+            logger.LogWarning(ex,
+                "Domain validation failed when requiring basic info correction for provider {ProviderId}: {Message}",
                 command.ProviderId, ex.Message);
             return Result.Failure(ex.Message);
         }

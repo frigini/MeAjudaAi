@@ -31,7 +31,7 @@ public sealed class RejectProviderCommandHandler(
     {
         try
         {
-            logger.LogInformation("Rejecting provider {ProviderId}. Reason: {Reason}", 
+            logger.LogInformation("Rejecting provider {ProviderId}. Reason: {Reason}",
                 command.ProviderId, command.Reason);
 
             if (string.IsNullOrWhiteSpace(command.Reason))
