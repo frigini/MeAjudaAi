@@ -35,18 +35,4 @@ public class AzureDocumentIntelligenceServiceTests
         act.Should().Throw<ArgumentNullException>()
             .WithParameterName("client");
     }
-
-    [Fact]
-    public void Constructor_WhenLoggerIsNull_ShouldThrowArgumentNullException()
-    {
-        // Act & Assert
-        // Cannot test this directly because DocumentIntelligenceClient is sealed and cannot be mocked.
-        // The primary constructor will throw when client is null (tested above).
-        // This validation is inherently tested by the constructor parameter validation.
-        Assert.Throws<ArgumentNullException>(() =>
-        {
-            // This will fail at client validation first, but demonstrates logger is also required
-            _ = new AzureDocumentIntelligenceService(null!, null!);
-        });
-    }
 }

@@ -63,6 +63,7 @@ public class DocumentsIntegrationTests : ApiTestBase
 
         // Act - Add
         await repository.AddAsync(document);
+        await repository.SaveChangesAsync();
 
         // Act - Retrieve
         var retrieved = await repository.GetByIdAsync(document.Id);
