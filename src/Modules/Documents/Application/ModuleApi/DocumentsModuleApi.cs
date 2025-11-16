@@ -90,6 +90,8 @@ public sealed class DocumentsModuleApi(
         {
             // Teste básico: tentar buscar por ID não existente
             // GetDocumentByIdAsync owns error logging
+            // NOTE: This couples availability to GetDocumentByIdAsync returning Success(null) for not-found.
+            // Consider introducing a lightweight health check query (SELECT 1) to decouple from business API semantics.
             var testId = Guid.NewGuid();
             var result = await GetDocumentByIdAsync(testId, cancellationToken);
 
@@ -166,6 +168,9 @@ public sealed class DocumentsModuleApi(
     /// status change (verification or rejection). The domain model sets VerifiedAt when documents
     /// are verified OR rejected. For documents still in Uploaded/PendingVerification status,
     /// falls back to UploadedAt.</para>
+    /// <para><strong>Note:</strong> RejectedAt is NOT used in the fallback chain because the domain
+    /// already populates VerifiedAt for rejected documents, making VerifiedAt the authoritative
+    /// timestamp for all terminal states (Verified/Rejected).</para>
     /// </remarks>
     public async Task<Result<ModuleDocumentStatusDto?>> GetDocumentStatusAsync(
         Guid documentId,
@@ -202,18 +207,22 @@ public sealed class DocumentsModuleApi(
     }
 
     // PERFORMANCE NOTE: The following methods fetch all provider documents and filter in-memory.
-    // This is acceptable for small document sets (<10 per provider), but consider optimization
-    // if providers have many documents or these methods are called frequently.
     //
-    // TODO: Implement specialized queries for document status checks (to be tracked when needed)
+    // CURRENT DATA MODEL CONSTRAINT:
+    // EDocumentType has exactly 4 types (IdentityDocument, ProofOfResidence, CriminalRecord, Other).
+    // The ix_documents_provider_type index on (ProviderId, DocumentType) suggests the design allows
+    // at most one document per type per provider, capping each provider at ~4 documents maximum.
+    // Therefore, in-memory filtering is highly efficient and optimization is NOT currently needed.
+    //
+    // TODO: Implement specialized queries for document status checks ONLY IF:
+    // - EDocumentType enum is extended with additional types (>10 types)
+    // - Data model changes to allow multiple documents per type (removing one-per-type assumption)
+    // - Performance metrics show this as a bottleneck despite the 4-document cap
+    //
+    // Potential optimizations (deferred until model changes):
     // - HasVerifiedDocumentsQuery, HasPendingDocumentsQuery, HasRejectedDocumentsQuery
     // - GetDocumentStatusCountQuery (GroupBy + Count in database)
     // - HasRequiredDocumentsQuery (complex filtering with All())
-    //
-    // Optimization will be prioritized when:
-    // - Average documents per provider >10
-    // - Performance metrics show this as a bottleneck
-    // - Search module or workflows call these methods frequently
 
     /// <summary>
     /// Helper method to get provider documents and handle common error propagation.

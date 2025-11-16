@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Search.Domain.Repositories;
 using MeAjudaAi.Modules.Search.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Search.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Shared.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,6 +41,9 @@ public static class Extensions
                 options.EnableSensitiveDataLogging();
             }
         });
+
+        // Registrar Dapper para queries espaciais otimizadas
+        services.AddDapper();
 
         // Registrar repositórios
         services.AddScoped<ISearchableProviderRepository, SearchableProviderRepository>();

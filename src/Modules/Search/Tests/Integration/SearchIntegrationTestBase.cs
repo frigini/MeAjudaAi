@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Search.Domain.Entities;
 using MeAjudaAi.Modules.Search.Domain.Enums;
 using MeAjudaAi.Modules.Search.Domain.ValueObjects;
 using MeAjudaAi.Modules.Search.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,6 +68,19 @@ public abstract class SearchIntegrationTestBase : IAsyncLifetime
             // Use same naming convention as production
             options.UseSnakeCaseNamingConvention();
         });
+
+        // Registrar PostgresOptions para Dapper
+        var connectionString = _container.GetConnectionString();
+        services.AddSingleton(new PostgresOptions { ConnectionString = connectionString });
+
+        // Registrar métricas (IMeterFactory requerido por DatabaseMetrics)
+        services.AddMetrics();
+
+        // Registrar DatabaseMetrics + Interceptor (via AddDatabaseMonitoring do Shared)
+        services.AddDatabaseMonitoring();
+
+        // Registrar Dapper connection (necessário para SearchableProviderRepository)
+        services.AddScoped<IDapperConnection, DapperConnection>();
 
         // Registrar repositório
         services.AddScoped<MeAjudaAi.Modules.Search.Domain.Repositories.ISearchableProviderRepository, 

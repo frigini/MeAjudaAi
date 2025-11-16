@@ -124,6 +124,48 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     }
 
     /// <summary>
+    /// Reconstitui uma entidade existente do banco de dados.
+    /// Usado internamente pela camada de infraestrutura (Dapper queries) para reconstruir
+    /// entidades com IDs e estado existentes sem gerar novos IDs.
+    /// </summary>
+    /// <remarks>
+    /// Este método é internal (não public) para evitar uso incorreto.
+    /// Apenas a camada de infraestrutura (mesmo assembly) pode reconstruir entidades.
+    /// </remarks>
+    internal static SearchableProvider Reconstitute(
+        Guid id,
+        Guid providerId,
+        string name,
+        GeoPoint location,
+        ESubscriptionTier subscriptionTier,
+        decimal averageRating,
+        int totalReviews,
+        Guid[] serviceIds,
+        bool isActive,
+        string? description = null,
+        string? city = null,
+        string? state = null)
+    {
+        var searchableProvider = new SearchableProvider(
+            new SearchableProviderId(id),
+            providerId,
+            name,
+            location,
+            subscriptionTier)
+        {
+            Description = description,
+            City = city,
+            State = state,
+            AverageRating = averageRating,
+            TotalReviews = totalReviews,
+            ServiceIds = serviceIds,
+            IsActive = isActive
+        };
+
+        return searchableProvider;
+    }
+
+    /// <summary>
     /// Atualiza as informações básicas do provedor.
     /// </summary>
     public void UpdateBasicInfo(string name, string? description, string? city, string? state)

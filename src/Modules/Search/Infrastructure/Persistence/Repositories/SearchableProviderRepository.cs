@@ -3,6 +3,8 @@ using MeAjudaAi.Modules.Search.Domain.Enums;
 using MeAjudaAi.Modules.Search.Domain.Models;
 using MeAjudaAi.Modules.Search.Domain.Repositories;
 using MeAjudaAi.Modules.Search.Domain.ValueObjects;
+using MeAjudaAi.Modules.Search.Infrastructure.Persistence.DTOs;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
@@ -12,24 +14,41 @@ namespace MeAjudaAi.Modules.Search.Infrastructure.Persistence.Repositories;
 /// <summary>
 /// Implementação de repositório para SearchableProvider.
 /// 
-/// NOTA SOBRE PERFORMANCE:
-/// Atualmente realiza filtragem espacial (distância/raio) em memória após carregar
-/// provedores filtrados do banco. Filtros não-espaciais (serviços, avaliação, tier)
-/// são aplicados no nível do banco de dados.
+/// ARQUITETURA HÍBRIDA (EF Core + Dapper):
+/// Este repositório usa o melhor de cada ORM para diferentes tipos de operações:
 /// 
-/// LIMITAÇÃO DO EF CORE:
-/// A propriedade Location usa HasConversion (GeoPoint <-> NTS.Point), o que impede
-/// o EF Core de traduzir funções espaciais NTS (IsWithinDistance, Distance) para SQL.
-/// Soluções futuras: usar FromSqlInterpolated ou remover conversão customizada.
+/// EF CORE (Operações CRUD):
+/// - GetByIdAsync, GetByProviderIdAsync → type-safe, navegação simples
+/// - AddAsync, UpdateAsync, DeleteAsync → change tracking, validações automáticas
+/// - SaveChangesAsync → transações gerenciadas, unit of work pattern
+/// - Mantém encapsulamento do domínio (GeoPoint value object, validações)
 /// 
-/// ESCALABILIDADE:
-/// Para datasets pequenos/médios (milhares de provedores), a abordagem híbrida funciona bem.
-/// Para datasets grandes (milhões), considerar:
-/// 1. Remover HasConversion e usar GeoJSON/WKT
-/// 2. Usar FromSqlRaw com ST_DWithin/ST_Distance do PostGIS
-/// 3. Implementar caching de resultados geoespaciais
+/// DAPPER + POSTGIS NATIVO (Queries Espaciais):
+/// - SearchAsync → raw SQL com ST_DWithin e ST_Distance do PostGIS
+/// - Aproveita índices GIST espaciais para máxima performance
+/// - Filtragem/ordenação/paginação executadas no banco de dados
+/// - Resolve limitação do EF Core que não traduz HasConversion para funções espaciais
+/// 
+/// POR QUE HÍBRIDO?
+/// - EF Core não consegue traduzir Location (HasConversion GeoPoint<->NTS.Point) para SQL espacial
+/// - Remover HasConversion quebraria encapsulamento do domínio
+/// - Dapper para tudo seria overhead desnecessário (sem change tracking, mapeamento manual)
+/// - Solução: use cada ferramenta onde ela brilha
+/// 
+/// PERFORMANCE:
+/// - Queries espaciais executam ST_DWithin/ST_Distance diretamente no PostGIS
+/// - Índices GIST são utilizados (ix_searchable_providers_location)
+/// - Paginação acontece no banco (OFFSET/LIMIT), não em memória
+/// - Distâncias calculadas uma única vez no SQL, retornadas com os resultados
+/// 
+/// MAPEAMENTO:
+/// - ProviderSearchResultDto (interno) → SearchableProvider (domínio)
+/// - Usa IDapperConnection do Shared (já configurado com métricas e logging)
+/// - Mantém todas as invariantes e validações do domínio
 /// </summary>
-public sealed class SearchableProviderRepository(SearchDbContext context) : ISearchableProviderRepository
+public sealed class SearchableProviderRepository(
+    SearchDbContext context,
+    IDapperConnection dapper) : ISearchableProviderRepository
 {
     public async Task<SearchableProvider?> GetByIdAsync(SearchableProviderId id, CancellationToken cancellationToken = default)
     {
@@ -53,62 +72,153 @@ public sealed class SearchableProviderRepository(SearchDbContext context) : ISea
         int take = 20,
         CancellationToken cancellationToken = default)
     {
-        // Build base query - filter by active status (uses ix_searchable_providers_is_active index)
-        var query = context.SearchableProviders
-            .AsNoTracking()
-            .Where(p => p.IsActive);
+        // Usar Dapper com PostGIS nativo para máxima performance espacial
+        // ST_DWithin filtra por raio usando índice GIST
+        // ST_Distance calcula distância exata em metros
+        var sql = BuildSpatialSearchSql(serviceIds, minRating, subscriptionTiers);
 
-        // Apply service filter using PostgreSQL array overlap operator
-        // EF Core translates ServiceIds.Any() to PostgreSQL && operator
-        // This uses the GIN index on service_ids column for efficient filtering
-        if (serviceIds != null && serviceIds.Length > 0)
-        {
-            query = query.Where(p => p.ServiceIds.Any(sid => serviceIds.Contains(sid)));
-        }
+        var results = await dapper.QueryAsync<ProviderSearchResultDto>(
+            sql,
+            new
+            {
+                Lat = location.Latitude,
+                Lng = location.Longitude,
+                RadiusMeters = radiusInKm * 1000, // Converter km para metros
+                ServiceIds = serviceIds,
+                MinRating = minRating,
+                Tiers = subscriptionTiers?.Select(t => (int)t).ToArray(),
+                Skip = Math.Max(0, skip),
+                Take = Math.Max(0, take)
+            });
 
-        // Apply minimum rating filter (uses ix_searchable_providers_search_ranking composite index)
-        if (minRating.HasValue)
-        {
-            query = query.Where(p => p.AverageRating >= minRating.Value);
-        }
+        var resultList = results.ToList();
 
-        // Apply subscription tier filter (uses ix_searchable_providers_subscription_tier index)
-        if (subscriptionTiers != null && subscriptionTiers.Length > 0)
-        {
-            query = query.Where(p => subscriptionTiers.Contains(p.SubscriptionTier));
-        }
+        // Contar total antes da paginação (executar query de count separada)
+        var countSql = BuildSpatialCountSql(serviceIds, minRating, subscriptionTiers);
+        var totalCount = await dapper.QuerySingleOrDefaultAsync<int?>(
+            countSql,
+            new
+            {
+                Lat = location.Latitude,
+                Lng = location.Longitude,
+                RadiusMeters = radiusInKm * 1000,
+                ServiceIds = serviceIds,
+                MinRating = minRating,
+                Tiers = subscriptionTiers?.Select(t => (int)t).ToArray()
+            }) ?? 0;
 
-        // Execute non-spatial filters in database (optimized with indexes)
-        var allProviders = await query.ToListAsync(cancellationToken);
-
-        // Apply spatial filtering in-memory with cached distances
-        // REASON: EF Core cannot translate Location property (has HasConversion) to PostGIS functions
-        // The GeoPoint -> Point conversion prevents query translation
-        // Cache distance per provider to avoid redundant calculations during filter/sort/map
-        var withDistance = allProviders
-            .Select(p => new { Provider = p, Distance = p.CalculateDistanceToInKm(location) })
-            .Where(x => x.Distance <= radiusInKm)
-            .ToList();
-
-        var totalCount = withDistance.Count;
-
-        // Apply sorting and pagination in-memory
-        // Order: SubscriptionTier (desc) -> AverageRating (desc) -> Distance (asc)
-        // Guard pagination parameters to prevent negative OFFSET/LIMIT reaching PostgreSQL
-        var paginated = withDistance
-            .OrderByDescending(x => x.Provider.SubscriptionTier)
-            .ThenByDescending(x => x.Provider.AverageRating)
-            .ThenBy(x => x.Distance)
-            .Skip(Math.Max(0, skip))
-            .Take(Math.Max(0, take))
-            .ToList();
+        // Mapear DTOs de volta para entidades do domínio
+        var providers = resultList.Select(MapToEntity).ToList();
+        var distances = resultList.Select(r => r.DistanceKm).ToList();
 
         return new SearchResult
         {
-            Providers = paginated.Select(x => x.Provider).ToList(),
-            DistancesInKm = paginated.Select(x => x.Distance).ToList(),
+            Providers = providers,
+            DistancesInKm = distances,
             TotalCount = totalCount
         };
+    }
+
+    private static string BuildSpatialSearchSql(
+        Guid[]? serviceIds,
+        decimal? minRating,
+        ESubscriptionTier[]? subscriptionTiers)
+    {
+        var serviceFilter = serviceIds?.Length > 0
+            ? "AND service_ids && @ServiceIds"
+            : "";
+
+        var ratingFilter = minRating.HasValue
+            ? "AND average_rating >= @MinRating"
+            : "";
+
+        var tierFilter = subscriptionTiers?.Length > 0
+            ? "AND subscription_tier = ANY(@Tiers)"
+            : "";
+
+        return $"""
+            SELECT 
+                id AS Id,
+                provider_id AS ProviderId,
+                name AS Name,
+                description AS Description,
+                ST_Y(location::geometry) AS Latitude,
+                ST_X(location::geometry) AS Longitude,
+                average_rating AS AverageRating,
+                total_reviews AS TotalReviews,
+                subscription_tier AS SubscriptionTier,
+                service_ids AS ServiceIds,
+                city AS City,
+                state AS State,
+                is_active AS IsActive,
+                ST_Distance(
+                    location::geography,
+                    ST_SetSRID(ST_MakePoint(@Lng, @Lat), 4326)::geography
+                ) / 1000.0 AS DistanceKm
+            FROM search.searchable_providers
+            WHERE is_active = true
+                AND ST_DWithin(
+                    location::geography,
+                    ST_SetSRID(ST_MakePoint(@Lng, @Lat), 4326)::geography,
+                    @RadiusMeters
+                )
+                {serviceFilter}
+                {ratingFilter}
+                {tierFilter}
+            ORDER BY SubscriptionTier DESC, AverageRating DESC, DistanceKm ASC
+            OFFSET @Skip LIMIT @Take
+            """;
+    }
+
+    private static string BuildSpatialCountSql(
+        Guid[]? serviceIds,
+        decimal? minRating,
+        ESubscriptionTier[]? subscriptionTiers)
+    {
+        var serviceFilter = serviceIds?.Length > 0
+            ? "AND service_ids && @ServiceIds"
+            : "";
+
+        var ratingFilter = minRating.HasValue
+            ? "AND average_rating >= @MinRating"
+            : "";
+
+        var tierFilter = subscriptionTiers?.Length > 0
+            ? "AND subscription_tier = ANY(@Tiers)"
+            : "";
+
+        return $"""
+            SELECT COUNT(*)::int
+            FROM search.searchable_providers
+            WHERE is_active = true
+                AND ST_DWithin(
+                    location::geography,
+                    ST_SetSRID(ST_MakePoint(@Lng, @Lat), 4326)::geography,
+                    @RadiusMeters
+                )
+                {serviceFilter}
+                {ratingFilter}
+                {tierFilter}
+            """;
+    }
+
+    private static SearchableProvider MapToEntity(ProviderSearchResultDto dto)
+    {
+        // Usar método Reconstitute do domínio para reconstruir entidade existente do banco
+        // (em vez de Create que geraria novo ID)
+        return SearchableProvider.Reconstitute(
+            id: dto.Id,
+            providerId: dto.ProviderId,
+            name: dto.Name,
+            location: new GeoPoint(dto.Latitude, dto.Longitude),
+            subscriptionTier: (ESubscriptionTier)dto.SubscriptionTier,
+            averageRating: dto.AverageRating,
+            totalReviews: dto.TotalReviews,
+            serviceIds: dto.ServiceIds,
+            isActive: dto.IsActive,
+            description: dto.Description,
+            city: dto.City,
+            state: dto.State);
     }
 
     public async Task AddAsync(SearchableProvider provider, CancellationToken cancellationToken = default)
