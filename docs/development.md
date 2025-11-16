@@ -741,7 +741,7 @@ MODULES=(
 No arquivo `.github/workflows/aspire-ci-cd.yml`, se o módulo tiver testes específicos que precisam ser executados no pipeline de deploy, adicione-os na seção de testes:
 
 ```bash
-donet test src/Modules/{ModuleName}/MeAjudaAi.Modules.{ModuleName}.Tests/ --no-build --configuration Release
+dotnet test src/Modules/{ModuleName}/MeAjudaAi.Modules.{ModuleName}.Tests/ --no-build --configuration Release
 ```
 #### 4. Cobertura de Código
 

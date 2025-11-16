@@ -58,6 +58,61 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
+        // Validate inputs at endpoint boundary
+        if (pageNumber < 1)
+        {
+            return Results.BadRequest(new ProblemDetails
+            {
+                Title = "Invalid Parameter",
+                Detail = "pageNumber must be greater than or equal to 1",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        if (pageSize <= 0)
+        {
+            return Results.BadRequest(new ProblemDetails
+            {
+                Title = "Invalid Parameter",
+                Detail = "pageSize must be greater than 0",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        // Enforce sensible maximum for pageSize
+        const int MaxPageSize = 100;
+        if (pageSize > MaxPageSize)
+        {
+            return Results.BadRequest(new ProblemDetails
+            {
+                Title = "Invalid Parameter",
+                Detail = $"pageSize must not exceed {MaxPageSize}",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        if (radiusInKm <= 0)
+        {
+            return Results.BadRequest(new ProblemDetails
+            {
+                Title = "Invalid Parameter",
+                Detail = "radiusInKm must be greater than 0",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        // Optional: enforce sensible maximum for radius
+        const double MaxRadiusInKm = 500;
+        if (radiusInKm > MaxRadiusInKm)
+        {
+            return Results.BadRequest(new ProblemDetails
+            {
+                Title = "Invalid Parameter",
+                Detail = $"radiusInKm must not exceed {MaxRadiusInKm} km",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
         var query = new SearchProvidersQuery(
             latitude,
             longitude,

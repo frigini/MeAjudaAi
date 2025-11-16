@@ -225,4 +225,109 @@ public class SearchProvidersQueryValidatorTests
         // Assert
         result.IsValid.Should().BeTrue();
     }
+
+    [Fact]
+    public void Validate_WithNullMinRating_ShouldPass()
+    {
+        // Arrange
+        var query = new SearchProvidersQuery(
+            Latitude: -23.5505,
+            Longitude: -46.6333,
+            RadiusInKm: 10,
+            MinRating: null);
+
+        // Act
+        var result = _validator.Validate(query);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(-90)] // Min valid latitude
+    [InlineData(90)]  // Max valid latitude
+    public void Validate_WithBoundaryLatitude_ShouldPass(double latitude)
+    {
+        // Arrange
+        var query = new SearchProvidersQuery(
+            Latitude: latitude,
+            Longitude: -46.6333,
+            RadiusInKm: 10);
+
+        // Act
+        var result = _validator.Validate(query);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(-180)] // Min valid longitude
+    [InlineData(180)]  // Max valid longitude
+    public void Validate_WithBoundaryLongitude_ShouldPass(double longitude)
+    {
+        // Arrange
+        var query = new SearchProvidersQuery(
+            Latitude: -23.5505,
+            Longitude: longitude,
+            RadiusInKm: 10);
+
+        // Act
+        var result = _validator.Validate(query);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_WithRadiusAt500Km_ShouldPass()
+    {
+        // Arrange - boundary value at maximum
+        var query = new SearchProvidersQuery(
+            Latitude: -23.5505,
+            Longitude: -46.6333,
+            RadiusInKm: 500);
+
+        // Act
+        var result = _validator.Validate(query);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Validate_WithPageSizeAt100_ShouldPass()
+    {
+        // Arrange - boundary value at maximum
+        var query = new SearchProvidersQuery(
+            Latitude: -23.5505,
+            Longitude: -46.6333,
+            RadiusInKm: 10,
+            PageSize: 100);
+
+        // Act
+        var result = _validator.Validate(query);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(0)]   // Min valid rating
+    [InlineData(5)]   // Max valid rating
+    public void Validate_WithBoundaryMinRating_ShouldPass(decimal minRating)
+    {
+        // Arrange
+        var query = new SearchProvidersQuery(
+            Latitude: -23.5505,
+            Longitude: -46.6333,
+            RadiusInKm: 10,
+            MinRating: minRating);
+
+        // Act
+        var result = _validator.Validate(query);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
 }
