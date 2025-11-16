@@ -30,8 +30,11 @@ public sealed class DocumentsModuleApi(
     IServiceProvider serviceProvider,
     ILogger<DocumentsModuleApi> logger) : IDocumentsModuleApi
 {
-    public string ModuleName => "Documents";
-    public string ApiVersion => "1.0";
+    private const string ModuleNameConst = "Documents";
+    private const string ApiVersionConst = "1.0";
+
+    public string ModuleName => ModuleNameConst;
+    public string ApiVersion => ApiVersionConst;
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
@@ -285,6 +288,20 @@ public sealed class DocumentsModuleApi(
         }
     }
 
+    /// <summary>
+    /// Verifica se o provedor possui todos os documentos obrigatórios VERIFICADOS.
+    /// </summary>
+    /// <param name="providerId">ID do provedor</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True se possui IdentityDocument e ProofOfResidence verificados; False caso contrário</returns>
+    /// <remarks>
+    /// Documentos obrigatórios:
+    /// - IdentityDocument (RG, CNH, etc.)
+    /// - ProofOfResidence (Comprovante de residência)
+    /// 
+    /// Este método verifica PRESENÇA + STATUS VERIFICADO. Documentos apenas enviados
+    /// (Uploaded/PendingVerification) ou rejeitados não satisfazem o requisito.
+    /// </remarks>
     public async Task<Result<bool>> HasRequiredDocumentsAsync(
         Guid providerId,
         CancellationToken cancellationToken = default)
@@ -300,9 +317,13 @@ public sealed class DocumentsModuleApi(
 
             var documents = documentsResult.Value!;
 
-            // Documentos obrigatórios: IdentityDocument e ProofOfResidence
-            var hasIdentity = documents.Any(d => d.DocumentType == TypeString(EDocumentType.IdentityDocument));
-            var hasProofOfResidence = documents.Any(d => d.DocumentType == TypeString(EDocumentType.ProofOfResidence));
+            // Documentos obrigatórios: IdentityDocument e ProofOfResidence (ambos devem estar VERIFICADOS)
+            var hasIdentity = documents.Any(d => 
+                d.DocumentType == TypeString(EDocumentType.IdentityDocument) && 
+                d.Status == StatusString(EDocumentStatus.Verified));
+            var hasProofOfResidence = documents.Any(d => 
+                d.DocumentType == TypeString(EDocumentType.ProofOfResidence) &&
+                d.Status == StatusString(EDocumentStatus.Verified));
 
             var hasRequired = hasIdentity && hasProofOfResidence;
             return Result<bool>.Success(hasRequired);
@@ -418,10 +439,10 @@ public sealed class DocumentsModuleApi(
         {
             Id = document.Id,
             ProviderId = document.ProviderId,
-            DocumentType = document.DocumentType.ToString(),
+            DocumentType = TypeString(document.DocumentType),
             FileName = document.FileName,
             FileUrl = document.FileUrl,
-            Status = document.Status.ToString(),
+            Status = StatusString(document.Status),
             UploadedAt = document.UploadedAt,
             VerifiedAt = document.VerifiedAt,
             RejectionReason = document.RejectionReason,

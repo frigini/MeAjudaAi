@@ -321,7 +321,8 @@ public class DocumentsModuleApiTests
             "https://storage.example.com/test-document.pdf",
             status,
             DateTime.UtcNow.AddDays(-5),
-            status == EDocumentStatus.Verified ? DateTime.UtcNow : null,
+            // VerifiedAt is set when document is Verified OR Rejected (domain behavior)
+            status == EDocumentStatus.Verified || status == EDocumentStatus.Rejected ? DateTime.UtcNow : null,
             status == EDocumentStatus.Rejected ? "Invalid document" : null,
             null);
     }

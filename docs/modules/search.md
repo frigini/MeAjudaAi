@@ -230,7 +230,7 @@ pageSize=20"
 
 #### **Respostas de Erro**
 
-**400 Bad Request - Parâmetros Inválidos**
+### 400 Bad Request - Parâmetros Inválidos
 
 ```json
 {
@@ -249,7 +249,7 @@ pageSize=20"
 - `pageSize` ≤ 0 ou > 100
 - `minRating` fora do intervalo [0, 5]
 
-**422 Unprocessable Entity - Falha de Validação Complexa**
+### 422 Unprocessable Entity - Falha de Validação Complexa
 
 ```json
 {
@@ -263,7 +263,7 @@ pageSize=20"
 }
 ```
 
-**500 Internal Server Error - Falha do Servidor**
+### 500 Internal Server Error - Falha do Servidor
 
 ```json
 {
@@ -348,6 +348,10 @@ USING GIST (location);
 ---
 
 ## 🔗 Integração com Outros Módulos
+
+> ⚠️ **IMPORTANTE**: A integração automática com outros módulos ainda não está implementada.
+> O módulo Search atualmente opera de forma independente sem sincronização automática.
+> Os dados são estáticos até que a integração via eventos de domínio seja implementada.
 
 ### **Providers Module**
 O módulo Search é um **read model** sincronizado com o módulo Providers:
