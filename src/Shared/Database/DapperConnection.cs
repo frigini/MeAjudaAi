@@ -23,10 +23,10 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
 
     public async Task<IEnumerable<T>> QueryAsync<T>(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         var stopwatch = Stopwatch.StartNew();
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var connection = new NpgsqlConnection(_connectionString);
             var commandDefinition = new CommandDefinition(sql, param, cancellationToken: cancellationToken);
             var result = await connection.QueryAsync<T>(commandDefinition);
@@ -35,6 +35,12 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
             metrics.RecordDapperQuery("query_multiple", stopwatch.Elapsed);
 
             return result;
+        }
+        catch (OperationCanceledException)
+        {
+            stopwatch.Stop();
+            // Não registrar cancelamentos como erros - são esperados em casos normais
+            throw;
         }
         catch (Exception ex)
         {
@@ -46,10 +52,10 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
 
     public async Task<T?> QuerySingleOrDefaultAsync<T>(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         var stopwatch = Stopwatch.StartNew();
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var connection = new NpgsqlConnection(_connectionString);
             var commandDefinition = new CommandDefinition(sql, param, cancellationToken: cancellationToken);
             var result = await connection.QuerySingleOrDefaultAsync<T>(commandDefinition);
@@ -58,6 +64,12 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
             metrics.RecordDapperQuery("query_single", stopwatch.Elapsed);
 
             return result;
+        }
+        catch (OperationCanceledException)
+        {
+            stopwatch.Stop();
+            // Não registrar cancelamentos como erros - são esperados em casos normais
+            throw;
         }
         catch (Exception ex)
         {
@@ -69,10 +81,10 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
 
     public async Task<int> ExecuteAsync(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         var stopwatch = Stopwatch.StartNew();
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var connection = new NpgsqlConnection(_connectionString);
             var commandDefinition = new CommandDefinition(sql, param, cancellationToken: cancellationToken);
             var result = await connection.ExecuteAsync(commandDefinition);
@@ -81,6 +93,12 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
             metrics.RecordDapperQuery("execute", stopwatch.Elapsed);
 
             return result;
+        }
+        catch (OperationCanceledException)
+        {
+            stopwatch.Stop();
+            // Não registrar cancelamentos como erros - são esperados em casos normais
+            throw;
         }
         catch (Exception ex)
         {

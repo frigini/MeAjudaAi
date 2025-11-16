@@ -72,6 +72,17 @@ public sealed class SearchableProviderRepository(
         int take = 20,
         CancellationToken cancellationToken = default)
     {
+        // Validar raio antes de executar query no banco
+        if (radiusInKm <= 0)
+        {
+            return new SearchResult
+            {
+                Providers = [],
+                DistancesInKm = [],
+                TotalCount = 0
+            };
+        }
+
         // Usar Dapper com PostGIS nativo para máxima performance espacial
         // ST_DWithin filtra por raio usando índice GIST
         // ST_Distance calcula distância exata em metros

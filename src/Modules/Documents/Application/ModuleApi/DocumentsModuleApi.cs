@@ -345,13 +345,18 @@ public sealed class DocumentsModuleApi(
 
             var documents = documentsResult.Value!;
 
+            // Single-pass GroupBy para eficiência (embora com ≤4 documentos a diferença seja mínima)
+            var statusGroups = documents
+                .GroupBy(d => d.Status)
+                .ToDictionary(g => g.Key, g => g.Count());
+            
             var count = new DocumentStatusCountDto
             {
                 Total = documents.Count,
-                Pending = documents.Count(d => d.Status == StatusString(EDocumentStatus.PendingVerification)),
-                Verified = documents.Count(d => d.Status == StatusString(EDocumentStatus.Verified)),
-                Rejected = documents.Count(d => d.Status == StatusString(EDocumentStatus.Rejected)),
-                Uploading = documents.Count(d => d.Status == StatusString(EDocumentStatus.Uploaded))
+                Pending = statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.PendingVerification)),
+                Verified = statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Verified)),
+                Rejected = statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Rejected)),
+                Uploading = statusGroups.GetValueOrDefault(StatusString(EDocumentStatus.Uploaded))
             };
 
             return Result<DocumentStatusCountDto>.Success(count);
