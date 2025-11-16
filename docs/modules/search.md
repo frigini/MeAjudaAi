@@ -12,7 +12,7 @@ O módulo Search implementa um **read model otimizado** para buscas geoespaciais
 - ✅ **Ranking inteligente** (tier > rating > distância)
 - ✅ **Paginação eficiente** com contagem total
 - ✅ **Cache otimizado** para queries frequentes
-- ✅ **Read model denormalizado** para performance
+- ✅ **Read model denormalizado** para desempenho
 
 ## 🏗️ Arquitetura do Módulo
 
@@ -163,12 +163,12 @@ Busca prestadores de serviço por proximidade e filtros.
 |-----------|------|-------------|-----------|
 | `latitude` | `double` | ✅ | Latitude do ponto de busca (-90 a 90) |
 | `longitude` | `double` | ✅ | Longitude do ponto de busca (-180 a 180) |
-| `radiusInKm` | `double` | ✅ | Raio de busca em quilômetros (> 0, máx 500) |
+| `radiusInKm` | `double` | ✅ | Raio de busca em quilômetros (> 0, máx. 500) |
 | `serviceIds` | `Guid[]` | ❌ | IDs dos serviços desejados |
 | `minRating` | `decimal` | ❌ | Avaliação mínima (0-5) |
 | `subscriptionTiers` | `ESubscriptionTier[]` | ❌ | Tiers de assinatura (Free, Standard, Gold, Platinum) |
 | `pageNumber` | `int` | ❌ | Número da página (padrão: 1) |
-| `pageSize` | `int` | ❌ | Itens por página (padrão: 20, máx: 100) |
+| `pageSize` | `int` | ❌ | Itens por página (padrão: 20, máx.: 100) |
 
 #### **Algoritmo de Busca**
 
@@ -242,7 +242,7 @@ GET /api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=10
 ```
 
 **3. Buscar apenas prestadores Premium:**
-```
+```http
 GET /api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=20
     &subscriptionTiers=Gold&subscriptionTiers=Platinum
 ```
@@ -277,7 +277,7 @@ search:providers:lat:-23.5505:lng:-46.6333:radius:10:services:all:rating:4.5:tie
 | PageNumber | 1 | ∞ | 1 |
 | PageSize | 1 | 100 | 20 |
 
-### **Spatial Index Performance**
+### **Desempenho do Índice Espacial**
 
 O módulo usa índice GIST para queries espaciais eficientes:
 
@@ -288,7 +288,7 @@ ON search.searchable_providers
 USING GIST (location);
 ```
 
-**Performance esperada:**
+**Desempenho esperado:**
 - < 100ms para raio de 10km com 10k providers
 - < 500ms para raio de 50km com 100k providers
 - Cache hit rate > 70% em produção
@@ -476,7 +476,7 @@ Para contribuir com o módulo Search:
 
 1. Leia o [Guia de Desenvolvimento](../development.md)
 2. Implemente testes (cobertura mínima: 80%)
-3. Verifique performance com queries geoespaciais
+3. Verifique o desempenho com queries geoespaciais
 4. Documente mudanças em `CHANGELOG.md`
 5. Abra Pull Request com descrição detalhada
 

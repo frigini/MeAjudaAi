@@ -156,9 +156,10 @@ public sealed class DocumentsModuleApi(
     /// <returns>Document status DTO or null if not found</returns>
     /// <remarks>
     /// <para><strong>UpdatedAt Semantics:</strong></para>
-    /// <para>Currently uses VerifiedAt ?? UploadedAt. If additional lifecycle timestamps
-    /// (e.g., rejected at, on hold at) are added to the domain model, this mapping should be
-    /// updated to reflect the last status change rather than upload time.</para>
+    /// <para>Uses VerifiedAt ?? UploadedAt where VerifiedAt represents the timestamp of the last
+    /// status change (verification or rejection). The domain model sets VerifiedAt when documents
+    /// are verified OR rejected. For documents still in Uploaded/PendingVerification status,
+    /// falls back to UploadedAt.</para>
     /// </remarks>
     public async Task<Result<ModuleDocumentStatusDto?>> GetDocumentStatusAsync(
         Guid documentId,
