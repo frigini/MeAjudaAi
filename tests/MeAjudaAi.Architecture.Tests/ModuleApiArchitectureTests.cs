@@ -286,7 +286,11 @@ public class ModuleApiArchitectureTests
 
     private static string[] GetOtherModuleNamespaces(string currentModule)
     {
-        var allModules = new[] { "Users", "Providers" }; // Add known modules
+        // Dynamically discover all modules from loaded assemblies
+        var allModules = GetModuleAssemblies()
+            .Select(GetModuleName)
+            .Distinct()
+            .ToArray();
         return [.. allModules
             .Where(m => m != currentModule)
             .Select(m => $"MeAjudaAi.Modules.{m}")];
