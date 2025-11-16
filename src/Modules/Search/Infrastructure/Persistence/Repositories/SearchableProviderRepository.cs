@@ -89,7 +89,8 @@ public sealed class SearchableProviderRepository(
                 Tiers = subscriptionTiers?.Select(t => (int)t).ToArray(),
                 Skip = Math.Max(0, skip),
                 Take = Math.Max(0, take)
-            });
+            },
+            cancellationToken);
 
         var resultList = results.ToList();
 
@@ -105,7 +106,8 @@ public sealed class SearchableProviderRepository(
                 ServiceIds = serviceIds,
                 MinRating = minRating,
                 Tiers = subscriptionTiers?.Select(t => (int)t).ToArray()
-            }) ?? 0;
+            },
+            cancellationToken) ?? 0;
 
         // Mapear DTOs de volta para entidades do domínio
         var providers = resultList.Select(MapToEntity).ToList();

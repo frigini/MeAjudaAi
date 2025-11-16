@@ -21,13 +21,15 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
             ?? throw new InvalidOperationException("PostgreSQL connection string not found. Configure connection string via Aspire, 'Postgres:ConnectionString' in appsettings.json, or as ConnectionStrings:meajudaai-db");
     }
 
-    public async Task<IEnumerable<T>> QueryAsync<T>(string sql, object? param = null)
+    public async Task<IEnumerable<T>> QueryAsync<T>(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var stopwatch = Stopwatch.StartNew();
         try
         {
             using var connection = new NpgsqlConnection(_connectionString);
-            var result = await connection.QueryAsync<T>(sql, param);
+            var commandDefinition = new CommandDefinition(sql, param, cancellationToken: cancellationToken);
+            var result = await connection.QueryAsync<T>(commandDefinition);
 
             stopwatch.Stop();
             metrics.RecordDapperQuery("query_multiple", stopwatch.Elapsed);
@@ -42,13 +44,15 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         }
     }
 
-    public async Task<T?> QuerySingleOrDefaultAsync<T>(string sql, object? param = null)
+    public async Task<T?> QuerySingleOrDefaultAsync<T>(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var stopwatch = Stopwatch.StartNew();
         try
         {
             using var connection = new NpgsqlConnection(_connectionString);
-            var result = await connection.QuerySingleOrDefaultAsync<T>(sql, param);
+            var commandDefinition = new CommandDefinition(sql, param, cancellationToken: cancellationToken);
+            var result = await connection.QuerySingleOrDefaultAsync<T>(commandDefinition);
 
             stopwatch.Stop();
             metrics.RecordDapperQuery("query_single", stopwatch.Elapsed);
@@ -63,13 +67,15 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         }
     }
 
-    public async Task<int> ExecuteAsync(string sql, object? param = null)
+    public async Task<int> ExecuteAsync(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var stopwatch = Stopwatch.StartNew();
         try
         {
             using var connection = new NpgsqlConnection(_connectionString);
-            var result = await connection.ExecuteAsync(sql, param);
+            var commandDefinition = new CommandDefinition(sql, param, cancellationToken: cancellationToken);
+            var result = await connection.ExecuteAsync(commandDefinition);
 
             stopwatch.Stop();
             metrics.RecordDapperQuery("execute", stopwatch.Elapsed);

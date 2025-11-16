@@ -16,15 +16,15 @@ namespace MeAjudaAi.Modules.Documents.Application.ModuleApi;
 /// Implementação da API pública do módulo Documents para comunicação entre módulos.
 /// </summary>
 /// <remarks>
-/// <para><strong>Health Check Contract:</strong></para>
-/// <para>IsAvailableAsync relies on health checks tagged with "documents" or "database".
-/// If health check tags change, module availability reporting may be affected.</para>
-/// <para><strong>"Not Found" Semantics:</strong></para>
-/// <para>GetDocumentByIdAsync returns Success(null) for non-existent documents rather than treating
-/// "not found" as a failure. The availability check depends on this convention.</para>
-/// <para><strong>Module Metadata:</strong></para>
-/// <para>ModuleApi attribute values must match ModuleNameConst and ApiVersionConst constants.
-/// A unit test validates this consistency to prevent configuration drift.</para>
+/// <para><strong>Contrato de Health Check:</strong></para>
+/// <para>IsAvailableAsync depende de health checks com tags "documents" ou "database".
+/// Se as tags dos health checks mudarem, o relatório de disponibilidade do módulo pode ser afetado.</para>
+/// <para><strong>Semântica de "Not Found":</strong></para>
+/// <para>GetDocumentByIdAsync retorna Success(null) para documentos inexistentes em vez de tratar
+/// "not found" como falha. A verificação de disponibilidade depende desta convenção.</para>
+/// <para><strong>Metadados do Módulo:</strong></para>
+/// <para>Os valores do atributo ModuleApi devem corresponder às constantes ModuleNameConst e ApiVersionConst.
+/// Um teste unitário valida esta consistência para prevenir deriva de configuração.</para>
 /// </remarks>
 [ModuleApi(ModuleNameConst, ApiVersionConst)]
 public sealed class DocumentsModuleApi(
@@ -89,9 +89,11 @@ public sealed class DocumentsModuleApi(
         try
         {
             // Teste básico: tentar buscar por ID não existente
-            // GetDocumentByIdAsync owns error logging
-            // NOTE: This couples availability to GetDocumentByIdAsync returning Success(null) for not-found.
-            // Consider introducing a lightweight health check query (SELECT 1) to decouple from business API semantics.
+            // GetDocumentByIdAsync faz o log de erros
+            // NOTA: Isto acopla a disponibilidade ao GetDocumentByIdAsync retornando Success(null) para not-found.
+            // Considere introduzir uma query de health check leve (SELECT 1) para desacoplar da semântica da API de negócio.
+            // PERF: Se verificações de disponibilidade se tornarem hot-path, substitua por query dedicada leve para evitar
+            // executar todo o pipeline de documentos em cada teste.
             var testId = Guid.NewGuid();
             var result = await GetDocumentByIdAsync(testId, cancellationToken);
 
@@ -104,7 +106,7 @@ public sealed class DocumentsModuleApi(
         }
         catch
         {
-            // GetDocumentByIdAsync already logged the error
+            // GetDocumentByIdAsync já fez o log do erro
             return false;
         }
     }
@@ -306,14 +308,15 @@ public sealed class DocumentsModuleApi(
             var documents = documentsResult.Value!;
 
             // Documentos obrigatórios: IdentityDocument e ProofOfResidence (ambos devem estar VERIFICADOS)
-            var hasIdentity = documents.Any(d => 
-                d.DocumentType == TypeString(EDocumentType.IdentityDocument) && 
-                d.Status == StatusString(EDocumentStatus.Verified));
-            var hasProofOfResidence = documents.Any(d => 
-                d.DocumentType == TypeString(EDocumentType.ProofOfResidence) &&
-                d.Status == StatusString(EDocumentStatus.Verified));
+            // Com apenas 4 tipos de documento por provedor, single-pass lookup é mais eficiente e legível
+            var verifiedTypes = documents
+                .Where(d => d.Status == StatusString(EDocumentStatus.Verified))
+                .Select(d => d.DocumentType)
+                .ToHashSet();
 
-            var hasRequired = hasIdentity && hasProofOfResidence;
+            var hasRequired = verifiedTypes.Contains(TypeString(EDocumentType.IdentityDocument)) &&
+                            verifiedTypes.Contains(TypeString(EDocumentType.ProofOfResidence));
+            
             return Result<bool>.Success(hasRequired);
         }
         catch (OperationCanceledException)
