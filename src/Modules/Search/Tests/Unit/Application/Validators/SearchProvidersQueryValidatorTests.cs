@@ -57,7 +57,7 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        var error = result.Errors.Single(e => e.PropertyName == "Latitude");
+        var error = result.Errors.Single(e => e.PropertyName == nameof(SearchProvidersQuery.Latitude));
         error.ErrorMessage.Should().Contain("between -90 and 90");
     }
 
@@ -79,7 +79,7 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        var error = result.Errors.Single(e => e.PropertyName == "Longitude");
+        var error = result.Errors.Single(e => e.PropertyName == nameof(SearchProvidersQuery.Longitude));
         error.ErrorMessage.Should().Contain("between -180 and 180");
     }
 
@@ -100,7 +100,7 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        var error = result.Errors.Single(e => e.PropertyName == "RadiusInKm");
+        var error = result.Errors.Single(e => e.PropertyName == nameof(SearchProvidersQuery.RadiusInKm));
         error.ErrorMessage.Should().Contain("greater than 0");
     }
 
@@ -118,7 +118,7 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        var error = result.Errors.Single(e => e.PropertyName == "RadiusInKm");
+        var error = result.Errors.Single(e => e.PropertyName == nameof(SearchProvidersQuery.RadiusInKm));
         error.ErrorMessage.Should().Contain("cannot exceed 500");
     }
 
@@ -140,7 +140,7 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        var error = result.Errors.Single(e => e.PropertyName == "MinRating");
+        var error = result.Errors.Single(e => e.PropertyName == nameof(SearchProvidersQuery.MinRating));
         error.ErrorMessage.Should().Contain("between 0 and 5");
     }
 
@@ -161,7 +161,7 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        var error = result.Errors.Single(e => e.PropertyName == "PageNumber");
+        var error = result.Errors.Single(e => e.PropertyName == nameof(SearchProvidersQuery.PageNumber));
         error.ErrorMessage.Should().Contain("greater than 0");
     }
 
@@ -182,7 +182,7 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        var error = result.Errors.Single(e => e.PropertyName == "PageSize");
+        var error = result.Errors.Single(e => e.PropertyName == nameof(SearchProvidersQuery.PageSize));
         error.ErrorMessage.Should().Contain("greater than 0");
     }
 
@@ -201,7 +201,7 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        var error = result.Errors.Single(e => e.PropertyName == "PageSize");
+        var error = result.Errors.Single(e => e.PropertyName == nameof(SearchProvidersQuery.PageSize));
         error.ErrorMessage.Should().Contain("cannot exceed 100");
     }
 

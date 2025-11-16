@@ -173,6 +173,12 @@ public sealed class DocumentsModuleApi(
         }
     }
 
+    // Note: The following methods fetch all provider documents via GetProviderDocumentsAsync
+    // and filter in-memory. For optimization, consider:
+    // 1. Adding specialized queries for common checks (verified, pending, rejected)
+    // 2. Implementing a caching layer if these methods are frequently called together
+    // 3. Creating a helper method to reduce the repeated pattern of fetch-check-filter
+
     public async Task<Result<bool>> HasVerifiedDocumentsAsync(
         Guid providerId,
         CancellationToken cancellationToken = default)

@@ -106,10 +106,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
             throw new ArgumentException("Provider name cannot be empty.", nameof(name));
         }
 
-        if (location is null)
-        {
-            throw new ArgumentNullException(nameof(location));
-        }
+        ArgumentNullException.ThrowIfNull(location);
 
         var searchableProvider = new SearchableProvider(
             SearchableProviderId.New(),
@@ -217,8 +214,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     /// </summary>
     public double CalculateDistanceToInKm(GeoPoint targetLocation)
     {
-        if (targetLocation is null)
-            throw new ArgumentNullException(nameof(targetLocation));
+        ArgumentNullException.ThrowIfNull(targetLocation);
 
         return Location.DistanceTo(targetLocation);
     }

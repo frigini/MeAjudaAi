@@ -44,14 +44,14 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
     }
 
     [Fact]
-    public async Task SearchAsync_WithProvidersInRadius_ShouldReturnOrderedByDistance()
+    public async Task SearchAsync_WithProvidersInRadius_ShouldReturnOrderedByTierRatingAndDistance()
     {
         // Arrange
         await CleanupDatabase();
         using var scope = CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
 
-        // São Paulo Centro
+        // São Paulo Centro (all providers have same tier/rating, so distance is the deciding factor)
         var provider1 = CreateTestSearchableProvider("Provider SP Centro", -23.5505, -46.6333);
         // São Paulo Paulista (aprox 5km do centro)
         var provider2 = CreateTestSearchableProvider("Provider SP Paulista", -23.5629, -46.6544);
@@ -252,11 +252,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
 
         var activeProvider = CreateTestSearchableProvider("Active Provider", -23.5505, -46.6333);
         var inactiveProvider = CreateTestSearchableProvider("Inactive Provider", -23.5629, -46.6544);
-        
-        // Mark the second provider as inactive
-        var inactiveProviderType = inactiveProvider.GetType();
-        var isActiveProperty = inactiveProviderType.GetProperty("IsActive");
-        isActiveProperty?.SetValue(inactiveProvider, false);
+        inactiveProvider.Deactivate();
 
         await PersistSearchableProviderAsync(activeProvider);
         await PersistSearchableProviderAsync(inactiveProvider);
@@ -390,18 +386,18 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
         updatedProvider.Location.Longitude.Should().BeApproximately(-43.1729, 0.0001);
 
         // Verificar que busca antiga não retorna mais
-        var (oldLocationProviders, oldLocationTotal) = await repository.SearchAsync(
+        var oldLocationResult = await repository.SearchAsync(
             new GeoPoint(-23.5505, -46.6333),
             10,
             null, null, null, 0, 10);
-        oldLocationProviders.Should().NotContain(p => p.Id == provider.Id);
+        oldLocationResult.Providers.Should().NotContain(p => p.Id == provider.Id);
 
         // Verificar que busca nova retorna
-        var (newLocationProviders, newLocationTotal) = await repository.SearchAsync(
+        var newLocationResult = await repository.SearchAsync(
             newLocation,
             10,
             null, null, null, 0, 10);
-        newLocationProviders.Should().Contain(p => p.Id == provider.Id);
+        newLocationResult.Providers.Should().Contain(p => p.Id == provider.Id);
     }
 
     [Fact]

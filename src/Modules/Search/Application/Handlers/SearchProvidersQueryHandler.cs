@@ -30,7 +30,7 @@ public sealed class SearchProvidersQueryHandler
         SearchProvidersQuery query,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation(
+        _logger.LogDebug(
             "Searching providers at ({Latitude}, {Longitude}) within {Radius}km",
             query.Latitude,
             query.Longitude,
@@ -46,15 +46,13 @@ public sealed class SearchProvidersQueryHandler
         {
             _logger.LogWarning(
                 ex,
-                "Invalid coordinates received for provider search: Latitude={Latitude}, Longitude={Longitude}",
-                query.Latitude,
-                query.Longitude);
+                "Invalid coordinates received for provider search");
 
             return Result<PagedSearchResultDto<SearchableProviderDto>>.Failure(ex.Message);
         }
 
-        // Calculate pagination
-        var skip = (query.PageNumber - 1) * query.PageSize;
+        // Calculate pagination defensively
+        var skip = Math.Max(0, (query.PageNumber - 1) * query.PageSize);
 
         // Execute search
         var searchResult = await _repository.SearchAsync(

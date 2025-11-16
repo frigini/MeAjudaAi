@@ -63,6 +63,9 @@ public abstract class SearchIntegrationTestBase : IAsyncLifetime
                     npgsqlOptions.UseNetTopologySuite();
                     npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
                 });
+            
+            // Use same naming convention as production
+            options.UseSnakeCaseNamingConvention();
         });
 
         // Registrar repositório
@@ -89,13 +92,29 @@ public abstract class SearchIntegrationTestBase : IAsyncLifetime
         try
         {
             var connection = dbContext.Database.GetDbConnection();
-            await connection.OpenAsync();
-            using var command = connection.CreateCommand();
-            command.CommandText = "SELECT PostGIS_Version()";
-            var version = await command.ExecuteScalarAsync();
-            if (version == null)
+            var wasOpen = connection.State == System.Data.ConnectionState.Open;
+            
+            if (!wasOpen)
             {
-                throw new InvalidOperationException("PostGIS extension is not available in the test database");
+                await connection.OpenAsync();
+            }
+            
+            try
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT PostGIS_Version()";
+                var version = await command.ExecuteScalarAsync();
+                if (version == null)
+                {
+                    throw new InvalidOperationException("PostGIS extension is not available in the test database");
+                }
+            }
+            finally
+            {
+                if (!wasOpen && connection.State == System.Data.ConnectionState.Open)
+                {
+                    await connection.CloseAsync();
+                }
             }
         }
         catch (Exception ex) when (ex is not InvalidOperationException)

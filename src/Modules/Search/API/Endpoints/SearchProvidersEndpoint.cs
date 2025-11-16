@@ -2,12 +2,12 @@ using MeAjudaAi.Modules.Search.Application.DTOs;
 using MeAjudaAi.Modules.Search.Application.Queries;
 using MeAjudaAi.Modules.Search.Domain.Enums;
 using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Result = MeAjudaAi.Shared.Functional.Result;
 
 namespace MeAjudaAi.Modules.Search.API.Endpoints;
 

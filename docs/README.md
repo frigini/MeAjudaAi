@@ -36,7 +36,7 @@ Se você é novo no projeto, comece por aqui:
 ### **📝 Logging**
 
 | Documento | Descrição |
-|-----------|-----------||
+|-----------|-----------|
 | **[🆔 Correlation ID](./logging/CORRELATION_ID.md)** | Melhores práticas para implementação e uso de Correlation IDs |
 | **[⏱️ Desempenho](./logging/PERFORMANCE.md)** | Estratégias e ferramentas de monitoramento de desempenho |
 | **[📊 Seq Setup](./logging/SEQ_SETUP.md)** | Configuração do Seq para logging estruturado |

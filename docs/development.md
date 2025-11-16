@@ -34,7 +34,7 @@ dotnet run
 
 # OU executar apenas a API
 cd src/Bootstrapper/MeAjudaAi.ApiService
-dotnet runn
+dotnet run
 
 # Executar via Aspire (com dashboard)
 dotnet run --project src/Aspire/MeAjudaAi.AppHost
@@ -189,11 +189,11 @@ public async Task<Result<User>> GetUserAsync(UserId id)
 ```powershell
 # Run with Aspire (RECOMMENDED - includes all services)
 cd src\Aspire\MeAjudaAi.AppHost
-donet run
+dotnet run
 
 # Run API only (without Aspire orchestration)
 cd src\Bootstrapper\MeAjudaAi.ApiService
-donet run
+dotnet run
 
 # Access points after running:
 # - Aspire Dashboard: https://localhost:17063 or http://localhost:15297
@@ -204,13 +204,13 @@ donet run
 
 ```powershell
 # Build entire solution
-donet build
+dotnet build
 
 # Build specific configuration
-donet build --configuration Release
+dotnet build --configuration Release
 
 # Restore dependencies
-donet restore
+dotnet restore
 ```
 
 ### Testes
@@ -753,7 +753,7 @@ O sistema automaticamente:
 
 #### 5. Testes que NÃO geram cobertura
 
-Estes tipos de teste são executados mas NÃO contribuem para o relatório de cobertura:
+Estes tipos de teste são executados, mas NÃO contribuem para o relatório de cobertura:
 - `tests/MeAjudaAi.Architecture.Tests/` - Testes de arquitetura
 - `tests/MeAjudaAi.Integration.Tests/` - Testes de integração
 - `tests/MeAjudaAi.Shared.Tests/` - Testes do shared

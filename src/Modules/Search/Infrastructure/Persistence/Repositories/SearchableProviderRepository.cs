@@ -9,7 +9,9 @@ using NetTopologySuite.Geometries;
 namespace MeAjudaAi.Modules.Search.Infrastructure.Persistence.Repositories;
 
 /// <summary>
-/// Repository implementation for SearchableProvider using PostGIS for geospatial queries.
+/// Repository implementation for SearchableProvider.
+/// Currently performs spatial filtering (distance/radius) in application memory after loading
+/// filtered providers from the database. Non-spatial filters (services, rating, tier) are applied at the database level.
 /// </summary>
 public sealed class SearchableProviderRepository : ISearchableProviderRepository
 {
@@ -71,7 +73,7 @@ public sealed class SearchableProviderRepository : ISearchableProviderRepository
 
         // Apply spatial filtering and sorting in-memory
         var filteredAndSorted = allProviders
-            .Select(p => new { Provider = p, Distance = location.DistanceTo(p.Location) })
+            .Select(p => new { Provider = p, Distance = p.CalculateDistanceToInKm(location) })
             .Where(x => x.Distance <= radiusInKm)
             .OrderByDescending(x => x.Provider.SubscriptionTier)
             .ThenByDescending(x => x.Provider.AverageRating)

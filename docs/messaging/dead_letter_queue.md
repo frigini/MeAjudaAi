@@ -26,8 +26,8 @@ The Dead Letter Queue strategy has been successfully implemented in MeAjudaAi, p
                         ┌─────────────────────┐    ┌──────────────────────┐
                         │     Retry Queue     │    │   Dead Letter Queue  │
                         │                     │    │                      │
-                        │ - Delay: 5s, 10s,  │    │ - Failed Messages    │
-                        │   20s, 40s...       │    │ - Failure Analysis   │
+                        │ - Exponential      │    │ - Failed Messages    │
+                        │   Backoff Delay     │    │ - Failure Analysis   │
                         │ - Max: 300s         │    │ - Reprocess Support  │
                         └─────────────────────┘    └──────────────────────┘
 ```

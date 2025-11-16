@@ -1,6 +1,8 @@
 using System.Reflection;
 using MeAjudaAi.Modules.Search.Domain.Entities;
+using MeAjudaAi.Modules.Search.Domain.ValueObjects;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,7 +43,7 @@ public class SearchDbContext : BaseDbContext
     protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
     {
         var domainEvents = ChangeTracker
-            .Entries<SearchableProvider>()
+            .Entries<AggregateRoot<SearchableProviderId>>()
             .Where(entry => entry.Entity.DomainEvents.Count > 0)
             .SelectMany(entry => entry.Entity.DomainEvents)
             .ToList();
@@ -52,7 +54,7 @@ public class SearchDbContext : BaseDbContext
     protected override void ClearDomainEvents()
     {
         var entities = ChangeTracker
-            .Entries<SearchableProvider>()
+            .Entries<AggregateRoot<SearchableProviderId>>()
             .Where(entry => entry.Entity.DomainEvents.Count > 0)
             .Select(entry => entry.Entity);
 

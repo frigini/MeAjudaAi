@@ -29,8 +29,8 @@ public interface ISearchableProviderRepository
     /// <param name="serviceIds">Optional list of service IDs to filter by</param>
     /// <param name="minRating">Optional minimum average rating filter</param>
     /// <param name="subscriptionTiers">Optional list of subscription tiers to filter by</param>
-    /// <param name="skip">Number of results to skip for pagination</param>
-    /// <param name="take">Number of results to return</param>
+    /// <param name="skip">Number of results to skip for pagination (must be non-negative)</param>
+    /// <param name="take">Number of results to return (must be positive and within configured max page size)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Search result containing providers and total count</returns>
     Task<SearchResult> SearchAsync(

@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Search.Application.Queries;
 using MeAjudaAi.Modules.Search.Domain.Entities;
 using MeAjudaAi.Modules.Search.Domain.Enums;
 using MeAjudaAi.Modules.Search.Domain.Repositories;
+using MeAjudaAi.Modules.Search.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -52,7 +53,7 @@ public class SearchProvidersQueryHandlerTests
                 0,
                 query.PageSize,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((providers, 3));
+            .ReturnsAsync(new SearchResult { Providers = providers, TotalCount = 3 });
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -108,7 +109,7 @@ public class SearchProvidersQueryHandlerTests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((providers, 2));
+            .ReturnsAsync(new SearchResult { Providers = providers, TotalCount = 2 });
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -147,7 +148,7 @@ public class SearchProvidersQueryHandlerTests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((providers, 1));
+            .ReturnsAsync(new SearchResult { Providers = providers, TotalCount = 1 });
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -186,7 +187,7 @@ public class SearchProvidersQueryHandlerTests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((providers, 2));
+            .ReturnsAsync(new SearchResult { Providers = providers, TotalCount = 2 });
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -217,7 +218,7 @@ public class SearchProvidersQueryHandlerTests
                 10, // skip = (2-1) * 10 = 10
                 10,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((providers, 25)); // Total 25 items
+            .ReturnsAsync(new SearchResult { Providers = providers, TotalCount = 25 }); // Total 25 items
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -249,7 +250,7 @@ public class SearchProvidersQueryHandlerTests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((new List<SearchableProvider>(), 0));
+            .ReturnsAsync(new SearchResult { Providers = new List<SearchableProvider>(), TotalCount = 0 });
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
@@ -286,7 +287,7 @@ public class SearchProvidersQueryHandlerTests
                 It.IsAny<int>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((new List<SearchableProvider> { provider }, 1));
+            .ReturnsAsync(new SearchResult { Providers = new List<SearchableProvider> { provider }, TotalCount = 1 });
 
         // Act
         var result = await _sut.HandleAsync(query, CancellationToken.None);
