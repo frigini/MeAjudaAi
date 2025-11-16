@@ -15,6 +15,13 @@ public sealed record SearchResult
     public required IReadOnlyList<SearchableProvider> Providers { get; init; }
 
     /// <summary>
+    /// Distâncias pré-calculadas (em km) do ponto de busca para cada provedor.
+    /// O índice corresponde à posição do provedor na lista Providers.
+    /// Calculado uma vez no repositório para evitar recálculos redundantes no handler.
+    /// </summary>
+    public required IReadOnlyList<double> DistancesInKm { get; init; }
+
+    /// <summary>
     /// Número total de provedores que correspondem aos critérios de busca (antes da paginação).
     /// </summary>
     public required int TotalCount { get; init; }

@@ -62,28 +62,28 @@ public sealed class SearchProvidersQueryHandler(
             searchResult.Providers.Count,
             searchResult.TotalCount);
 
-        // Map to DTOs
-        // NOTE: CalculateDistanceToInKm is called twice (once in repository for filtering/sorting,
-        // once here for DTO mapping). For hot paths, consider extending SearchResult to include
-        // precomputed distances to avoid redundant calculations.
-        var providerDtos = searchResult.Providers.Select(p => new SearchableProviderDto
-        {
-            ProviderId = p.ProviderId,
-            Name = p.Name,
-            Description = p.Description,
-            Location = new LocationDto
+        // Map to DTOs using precomputed distances from repository
+        // Distance is calculated once in repository (filter/sort/cache) to avoid redundant calculations
+        var providerDtos = searchResult.Providers
+            .Select((p, index) => new SearchableProviderDto
             {
-                Latitude = p.Location.Latitude,
-                Longitude = p.Location.Longitude
-            },
-            AverageRating = p.AverageRating,
-            TotalReviews = p.TotalReviews,
-            SubscriptionTier = p.SubscriptionTier,
-            ServiceIds = p.ServiceIds,
-            DistanceInKm = p.CalculateDistanceToInKm(location),
-            City = p.City,
-            State = p.State
-        }).ToList();
+                ProviderId = p.ProviderId,
+                Name = p.Name,
+                Description = p.Description,
+                Location = new LocationDto
+                {
+                    Latitude = p.Location.Latitude,
+                    Longitude = p.Location.Longitude
+                },
+                AverageRating = p.AverageRating,
+                TotalReviews = p.TotalReviews,
+                SubscriptionTier = p.SubscriptionTier,
+                ServiceIds = p.ServiceIds,
+                DistanceInKm = searchResult.DistancesInKm[index],
+                City = p.City,
+                State = p.State
+            })
+            .ToList();
 
         var result = PagedResult<SearchableProviderDto>.Create(
             providerDtos,

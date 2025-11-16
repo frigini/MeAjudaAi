@@ -39,5 +39,5 @@ public sealed record PagedSearchResultDto<T>
     /// <summary>
     /// Indica se há uma página anterior.
     /// </summary>
-    public bool HasPreviousPage => PageNumber > 1;
+    public bool HasPreviousPage => TotalPages > 0 && PageNumber > 1;
 }

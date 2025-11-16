@@ -81,28 +81,32 @@ public sealed class SearchableProviderRepository(SearchDbContext context) : ISea
         // Execute non-spatial filters in database (optimized with indexes)
         var allProviders = await query.ToListAsync(cancellationToken);
 
-        // Apply spatial filtering in-memory
+        // Apply spatial filtering in-memory with cached distances
         // REASON: EF Core cannot translate Location property (has HasConversion) to PostGIS functions
         // The GeoPoint -> Point conversion prevents query translation
-        var filteredByDistance = allProviders
-            .Where(p => p.CalculateDistanceToInKm(location) <= radiusInKm)
+        // Cache distance per provider to avoid redundant calculations during filter/sort/map
+        var withDistance = allProviders
+            .Select(p => new { Provider = p, Distance = p.CalculateDistanceToInKm(location) })
+            .Where(x => x.Distance <= radiusInKm)
             .ToList();
 
-        var totalCount = filteredByDistance.Count;
+        var totalCount = withDistance.Count;
 
         // Apply sorting and pagination in-memory
         // Order: SubscriptionTier (desc) -> AverageRating (desc) -> Distance (asc)
-        var providers = filteredByDistance
-            .OrderByDescending(p => p.SubscriptionTier)
-            .ThenByDescending(p => p.AverageRating)
-            .ThenBy(p => p.CalculateDistanceToInKm(location))
-            .Skip(skip)
-            .Take(take)
+        // Guard pagination parameters to prevent negative OFFSET/LIMIT reaching PostgreSQL
+        var paginated = withDistance
+            .OrderByDescending(x => x.Provider.SubscriptionTier)
+            .ThenByDescending(x => x.Provider.AverageRating)
+            .ThenBy(x => x.Distance)
+            .Skip(Math.Max(0, skip))
+            .Take(Math.Max(0, take))
             .ToList();
 
         return new SearchResult
         {
-            Providers = providers,
+            Providers = paginated.Select(x => x.Provider).ToList(),
+            DistancesInKm = paginated.Select(x => x.Distance).ToList(),
             TotalCount = totalCount
         };
     }

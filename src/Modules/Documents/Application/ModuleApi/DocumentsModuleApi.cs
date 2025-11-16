@@ -205,7 +205,7 @@ public sealed class DocumentsModuleApi(
     // This is acceptable for small document sets (<10 per provider), but consider optimization
     // if providers have many documents or these methods are called frequently.
     //
-    // Tracked in GitHub issue #XXX: Implement specialized queries for document status checks
+    // TODO: Implement specialized queries for document status checks (to be tracked when needed)
     // - HasVerifiedDocumentsQuery, HasPendingDocumentsQuery, HasRejectedDocumentsQuery
     // - GetDocumentStatusCountQuery (GroupBy + Count in database)
     // - HasRequiredDocumentsQuery (complex filtering with All())
