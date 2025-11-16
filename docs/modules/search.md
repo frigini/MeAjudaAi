@@ -17,7 +17,7 @@ O módulo Search implementa um **read model otimizado** para buscas geoespaciais
 ## 🏗️ Arquitetura do Módulo
 
 ### **Estrutura de Pastas**
-```
+```text
 src/Modules/Search/
 ├── API/                           # Camada de apresentação (endpoints)
 │   └── Endpoints/                 # Minimal APIs
@@ -231,12 +231,12 @@ pageSize=20"
 #### **Casos de Uso**
 
 **1. Buscar prestadores próximos:**
-```
+```http
 GET /api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=5
 ```
 
 **2. Buscar eletricistas bem avaliados:**
-```
+```http
 GET /api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=10
     &serviceIds=<electrician-service-id>&minRating=4.5
 ```
@@ -303,7 +303,7 @@ O módulo Search é um **read model** sincronizado com o módulo Providers:
 - Sincronização via domain events ou mensageria (futura implementação)
 
 **Fluxo de sincronização (planejado):**
-```
+```text
 Providers Module                Search Module
      │                               │
      ├─ Provider.Activate()          │
@@ -324,7 +324,7 @@ Atualização de `AverageRating` e `TotalReviews` via eventos de review.
 
 ### **Estrutura de Testes**
 
-```
+```text
 Tests/
 ├── Unit/
 │   ├── Domain/
@@ -462,11 +462,11 @@ redis-cli ping  # Deve retornar PONG
 
 ## 📚 Referências
 
-- **PostGIS Documentation**: https://postgis.net/documentation/
-- **NetTopologySuite**: https://github.com/NetTopologySuite/NetTopologySuite
-- **Npgsql Spatial**: https://www.npgsql.org/efcore/mapping/nts.html
-- **EF Core Spatial Data**: https://learn.microsoft.com/ef/core/modeling/spatial
-- **Testcontainers .NET**: https://dotnet.testcontainers.org/
+- [**PostGIS Documentation**](https://postgis.net/documentation/)
+- [**NetTopologySuite**](https://github.com/NetTopologySuite/NetTopologySuite)
+- [**Npgsql Spatial**](https://www.npgsql.org/efcore/mapping/nts.html)
+- [**EF Core Spatial Data**](https://learn.microsoft.com/ef/core/modeling/spatial)
+- [**Testcontainers .NET**](https://dotnet.testcontainers.org/)
 
 ---
 

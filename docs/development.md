@@ -717,7 +717,7 @@ Quando criar um novo módulo (ex: Orders, Payments, etc.), siga estes passos par
 
 Certifique-se de que o novo módulo siga a estrutura padrão:
 
-```yaml
+```text
 src/Modules/{ModuleName}/
 ├── MeAjudaAi.Modules.{ModuleName}.API/
 ├── MeAjudaAi.Modules.{ModuleName}.Application/

@@ -18,29 +18,20 @@ namespace MeAjudaAi.Modules.Documents.Application.ModuleApi;
 /// <remarks>
 /// <para><strong>Health Check Contract:</strong></para>
 /// <para>IsAvailableAsync relies on health checks tagged with "documents" or "database".
-If health check tags change, module availability reporting may be affected.</para>
+/// If health check tags change, module availability reporting may be affected.</para>
 /// <para><strong>"Not Found" Semantics:</strong></para>
 /// <para>GetDocumentByIdAsync returns Success(null) for non-existent documents rather than treating
-"not found" as a failure. The availability check depends on this convention.</para>
+/// "not found" as a failure. The availability check depends on this convention.</para>
 /// </remarks>
-[ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
+[ModuleApi("Documents", "1.0")]
 public sealed class DocumentsModuleApi(
     IQueryHandler<GetDocumentStatusQuery, DocumentDto?> getDocumentStatusHandler,
     IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>> getProviderDocumentsHandler,
     IServiceProvider serviceProvider,
     ILogger<DocumentsModuleApi> logger) : IDocumentsModuleApi
 {
-    /// <summary>
-    /// Centralized module metadata to keep attribute and properties in sync.
-    /// </summary>
-    private static class ModuleMetadata
-    {
-        public const string Name = "Documents";
-        public const string Version = "1.0";
-    }
-
-    public string ModuleName => ModuleMetadata.Name;
-    public string ApiVersion => ModuleMetadata.Version;
+    public string ModuleName => "Documents";
+    public string ApiVersion => "1.0";
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
@@ -166,8 +157,8 @@ public sealed class DocumentsModuleApi(
     /// <remarks>
     /// <para><strong>UpdatedAt Semantics:</strong></para>
     /// <para>Currently uses VerifiedAt ?? UploadedAt. If additional lifecycle timestamps
-(e.g., rejected at, on hold at) are added to the domain model, this mapping should be
-updated to reflect the last status change rather than upload time.</para>
+    /// (e.g., rejected at, on hold at) are added to the domain model, this mapping should be
+    /// updated to reflect the last status change rather than upload time.</para>
     /// </remarks>
     public async Task<Result<ModuleDocumentStatusDto?>> GetDocumentStatusAsync(
         Guid documentId,
@@ -208,6 +199,12 @@ updated to reflect the last status change rather than upload time.</para>
     // 1. Adding specialized queries for common checks (verified, pending, rejected)
     // 2. Implementing a caching layer if these methods are frequently called together
     // 3. Creating a helper method to reduce the repeated pattern of fetch-check-filter
+    //
+    // TODO: Prioritize implementing specialized queries or caching if:
+    // - Providers have many documents (>10 per provider)
+    // - These methods are called together in workflows
+    // - The Search module or other consumers call these frequently
+    // Monitor performance metrics to determine when optimization is needed.
 
     /// <summary>
     /// Helper method to get provider documents and handle common error propagation.

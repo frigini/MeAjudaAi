@@ -113,6 +113,27 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
             });
         }
 
+        // Validate latitude and longitude ranges before constructing GeoPoint
+        if (latitude < -90 || latitude > 90)
+        {
+            return Results.BadRequest(new ProblemDetails
+            {
+                Title = "Invalid Parameter",
+                Detail = "latitude must be between -90 and 90",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        if (longitude < -180 || longitude > 180)
+        {
+            return Results.BadRequest(new ProblemDetails
+            {
+                Title = "Invalid Parameter",
+                Detail = "longitude must be between -180 and 180",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
         var query = new SearchProvidersQuery(
             latitude,
             longitude,
