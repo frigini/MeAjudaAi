@@ -44,6 +44,12 @@ public sealed class SearchProvidersQueryHandler
         }
         catch (ArgumentOutOfRangeException ex)
         {
+            _logger.LogWarning(
+                ex,
+                "Invalid coordinates received for provider search: Latitude={Latitude}, Longitude={Longitude}",
+                query.Latitude,
+                query.Longitude);
+
             return Result<PagedSearchResultDto<SearchableProviderDto>>.Failure(ex.Message);
         }
 
@@ -51,7 +57,7 @@ public sealed class SearchProvidersQueryHandler
         var skip = (query.PageNumber - 1) * query.PageSize;
 
         // Execute search
-        var (providers, totalCount) = await _repository.SearchAsync(
+        var searchResult = await _repository.SearchAsync(
             location,
             query.RadiusInKm,
             query.ServiceIds,
@@ -63,11 +69,11 @@ public sealed class SearchProvidersQueryHandler
 
         _logger.LogInformation(
             "Found {Count} providers out of {Total} total matches",
-            providers.Count,
-            totalCount);
+            searchResult.Providers.Count,
+            searchResult.TotalCount);
 
         // Map to DTOs
-        var providerDtos = providers.Select(p => new SearchableProviderDto
+        var providerDtos = searchResult.Providers.Select(p => new SearchableProviderDto
         {
             ProviderId = p.ProviderId,
             Name = p.Name,
@@ -89,7 +95,7 @@ public sealed class SearchProvidersQueryHandler
         var result = new PagedSearchResultDto<SearchableProviderDto>
         {
             Items = providerDtos,
-            TotalCount = totalCount,
+            TotalCount = searchResult.TotalCount,
             PageNumber = query.PageNumber,
             PageSize = query.PageSize
         };

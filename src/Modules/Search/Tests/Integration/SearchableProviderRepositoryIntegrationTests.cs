@@ -68,16 +68,16 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
         var searchLocation = new GeoPoint(-23.5505, -46.6333); // São Paulo Centro
 
         // Act - Buscar em raio de 20km
-        var (providers, totalCount) = await repository.SearchAsync(searchLocation, 20, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(searchLocation, 20, null, null, null, 0, 10);
 
         // Assert
-        providers.Should().HaveCount(3); // Apenas os 3 de SP
-        providers.Should().NotContain(p => p.Id == provider4.Id); // Rio não deve estar
+        result.Providers.Should().HaveCount(3); // Apenas os 3 de SP
+        result.Providers.Should().NotContain(p => p.Id == provider4.Id); // Rio não deve estar
         
         // Verificar ordenação por distância (mais próximo primeiro)
-        providers.First().Id.Should().Be(provider1.Id); // Centro (0km)
-        providers.Skip(1).First().Id.Should().Be(provider2.Id); // Paulista (~5km)
-        providers.Skip(2).First().Id.Should().Be(provider3.Id); // Pinheiros (~10km)
+        result.Providers.First().Id.Should().Be(provider1.Id); // Centro (0km)
+        result.Providers.Skip(1).First().Id.Should().Be(provider2.Id); // Paulista (~5km)
+        result.Providers.Skip(2).First().Id.Should().Be(provider3.Id); // Pinheiros (~10km)
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act - Buscar apenas eletricistas
-        var (providers, totalCount) = await repository.SearchAsync(
+        var result = await repository.SearchAsync(
             searchLocation,
             50,
             new[] { electricianServiceId },
@@ -123,10 +123,10 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
             10);
 
         // Assert
-        providers.Should().HaveCount(2);
-        providers.Should().Contain(p => p.Id == provider1.Id);
-        providers.Should().Contain(p => p.Id == provider3.Id);
-        providers.Should().NotContain(p => p.Id == provider2.Id);
+        result.Providers.Should().HaveCount(2);
+        result.Providers.Should().Contain(p => p.Id == provider1.Id);
+        result.Providers.Should().Contain(p => p.Id == provider3.Id);
+        result.Providers.Should().NotContain(p => p.Id == provider2.Id);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act - Buscar apenas com rating >= 4.0
-        var (providers, totalCount) = await repository.SearchAsync(
+        var result = await repository.SearchAsync(
             searchLocation,
             50,
             null,
@@ -163,10 +163,10 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
             10);
 
         // Assert
-        providers.Should().HaveCount(2);
-        providers.Should().Contain(p => p.Id == provider1.Id);
-        providers.Should().Contain(p => p.Id == provider2.Id);
-        providers.Should().NotContain(p => p.Id == provider3.Id);
+        result.Providers.Should().HaveCount(2);
+        result.Providers.Should().Contain(p => p.Id == provider1.Id);
+        result.Providers.Should().Contain(p => p.Id == provider2.Id);
+        result.Providers.Should().NotContain(p => p.Id == provider3.Id);
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act - Buscar apenas Standard e Gold
-        var (providers, totalCount) = await repository.SearchAsync(
+        var result = await repository.SearchAsync(
             searchLocation,
             50,
             null,
@@ -200,11 +200,11 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
             10);
 
         // Assert
-        providers.Should().HaveCount(3);
-        providers.Should().Contain(p => p.Id == provider2.Id);
-        providers.Should().Contain(p => p.Id == provider3.Id);
-        providers.Should().Contain(p => p.Id == provider4.Id);
-        providers.Should().NotContain(p => p.Id == provider1.Id);
+        result.Providers.Should().HaveCount(3);
+        result.Providers.Should().Contain(p => p.Id == provider2.Id);
+        result.Providers.Should().Contain(p => p.Id == provider3.Id);
+        result.Providers.Should().Contain(p => p.Id == provider4.Id);
+        result.Providers.Should().NotContain(p => p.Id == provider1.Id);
     }
 
     [Fact]
@@ -228,7 +228,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act - Página 2 com 5 items por página
-        var (providers, totalCount) = await repository.SearchAsync(
+        var result = await repository.SearchAsync(
             searchLocation,
             100,
             null,
@@ -238,7 +238,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
             5);
 
         // Assert
-        providers.Should().HaveCount(5); // Page size
+        result.Providers.Should().HaveCount(5); // Page size
         // Página 2 deve ter providers 5-9 (0-indexed: skip 5, take 5)
     }
 
@@ -252,6 +252,11 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
 
         var activeProvider = CreateTestSearchableProvider("Active Provider", -23.5505, -46.6333);
         var inactiveProvider = CreateTestSearchableProvider("Inactive Provider", -23.5629, -46.6544);
+        
+        // Mark the second provider as inactive
+        var inactiveProviderType = inactiveProvider.GetType();
+        var isActiveProperty = inactiveProviderType.GetProperty("IsActive");
+        isActiveProperty?.SetValue(inactiveProvider, false);
 
         await PersistSearchableProviderAsync(activeProvider);
         await PersistSearchableProviderAsync(inactiveProvider);
@@ -259,12 +264,12 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var (providers, totalCount) = await repository.SearchAsync(searchLocation, 50, null, null, null, 0, 10);
+        var result = await repository.SearchAsync(searchLocation, 50, null, null, null, 0, 10);
 
         // Assert
-        providers.Should().HaveCount(2);
-        providers.Should().Contain(p => p.Id == activeProvider.Id);
-        providers.Should().Contain(p => p.Id == inactiveProvider.Id);
+        result.Providers.Should().HaveCount(1);
+        result.Providers.Should().Contain(p => p.Id == activeProvider.Id);
+        result.Providers.Should().NotContain(p => p.Id == inactiveProvider.Id);
     }
 
     [Fact]
@@ -325,7 +330,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
         var searchLocation = new GeoPoint(-23.5505, -46.6333);
 
         // Act - Aplicar todos os filtros
-        var (providers, totalCount) = await repository.SearchAsync(
+        var result = await repository.SearchAsync(
             searchLocation,
             20, // 20km radius
             new[] { serviceId },
@@ -335,8 +340,8 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
             10);
 
         // Assert
-        providers.Should().HaveCount(1);
-        providers.Single().Id.Should().Be(matchingProvider.Id);
+        result.Providers.Should().HaveCount(1);
+        result.Providers.Single().Id.Should().Be(matchingProvider.Id);
     }
 
     [Fact]
@@ -348,11 +353,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
         var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
 
         var providerId = Guid.NewGuid();
-        var provider = CreateTestSearchableProvider("Test Provider", -23.5505, -46.6333);
-        
-        // Usar reflection para definir ProviderId (já que é private set)
-        var providerIdProperty = provider.GetType().GetProperty("ProviderId");
-        providerIdProperty!.SetValue(provider, providerId);
+        var provider = CreateTestSearchableProviderWithProviderId(providerId, "Test Provider", -23.5505, -46.6333);
 
         await PersistSearchableProviderAsync(provider);
 

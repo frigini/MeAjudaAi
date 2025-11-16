@@ -12,6 +12,7 @@ public sealed record ModuleDocumentStatusDto
 
     /// <summary>
     /// Status atual do documento.
+    /// Valid values: "pending", "processing", "completed", "failed"
     /// </summary>
     public required string Status { get; init; }
 

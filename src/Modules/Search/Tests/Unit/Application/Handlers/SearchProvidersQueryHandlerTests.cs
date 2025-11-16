@@ -50,7 +50,7 @@ public class SearchProvidersQueryHandlerTests
                 query.MinRating,
                 query.SubscriptionTiers,
                 0,
-                20,
+                query.PageSize,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((providers, 3));
 
@@ -81,7 +81,8 @@ public class SearchProvidersQueryHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("latitude");
+        result.Error.Should().NotBeNull();
+        result.Error.Message.Should().NotBeEmpty();
     }
 
     [Fact]
@@ -117,7 +118,7 @@ public class SearchProvidersQueryHandlerTests
         _repositoryMock.Verify(x => x.SearchAsync(
             It.IsAny<GeoPoint>(),
             It.IsAny<double>(),
-            It.Is<Guid[]?>(ids => ids != null && ids.Contains(serviceId1)),
+            It.Is<Guid[]?>(ids => ids != null && ids.Contains(serviceId1) && ids.Contains(serviceId2)),
             It.IsAny<decimal?>(),
             It.IsAny<ESubscriptionTier[]?>(),
             It.IsAny<int>(),

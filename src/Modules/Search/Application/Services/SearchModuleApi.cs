@@ -31,8 +31,8 @@ public sealed class SearchModuleApi : ISearchModuleApi
         int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        // Map module DTOs to domain enums
-        ESubscriptionTier[]? domainTiers = subscriptionTiers?.Select(t => (ESubscriptionTier)t).ToArray();
+        // Map module DTOs to domain enums using explicit mapping
+        ESubscriptionTier[]? domainTiers = subscriptionTiers?.Select(ToDomainTier).ToArray();
 
         var query = new SearchProvidersQuery(
             latitude,
@@ -66,7 +66,7 @@ public sealed class SearchModuleApi : ISearchModuleApi
                 },
                 AverageRating = p.AverageRating,
                 TotalReviews = p.TotalReviews,
-                SubscriptionTier = (SubscriptionTier)p.SubscriptionTier,
+                SubscriptionTier = ToModuleTier(p.SubscriptionTier),
                 ServiceIds = p.ServiceIds,
                 DistanceInKm = p.DistanceInKm,
                 City = p.City,
@@ -79,4 +79,28 @@ public sealed class SearchModuleApi : ISearchModuleApi
 
         return Result<ModulePagedSearchResultDto>.Success(moduleResult);
     }
+
+    /// <summary>
+    /// Maps module tier enum to domain tier enum with explicit conversion.
+    /// </summary>
+    private static ESubscriptionTier ToDomainTier(SubscriptionTier tier) => tier switch
+    {
+        SubscriptionTier.Free => ESubscriptionTier.Free,
+        SubscriptionTier.Standard => ESubscriptionTier.Standard,
+        SubscriptionTier.Gold => ESubscriptionTier.Gold,
+        SubscriptionTier.Platinum => ESubscriptionTier.Platinum,
+        _ => throw new ArgumentOutOfRangeException(nameof(tier), tier, "Unknown subscription tier")
+    };
+
+    /// <summary>
+    /// Maps domain tier enum to module tier enum with explicit conversion.
+    /// </summary>
+    private static SubscriptionTier ToModuleTier(ESubscriptionTier tier) => tier switch
+    {
+        ESubscriptionTier.Free => SubscriptionTier.Free,
+        ESubscriptionTier.Standard => SubscriptionTier.Standard,
+        ESubscriptionTier.Gold => SubscriptionTier.Gold,
+        ESubscriptionTier.Platinum => SubscriptionTier.Platinum,
+        _ => throw new ArgumentOutOfRangeException(nameof(tier), tier, "Unknown subscription tier")
+    };
 }

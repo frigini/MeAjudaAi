@@ -1,3 +1,4 @@
+using System.Data.Common;
 using MeAjudaAi.Modules.Search.Domain.Entities;
 using MeAjudaAi.Modules.Search.Domain.Enums;
 using MeAjudaAi.Modules.Search.Domain.ValueObjects;
@@ -85,12 +86,21 @@ public abstract class SearchIntegrationTestBase : IAsyncLifetime
         await dbContext.Database.EnsureCreatedAsync();
 
         // Verificar se PostGIS está disponível
-        var hasPostGIS = await dbContext.Database
-            .ExecuteSqlRawAsync("SELECT 1 FROM pg_extension WHERE extname = 'postgis'");
-
-        if (hasPostGIS == 0)
+        try
         {
-            throw new InvalidOperationException("PostGIS extension is not available in the test database");
+            var connection = dbContext.Database.GetDbConnection();
+            await connection.OpenAsync();
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT PostGIS_Version()";
+            var version = await command.ExecuteScalarAsync();
+            if (version == null)
+            {
+                throw new InvalidOperationException("PostGIS extension is not available in the test database");
+            }
+        }
+        catch (Exception ex) when (ex is not InvalidOperationException)
+        {
+            throw new InvalidOperationException("PostGIS extension is not available in the test database", ex);
         }
 
         // Verificar isolamento
@@ -114,6 +124,33 @@ public abstract class SearchIntegrationTestBase : IAsyncLifetime
         string? state = null)
     {
         var providerId = Guid.NewGuid();
+        var location = new GeoPoint(latitude, longitude);
+
+        var provider = SearchableProvider.Create(
+            providerId,
+            name,
+            location,
+            tier,
+            description,
+            city,
+            state);
+
+        return provider;
+    }
+
+    /// <summary>
+    /// Cria um SearchableProvider com ProviderId específico para teste
+    /// </summary>
+    protected SearchableProvider CreateTestSearchableProviderWithProviderId(
+        Guid providerId,
+        string name,
+        double latitude,
+        double longitude,
+        ESubscriptionTier tier = ESubscriptionTier.Free,
+        string? description = null,
+        string? city = null,
+        string? state = null)
+    {
         var location = new GeoPoint(latitude, longitude);
 
         var provider = SearchableProvider.Create(

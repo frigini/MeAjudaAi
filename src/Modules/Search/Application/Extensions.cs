@@ -1,6 +1,10 @@
 using FluentValidation;
+using MeAjudaAi.Modules.Search.Application.DTOs;
+using MeAjudaAi.Modules.Search.Application.Queries;
 using MeAjudaAi.Modules.Search.Application.Services;
 using MeAjudaAi.Shared.Contracts.Modules.Search;
+using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Search.Application;
@@ -16,7 +20,7 @@ public static class Extensions
     public static IServiceCollection AddSearchApplication(this IServiceCollection services)
     {
         // Register query handlers
-        services.AddSingleton(typeof(Handlers.SearchProvidersQueryHandler));
+        services.AddScoped<IQueryHandler<SearchProvidersQuery, Result<PagedSearchResultDto<SearchableProviderDto>>>, Handlers.SearchProvidersQueryHandler>();
 
         // Register FluentValidation validators
         services.AddValidatorsFromAssembly(typeof(Extensions).Assembly);

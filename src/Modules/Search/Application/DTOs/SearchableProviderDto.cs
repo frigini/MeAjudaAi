@@ -45,7 +45,7 @@ public sealed record SearchableProviderDto
     /// <summary>
     /// List of service IDs offered by this provider.
     /// </summary>
-    public Guid[] ServiceIds { get; init; } = Array.Empty<Guid>();
+    public IReadOnlyList<Guid> ServiceIds { get; init; } = Array.Empty<Guid>();
 
     /// <summary>
     /// Distance from search location in kilometers.

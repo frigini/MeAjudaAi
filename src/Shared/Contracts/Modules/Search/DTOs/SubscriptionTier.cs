@@ -2,6 +2,7 @@ namespace MeAjudaAi.Shared.Contracts.Modules.Search.DTOs;
 
 /// <summary>
 /// Subscription tier enumeration for module API.
+/// Values must match MeAjudaAi.Modules.Search.Domain.Enums.ESubscriptionTier.
 /// </summary>
 public enum SubscriptionTier
 {

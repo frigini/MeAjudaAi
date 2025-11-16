@@ -16,7 +16,7 @@ MeAjudaAi uses a robust authentication and authorization system with the followi
 
 ### Main Components
 
-```
+```text
 Authentication & Authorization System
 ├── Authentication (Keycloak + JWT)
 │   ├── JWT Token Validation

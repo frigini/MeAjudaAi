@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Result = MeAjudaAi.Shared.Functional.Result;
 
 namespace MeAjudaAi.Modules.Search.API.Endpoints;
 
@@ -19,7 +20,10 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
     /// Configures the search providers endpoint mapping.
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/providers/search", SearchProvidersAsync)
+    {
+        var group = CreateVersionedGroup(app, "search", "Search");
+
+        group.MapGet("/providers", SearchProvidersAsync)
             .WithName("SearchProviders")
             .WithSummary("Search for service providers")
             .WithDescription("""
@@ -40,6 +44,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
                 """)
             .Produces<PagedSearchResultDto<SearchableProviderDto>>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
+    }
 
     private static async Task<IResult> SearchProvidersAsync(
         IQueryDispatcher queryDispatcher,
@@ -64,7 +69,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
             pageSize);
 
         var result = await queryDispatcher.QueryAsync<SearchProvidersQuery, 
-            MeAjudaAi.Shared.Functional.Result<PagedSearchResultDto<SearchableProviderDto>>>(
+            Result<PagedSearchResultDto<SearchableProviderDto>>>(
             query, cancellationToken);
 
         return result.IsSuccess

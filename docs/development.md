@@ -22,19 +22,22 @@ git clone https://github.com/frigini/MeAjudaAi.git
 cd MeAjudaAi
 
 # 2. Verificar ferramentas
-donet --version    # Deve ser 9.0+
+dotnet --version    # Deve ser 9.0+
 docker --version    # Verificar se Docker está rodando
 
 # 3. Restaurar dependências
-donet restore
+dotnet restore
 
 # 4. Executar com Aspire (recomendado)
 cd src/Aspire/MeAjudaAi.AppHost
-donet run
+dotnet run
 
 # OU executar apenas a API
 cd src/Bootstrapper/MeAjudaAi.ApiService
-donet run
+dotnet runn
+
+# Executar via Aspire (com dashboard)
+dotnet run --project src/Aspire/MeAjudaAi.AppHost
 ```
 
 ### **Configuração do Visual Studio**
@@ -213,19 +216,19 @@ donet restore
 ### Testes
 
 ```powershell
-# Run all tests
-donet test
+# Executar todos os testes
+dotnet test
 
-# Run with code coverage
-donet test --collect:"XPlat Code Coverage"
+# Com cobertura
+dotnet test --collect:"XPlat Code Coverage"
 
-# Run specific module tests
-donet test src\Modules\Users\Tests\
-donet test src\Modules\Providers\Tests\
+# Testes por módulo
+dotnet test src\Modules\Users\Tests\
+dotnet test src\Modules\Providers\Tests\
 
-# Run specific test categories
-donet test --filter "Category=Unit"
-donet test --filter "Category=Integration"
+# Filtrar por categoria
+dotnet test --filter "Category=Unit"
+dotnet test --filter "Category=Integration"
 
 # Generate HTML coverage report (requires reportgenerator tool)
 reportgenerator -reports:"coverage\**\coverage.opencover.xml" -targetdir:"coverage\html" -reporttypes:Html
@@ -258,14 +261,14 @@ reportgenerator -reports:"coverage\**\coverage.opencover.xml" -targetdir:"covera
 ### Qualidade de Código
 
 ```powershell
-# Format code according to .editorconfig
-donet format
+# Aplicar formatação automática
+dotnet format
 
-# Run code analysis
-donet build --verbosity normal
+# Verificar warnings
+dotnet build --verbosity normal
 
-# Clean build artifacts
-donet clean
+# Limpar artefatos
+dotnet clean
 ```
 
 ### Documentação da API
@@ -294,13 +297,13 @@ O MeAjudaAi segue uma estratégia abrangente de testes baseada na pirâmide de t
                  /________\
                 /          \
                / Integration \
-              /_______________
+              /_______________\
              /                 \
             /   Unit Tests      \
-           /____________________\          
+           /____________________\
           /                      \
          /   Architecture Tests   \
-        /_______________________
+        /______________________\
 ```
 
 ### **1. Padrões de Nomenclatura para Testes**
@@ -470,10 +473,10 @@ public async Task CheckPermission_WithAuthorizedUser_ShouldReturnTrue()
 #### Viewing Coverage Reports
 ```bash
 # Run tests with coverage
-donet test --collect:"XPlat Code Coverage" --results-directory ./coverage
+dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
 
 # Generate HTML report (optional)
-donet tool install -g dotnet-reportgenerator-globaltool
+dotnet tool install -g dotnet-reportgenerator-globaltool
 reportgenerator -reports:"./coverage/**/coverage.opencover.xml" -targetdir:"./coverage/html" -reporttypes:Html
 ```
 
@@ -550,17 +553,17 @@ public void DomainEntities_Should_NotDependOnInfrastructure()
 #### Local Development
 ```bash
 # Run all tests
-donet test
+dotnet test
 
 # Run specific test category
-donet test --filter "Category=Integration"
-donet test --filter "Category=Unit"
+dotnet test --filter "Category=Integration"
+dotnet test --filter "Category=Unit"
 
 # Run with coverage
-donet test --collect:"XPlat Code Coverage"
+dotnet test --collect:"XPlat Code Coverage"
 
 # Run tests in watch mode
-donet watch test
+dotnet watch test
 ```
 
 #### CI/CD Pipeline

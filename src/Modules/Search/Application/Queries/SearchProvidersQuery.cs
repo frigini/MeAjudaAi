@@ -1,3 +1,4 @@
+using System.Globalization;
 using MeAjudaAi.Modules.Search.Application.DTOs;
 using MeAjudaAi.Modules.Search.Domain.Enums;
 using MeAjudaAi.Shared.Functional;
@@ -22,8 +23,9 @@ public sealed record SearchProvidersQuery(
     public string GetCacheKey()
     {
         // Arredonda coordenadas para 4 casas decimais (~11m de precisão) para melhor cache hit rate
-        var lat = Latitude.ToString("F4");
-        var lng = Longitude.ToString("F4");
+        var lat = Latitude.ToString("F4", CultureInfo.InvariantCulture);
+        var lng = Longitude.ToString("F4", CultureInfo.InvariantCulture);
+        var radius = RadiusInKm.ToString("G", CultureInfo.InvariantCulture);
         
         // Ordena e concatena service IDs para cache consistency
         var serviceKey = ServiceIds != null && ServiceIds.Length > 0
@@ -35,7 +37,7 @@ public sealed record SearchProvidersQuery(
             ? string.Join("-", SubscriptionTiers.OrderBy(x => x))
             : "all";
         
-        return $"search:providers:lat:{lat}:lng:{lng}:radius:{RadiusInKm}:services:{serviceKey}:rating:{MinRating ?? 0}:tiers:{tierKey}:page:{PageNumber}:size:{PageSize}";
+        return $"search:providers:lat:{lat}:lng:{lng}:radius:{radius}:services:{serviceKey}:rating:{MinRating ?? 0}:tiers:{tierKey}:page:{PageNumber}:size:{PageSize}";
     }
 
     public TimeSpan GetCacheExpiration()

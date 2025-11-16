@@ -32,8 +32,8 @@ public interface ISearchableProviderRepository
     /// <param name="skip">Number of results to skip for pagination</param>
     /// <param name="take">Number of results to return</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>List of providers matching the criteria, ordered by ranking algorithm</returns>
-    Task<(IReadOnlyList<SearchableProvider> Providers, int TotalCount)> SearchAsync(
+    /// <returns>Search result containing providers and total count</returns>
+    Task<SearchResult> SearchAsync(
         GeoPoint location,
         double radiusInKm,
         Guid[]? serviceIds = null,

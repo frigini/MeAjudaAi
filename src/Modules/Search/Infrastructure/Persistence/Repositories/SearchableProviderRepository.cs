@@ -32,7 +32,7 @@ public sealed class SearchableProviderRepository : ISearchableProviderRepository
             .FirstOrDefaultAsync(p => p.ProviderId == providerId, cancellationToken);
     }
 
-    public async Task<(IReadOnlyList<SearchableProvider> Providers, int TotalCount)> SearchAsync(
+    public async Task<SearchResult> SearchAsync(
         GeoPoint location,
         double radiusInKm,
         Guid[]? serviceIds = null,
@@ -42,12 +42,9 @@ public sealed class SearchableProviderRepository : ISearchableProviderRepository
         int take = 20,
         CancellationToken cancellationToken = default)
     {
-        // Create a Point for the search location (NetTopologySuite)
-        var searchPoint = new Point(location.Longitude, location.Latitude) { SRID = 4326 };
-        var radiusInMeters = radiusInKm * 1000;
-
-        // Build base query - filter by active status only
+        // Build base query - filter by active status only (read-only search)
         var query = _context.SearchableProviders
+            .AsNoTracking()
             .Where(p => p.IsActive);
 
         // Apply service filter if provided
@@ -88,7 +85,11 @@ public sealed class SearchableProviderRepository : ISearchableProviderRepository
             .Select(x => x.Provider)
             .ToList();
 
-        return (providers, totalCount);
+        return new SearchResult
+        {
+            Providers = providers,
+            TotalCount = totalCount
+        };
     }
 
     public async Task AddAsync(SearchableProvider provider, CancellationToken cancellationToken = default)

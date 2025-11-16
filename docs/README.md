@@ -36,10 +36,10 @@ Se você é novo no projeto, comece por aqui:
 ### **📝 Logging**
 
 | Documento | Descrição |
-|-----------|-----------|
-| **[🆔 Correlation ID](./logging/correlation_id.md)** | Melhores práticas para implementação e uso de Correlation IDs |
-| **[⏱️ Performance](./logging/performance.md)** | Estratégias e ferramentas de monitoramento de performance |
-| **[📊 Seq Setup](./logging/seq_setup.md)** | Configuração do Seq para logging estruturado |
+|-----------|-----------||
+| **[🆔 Correlation ID](./logging/CORRELATION_ID.md)** | Melhores práticas para implementação e uso de Correlation IDs |
+| **[⏱️ Desempenho](./logging/PERFORMANCE.md)** | Estratégias e ferramentas de monitoramento de desempenho |
+| **[📊 Seq Setup](./logging/SEQ_SETUP.md)** | Configuração do Seq para logging estruturado |
 
 ### **💬 Messaging**
 
@@ -56,6 +56,7 @@ Se você é novo no projeto, comece por aqui:
 | **[📅 Módulo Bookings](./modules/bookings.md)** | Sistema de agendamentos (planejado) |
 | **[📄 Módulo Documents](./modules/documents.md)** | Gerenciamento de documentos |
 | **[🔧 Módulo Providers](./modules/providers.md)** | Prestadores de serviços, verificação e documentos |
+| **[🔍 Módulo Search](./modules/search.md)** | Busca geoespacial de prestadores com PostGIS |
 | **[📋 Módulo Services](./modules/services.md)** | Catálogo de serviços (planejado) |
 | **[👥 Módulo Users](./modules/users.md)** | Gestão de usuários, autenticação e perfis |
 

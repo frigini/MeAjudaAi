@@ -70,7 +70,9 @@ The Dead Letter Queue strategy has been successfully implemented in MeAjudaAi, p
 
 ### Exponential Backoff
 
-The delay between retries increases exponentially, e.g., 5s, 10s, 20s, up to a maximum of 300s.
+The delay between retries increases exponentially using the formula `2^(attemptCount-1) * 2` seconds, capped at 300 seconds (5 minutes).
+
+**Retry intervals**: 2s, 4s, 8s, 16s, 32s, 64s, 128s, 256s (then capped at 300s)
 
 ## 🔌 Integration with Handlers
 

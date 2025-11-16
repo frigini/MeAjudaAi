@@ -57,8 +57,8 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == "Latitude");
-        result.Errors.First().ErrorMessage.Should().Contain("between -90 and 90");
+        var error = result.Errors.Single(e => e.PropertyName == "Latitude");
+        error.ErrorMessage.Should().Contain("between -90 and 90");
     }
 
     [Theory]
@@ -79,8 +79,8 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == "Longitude");
-        result.Errors.First().ErrorMessage.Should().Contain("between -180 and 180");
+        var error = result.Errors.Single(e => e.PropertyName == "Longitude");
+        error.ErrorMessage.Should().Contain("between -180 and 180");
     }
 
     [Theory]
@@ -100,8 +100,8 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == "RadiusInKm");
-        result.Errors.First().ErrorMessage.Should().Contain("greater than 0");
+        var error = result.Errors.Single(e => e.PropertyName == "RadiusInKm");
+        error.ErrorMessage.Should().Contain("greater than 0");
     }
 
     [Fact]
@@ -118,8 +118,8 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == "RadiusInKm");
-        result.Errors.First().ErrorMessage.Should().Contain("cannot exceed 500");
+        var error = result.Errors.Single(e => e.PropertyName == "RadiusInKm");
+        error.ErrorMessage.Should().Contain("cannot exceed 500");
     }
 
     [Theory]
@@ -140,8 +140,8 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == "MinRating");
-        result.Errors.First().ErrorMessage.Should().Contain("between 0 and 5");
+        var error = result.Errors.Single(e => e.PropertyName == "MinRating");
+        error.ErrorMessage.Should().Contain("between 0 and 5");
     }
 
     [Theory]
@@ -161,8 +161,8 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == "PageNumber");
-        result.Errors.First().ErrorMessage.Should().Contain("greater than 0");
+        var error = result.Errors.Single(e => e.PropertyName == "PageNumber");
+        error.ErrorMessage.Should().Contain("greater than 0");
     }
 
     [Theory]
@@ -182,8 +182,8 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == "PageSize");
-        result.Errors.First().ErrorMessage.Should().Contain("greater than 0");
+        var error = result.Errors.Single(e => e.PropertyName == "PageSize");
+        error.ErrorMessage.Should().Contain("greater than 0");
     }
 
     [Fact]
@@ -201,8 +201,8 @@ public class SearchProvidersQueryValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.PropertyName == "PageSize");
-        result.Errors.First().ErrorMessage.Should().Contain("cannot exceed 100");
+        var error = result.Errors.Single(e => e.PropertyName == "PageSize");
+        error.ErrorMessage.Should().Contain("cannot exceed 100");
     }
 
     [Fact]

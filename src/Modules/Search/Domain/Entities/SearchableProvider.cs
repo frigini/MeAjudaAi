@@ -81,7 +81,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     {
         ProviderId = providerId;
         Name = name;
-        Location = location;
+        Location = location ?? throw new ArgumentNullException(nameof(location));
         SubscriptionTier = subscriptionTier;
         AverageRating = 0;
         TotalReviews = 0;
@@ -104,6 +104,11 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new ArgumentException("Provider name cannot be empty.", nameof(name));
+        }
+
+        if (location is null)
+        {
+            throw new ArgumentNullException(nameof(location));
         }
 
         var searchableProvider = new SearchableProvider(
@@ -181,7 +186,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     /// </summary>
     public void UpdateServices(Guid[] serviceIds)
     {
-        ServiceIds = serviceIds ?? Array.Empty<Guid>();
+        ServiceIds = serviceIds?.ToArray() ?? Array.Empty<Guid>();
         MarkAsUpdated();
     }
 
@@ -212,6 +217,9 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     /// </summary>
     public double CalculateDistanceToInKm(GeoPoint targetLocation)
     {
+        if (targetLocation is null)
+            throw new ArgumentNullException(nameof(targetLocation));
+
         return Location.DistanceTo(targetLocation);
     }
 }

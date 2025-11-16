@@ -105,6 +105,10 @@ public sealed class DocumentsModuleApi(
                 ? Result<ModuleDocumentDto?>.Success(null)
                 : Result<ModuleDocumentDto?>.Success(MapToModuleDto(document));
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting document {DocumentId}", documentId);
@@ -123,6 +127,10 @@ public sealed class DocumentsModuleApi(
 
             var moduleDtos = documents.Select(MapToModuleDto).ToList();
             return Result<IReadOnlyList<ModuleDocumentDto>>.Success(moduleDtos);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -154,6 +162,10 @@ public sealed class DocumentsModuleApi(
 
             return Result<ModuleDocumentStatusDto?>.Success(statusDto);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting document status {DocumentId}", documentId);
@@ -176,6 +188,10 @@ public sealed class DocumentsModuleApi(
 
             var hasVerified = documentsResult.Value!.Any(d => d.Status == EDocumentStatus.Verified.ToString());
             return Result<bool>.Success(hasVerified);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -205,6 +221,10 @@ public sealed class DocumentsModuleApi(
 
             var hasRequired = hasIdentity && hasProofOfResidence;
             return Result<bool>.Success(hasRequired);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -239,6 +259,10 @@ public sealed class DocumentsModuleApi(
 
             return Result<DocumentStatusCountDto>.Success(count);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting document status count for provider {ProviderId}", providerId);
@@ -262,6 +286,10 @@ public sealed class DocumentsModuleApi(
             var hasPending = documentsResult.Value!.Any(d => d.Status == EDocumentStatus.PendingVerification.ToString());
             return Result<bool>.Success(hasPending);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error checking pending documents for provider {ProviderId}", providerId);
@@ -284,6 +312,10 @@ public sealed class DocumentsModuleApi(
 
             var hasRejected = documentsResult.Value!.Any(d => d.Status == EDocumentStatus.Rejected.ToString());
             return Result<bool>.Success(hasRejected);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

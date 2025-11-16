@@ -85,5 +85,6 @@ public class GetProviderDocumentsQueryTests
         // Assert
         query1.CorrelationId.Should().NotBe(query2.CorrelationId);
         query1.CorrelationId.Should().NotBeEmpty();
+        query2.CorrelationId.Should().NotBeEmpty();
     }
 }

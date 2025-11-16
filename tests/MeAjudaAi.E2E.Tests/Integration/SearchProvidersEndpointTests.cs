@@ -33,7 +33,7 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
         {
             var content = await response.Content.ReadFromJsonAsync<SearchProvidersResponse>(JsonOptions);
             content.Should().NotBeNull();
-            content!.Providers.Should().NotBeNull();
+            content!.Items.Should().NotBeNull();
             content.TotalCount.Should().BeGreaterThanOrEqualTo(0);
             content.PageNumber.Should().Be(1);
         }
@@ -125,9 +125,9 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
             content.Should().NotBeNull();
             
             // Se houver resultados, todos devem ter rating >= minRating
-            if (content!.Providers.Any())
+            if (content!.Items.Any())
             {
-                content.Providers.Should().AllSatisfy(p => 
+                content.Items.Should().AllSatisfy(p => 
                     p.AverageRating.Should().BeGreaterThanOrEqualTo((decimal)minRating));
             }
         }
@@ -207,7 +207,7 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
             content.Should().NotBeNull();
             content!.PageNumber.Should().Be(pageNumber);
             content.PageSize.Should().Be(pageSize);
-            content.Providers.Count.Should().BeLessThanOrEqualTo(pageSize);
+            content.Items.Count.Should().BeLessThanOrEqualTo(pageSize);
         }
     }
 
@@ -323,7 +323,7 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
 /// </summary>
 public class SearchProvidersResponse
 {
-    public List<SearchableProviderDto> Providers { get; set; } = new();
+    public List<SearchableProviderDto> Items { get; set; } = new();
     public int TotalCount { get; set; }
     public int PageNumber { get; set; }
     public int PageSize { get; set; }

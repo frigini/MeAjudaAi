@@ -12,7 +12,7 @@ public sealed record ModuleSearchableProviderDto
     public decimal AverageRating { get; init; }
     public int TotalReviews { get; init; }
     public SubscriptionTier SubscriptionTier { get; init; }
-    public Guid[] ServiceIds { get; init; } = Array.Empty<Guid>();
+    public IReadOnlyCollection<Guid> ServiceIds { get; init; } = Array.Empty<Guid>();
     public double? DistanceInKm { get; init; }
     public string? City { get; init; }
     public string? State { get; init; }

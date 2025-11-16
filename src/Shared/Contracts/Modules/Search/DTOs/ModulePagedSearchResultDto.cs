@@ -9,7 +9,7 @@ public sealed record ModulePagedSearchResultDto
     public required int TotalCount { get; init; }
     public required int PageNumber { get; init; }
     public required int PageSize { get; init; }
-    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
-    public bool HasNextPage => PageNumber < TotalPages;
+    public int TotalPages => PageSize <= 0 ? 0 : (int)Math.Ceiling(TotalCount / (double)PageSize);
+    public bool HasNextPage => TotalPages > 0 && PageNumber < TotalPages;
     public bool HasPreviousPage => PageNumber > 1;
 }
