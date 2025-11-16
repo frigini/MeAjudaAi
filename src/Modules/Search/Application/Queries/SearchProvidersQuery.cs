@@ -27,6 +27,7 @@ public sealed record SearchProvidersQuery(
         var lat = Latitude.ToString("F4", CultureInfo.InvariantCulture);
         var lng = Longitude.ToString("F4", CultureInfo.InvariantCulture);
         var radius = RadiusInKm.ToString("G", CultureInfo.InvariantCulture);
+        var rating = (MinRating ?? 0).ToString("G", CultureInfo.InvariantCulture);
         
         // Ordena e concatena service IDs para cache consistency
         var serviceKey = ServiceIds != null && ServiceIds.Length > 0
@@ -38,9 +39,7 @@ public sealed record SearchProvidersQuery(
             ? string.Join("-", SubscriptionTiers.OrderBy(x => x))
             : "all";
         
-    {
-        return $"search:providers:lat:{lat}:lng:{lng}:radius:{radius}:services:{serviceKey}:rating:{MinRating ?? 0}:tiers:{tierKey}:page:{Page}:size:{PageSize}";
-    }
+        return $"search:providers:lat:{lat}:lng:{lng}:radius:{radius}:services:{serviceKey}:rating:{rating}:tiers:{tierKey}:page:{Page}:size:{PageSize}";
     }
 
     public TimeSpan GetCacheExpiration()

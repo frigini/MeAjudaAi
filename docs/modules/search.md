@@ -139,15 +139,16 @@ export DB_CONNECTION_STRING="Host=prod-server;Database=MeAjudaAi;..."
 O módulo é registrado automaticamente no `Program.cs`:
 
 ```csharp
-// Adiciona infraestrutura do Search (DbContext, Repositories)
-builder.Services.AddSearchInfrastructure(builder.Configuration);
+// Registra o módulo Search completo (Domain, Application, Infrastructure, API)
+// Internamente registra DbContext, Repositories, Handlers, Validators
+builder.Services.AddSearchModule(builder.Configuration);
 
-// Adiciona aplicação do Search (Handlers, Validators)
-builder.Services.AddSearchApplication();
-
-// Adiciona endpoints do Search
-app.MapSearchEndpoints();
+// Mapeia todos os endpoints do módulo Search
+// Substitui a necessidade de chamar métodos individuais de registro
+app.UseSearchModule();
 ```
+
+**Nota:** Os métodos `AddSearchModule()` e `UseSearchModule()` substituem as chamadas individuais anteriores (`AddSearchInfrastructure`, `AddSearchApplication`, `MapSearchEndpoints`), consolidando o registro em dois métodos simples.
 
 ---
 
@@ -385,14 +386,14 @@ Tests/
 ├── Unit/
 │   ├── Domain/
 │   │   └── Entities/
-│   │       └── SearchableProviderTests.cs        # 29 testes
+│   │       └── SearchableProviderTests.cs        # Domain entity tests
 │   ├── Application/
 │   │   ├── Handlers/
-│   │   │   └── SearchProvidersQueryHandlerTests.cs  # 7 testes
+│   │   │   └── SearchProvidersQueryHandlerTests.cs  # Handler logic tests
 │   │   ├── Queries/
-│   │   │   └── SearchProvidersQueryTests.cs         # 2 testes
+│   │   │   └── SearchProvidersQueryTests.cs         # Query behavior tests
 │   │   └── Validators/
-│   │       └── SearchProvidersQueryValidatorTests.cs # 22 testes
+│   │       └── SearchProvidersQueryValidatorTests.cs # Validation tests
 └── Integration/
     ├── SearchIntegrationTestBase.cs
     └── SearchableProviderRepositoryIntegrationTests.cs  # 11 testes

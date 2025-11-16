@@ -51,6 +51,14 @@ public class SearchDbContext : BaseDbContext
         return Task.FromResult(domainEvents);
     }
 
+    /// <summary>
+    /// Limpa eventos de domínio após persistência.
+    /// 
+    /// NOTA: Específico para AggregateRoot&lt;SearchableProviderId&gt;.
+    /// Se novos agregados com tipos de ID diferentes forem adicionados,
+    /// considere usar interface base não-genérica (IAggregateRoot) para
+    /// suportar múltiplos tipos sem modificações no DbContext.
+    /// </summary>
     protected override void ClearDomainEvents()
     {
         var entities = ChangeTracker

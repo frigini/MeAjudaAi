@@ -63,6 +63,9 @@ public sealed class SearchProvidersQueryHandler(
             searchResult.TotalCount);
 
         // Map to DTOs
+        // NOTE: CalculateDistanceToInKm is called twice (once in repository for filtering/sorting,
+        // once here for DTO mapping). For hot paths, consider extending SearchResult to include
+        // precomputed distances to avoid redundant calculations.
         var providerDtos = searchResult.Providers.Select(p => new SearchableProviderDto
         {
             ProviderId = p.ProviderId,

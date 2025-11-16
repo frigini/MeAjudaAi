@@ -11,8 +11,23 @@ namespace MeAjudaAi.Modules.Search.Infrastructure.Persistence.Repositories;
 
 /// <summary>
 /// Implementação de repositório para SearchableProvider.
-/// Atualmente realiza a filtragem espacial (distância/raio) em memória da aplicação após carregar
-/// os provedores filtrados do banco de dados. Filtros não-espaciais (serviços, avaliação, tier) são aplicados no nível do banco de dados.
+/// 
+/// NOTA SOBRE PERFORMANCE:
+/// Atualmente realiza filtragem espacial (distância/raio) em memória após carregar
+/// provedores filtrados do banco. Filtros não-espaciais (serviços, avaliação, tier)
+/// são aplicados no nível do banco de dados.
+/// 
+/// LIMITAÇÃO DO EF CORE:
+/// A propriedade Location usa HasConversion (GeoPoint <-> NTS.Point), o que impede
+/// o EF Core de traduzir funções espaciais NTS (IsWithinDistance, Distance) para SQL.
+/// Soluções futuras: usar FromSqlInterpolated ou remover conversão customizada.
+/// 
+/// ESCALABILIDADE:
+/// Para datasets pequenos/médios (milhares de provedores), a abordagem híbrida funciona bem.
+/// Para datasets grandes (milhões), considerar:
+/// 1. Remover HasConversion e usar GeoJSON/WKT
+/// 2. Usar FromSqlRaw com ST_DWithin/ST_Distance do PostGIS
+/// 3. Implementar caching de resultados geoespaciais
 /// </summary>
 public sealed class SearchableProviderRepository(SearchDbContext context) : ISearchableProviderRepository
 {
@@ -38,47 +53,51 @@ public sealed class SearchableProviderRepository(SearchDbContext context) : ISea
         int take = 20,
         CancellationToken cancellationToken = default)
     {
-        // Build base query - filter by active status only (read-only search)
+        // Build base query - filter by active status (uses ix_searchable_providers_is_active index)
         var query = context.SearchableProviders
             .AsNoTracking()
             .Where(p => p.IsActive);
 
-        // Apply service filter if provided
+        // Apply service filter using PostgreSQL array overlap operator
+        // EF Core translates ServiceIds.Any() to PostgreSQL && operator
+        // This uses the GIN index on service_ids column for efficient filtering
         if (serviceIds != null && serviceIds.Length > 0)
         {
             query = query.Where(p => p.ServiceIds.Any(sid => serviceIds.Contains(sid)));
         }
 
-        // Apply minimum rating filter
+        // Apply minimum rating filter (uses ix_searchable_providers_search_ranking composite index)
         if (minRating.HasValue)
         {
             query = query.Where(p => p.AverageRating >= minRating.Value);
         }
 
-        // Apply subscription tier filter
+        // Apply subscription tier filter (uses ix_searchable_providers_subscription_tier index)
         if (subscriptionTiers != null && subscriptionTiers.Length > 0)
         {
             query = query.Where(p => subscriptionTiers.Contains(p.SubscriptionTier));
         }
 
-        // Get all matching providers (filtered by non-spatial criteria)
-        // Then filter and sort by distance in-memory
+        // Execute non-spatial filters in database (optimized with indexes)
         var allProviders = await query.ToListAsync(cancellationToken);
 
-        // Apply spatial filtering and sorting in-memory
-        var filteredAndSorted = allProviders
-            .Select(p => new { Provider = p, Distance = p.CalculateDistanceToInKm(location) })
-            .Where(x => x.Distance <= radiusInKm)
-            .OrderByDescending(x => x.Provider.SubscriptionTier)
-            .ThenByDescending(x => x.Provider.AverageRating)
-            .ThenBy(x => x.Distance)
+        // Apply spatial filtering in-memory
+        // REASON: EF Core cannot translate Location property (has HasConversion) to PostGIS functions
+        // The GeoPoint -> Point conversion prevents query translation
+        var filteredByDistance = allProviders
+            .Where(p => p.CalculateDistanceToInKm(location) <= radiusInKm)
             .ToList();
 
-        var totalCount = filteredAndSorted.Count;
-        var providers = filteredAndSorted
+        var totalCount = filteredByDistance.Count;
+
+        // Apply sorting and pagination in-memory
+        // Order: SubscriptionTier (desc) -> AverageRating (desc) -> Distance (asc)
+        var providers = filteredByDistance
+            .OrderByDescending(p => p.SubscriptionTier)
+            .ThenByDescending(p => p.AverageRating)
+            .ThenBy(p => p.CalculateDistanceToInKm(location))
             .Skip(skip)
             .Take(take)
-            .Select(x => x.Provider)
             .ToList();
 
         return new SearchResult

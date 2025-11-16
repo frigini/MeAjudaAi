@@ -22,8 +22,11 @@ namespace MeAjudaAi.Modules.Documents.Application.ModuleApi;
 /// <para><strong>"Not Found" Semantics:</strong></para>
 /// <para>GetDocumentByIdAsync returns Success(null) for non-existent documents rather than treating
 /// "not found" as a failure. The availability check depends on this convention.</para>
+/// <para><strong>Module Metadata:</strong></para>
+/// <para>ModuleApi attribute values must match ModuleNameConst and ApiVersionConst constants.
+/// A unit test validates this consistency to prevent configuration drift.</para>
 /// </remarks>
-[ModuleApi("Documents", "1.0")]
+[ModuleApi(ModuleNameConst, ApiVersionConst)]
 public sealed class DocumentsModuleApi(
     IQueryHandler<GetDocumentStatusQuery, DocumentDto?> getDocumentStatusHandler,
     IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>> getProviderDocumentsHandler,
@@ -198,43 +201,19 @@ public sealed class DocumentsModuleApi(
         }
     }
 
-    // Note: The following methods fetch all provider documents via GetProviderDocumentsAsync
-    // and filter in-memory. For optimization, consider:
-    // 1. Adding specialized queries for common checks (verified, pending, rejected)
-    // 2. Implementing a caching layer if these methods are frequently called together
-    // 3. Creating a helper method to reduce the repeated pattern of fetch-check-filter
+    // PERFORMANCE NOTE: The following methods fetch all provider documents and filter in-memory.
+    // This is acceptable for small document sets (<10 per provider), but consider optimization
+    // if providers have many documents or these methods are called frequently.
     //
-    // TODO: Prioritize implementing specialized queries or caching if:
-    // - Providers have many documents (>10 per provider)
-    // - These methods are called together in workflows
-    // - The Search module or other consumers call these frequently
-    // Monitor performance metrics to determine when optimization is needed.
+    // Tracked in GitHub issue #XXX: Implement specialized queries for document status checks
+    // - HasVerifiedDocumentsQuery, HasPendingDocumentsQuery, HasRejectedDocumentsQuery
+    // - GetDocumentStatusCountQuery (GroupBy + Count in database)
+    // - HasRequiredDocumentsQuery (complex filtering with All())
     //
-    // IMPLEMENTATION GUIDANCE for specialized queries:
-    //
-    // Example: HasVerifiedDocumentsQuery (pushes filtering to database, uses indexes)
-    //
-    // Application/Queries/HasVerifiedDocumentsQuery.cs:
-    //   public record HasVerifiedDocumentsQuery(Guid ProviderId) : IQuery<bool>;
-    //
-    // Infrastructure/QueryHandlers/HasVerifiedDocumentsQueryHandler.cs:
-    //   public async Task<bool> HandleAsync(HasVerifiedDocumentsQuery query, CancellationToken ct)
-    //   {
-    //       return await _context.Documents
-    //           .Where(d => d.ProviderId == query.ProviderId && d.Status == EDocumentStatus.Verified)
-    //           .AnyAsync(ct);
-    //   }
-    //
-    // Benefits:
-    // - Avoids loading all documents into memory
-    // - Leverages database indexes on Status and ProviderId columns
-    // - Returns only boolean result (no DTO mapping overhead)
-    // - Can use AnyAsync() which short-circuits on first match
-    //
-    // Similar pattern applies to:
-    // - HasPendingDocumentsQuery, HasRejectedDocumentsQuery (use AnyAsync with status filter)
-    // - GetDocumentStatusCountQuery (use GroupBy + Count, return Dictionary<EDocumentStatus, int>)
-    // - HasRequiredDocumentsQuery (complex: check verified + specific document types with All())
+    // Optimization will be prioritized when:
+    // - Average documents per provider >10
+    // - Performance metrics show this as a bottleneck
+    // - Search module or workflows call these methods frequently
 
     /// <summary>
     /// Helper method to get provider documents and handle common error propagation.
