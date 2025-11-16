@@ -206,6 +206,32 @@ public sealed class DocumentsModuleApi(
     // - These methods are called together in workflows
     // - The Search module or other consumers call these frequently
     // Monitor performance metrics to determine when optimization is needed.
+    //
+    // IMPLEMENTATION GUIDANCE for specialized queries:
+    //
+    // Example: HasVerifiedDocumentsQuery (pushes filtering to database, uses indexes)
+    //
+    // Application/Queries/HasVerifiedDocumentsQuery.cs:
+    //   public record HasVerifiedDocumentsQuery(Guid ProviderId) : IQuery<bool>;
+    //
+    // Infrastructure/QueryHandlers/HasVerifiedDocumentsQueryHandler.cs:
+    //   public async Task<bool> HandleAsync(HasVerifiedDocumentsQuery query, CancellationToken ct)
+    //   {
+    //       return await _context.Documents
+    //           .Where(d => d.ProviderId == query.ProviderId && d.Status == EDocumentStatus.Verified)
+    //           .AnyAsync(ct);
+    //   }
+    //
+    // Benefits:
+    // - Avoids loading all documents into memory
+    // - Leverages database indexes on Status and ProviderId columns
+    // - Returns only boolean result (no DTO mapping overhead)
+    // - Can use AnyAsync() which short-circuits on first match
+    //
+    // Similar pattern applies to:
+    // - HasPendingDocumentsQuery, HasRejectedDocumentsQuery (use AnyAsync with status filter)
+    // - GetDocumentStatusCountQuery (use GroupBy + Count, return Dictionary<EDocumentStatus, int>)
+    // - HasRequiredDocumentsQuery (complex: check verified + specific document types with All())
 
     /// <summary>
     /// Helper method to get provider documents and handle common error propagation.

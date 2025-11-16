@@ -228,6 +228,58 @@ pageSize=20"
 }
 ```
 
+#### **Respostas de Erro**
+
+**400 Bad Request - Parâmetros Inválidos**
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+  "title": "Invalid Parameter",
+  "status": 400,
+  "detail": "latitude must be between -90 and 90"
+}
+```
+
+**Casos comuns de validação:**
+- `latitude` fora do intervalo [-90, 90]
+- `longitude` fora do intervalo [-180, 180]
+- `radiusInKm` ≤ 0 ou > 500
+- `pageNumber` < 1
+- `pageSize` ≤ 0 ou > 100
+- `minRating` fora do intervalo [0, 5]
+
+**422 Unprocessable Entity - Falha de Validação Complexa**
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc4918#section-11.2",
+  "title": "Validation Failed",
+  "status": 422,
+  "detail": "One or more validation errors occurred.",
+  "errors": {
+    "MinRating": ["'Min Rating' must be between 0 and 5."]
+  }
+}
+```
+
+**500 Internal Server Error - Falha do Servidor**
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+  "title": "Search Failed",
+  "status": 500,
+  "detail": "An error occurred while processing your search request."
+}
+```
+
+**Códigos de Status:**
+- `200 OK`: Busca executada com sucesso
+- `400 Bad Request`: Parâmetros inválidos (coordenadas, raio, paginação)
+- `422 Unprocessable Entity`: Falhas de validação do FluentValidation
+- `500 Internal Server Error`: Erro interno do servidor (banco de dados, exceções não tratadas)
+
 #### **Casos de Uso**
 
 **1. Buscar prestadores próximos:**
