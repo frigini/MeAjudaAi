@@ -1,28 +1,28 @@
 namespace MeAjudaAi.Modules.Search.Domain.Enums;
 
 /// <summary>
-/// Represents the subscription tier of a provider.
-/// Higher tiers receive better positioning in search results.
+/// Representa o tier de assinatura de um provedor.
+/// Tiers mais altos recebem melhor posicionamento nos resultados de busca.
 /// </summary>
 public enum ESubscriptionTier
 {
     /// <summary>
-    /// Free tier - basic listing
+    /// Tier gratuito - listagem básica
     /// </summary>
     Free = 0,
 
     /// <summary>
-    /// Standard tier - enhanced listing with additional features
+    /// Tier padrão - listagem aprimorada com recursos adicionais
     /// </summary>
     Standard = 1,
 
     /// <summary>
-    /// Gold tier - premium listing with priority in search results
+    /// Tier ouro - listagem premium com prioridade nos resultados de busca
     /// </summary>
     Gold = 2,
 
     /// <summary>
-    /// Platinum tier - highest priority in search results with maximum visibility
+    /// Tier platina - maior prioridade nos resultados de busca com máxima visibilidade
     /// </summary>
     Platinum = 3
 }

@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Search.Application.Handlers;
 using MeAjudaAi.Modules.Search.Application.Queries;
 using MeAjudaAi.Modules.Search.Domain.Entities;
 using MeAjudaAi.Modules.Search.Domain.Enums;
+using MeAjudaAi.Modules.Search.Domain.Models;
 using MeAjudaAi.Modules.Search.Domain.Repositories;
 using MeAjudaAi.Modules.Search.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
@@ -39,7 +40,7 @@ public class SearchProvidersQueryHandlerTests
             Latitude: -23.5505,
             Longitude: -46.6333,
             RadiusInKm: 10,
-            PageNumber: 1,
+            Page: 1,
             PageSize: 20);
 
         var providers = CreateTestProviders(3);
@@ -63,7 +64,7 @@ public class SearchProvidersQueryHandlerTests
         result.Value.Should().NotBeNull();
         result.Value!.Items.Should().HaveCount(3);
         result.Value.TotalCount.Should().Be(3);
-        result.Value.PageNumber.Should().Be(1);
+        result.Value.Page.Should().Be(1);
         result.Value.PageSize.Should().Be(20);
         result.Value.TotalPages.Should().Be(1);
     }
@@ -204,7 +205,7 @@ public class SearchProvidersQueryHandlerTests
             Latitude: -23.5505,
             Longitude: -46.6333,
             RadiusInKm: 10,
-            PageNumber: 2,
+            Page: 2,
             PageSize: 10);
 
         var providers = CreateTestProviders(10);
@@ -225,7 +226,7 @@ public class SearchProvidersQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value!.PageNumber.Should().Be(2);
+        result.Value!.Page.Should().Be(2);
         result.Value.TotalPages.Should().Be(3); // 25 / 10 = 3
         result.Value.HasPreviousPage.Should().BeTrue();
         result.Value.HasNextPage.Should().BeTrue();

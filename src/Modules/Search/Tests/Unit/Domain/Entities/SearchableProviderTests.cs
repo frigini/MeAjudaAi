@@ -287,8 +287,8 @@ public class SearchableProviderTests
         var distance = provider.CalculateDistanceToInKm(targetLocation);
 
         // Assert
-        // Distance between São Paulo and Rio de Janeiro is approximately 357 km
-        distance.Should().BeApproximately(357, 10); // ±10km tolerance
+        // Distância entre São Paulo e Rio de Janeiro é aproximadamente 357 km
+        distance.Should().BeApproximately(357, 10); // tolerância de ±10km
     }
 
     [Fact]
@@ -302,7 +302,7 @@ public class SearchableProviderTests
         var distance = provider.CalculateDistanceToInKm(location);
 
         // Assert
-        distance.Should().BeApproximately(0, 0.1); // Very close to zero
+        distance.Should().BeApproximately(0, 0.1); // Muito próximo de zero
     }
 
     private static SearchableProvider CreateValidProvider()

@@ -85,7 +85,7 @@ public class SearchProvidersQueryTests
         var key1 = query1.GetCacheKey();
         var key2 = query2.GetCacheKey();
 
-        // Assert - Should round to same 4 decimal places
+        // Assert - Deve arredondar para as mesmas 4 casas decimais
         key1.Should().Be(key2);
         key1.Should().Contain("lat:-23.5505");
     }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Design;
 namespace MeAjudaAi.Modules.Search.Infrastructure.Persistence;
 
 /// <summary>
-/// Factory for creating SearchDbContext instances at design-time (for migrations).
+/// Fábrica para criar instâncias de SearchDbContext em tempo de design (para migrações).
 /// </summary>
 public class SearchDbContextFactory : IDesignTimeDbContextFactory<SearchDbContext>
 {
@@ -20,19 +20,19 @@ public class SearchDbContextFactory : IDesignTimeDbContextFactory<SearchDbContex
         optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
         {
             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
-            npgsqlOptions.UseNetTopologySuite(); // Enable PostGIS support
+            npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS
         });
 
         optionsBuilder.UseSnakeCaseNamingConvention();
 
-        // Create a no-op domain event processor for design-time
-        var noOpEventProcessor = new NoOpDomainEventProcessor();
+        // Criar processador de eventos de domínio no-op para design-time
+        var domainEventProcessor = new NoOpDomainEventProcessor();
 
-        return new SearchDbContext(optionsBuilder.Options, noOpEventProcessor);
+        return new SearchDbContext(optionsBuilder.Options, domainEventProcessor);
     }
 
     /// <summary>
-    /// No-op implementation of IDomainEventProcessor for design-time scenarios.
+    /// Implementação no-op de IDomainEventProcessor para cenários de tempo de design.
     /// </summary>
     private class NoOpDomainEventProcessor : IDomainEventProcessor
     {

@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Search.Application.DTOs;
 using MeAjudaAi.Modules.Search.Application.Queries;
 using MeAjudaAi.Modules.Search.Domain.Enums;
+using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Contracts.Modules.Search;
 using MeAjudaAi.Shared.Contracts.Modules.Search.DTOs;
 using MeAjudaAi.Shared.Functional;
@@ -9,17 +10,10 @@ using MeAjudaAi.Shared.Queries;
 namespace MeAjudaAi.Modules.Search.Application.Services;
 
 /// <summary>
-/// Implementation of the Search module's public API.
+/// Implementação da API pública do módulo Search.
 /// </summary>
-public sealed class SearchModuleApi : ISearchModuleApi
+public sealed class SearchModuleApi(IQueryDispatcher queryDispatcher) : ISearchModuleApi
 {
-    private readonly IQueryDispatcher _queryDispatcher;
-
-    public SearchModuleApi(IQueryDispatcher queryDispatcher)
-    {
-        _queryDispatcher = queryDispatcher;
-    }
-
     public async Task<Result<ModulePagedSearchResultDto>> SearchProvidersAsync(
         double latitude,
         double longitude,
@@ -27,11 +21,11 @@ public sealed class SearchModuleApi : ISearchModuleApi
         Guid[]? serviceIds = null,
         decimal? minRating = null,
         SubscriptionTier[]? subscriptionTiers = null,
-        int pageNumber = 1,
+        int page = 1,
         int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        // Map module DTOs to domain enums using explicit mapping
+        // Mapear enums do módulo para enums do domínio usando mapeamento explícito
         ESubscriptionTier[]? domainTiers = subscriptionTiers?.Select(ToDomainTier).ToArray();
 
         var query = new SearchProvidersQuery(
@@ -41,17 +35,17 @@ public sealed class SearchModuleApi : ISearchModuleApi
             serviceIds,
             minRating,
             domainTiers,
-            pageNumber,
+            page,
             pageSize);
 
-        var result = await _queryDispatcher.QueryAsync<SearchProvidersQuery, Result<PagedSearchResultDto<SearchableProviderDto>>>(query, cancellationToken);
+        var result = await queryDispatcher.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(query, cancellationToken);
 
         if (result.IsFailure)
         {
             return Result<ModulePagedSearchResultDto>.Failure(result.Error);
         }
 
-        // Map internal DTOs to module DTOs
+        // Mapear DTOs internos para DTOs do módulo
         var moduleResult = new ModulePagedSearchResultDto
         {
             Items = result.Value!.Items.Select(p => new ModuleSearchableProviderDto
@@ -73,7 +67,7 @@ public sealed class SearchModuleApi : ISearchModuleApi
                 State = p.State
             }).ToList(),
             TotalCount = result.Value.TotalCount,
-            PageNumber = result.Value.PageNumber,
+            PageNumber = result.Value.Page,
             PageSize = result.Value.PageSize
         };
 
@@ -81,7 +75,7 @@ public sealed class SearchModuleApi : ISearchModuleApi
     }
 
     /// <summary>
-    /// Maps module tier enum to domain tier enum with explicit conversion.
+    /// Mapeia o enum de tier do módulo para o enum de tier do domínio com conversão explícita.
     /// </summary>
     private static ESubscriptionTier ToDomainTier(SubscriptionTier tier) => tier switch
     {
@@ -93,7 +87,7 @@ public sealed class SearchModuleApi : ISearchModuleApi
     };
 
     /// <summary>
-    /// Maps domain tier enum to module tier enum with explicit conversion.
+    /// Mapeia o enum de tier do domínio para o enum de tier do módulo com conversão explícita.
     /// </summary>
     private static SubscriptionTier ToModuleTier(ESubscriptionTier tier) => tier switch
     {

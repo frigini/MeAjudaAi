@@ -8,12 +8,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Modules.Search.Infrastructure;
 
 /// <summary>
-/// Extension methods for registering Search Infrastructure layer services.
+/// Métodos de extensão para registrar serviços da camada de Infrastructure do Search.
 /// </summary>
 public static class Extensions
 {
     /// <summary>
-    /// Registers Search Infrastructure layer services.
+    /// Registra serviços da camada de Infrastructure do Search.
     /// </summary>
     public static IServiceCollection AddSearchInfrastructure(
         this IServiceCollection services,
@@ -28,7 +28,7 @@ public static class Extensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
-                npgsqlOptions.UseNetTopologySuite(); // Enable PostGIS/geospatial support
+                npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS/geoespacial
             });
 
             options.UseSnakeCaseNamingConvention();
@@ -41,7 +41,7 @@ public static class Extensions
             }
         });
 
-        // Register repositories
+        // Registrar repositórios
         services.AddScoped<ISearchableProviderRepository, SearchableProviderRepository>();
 
         return services;

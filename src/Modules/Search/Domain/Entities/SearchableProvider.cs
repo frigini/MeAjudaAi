@@ -6,68 +6,68 @@ using MeAjudaAi.Shared.Geolocation;
 namespace MeAjudaAi.Modules.Search.Domain.Entities;
 
 /// <summary>
-/// Read model for provider search.
-/// Denormalized entity optimized for geolocation queries and ranking.
+/// Modelo de leitura para busca de provedores.
+/// Entidade desnormalizada otimizada para consultas de geolocalização e ranking.
 /// </summary>
 public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
 {
     /// <summary>
-    /// Reference to the original provider ID in the Providers module.
+    /// Referência ao ID do provedor original no módulo Providers.
     /// </summary>
     public Guid ProviderId { get; private set; }
 
     /// <summary>
-    /// Provider's name for display in search results.
+    /// Nome do provedor para exibição nos resultados de busca.
     /// </summary>
     public string Name { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Provider's geographic location.
+    /// Localização geográfica do provedor.
     /// </summary>
     public GeoPoint Location { get; private set; } = null!;
 
     /// <summary>
-    /// Average rating from customer reviews (0-5).
+    /// Avaliação média das avaliações de clientes (0-5).
     /// </summary>
     public decimal AverageRating { get; private set; }
 
     /// <summary>
-    /// Total number of reviews received.
+    /// Número total de avaliações recebidas.
     /// </summary>
     public int TotalReviews { get; private set; }
 
     /// <summary>
-    /// Current subscription tier affecting search ranking.
+    /// Tier de assinatura atual que afeta o ranking de busca.
     /// </summary>
     public ESubscriptionTier SubscriptionTier { get; private set; }
 
     /// <summary>
-    /// List of service IDs this provider offers.
-    /// Stored as array for efficient filtering.
+    /// Lista de IDs de serviços que este provedor oferece.
+    /// Armazenada como array para filtragem eficiente.
     /// </summary>
     public Guid[] ServiceIds { get; private set; } = Array.Empty<Guid>();
 
     /// <summary>
-    /// Indicates if the provider is currently active and should appear in search results.
+    /// Indica se o provedor está atualmente ativo e deve aparecer nos resultados de busca.
     /// </summary>
     public bool IsActive { get; private set; }
 
     /// <summary>
-    /// Provider's description/bio for search result display.
+    /// Descrição/bio do provedor para exibição nos resultados de busca.
     /// </summary>
     public string? Description { get; private set; }
 
     /// <summary>
-    /// City where the provider is located.
+    /// Cidade onde o provedor está localizado.
     /// </summary>
     public string? City { get; private set; }
 
     /// <summary>
-    /// State/province where the provider is located.
+    /// Estado/província onde o provedor está localizado.
     /// </summary>
     public string? State { get; private set; }
 
-    // Private constructor for EF Core
+    // Construtor privado para EF Core
     private SearchableProvider()
     {
     }
@@ -90,7 +90,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     }
 
     /// <summary>
-    /// Creates a new searchable provider entry.
+    /// Cria uma nova entrada de provedor pesquisável.
     /// </summary>
     public static SearchableProvider Create(
         Guid providerId,
@@ -124,7 +124,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     }
 
     /// <summary>
-    /// Updates provider's basic information.
+    /// Atualiza as informações básicas do provedor.
     /// </summary>
     public void UpdateBasicInfo(string name, string? description, string? city, string? state)
     {
@@ -141,7 +141,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     }
 
     /// <summary>
-    /// Updates provider's location.
+    /// Atualiza a localização do provedor.
     /// </summary>
     public void UpdateLocation(GeoPoint location)
     {
@@ -150,7 +150,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     }
 
     /// <summary>
-    /// Updates provider's rating based on new review data.
+    /// Atualiza a avaliação do provedor com base em novos dados de avaliação.
     /// </summary>
     public void UpdateRating(decimal averageRating, int totalReviews)
     {
@@ -170,7 +170,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     }
 
     /// <summary>
-    /// Updates provider's subscription tier.
+    /// Atualiza o tier de assinatura do provedor.
     /// </summary>
     public void UpdateSubscriptionTier(ESubscriptionTier tier)
     {
@@ -179,7 +179,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     }
 
     /// <summary>
-    /// Updates the list of services offered by the provider.
+    /// Atualiza a lista de serviços oferecidos pelo provedor.
     /// </summary>
     public void UpdateServices(Guid[] serviceIds)
     {
@@ -188,7 +188,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     }
 
     /// <summary>
-    /// Activates the provider in search results.
+    /// Ativa o provedor nos resultados de busca.
     /// </summary>
     public void Activate()
     {
@@ -199,7 +199,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     }
 
     /// <summary>
-    /// Deactivates the provider from search results.
+    /// Desativa o provedor dos resultados de busca.
     /// </summary>
     public void Deactivate()
     {
@@ -210,7 +210,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     }
 
     /// <summary>
-    /// Calculates distance to a given location in kilometers.
+    /// Calcula a distância até uma localização especificada em quilômetros.
     /// </summary>
     public double CalculateDistanceToInKm(GeoPoint targetLocation)
     {

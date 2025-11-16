@@ -1,6 +1,7 @@
 using System.Globalization;
 using MeAjudaAi.Modules.Search.Application.DTOs;
 using MeAjudaAi.Modules.Search.Domain.Enums;
+using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 
@@ -16,9 +17,9 @@ public sealed record SearchProvidersQuery(
     Guid[]? ServiceIds = null,
     decimal? MinRating = null,
     ESubscriptionTier[]? SubscriptionTiers = null,
-    int PageNumber = 1,
+    int Page = 1,
     int PageSize = 20
-) : Query<Result<PagedSearchResultDto<SearchableProviderDto>>>, ICacheableQuery
+) : Query<Result<PagedResult<SearchableProviderDto>>>, ICacheableQuery
 {
     public string GetCacheKey()
     {
@@ -37,7 +38,9 @@ public sealed record SearchProvidersQuery(
             ? string.Join("-", SubscriptionTiers.OrderBy(x => x))
             : "all";
         
-        return $"search:providers:lat:{lat}:lng:{lng}:radius:{radius}:services:{serviceKey}:rating:{MinRating ?? 0}:tiers:{tierKey}:page:{PageNumber}:size:{PageSize}";
+    {
+        return $"search:providers:lat:{lat}:lng:{lng}:radius:{radius}:services:{serviceKey}:rating:{MinRating ?? 0}:tiers:{tierKey}:page:{Page}:size:{PageSize}";
+    }
     }
 
     public TimeSpan GetCacheExpiration()

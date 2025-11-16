@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Search.Application.DTOs;
 using MeAjudaAi.Modules.Search.Application.Queries;
 using MeAjudaAi.Modules.Search.Domain.Enums;
+using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -12,12 +13,12 @@ using Microsoft.AspNetCore.Routing;
 namespace MeAjudaAi.Modules.Search.API.Endpoints;
 
 /// <summary>
-/// Endpoint for searching service providers by location and criteria.
+/// Endpoint para buscar provedores de serviço por localização e critérios.
 /// </summary>
 public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
 {
     /// <summary>
-    /// Configures the search providers endpoint mapping.
+    /// Configura o mapeamento do endpoint de busca de provedores.
     /// </summary>
     public static void Map(IEndpointRouteBuilder app)
     {
@@ -42,7 +43,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
                 - Search for providers offering specific services
                 - Filter by minimum rating or subscription level
                 """)
-            .Produces<PagedSearchResultDto<SearchableProviderDto>>(StatusCodes.Status200OK)
+            .Produces<PagedResult<SearchableProviderDto>>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
     }
 
@@ -54,17 +55,17 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
         [FromQuery] Guid[]? serviceIds,
         [FromQuery] decimal? minRating,
         [FromQuery] ESubscriptionTier[]? subscriptionTiers,
-        [FromQuery] int pageNumber = 1,
+        [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        // Validate inputs at endpoint boundary
-        if (pageNumber < 1)
+        // Validar inputs no limite do endpoint
+        if (page < 1)
         {
             return Results.BadRequest(new ProblemDetails
             {
                 Title = "Invalid Parameter",
-                Detail = "pageNumber must be greater than or equal to 1",
+                Detail = "page must be greater than or equal to 1",
                 Status = StatusCodes.Status400BadRequest
             });
         }
@@ -79,7 +80,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
             });
         }
 
-        // Enforce sensible maximum for pageSize
+        // Forçar máximo sensível para pageSize
         const int MaxPageSize = 100;
         if (pageSize > MaxPageSize)
         {
@@ -113,7 +114,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
             });
         }
 
-        // Validate latitude and longitude ranges before constructing GeoPoint
+        // Validar intervalos de latitude e longitude antes de construir GeoPoint
         if (latitude < -90 || latitude > 90)
         {
             return Results.BadRequest(new ProblemDetails
@@ -141,11 +142,11 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
             serviceIds,
             minRating,
             subscriptionTiers,
-            pageNumber,
+            page,
             pageSize);
 
         var result = await queryDispatcher.QueryAsync<SearchProvidersQuery, 
-            Result<PagedSearchResultDto<SearchableProviderDto>>>(
+            Result<PagedResult<SearchableProviderDto>>>(
             query, cancellationToken);
 
         return result.IsSuccess

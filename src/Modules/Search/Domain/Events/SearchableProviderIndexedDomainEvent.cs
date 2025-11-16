@@ -3,7 +3,7 @@ using MeAjudaAi.Shared.Events;
 namespace MeAjudaAi.Modules.Search.Domain.Events;
 
 /// <summary>
-/// Domain event raised when a searchable provider entry is created.
+/// Evento de domínio disparado quando uma entrada de provedor pesquisável é criada.
 /// </summary>
 public sealed record SearchableProviderIndexedDomainEvent(
     Guid AggregateId,

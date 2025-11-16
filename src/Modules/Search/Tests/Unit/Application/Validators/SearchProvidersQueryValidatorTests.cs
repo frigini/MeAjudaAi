@@ -28,7 +28,7 @@ public class SearchProvidersQueryValidatorTests
             Latitude: -23.5505,
             Longitude: -46.6333,
             RadiusInKm: 10,
-            PageNumber: 1,
+            Page: 1,
             PageSize: 20);
 
         // Act
@@ -154,14 +154,14 @@ public class SearchProvidersQueryValidatorTests
             Latitude: -23.5505,
             Longitude: -46.6333,
             RadiusInKm: 10,
-            PageNumber: invalidPage);
+            Page: invalidPage);
 
         // Act
         var result = _validator.Validate(query);
 
         // Assert
         result.IsValid.Should().BeFalse();
-        var error = result.Errors.Single(e => e.PropertyName == nameof(SearchProvidersQuery.PageNumber));
+        var error = result.Errors.Single(e => e.PropertyName == nameof(SearchProvidersQuery.Page));
         error.ErrorMessage.Should().Contain("greater than 0");
     }
 
@@ -216,7 +216,7 @@ public class SearchProvidersQueryValidatorTests
             ServiceIds: new[] { Guid.NewGuid(), Guid.NewGuid() },
             MinRating: 4.5m,
             SubscriptionTiers: new[] { ESubscriptionTier.Gold, ESubscriptionTier.Platinum },
-            PageNumber: 2,
+            Page: 2,
             PageSize: 50);
 
         // Act

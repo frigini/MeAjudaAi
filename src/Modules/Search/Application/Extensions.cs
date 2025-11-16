@@ -2,6 +2,7 @@ using FluentValidation;
 using MeAjudaAi.Modules.Search.Application.DTOs;
 using MeAjudaAi.Modules.Search.Application.Queries;
 using MeAjudaAi.Modules.Search.Application.Services;
+using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Contracts.Modules.Search;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -10,22 +11,22 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Modules.Search.Application;
 
 /// <summary>
-/// Extension methods for registering Search Application layer services.
+/// Métodos de extensão para registrar serviços da camada de Application do Search.
 /// </summary>
 public static class Extensions
 {
     /// <summary>
-    /// Registers Search Application layer services.
+    /// Registra serviços da camada de Application do Search.
     /// </summary>
     public static IServiceCollection AddSearchApplication(this IServiceCollection services)
     {
-        // Register query handlers
-        services.AddScoped<IQueryHandler<SearchProvidersQuery, Result<PagedSearchResultDto<SearchableProviderDto>>>, Handlers.SearchProvidersQueryHandler>();
+        // Registrar query handlers
+        services.AddScoped<IQueryHandler<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>, Handlers.SearchProvidersQueryHandler>();
 
-        // Register FluentValidation validators
+        // Registrar validadores do FluentValidation
         services.AddValidatorsFromAssembly(typeof(Extensions).Assembly);
 
-        // Register module API
+        // Registrar API do módulo
         services.AddScoped<ISearchModuleApi, SearchModuleApi>();
 
         return services;

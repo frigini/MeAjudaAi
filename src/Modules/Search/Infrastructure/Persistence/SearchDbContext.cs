@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.Modules.Search.Infrastructure.Persistence;
 
 /// <summary>
-/// Database context for the Search module.
-/// Uses PostGIS extension for geospatial queries.
+/// Contexto de banco de dados para o módulo Search.
+/// Usa a extensão PostGIS para consultas geoespaciais.
 /// </summary>
 public class SearchDbContext : BaseDbContext
 {

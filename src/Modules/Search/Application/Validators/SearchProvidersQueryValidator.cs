@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Search.Application.Queries;
 namespace MeAjudaAi.Modules.Search.Application.Validators;
 
 /// <summary>
-/// Validator for SearchProvidersQuery.
+/// Validador para SearchProvidersQuery.
 /// </summary>
 public sealed class SearchProvidersQueryValidator : AbstractValidator<SearchProvidersQuery>
 {
@@ -29,7 +29,7 @@ public sealed class SearchProvidersQueryValidator : AbstractValidator<SearchProv
             .When(x => x.MinRating.HasValue)
             .WithMessage("Minimum rating must be between 0 and 5.");
 
-        RuleFor(x => x.PageNumber)
+        RuleFor(x => x.Page)
             .GreaterThan(0)
             .WithMessage("Page number must be greater than 0.");
 

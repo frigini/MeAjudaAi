@@ -8,38 +8,38 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Modules.Search.API;
 
 /// <summary>
-/// Module-level extensions for registering the complete Search & Discovery module.
+/// Extensões em nível de módulo para registrar o módulo completo de Search & Discovery.
 /// </summary>
 public static class ModuleExtensions
 {
     /// <summary>
-    /// Registers all Search module services (Domain, Application, Infrastructure, API).
+    /// Registra todos os serviços do módulo Search (Domain, Application, Infrastructure, API).
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The configuration to read connection strings and settings.</param>
-    /// <returns>The service collection for chaining.</returns>
+    /// <param name="services">A coleção de serviços.</param>
+    /// <param name="configuration">A configuração para ler strings de conexão e configurações.</param>
+    /// <returns>A coleção de serviços para encadeamento.</returns>
     public static IServiceCollection AddSearchModule(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Domain layer has no external dependencies to register
+        // Domain layer não tem dependências externas para registrar
 
         // Application layer
         services.AddSearchApplication();
 
-        // Infrastructure layer (requires configuration for DB connection)
+        // Infrastructure layer (requer configuration para conexão do BD)
         services.AddSearchInfrastructure(configuration);
 
-        // API layer - no additional services to register
+        // API layer - sem serviços adicionais para registrar
 
         return services;
     }
 
     /// <summary>
-    /// Maps all Search module endpoints.
+    /// Mapeia todos os endpoints do módulo Search.
     /// </summary>
-    /// <param name="app">The endpoint route builder.</param>
-    /// <returns>The endpoint route builder for chaining.</returns>
+    /// <param name="app">O construtor de rotas de endpoint.</param>
+    /// <returns>O construtor de rotas de endpoint para encadeamento.</returns>
     public static IEndpointRouteBuilder UseSearchModule(this IEndpointRouteBuilder app)
     {
         SearchProvidersEndpoint.Map(app);

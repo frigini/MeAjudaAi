@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Search.Domain.Entities;
 using MeAjudaAi.Modules.Search.Domain.Enums;
+using MeAjudaAi.Modules.Search.Domain.Models;
 using MeAjudaAi.Modules.Search.Domain.Repositories;
 using MeAjudaAi.Modules.Search.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
@@ -9,28 +10,21 @@ using NetTopologySuite.Geometries;
 namespace MeAjudaAi.Modules.Search.Infrastructure.Persistence.Repositories;
 
 /// <summary>
-/// Repository implementation for SearchableProvider.
-/// Currently performs spatial filtering (distance/radius) in application memory after loading
-/// filtered providers from the database. Non-spatial filters (services, rating, tier) are applied at the database level.
+/// Implementação de repositório para SearchableProvider.
+/// Atualmente realiza a filtragem espacial (distância/raio) em memória da aplicação após carregar
+/// os provedores filtrados do banco de dados. Filtros não-espaciais (serviços, avaliação, tier) são aplicados no nível do banco de dados.
 /// </summary>
-public sealed class SearchableProviderRepository : ISearchableProviderRepository
+public sealed class SearchableProviderRepository(SearchDbContext context) : ISearchableProviderRepository
 {
-    private readonly SearchDbContext _context;
-
-    public SearchableProviderRepository(SearchDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<SearchableProvider?> GetByIdAsync(SearchableProviderId id, CancellationToken cancellationToken = default)
     {
-        return await _context.SearchableProviders
+        return await context.SearchableProviders
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
     public async Task<SearchableProvider?> GetByProviderIdAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
-        return await _context.SearchableProviders
+        return await context.SearchableProviders
             .FirstOrDefaultAsync(p => p.ProviderId == providerId, cancellationToken);
     }
 
@@ -45,7 +39,7 @@ public sealed class SearchableProviderRepository : ISearchableProviderRepository
         CancellationToken cancellationToken = default)
     {
         // Build base query - filter by active status only (read-only search)
-        var query = _context.SearchableProviders
+        var query = context.SearchableProviders
             .AsNoTracking()
             .Where(p => p.IsActive);
 
@@ -96,23 +90,23 @@ public sealed class SearchableProviderRepository : ISearchableProviderRepository
 
     public async Task AddAsync(SearchableProvider provider, CancellationToken cancellationToken = default)
     {
-        await _context.SearchableProviders.AddAsync(provider, cancellationToken);
+        await context.SearchableProviders.AddAsync(provider, cancellationToken);
     }
 
     public Task UpdateAsync(SearchableProvider provider, CancellationToken cancellationToken = default)
     {
-        _context.SearchableProviders.Update(provider);
+        context.SearchableProviders.Update(provider);
         return Task.CompletedTask;
     }
 
     public Task DeleteAsync(SearchableProvider provider, CancellationToken cancellationToken = default)
     {
-        _context.SearchableProviders.Remove(provider);
+        context.SearchableProviders.Remove(provider);
         return Task.CompletedTask;
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.SaveChangesAsync(cancellationToken);
+        return await context.SaveChangesAsync(cancellationToken);
     }
 }

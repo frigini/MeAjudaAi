@@ -9,7 +9,7 @@ using NetTopologySuite.Geometries;
 namespace MeAjudaAi.Modules.Search.Infrastructure.Persistence.Configurations;
 
 /// <summary>
-/// EF Core configuration for SearchableProvider entity.
+/// Configuração do EF Core para a entidade SearchableProvider.
 /// </summary>
 internal sealed class SearchableProviderConfiguration : IEntityTypeConfiguration<SearchableProvider>
 {

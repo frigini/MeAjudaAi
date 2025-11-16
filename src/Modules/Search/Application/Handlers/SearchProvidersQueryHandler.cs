@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Search.Application.DTOs;
 using MeAjudaAi.Modules.Search.Application.Queries;
 using MeAjudaAi.Modules.Search.Domain.Repositories;
 using MeAjudaAi.Modules.Search.Domain.ValueObjects;
+using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
@@ -12,25 +13,16 @@ namespace MeAjudaAi.Modules.Search.Application.Handlers;
 /// <summary>
 /// Handler for searching providers based on location and criteria.
 /// </summary>
-public sealed class SearchProvidersQueryHandler 
-    : IQueryHandler<SearchProvidersQuery, Result<PagedSearchResultDto<SearchableProviderDto>>>
+public sealed class SearchProvidersQueryHandler(
+    ISearchableProviderRepository repository,
+    ILogger<SearchProvidersQueryHandler> logger)
+    : IQueryHandler<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>
 {
-    private readonly ISearchableProviderRepository _repository;
-    private readonly ILogger<SearchProvidersQueryHandler> _logger;
-
-    public SearchProvidersQueryHandler(
-        ISearchableProviderRepository repository,
-        ILogger<SearchProvidersQueryHandler> logger)
-    {
-        _repository = repository;
-        _logger = logger;
-    }
-
-    public async Task<Result<PagedSearchResultDto<SearchableProviderDto>>> HandleAsync(
+    public async Task<Result<PagedResult<SearchableProviderDto>>> HandleAsync(
         SearchProvidersQuery query,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug(
+        logger.LogDebug(
             "Searching providers at ({Latitude}, {Longitude}) within {Radius}km",
             query.Latitude,
             query.Longitude,
@@ -44,18 +36,18 @@ public sealed class SearchProvidersQueryHandler
         }
         catch (ArgumentOutOfRangeException ex)
         {
-            _logger.LogWarning(
+            logger.LogWarning(
                 ex,
                 "Invalid coordinates received for provider search");
 
-            return Result<PagedSearchResultDto<SearchableProviderDto>>.Failure(ex.Message);
+            return Result<PagedResult<SearchableProviderDto>>.Failure(ex.Message);
         }
 
         // Calculate pagination defensively
-        var skip = Math.Max(0, (query.PageNumber - 1) * query.PageSize);
+        var skip = Math.Max(0, (query.Page - 1) * query.PageSize);
 
         // Execute search
-        var searchResult = await _repository.SearchAsync(
+        var searchResult = await repository.SearchAsync(
             location,
             query.RadiusInKm,
             query.ServiceIds,
@@ -65,7 +57,7 @@ public sealed class SearchProvidersQueryHandler
             query.PageSize,
             cancellationToken);
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Found {Count} providers out of {Total} total matches",
             searchResult.Providers.Count,
             searchResult.TotalCount);
@@ -90,14 +82,12 @@ public sealed class SearchProvidersQueryHandler
             State = p.State
         }).ToList();
 
-        var result = new PagedSearchResultDto<SearchableProviderDto>
-        {
-            Items = providerDtos,
-            TotalCount = searchResult.TotalCount,
-            PageNumber = query.PageNumber,
-            PageSize = query.PageSize
-        };
+        var result = PagedResult<SearchableProviderDto>.Create(
+            providerDtos,
+            query.Page,
+            query.PageSize,
+            searchResult.TotalCount);
 
-        return Result<PagedSearchResultDto<SearchableProviderDto>>.Success(result);
+        return Result<PagedResult<SearchableProviderDto>>.Success(result);
     }
 }
