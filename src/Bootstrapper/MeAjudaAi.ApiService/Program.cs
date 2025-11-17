@@ -98,15 +98,15 @@ public partial class Program
             app.UseStructuredLogging();
         }
 
-    // Configurar serviços e módulos
-    await app.UseSharedServicesAsync();
-    app.UseApiServices(app.Environment);
-    app.UseUsersModule();
-    app.UseProvidersModule();
-    app.UseDocumentsModule();
-    app.UseSearchModule();
-    // Location module has no endpoints/middleware, only internal services
-}
+        // Configurar serviços e módulos
+        await app.UseSharedServicesAsync();
+        app.UseApiServices(app.Environment);
+        app.UseUsersModule();
+        app.UseProvidersModule();
+        app.UseDocumentsModule();
+        app.UseSearchModule();
+        // Módulo Location não possui endpoints/middleware, apenas serviços internos
+    }
 
 private static void LogStartupComplete(WebApplication app)
     {

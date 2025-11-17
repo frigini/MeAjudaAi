@@ -24,17 +24,26 @@ public static class HangfireExtensions
         if (dashboardEnabled)
         {
             var dashboardPath = configuration.GetValue<string>("Hangfire:DashboardPath", "/hangfire");
+            if (string.IsNullOrWhiteSpace(dashboardPath))
+            {
+                dashboardPath = "/hangfire";
+                logger?.LogWarning("Dashboard path was empty, using default: {DashboardPath}", dashboardPath);
+            }
             if (!dashboardPath.StartsWith("/"))
             {
                 dashboardPath = $"/{dashboardPath}";
                 logger?.LogWarning("Dashboard path adjusted to start with '/': {DashboardPath}", dashboardPath);
             }
+            
+            var statsPollingInterval = configuration.GetValue<int>("Hangfire:StatsPollingInterval", 5000);
+            var displayConnectionString = configuration.GetValue<bool>("Hangfire:DisplayStorageConnectionString", false);
+            
             logger?.LogInformation("Configuring Hangfire Dashboard at path: {DashboardPath}", dashboardPath);
             app.UseHangfireDashboard(dashboardPath, new DashboardOptions
             {
                 Authorization = new[] { new HangfireAuthorizationFilter() },
-                StatsPollingInterval = 5000,
-                DisplayStorageConnectionString = false
+                StatsPollingInterval = statsPollingInterval,
+                DisplayStorageConnectionString = displayConnectionString
             });
         }
 

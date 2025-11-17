@@ -11,8 +11,8 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Integration.Tests.Modules.Location;
 
 /// <summary>
-/// Base fixture for Location module integration tests.
-/// Provides shared DI setup for CEP lookup and geocoding tests.
+/// Classe base para testes de integração do módulo Location.
+/// Fornece configuração compartilhada de DI para testes de CEP e geocodificação.
 /// </summary>
 public abstract class LocationIntegrationTestFixture : IAsyncLifetime
 {
@@ -23,13 +23,13 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
     {
         var services = new ServiceCollection();
 
-        // Add logging
+        // Adiciona logging
         services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Warning));
 
-        // Add time provider
+        // Adiciona provedor de data/hora
         services.AddSingleton<IDateTimeProvider>(new MockDateTimeProvider());
 
-        // Add caching (in-memory for tests)
+        // Adiciona cache em memória para testes
         services.AddMemoryCache();
         services.AddHybridCache(options =>
         {
@@ -42,11 +42,11 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         services.AddSingleton<CacheMetrics>();
         services.AddSingleton<ICacheService, HybridCacheService>();
 
-        // Configure HTTP clients with mocks
+        // Configura clientes HTTP com mocks
         HttpMockBuilder = new MockHttpClientBuilder(services);
         ConfigureHttpClients(HttpMockBuilder);
 
-        // Add Location module services
+        // Adiciona serviços do módulo Location
         var configuration = new ConfigurationBuilder().Build();
         MeAjudaAi.Modules.Location.Infrastructure.Extensions.AddLocationModule(services, configuration);
 
@@ -64,7 +64,7 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// Configure HTTP client mocks specific to the test scenario.
+    /// Configura os mocks de clientes HTTP específicos para o cenário de teste.
     /// </summary>
     protected abstract void ConfigureHttpClients(MockHttpClientBuilder builder);
 }
