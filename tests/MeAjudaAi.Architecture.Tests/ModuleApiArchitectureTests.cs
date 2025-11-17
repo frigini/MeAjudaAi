@@ -1,5 +1,6 @@
 using System.Reflection;
 using MeAjudaAi.Shared.Contracts.Modules;
+using MeAjudaAi.Shared.Contracts.Modules.Location;
 using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
@@ -266,6 +267,23 @@ public class ModuleApiArchitectureTests
         methods.Should().Contain("GetProvidersByStateAsync", because: "Should allow getting providers by state");
         methods.Should().Contain("GetProvidersByTypeAsync", because: "Should allow getting providers by type");
         methods.Should().Contain("GetProvidersByVerificationStatusAsync", because: "Should allow getting providers by verification status");
+    }
+
+    [Fact]
+    public void ILocationModuleApi_ShouldHaveAllEssentialMethods()
+    {
+        // Arrange
+        var type = typeof(ILocationModuleApi);
+
+        // Act
+        var methods = type.GetMethods()
+            .Where(m => !m.IsSpecialName && m.DeclaringType == type)
+            .Select(m => m.Name)
+            .ToList();
+
+        // Assert
+        methods.Should().Contain("GetAddressFromCepAsync", because: "Should allow getting address from CEP");
+        methods.Should().Contain("GetCoordinatesFromAddressAsync", because: "Should allow geocoding addresses");
     }
 
     private static Assembly[] GetModuleAssemblies()

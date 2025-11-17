@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Shared.Contracts.Modules;
+using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Functional;
@@ -26,7 +27,7 @@ public sealed class ProvidersModuleApi(
     IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByTypeHandler,
     IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByVerificationStatusHandler,
     IServiceProvider serviceProvider,
-    ILogger<ProvidersModuleApi> logger) : MeAjudaAi.Shared.Contracts.Modules.Providers.IProvidersModuleApi
+    ILogger<ProvidersModuleApi> logger) : IProvidersModuleApi
 {
     public string ModuleName => "Providers";
     public string ApiVersion => "1.0";
