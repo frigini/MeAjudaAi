@@ -31,6 +31,9 @@ public sealed class LocationsModuleApi : ILocationModuleApi
     public string ModuleName => "Location";
     public string ApiVersion => "1.0";
 
+    // CEP real usado para health check - validação end-to-end de conectividade com APIs externas
+    private const string HealthCheckCep = "01310100";
+
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
         try

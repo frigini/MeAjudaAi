@@ -11,12 +11,10 @@ namespace MeAjudaAi.Shared.Tests.Mocks.Http;
 public sealed class MockHttpMessageHandler
 {
     private readonly Mock<HttpMessageHandler> _mockHandler;
-    private readonly Dictionary<string, (HttpStatusCode StatusCode, string Content)> _responses;
 
     public MockHttpMessageHandler()
     {
         _mockHandler = new Mock<HttpMessageHandler>();
-        _responses = new Dictionary<string, (HttpStatusCode, string)>();
     }
 
     /// <summary>
@@ -28,8 +26,6 @@ public sealed class MockHttpMessageHandler
         string content,
         string contentType = "application/json")
     {
-        _responses[urlPattern] = (statusCode, content);
-
         _mockHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -116,6 +112,7 @@ public sealed class MockHttpMessageHandler
                 times,
                 ItExpr.Is<HttpRequestMessage>(req =>
                     req.RequestUri != null &&
+                    req.Method == HttpMethod.Get &&
                     req.RequestUri.ToString().Contains(urlPattern)),
                 ItExpr.IsAny<CancellationToken>());
     }
@@ -126,6 +123,5 @@ public sealed class MockHttpMessageHandler
     public void Reset()
     {
         _mockHandler.Reset();
-        _responses.Clear();
     }
 }

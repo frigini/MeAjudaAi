@@ -40,7 +40,6 @@ public sealed class GeocodingIntegrationTests : IAsyncLifetime
         MeAjudaAi.Modules.Location.Infrastructure.Extensions.AddLocationModule(services);
 
         _serviceProvider = services.BuildServiceProvider();
-        await ValueTask.CompletedTask;
     }
 
     public async ValueTask DisposeAsync()

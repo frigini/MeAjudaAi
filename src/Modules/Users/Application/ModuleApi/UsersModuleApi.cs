@@ -26,6 +26,11 @@ public sealed class UsersModuleApi(
     public string ModuleName => "Users";
     public string ApiVersion => "1.0";
 
+    private static readonly Guid HealthCheckUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
+    private static ModuleUserDto MapToModuleUserDto(UserDto user) =>
+        new(user.Id, user.Username, user.Email, user.FirstName, user.LastName, user.FullName);
+
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -79,9 +84,8 @@ public sealed class UsersModuleApi(
     {
         try
         {
-            // Testa uma operação simples que não deveria falhar (mesmo que usuário não exista)
-            // Usamos um GUID fixo que provavelmente não existe, mas o handler deve responder adequadamente
-            var testQuery = new GetUserByIdQuery(Guid.Parse("00000000-0000-0000-0000-000000000001"));
+            // Tenta buscar um usuário fictício (espera-se NotFound, mas valida que a infraestrutura está OK)
+            var testQuery = new GetUserByIdQuery(HealthCheckUserId);
             var result = await getUserByIdHandler.HandleAsync(testQuery, cancellationToken);
 
             // Verifica o resultado da operação para detectar falhas de infraestrutura
@@ -119,20 +123,11 @@ public sealed class UsersModuleApi(
         var query = new GetUserByIdQuery(userId);
         var result = await getUserByIdHandler.HandleAsync(query, cancellationToken);
 
-        return result.Match(
-            onSuccess: userDto => userDto == null
+        return result.Match<Result<ModuleUserDto?>>(
+            user => Result<ModuleUserDto?>.Success(MapToModuleUserDto(user)),
+            error => error.StatusCode == 404
                 ? Result<ModuleUserDto?>.Success(null)
-                : Result<ModuleUserDto?>.Success(new ModuleUserDto(
-                    userDto.Id,
-                    userDto.Username,
-                    userDto.Email,
-                    userDto.FirstName,
-                    userDto.LastName,
-                    userDto.FullName)),
-            onFailure: error => error.StatusCode == 404
-                ? Result<ModuleUserDto?>.Success(null)  // NotFound -> Success(null)
-                : Result<ModuleUserDto?>.Failure(error) // Outros erros propagam
-        );
+                : Result<ModuleUserDto?>.Failure(error));
     }
 
     public async Task<Result<ModuleUserDto?>> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
@@ -140,20 +135,11 @@ public sealed class UsersModuleApi(
         var query = new GetUserByEmailQuery(email);
         var result = await getUserByEmailHandler.HandleAsync(query, cancellationToken);
 
-        return result.Match(
-            onSuccess: userDto => userDto == null
+        return result.Match<Result<ModuleUserDto?>>(
+            user => Result<ModuleUserDto?>.Success(MapToModuleUserDto(user)),
+            error => error.StatusCode == 404
                 ? Result<ModuleUserDto?>.Success(null)
-                : Result<ModuleUserDto?>.Success(new ModuleUserDto(
-                    userDto.Id,
-                    userDto.Username,
-                    userDto.Email,
-                    userDto.FirstName,
-                    userDto.LastName,
-                    userDto.FullName)),
-            onFailure: error => error.StatusCode == 404
-                ? Result<ModuleUserDto?>.Success(null)  // NotFound -> Success(null)
-                : Result<ModuleUserDto?>.Failure(error) // Outros erros propagam
-        );
+                : Result<ModuleUserDto?>.Failure(error));
     }
 
     public async Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(

@@ -537,7 +537,7 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 - **Auth**: oidc-client-ts (integração com Keycloak)
 
 ### 🗂️ Estrutura de Projetos
-```
+```text
 web/
 ├── admin-portal/       # Portal administrativo
 ├── customer-app/       # App para clientes (futuro)
@@ -622,8 +622,9 @@ web/
 ### ⚡ Métricas Técnicas (SLOs)
 
 #### **Tiered Performance Targets**
+
 | Categoria | Tempo Alvo | Exemplo |
-|-----------|-----------|---------|
+|-----------|------------|---------|
 | **Consultas Simples** | <200ms | Busca por ID, dados em cache |
 | **Consultas Médias** | <500ms | Listagens com filtros básicos |
 | **Consultas Complexas** | <1000ms | Busca cross-module, agregações |

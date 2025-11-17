@@ -75,11 +75,17 @@ public sealed class MockHttpClientBuilder
     /// <summary>
     /// Reseta todos os mocks configurados.
     /// </summary>
-    public void ResetAll()
+    /// <param name="clearHandlers">Se true, limpa também o dicionário de handlers registrados.</param>
+    public void ResetAll(bool clearHandlers = false)
     {
         foreach (var handler in _handlers.Values)
         {
             handler.Reset();
+        }
+
+        if (clearHandlers)
+        {
+            _handlers.Clear();
         }
     }
 }

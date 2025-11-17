@@ -1,4 +1,4 @@
-# WARP.md
+# AGENT.md
 
 This file provides guidance to WARP (warp.dev) when working with code in this repository.
 
@@ -212,7 +212,7 @@ The project uses .NET 9's UUID v7 (time-ordered) instead of UUID v4 for:
 Follow the established pattern from existing modules:
 
 1. **Create module structure**:
-   ```
+   ```text
    src/Modules/{ModuleName}/
    ├── API/
    ├── Application/
@@ -235,7 +235,7 @@ Follow the established pattern from existing modules:
    ```
 
 3. **Update CI/CD workflow** (`.github/workflows/pr-validation.yml`):
-   ```yaml
+   ```bash
    MODULES=(
      "Users:src/Modules/Users/MeAjudaAi.Modules.Users.Tests/"
      "Providers:src/Modules/Providers/MeAjudaAi.Modules.Providers.Tests/"
@@ -245,7 +245,7 @@ Follow the established pattern from existing modules:
 
 4. **Create database schema** in `infrastructure/database/schemas/`
 
-5. **Add Module API interface** in `Shared/Contracts/Modules/{ModuleName}/`
+5. **Add Module API** in `Shared/Contracts/Modules/{ModuleName}/`
 
 ### Naming Conventions
 
@@ -302,7 +302,7 @@ public async Task MethodName_Scenario_ExpectedResult()
 ### Commit Message Format
 
 Use Conventional Commits:
-```
+```texttext
 feat(users): add user registration endpoint
 fix(providers): resolve null reference in verification service
 refactor(shared): extract validation to separate class

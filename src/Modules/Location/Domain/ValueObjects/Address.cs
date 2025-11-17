@@ -7,6 +7,13 @@ namespace MeAjudaAi.Modules.Location.Domain.ValueObjects;
 /// </summary>
 public sealed class Address
 {
+    private static readonly HashSet<string> ValidUfs = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
+        "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
+        "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+    };
+
     public Cep Cep { get; }
     public string Street { get; }
     public string Neighborhood { get; }
@@ -67,8 +74,9 @@ public sealed class Address
             return null;
         }
 
-        // Validar UF (2 letras)
-        if (state.Length != 2)
+        // Validar UF (2 letras e código válido)
+        var upperState = state.ToUpperInvariant();
+        if (!ValidUfs.Contains(upperState))
         {
             return null;
         }
