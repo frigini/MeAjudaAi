@@ -1,7 +1,7 @@
 using FluentValidation;
 using MeAjudaAi.Modules.Search.Application.DTOs;
+using MeAjudaAi.Modules.Search.Application.ModuleApi;
 using MeAjudaAi.Modules.Search.Application.Queries;
-using MeAjudaAi.Modules.Search.Application.Services;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Contracts.Modules.Search;
 using MeAjudaAi.Shared.Functional;

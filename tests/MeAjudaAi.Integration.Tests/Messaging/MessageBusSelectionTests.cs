@@ -6,6 +6,7 @@ using MeAjudaAi.Shared.Messaging.Factory;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging.Strategy;
+using MeAjudaAi.Shared.Tests.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
@@ -45,7 +46,7 @@ public class MessageBusSelectionTests : ApiTestBase
         services.AddSingleton<IConfiguration>(configuration);
 
         // Simular ambiente Development
-        services.AddSingleton<IHostEnvironment>(new TestHostEnvironment("Development"));
+        services.AddSingleton<IHostEnvironment>(new MockHostEnvironment("Development"));
         services.AddSingleton<ILogger<EnvironmentBasedMessageBusFactory>>(new TestLogger<EnvironmentBasedMessageBusFactory>());
         services.AddSingleton<ILogger<RabbitMqMessageBus>>(new TestLogger<RabbitMqMessageBus>());
         services.AddSingleton<ILogger<ServiceBusMessageBus>>(new TestLogger<ServiceBusMessageBus>());
@@ -81,7 +82,7 @@ public class MessageBusSelectionTests : ApiTestBase
         services.AddSingleton<IConfiguration>(configuration);
 
         // Simular ambiente Production
-        services.AddSingleton<IHostEnvironment>(new TestHostEnvironment("Production"));
+        services.AddSingleton<IHostEnvironment>(new MockHostEnvironment("Production"));
         services.AddSingleton<ILogger<EnvironmentBasedMessageBusFactory>>(new TestLogger<EnvironmentBasedMessageBusFactory>());
         services.AddSingleton<ILogger<RabbitMqMessageBus>>(new TestLogger<RabbitMqMessageBus>());
         services.AddSingleton<ILogger<ServiceBusMessageBus>>(new TestLogger<ServiceBusMessageBus>());
@@ -118,17 +119,6 @@ public class MessageBusSelectionTests : ApiTestBase
         // Assert
         messageBus.Should().BeOfType<ServiceBusMessageBus>("Production deve usar Azure Service Bus");
     }
-}
-
-/// <summary>
-/// Host Environment de teste para simular ambientes diferentes
-/// </summary>
-public class TestHostEnvironment(string environmentName) : IHostEnvironment
-{
-    public string EnvironmentName { get; set; } = environmentName;
-    public string ApplicationName { get; set; } = "Test";
-    public string ContentRootPath { get; set; } = "";
-    public IFileProvider ContentRootFileProvider { get; set; } = null!;
 }
 
 /// <summary>

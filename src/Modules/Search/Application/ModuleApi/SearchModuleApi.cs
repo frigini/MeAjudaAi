@@ -2,18 +2,57 @@ using MeAjudaAi.Modules.Search.Application.DTOs;
 using MeAjudaAi.Modules.Search.Application.Queries;
 using MeAjudaAi.Modules.Search.Domain.Enums;
 using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Shared.Contracts.Modules;
 using MeAjudaAi.Shared.Contracts.Modules.Search;
 using MeAjudaAi.Shared.Contracts.Modules.Search.DTOs;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
+using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Modules.Search.Application.Services;
+namespace MeAjudaAi.Modules.Search.Application.ModuleApi;
 
 /// <summary>
-/// Implementação da API pública do módulo Search.
+/// Implementação da API pública do módulo Search para outros módulos.
 /// </summary>
-public sealed class SearchModuleApi(IQueryDispatcher queryDispatcher) : ISearchModuleApi
+[ModuleApi("Search", "1.0")]
+public sealed class SearchModuleApi(
+    IQueryDispatcher queryDispatcher,
+    ILogger<SearchModuleApi> logger) : ISearchModuleApi
 {
+    public string ModuleName => "Search";
+    public string ApiVersion => "1.0";
+
+    public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            logger.LogDebug("Checking Search module availability");
+
+            // Teste básico: fazer uma busca com coordenadas válidas e radius pequeno
+            var testResult = await SearchProvidersAsync(
+                latitude: -23.561414,
+                longitude: -46.656559,
+                radiusInKm: 1.0,
+                pageNumber: 1,
+                pageSize: 1,
+                cancellationToken: cancellationToken);
+
+            // Módulo está disponível se conseguiu executar a busca (mesmo que retorne 0 resultados)
+            logger.LogDebug("Search module is available and healthy");
+            return testResult.IsSuccess;
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogDebug("Search module availability check was cancelled");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error checking Search module availability");
+            return false;
+        }
+    }
+
     public async Task<Result<ModulePagedSearchResultDto>> SearchProvidersAsync(
         double latitude,
         double longitude,
@@ -21,7 +60,7 @@ public sealed class SearchModuleApi(IQueryDispatcher queryDispatcher) : ISearchM
         Guid[]? serviceIds = null,
         decimal? minRating = null,
         SubscriptionTier[]? subscriptionTiers = null,
-        int page = 1,
+        int pageNumber = 1,
         int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
@@ -35,7 +74,7 @@ public sealed class SearchModuleApi(IQueryDispatcher queryDispatcher) : ISearchM
             serviceIds,
             minRating,
             domainTiers,
-            page,
+            pageNumber,
             pageSize);
 
         var result = await queryDispatcher.QueryAsync<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>(query, cancellationToken);

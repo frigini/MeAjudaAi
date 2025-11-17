@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.Mocks;
 using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 
@@ -15,18 +16,18 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Commands;
 public class DeleteProviderCommandHandlerTests
 {
     private readonly Mock<IProviderRepository> _providerRepositoryMock;
-    private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
+    private readonly MockDateTimeProvider _dateTimeProvider;
     private readonly Mock<ILogger<DeleteProviderCommandHandler>> _loggerMock;
     private readonly DeleteProviderCommandHandler _handler;
 
     public DeleteProviderCommandHandlerTests()
     {
         _providerRepositoryMock = new Mock<IProviderRepository>();
-        _dateTimeProviderMock = new Mock<IDateTimeProvider>();
+        _dateTimeProvider = new MockDateTimeProvider();
         _loggerMock = new Mock<ILogger<DeleteProviderCommandHandler>>();
         _handler = new DeleteProviderCommandHandler(
             _providerRepositoryMock.Object,
-            _dateTimeProviderMock.Object,
+            _dateTimeProvider,
             _loggerMock.Object);
     }
 
@@ -39,9 +40,7 @@ public class DeleteProviderCommandHandlerTests
         var provider = CreateValidProvider();
         var fixedDate = DateTime.UtcNow;
 
-        _dateTimeProviderMock
-            .Setup(d => d.CurrentDate())
-            .Returns(fixedDate);
+        _dateTimeProvider.SetFixedDateTime(fixedDate);
 
         _providerRepositoryMock
             .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
@@ -62,7 +61,9 @@ public class DeleteProviderCommandHandlerTests
             Times.Once);
 
         _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.Is<Provider>(p => p.IsDeleted), It.IsAny<CancellationToken>()),
+            r => r.UpdateAsync(
+                It.Is<Provider>(p => p.IsDeleted && p.DeletedAt == fixedDate),
+                It.IsAny<CancellationToken>()),
             Times.Once);
     }
 

@@ -5,10 +5,111 @@ This document provides comprehensive guidance for writing and maintaining integr
 
 ## Integration Testing Strategy
 
+The project implements a **two-level integration testing architecture** to balance test coverage, performance, and isolation:
+
+### 1. Component-Level Integration Tests (Module-Scoped)
+**Location**: `src/Modules/{Module}/Tests/Integration/`
+
+These tests validate **individual infrastructure components** within a module using real dependencies:
+
+- **Scope**: Single module components (Repositories, Services, Queries)
+- **Infrastructure**: Isolated TestContainers per test class
+- **Base Classes**: `DatabaseTestBase`, `{Module}IntegrationTestBase`
+- **Speed**: Faster (only necessary components loaded)
+- **Purpose**: Validate data persistence, repository logic, and infrastructure services
+- **Isolation**: Each module manages its own test infrastructure
+
+**Example Use Cases**:
+- Testing `UserRepository.GetByIdAsync()` with a real PostgreSQL database
+- Validating complex queries return correct data
+- Testing database migrations and schema compatibility
+- Verifying repository transaction handling
+
+**Example Structure**:
+```csharp
+// Location: src/Modules/Users/Tests/Integration/UserRepositoryIntegrationTests.cs
+public class UserRepositoryTests : DatabaseTestBase
+{
+    private UserRepository _repository;
+    private UsersDbContext _context;
+
+    [Fact]
+    public async Task AddAsync_WithValidUser_ShouldPersistUser()
+    {
+        // Uses real PostgreSQL via TestContainers
+        // Tests only repository + database interaction
+    }
+}
+```
+
+### 2. End-to-End Integration Tests (Centralized)
+**Location**: `tests/MeAjudaAi.Integration.Tests/Modules/{Module}/`
+
+These tests validate **complete application flows** with all modules integrated:
+
+- **Scope**: Full application (HTTP endpoints, DI container, all modules)
+- **Infrastructure**: Complete application via `WebApplicationFactory`
+- **Base Classes**: `ApiTestBase`, `SharedIntegrationTestFixture`
+- **Speed**: Slower (entire application stack)
+- **Purpose**: Validate end-to-end workflows, API contracts, cross-module communication
+- **Isolation**: Shared test infrastructure for all E2E tests
+
+**Example Use Cases**:
+- Testing `POST /api/v1/users` creates user and returns correct HTTP response
+- Validating authentication and authorization flows
+- Testing cross-module communication (e.g., creating a provider validates user exists)
+- Verifying complete business workflows
+
+**Example Structure**:
+```csharp
+// Location: tests/MeAjudaAi.Integration.Tests/Modules/Users/UsersApiTests.cs
+public class UsersApiTests : ApiTestBase
+{
+    [Fact]
+    public async Task RegisterUser_ValidData_ShouldReturnCreated()
+    {
+        // Tests complete HTTP request/response
+        // All modules loaded and integrated
+        var response = await Client.PostAsJsonAsync("/api/users/register", request);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+    }
+}
+```
+
+### Decision Matrix: Which Level to Use?
+
+| Test Scenario | Component-Level | End-to-End |
+|--------------|----------------|------------|
+| Repository CRUD operations | ✅ | ❌ |
+| Complex database queries | ✅ | ❌ |
+| Database migrations | ✅ | ❌ |
+| Service business logic | ✅ | ❌ |
+| HTTP endpoints | ❌ | ✅ |
+| Authentication flows | ❌ | ✅ |
+| Cross-module communication | ❌ | ✅ |
+| Complete workflows | ❌ | ✅ |
+
+### Module Comparison
+
+**Modules with Component-Level Tests**:
+- ✅ Users (4 test files)
+- ✅ Providers (3 test files)
+- ✅ Search (2 test files)
+
+**Modules with Only E2E Tests**:
+- ✅ Documents (simpler infrastructure, no complex repositories)
+- ✅ Location (service-level integration tests with mocked HTTP clients for external APIs - CEP lookup and geocoding)
+
+**Note on Location Module**: While Location has no E2E tests (no HTTP endpoints), it has module-level integration tests in `tests/MeAjudaAi.Integration.Tests/Modules/Location/` that:
+- Use dependency injection to wire up real services
+- Mock external HTTP APIs (ViaCep, BrasilApi, OpenCep, Nominatim)
+- Test caching behavior with HybridCache
+- Live in the centralized integration test project (not module-specific tests)
+
 ### Test Categories
-1. **API Integration Tests** - Testing complete HTTP request/response cycles
-2. **Database Integration Tests** - Testing data persistence and retrieval
-3. **Service Integration Tests** - Testing interaction between multiple services
+1. **API Integration Tests** - Testing complete HTTP request/response cycles (E2E)
+2. **Database Integration Tests** - Testing data persistence and retrieval (Component)
+3. **Service Integration Tests** - Testing interaction between multiple services (Both levels)
 
 ### Test Environment Setup
 Integration tests use TestContainers for isolated, reproducible test environments:
@@ -30,7 +131,8 @@ public abstract class SharedApiTestBase : IAsyncLifetime
     
     // Setup and teardown methods
 }
-```csharp
+```
+
 ### Key Features
 - Automatic test container lifecycle management
 - Configured test authentication
@@ -51,7 +153,8 @@ Integration tests use the `ConfigurableTestAuthenticationHandler` for:
 services.AddAuthentication("Test")
     .AddScheme<AuthenticationSchemeOptions, ConfigurableTestAuthenticationHandler>(
         "Test", options => { });
-```csharp
+```
+
 ## Database Testing
 
 ### Test Database Management
@@ -66,7 +169,8 @@ protected async Task<T> ExecuteDbContextAsync<T>(Func<AppDbContext, Task<T>> act
     using var context = CreateDbContext();
     return await action(context);
 }
-```csharp
+```
+
 ## Writing Integration Tests
 
 ### Test Structure
@@ -94,7 +198,8 @@ public async Task CreateUser_ValidData_ReturnsCreatedUser()
     var user = await response.Content.ReadFromJsonAsync<UserResponse>();
     user.Email.Should().Be(createUserRequest.Email);
 }
-```text
+```
+
 ## Best Practices
 
 ### Test Organization

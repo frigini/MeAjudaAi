@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.Builders;
+using MeAjudaAi.Shared.Tests.Mocks;
 using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Users.Tests.Builders;
@@ -94,11 +95,25 @@ public class UserBuilder : BuilderBase<User>
         return this;
     }
 
+    /// <summary>
+    /// Marks the user as deleted using current UTC time.
+    /// For tests requiring specific deletion timestamps, use AsDeleted(DateTime).
+    /// </summary>
     public UserBuilder AsDeleted()
     {
-        var mockDateTimeProvider = new Mock<IDateTimeProvider>();
-        mockDateTimeProvider.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
-        WithCustomAction(user => user.MarkAsDeleted(mockDateTimeProvider.Object));
+        var dateTimeProvider = new MockDateTimeProvider();
+        WithCustomAction(user => user.MarkAsDeleted(dateTimeProvider));
+        return this;
+    }
+
+    /// <summary>
+    /// Marks the user as deleted with a specific deletion timestamp.
+    /// Useful for tests that need to assert exact DeletedAt values.
+    /// </summary>
+    public UserBuilder AsDeleted(DateTime deletedAt)
+    {
+        var dateTimeProvider = new MockDateTimeProvider(deletedAt);
+        WithCustomAction(user => user.MarkAsDeleted(dateTimeProvider));
         return this;
     }
 
