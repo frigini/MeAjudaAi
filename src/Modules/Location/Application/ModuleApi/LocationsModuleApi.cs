@@ -41,7 +41,7 @@ public sealed class LocationsModuleApi : ILocationModuleApi
             _logger.LogDebug("Checking Location module availability");
 
             // Testa operação básica - busca por um CEP conhecido
-            var testCep = Cep.Create("01310100"); // Av. Paulista, São Paulo
+            var testCep = Cep.Create(HealthCheckCep); // Av. Paulista, São Paulo
             if (testCep is not null)
             {
                 var result = await _cepLookupService.LookupAsync(testCep, cancellationToken);
