@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Location.Domain.ValueObjects;
 using MeAjudaAi.Shared.Geolocation;
 using Xunit;
 
-namespace MeAjudaAi.Modules.Location.Tests.Domain.ValueObjects;
+namespace MeAjudaAi.Modules.Location.Tests.Unit.Domain.ValueObjects;
 
 public sealed class AddressTests
 {
@@ -186,4 +186,185 @@ public sealed class AddressTests
         // Assert
         result.Should().Be("Avenida Paulista, Lado ímpar, Bela Vista, São Paulo, SP, 01310-100");
     }
+
+    #region Equality Tests
+
+    [Fact]
+    public void Equals_WithSameValues_ShouldBeEqual()
+    {
+        // Arrange
+        var cep = Cep.Create("12345678")!;
+        var address1 = Address.Create(
+            cep,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP");
+
+        var address2 = Address.Create(
+            cep,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP");
+
+        // Act & Assert
+        address1.Should().Be(address2);
+        (address1 == address2).Should().BeTrue();
+        (address1 != address2).Should().BeFalse();
+        address1!.GetHashCode().Should().Be(address2!.GetHashCode());
+    }
+
+    [Fact]
+    public void Equals_WithDifferentStreet_ShouldNotBeEqual()
+    {
+        // Arrange
+        var cep = Cep.Create("12345678")!;
+        var address1 = Address.Create(
+            cep,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP");
+
+        var address2 = Address.Create(
+            cep,
+            "Rua das Palmeiras",
+            "Centro",
+            "São Paulo",
+            "SP");
+
+        // Act & Assert
+        address1.Should().NotBe(address2);
+        (address1 == address2).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Equals_WithDifferentCep_ShouldNotBeEqual()
+    {
+        // Arrange
+        var address1 = Address.Create(
+            Cep.Create("12345678")!,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP");
+
+        var address2 = Address.Create(
+            Cep.Create("87654321")!,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP");
+
+        // Act & Assert
+        address1.Should().NotBe(address2);
+    }
+
+    [Fact]
+    public void Equals_WithComplement_ShouldConsiderInEquality()
+    {
+        // Arrange
+        var cep = Cep.Create("12345678")!;
+        var address1 = Address.Create(
+            cep,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP",
+            "Apto 101");
+
+        var address2 = Address.Create(
+            cep,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP",
+            "Apto 102");
+
+        var address3 = Address.Create(
+            cep,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP");
+
+        // Act & Assert
+        address1.Should().NotBe(address2); // Different complements
+        address1.Should().NotBe(address3); // One has complement, other doesn't
+    }
+
+    [Fact]
+    public void Equals_WithGeoPoint_ShouldConsiderInEquality()
+    {
+        // Arrange
+        var cep = Cep.Create("12345678")!;
+        var geoPoint1 = new GeoPoint(-23.5505, -46.6333);
+        var geoPoint2 = new GeoPoint(-22.9068, -43.1729);
+
+        var address1 = Address.Create(
+            cep,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP",
+            geoPoint: geoPoint1);
+
+        var address2 = Address.Create(
+            cep,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP",
+            geoPoint: geoPoint2);
+
+        var address3 = Address.Create(
+            cep,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP");
+
+        // Act & Assert
+        address1.Should().NotBe(address2); // Different geo points
+        address1.Should().NotBe(address3); // One has geo point, other doesn't
+    }
+
+    [Fact]
+    public void Equals_WithNull_ShouldHandleCorrectly()
+    {
+        // Arrange
+        var address = Address.Create(
+            Cep.Create("12345678")!,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP");
+
+        // Act & Assert
+        address.Should().NotBe(null);
+        (address == null).Should().BeFalse();
+        (address != null).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Equals_SameInstance_ShouldBeEqual()
+    {
+        // Arrange
+        var address = Address.Create(
+            Cep.Create("12345678")!,
+            "Rua das Flores",
+            "Centro",
+            "São Paulo",
+            "SP");
+
+        // Act & Assert
+        address.Should().Be(address);
+        address!.Equals(address).Should().BeTrue();
+#pragma warning disable CS1718 // Comparison made to same variable
+        (address == address).Should().BeTrue();
+#pragma warning restore CS1718
+    }
+
+    #endregion
 }

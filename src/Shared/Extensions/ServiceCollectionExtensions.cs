@@ -1,5 +1,3 @@
-using Hangfire;
-using Hangfire.PostgreSql;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Common.Constants;
@@ -22,27 +20,11 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Extensions;
 
-/// <summary>
-/// Mock implementation of IHostEnvironment for cases where environment is not available
-/// </summary>
-internal class MockHostEnvironment : IHostEnvironment
-{
-    public MockHostEnvironment(string environmentName)
-    {
-        EnvironmentName = environmentName;
-        ApplicationName = "MeAjudaAi";
-        ContentRootPath = Directory.GetCurrentDirectory();
-    }
-
-    public string EnvironmentName { get; set; }
-    public string ApplicationName { get; set; }
-    public string ContentRootPath { get; set; }
-    public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
-}
-
 public static class ServiceCollectionExtensions
 {
-    [Obsolete("Use AddSharedServices with IHostEnvironment parameter instead")]
+    /// <summary>
+    /// Adiciona todos os serviços compartilhados da camada Shared.
+    /// </summary>
     public static IServiceCollection AddSharedServices(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -68,7 +50,7 @@ public static class ServiceCollectionExtensions
         if (!isTestingEnvironment)
         {
             // Cria um mock environment baseado na variável de ambiente
-            var mockEnvironment = new MockHostEnvironment(envName);
+            var mockEnvironment = new SimpleHostEnvironment(envName);
             services.AddMessaging(configuration, mockEnvironment);
         }
         else
@@ -88,71 +70,12 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    [Obsolete("Use AddCoreSharedServices, AddInfrastructureServices, and AddBackgroundJobs instead")]
-    public static IServiceCollection AddSharedServices(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        IHostEnvironment environment)
-    {
-        // Cast para IWebHostEnvironment se possível, senão usar apenas a configuração básica
-        if (environment is IWebHostEnvironment webHostEnv)
-        {
-            services.AddSharedServices(configuration, webHostEnv);
-        }
-        else
-        {
-            // Fallback para configuração básica sem IWebHostEnvironment
-            services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-            services.AddCustomSerialization();
-            services.AddPostgres(configuration);
-            services.AddCaching(configuration);
-
-            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? EnvironmentNames.Development;
-            if (envName != EnvironmentNames.Testing)
-            {
-                var mockEnvironment = new MockHostEnvironment(envName);
-                services.AddMessaging(configuration, mockEnvironment);
-            }
-            else
-            {
-                services.AddSingleton<IMessageBus, NoOpMessageBus>();
-                services.AddSingleton<MeAjudaAi.Shared.Messaging.ServiceBus.IServiceBusTopicManager, NoOpServiceBusTopicManager>();
-            }
-
-            services.AddValidation();
-            services.AddErrorHandling();
-            services.AddCommands();
-            services.AddQueries();
-            services.AddEvents();
-        }
-
-        // Adiciona monitoramento avançado complementar ao Aspire
-        services.AddAdvancedMonitoring(environment);
-
-        return services;
-    }
-
-    private static void ConfigureHangfireDashboard(IApplicationBuilder app, IConfiguration configuration)
-    {
-        var dashboardEnabled = configuration.GetValue<bool>("Hangfire:DashboardEnabled", false);
-        if (dashboardEnabled)
-        {
-            var dashboardPath = configuration.GetValue<string>("Hangfire:DashboardPath", "/hangfire");
-            app.UseHangfireDashboard(dashboardPath, new DashboardOptions
-            {
-                Authorization = new[] { new HangfireAuthorizationFilter() },
-                StatsPollingInterval = 5000,
-                DisplayStorageConnectionString = false
-            });
-        }
-    }
-
     public static IApplicationBuilder UseSharedServices(this IApplicationBuilder app, IConfiguration configuration)
     {
         app.UseErrorHandling();
         app.UseAdvancedMonitoring();
 
-        ConfigureHangfireDashboard(app, configuration);
+        app.UseHangfireDashboardIfEnabled(configuration);
 
         return app;
     }
@@ -160,9 +83,9 @@ public static class ServiceCollectionExtensions
     public static async Task<IApplicationBuilder> UseSharedServicesAsync(this IApplicationBuilder app)
     {
         app.UseErrorHandling();
-        // Note: UseAdvancedMonitoring requires BusinessMetrics registration during service configuration.
-        // The async path doesn't currently register these services in the same way as the sync path.
-        // TODO: Align middleware registration between sync/async paths or conditionally apply monitoring.
+        // Nota: UseAdvancedMonitoring requer registro de BusinessMetrics durante a configuração de serviços.
+        // O caminho assíncrono atualmente não registra esses serviços da mesma forma que o caminho síncrono.
+        // TODO: Alinhar registro de middleware entre caminhos síncrono/assíncrono ou aplicar monitoramento condicionalmente.
 
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
                          Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
@@ -179,7 +102,7 @@ public static class ServiceCollectionExtensions
             var configuration = webApp.Services.GetRequiredService<IConfiguration>();
 
             // Configurar Hangfire Dashboard se habilitado
-            ConfigureHangfireDashboard(app, configuration);
+            app.UseHangfireDashboardIfEnabled(configuration);
 
             // Garante que a infraestrutura de messaging seja criada (ignora em ambiente de teste ou quando desabilitado)
             if (!isTestingEnvironment)
@@ -223,6 +146,4 @@ public static class ServiceCollectionExtensions
 
         return app;
     }
-
-
 }

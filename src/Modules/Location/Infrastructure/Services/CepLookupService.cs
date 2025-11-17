@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Location.Application.Services;
+using MeAjudaAi.Modules.Location.Domain.Enums;
 using MeAjudaAi.Modules.Location.Domain.ValueObjects;
 using MeAjudaAi.Modules.Location.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Caching;
@@ -12,38 +13,31 @@ namespace MeAjudaAi.Modules.Location.Infrastructure.Services;
 /// Ordem de tentativa: ViaCEP → BrasilAPI → OpenCEP
 /// Cache Redis: TTL de 24 horas (CEPs são estáveis)
 /// </summary>
-public sealed class CepLookupService : ICepLookupService
+public sealed class CepLookupService(
+    ViaCepClient viaCepClient,
+    BrasilApiCepClient brasilApiClient,
+    OpenCepClient openCepClient,
+    ICacheService cacheService,
+    ILogger<CepLookupService> logger) : ICepLookupService
 {
-    private readonly ViaCepClient _viaCepClient;
-    private readonly BrasilApiCepClient _brasilApiClient;
-    private readonly OpenCepClient _openCepClient;
-    private readonly ICacheService _cacheService;
-    private readonly ILogger<CepLookupService> _logger;
-
-    public CepLookupService(
-        ViaCepClient viaCepClient,
-        BrasilApiCepClient brasilApiClient,
-        OpenCepClient openCepClient,
-        ICacheService cacheService,
-        ILogger<CepLookupService> logger)
+    // Ordem padrão de fallback (pode ser configurada no futuro)
+    private static readonly ECepProvider[] DefaultProviderOrder =
     {
-        _viaCepClient = viaCepClient;
-        _brasilApiClient = brasilApiClient;
-        _openCepClient = openCepClient;
-        _cacheService = cacheService;
-        _logger = logger;
-    }
+        ECepProvider.ViaCep,
+        ECepProvider.BrasilApi,
+        ECepProvider.OpenCep
+    };
 
     public async Task<Address?> LookupAsync(Cep cep, CancellationToken cancellationToken = default)
     {
         var cacheKey = GetCacheKey(cep);
 
         // Tentar buscar do cache primeiro (TTL: 24 horas)
-        var address = await _cacheService.GetOrCreateAsync(
+        var address = await cacheService.GetOrCreateAsync(
             cacheKey,
             async ct =>
             {
-                _logger.LogInformation("Cache miss para CEP {Cep}, consultando APIs", cep.Value);
+                logger.LogInformation("Cache miss para CEP {Cep}, consultando APIs", cep.Value);
                 return await LookupFromProvidersAsync(cep, ct);
             },
             expiration: TimeSpan.FromHours(24),
@@ -60,38 +54,33 @@ public sealed class CepLookupService : ICepLookupService
 
     private async Task<Address?> LookupFromProvidersAsync(Cep cep, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Iniciando consulta de CEP {Cep}", cep.Value);
+        logger.LogInformation("Iniciando consulta de CEP {Cep}", cep.Value);
 
-        // Tentativa 1: ViaCEP (geralmente o mais rápido e confiável)
-        var address = await _viaCepClient.GetAddressAsync(cep, cancellationToken);
-        if (address is not null)
+        foreach (var provider in DefaultProviderOrder)
         {
-            _logger.LogInformation("CEP {Cep} encontrado no ViaCEP", cep.Value);
-            return address;
+            var address = await TryProviderAsync(provider, cep, cancellationToken);
+            if (address is not null)
+            {
+                logger.LogInformation("CEP {Cep} encontrado no provedor {Provider}", cep.Value, provider);
+                return address;
+            }
+
+            logger.LogWarning("Provedor {Provider} falhou para CEP {Cep}, tentando próximo", provider, cep.Value);
         }
 
-        _logger.LogWarning("ViaCEP falhou para CEP {Cep}, tentando BrasilAPI", cep.Value);
-
-        // Tentativa 2: BrasilAPI
-        address = await _brasilApiClient.GetAddressAsync(cep, cancellationToken);
-        if (address is not null)
-        {
-            _logger.LogInformation("CEP {Cep} encontrado no BrasilAPI", cep.Value);
-            return address;
-        }
-
-        _logger.LogWarning("BrasilAPI falhou para CEP {Cep}, tentando OpenCEP", cep.Value);
-
-        // Tentativa 3: OpenCEP (último fallback)
-        address = await _openCepClient.GetAddressAsync(cep, cancellationToken);
-        if (address is not null)
-        {
-            _logger.LogInformation("CEP {Cep} encontrado no OpenCEP", cep.Value);
-            return address;
-        }
-
-        _logger.LogError("CEP {Cep} não encontrado em nenhum provedor", cep.Value);
+        logger.LogError("CEP {Cep} não encontrado em nenhum provedor", cep.Value);
         return null;
+    }
+
+    private async Task<Address?> TryProviderAsync(ECepProvider provider, Cep cep, CancellationToken cancellationToken)
+    {
+        return provider switch
+        {
+            ECepProvider.ViaCep => await viaCepClient.GetAddressAsync(cep, cancellationToken),
+            ECepProvider.BrasilApi => await brasilApiClient.GetAddressAsync(cep, cancellationToken),
+            ECepProvider.OpenCep => await openCepClient.GetAddressAsync(cep, cancellationToken),
+            _ => null
+        };
     }
 
     private static string GetCacheKey(Cep cep)

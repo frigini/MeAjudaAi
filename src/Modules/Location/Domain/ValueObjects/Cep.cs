@@ -1,11 +1,12 @@
 using System.Text.RegularExpressions;
+using MeAjudaAi.Shared.Domain;
 
 namespace MeAjudaAi.Modules.Location.Domain.ValueObjects;
 
 /// <summary>
 /// Representa um Código de Endereçamento Postal (CEP) brasileiro.
 /// </summary>
-public sealed partial class Cep : IEquatable<Cep>
+public sealed partial class Cep : ValueObject
 {
     private static readonly Regex CepRegex = CepPattern();
 
@@ -46,20 +47,10 @@ public sealed partial class Cep : IEquatable<Cep>
 
     public override string ToString() => Formatted;
 
-    public bool Equals(Cep? other)
+    protected override IEnumerable<object> GetEqualityComponents()
     {
-        if (other is null) return false;
-        if (ReferenceEquals(this, other)) return true;
-        return Value == other.Value;
+        yield return Value;
     }
-
-    public override bool Equals(object? obj) => obj is Cep other && Equals(other);
-
-    public override int GetHashCode() => Value.GetHashCode();
-
-    public static bool operator ==(Cep? left, Cep? right) => Equals(left, right);
-
-    public static bool operator !=(Cep? left, Cep? right) => !Equals(left, right);
 
     [GeneratedRegex(@"^\d{8}$", RegexOptions.Compiled)]
     private static partial Regex CepPattern();

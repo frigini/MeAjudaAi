@@ -2,7 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Location.Domain.ValueObjects;
 using Xunit;
 
-namespace MeAjudaAi.Modules.Location.Tests.Domain.ValueObjects;
+namespace MeAjudaAi.Modules.Location.Tests.Unit.Domain.ValueObjects;
 
 public sealed class CepTests
 {
@@ -76,6 +76,8 @@ public sealed class CepTests
         result.Should().Be("12345-678");
     }
 
+    #region Equality Tests
+
     [Fact]
     public void Equals_WithSameCep_ShouldReturnTrue()
     {
@@ -86,6 +88,8 @@ public sealed class CepTests
         // Act & Assert
         cep1.Should().Be(cep2);
         (cep1 == cep2).Should().BeTrue();
+        (cep1 != cep2).Should().BeFalse();
+        cep1!.GetHashCode().Should().Be(cep2!.GetHashCode());
     }
 
     [Fact]
@@ -98,5 +102,45 @@ public sealed class CepTests
         // Act & Assert
         cep1.Should().NotBe(cep2);
         (cep1 != cep2).Should().BeTrue();
+        (cep1 == cep2).Should().BeFalse();
     }
+
+    [Fact]
+    public void Equals_WithNull_ShouldHandleCorrectly()
+    {
+        // Arrange
+        var cep = Cep.Create("12345678");
+
+        // Act & Assert
+        cep.Should().NotBe(null);
+        (cep == null).Should().BeFalse();
+        (cep != null).Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("12345678", "12345678", true)]
+    [InlineData("12345678", "87654321", false)]
+    [InlineData("01310100", "01310100", true)]
+    public void Equals_ParameterizedComparison_ShouldWorkCorrectly(
+        string value1,
+        string value2,
+        bool expectedEqual)
+    {
+        // Arrange
+        var cep1 = Cep.Create(value1);
+        var cep2 = Cep.Create(value2);
+
+        // Act & Assert
+        if (expectedEqual)
+        {
+            cep1.Should().Be(cep2);
+            cep1!.GetHashCode().Should().Be(cep2!.GetHashCode());
+        }
+        else
+        {
+            cep1.Should().NotBe(cep2);
+        }
+    }
+
+    #endregion
 }

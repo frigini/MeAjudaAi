@@ -4,6 +4,7 @@ using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Contracts.Modules.Location;
 using MeAjudaAi.Shared.Tests.Mocks.Http;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -37,7 +38,8 @@ public sealed class GeocodingIntegrationTests : IAsyncLifetime
         _httpMockBuilder.AddMockedClient<NominatimClient>();
 
         // Add Location module services
-        MeAjudaAi.Modules.Location.Infrastructure.Extensions.AddLocationModule(services);
+        var configuration = new ConfigurationBuilder().Build();
+        MeAjudaAi.Modules.Location.Infrastructure.Extensions.AddLocationModule(services, configuration);
 
         _serviceProvider = services.BuildServiceProvider();
     }

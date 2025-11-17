@@ -1,3 +1,4 @@
+using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Geolocation;
 
 namespace MeAjudaAi.Modules.Location.Domain.ValueObjects;
@@ -5,7 +6,7 @@ namespace MeAjudaAi.Modules.Location.Domain.ValueObjects;
 /// <summary>
 /// Representa um endereço brasileiro completo.
 /// </summary>
-public sealed class Address
+public sealed class Address : ValueObject
 {
     private static readonly HashSet<string> ValidUfs = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -101,5 +102,24 @@ public sealed class Address
         }
 
         return string.Join(", ", parts);
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Cep;
+        yield return Street;
+        yield return Neighborhood;
+        yield return City;
+        yield return State;
+        
+        if (Complement is not null)
+        {
+            yield return Complement;
+        }
+
+        if (GeoPoint is not null)
+        {
+            yield return GeoPoint;
+        }
     }
 }

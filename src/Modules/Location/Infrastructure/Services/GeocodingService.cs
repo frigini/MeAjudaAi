@@ -11,22 +11,11 @@ namespace MeAjudaAi.Modules.Location.Infrastructure.Services;
 /// Implementação do serviço de geocoding usando Nominatim (OpenStreetMap).
 /// Inclui caching Redis para reduzir chamadas à API externa.
 /// </summary>
-public sealed class GeocodingService : IGeocodingService
+public sealed class GeocodingService(
+    NominatimClient nominatimClient,
+    ICacheService cacheService,
+    ILogger<GeocodingService> logger) : IGeocodingService
 {
-    private readonly NominatimClient _nominatimClient;
-    private readonly ICacheService _cacheService;
-    private readonly ILogger<GeocodingService> _logger;
-
-    public GeocodingService(
-        NominatimClient nominatimClient,
-        ICacheService cacheService,
-        ILogger<GeocodingService> logger)
-    {
-        _nominatimClient = nominatimClient;
-        _cacheService = cacheService;
-        _logger = logger;
-    }
-
     public async Task<GeoPoint?> GetCoordinatesAsync(string address, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(address))
@@ -37,12 +26,12 @@ public sealed class GeocodingService : IGeocodingService
         var cacheKey = GetCacheKey(address);
 
         // Tentar buscar do cache primeiro (TTL: 7 dias)
-        var coordinates = await _cacheService.GetOrCreateAsync(
+        var coordinates = await cacheService.GetOrCreateAsync(
             cacheKey,
             async ct =>
             {
-                _logger.LogInformation("Cache miss para geocoding de {Address}, consultando Nominatim", address);
-                return await _nominatimClient.GetCoordinatesAsync(address, ct);
+                logger.LogInformation("Cache miss para geocoding de {Address}, consultando Nominatim", address);
+                return await nominatimClient.GetCoordinatesAsync(address, ct);
             },
             expiration: TimeSpan.FromDays(7),
             options: new HybridCacheEntryOptions

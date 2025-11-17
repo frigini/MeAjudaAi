@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace MeAjudaAi.Modules.Location.Tests.Application.ModuleApi;
+namespace MeAjudaAi.Modules.Location.Tests.Unit.Application.ModuleApi;
 
 [Trait("Category", "Unit")]
 public sealed class LocationsModuleApiTests
