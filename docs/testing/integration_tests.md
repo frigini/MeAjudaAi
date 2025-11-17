@@ -125,7 +125,8 @@ public abstract class SharedApiTestBase : IAsyncLifetime
     
     // Setup and teardown methods
 }
-```csharp
+```
+
 ### Key Features
 - Automatic test container lifecycle management
 - Configured test authentication
@@ -146,7 +147,8 @@ Integration tests use the `ConfigurableTestAuthenticationHandler` for:
 services.AddAuthentication("Test")
     .AddScheme<AuthenticationSchemeOptions, ConfigurableTestAuthenticationHandler>(
         "Test", options => { });
-```csharp
+```
+
 ## Database Testing
 
 ### Test Database Management
@@ -161,7 +163,8 @@ protected async Task<T> ExecuteDbContextAsync<T>(Func<AppDbContext, Task<T>> act
     using var context = CreateDbContext();
     return await action(context);
 }
-```csharp
+```
+
 ## Writing Integration Tests
 
 ### Test Structure
@@ -189,7 +192,8 @@ public async Task CreateUser_ValidData_ReturnsCreatedUser()
     var user = await response.Content.ReadFromJsonAsync<UserResponse>();
     user.Email.Should().Be(createUserRequest.Email);
 }
-```text
+```
+
 ## Best Practices
 
 ### Test Organization

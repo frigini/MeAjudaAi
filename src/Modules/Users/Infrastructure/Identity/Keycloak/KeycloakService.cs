@@ -11,6 +11,13 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 
+/// <summary>
+/// NOTA: KeycloakService usa DateTime.UtcNow para cálculos de expiração de token.
+/// Isto é aceitável pois:
+/// 1. É código de infraestrutura que interage com serviço externo (Keycloak)
+/// 2. Os tokens retornados pelo Keycloak já são baseados em tempo real
+/// 3. Injetar IDateTimeProvider aqui adicionaria complexidade sem benefício prático
+/// </summary>
 public class KeycloakService(
     HttpClient httpClient,
     KeycloakOptions options,

@@ -96,9 +96,8 @@ public class UserBuilder : BuilderBase<User>
 
     public UserBuilder AsDeleted()
     {
-        var mockDateTimeProvider = new Mock<IDateTimeProvider>();
-        mockDateTimeProvider.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
-        WithCustomAction(user => user.MarkAsDeleted(mockDateTimeProvider.Object));
+        var dateTimeProvider = new MockDateTimeProvider();
+        WithCustomAction(user => user.MarkAsDeleted(dateTimeProvider));
         return this;
     }
 

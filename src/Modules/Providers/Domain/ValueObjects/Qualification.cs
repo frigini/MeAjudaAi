@@ -4,6 +4,10 @@ namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 
 /// <summary>
 /// Qualificação ou habilitação do prestador de serviços.
+/// NOTA: IsExpired usa DateTime.UtcNow diretamente pois:
+/// 1. É um Value Object - não deve ter dependências injetadas
+/// 2. É uma propriedade calculada de conveniência, não parte do modelo de domínio
+/// 3. Para lógica de negócio crítica, use métodos de domínio que recebam a data como parâmetro
 /// </summary>
 public class Qualification : ValueObject
 {

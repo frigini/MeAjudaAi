@@ -1,6 +1,7 @@
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Jobs;
 
@@ -14,12 +15,16 @@ public static class HangfireExtensions
     /// </summary>
     public static IApplicationBuilder UseHangfireDashboardIfEnabled(
         this IApplicationBuilder app, 
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger? logger = null)
     {
         var dashboardEnabled = configuration.GetValue<bool>("Hangfire:DashboardEnabled", false);
+        logger?.LogInformation("Hangfire Dashboard is {Status}", dashboardEnabled ? "enabled" : "disabled");
+        
         if (dashboardEnabled)
         {
             var dashboardPath = configuration.GetValue<string>("Hangfire:DashboardPath", "/hangfire");
+            logger?.LogInformation("Configuring Hangfire Dashboard at path: {DashboardPath}", dashboardPath);
             app.UseHangfireDashboard(dashboardPath, new DashboardOptions
             {
                 Authorization = new[] { new HangfireAuthorizationFilter() },

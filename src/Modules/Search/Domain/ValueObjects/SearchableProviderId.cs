@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Domain;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Search.Domain.ValueObjects;
 
@@ -16,7 +17,7 @@ namespace MeAjudaAi.Modules.Search.Domain.ValueObjects;
 /// </summary>
 public sealed record SearchableProviderId(Guid Value)
 {
-    public static SearchableProviderId New() => new(Guid.CreateVersion7());
+    public static SearchableProviderId New() => new(UuidGenerator.NewId());
 
     public static SearchableProviderId From(Guid value) => new(value);
 
