@@ -40,9 +40,7 @@ public class DeleteProviderCommandHandlerTests
         var provider = CreateValidProvider();
         var fixedDate = DateTime.UtcNow;
 
-        _dateTimeProviderMock
-            .Setup(d => d.CurrentDate())
-            .Returns(fixedDate);
+        _dateTimeProvider.SetFixedDateTime(fixedDate);
 
         _providerRepositoryMock
             .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
@@ -63,7 +61,9 @@ public class DeleteProviderCommandHandlerTests
             Times.Once);
 
         _providerRepositoryMock.Verify(
-            r => r.UpdateAsync(It.Is<Provider>(p => p.IsDeleted), It.IsAny<CancellationToken>()),
+            r => r.UpdateAsync(
+                It.Is<Provider>(p => p.IsDeleted && p.DeletedAt == fixedDate),
+                It.IsAny<CancellationToken>()),
             Times.Once);
     }
 

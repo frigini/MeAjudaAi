@@ -19,56 +19,14 @@ namespace MeAjudaAi.Integration.Tests.Modules.Location;
 /// Testes de integração para o serviço de lookup de CEP com mock HTTP handlers.
 /// Utiliza infraestrutura compartilhada de mocks do Shared.Tests.
 /// </summary>
-public sealed class CepLookupIntegrationTests : IAsyncLifetime
+public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
 {
-    private ServiceProvider? _serviceProvider;
-    private MockHttpClientBuilder? _httpMockBuilder;
-
-    public async ValueTask InitializeAsync()
+    protected override void ConfigureHttpClients(MockHttpClientBuilder builder)
     {
-        var services = new ServiceCollection();
-
-        // Add logging
-        services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Warning));
-
-        // Add time provider
-        services.AddSingleton<IDateTimeProvider>(new MockDateTimeProvider());
-
-        // Add caching (in-memory for tests)
-        services.AddMemoryCache();
-        services.AddHybridCache(options =>
-        {
-            options.DefaultEntryOptions = new HybridCacheEntryOptions
-            {
-                Expiration = TimeSpan.FromHours(24),
-                LocalCacheExpiration = TimeSpan.FromMinutes(30)
-            };
-        });
-        services.AddSingleton<CacheMetrics>();
-        services.AddSingleton<ICacheService, HybridCacheService>();
-
-        // Configure HTTP clients com mocks usando infraestrutura compartilhada
-        _httpMockBuilder = new MockHttpClientBuilder(services);
-
-        _httpMockBuilder
+        builder
             .AddMockedClient<ViaCepClient>()
             .AddMockedClient<BrasilApiCepClient>()
             .AddMockedClient<OpenCepClient>();
-
-        // Add Location module services
-        var configuration = new ConfigurationBuilder().Build();
-        MeAjudaAi.Modules.Location.Infrastructure.Extensions.AddLocationModule(services, configuration);
-
-        _serviceProvider = services.BuildServiceProvider();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        _httpMockBuilder?.ResetAll();
-        if (_serviceProvider != null)
-        {
-            await _serviceProvider.DisposeAsync();
-        }
     }
 
     [Fact]
@@ -88,11 +46,11 @@ public sealed class CepLookupIntegrationTests : IAsyncLifetime
             }
             """;
 
-        _httpMockBuilder!
+        HttpMockBuilder!
             .GetHandler<ViaCepClient>()
             .SetupResponse($"viacep.com.br/ws/{cep}/json", HttpStatusCode.OK, viaCepResponse);
 
-        var locationApi = _serviceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(cep);
@@ -114,7 +72,7 @@ public sealed class CepLookupIntegrationTests : IAsyncLifetime
         var cep = "01310100";
 
         // ViaCEP retorna erro
-        _httpMockBuilder!
+        HttpMockBuilder!
             .GetHandler<ViaCepClient>()
             .SetupErrorResponse("viacep.com.br", HttpStatusCode.InternalServerError);
 
@@ -129,11 +87,11 @@ public sealed class CepLookupIntegrationTests : IAsyncLifetime
             }
             """;
 
-        _httpMockBuilder
+        HttpMockBuilder
             .GetHandler<BrasilApiCepClient>()
             .SetupResponse($"brasilapi.com.br/api/cep/v2/{cep}", HttpStatusCode.OK, brasilApiResponse);
 
-        var locationApi = _serviceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(cep);
@@ -149,7 +107,7 @@ public sealed class CepLookupIntegrationTests : IAsyncLifetime
     {
         // Arrange
         var invalidCep = "abcd1234";
-        var locationApi = _serviceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(invalidCep);
@@ -167,19 +125,19 @@ public sealed class CepLookupIntegrationTests : IAsyncLifetime
         var cep = "99999999";
 
         // Todos os provedores retornam erro
-        _httpMockBuilder!
+        HttpMockBuilder!
             .GetHandler<ViaCepClient>()
             .SetupErrorResponse("viacep.com.br", HttpStatusCode.NotFound);
 
-        _httpMockBuilder
+        HttpMockBuilder
             .GetHandler<BrasilApiCepClient>()
             .SetupErrorResponse("brasilapi.com.br", HttpStatusCode.NotFound);
 
-        _httpMockBuilder
+        HttpMockBuilder
             .GetHandler<OpenCepClient>()
             .SetupErrorResponse("opencep.com", HttpStatusCode.NotFound);
 
-        var locationApi = _serviceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(cep);
@@ -206,10 +164,10 @@ public sealed class CepLookupIntegrationTests : IAsyncLifetime
             }
             """;
 
-        var mockHandler = _httpMockBuilder!.GetHandler<ViaCepClient>();
+        var mockHandler = HttpMockBuilder!.GetHandler<ViaCepClient>();
         mockHandler.SetupResponse($"viacep.com.br/ws/{cep}/json", HttpStatusCode.OK, viaCepResponse);
 
-        var locationApi = _serviceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
 
         // Act - Primeira chamada (cache miss)
         var result1 = await locationApi.GetAddressFromCepAsync(cep);

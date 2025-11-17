@@ -24,6 +24,11 @@ public static class HangfireExtensions
         if (dashboardEnabled)
         {
             var dashboardPath = configuration.GetValue<string>("Hangfire:DashboardPath", "/hangfire");
+            if (!dashboardPath.StartsWith("/"))
+            {
+                dashboardPath = $"/{dashboardPath}";
+                logger?.LogWarning("Dashboard path adjusted to start with '/': {DashboardPath}", dashboardPath);
+            }
             logger?.LogInformation("Configuring Hangfire Dashboard at path: {DashboardPath}", dashboardPath);
             app.UseHangfireDashboard(dashboardPath, new DashboardOptions
             {

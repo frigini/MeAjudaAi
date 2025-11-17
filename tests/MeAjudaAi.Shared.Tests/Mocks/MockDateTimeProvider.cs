@@ -52,7 +52,9 @@ public sealed class MockDateTimeProvider : IDateTimeProvider
 
     /// <summary>
     /// Advances the fixed date/time by the specified duration.
-    /// If no fixed date/time is set, sets it to current UTC time first.
+    /// If no fixed date/time is set, initializes to current UTC time first.
+    /// Note: This may introduce non-deterministic behavior if the exact starting time matters for your test.
+    /// Consider using SetFixedDateTime() or the constructor overload to explicitly set a starting time.
     /// </summary>
     /// <param name="duration">The duration to advance</param>
     public void Advance(TimeSpan duration)

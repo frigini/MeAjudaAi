@@ -49,6 +49,17 @@ public class Qualification : ValueObject
         DocumentNumber = documentNumber?.Trim();
     }
 
+    /// <summary>
+    /// Checks if the qualification is expired at a specific reference date.
+    /// This method enables deterministic testing of expiration logic.
+    /// </summary>
+    public bool IsExpiredAt(DateTime referenceDate) =>
+        ExpirationDate.HasValue && ExpirationDate.Value < referenceDate;
+
+    /// <summary>
+    /// Checks if the qualification is currently expired.
+    /// Uses DateTime.UtcNow for convenience in production code.
+    /// </summary>
     public bool IsExpired => ExpirationDate.HasValue && ExpirationDate.Value < DateTime.UtcNow;
 
     protected override IEnumerable<object> GetEqualityComponents()

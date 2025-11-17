@@ -18,52 +18,11 @@ namespace MeAjudaAi.Integration.Tests.Modules.Location;
 /// <summary>
 /// Testes de integração para o serviço de geocoding com mock HTTP handlers.
 /// </summary>
-public sealed class GeocodingIntegrationTests : IAsyncLifetime
+public sealed class GeocodingIntegrationTests : LocationIntegrationTestFixture
 {
-    private ServiceProvider? _serviceProvider;
-    private MockHttpClientBuilder? _httpMockBuilder;
-
-    public async ValueTask InitializeAsync()
+    protected override void ConfigureHttpClients(MockHttpClientBuilder builder)
     {
-        var services = new ServiceCollection();
-
-        // Add logging
-        services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Warning));
-
-        // Add time provider
-        services.AddSingleton<IDateTimeProvider>(new MockDateTimeProvider());
-
-        // Add caching (in-memory for tests)
-        services.AddMemoryCache();
-        services.AddHybridCache(options =>
-        {
-            options.DefaultEntryOptions = new HybridCacheEntryOptions
-            {
-                Expiration = TimeSpan.FromHours(24),
-                LocalCacheExpiration = TimeSpan.FromMinutes(30)
-            };
-        });
-        services.AddSingleton<CacheMetrics>();
-        services.AddSingleton<ICacheService, HybridCacheService>();
-
-        // Configure HTTP clients com mocks
-        _httpMockBuilder = new MockHttpClientBuilder(services);
-        _httpMockBuilder.AddMockedClient<NominatimClient>();
-
-        // Add Location module services
-        var configuration = new ConfigurationBuilder().Build();
-        MeAjudaAi.Modules.Location.Infrastructure.Extensions.AddLocationModule(services, configuration);
-
-        _serviceProvider = services.BuildServiceProvider();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        _httpMockBuilder?.ResetAll();
-        if (_serviceProvider != null)
-        {
-            await _serviceProvider.DisposeAsync();
-        }
+        builder.AddMockedClient<NominatimClient>();
     }
 
     [Fact]
@@ -81,10 +40,10 @@ public sealed class GeocodingIntegrationTests : IAsyncLifetime
         ]
         """;
 
-        _httpMockBuilder!.GetHandler<NominatimClient>()
+        HttpMockBuilder!.GetHandler<NominatimClient>()
             .SetupResponse("nominatim.openstreetmap.org", HttpStatusCode.OK, nominatimResponse);
 
-        var locationApi = _serviceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
 
         // Act
         var result = await locationApi.GetCoordinatesFromAddressAsync(address);
@@ -100,7 +59,7 @@ public sealed class GeocodingIntegrationTests : IAsyncLifetime
     public async Task GetCoordinatesFromAddressAsync_WithEmptyAddress_ShouldReturnFailure()
     {
         // Arrange
-        var locationApi = _serviceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
 
         // Act
         var result = await locationApi.GetCoordinatesFromAddressAsync("");
@@ -118,10 +77,10 @@ public sealed class GeocodingIntegrationTests : IAsyncLifetime
         var address = "Endereço Inexistente XYZ123, Cidade Fictícia";
         var emptyResponse = "[]";
 
-        _httpMockBuilder!.GetHandler<NominatimClient>()
+        HttpMockBuilder!.GetHandler<NominatimClient>()
             .SetupResponse("nominatim.openstreetmap.org", HttpStatusCode.OK, emptyResponse);
 
-        var locationApi = _serviceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
 
         // Act
         var result = await locationApi.GetCoordinatesFromAddressAsync(address);
@@ -138,10 +97,10 @@ public sealed class GeocodingIntegrationTests : IAsyncLifetime
         // Arrange
         var address = "Avenida Paulista, São Paulo, SP";
 
-        _httpMockBuilder!.GetHandler<NominatimClient>()
+        HttpMockBuilder!.GetHandler<NominatimClient>()
             .SetupErrorResponse("nominatim.openstreetmap.org", HttpStatusCode.ServiceUnavailable);
 
-        var locationApi = _serviceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
 
         // Act
         var result = await locationApi.GetCoordinatesFromAddressAsync(address);
@@ -165,10 +124,10 @@ public sealed class GeocodingIntegrationTests : IAsyncLifetime
         ]
         """;
 
-        var handler = _httpMockBuilder!.GetHandler<NominatimClient>();
+        var handler = HttpMockBuilder!.GetHandler<NominatimClient>();
         handler.SetupResponse("nominatim.openstreetmap.org", HttpStatusCode.OK, nominatimResponse);
 
-        var locationApi = _serviceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
 
         // Act - Primeira chamada
         var result1 = await locationApi.GetCoordinatesFromAddressAsync(address);
@@ -221,10 +180,10 @@ public sealed class GeocodingIntegrationTests : IAsyncLifetime
         ]
         """;
 
-        _httpMockBuilder!.GetHandler<NominatimClient>()
+        HttpMockBuilder!.GetHandler<NominatimClient>()
             .SetupResponse("nominatim.openstreetmap.org", HttpStatusCode.OK, nominatimResponse);
 
-        var locationApi = _serviceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
 
         // Act - Chamar múltiplas vezes para testar rate limiting
         var tasks = addresses.Select(addr => locationApi.GetCoordinatesFromAddressAsync(addr)).ToArray();
