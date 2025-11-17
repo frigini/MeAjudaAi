@@ -105,10 +105,10 @@ public partial class Program
         app.UseProvidersModule();
         app.UseDocumentsModule();
         app.UseSearchModule();
-        // Módulo Location não possui endpoints/middleware, apenas serviços internos
+        app.UseLocationModule();
     }
 
-private static void LogStartupComplete(WebApplication app)
+    private static void LogStartupComplete(WebApplication app)
     {
         if (!app.Environment.IsEnvironment("Testing"))
         {

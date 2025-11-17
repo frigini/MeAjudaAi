@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Location.Application.Services;
 using MeAjudaAi.Modules.Location.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Location.Infrastructure.Services;
 using MeAjudaAi.Shared.Contracts.Modules.Location;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -58,5 +59,16 @@ public static class Extensions
         services.AddScoped<ILocationModuleApi, LocationsModuleApi>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Configura o middleware do módulo Location.
+    /// Location module exposes only internal services, no endpoints or middleware.
+    /// This method exists for consistency with other modules.
+    /// </summary>
+    public static WebApplication UseLocationModule(this WebApplication app)
+    {
+        // No middleware or endpoints to configure
+        return app;
     }
 }
