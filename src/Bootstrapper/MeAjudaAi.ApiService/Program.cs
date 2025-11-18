@@ -26,7 +26,7 @@ public partial class Program
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSharedServices(builder.Configuration);
             builder.Services.AddApiServices(builder.Configuration, builder.Environment);
-            
+
             // Registrar módulos
             builder.Services.AddUsersModule(builder.Configuration);
             builder.Services.AddProvidersModule(builder.Configuration);

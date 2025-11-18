@@ -26,7 +26,9 @@ public static class Extensions
         // Certifique-se de que estas chaves de configuração apontem para o mesmo database para evitar que EF e Dapper
         // se comuniquem com databases/schemas diferentes entre ambientes (dev/test/prod, Aspire, etc.).
         var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Database connection string 'DefaultConnection' not found.");
+                              ?? configuration.GetConnectionString("Search")
+                              ?? configuration.GetConnectionString("meajudaai-db")
+                              ?? throw new InvalidOperationException("Database connection string 'DefaultConnection' not found.");
 
         services.AddDbContext<SearchDbContext>((serviceProvider, options) =>
         {
