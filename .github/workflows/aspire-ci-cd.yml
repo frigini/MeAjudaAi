@@ -101,6 +101,11 @@ jobs:
           MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
           DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
           DB_USERNAME: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          # Map connection string to .NET configuration using double underscore
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
+          ConnectionStrings__Users: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
+          ConnectionStrings__Search: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
+          ConnectionStrings__meajudaai-db: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
         run: |
           echo "🧪 Running core test suite (excluding E2E)..."
           # Run only Architecture and Integration tests - skip E2E tests for Aspire validation

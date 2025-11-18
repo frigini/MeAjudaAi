@@ -32,6 +32,20 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
       - name: Checkout code
@@ -51,6 +65,11 @@ jobs:
       - name: Run tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
+          # Map connection strings to .NET configuration using double underscore
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
+          ConnectionStrings__Users: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
+          ConnectionStrings__Search: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
+          ConnectionStrings__meajudaai-db: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
         run: |
           echo "🧪 Executando todos os testes..."
 
