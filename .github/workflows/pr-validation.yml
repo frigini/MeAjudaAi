@@ -155,10 +155,19 @@ jobs:
             exit 1
           fi
 
+      - name: Setup PostgreSQL connection
+        id: db
+        uses: ./.github/actions/setup-postgres-connection
+        with:
+          postgres-host: localhost
+          postgres-port: 5432
+          postgres-db: ${{ secrets.POSTGRES_DB }}
+          postgres-user: ${{ secrets.POSTGRES_USER }}
+          postgres-password: ${{ secrets.POSTGRES_PASSWORD }}
+
       - name: Run tests with coverage
         env:
           ASPNETCORE_ENVIRONMENT: Testing
-          POSTGRES_CONNECTION: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
           # Pre-built connection string (optional, takes precedence if available)
           DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
           # PostgreSQL connection for CI
@@ -178,10 +187,10 @@ jobs:
           # Keycloak settings
           KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
           # Map connection strings to .NET configuration using double underscore
-          ConnectionStrings__DefaultConnection: ${{ env.POSTGRES_CONNECTION }}
-          ConnectionStrings__Users: ${{ env.POSTGRES_CONNECTION }}
-          ConnectionStrings__Search: ${{ env.POSTGRES_CONNECTION }}
-          ConnectionStrings__meajudaai-db: ${{ env.POSTGRES_CONNECTION }}
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
           set -euo pipefail
           echo "🧪 Executando testes com cobertura consolidada..."

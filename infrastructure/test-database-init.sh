@@ -77,7 +77,8 @@ has_errors=false
 SCHEMAS=("users" "providers" "documents" "search" "location" "hangfire" "meajudaai_app")
 
 for schema in "${SCHEMAS[@]}"; do
-    QUERY="SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$schema');"
+    # Use double-dollar quoting to safely handle identifiers
+    QUERY="SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = \$\$${schema}\$\$);"
     RESULT=$(docker exec meajudaai-postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c "$QUERY" | tr -d '[:space:]')
     
     if [ "$RESULT" = "t" ]; then
@@ -103,7 +104,8 @@ ROLES=(
 )
 
 for role in "${ROLES[@]}"; do
-    QUERY="SELECT EXISTS(SELECT 1 FROM pg_roles WHERE rolname = '$role');"
+    # Use double-dollar quoting to safely handle identifiers
+    QUERY="SELECT EXISTS(SELECT 1 FROM pg_roles WHERE rolname = \$\$${role}\$\$);"
     RESULT=$(docker exec meajudaai-postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c "$QUERY" | tr -d '[:space:]')
     
     if [ "$RESULT" = "t" ]; then
@@ -117,7 +119,8 @@ done
 echo ""
 echo "🔍 Verifying PostGIS extension..."
 
-QUERY="SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'postgis');"
+# Use double-dollar quoting to safely handle identifier
+QUERY="SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = \$\$postgis\$\$);"
 RESULT=$(docker exec meajudaai-postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c "$QUERY" | tr -d '[:space:]')
 
 if [ "$RESULT" = "t" ]; then

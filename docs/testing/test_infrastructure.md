@@ -8,7 +8,7 @@ A infraestrutura de testes do MeAjudaAi utiliza **TestContainers** para criar am
 
 ### Componentes Principais
 
-```
+```text
 TestContainerTestBase (Base class para E2E)
 ├── PostgreSQL Container (Banco de dados isolado)
 ├── Redis Container (Cache isolado)
@@ -172,7 +172,7 @@ if (!keycloakSettings.Enabled)
 
 ### Docker não está rodando
 
-```
+```bash
 Error: Docker daemon is not running
 ```
 
@@ -180,7 +180,7 @@ Error: Docker daemon is not running
 
 ### Porta já em uso
 
-```
+```bash
 Error: Port 5432 is already allocated
 ```
 
@@ -188,7 +188,7 @@ Error: Port 5432 is already allocated
 
 ### Timeout na inicialização
 
-```
+```bash
 Error: Container failed to start within timeout
 ```
 
@@ -205,7 +205,7 @@ Error: Container failed to start within timeout
 
 ## Estrutura de Testes
 
-```
+```text
 tests/MeAjudaAi.E2E.Tests/
 ├── Base/
 │   ├── TestContainerTestBase.cs      # Base class principal

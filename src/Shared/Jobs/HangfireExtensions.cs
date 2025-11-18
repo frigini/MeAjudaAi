@@ -18,7 +18,7 @@ public static class HangfireExtensions
 
     /// <summary>
     /// Configura o Hangfire Dashboard se habilitado na configuração.
-    /// Requer que AddHangfire tenha sido chamado anteriormente.
+    /// Se AddHangfire não foi chamado anteriormente, registra um aviso e retorna sem configurar o dashboard.
     /// </summary>
     public static IApplicationBuilder UseHangfireDashboardIfEnabled(
         this IApplicationBuilder app,
@@ -52,9 +52,9 @@ public static class HangfireExtensions
             return app;
         }
 
-        // Resolve logger if not provided
-        logger ??= app.ApplicationServices.GetService<ILogger<HangfireExtensions>>();
-        
+        // Resolve logger if not provided (use ILoggerFactory since HangfireExtensions is static)
+        logger ??= app.ApplicationServices.GetService<ILoggerFactory>()?.CreateLogger("Hangfire");
+
         logger?.LogInformation("Hangfire Dashboard is enabled");
 
         var dashboardPath = configuration.GetValue<string>(DashboardPathKey, "/hangfire");

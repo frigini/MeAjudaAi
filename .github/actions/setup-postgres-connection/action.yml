@@ -1,0 +1,40 @@
+name: 'Setup PostgreSQL Connection'
+description: 'Build PostgreSQL connection string from secrets and defaults'
+inputs:
+  postgres-host:
+    description: 'PostgreSQL host'
+    required: false
+    default: 'localhost'
+  postgres-port:
+    description: 'PostgreSQL port'
+    required: false
+    default: '5432'
+  postgres-db:
+    description: 'PostgreSQL database name'
+    required: false
+    default: 'meajudaai_test'
+  postgres-user:
+    description: 'PostgreSQL username'
+    required: false
+    default: 'postgres'
+  postgres-password:
+    description: 'PostgreSQL password'
+    required: false
+    default: 'test123'
+outputs:
+  connection-string:
+    description: 'Complete PostgreSQL connection string'
+    value: ${{ steps.build.outputs.connection-string }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Build connection string
+      id: build
+      shell: bash
+      run: |
+        CONNECTION_STRING="Host=${{ inputs.postgres-host }}"
+        CONNECTION_STRING="${CONNECTION_STRING};Port=${{ inputs.postgres-port }}"
+        CONNECTION_STRING="${CONNECTION_STRING};Database=${{ inputs.postgres-db }}"
+        CONNECTION_STRING="${CONNECTION_STRING};Username=${{ inputs.postgres-user }}"
+        CONNECTION_STRING="${CONNECTION_STRING};Password=${{ inputs.postgres-password }}"
+        echo "connection-string=${CONNECTION_STRING}" >> $GITHUB_OUTPUT

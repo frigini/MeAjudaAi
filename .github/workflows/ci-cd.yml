@@ -62,15 +62,24 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
 
+      - name: Setup PostgreSQL connection
+        id: db
+        uses: ./.github/actions/setup-postgres-connection
+        with:
+          postgres-host: localhost
+          postgres-port: 5432
+          postgres-db: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+          postgres-user: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          postgres-password: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+
       - name: Run tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
-          POSTGRES_CONNECTION: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
           # Map connection strings to .NET configuration using double underscore
-          ConnectionStrings__DefaultConnection: ${{ env.POSTGRES_CONNECTION }}
-          ConnectionStrings__Users: ${{ env.POSTGRES_CONNECTION }}
-          ConnectionStrings__Search: ${{ env.POSTGRES_CONNECTION }}
-          ConnectionStrings__meajudaai-db: ${{ env.POSTGRES_CONNECTION }}
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
           echo "🧪 Executando todos os testes..."
 
