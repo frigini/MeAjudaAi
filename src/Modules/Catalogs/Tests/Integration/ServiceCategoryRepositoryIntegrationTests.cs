@@ -1,4 +1,6 @@
+using MeAjudaAi.Modules.Catalogs.Domain.Entities;
 using MeAjudaAi.Modules.Catalogs.Domain.Repositories;
+using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.Catalogs.Tests.Infrastructure;
 using MeAjudaAi.Shared.Time;
 
@@ -40,7 +42,7 @@ public class ServiceCategoryRepositoryIntegrationTests : CatalogsIntegrationTest
         var nonExistentId = UuidGenerator.NewId();
 
         // Act
-        var result = await _repository.GetByIdAsync(new Domain.ValueObjects.ServiceCategoryId(nonExistentId));
+        var result = await _repository.GetByIdAsync(ServiceCategoryId.From(nonExistentId));
 
         // Assert
         result.Should().BeNull();
@@ -109,7 +111,7 @@ public class ServiceCategoryRepositoryIntegrationTests : CatalogsIntegrationTest
     public async Task AddAsync_WithValidCategory_ShouldPersistCategory()
     {
         // Arrange
-        var category = Domain.Entities.ServiceCategory.Create("New Category", "New Description", 10);
+        var category = ServiceCategory.Create("New Category", "New Description", 10);
 
         // Act
         await _repository.AddAsync(category);

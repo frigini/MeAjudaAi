@@ -25,29 +25,40 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
             displayOrder = 1
         };
 
-        // Act
-        var response = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+        string? categoryId = null;
 
-        // Assert
-        var content = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(HttpStatusCode.Created,
-            "POST requests that create resources should return 201 Created");
-
-        var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
-        var dataElement = GetResponseData(responseJson);
-        dataElement.TryGetProperty("id", out _).Should().BeTrue(
-            $"Response data should contain 'id' property. Full response: {content}");
-        dataElement.TryGetProperty("name", out var nameProperty).Should().BeTrue();
-        nameProperty.GetString().Should().Be(categoryData.name);
-
-        // Cleanup
-        if (dataElement.TryGetProperty("id", out var idProperty))
+        try
         {
-            var categoryId = idProperty.GetString();
-            var deleteResponse = await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
-            if (!deleteResponse.IsSuccessStatusCode)
+            // Act
+            var response = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+
+            // Assert
+            var content = await response.Content.ReadAsStringAsync();
+            response.StatusCode.Should().Be(HttpStatusCode.Created,
+                "POST requests that create resources should return 201 Created");
+
+            var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
+            var dataElement = GetResponseData(responseJson);
+            dataElement.TryGetProperty("id", out _).Should().BeTrue(
+                $"Response data should contain 'id' property. Full response: {content}");
+            dataElement.TryGetProperty("name", out var nameProperty).Should().BeTrue();
+            nameProperty.GetString().Should().Be(categoryData.name);
+
+            if (dataElement.TryGetProperty("id", out var idProperty))
             {
-                testOutput.WriteLine($"Cleanup failed: Could not delete category {categoryId}. Status: {deleteResponse.StatusCode}");
+                categoryId = idProperty.GetString();
+            }
+        }
+        finally
+        {
+            // Cleanup
+            if (categoryId is not null)
+            {
+                var deleteResponse = await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
+                if (!deleteResponse.IsSuccessStatusCode)
+                {
+                    testOutput.WriteLine($"Cleanup failed: Could not delete category {categoryId}. Status: {deleteResponse.StatusCode}");
+                }
             }
         }
     }
@@ -145,6 +156,8 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
             displayOrder = 1
         };
 
+        string? categoryId = null;
+
         try
         {
             // Act 1: Create Category
@@ -158,7 +171,7 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
             var createResponseJson = JsonSerializer.Deserialize<JsonElement>(createContent);
             var createdCategory = GetResponseData(createResponseJson);
             createdCategory.TryGetProperty("id", out var idProperty).Should().BeTrue();
-            var categoryId = idProperty.GetString()!;
+            categoryId = idProperty.GetString()!;
 
             // Act 2: Update Category
             var updateData = new
@@ -178,28 +191,37 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
             // Act 3: Get Category by ID
             var getResponse = await Client.GetAsync($"/api/v1/catalogs/categories/{categoryId}");
 
-            // Assert 3: Can retrieve created category
-            if (getResponse.StatusCode == HttpStatusCode.OK)
-            {
-                var getContent = await getResponse.Content.ReadAsStringAsync();
-                var getResponseJson = JsonSerializer.Deserialize<JsonElement>(getContent);
-                var retrievedCategory = GetResponseData(getResponseJson);
-                retrievedCategory.TryGetProperty("id", out var retrievedIdProperty).Should().BeTrue();
-                retrievedIdProperty.GetString().Should().Be(categoryId);
-            }
-
-            // Act 4: Delete Category
-            var deleteResponse = await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
-
-            // Assert 4: Deletion successful
-            deleteResponse.StatusCode.Should().BeOneOf(
-                [HttpStatusCode.OK, HttpStatusCode.NoContent],
-                "Delete should succeed for existing categories");
+            // Assert 3: Can retrieve created category with updated fields
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var getContent = await getResponse.Content.ReadAsStringAsync();
+            var getResponseJson = JsonSerializer.Deserialize<JsonElement>(getContent);
+            var retrievedCategory = GetResponseData(getResponseJson);
+            retrievedCategory.TryGetProperty("id", out var retrievedIdProperty).Should().BeTrue();
+            retrievedIdProperty.GetString().Should().Be(categoryId);
+            retrievedCategory.TryGetProperty("name", out var retrievedNameProperty).Should().BeTrue();
+            retrievedNameProperty.GetString().Should().Be(updateData.name, "Updated name should be reflected");
+            retrievedCategory.TryGetProperty("description", out var retrievedDescProperty).Should().BeTrue();
+            retrievedDescProperty.GetString().Should().Be(updateData.description, "Updated description should be reflected");
+            retrievedCategory.TryGetProperty("displayOrder", out var retrievedOrderProperty).Should().BeTrue();
+            retrievedOrderProperty.GetInt32().Should().Be(updateData.displayOrder, "Updated displayOrder should be reflected");
         }
         catch (Exception ex)
         {
             testOutput.WriteLine($"Category workflow test failed: {ex.Message}");
             throw;
+        }
+        finally
+        {
+            // Act 4: Delete Category (in finally to ensure cleanup)
+            if (categoryId is not null)
+            {
+                var deleteResponse = await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
+
+                // Assert 4: Deletion successful
+                deleteResponse.StatusCode.Should().BeOneOf(
+                    [HttpStatusCode.OK, HttpStatusCode.NoContent],
+                    "Delete should succeed for existing categories");
+            }
         }
     }
 
@@ -269,15 +291,17 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
             // Act 3: Get Service by ID
             var getResponse = await Client.GetAsync($"/api/v1/catalogs/services/{serviceId}");
 
-            // Assert 3: Can retrieve created service
-            if (getResponse.StatusCode == HttpStatusCode.OK)
-            {
-                var getContent = await getResponse.Content.ReadAsStringAsync();
-                var getResponseJson = JsonSerializer.Deserialize<JsonElement>(getContent);
-                var retrievedService = GetResponseData(getResponseJson);
-                retrievedService.TryGetProperty("id", out var retrievedServiceIdProperty).Should().BeTrue();
-                retrievedServiceIdProperty.GetString().Should().Be(serviceId);
-            }
+            // Assert 3: Can retrieve created service with updated fields
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            var getContent = await getResponse.Content.ReadAsStringAsync();
+            var getResponseJson = JsonSerializer.Deserialize<JsonElement>(getContent);
+            var retrievedService = GetResponseData(getResponseJson);
+            retrievedService.TryGetProperty("id", out var retrievedServiceIdProperty).Should().BeTrue();
+            retrievedServiceIdProperty.GetString().Should().Be(serviceId);
+            retrievedService.TryGetProperty("name", out var retrievedNameProperty).Should().BeTrue();
+            retrievedNameProperty.GetString().Should().Be(updateData.name, "Updated name should be reflected");
+            retrievedService.TryGetProperty("description", out var retrievedDescProperty).Should().BeTrue();
+            retrievedDescProperty.GetString().Should().Be(updateData.description, "Updated description should be reflected");
 
             // Act 4: Delete Service
             var deleteResponse = await Client.DeleteAsync($"/api/v1/catalogs/services/{serviceId}");
@@ -318,6 +342,7 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
         };
 
         var categoryResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+        categoryResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Category creation should succeed");
         var categoryContent = await categoryResponse.Content.ReadAsStringAsync();
         var categoryJson = JsonSerializer.Deserialize<JsonElement>(categoryContent);
         var categoryDataElement = GetResponseData(categoryJson);
@@ -335,7 +360,7 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
             };
 
             var serviceResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/services", serviceData);
-            serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+            serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Service creation should succeed");
 
             var serviceContent = await serviceResponse.Content.ReadAsStringAsync();
             var serviceJson = JsonSerializer.Deserialize<JsonElement>(serviceContent);
@@ -359,7 +384,23 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
                 // Should contain at least the service we just created
                 if (dataElement.ValueKind == JsonValueKind.Array)
                 {
-                    dataElement.GetArrayLength().Should().BeGreaterThanOrEqualTo(1);
+                    dataElement.GetArrayLength().Should().BeGreaterThanOrEqualTo(1,
+                        "Response should contain at least the created service");
+
+                    // Verify the created service is in the results
+                    var foundService = false;
+                    foreach (var item in dataElement.EnumerateArray())
+                    {
+                        if (item.TryGetProperty("id", out var itemId) && itemId.GetString() == serviceId)
+                        {
+                            foundService = true;
+                            item.TryGetProperty("categoryId", out var itemCategoryId).Should().BeTrue();
+                            itemCategoryId.GetString().Should().Be(categoryId,
+                                "Service should belong to the correct category");
+                            break;
+                        }
+                    }
+                    foundService.Should().BeTrue($"Created service {serviceId} should be in the filtered results");
                 }
             }
             finally

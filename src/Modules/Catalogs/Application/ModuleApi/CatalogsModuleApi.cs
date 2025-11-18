@@ -15,14 +15,22 @@ namespace MeAjudaAi.Modules.Catalogs.Application.ModuleApi;
 /// <summary>
 /// Implementation of the public API for the Catalogs module.
 /// </summary>
-[ModuleApi("Catalogs", "1.0")]
+[ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class CatalogsModuleApi(
     IServiceCategoryRepository categoryRepository,
     IServiceRepository serviceRepository,
     ILogger<CatalogsModuleApi> logger) : ICatalogsModuleApi
 {
-    public string ModuleName => "Catalogs";
-    public string ApiVersion => "1.0";
+    private static class ModuleMetadata
+    {
+        public const string Name = "Catalogs";
+        public const string Version = "1.0";
+    }
+
+    private const string UnknownCategoryName = "Unknown";
+
+    public string ModuleName => ModuleMetadata.Name;
+    public string ApiVersion => ModuleMetadata.Version;
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
@@ -30,8 +38,9 @@ public sealed class CatalogsModuleApi(
         {
             logger.LogDebug("Checking Catalogs module availability");
 
-            // Simple database connectivity test
+            // Simple database connectivity test - ensure query is materialized
             var categories = await categoryRepository.GetAllAsync(activeOnly: true, cancellationToken);
+            _ = categories.Count; // Force materialization to verify DB connectivity
 
             logger.LogDebug("Catalogs module is available and healthy");
             return true;
@@ -54,6 +63,9 @@ public sealed class CatalogsModuleApi(
     {
         try
         {
+            if (categoryId == Guid.Empty)
+                return Result<ModuleServiceCategoryDto?>.Success(null);
+
             var id = ServiceCategoryId.From(categoryId);
             var category = await categoryRepository.GetByIdAsync(id, cancellationToken);
 
@@ -114,7 +126,7 @@ public sealed class CatalogsModuleApi(
             if (service is null)
                 return Result<ModuleServiceDto?>.Success(null);
 
-            var categoryName = service.Category?.Name ?? "Unknown";
+            var categoryName = service.Category?.Name ?? UnknownCategoryName;
 
             var dto = new ModuleServiceDto(
                 service.Id.Value,
@@ -171,7 +183,7 @@ public sealed class CatalogsModuleApi(
             var dtos = services.Select(s => new ModuleServiceDto(
                 s.Id.Value,
                 s.CategoryId.Value,
-                s.Category?.Name ?? "Unknown",
+                s.Category?.Name ?? UnknownCategoryName,
                 s.Name,
                 s.Description,
                 s.IsActive
@@ -195,8 +207,9 @@ public sealed class CatalogsModuleApi(
             var serviceIdValue = ServiceId.From(serviceId);
             var service = await serviceRepository.GetByIdAsync(serviceIdValue, cancellationToken);
 
+            // Return false for not-found to align with query semantics (vs Failure)
             if (service is null)
-                return Result<bool>.Failure($"Service with ID '{serviceId}' not found.");
+                return Result<bool>.Success(false);
 
             return Result<bool>.Success(service.IsActive);
         }
@@ -213,6 +226,16 @@ public sealed class CatalogsModuleApi(
     {
         try
         {
+            if (serviceIds is null)
+                return Result<ModuleServiceValidationResultDto>.Failure("Service IDs collection cannot be null");
+
+            // Short-circuit for empty collection
+            if (serviceIds.Count == 0)
+            {
+                return Result<ModuleServiceValidationResultDto>.Success(
+                    new ModuleServiceValidationResultDto(true, [], []));
+            }
+
             var invalidIds = new List<Guid>();
             var inactiveIds = new List<Guid>();
 
