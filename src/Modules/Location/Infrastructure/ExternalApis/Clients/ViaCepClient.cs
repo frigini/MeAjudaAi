@@ -1,8 +1,8 @@
+using System.Text.Json;
 using MeAjudaAi.Modules.Location.Domain.ValueObjects;
 using MeAjudaAi.Modules.Location.Infrastructure.ExternalApis.Responses;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace MeAjudaAi.Modules.Location.Infrastructure.ExternalApis.Clients;
 

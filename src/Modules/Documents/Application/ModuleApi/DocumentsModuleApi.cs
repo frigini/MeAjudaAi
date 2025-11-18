@@ -258,7 +258,7 @@ public sealed class DocumentsModuleApi(
         try
         {
             var documentsResult = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
-            
+
             if (documentsResult.IsFailure)
             {
                 return Result<bool>.Failure(documentsResult.Error);
@@ -299,7 +299,7 @@ public sealed class DocumentsModuleApi(
         try
         {
             var documentsResult = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
-            
+
             if (documentsResult.IsFailure)
             {
                 return Result<bool>.Failure(documentsResult.Error);
@@ -316,7 +316,7 @@ public sealed class DocumentsModuleApi(
 
             var hasRequired = verifiedTypes.Contains(TypeString(EDocumentType.IdentityDocument)) &&
                             verifiedTypes.Contains(TypeString(EDocumentType.ProofOfResidence));
-            
+
             return Result<bool>.Success(hasRequired);
         }
         catch (OperationCanceledException)
@@ -337,7 +337,7 @@ public sealed class DocumentsModuleApi(
         try
         {
             var documentsResult = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
-            
+
             if (documentsResult.IsFailure)
             {
                 return Result<DocumentStatusCountDto>.Failure(documentsResult.Error);
@@ -349,7 +349,7 @@ public sealed class DocumentsModuleApi(
             var statusGroups = documents
                 .GroupBy(d => d.Status)
                 .ToDictionary(g => g.Key, g => g.Count());
-            
+
             var count = new DocumentStatusCountDto
             {
                 Total = documents.Count,
@@ -379,7 +379,7 @@ public sealed class DocumentsModuleApi(
         try
         {
             var documentsResult = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
-            
+
             if (documentsResult.IsFailure)
             {
                 return Result<bool>.Failure(documentsResult.Error);
@@ -406,7 +406,7 @@ public sealed class DocumentsModuleApi(
         try
         {
             var documentsResult = await GetProviderDocumentsResultAsync(providerId, cancellationToken);
-            
+
             if (documentsResult.IsFailure)
             {
                 return Result<bool>.Failure(documentsResult.Error);
