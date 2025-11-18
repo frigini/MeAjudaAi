@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Catalogs.Application.Commands;
 using MeAjudaAi.Modules.Catalogs.Application.DTOs;
 using MeAjudaAi.Modules.Catalogs.Application.Queries;
+using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
@@ -17,8 +18,8 @@ namespace MeAjudaAi.Modules.Catalogs.API.Endpoints;
 // Request DTOs
 // ============================================================
 
-public record CreateServiceCategoryRequest(string Name, string Description, int DisplayOrder);
-public record UpdateServiceCategoryRequest(string Name, string Description, int DisplayOrder);
+public record CreateServiceCategoryRequest(string Name, string? Description, int DisplayOrder);
+public record UpdateServiceCategoryRequest(string Name, string? Description, int DisplayOrder);
 
 // ============================================================
 // CREATE
@@ -30,8 +31,8 @@ public class CreateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/", CreateAsync)
             .WithName("CreateServiceCategory")
             .WithSummary("Criar categoria de serviço")
-            .Produces<Response<Guid>>(StatusCodes.Status201Created)
-            .RequireAuthorization("Admin");
+            .Produces<Response<ServiceCategoryDto>>(StatusCodes.Status201Created)
+            .RequireAdmin();
 
     private static async Task<IResult> CreateAsync(
         [FromBody] CreateServiceCategoryRequest request,
@@ -39,13 +40,13 @@ public class CreateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         var command = new CreateServiceCategoryCommand(request.Name, request.Description, request.DisplayOrder);
-        var result = await commandDispatcher.SendAsync<CreateServiceCategoryCommand, Result<Guid>>(
+        var result = await commandDispatcher.SendAsync<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>(
             command, cancellationToken);
 
         if (!result.IsSuccess)
             return Handle(result);
 
-        return Handle(result, "GetServiceCategoryById", new { id = result.Value });
+        return Handle(result, "GetServiceCategoryById", new { id = result.Value!.Id });
     }
 }
 
@@ -112,7 +113,7 @@ public class UpdateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
             .WithName("UpdateServiceCategory")
             .WithSummary("Atualizar categoria de serviço")
             .Produces<Response<Unit>>(StatusCodes.Status200OK)
-            .RequireAuthorization("Admin");
+            .RequireAdmin();
 
     private static async Task<IResult> UpdateAsync(
         Guid id,
@@ -137,7 +138,7 @@ public class DeleteServiceCategoryEndpoint : BaseEndpoint, IEndpoint
             .WithName("DeleteServiceCategory")
             .WithSummary("Deletar categoria de serviço")
             .Produces<Response<Unit>>(StatusCodes.Status200OK)
-            .RequireAuthorization("Admin");
+            .RequireAdmin();
 
     private static async Task<IResult> DeleteAsync(
         Guid id,
@@ -161,7 +162,7 @@ public class ActivateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
             .WithName("ActivateServiceCategory")
             .WithSummary("Ativar categoria de serviço")
             .Produces<Response<Unit>>(StatusCodes.Status200OK)
-            .RequireAuthorization("Admin");
+            .RequireAdmin();
 
     private static async Task<IResult> ActivateAsync(
         Guid id,
@@ -181,7 +182,7 @@ public class DeactivateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
             .WithName("DeactivateServiceCategory")
             .WithSummary("Desativar categoria de serviço")
             .Produces<Response<Unit>>(StatusCodes.Status200OK)
-            .RequireAuthorization("Admin");
+            .RequireAdmin();
 
     private static async Task<IResult> DeactivateAsync(
         Guid id,

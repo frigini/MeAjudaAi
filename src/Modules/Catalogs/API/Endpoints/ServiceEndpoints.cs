@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Catalogs.Application.Commands;
 using MeAjudaAi.Modules.Catalogs.Application.DTOs;
 using MeAjudaAi.Modules.Catalogs.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Catalogs.Application.Queries;
+using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
@@ -24,8 +25,8 @@ public class CreateServiceEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/", CreateAsync)
             .WithName("CreateService")
             .WithSummary("Criar serviço")
-            .Produces<Response<Guid>>(StatusCodes.Status201Created)
-            .RequireAuthorization("Admin");
+            .Produces<Response<ServiceDto>>(StatusCodes.Status201Created)
+            .RequireAdmin();
 
     private static async Task<IResult> CreateAsync(
         [FromBody] CreateServiceRequest request,
@@ -33,12 +34,12 @@ public class CreateServiceEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         var command = new CreateServiceCommand(request.CategoryId, request.Name, request.Description, request.DisplayOrder);
-        var result = await commandDispatcher.SendAsync<CreateServiceCommand, Result<Guid>>(command, cancellationToken);
+        var result = await commandDispatcher.SendAsync<CreateServiceCommand, Result<ServiceDto>>(command, cancellationToken);
 
         if (!result.IsSuccess)
             return Handle(result);
 
-        return Handle(result, "GetServiceById", new { id = result.Value });
+        return Handle(result, "GetServiceById", new { id = result.Value!.Id });
     }
 }
 
@@ -122,7 +123,7 @@ public class UpdateServiceEndpoint : BaseEndpoint, IEndpoint
             .WithName("UpdateService")
             .WithSummary("Atualizar serviço")
             .Produces<Response<Unit>>(StatusCodes.Status200OK)
-            .RequireAuthorization("Admin");
+            .RequireAdmin();
 
     private static async Task<IResult> UpdateAsync(
         Guid id,
@@ -143,7 +144,7 @@ public class ChangeServiceCategoryEndpoint : BaseEndpoint, IEndpoint
             .WithName("ChangeServiceCategory")
             .WithSummary("Alterar categoria do serviço")
             .Produces<Response<Unit>>(StatusCodes.Status200OK)
-            .RequireAuthorization("Admin");
+            .RequireAdmin();
 
     private static async Task<IResult> ChangeAsync(
         Guid id,
@@ -168,7 +169,7 @@ public class DeleteServiceEndpoint : BaseEndpoint, IEndpoint
             .WithName("DeleteService")
             .WithSummary("Deletar serviço")
             .Produces<Response<Unit>>(StatusCodes.Status200OK)
-            .RequireAuthorization("Admin");
+            .RequireAdmin();
 
     private static async Task<IResult> DeleteAsync(
         Guid id,
@@ -192,7 +193,7 @@ public class ActivateServiceEndpoint : BaseEndpoint, IEndpoint
             .WithName("ActivateService")
             .WithSummary("Ativar serviço")
             .Produces<Response<Unit>>(StatusCodes.Status200OK)
-            .RequireAuthorization("Admin");
+            .RequireAdmin();
 
     private static async Task<IResult> ActivateAsync(
         Guid id,
@@ -212,7 +213,7 @@ public class DeactivateServiceEndpoint : BaseEndpoint, IEndpoint
             .WithName("DeactivateService")
             .WithSummary("Desativar serviço")
             .Produces<Response<Unit>>(StatusCodes.Status200OK)
-            .RequireAuthorization("Admin");
+            .RequireAdmin();
 
     private static async Task<IResult> DeactivateAsync(
         Guid id,

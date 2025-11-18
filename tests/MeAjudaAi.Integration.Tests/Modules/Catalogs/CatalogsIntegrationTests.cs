@@ -346,7 +346,7 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
             try
             {
                 // Act: Get services by category
-                var response = await Client.GetAsync($"/api/v1/catalogs/services/by-category/{categoryId}");
+                var response = await Client.GetAsync($"/api/v1/catalogs/services/category/{categoryId}");
 
                 // Assert
                 response.StatusCode.Should().Be(HttpStatusCode.OK);

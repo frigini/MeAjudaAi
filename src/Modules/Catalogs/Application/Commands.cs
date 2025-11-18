@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Catalogs.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Functional;
 
@@ -11,7 +12,7 @@ public sealed record CreateServiceCategoryCommand(
     string Name,
     string? Description,
     int DisplayOrder = 0
-) : Command<Result<Guid>>;
+) : Command<Result<ServiceCategoryDto>>;
 
 public sealed record UpdateServiceCategoryCommand(
     Guid Id,
@@ -35,7 +36,7 @@ public sealed record CreateServiceCommand(
     string Name,
     string? Description,
     int DisplayOrder = 0
-) : Command<Result<Guid>>;
+) : Command<Result<ServiceDto>>;
 
 public sealed record UpdateServiceCommand(
     Guid Id,

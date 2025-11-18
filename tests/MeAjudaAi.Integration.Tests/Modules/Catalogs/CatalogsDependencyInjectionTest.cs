@@ -1,0 +1,149 @@
+using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Catalogs.Application.Commands;
+using MeAjudaAi.Modules.Catalogs.Application.DTOs;
+using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Functional;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace MeAjudaAi.Integration.Tests.Modules.Catalogs;
+
+/// <summary>
+/// 🧪 TESTE DIAGNÓSTICO PARA CATALOGS MODULE DEPENDENCY INJECTION
+/// 
+/// Verifica se todos os command handlers do módulo Catalogs estão registrados
+/// </summary>
+public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : ApiTestBase
+{
+    [Fact]
+    public void Should_Have_CommandDispatcher_Registered()
+    {
+        // Arrange & Act
+        var commandDispatcher = Services.GetService<ICommandDispatcher>();
+
+        // Assert
+        testOutput.WriteLine($"CommandDispatcher registration: {commandDispatcher != null}");
+        commandDispatcher.Should().NotBeNull("ICommandDispatcher should be registered");
+    }
+
+    [Fact]
+    public void Should_Have_CreateServiceCategoryCommandHandler_Registered()
+    {
+        // Arrange & Act
+        // Try to resolve handler
+        var handler = Services.GetService<ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>>();
+
+        // Assert
+        testOutput.WriteLine($"CreateServiceCategoryCommandHandler registration: {handler != null}");
+        testOutput.WriteLine($"Handler type: {handler?.GetType().FullName}");
+        handler.Should().NotBeNull("CreateServiceCategoryCommandHandler should be registered");
+    }
+
+    [Fact]
+    public void Should_Have_ServiceCategoryRepository_Registered()
+    {
+        // Arrange & Act
+        var repository = Services.GetService<MeAjudaAi.Modules.Catalogs.Domain.Repositories.IServiceCategoryRepository>();
+
+        // Assert
+        testOutput.WriteLine($"IServiceCategoryRepository registration: {repository != null}");
+        testOutput.WriteLine($"Repository type: {repository?.GetType().FullName}");
+        repository.Should().NotBeNull("IServiceCategoryRepository should be registered");
+    }
+
+    [Fact]
+    public void Should_Have_CatalogsDbContext_Registered()
+    {
+        // Arrange & Act
+        var dbContext = Services.GetService<MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence.CatalogsDbContext>();
+
+        // Assert
+        testOutput.WriteLine($"CatalogsDbContext registration: {dbContext != null}");
+        dbContext.Should().NotBeNull("CatalogsDbContext should be registered");
+    }
+
+    [Fact]
+    public void Should_List_All_Registered_CommandHandlers()
+    {
+        // Arrange
+        var serviceProvider = Services;
+
+        // Act - Get all ICommandHandler registrations
+        var commandHandlerType = typeof(ICommandHandler<,>);
+        
+        var allServices = Services.GetType()
+            .GetProperty("Services")?.GetValue(Services) as IEnumerable<ServiceDescriptor>;
+
+        if (allServices != null)
+        {
+            var commandHandlers = allServices
+                .Where(s => s.ServiceType.IsGenericType &&
+                           s.ServiceType.GetGenericTypeDefinition() == commandHandlerType)
+                .ToList();
+
+            testOutput.WriteLine($"Registered CommandHandlers count: {commandHandlers.Count}");
+
+            foreach (var handler in commandHandlers)
+            {
+                testOutput.WriteLine($"- {handler.ServiceType.GetGenericArguments()[0].Name} -> {handler.ImplementationType?.Name}");
+            }
+
+            // Filter for Catalogs handlers
+            var catalogsHandlers = commandHandlers
+                .Where(s => s.ServiceType.GetGenericArguments()[0].Namespace?.Contains("Catalogs") == true)
+                .ToList();
+
+            testOutput.WriteLine($"\nCatalogs CommandHandlers count: {catalogsHandlers.Count}");
+            
+            foreach (var handler in catalogsHandlers)
+            {
+                testOutput.WriteLine($"- {handler.ServiceType.GetGenericArguments()[0].Name} -> {handler.ImplementationType?.Name}");
+            }
+
+            catalogsHandlers.Should().NotBeEmpty("Catalogs command handlers should be registered");
+        }
+    }
+
+    [Fact]
+    public async Task Should_Be_Able_To_Resolve_And_Execute_CreateServiceCategoryCommandHandler()
+    {
+        // Arrange
+        var commandDispatcher = Services.GetRequiredService<ICommandDispatcher>();
+        var command = new CreateServiceCategoryCommand(
+            Name: $"Test Category {Guid.NewGuid():N}",
+            Description: "Test Description",
+            DisplayOrder: 1
+        );
+
+        // Act
+        Result<ServiceCategoryDto>? result = null;
+        Exception? exception = null;
+
+        try
+        {
+            result = await commandDispatcher.SendAsync<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>(command);
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+            testOutput.WriteLine($"Exception: {ex.GetType().Name}");
+            testOutput.WriteLine($"Message: {ex.Message}");
+            testOutput.WriteLine($"StackTrace: {ex.StackTrace}");
+            
+            if (ex.InnerException != null)
+            {
+                testOutput.WriteLine($"InnerException: {ex.InnerException.GetType().Name}");
+                testOutput.WriteLine($"InnerMessage: {ex.InnerException.Message}");
+                testOutput.WriteLine($"InnerStackTrace: {ex.InnerException.StackTrace}");
+            }
+        }
+
+        // Assert
+        testOutput.WriteLine($"Result IsSuccess: {result?.IsSuccess}");
+        testOutput.WriteLine($"Result Value: {result?.Value}");
+        testOutput.WriteLine($"Result Error: {result?.Error}");
+        
+        exception.Should().BeNull("Command execution should not throw exception");
+        result.Should().NotBeNull("Command should return a result");
+    }
+}
