@@ -7,11 +7,13 @@ using MeAjudaAi.Modules.Catalogs.Domain.Repositories;
 using MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Commands;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.Catalogs.Infrastructure;
 
@@ -27,24 +29,25 @@ public static class Extensions
         // Configure DbContext
         services.AddDbContext<CatalogsDbContext>((serviceProvider, options) =>
         {
+            var environment = serviceProvider.GetService<IHostEnvironment>();
+            var isTestEnvironment = environment?.EnvironmentName == "Testing";
+
+            // Use shared connection string resolution logic (same precedence as DapperConnection)
             var connectionString = configuration.GetConnectionString("DefaultConnection")
                                   ?? configuration.GetConnectionString("Catalogs")
                                   ?? configuration.GetConnectionString("meajudaai-db");
-
-            var isTestEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing" ||
-                                   Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Testing";
 
             if (string.IsNullOrEmpty(connectionString))
             {
                 if (isTestEnvironment)
                 {
-                    connectionString = "Host=localhost;Database=temp_test;Username=postgres;Password=test";
+                    // Same test fallback as DapperConnection
+                    connectionString = "Host=localhost;Port=5432;Database=meajudaai_test;Username=postgres;Password=test;";
                 }
                 else
                 {
                     throw new InvalidOperationException(
-                        "Connection string not found in configuration. " +
-                        "Please ensure a connection string is properly configured.");
+                        "PostgreSQL connection string not found. Configure connection string via Aspire, 'Postgres:ConnectionString' in appsettings.json, or as ConnectionStrings:meajudaai-db");
                 }
             }
 

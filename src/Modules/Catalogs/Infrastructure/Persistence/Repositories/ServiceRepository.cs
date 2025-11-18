@@ -90,8 +90,10 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
 
     public async Task DeleteAsync(ServiceId id, CancellationToken cancellationToken = default)
     {
-        // Reuse GetByIdAsync but note it's a tracked query for delete scenarios
-        var service = await GetByIdAsync(id, cancellationToken);
+        // Use lightweight lookup without includes for delete
+        var service = await context.Services
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+            
         if (service is not null)
         {
             context.Services.Remove(service);

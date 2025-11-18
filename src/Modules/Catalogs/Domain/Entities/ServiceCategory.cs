@@ -55,6 +55,7 @@ public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
     {
         ValidateName(name);
         ValidateDescription(description);
+        ValidateDisplayOrder(displayOrder);
 
         var category = new ServiceCategory
         {
@@ -76,6 +77,7 @@ public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
     {
         ValidateName(name);
         ValidateDescription(description);
+        ValidateDisplayOrder(displayOrder);
 
         Name = name.Trim();
         Description = description?.Trim();
@@ -123,5 +125,11 @@ public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
     {
         if (description is not null && description.Trim().Length > ServiceCategoryValidation.MaxDescriptionLength)
             throw new CatalogDomainException($"Category description cannot exceed {ServiceCategoryValidation.MaxDescriptionLength} characters.");
+    }
+
+    private static void ValidateDisplayOrder(int displayOrder)
+    {
+        if (displayOrder < 0)
+            throw new CatalogDomainException("Display order cannot be negative.");
     }
 }

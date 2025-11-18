@@ -53,14 +53,14 @@ public class ServiceCategoryBuilder : BuilderBase<ServiceCategory>
     public ServiceCategoryBuilder AsActive()
     {
         _isActive = true;
-        WithCustomAction(category => category.Activate());
+        // CustomInstantiator will ensure category is created active
         return this;
     }
 
     public ServiceCategoryBuilder AsInactive()
     {
         _isActive = false;
-        WithCustomAction(category => category.Deactivate());
+        // CustomInstantiator will call Deactivate() after creation
         return this;
     }
 

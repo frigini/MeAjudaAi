@@ -58,24 +58,29 @@ public static class Extensions
         }
         catch (Exception ex)
         {
-            try
+            using var scope = app.Services.CreateScope();
+            var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.CatalogsDbContext>>();
+            
+            // Only fallback to EnsureCreated in Development
+            if (app.Environment.IsDevelopment())
             {
-                using var scope = app.Services.CreateScope();
-                var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.CatalogsDbContext>>();
-                logger?.LogWarning(ex, "Falha ao aplicar migrações do módulo Catalogs. Usando EnsureCreated como fallback.");
-
-                var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.CatalogsDbContext>();
-                if (context != null)
+                logger?.LogWarning(ex, "Falha ao aplicar migrações do módulo Catalogs. Usando EnsureCreated como fallback em Development.");
+                try
                 {
-                    context.Database.EnsureCreated();
+                    var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.CatalogsDbContext>();
+                    context?.Database.EnsureCreated();
+                }
+                catch (Exception fallbackEx)
+                {
+                    logger?.LogError(fallbackEx, "Falha crítica ao inicializar o banco do módulo Catalogs.");
+                    throw; // Fail fast even in Development if EnsureCreated fails
                 }
             }
-            catch
+            else
             {
-                using var scope = app.Services.CreateScope();
-                var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.CatalogsDbContext>>();
-                logger?.LogError("Falha crítica ao inicializar o banco do módulo Catalogs.");
-                // Em ambientes de produção, isso pode indicar um problema grave
+                // Fail fast in non-development environments
+                logger?.LogError(ex, "Falha crítica ao aplicar migrações do módulo Catalogs em ambiente de produção.");
+                throw;
             }
         }
     }

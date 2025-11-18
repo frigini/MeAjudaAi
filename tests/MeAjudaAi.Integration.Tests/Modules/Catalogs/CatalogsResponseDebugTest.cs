@@ -8,7 +8,8 @@ namespace MeAjudaAi.Integration.Tests.Modules.Catalogs;
 
 public class CatalogsResponseDebugTest(ITestOutputHelper testOutput) : ApiTestBase
 {
-    [Fact]
+    [Fact(Skip = "Diagnostic test - enable only when debugging response format issues")]
+    [Trait("Category", "Debug")]
     public async Task Debug_CreateServiceCategory_ResponseFormat()
     {
         // Arrange
@@ -33,6 +34,10 @@ public class CatalogsResponseDebugTest(ITestOutputHelper testOutput) : ApiTestBa
 
         try
         {
+            // Use shared JSON deserialization for consistency
+            var dto = await ReadJsonAsync<dynamic>(response.Content);
+            testOutput.WriteLine($"Deserialized DTO: {dto}");
+            
             var json = JsonSerializer.Deserialize<JsonElement>(content);
             testOutput.WriteLine($"JSON ValueKind: {json.ValueKind}");
             
@@ -43,6 +48,10 @@ public class CatalogsResponseDebugTest(ITestOutputHelper testOutput) : ApiTestBa
                 {
                     testOutput.WriteLine($"  {prop.Name}: {prop.Value.ValueKind} = {prop.Value}");
                 }
+                
+                // Validate expected DTO shape
+                json.TryGetProperty("id", out _).Should().BeTrue("DTO should have 'id' property");
+                json.TryGetProperty("name", out _).Should().BeTrue("DTO should have 'name' property");
             }
         }
         catch (Exception ex)
@@ -50,7 +59,6 @@ public class CatalogsResponseDebugTest(ITestOutputHelper testOutput) : ApiTestBa
             testOutput.WriteLine($"JSON Parsing Error: {ex.Message}");
         }
 
-        // Don't fail, just log
         response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 }
