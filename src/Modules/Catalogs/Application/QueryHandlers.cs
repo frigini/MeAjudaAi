@@ -153,6 +153,9 @@ public sealed class GetServiceCategoriesWithCountQueryHandler(
 
         var dtos = new List<ServiceCategoryWithCountDto>();
 
+        // NOTE: This performs 2 * N count queries (one for total, one for active per category).
+        // For small-to-medium catalogs this is acceptable. If this becomes a performance bottleneck
+        // with many categories, consider optimizing with a batched query or grouping in the repository.
         foreach (var category in categories)
         {
             var totalCount = await serviceRepository.CountByCategoryAsync(

@@ -84,5 +84,6 @@ public class CreateServiceCategoryCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
+        result.Error!.Message.Should().Contain("name", "validation error should mention the problematic field");
     }
 }

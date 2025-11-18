@@ -19,7 +19,6 @@ namespace MeAjudaAi.Modules.Catalogs.Application.ModuleApi;
 public sealed class CatalogsModuleApi(
     IServiceCategoryRepository categoryRepository,
     IServiceRepository serviceRepository,
-    IServiceProvider serviceProvider,
     ILogger<CatalogsModuleApi> logger) : ICatalogsModuleApi
 {
     public string ModuleName => "Catalogs";
@@ -209,7 +208,7 @@ public sealed class CatalogsModuleApi(
     }
 
     public async Task<Result<ModuleServiceValidationResultDto>> ValidateServicesAsync(
-        Guid[] serviceIds,
+        IReadOnlyCollection<Guid> serviceIds,
         CancellationToken cancellationToken = default)
     {
         try
@@ -217,7 +216,8 @@ public sealed class CatalogsModuleApi(
             var invalidIds = new List<Guid>();
             var inactiveIds = new List<Guid>();
 
-            foreach (var serviceId in serviceIds)
+            // Deduplicate input IDs to avoid processing the same ID multiple times
+            foreach (var serviceId in serviceIds.Distinct())
             {
                 var serviceIdValue = ServiceId.From(serviceId);
                 var service = await serviceRepository.GetByIdAsync(serviceIdValue, cancellationToken);

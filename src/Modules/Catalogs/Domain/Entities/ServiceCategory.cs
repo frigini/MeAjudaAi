@@ -6,6 +6,15 @@ using MeAjudaAi.Shared.Domain;
 namespace MeAjudaAi.Modules.Catalogs.Domain.Entities;
 
 /// <summary>
+/// Validation constants for ServiceCategory entity.
+/// </summary>
+public static class ServiceCategoryValidation
+{
+    public const int MaxNameLength = 100;
+    public const int MaxDescriptionLength = 500;
+}
+
+/// <summary>
 /// Represents a service category in the catalog (e.g., "Limpeza", "Reparos").
 /// Categories organize services into logical groups for easier discovery.
 /// </summary>
@@ -106,13 +115,13 @@ public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
         if (string.IsNullOrWhiteSpace(name))
             throw new CatalogDomainException("Category name is required.");
 
-        if (name.Trim().Length > 100)
-            throw new CatalogDomainException("Category name cannot exceed 100 characters.");
+        if (name.Trim().Length > ServiceCategoryValidation.MaxNameLength)
+            throw new CatalogDomainException($"Category name cannot exceed {ServiceCategoryValidation.MaxNameLength} characters.");
     }
 
     private static void ValidateDescription(string? description)
     {
-        if (description is not null && description.Trim().Length > 500)
-            throw new CatalogDomainException("Category description cannot exceed 500 characters.");
+        if (description is not null && description.Trim().Length > ServiceCategoryValidation.MaxDescriptionLength)
+            throw new CatalogDomainException($"Category description cannot exceed {ServiceCategoryValidation.MaxDescriptionLength} characters.");
     }
 }

@@ -65,6 +65,6 @@ public interface ICatalogsModuleApi : IModuleApi
     /// </summary>
     /// <returns>Result containing validation outcome and list of invalid service IDs</returns>
     Task<Result<ModuleServiceValidationResultDto>> ValidateServicesAsync(
-        Guid[] serviceIds,
+        IReadOnlyCollection<Guid> serviceIds,
         CancellationToken cancellationToken = default);
 }

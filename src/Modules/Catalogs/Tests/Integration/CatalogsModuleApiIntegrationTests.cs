@@ -9,10 +9,10 @@ public class CatalogsModuleApiIntegrationTests : CatalogsIntegrationTestBase
 {
     private ICatalogsModuleApi _moduleApi = null!;
 
-    protected override Task OnModuleInitializeAsync(IServiceProvider serviceProvider)
+    protected override async Task OnModuleInitializeAsync(IServiceProvider serviceProvider)
     {
+        await base.OnModuleInitializeAsync(serviceProvider);
         _moduleApi = GetService<ICatalogsModuleApi>();
-        return Task.CompletedTask;
     }
 
     [Fact]

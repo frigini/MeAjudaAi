@@ -71,6 +71,10 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
         return await query.CountAsync(cancellationToken);
     }
 
+    // NOTE: Write methods call SaveChangesAsync directly, treating each operation as a unit of work.
+    // This is appropriate for single-aggregate commands. If multi-aggregate transactions are needed
+    // in the future, consider introducing a shared unit-of-work abstraction.
+
     public async Task AddAsync(Service service, CancellationToken cancellationToken = default)
     {
         await context.Services.AddAsync(service, cancellationToken);
@@ -85,11 +89,13 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
 
     public async Task DeleteAsync(ServiceId id, CancellationToken cancellationToken = default)
     {
+        // Reuse GetByIdAsync but note it's a tracked query for delete scenarios
         var service = await GetByIdAsync(id, cancellationToken);
         if (service is not null)
         {
             context.Services.Remove(service);
             await context.SaveChangesAsync(cancellationToken);
         }
+        // Delete is idempotent - no-op if service doesn't exist
     }
 }

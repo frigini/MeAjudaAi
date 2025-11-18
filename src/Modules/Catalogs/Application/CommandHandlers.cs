@@ -236,7 +236,11 @@ public sealed class DeleteServiceCommandHandler(
             return Result.Failure($"Service with ID '{request.Id}' not found.");
 
         // TODO: Check if any provider offers this service before deleting
-        // This requires integration with Providers module
+        // This requires integration with Providers module via IProvidersModuleApi
+        // Consider implementing:
+        // 1. Call IProvidersModuleApi.HasProvidersOfferingServiceAsync(serviceId)
+        // 2. Return failure if providers exist: "Cannot delete service: X providers offer this service"
+        // 3. Or implement soft-delete pattern to preserve historical data
 
         await serviceRepository.DeleteAsync(serviceId, cancellationToken);
 
