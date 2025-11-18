@@ -50,7 +50,8 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
 
     public async Task<bool> ExistsWithNameAsync(string name, ServiceId? excludeId = null, ServiceCategoryId? categoryId = null, CancellationToken cancellationToken = default)
     {
-        var query = context.Services.Where(s => s.Name == name);
+        var normalized = name?.Trim() ?? string.Empty;
+        var query = context.Services.Where(s => s.Name == normalized);
 
         if (excludeId is not null)
             query = query.Where(s => s.Id != excludeId);

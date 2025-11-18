@@ -47,7 +47,10 @@ public class CreateServiceCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBe(Guid.Empty);
+        result.Value.Should().NotBeNull();
+        result.Value.Id.Should().NotBe(Guid.Empty);
+        result.Value.Name.Should().Be(command.Name);
+        result.Value.CategoryId.Should().Be(command.CategoryId);
         _serviceRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 

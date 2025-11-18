@@ -40,7 +40,8 @@ public class CreateServiceCategoryCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBe(Guid.Empty);
+        result.Value.Should().NotBeNull();
+        result.Value.Id.Should().NotBe(Guid.Empty);
 
         _repositoryMock.Verify(x => x.ExistsWithNameAsync(command.Name, null, It.IsAny<CancellationToken>()), Times.Once);
         _repositoryMock.Verify(x => x.AddAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()), Times.Once);

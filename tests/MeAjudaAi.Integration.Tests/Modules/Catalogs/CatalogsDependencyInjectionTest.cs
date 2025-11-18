@@ -65,43 +65,37 @@ public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : Api
     [Fact]
     public void Should_List_All_Registered_CommandHandlers()
     {
-        // Arrange
-        var serviceProvider = Services;
-
-        // Act - Get all ICommandHandler registrations
+        // Arrange - Scan Catalogs assembly for command handler types
+        var catalogsAssembly = typeof(MeAjudaAi.Modules.Catalogs.Application.Commands.CreateServiceCategoryCommand).Assembly;
         var commandHandlerType = typeof(ICommandHandler<,>);
-        
-        var allServices = Services.GetType()
-            .GetProperty("Services")?.GetValue(Services) as IEnumerable<ServiceDescriptor>;
 
-        if (allServices != null)
+        // Act - Find all types that implement ICommandHandler<,>
+        var handlerTypes = catalogsAssembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract)
+            .Where(t => t.GetInterfaces().Any(i => 
+                i.IsGenericType && 
+                i.GetGenericTypeDefinition() == commandHandlerType))
+            .ToList();
+
+        testOutput.WriteLine($"Found {handlerTypes.Count} command handler types in Catalogs assembly:");
+
+        // Assert - Verify each handler can be resolved from DI
+        handlerTypes.Should().NotBeEmpty("Catalogs assembly should contain command handlers");
+
+        foreach (var handlerType in handlerTypes)
         {
-            var commandHandlers = allServices
-                .Where(s => s.ServiceType.IsGenericType &&
-                           s.ServiceType.GetGenericTypeDefinition() == commandHandlerType)
-                .ToList();
+            // Get the ICommandHandler<TCommand, TResult> interface this type implements
+            var handlerInterface = handlerType.GetInterfaces()
+                .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == commandHandlerType);
 
-            testOutput.WriteLine($"Registered CommandHandlers count: {commandHandlers.Count}");
+            testOutput.WriteLine($"- {handlerType.Name} implements {handlerInterface.Name}");
 
-            foreach (var handler in commandHandlers)
-            {
-                testOutput.WriteLine($"- {handler.ServiceType.GetGenericArguments()[0].Name} -> {handler.ImplementationType?.Name}");
-            }
-
-            // Filter for Catalogs handlers
-            var catalogsHandlers = commandHandlers
-                .Where(s => s.ServiceType.GetGenericArguments()[0].Namespace?.Contains("Catalogs") == true)
-                .ToList();
-
-            testOutput.WriteLine($"\nCatalogs CommandHandlers count: {catalogsHandlers.Count}");
-            
-            foreach (var handler in catalogsHandlers)
-            {
-                testOutput.WriteLine($"- {handler.ServiceType.GetGenericArguments()[0].Name} -> {handler.ImplementationType?.Name}");
-            }
-
-            catalogsHandlers.Should().NotBeEmpty("Catalogs command handlers should be registered");
+            // Verify the handler can be resolved from DI
+            var resolvedHandler = Services.GetService(handlerInterface);
+            resolvedHandler.Should().NotBeNull($"{handlerType.Name} should be registered in DI container");
         }
+
+        testOutput.WriteLine($"\n✅ All {handlerTypes.Count} command handlers are properly registered");
     }
 
     [Fact]
@@ -145,5 +139,9 @@ public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : Api
         
         exception.Should().BeNull("Command execution should not throw exception");
         result.Should().NotBeNull("Command should return a result");
+        result.IsSuccess.Should().BeTrue("Command should succeed");
+        result.Value.Should().NotBeNull("Result should contain created DTO");
+        result.Value.Id.Should().NotBe(Guid.Empty, "Created entity should have a valid ID");
+        result.Value.Name.Should().Be(command.Name, "Created entity name should match command");
     }
 }

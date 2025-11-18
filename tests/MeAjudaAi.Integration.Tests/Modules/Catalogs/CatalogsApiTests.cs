@@ -21,6 +21,7 @@ public class CatalogsApiTests : ApiTestBase
         // Assert - Endpoint should exist (not 404) and not crash (not 500)
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound, "Endpoint should be registered");
         response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed, "GET should be allowed");
+        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError, "Endpoint should not crash");
 
         // May return Unauthorized (401) or Forbidden (403) if auth is required, or OK (200)
         response.StatusCode.Should().BeOneOf(

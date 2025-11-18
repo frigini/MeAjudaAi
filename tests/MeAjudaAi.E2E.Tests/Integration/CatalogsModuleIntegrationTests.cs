@@ -165,11 +165,13 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // 3. Verify service is inactive
-        var checkResponse = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service.Id}/active");
+        var checkResponse = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service.Id}");
+        checkResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var checkContent = await checkResponse.Content.ReadAsStringAsync();
         var checkResult = JsonSerializer.Deserialize<JsonElement>(checkContent, JsonOptions);
-        checkResult.TryGetProperty("data", out var isActive).Should().BeTrue();
-        isActive.GetBoolean().Should().BeFalse();
+        checkResult.TryGetProperty("data", out var serviceData).Should().BeTrue();
+        serviceData.TryGetProperty("isActive", out var isActiveProperty).Should().BeTrue();
+        isActiveProperty.GetBoolean().Should().BeFalse();
 
         // 4. Delete service (should work now that it's inactive)
         var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/catalogs/services/{service.Id}");
