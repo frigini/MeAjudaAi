@@ -46,6 +46,6 @@ Ação composta reutilizável para construir a string de conexão do PostgreSQL 
 
 ## Formato da Connection String
 
-```
+```text
 Host={host};Port={port};Database={database};Username={username};Password={password}
 ```

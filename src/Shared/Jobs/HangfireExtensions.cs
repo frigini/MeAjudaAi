@@ -53,7 +53,7 @@ public static class HangfireExtensions
         }
 
         // Resolve logger if not provided (use ILoggerFactory since HangfireExtensions is static)
-        logger ??= app.ApplicationServices.GetService<ILoggerFactory>()?.CreateLogger("Hangfire");
+        logger ??= app.ApplicationServices.GetService<ILoggerFactory>()?.CreateLogger(nameof(HangfireExtensions));
 
         logger?.LogInformation("Hangfire Dashboard is enabled");
 

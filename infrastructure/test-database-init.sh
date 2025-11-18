@@ -133,7 +133,8 @@ fi
 echo ""
 echo "📊 Database initialization logs:"
 echo ""
-docker logs meajudaai-postgres 2>&1 | grep -E "Initializing|Setting up|completed" || true
+docker logs meajudaai-postgres 2>&1 | grep -E "Initializing|Setting up|completed" || \
+  (echo "⚠️  No matching initialization logs found. Full output:" && docker logs meajudaai-postgres 2>&1)
 
 echo ""
 

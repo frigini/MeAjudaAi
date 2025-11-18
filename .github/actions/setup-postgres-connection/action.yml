@@ -31,10 +31,12 @@ runs:
     - name: Build connection string
       id: build
       shell: bash
+      env:
+        PG_HOST: ${{ inputs.postgres-host }}
+        PG_PORT: ${{ inputs.postgres-port }}
+        PG_DB: ${{ inputs.postgres-db }}
+        PG_USER: ${{ inputs.postgres-user }}
+        PG_PASS: ${{ inputs.postgres-password }}
       run: |
-        CONNECTION_STRING="Host=${{ inputs.postgres-host }}"
-        CONNECTION_STRING="${CONNECTION_STRING};Port=${{ inputs.postgres-port }}"
-        CONNECTION_STRING="${CONNECTION_STRING};Database=${{ inputs.postgres-db }}"
-        CONNECTION_STRING="${CONNECTION_STRING};Username=${{ inputs.postgres-user }}"
-        CONNECTION_STRING="${CONNECTION_STRING};Password=${{ inputs.postgres-password }}"
+        CONNECTION_STRING="Host=${PG_HOST};Port=${PG_PORT};Database=${PG_DB};Username=${PG_USER};Password=${PG_PASS}"
         echo "connection-string=${CONNECTION_STRING}" >> $GITHUB_OUTPUT
