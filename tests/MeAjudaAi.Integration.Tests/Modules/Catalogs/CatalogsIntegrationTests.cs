@@ -170,10 +170,10 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
 
             var updateResponse = await Client.PutAsJsonAsync($"/api/v1/catalogs/categories/{categoryId}", updateData);
 
-            // Assert 2: Update successful (or method not allowed if not implemented)
+            // Assert 2: Update successful
             updateResponse.StatusCode.Should().BeOneOf(
-                [HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.MethodNotAllowed],
-                "Update should succeed or be not implemented yet");
+                [HttpStatusCode.OK, HttpStatusCode.NoContent],
+                "Update should succeed for existing categories");
 
             // Act 3: Get Category by ID
             var getResponse = await Client.GetAsync($"/api/v1/catalogs/categories/{categoryId}");
@@ -193,8 +193,8 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
 
             // Assert 4: Deletion successful
             deleteResponse.StatusCode.Should().BeOneOf(
-                [HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.MethodNotAllowed],
-                "Delete should succeed or be not implemented yet");
+                [HttpStatusCode.OK, HttpStatusCode.NoContent],
+                "Delete should succeed for existing categories");
         }
         catch (Exception ex)
         {
@@ -261,10 +261,10 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
 
             var updateResponse = await Client.PutAsJsonAsync($"/api/v1/catalogs/services/{serviceId}", updateData);
 
-            // Assert 2: Update successful (or method not allowed if not implemented)
+            // Assert 2: Update successful
             updateResponse.StatusCode.Should().BeOneOf(
-                [HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.MethodNotAllowed],
-                "Update should succeed or be not implemented yet");
+                [HttpStatusCode.OK, HttpStatusCode.NoContent],
+                "Update should succeed for existing services");
 
             // Act 3: Get Service by ID
             var getResponse = await Client.GetAsync($"/api/v1/catalogs/services/{serviceId}");
@@ -284,8 +284,8 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
 
             // Assert 4: Deletion successful
             deleteResponse.StatusCode.Should().BeOneOf(
-                [HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.MethodNotAllowed],
-                "Delete should succeed or be not implemented yet");
+                [HttpStatusCode.OK, HttpStatusCode.NoContent],
+                "Delete should succeed for existing services");
         }
         catch (Exception ex)
         {

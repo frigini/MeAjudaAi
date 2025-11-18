@@ -53,7 +53,7 @@ public class ServiceTests
     {
         // Arrange
         var categoryId = new ServiceCategoryId(Guid.NewGuid());
-        var longName = new string('a', 201);
+        var longName = new string('a', 151);
 
         // Act & Assert
         var act = () => Service.Create(categoryId, longName, null, 0);

@@ -72,7 +72,10 @@ public static class Extensions
             }
             catch
             {
-                // Se ainda falhar, ignora silenciosamente
+                using var scope = app.Services.CreateScope();
+                var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.CatalogsDbContext>>();
+                logger?.LogError("Falha crítica ao inicializar o banco do módulo Catalogs.");
+                // Em ambientes de produção, isso pode indicar um problema grave
             }
         }
     }

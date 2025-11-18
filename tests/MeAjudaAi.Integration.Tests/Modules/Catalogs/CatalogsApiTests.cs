@@ -150,12 +150,6 @@ public class CatalogsApiTests : ApiTestBase
         // Assert
         var content = await response.Content.ReadAsStringAsync();
 
-        // Debug: output actual response
-        if (response.StatusCode != HttpStatusCode.Created)
-        {
-            throw new Exception($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
-        }
-
         response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"POST requests that create resources should return 201 Created. Response: {content}");
 

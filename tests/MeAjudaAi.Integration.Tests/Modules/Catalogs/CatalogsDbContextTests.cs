@@ -12,7 +12,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Catalogs;
 public class CatalogsDbContextTests : ApiTestBase
 {
     [Fact]
-    public async Task CatalogsDbContext_ShouldBeRegistered()
+    public void CatalogsDbContext_ShouldBeRegistered()
     {
         // Arrange & Act
         using var scope = Services.CreateScope();
@@ -59,7 +59,7 @@ public class CatalogsDbContextTests : ApiTestBase
     }
 
     [Fact]
-    public async Task Services_ShouldHaveForeignKeyToServiceCategories()
+    public void Services_ShouldHaveForeignKeyToServiceCategories()
     {
         // Arrange
         using var scope = Services.CreateScope();
@@ -75,7 +75,7 @@ public class CatalogsDbContextTests : ApiTestBase
     }
 
     [Fact]
-    public async Task CatalogsSchema_ShouldExist()
+    public void CatalogsSchema_ShouldExist()
     {
         // Arrange
         using var scope = Services.CreateScope();
