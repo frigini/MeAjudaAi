@@ -41,6 +41,9 @@ _NCrunch_*
 *.userosscache
 *.sln.docstates
 
+# Launch settings (IDE-specific, auto-generated)
+**/Properties/launchSettings.json
+
 # ReSharper
 _ReSharper*/
 *.[Rr]e[Ss]harper

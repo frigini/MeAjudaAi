@@ -63,7 +63,7 @@ public sealed class CatalogsModuleApi(
         try
         {
             if (categoryId == Guid.Empty)
-                return Result<ModuleServiceCategoryDto?>.Success(null);
+                return Result<ModuleServiceCategoryDto?>.Failure("Category id must be provided");
 
             var id = ServiceCategoryId.From(categoryId);
             var category = await categoryRepository.GetByIdAsync(id, cancellationToken);
