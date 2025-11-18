@@ -9,7 +9,7 @@ public sealed record ModuleLocationDto
     /// Latitude coordinate. Valid range: -90 to +90 degrees.
     /// </summary>
     public required double Latitude { get; init; }
-    
+
     /// <summary>
     /// Longitude coordinate. Valid range: -180 to +180 degrees.
     /// </summary>

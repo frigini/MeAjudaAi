@@ -22,6 +22,7 @@ public interface IServiceRepository
     /// Retrieves all services.
     /// </summary>
     /// <param name="activeOnly">If true, returns only active services</param>
+    /// <param name="cancellationToken"></param>
     Task<IReadOnlyList<Service>> GetAllAsync(bool activeOnly = false, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -29,6 +30,7 @@ public interface IServiceRepository
     /// </summary>
     /// <param name="categoryId">ID of the category</param>
     /// <param name="activeOnly">If true, returns only active services</param>
+    /// <param name="cancellationToken"></param>
     Task<IReadOnlyList<Service>> GetByCategoryAsync(ServiceCategoryId categoryId, bool activeOnly = false, CancellationToken cancellationToken = default);
 
     /// <summary>

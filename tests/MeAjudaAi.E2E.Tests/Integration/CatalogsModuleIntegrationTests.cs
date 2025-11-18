@@ -30,10 +30,10 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        
+
         // Should validate all services as valid
         result.TryGetProperty("data", out var data).Should().BeTrue();
         data.TryGetProperty("validServiceIds", out var validIds).Should().BeTrue();
@@ -57,10 +57,10 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        
+
         result.TryGetProperty("data", out var data).Should().BeTrue();
         var services = data.Deserialize<ServiceDto[]>(JsonOptions);
         services.Should().NotBeNull();
@@ -75,7 +75,7 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         AuthenticateAsAdmin();
         var category1 = await CreateServiceCategoryAsync("Limpeza", "Limpeza geral");
         var category2 = await CreateServiceCategoryAsync("Reparos", "Reparos diversos");
-        
+
         var service1 = await CreateServiceAsync(category1.Id, "Limpeza de Casa", "Limpeza residencial");
         var service2 = await CreateServiceAsync(category1.Id, "Limpeza de Escritório", "Limpeza comercial");
         var service3 = await CreateServiceAsync(category2.Id, "Reparo de Torneira", "Hidráulica");
@@ -85,10 +85,10 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        
+
         result.TryGetProperty("data", out var data).Should().BeTrue();
         var services = data.Deserialize<ServiceDto[]>(JsonOptions);
         services.Should().NotBeNull();
@@ -130,10 +130,10 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        
+
         result.TryGetProperty("data", out var data).Should().BeTrue();
         var categories = data.Deserialize<ServiceCategoryDto[]>(JsonOptions);
         categories.Should().NotBeNull();
@@ -149,7 +149,7 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         var service = await CreateServiceAsync(category.Id, "Serviço Teste", "Para testes");
 
         // Act & Assert - Full lifecycle management
-        
+
         // 1. Update service
         var updateRequest = new
         {
@@ -188,7 +188,7 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         };
 
         var response = await PostJsonAsync("/api/v1/catalogs/categories", request);
-        
+
         if (response.StatusCode != HttpStatusCode.Created)
         {
             var errorContent = await response.Content.ReadAsStringAsync();
@@ -198,7 +198,7 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
         result.TryGetProperty("data", out var data).Should().BeTrue();
-        
+
         return data.Deserialize<ServiceCategoryDto>(JsonOptions)!;
     }
 
@@ -213,7 +213,7 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         };
 
         var response = await PostJsonAsync("/api/v1/catalogs/services", request);
-        
+
         if (response.StatusCode != HttpStatusCode.Created)
         {
             var errorContent = await response.Content.ReadAsStringAsync();
@@ -223,7 +223,7 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
         result.TryGetProperty("data", out var data).Should().BeTrue();
-        
+
         return data.Deserialize<ServiceDto>(JsonOptions)!;
     }
 

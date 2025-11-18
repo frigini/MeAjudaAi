@@ -34,10 +34,10 @@ public class CreateServiceEndpoint : BaseEndpoint, IEndpoint
     {
         var command = new CreateServiceCommand(request.CategoryId, request.Name, request.Description, request.DisplayOrder);
         var result = await commandDispatcher.SendAsync<CreateServiceCommand, Result<Guid>>(command, cancellationToken);
-        
+
         if (!result.IsSuccess)
             return Handle(result);
-        
+
         return Handle(result, "GetServiceById", new { id = result.Value });
     }
 }

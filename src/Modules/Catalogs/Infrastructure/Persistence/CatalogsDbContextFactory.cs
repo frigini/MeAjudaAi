@@ -12,7 +12,7 @@ public sealed class CatalogsDbContextFactory : IDesignTimeDbContextFactory<Catal
     public CatalogsDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<CatalogsDbContext>();
-        
+
         // Use default development connection string for design-time operations
         // This is only used for migrations generation, not runtime
         optionsBuilder.UseNpgsql(

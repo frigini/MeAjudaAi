@@ -73,7 +73,7 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
         // Assert
         result.Providers.Should().HaveCount(3); // Apenas os 3 de SP
         result.Providers.Should().NotContain(p => p.Id == provider4.Id); // Rio não deve estar
-        
+
         // Verificar ordenação por distância (mais próximo primeiro)
         result.Providers.First().Id.Should().Be(provider1.Id); // Centro (0km)
         result.Providers.Skip(1).First().Id.Should().Be(provider2.Id); // Paulista (~5km)
@@ -139,10 +139,10 @@ public class SearchableProviderRepositoryIntegrationTests : SearchIntegrationTes
 
         var provider1 = CreateTestSearchableProvider("Provider 5 stars", -23.5505, -46.6333);
         provider1.UpdateRating(5.0m, 100);
-        
+
         var provider2 = CreateTestSearchableProvider("Provider 4 stars", -23.5629, -46.6544);
         provider2.UpdateRating(4.0m, 50);
-        
+
         var provider3 = CreateTestSearchableProvider("Provider 3 stars", -23.5700, -46.6500);
         provider3.UpdateRating(3.5m, 25);
 

@@ -70,7 +70,7 @@ public class ServiceRepositoryIntegrationTests : CatalogsIntegrationTestBase
         var category = await CreateServiceCategoryAsync("Category");
         var activeService = await CreateServiceAsync(category.Id, "Active Service");
         var inactiveService = await CreateServiceAsync(category.Id, "Inactive Service");
-        
+
         inactiveService.Deactivate();
         await _repository.UpdateAsync(inactiveService);
 
@@ -88,7 +88,7 @@ public class ServiceRepositoryIntegrationTests : CatalogsIntegrationTestBase
         // Arrange
         var category1 = await CreateServiceCategoryAsync("Category 1");
         var category2 = await CreateServiceCategoryAsync("Category 2");
-        
+
         var service1 = await CreateServiceAsync(category1.Id, "Service 1-1");
         var service2 = await CreateServiceAsync(category1.Id, "Service 1-2");
         await CreateServiceAsync(category2.Id, "Service 2-1");

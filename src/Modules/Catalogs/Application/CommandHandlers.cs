@@ -13,7 +13,7 @@ namespace MeAjudaAi.Modules.Catalogs.Application.Handlers.Commands;
 // ============================================================================
 
 public sealed class CreateServiceCategoryCommandHandler(
-    IServiceCategoryRepository categoryRepository) 
+    IServiceCategoryRepository categoryRepository)
     : ICommandHandler<CreateServiceCategoryCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> HandleAsync(CreateServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -25,7 +25,7 @@ public sealed class CreateServiceCategoryCommandHandler(
                 return Result<Guid>.Failure($"A category with name '{request.Name}' already exists.");
 
             var category = ServiceCategory.Create(request.Name, request.Description, request.DisplayOrder);
-            
+
             await categoryRepository.AddAsync(category, cancellationToken);
 
             return Result<Guid>.Success(category.Id.Value);
@@ -38,7 +38,7 @@ public sealed class CreateServiceCategoryCommandHandler(
 }
 
 public sealed class UpdateServiceCategoryCommandHandler(
-    IServiceCategoryRepository categoryRepository) 
+    IServiceCategoryRepository categoryRepository)
     : ICommandHandler<UpdateServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(UpdateServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -47,7 +47,7 @@ public sealed class UpdateServiceCategoryCommandHandler(
         {
             var categoryId = ServiceCategoryId.From(request.Id);
             var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
-            
+
             if (category is null)
                 return Result.Failure($"Category with ID '{request.Id}' not found.");
 
@@ -56,7 +56,7 @@ public sealed class UpdateServiceCategoryCommandHandler(
                 return Result.Failure($"A category with name '{request.Name}' already exists.");
 
             category.Update(request.Name, request.Description, request.DisplayOrder);
-            
+
             await categoryRepository.UpdateAsync(category, cancellationToken);
 
             return Result.Success();
@@ -70,14 +70,14 @@ public sealed class UpdateServiceCategoryCommandHandler(
 
 public sealed class DeleteServiceCategoryCommandHandler(
     IServiceCategoryRepository categoryRepository,
-    IServiceRepository serviceRepository) 
+    IServiceRepository serviceRepository)
     : ICommandHandler<DeleteServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(DeleteServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
-        
+
         if (category is null)
             return Result.Failure($"Category with ID '{request.Id}' not found.");
 
@@ -93,19 +93,19 @@ public sealed class DeleteServiceCategoryCommandHandler(
 }
 
 public sealed class ActivateServiceCategoryCommandHandler(
-    IServiceCategoryRepository categoryRepository) 
+    IServiceCategoryRepository categoryRepository)
     : ICommandHandler<ActivateServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(ActivateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
-        
+
         if (category is null)
             return Result.Failure($"Category with ID '{request.Id}' not found.");
 
         category.Activate();
-        
+
         await categoryRepository.UpdateAsync(category, cancellationToken);
 
         return Result.Success();
@@ -113,19 +113,19 @@ public sealed class ActivateServiceCategoryCommandHandler(
 }
 
 public sealed class DeactivateServiceCategoryCommandHandler(
-    IServiceCategoryRepository categoryRepository) 
+    IServiceCategoryRepository categoryRepository)
     : ICommandHandler<DeactivateServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(DeactivateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
-        
+
         if (category is null)
             return Result.Failure($"Category with ID '{request.Id}' not found.");
 
         category.Deactivate();
-        
+
         await categoryRepository.UpdateAsync(category, cancellationToken);
 
         return Result.Success();
@@ -138,7 +138,7 @@ public sealed class DeactivateServiceCategoryCommandHandler(
 
 public sealed class CreateServiceCommandHandler(
     IServiceRepository serviceRepository,
-    IServiceCategoryRepository categoryRepository) 
+    IServiceCategoryRepository categoryRepository)
     : ICommandHandler<CreateServiceCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> HandleAsync(CreateServiceCommand request, CancellationToken cancellationToken = default)
@@ -146,12 +146,12 @@ public sealed class CreateServiceCommandHandler(
         try
         {
             var categoryId = ServiceCategoryId.From(request.CategoryId);
-            
+
             // Verify category exists and is active
             var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
             if (category is null)
                 return Result<Guid>.Failure($"Category with ID '{request.CategoryId}' not found.");
-            
+
             if (!category.IsActive)
                 return Result<Guid>.Failure("Cannot create service in inactive category.");
 
@@ -160,7 +160,7 @@ public sealed class CreateServiceCommandHandler(
                 return Result<Guid>.Failure($"A service with name '{request.Name}' already exists.");
 
             var service = Service.Create(categoryId, request.Name, request.Description, request.DisplayOrder);
-            
+
             await serviceRepository.AddAsync(service, cancellationToken);
 
             return Result<Guid>.Success(service.Id.Value);
@@ -173,7 +173,7 @@ public sealed class CreateServiceCommandHandler(
 }
 
 public sealed class UpdateServiceCommandHandler(
-    IServiceRepository serviceRepository) 
+    IServiceRepository serviceRepository)
     : ICommandHandler<UpdateServiceCommand, Result>
 {
     public async Task<Result> HandleAsync(UpdateServiceCommand request, CancellationToken cancellationToken = default)
@@ -182,7 +182,7 @@ public sealed class UpdateServiceCommandHandler(
         {
             var serviceId = ServiceId.From(request.Id);
             var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
-            
+
             if (service is null)
                 return Result.Failure($"Service with ID '{request.Id}' not found.");
 
@@ -191,7 +191,7 @@ public sealed class UpdateServiceCommandHandler(
                 return Result.Failure($"A service with name '{request.Name}' already exists.");
 
             service.Update(request.Name, request.Description, request.DisplayOrder);
-            
+
             await serviceRepository.UpdateAsync(service, cancellationToken);
 
             return Result.Success();
@@ -204,14 +204,14 @@ public sealed class UpdateServiceCommandHandler(
 }
 
 public sealed class DeleteServiceCommandHandler(
-    IServiceRepository serviceRepository) 
+    IServiceRepository serviceRepository)
     : ICommandHandler<DeleteServiceCommand, Result>
 {
     public async Task<Result> HandleAsync(DeleteServiceCommand request, CancellationToken cancellationToken = default)
     {
         var serviceId = ServiceId.From(request.Id);
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
-        
+
         if (service is null)
             return Result.Failure($"Service with ID '{request.Id}' not found.");
 
@@ -225,19 +225,19 @@ public sealed class DeleteServiceCommandHandler(
 }
 
 public sealed class ActivateServiceCommandHandler(
-    IServiceRepository serviceRepository) 
+    IServiceRepository serviceRepository)
     : ICommandHandler<ActivateServiceCommand, Result>
 {
     public async Task<Result> HandleAsync(ActivateServiceCommand request, CancellationToken cancellationToken = default)
     {
         var serviceId = ServiceId.From(request.Id);
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
-        
+
         if (service is null)
             return Result.Failure($"Service with ID '{request.Id}' not found.");
 
         service.Activate();
-        
+
         await serviceRepository.UpdateAsync(service, cancellationToken);
 
         return Result.Success();
@@ -245,19 +245,19 @@ public sealed class ActivateServiceCommandHandler(
 }
 
 public sealed class DeactivateServiceCommandHandler(
-    IServiceRepository serviceRepository) 
+    IServiceRepository serviceRepository)
     : ICommandHandler<DeactivateServiceCommand, Result>
 {
     public async Task<Result> HandleAsync(DeactivateServiceCommand request, CancellationToken cancellationToken = default)
     {
         var serviceId = ServiceId.From(request.Id);
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
-        
+
         if (service is null)
             return Result.Failure($"Service with ID '{request.Id}' not found.");
 
         service.Deactivate();
-        
+
         await serviceRepository.UpdateAsync(service, cancellationToken);
 
         return Result.Success();
@@ -266,7 +266,7 @@ public sealed class DeactivateServiceCommandHandler(
 
 public sealed class ChangeServiceCategoryCommandHandler(
     IServiceRepository serviceRepository,
-    IServiceCategoryRepository categoryRepository) 
+    IServiceCategoryRepository categoryRepository)
     : ICommandHandler<ChangeServiceCategoryCommand, Result>
 {
     public async Task<Result> HandleAsync(ChangeServiceCategoryCommand request, CancellationToken cancellationToken = default)
@@ -275,21 +275,21 @@ public sealed class ChangeServiceCategoryCommandHandler(
         {
             var serviceId = ServiceId.From(request.ServiceId);
             var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
-            
+
             if (service is null)
                 return Result.Failure($"Service with ID '{request.ServiceId}' not found.");
 
             var newCategoryId = ServiceCategoryId.From(request.NewCategoryId);
             var newCategory = await categoryRepository.GetByIdAsync(newCategoryId, cancellationToken);
-            
+
             if (newCategory is null)
                 return Result.Failure($"Category with ID '{request.NewCategoryId}' not found.");
-            
+
             if (!newCategory.IsActive)
                 return Result.Failure("Cannot move service to inactive category.");
 
             service.ChangeCategory(newCategoryId);
-            
+
             await serviceRepository.UpdateAsync(service, cancellationToken);
 
             return Result.Success();

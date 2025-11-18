@@ -70,7 +70,7 @@ public class ServiceCategoryRepositoryIntegrationTests : CatalogsIntegrationTest
         // Arrange
         var activeCategory = await CreateServiceCategoryAsync("Active Category");
         var inactiveCategory = await CreateServiceCategoryAsync("Inactive Category");
-        
+
         inactiveCategory.Deactivate();
         await _repository.UpdateAsync(inactiveCategory);
 

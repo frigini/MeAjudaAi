@@ -15,18 +15,18 @@ public static class HangfireExtensions
     private const string DashboardPathKey = "Hangfire:DashboardPath";
     private const string StatsPollingIntervalKey = "Hangfire:StatsPollingInterval";
     private const string DisplayConnectionStringKey = "Hangfire:DisplayStorageConnectionString";
-    
+
     /// <summary>
     /// Configura o Hangfire Dashboard se habilitado na configuração.
     /// Requer que AddHangfire tenha sido chamado anteriormente.
     /// </summary>
     public static IApplicationBuilder UseHangfireDashboardIfEnabled(
-        this IApplicationBuilder app, 
+        this IApplicationBuilder app,
         IConfiguration configuration,
         ILogger? logger = null)
     {
         var dashboardEnabled = configuration.GetValue<bool>(DashboardEnabledKey, false);
-        
+
         // Se dashboard não está habilitado, não faz nada
         if (!dashboardEnabled)
         {
@@ -39,7 +39,7 @@ public static class HangfireExtensions
         {
             var serviceProvider = app.ApplicationServices;
             var jobClient = serviceProvider.GetService(typeof(IBackgroundJobClient));
-            
+
             if (jobClient == null)
             {
                 logger?.LogWarning("Hangfire Dashboard is enabled but AddHangfire was not called. Skipping dashboard configuration.");
@@ -51,10 +51,10 @@ public static class HangfireExtensions
             logger?.LogWarning(ex, "Failed to check for Hangfire services. Skipping dashboard configuration.");
             return app;
         }
-        
+
         logger?.LogInformation("Hangfire Dashboard is enabled");
         logger?.LogInformation("Hangfire Dashboard is enabled");
-        
+
         var dashboardPath = configuration.GetValue<string>(DashboardPathKey, "/hangfire");
         if (string.IsNullOrWhiteSpace(dashboardPath))
         {
@@ -66,7 +66,7 @@ public static class HangfireExtensions
             dashboardPath = $"/{dashboardPath}";
             logger?.LogWarning("Dashboard path adjusted to start with '/': {DashboardPath}", dashboardPath);
         }
-        
+
         var statsPollingInterval = configuration.GetValue<int>(StatsPollingIntervalKey, 5000);
         if (statsPollingInterval <= 0)
         {
@@ -74,7 +74,7 @@ public static class HangfireExtensions
             logger?.LogWarning("Invalid StatsPollingInterval, using default: {Interval}", statsPollingInterval);
         }
         var displayConnectionString = configuration.GetValue<bool>(DisplayConnectionStringKey, false);
-        
+
         logger?.LogInformation("Configuring Hangfire Dashboard at path: {DashboardPath}", dashboardPath);
         app.UseHangfireDashboard(dashboardPath, new DashboardOptions
         {

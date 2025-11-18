@@ -64,7 +64,7 @@ public abstract class SearchIntegrationTestBase : IAsyncLifetime
                     npgsqlOptions.UseNetTopologySuite();
                     npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
                 });
-            
+
             // Use same naming convention as production
             options.UseSnakeCaseNamingConvention();
         });
@@ -83,7 +83,7 @@ public abstract class SearchIntegrationTestBase : IAsyncLifetime
         services.AddScoped<IDapperConnection, DapperConnection>();
 
         // Registrar repositório
-        services.AddScoped<MeAjudaAi.Modules.Search.Domain.Repositories.ISearchableProviderRepository, 
+        services.AddScoped<MeAjudaAi.Modules.Search.Domain.Repositories.ISearchableProviderRepository,
             MeAjudaAi.Modules.Search.Infrastructure.Persistence.Repositories.SearchableProviderRepository>();
 
         _serviceProvider = services.BuildServiceProvider();
@@ -107,12 +107,12 @@ public abstract class SearchIntegrationTestBase : IAsyncLifetime
         {
             var connection = dbContext.Database.GetDbConnection();
             var wasOpen = connection.State == System.Data.ConnectionState.Open;
-            
+
             if (!wasOpen)
             {
                 await connection.OpenAsync();
             }
-            
+
             try
             {
                 using var command = connection.CreateCommand();

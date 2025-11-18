@@ -41,8 +41,8 @@ public sealed partial class Cep : ValueObject
     /// <summary>
     /// Retorna o CEP formatado: 12345-678
     /// </summary>
-    public string Formatted => Value.Length == 8 
-        ? $"{Value[..5]}-{Value[5..]}" 
+    public string Formatted => Value.Length == 8
+        ? $"{Value[..5]}-{Value[5..]}"
         : Value;
 
     public override string ToString() => Formatted;

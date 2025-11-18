@@ -10,52 +10,54 @@ namespace MeAjudaAi.Shared.Contracts.Modules.Catalogs;
 public interface ICatalogsModuleApi : IModuleApi
 {
     // ============ Service Categories ============
-    
+
     /// <summary>
     /// Retrieves a service category by ID.
     /// </summary>
     Task<Result<ModuleServiceCategoryDto?>> GetServiceCategoryByIdAsync(
-        Guid categoryId, 
+        Guid categoryId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves all service categories.
     /// </summary>
     /// <param name="activeOnly">If true, returns only active categories</param>
+    /// <param name="cancellationToken"></param>
     Task<Result<IReadOnlyList<ModuleServiceCategoryDto>>> GetAllServiceCategoriesAsync(
-        bool activeOnly = true, 
+        bool activeOnly = true,
         CancellationToken cancellationToken = default);
 
     // ============ Services ============
-    
+
     /// <summary>
     /// Retrieves a service by ID.
     /// </summary>
     Task<Result<ModuleServiceDto?>> GetServiceByIdAsync(
-        Guid serviceId, 
+        Guid serviceId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves all services.
     /// </summary>
     /// <param name="activeOnly">If true, returns only active services</param>
+    /// <param name="cancellationToken"></param>
     Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetAllServicesAsync(
-        bool activeOnly = true, 
+        bool activeOnly = true,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves all services in a specific category.
     /// </summary>
     Task<Result<IReadOnlyList<ModuleServiceDto>>> GetServicesByCategoryAsync(
-        Guid categoryId, 
-        bool activeOnly = true, 
+        Guid categoryId,
+        bool activeOnly = true,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if a service exists and is active.
     /// </summary>
     Task<Result<bool>> IsServiceActiveAsync(
-        Guid serviceId, 
+        Guid serviceId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -63,6 +65,6 @@ public interface ICatalogsModuleApi : IModuleApi
     /// </summary>
     /// <returns>Result containing validation outcome and list of invalid service IDs</returns>
     Task<Result<ModuleServiceValidationResultDto>> ValidateServicesAsync(
-        Guid[] serviceIds, 
+        Guid[] serviceIds,
         CancellationToken cancellationToken = default);
 }

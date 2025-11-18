@@ -21,7 +21,7 @@ public class CatalogsApiTests : ApiTestBase
         // Assert - Endpoint should exist (not 404) and not crash (not 500)
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound, "Endpoint should be registered");
         response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed, "GET should be allowed");
-        
+
         // May return Unauthorized (401) or Forbidden (403) if auth is required, or OK (200)
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.Unauthorized,
@@ -56,14 +56,14 @@ public class CatalogsApiTests : ApiTestBase
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
-        
+
         // Log error details if not successful
         if (!response.IsSuccessStatusCode)
         {
             Console.WriteLine($"Status: {response.StatusCode}");
             Console.WriteLine($"Content: {content}");
         }
-        
+
         response.StatusCode.Should().Be(HttpStatusCode.OK,
             $"Admin users should receive a successful response. Error: {content}");
 
@@ -149,13 +149,13 @@ public class CatalogsApiTests : ApiTestBase
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
-        
+
         // Debug: output actual response
         if (response.StatusCode != HttpStatusCode.Created)
         {
             throw new Exception($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
         }
-        
+
         response.StatusCode.Should().Be(HttpStatusCode.Created,
             $"POST requests that create resources should return 201 Created. Response: {content}");
 

@@ -22,6 +22,7 @@ public interface IServiceCategoryRepository
     /// Retrieves all service categories.
     /// </summary>
     /// <param name="activeOnly">If true, returns only active categories</param>
+    /// <param name="cancellationToken"></param>
     Task<IReadOnlyList<ServiceCategory>> GetAllAsync(bool activeOnly = false, CancellationToken cancellationToken = default);
 
     /// <summary>

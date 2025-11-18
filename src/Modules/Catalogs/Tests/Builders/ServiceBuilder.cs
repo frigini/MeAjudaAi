@@ -82,7 +82,7 @@ public class ServiceBuilder : BuilderBase<Service>
     {
         WithCustomAction(service =>
         {
-            var createdAtField = typeof(Service).BaseType?.GetField("<CreatedAt>k__BackingField", 
+            var createdAtField = typeof(Service).BaseType?.GetField("<CreatedAt>k__BackingField",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             createdAtField?.SetValue(service, createdAt);
         });
@@ -93,7 +93,7 @@ public class ServiceBuilder : BuilderBase<Service>
     {
         WithCustomAction(service =>
         {
-            var updatedAtField = typeof(Service).BaseType?.GetField("<UpdatedAt>k__BackingField", 
+            var updatedAtField = typeof(Service).BaseType?.GetField("<UpdatedAt>k__BackingField",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             updatedAtField?.SetValue(service, updatedAt);
         });

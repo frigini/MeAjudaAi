@@ -15,7 +15,7 @@ public sealed class GetServiceByIdQueryHandler(IServiceRepository repository)
     : IQueryHandler<GetServiceByIdQuery, Result<ServiceDto?>>
 {
     public async Task<Result<ServiceDto?>> HandleAsync(
-        GetServiceByIdQuery request, 
+        GetServiceByIdQuery request,
         CancellationToken cancellationToken = default)
     {
         var serviceId = ServiceId.From(request.Id);
@@ -47,7 +47,7 @@ public sealed class GetAllServicesQueryHandler(IServiceRepository repository)
     : IQueryHandler<GetAllServicesQuery, Result<IReadOnlyList<ServiceListDto>>>
 {
     public async Task<Result<IReadOnlyList<ServiceListDto>>> HandleAsync(
-        GetAllServicesQuery request, 
+        GetAllServicesQuery request,
         CancellationToken cancellationToken = default)
     {
         var services = await repository.GetAllAsync(request.ActiveOnly, cancellationToken);
@@ -68,7 +68,7 @@ public sealed class GetServicesByCategoryQueryHandler(IServiceRepository reposit
     : IQueryHandler<GetServicesByCategoryQuery, Result<IReadOnlyList<ServiceListDto>>>
 {
     public async Task<Result<IReadOnlyList<ServiceListDto>>> HandleAsync(
-        GetServicesByCategoryQuery request, 
+        GetServicesByCategoryQuery request,
         CancellationToken cancellationToken = default)
     {
         var categoryId = ServiceCategoryId.From(request.CategoryId);
@@ -94,7 +94,7 @@ public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryRepositor
     : IQueryHandler<GetServiceCategoryByIdQuery, Result<ServiceCategoryDto?>>
 {
     public async Task<Result<ServiceCategoryDto?>> HandleAsync(
-        GetServiceCategoryByIdQuery request, 
+        GetServiceCategoryByIdQuery request,
         CancellationToken cancellationToken = default)
     {
         var categoryId = ServiceCategoryId.From(request.Id);
@@ -121,7 +121,7 @@ public sealed class GetAllServiceCategoriesQueryHandler(IServiceCategoryReposito
     : IQueryHandler<GetAllServiceCategoriesQuery, Result<IReadOnlyList<ServiceCategoryDto>>>
 {
     public async Task<Result<IReadOnlyList<ServiceCategoryDto>>> HandleAsync(
-        GetAllServiceCategoriesQuery request, 
+        GetAllServiceCategoriesQuery request,
         CancellationToken cancellationToken = default)
     {
         var categories = await repository.GetAllAsync(request.ActiveOnly, cancellationToken);
@@ -146,7 +146,7 @@ public sealed class GetServiceCategoriesWithCountQueryHandler(
     : IQueryHandler<GetServiceCategoriesWithCountQuery, Result<IReadOnlyList<ServiceCategoryWithCountDto>>>
 {
     public async Task<Result<IReadOnlyList<ServiceCategoryWithCountDto>>> HandleAsync(
-        GetServiceCategoriesWithCountQuery request, 
+        GetServiceCategoriesWithCountQuery request,
         CancellationToken cancellationToken = default)
     {
         var categories = await categoryRepository.GetAllAsync(request.ActiveOnly, cancellationToken);
@@ -156,13 +156,13 @@ public sealed class GetServiceCategoriesWithCountQueryHandler(
         foreach (var category in categories)
         {
             var totalCount = await serviceRepository.CountByCategoryAsync(
-                category.Id, 
-                activeOnly: false, 
+                category.Id,
+                activeOnly: false,
                 cancellationToken);
-            
+
             var activeCount = await serviceRepository.CountByCategoryAsync(
-                category.Id, 
-                activeOnly: true, 
+                category.Id,
+                activeOnly: true,
                 cancellationToken);
 
             dtos.Add(new ServiceCategoryWithCountDto(

@@ -145,7 +145,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
             page,
             pageSize);
 
-        var result = await queryDispatcher.QueryAsync<SearchProvidersQuery, 
+        var result = await queryDispatcher.QueryAsync<SearchProvidersQuery,
             Result<PagedResult<SearchableProviderDto>>>(
             query, cancellationToken);
 

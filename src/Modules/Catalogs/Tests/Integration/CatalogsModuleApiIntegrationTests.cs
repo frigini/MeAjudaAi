@@ -69,7 +69,7 @@ public class CatalogsModuleApiIntegrationTests : CatalogsIntegrationTestBase
         // Arrange
         var activeCategory = await CreateServiceCategoryAsync("Active Category");
         var inactiveCategory = await CreateServiceCategoryAsync("Inactive Category");
-        
+
         inactiveCategory.Deactivate();
         var repository = GetService<Domain.Repositories.IServiceCategoryRepository>();
         await repository.UpdateAsync(inactiveCategory);
@@ -137,7 +137,7 @@ public class CatalogsModuleApiIntegrationTests : CatalogsIntegrationTestBase
         // Arrange
         var category1 = await CreateServiceCategoryAsync("Category 1");
         var category2 = await CreateServiceCategoryAsync("Category 2");
-        
+
         var service1 = await CreateServiceAsync(category1.Id, "Service 1-1");
         var service2 = await CreateServiceAsync(category1.Id, "Service 1-2");
         await CreateServiceAsync(category2.Id, "Service 2-1");
@@ -173,7 +173,7 @@ public class CatalogsModuleApiIntegrationTests : CatalogsIntegrationTestBase
         // Arrange
         var category = await CreateServiceCategoryAsync("Category");
         var service = await CreateServiceAsync(category.Id, "Inactive Service");
-        
+
         service.Deactivate();
         var repository = GetService<Domain.Repositories.IServiceRepository>();
         await repository.UpdateAsync(service);

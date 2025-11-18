@@ -16,7 +16,7 @@ public static class CatalogsModuleEndpoints
     {
         // Service Categories endpoints
         var categoriesEndpoints = BaseEndpoint.CreateVersionedGroup(app, "catalogs/categories", "ServiceCategories");
-        
+
         categoriesEndpoints.MapEndpoint<GetAllServiceCategoriesEndpoint>()
             .MapEndpoint<GetServiceCategoryByIdEndpoint>()
             .MapEndpoint<CreateServiceCategoryEndpoint>()
@@ -27,7 +27,7 @@ public static class CatalogsModuleEndpoints
 
         // Services endpoints
         var servicesEndpoints = BaseEndpoint.CreateVersionedGroup(app, "catalogs/services", "Services");
-        
+
         servicesEndpoints.MapEndpoint<GetAllServicesEndpoint>()
             .MapEndpoint<GetServiceByIdEndpoint>()
             .MapEndpoint<GetServicesByCategoryEndpoint>()

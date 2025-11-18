@@ -30,10 +30,10 @@ public sealed class CatalogsModuleApi(
         try
         {
             logger.LogDebug("Checking Catalogs module availability");
-            
+
             // Simple database connectivity test
             var categories = await categoryRepository.GetAllAsync(activeOnly: true, cancellationToken);
-            
+
             logger.LogDebug("Catalogs module is available and healthy");
             return true;
         }
@@ -50,7 +50,7 @@ public sealed class CatalogsModuleApi(
     }
 
     public async Task<Result<ModuleServiceCategoryDto?>> GetServiceCategoryByIdAsync(
-        Guid categoryId, 
+        Guid categoryId,
         CancellationToken cancellationToken = default)
     {
         try
@@ -79,7 +79,7 @@ public sealed class CatalogsModuleApi(
     }
 
     public async Task<Result<IReadOnlyList<ModuleServiceCategoryDto>>> GetAllServiceCategoriesAsync(
-        bool activeOnly = true, 
+        bool activeOnly = true,
         CancellationToken cancellationToken = default)
     {
         try
@@ -104,7 +104,7 @@ public sealed class CatalogsModuleApi(
     }
 
     public async Task<Result<ModuleServiceDto?>> GetServiceByIdAsync(
-        Guid serviceId, 
+        Guid serviceId,
         CancellationToken cancellationToken = default)
     {
         try
@@ -136,7 +136,7 @@ public sealed class CatalogsModuleApi(
     }
 
     public async Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetAllServicesAsync(
-        bool activeOnly = true, 
+        bool activeOnly = true,
         CancellationToken cancellationToken = default)
     {
         try
@@ -160,8 +160,8 @@ public sealed class CatalogsModuleApi(
     }
 
     public async Task<Result<IReadOnlyList<ModuleServiceDto>>> GetServicesByCategoryAsync(
-        Guid categoryId, 
-        bool activeOnly = true, 
+        Guid categoryId,
+        bool activeOnly = true,
         CancellationToken cancellationToken = default)
     {
         try
@@ -188,7 +188,7 @@ public sealed class CatalogsModuleApi(
     }
 
     public async Task<Result<bool>> IsServiceActiveAsync(
-        Guid serviceId, 
+        Guid serviceId,
         CancellationToken cancellationToken = default)
     {
         try
@@ -209,7 +209,7 @@ public sealed class CatalogsModuleApi(
     }
 
     public async Task<Result<ModuleServiceValidationResultDto>> ValidateServicesAsync(
-        Guid[] serviceIds, 
+        Guid[] serviceIds,
         CancellationToken cancellationToken = default)
     {
         try

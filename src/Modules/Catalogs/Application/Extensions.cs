@@ -10,10 +10,10 @@ public static class Extensions
     {
         // Note: Handlers are automatically registered through reflection in Infrastructure layer
         // via AddApplicationHandlers() which scans the Application assembly
-        
+
         // Module API
         services.AddScoped<ICatalogsModuleApi, CatalogsModuleApi>();
-        
+
         return services;
     }
 }
