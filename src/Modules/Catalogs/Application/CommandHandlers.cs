@@ -1,4 +1,5 @@
-using MeAjudaAi.Modules.Catalogs.Application.Commands;
+using MeAjudaAi.Modules.Catalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.Catalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Application.DTOs;
 using MeAjudaAi.Modules.Catalogs.Domain.Entities;
 using MeAjudaAi.Modules.Catalogs.Domain.Exceptions;

@@ -1,8 +1,10 @@
-using MeAjudaAi.Modules.Catalogs.Application.Commands;
+using MeAjudaAi.Modules.Catalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.Catalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Application.DTOs;
 using MeAjudaAi.Modules.Catalogs.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Catalogs.Application.Handlers.Queries;
-using MeAjudaAi.Modules.Catalogs.Application.Queries;
+using MeAjudaAi.Modules.Catalogs.Application.Queries.Service;
+using MeAjudaAi.Modules.Catalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Domain.Repositories;
 using MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence.Repositories;

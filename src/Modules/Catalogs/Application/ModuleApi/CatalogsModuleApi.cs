@@ -1,4 +1,5 @@
-using MeAjudaAi.Modules.Catalogs.Application.Queries;
+using MeAjudaAi.Modules.Catalogs.Application.Queries.Service;
+using MeAjudaAi.Modules.Catalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Domain.Repositories;
 using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Contracts.Modules;

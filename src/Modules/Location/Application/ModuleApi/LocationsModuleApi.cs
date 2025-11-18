@@ -11,14 +11,20 @@ namespace MeAjudaAi.Modules.Location.Application.ModuleApi;
 /// <summary>
 /// Implementação da API pública do módulo Location para outros módulos.
 /// </summary>
-[ModuleApi("Location", "1.0")]
+[ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class LocationsModuleApi(
     ICepLookupService cepLookupService,
     IGeocodingService geocodingService,
     ILogger<LocationsModuleApi> logger) : ILocationModuleApi
 {
-    public string ModuleName => "Location";
-    public string ApiVersion => "1.0";
+    private static class ModuleMetadata
+    {
+        public const string Name = "Location";
+        public const string Version = "1.0";
+    }
+
+    public string ModuleName => ModuleMetadata.Name;
+    public string ApiVersion => ModuleMetadata.Version;
 
     // CEP real usado para health check - validação end-to-end de conectividade com APIs externas
     private const string HealthCheckCep = "01310100";

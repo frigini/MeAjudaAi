@@ -1,18 +1,10 @@
 using MeAjudaAi.Modules.Catalogs.Domain.Events;
 using MeAjudaAi.Modules.Catalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Domain;
 
 namespace MeAjudaAi.Modules.Catalogs.Domain.Entities;
-
-/// <summary>
-/// Validation constants for ServiceCategory entity.
-/// </summary>
-public static class ServiceCategoryValidation
-{
-    public const int MaxNameLength = 100;
-    public const int MaxDescriptionLength = 500;
-}
 
 /// <summary>
 /// Represents a service category in the catalog (e.g., "Limpeza", "Reparos").
@@ -117,14 +109,14 @@ public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
         if (string.IsNullOrWhiteSpace(name))
             throw new CatalogDomainException("Category name is required.");
 
-        if (name.Trim().Length > ServiceCategoryValidation.MaxNameLength)
-            throw new CatalogDomainException($"Category name cannot exceed {ServiceCategoryValidation.MaxNameLength} characters.");
+        if (name.Trim().Length > ValidationConstants.CatalogLimits.ServiceCategoryNameMaxLength)
+            throw new CatalogDomainException($"Category name cannot exceed {ValidationConstants.CatalogLimits.ServiceCategoryNameMaxLength} characters.");
     }
 
     private static void ValidateDescription(string? description)
     {
-        if (description is not null && description.Trim().Length > ServiceCategoryValidation.MaxDescriptionLength)
-            throw new CatalogDomainException($"Category description cannot exceed {ServiceCategoryValidation.MaxDescriptionLength} characters.");
+        if (description is not null && description.Trim().Length > ValidationConstants.CatalogLimits.ServiceCategoryDescriptionMaxLength)
+            throw new CatalogDomainException($"Category description cannot exceed {ValidationConstants.CatalogLimits.ServiceCategoryDescriptionMaxLength} characters.");
     }
 
     private static void ValidateDisplayOrder(int displayOrder)

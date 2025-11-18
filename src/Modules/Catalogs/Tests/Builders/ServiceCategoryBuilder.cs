@@ -63,26 +63,4 @@ public class ServiceCategoryBuilder : BuilderBase<ServiceCategory>
         // CustomInstantiator will call Deactivate() after creation
         return this;
     }
-
-    public ServiceCategoryBuilder WithCreatedAt(DateTime createdAt)
-    {
-        WithCustomAction(category =>
-        {
-            var createdAtField = typeof(ServiceCategory).BaseType?.GetField("<CreatedAt>k__BackingField",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            createdAtField?.SetValue(category, createdAt);
-        });
-        return this;
-    }
-
-    public ServiceCategoryBuilder WithUpdatedAt(DateTime? updatedAt)
-    {
-        WithCustomAction(category =>
-        {
-            var updatedAtField = typeof(ServiceCategory).BaseType?.GetField("<UpdatedAt>k__BackingField",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            updatedAtField?.SetValue(category, updatedAt);
-        });
-        return this;
-    }
 }

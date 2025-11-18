@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Catalogs.Application.Handlers.Queries;
-using MeAjudaAi.Modules.Catalogs.Application.Queries;
+using MeAjudaAi.Modules.Catalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Domain.Repositories;
 using MeAjudaAi.Modules.Catalogs.Tests.Builders;
 

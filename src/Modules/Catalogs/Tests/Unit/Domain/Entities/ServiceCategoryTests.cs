@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Catalogs.Domain.Entities;
 using MeAjudaAi.Modules.Catalogs.Domain.Events;
 using MeAjudaAi.Modules.Catalogs.Domain.Exceptions;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Modules.Catalogs.Tests.Unit.Domain.Entities;
 
@@ -47,26 +48,26 @@ public class ServiceCategoryTests
     public void Create_WithNameAtMaxLength_ShouldSucceed()
     {
         // Arrange
-        var maxLengthName = new string('a', ServiceCategoryValidation.MaxNameLength);
+        var maxLengthName = new string('a', ValidationConstants.CatalogLimits.ServiceCategoryNameMaxLength);
 
         // Act
         var category = ServiceCategory.Create(maxLengthName, null, 0);
 
         // Assert
         category.Should().NotBeNull();
-        category.Name.Should().HaveLength(ServiceCategoryValidation.MaxNameLength);
+        category.Name.Should().HaveLength(ValidationConstants.CatalogLimits.ServiceCategoryNameMaxLength);
     }
 
     [Fact]
     public void Create_WithNameExceedingMaxLength_ShouldThrowCatalogDomainException()
     {
         // Arrange
-        var tooLongName = new string('a', ServiceCategoryValidation.MaxNameLength + 1);
+        var tooLongName = new string('a', ValidationConstants.CatalogLimits.ServiceCategoryNameMaxLength + 1);
 
         // Act & Assert
         var act = () => ServiceCategory.Create(tooLongName, null, 0);
         act.Should().Throw<CatalogDomainException>()
-            .WithMessage($"*cannot exceed {ServiceCategoryValidation.MaxNameLength} characters*");
+            .WithMessage($"*cannot exceed {ValidationConstants.CatalogLimits.ServiceCategoryNameMaxLength} characters*");
     }
 
     [Fact]
@@ -114,26 +115,26 @@ public class ServiceCategoryTests
     public void Create_WithDescriptionAtMaxLength_ShouldSucceed()
     {
         // Arrange
-        var maxLengthDescription = new string('a', ServiceCategoryValidation.MaxDescriptionLength);
+        var maxLengthDescription = new string('a', ValidationConstants.CatalogLimits.ServiceCategoryDescriptionMaxLength);
 
         // Act
         var category = ServiceCategory.Create("Test", maxLengthDescription, 0);
 
         // Assert
         category.Should().NotBeNull();
-        category.Description.Should().HaveLength(ServiceCategoryValidation.MaxDescriptionLength);
+        category.Description.Should().HaveLength(ValidationConstants.CatalogLimits.ServiceCategoryDescriptionMaxLength);
     }
 
     [Fact]
     public void Create_WithDescriptionExceedingMaxLength_ShouldThrowCatalogDomainException()
     {
         // Arrange
-        var tooLongDescription = new string('a', ServiceCategoryValidation.MaxDescriptionLength + 1);
+        var tooLongDescription = new string('a', ValidationConstants.CatalogLimits.ServiceCategoryDescriptionMaxLength + 1);
 
         // Act & Assert
         var act = () => ServiceCategory.Create("Test", tooLongDescription, 0);
         act.Should().Throw<CatalogDomainException>()
-            .WithMessage($"*cannot exceed {ServiceCategoryValidation.MaxDescriptionLength} characters*");
+            .WithMessage($"*cannot exceed {ValidationConstants.CatalogLimits.ServiceCategoryDescriptionMaxLength} characters*");
     }
 
     [Fact]

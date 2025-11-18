@@ -71,13 +71,3 @@ public static class ModuleApiRegistry
         return moduleInfos;
     }
 }
-
-/// <summary>
-/// Informações sobre uma Module API
-/// </summary>
-public sealed record ModuleApiInfo(
-    string ModuleName,
-    string ApiVersion,
-    string ImplementationType,
-    bool IsAvailable
-);

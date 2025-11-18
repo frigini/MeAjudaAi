@@ -14,13 +14,19 @@ namespace MeAjudaAi.Modules.Search.Application.ModuleApi;
 /// <summary>
 /// Implementação da API pública do módulo Search para outros módulos.
 /// </summary>
-[ModuleApi("Search", "1.0")]
+[ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class SearchModuleApi(
     IQueryDispatcher queryDispatcher,
     ILogger<SearchModuleApi> logger) : ISearchModuleApi
 {
-    public string ModuleName => "Search";
-    public string ApiVersion => "1.0";
+    private static class ModuleMetadata
+    {
+        public const string Name = "Search";
+        public const string Version = "1.0";
+    }
+
+    public string ModuleName => ModuleMetadata.Name;
+    public string ApiVersion => ModuleMetadata.Version;
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {

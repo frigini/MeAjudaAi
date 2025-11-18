@@ -16,7 +16,7 @@ namespace MeAjudaAi.Modules.Providers.Application.ModuleApi;
 /// <summary>
 /// Implementação da API pública do módulo Providers para outros módulos
 /// </summary>
-[ModuleApi("Providers", "1.0")]
+[ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class ProvidersModuleApi(
     IQueryHandler<GetProviderByIdQuery, Result<ProviderDto?>> getProviderByIdHandler,
     IQueryHandler<GetProviderByUserIdQuery, Result<ProviderDto?>> getProviderByUserIdHandler,
@@ -29,8 +29,14 @@ public sealed class ProvidersModuleApi(
     IServiceProvider serviceProvider,
     ILogger<ProvidersModuleApi> logger) : IProvidersModuleApi
 {
-    public string ModuleName => "Providers";
-    public string ApiVersion => "1.0";
+    private static class ModuleMetadata
+    {
+        public const string Name = "Providers";
+        public const string Version = "1.0";
+    }
+
+    public string ModuleName => ModuleMetadata.Name;
+    public string ApiVersion => ModuleMetadata.Version;
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {

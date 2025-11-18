@@ -77,26 +77,4 @@ public class ServiceBuilder : BuilderBase<Service>
         WithCustomAction(service => service.Deactivate());
         return this;
     }
-
-    public ServiceBuilder WithCreatedAt(DateTime createdAt)
-    {
-        WithCustomAction(service =>
-        {
-            var createdAtField = typeof(Service).BaseType?.GetField("<CreatedAt>k__BackingField",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            createdAtField?.SetValue(service, createdAt);
-        });
-        return this;
-    }
-
-    public ServiceBuilder WithUpdatedAt(DateTime? updatedAt)
-    {
-        WithCustomAction(service =>
-        {
-            var updatedAtField = typeof(Service).BaseType?.GetField("<UpdatedAt>k__BackingField",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            updatedAtField?.SetValue(service, updatedAt);
-        });
-        return this;
-    }
 }

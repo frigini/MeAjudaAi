@@ -1,6 +1,6 @@
-using MeAjudaAi.Modules.Catalogs.Application.Commands;
+using MeAjudaAi.Modules.Catalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Application.DTOs;
-using MeAjudaAi.Modules.Catalogs.Application.Queries;
+using MeAjudaAi.Modules.Catalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
