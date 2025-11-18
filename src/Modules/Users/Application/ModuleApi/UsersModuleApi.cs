@@ -124,7 +124,7 @@ public sealed class UsersModuleApi(
         var result = await getUserByIdHandler.HandleAsync(query, cancellationToken);
 
         return result.Match<Result<ModuleUserDto?>>(
-            user => user is null 
+            user => user is null
                 ? Result<ModuleUserDto?>.Success(null)
                 : Result<ModuleUserDto?>.Success(MapToModuleUserDto(user)),
             error => error.StatusCode == 404

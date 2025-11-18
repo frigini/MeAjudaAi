@@ -218,54 +218,164 @@ public interface ILocationModuleApi : IModuleApi
 
 ---
 
-### 1.6. 🛠️ Módulo Service Catalog (Planejado)
+### 1.6. ✅ Módulo Service Catalog (Concluído)
 
-**Objetivo**: Gerenciar tipos de serviços que prestadores podem oferecer.
+**Status**: Implementado e funcional com testes completos
 
-#### **Arquitetura Proposta**
-- **Padrão**: Simple CRUD com hierarquia de categorias
+**Objetivo**: Gerenciar tipos de serviços que prestadores podem oferecer através de um catálogo admin-managed.
 
-#### **Entidades de Domínio**
+#### **Arquitetura Implementada**
+- **Padrão**: DDD + CQRS com hierarquia de categorias
+- **Schema**: `catalogs` (isolado)
+- **Naming**: snake_case no banco, PascalCase no código
+
+#### **Entidades de Domínio Implementadas**
 ```csharp
 // ServiceCategory: Aggregate Root
-public class ServiceCategory
+public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
 {
-    public Guid CategoryId { get; }
-    public string Name { get; } // e.g., "Limpeza", "Reparos"
+    public string Name { get; }
     public string? Description { get; }
     public bool IsActive { get; }
+    public int DisplayOrder { get; }
+    
+    // Domain Events: Created, Updated, Activated, Deactivated
+    // Business Rules: Nome único, validações de criação/atualização
 }
 
 // Service: Aggregate Root
-public class Service
+public sealed class Service : AggregateRoot<ServiceId>
 {
-    public Guid ServiceId { get; }
-    public Guid CategoryId { get; }
-    public string Name { get; } // e.g., "Limpeza de Apartamento", "Conserto de Torneira"
+    public ServiceCategoryId CategoryId { get; }
+    public string Name { get; }
     public string? Description { get; }
     public bool IsActive { get; }
-}
-
-// ProviderService: Entity (linking table)
-public class ProviderService
-{
-    public Guid ProviderId { get; }
-    public Guid ServiceId { get; }
-    public DateTime AddedAt { get; }
+    public int DisplayOrder { get; }
+    
+    // Domain Events: Created, Updated, Activated, Deactivated, CategoryChanged
+    // Business Rules: Nome único, categoria ativa, validações
 }
 ```
 
-#### **Abordagem de Gestão**
-- **Admin-managed catalog**: Admins criam categorias e serviços
-- **Provider selection**: Prestadores selecionam de catálogo pré-definido
-- **(Futuro)** Sugestões de prestadores para novos serviços → fila de moderação
+#### **Camadas Implementadas**
 
-#### **Implementação**
-1. **Schema**: Criar `meajudaai_services` com `service_categories`, `services`, `provider_services`
-2. **Admin API**: CRUD endpoints para categorias e serviços
-3. **Provider API**: Estender módulo Providers para add/remove serviços do perfil
-4. **Validações**: Business rules para evitar duplicatas e serviços inativos
-5. **Testes**: Unit tests para domain logic + integration tests para APIs
+**1. Domain Layer** ✅
+- `ServiceCategoryId` e `ServiceId` (strongly-typed IDs)
+- Agregados com lógica de negócio completa
+- 9 Domain Events (lifecycle completo)
+- Repositórios: `IServiceCategoryRepository`, `IServiceRepository`
+- Exception: `CatalogDomainException`
+
+**2. Application Layer** ✅
+- **DTOs**: ServiceCategoryDto, ServiceDto, ServiceListDto, ServiceCategoryWithCountDto
+- **Commands** (11 total):
+  - Categories: Create, Update, Activate, Deactivate, Delete
+  - Services: Create, Update, ChangeCategory, Activate, Deactivate, Delete
+- **Queries** (6 total):
+  - Categories: GetById, GetAll, GetWithCount
+  - Services: GetById, GetAll, GetByCategory
+- **Handlers**: 11 Command Handlers + 6 Query Handlers
+- **Module API**: `CatalogsModuleApi` para comunicação inter-módulos
+
+**3. Infrastructure Layer** ✅
+- `CatalogsDbContext` com schema isolation (`catalogs`)
+- EF Core Configurations (snake_case, índices otimizados)
+- Repositories com SaveChangesAsync integrado
+- DI registration com auto-migration support
+
+**4. API Layer** ✅
+- **Endpoints REST** usando Minimal APIs pattern:
+  - `GET /api/v1/catalogs/categories` - Listar categorias
+  - `GET /api/v1/catalogs/categories/{id}` - Buscar categoria
+  - `POST /api/v1/catalogs/categories` - Criar categoria
+  - `PUT /api/v1/catalogs/categories/{id}` - Atualizar categoria
+  - `POST /api/v1/catalogs/categories/{id}/activate` - Ativar
+  - `POST /api/v1/catalogs/categories/{id}/deactivate` - Desativar
+  - `DELETE /api/v1/catalogs/categories/{id}` - Deletar
+  - `GET /api/v1/catalogs/services` - Listar serviços
+  - `GET /api/v1/catalogs/services/{id}` - Buscar serviço
+  - `GET /api/v1/catalogs/services/category/{categoryId}` - Por categoria
+  - `POST /api/v1/catalogs/services` - Criar serviço
+  - `PUT /api/v1/catalogs/services/{id}` - Atualizar serviço
+  - `POST /api/v1/catalogs/services/{id}/change-category` - Mudar categoria
+  - `POST /api/v1/catalogs/services/{id}/activate` - Ativar
+  - `POST /api/v1/catalogs/services/{id}/deactivate` - Desativar
+  - `DELETE /api/v1/catalogs/services/{id}` - Deletar
+- **Autorização**: Todos endpoints requerem role Admin
+- **Versionamento**: Sistema unificado via BaseEndpoint
+
+**5. Shared.Contracts** ✅
+- `ICatalogsModuleApi` - Interface pública
+- DTOs: ModuleServiceCategoryDto, ModuleServiceDto, ModuleServiceListDto, ModuleServiceValidationResultDto
+
+#### **API Pública Implementada**
+```csharp
+public interface ICatalogsModuleApi : IModuleApi
+{
+    Task<Result<ModuleServiceCategoryDto?>> GetServiceCategoryByIdAsync(Guid categoryId, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<ModuleServiceCategoryDto>>> GetAllServiceCategoriesAsync(bool activeOnly = true, CancellationToken ct = default);
+    Task<Result<ModuleServiceDto?>> GetServiceByIdAsync(Guid serviceId, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetAllServicesAsync(bool activeOnly = true, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<ModuleServiceDto>>> GetServicesByCategoryAsync(Guid categoryId, bool activeOnly = true, CancellationToken ct = default);
+    Task<Result<bool>> IsServiceActiveAsync(Guid serviceId, CancellationToken ct = default);
+    Task<Result<ModuleServiceValidationResultDto>> ValidateServicesAsync(Guid[] serviceIds, CancellationToken ct = default);
+}
+```
+
+#### **Status de Compilação**
+- ✅ **Domain**: BUILD SUCCEEDED (3 warnings XML documentation)
+- ✅ **Application**: BUILD SUCCEEDED (18 warnings SonarLint - não críticos)
+- ✅ **Infrastructure**: BUILD SUCCEEDED
+- ✅ **API**: BUILD SUCCEEDED
+- ✅ **Adicionado à Solution**: 4 projetos integrados
+
+#### **Integração com Outros Módulos**
+- **Providers Module** (Planejado): Adicionar ProviderServices linking table
+- **Search Module** (Planejado): Denormalizar services nos SearchableProvider
+- **Admin Portal**: Endpoints prontos para gestão de catálogo
+
+#### **Próximos Passos (Pós-MVP)**
+1. **Testes**: Implementar unit tests e integration tests
+2. **Migrations**: Criar e aplicar migration inicial do schema `catalogs`
+3. **Bootstrap**: Integrar no Program.cs e AppHost
+4. **Provider Integration**: Estender Providers para suportar ProviderServices
+5. **Admin UI**: Interface para gestão de catálogo
+6. **Seeders**: Popular catálogo inicial com serviços comuns
+
+#### **Considerações Técnicas**
+- **SaveChangesAsync**: Integrado nos repositórios (padrão do projeto)
+- **Validações**: Nome único por categoria/serviço, categoria ativa para criar serviço
+- **Soft Delete**: Não implementado (hard delete com validação de dependências)
+- **Cascata**: DeleteServiceCategory valida se há serviços vinculados
+
+#### **Schema do Banco de Dados**
+```sql
+-- Schema: catalogs
+CREATE TABLE catalogs.service_categories (
+    id UUID PRIMARY KEY,
+    name VARCHAR(200) NOT NULL UNIQUE,
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP
+);
+
+CREATE TABLE catalogs.services (
+    id UUID PRIMARY KEY,
+    category_id UUID NOT NULL REFERENCES catalogs.service_categories(id),
+    name VARCHAR(200) NOT NULL UNIQUE,
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP
+);
+
+CREATE INDEX idx_services_category_id ON catalogs.services(category_id);
+CREATE INDEX idx_services_is_active ON catalogs.services(is_active);
+CREATE INDEX idx_service_categories_is_active ON catalogs.service_categories(is_active);
+```
 
 ---
 

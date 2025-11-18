@@ -3,6 +3,11 @@
 ## Overview
 This document provides comprehensive guidance for writing and maintaining integration tests in the MeAjudaAi platform.
 
+> **📚 Related Documentation**:
+> - [Test Infrastructure (TestContainers)](./test_infrastructure.md) - Infraestrutura de containers para testes
+> - [Code Coverage Guide](./code_coverage_guide.md) - Guia de cobertura de código
+> - [Test Authentication Examples](./test_auth_examples.md) - Exemplos de autenticação em testes
+
 ## Integration Testing Strategy
 
 The project implements a **two-level integration testing architecture** to balance test coverage, performance, and isolation:

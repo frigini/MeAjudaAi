@@ -228,3 +228,67 @@ Individual service configurations for development scenarios where you only need 
 2. **Test upgrades** in development environment first
 3. **Document version changes** in commit messages
 4. **Monitor security advisories** for all used versions
+
+## Database Initialization Testing
+
+The infrastructure includes scripts to validate database initialization:
+
+### Test Database Scripts
+
+**PowerShell (Windows)**:
+```powershell
+# Run database initialization tests
+.\test-database-init.ps1
+
+# With custom credentials
+.\test-database-init.ps1 -PostgresPassword "mypassword" -PostgresUser "postgres" -PostgresDb "meajudaai"
+```
+
+**Bash (Linux/Mac)**:
+```bash
+# Run database initialization tests
+./test-database-init.sh
+
+# With custom credentials
+POSTGRES_PASSWORD="mypassword" POSTGRES_USER="postgres" POSTGRES_DB="meajudaai" ./test-database-init.sh
+```
+
+### What the Test Scripts Validate
+
+The test scripts verify:
+
+✅ All module schemas created correctly:
+- `users`, `providers`, `documents`
+- `search`, `location`, `catalogs`
+- `hangfire`, `meajudaai_app`
+
+✅ All database roles created:
+- Module-specific roles (`users_role`, `providers_role`, etc.)
+- Owner roles (`users_owner`, `providers_owner`, etc.)
+- Application-wide roles (`meajudaai_app_role`, `meajudaai_app_owner`)
+- Hangfire role (`hangfire_role`)
+
+✅ PostGIS extension enabled (required for geospatial search)
+
+✅ Proper initialization sequence executed
+
+### Manual Database Connection
+
+After running the tests, you can connect to the database:
+
+```bash
+# Using Docker
+docker exec -it meajudaai-postgres psql -U postgres -d meajudaai
+
+# Using local psql
+psql -h localhost -U postgres -d meajudaai
+```
+
+### Database Initialization Scripts
+
+See `database/README.md` for detailed information about:
+- Module schema structure
+- Role-based access control
+- Adding new modules
+- Cross-module views
+- PostGIS configuration

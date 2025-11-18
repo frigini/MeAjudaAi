@@ -1,3 +1,4 @@
+using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Modules.Location.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Caching;
@@ -9,7 +10,6 @@ using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Net;
 using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Location;
@@ -130,10 +130,10 @@ public sealed class GeocodingIntegrationTests : LocationIntegrationTestFixture
 
         // Act - Primeira chamada
         var result1 = await locationApi.GetCoordinatesFromAddressAsync(address);
-        
+
         // Pequena pausa para garantir que o cache foi atualizado
         await Task.Delay(100);
-        
+
         // Segunda e terceira chamadas (devem usar cache)
         var result2 = await locationApi.GetCoordinatesFromAddressAsync(address);
         var result3 = await locationApi.GetCoordinatesFromAddressAsync(address);
@@ -142,17 +142,17 @@ public sealed class GeocodingIntegrationTests : LocationIntegrationTestFixture
         result1.IsSuccess.Should().BeTrue();
         result2.IsSuccess.Should().BeTrue();
         result3.IsSuccess.Should().BeTrue();
-        
+
         // Valida que os resultados são consistentes (mesmo valor do cache)
         result1.Value.Latitude.Should().Be(result2.Value.Latitude);
         result1.Value.Longitude.Should().Be(result2.Value.Longitude);
         result2.Value.Latitude.Should().Be(result3.Value.Latitude);
         result2.Value.Longitude.Should().Be(result3.Value.Longitude);
-        
+
         // Valida que os valores estão corretos
         result1.Value.Latitude.Should().BeApproximately(-23.561414, 0.000001);
         result1.Value.Longitude.Should().BeApproximately(-46.656559, 0.000001);
-        
+
         // Nota: Não validamos o número exato de chamadas HTTP porque o HybridCache
         // pode fazer múltiplas chamadas durante serialização/desserialização inicial.
         // O importante é que as chamadas subsequentes retornam o mesmo resultado.

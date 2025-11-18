@@ -12,7 +12,7 @@ public sealed class ViaCepResponse
     public string? Bairro { get; set; }
     public string? Localidade { get; set; }
     public string? Uf { get; set; }
-    
+
     /// <summary>
     /// API retorna {"erro": true} quando CEP não existe
     /// </summary>

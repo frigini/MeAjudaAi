@@ -22,7 +22,7 @@ public class SearchDbContext : BaseDbContext
     }
 
     // Constructor for runtime with DI
-    public SearchDbContext(DbContextOptions<SearchDbContext> options, IDomainEventProcessor domainEventProcessor) 
+    public SearchDbContext(DbContextOptions<SearchDbContext> options, IDomainEventProcessor domainEventProcessor)
         : base(options, domainEventProcessor)
     {
     }

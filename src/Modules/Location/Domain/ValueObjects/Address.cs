@@ -95,7 +95,7 @@ public sealed class Address : ValueObject
     public override string ToString()
     {
         var parts = new List<string> { Street, Neighborhood, City, State, Cep.Formatted };
-        
+
         if (!string.IsNullOrWhiteSpace(Complement))
         {
             parts.Insert(1, Complement);
@@ -111,7 +111,7 @@ public sealed class Address : ValueObject
         yield return Neighborhood;
         yield return City;
         yield return State;
-        
+
         if (Complement is not null)
         {
             yield return Complement;

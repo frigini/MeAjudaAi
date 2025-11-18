@@ -123,11 +123,11 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
         {
             var content = await response.Content.ReadFromJsonAsync<SearchProvidersResponse>(JsonOptions);
             content.Should().NotBeNull();
-            
+
             // Se houver resultados, todos devem ter rating >= minRating
             if (content!.Items.Any())
             {
-                content.Items.Should().AllSatisfy(p => 
+                content.Items.Should().AllSatisfy(p =>
                     p.AverageRating.Should().BeGreaterThanOrEqualTo((decimal)minRating));
             }
         }
