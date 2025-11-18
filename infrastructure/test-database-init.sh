@@ -94,7 +94,6 @@ ROLES=(
     "documents_role" "documents_owner"
     "search_role" "search_owner"
     "location_role" "location_owner"
-
     "hangfire_role"
     "meajudaai_app_role" "meajudaai_app_owner"
 )

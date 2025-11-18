@@ -23,7 +23,6 @@ database/
 │   ├── location/                 # Location module (CEP lookup and geocoding)
 │   │   ├── 00-roles.sql          # Database roles for location module
 │   │   └── 01-permissions.sql    # Permissions setup for location module
-
 └── views/                        # Cross-module database views
     └── cross-module-views.sql    # Views that span multiple modules (includes document status views)
 ```
@@ -71,7 +70,6 @@ The database initialization creates the following schemas:
 | `documents` | Documents | Document upload, verification, and storage metadata |
 | `search` | Search & Discovery | Geospatial provider search with PostGIS |
 | `location` | Location | CEP lookup, address validation, and geocoding |
-
 | `hangfire` | Background Jobs | Hangfire job queue and execution tracking |
 | `meajudaai_app` | Shared | Cross-cutting application objects |
 
