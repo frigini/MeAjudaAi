@@ -1,3 +1,4 @@
+using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Modules.Location.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Caching;
@@ -9,7 +10,6 @@ using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Net;
 using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Location;
@@ -170,13 +170,13 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
 
         // Act - Primeira chamada (cache miss)
         var result1 = await locationApi.GetAddressFromCepAsync(cep);
-        
+
         // Pequena pausa para garantir que o cache foi atualizado
         await Task.Delay(100);
-        
+
         // Segunda chamada (deve usar cache)
         var result2 = await locationApi.GetAddressFromCepAsync(cep);
-        
+
         // Terceira chamada (deve usar cache)
         var result3 = await locationApi.GetAddressFromCepAsync(cep);
 
@@ -184,15 +184,15 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
         result1.IsSuccess.Should().BeTrue();
         result2.IsSuccess.Should().BeTrue();
         result3.IsSuccess.Should().BeTrue();
-        
+
         // Valida que os resultados são consistentes (mesmo valor do cache)
         result1.Value.Should().BeEquivalentTo(result2.Value);
         result2.Value.Should().BeEquivalentTo(result3.Value);
-        
+
         // Valida que todos têm os dados corretos
         result1.Value!.Cep.Should().Be("01310-100");
         result1.Value.Street.Should().Be("Avenida Paulista");
-        
+
         // Nota: Não validamos o número exato de chamadas HTTP porque o HybridCache
         // pode fazer múltiplas chamadas durante serialização/deserialização inicial.
         // O importante é que as chamadas subsequentes retornam o mesmo resultado.

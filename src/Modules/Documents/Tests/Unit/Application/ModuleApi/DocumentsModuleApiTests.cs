@@ -65,7 +65,7 @@ public class DocumentsModuleApiTests
         // Arrange
         var documentId = Guid.NewGuid();
         var documentDto = CreateDocumentDto(documentId, EDocumentStatus.Verified);
-        
+
         _getDocumentStatusHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documentDto);
@@ -85,7 +85,7 @@ public class DocumentsModuleApiTests
     {
         // Arrange
         var documentId = Guid.NewGuid();
-        
+
         _getDocumentStatusHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((DocumentDto?)null);

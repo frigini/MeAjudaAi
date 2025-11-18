@@ -67,6 +67,10 @@ public static class ServiceCollectionExtensions
         services.AddQueries();
         services.AddEvents();
 
+        // Registra NoOpBackgroundJobService como implementação padrão
+        // Módulos que precisam de Hangfire devem registrar HangfireBackgroundJobService explicitamente
+        services.AddSingleton<IBackgroundJobService, NoOpBackgroundJobService>();
+
         return services;
     }
 

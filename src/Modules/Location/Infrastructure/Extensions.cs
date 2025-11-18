@@ -38,15 +38,15 @@ public static class Extensions
             var baseUrl = configuration["Location:ExternalApis:OpenCep:BaseUrl"] ?? "https://opencep.com/";
             client.BaseAddress = new Uri(baseUrl);
         });
-        
+
         // Registrar HTTP client para Nominatim (geocoding)
         services.AddHttpClient<NominatimClient>(client =>
         {
             var baseUrl = configuration["Location:ExternalApis:Nominatim:BaseUrl"] ?? "https://nominatim.openstreetmap.org/";
             client.BaseAddress = new Uri(baseUrl);
-            
+
             // Configurar User-Agent conforme política de uso do Nominatim
-            var userAgent = configuration["Location:ExternalApis:Nominatim:UserAgent"] 
+            var userAgent = configuration["Location:ExternalApis:Nominatim:UserAgent"]
                 ?? "MeAjudaAi/1.0 (https://github.com/frigini/MeAjudaAi)";
             client.DefaultRequestHeaders.Add("User-Agent", userAgent);
         });

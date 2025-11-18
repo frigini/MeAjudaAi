@@ -235,7 +235,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     public void Activate()
     {
         if (IsActive) return;
-        
+
         IsActive = true;
         MarkAsUpdated();
     }
@@ -246,7 +246,7 @@ public sealed class SearchableProvider : AggregateRoot<SearchableProviderId>
     public void Deactivate()
     {
         if (!IsActive) return;
-        
+
         IsActive = false;
         MarkAsUpdated();
     }

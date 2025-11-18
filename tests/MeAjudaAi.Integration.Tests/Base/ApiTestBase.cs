@@ -1,8 +1,10 @@
+using System.Text.Json;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.AspNetCore.Authentication;
@@ -225,5 +227,14 @@ public abstract class ApiTestBase : IAsyncLifetime
             logger?.LogError(ex, "Verificação do banco {Module} falhou", moduleName);
             throw new InvalidOperationException($"Banco {moduleName} não foi inicializado corretamente", ex);
         }
+    }
+
+    /// <summary>
+    /// Deserializa resposta JSON usando as opções de serialização compartilhadas (com suporte a enums).
+    /// </summary>
+    protected async Task<T?> ReadJsonAsync<T>(HttpContent content)
+    {
+        var stream = await content.ReadAsStreamAsync();
+        return await JsonSerializer.DeserializeAsync<T>(stream, SerializationDefaults.Api);
     }
 }

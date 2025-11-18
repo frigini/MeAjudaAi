@@ -13,8 +13,8 @@ public class ProviderTests
     // Cria um mock do provedor de data/hora
     private static IDateTimeProvider CreateMockDateTimeProvider(DateTime? fixedDate = null)
     {
-        return fixedDate.HasValue 
-            ? new MockDateTimeProvider(fixedDate.Value) 
+        return fixedDate.HasValue
+            ? new MockDateTimeProvider(fixedDate.Value)
             : new MockDateTimeProvider();
     }
 

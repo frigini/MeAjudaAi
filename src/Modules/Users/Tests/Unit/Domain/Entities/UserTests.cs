@@ -12,8 +12,8 @@ public class UserTests
     // Cria um provedor de data/hora para testes
     private static IDateTimeProvider CreateMockDateTimeProvider(DateTime? fixedDate = null)
     {
-        return fixedDate.HasValue 
-            ? new MockDateTimeProvider(fixedDate.Value) 
+        return fixedDate.HasValue
+            ? new MockDateTimeProvider(fixedDate.Value)
             : new MockDateTimeProvider();
     }
 

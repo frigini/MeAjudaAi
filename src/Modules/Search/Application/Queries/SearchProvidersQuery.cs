@@ -28,17 +28,17 @@ public sealed record SearchProvidersQuery(
         var lng = Longitude.ToString("F4", CultureInfo.InvariantCulture);
         var radius = RadiusInKm.ToString("G", CultureInfo.InvariantCulture);
         var rating = (MinRating ?? 0).ToString("G", CultureInfo.InvariantCulture);
-        
+
         // Ordena e concatena service IDs para cache consistency
         var serviceKey = ServiceIds != null && ServiceIds.Length > 0
             ? string.Join("-", ServiceIds.OrderBy(x => x))
             : "all";
-        
+
         // Ordena subscription tiers para cache consistency
         var tierKey = SubscriptionTiers != null && SubscriptionTiers.Length > 0
             ? string.Join("-", SubscriptionTiers.OrderBy(x => x))
             : "all";
-        
+
         return $"search:providers:lat:{lat}:lng:{lng}:radius:{radius}:services:{serviceKey}:rating:{rating}:tiers:{tierKey}:page:{Page}:size:{PageSize}";
     }
 

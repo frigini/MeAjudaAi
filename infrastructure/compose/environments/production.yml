@@ -32,7 +32,7 @@ services:
     image: postgres:16@sha256:d0f363f8366fbc3f52d172c6e76bc27151c3d643b870e1062b4e8bfe65baf609
     container_name: meajudaai-postgres-prod
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-MeAjudaAi}
+      POSTGRES_DB: ${POSTGRES_DB:-meajudaai}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD environment variable}
     ports:

@@ -38,7 +38,7 @@ public class SearchProvidersQueryTests
         // Arrange
         var serviceId1 = Guid.Parse("11111111-1111-1111-1111-111111111111");
         var serviceId2 = Guid.Parse("22222222-2222-2222-2222-222222222222");
-        
+
         var query1 = new SearchProvidersQuery(
             Latitude: -23.5505,
             Longitude: -46.6333,

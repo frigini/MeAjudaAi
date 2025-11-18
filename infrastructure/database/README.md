@@ -14,9 +14,15 @@ database/
 │   ├── providers/                # Providers module schema and permissions
 │   │   ├── 00-roles.sql          # Database roles for providers module
 │   │   └── 01-permissions.sql    # Permissions setup for providers module
-│   └── documents/                # Documents module schema and permissions
-│       ├── 00-roles.sql          # Database roles for documents module (includes hangfire_role)
-│       └── 01-permissions.sql    # Permissions setup for documents and hangfire schemas
+│   ├── documents/                # Documents module schema and permissions
+│   │   ├── 00-roles.sql          # Database roles for documents module (includes hangfire_role)
+│   │   └── 01-permissions.sql    # Permissions setup for documents and hangfire schemas
+│   ├── search/                   # Search & Discovery module (PostGIS geospatial)
+│   │   ├── 00-roles.sql          # Database roles for search module
+│   │   └── 01-permissions.sql    # Permissions setup and PostGIS extension
+│   ├── location/                 # Location module (CEP lookup and geocoding)
+│   │   ├── 00-roles.sql          # Database roles for location module
+│   │   └── 01-permissions.sql    # Permissions setup for location module
 └── views/                        # Cross-module database views
     └── cross-module-views.sql    # Views that span multiple modules (includes document status views)
 ```
@@ -48,10 +54,33 @@ The `documents` module includes setup for **Hangfire** background job processing
 
 - **Schema**: `hangfire` - Isolated schema for Hangfire tables
 - **Role**: `hangfire_role` - Dedicated role with full permissions on hangfire schema
-- **Access**: Hangfire has SELECT/UPDATE access to `meajudaai_documents` schema for DocumentVerificationJob
+- **Access**: Hangfire has SELECT/UPDATE access to `documents` schema for DocumentVerificationJob
 - **Configuration**: Hangfire automatically creates its tables on first run (PrepareSchemaIfNecessary=true)
 
 The Hangfire dashboard is available at `/hangfire` endpoint when the application is running.
+
+## Module Schemas
+
+The database initialization creates the following schemas:
+
+| Schema | Module | Purpose |
+|--------|--------|---------|
+| `users` | Users | User accounts, authentication, and profile management |
+| `providers` | Providers | Service provider registration and verification |
+| `documents` | Documents | Document upload, verification, and storage metadata |
+| `search` | Search & Discovery | Geospatial provider search with PostGIS |
+| `location` | Location | CEP lookup, address validation, and geocoding |
+| `hangfire` | Background Jobs | Hangfire job queue and execution tracking |
+| `meajudaai_app` | Shared | Cross-cutting application objects |
+
+## PostGIS Extension
+
+The `search` module automatically enables the **PostGIS** extension for geospatial queries:
+
+- Provides geolocation-based provider search
+- Supports distance calculations and radius filtering
+- Includes spatial indexes (GIST) for performance
+- Grants access to `spatial_ref_sys` table for coordinate transformations
 
 ## Usage
 
