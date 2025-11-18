@@ -141,7 +141,7 @@ public class CatalogsApiTests : ApiTestBase
         {
             name = $"Test Category {Guid.NewGuid():N}",
             description = "Test Description",
-            isActive = true
+            displayOrder = 1
         };
 
         // Act
@@ -185,7 +185,7 @@ public class CatalogsApiTests : ApiTestBase
         {
             name = $"Test Category {Guid.NewGuid():N}",
             description = "Test Description",
-            isActive = true
+            displayOrder = 1
         };
 
         var categoryResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);

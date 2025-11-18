@@ -22,7 +22,7 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
         {
             name = $"Test Category {Guid.NewGuid():N}",
             description = "Test Category",
-            isActive = true
+            displayOrder = 1
         };
 
         // Act
@@ -140,9 +140,9 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var categoryData = new
         {
-            name = $"Test Category {uniqueId}",
+            name = $"Category {uniqueId}",
             description = "Test Description",
-            isActive = true
+            displayOrder = 1
         };
 
         try
@@ -165,7 +165,7 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
             {
                 name = $"Updated Category {uniqueId}",
                 description = "Updated Description",
-                isActive = true
+                displayOrder = 2
             };
 
             var updateResponse = await Client.PutAsJsonAsync($"/api/v1/catalogs/categories/{categoryId}", updateData);
@@ -216,7 +216,7 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
         {
             name = $"Test Category {uniqueId}",
             description = "Test Description",
-            isActive = true
+            displayOrder = 1
         };
 
         var categoryResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
@@ -235,8 +235,7 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
             {
                 name = $"Test Service {uniqueId}",
                 description = "Test Service Description",
-                categoryId = categoryId,
-                isActive = true
+                categoryId = categoryId
             };
 
             var createResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/services", serviceData);
@@ -315,7 +314,7 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
         {
             name = $"Test Category {Guid.NewGuid():N}",
             description = "Test Description",
-            isActive = true
+            displayOrder = 1
         };
 
         var categoryResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
@@ -332,8 +331,7 @@ public class CatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBas
             {
                 name = $"Test Service {Guid.NewGuid():N}",
                 description = "Test Service",
-                categoryId = categoryId,
-                isActive = true
+                categoryId = categoryId
             };
 
             var serviceResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/services", serviceData);
