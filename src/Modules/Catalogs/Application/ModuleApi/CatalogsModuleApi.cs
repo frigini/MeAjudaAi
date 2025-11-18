@@ -38,9 +38,8 @@ public sealed class CatalogsModuleApi(
         {
             logger.LogDebug("Checking Catalogs module availability");
 
-            // Simple database connectivity test - ensure query is materialized
+            // Simple database connectivity test
             var categories = await categoryRepository.GetAllAsync(activeOnly: true, cancellationToken);
-            _ = categories.Count; // Force materialization to verify DB connectivity
 
             logger.LogDebug("Catalogs module is available and healthy");
             return true;
