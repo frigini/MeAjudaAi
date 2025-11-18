@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.Modules.Catalogs.API;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Location.Infrastructure;
 using MeAjudaAi.Modules.Providers.API;
@@ -33,6 +34,7 @@ public partial class Program
             builder.Services.AddDocumentsModule(builder.Configuration);
             builder.Services.AddSearchModule(builder.Configuration);
             builder.Services.AddLocationModule(builder.Configuration);
+            builder.Services.AddCatalogsModule(builder.Configuration);
 
             var app = builder.Build();
 
@@ -106,6 +108,7 @@ public partial class Program
         app.UseDocumentsModule();
         app.UseSearchModule();
         app.UseLocationModule();
+        app.UseCatalogsModule();
     }
 
     private static void LogStartupComplete(WebApplication app)
