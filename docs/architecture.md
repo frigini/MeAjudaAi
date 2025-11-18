@@ -115,15 +115,29 @@ public class ProvidersContext
 - **Qualification**: Qualificações e habilitações profissionais
 - **VerificationStatus**: Status de verificação (Pending, Verified, Rejected, etc.)
 
-#### 3. **Services Context** (Futuro)
-**Responsabilidade**: Catálogo e gestão de serviços oferecidos
+#### 3. **Catalogs Context** (Implementado)
+**Responsabilidade**: Catálogo administrativo de categorias e serviços
 
-**Conceitos Planejados**:
-- **Service**: Serviço oferecido por prestadores
-- **Category**: Categorização hierárquica de serviços
-- **Pricing**: Modelos de precificação flexíveis
+**Conceitos Implementados**:
+- **ServiceCategory**: Categorias hierárquicas de serviços (aggregate root)
+- **Service**: Serviços oferecidos vinculados a categorias (aggregate root)
+- **DisplayOrder**: Ordenação customizada para apresentação
+- **Activation/Deactivation**: Controle de visibilidade no catálogo
 
-#### 4. **Bookings Context** (Futuro)
+**Schema**: `catalogs` (isolado no PostgreSQL)
+
+#### 4. **Location Context** (Implementado)
+**Responsabilidade**: Geolocalização e lookup de CEP brasileiro
+
+**Conceitos Implementados**:
+- **Cep**: Value object para CEP validado
+- **Coordinates**: Latitude/Longitude para geolocalização
+- **Address**: Endereço completo com dados estruturados
+- **CepLookupService**: Integração com ViaCEP, BrasilAPI, OpenCEP (fallback)
+
+**Observação**: Módulo stateless (sem schema próprio), fornece serviços via Module API
+
+#### 5. **Bookings Context** (Futuro)
 **Responsabilidade**: Agendamento e execução de serviços
 
 **Conceitos Planejados**:
