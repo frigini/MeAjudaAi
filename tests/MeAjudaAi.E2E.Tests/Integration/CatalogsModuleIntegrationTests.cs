@@ -96,7 +96,7 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
 
         result.TryGetProperty("data", out var data).Should().BeTrue();
-        var services = data.Deserialize<ServiceDto[]>(JsonOptions);
+        var services = data.Deserialize<ServiceListDto[]>(JsonOptions);
         services.Should().NotBeNull();
         services!.Length.Should().Be(2);
         services!.Should().AllSatisfy(s => s.CategoryId.Should().Be(category1.Id));
@@ -239,8 +239,35 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
 
     #region DTOs
 
-    private record ServiceCategoryDto(Guid Id, string Name, string Description, int DisplayOrder, bool IsActive);
-    private record ServiceDto(Guid Id, Guid CategoryId, string Name, string Description, int DisplayOrder, bool IsActive);
+    private record ServiceCategoryDto(
+        Guid Id,
+        string Name,
+        string? Description,
+        int DisplayOrder,
+        bool IsActive,
+        DateTime CreatedAt,
+        DateTime? UpdatedAt
+    );
+
+    private record ServiceDto(
+        Guid Id,
+        Guid CategoryId,
+        string CategoryName,
+        string Name,
+        string? Description,
+        int DisplayOrder,
+        bool IsActive,
+        DateTime CreatedAt,
+        DateTime? UpdatedAt
+    );
+
+    private record ServiceListDto(
+        Guid Id,
+        Guid CategoryId,
+        string Name,
+        string? Description,
+        bool IsActive
+    );
 
     #endregion
 }

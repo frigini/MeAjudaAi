@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Catalogs.Application.Queries;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Shared.Contracts.Modules.Catalogs;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -241,7 +242,7 @@ public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
 
     private static async Task<IResult> ValidateAsync(
         [FromBody] ValidateServicesRequest request,
-        [FromServices] Application.ModuleApi.CatalogsModuleApi moduleApi,
+        [FromServices] ICatalogsModuleApi moduleApi,
         CancellationToken cancellationToken)
     {
         var result = await moduleApi.ValidateServicesAsync(request.ServiceIds, cancellationToken);

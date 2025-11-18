@@ -247,23 +247,33 @@ public sealed class CatalogsModuleApi(
             var invalidIds = new List<Guid>();
             var inactiveIds = new List<Guid>();
 
-            // Deduplicate input IDs to avoid processing the same ID multiple times
+            // Deduplicate input IDs and separate empty GUIDs
             var distinctIds = serviceIds.Distinct().ToList();
-            var serviceIdValues = distinctIds.Select(ServiceId.From).ToList();
+            var emptyGuids = distinctIds.Where(id => id == Guid.Empty).ToList();
+            var validGuids = distinctIds.Except(emptyGuids).ToList();
 
-            // Batch query to avoid N+1 problem
-            var services = await serviceRepository.GetByIdsAsync(serviceIdValues, cancellationToken);
-            var serviceLookup = services.ToDictionary(s => s.Id.Value);
+            // Empty GUIDs are immediately invalid
+            invalidIds.AddRange(emptyGuids);
 
-            foreach (var serviceId in distinctIds)
+            // Only convert non-empty GUIDs to ServiceId value objects
+            if (validGuids.Count > 0)
             {
-                if (!serviceLookup.TryGetValue(serviceId, out var service))
+                var serviceIdValues = validGuids.Select(ServiceId.From).ToList();
+
+                // Batch query to avoid N+1 problem
+                var services = await serviceRepository.GetByIdsAsync(serviceIdValues, cancellationToken);
+                var serviceLookup = services.ToDictionary(s => s.Id.Value);
+
+                foreach (var serviceId in validGuids)
                 {
-                    invalidIds.Add(serviceId);
-                }
-                else if (!service.IsActive)
-                {
-                    inactiveIds.Add(serviceId);
+                    if (!serviceLookup.TryGetValue(serviceId, out var service))
+                    {
+                        invalidIds.Add(serviceId);
+                    }
+                    else if (!service.IsActive)
+                    {
+                        inactiveIds.Add(serviceId);
+                    }
                 }
             }
 

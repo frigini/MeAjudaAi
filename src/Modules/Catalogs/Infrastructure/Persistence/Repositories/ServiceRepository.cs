@@ -24,9 +24,11 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
 
     public async Task<Service?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
     {
+        var normalized = name?.Trim() ?? string.Empty;
+
         return await context.Services
             .Include(s => s.Category)
-            .FirstOrDefaultAsync(s => s.Name == name, cancellationToken);
+            .FirstOrDefaultAsync(s => s.Name == normalized, cancellationToken);
     }
 
     public async Task<IReadOnlyList<Service>> GetAllAsync(bool activeOnly = false, CancellationToken cancellationToken = default)
