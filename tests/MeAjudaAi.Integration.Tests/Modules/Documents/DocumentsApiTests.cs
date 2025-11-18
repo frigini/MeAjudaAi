@@ -125,7 +125,7 @@ public class DocumentsApiTests : ApiTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var document = await response.Content.ReadFromJsonAsync<DocumentDto>();
+        var document = await ReadJsonAsync<DocumentDto>(response.Content);
         document.Should().NotBeNull();
         document!.Id.Should().Be(uploadResult.DocumentId);
         document.Status.Should().Be(EDocumentStatus.Uploaded);
@@ -176,7 +176,7 @@ public class DocumentsApiTests : ApiTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var documents = await response.Content.ReadFromJsonAsync<List<DocumentDto>>();
+        var documents = await ReadJsonAsync<List<DocumentDto>>(response.Content);
         documents.Should().NotBeNull();
         documents.Should().HaveCountGreaterThanOrEqualTo(1, "at least one document should be returned after upload");
     }
