@@ -50,17 +50,17 @@ public class AuthenticationTests : ApiTestBase
     }
 
     [Fact]
-    public async Task RateLimiting_ShouldBeConfiguredCorrectly()
+    public async Task RateLimiting_EndpointIsReachable_ShouldReturnSuccessOrRateLimited()
     {
         // Arrange - Configure admin user
         AuthConfig.ConfigureAdmin();
 
-        // Act - Make a single request to verify rate limiting is configured
+        // Act - Make a single request to verify rate limiting middleware is configured
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
-        // Assert - This test documents that rate limiting exists in the system
-        // The actual rate limiting behavior should be tested in isolation
-        // For now, we just verify the endpoint is reachable and rate limiting is a possibility
+        // Assert - This test documents that rate limiting exists in the pipeline
+        // Actual rate limiting behavior (429 after N requests) should be tested separately with deterministic setup
+        // For now, we verify the endpoint is reachable with rate limiting enabled
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.TooManyRequests);

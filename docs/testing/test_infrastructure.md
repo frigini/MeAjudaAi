@@ -134,7 +134,7 @@ if (!keycloakSettings.Enabled)
 }
 ```
 
-## Performance
+## Desempenho
 
 ### Tempos Típicos
 

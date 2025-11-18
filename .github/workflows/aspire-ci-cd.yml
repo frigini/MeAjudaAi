@@ -95,6 +95,7 @@ jobs:
       - name: Run tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
+          POSTGRES_CONNECTION: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
           # Database configuration for tests that need it
           MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
           MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
@@ -102,10 +103,10 @@ jobs:
           DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
           DB_USERNAME: ${{ secrets.POSTGRES_USER || 'postgres' }}
           # Map connection string to .NET configuration using double underscore
-          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
-          ConnectionStrings__Users: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
-          ConnectionStrings__Search: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
-          ConnectionStrings__meajudaai-db: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
+          ConnectionStrings__DefaultConnection: ${{ env.POSTGRES_CONNECTION }}
+          ConnectionStrings__Users: ${{ env.POSTGRES_CONNECTION }}
+          ConnectionStrings__Search: ${{ env.POSTGRES_CONNECTION }}
+          ConnectionStrings__meajudaai-db: ${{ env.POSTGRES_CONNECTION }}
         run: |
           echo "🧪 Running core test suite (excluding E2E)..."
           # Run only Architecture and Integration tests - skip E2E tests for Aspire validation

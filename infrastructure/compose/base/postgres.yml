@@ -15,7 +15,7 @@ services:
     image: postgis/postgis:16-3.4
     container_name: meajudaai-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-MeAjudaAi}
+      POSTGRES_DB: ${POSTGRES_DB:-meajudaai}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD environment variable}
     ports:

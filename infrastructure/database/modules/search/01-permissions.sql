@@ -10,6 +10,11 @@ CREATE SCHEMA IF NOT EXISTS search;
 -- Set explicit schema ownership
 ALTER SCHEMA search OWNER TO search_owner;
 
+-- Lock down PUBLIC access on this schema
+REVOKE ALL ON SCHEMA search FROM PUBLIC;
+REVOKE ALL ON ALL TABLES IN SCHEMA search FROM PUBLIC;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA search FROM PUBLIC;
+
 GRANT USAGE ON SCHEMA search TO search_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA search TO search_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA search TO search_role;
@@ -35,8 +40,8 @@ GRANT USAGE ON SCHEMA providers TO search_role;
 GRANT SELECT ON ALL TABLES IN SCHEMA providers TO search_role;
 
 -- PostGIS spatial reference system access
-GRANT SELECT ON TABLE spatial_ref_sys TO search_role;
-GRANT SELECT ON TABLE spatial_ref_sys TO meajudaai_app_role;
+GRANT SELECT ON TABLE public.spatial_ref_sys TO search_role;
+GRANT SELECT ON TABLE public.spatial_ref_sys TO meajudaai_app_role;
 
 -- Document schema purpose
 COMMENT ON SCHEMA search IS 'Search & Discovery module - Geospatial provider search with PostGIS';

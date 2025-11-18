@@ -28,7 +28,9 @@ public static class Extensions
         var connectionString = configuration.GetConnectionString("DefaultConnection")
                               ?? configuration.GetConnectionString("Search")
                               ?? configuration.GetConnectionString("meajudaai-db")
-                              ?? throw new InvalidOperationException("Database connection string 'DefaultConnection' not found.");
+                              ?? throw new InvalidOperationException(
+                                  "Database connection string not found. Tried: 'DefaultConnection', 'Search', 'meajudaai-db'. " +
+                                  "Please configure one of these connection strings in appsettings.json or environment variables.");
 
         services.AddDbContext<SearchDbContext>((serviceProvider, options) =>
         {

@@ -7,6 +7,11 @@ CREATE SCHEMA IF NOT EXISTS location;
 -- Set explicit schema ownership
 ALTER SCHEMA location OWNER TO location_owner;
 
+-- Lock down PUBLIC access on this schema
+REVOKE ALL ON SCHEMA location FROM PUBLIC;
+REVOKE ALL ON ALL TABLES IN SCHEMA location FROM PUBLIC;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA location FROM PUBLIC;
+
 GRANT USAGE ON SCHEMA location TO location_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA location TO location_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA location TO location_role;

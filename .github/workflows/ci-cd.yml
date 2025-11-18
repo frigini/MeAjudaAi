@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:15
+        image: postgis/postgis:16-3.4
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
@@ -65,11 +65,12 @@ jobs:
       - name: Run tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
+          POSTGRES_CONNECTION: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
           # Map connection strings to .NET configuration using double underscore
-          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
-          ConnectionStrings__Users: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
-          ConnectionStrings__Search: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
-          ConnectionStrings__meajudaai-db: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB || 'meajudaai_test' }};Username=${{ secrets.POSTGRES_USER || 'postgres' }};Password=${{ secrets.POSTGRES_PASSWORD || 'test123' }}"
+          ConnectionStrings__DefaultConnection: ${{ env.POSTGRES_CONNECTION }}
+          ConnectionStrings__Users: ${{ env.POSTGRES_CONNECTION }}
+          ConnectionStrings__Search: ${{ env.POSTGRES_CONNECTION }}
+          ConnectionStrings__meajudaai-db: ${{ env.POSTGRES_CONNECTION }}
         run: |
           echo "🧪 Executando todos os testes..."
 

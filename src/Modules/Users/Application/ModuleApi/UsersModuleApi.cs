@@ -184,8 +184,9 @@ public sealed class UsersModuleApi(
         var query = new GetUserByUsernameQuery(username);
         var result = await getUserByUsernameHandler.HandleAsync(query, cancellationToken);
 
-        return result.IsSuccess
-            ? Result<bool>.Success(true)  // Usuário encontrado = username existe
-            : Result<bool>.Success(false); // Usuário não encontrado = username não existe
+        return result.Match(
+            onSuccess: _ => Result<bool>.Success(true),
+            onFailure: _ => Result<bool>.Success(false)
+        );
     }
 }

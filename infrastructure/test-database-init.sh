@@ -70,6 +70,9 @@ fi
 echo ""
 echo "🔍 Verifying database schemas..."
 
+# Track validation errors
+has_errors=false
+
 # Test schemas
 SCHEMAS=("users" "providers" "documents" "search" "location" "hangfire" "meajudaai_app")
 
@@ -81,6 +84,7 @@ for schema in "${SCHEMAS[@]}"; do
         echo "   ✅ Schema '$schema' created successfully"
     else
         echo "   ❌ Schema '$schema' NOT found"
+        has_errors=true
     fi
 done
 
@@ -106,6 +110,7 @@ for role in "${ROLES[@]}"; do
         echo "   ✅ Role '$role' created successfully"
     else
         echo "   ❌ Role '$role' NOT found"
+        has_errors=true
     fi
 done
 
@@ -119,6 +124,7 @@ if [ "$RESULT" = "t" ]; then
     echo "   ✅ PostGIS extension enabled"
 else
     echo "   ❌ PostGIS extension NOT enabled"
+    has_errors=true
 fi
 
 echo ""
@@ -127,6 +133,13 @@ echo ""
 docker logs meajudaai-postgres 2>&1 | grep -E "Initializing|Setting up|completed" || true
 
 echo ""
+
+if [ "$has_errors" = "true" ]; then
+    echo "❌ Database validation failed! Some schemas, roles, or extensions are missing."
+    echo ""
+    exit 1
+fi
+
 echo "✅ Database validation completed!"
 echo ""
 echo "💡 To connect to the database:"

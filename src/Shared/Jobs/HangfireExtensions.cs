@@ -38,7 +38,7 @@ public static class HangfireExtensions
         try
         {
             var serviceProvider = app.ApplicationServices;
-            var jobClient = serviceProvider.GetService(typeof(IBackgroundJobClient));
+            var jobClient = serviceProvider.GetService<IBackgroundJobClient>();
 
             if (jobClient == null)
             {
@@ -52,7 +52,9 @@ public static class HangfireExtensions
             return app;
         }
 
-        logger?.LogInformation("Hangfire Dashboard is enabled");
+        // Resolve logger if not provided
+        logger ??= app.ApplicationServices.GetService<ILogger<HangfireExtensions>>();
+        
         logger?.LogInformation("Hangfire Dashboard is enabled");
 
         var dashboardPath = configuration.GetValue<string>(DashboardPathKey, "/hangfire");

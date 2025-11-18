@@ -71,7 +71,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgis/postgis:16-3.4
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
@@ -158,6 +158,7 @@ jobs:
       - name: Run tests with coverage
         env:
           ASPNETCORE_ENVIRONMENT: Testing
+          POSTGRES_CONNECTION: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
           # Pre-built connection string (optional, takes precedence if available)
           DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
           # PostgreSQL connection for CI
@@ -177,10 +178,10 @@ jobs:
           # Keycloak settings
           KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
           # Map connection strings to .NET configuration using double underscore
-          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
-          ConnectionStrings__Users: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
-          ConnectionStrings__Search: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
-          ConnectionStrings__meajudaai-db: "Host=localhost;Port=5432;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
+          ConnectionStrings__DefaultConnection: ${{ env.POSTGRES_CONNECTION }}
+          ConnectionStrings__Users: ${{ env.POSTGRES_CONNECTION }}
+          ConnectionStrings__Search: ${{ env.POSTGRES_CONNECTION }}
+          ConnectionStrings__meajudaai-db: ${{ env.POSTGRES_CONNECTION }}
         run: |
           set -euo pipefail
           echo "🧪 Executando testes com cobertura consolidada..."
