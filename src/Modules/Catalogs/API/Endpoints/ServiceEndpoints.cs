@@ -122,7 +122,7 @@ public class UpdateServiceEndpoint : BaseEndpoint, IEndpoint
         => app.MapPut("/{id:guid}", UpdateAsync)
             .WithName("UpdateService")
             .WithSummary("Atualizar serviço")
-            .Produces<Response<Unit>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
     private static async Task<IResult> UpdateAsync(
@@ -133,7 +133,7 @@ public class UpdateServiceEndpoint : BaseEndpoint, IEndpoint
     {
         var command = new UpdateServiceCommand(id, request.Name, request.Description, request.DisplayOrder);
         var result = await commandDispatcher.SendAsync<UpdateServiceCommand, Result>(command, cancellationToken);
-        return Handle(result);
+        return HandleNoContent(result);
     }
 }
 
@@ -143,7 +143,7 @@ public class ChangeServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/{id:guid}/change-category", ChangeAsync)
             .WithName("ChangeServiceCategory")
             .WithSummary("Alterar categoria do serviço")
-            .Produces<Response<Unit>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
     private static async Task<IResult> ChangeAsync(
@@ -154,7 +154,7 @@ public class ChangeServiceCategoryEndpoint : BaseEndpoint, IEndpoint
     {
         var command = new ChangeServiceCategoryCommand(id, request.NewCategoryId);
         var result = await commandDispatcher.SendAsync<ChangeServiceCategoryCommand, Result>(command, cancellationToken);
-        return Handle(result);
+        return HandleNoContent(result);
     }
 }
 
@@ -168,7 +168,7 @@ public class DeleteServiceEndpoint : BaseEndpoint, IEndpoint
         => app.MapDelete("/{id:guid}", DeleteAsync)
             .WithName("DeleteService")
             .WithSummary("Deletar serviço")
-            .Produces<Response<Unit>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
     private static async Task<IResult> DeleteAsync(
@@ -178,7 +178,7 @@ public class DeleteServiceEndpoint : BaseEndpoint, IEndpoint
     {
         var command = new DeleteServiceCommand(id);
         var result = await commandDispatcher.SendAsync<DeleteServiceCommand, Result>(command, cancellationToken);
-        return Handle(result);
+        return HandleNoContent(result);
     }
 }
 
@@ -192,7 +192,7 @@ public class ActivateServiceEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/{id:guid}/activate", ActivateAsync)
             .WithName("ActivateService")
             .WithSummary("Ativar serviço")
-            .Produces<Response<Unit>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
     private static async Task<IResult> ActivateAsync(
@@ -202,7 +202,7 @@ public class ActivateServiceEndpoint : BaseEndpoint, IEndpoint
     {
         var command = new ActivateServiceCommand(id);
         var result = await commandDispatcher.SendAsync<ActivateServiceCommand, Result>(command, cancellationToken);
-        return Handle(result);
+        return HandleNoContent(result);
     }
 }
 
@@ -212,7 +212,7 @@ public class DeactivateServiceEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/{id:guid}/deactivate", DeactivateAsync)
             .WithName("DeactivateService")
             .WithSummary("Desativar serviço")
-            .Produces<Response<Unit>>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 
     private static async Task<IResult> DeactivateAsync(
@@ -222,6 +222,6 @@ public class DeactivateServiceEndpoint : BaseEndpoint, IEndpoint
     {
         var command = new DeactivateServiceCommand(id);
         var result = await commandDispatcher.SendAsync<DeactivateServiceCommand, Result>(command, cancellationToken);
-        return Handle(result);
+        return HandleNoContent(result);
     }
 }

@@ -35,7 +35,7 @@ public class CreateServiceCommandHandlerTests
             .ReturnsAsync(category);
 
         _serviceRepositoryMock
-            .Setup(x => x.ExistsWithNameAsync(command.Name, null, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ExistsWithNameAsync(command.Name, null, It.IsAny<ServiceCategoryId?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         _serviceRepositoryMock
@@ -103,7 +103,7 @@ public class CreateServiceCommandHandlerTests
             .ReturnsAsync(category);
 
         _serviceRepositoryMock
-            .Setup(x => x.ExistsWithNameAsync(command.Name, null, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ExistsWithNameAsync(command.Name, null, It.IsAny<ServiceCategoryId?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act

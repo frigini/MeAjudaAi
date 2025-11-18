@@ -36,7 +36,11 @@ public interface IServiceRepository
     /// <summary>
     /// Checks if a service with the given name already exists.
     /// </summary>
-    Task<bool> ExistsWithNameAsync(string name, ServiceId? excludeId = null, CancellationToken cancellationToken = default);
+    /// <param name="name">The service name to check</param>
+    /// <param name="excludeId">Optional service ID to exclude from the check</param>
+    /// <param name="categoryId">Optional category ID to scope the check to a specific category</param>
+    /// <param name="cancellationToken"></param>
+    Task<bool> ExistsWithNameAsync(string name, ServiceId? excludeId = null, ServiceCategoryId? categoryId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Counts how many services exist in a category.

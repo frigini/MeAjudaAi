@@ -59,14 +59,6 @@ public static class Extensions
             .EnableSensitiveDataLogging(false);
         });
 
-        // Auto-migration factory
-        services.AddScoped<Func<CatalogsDbContext>>(provider => () =>
-        {
-            var context = provider.GetRequiredService<CatalogsDbContext>();
-            context.Database.Migrate();
-            return context;
-        });
-
         // Register repositories
         services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
         services.AddScoped<IServiceRepository, ServiceRepository>();

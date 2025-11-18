@@ -164,9 +164,9 @@ public sealed class CreateServiceCommandHandler(
             if (!category.IsActive)
                 return Result<ServiceDto>.Failure("Cannot create service in inactive category.");
 
-            // Check for duplicate name
-            if (await serviceRepository.ExistsWithNameAsync(request.Name, null, cancellationToken))
-                return Result<ServiceDto>.Failure($"A service with name '{request.Name}' already exists.");
+            // Check for duplicate name within the same category
+            if (await serviceRepository.ExistsWithNameAsync(request.Name, null, categoryId, cancellationToken))
+                return Result<ServiceDto>.Failure($"A service with name '{request.Name}' already exists in this category.");
 
             var service = Service.Create(categoryId, request.Name, request.Description, request.DisplayOrder);
 
@@ -206,9 +206,9 @@ public sealed class UpdateServiceCommandHandler(
             if (service is null)
                 return Result.Failure($"Service with ID '{request.Id}' not found.");
 
-            // Check for duplicate name (excluding current service)
-            if (await serviceRepository.ExistsWithNameAsync(request.Name, serviceId, cancellationToken))
-                return Result.Failure($"A service with name '{request.Name}' already exists.");
+            // Check for duplicate name within the same category (excluding current service)
+            if (await serviceRepository.ExistsWithNameAsync(request.Name, serviceId, service.CategoryId, cancellationToken))
+                return Result.Failure($"A service with name '{request.Name}' already exists in this category.");
 
             service.Update(request.Name, request.Description, request.DisplayOrder);
 
