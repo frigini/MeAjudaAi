@@ -14,6 +14,11 @@ public interface IServiceRepository
     Task<Service?> GetByIdAsync(ServiceId id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves multiple services by their IDs (batch query).
+    /// </summary>
+    Task<IReadOnlyList<Service>> GetByIdsAsync(IEnumerable<ServiceId> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves a service by its name.
     /// </summary>
     Task<Service?> GetByNameAsync(string name, CancellationToken cancellationToken = default);

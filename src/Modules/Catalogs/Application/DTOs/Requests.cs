@@ -36,3 +36,18 @@ public sealed record ChangeServiceCategoryRequest : Request
 {
     public Guid NewCategoryId { get; init; }
 }
+
+public sealed record ValidateServicesRequest : Request
+{
+    public IReadOnlyCollection<Guid> ServiceIds { get; init; } = Array.Empty<Guid>();
+}
+
+// ============================================================================
+// RESPONSES
+// ============================================================================
+
+public sealed record ValidateServicesResponse(
+    bool AllValid,
+    IReadOnlyCollection<Guid> InvalidServiceIds,
+    IReadOnlyCollection<Guid> InactiveServiceIds
+);

@@ -225,3 +225,36 @@ public class DeactivateServiceEndpoint : BaseEndpoint, IEndpoint
         return HandleNoContent(result);
     }
 }
+
+// ============================================================
+// VALIDATE
+// ============================================================
+
+public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
+{
+    public static void Map(IEndpointRouteBuilder app)
+        => app.MapPost("/validate", ValidateAsync)
+            .WithName("ValidateServices")
+            .WithSummary("Validar múltiplos serviços")
+            .Produces<Response<ValidateServicesResponse>>(StatusCodes.Status200OK)
+            .AllowAnonymous();
+
+    private static async Task<IResult> ValidateAsync(
+        [FromBody] ValidateServicesRequest request,
+        [FromServices] Application.ModuleApi.CatalogsModuleApi moduleApi,
+        CancellationToken cancellationToken)
+    {
+        var result = await moduleApi.ValidateServicesAsync(request.ServiceIds, cancellationToken);
+
+        if (!result.IsSuccess)
+            return Handle(result);
+
+        var response = new ValidateServicesResponse(
+            result.Value!.AllValid,
+            result.Value.InvalidServiceIds,
+            result.Value.InactiveServiceIds
+        );
+
+        return Handle(Result<ValidateServicesResponse>.Success(response));
+    }
+}

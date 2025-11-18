@@ -14,6 +14,14 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Service>> GetByIdsAsync(IEnumerable<ServiceId> ids, CancellationToken cancellationToken = default)
+    {
+        var idList = ids.ToList();
+        return await context.Services
+            .Where(s => idList.Contains(s.Id))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<Service?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         return await context.Services

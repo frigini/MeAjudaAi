@@ -120,6 +120,9 @@ public sealed class CatalogsModuleApi(
     {
         try
         {
+            if (serviceId == Guid.Empty)
+                return Result<ModuleServiceDto?>.Failure("Service id must be provided");
+
             var id = ServiceId.From(serviceId);
             var service = await serviceRepository.GetByIdAsync(id, cancellationToken);
 
@@ -177,6 +180,9 @@ public sealed class CatalogsModuleApi(
     {
         try
         {
+            if (categoryId == Guid.Empty)
+                return Result<IReadOnlyList<ModuleServiceDto>>.Failure("Category id must be provided");
+
             var id = ServiceCategoryId.From(categoryId);
             var services = await serviceRepository.GetByCategoryAsync(id, activeOnly, cancellationToken);
 
@@ -204,6 +210,9 @@ public sealed class CatalogsModuleApi(
     {
         try
         {
+            if (serviceId == Guid.Empty)
+                return Result<bool>.Failure("Service id must be provided");
+
             var serviceIdValue = ServiceId.From(serviceId);
             var service = await serviceRepository.GetByIdAsync(serviceIdValue, cancellationToken);
 
@@ -240,12 +249,16 @@ public sealed class CatalogsModuleApi(
             var inactiveIds = new List<Guid>();
 
             // Deduplicate input IDs to avoid processing the same ID multiple times
-            foreach (var serviceId in serviceIds.Distinct())
-            {
-                var serviceIdValue = ServiceId.From(serviceId);
-                var service = await serviceRepository.GetByIdAsync(serviceIdValue, cancellationToken);
+            var distinctIds = serviceIds.Distinct().ToList();
+            var serviceIdValues = distinctIds.Select(ServiceId.From).ToList();
 
-                if (service is null)
+            // Batch query to avoid N+1 problem
+            var services = await serviceRepository.GetByIdsAsync(serviceIdValues, cancellationToken);
+            var serviceLookup = services.ToDictionary(s => s.Id.Value);
+
+            foreach (var serviceId in distinctIds)
+            {
+                if (!serviceLookup.TryGetValue(serviceId, out var service))
                 {
                     invalidIds.Add(serviceId);
                 }

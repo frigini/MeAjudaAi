@@ -25,7 +25,7 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
             ServiceIds = new[] { service1.Id, service2.Id }
         };
 
-        // Simulate calling the validation endpoint
+        // Call the validation endpoint
         var response = await PostJsonAsync("/api/v1/catalogs/services/validate", validateRequest);
 
         // Assert
@@ -36,8 +36,14 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
 
         // Should validate all services as valid
         result.TryGetProperty("data", out var data).Should().BeTrue();
-        data.TryGetProperty("validServiceIds", out var validIds).Should().BeTrue();
-        validIds.GetArrayLength().Should().Be(2);
+        data.TryGetProperty("allValid", out var allValid).Should().BeTrue();
+        allValid.GetBoolean().Should().BeTrue();
+        
+        data.TryGetProperty("invalidServiceIds", out var invalidIds).Should().BeTrue();
+        invalidIds.GetArrayLength().Should().Be(0);
+        
+        data.TryGetProperty("inactiveServiceIds", out var inactiveIds).Should().BeTrue();
+        inactiveIds.GetArrayLength().Should().Be(0);
     }
 
     [Fact]

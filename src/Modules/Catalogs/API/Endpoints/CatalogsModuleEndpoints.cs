@@ -36,6 +36,7 @@ public static class CatalogsModuleEndpoints
             .MapEndpoint<ChangeServiceCategoryEndpoint>()
             .MapEndpoint<ActivateServiceEndpoint>()
             .MapEndpoint<DeactivateServiceEndpoint>()
-            .MapEndpoint<DeleteServiceEndpoint>();
+            .MapEndpoint<DeleteServiceEndpoint>()
+            .MapEndpoint<ValidateServicesEndpoint>();
     }
 }
