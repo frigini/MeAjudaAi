@@ -150,9 +150,10 @@ public static class PostgreSqlExtensions
         }
         else
         {
-            // Local testing - create PostgreSQL container with initialization scripts
+            // Local testing - create PostgreSQL container with PostGIS extension
             var postgres = builder.AddPostgres("postgres-local")
-                .WithImageTag("16-alpine") // PostgreSQL 16 (updated from 13)
+                .WithImage("postgis/postgis")
+                .WithImageTag("16-3.4") // PostgreSQL 16 with PostGIS 3.4
                 .WithEnvironment("POSTGRES_DB", options.MainDatabase)
                 .WithEnvironment("POSTGRES_USER", options.Username)
                 .WithEnvironment("POSTGRES_PASSWORD", options.Password);
@@ -176,10 +177,11 @@ public static class PostgreSqlExtensions
         if (string.IsNullOrWhiteSpace(options.Password))
             throw new InvalidOperationException("POSTGRES_PASSWORD must be provided via env var or options for development.");
 
-        // Setup completo de desenvolvimento
+        // Setup completo de desenvolvimento com PostGIS para geospatial queries
         var postgresBuilder = builder.AddPostgres("postgres-local")
             .WithDataVolume()
-            .WithImageTag("16-alpine") // PostgreSQL 16 (updated from 13)
+            .WithImage("postgis/postgis")
+            .WithImageTag("16-3.4") // PostgreSQL 16 with PostGIS 3.4
             .WithEnvironment("POSTGRES_DB", options.MainDatabase)
             .WithEnvironment("POSTGRES_USER", options.Username)
             .WithEnvironment("POSTGRES_PASSWORD", options.Password);
@@ -195,11 +197,14 @@ public static class PostgreSqlExtensions
         var mainDb = postgresBuilder.AddDatabase("meajudaai-db-local", options.MainDatabase);
 
         // Abordagem de banco único - todos os módulos usam o mesmo banco com schemas diferentes
-        // - schema users (módulo de usuários)
-        // - schema providers (módulo de prestadores)
-        // - schema documents (módulo de documentos)
+        // - schema users (módulo Users - autenticação e perfis)
+        // - schema providers (módulo Providers - prestadores de serviço)
+        // - schema documents (módulo Documents - upload e verificação)
+        // - schema search (módulo Search - busca geoespacial com PostGIS)
+        // - schema location (módulo Location - CEP lookup e geocoding)
+        // - schema catalogs (módulo Catalogs - catálogo de serviços)
         // - schema hangfire (background jobs - Hangfire)
-        // - schema identity (Keycloak)
+        // - schema identity (Keycloak - autenticação)
         // - schema meajudaai_app (cross-cutting objects)
         // - schema public (tabelas compartilhadas/comuns)
 

@@ -1,10 +1,10 @@
+using System.Text.Json;
+using System.Web;
 using MeAjudaAi.Modules.Location.Infrastructure.ExternalApis.Responses;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using System.Web;
 
 namespace MeAjudaAi.Modules.Location.Infrastructure.ExternalApis.Clients;
 
@@ -51,7 +51,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    logger.LogWarning("Nominatim retornou status {StatusCode} para endereço {Address}", 
+                    logger.LogWarning("Nominatim retornou status {StatusCode} para endereço {Address}",
                         response.StatusCode, address);
                     return null;
                 }
@@ -73,14 +73,14 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
                     return null;
                 }
 
-                if (!double.TryParse(firstResult.Lat, System.Globalization.NumberStyles.Float, 
+                if (!double.TryParse(firstResult.Lat, System.Globalization.NumberStyles.Float,
                         System.Globalization.CultureInfo.InvariantCulture, out var latitude))
                 {
                     logger.LogWarning("Latitude inválida retornada pelo Nominatim: {Lat}", firstResult.Lat);
                     return null;
                 }
 
-                if (!double.TryParse(firstResult.Lon, System.Globalization.NumberStyles.Float, 
+                if (!double.TryParse(firstResult.Lon, System.Globalization.NumberStyles.Float,
                         System.Globalization.CultureInfo.InvariantCulture, out var longitude))
                 {
                     logger.LogWarning("Longitude inválida retornada pelo Nominatim: {Lon}", firstResult.Lon);
@@ -98,7 +98,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
                     return null;
                 }
 
-                logger.LogInformation("Coordenadas obtidas do Nominatim para {Address}: {Coordinates}", 
+                logger.LogInformation("Coordenadas obtidas do Nominatim para {Address}: {Coordinates}",
                     address, coordinates);
 
                 return coordinates;

@@ -15,7 +15,7 @@ public interface IDocumentsModuleApi : IModuleApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Dados do documento ou null se não encontrado</returns>
     Task<Result<ModuleDocumentDto?>> GetDocumentByIdAsync(
-        Guid documentId, 
+        Guid documentId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -25,7 +25,7 @@ public interface IDocumentsModuleApi : IModuleApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Lista de documentos do provider</returns>
     Task<Result<IReadOnlyList<ModuleDocumentDto>>> GetProviderDocumentsAsync(
-        Guid providerId, 
+        Guid providerId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -35,7 +35,7 @@ public interface IDocumentsModuleApi : IModuleApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Status do documento</returns>
     Task<Result<ModuleDocumentStatusDto?>> GetDocumentStatusAsync(
-        Guid documentId, 
+        Guid documentId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -45,7 +45,7 @@ public interface IDocumentsModuleApi : IModuleApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>True se possui documentos verificados</returns>
     Task<Result<bool>> HasVerifiedDocumentsAsync(
-        Guid providerId, 
+        Guid providerId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -55,7 +55,7 @@ public interface IDocumentsModuleApi : IModuleApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>True se todos documentos obrigatórios foram enviados</returns>
     Task<Result<bool>> HasRequiredDocumentsAsync(
-        Guid providerId, 
+        Guid providerId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -65,7 +65,7 @@ public interface IDocumentsModuleApi : IModuleApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Contadores por status</returns>
     Task<Result<DocumentStatusCountDto>> GetDocumentStatusCountAsync(
-        Guid providerId, 
+        Guid providerId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -75,7 +75,7 @@ public interface IDocumentsModuleApi : IModuleApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>True se há documentos pendentes</returns>
     Task<Result<bool>> HasPendingDocumentsAsync(
-        Guid providerId, 
+        Guid providerId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -85,6 +85,6 @@ public interface IDocumentsModuleApi : IModuleApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>True se há documentos rejeitados</returns>
     Task<Result<bool>> HasRejectedDocumentsAsync(
-        Guid providerId, 
+        Guid providerId,
         CancellationToken cancellationToken = default);
 }

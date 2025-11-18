@@ -1,27 +1,12 @@
 using System.Net;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
-
 using FluentAssertions;
-
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Shared.Authorization;
-using MeAjudaAi.Shared.Tests.Extensions;
-
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Authorization;
 
 /// <summary>
 /// Testes de integração para o sistema de autorização baseado em permissões.
+/// Valida que usuários com diferentes níveis de permissão têm acesso apropriado aos endpoints.
 /// </summary>
 public class PermissionAuthorizationIntegrationTests : ApiTestBase
 {
@@ -33,29 +18,12 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
     }
 
     [Fact]
-    public async Task RegularUser_WithoutPermissions_ShouldReturnForbidden()
-    {
-        // Arrange
-        AuthConfig.ConfigureRegularUser();
-
-        // Act - Use a real endpoint that exists in the application
-        var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
-
-        // Assert
-        var content = await response.Content.ReadAsStringAsync();
-        LogResponseDiagnostics(response, content);
-
-        // Regular authenticated user without permissions should be forbidden
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-    }
-
-    [Fact]
     public async Task AdminUser_ShouldHaveAccessToUsersEndpoint()
     {
-        // Arrange - Configure user with admin permissions
+        // Arrange
         AuthConfig.ConfigureAdmin();
 
-        // Act - Use real users endpoint that requires permissions
+        // Act
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         // Assert
@@ -65,42 +33,42 @@ public class PermissionAuthorizationIntegrationTests : ApiTestBase
     [Fact]
     public async Task RegularUser_ShouldBeForbiddenFromUsersEndpoint()
     {
-        // Arrange - Configure user with only basic permissions 
+        // Arrange
         AuthConfig.ConfigureRegularUser();
 
-        // Act - Use real users endpoint
+        // Act
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
-        // Assert - Regular user should not have access to list users
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
     public async Task AdminUser_ShouldHaveAccessToProvidersEndpoint()
     {
-        // Arrange - Admin has system admin claim
+        // Arrange
         AuthConfig.ConfigureAdmin();
 
-        // Act - Use real API endpoint that requires admin permissions
+        // Act
         var response = await Client.GetAsync("/api/v1/providers", TestContext.Current.CancellationToken);
 
-        // Assert - Admin should succeed
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task UnauthenticatedRequest_ShouldReturnUnauthorized()
     {
-        // Arrange - Ensure clean authentication state
+        // Arrange
         AuthConfig.ClearConfiguration();
 
-        // Act - Use real API endpoint that requires authentication
+        // Act
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
         var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         LogResponseDiagnostics(response, content);
 
-        // Assert - Unauthenticated request should be unauthorized  
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 

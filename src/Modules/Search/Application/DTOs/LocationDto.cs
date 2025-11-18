@@ -13,7 +13,7 @@ public sealed record LocationDto
     /// </summary>
     [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90")]
     public required double Latitude { get; init; }
-    
+
     /// <summary>
     /// Longitude in decimal degrees. Valid range: -180 (West) to 180 (East).
     /// </summary>

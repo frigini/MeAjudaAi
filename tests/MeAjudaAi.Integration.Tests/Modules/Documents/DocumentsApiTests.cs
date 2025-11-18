@@ -55,7 +55,7 @@ public class DocumentsApiTests : ApiTestBase
         response.StatusCode.Should().Be(HttpStatusCode.OK,
             "authenticated user uploading their own document should succeed");
 
-        var result = await response.Content.ReadFromJsonAsync<UploadDocumentResponse>();
+        var result = await ReadJsonAsync<UploadDocumentResponse>(response.Content);
         result.Should().NotBeNull();
         result!.DocumentId.Should().NotBeEmpty();
         result.UploadUrl.Should().NotBeNullOrEmpty();
@@ -118,14 +118,14 @@ public class DocumentsApiTests : ApiTestBase
             return;
         }
 
-        var uploadResult = await uploadResponse.Content.ReadFromJsonAsync<UploadDocumentResponse>();
+        var uploadResult = await ReadJsonAsync<UploadDocumentResponse>(uploadResponse.Content);
 
         // Act
         var response = await Client.GetAsync($"/api/v1/documents/{uploadResult!.DocumentId}/status");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var document = await response.Content.ReadFromJsonAsync<DocumentDto>();
+        var document = await ReadJsonAsync<DocumentDto>(response.Content);
         document.Should().NotBeNull();
         document!.Id.Should().Be(uploadResult.DocumentId);
         document.Status.Should().Be(EDocumentStatus.Uploaded);
@@ -176,7 +176,7 @@ public class DocumentsApiTests : ApiTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var documents = await response.Content.ReadFromJsonAsync<List<DocumentDto>>();
+        var documents = await ReadJsonAsync<List<DocumentDto>>(response.Content);
         documents.Should().NotBeNull();
         documents.Should().HaveCountGreaterThanOrEqualTo(1, "at least one document should be returned after upload");
     }

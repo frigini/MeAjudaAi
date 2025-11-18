@@ -70,17 +70,22 @@ fi
 echo ""
 echo "🔍 Verifying database schemas..."
 
+# Track validation errors
+has_errors=false
+
 # Test schemas
 SCHEMAS=("users" "providers" "documents" "search" "location" "catalogs" "hangfire" "meajudaai_app")
 
 for schema in "${SCHEMAS[@]}"; do
-    QUERY="SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$schema');"
+    # Use double-dollar quoting to safely handle identifiers
+    QUERY="SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = \$\$${schema}\$\$);"
     RESULT=$(docker exec meajudaai-postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c "$QUERY" | tr -d '[:space:]')
     
     if [ "$RESULT" = "t" ]; then
         echo "   ✅ Schema '$schema' created successfully"
     else
         echo "   ❌ Schema '$schema' NOT found"
+        has_errors=true
     fi
 done
 
@@ -100,34 +105,46 @@ ROLES=(
 )
 
 for role in "${ROLES[@]}"; do
-    QUERY="SELECT EXISTS(SELECT 1 FROM pg_roles WHERE rolname = '$role');"
+    # Use double-dollar quoting to safely handle identifiers
+    QUERY="SELECT EXISTS(SELECT 1 FROM pg_roles WHERE rolname = \$\$${role}\$\$);"
     RESULT=$(docker exec meajudaai-postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c "$QUERY" | tr -d '[:space:]')
     
     if [ "$RESULT" = "t" ]; then
         echo "   ✅ Role '$role' created successfully"
     else
         echo "   ❌ Role '$role' NOT found"
+        has_errors=true
     fi
 done
 
 echo ""
 echo "🔍 Verifying PostGIS extension..."
 
-QUERY="SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'postgis');"
+# Use double-dollar quoting to safely handle identifier
+QUERY="SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = \$\$postgis\$\$);"
 RESULT=$(docker exec meajudaai-postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c "$QUERY" | tr -d '[:space:]')
 
 if [ "$RESULT" = "t" ]; then
     echo "   ✅ PostGIS extension enabled"
 else
     echo "   ❌ PostGIS extension NOT enabled"
+    has_errors=true
 fi
 
 echo ""
 echo "📊 Database initialization logs:"
 echo ""
-docker logs meajudaai-postgres 2>&1 | grep -E "Initializing|Setting up|completed" || true
+docker logs meajudaai-postgres 2>&1 | grep -E "Initializing|Setting up|completed" || \
+  (echo "⚠️  No matching initialization logs found. Full output:" && docker logs meajudaai-postgres 2>&1)
 
 echo ""
+
+if [ "$has_errors" = "true" ]; then
+    echo "❌ Database validation failed! Some schemas, roles, or extensions are missing."
+    echo ""
+    exit 1
+fi
+
 echo "✅ Database validation completed!"
 echo ""
 echo "💡 To connect to the database:"

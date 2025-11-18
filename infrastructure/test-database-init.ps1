@@ -34,9 +34,8 @@ if (-not (Test-Path $composeDir)) {
     exit 1
 }
 
-Set-Location $composeDir
-
 try {
+    Push-Location $composeDir
     Write-Host "🐳 Starting PostgreSQL container with initialization scripts..." -ForegroundColor Yellow
     Write-Host ""
     
@@ -76,6 +75,7 @@ try {
     Write-Host "🔍 Verifying database schemas..." -ForegroundColor Cyan
     
     # Test schemas
+    $hasErrors = $false
     $schemas = @("users", "providers", "documents", "search", "location", "catalogs", "hangfire", "meajudaai_app")
     
     foreach ($schema in $schemas) {
@@ -87,6 +87,7 @@ try {
         }
         else {
             Write-Host "   ❌ Schema '$schema' NOT found" -ForegroundColor Red
+            $hasErrors = $true
         }
     }
     
@@ -114,6 +115,7 @@ try {
         }
         else {
             Write-Host "   ❌ Role '$role' NOT found" -ForegroundColor Red
+            $hasErrors = $true
         }
     }
     
@@ -128,14 +130,22 @@ try {
     }
     else {
         Write-Host "   ❌ PostGIS extension NOT enabled" -ForegroundColor Red
+        $hasErrors = $true
     }
     
     Write-Host ""
     Write-Host "📊 Database initialization logs:" -ForegroundColor Cyan
     Write-Host ""
-    docker logs meajudaai-postgres 2>&1 | Select-String "Initializing\|Setting up\|completed"
+    docker logs meajudaai-postgres 2>&1 | Select-String -Pattern "Initializing|Setting up|completed"
     
     Write-Host ""
+    
+    if ($hasErrors) {
+        Write-Host "❌ Database validation failed! Some schemas, roles, or extensions are missing." -ForegroundColor Red
+        Write-Host ""
+        exit 1
+    }
+    
     Write-Host "✅ Database validation completed!" -ForegroundColor Green
     Write-Host ""
     Write-Host "💡 To connect to the database:" -ForegroundColor Yellow
