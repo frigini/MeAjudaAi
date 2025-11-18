@@ -19,7 +19,7 @@ public class ServiceCategoryBuilder : BuilderBase<ServiceCategory>
                 var category = ServiceCategory.Create(
                     _name ?? f.Commerce.Department(),
                     _description ?? f.Lorem.Sentence(),
-                    _displayOrder > 0 ? _displayOrder : f.Random.Int(1, 100)
+                    _displayOrder >= 0 ? _displayOrder : f.Random.Int(1, 100)
                 );
 
                 // Define o estado de ativo/inativo

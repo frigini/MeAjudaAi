@@ -81,7 +81,7 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         var service3 = await CreateServiceAsync(category2.Id, "Reparo de Torneira", "Hidráulica");
 
         // Act - Filter services by category (Requests module would do this)
-        var response = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category1.Id}/services");
+        var response = await ApiClient.GetAsync($"/api/v1/catalogs/services/category/{category1.Id}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);

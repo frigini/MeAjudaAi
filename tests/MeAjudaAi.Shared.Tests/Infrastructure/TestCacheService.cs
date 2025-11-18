@@ -1,13 +1,13 @@
 using System.Collections.Concurrent;
 using MeAjudaAi.Shared.Caching;
 
-namespace MeAjudaAi.Modules.Catalogs.Tests.Infrastructure;
+namespace MeAjudaAi.Shared.Tests.Infrastructure;
 
 /// <summary>
 /// Implementação simples de ICacheService para testes
 /// Usa ConcurrentDictionary em memória para simular cache
 /// </summary>
-internal class TestCacheService : ICacheService
+public class TestCacheService : ICacheService
 {
     private readonly ConcurrentDictionary<string, object> _cache = new();
 
@@ -56,6 +56,7 @@ internal class TestCacheService : ICacheService
 
     public Task RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
     {
+        // Use delimiter-based matching to avoid unintended matches (e.g., "user" not matching "userdata")
         var delimiter = ":";
         var tagPrefix = $"{tag}{delimiter}";
         var keysToRemove = _cache.Keys.Where(k => k.StartsWith(tagPrefix, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -83,9 +84,11 @@ internal class TestCacheService : ICacheService
 
     private static bool IsMatch(string key, string pattern)
     {
+        // Handle explicit match-all pattern
         if (pattern == "*")
             return true;
 
+        // Order-aware wildcard matching
         if (pattern.Contains('*', StringComparison.Ordinal))
         {
             var parts = pattern.Split('*', StringSplitOptions.RemoveEmptyEntries);

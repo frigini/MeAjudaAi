@@ -10,13 +10,16 @@ public sealed class ServiceCategoryRepository(CatalogsDbContext context) : IServ
     public async Task<ServiceCategory?> GetByIdAsync(ServiceCategoryId id, CancellationToken cancellationToken = default)
     {
         return await context.ServiceCategories
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
     public async Task<ServiceCategory?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
     {
+        var normalized = name?.Trim() ?? string.Empty;
         return await context.ServiceCategories
-            .FirstOrDefaultAsync(c => c.Name == name, cancellationToken);
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Name == normalized, cancellationToken);
     }
 
     public async Task<IReadOnlyList<ServiceCategory>> GetAllAsync(bool activeOnly = false, CancellationToken cancellationToken = default)
@@ -34,7 +37,8 @@ public sealed class ServiceCategoryRepository(CatalogsDbContext context) : IServ
 
     public async Task<bool> ExistsWithNameAsync(string name, ServiceCategoryId? excludeId = null, CancellationToken cancellationToken = default)
     {
-        var query = context.ServiceCategories.Where(c => c.Name == name);
+        var normalized = name?.Trim() ?? string.Empty;
+        var query = context.ServiceCategories.Where(c => c.Name == normalized);
 
         if (excludeId is not null)
             query = query.Where(c => c.Id != excludeId);
@@ -56,7 +60,10 @@ public sealed class ServiceCategoryRepository(CatalogsDbContext context) : IServ
 
     public async Task DeleteAsync(ServiceCategoryId id, CancellationToken cancellationToken = default)
     {
-        var category = await GetByIdAsync(id, cancellationToken);
+        // For delete, we need to track the entity, so don't use AsNoTracking
+        var category = await context.ServiceCategories
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+            
         if (category is not null)
         {
             context.ServiceCategories.Remove(category);

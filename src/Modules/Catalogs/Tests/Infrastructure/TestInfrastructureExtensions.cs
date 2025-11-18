@@ -32,14 +32,9 @@ public static class TestInfrastructureExtensions
         services.AddTestCache(options.Cache);
 
         // Adicionar serviços de cache do Shared
-        services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, TestCacheService>();
+        services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, MeAjudaAi.Shared.Tests.Infrastructure.TestCacheService>();
 
         // Configurar banco de dados específico do módulo Catalogs
-        services.AddTestDatabase<CatalogsDbContext>(
-            options.Database,
-            "MeAjudaAi.Modules.Catalogs.Infrastructure");
-
-        // Configurar DbContext específico com snake_case naming
         services.AddDbContext<CatalogsDbContext>((serviceProvider, dbOptions) =>
         {
             var container = serviceProvider.GetRequiredService<PostgreSqlContainer>();
