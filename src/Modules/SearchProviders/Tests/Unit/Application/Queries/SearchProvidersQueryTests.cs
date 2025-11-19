@@ -7,7 +7,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.Queries;
 /// Testes unitários para SearchProvidersQuery (ICacheableQuery)
 /// </summary>
 [Trait("Category", "Unit")]
-[Trait("Module", "Search")]
+[Trait("Module", "SearchProviders")]
 [Trait("Component", "Query")]
 public class SearchProvidersQueryTests
 {

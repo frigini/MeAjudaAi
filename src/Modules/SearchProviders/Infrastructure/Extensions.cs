@@ -9,14 +9,14 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure;
 
 /// <summary>
-/// Métodos de extensão para registrar serviços da camada de Infrastructure do Search.
+/// Métodos de extensão para registrar serviços da camada de Infrastructure do SearchProviders.
 /// </summary>
 public static class Extensions
 {
     /// <summary>
-    /// Registra serviços da camada de Infrastructure do Search.
+    /// Registra serviços da camada de Infrastructure do SearchProviders.
     /// </summary>
-    public static IServiceCollection AddSearchInfrastructure(
+    public static IServiceCollection AddSearchProvidersInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
     {

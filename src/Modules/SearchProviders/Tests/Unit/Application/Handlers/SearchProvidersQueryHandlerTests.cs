@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.Handlers;
 /// Testes unitários para SearchProvidersQueryHandler
 /// </summary>
 [Trait("Category", "Unit")]
-[Trait("Module", "Search")]
+[Trait("Module", "SearchProviders")]
 [Trait("Component", "QueryHandler")]
 public class SearchProvidersQueryHandlerTests
 {

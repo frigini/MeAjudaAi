@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Domain.Entities;
 /// Testes unitários para SearchableProvider entity
 /// </summary>
 [Trait("Category", "Unit")]
-[Trait("Module", "Search")]
+[Trait("Module", "SearchProviders")]
 [Trait("Component", "Domain")]
 public class SearchableProviderTests
 {

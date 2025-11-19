@@ -7,7 +7,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 /// <summary>
 /// Fábrica para criar instâncias de SearchProvidersDbContext em tempo de design (para migrações).
 /// </summary>
-public class SearchDbContextFactory : IDesignTimeDbContextFactory<SearchProvidersDbContext>
+public class SearchProvidersDbContextFactory : IDesignTimeDbContextFactory<SearchProvidersDbContext>
 {
     public SearchProvidersDbContext CreateDbContext(string[] args)
     {

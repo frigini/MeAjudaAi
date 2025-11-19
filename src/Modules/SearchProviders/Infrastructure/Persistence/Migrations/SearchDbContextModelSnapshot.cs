@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SearchProvidersDbContext))]
-    partial class SearchDbContextModelSnapshot : ModelSnapshot
+    partial class SearchProvidersDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

@@ -1,10 +1,10 @@
-# 🔍 módulo SearchProvidersProvidersProvidersProviders - Busca Geoespacial de Prestadores
+# 🔍 módulo SearchProviders - Busca Geoespacial de Prestadores
 
-Este documento detalha a implementação completa do módulo SearchProvidersProvidersProvidersProviders, responsável pela busca geoespacial de prestadores de serviços na plataforma MeAjudaAi.
+Este documento detalha a implementação completa do módulo SearchProviders, responsável pela busca geoespacial de prestadores de serviços na plataforma MeAjudaAi.
 
 ## 🎯 Visão Geral
 
-O módulo SearchProvidersProvidersProvidersProviders implementa um **read model otimizado** para buscas geoespaciais de prestadores, utilizando **PostGIS** para queries eficientes baseadas em localização. Segue os princípios de **Domain-Driven Design (DDD)** e **Clean Architecture**.
+O módulo SearchProviders implementa um **read model otimizado** para buscas geoespaciais de prestadores, utilizando **PostGIS** para queries eficientes baseadas em localização. Segue os princípios de **Domain-Driven Design (DDD)** e **Clean Architecture**.
 
 ### **Responsabilidades Principais**
 - ✅ **Busca por proximidade** (raio de distância em quilômetros)
@@ -23,12 +23,12 @@ src/Modules/Search/
 │   └── Endpoints/                 # Minimal APIs
 │       └── SearchProvidersEndpoint.cs
 ├── Application/                   # Camada de aplicação (CQRS)
-│   ├── Queries/                   # SearchProvidersProvidersProvidersQuery
-│   ├── Handlers/                  # SearchProvidersProvidersProvidersQueryHandler
+│   ├── Queries/                   # SearchProvidersQuery
+│   ├── Handlers/                  # SearchProvidersQueryHandler
 │   ├── Validators/                # FluentValidation
 │   └── DTOs/                      # Data Transfer Objects
 ├── Domain/                        # Camada de domínio
-│   ├── Entities/                  # SearchProvidersProvidersableProvider (aggregate)
+│   ├── Entities/                  # SearchableProvider (aggregate)
 │   ├── ValueObjects/              # SearchProvidersProvidersResult, SearchableProviderId
 │   ├── Enums/                     # ESubscriptionTier
 │   └── Repositories/              # ISearchableProviderRepository
@@ -36,7 +36,7 @@ src/Modules/Search/
 │   ├── Persistence/               # Entity Framework + PostGIS
 │   │   ├── Configurations/        # EF Core entity configurations
 │   │   ├── Migrations/            # Database migrations
-│   │   └── Repositories/          # SearchProvidersProvidersableProviderRepository
+│   │   └── Repositories/          # SearchableProviderRepository
 │   └── Extensions.cs              # DI registration
 └── Tests/                         # Testes do módulo
     ├── Unit/                      # Testes unitários
@@ -71,7 +71,7 @@ Read model denormalizado com dados necessários para busca:
 ### **Requisitos de Sistema**
 
 #### **PostgreSQL com PostGIS**
-O módulo SearchProvidersProvidersProvidersProviders requer PostgreSQL 12+ com a extensão PostGIS para queries geoespaciais.
+O módulo SearchProviders requer PostgreSQL 12+ com a extensão PostGIS para queries geoespaciais.
 
 **Instalação do PostGIS:**
 
@@ -139,16 +139,16 @@ export DB_CONNECTION_STRING="Host=prod-server;Database=MeAjudaAi;..."
 O módulo é registrado automaticamente no `Program.cs`:
 
 ```csharp
-// Registra o módulo SearchProvidersProvidersProvidersProviders completo (Domain, Application, Infrastructure, API)
+// Registra o módulo SearchProviders completo (Domain, Application, Infrastructure, API)
 // Internamente registra DbContext, Repositories, Handlers, Validators
-builder.Services.AddSearchModule(builder.Configuration);
+builder.Services.AddSearchProvidersModule(builder.Configuration);
 
-// Mapeia todos os endpoints do módulo SearchProvidersProvidersProvidersProviders
+// Mapeia todos os endpoints do módulo SearchProviders
 // Substitui a necessidade de chamar métodos individuais de registro
-app.UseSearchModule();
+app.UseSearchProvidersModule();
 ```
 
-**Nota:** Os métodos `AddSearchModule()` e `UseSearchModule()` substituem as chamadas individuais anteriores (`AddSearchInfrastructure`, `AddSearchApplication`, `MapSearchEndpoints`), consolidando o registro em dois métodos simples.
+**Nota:** Os métodos `AddSearchProvidersModule()` e `UseSearchProvidersModule()` substituem as chamadas individuais anteriores (`AddSearchProvidersInfrastructure`, `AddSearchProvidersApplication`, `MapSearchProvidersEndpoints`), consolidando o registro em dois métodos simples.
 
 ---
 
@@ -351,11 +351,11 @@ USING GIST (location);
 ## 🔗 Integração com Outros Módulos
 
 > ⚠️ **IMPORTANTE**: A integração automática com outros módulos ainda não está implementada.
-> O módulo SearchProvidersProvidersProvidersProviders atualmente opera de forma independente sem sincronização automática.
+> O módulo SearchProviders atualmente opera de forma independente sem sincronização automática.
 > Os dados são estáticos até que a integração via eventos de domínio seja implementada.
 
 ### **Providers Module**
-O módulo SearchProvidersProvidersProvidersProviders é um **read model** sincronizado com o módulo Providers:
+O módulo SearchProviders é um **read model** sincronizado com o módulo Providers:
 - Eventos de domínio disparam atualização do SearchableProvider
 - Sincronização via domain events ou mensageria (futura implementação)
 
@@ -402,7 +402,9 @@ Tests/
 ### **Executar Testes**
 
 ```powershell
-# Todos os testes do módulo SearchProvidersProvidersProvidersProviders
+```powershell
+# Todos os testes do módulo SearchProviders
+dotnet test src\Modules\Search\Tests\
 dotnet test src\Modules\Search\Tests\
 
 # Apenas testes unitários
@@ -529,7 +531,7 @@ redis-cli ping  # Deve retornar PONG
 
 ## 🤝 Contribuindo
 
-Para contribuir com o módulo SearchProvidersProvidersProvidersProviders:
+Para contribuir com o módulo SearchProviders:
 
 1. Leia o [Guia de Desenvolvimento](../development.md)
 2. Implemente testes (cobertura mínima: 80%)

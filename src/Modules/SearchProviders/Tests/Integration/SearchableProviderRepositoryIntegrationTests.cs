@@ -11,7 +11,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 /// Testes de integração para SearchableProviderRepository com PostGIS
 /// </summary>
 [Trait("Category", "Integration")]
-[Trait("Module", "Search")]
+[Trait("Module", "SearchProviders")]
 [Trait("Component", "Repository")]
 public class SearchableProviderRepositoryIntegrationTests : SearchProvidersIntegrationTestBase
 {

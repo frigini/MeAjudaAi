@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.Validators;
 /// Testes unitários para SearchProvidersQueryValidator
 /// </summary>
 [Trait("Category", "Unit")]
-[Trait("Module", "Search")]
+[Trait("Module", "SearchProviders")]
 [Trait("Component", "Validator")]
 public class SearchProvidersQueryValidatorTests
 {

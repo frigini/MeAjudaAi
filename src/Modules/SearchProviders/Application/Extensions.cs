@@ -11,14 +11,14 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Modules.SearchProviders.Application;
 
 /// <summary>
-/// Métodos de extensão para registrar serviços da camada de Application do Search.
+/// Métodos de extensão para registrar serviços da camada de Application do SearchProviders.
 /// </summary>
 public static class Extensions
 {
     /// <summary>
-    /// Registra serviços da camada de Application do Search.
+    /// Registra serviços da camada de Application do SearchProviders.
     /// </summary>
-    public static IServiceCollection AddSearchApplication(this IServiceCollection services)
+    public static IServiceCollection AddSearchProvidersApplication(this IServiceCollection services)
     {
         // Registrar query handlers
         services.AddScoped<IQueryHandler<SearchProvidersQuery, Result<PagedResult<SearchableProviderDto>>>, Handlers.SearchProvidersQueryHandler>();

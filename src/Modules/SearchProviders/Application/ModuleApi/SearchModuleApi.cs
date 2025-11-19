@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 
 /// <summary>
-/// Implementação da API pública do módulo Search para outros módulos.
+/// Implementação da API pública do módulo SearchProviders para outros módulos.
 /// </summary>
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class SearchModuleApi(
@@ -21,7 +21,7 @@ public sealed class SearchModuleApi(
 {
     private static class ModuleMetadata
     {
-        public const string Name = "Search";
+        public const string Name = "SearchProviders";
         public const string Version = "1.0";
     }
 
@@ -32,7 +32,7 @@ public sealed class SearchModuleApi(
     {
         try
         {
-            logger.LogDebug("Checking Search module availability");
+            logger.LogDebug("Checking SearchProviders module availability");
 
             // Teste básico: fazer uma busca com coordenadas válidas e radius pequeno
             var testResult = await SearchProvidersAsync(
@@ -46,22 +46,22 @@ public sealed class SearchModuleApi(
             // Módulo está disponível se conseguiu executar a busca (mesmo que retorne 0 resultados)
             if (testResult.IsSuccess)
             {
-                logger.LogDebug("Search module is available and healthy");
+                logger.LogDebug("SearchProviders module is available and healthy");
             }
             else
             {
-                logger.LogWarning("Search module test query failed");
+                logger.LogWarning("SearchProviders module test query failed");
             }
             return testResult.IsSuccess;
         }
         catch (OperationCanceledException)
         {
-            logger.LogDebug("Search module availability check was cancelled");
+            logger.LogDebug("SearchProviders module availability check was cancelled");
             throw;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error checking Search module availability");
+            logger.LogError(ex, "Error checking SearchProviders module availability");
             return false;
         }
     }

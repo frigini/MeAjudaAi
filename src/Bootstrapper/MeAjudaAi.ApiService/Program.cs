@@ -32,7 +32,7 @@ public partial class Program
             builder.Services.AddUsersModule(builder.Configuration);
             builder.Services.AddProvidersModule(builder.Configuration);
             builder.Services.AddDocumentsModule(builder.Configuration);
-            builder.Services.AddSearchModule(builder.Configuration);
+            builder.Services.AddSearchProvidersModule(builder.Configuration);
             builder.Services.AddLocationModule(builder.Configuration);
             builder.Services.AddCatalogsModule(builder.Configuration);
 
@@ -106,7 +106,7 @@ public partial class Program
         app.UseUsersModule();
         app.UseProvidersModule();
         app.UseDocumentsModule();
-        app.UseSearchModule();
+        app.UseSearchProvidersModule();
         app.UseLocationModule();
         app.UseCatalogsModule();
     }
