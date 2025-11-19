@@ -192,7 +192,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        
+
         // Verify category was deleted
         var getResponse = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);

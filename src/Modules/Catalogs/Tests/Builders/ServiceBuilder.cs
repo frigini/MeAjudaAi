@@ -19,7 +19,7 @@ public class ServiceBuilder : BuilderBase<Service>
             {
                 var generatedName = f.Commerce.ProductName();
                 var generatedDescription = f.Commerce.ProductDescription();
-                
+
                 var service = Service.Create(
                     _categoryId ?? ServiceCategoryId.New(),
                     _name ?? (generatedName.Length <= 150 ? generatedName : generatedName[..150]),
