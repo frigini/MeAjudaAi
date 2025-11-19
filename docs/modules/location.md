@@ -419,7 +419,9 @@ public class SearchableProvider
 ### **Otimizações Futuras**
 - [ ] Cache Redis para CEPs (TTL: 24h)
 - [ ] Warm-up de circuit breakers no startup
-        - [ ] Métricas customizadas (Polly telemetry)## 🚀 Próximos Passos
+        - [ ] Métricas customizadas (Polly telemetry)
+
+## 🚀 Próximos Passos
 
 ### **Fase 2 - Geocoding**
 - [ ] Implementar `GeocodingService`

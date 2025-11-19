@@ -18,7 +18,7 @@ public class ServiceBuilder : BuilderBase<Service>
             .CustomInstantiator(f =>
             {
                 var service = Service.Create(
-                    _categoryId ?? new ServiceCategoryId(Guid.NewGuid()),
+                    _categoryId ?? ServiceCategoryId.New(),
                     _name ?? f.Commerce.ProductName(),
                     _description ?? f.Commerce.ProductDescription(),
                     _displayOrder >= 0 ? _displayOrder : f.Random.Int(1, 100)
@@ -52,7 +52,7 @@ public class ServiceBuilder : BuilderBase<Service>
         return this;
     }
 
-    public ServiceBuilder WithDescription(string description)
+    public ServiceBuilder WithDescription(string? description)
     {
         _description = description;
         return this;

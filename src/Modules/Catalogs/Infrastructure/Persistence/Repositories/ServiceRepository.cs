@@ -20,6 +20,7 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
         var idList = ids.ToList();
         return await context.Services
             .AsNoTracking()
+            .Include(s => s.Category)
             .Where(s => idList.Contains(s.Id))
             .ToListAsync(cancellationToken);
     }
@@ -36,7 +37,9 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
 
     public async Task<IReadOnlyList<Service>> GetAllAsync(bool activeOnly = false, CancellationToken cancellationToken = default)
     {
-        var query = context.Services.AsNoTracking().AsQueryable();
+        IQueryable<Service> query = context.Services
+            .AsNoTracking()
+            .Include(s => s.Category);
 
         if (activeOnly)
             query = query.Where(s => s.IsActive);

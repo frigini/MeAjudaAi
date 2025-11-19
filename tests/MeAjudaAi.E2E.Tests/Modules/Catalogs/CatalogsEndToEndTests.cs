@@ -58,7 +58,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
         result.TryGetProperty("data", out var data).Should().BeTrue();
-        
+
         var categories = data.Deserialize<ServiceCategoryDto[]>(JsonOptions);
         categories.Should().NotBeNull();
         categories!.Length.Should().BeGreaterThanOrEqualTo(3, "should have at least the 3 created categories");
@@ -110,7 +110,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
 
         // Assert - Should reject with BadRequest or NotFound
         response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotFound, HttpStatusCode.UnprocessableEntity);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         content.Should().NotBeNullOrEmpty();
     }
@@ -132,7 +132,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
         result.TryGetProperty("data", out var data).Should().BeTrue();
-        
+
         var services = data.Deserialize<ServiceListDto[]>(JsonOptions);
         services.Should().NotBeNull();
         services!.Length.Should().Be(3, "should return exactly 3 services for this category");
@@ -162,7 +162,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         // Verify the category was actually updated
         var getResponse = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var updatedCategory = await ReadJsonAsync<ServiceCategoryDto>(getResponse);
         updatedCategory.Should().NotBeNull();
         updatedCategory!.Name.Should().Be(updateRequest.Name);
