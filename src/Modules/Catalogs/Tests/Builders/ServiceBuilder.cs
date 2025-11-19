@@ -21,7 +21,7 @@ public class ServiceBuilder : BuilderBase<Service>
                     _categoryId ?? new ServiceCategoryId(Guid.NewGuid()),
                     _name ?? f.Commerce.ProductName(),
                     _description ?? f.Commerce.ProductDescription(),
-                    _displayOrder > 0 ? _displayOrder : f.Random.Int(1, 100)
+                    _displayOrder >= 0 ? _displayOrder : f.Random.Int(1, 100)
                 );
 
                 // Define o estado de ativo/inativo

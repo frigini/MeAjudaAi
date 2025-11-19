@@ -44,7 +44,14 @@ public sealed class SearchModuleApi(
                 cancellationToken: cancellationToken);
 
             // Módulo está disponível se conseguiu executar a busca (mesmo que retorne 0 resultados)
-            logger.LogDebug("Search module is available and healthy");
+            if (testResult.IsSuccess)
+            {
+                logger.LogDebug("Search module is available and healthy");
+            }
+            else
+            {
+                logger.LogWarning("Search module test query failed");
+            }
             return testResult.IsSuccess;
         }
         catch (OperationCanceledException)

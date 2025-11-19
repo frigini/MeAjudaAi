@@ -250,11 +250,19 @@ public sealed class CatalogsModuleApi(
 
             // Deduplicate input IDs and separate empty GUIDs
             var distinctIds = serviceIds.Distinct().ToList();
-            var emptyGuids = distinctIds.Where(id => id == Guid.Empty).ToList();
-            var validGuids = distinctIds.Except(emptyGuids).ToList();
+            var validGuids = new List<Guid>();
 
-            // Empty GUIDs are immediately invalid
-            invalidIds.AddRange(emptyGuids);
+            foreach (var id in distinctIds)
+            {
+                if (id == Guid.Empty)
+                {
+                    invalidIds.Add(id);
+                }
+                else
+                {
+                    validGuids.Add(id);
+                }
+            }
 
             // Only convert non-empty GUIDs to ServiceId value objects
             if (validGuids.Count > 0)

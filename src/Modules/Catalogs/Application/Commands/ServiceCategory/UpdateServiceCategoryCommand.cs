@@ -7,5 +7,5 @@ public sealed record UpdateServiceCategoryCommand(
     Guid Id,
     string Name,
     string? Description,
-    int DisplayOrder
+    int DisplayOrder = 0
 ) : Command<Result>;

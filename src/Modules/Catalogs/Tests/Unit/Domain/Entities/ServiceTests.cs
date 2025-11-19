@@ -61,6 +61,18 @@ public class ServiceTests
     }
 
     [Fact]
+    public void Create_WithNegativeDisplayOrder_ShouldThrowCatalogDomainException()
+    {
+        // Arrange
+        var categoryId = new ServiceCategoryId(Guid.NewGuid());
+
+        // Act & Assert
+        var act = () => Service.Create(categoryId, "Valid Name", null, -1);
+        act.Should().Throw<CatalogDomainException>()
+            .WithMessage("*Display order cannot be negative*");
+    }
+
+    [Fact]
     public void Update_WithValidParameters_ShouldUpdateService()
     {
         // Arrange
@@ -79,6 +91,19 @@ public class ServiceTests
         service.Description.Should().Be(newDescription);
         service.DisplayOrder.Should().Be(newDisplayOrder);
         service.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Update_WithNegativeDisplayOrder_ShouldThrowCatalogDomainException()
+    {
+        // Arrange
+        var categoryId = new ServiceCategoryId(Guid.NewGuid());
+        var service = Service.Create(categoryId, "Test Service", null, 0);
+
+        // Act & Assert
+        var act = () => service.Update("Valid Name", null, -5);
+        act.Should().Throw<CatalogDomainException>()
+            .WithMessage("*Display order cannot be negative*");
     }
 
     [Fact]

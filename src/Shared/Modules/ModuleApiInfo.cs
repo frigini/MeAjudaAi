@@ -5,7 +5,7 @@ namespace MeAjudaAi.Shared.Modules;
 /// </summary>
 /// <param name="ModuleName">Nome do módulo</param>
 /// <param name="ApiVersion">Versão da API</param>
-/// <param name="ImplementationType">Tipo completo da implementação</param>
+/// <param name="ImplementationType">Tipo completo da implementação (formato: Namespace.TypeName, AssemblyName)</param>
 /// <param name="IsAvailable">Indica se o módulo está disponível e saudável</param>
 public sealed record ModuleApiInfo(
     string ModuleName,

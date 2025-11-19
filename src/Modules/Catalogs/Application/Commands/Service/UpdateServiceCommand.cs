@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Functional;
 
@@ -8,7 +9,11 @@ namespace MeAjudaAi.Modules.Catalogs.Application.Commands.Service;
 /// </summary>
 public sealed record UpdateServiceCommand(
     Guid Id,
+    [Required]
+    [MaxLength(150)]
     string Name,
+    [MaxLength(1000)]
     string? Description,
+    [Range(0, int.MaxValue)]
     int DisplayOrder
 ) : Command<Result>;

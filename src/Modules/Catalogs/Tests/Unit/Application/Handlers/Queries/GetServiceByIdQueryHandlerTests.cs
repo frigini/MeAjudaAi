@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Catalogs.Application.Handlers.Queries;
 using MeAjudaAi.Modules.Catalogs.Application.Queries.Service;
+using MeAjudaAi.Modules.Catalogs.Domain.Entities;
 using MeAjudaAi.Modules.Catalogs.Domain.Repositories;
 using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.Catalogs.Tests.Builders;
@@ -59,7 +60,7 @@ public class GetServiceByIdQueryHandlerTests
 
         _repositoryMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((MeAjudaAi.Modules.Catalogs.Domain.Entities.Service?)null);
+            .ReturnsAsync((Service?)null);
 
         // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);

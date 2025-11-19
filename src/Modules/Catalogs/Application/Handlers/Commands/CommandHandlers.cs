@@ -347,6 +347,17 @@ public sealed class ChangeServiceCategoryCommandHandler(
             if (!newCategory.IsActive)
                 return Result.Failure("Cannot move service to inactive category.");
 
+            // Ensure the name is still unique in the target category
+            if (await serviceRepository.ExistsWithNameAsync(
+                    service.Name,
+                    service.Id,
+                    newCategoryId,
+                    cancellationToken))
+            {
+                return Result.Failure(
+                    $"A service with name '{service.Name}' already exists in the target category.");
+            }
+
             service.ChangeCategory(newCategoryId);
 
             await serviceRepository.UpdateAsync(service, cancellationToken);

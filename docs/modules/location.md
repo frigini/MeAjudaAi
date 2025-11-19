@@ -316,7 +316,7 @@ services.AddHttpClient<IViaCepClient, ViaCepClient>()
 
 ## 📊 Estrutura de Pastas
 
-```
+```plaintext
 src/Modules/Location/
 ├── API/
 │   └── MeAjudaAi.Modules.Location.API.csproj

@@ -193,7 +193,7 @@ POST   /api/v1/catalogs/services/{id}/change-category # Mudar categoria [Admin]
 POST   /api/v1/catalogs/services/validate            # Validar batch de serviços
 ```
 
-**Autorização:** Todos endpoints requerem role `Admin`, exceto `GET` e `validate`.
+**Autorização:** Todos os endpoints requerem role `Admin`, exceto `GET` e `validate`.
 
 ## 🔌 Module API - Comunicação Inter-Módulos
 
@@ -359,7 +359,7 @@ public class SearchableProvider
 
 ## 📊 Estrutura de Pastas
 
-```
+```plaintext
 src/Modules/Catalogs/
 ├── API/
 │   ├── Endpoints/
@@ -448,7 +448,7 @@ src/Modules/Catalogs/
 - Application: >85%
 - Infrastructure: >70%
 
-## 📈 Métricas e Performance
+## 📈 Métricas e Desempenho
 
 ### **Otimizações Implementadas**
 - ✅ Batch query em ValidateServicesAsync (Contains predicate)

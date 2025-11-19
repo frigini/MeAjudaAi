@@ -192,7 +192,7 @@ public sealed class UsersModuleApi(
 
         return result.Match(
             onSuccess: _ => Result<bool>.Success(true),
-            onFailure: _ => Result<bool>.Success(false)
+            onFailure: _ => Result<bool>.Success(false) // Any error means user doesn't exist
         );
     }
 }

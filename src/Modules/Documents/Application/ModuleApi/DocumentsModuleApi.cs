@@ -23,8 +23,8 @@ namespace MeAjudaAi.Modules.Documents.Application.ModuleApi;
 /// <para>GetDocumentByIdAsync retorna Success(null) para documentos inexistentes em vez de tratar
 /// "not found" como falha. A verificação de disponibilidade depende desta convenção.</para>
 /// <para><strong>Metadados do Módulo:</strong></para>
-/// <para>Os valores do atributo ModuleApi devem corresponder às constantes ModuleNameConst e ApiVersionConst.
-/// Um teste unitário valida esta consistência para prevenir deriva de configuração.</para>
+/// <para>Os valores do atributo ModuleApi devem corresponder às propriedades ModuleMetadata.Name e ModuleMetadata.Version.
+/// Esta consistência é garantida pela classe aninhada ModuleMetadata que centraliza as constantes.</para>
 /// </remarks>
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class DocumentsModuleApi(
