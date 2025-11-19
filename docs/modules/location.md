@@ -43,7 +43,7 @@ public sealed class Cep
 
 **Validações:**
 - ✅ Deve ter exatamente 8 dígitos
--     - ✅ Remove automaticamente formatação (-, . e outros caracteres especiais)
+  - ✅ Remove automaticamente formatação (-, . e outros caracteres especiais)
 - ✅ Factory method seguro (retorna null se inválido)
 
 #### **Coordinates**
@@ -419,7 +419,7 @@ public class SearchableProvider
 ### **Otimizações Futuras**
 - [ ] Cache Redis para CEPs (TTL: 24h)
 - [ ] Warm-up de circuit breakers no startup
-        - [ ] Métricas customizadas (Polly telemetry)
+  - [ ] Métricas customizadas (Polly telemetry)
 
 ## 🚀 Próximos Passos
 

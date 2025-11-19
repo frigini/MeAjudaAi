@@ -30,11 +30,6 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         var response = await PostJsonAsync("/api/v1/catalogs/categories", createCategoryRequest);
 
         // Assert
-        if (response.StatusCode != HttpStatusCode.Created)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            throw new InvalidOperationException($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
-        }
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var locationHeader = response.Headers.Location?.ToString();
