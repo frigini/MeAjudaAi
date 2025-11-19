@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>MeAjudaAi.Modules.Locations.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\MeAjudaAi.Shared.csproj" />
+    <ProjectReference Include="..\Domain\MeAjudaAi.Modules.Locations.Domain.csproj" />
+    <ProjectReference Include="..\Application\MeAjudaAi.Modules.Locations.Application.csproj" />
+  </ItemGroup>
+
+</Project>
