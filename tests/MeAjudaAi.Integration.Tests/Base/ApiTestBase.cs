@@ -170,13 +170,13 @@ public abstract class ApiTestBase : IAsyncLifetime
         await ApplyMigrationForContextAsync(usersContext, "Users", logger, "UsersDbContext primeiro (cria database e schema users)");
         await ApplyMigrationForContextAsync(providersContext, "Providers", logger, "ProvidersDbContext (banco já existe, só precisa do schema providers)");
         await ApplyMigrationForContextAsync(documentsContext, "Documents", logger, "DocumentsDbContext (banco já existe, só precisa do schema documents)");
-        await ApplyMigrationForContextAsync(catalogsContext, "Catalogs", logger, "ServiceCatalogsDbContext (banco já existe, só precisa do schema service_catalogs)");
+        await ApplyMigrationForContextAsync(catalogsContext, "ServiceCatalogs", logger, "ServiceCatalogsDbContext (banco já existe, só precisa do schema service_catalogs)");
 
         // Verifica se as tabelas existem
         await VerifyContextAsync(usersContext, "Users", () => usersContext.Users.CountAsync(), logger);
         await VerifyContextAsync(providersContext, "Providers", () => providersContext.Providers.CountAsync(), logger);
         await VerifyContextAsync(documentsContext, "Documents", () => documentsContext.Documents.CountAsync(), logger);
-        await VerifyContextAsync(catalogsContext, "Catalogs", () => catalogsContext.ServiceCategories.CountAsync(), logger);
+        await VerifyContextAsync(catalogsContext, "ServiceCatalogs", () => catalogsContext.ServiceCategories.CountAsync(), logger);
     }
 
     public async ValueTask DisposeAsync()

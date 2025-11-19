@@ -66,7 +66,7 @@ public class ServiceCatalogsDependencyInjectionTest(ITestOutputHelper testOutput
     [Fact]
     public void Should_List_All_Registered_CommandHandlers()
     {
-        // Arrange - Scan Catalogs assembly for command handler types
+        // Arrange - Scan ServiceCatalogs assembly for command handler types
         var catalogsAssembly = typeof(CreateServiceCategoryCommand).Assembly;
         var commandHandlerType = typeof(ICommandHandler<,>);
 
@@ -78,10 +78,10 @@ public class ServiceCatalogsDependencyInjectionTest(ITestOutputHelper testOutput
                 i.GetGenericTypeDefinition() == commandHandlerType))
             .ToList();
 
-        testOutput.WriteLine($"Found {handlerTypes.Count} command handler types in Catalogs assembly:");
+        testOutput.WriteLine($"Found {handlerTypes.Count} command handler types in ServiceCatalogs assembly:");
 
         // Assert - Verify each handler can be resolved from DI
-        handlerTypes.Should().NotBeEmpty("Catalogs assembly should contain command handlers");
+        handlerTypes.Should().NotBeEmpty("ServiceCatalogs assembly should contain command handlers");
 
         foreach (var handlerType in handlerTypes)
         {

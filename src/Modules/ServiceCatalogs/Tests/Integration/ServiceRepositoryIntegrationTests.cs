@@ -1,6 +1,9 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 using MeAjudaAi.Shared.Time;
+using Domain = MeAjudaAi.Modules.ServiceCatalogs.Domain;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
@@ -79,6 +82,7 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
 
         // Assert
         result.Should().Contain(s => s.Id == activeService.Id);
+        result.Should().OnlyContain(s => s.IsActive, "all returned services should be active");
         result.Should().NotContain(s => s.Id == inactiveService.Id);
     }
 

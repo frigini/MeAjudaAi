@@ -53,7 +53,7 @@ public static class TestInfrastructureExtensions
 
             dbOptions.UseNpgsql(connectionString, npgsqlOptions =>
             {
-                npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.ServiceCatalogs.Infrastructure");
+                npgsqlOptions.MigrationsAssembly(typeof(ServiceCatalogsDbContext).Assembly.FullName);
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", options.Database.Schema);
                 npgsqlOptions.CommandTimeout(60);
             })

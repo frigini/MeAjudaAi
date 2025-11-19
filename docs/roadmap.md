@@ -305,7 +305,7 @@ public sealed class Service : AggregateRoot<ServiceId>
 - **Versionamento**: Sistema unificado via BaseEndpoint
 
 **5. Shared.Contracts** ✅
-- `Iservice_catalogsModuleApi` - Interface pública
+- `IServiceCatalogsModuleApi` - Interface pública
 - DTOs: ModuleServiceCategoryDto, ModuleServiceDto, ModuleServiceListDto, ModuleServiceValidationResultDto
 
 #### **API Pública Implementada**
