@@ -6,7 +6,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 /// <summary>
 /// Identificador fortemente tipado para o agregado Service.
 /// </summary>
-public class ServiceId : ValueObject
+public sealed class ServiceId : ValueObject
 {
     public Guid Value { get; }
 
