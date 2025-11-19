@@ -10,7 +10,7 @@ public class ServiceBuilder : BuilderBase<Service>
     private string? _name;
     private string? _description;
     private bool _isActive = true;
-    private int _displayOrder;
+    private int? _displayOrder = null;
 
     public ServiceBuilder()
     {
@@ -21,7 +21,7 @@ public class ServiceBuilder : BuilderBase<Service>
                     _categoryId ?? ServiceCategoryId.New(),
                     _name ?? f.Commerce.ProductName(),
                     _description ?? f.Commerce.ProductDescription(),
-                    _displayOrder >= 0 ? _displayOrder : f.Random.Int(1, 100)
+                    _displayOrder ?? f.Random.Int(0, 100)
                 );
 
                 // Define o estado de ativo/inativo
