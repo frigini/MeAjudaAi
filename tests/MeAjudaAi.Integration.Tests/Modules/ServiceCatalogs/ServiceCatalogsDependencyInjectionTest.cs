@@ -1,20 +1,20 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Catalogs.Application.Commands.Service;
-using MeAjudaAi.Modules.Catalogs.Application.Commands.ServiceCategory;
-using MeAjudaAi.Modules.Catalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Integration.Tests.Modules.Catalogs;
+namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
-/// 🧪 TESTE DIAGNÓSTICO PARA CATALOGS MODULE DEPENDENCY INJECTION
+/// 🧪 TESTE DIAGNÓSTICO PARA SERVICE CATALOGS MODULE DEPENDENCY INJECTION
 /// 
-/// Verifica se todos os command handlers do módulo Catalogs estão registrados
+/// Verifica se todos os command handlers do módulo ServiceCatalogs estão registrados
 /// </summary>
-public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : ApiTestBase
+public class ServiceCatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : ApiTestBase
 {
     [Fact]
     public void Should_Have_CommandDispatcher_Registered()
@@ -44,7 +44,7 @@ public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : Api
     public void Should_Have_ServiceCategoryRepository_Registered()
     {
         // Arrange & Act
-        var repository = Services.GetService<MeAjudaAi.Modules.Catalogs.Domain.Repositories.IServiceCategoryRepository>();
+        var repository = Services.GetService<MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories.IServiceCategoryRepository>();
 
         // Assert
         testOutput.WriteLine($"IServiceCategoryRepository registration: {repository != null}");
@@ -53,20 +53,20 @@ public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : Api
     }
 
     [Fact]
-    public void Should_Have_CatalogsDbContext_Registered()
+    public void Should_Have_ServiceCatalogsDbContext_Registered()
     {
         // Arrange & Act
-        var dbContext = Services.GetService<MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence.CatalogsDbContext>();
+        var dbContext = Services.GetService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
 
         // Assert
-        testOutput.WriteLine($"CatalogsDbContext registration: {dbContext != null}");
-        dbContext.Should().NotBeNull("CatalogsDbContext should be registered");
+        testOutput.WriteLine($"ServiceCatalogsDbContext registration: {dbContext != null}");
+        dbContext.Should().NotBeNull("ServiceCatalogsDbContext should be registered");
     }
 
     [Fact]
     public void Should_List_All_Registered_CommandHandlers()
     {
-        // Arrange - Scan Catalogs assembly for command handler types
+        // Arrange - Scan ServiceCatalogs assembly for command handler types
         var catalogsAssembly = typeof(CreateServiceCategoryCommand).Assembly;
         var commandHandlerType = typeof(ICommandHandler<,>);
 
@@ -78,10 +78,10 @@ public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : Api
                 i.GetGenericTypeDefinition() == commandHandlerType))
             .ToList();
 
-        testOutput.WriteLine($"Found {handlerTypes.Count} command handler types in Catalogs assembly:");
+        testOutput.WriteLine($"Found {handlerTypes.Count} command handler types in ServiceCatalogs assembly:");
 
         // Assert - Verify each handler can be resolved from DI
-        handlerTypes.Should().NotBeEmpty("Catalogs assembly should contain command handlers");
+        handlerTypes.Should().NotBeEmpty("ServiceCatalogs assembly should contain command handlers");
 
         foreach (var handlerType in handlerTypes)
         {

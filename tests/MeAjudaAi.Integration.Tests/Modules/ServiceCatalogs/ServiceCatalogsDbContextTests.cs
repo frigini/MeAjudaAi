@@ -1,25 +1,25 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace MeAjudaAi.Integration.Tests.Modules.Catalogs;
+namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
 /// Testes de integração para o DbContext do módulo Catalogs.
 /// Valida configurações do EF Core, relacionamentos e constraints.
 /// </summary>
-public class CatalogsDbContextTests : ApiTestBase
+public class ServiceCatalogsDbContextTests : ApiTestBase
 {
     [Fact]
-    public void CatalogsDbContext_ShouldBeRegistered()
+    public void ServiceCatalogsDbContext_ShouldBeRegistered()
     {
         // Arrange & Act
         using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetService<CatalogsDbContext>();
+        var dbContext = scope.ServiceProvider.GetService<ServiceCatalogsDbContext>();
 
         // Assert
-        dbContext.Should().NotBeNull("CatalogsDbContext should be registered in DI");
+        dbContext.Should().NotBeNull("ServiceCatalogsDbContext should be registered in DI");
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class CatalogsDbContextTests : ApiTestBase
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<CatalogsDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
 
         // Act
         var canConnect = await dbContext.Database.CanConnectAsync();
@@ -45,7 +45,7 @@ public class CatalogsDbContextTests : ApiTestBase
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<CatalogsDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
 
         // Act
         var canConnect = await dbContext.Database.CanConnectAsync();
@@ -63,10 +63,10 @@ public class CatalogsDbContextTests : ApiTestBase
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<CatalogsDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
 
         // Act
-        var serviceEntity = dbContext.Model.FindEntityType(typeof(MeAjudaAi.Modules.Catalogs.Domain.Entities.Service));
+        var serviceEntity = dbContext.Model.FindEntityType(typeof(MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service));
         var foreignKeys = serviceEntity?.GetForeignKeys();
 
         // Assert
@@ -79,13 +79,13 @@ public class CatalogsDbContextTests : ApiTestBase
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<CatalogsDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
 
         // Act
         var defaultSchema = dbContext.Model.GetDefaultSchema();
 
         // Assert
-        defaultSchema.Should().Be("catalogs", "Catalogs schema should exist in database");
+        defaultSchema.Should().Be("service_catalogs", "ServiceCatalogs schema should exist in database");
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class CatalogsDbContextTests : ApiTestBase
     {
         // Arrange
         using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<CatalogsDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
 
         // Act & Assert - Should be able to execute queries
         var canConnect = await dbContext.Database.CanConnectAsync();

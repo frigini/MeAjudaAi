@@ -1,6 +1,6 @@
 using System.Reflection;
 using MeAjudaAi.Shared.Contracts.Modules;
-using MeAjudaAi.Shared.Contracts.Modules.Catalogs;
+using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Contracts.Modules.Location;
 using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
@@ -288,10 +288,10 @@ public class ModuleApiArchitectureTests
     }
 
     [Fact]
-    public void ICatalogsModuleApi_ShouldHaveAllEssentialMethods()
+    public void IServiceCatalogsModuleApi_ShouldHaveAllEssentialMethods()
     {
         // Arrange
-        var type = typeof(ICatalogsModuleApi);
+        var type = typeof(IServiceCatalogsModuleApi);
 
         // Act
         var methods = type.GetMethods()

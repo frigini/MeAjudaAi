@@ -1,17 +1,17 @@
 using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.Catalogs.Application.DTOs;
-using MeAjudaAi.Modules.Catalogs.Domain.Entities;
-using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
-using MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace MeAjudaAi.E2E.Tests.Modules.Catalogs;
+namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
-/// Testes E2E para o módulo de Catálogos usando TestContainers
+/// Testes E2E para o módulo ServiceCatalogs usando TestContainers
 /// </summary>
-public class CatalogsEndToEndTests : TestContainerTestBase
+public class ServiceCatalogsEndToEndTests : TestContainerTestBase
 {
     [Fact]
     public async Task CreateServiceCategory_Should_Return_Success()
@@ -244,7 +244,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         // Act - Create category directly in database
         await WithServiceScopeAsync(async services =>
         {
-            var context = services.GetRequiredService<CatalogsDbContext>();
+            var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
             var category = ServiceCategory.Create(name, description, 1);
             categoryId = category.Id;
@@ -256,7 +256,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         // Assert - Verify category was persisted by ID for determinism
         await WithServiceScopeAsync(async services =>
         {
-            var context = services.GetRequiredService<CatalogsDbContext>();
+            var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
             var foundCategory = await context.ServiceCategories
                 .FirstOrDefaultAsync(c => c.Id == categoryId);
@@ -278,7 +278,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         // Act - Create category and service
         await WithServiceScopeAsync(async services =>
         {
-            var context = services.GetRequiredService<CatalogsDbContext>();
+            var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
             category = ServiceCategory.Create(Faker.Commerce.Department(), Faker.Lorem.Sentence(), 1);
             context.ServiceCategories.Add(category);
@@ -293,7 +293,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         // Assert - Verify service and category relationship by ID for determinism
         await WithServiceScopeAsync(async services =>
         {
-            var context = services.GetRequiredService<CatalogsDbContext>();
+            var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
             var foundService = await context.Services
                 .FirstOrDefaultAsync(s => s.Id == serviceId);
@@ -312,7 +312,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
 
         await WithServiceScopeAsync(async services =>
         {
-            var context = services.GetRequiredService<CatalogsDbContext>();
+            var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
             category = ServiceCategory.Create(
                 Faker.Commerce.Department(),
@@ -331,7 +331,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
     {
         await WithServiceScopeAsync(async services =>
         {
-            var context = services.GetRequiredService<CatalogsDbContext>();
+            var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
             for (int i = 0; i < count; i++)
             {
@@ -354,7 +354,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
 
         await WithServiceScopeAsync(async services =>
         {
-            var context = services.GetRequiredService<CatalogsDbContext>();
+            var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
             service = Service.Create(
                 new ServiceCategoryId(categoryId),
@@ -374,7 +374,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
     {
         await WithServiceScopeAsync(async services =>
         {
-            var context = services.GetRequiredService<CatalogsDbContext>();
+            var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
             for (int i = 0; i < count; i++)
             {

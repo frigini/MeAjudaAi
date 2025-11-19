@@ -1,9 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Contracts;
-// TODO Phase 2: Uncomment when shared contracts are added
-// using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
+using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;
@@ -24,7 +22,7 @@ public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
 
     private static async Task<IResult> ValidateAsync(
         [FromBody] ValidateServicesRequest request,
-        [FromServices] ServiceCatalogsModuleApi moduleApi,
+        [FromServices] IServiceCatalogsModuleApi moduleApi,
         CancellationToken cancellationToken)
     {
         var result = await moduleApi.ValidateServicesAsync(request.ServiceIds, cancellationToken);

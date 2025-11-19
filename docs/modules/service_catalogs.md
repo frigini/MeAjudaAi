@@ -1,10 +1,10 @@
-# 📋 Módulo Catalogs - Catálogo de Serviços
+# 📋 Módulo service_catalogs - Catálogo de Serviços
 
 > **✅ Status**: Módulo **implementado e funcional** (Novembro 2025)
 
 ## 🎯 Visão Geral
 
-O módulo **Catalogs** é responsável pelo **catálogo administrativo de serviços** oferecidos na plataforma MeAjudaAi, implementando um Bounded Context dedicado para gestão hierárquica de categorias e serviços.
+O módulo **service_catalogs** é responsável pelo **catálogo administrativo de serviços** oferecidos na plataforma MeAjudaAi, implementando um Bounded Context dedicado para gestão hierárquica de categorias e serviços.
 
 ### **Responsabilidades**
 - ✅ **Catálogo hierárquico** de categorias de serviços
@@ -16,8 +16,8 @@ O módulo **Catalogs** é responsável pelo **catálogo administrativo de servi�
 
 ## 🏗️ Arquitetura Implementada
 
-### **Bounded Context: Catalogs**
-- **Schema**: `catalogs` (isolado no PostgreSQL)
+### **Bounded Context: service_catalogs**
+- **Schema**: `service_catalogs` (isolado no PostgreSQL)
 - **Padrão**: DDD + CQRS
 - **Naming**: snake_case no banco, PascalCase no código
 
@@ -197,10 +197,10 @@ POST   /api/v1/catalogs/services/validate            # Validar batch de serviço
 
 ## 🔌 Module API - Comunicação Inter-Módulos
 
-### **Interface ICatalogsModuleApi**
+### **Interface Iservice_catalogsModuleApi**
 
 ```csharp
-public interface ICatalogsModuleApi : IModuleApi
+public interface Iservice_catalogsModuleApi : IModuleApi
 {
     // Service Categories
     Task<Result<ModuleServiceCategoryDto?>> GetServiceCategoryByIdAsync(
@@ -266,11 +266,11 @@ public sealed record ModuleServiceValidationResultDto(
 
 ```csharp
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
-public sealed class CatalogsModuleApi : ICatalogsModuleApi
+public sealed class service_catalogsModuleApi : Iservice_catalogsModuleApi
 {
     private static class ModuleMetadata
     {
-        public const string Name = "Catalogs";
+        public const string Name = "service_catalogs";
         public const string Version = "1.0";
     }
 
@@ -292,11 +292,11 @@ public sealed class CatalogsModuleApi : ICatalogsModuleApi
 ## 🗄️ Schema de Banco de Dados
 
 ```sql
--- Schema: catalogs
-CREATE SCHEMA IF NOT EXISTS catalogs;
+-- Schema: service_catalogs
+CREATE SCHEMA IF NOT EXISTS service_catalogs;
 
 -- Tabela: service_categories
-CREATE TABLE catalogs.service_categories (
+CREATE TABLE service_catalogs.service_categories (
     id UUID PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(500),
@@ -309,9 +309,9 @@ CREATE TABLE catalogs.service_categories (
 );
 
 -- Tabela: services
-CREATE TABLE catalogs.services (
+CREATE TABLE service_catalogs.services (
     id UUID PRIMARY KEY,
-    category_id UUID NOT NULL REFERENCES catalogs.service_categories(id),
+    category_id UUID NOT NULL REFERENCES service_catalogs.service_categories(id),
     name VARCHAR(150) NOT NULL UNIQUE,
     description VARCHAR(1000),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -323,11 +323,11 @@ CREATE TABLE catalogs.services (
 );
 
 -- Índices
-CREATE INDEX idx_services_category_id ON catalogs.services(category_id);
-CREATE INDEX idx_services_is_active ON catalogs.services(is_active);
-CREATE INDEX idx_service_categories_is_active ON catalogs.service_categories(is_active);
-CREATE INDEX idx_service_categories_display_order ON catalogs.service_categories(display_order);
-CREATE INDEX idx_services_display_order ON catalogs.services(display_order);
+CREATE INDEX idx_services_category_id ON service_catalogs.services(category_id);
+CREATE INDEX idx_services_is_active ON service_catalogs.services(is_active);
+CREATE INDEX idx_service_categories_is_active ON service_catalogs.service_categories(is_active);
+CREATE INDEX idx_service_categories_display_order ON service_catalogs.service_categories(display_order);
+CREATE INDEX idx_services_display_order ON service_catalogs.services(display_order);
 ```
 
 ## 🔗 Integração com Outros Módulos
@@ -342,7 +342,7 @@ public class Provider
 
 public class ProviderService
 {
-    public Guid ServiceId { get; set; }  // FK para Catalogs.Service
+    public Guid ServiceId { get; set; }  // FK para service_catalogs.Service
     public decimal Price { get; set; }
     public bool IsOffered { get; set; }
 }
@@ -360,13 +360,13 @@ public class SearchableProvider
 ## 📊 Estrutura de Pastas
 
 ```plaintext
-src/Modules/Catalogs/
+src/Modules/ServiceCatalogs/
 ├── API/
 │   ├── Endpoints/
 │   │   ├── ServiceCategoryEndpoints.cs
 │   │   ├── ServiceEndpoints.cs
-│   │   └── CatalogsModuleEndpoints.cs
-│   └── MeAjudaAi.Modules.Catalogs.API.csproj
+│   │   └── service_catalogsModuleEndpoints.cs
+│   └── MeAjudaAi.Modules.service_catalogs.API.csproj
 ├── Application/
 │   ├── Commands/
 │   │   ├── Service/                        # 6 commands
@@ -381,8 +381,8 @@ src/Modules/Catalogs/
 │   │       └── QueryHandlers.cs           # 6 handlers consolidados
 │   ├── DTOs/                               # 5 DTOs
 │   ├── ModuleApi/
-│   │   └── CatalogsModuleApi.cs
-│   └── MeAjudaAi.Modules.Catalogs.Application.csproj
+│   │   └── service_catalogsModuleApi.cs
+│   └── MeAjudaAi.Modules.service_catalogs.Application.csproj
 ├── Domain/
 │   ├── Entities/
 │   │   ├── Service.cs
@@ -398,10 +398,10 @@ src/Modules/Catalogs/
 │   ├── ValueObjects/
 │   │   ├── ServiceId.cs
 │   │   └── ServiceCategoryId.cs
-│   └── MeAjudaAi.Modules.Catalogs.Domain.csproj
+│   └── MeAjudaAi.Modules.service_catalogs.Domain.csproj
 ├── Infrastructure/
 │   ├── Persistence/
-│   │   ├── CatalogsDbContext.cs
+│   │   ├── service_catalogsDbContext.cs
 │   │   ├── Configurations/
 │   │   │   ├── ServiceConfiguration.cs
 │   │   │   └── ServiceCategoryConfiguration.cs
@@ -409,7 +409,7 @@ src/Modules/Catalogs/
 │   │       ├── ServiceRepository.cs
 │   │       └── ServiceCategoryRepository.cs
 │   ├── Extensions.cs
-│   └── MeAjudaAi.Modules.Catalogs.Infrastructure.csproj
+│   └── MeAjudaAi.Modules.service_catalogs.Infrastructure.csproj
 └── Tests/
     ├── Builders/
     │   ├── ServiceBuilder.cs
@@ -438,7 +438,7 @@ src/Modules/Catalogs/
   - Domain events
 
 ### **Testes de Integração**
-- ✅ **CatalogsIntegrationTests**: 29 testes passando
+- ✅ **service_catalogsIntegrationTests**: 29 testes passando
   - Endpoints REST completos
   - Module API
   - Repository operations

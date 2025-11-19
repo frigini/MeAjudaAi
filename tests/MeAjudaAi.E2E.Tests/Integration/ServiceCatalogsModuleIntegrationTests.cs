@@ -1,15 +1,14 @@
 using System.Net;
 using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.Catalogs.Application.DTOs;
 
 namespace MeAjudaAi.E2E.Tests.Integration;
 
 /// <summary>
-/// Testes de integração entre o módulo Catalogs e outros módulos
+/// Testes de integração entre o módulo ServiceCatalogs e outros módulos
 /// Demonstra como o módulo de catálogos pode ser consumido por outros módulos
 /// </summary>
-public class CatalogsModuleIntegrationTests : TestContainerTestBase
+public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
 {
     [Fact]
     public async Task ServicesModule_Can_Validate_Services_From_Catalogs()
@@ -233,6 +232,10 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
     #endregion
 
     #region DTOs
+
+    // NOTE: Local DTOs are intentionally defined here instead of importing from Application.DTOs
+    // to ensure E2E tests validate the actual API contract independently from internal DTOs.
+    // This prevents breaking changes in internal DTOs from being masked in integration tests.
 
     private record ServiceCategoryDto(
         Guid Id,

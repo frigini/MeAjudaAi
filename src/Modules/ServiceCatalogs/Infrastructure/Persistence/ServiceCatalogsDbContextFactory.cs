@@ -47,7 +47,7 @@ public sealed class ServiceCatalogsDbContextFactory : IDesignTimeDbContextFactor
             connectionString,
             npgsqlOptions =>
             {
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "ServiceCatalogs");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "service_catalogs");
                 npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
             });
 

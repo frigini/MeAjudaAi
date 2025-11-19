@@ -17,11 +17,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Aspire\MeAjudaAi.ServiceDefaults\MeAjudaAi.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\..\Modules\Catalogs\API\MeAjudaAi.Modules.Catalogs.API.csproj" />
     <ProjectReference Include="..\..\Modules\Documents\API\MeAjudaAi.Modules.Documents.API.csproj" />
     <ProjectReference Include="..\..\Modules\Locations\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Providers\API\MeAjudaAi.Modules.Providers.API.csproj" />
     <ProjectReference Include="..\..\Modules\SearchProviders\API\MeAjudaAi.Modules.SearchProviders.API.csproj" />
+    <ProjectReference Include="..\..\Modules\ServiceCatalogs\API\MeAjudaAi.Modules.ServiceCatalogs.API.csproj" />
     <ProjectReference Include="..\..\Modules\Users\API\MeAjudaAi.Modules.Users.API.csproj" />
     <ProjectReference Include="..\..\Shared\MeAjudaAi.Shared.csproj" />
   </ItemGroup>

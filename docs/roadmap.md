@@ -218,15 +218,15 @@ public interface ILocationModuleApi : IModuleApi
 
 ---
 
-### 1.6. ✅ Módulo Catalogs (Concluído)
+### 1.6. ✅ Módulo ServiceCatalogs (Concluído)
 
 **Status**: Implementado e funcional com testes completos
 
-**Objetivo**: Gerenciar tipos de serviços que prestadores podem oferecer através de um catálogo admin-managed.
+**Objetivo**: Gerenciar tipos de serviços que prestadores podem oferecer por catálogo gerenciado administrativamente.
 
 #### **Arquitetura Implementada**
 - **Padrão**: DDD + CQRS com hierarquia de categorias
-- **Schema**: `catalogs` (isolado)
+- **Schema**: `service_catalogs` (isolado)
 - **Naming**: snake_case no banco, PascalCase no código
 
 #### **Entidades de Domínio Implementadas**
@@ -275,10 +275,10 @@ public sealed class Service : AggregateRoot<ServiceId>
   - Categories: GetById, GetAll, GetWithCount
   - Services: GetById, GetAll, GetByCategory
 - **Handlers**: 11 Command Handlers + 6 Query Handlers
-- **Module API**: `CatalogsModuleApi` para comunicação inter-módulos
+- **Module API**: `ServiceCatalogsModuleApi` para comunicação inter-módulos
 
 **3. Infrastructure Layer** ✅
-- `CatalogsDbContext` com schema isolation (`catalogs`)
+- `ServiceCatalogsDbContext` com schema isolation (`service_catalogs`)
 - EF Core Configurations (snake_case, índices otimizados)
 - Repositories com SaveChangesAsync integrado
 - DI registration com auto-migration support
@@ -305,12 +305,12 @@ public sealed class Service : AggregateRoot<ServiceId>
 - **Versionamento**: Sistema unificado via BaseEndpoint
 
 **5. Shared.Contracts** ✅
-- `ICatalogsModuleApi` - Interface pública
+- `IServiceCatalogsModuleApi` - Interface pública
 - DTOs: ModuleServiceCategoryDto, ModuleServiceDto, ModuleServiceListDto, ModuleServiceValidationResultDto
 
 #### **API Pública Implementada**
 ```csharp
-public interface ICatalogsModuleApi : IModuleApi
+public interface IServiceCatalogsModuleApi : IModuleApi
 {
     Task<Result<ModuleServiceCategoryDto?>> GetServiceCategoryByIdAsync(Guid categoryId, CancellationToken ct = default);
     Task<Result<IReadOnlyList<ModuleServiceCategoryDto>>> GetAllServiceCategoriesAsync(bool activeOnly = true, CancellationToken ct = default);
@@ -336,7 +336,7 @@ public interface ICatalogsModuleApi : IModuleApi
 
 #### **Próximos Passos (Pós-MVP)**
 1. **Testes**: Implementar unit tests e integration tests
-2. **Migrations**: Criar e aplicar migration inicial do schema `catalogs`
+2. **Migrations**: Criar e aplicar migration inicial do schema `service_catalogs`
 3. **Bootstrap**: Integrar no Program.cs e AppHost
 4. **Provider Integration**: Estender Providers para suportar ProviderServices
 5. **Admin UI**: Interface para gestão de catálogo
@@ -350,8 +350,8 @@ public interface ICatalogsModuleApi : IModuleApi
 
 #### **Schema do Banco de Dados**
 ```sql
--- Schema: catalogs
-CREATE TABLE catalogs.service_categories (
+-- Schema: service_catalogs
+CREATE TABLE service_catalogs.service_categories (
     id UUID PRIMARY KEY,
     name VARCHAR(200) NOT NULL UNIQUE,
     description TEXT,
@@ -361,9 +361,9 @@ CREATE TABLE catalogs.service_categories (
     updated_at TIMESTAMP
 );
 
-CREATE TABLE catalogs.services (
+CREATE TABLE service_catalogs.services (
     id UUID PRIMARY KEY,
-    category_id UUID NOT NULL REFERENCES catalogs.service_categories(id),
+    category_id UUID NOT NULL REFERENCES service_catalogs.service_categories(id),
     name VARCHAR(200) NOT NULL UNIQUE,
     description TEXT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -372,9 +372,9 @@ CREATE TABLE catalogs.services (
     updated_at TIMESTAMP
 );
 
-CREATE INDEX idx_services_category_id ON catalogs.services(category_id);
-CREATE INDEX idx_services_is_active ON catalogs.services(is_active);
-CREATE INDEX idx_service_categories_is_active ON catalogs.service_categories(is_active);
+CREATE INDEX idx_services_category_id ON service_catalogs.services(category_id);
+CREATE INDEX idx_services_is_active ON service_catalogs.services(is_active);
+CREATE INDEX idx_service_categories_is_active ON service_catalogs.service_categories(is_active);
 ```
 
 ---
@@ -688,7 +688,7 @@ web/
 
 **Funcionalidades Core**:
 - **User & Provider Management**: Visualizar, suspender, verificar manualmente
-- **Catalogs Management**: Aprovar/rejeitar serviços sugeridos
+- **ServiceCatalogs Management**: Aprovar/rejeitar serviços sugeridos
 - **Review Moderation**: Lidar com reviews sinalizados
 - **Dashboard**: Métricas-chave do módulo Analytics
 
@@ -780,7 +780,7 @@ web/
 3. ✅ Módulo Documents (Concluído)
 4. ✅ Módulo Search & Discovery (Concluído)
 5. 📋 Módulo Location - CEP lookup e geocoding
-6. 📋 Módulo Catalogs - Catálogo admin-managed de categorias e serviços
+6. 📋 Módulo ServiceCatalogs - Catálogo admin-managed de categorias e serviços
 7. 📋 Admin Portal - Gestão básica
 8. 📋 Customer Profile - Gestão de perfil
 
