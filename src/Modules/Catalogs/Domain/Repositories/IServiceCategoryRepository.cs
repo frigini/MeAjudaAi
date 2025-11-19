@@ -4,44 +4,44 @@ using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
 namespace MeAjudaAi.Modules.Catalogs.Domain.Repositories;
 
 /// <summary>
-/// Repository contract for ServiceCategory aggregate.
+/// Contrato de repositório para o agregado ServiceCategory.
 /// </summary>
 public interface IServiceCategoryRepository
 {
     /// <summary>
-    /// Retrieves a service category by its ID.
+    /// Recupera uma categoria de serviço por seu ID.
     /// </summary>
     Task<ServiceCategory?> GetByIdAsync(ServiceCategoryId id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves a service category by its name.
+    /// Recupera uma categoria de serviço por seu nome.
     /// </summary>
     Task<ServiceCategory?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves all service categories.
+    /// Recupera todas as categorias de serviço.
     /// </summary>
-    /// <param name="activeOnly">If true, returns only active categories</param>
+    /// <param name="activeOnly">Se verdadeiro, retorna apenas categorias ativas</param>
     /// <param name="cancellationToken"></param>
     Task<IReadOnlyList<ServiceCategory>> GetAllAsync(bool activeOnly = false, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Checks if a category with the given name already exists.
+    /// Verifica se já existe uma categoria com o nome fornecido.
     /// </summary>
     Task<bool> ExistsWithNameAsync(string name, ServiceCategoryId? excludeId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adds a new service category.
+    /// Adiciona uma nova categoria de serviço.
     /// </summary>
     Task AddAsync(ServiceCategory category, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates an existing service category.
+    /// Atualiza uma categoria de serviço existente.
     /// </summary>
     Task UpdateAsync(ServiceCategory category, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes a service category by its ID (hard delete - use with caution).
+    /// Deleta uma categoria de serviço por seu ID (exclusão física - usar com cautela).
     /// </summary>
     Task DeleteAsync(ServiceCategoryId id, CancellationToken cancellationToken = default);
 }

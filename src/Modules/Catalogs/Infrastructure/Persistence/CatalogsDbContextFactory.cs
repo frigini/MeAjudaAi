@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore.Design;
 namespace MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence;
 
 /// <summary>
-/// Design-time factory for creating CatalogsDbContext during EF Core migrations.
-/// This allows migrations to be created without running the full application.
+/// Fábrica em tempo de design para criar CatalogsDbContext durante as migrações do EF Core.
+/// Isso permite que as migrações sejam criadas sem executar a aplicação completa.
 /// </summary>
 public sealed class CatalogsDbContextFactory : IDesignTimeDbContextFactory<CatalogsDbContext>
 {

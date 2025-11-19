@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Catalogs.Domain.Events;
+using MeAjudaAi.Modules.Catalogs.Domain.Events.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Constants;
@@ -7,29 +7,29 @@ using MeAjudaAi.Shared.Domain;
 namespace MeAjudaAi.Modules.Catalogs.Domain.Entities;
 
 /// <summary>
-/// Represents a service category in the catalog (e.g., "Limpeza", "Reparos").
-/// Categories organize services into logical groups for easier discovery.
+/// Representa uma categoria de serviço no catálogo (ex: "Limpeza", "Reparos").
+/// Categorias organizam serviços em grupos lógicos para facilitar a descoberta.
 /// </summary>
 public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
 {
     /// <summary>
-    /// Name of the category.
+    /// Nome da categoria.
     /// </summary>
     public string Name { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Optional description explaining what services belong to this category.
+    /// Descrição opcional explicando quais serviços pertencem a esta categoria.
     /// </summary>
     public string? Description { get; private set; }
 
     /// <summary>
-    /// Indicates if this category is currently active and available for use.
-    /// Deactivated categories cannot be assigned to new services.
+    /// Indica se esta categoria está atualmente ativa e disponível para uso.
+    /// Categorias desativadas não podem ser atribuídas a novos serviços.
     /// </summary>
     public bool IsActive { get; private set; }
 
     /// <summary>
-    /// Optional display order for UI sorting.
+    /// Ordem de exibição opcional para ordenação na UI.
     /// </summary>
     public int DisplayOrder { get; private set; }
 
@@ -37,12 +37,12 @@ public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
     private ServiceCategory() { }
 
     /// <summary>
-    /// Creates a new service category.
+    /// Cria uma nova categoria de serviço.
     /// </summary>
-    /// <param name="name">Category name (required, 1-100 characters)</param>
-    /// <param name="description">Optional category description (max 500 characters)</param>
-    /// <param name="displayOrder">Display order for sorting (default: 0)</param>
-    /// <exception cref="CatalogDomainException">Thrown when validation fails</exception>
+    /// <param name="name">Nome da categoria (obrigatório, 1-100 caracteres)</param>
+    /// <param name="description">Descrição opcional da categoria (máx 500 caracteres)</param>
+    /// <param name="displayOrder">Ordem de exibição para ordenação (padrão: 0)</param>
+    /// <exception cref="CatalogDomainException">Lançada quando a validação falha</exception>
     public static ServiceCategory Create(string name, string? description = null, int displayOrder = 0)
     {
         ValidateName(name);
@@ -63,7 +63,7 @@ public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
     }
 
     /// <summary>
-    /// Updates the category information.
+    /// Atualiza as informações da categoria.
     /// </summary>
     public void Update(string name, string? description = null, int displayOrder = 0)
     {
@@ -80,7 +80,7 @@ public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
     }
 
     /// <summary>
-    /// Activates the category, making it available for use.
+    /// Ativa a categoria, tornando-a disponível para uso.
     /// </summary>
     public void Activate()
     {
@@ -92,8 +92,8 @@ public sealed class ServiceCategory : AggregateRoot<ServiceCategoryId>
     }
 
     /// <summary>
-    /// Deactivates the category, preventing it from being assigned to new services.
-    /// Existing services retain their category assignment.
+    /// Desativa a categoria, impedindo que seja atribuída a novos serviços.
+    /// Serviços existentes mantêm sua atribuição de categoria.
     /// </summary>
     public void Deactivate()
     {

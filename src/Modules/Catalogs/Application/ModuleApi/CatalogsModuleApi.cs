@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Catalogs.Application.ModuleApi;
 
 /// <summary>
-/// Implementation of the public API for the Catalogs module.
+/// Implementação da API pública para o módulo Catalogs.
 /// </summary>
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class CatalogsModuleApi(

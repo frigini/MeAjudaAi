@@ -1,3 +1,5 @@
+using MeAjudaAi.Modules.Catalogs.API.Endpoints.Service;
+using MeAjudaAi.Modules.Catalogs.API.Endpoints.ServiceCategory;
 using MeAjudaAi.Shared.Endpoints;
 using Microsoft.AspNetCore.Builder;
 

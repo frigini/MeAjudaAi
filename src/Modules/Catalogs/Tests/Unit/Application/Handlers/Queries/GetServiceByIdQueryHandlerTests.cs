@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Catalogs.Application.Handlers.Queries;
+using MeAjudaAi.Modules.Catalogs.Application.Handlers.Queries.Service;
 using MeAjudaAi.Modules.Catalogs.Application.Queries.Service;
 using MeAjudaAi.Modules.Catalogs.Domain.Entities;
 using MeAjudaAi.Modules.Catalogs.Domain.Repositories;

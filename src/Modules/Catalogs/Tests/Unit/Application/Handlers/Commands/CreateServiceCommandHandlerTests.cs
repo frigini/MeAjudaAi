@@ -1,5 +1,5 @@
 using MeAjudaAi.Modules.Catalogs.Application.Commands.Service;
-using MeAjudaAi.Modules.Catalogs.Application.Handlers.Commands;
+using MeAjudaAi.Modules.Catalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.Catalogs.Domain.Entities;
 using MeAjudaAi.Modules.Catalogs.Domain.Repositories;
 using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;

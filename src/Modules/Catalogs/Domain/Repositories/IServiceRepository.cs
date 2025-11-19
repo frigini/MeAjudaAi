@@ -4,66 +4,66 @@ using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
 namespace MeAjudaAi.Modules.Catalogs.Domain.Repositories;
 
 /// <summary>
-/// Repository contract for Service aggregate.
+/// Contrato de repositório para o agregado Service.
 /// </summary>
 public interface IServiceRepository
 {
     /// <summary>
-    /// Retrieves a service by its ID.
+    /// Recupera um serviço por seu ID.
     /// </summary>
     Task<Service?> GetByIdAsync(ServiceId id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves multiple services by their IDs (batch query).
+    /// Recupera múltiplos serviços por seus IDs (consulta em lote).
     /// </summary>
     Task<IReadOnlyList<Service>> GetByIdsAsync(IEnumerable<ServiceId> ids, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves a service by its name.
+    /// Recupera um serviço por seu nome.
     /// </summary>
     Task<Service?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves all services.
+    /// Recupera todos os serviços.
     /// </summary>
-    /// <param name="activeOnly">If true, returns only active services</param>
+    /// <param name="activeOnly">Se verdadeiro, retorna apenas serviços ativos</param>
     /// <param name="cancellationToken"></param>
     Task<IReadOnlyList<Service>> GetAllAsync(bool activeOnly = false, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves all services in a specific category.
+    /// Recupera todos os serviços de uma categoria específica.
     /// </summary>
-    /// <param name="categoryId">ID of the category</param>
-    /// <param name="activeOnly">If true, returns only active services</param>
+    /// <param name="categoryId">ID da categoria</param>
+    /// <param name="activeOnly">Se verdadeiro, retorna apenas serviços ativos</param>
     /// <param name="cancellationToken"></param>
     Task<IReadOnlyList<Service>> GetByCategoryAsync(ServiceCategoryId categoryId, bool activeOnly = false, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Checks if a service with the given name already exists.
+    /// Verifica se já existe um serviço com o nome fornecido.
     /// </summary>
-    /// <param name="name">The service name to check</param>
-    /// <param name="excludeId">Optional service ID to exclude from the check</param>
-    /// <param name="categoryId">Optional category ID to scope the check to a specific category</param>
+    /// <param name="name">O nome do serviço a verificar</param>
+    /// <param name="excludeId">ID opcional do serviço a excluir da verificação</param>
+    /// <param name="categoryId">ID opcional da categoria para restringir a verificação a uma categoria específica</param>
     /// <param name="cancellationToken"></param>
     Task<bool> ExistsWithNameAsync(string name, ServiceId? excludeId = null, ServiceCategoryId? categoryId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Counts how many services exist in a category.
+    /// Conta quantos serviços existem em uma categoria.
     /// </summary>
     Task<int> CountByCategoryAsync(ServiceCategoryId categoryId, bool activeOnly = false, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adds a new service.
+    /// Adiciona um novo serviço.
     /// </summary>
     Task AddAsync(Service service, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates an existing service.
+    /// Atualiza um serviço existente.
     /// </summary>
     Task UpdateAsync(Service service, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes a service by its ID (hard delete - use with caution).
+    /// Deleta um serviço por seu ID (exclusão física - usar com cautela).
     /// </summary>
     Task DeleteAsync(ServiceId id, CancellationToken cancellationToken = default);
 }
