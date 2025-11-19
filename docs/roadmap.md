@@ -275,10 +275,10 @@ public sealed class Service : AggregateRoot<ServiceId>
   - Categories: GetById, GetAll, GetWithCount
   - Services: GetById, GetAll, GetByCategory
 - **Handlers**: 11 Command Handlers + 6 Query Handlers
-- **Module API**: `service_catalogsModuleApi` para comunicação inter-módulos
+- **Module API**: `ServiceCatalogsModuleApi` para comunicação inter-módulos
 
 **3. Infrastructure Layer** ✅
-- `service_catalogsDbContext` com schema isolation (`service_catalogs`)
+- `ServiceCatalogsDbContext` com schema isolation (`service_catalogs`)
 - EF Core Configurations (snake_case, índices otimizados)
 - Repositories com SaveChangesAsync integrado
 - DI registration com auto-migration support
