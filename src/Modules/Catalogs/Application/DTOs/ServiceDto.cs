@@ -1,7 +1,7 @@
 namespace MeAjudaAi.Modules.Catalogs.Application.DTOs;
 
 /// <summary>
-/// DTO for service information.
+/// DTO para informações de serviço.
 /// </summary>
 public sealed record ServiceDto(
     Guid Id,

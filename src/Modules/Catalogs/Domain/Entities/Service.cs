@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Catalogs.Domain.Events;
+using MeAjudaAi.Modules.Catalogs.Domain.Events.Service;
 using MeAjudaAi.Modules.Catalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Constants;
@@ -7,34 +7,34 @@ using MeAjudaAi.Shared.Domain;
 namespace MeAjudaAi.Modules.Catalogs.Domain.Entities;
 
 /// <summary>
-/// Represents a specific service that providers can offer (e.g., "Limpeza de Apartamento", "Conserto de Torneira").
-/// Services belong to a category and can be activated/deactivated by administrators.
+/// Representa um serviço específico que provedores podem oferecer (ex: "Limpeza de Apartamento", "Conserto de Torneira").
+/// Serviços pertencem a uma categoria e podem ser ativados/desativados por administradores.
 /// </summary>
 public sealed class Service : AggregateRoot<ServiceId>
 {
     /// <summary>
-    /// ID of the category this service belongs to.
+    /// ID da categoria à qual este serviço pertence.
     /// </summary>
     public ServiceCategoryId CategoryId { get; private set; } = null!;
 
     /// <summary>
-    /// Name of the service.
+    /// Nome do serviço.
     /// </summary>
     public string Name { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Optional description explaining what this service includes.
+    /// Descrição opcional explicando o que este serviço inclui.
     /// </summary>
     public string? Description { get; private set; }
 
     /// <summary>
-    /// Indicates if this service is currently active and available for providers to offer.
-    /// Deactivated services are hidden from the catalog.
+    /// Indica se este serviço está atualmente ativo e disponível para provedores oferecerem.
+    /// Serviços desativados são ocultados do catálogo.
     /// </summary>
     public bool IsActive { get; private set; }
 
     /// <summary>
-    /// Optional display order within the category for UI sorting.
+    /// Ordem de exibição opcional dentro da categoria para ordenação na UI.
     /// </summary>
     public int DisplayOrder { get; private set; }
 
@@ -45,13 +45,13 @@ public sealed class Service : AggregateRoot<ServiceId>
     private Service() { }
 
     /// <summary>
-    /// Creates a new service within a category.
+    /// Cria um novo serviço dentro de uma categoria.
     /// </summary>
-    /// <param name="categoryId">ID of the parent category</param>
-    /// <param name="name">Service name (required, 1-150 characters)</param>
-    /// <param name="description">Optional service description (max 1000 characters)</param>
-    /// <param name="displayOrder">Display order for sorting (default: 0)</param>
-    /// <exception cref="CatalogDomainException">Thrown when validation fails</exception>
+    /// <param name="categoryId">ID da categoria pai</param>
+    /// <param name="name">Nome do serviço (obrigatório, 1-150 caracteres)</param>
+    /// <param name="description">Descrição opcional do serviço (máx 1000 caracteres)</param>
+    /// <param name="displayOrder">Ordem de exibição para ordenação (padrão: 0)</param>
+    /// <exception cref="CatalogDomainException">Lançada quando a validação falha</exception>
     public static Service Create(ServiceCategoryId categoryId, string name, string? description = null, int displayOrder = 0)
     {
         if (categoryId is null)
@@ -76,7 +76,7 @@ public sealed class Service : AggregateRoot<ServiceId>
     }
 
     /// <summary>
-    /// Updates the service information.
+    /// Atualiza as informações do serviço.
     /// </summary>
     public void Update(string name, string? description = null, int displayOrder = 0)
     {
@@ -93,7 +93,7 @@ public sealed class Service : AggregateRoot<ServiceId>
     }
 
     /// <summary>
-    /// Changes the category of this service.
+    /// Altera a categoria deste serviço.
     /// </summary>
     public void ChangeCategory(ServiceCategoryId newCategoryId)
     {
@@ -105,13 +105,14 @@ public sealed class Service : AggregateRoot<ServiceId>
 
         var oldCategoryId = CategoryId;
         CategoryId = newCategoryId;
+        Category = null; // Invalidar navegação para forçar recarga quando necessário
         MarkAsUpdated();
 
         AddDomainEvent(new ServiceCategoryChangedDomainEvent(Id, oldCategoryId, newCategoryId));
     }
 
     /// <summary>
-    /// Activates the service, making it available in the catalog.
+    /// Ativa o serviço, tornando-o disponível no catálogo.
     /// </summary>
     public void Activate()
     {
@@ -123,8 +124,8 @@ public sealed class Service : AggregateRoot<ServiceId>
     }
 
     /// <summary>
-    /// Deactivates the service, removing it from the catalog.
-    /// Providers who currently offer this service retain it, but new assignments are prevented.
+    /// Desativa o serviço, removendo-o do catálogo.
+    /// Provedores que atualmente oferecem este serviço o mantêm, mas novas atribuições são impedidas.
     /// </summary>
     public void Deactivate()
     {

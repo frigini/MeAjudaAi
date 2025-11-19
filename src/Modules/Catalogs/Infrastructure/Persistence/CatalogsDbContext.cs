@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence;
 
 /// <summary>
-/// Entity Framework context for the Catalogs module.
+/// Contexto Entity Framework para o módulo Catalogs.
 /// </summary>
 public class CatalogsDbContext(DbContextOptions<CatalogsDbContext> options) : DbContext(options)
 {

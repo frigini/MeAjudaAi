@@ -1,8 +1,10 @@
 using MeAjudaAi.Modules.Catalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.Catalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Application.DTOs;
-using MeAjudaAi.Modules.Catalogs.Application.Handlers.Commands;
-using MeAjudaAi.Modules.Catalogs.Application.Handlers.Queries;
+using MeAjudaAi.Modules.Catalogs.Application.Handlers.Commands.Service;
+using MeAjudaAi.Modules.Catalogs.Application.Handlers.Commands.ServiceCategory;
+using MeAjudaAi.Modules.Catalogs.Application.Handlers.Queries.Service;
+using MeAjudaAi.Modules.Catalogs.Application.Handlers.Queries.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Application.Queries.Service;
 using MeAjudaAi.Modules.Catalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Domain.Repositories;
@@ -22,7 +24,7 @@ namespace MeAjudaAi.Modules.Catalogs.Infrastructure;
 public static class Extensions
 {
     /// <summary>
-    /// Adds Catalogs module infrastructure services.
+    /// Adiciona os serviços de infraestrutura do módulo Catalogs.
     /// </summary>
     public static IServiceCollection AddCatalogsInfrastructure(
         this IServiceCollection services,

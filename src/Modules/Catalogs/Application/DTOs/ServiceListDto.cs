@@ -1,7 +1,7 @@
 namespace MeAjudaAi.Modules.Catalogs.Application.DTOs;
 
 /// <summary>
-/// Simplified DTO for service without category details (for lists).
+/// DTO simplificado para serviço sem detalhes de categoria (para listas).
 /// </summary>
 public sealed record ServiceListDto(
     Guid Id,

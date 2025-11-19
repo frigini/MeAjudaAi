@@ -4,7 +4,7 @@ using MeAjudaAi.Shared.Time;
 namespace MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
 
 /// <summary>
-/// Strongly-typed identifier for Service aggregate.
+/// Identificador fortemente tipado para o agregado Service.
 /// </summary>
 public class ServiceId : ValueObject
 {

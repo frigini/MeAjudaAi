@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Catalogs.Application.Queries.Service;
 using MeAjudaAi.Modules.Catalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Domain.Repositories;
 using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts.Modules;
 using MeAjudaAi.Shared.Contracts.Modules.Catalogs;
 using MeAjudaAi.Shared.Contracts.Modules.Catalogs.DTOs;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Catalogs.Application.ModuleApi;
 
 /// <summary>
-/// Implementation of the public API for the Catalogs module.
+/// Implementação da API pública para o módulo Catalogs.
 /// </summary>
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class CatalogsModuleApi(
@@ -27,8 +28,6 @@ public sealed class CatalogsModuleApi(
         public const string Name = "Catalogs";
         public const string Version = "1.0";
     }
-
-    private const string UnknownCategoryName = "Unknown";
 
     public string ModuleName => ModuleMetadata.Name;
     public string ApiVersion => ModuleMetadata.Version;
@@ -129,7 +128,7 @@ public sealed class CatalogsModuleApi(
             if (service is null)
                 return Result<ModuleServiceDto?>.Success(null);
 
-            var categoryName = service.Category?.Name ?? UnknownCategoryName;
+            var categoryName = service.Category?.Name ?? ValidationMessages.Catalogs.UnknownCategoryName;
 
             var dto = new ModuleServiceDto(
                 service.Id.Value,
@@ -189,7 +188,7 @@ public sealed class CatalogsModuleApi(
             var dtos = services.Select(s => new ModuleServiceDto(
                 s.Id.Value,
                 s.CategoryId.Value,
-                s.Category?.Name ?? UnknownCategoryName,
+                s.Category?.Name ?? ValidationMessages.Catalogs.UnknownCategoryName,
                 s.Name,
                 s.Description,
                 s.IsActive

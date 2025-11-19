@@ -1,7 +1,7 @@
 namespace MeAjudaAi.Modules.Catalogs.Application.DTOs;
 
 /// <summary>
-/// DTO for category with its services count.
+/// DTO para categoria com a contagem de seus serviços.
 /// </summary>
 public sealed record ServiceCategoryWithCountDto(
     Guid Id,
