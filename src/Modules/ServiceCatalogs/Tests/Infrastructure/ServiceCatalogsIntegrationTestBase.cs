@@ -21,7 +21,7 @@ public abstract class ServiceCatalogsIntegrationTestBase : IntegrationTestBase
         {
             Database = new TestDatabaseOptions
             {
-                DatabaseName = $"test_db_{GetType().Name.ToUpperInvariant()}",
+                DatabaseName = $"test_db_{GetType().Name.ToUpperInvariant()[..Math.Min(50, GetType().Name.Length)]}",
                 Username = "test_user",
                 Password = "test_password",
                 Schema = "ServiceCatalogs"

@@ -222,7 +222,7 @@ public interface ILocationModuleApi : IModuleApi
 
 **Status**: Implementado e funcional com testes completos
 
-**Objetivo**: Gerenciar tipos de serviços que prestadores podem oferecer através de um catálogo admin-managed.
+**Objetivo**: Gerenciar tipos de serviços que prestadores podem oferecer por catálogo gerenciado administrativamente.
 
 #### **Arquitetura Implementada**
 - **Padrão**: DDD + CQRS com hierarquia de categorias

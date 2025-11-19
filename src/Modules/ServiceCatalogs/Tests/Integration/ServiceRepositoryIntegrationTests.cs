@@ -9,10 +9,10 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
 {
     private IServiceRepository _repository = null!;
 
-    protected override Task OnModuleInitializeAsync(IServiceProvider serviceProvider)
+    protected override async Task OnModuleInitializeAsync(IServiceProvider serviceProvider)
     {
+        await base.OnModuleInitializeAsync(serviceProvider);
         _repository = GetService<IServiceRepository>();
-        return Task.CompletedTask;
     }
 
     [Fact]
