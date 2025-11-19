@@ -218,7 +218,7 @@ public interface ILocationModuleApi : IModuleApi
 
 ---
 
-### 1.6. ✅ Módulo service_catalogs (Concluído)
+### 1.6. ✅ Módulo ServiceCatalogs (Concluído)
 
 **Status**: Implementado e funcional com testes completos
 
@@ -688,7 +688,7 @@ web/
 
 **Funcionalidades Core**:
 - **User & Provider Management**: Visualizar, suspender, verificar manualmente
-- **service_catalogs Management**: Aprovar/rejeitar serviços sugeridos
+- **ServiceCatalogs Management**: Aprovar/rejeitar serviços sugeridos
 - **Review Moderation**: Lidar com reviews sinalizados
 - **Dashboard**: Métricas-chave do módulo Analytics
 
@@ -780,7 +780,7 @@ web/
 3. ✅ Módulo Documents (Concluído)
 4. ✅ Módulo Search & Discovery (Concluído)
 5. 📋 Módulo Location - CEP lookup e geocoding
-6. 📋 Módulo service_catalogs - Catálogo admin-managed de categorias e serviços
+6. 📋 Módulo ServiceCatalogs - Catálogo admin-managed de categorias e serviços
 7. 📋 Admin Portal - Gestão básica
 8. 📋 Customer Profile - Gestão de perfil
 
