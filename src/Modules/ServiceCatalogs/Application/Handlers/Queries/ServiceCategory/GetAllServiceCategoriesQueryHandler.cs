@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Shared.Functional;
@@ -15,15 +16,7 @@ public sealed class GetAllServiceCategoriesQueryHandler(IServiceCategoryReposito
     {
         var categories = await repository.GetAllAsync(request.ActiveOnly, cancellationToken);
 
-        var dtos = categories.Select(c => new ServiceCategoryDto(
-            c.Id.Value,
-            c.Name,
-            c.Description,
-            c.IsActive,
-            c.DisplayOrder,
-            c.CreatedAt,
-            c.UpdatedAt
-        )).ToList();
+        var dtos = categories.Select(c => c.ToDto()).ToList();
 
         return Result<IReadOnlyList<ServiceCategoryDto>>.Success(dtos);
     }

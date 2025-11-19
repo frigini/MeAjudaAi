@@ -3,6 +3,9 @@ using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 
+/// <summary>
+/// Command to update an existing service category's information.
+/// </summary>
 public sealed record UpdateServiceCategoryCommand(
     Guid Id,
     string Name,

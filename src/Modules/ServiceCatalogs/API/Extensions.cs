@@ -45,12 +45,19 @@ public static class Extensions
         try
         {
             using var scope = app.Services.CreateScope();
+            var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.ServiceCatalogsDbContext>>();
             var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.ServiceCatalogsDbContext>();
-            if (context == null) return;
+            
+            if (context == null)
+            {
+                logger?.LogWarning("ServiceCatalogsDbContext not found in DI container. Skipping migrations.");
+                return;
+            }
 
             // Em ambiente de teste, pular migrações automáticas
             if (app.Environment.IsEnvironment("Test") || app.Environment.IsEnvironment("Testing"))
             {
+                logger?.LogInformation("Skipping ServiceCatalogs migrations in test environment: {Environment}", app.Environment.EnvironmentName);
                 return;
             }
 

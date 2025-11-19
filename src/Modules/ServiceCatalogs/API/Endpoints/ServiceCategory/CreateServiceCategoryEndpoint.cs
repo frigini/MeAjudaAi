@@ -35,6 +35,9 @@ public class CreateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         if (!result.IsSuccess)
             return Handle(result);
 
-        return Handle(result, "GetServiceCategoryById", new { id = result.Value!.Id });
+        if (result.Value is null)
+            return Results.BadRequest("Unexpected null value in successful result.");
+
+        return Handle(result, "GetServiceCategoryById", new { id = result.Value.Id });
     }
 }
