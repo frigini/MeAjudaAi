@@ -64,7 +64,7 @@ public static class ValidationConstants
     }
 
     /// <summary>
-    /// Limites para entidades do módulo Catalogs
+    /// Limites para entidades do módulo ServiceCatalogs
     /// </summary>
     public static class CatalogLimits
     {
