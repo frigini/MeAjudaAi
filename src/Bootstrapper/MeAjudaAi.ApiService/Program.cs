@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Catalogs.API;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Location.Infrastructure;
 using MeAjudaAi.Modules.Providers.API;
-using MeAjudaAi.Modules.Search.API;
+using MeAjudaAi.Modules.SearchProviders.API;
 using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
