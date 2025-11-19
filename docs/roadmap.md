@@ -4,22 +4,96 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 ---
 
-## 📖 Visão Geral
+## 📊 Sumário Executivo
 
-O roadmap está organizado em **três fases principais** para entrega incremental de valor:
+**Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
+**Status Geral**: Fase 1 ✅ | Fase 1.5 🔄 (Sprint 0) | MVP Target: 31/Março/2025  
+**Test Coverage**: 40.51% → Meta 80%+  
+**Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
-1. **Fase 1: Fundação (MVP Core)** - Registro de prestadores, busca geolocalizada, catálogo de serviços
-2. **Fase 2: Qualidade e Monetização** - Sistema de avaliações, assinaturas premium, verificação automatizada
-3. **Fase 3: Experiência e Engajamento** - Agendamentos, comunicações, analytics avançado
-
-A implementação seguirá os princípios arquiteturais definidos em `architecture.md`: **Modular Monolith**, **DDD**, **CQRS**, e **isolamento schema-per-module**.
+### Marcos Principais
+- ✅ **Janeiro 2025**: Fase 1 concluída - 6 módulos core implementados
+- 🔄 **Jan 20 - Feb 2**: Sprint 0 - Migration .NET 10 + Aspire 13
+- ⏳ **Fevereiro 2025**: Sprints 1-2 - Integração + Testes + Hardening
+- ⏳ **Fevereiro-Março 2025**: Sprints 3-5 - Frontend Blazor (Web + Mobile)
+- 🎯 **31 Março 2025**: MVP Launch (Admin Portal + Customer App)
+- 🔮 **Abril 2025+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
 ---
 
-## 🎯 Fase 1: Fundação (MVP Core)
+## 🎯 Status Atual
+
+**✅ Fase 1: CONCLUÍDA** (Janeiro 2025)  
+Todos os 6 módulos core implementados, testados e integrados:
+- Users • Providers • Documents • Search & Discovery • Locations • ServiceCatalogs
+
+**🔄 Fase 1.5: EM ANDAMENTO** (Janeiro-Fevereiro 2025)  
+Fundação técnica para escalabilidade e produção:
+- Migration .NET 10 + Aspire 13 (Sprint 0)
+- Integração de módulos + Restrições geográficas (Sprint 1)
+- Test coverage 80%+ + Health checks + Data seeding (Sprint 2)
+
+**⏳ Fase 2: PLANEJADO** (Fevereiro-Março 2025)  
+Frontend Blazor WASM + MAUI Hybrid:
+- Admin Portal (Sprint 3)
+- Customer App (Sprint 4)
+- Polishing + Hardening (Sprint 5)
+
+---
+
+## 📖 Visão Geral
+
+O roadmap está organizado em **quatro fases principais** para entrega incremental de valor:
+
+1. **✅ Fase 1: Fundação (MVP Core)** - Registro de prestadores, busca geolocalizada, catálogo de serviços
+2. **🔄 Fase 1.5: Fundação Técnica** - Migration .NET 10, integração, testes, hardening
+3. **⏳ Fase 2: Frontend & Experiência** - Blazor WASM Admin Portal + Customer App
+4. **🔮 Fase 3: Qualidade e Monetização** - Sistema de avaliações, assinaturas premium, verificação automatizada
+5. **🔮 Fase 4: Experiência e Engajamento** - Agendamentos, comunicações, analytics avançado
+
+A implementação segue os princípios arquiteturais definidos em `architecture.md`: **Modular Monolith**, **DDD**, **CQRS**, e **isolamento schema-per-module**.
+
+---
+
+## 📅 Cronograma de Sprints (Janeiro-Março 2025)
+
+| Sprint | Duração | Período | Objetivo | Status |
+|--------|---------|---------|----------|--------|
+| **Sprint 0** | 1-2 semanas | Jan 20 - Feb 2 | Migration .NET 10 + Aspire 13 | 🔄 EM ANDAMENTO |
+| **Sprint 1** | 1 semana | Feb 3 - Feb 9 | Integração de Módulos + Restrição Geográfica | ⏳ Planejado |
+| **Sprint 2** | 1 semana | Feb 10 - Feb 16 | Test Coverage 80% + Hardening | ⏳ Planejado |
+| **Sprint 3** | 2 semanas | Feb 17 - Mar 2 | Blazor Admin Portal (Web) | ⏳ Planejado |
+| **Sprint 4** | 3 semanas | Mar 3 - Mar 23 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
+| **Sprint 5** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
+
+**MVP Launch Target**: 31 de Março de 2025 🎯
+
+**Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Abril 2025+)
+
+---
+
+## ✅ Fase 1: Fundação (MVP Core) - CONCLUÍDA
 
 ### Objetivo
 Estabelecer as capacidades essenciais da plataforma: registro multi-etapas de prestadores com verificação, busca geolocalizada e catálogo de serviços.
+
+### Status: ✅ CONCLUÍDA (Janeiro 2025)
+
+**Todos os 6 módulos implementados, testados e integrados:**
+1. ✅ **Users** - Autenticação, perfis, roles
+2. ✅ **Providers** - Registro multi-etapas, verificação, gestão
+3. ✅ **Documents** - Upload seguro, workflow de verificação
+4. ✅ **Search & Discovery** - Busca geolocalizada com PostGIS
+5. ✅ **Locations** - Lookup de CEP, geocoding, validações
+6. ✅ **ServiceCatalogs** - Catálogo hierárquico de serviços
+
+**Conquistas:**
+- 40.51% test coverage (296 testes passando)
+- APIs públicas (IModuleApi) implementadas para todos módulos
+- Integration events funcionais entre módulos
+- Health checks configurados
+- CI/CD pipeline completo no Azure DevOps
+- Documentação arquitetural completa
 
 ### 1.1. ✅ Módulo Users (Concluído)
 **Status**: Implementado e em produção
@@ -379,7 +453,448 @@ CREATE INDEX idx_service_categories_is_active ON service_catalogs.service_catego
 
 ---
 
-## 🎯 Fase 2: Qualidade e Monetização
+## 🔄 Fase 1.5: Fundação Técnica (Em Andamento)
+
+### Objetivo
+Fortalecer a base técnica do sistema antes de desenvolver frontend, garantindo escalabilidade, qualidade e compatibilidade com .NET 10 LTS + Aspire 13.
+
+### Justificativa
+Com todos os 6 módulos core implementados (Fase 1 ✅), precisamos consolidar a fundação técnica antes de iniciar desenvolvimento frontend:
+- **.NET 9 EOL**: Suporte expira em maio 2025, migrar para .NET 10 LTS agora evita migração em produção
+- **Aspire 13**: Novas features de observability e orchestration
+- **Test Coverage**: Atual 40.51% → objetivo 80%+ para manutenibilidade
+- **Integração de Módulos**: IModuleApi implementado mas não utilizado com regras de negócio reais
+- **Restrição Geográfica**: MVP exige operação apenas em cidades piloto (SP, RJ, BH)
+
+---
+
+### 📅 Sprint 0: Migration .NET 10 + Aspire 13 (1-2 semanas)
+
+**Status**: 🔄 EM ANDAMENTO (branch: `migration-to-dotnet-10`)
+
+**Objetivos**:
+- Migrar todos projetos para .NET 10 LTS
+- Atualizar Aspire para v13
+- Atualizar dependências (EF Core 10, Npgsql 10, etc.)
+- Validar testes e corrigir breaking changes
+- Atualizar CI/CD para usar .NET 10 SDK
+
+**Tarefas**:
+- [x] Criar branch `migration-to-dotnet-10`
+- [x] Merge master (todos módulos Fase 1) ✅
+- [ ] Atualizar `Directory.Packages.props` para .NET 10
+- [ ] Atualizar todos `.csproj` para `<TargetFramework>net10.0</TargetFramework>`
+- [ ] Atualizar Aspire packages para v13.x
+- [ ] Atualizar EF Core para 10.x
+- [ ] Atualizar Npgsql para 10.x
+- [ ] Rodar todos testes e corrigir breaking changes
+- [ ] Atualizar Azure DevOps pipeline YAML
+- [ ] Validar Docker images com .NET 10
+- [ ] Merge para master após validação completa
+
+**Resultado Esperado**:
+- ✅ Sistema rodando em .NET 10 LTS com Aspire 13
+- ✅ Todos 296 testes passando
+- ✅ CI/CD funcional
+- ✅ Documentação atualizada
+
+---
+
+### 📅 Sprint 1: Integração de Módulos + Restrição Geográfica (1 semana)
+
+**Status**: ⏳ PLANEJADO
+
+**Objetivos**:
+- Implementar regras de negócio reais usando IModuleApi entre módulos
+- Adicionar restrição geográfica (operação apenas em cidades piloto)
+- Melhorar validações e business rules cross-module
+
+**Tarefas**:
+
+#### 1. Integração Providers ↔ Documents
+- [ ] Providers: Validar `HasVerifiedDocuments` antes de aprovar prestador
+- [ ] Providers: Bloquear ativação se `HasRejectedDocuments` ou `HasPendingDocuments`
+- [ ] Documents: Publicar `DocumentVerified` event para atualizar status de Providers
+- [ ] Integration test: Fluxo completo de verificação de prestador
+
+#### 2. Integração Providers ↔ ServiceCatalogs
+- [ ] Providers: Adicionar `ProviderServices` linking table (many-to-many)
+- [ ] Providers: Validar services via `IServiceCatalogsModuleApi.ValidateServicesAsync`
+- [ ] Providers: Bloquear serviços inativos ou inexistentes
+- [ ] Admin Portal: Endpoint para associar serviços a prestadores
+
+#### 3. Integração Search ↔ Providers + ServiceCatalogs
+- [ ] Search: Denormalizar `ServiceIds` no `SearchableProvider` read model
+- [ ] Search: Background worker consumindo `ProviderVerified`, `ProviderUpdated` events
+- [ ] Search: Filtrar busca por `ServiceIds` array (query otimizada)
+- [ ] Integration test: Busca retorna apenas prestadores com serviços ativos
+
+#### 4. Integração Providers ↔ Locations
+- [ ] Providers: Usar `ILocationModuleApi.GetAddressFromCepAsync` no registro
+- [ ] Providers: Validar CEP existe antes de salvar endereço
+- [ ] Providers: Auto-populate cidade/estado via Locations
+- [ ] Unit test: Mock de ILocationModuleApi em Providers.Application
+
+#### 5. Restrição Geográfica (MVP Blocker)
+- [ ] Criar `AllowedCities` configuration em appsettings
+- [ ] Providers: Validar cidade permitida no registro (`São Paulo`, `Rio de Janeiro`, `Belo Horizonte`)
+- [ ] Search: Filtrar automaticamente por cidades permitidas
+- [ ] Admin: Endpoint para gerenciar cidades permitidas
+- [ ] Integration test: Rejeitar registro fora de cidades piloto
+
+**Resultado Esperado**:
+- ✅ Módulos totalmente integrados com business rules reais
+- ✅ Operação restrita a cidades piloto (SP, RJ, BH)
+- ✅ Background workers consumindo integration events
+- ✅ Validações cross-module funcionando
+
+---
+
+### 📅 Sprint 2: Test Coverage 80% + Hardening (1 semana)
+
+**Status**: ⏳ PLANEJADO
+
+**Objetivos**:
+- Aumentar test coverage de 40.51% para 80%+
+- Implementar health checks customizados
+- Data seeding para ambientes de desenvolvimento/staging
+- Melhorias de observability
+
+**Tarefas**:
+
+#### 1. Unit Tests (Coverage Target: 90%+ em Domain/Application)
+- [ ] **Users**: Unit tests para domain entities + commands/queries
+- [ ] **Providers**: Unit tests para agregados + business rules + validation
+- [ ] **Documents**: Unit tests para workflow de verificação
+- [ ] **Search**: Unit tests para ranking logic
+- [ ] **Locations**: ✅ Já possui 52 tests (manter coverage)
+- [ ] **ServiceCatalogs**: Unit tests para categorias + serviços + validações
+
+#### 2. Integration Tests (Coverage Target: 70%+ em Infrastructure/API)
+- [ ] **Providers**: Fluxo completo de registro → verificação → aprovação
+- [ ] **Documents**: Upload → OCR → Verificação → Rejection
+- [ ] **Search**: Busca geolocalizada com filtros + ranking
+- [ ] **ServiceCatalogs**: CRUD de categorias e serviços via API
+
+#### 3. E2E Tests (Scenarios críticos)
+- [ ] Registro de prestador end-to-end (com documents + services)
+- [ ] Busca geolocalizada com filtros (raio, rating, tier, services)
+- [ ] Admin: Moderação de prestador (aprovar/rejeitar)
+- [ ] Geographic restriction: Bloquear registro fora de cidades piloto
+
+#### 4. Health Checks Customizados
+- [ ] Providers: Check se Keycloak está acessível
+- [ ] Documents: Check se Azure Blob Storage está acessível
+- [ ] Locations: Check se APIs de CEP estão respondendo (ViaCEP, BrasilAPI)
+- [ ] Search: Check se índices PostGIS estão íntegros
+- [ ] ServiceCatalogs: Check de integridade do catálogo (categorias ativas)
+
+#### 5. Data Seeding (Desenvolvimento/Staging)
+- [ ] Seeder de ServiceCatalogs: 10 categorias + 50 serviços comuns
+- [ ] Seeder de Providers: 20 prestadores fictícios (variedade de tiers/serviços)
+- [ ] Seeder de Users: Admin padrão + 10 customers
+- [ ] Seeder de Reviews: 50 avaliações (planejado para Fase 2)
+- [ ] Script: `dotnet run --seed-dev-data`
+
+#### 6. Observability Improvements
+- [ ] Adicionar métricas customizadas (ex: provider_registrations_total)
+- [ ] Logging estruturado com correlation IDs em todos módulos
+- [ ] Distributed tracing via OpenTelemetry em cross-module calls
+
+**Resultado Esperado**:
+- ✅ Test coverage ≥ 80% (atual: 40.51%)
+- ✅ Health checks prontos para monitoramento em produção
+- ✅ Ambiente de desenvolvimento populado com dados realistas
+- ✅ Observability completa (metrics, logs, traces)
+
+---
+
+## 🚀 Próximos Passos Imediatos (Sprint 0 - EM ANDAMENTO)
+
+### 1️⃣ Finalizar Migration .NET 10 + Aspire 13
+
+**Branch Atual**: `migration-to-dotnet-10` (commit d7b06bc)
+
+**Checklist de Migration**:
+```bash
+# 1. Verificar estado atual da migration branch
+git log --oneline -5
+
+# 2. Verificar arquivos já modificados (se houver)
+git status
+
+# 3. Atualizar Directory.Packages.props
+# - .NET 10 packages (Microsoft.Extensions.*, System.*, etc.)
+# - Aspire 13.x (Aspire.Hosting.*, Aspire.Npgsql, etc.)
+# - EF Core 10.x
+# - Npgsql 10.x
+
+# 4. Atualizar todos .csproj para net10.0
+# Usar script PowerShell ou find/replace em massa:
+# <TargetFramework>net9.0</TargetFramework> → <TargetFramework>net10.0</TargetFramework>
+
+# 5. Rodar build completo
+dotnet build
+
+# 6. Rodar todos os testes
+dotnet test --no-build
+
+# 7. Verificar erros e breaking changes
+# Consultar: https://learn.microsoft.com/en-us/dotnet/core/compatibility/10.0
+
+# 8. Atualizar Docker images (se aplicável)
+# FROM mcr.microsoft.com/dotnet/aspnet:9.0 → FROM mcr.microsoft.com/dotnet/aspnet:10.0
+
+# 9. Atualizar CI/CD pipeline (azure-pipelines.yml)
+# - dotnet-version: '10.x'
+# - Usar .NET 10 SDK na agent pool
+
+# 10. Merge para master após validação
+git checkout master
+git merge migration-to-dotnet-10 --no-ff
+git push origin master
+```
+
+**Recursos**:
+- [.NET 10 Release Notes](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10)
+- [.NET 10 Breaking Changes](https://learn.microsoft.com/en-us/dotnet/core/compatibility/10.0)
+- [Aspire 13 Release Notes](https://learn.microsoft.com/en-us/dotnet/aspire/whats-new)
+- [EF Core 10 What's New](https://learn.microsoft.com/en-us/ef/core/what-is-new/ef-core-10.0/whatsnew)
+
+**Estimativa**: 1-2 semanas (20-30 Jan 2025)
+
+---
+
+### 2️⃣ Após Conclusão da Migration
+
+**Próximo Sprint**: Sprint 1 (Integração de Módulos + Restrição Geográfica)
+
+Consultar seção "Sprint 1" acima para checklist detalhado.
+
+---
+
+## 🎨 Fase 2: Frontend & Experiência (Planejado)
+
+### Objetivo
+Desenvolver aplicações frontend usando Blazor WebAssembly (Web) e MAUI Blazor Hybrid (Mobile), aproveitando fullstack .NET para máxima reutilização de código.
+
+---
+
+### 📱 Stack Tecnológico ATUALIZADA
+
+> **📝 Nota de Decisão Técnica** (Janeiro 2025):  
+> Stack de frontend atualizado de **React + TypeScript** para **Blazor WASM + MAUI Hybrid**.  
+> **Razão**: Maximizar reutilização de código entre web e mobile (70%+ de código compartilhado C#), melhor integração com ASP.NET Core Identity + Keycloak, e redução de complexidade DevOps (fullstack .NET). Ver justificativa completa abaixo.
+
+**Decisão Estratégica**: Blazor WASM + MAUI Hybrid (fullstack .NET)
+
+**Justificativa**:
+- ✅ **Compartilhamento de Código**: C# end-to-end, compartilhar DTOs, validators, business logic
+- ✅ **Integração com Identity**: Melhor integração nativa com ASP.NET Core Identity + Keycloak
+- ✅ **Performance**: AOT compilation no Blazor WASM (carregamento rápido)
+- ✅ **Mobile Nativo**: MAUI Blazor Hybrid permite usar APIs nativas do device
+- ✅ **Ecossistema**: Um único stack .NET reduz complexidade de DevOps
+- ✅ **Evolução**: Preparado para futuras features (notificações push, geolocalização nativa)
+
+**Stack Completa**:
+- **Web Admin Portal**: Blazor WebAssembly (AOT enabled)
+- **Web Customer App**: Blazor WebAssembly (AOT enabled)
+- **Mobile Customer App**: .NET MAUI Blazor Hybrid (iOS + Android)
+- **UI Library**: MudBlazor (Material Design para Blazor)
+- **State Management**: Fluxor (Flux/Redux para Blazor)
+- **Auth**: Microsoft.AspNetCore.Components.WebAssembly.Authentication (OIDC)
+- **API Client**: Refit + HttpClientFactory
+- **Mapping**: AutoMapper compartilhado com backend
+
+### 🗂️ Estrutura de Projetos Atualizada
+```text
+src/
+├── Web/
+│   ├── MeAjudaAi.Web.Admin/          # Blazor WASM Admin Portal
+│   ├── MeAjudaAi.Web.Customer/       # Blazor WASM Customer App
+│   └── MeAjudaAi.Web.Shared/         # Componentes compartilhados
+├── Mobile/
+│   └── MeAjudaAi.Mobile/             # .NET MAUI Blazor Hybrid
+└── Shared/
+    ├── MeAjudaAi.Shared.DTOs/        # DTOs compartilhados (backend + frontend)
+    ├── MeAjudaAi.Shared.Validators/  # FluentValidation (backend + frontend)
+    └── MeAjudaAi.Shared.Contracts/   # Interfaces de API (Refit)
+```
+
+### 🔐 Autenticação Atualizada
+- **Protocolo**: OpenID Connect (OIDC)
+- **Identity Provider**: Keycloak
+- **Token Management**: `Microsoft.AspNetCore.Components.WebAssembly.Authentication`
+- **Storage**: Tokens em memória (WASM) + Secure Storage (MAUI)
+- **Refresh**: Automático via OIDC interceptor
+
+---
+
+### 📅 Sprint 3: Blazor Admin Portal (2 semanas)
+
+**Status**: ⏳ PLANEJADO
+
+**Objetivos**:
+- Portal administrativo para gestão de plataforma
+- CRUD de prestadores, serviços, moderação
+- Dashboard com métricas básicas
+
+**Funcionalidades**:
+
+#### 1. Autenticação e Autorização
+- [ ] Login via Keycloak (role: Admin required)
+- [ ] Logout
+- [ ] Tela de acesso negado (403)
+
+#### 2. Dashboard Principal
+- [ ] Cards com KPIs: Total Providers, Pending Verifications, Active Services, Total Reviews
+- [ ] Gráfico de registros de prestadores (últimos 30 dias)
+- [ ] Lista de ações pendentes (documentos para verificar, reviews flagged)
+
+#### 3. Gestão de Prestadores
+- [ ] **Listagem**: Tabela com filtros (status, cidade, tier, services)
+- [ ] **Detalhes**: Ver perfil completo + documentos + serviços
+- [ ] **Ações**: Aprovar, Rejeitar, Suspender, Reativar
+- [ ] **Histórico**: Audit log de alterações
+
+#### 4. Gestão de Documentos
+- [ ] **Fila de Verificação**: Listar documentos pendentes (ordered by upload date)
+- [ ] **Visualizador**: Exibir documento no browser (PDF/Image viewer)
+- [ ] **Ações**: Verificar, Rejeitar (com motivo)
+- [ ] **OCR Data**: Exibir dados extraídos (se disponível)
+
+#### 5. Gestão de Catálogo de Serviços
+- [ ] **Categorias**: CRUD completo com drag-and-drop para reordenar
+- [ ] **Serviços**: CRUD completo com seleção de categoria
+- [ ] **Ativar/Desativar**: Toggle switch para cada item
+- [ ] **Preview**: Exibir hierarquia completa do catálogo
+
+#### 6. Moderação de Reviews (Preparação para Fase 3)
+- [ ] **Listagem**: Reviews flagged/reportados
+- [ ] **Ações**: Aprovar, Remover, Banir usuário
+- [ ] Stub para módulo Reviews (a ser implementado na Fase 3)
+
+**Tecnologias**:
+- **Framework**: Blazor WebAssembly (.NET 10)
+- **UI**: MudBlazor (Material Design)
+- **State**: Fluxor (Flux/Redux pattern)
+- **HTTP**: Refit + Polly (retry policies)
+- **Charts**: ApexCharts.Blazor
+
+**Resultado Esperado**:
+- ✅ Admin Portal funcional e responsivo
+- ✅ Todas operações CRUD implementadas
+- ✅ Dashboard com métricas em tempo real
+- ✅ Deploy em Azure Container Apps
+
+---
+
+### 📅 Sprint 4: Blazor Customer App (Web + Mobile) (3 semanas)
+
+**Status**: ⏳ PLANEJADO
+
+**Objetivos**:
+- App para clientes (web + mobile)
+- Busca de prestadores
+- Gestão de perfil
+- Histórico de interações
+
+**Funcionalidades**:
+
+#### 1. Blazor WASM (Web) - Semana 1-2
+
+**Home & Busca**:
+- [ ] **Landing Page**: Hero section + busca rápida
+- [ ] **Busca Geolocalizada**: Campo de endereço/CEP + raio + serviços
+- [ ] **Mapa Interativo**: Exibir prestadores no mapa (Leaflet.Blazor)
+- [ ] **Listagem de Resultados**: Cards com foto, nome, rating, distância, tier badge
+- [ ] **Filtros**: Rating mínimo, tier, disponibilidade
+- [ ] **Ordenação**: Distância, Rating, Tier
+
+**Perfil de Prestador**:
+- [ ] **Visualização**: Foto, nome, descrição, serviços, rating, reviews
+- [ ] **Contato**: Botão WhatsApp, telefone, email (MVP: links externos)
+- [ ] **Galeria**: Fotos do trabalho (se disponível)
+- [ ] **Reviews**: Listar avaliações de outros clientes (read-only, write em Fase 3)
+
+**Meu Perfil**:
+- [ ] **Editar**: Nome, foto, telefone, endereço
+- [ ] **Histórico**: Prestadores contatados (tracking básico)
+- [ ] **Configurações**: Preferências de notificações (stub para futuro)
+
+#### 2. MAUI Blazor Hybrid (Mobile) - Semana 3
+
+**Diferenças do Web**:
+- [ ] **Geolocalização Nativa**: Usar GPS do device para busca automática
+- [ ] **Câmera**: Permitir upload de foto de perfil via câmera
+- [ ] **Notificações Push**: Stub para futuro (ex: prestador aceitou contato)
+- [ ] **Deep Linking**: Abrir prestador via link compartilhado
+- [ ] **Offline Mode**: Cache de última busca realizada
+
+**Compartilhamento de Código**:
+- [ ] Razor Components compartilhados entre Web e Mobile
+- [ ] Services layer compartilhado (ISearchService, IProviderService)
+- [ ] DTOs e Validators compartilhados via Shared.DTOs
+
+**Tecnologias Mobile**:
+- **Framework**: .NET MAUI 10 + Blazor Hybrid
+- **UI**: MudBlazor (funciona em MAUI)
+- **Maps**: MAUI Community Toolkit Maps
+- **Storage**: Preferences API + Secure Storage
+
+**Resultado Esperado**:
+- ✅ Customer App (Web) publicado
+- ✅ Customer App (Mobile) disponível em TestFlight (iOS) e Google Play Beta (Android)
+- ✅ 70%+ código compartilhado entre Web e Mobile
+- ✅ UX otimizada para mobile (gestures, navegação nativa)
+
+---
+
+### 📅 Sprint 5: Polishing & Hardening (1 semana)
+
+**Status**: ⏳ PLANEJADO
+
+**Objetivos**:
+- Melhorias de UX/UI
+- Rate limiting
+- Logging avançado
+- Documentação final
+
+**Tarefas**:
+
+#### 1. UX/UI Improvements
+- [ ] **Loading States**: Skeletons em todas cargas assíncronas
+- [ ] **Error Handling**: Mensagens friendly para todos erros (não mostrar stack traces)
+- [ ] **Validação Client-Side**: FluentValidation compartilhado entre frontend e backend
+- [ ] **Acessibilidade**: ARIA labels, teclado navigation, screen reader support
+- [ ] **Dark Mode**: Suporte a tema escuro (MudBlazor built-in)
+
+#### 2. Rate Limiting & Security
+- [ ] **API Rate Limiting**: Aspire middleware (100 req/min por IP, 1000 req/min para authenticated users)
+- [ ] **CORS**: Configurar origens permitidas (apenas domínios de produção)
+- [ ] **CSRF Protection**: Tokens anti-forgery em forms
+- [ ] **Security Headers**: HSTS, X-Frame-Options, CSP
+
+#### 3. Logging & Monitoring
+- [ ] **Frontend Logging**: Integração com Application Insights (Blazor WASM)
+- [ ] **Error Tracking**: Sentry ou similar para erros em produção
+- [ ] **Analytics**: Google Analytics ou Plausible para usage tracking
+
+#### 4. Documentação
+- [ ] **API Documentation**: Swagger/OpenAPI atualizado com exemplos
+- [ ] **User Guide**: Guia de uso para Admin Portal
+- [ ] **Developer Guide**: Como rodar localmente, como contribuir
+- [ ] **Deployment Guide**: Deploy em Azure Container Apps (ARM templates ou Bicep)
+
+**Resultado Esperado**:
+- ✅ MVP production-ready
+- ✅ Segurança hardened
+- ✅ Documentação completa
+- ✅ Monitoring configurado
+
+---
+
+## 🎯 Fase 3: Qualidade e Monetização
 
 ### Objetivo
 Introduzir sistema de avaliações para ranking, modelo de assinaturas premium via Stripe, e verificação automatizada de documentos.
@@ -637,62 +1152,14 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 
 ---
 
-## 🎨 Frontend Applications
+## 🎯 Funcionalidades Adicionais Recomendadas (Fase 4+)
 
-### 📱 Stack Tecnológico
-- **Framework**: React + TypeScript (Vite)
-- **UI Library**: Material-UI (MUI)
-- **State Management**: Zustand
-- **API Client**: Axios com wrapper customizado
-- **Auth**: oidc-client-ts (integração com Keycloak)
-
-### 🗂️ Estrutura de Projetos
-```text
-web/
-├── admin-portal/       # Portal administrativo
-├── customer-app/       # App para clientes (futuro)
-├── provider-app/       # App para prestadores (futuro)
-└── shared/            # Componentes compartilhados
-```
-
-### 🔐 Autenticação
-- **Protocolo**: OpenID Connect (OIDC)
-- **Identity Provider**: Keycloak
-- **Token Management**: Automático via oidc-client-ts
-- **Storage**: Secure token storage (sessionStorage/localStorage com encryption)
-
-### 🎯 Prioridades de Implementação
-1. **Admin Portal** (Fase 1)
-   - Gestão de usuários e prestadores
-   - Moderação de reviews
-   - Dashboard de métricas básico
-   - Gestão de catálogo de serviços
-
-2. **Customer Profile** (Fase 1)
-   - Edição de perfil
-   - Histórico de solicitações
-   - Gestão de reviews escritos
-
-3. **Provider Portal** (Fase 2)
-   - Dashboard analítico
-   - Gestão de documentos
-   - Calendário de disponibilidade
-   - Gestão de assinatura
-
----
-
-## 🎯 Funcionalidades Prioritárias Recomendadas
-
-### 🛡️ Admin Portal (Alta Prioridade)
-**Por quê**: Operações da plataforma são impossíveis sem back-office.
-
-**Funcionalidades Core**:
-- **User & Provider Management**: Visualizar, suspender, verificar manualmente
-- **ServiceCatalogs Management**: Aprovar/rejeitar serviços sugeridos
-- **Review Moderation**: Lidar com reviews sinalizados
-- **Dashboard**: Métricas-chave do módulo Analytics
-
-**Implementação**: App Blazor ou React separado consumindo mesma API (endpoints admin-only)
+### 🛡️ Admin Portal - Módulos Avançados
+**Funcionalidades Adicionais (Pós-MVP)**:
+- **User & Provider Analytics**: Dashboards avançados com Grafana
+- **Fraud Detection**: Sistema de scoring para detectar perfis suspeitos
+- **Bulk Operations**: Ações em lote (ex: aprovar múltiplos documentos)
+- **Audit Trail**: Histórico completo de todas ações administrativas
 
 ---
 
