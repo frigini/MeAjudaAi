@@ -15,8 +15,14 @@ public sealed class CatalogsDbContextFactory : IDesignTimeDbContextFactory<Catal
 
         // Usa string de conexão da variável de ambiente para operações em tempo de design
         // Isso é usado apenas para geração de migrações, não em runtime
-        var connectionString = Environment.GetEnvironmentVariable("CATALOGS_DB_CONNECTION")
-            ?? "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=development123";
+        var connectionString = Environment.GetEnvironmentVariable("CATALOGS_DB_CONNECTION");
+
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "CATALOGS_DB_CONNECTION environment variable is not set. " +
+                "Configure it for design-time EF Core operations.");
+        }
 
         optionsBuilder.UseNpgsql(
             connectionString,

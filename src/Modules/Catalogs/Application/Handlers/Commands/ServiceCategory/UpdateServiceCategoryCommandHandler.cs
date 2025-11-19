@@ -26,11 +26,14 @@ public sealed class UpdateServiceCategoryCommandHandler(
 
             var normalizedName = request.Name?.Trim();
 
+            if (string.IsNullOrWhiteSpace(normalizedName))
+                return Result.Failure("Category name cannot be empty.");
+
             // Verificar se já existe categoria com o mesmo nome (excluindo a categoria atual)
-            if (await categoryRepository.ExistsWithNameAsync(normalizedName!, categoryId, cancellationToken))
+            if (await categoryRepository.ExistsWithNameAsync(normalizedName, categoryId, cancellationToken))
                 return Result.Failure($"A category with name '{normalizedName}' already exists.");
 
-            category.Update(normalizedName!, request.Description, request.DisplayOrder);
+            category.Update(normalizedName, request.Description, request.DisplayOrder);
 
             await categoryRepository.UpdateAsync(category, cancellationToken);
 

@@ -33,11 +33,14 @@ public sealed class CreateServiceCommandHandler(
 
             var normalizedName = request.Name?.Trim();
 
+            if (string.IsNullOrWhiteSpace(normalizedName))
+                return Result<ServiceDto>.Failure("Service name is required.");
+
             // Verificar se já existe serviço com o mesmo nome na categoria
-            if (await serviceRepository.ExistsWithNameAsync(normalizedName!, null, categoryId, cancellationToken))
+            if (await serviceRepository.ExistsWithNameAsync(normalizedName, null, categoryId, cancellationToken))
                 return Result<ServiceDto>.Failure($"A service with name '{normalizedName}' already exists in this category.");
 
-            var service = Domain.Entities.Service.Create(categoryId, normalizedName!, request.Description, request.DisplayOrder);
+            var service = Domain.Entities.Service.Create(categoryId, normalizedName, request.Description, request.DisplayOrder);
 
             await serviceRepository.AddAsync(service, cancellationToken);
 

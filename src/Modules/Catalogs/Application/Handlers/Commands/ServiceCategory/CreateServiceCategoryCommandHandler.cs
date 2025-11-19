@@ -1,10 +1,10 @@
 using MeAjudaAi.Modules.Catalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Application.DTOs;
-using MeAjudaAi.Modules.Catalogs.Domain.Entities;
 using MeAjudaAi.Modules.Catalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.Catalogs.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Functional;
+using ServiceCategoryEntity = MeAjudaAi.Modules.Catalogs.Domain.Entities.ServiceCategory;
 
 namespace MeAjudaAi.Modules.Catalogs.Application.Handlers.Commands.ServiceCategory;
 
@@ -18,11 +18,14 @@ public sealed class CreateServiceCategoryCommandHandler(
         {
             var normalizedName = request.Name?.Trim();
 
+            if (string.IsNullOrWhiteSpace(normalizedName))
+                return Result<ServiceCategoryDto>.Failure("Category name is required.");
+
             // Verificar se já existe categoria com o mesmo nome
-            if (await categoryRepository.ExistsWithNameAsync(normalizedName!, null, cancellationToken))
+            if (await categoryRepository.ExistsWithNameAsync(normalizedName, null, cancellationToken))
                 return Result<ServiceCategoryDto>.Failure($"A category with name '{normalizedName}' already exists.");
 
-            var category = Domain.Entities.ServiceCategory.Create(normalizedName!, request.Description, request.DisplayOrder);
+            var category = ServiceCategoryEntity.Create(normalizedName, request.Description, request.DisplayOrder);
 
             await categoryRepository.AddAsync(category, cancellationToken);
 

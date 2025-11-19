@@ -26,11 +26,14 @@ public sealed class UpdateServiceCommandHandler(
 
             var normalizedName = request.Name?.Trim();
 
+            if (string.IsNullOrWhiteSpace(normalizedName))
+                return Result.Failure("Service name cannot be empty.");
+
             // Verificar se já existe serviço com o mesmo nome na categoria (excluindo o serviço atual)
-            if (await serviceRepository.ExistsWithNameAsync(normalizedName!, serviceId, service.CategoryId, cancellationToken))
+            if (await serviceRepository.ExistsWithNameAsync(normalizedName, serviceId, service.CategoryId, cancellationToken))
                 return Result.Failure($"A service with name '{normalizedName}' already exists in this category.");
 
-            service.Update(normalizedName!, request.Description, request.DisplayOrder);
+            service.Update(normalizedName, request.Description, request.DisplayOrder);
 
             await serviceRepository.UpdateAsync(service, cancellationToken);
 
