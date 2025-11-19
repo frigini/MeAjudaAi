@@ -101,7 +101,7 @@ try {
         "documents_role", "documents_owner",
         "search_role", "search_owner",
         "location_role", "location_owner",
-        "service_catalogs_role", "service_catalogs_owner",
+        "catalogs_role", "catalogs_owner",
         "hangfire_role",
         "meajudaai_app_role", "meajudaai_app_owner"
     )

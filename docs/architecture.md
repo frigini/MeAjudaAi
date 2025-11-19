@@ -115,7 +115,7 @@ public class ProvidersContext
 - **Qualification**: Qualificações e habilitações profissionais
 - **VerificationStatus**: Status de verificação (Pending, Verified, Rejected, etc.)
 
-#### 3. **service_catalogs Context** (Implementado)
+#### 3. **ServiceCatalogs Context** (Implementado)
 **Responsabilidade**: Catálogo administrativo de categorias e serviços
 
 **Conceitos Implementados**:

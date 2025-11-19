@@ -59,7 +59,7 @@ public static class Extensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(typeof(ServiceCatalogsDbContext).Assembly.FullName);
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "ServiceCatalogs");
+                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "service_catalogs");
                 npgsqlOptions.CommandTimeout(60);
             })
             .UseSnakeCaseNamingConvention()

@@ -95,7 +95,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                         options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
                         {
                             npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.ServiceCatalogs.Infrastructure");
-                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "catalogs");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "service_catalogs");
                         });
                         options.UseSnakeCaseNamingConvention();
                         options.EnableSensitiveDataLogging();
@@ -170,7 +170,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         await ApplyMigrationForContextAsync(usersContext, "Users", logger, "UsersDbContext primeiro (cria database e schema users)");
         await ApplyMigrationForContextAsync(providersContext, "Providers", logger, "ProvidersDbContext (banco já existe, só precisa do schema providers)");
         await ApplyMigrationForContextAsync(documentsContext, "Documents", logger, "DocumentsDbContext (banco já existe, só precisa do schema documents)");
-        await ApplyMigrationForContextAsync(catalogsContext, "Catalogs", logger, "ServiceCatalogsDbContext (banco já existe, só precisa do schema catalogs)");
+        await ApplyMigrationForContextAsync(catalogsContext, "Catalogs", logger, "ServiceCatalogsDbContext (banco já existe, só precisa do schema service_catalogs)");
 
         // Verifica se as tabelas existem
         await VerifyContextAsync(usersContext, "Users", () => usersContext.Users.CountAsync(), logger);

@@ -5,10 +5,10 @@ using MeAjudaAi.E2E.Tests.Base;
 namespace MeAjudaAi.E2E.Tests.Integration;
 
 /// <summary>
-/// Testes de integração entre o módulo Catalogs e outros módulos
+/// Testes de integração entre o módulo ServiceCatalogs e outros módulos
 /// Demonstra como o módulo de catálogos pode ser consumido por outros módulos
 /// </summary>
-public class CatalogsModuleIntegrationTests : TestContainerTestBase
+public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
 {
     [Fact]
     public async Task ServicesModule_Can_Validate_Services_From_Catalogs()
