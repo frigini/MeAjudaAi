@@ -145,15 +145,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{4726175B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.SearchProviders.Tests", "src\Modules\SearchProviders\Tests\MeAjudaAi.Modules.SearchProviders.Tests.csproj", "{C7F6B6F4-4F9C-C844-500C-87E3802A6C4B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Catalogs", "Catalogs", "{8B551008-B254-EBAF-1B6D-AB7C420234EA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ServiceCatalogs", "ServiceCatalogs", "{8B551008-B254-EBAF-1B6D-AB7C420234EA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{B346CC0B-427A-E442-6F5D-8AAE1AB081D6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.ServiceCatalogs.Domain", "src\Modules\ServiceCatalogs\Domain\MeAjudaAi.Modules.ServiceCatalogs.Domain.csproj", "{DC1D1ACD-A21E-4BA0-A22D-77450234BD2A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{44577491-2FC0-4F52-AF5C-2BC9B323CDB7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.ServiceCatalogs.Application", "src\Modules\ServiceCatalogs\Application\MeAjudaAi.Modules.ServiceCatalogs.Application.csproj", "{44577491-2FC0-4F52-AF5C-2BC9B323CDB7}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{8D23D6D3-2B2E-7F09-866F-FA51CC0FC081}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure", "src\Modules\ServiceCatalogs\Infrastructure\MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.csproj", "{3B6D6C13-1E04-47B9-B44E-36D25DF913C7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.ServiceCatalogs.API", "src\Modules\ServiceCatalogs\API\MeAjudaAi.Modules.ServiceCatalogs.API.csproj", "{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -597,6 +605,18 @@ Global
 		{3B6D6C13-1E04-47B9-B44E-36D25DF913C7}.Release|x64.Build.0 = Release|Any CPU
 		{3B6D6C13-1E04-47B9-B44E-36D25DF913C7}.Release|x86.ActiveCfg = Release|Any CPU
 		{3B6D6C13-1E04-47B9-B44E-36D25DF913C7}.Release|x86.Build.0 = Release|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Debug|x64.Build.0 = Debug|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Debug|x86.Build.0 = Debug|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Release|x64.ActiveCfg = Release|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Release|x64.Build.0 = Release|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Release|x86.ActiveCfg = Release|Any CPU
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -671,8 +691,10 @@ Global
 		{8B551008-B254-EBAF-1B6D-AB7C420234EA} = {D55DFAF4-45A1-4C45-AA54-8CE46F0AFB1F}
 		{B346CC0B-427A-E442-6F5D-8AAE1AB081D6} = {8B551008-B254-EBAF-1B6D-AB7C420234EA}
 		{DC1D1ACD-A21E-4BA0-A22D-77450234BD2A} = {B346CC0B-427A-E442-6F5D-8AAE1AB081D6}
+		{44577491-2FC0-4F52-AF5C-2BC9B323CDB7} = {8B551008-B254-EBAF-1B6D-AB7C420234EA}
 		{8D23D6D3-2B2E-7F09-866F-FA51CC0FC081} = {8B551008-B254-EBAF-1B6D-AB7C420234EA}
 		{3B6D6C13-1E04-47B9-B44E-36D25DF913C7} = {8D23D6D3-2B2E-7F09-866F-FA51CC0FC081}
+		{30A2D3C4-AF98-40A1-AA90-ED7C5FE090F8} = {8B551008-B254-EBAF-1B6D-AB7C420234EA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {391B5342-8EC5-4DF0-BCDA-6D73F87E8751}
