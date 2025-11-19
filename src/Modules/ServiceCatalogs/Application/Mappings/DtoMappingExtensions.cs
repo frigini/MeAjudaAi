@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
 
@@ -19,6 +20,25 @@ public static class DtoMappingExtensions
             service.Name,
             service.Description,
             service.IsActive);
+
+    /// <summary>
+    /// Maps a Service entity to a ServiceDto.
+    /// </summary>
+    public static ServiceDto ToDto(this Service service)
+    {
+        var categoryName = service.Category?.Name ?? ValidationMessages.Catalogs.UnknownCategoryName;
+        
+        return new ServiceDto(
+            service.Id.Value,
+            service.CategoryId.Value,
+            categoryName,
+            service.Name,
+            service.Description,
+            service.IsActive,
+            service.DisplayOrder,
+            service.CreatedAt,
+            service.UpdatedAt);
+    }
 
     /// <summary>
     /// Maps a ServiceCategory entity to a ServiceCategoryDto.

@@ -16,7 +16,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/validate", ValidateAsync)
+        => app.MapPost("validate", ValidateAsync)
             .WithName("ValidateServices")
             .WithSummary("Validar múltiplos serviços")
             .Produces<Response<ValidateServicesResponse>>(StatusCodes.Status200OK)

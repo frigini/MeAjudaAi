@@ -16,7 +16,7 @@ public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryRepositor
         CancellationToken cancellationToken = default)
     {
         if (request.Id == Guid.Empty)
-            return Result<ServiceCategoryDto?>.Success(null);
+            return Result<ServiceCategoryDto?>.Failure("Service Category ID cannot be empty.");
 
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await repository.GetByIdAsync(categoryId, cancellationToken);
