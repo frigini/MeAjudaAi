@@ -62,4 +62,18 @@ public static class ValidationConstants
         public const int MaxPageSize = 100;
         public const int MinPageSize = 1;
     }
+
+    /// <summary>
+    /// Limites para entidades do módulo Catalogs
+    /// </summary>
+    public static class CatalogLimits
+    {
+        // Service Category
+        public const int ServiceCategoryNameMaxLength = 100;
+        public const int ServiceCategoryDescriptionMaxLength = 500;
+
+        // Service
+        public const int ServiceNameMaxLength = 150;
+        public const int ServiceDescriptionMaxLength = 1000;
+    }
 }

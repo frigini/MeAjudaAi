@@ -23,21 +23,24 @@ namespace MeAjudaAi.Modules.Documents.Application.ModuleApi;
 /// <para>GetDocumentByIdAsync retorna Success(null) para documentos inexistentes em vez de tratar
 /// "not found" como falha. A verificação de disponibilidade depende desta convenção.</para>
 /// <para><strong>Metadados do Módulo:</strong></para>
-/// <para>Os valores do atributo ModuleApi devem corresponder às constantes ModuleNameConst e ApiVersionConst.
-/// Um teste unitário valida esta consistência para prevenir deriva de configuração.</para>
+/// <para>Os valores do atributo ModuleApi devem corresponder às propriedades ModuleMetadata.Name e ModuleMetadata.Version.
+/// Esta consistência é garantida pela classe aninhada ModuleMetadata que centraliza as constantes.</para>
 /// </remarks>
-[ModuleApi(ModuleNameConst, ApiVersionConst)]
+[ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class DocumentsModuleApi(
     IQueryHandler<GetDocumentStatusQuery, DocumentDto?> getDocumentStatusHandler,
     IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>> getProviderDocumentsHandler,
     IServiceProvider serviceProvider,
     ILogger<DocumentsModuleApi> logger) : IDocumentsModuleApi
 {
-    private const string ModuleNameConst = "Documents";
-    private const string ApiVersionConst = "1.0";
+    private static class ModuleMetadata
+    {
+        public const string Name = "Documents";
+        public const string Version = "1.0";
+    }
 
-    public string ModuleName => ModuleNameConst;
-    public string ApiVersion => ApiVersionConst;
+    public string ModuleName => ModuleMetadata.Name;
+    public string ApiVersion => ModuleMetadata.Version;
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {

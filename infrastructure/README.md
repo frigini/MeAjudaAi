@@ -259,7 +259,7 @@ The test scripts verify:
 
 ✅ All module schemas created correctly:
 - `users`, `providers`, `documents`
-- `search`, `location`
+- `search`, `location`, `catalogs`
 - `hangfire`, `meajudaai_app`
 
 ✅ All database roles created:

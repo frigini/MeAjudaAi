@@ -40,7 +40,7 @@ public static class UsersTestInfrastructureExtensions
 
         // Adicionar serviços de cache do Shared (incluindo ICacheService)
         // Para testes, usar implementação simples sem dependências complexas
-        services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, TestCacheService>();
+        services.AddSingleton<MeAjudaAi.Shared.Caching.ICacheService, MeAjudaAi.Shared.Tests.Infrastructure.TestCacheService>();
 
         // Configurar banco de dados específico do módulo Users
         services.AddTestDatabase<UsersDbContext>(

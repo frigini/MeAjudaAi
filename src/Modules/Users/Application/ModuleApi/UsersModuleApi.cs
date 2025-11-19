@@ -14,7 +14,7 @@ namespace MeAjudaAi.Modules.Users.Application.ModuleApi;
 /// <summary>
 /// Implementação da API pública do módulo Users para outros módulos
 /// </summary>
-[ModuleApi("Users", "1.0")]
+[ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class UsersModuleApi(
     IQueryHandler<GetUserByIdQuery, Result<UserDto>> getUserByIdHandler,
     IQueryHandler<GetUserByEmailQuery, Result<UserDto>> getUserByEmailHandler,
@@ -23,8 +23,14 @@ public sealed class UsersModuleApi(
     IServiceProvider serviceProvider,
     ILogger<UsersModuleApi> logger) : IUsersModuleApi, IModuleApi
 {
-    public string ModuleName => "Users";
-    public string ApiVersion => "1.0";
+    private static class ModuleMetadata
+    {
+        public const string Name = "Users";
+        public const string Version = "1.0";
+    }
+
+    public string ModuleName => ModuleMetadata.Name;
+    public string ApiVersion => ModuleMetadata.Version;
 
     private static readonly Guid HealthCheckUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
@@ -186,7 +192,7 @@ public sealed class UsersModuleApi(
 
         return result.Match(
             onSuccess: _ => Result<bool>.Success(true),
-            onFailure: _ => Result<bool>.Success(false)
+            onFailure: _ => Result<bool>.Success(false) // Any error means user doesn't exist
         );
     }
 }
