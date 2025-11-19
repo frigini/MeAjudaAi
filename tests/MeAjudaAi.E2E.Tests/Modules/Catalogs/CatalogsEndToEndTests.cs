@@ -1,5 +1,6 @@
 using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.Modules.Catalogs.Application.DTOs;
 using MeAjudaAi.Modules.Catalogs.Domain.Entities;
 using MeAjudaAi.Modules.Catalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence;
@@ -55,12 +56,16 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<object>(content, JsonOptions);
-        result.Should().NotBeNull();
+        var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
+        result.TryGetProperty("data", out var data).Should().BeTrue();
+        
+        var categories = data.Deserialize<ServiceCategoryDto[]>(JsonOptions);
+        categories.Should().NotBeNull();
+        categories!.Length.Should().BeGreaterThanOrEqualTo(3, "should have at least the 3 created categories");
     }
 
     [Fact]
-    public async Task CreateService_Should_Require_Valid_Category()
+    public async Task CreateService_Should_Succeed_With_Valid_Category()
     {
         // Arrange
         AuthenticateAsAdmin();
@@ -86,6 +91,31 @@ public class CatalogsEndToEndTests : TestContainerTestBase
     }
 
     [Fact]
+    public async Task CreateService_Should_Reject_Invalid_CategoryId()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var nonExistentCategoryId = Guid.NewGuid();
+
+        var createServiceRequest = new
+        {
+            CategoryId = nonExistentCategoryId,
+            Name = Faker.Commerce.ProductName(),
+            Description = Faker.Commerce.ProductDescription(),
+            DisplayOrder = Faker.Random.Int(1, 100)
+        };
+
+        // Act
+        var response = await PostJsonAsync("/api/v1/catalogs/services", createServiceRequest);
+
+        // Assert - Should reject with BadRequest or NotFound
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotFound, HttpStatusCode.UnprocessableEntity);
+        
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
     public async Task GetServicesByCategory_Should_Return_Filtered_Results()
     {
         // Arrange
@@ -100,8 +130,13 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<object>(content, JsonOptions);
-        result.Should().NotBeNull();
+        var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
+        result.TryGetProperty("data", out var data).Should().BeTrue();
+        
+        var services = data.Deserialize<ServiceListDto[]>(JsonOptions);
+        services.Should().NotBeNull();
+        services!.Length.Should().Be(3, "should return exactly 3 services for this category");
+        services.Should().OnlyContain(s => s.CategoryId == category.Id.Value, "all services should belong to the specified category");
     }
 
     [Fact]
@@ -123,6 +158,16 @@ public class CatalogsEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Verify the category was actually updated
+        var getResponse = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        
+        var updatedCategory = await ReadJsonAsync<ServiceCategoryDto>(getResponse);
+        updatedCategory.Should().NotBeNull();
+        updatedCategory!.Name.Should().Be(updateRequest.Name);
+        updatedCategory.Description.Should().Be(updateRequest.Description);
+        updatedCategory.DisplayOrder.Should().Be(updateRequest.DisplayOrder);
     }
 
     [Fact]
@@ -152,13 +197,23 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         var deactivateResponse = await PostJsonAsync($"/api/v1/catalogs/services/{service.Id.Value}/deactivate", new { });
         deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
+        // Assert - Verify service is inactive
+        var getAfterDeactivate = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service.Id.Value}");
+        getAfterDeactivate.StatusCode.Should().Be(HttpStatusCode.OK);
+        var deactivatedService = await ReadJsonAsync<ServiceDto>(getAfterDeactivate);
+        deactivatedService.Should().NotBeNull();
+        deactivatedService!.IsActive.Should().BeFalse("service should be inactive after deactivate");
+
         // Act - Activate
         var activateResponse = await PostJsonAsync($"/api/v1/catalogs/services/{service.Id.Value}/activate", new { });
         activateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // Assert - Verify final state is active
-        var getResponse = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service.Id.Value}");
-        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        // Assert - Verify service is active again
+        var getAfterActivate = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service.Id.Value}");
+        getAfterActivate.StatusCode.Should().Be(HttpStatusCode.OK);
+        var activatedService = await ReadJsonAsync<ServiceDto>(getAfterActivate);
+        activatedService.Should().NotBeNull();
+        activatedService!.IsActive.Should().BeTrue("service should be active after activate");
     }
 
     [Fact]

@@ -43,7 +43,7 @@ public sealed class Cep
 
 **Validações:**
 - ✅ Deve ter exatamente 8 dígitos
-- ✅ Remove automaticamente formatação (-,.)
+-     - ✅ Remove automaticamente formatação (-, . e outros caracteres especiais)
 - ✅ Factory method seguro (retorna null se inválido)
 
 #### **Coordinates**
@@ -409,7 +409,7 @@ public class SearchableProvider
 }
 ```
 
-## 📈 Métricas e Performance
+## 📈 Métricas e Desempenho
 
 ### **SLAs Esperados**
 - Lookup de CEP: <500ms (com fallback)
@@ -419,9 +419,7 @@ public class SearchableProvider
 ### **Otimizações Futuras**
 - [ ] Cache Redis para CEPs (TTL: 24h)
 - [ ] Warm-up de circuit breakers no startup
-- [ ] Metrics customizadas (Polly telemetry)
-
-## 🚀 Próximos Passos
+        - [ ] Métricas customizadas (Polly telemetry)## 🚀 Próximos Passos
 
 ### **Fase 2 - Geocoding**
 - [ ] Implementar `GeocodingService`

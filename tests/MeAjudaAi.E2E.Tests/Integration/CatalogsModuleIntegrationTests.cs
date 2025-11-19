@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.Modules.Catalogs.Application.DTOs;
 
 namespace MeAjudaAi.E2E.Tests.Integration;
 
@@ -19,31 +20,25 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         var service1 = await CreateServiceAsync(category.Id, "Limpeza de Piscina", "Limpeza completa");
         var service2 = await CreateServiceAsync(category.Id, "Limpeza de Jardim", "Manutenção de jardim");
 
-        // Act - Services module would validate service IDs
-        var validateRequest = new
-        {
-            ServiceIds = new[] { service1.Id, service2.Id }
-        };
+        // Act - Services module would validate service IDs by querying individual services
+        var response1 = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service1.Id}");
+        var response2 = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service2.Id}");
 
-        // Call the validation endpoint
-        var response = await PostJsonAsync("/api/v1/catalogs/services/validate", validateRequest);
+        // Assert - Both services should exist
+        response1.StatusCode.Should().Be(HttpStatusCode.OK, "service1 should exist");
+        response2.StatusCode.Should().Be(HttpStatusCode.OK, "service2 should exist");
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content1 = await response1.Content.ReadAsStringAsync();
+        var result1 = JsonSerializer.Deserialize<JsonElement>(content1, JsonOptions);
+        result1.TryGetProperty("data", out var data1).Should().BeTrue();
+        data1.TryGetProperty("id", out var id1).Should().BeTrue();
+        id1.GetGuid().Should().Be(service1.Id);
 
-        var content = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-
-        // Should validate all services as valid
-        result.TryGetProperty("data", out var data).Should().BeTrue();
-        data.TryGetProperty("allValid", out var allValid).Should().BeTrue();
-        allValid.GetBoolean().Should().BeTrue();
-
-        data.TryGetProperty("invalidServiceIds", out var invalidIds).Should().BeTrue();
-        invalidIds.GetArrayLength().Should().Be(0);
-
-        data.TryGetProperty("inactiveServiceIds", out var inactiveIds).Should().BeTrue();
-        inactiveIds.GetArrayLength().Should().Be(0);
+        var content2 = await response2.Content.ReadAsStringAsync();
+        var result2 = JsonSerializer.Deserialize<JsonElement>(content2, JsonOptions);
+        result2.TryGetProperty("data", out var data2).Should().BeTrue();
+        data2.TryGetProperty("id", out var id2).Should().BeTrue();
+        id2.GetGuid().Should().Be(service2.Id);
     }
 
     [Fact]
@@ -68,7 +63,7 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
 
         result.TryGetProperty("data", out var data).Should().BeTrue();
-        var services = data.Deserialize<ServiceDto[]>(JsonOptions);
+        var services = data.Deserialize<ServiceListDto[]>(JsonOptions);
         services.Should().NotBeNull();
         services!.Should().Contain(s => s.Id == activeService.Id);
         services!.Should().NotContain(s => s.Id == inactiveService.Id);

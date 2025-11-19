@@ -67,14 +67,12 @@ public class ServiceBuilder : BuilderBase<Service>
     public ServiceBuilder AsActive()
     {
         _isActive = true;
-        WithCustomAction(service => service.Activate());
         return this;
     }
 
     public ServiceBuilder AsInactive()
     {
         _isActive = false;
-        WithCustomAction(service => service.Deactivate());
         return this;
     }
 }

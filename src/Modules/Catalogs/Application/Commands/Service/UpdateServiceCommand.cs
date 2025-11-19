@@ -6,6 +6,7 @@ namespace MeAjudaAi.Modules.Catalogs.Application.Commands.Service;
 
 /// <summary>
 /// Command to update an existing service's details.
+/// Validation limits must match ValidationConstants.CatalogLimits.
 /// </summary>
 public sealed record UpdateServiceCommand(
     Guid Id,

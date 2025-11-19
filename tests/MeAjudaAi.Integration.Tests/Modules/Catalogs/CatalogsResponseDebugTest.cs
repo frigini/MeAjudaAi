@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Serialization;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Catalogs;
 
@@ -32,13 +33,11 @@ public class CatalogsResponseDebugTest(ITestOutputHelper testOutput) : ApiTestBa
         testOutput.WriteLine($"Raw Response: {content}");
         testOutput.WriteLine($"Response Length: {content.Length}");
 
+        JsonElement json;
         try
         {
-            // Use shared JSON deserialization for consistency
-            var dto = await ReadJsonAsync<dynamic>(response.Content);
-            testOutput.WriteLine($"Deserialized DTO: {dto}");
-
-            var json = JsonSerializer.Deserialize<JsonElement>(content);
+            // Use shared JSON deserialization for consistency with API serialization options
+            json = JsonSerializer.Deserialize<JsonElement>(content, SerializationDefaults.Api);
             testOutput.WriteLine($"JSON ValueKind: {json.ValueKind}");
 
             if (json.ValueKind == JsonValueKind.Object)
@@ -48,15 +47,19 @@ public class CatalogsResponseDebugTest(ITestOutputHelper testOutput) : ApiTestBa
                 {
                     testOutput.WriteLine($"  {prop.Name}: {prop.Value.ValueKind} = {prop.Value}");
                 }
-
-                // Validate expected DTO shape
-                json.TryGetProperty("id", out _).Should().BeTrue("DTO should have 'id' property");
-                json.TryGetProperty("name", out _).Should().BeTrue("DTO should have 'name' property");
             }
         }
         catch (Exception ex)
         {
             testOutput.WriteLine($"JSON Parsing Error: {ex.Message}");
+            throw; // Re-throw to fail the test
+        }
+
+        // Validate expected DTO shape outside try/catch so assertions are not swallowed
+        if (json.ValueKind == JsonValueKind.Object)
+        {
+            json.TryGetProperty("id", out _).Should().BeTrue("DTO should have 'id' property");
+            json.TryGetProperty("name", out _).Should().BeTrue("DTO should have 'name' property");
         }
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);

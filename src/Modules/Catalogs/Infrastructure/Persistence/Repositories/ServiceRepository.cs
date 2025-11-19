@@ -10,6 +10,7 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
     public async Task<Service?> GetByIdAsync(ServiceId id, CancellationToken cancellationToken = default)
     {
         return await context.Services
+            .AsNoTracking()
             .Include(s => s.Category)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
@@ -18,6 +19,7 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
     {
         var idList = ids.ToList();
         return await context.Services
+            .AsNoTracking()
             .Where(s => idList.Contains(s.Id))
             .ToListAsync(cancellationToken);
     }
@@ -27,13 +29,14 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
         var normalized = name?.Trim() ?? string.Empty;
 
         return await context.Services
+            .AsNoTracking()
             .Include(s => s.Category)
             .FirstOrDefaultAsync(s => s.Name == normalized, cancellationToken);
     }
 
     public async Task<IReadOnlyList<Service>> GetAllAsync(bool activeOnly = false, CancellationToken cancellationToken = default)
     {
-        var query = context.Services.AsQueryable();
+        var query = context.Services.AsNoTracking().AsQueryable();
 
         if (activeOnly)
             query = query.Where(s => s.IsActive);
@@ -46,6 +49,7 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
     public async Task<IReadOnlyList<Service>> GetByCategoryAsync(ServiceCategoryId categoryId, bool activeOnly = false, CancellationToken cancellationToken = default)
     {
         var query = context.Services
+            .AsNoTracking()
             .Include(s => s.Category)
             .Where(s => s.CategoryId == categoryId);
 
