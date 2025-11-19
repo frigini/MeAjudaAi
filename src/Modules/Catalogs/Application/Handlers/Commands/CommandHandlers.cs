@@ -56,6 +56,9 @@ public sealed class UpdateServiceCategoryCommandHandler(
     {
         try
         {
+            if (request.Id == Guid.Empty)
+                return Result.Failure("Category ID cannot be empty.");
+
             var categoryId = ServiceCategoryId.From(request.Id);
             var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
 
@@ -86,6 +89,9 @@ public sealed class DeleteServiceCategoryCommandHandler(
 {
     public async Task<Result> HandleAsync(DeleteServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
+        if (request.Id == Guid.Empty)
+            return Result.Failure("Category ID cannot be empty.");
+
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
 
@@ -109,6 +115,9 @@ public sealed class ActivateServiceCategoryCommandHandler(
 {
     public async Task<Result> HandleAsync(ActivateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
+        if (request.Id == Guid.Empty)
+            return Result.Failure("Category ID cannot be empty.");
+
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
 
@@ -129,6 +138,9 @@ public sealed class DeactivateServiceCategoryCommandHandler(
 {
     public async Task<Result> HandleAsync(DeactivateServiceCategoryCommand request, CancellationToken cancellationToken = default)
     {
+        if (request.Id == Guid.Empty)
+            return Result.Failure("Category ID cannot be empty.");
+
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await categoryRepository.GetByIdAsync(categoryId, cancellationToken);
 
@@ -156,6 +168,9 @@ public sealed class CreateServiceCommandHandler(
     {
         try
         {
+            if (request.CategoryId == Guid.Empty)
+                return Result<ServiceDto>.Failure("Category ID cannot be empty.");
+
             var categoryId = ServiceCategoryId.From(request.CategoryId);
 
             // Verify category exists and is active
@@ -202,6 +217,9 @@ public sealed class UpdateServiceCommandHandler(
     {
         try
         {
+            if (request.Id == Guid.Empty)
+                return Result.Failure("Service ID cannot be empty.");
+
             var serviceId = ServiceId.From(request.Id);
             var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
@@ -231,6 +249,9 @@ public sealed class DeleteServiceCommandHandler(
 {
     public async Task<Result> HandleAsync(DeleteServiceCommand request, CancellationToken cancellationToken = default)
     {
+        if (request.Id == Guid.Empty)
+            return Result.Failure("Service ID cannot be empty.");
+
         var serviceId = ServiceId.From(request.Id);
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
@@ -256,6 +277,9 @@ public sealed class ActivateServiceCommandHandler(
 {
     public async Task<Result> HandleAsync(ActivateServiceCommand request, CancellationToken cancellationToken = default)
     {
+        if (request.Id == Guid.Empty)
+            return Result.Failure("Service ID cannot be empty.");
+
         var serviceId = ServiceId.From(request.Id);
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
@@ -276,6 +300,9 @@ public sealed class DeactivateServiceCommandHandler(
 {
     public async Task<Result> HandleAsync(DeactivateServiceCommand request, CancellationToken cancellationToken = default)
     {
+        if (request.Id == Guid.Empty)
+            return Result.Failure("Service ID cannot be empty.");
+
         var serviceId = ServiceId.From(request.Id);
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 
@@ -299,6 +326,12 @@ public sealed class ChangeServiceCategoryCommandHandler(
     {
         try
         {
+            if (request.ServiceId == Guid.Empty)
+                return Result.Failure("Service ID cannot be empty.");
+
+            if (request.NewCategoryId == Guid.Empty)
+                return Result.Failure("New category ID cannot be empty.");
+
             var serviceId = ServiceId.From(request.ServiceId);
             var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
 

@@ -120,7 +120,7 @@ public interface ICepLookupService
 }
 ```
 
-**Implementação: Chain of Responsibility com Fallback**
+### Implementação: Chain of Responsibility com Fallback
 
 ```csharp
 public class CepLookupService : ICepLookupService
@@ -377,7 +377,7 @@ src/Modules/Location/
 - Application (Services): ~70%
 - Infrastructure (Clients): ~60%
 
-**Total: 52 testes unitários passando**
+### Total: 52 testes unitários passando
 
 ## 🔗 Integração com Outros Módulos
 

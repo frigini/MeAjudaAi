@@ -94,7 +94,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         await CreateTestServicesAsync(category.Id.Value, 3);
 
         // Act
-        var response = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category.Id.Value}/services");
+        var response = await ApiClient.GetAsync($"/api/v1/catalogs/services/category/{category.Id.Value}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
