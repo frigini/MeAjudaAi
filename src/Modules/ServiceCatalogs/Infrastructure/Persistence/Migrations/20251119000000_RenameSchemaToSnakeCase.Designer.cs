@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiceCatalogsDbContext))]
-    [Migration("20251117205349_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251119000000_RenameSchemaToSnakeCase")]
+    partial class RenameSchemaToSnakeCase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -78,7 +78,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
                     b.HasIndex("CategoryId", "DisplayOrder")
                         .HasDatabaseName("ix_services_category_display_order");
 
-                    b.ToTable("services", "ServiceCatalogs");
+                    b.ToTable("services", "service_catalogs");
                 });
 
             modelBuilder.Entity("MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory", b =>
@@ -126,19 +126,17 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_service_categories_name");
 
-                    b.ToTable("service_categories", "ServiceCatalogs");
+                    b.ToTable("service_categories", "service_catalogs");
                 });
 
             modelBuilder.Entity("MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service", b =>
                 {
-                    b.HasOne("MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory", "Category")
+                    b.HasOne("MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory", null)
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_services_category");
-
-                    b.Navigation("Category");
                 });
 #pragma warning restore 612, 618
         }

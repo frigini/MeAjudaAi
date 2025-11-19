@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("ServiceCatalogs")
+                .HasDefaultSchema("service_catalogs")
                 .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
