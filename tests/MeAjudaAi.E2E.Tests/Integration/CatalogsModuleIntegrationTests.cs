@@ -38,10 +38,10 @@ public class CatalogsModuleIntegrationTests : TestContainerTestBase
         result.TryGetProperty("data", out var data).Should().BeTrue();
         data.TryGetProperty("allValid", out var allValid).Should().BeTrue();
         allValid.GetBoolean().Should().BeTrue();
-        
+
         data.TryGetProperty("invalidServiceIds", out var invalidIds).Should().BeTrue();
         invalidIds.GetArrayLength().Should().Be(0);
-        
+
         data.TryGetProperty("inactiveServiceIds", out var inactiveIds).Should().BeTrue();
         inactiveIds.GetArrayLength().Should().Be(0);
     }

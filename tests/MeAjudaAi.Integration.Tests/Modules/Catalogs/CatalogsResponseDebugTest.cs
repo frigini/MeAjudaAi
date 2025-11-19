@@ -1,8 +1,8 @@
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Catalogs;
 
@@ -37,10 +37,10 @@ public class CatalogsResponseDebugTest(ITestOutputHelper testOutput) : ApiTestBa
             // Use shared JSON deserialization for consistency
             var dto = await ReadJsonAsync<dynamic>(response.Content);
             testOutput.WriteLine($"Deserialized DTO: {dto}");
-            
+
             var json = JsonSerializer.Deserialize<JsonElement>(content);
             testOutput.WriteLine($"JSON ValueKind: {json.ValueKind}");
-            
+
             if (json.ValueKind == JsonValueKind.Object)
             {
                 testOutput.WriteLine("Properties:");
@@ -48,7 +48,7 @@ public class CatalogsResponseDebugTest(ITestOutputHelper testOutput) : ApiTestBa
                 {
                     testOutput.WriteLine($"  {prop.Name}: {prop.Value.ValueKind} = {prop.Value}");
                 }
-                
+
                 // Validate expected DTO shape
                 json.TryGetProperty("id", out _).Should().BeTrue("DTO should have 'id' property");
                 json.TryGetProperty("name", out _).Should().BeTrue("DTO should have 'name' property");

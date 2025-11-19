@@ -27,7 +27,7 @@ public sealed class CreateServiceCategoryCommandHandler(
                 return Result<ServiceCategoryDto>.Failure($"A category with name '{request.Name}' already exists.");
 
             var category = ServiceCategory.Create(request.Name, request.Description, request.DisplayOrder);
-            
+
             await categoryRepository.AddAsync(category, cancellationToken);
 
             var dto = new ServiceCategoryDto(
@@ -47,7 +47,8 @@ public sealed class CreateServiceCategoryCommandHandler(
             return Result<ServiceCategoryDto>.Failure(ex.Message);
         }
     }
-}public sealed class UpdateServiceCategoryCommandHandler(
+}
+public sealed class UpdateServiceCategoryCommandHandler(
     IServiceCategoryRepository categoryRepository)
     : ICommandHandler<UpdateServiceCategoryCommand, Result>
 {

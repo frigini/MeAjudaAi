@@ -103,7 +103,7 @@ public sealed class ServiceRepository(CatalogsDbContext context) : IServiceRepos
         // Use lightweight lookup without includes for delete
         var service = await context.Services
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
-            
+
         if (service is not null)
         {
             context.Services.Remove(service);

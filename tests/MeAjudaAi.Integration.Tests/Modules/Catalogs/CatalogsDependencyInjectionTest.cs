@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Catalogs.Application.Commands;
+using MeAjudaAi.Modules.Catalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.Catalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.Catalogs.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Functional;
@@ -66,14 +67,14 @@ public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : Api
     public void Should_List_All_Registered_CommandHandlers()
     {
         // Arrange - Scan Catalogs assembly for command handler types
-        var catalogsAssembly = typeof(MeAjudaAi.Modules.Catalogs.Application.Commands.CreateServiceCategoryCommand).Assembly;
+        var catalogsAssembly = typeof(CreateServiceCategoryCommand).Assembly;
         var commandHandlerType = typeof(ICommandHandler<,>);
 
         // Act - Find all types that implement ICommandHandler<,>
         var handlerTypes = catalogsAssembly.GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract)
-            .Where(t => t.GetInterfaces().Any(i => 
-                i.IsGenericType && 
+            .Where(t => t.GetInterfaces().Any(i =>
+                i.IsGenericType &&
                 i.GetGenericTypeDefinition() == commandHandlerType))
             .ToList();
 
@@ -123,7 +124,7 @@ public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : Api
             testOutput.WriteLine($"Exception: {ex.GetType().Name}");
             testOutput.WriteLine($"Message: {ex.Message}");
             testOutput.WriteLine($"StackTrace: {ex.StackTrace}");
-            
+
             if (ex.InnerException != null)
             {
                 testOutput.WriteLine($"InnerException: {ex.InnerException.GetType().Name}");
@@ -136,7 +137,7 @@ public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : Api
         testOutput.WriteLine($"Result IsSuccess: {result?.IsSuccess}");
         testOutput.WriteLine($"Result Value: {result?.Value}");
         testOutput.WriteLine($"Result Error: {result?.Error}");
-        
+
         exception.Should().BeNull("Command execution should not throw exception");
         result.Should().NotBeNull("Command should return a result");
         result.IsSuccess.Should().BeTrue("Command should succeed");

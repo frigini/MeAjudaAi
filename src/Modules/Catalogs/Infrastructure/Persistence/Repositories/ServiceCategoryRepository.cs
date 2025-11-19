@@ -63,7 +63,7 @@ public sealed class ServiceCategoryRepository(CatalogsDbContext context) : IServ
         // For delete, we need to track the entity, so don't use AsNoTracking
         var category = await context.ServiceCategories
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
-            
+
         if (category is not null)
         {
             context.ServiceCategories.Remove(category);

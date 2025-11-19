@@ -60,7 +60,7 @@ public static class Extensions
         {
             using var scope = app.Services.CreateScope();
             var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.CatalogsDbContext>>();
-            
+
             // Only fallback to EnsureCreated in Development
             if (app.Environment.IsDevelopment())
             {
