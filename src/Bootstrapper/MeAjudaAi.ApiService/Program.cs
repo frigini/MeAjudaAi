@@ -4,7 +4,7 @@ using MeAjudaAi.Modules.Catalogs.API;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Locations.Infrastructure;
 using MeAjudaAi.Modules.Providers.API;
-using MeAjudaAi.Modules.Search.API;
+using MeAjudaAi.Modules.SearchProviders.API;
 using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
@@ -32,7 +32,7 @@ public partial class Program
             builder.Services.AddUsersModule(builder.Configuration);
             builder.Services.AddProvidersModule(builder.Configuration);
             builder.Services.AddDocumentsModule(builder.Configuration);
-            builder.Services.AddSearchModule(builder.Configuration);
+            builder.Services.AddSearchProvidersModule(builder.Configuration);
             builder.Services.AddLocationModule(builder.Configuration);
             builder.Services.AddCatalogsModule(builder.Configuration);
 
@@ -106,7 +106,7 @@ public partial class Program
         app.UseUsersModule();
         app.UseProvidersModule();
         app.UseDocumentsModule();
-        app.UseSearchModule();
+        app.UseSearchProvidersModule();
         app.UseLocationModule();
         app.UseCatalogsModule();
     }
