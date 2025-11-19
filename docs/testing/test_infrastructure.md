@@ -263,7 +263,7 @@ public class MeuTeste : TestContainerTestBase
 - WebApplicationFactory
 - Testes de infraestrutura
 - Testes de Users
-- Testes de service_catalogs
+- Testes de ServiceCatalogs
 
 ### 🔄 Próximos Passos
 

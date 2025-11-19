@@ -7,10 +7,10 @@ using MeAjudaAi.Integration.Tests.Base;
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
-/// Testes de integração para a API do módulo Catalogs.
+/// Testes de integração para a API do módulo ServiceCatalogs.
 /// Valida endpoints, autenticação, autorização e respostas da API.
 /// </summary>
-public class CatalogsApiTests : ApiTestBase
+public class ServiceCatalogsApiTests : ApiTestBase
 {
     [Fact]
     public async Task ServiceCategoriesEndpoint_ShouldBeAccessible()

@@ -10,11 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
-/// 🧪 TESTE DIAGNÓSTICO PARA CATALOGS MODULE DEPENDENCY INJECTION
+/// 🧪 TESTE DIAGNÓSTICO PARA SERVICE CATALOGS MODULE DEPENDENCY INJECTION
 /// 
-/// Verifica se todos os command handlers do módulo Catalogs estão registrados
+/// Verifica se todos os command handlers do módulo ServiceCatalogs estão registrados
 /// </summary>
-public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : ApiTestBase
+public class ServiceCatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : ApiTestBase
 {
     [Fact]
     public void Should_Have_CommandDispatcher_Registered()

@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
-/// Testes E2E para o módulo de Catálogos usando TestContainers
+/// Testes E2E para o módulo ServiceCatalogs usando TestContainers
 /// </summary>
-public class CatalogsEndToEndTests : TestContainerTestBase
+public class ServiceCatalogsEndToEndTests : TestContainerTestBase
 {
     [Fact]
     public async Task CreateServiceCategory_Should_Return_Success()
