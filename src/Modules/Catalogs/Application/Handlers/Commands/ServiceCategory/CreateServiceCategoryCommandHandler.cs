@@ -16,11 +16,13 @@ public sealed class CreateServiceCategoryCommandHandler(
     {
         try
         {
-            // Verificar se já existe categoria com o mesmo nome
-            if (await categoryRepository.ExistsWithNameAsync(request.Name, null, cancellationToken))
-                return Result<ServiceCategoryDto>.Failure($"A category with name '{request.Name}' already exists.");
+            var normalizedName = request.Name?.Trim();
 
-            var category = Domain.Entities.ServiceCategory.Create(request.Name, request.Description, request.DisplayOrder);
+            // Verificar se já existe categoria com o mesmo nome
+            if (await categoryRepository.ExistsWithNameAsync(normalizedName!, null, cancellationToken))
+                return Result<ServiceCategoryDto>.Failure($"A category with name '{normalizedName}' already exists.");
+
+            var category = Domain.Entities.ServiceCategory.Create(normalizedName!, request.Description, request.DisplayOrder);
 
             await categoryRepository.AddAsync(category, cancellationToken);
 

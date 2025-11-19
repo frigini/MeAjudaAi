@@ -14,6 +14,9 @@ public sealed class GetServiceByIdQueryHandler(IServiceRepository repository)
         GetServiceByIdQuery request,
         CancellationToken cancellationToken = default)
     {
+        if (request.Id == Guid.Empty)
+            return Result<ServiceDto?>.Success(null);
+
         var serviceId = ServiceId.From(request.Id);
         var service = await repository.GetByIdAsync(serviceId, cancellationToken);
 

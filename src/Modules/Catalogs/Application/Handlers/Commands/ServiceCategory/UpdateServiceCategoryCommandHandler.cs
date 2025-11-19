@@ -24,11 +24,13 @@ public sealed class UpdateServiceCategoryCommandHandler(
             if (category is null)
                 return Result.Failure($"Category with ID '{request.Id}' not found.");
 
-            // Verificar se já existe categoria com o mesmo nome (excluindo a categoria atual)
-            if (await categoryRepository.ExistsWithNameAsync(request.Name, categoryId, cancellationToken))
-                return Result.Failure($"A category with name '{request.Name}' already exists.");
+            var normalizedName = request.Name?.Trim();
 
-            category.Update(request.Name, request.Description, request.DisplayOrder);
+            // Verificar se já existe categoria com o mesmo nome (excluindo a categoria atual)
+            if (await categoryRepository.ExistsWithNameAsync(normalizedName!, categoryId, cancellationToken))
+                return Result.Failure($"A category with name '{normalizedName}' already exists.");
+
+            category.Update(normalizedName!, request.Description, request.DisplayOrder);
 
             await categoryRepository.UpdateAsync(category, cancellationToken);
 

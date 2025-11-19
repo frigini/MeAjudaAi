@@ -13,10 +13,13 @@ public sealed class CatalogsDbContextFactory : IDesignTimeDbContextFactory<Catal
     {
         var optionsBuilder = new DbContextOptionsBuilder<CatalogsDbContext>();
 
-        // Use default development connection string for design-time operations
-        // This is only used for migrations generation, not runtime
+        // Usa string de conexão da variável de ambiente para operações em tempo de design
+        // Isso é usado apenas para geração de migrações, não em runtime
+        var connectionString = Environment.GetEnvironmentVariable("CATALOGS_DB_CONNECTION")
+            ?? "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=development123";
+
         optionsBuilder.UseNpgsql(
-            "Host=localhost;Port=5432;Database=meajudaai;Username=postgres;Password=development123",
+            connectionString,
             npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "catalogs");

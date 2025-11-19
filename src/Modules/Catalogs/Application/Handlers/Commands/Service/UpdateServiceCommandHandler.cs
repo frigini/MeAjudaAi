@@ -24,11 +24,13 @@ public sealed class UpdateServiceCommandHandler(
             if (service is null)
                 return Result.Failure($"Service with ID '{request.Id}' not found.");
 
-            // Verificar se já existe serviço com o mesmo nome na categoria (excluindo o serviço atual)
-            if (await serviceRepository.ExistsWithNameAsync(request.Name, serviceId, service.CategoryId, cancellationToken))
-                return Result.Failure($"A service with name '{request.Name}' already exists in this category.");
+            var normalizedName = request.Name?.Trim();
 
-            service.Update(request.Name, request.Description, request.DisplayOrder);
+            // Verificar se já existe serviço com o mesmo nome na categoria (excluindo o serviço atual)
+            if (await serviceRepository.ExistsWithNameAsync(normalizedName!, serviceId, service.CategoryId, cancellationToken))
+                return Result.Failure($"A service with name '{normalizedName}' already exists in this category.");
+
+            service.Update(normalizedName!, request.Description, request.DisplayOrder);
 
             await serviceRepository.UpdateAsync(service, cancellationToken);
 

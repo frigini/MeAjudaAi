@@ -14,6 +14,9 @@ public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryRepositor
         GetServiceCategoryByIdQuery request,
         CancellationToken cancellationToken = default)
     {
+        if (request.Id == Guid.Empty)
+            return Result<ServiceCategoryDto?>.Success(null);
+
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await repository.GetByIdAsync(categoryId, cancellationToken);
 

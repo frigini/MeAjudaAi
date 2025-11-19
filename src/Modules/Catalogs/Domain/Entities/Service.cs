@@ -105,6 +105,7 @@ public sealed class Service : AggregateRoot<ServiceId>
 
         var oldCategoryId = CategoryId;
         CategoryId = newCategoryId;
+        Category = null; // Invalidar navegação para forçar recarga quando necessário
         MarkAsUpdated();
 
         AddDomainEvent(new ServiceCategoryChangedDomainEvent(Id, oldCategoryId, newCategoryId));

@@ -31,11 +31,13 @@ public sealed class CreateServiceCommandHandler(
             if (!category.IsActive)
                 return Result<ServiceDto>.Failure("Cannot create service in inactive category.");
 
-            // Verificar se já existe serviço com o mesmo nome na categoria
-            if (await serviceRepository.ExistsWithNameAsync(request.Name, null, categoryId, cancellationToken))
-                return Result<ServiceDto>.Failure($"A service with name '{request.Name}' already exists in this category.");
+            var normalizedName = request.Name?.Trim();
 
-            var service = Domain.Entities.Service.Create(categoryId, request.Name, request.Description, request.DisplayOrder);
+            // Verificar se já existe serviço com o mesmo nome na categoria
+            if (await serviceRepository.ExistsWithNameAsync(normalizedName!, null, categoryId, cancellationToken))
+                return Result<ServiceDto>.Failure($"A service with name '{normalizedName}' already exists in this category.");
+
+            var service = Domain.Entities.Service.Create(categoryId, normalizedName!, request.Description, request.DisplayOrder);
 
             await serviceRepository.AddAsync(service, cancellationToken);
 
