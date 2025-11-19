@@ -76,7 +76,7 @@ try {
     
     # Test schemas
     $hasErrors = $false
-    $schemas = @("users", "providers", "documents", "search", "location", "service_service_catalogs", "hangfire", "meajudaai_app")
+    $schemas = @("users", "providers", "documents", "search", "location", "catalogs", "hangfire", "meajudaai_app")
     
     foreach ($schema in $schemas) {
         $query = "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = '$schema');"

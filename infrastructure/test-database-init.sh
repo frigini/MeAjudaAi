@@ -74,7 +74,7 @@ echo "🔍 Verifying database schemas..."
 has_errors=false
 
 # Test schemas
-SCHEMAS=("users" "providers" "documents" "search" "location" "service_service_catalogs" "hangfire" "meajudaai_app")
+SCHEMAS=("users" "providers" "documents" "search" "location" "catalogs" "hangfire" "meajudaai_app")
 
 for schema in "${SCHEMAS[@]}"; do
     # Use double-dollar quoting to safely handle identifiers

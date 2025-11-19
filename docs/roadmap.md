@@ -310,7 +310,7 @@ public sealed class Service : AggregateRoot<ServiceId>
 
 #### **API Pública Implementada**
 ```csharp
-public interface Iservice_catalogsModuleApi : IModuleApi
+public interface IServiceCatalogsModuleApi : IModuleApi
 {
     Task<Result<ModuleServiceCategoryDto?>> GetServiceCategoryByIdAsync(Guid categoryId, CancellationToken ct = default);
     Task<Result<IReadOnlyList<ModuleServiceCategoryDto>>> GetAllServiceCategoriesAsync(bool activeOnly = true, CancellationToken ct = default);

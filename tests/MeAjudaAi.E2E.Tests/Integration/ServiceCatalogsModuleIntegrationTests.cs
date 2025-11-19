@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 
 namespace MeAjudaAi.E2E.Tests.Integration;
 

@@ -214,13 +214,13 @@ tests/MeAjudaAi.E2E.Tests/
 ├── Modules/
 │   ├── Users/
 │   │   └── UsersEndToEndTests.cs     # Testes E2E de Users
-│   ├── Catalogs/
-│   │   └── service_catalogsEndToEndTests.cs  # Testes E2E de service_catalogs
+│   ├── ServiceCatalogs/
+│   │   └── ServiceCatalogsEndToEndTests.cs  # Testes E2E de ServiceCatalogs
 │   └── Providers/
 │       └── ProvidersEndToEndTests.cs # Testes E2E de Providers
 ├── Integration/
 │   ├── ModuleIntegrationTests.cs     # Integração entre módulos
-│   └── service_catalogsModuleIntegrationTests.cs
+│   └── ServiceCatalogsModuleIntegrationTests.cs
 └── Infrastructure/
     └── InfrastructureHealthTests.cs  # Testes de saúde da infra
 ```

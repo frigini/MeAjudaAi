@@ -4,7 +4,7 @@ using MeAjudaAi.Shared.Functional;
 namespace MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
 
 /// <summary>
-/// Public API contract for the Catalogs module.
+/// Public API contract for the ServiceCatalogs module.
 /// Provides access to service categories and services catalog for other modules.
 /// </summary>
 public interface IServiceCatalogsModuleApi : IModuleApi

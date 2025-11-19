@@ -9,7 +9,7 @@ public class ServiceCategoryBuilder : BuilderBase<ServiceCategory>
     private string? _name;
     private string? _description;
     private bool _isActive = true;
-    private int _displayOrder;
+    private int? _displayOrder;
 
     public ServiceCategoryBuilder()
     {
@@ -19,7 +19,7 @@ public class ServiceCategoryBuilder : BuilderBase<ServiceCategory>
                 var category = ServiceCategory.Create(
                     _name ?? f.Commerce.Department(),
                     _description ?? f.Lorem.Sentence(),
-                    _displayOrder >= 0 ? _displayOrder : f.Random.Int(1, 100)
+                    _displayOrder ?? f.Random.Int(1, 100)
                 );
 
                 // Define o estado de ativo/inativo
@@ -44,7 +44,7 @@ public class ServiceCategoryBuilder : BuilderBase<ServiceCategory>
         return this;
     }
 
-    public ServiceCategoryBuilder WithDisplayOrder(int displayOrder)
+    public ServiceCategoryBuilder WithDisplayOrder(int? displayOrder)
     {
         _displayOrder = displayOrder;
         return this;

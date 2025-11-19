@@ -21,6 +21,17 @@ public static class TestInfrastructureExtensions
         TestInfrastructureOptions? options = null)
     {
         options ??= new TestInfrastructureOptions();
+        
+        // Initialize nested options to ensure non-null properties
+        options.Database ??= new TestDatabaseOptions();
+        options.Cache ??= new TestCacheOptions();
+        options.ExternalServices ??= new TestExternalServicesOptions();
+        
+        // Set default schema if not provided
+        if (string.IsNullOrEmpty(options.Database.Schema))
+        {
+            options.Database.Schema = "public";
+        }
 
         services.AddSingleton(options);
 
