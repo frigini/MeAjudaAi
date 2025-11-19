@@ -78,7 +78,7 @@ public static class ValidationMessages
     }
 
     /// <summary>
-    /// Mensagens e valores padrão para o módulo Catalogs
+    /// Mensagens e valores padrão para o módulo ServiceCatalogs
     /// </summary>
     public static class Catalogs
     {
