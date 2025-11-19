@@ -215,12 +215,12 @@ tests/MeAjudaAi.E2E.Tests/
 │   ├── Users/
 │   │   └── UsersEndToEndTests.cs     # Testes E2E de Users
 │   ├── Catalogs/
-│   │   └── CatalogsEndToEndTests.cs  # Testes E2E de Catalogs
+│   │   └── service_catalogsEndToEndTests.cs  # Testes E2E de service_catalogs
 │   └── Providers/
 │       └── ProvidersEndToEndTests.cs # Testes E2E de Providers
 ├── Integration/
 │   ├── ModuleIntegrationTests.cs     # Integração entre módulos
-│   └── CatalogsModuleIntegrationTests.cs
+│   └── service_catalogsModuleIntegrationTests.cs
 └── Infrastructure/
     └── InfrastructureHealthTests.cs  # Testes de saúde da infra
 ```
@@ -263,7 +263,7 @@ public class MeuTeste : TestContainerTestBase
 - WebApplicationFactory
 - Testes de infraestrutura
 - Testes de Users
-- Testes de Catalogs
+- Testes de service_catalogs
 
 ### 🔄 Próximos Passos
 

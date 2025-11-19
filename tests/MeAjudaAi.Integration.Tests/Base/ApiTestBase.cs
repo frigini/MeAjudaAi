@@ -1,6 +1,6 @@
 using System.Text.Json;
 using MeAjudaAi.Integration.Tests.Infrastructure;
-using MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
@@ -51,7 +51,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                     RemoveDbContextRegistrations<UsersDbContext>(services);
                     RemoveDbContextRegistrations<ProvidersDbContext>(services);
                     RemoveDbContextRegistrations<DocumentsDbContext>(services);
-                    RemoveDbContextRegistrations<CatalogsDbContext>(services);
+                    RemoveDbContextRegistrations<ServiceCatalogsDbContext>(services);
 
                     // Adiciona contextos de banco de dados para testes
                     services.AddDbContext<UsersDbContext>(options =>
@@ -90,11 +90,11 @@ public abstract class ApiTestBase : IAsyncLifetime
                             warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
                     });
 
-                    services.AddDbContext<CatalogsDbContext>(options =>
+                    services.AddDbContext<ServiceCatalogsDbContext>(options =>
                     {
                         options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
                         {
-                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Catalogs.Infrastructure");
+                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.ServiceCatalogs.Infrastructure");
                             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "catalogs");
                         });
                         options.UseSnakeCaseNamingConvention();
@@ -140,7 +140,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
         var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
-        var catalogsContext = scope.ServiceProvider.GetRequiredService<CatalogsDbContext>();
+        var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
         var logger = scope.ServiceProvider.GetService<ILogger<ApiTestBase>>();
 
         // Aplica migrações exatamente como nos testes E2E
@@ -151,7 +151,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         UsersDbContext usersContext,
         ProvidersDbContext providersContext,
         DocumentsDbContext documentsContext,
-        CatalogsDbContext catalogsContext,
+        ServiceCatalogsDbContext catalogsContext,
         ILogger? logger)
     {
         // Garante estado limpo do banco de dados (como nos testes E2E)
@@ -170,7 +170,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         await ApplyMigrationForContextAsync(usersContext, "Users", logger, "UsersDbContext primeiro (cria database e schema users)");
         await ApplyMigrationForContextAsync(providersContext, "Providers", logger, "ProvidersDbContext (banco já existe, só precisa do schema providers)");
         await ApplyMigrationForContextAsync(documentsContext, "Documents", logger, "DocumentsDbContext (banco já existe, só precisa do schema documents)");
-        await ApplyMigrationForContextAsync(catalogsContext, "Catalogs", logger, "CatalogsDbContext (banco já existe, só precisa do schema catalogs)");
+        await ApplyMigrationForContextAsync(catalogsContext, "Catalogs", logger, "ServiceCatalogsDbContext (banco já existe, só precisa do schema catalogs)");
 
         // Verifica se as tabelas existem
         await VerifyContextAsync(usersContext, "Users", () => usersContext.Users.CountAsync(), logger);

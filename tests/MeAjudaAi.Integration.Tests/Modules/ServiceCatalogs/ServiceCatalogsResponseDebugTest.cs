@@ -5,7 +5,7 @@ using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Shared.Serialization;
 
-namespace MeAjudaAi.Integration.Tests.Modules.Catalogs;
+namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 public class CatalogsResponseDebugTest(ITestOutputHelper testOutput) : ApiTestBase
 {

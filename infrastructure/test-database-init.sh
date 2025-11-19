@@ -74,7 +74,7 @@ echo "🔍 Verifying database schemas..."
 has_errors=false
 
 # Test schemas
-SCHEMAS=("users" "providers" "documents" "search" "location" "catalogs" "hangfire" "meajudaai_app")
+SCHEMAS=("users" "providers" "documents" "search" "location" "service_service_catalogs" "hangfire" "meajudaai_app")
 
 for schema in "${SCHEMAS[@]}"; do
     # Use double-dollar quoting to safely handle identifiers
@@ -99,7 +99,7 @@ ROLES=(
     "documents_role" "documents_owner"
     "search_role" "search_owner"
     "location_role" "location_owner"
-    "catalogs_role" "catalogs_owner"
+    "service_catalogs_role" "service_catalogs_owner"
     "hangfire_role"
     "meajudaai_app_role" "meajudaai_app_owner"
 )

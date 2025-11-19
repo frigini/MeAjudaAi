@@ -1,13 +1,13 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Modules.Catalogs.Application.Commands.Service;
-using MeAjudaAi.Modules.Catalogs.Application.Commands.ServiceCategory;
-using MeAjudaAi.Modules.Catalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Integration.Tests.Modules.Catalogs;
+namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
 /// 🧪 TESTE DIAGNÓSTICO PARA CATALOGS MODULE DEPENDENCY INJECTION
@@ -44,7 +44,7 @@ public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : Api
     public void Should_Have_ServiceCategoryRepository_Registered()
     {
         // Arrange & Act
-        var repository = Services.GetService<MeAjudaAi.Modules.Catalogs.Domain.Repositories.IServiceCategoryRepository>();
+        var repository = Services.GetService<MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories.IServiceCategoryRepository>();
 
         // Assert
         testOutput.WriteLine($"IServiceCategoryRepository registration: {repository != null}");
@@ -53,14 +53,14 @@ public class CatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : Api
     }
 
     [Fact]
-    public void Should_Have_CatalogsDbContext_Registered()
+    public void Should_Have_ServiceCatalogsDbContext_Registered()
     {
         // Arrange & Act
-        var dbContext = Services.GetService<MeAjudaAi.Modules.Catalogs.Infrastructure.Persistence.CatalogsDbContext>();
+        var dbContext = Services.GetService<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>();
 
         // Assert
-        testOutput.WriteLine($"CatalogsDbContext registration: {dbContext != null}");
-        dbContext.Should().NotBeNull("CatalogsDbContext should be registered");
+        testOutput.WriteLine($"ServiceCatalogsDbContext registration: {dbContext != null}");
+        dbContext.Should().NotBeNull("ServiceCatalogsDbContext should be registered");
     }
 
     [Fact]

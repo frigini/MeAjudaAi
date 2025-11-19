@@ -115,7 +115,7 @@ public class ProvidersContext
 - **Qualification**: Qualificações e habilitações profissionais
 - **VerificationStatus**: Status de verificação (Pending, Verified, Rejected, etc.)
 
-#### 3. **Catalogs Context** (Implementado)
+#### 3. **service_catalogs Context** (Implementado)
 **Responsabilidade**: Catálogo administrativo de categorias e serviços
 
 **Conceitos Implementados**:
@@ -124,7 +124,7 @@ public class ProvidersContext
 - **DisplayOrder**: Ordenação customizada para apresentação
 - **Activation/Deactivation**: Controle de visibilidade no catálogo
 
-**Schema**: `catalogs` (isolado no PostgreSQL)
+**Schema**: `service_catalogs` (isolado no PostgreSQL)
 
 #### 4. **Location Context** (Implementado)
 **Responsabilidade**: Geolocalização e lookup de CEP brasileiro

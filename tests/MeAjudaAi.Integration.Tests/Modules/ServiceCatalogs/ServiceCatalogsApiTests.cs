@@ -4,7 +4,7 @@ using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 
-namespace MeAjudaAi.Integration.Tests.Modules.Catalogs;
+namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
 /// Testes de integração para a API do módulo Catalogs.
