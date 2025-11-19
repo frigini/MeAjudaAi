@@ -14,42 +14,37 @@ namespace MeAjudaAi.Modules.Users.Application.ModuleApi;
 /// <summary>
 /// Implementação da API pública do módulo Users para outros módulos
 /// </summary>
-[ModuleApi("Users", "1.0")]
-public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
+[ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
+public sealed class UsersModuleApi(
+    IQueryHandler<GetUserByIdQuery, Result<UserDto>> getUserByIdHandler,
+    IQueryHandler<GetUserByEmailQuery, Result<UserDto>> getUserByEmailHandler,
+    IQueryHandler<GetUserByUsernameQuery, Result<UserDto>> getUserByUsernameHandler,
+    IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>> getUsersByIdsHandler,
+    IServiceProvider serviceProvider,
+    ILogger<UsersModuleApi> logger) : IUsersModuleApi, IModuleApi
 {
-    private readonly IQueryHandler<GetUserByIdQuery, Result<UserDto>> _getUserByIdHandler;
-    private readonly IQueryHandler<GetUserByEmailQuery, Result<UserDto>> _getUserByEmailHandler;
-    private readonly IQueryHandler<GetUserByUsernameQuery, Result<UserDto>> _getUserByUsernameHandler;
-    private readonly IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>> _getUsersByIdsHandler;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<UsersModuleApi> _logger;
-
-    public UsersModuleApi(
-        IQueryHandler<GetUserByIdQuery, Result<UserDto>> getUserByIdHandler,
-        IQueryHandler<GetUserByEmailQuery, Result<UserDto>> getUserByEmailHandler,
-        IQueryHandler<GetUserByUsernameQuery, Result<UserDto>> getUserByUsernameHandler,
-        IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>> getUsersByIdsHandler,
-        IServiceProvider serviceProvider,
-        ILogger<UsersModuleApi> logger)
+    private static class ModuleMetadata
     {
-        _getUserByIdHandler = getUserByIdHandler;
-        _getUserByEmailHandler = getUserByEmailHandler;
-        _getUserByUsernameHandler = getUserByUsernameHandler;
-        _getUsersByIdsHandler = getUsersByIdsHandler;
-        _serviceProvider = serviceProvider;
-        _logger = logger;
+        public const string Name = "Users";
+        public const string Version = "1.0";
     }
-    public string ModuleName => "Users";
-    public string ApiVersion => "1.0";
+
+    public string ModuleName => ModuleMetadata.Name;
+    public string ApiVersion => ModuleMetadata.Version;
+
+    private static readonly Guid HealthCheckUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
+    private static ModuleUserDto MapToModuleUserDto(UserDto user) =>
+        new(user.Id, user.Username, user.Email, user.FirstName, user.LastName, user.FullName);
 
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogDebug("Checking Users module availability");
+            logger.LogDebug("Checking Users module availability");
 
             // Verifica health checks registrados do sistema
-            var healthCheckService = _serviceProvider.GetService<HealthCheckService>();
+            var healthCheckService = serviceProvider.GetService<HealthCheckService>();
             if (healthCheckService != null)
             {
                 var healthReport = await healthCheckService.CheckHealthAsync(
@@ -59,7 +54,7 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
                 // Se algum health check crítico falhou, o módulo não está disponível
                 if (healthReport.Status == HealthStatus.Unhealthy)
                 {
-                    _logger.LogWarning("Users module unavailable due to failed health checks: {FailedChecks}",
+                    logger.LogWarning("Users module unavailable due to failed health checks: {FailedChecks}",
                         string.Join(", ", healthReport.Entries.Where(e => e.Value.Status == HealthStatus.Unhealthy).Select(e => e.Key)));
                     return false;
                 }
@@ -69,21 +64,21 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
             var canExecuteBasicOperations = await CanExecuteBasicOperationsAsync(cancellationToken);
             if (!canExecuteBasicOperations)
             {
-                _logger.LogWarning("Users module unavailable - basic operations test failed");
+                logger.LogWarning("Users module unavailable - basic operations test failed");
                 return false;
             }
 
-            _logger.LogDebug("Users module is available and healthy");
+            logger.LogDebug("Users module is available and healthy");
             return true;
         }
         catch (OperationCanceledException)
         {
-            _logger.LogDebug("Users module availability check was cancelled");
+            logger.LogDebug("Users module availability check was cancelled");
             throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking Users module availability");
+            logger.LogError(ex, "Error checking Users module availability");
             return false;
         }
     }
@@ -95,10 +90,9 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
     {
         try
         {
-            // Testa uma operação simples que não deveria falhar (mesmo que usuário não exista)
-            // Usamos um GUID fixo que provavelmente não existe, mas o handler deve responder adequadamente
-            var testQuery = new GetUserByIdQuery(Guid.Parse("00000000-0000-0000-0000-000000000001"));
-            var result = await _getUserByIdHandler.HandleAsync(testQuery, cancellationToken);
+            // Tenta buscar um usuário fictício (espera-se NotFound, mas valida que a infraestrutura está OK)
+            var testQuery = new GetUserByIdQuery(HealthCheckUserId);
+            var result = await getUserByIdHandler.HandleAsync(testQuery, cancellationToken);
 
             // Verifica o resultado da operação para detectar falhas de infraestrutura
             if (result.IsSuccess)
@@ -115,7 +109,7 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
             }
 
             // Qualquer outro erro (500, timeout de DB, etc.) indica problema de infraestrutura
-            _logger.LogWarning("Basic operations test failed with non-404 error: {ErrorMessage} (Status: {StatusCode})",
+            logger.LogWarning("Basic operations test failed with non-404 error: {ErrorMessage} (Status: {StatusCode})",
                 result.Error.Message, result.Error.StatusCode);
             return false;
         }
@@ -125,7 +119,7 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Basic operations test failed for Users module");
+            logger.LogWarning(ex, "Basic operations test failed for Users module");
             return false;
         }
     }
@@ -133,43 +127,29 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
     public async Task<Result<ModuleUserDto?>> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var query = new GetUserByIdQuery(userId);
-        var result = await _getUserByIdHandler.HandleAsync(query, cancellationToken);
+        var result = await getUserByIdHandler.HandleAsync(query, cancellationToken);
 
-        return result.Match(
-            onSuccess: userDto => userDto == null
+        return result.Match<Result<ModuleUserDto?>>(
+            user => user is null
                 ? Result<ModuleUserDto?>.Success(null)
-                : Result<ModuleUserDto?>.Success(new ModuleUserDto(
-                    userDto.Id,
-                    userDto.Username,
-                    userDto.Email,
-                    userDto.FirstName,
-                    userDto.LastName,
-                    userDto.FullName)),
-            onFailure: error => error.StatusCode == 404
-                ? Result<ModuleUserDto?>.Success(null)  // NotFound -> Success(null)
-                : Result<ModuleUserDto?>.Failure(error) // Outros erros propagam
-        );
+                : Result<ModuleUserDto?>.Success(MapToModuleUserDto(user)),
+            error => error.StatusCode == 404
+                ? Result<ModuleUserDto?>.Success(null)
+                : Result<ModuleUserDto?>.Failure(error));
     }
 
     public async Task<Result<ModuleUserDto?>> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         var query = new GetUserByEmailQuery(email);
-        var result = await _getUserByEmailHandler.HandleAsync(query, cancellationToken);
+        var result = await getUserByEmailHandler.HandleAsync(query, cancellationToken);
 
-        return result.Match(
-            onSuccess: userDto => userDto == null
+        return result.Match<Result<ModuleUserDto?>>(
+            user => user is null
                 ? Result<ModuleUserDto?>.Success(null)
-                : Result<ModuleUserDto?>.Success(new ModuleUserDto(
-                    userDto.Id,
-                    userDto.Username,
-                    userDto.Email,
-                    userDto.FirstName,
-                    userDto.LastName,
-                    userDto.FullName)),
-            onFailure: error => error.StatusCode == 404
-                ? Result<ModuleUserDto?>.Success(null)  // NotFound -> Success(null)
-                : Result<ModuleUserDto?>.Failure(error) // Outros erros propagam
-        );
+                : Result<ModuleUserDto?>.Success(MapToModuleUserDto(user)),
+            error => error.StatusCode == 404
+                ? Result<ModuleUserDto?>.Success(null)
+                : Result<ModuleUserDto?>.Failure(error));
     }
 
     public async Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(
@@ -178,7 +158,7 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
     {
         // Usar query batch em vez de N queries individuais
         var batchQuery = new GetUsersByIdsQuery(userIds);
-        var result = await _getUsersByIdsHandler.HandleAsync(batchQuery, cancellationToken);
+        var result = await getUsersByIdsHandler.HandleAsync(batchQuery, cancellationToken);
 
         return result.Match(
             onSuccess: userDtos => Result<IReadOnlyList<ModuleUserBasicDto>>.Success(
@@ -208,10 +188,11 @@ public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
     public async Task<Result<bool>> UsernameExistsAsync(string username, CancellationToken cancellationToken = default)
     {
         var query = new GetUserByUsernameQuery(username);
-        var result = await _getUserByUsernameHandler.HandleAsync(query, cancellationToken);
+        var result = await getUserByUsernameHandler.HandleAsync(query, cancellationToken);
 
-        return result.IsSuccess
-            ? Result<bool>.Success(true)  // Usuário encontrado = username existe
-            : Result<bool>.Success(false); // Usuário não encontrado = username não existe
+        return result.Match(
+            onSuccess: _ => Result<bool>.Success(true),
+            onFailure: _ => Result<bool>.Success(false) // Any error means user doesn't exist
+        );
     }
 }

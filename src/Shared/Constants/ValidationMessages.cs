@@ -76,4 +76,15 @@ public static class ValidationMessages
         public const string Forbidden = "Acesso negado. Permissões insuficientes.";
         public const string RateLimitExceeded = "Muitas tentativas. Tente novamente em alguns minutos.";
     }
+
+    /// <summary>
+    /// Mensagens e valores padrão para o módulo ServiceCatalogs
+    /// </summary>
+    public static class Catalogs
+    {
+        /// <summary>
+        /// Valor exibido quando o nome da categoria não está disponível (navegação não carregada)
+        /// </summary>
+        public const string UnknownCategoryName = "Desconhecida";
+    }
 }

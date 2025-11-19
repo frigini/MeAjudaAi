@@ -108,9 +108,9 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
     {
         // Arrange
         await ForceCleanDatabase();
-        
+
         var queryService = GetService<IProviderQueryService>();
-        
+
         // Act - teste com banco vazio usando container-backed services
         var resultWithoutFilter = await queryService.GetProvidersAsync(page: 1, pageSize: 10);
 
@@ -119,11 +119,11 @@ public sealed class ProviderQueryServiceIntegrationTests : ProvidersIntegrationT
         resultWithoutFilter.Items.Should().BeEmpty();
         resultWithoutFilter.TotalCount.Should().Be(0);
         resultWithoutFilter.TotalPages.Should().Be(0);
-        
+
         // Act - Agora com filtro único que não existe
         var uniqueFilter = $"VERY_UNIQUE_TEST_FILTER__{Guid.NewGuid():N}";
         var result = await queryService.GetProvidersAsync(
-            page: 1, 
+            page: 1,
             pageSize: 10,
             nameFilter: uniqueFilter);
 

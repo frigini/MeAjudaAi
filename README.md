@@ -38,12 +38,16 @@ O projeto foi organizado para facilitar navegação e manutenção:
 ├── 📁 automation/       # Scripts de automação CI/CD
 ├── 📁 build/           # Scripts de build e Makefile
 ├── 📁 config/          # Configurações de ferramentas
-├── 📁 docs/            # Documentação técnica
+├── 📁 docs/            # Documentação técnica e guias
+│   ├── guides/        # Guias de implementação
+│   └── reports/       # Relatórios de análise
 ├── 📁 infrastructure/  # IaC e configurações de infraestrutura
 ├── 📁 scripts/         # Scripts de desenvolvimento
 ├── 📁 src/             # Código fonte da aplicação
 ├── 📁 tests/           # Testes automatizados
 └── 📁 tools/           # Ferramentas de desenvolvimento
+    ├── MigrationTool/       # CLI para migrações de banco
+    └── api-collections/     # Gerador de coleções Postman
 ```
 
 ### Diretórios Principais

@@ -1,0 +1,268 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
+
+namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
+
+/// <summary>
+/// Testes de integração para a API do módulo ServiceCatalogs.
+/// Valida endpoints, autenticação, autorização e respostas da API.
+/// </summary>
+public class ServiceCatalogsApiTests : ApiTestBase
+{
+    [Fact]
+    public async Task ServiceCategoriesEndpoint_ShouldBeAccessible()
+    {
+        // Act
+        var response = await Client.GetAsync("/api/v1/catalogs/categories");
+
+        // Assert - Endpoint should exist (not 404) and not crash (not 500)
+        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound, "Endpoint should be registered");
+        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed, "GET should be allowed");
+        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError, "Endpoint should not crash");
+
+        // May return Unauthorized (401) or Forbidden (403) if auth is required, or OK (200)
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task ServicesEndpoint_ShouldBeAccessible()
+    {
+        // Act
+        var response = await Client.GetAsync("/api/v1/catalogs/services");
+
+        // Assert
+        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
+        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed);
+        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task ServiceCategoriesEndpoint_WithAuthentication_ShouldReturnValidResponse()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/catalogs/categories");
+
+        // Assert
+        var content = await response.Content.ReadAsStringAsync();
+
+        // Log error details if not successful
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"Status: {response.StatusCode}");
+            Console.WriteLine($"Content: {content}");
+        }
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            $"Admin users should receive a successful response. Error: {content}");
+
+        var categories = JsonSerializer.Deserialize<JsonElement>(content);
+
+        // Expect a consistent API response format
+        categories.ValueKind.Should().Be(JsonValueKind.Object,
+            "API should return a structured response object");
+        categories.TryGetProperty("data", out var dataElement).Should().BeTrue(
+            "Response should contain 'data' property for consistency");
+        dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
+    }
+
+    [Fact]
+    public async Task ServicesEndpoint_WithAuthentication_ShouldReturnValidResponse()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/catalogs/services");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Admin users should receive a successful response");
+
+        var content = await response.Content.ReadAsStringAsync();
+        var services = JsonSerializer.Deserialize<JsonElement>(content);
+
+        // Expect a consistent API response format
+        services.ValueKind.Should().Be(JsonValueKind.Object,
+            "API should return a structured response object");
+        services.TryGetProperty("data", out var dataElement).Should().BeTrue(
+            "Response should contain 'data' property for consistency");
+        dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
+    }
+
+    [Fact]
+    public async Task GetServiceCategoryById_WithNonExistentId_ShouldReturnNotFound()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var randomId = Guid.NewGuid();
+
+        // Act
+        var response = await Client.GetAsync($"/api/v1/catalogs/categories/{randomId}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "API should return 404 when service category ID does not exist");
+    }
+
+    [Fact]
+    public async Task GetServiceById_WithNonExistentId_ShouldReturnNotFound()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var randomId = Guid.NewGuid();
+
+        // Act
+        var response = await Client.GetAsync($"/api/v1/catalogs/services/{randomId}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "API should return 404 when service ID does not exist");
+    }
+
+    [Fact]
+    public async Task CreateServiceCategory_WithValidData_ShouldReturnCreated()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        var categoryData = new
+        {
+            name = $"Test Category {Guid.NewGuid():N}",
+            description = "Test Description",
+            displayOrder = 1
+        };
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+
+        // Assert
+        var content = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
+            $"POST requests that create resources should return 201 Created. Response: {content}");
+
+        var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
+        var dataElement = GetResponseData(responseJson);
+        dataElement.TryGetProperty("id", out _).Should().BeTrue(
+            $"Response data should contain 'id' property. Full response: {content}");
+        dataElement.TryGetProperty("name", out var nameProperty).Should().BeTrue();
+        nameProperty.GetString().Should().Be(categoryData.name);
+
+        // Cleanup
+        if (dataElement.TryGetProperty("id", out var idProperty))
+        {
+            var categoryId = idProperty.GetString();
+            await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
+        }
+    }
+
+    [Fact]
+    public async Task CreateService_WithValidData_ShouldReturnCreated()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        // First create a category
+        var categoryData = new
+        {
+            name = $"Test Category {Guid.NewGuid():N}",
+            description = "Test Description",
+            displayOrder = 1
+        };
+
+        var categoryResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+        categoryResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var categoryContent = await categoryResponse.Content.ReadAsStringAsync();
+        var categoryJson = JsonSerializer.Deserialize<JsonElement>(categoryContent);
+        var categoryDataElement = GetResponseData(categoryJson);
+        categoryDataElement.TryGetProperty("id", out var categoryIdProperty).Should().BeTrue();
+        var categoryId = categoryIdProperty.GetString()!;
+
+        try
+        {
+            // Now create a service
+            var serviceData = new
+            {
+                name = $"Test Service {Guid.NewGuid():N}",
+                description = "Test Service Description",
+                categoryId = categoryId
+            };
+
+            // Act
+            var response = await Client.PostAsJsonAsync("/api/v1/catalogs/services", serviceData);
+
+            // Assert
+            var content = await response.Content.ReadAsStringAsync();
+            response.StatusCode.Should().Be(HttpStatusCode.Created,
+                $"POST requests that create resources should return 201 Created. Response: {content}");
+
+            var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
+            var dataElement = GetResponseData(responseJson);
+            dataElement.TryGetProperty("id", out _).Should().BeTrue(
+                $"Response data should contain 'id' property. Full response: {content}");
+            dataElement.TryGetProperty("name", out var nameProperty).Should().BeTrue();
+            nameProperty.GetString().Should().Be(serviceData.name);
+
+            // Cleanup service
+            if (dataElement.TryGetProperty("id", out var serviceIdProperty))
+            {
+                var serviceId = serviceIdProperty.GetString();
+                await Client.DeleteAsync($"/api/v1/catalogs/services/{serviceId}");
+            }
+        }
+        finally
+        {
+            // Cleanup category
+            await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
+        }
+    }
+
+    [Fact]
+    public async Task CatalogsEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        var endpoints = new[]
+        {
+            "/api/v1/catalogs/categories",
+            "/api/v1/catalogs/services"
+        };
+
+        // Act & Assert
+        foreach (var endpoint in endpoints)
+        {
+            var response = await Client.GetAsync(endpoint);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Endpoint {endpoint} returned {response.StatusCode}. Body: {body}");
+            }
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK,
+                $"Authenticated admin requests to {endpoint} should succeed.");
+        }
+    }
+
+    private static JsonElement GetResponseData(JsonElement response)
+    {
+        return response.TryGetProperty("data", out var dataElement)
+            ? dataElement
+            : response;
+    }
+}

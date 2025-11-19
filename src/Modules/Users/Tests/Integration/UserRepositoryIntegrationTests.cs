@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Users.Tests.Builders;
+using MeAjudaAi.Shared.Tests.Mocks;
 using MeAjudaAi.Shared.Time;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,9 +25,8 @@ public class UserRepositoryTests : DatabaseTestBase
         _context = new UsersDbContext(options);
         await _context.Database.MigrateAsync();
 
-        var mockDateTimeProvider = new Mock<IDateTimeProvider>();
-        mockDateTimeProvider.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
-        _repository = new UserRepository(_context, mockDateTimeProvider.Object);
+        var mockDateTimeProvider = new MockDateTimeProvider();
+        _repository = new UserRepository(_context, mockDateTimeProvider);
     }
 
     [Fact]

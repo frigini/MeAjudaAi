@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Tests.Mocks;
 using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +17,7 @@ public class DeleteUserCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IUserDomainService> _userDomainServiceMock;
-    private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
+    private readonly MockDateTimeProvider _dateTimeProvider;
     private readonly Mock<ILogger<DeleteUserCommandHandler>> _loggerMock;
     private readonly DeleteUserCommandHandler _handler;
 
@@ -24,10 +25,9 @@ public class DeleteUserCommandHandlerTests
     {
         _userRepositoryMock = new Mock<IUserRepository>();
         _userDomainServiceMock = new Mock<IUserDomainService>();
-        _dateTimeProviderMock = new Mock<IDateTimeProvider>();
-        _dateTimeProviderMock.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
+        _dateTimeProvider = new MockDateTimeProvider();
         _loggerMock = new Mock<ILogger<DeleteUserCommandHandler>>();
-        _handler = new DeleteUserCommandHandler(_userRepositoryMock.Object, _userDomainServiceMock.Object, _dateTimeProviderMock.Object, _loggerMock.Object);
+        _handler = new DeleteUserCommandHandler(_userRepositoryMock.Object, _userDomainServiceMock.Object, _dateTimeProvider, _loggerMock.Object);
     }
 
     [Fact]

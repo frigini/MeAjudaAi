@@ -41,6 +41,9 @@ _NCrunch_*
 *.userosscache
 *.sln.docstates
 
+# Launch settings (IDE-specific, auto-generated)
+**/Properties/launchSettings.json
+
 # ReSharper
 _ReSharper*/
 *.[Rr]e[Ss]harper
@@ -129,3 +132,8 @@ postgres_data/
 
 # Bruno API Client collections with credentials
 **/collection.bru
+
+# Analysis reports (temporary/generated)
+legacy-analysis-report.*
+*-analysis-report.html
+*-analysis-report.json

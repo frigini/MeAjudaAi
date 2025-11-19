@@ -35,6 +35,9 @@ dotnet run
 # OU executar apenas a API
 cd src/Bootstrapper/MeAjudaAi.ApiService
 dotnet run
+
+# Executar via Aspire (com dashboard)
+dotnet run --project src/Aspire/MeAjudaAi.AppHost
 ```
 
 ### **Configuração do Visual Studio**
@@ -179,6 +182,108 @@ public async Task<Result<User>> GetUserAsync(UserId id)
 }
 ```
 
+## 🛠️ Comandos de Desenvolvimento
+
+### Executando a Aplicação
+
+```powershell
+# Run with Aspire (RECOMMENDED - includes all services)
+cd src\Aspire\MeAjudaAi.AppHost
+dotnet run
+
+# Run API only (without Aspire orchestration)
+cd src\Bootstrapper\MeAjudaAi.ApiService
+dotnet run
+
+# Access points after running:
+# - Aspire Dashboard: https://localhost:17063 or http://localhost:15297
+# - API Service: https://localhost:7524 or http://localhost:5545
+```
+
+### Build
+
+```powershell
+# Build entire solution
+dotnet build
+
+# Build specific configuration
+dotnet build --configuration Release
+
+# Restore dependencies
+dotnet restore
+```
+
+### Testes
+
+```powershell
+# Executar todos os testes
+dotnet test
+
+# Com cobertura
+dotnet test --collect:"XPlat Code Coverage"
+
+# Testes por módulo
+dotnet test src\Modules\Users\Tests\
+dotnet test src\Modules\Providers\Tests\
+
+# Filtrar por categoria
+dotnet test --filter "Category=Unit"
+dotnet test --filter "Category=Integration"
+
+# Generate HTML coverage report (requires reportgenerator tool)
+reportgenerator -reports:"coverage\**\coverage.opencover.xml" -targetdir:"coverage\html" -reporttypes:Html
+```
+
+### Migrations de Banco de Dados
+
+```powershell
+# Apply all migrations (RECOMMENDED - cross-platform PowerShell script)
+.\scripts\ef-migrate.ps1
+
+# Apply migrations for specific module
+.\scripts\ef-migrate.ps1 -Module Users
+.\scripts\ef-migrate.ps1 -Module Providers
+
+# Check migration status
+.\scripts\ef-migrate.ps1 -Command status
+
+# Add new migration
+.\scripts\ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewField"
+
+# Environment variables needed:
+# - DB_HOST (default: localhost)
+# - DB_PORT (default: 5432)
+# - DB_NAME (default: MeAjudaAi)
+# - DB_USER (default: postgres)
+# - DB_PASSWORD (required)
+```
+
+### Qualidade de Código
+
+```powershell
+# Aplicar formatação automática
+dotnet format
+
+# Verificar warnings
+dotnet build --verbosity normal
+
+# Limpar artefatos
+dotnet clean
+```
+
+### Documentação da API
+
+```powershell
+# Generate OpenAPI spec for API clients (APIDog, Postman, Insomnia, Bruno)
+.\scripts\export-openapi.ps1
+
+# Specify custom output path
+.\scripts\export-openapi.ps1 -OutputPath "docs\api-spec.json"
+
+# Access Swagger UI when running:
+# https://localhost:7524/swagger
+```
+
 ## 🧪 Diretrizes de Testes
 
 ### **Testing Strategy Overview**
@@ -198,7 +303,7 @@ O MeAjudaAi segue uma estratégia abrangente de testes baseada na pirâmide de t
            /____________________\
           /                      \
          /   Architecture Tests   \
-        /_______________________\
+        /______________________\
 ```
 
 ### **1. Padrões de Nomenclatura para Testes**
@@ -602,63 +707,64 @@ public async Task<Result<User>> RegisterUserAsync(
     CancellationToken cancellationToken = default)
 ```
 
-## 🛠️ Comandos Úteis
+## 📦 Adicionando Novos Módulos ao CI/CD
 
-### **Comandos de Desenvolvimento**
+### Como adicionar um novo módulo ao pipeline de testes
+
+Quando criar um novo módulo (ex: Orders, Payments, etc.), siga estes passos para incluí-lo no pipeline de CI/CD:
+
+#### 1. Estrutura do Módulo
+
+Certifique-se de que o novo módulo siga a estrutura padrão:
+
+```text
+src/Modules/{ModuleName}/
+├── MeAjudaAi.Modules.{ModuleName}.API/
+├── MeAjudaAi.Modules.{ModuleName}.Application/
+├── MeAjudaAi.Modules.{ModuleName}.Domain/
+├── MeAjudaAi.Modules.{ModuleName}.Infrastructure/
+└── MeAjudaAi.Modules.{ModuleName}.Tests/      # ← Testes unitários
+```
+#### 2. Atualizar o Workflow de PR
+
+No arquivo `.github/workflows/pr-validation.yml`, adicione o novo módulo na seção `MODULES`:
 
 ```bash
-# Build completo
-dotnet build
-
-# Executar testes
-dotnet test
-
-# Executar com Aspire
-cd src/Aspire/MeAjudaAi.AppHost && dotnet run
-
-# Executar apenas API
-cd src/Bootstrapper/MeAjudaAi.ApiService && dotnet run
-
-# Migrations EF Core
-dotnet ef migrations add NomeDaMigração --context UsersDbContext
-dotnet ef database update --context UsersDbContext
-
-# Migrations usando script personalizado (recomendado)
-# Configure primeiro as variáveis de ambiente:
-$env:DB_HOST="localhost"       # padrão: localhost
-$env:DB_PORT="5432"            # padrão: 5432
-$env:DB_NAME="MeAjudaAi"       # padrão: MeAjudaAi
-$env:DB_USER="postgres"        # padrão: postgres
-$env:DB_PASSWORD="suasenha"    # obrigatório
-
-# Depois execute (Windows):
-.\scripts\ef-migrate.ps1                                    # Aplica migrações para todos os módulos
-.\scripts\ef-migrate.ps1 -Module Users                      # Aplica para módulo específico
-.\scripts\ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewField"  # Adiciona nova migração
-
-# Ou no Unix/Linux/macOS (PowerShell Core):
-./scripts/ef-migrate.ps1                                    # Aplica migrações para todos os módulos
-./scripts/ef-migrate.ps1 -Module Users                      # Aplica para módulo específico
-./scripts/ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewField"  # Adiciona nova migração
-
-# Análise de código
-dotnet format
-dotnet build --verbosity normal
-
-# Limpeza
-dotnet clean
+MODULES=(
+  "Users:src/Modules/Users/MeAjudaAi.Modules.Users.Tests/"
+  "Providers:src/Modules/Providers/MeAjudaAi.Modules.Providers.Tests/"
+  "Services:src/Modules/Services/MeAjudaAi.Modules.Services.Tests/"  # ← Nova linha
+)
 ```
+#### 3. Atualizar o Workflow Aspire (se necessário)
 
-### **Aliases Recomendados**
+No arquivo `.github/workflows/aspire-ci-cd.yml`, se o módulo tiver testes específicos que precisam ser executados no pipeline de deploy, adicione-os na seção de testes:
 
 ```bash
-# .bashrc ou .zshrc
-alias meajuda-build="dotnet build"
-alias meajuda-test="dotnet test"
-alias meajuda-aspire="cd src/Aspire/MeAjudaAi.AppHost && dotnet run"
-alias meajuda-api="cd src/Bootstrapper/MeAjudaAi.ApiService && dotnet run"
-alias meajuda-migrate="dotnet ef database update --context UsersDbContext"
+dotnet test src/Modules/{ModuleName}/MeAjudaAi.Modules.{ModuleName}.Tests/ --no-build --configuration Release
 ```
+#### 4. Cobertura de Código
+
+O sistema automaticamente:
+- ✅ Coleta cobertura APENAS dos testes unitários do módulo
+- ✅ Inclui apenas as classes do módulo no relatório (`[MeAjudaAi.Modules.{ModuleName}.*]*`)
+- ✅ Exclui classes de teste e assemblies de teste
+- ✅ Gera relatórios separados por módulo
+
+#### 5. Testes que NÃO geram cobertura
+
+Estes tipos de teste são executados, mas NÃO contribuem para o relatório de cobertura:
+- `tests/MeAjudaAi.Architecture.Tests/` - Testes de arquitetura
+- `tests/MeAjudaAi.Integration.Tests/` - Testes de integração
+- `tests/MeAjudaAi.Shared.Tests/` - Testes do shared
+- `tests/MeAjudaAi.E2E.Tests/` - Testes end-to-end
+
+#### 6. Validação
+
+Após adicionar um novo módulo:
+1. Verifique se o pipeline executa sem erros
+2. Confirme que o relatório de cobertura inclui o novo módulo
+3. Verifique se não há DLLs duplicadas no relatório
 
 ## 📚 Recursos e Referências
 

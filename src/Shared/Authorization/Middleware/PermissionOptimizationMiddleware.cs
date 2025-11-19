@@ -248,7 +248,7 @@ public sealed class PermissionOptimizationMiddleware(
             return false;
 
         var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        return segments.Any(segment => 
+        return segments.Any(segment =>
             string.Equals(segment, "admin", StringComparison.OrdinalIgnoreCase));
     }
 

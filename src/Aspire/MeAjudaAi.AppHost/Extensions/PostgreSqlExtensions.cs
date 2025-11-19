@@ -150,12 +150,16 @@ public static class PostgreSqlExtensions
         }
         else
         {
-            // Local testing - create PostgreSQL container
+            // Local testing - create PostgreSQL container with PostGIS extension
             var postgres = builder.AddPostgres("postgres-local")
-                .WithImageTag("13-alpine") // Usa PostgreSQL 13 para melhor compatibilidade
+                .WithImage("postgis/postgis")
+                .WithImageTag("16-3.4") // PostgreSQL 16 with PostGIS 3.4
                 .WithEnvironment("POSTGRES_DB", options.MainDatabase)
                 .WithEnvironment("POSTGRES_USER", options.Username)
                 .WithEnvironment("POSTGRES_PASSWORD", options.Password);
+
+            // Mount database initialization scripts
+            MountInitializationScripts(postgres, builder);
 
             var mainDb = postgres.AddDatabase("meajudaai-db-local", options.MainDatabase);
 
@@ -173,13 +177,17 @@ public static class PostgreSqlExtensions
         if (string.IsNullOrWhiteSpace(options.Password))
             throw new InvalidOperationException("POSTGRES_PASSWORD must be provided via env var or options for development.");
 
-        // Setup completo de desenvolvimento
+        // Setup completo de desenvolvimento com PostGIS para geospatial queries
         var postgresBuilder = builder.AddPostgres("postgres-local")
             .WithDataVolume()
-            .WithImageTag("13-alpine")
+            .WithImage("postgis/postgis")
+            .WithImageTag("16-3.4") // PostgreSQL 16 with PostGIS 3.4
             .WithEnvironment("POSTGRES_DB", options.MainDatabase)
             .WithEnvironment("POSTGRES_USER", options.Username)
             .WithEnvironment("POSTGRES_PASSWORD", options.Password);
+
+        // Mount database initialization scripts
+        MountInitializationScripts(postgresBuilder, builder);
 
         if (options.IncludePgAdmin)
         {
@@ -189,10 +197,16 @@ public static class PostgreSqlExtensions
         var mainDb = postgresBuilder.AddDatabase("meajudaai-db-local", options.MainDatabase);
 
         // Abordagem de banco único - todos os módulos usam o mesmo banco com schemas diferentes
-        // - schema users (módulo de usuários)
-        // - schema identity (Keycloak)
+        // - schema users (módulo Users - autenticação e perfis)
+        // - schema providers (módulo Providers - prestadores de serviço)
+        // - schema documents (módulo Documents - upload e verificação)
+        // - schema search (módulo Search - busca geoespacial com PostGIS)
+        // - schema location (módulo Location - CEP lookup e geocoding)
+        // - schema catalogs (módulo Catalogs - catálogo de serviços)
+        // - schema hangfire (background jobs - Hangfire)
+        // - schema identity (Keycloak - autenticação)
+        // - schema meajudaai_app (cross-cutting objects)
         // - schema public (tabelas compartilhadas/comuns)
-        // - módulos futuros terão seus próprios schemas
 
         return new MeAjudaAiPostgreSqlResult
         {
@@ -216,5 +230,33 @@ public static class PostgreSqlExtensions
     private static bool IsTestEnvironment(IDistributedApplicationBuilder builder)
     {
         return EnvironmentHelpers.IsTesting(builder);
+    }
+
+    /// <summary>
+    /// Monta os scripts de inicialização do banco de dados no container PostgreSQL
+    /// </summary>
+    private static void MountInitializationScripts(
+        IResourceBuilder<PostgresServerResource> postgresBuilder,
+        IDistributedApplicationBuilder builder)
+    {
+        // Caminho relativo dos scripts de inicialização
+        // De: src/Aspire/MeAjudaAi.AppHost
+        // Para: infrastructure/database
+        var appDirectory = builder.AppHostDirectory;
+        var infrastructurePath = Path.Combine(appDirectory, "..", "..", "..", "infrastructure", "database");
+        var absolutePath = Path.GetFullPath(infrastructurePath);
+
+        if (!Directory.Exists(absolutePath))
+        {
+            Console.WriteLine($"WARNING: Database initialization scripts not found at: {absolutePath}");
+            Console.WriteLine("Database will be created without initial roles and permissions.");
+            return;
+        }
+
+        // Monta a pasta database como /docker-entrypoint-initdb.d
+        // PostgreSQL executa automaticamente scripts .sql e .sh nessa pasta na inicialização
+        postgresBuilder.WithBindMount(absolutePath, "/docker-entrypoint-initdb.d", isReadOnly: true);
+
+        Console.WriteLine($"INFO: Mounted database initialization scripts from: {absolutePath}");
     }
 }

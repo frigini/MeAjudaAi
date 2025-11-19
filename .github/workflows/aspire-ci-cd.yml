@@ -92,6 +92,16 @@ jobs:
             exit 1
           fi
 
+      - name: Setup PostgreSQL connection
+        id: db
+        uses: ./.github/actions/setup-postgres-connection
+        with:
+          postgres-host: localhost
+          postgres-port: 5432
+          postgres-db: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+          postgres-user: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          postgres-password: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+
       - name: Run tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
@@ -101,6 +111,11 @@ jobs:
           MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
           DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
           DB_USERNAME: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          # Map connection string to .NET configuration using double underscore
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
           echo "🧪 Running core test suite (excluding E2E)..."
           # Run only Architecture and Integration tests - skip E2E tests for Aspire validation

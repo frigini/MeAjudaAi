@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Handlers;
+using MeAjudaAi.Shared.Tests.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,7 +38,7 @@ public class MessageRetryMiddlewareTests
         services.AddSingleton<IConfiguration>(configuration);
 
         // Adiciona mock do ambiente host
-        services.AddSingleton<IHostEnvironment>(new TestHostEnvironment("Testing"));
+        services.AddSingleton<IHostEnvironment>(new MockHostEnvironment("Testing"));
 
         // Adiciona serviço de dead letter
         services.AddSingleton<IDeadLetterService, NoOpDeadLetterService>();
@@ -201,19 +202,5 @@ public class MessageRetryMiddlewareTests
     private class TestMessage
     {
         public string Id { get; set; } = string.Empty;
-    }
-
-    // Ambiente host de teste
-    private class TestHostEnvironment : IHostEnvironment
-    {
-        public TestHostEnvironment(string environmentName)
-        {
-            EnvironmentName = environmentName;
-        }
-
-        public string EnvironmentName { get; set; }
-        public string ApplicationName { get; set; } = "TestApp";
-        public string ContentRootPath { get; set; } = string.Empty;
-        public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; } = null!;
     }
 }

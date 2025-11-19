@@ -1,5 +1,12 @@
 -- Users Module - Permissions
 -- Grant permissions for users module
+
+-- Create users schema if it doesn't exist
+CREATE SCHEMA IF NOT EXISTS users;
+
+-- Set explicit schema ownership
+ALTER SCHEMA users OWNER TO users_owner;
+
 GRANT USAGE ON SCHEMA users TO users_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA users TO users_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA users TO users_role;
@@ -29,8 +36,9 @@ ALTER SCHEMA meajudaai_app OWNER TO meajudaai_app_owner;
 -- Grant permissions on dedicated application schema
 GRANT USAGE, CREATE ON SCHEMA meajudaai_app TO meajudaai_app_role;
 
--- Set search path for app role (dedicated schema first, then module schemas, then public)
-ALTER ROLE meajudaai_app_role SET search_path = meajudaai_app, users, public;
+-- NOTE: search_path for meajudaai_app_role is set in documents/01-permissions.sql
+-- to avoid conflicts. Documents module runs last alphabetically and sets the
+-- complete path: meajudaai_app, documents, users, providers, hangfire, public
 
 -- Grant limited permissions on public schema (read-only)
 GRANT USAGE ON SCHEMA public TO users_role;

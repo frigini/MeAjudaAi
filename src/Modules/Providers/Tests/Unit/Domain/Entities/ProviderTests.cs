@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Shared.Tests.Mocks;
 using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Domain.Entities;
@@ -12,9 +13,9 @@ public class ProviderTests
     // Cria um mock do provedor de data/hora
     private static IDateTimeProvider CreateMockDateTimeProvider(DateTime? fixedDate = null)
     {
-        var mock = new Mock<IDateTimeProvider>();
-        mock.Setup(x => x.CurrentDate()).Returns(fixedDate ?? DateTime.UtcNow);
-        return mock.Object;
+        return fixedDate.HasValue
+            ? new MockDateTimeProvider(fixedDate.Value)
+            : new MockDateTimeProvider();
     }
 
     private static BusinessProfile CreateValidBusinessProfile()
@@ -600,7 +601,7 @@ public class ProviderTests
     {
         // Arrange
         var provider = CreateValidProvider();
-        
+
         // Set the provider to the "from" status
         // This is a bit hacky but necessary for testing
         if (from == EProviderStatus.PendingDocumentVerification)
@@ -648,7 +649,7 @@ public class ProviderTests
                 var act = () => provider.UpdateStatus(to);
                 act.Should().NotThrow();
             }
-            
+
             provider.Status.Should().Be(to);
         }
         else
@@ -685,7 +686,7 @@ public class ProviderTests
     {
         // Arrange
         var provider = CreateValidProvider();
-        
+
         // Set provider to the specified status
         if (currentStatus == EProviderStatus.PendingDocumentVerification)
         {
@@ -736,7 +737,7 @@ public class ProviderTests
     {
         // Arrange
         var provider = CreateValidProvider();
-        
+
         // Set provider to the specified status
         if (currentStatus == EProviderStatus.Active)
         {

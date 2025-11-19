@@ -1,6 +1,10 @@
 using System.Diagnostics;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.Modules.Documents.API;
+using MeAjudaAi.Modules.Locations.Infrastructure;
 using MeAjudaAi.Modules.Providers.API;
+using MeAjudaAi.Modules.SearchProviders.API;
+using MeAjudaAi.Modules.ServiceCatalogs.API;
 using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
@@ -17,7 +21,20 @@ public partial class Program
             var builder = WebApplication.CreateBuilder(args);
 
             ConfigureLogging(builder);
-            ConfigureServices(builder);
+
+            // Configurações via ServiceDefaults e Shared (sem duplicar Serilog)
+            builder.AddServiceDefaults();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddSharedServices(builder.Configuration);
+            builder.Services.AddApiServices(builder.Configuration, builder.Environment);
+
+            // Registrar módulos
+            builder.Services.AddUsersModule(builder.Configuration);
+            builder.Services.AddProvidersModule(builder.Configuration);
+            builder.Services.AddDocumentsModule(builder.Configuration);
+            builder.Services.AddSearchProvidersModule(builder.Configuration);
+            builder.Services.AddLocationModule(builder.Configuration);
+            builder.Services.AddServiceCatalogsModule(builder.Configuration);
 
             var app = builder.Build();
 
@@ -73,17 +90,6 @@ public partial class Program
         }
     }
 
-    private static void ConfigureServices(WebApplicationBuilder builder)
-    {
-        // Configurações via ServiceDefaults e Shared (sem duplicar Serilog)
-        builder.AddServiceDefaults();
-        builder.Services.AddHttpContextAccessor();
-        builder.Services.AddSharedServices(builder.Configuration);
-        builder.Services.AddApiServices(builder.Configuration, builder.Environment);
-        builder.Services.AddUsersModule(builder.Configuration);
-        builder.Services.AddProvidersModule(builder.Configuration);
-    }
-
     private static async Task ConfigureMiddlewareAsync(WebApplication app)
     {
         app.MapDefaultEndpoints();
@@ -99,6 +105,10 @@ public partial class Program
         app.UseApiServices(app.Environment);
         app.UseUsersModule();
         app.UseProvidersModule();
+        app.UseDocumentsModule();
+        app.UseSearchProvidersModule();
+        app.UseLocationModule();
+        app.UseServiceCatalogsModule();
     }
 
     private static void LogStartupComplete(WebApplication app)

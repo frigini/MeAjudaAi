@@ -57,6 +57,8 @@
     <NoWarn>$(NoWarn);CA1024</NoWarn> <!-- Properties vs methods in test helpers -->
     <NoWarn>$(NoWarn);CA1508</NoWarn> <!-- Dead code detection in test fixtures -->
     <NoWarn>$(NoWarn);CA1826</NoWarn> <!-- Enumerable methods on collections -->
+    <NoWarn>$(NoWarn);CA1008</NoWarn> <!-- Enums should have zero value - intencional em domain enums -->
+    <NoWarn>$(NoWarn);CA1819</NoWarn> <!-- Properties should not return arrays - usado em eventos de domínio para performance -->
     
     <!-- Code Analysis - Resource Management -->
     <NoWarn>$(NoWarn);CA2000</NoWarn> <!-- Dispose objects in test mocks -->

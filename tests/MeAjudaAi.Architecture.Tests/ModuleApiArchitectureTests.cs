@@ -1,5 +1,7 @@
 using System.Reflection;
 using MeAjudaAi.Shared.Contracts.Modules;
+using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
+using MeAjudaAi.Shared.Contracts.Modules.Location;
 using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
@@ -268,6 +270,45 @@ public class ModuleApiArchitectureTests
         methods.Should().Contain("GetProvidersByVerificationStatusAsync", because: "Should allow getting providers by verification status");
     }
 
+    [Fact]
+    public void ILocationModuleApi_ShouldHaveAllEssentialMethods()
+    {
+        // Arrange
+        var type = typeof(ILocationModuleApi);
+
+        // Act
+        var methods = type.GetMethods()
+            .Where(m => !m.IsSpecialName && m.DeclaringType == type)
+            .Select(m => m.Name)
+            .ToList();
+
+        // Assert
+        methods.Should().Contain("GetAddressFromCepAsync", because: "Should allow getting address from CEP");
+        methods.Should().Contain("GetCoordinatesFromAddressAsync", because: "Should allow geocoding addresses");
+    }
+
+    [Fact]
+    public void IServiceCatalogsModuleApi_ShouldHaveAllEssentialMethods()
+    {
+        // Arrange
+        var type = typeof(IServiceCatalogsModuleApi);
+
+        // Act
+        var methods = type.GetMethods()
+            .Where(m => !m.IsSpecialName && m.DeclaringType == type)
+            .Select(m => m.Name)
+            .ToList();
+
+        // Assert
+        methods.Should().Contain("GetServiceCategoryByIdAsync", because: "Should allow getting service category by ID");
+        methods.Should().Contain("GetAllServiceCategoriesAsync", because: "Should allow getting all service categories");
+        methods.Should().Contain("GetServiceByIdAsync", because: "Should allow getting service by ID");
+        methods.Should().Contain("GetAllServicesAsync", because: "Should allow getting all services");
+        methods.Should().Contain("GetServicesByCategoryAsync", because: "Should allow getting services by category");
+        methods.Should().Contain("ValidateServicesAsync", because: "Should allow validating services");
+        methods.Should().Contain("IsServiceActiveAsync", because: "Should allow checking if service is active");
+    }
+
     private static Assembly[] GetModuleAssemblies()
     {
         // Obtém todos os assemblies que possuem implementações de Module API
@@ -286,7 +327,11 @@ public class ModuleApiArchitectureTests
 
     private static string[] GetOtherModuleNamespaces(string currentModule)
     {
-        var allModules = new[] { "Users", "Providers" }; // Add known modules
+        // Dynamically discover all modules from loaded assemblies
+        var allModules = GetModuleAssemblies()
+            .Select(GetModuleName)
+            .Distinct()
+            .ToArray();
         return [.. allModules
             .Where(m => m != currentModule)
             .Select(m => $"MeAjudaAi.Modules.{m}")];

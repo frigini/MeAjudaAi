@@ -1,0 +1,87 @@
+using MeAjudaAi.Modules.Catalogs.API.Endpoints;
+using MeAjudaAi.Modules.Catalogs.Application;
+using MeAjudaAi.Modules.Catalogs.Infrastructure;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+namespace MeAjudaAi.Modules.Catalogs.API;
+
+public static class Extensions
+{
+    /// <summary>
+    /// Adiciona os serviços do módulo Catalogs.
+    /// </summary>
+    public static IServiceCollection AddCatalogsModule(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddApplication();
+        services.AddCatalogsInfrastructure(configuration);
+
+        return services;
+    }
+
+    /// <summary>
+    /// Configura os endpoints do módulo Catalogs.
+    /// </summary>
+    public static WebApplication UseCatalogsModule(this WebApplication app)
+    {
+        // Garantir que as migrações estão aplicadas
+        EnsureDatabaseMigrations(app);
+
+        app.MapCatalogsEndpoints();
+
+        return app;
+    }
+
+    private static void EnsureDatabaseMigrations(WebApplication app)
+    {
+        if (app?.Services == null) return;
+
+        try
+        {
+            using var scope = app.Services.CreateScope();
+            var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.CatalogsDbContext>();
+            if (context == null) return;
+
+            // Em ambiente de teste, pular migrações automáticas
+            if (app.Environment.IsEnvironment("Test") || app.Environment.IsEnvironment("Testing"))
+            {
+                return;
+            }
+
+            context.Database.Migrate();
+        }
+        catch (Exception ex)
+        {
+            using var scope = app.Services.CreateScope();
+            var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.CatalogsDbContext>>();
+
+            // Only fallback to EnsureCreated in Development
+            if (app.Environment.IsDevelopment())
+            {
+                logger?.LogWarning(ex, "Falha ao aplicar migrações do módulo Catalogs. Usando EnsureCreated como fallback em Development.");
+                try
+                {
+                    var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.CatalogsDbContext>();
+                    context?.Database.EnsureCreated();
+                }
+                catch (Exception fallbackEx)
+                {
+                    logger?.LogError(fallbackEx, "Falha crítica ao inicializar o banco do módulo Catalogs.");
+                    throw; // Fail fast even in Development if EnsureCreated fails
+                }
+            }
+            else
+            {
+                // Fail fast in non-development environments
+                logger?.LogError(ex, "Falha crítica ao aplicar migrações do módulo Catalogs em ambiente de produção.");
+                throw;
+            }
+        }
+    }
+}

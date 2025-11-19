@@ -31,7 +31,7 @@ public sealed class SuspendProviderCommandHandler(
     {
         try
         {
-            logger.LogInformation("Suspending provider {ProviderId}. Reason: {Reason}", 
+            logger.LogInformation("Suspending provider {ProviderId}. Reason: {Reason}",
                 command.ProviderId, command.Reason);
 
             if (string.IsNullOrWhiteSpace(command.Reason))

@@ -115,15 +115,29 @@ public class ProvidersContext
 - **Qualification**: Qualificações e habilitações profissionais
 - **VerificationStatus**: Status de verificação (Pending, Verified, Rejected, etc.)
 
-#### 3. **Services Context** (Futuro)
-**Responsabilidade**: Catálogo e gestão de serviços oferecidos
+#### 3. **ServiceCatalogs Context** (Implementado)
+**Responsabilidade**: Catálogo administrativo de categorias e serviços
 
-**Conceitos Planejados**:
-- **Service**: Serviço oferecido por prestadores
-- **Category**: Categorização hierárquica de serviços
-- **Pricing**: Modelos de precificação flexíveis
+**Conceitos Implementados**:
+- **ServiceCategory**: Categorias hierárquicas de serviços (aggregate root)
+- **Service**: Serviços oferecidos vinculados a categorias (aggregate root)
+- **DisplayOrder**: Ordenação customizada para apresentação
+- **Activation/Deactivation**: Controle de visibilidade no catálogo
 
-#### 4. **Bookings Context** (Futuro)
+**Schema**: `service_catalogs` (isolado no PostgreSQL)
+
+#### 4. **Location Context** (Implementado)
+**Responsabilidade**: Geolocalização e lookup de CEP brasileiro
+
+**Conceitos Implementados**:
+- **Cep**: Value object para CEP validado
+- **Coordinates**: Latitude/Longitude para geolocalização
+- **Address**: Endereço completo com dados estruturados
+- **CepLookupService**: Integração com ViaCEP, BrasilAPI, OpenCEP (fallback)
+
+**Observação**: Módulo stateless (sem schema próprio), fornece serviços via Module API
+
+#### 5. **Bookings Context** (Futuro)
 **Responsabilidade**: Agendamento e execução de serviços
 
 **Conceitos Planejados**:
@@ -997,266 +1011,205 @@ public sealed class UserEndpointsTests : IntegrationTestBase
 
 ### **Padrão Module APIs**
 
-O padrão Module APIs é usado para comunicação type-safe entre módulos sem criar dependências diretas. Cada módulo expõe uma API pública através de interfaces bem definidas.
+O padrão Module APIs é usado para comunicação síncrona e type-safe entre módulos. Cada módulo pode expor uma API pública através de uma interface bem definida, permitindo que outros módulos a consumam diretamente, sem acoplamento forte com a implementação interna.
 
 ### **Estrutura Recomendada**
 
 ```csharp
 /// <summary>
 /// Interface da API pública do módulo Users
-/// Define contratos para comunicação entre módulos
+/// Define contratos para comunicação síncrona entre módulos.
 /// </summary>
-public interface IUsersModuleApi
+public interface IUsersModuleApi : IModuleApi
 {
     Task<Result<ModuleUserDto?>> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
-    Task<Result<ModuleUserDto?>> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default);
-    Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(IReadOnlyList<Guid> userIds, CancellationToken cancellationToken = default);
-    Task<Result<bool>> UserExistsAsync(Guid userId, CancellationToken cancellationToken = default);
-    Task<Result<bool>> EmailExistsAsync(string email, CancellationToken cancellationToken = default);
+    Task<Result<bool>> CheckUserExistsAsync(Guid userId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
 /// Implementação da API do módulo Users
-/// Localizada em: src/Modules/Users/Application/Services/
+/// Localizada em: src/Modules/Users/Application/ModuleApi/
 /// </summary>
 [ModuleApi("Users", "1.0")]
-public sealed class UsersModuleApi : IUsersModuleApi, IModuleApi
+public sealed class UsersModuleApi : IUsersModuleApi
 {
-    // Implementação usando handlers internos do módulo
-    // Não expõe detalhes de implementação interna
+    // A implementação utiliza os handlers e serviços internos do módulo Users
+    // para responder às solicitações, sem expor detalhes da camada de domínio.
 }
 ```
 
-#### **API do Módulo Providers**
+---
+
+## 📡 Integration Events - Comunicação Assíncrona
+
+### **Padrão Integration Events**
+
+Para comunicação assíncrona e desacoplada, o projeto utiliza o padrão de **Integration Events**. Um módulo publica um evento em um message bus (como RabbitMQ ou Azure Service Bus) quando um estado importante é alterado. Outros módulos podem se inscrever para receber notificações desses eventos e reagir a eles, sem que o publicador precise conhecê-los.
+
+Este padrão é ideal para:
+- Notificar outros módulos sobre a criação, atualização ou exclusão de entidades.
+- Disparar fluxos de trabalho em background.
+- Manter a consistência eventual entre diferentes Bounded Contexts.
+
+### **Estrutura Recomendada**
 
 ```csharp
 /// <summary>
-/// Interface da API pública do módulo Providers
-/// Define contratos para comunicação entre módulos
+/// Define um evento de integração que ocorreu no sistema.
+/// Herda de IEvent e adiciona um campo 'Source' para identificar o módulo de origem.
 /// </summary>
-public interface IProvidersModuleApi : IModuleApi
+public interface IIntegrationEvent : IEvent
 {
-    Task<Result<ModuleProviderDto?>> GetProviderByIdAsync(Guid providerId, CancellationToken cancellationToken = default);
-    Task<Result<ModuleProviderDto?>> GetProviderByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
-    Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersBatchAsync(IReadOnlyList<Guid> providerIds, CancellationToken cancellationToken = default);
-    Task<Result<bool>> ProviderExistsAsync(Guid providerId, CancellationToken cancellationToken = default);
-    Task<Result<bool>> IsProviderVerifiedAsync(Guid providerId, CancellationToken cancellationToken = default);
+    string Source { get; }
 }
 
 /// <summary>
-/// Implementação da API do módulo Providers
-/// Localizada em: src/Modules/Providers/Application/Services/
+/// Exemplo de um evento de integração publicado quando um usuário é registrado.
+/// Este evento carrega os dados essenciais para que outros módulos possam reagir.
 /// </summary>
-[ModuleApi("Providers", "1.0")]
-public sealed class ProvidersModuleApi : IProvidersModuleApi, IModuleApi
-{
-    // Implementação usando handlers internos do módulo
-    // Não expõe detalhes de implementação interna
-}
-`csharp
-
-### **DTOs para Module APIs**
-
-Os DTOs devem ser organizados em arquivos separados dentro de `Shared/Contracts/Modules/{ModuleName}/DTOs/`:
-
-```text
-src/Shared/MeAjudaAi.Shared/Contracts/Modules/Users/DTOs/
-├── ModuleUserDto.cs
-├── ModuleUserBasicDto.cs
-├── GetModuleUserRequest.cs
-├── GetModuleUserByEmailRequest.cs
-├── GetModuleUsersBatchRequest.cs
-├── CheckUserExistsRequest.cs
-└── CheckUserExistsResponse.cs
-
-src/Shared/MeAjudaAi.Shared/Contracts/Modules/Providers/DTOs/
-├── ModuleProviderDto.cs
-├── ModuleProviderBasicDto.cs
-├── GetModuleProviderRequest.cs
-├── GetModuleProviderByUserIdRequest.cs
-├── GetModuleProvidersBatchRequest.cs
-├── CheckProviderExistsRequest.cs
-└── CheckProviderExistsResponse.cs
-```yaml
-**Exemplo de DTO:**
-
-```csharp
-/// <summary>
-/// DTO simplificado de usuário para comunicação entre módulos
-/// Contém apenas dados essenciais e não expõe estruturas internas
-/// </summary>
-public sealed record ModuleUserDto(
-    Guid Id,
+public sealed record UserRegisteredIntegrationEvent(
+    Guid UserId,
     string Username,
     string Email,
-    string FirstName,
-    string LastName,
-    string FullName
-);
+    DateTime RegisteredAt
+) : IIntegrationEvent;
+```
 
-/// <summary>
-/// DTO simplificado de prestador para comunicação entre módulos
-/// Contém apenas dados essenciais e não expõe estruturas internas
-/// </summary>
-public sealed record ModuleProviderDto(
-    Guid Id,
-    string Name,
-    string Email,
-    string Document,
-    string? Phone,
-    EProviderType ProviderType,
-    EVerificationStatus VerificationStatus,
-    DateTime CreatedAt,
-    DateTime UpdatedAt,
-    bool IsActive
-);
+---
 
-/// <summary>
-/// DTO básico de prestador para validações rápidas entre módulos
-/// </summary>
-public sealed record ModuleProviderBasicDto(
-    Guid Id,
-    string Name,
-    string Email,
-    EProviderType ProviderType,
-    EVerificationStatus VerificationStatus,
-    bool IsActive
-);
-`yaml
+## 🚦 Status Atual da Implementação
 
-### **Registro e Descoberta de Module APIs**
+Atualmente, a arquitetura do projeto **define os padrões** para comunicação síncrona (`IModuleApi`) e assíncrona (`IIntegrationEvent`), mas **eles ainda não foram implementados para comunicação entre os módulos existentes**.
+
+- **`IModuleApi`**: As interfaces e implementações estão definidas dentro de seus respectivos módulos, mas nenhum módulo está injetando ou consumindo a API de outro módulo.
+- **`IIntegrationEvent`**: Os eventos estão definidos no projeto `Shared`, mas não há `Handlers` nos módulos para consumir esses eventos. Os módulos atualmente lidam apenas com `Domain Events` internos.
+
+A sua percepção de que os módulos não se comunicam está correta. O próximo passo no desenvolvimento é implementar esses padrões para criar um sistema coeso.
+
+---
+
+## 💡 Exemplos Conceituais de Implementação
+
+A seguir, exemplos de como implementar os dois padrões de comunicação.
+
+### 1. Exemplo de `IModuleApi` (Comunicação Síncrona)
+
+**Cenário**: Ao criar um novo `Provider`, o módulo `Providers` precisa verificar se o `UserId` associado já existe no módulo `Users`.
+
+**Passos de Implementação**:
+
+1.  **Injetar `IUsersModuleApi`**: No `CreateProviderCommandHandler` do módulo `Providers`, injete a interface `IUsersModuleApi`.
+2.  **Chamar o Método da API**: Utilize o método `CheckUserExistsAsync` para validar a existência do usuário.
+
+**Exemplo de Código (Conceitual):**
 
 ```csharp
-/// <summary>
-/// Registro automático de Module APIs
-/// </summary>
-public static class ModuleApiRegistry
+// Local: C:\Code\MeAjudaAi\src\Modules\Providers\Application\Providers\Commands\CreateProvider\CreateProviderCommandHandler.cs
+
+// 1. Injetar a IUsersModuleApi
+public class CreateProviderCommandHandler(IUsersModuleApi usersModuleApi, /* outras dependências */) 
+    : IRequestHandler<CreateProviderCommand, Result<ProviderDto>>
 {
-    public static IServiceCollection AddModuleApis(this IServiceCollection services, params Assembly[] assemblies)
+    public async Task<Result<ProviderDto>> Handle(CreateProviderCommand request, CancellationToken cancellationToken)
     {
-        // Descobre automaticamente classes marcadas com [ModuleApi]
-        // Registra interfaces e implementações no container DI
-        return services;
+        // 2. Chamar a API para verificar se o usuário existe
+        var userExistsResult = await _usersModuleApi.CheckUserExistsAsync(request.UserId, cancellationToken);
+
+        if (userExistsResult.IsFailure || !userExistsResult.Value)
+        {
+            return Result.Failure<ProviderDto>(new Error("User.NotFound", "O usuário especificado não existe."));
+        }
+
+        // --- Lógica para criação do provider ---
+        // ...
+    }
+}
+```
+
+### 2. Exemplo de `IIntegrationEvent` (Comunicação Assíncrona)
+
+**Cenário**: Quando um novo usuário se registra, o módulo `Users` publica um `UserRegisteredIntegrationEvent`. O módulo `Search` escuta este evento para indexar o novo usuário em seu sistema de busca.
+
+**Passos de Implementação**:
+
+**A. Publicando o Evento (Módulo `Users`)**
+
+1.  **Injetar `IMessageBus`**: No `CreateUserCommandHandler`, injete o serviço de message bus.
+2.  **Publicar o Evento**: Após criar o usuário com sucesso, publique o evento no barramento.
+
+**Exemplo de Código (Publicador):**
+
+```csharp
+// Local: C:\Code\MeAjudaAi\src\Modules\Users\Application\Users\Commands\CreateUser\CreateUserCommandHandler.cs
+
+// 1. Injetar o message bus
+public class CreateUserCommandHandler(IMessageBus messageBus, /* outras dependências */)
+    : IRequestHandler<CreateUserCommand, Result<UserDto>>
+{
+    public async Task<Result<UserDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    {
+        // --- Lógica para criar o usuário ---
+        var user = new User(/* ... */);
+        await _userRepository.AddAsync(user, cancellationToken);
+        
+        // 2. Criar e publicar o evento de integração
+        var integrationEvent = new UserRegisteredIntegrationEvent(
+            user.Id.Value,
+            user.Username.Value,
+            user.Email.Value,
+            user.CreatedAt
+        );
+        await _messageBus.PublishAsync(integrationEvent, cancellationToken);
+
+        return Result.Success(user.ToDto());
+    }
+}
+```
+
+**B. Consumindo o Evento (Módulo `Search`)**
+
+1.  **Criar um Event Handler**: No módulo `Search`, crie uma classe que implementa `IEventHandler<UserRegisteredIntegrationEvent>`.
+2.  **Implementar a Lógica**: No método `HandleAsync`, implemente a lógica para indexar o usuário.
+3.  **Registrar o Handler**: Adicione o handler no contêiner de injeção de dependência do módulo `Search`.
+
+**Exemplo de Código (Consumidor):**
+
+```csharp
+// Local: C:\Code\MeAjudaAi\src\Modules\Search\Application\EventHandlers\UserRegisteredIntegrationEventHandler.cs
+
+// 1. Criar o handler
+public class UserRegisteredIntegrationEventHandler : IEventHandler<UserRegisteredIntegrationEvent>
+{
+    private readonly ISearchIndexer _searchIndexer;
+    public UserRegisteredIntegrationEventHandler(ISearchIndexer searchIndexer)
+    {
+        _searchIndexer = searchIndexer;
+    }
+
+    // 2. Implementar a lógica de tratamento
+    public async Task HandleAsync(UserRegisteredIntegrationEvent @event, CancellationToken cancellationToken)
+    {
+        var userDocument = new SearchableUser
+        {
+            Id = @event.UserId,
+            Username = @event.Username,
+            Email = @event.Email
+        };
+        await _searchIndexer.IndexUserAsync(userDocument, cancellationToken);
     }
 }
 
-/// <summary>
-/// Atributo para marcar implementações de Module APIs
-/// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public sealed class ModuleApiAttribute : Attribute
+// Local: C:\Code\MeAjudaAi\src\Modules\Search\Infrastructure\Extensions.cs
+public static IServiceCollection AddSearchInfrastructure(this IServiceCollection services, IConfiguration configuration)
 {
-    public string ModuleName { get; }
-    public string ApiVersion { get; }
-    
-    public ModuleApiAttribute(string moduleName, string apiVersion)
-    {
-        ModuleName = moduleName;
-        ApiVersion = apiVersion;
-    }
+    // ... outras configurações
+
+    // 3. Registrar o handler
+    services.AddScoped<IEventHandler<UserRegisteredIntegrationEvent>, UserRegisteredIntegrationEventHandler>();
+
+    return services;
 }
-`csharp
-
-### **Boas Práticas para Module APIs**
-
-#### ✅ **RECOMENDADO**
-
-1. **DTOs Separados**: Cada DTO em arquivo próprio com namespace `Shared.Contracts.Modules.{Module}.DTOs`
-2. **Contratos Estáveis**: Module APIs devem ter versionamento e compatibilidade
-3. **Operações Batch**: Preferir operações em lote para performance
-4. **Result Pattern**: Usar `Result<T>` para tratamento de erros consistente
-5. **Pasta Services**: Implementações em `{Module}/Application/Services/`
-
-```csharp
-// ✅ Boa prática: Operação batch
-Task<Result<IReadOnlyList<ModuleUserBasicDto>>> GetUsersBatchAsync(IReadOnlyList<Guid> userIds);
-
-// ✅ Boa prática: Result pattern
-Task<Result<ModuleUserDto?>> GetUserByIdAsync(Guid userId);
-`csharp
-
-#### ❌ **EVITAR**
-
-1. **Exposição de Entidades**: Nunca expor entidades de domínio diretamente
-2. **Dependências Internas**: Module APIs não devem referenciar implementações internas de outros módulos
-3. **DTOs Complexos**: Evitar DTOs com muitos níveis de profundidade
-4. **Operações de Escrita**: Module APIs devem ser principalmente para leitura
-
-```csharp
-// ❌ Ruim: Expor entidade de domínio
-Task<User> GetUserEntityAsync(Guid userId);
-
-// ❌ Ruim: DTO muito complexo
-public record ComplexUserDto(
-    User User,
-    List<Order> Orders,
-    Dictionary<string, object> Metadata
-);
-`csharp
-
-### **Testes para Module APIs**
-
-Module APIs devem ter cobertura completa de testes em múltiplas camadas:
-
-#### **Testes Unitários**
-```csharp
-// Testam a implementação da Module API com handlers mockados
-public class UsersModuleApiTests : TestBase
-{
-    [Fact]
-    public async Task GetUserByIdAsync_ExistingUser_ShouldReturnUser()
-    {
-        // Testa comportamento da API com mocks
-    }
-}
-`$([System.Environment]::NewLine)
-
-```csharp
-// Testam a API com banco de dados real
-public class UsersModuleApiIntegrationTests : IntegrationTestBase
-{
-    [Fact]
-    public async Task GetUserByIdAsync_WithRealDatabase_ShouldReturnCorrectUser()
-    {
-        // Testa fluxo completo com persistência
-    }
-}
-`$([System.Environment]::NewLine)
-
-```csharp
-// Validam que a estrutura de Module APIs segue padrões
-public class ModuleApiArchitectureTests
-{
-    [Fact]
-    public void ModuleApis_ShouldFollowNamingConventions()
-    {
-        // Valida estrutura e convenções
-    }
-}
-`$([System.Environment]::NewLine)
-
-```csharp
-// Simulam consumo real entre módulos
-public class CrossModuleCommunicationE2ETests : IntegrationTestBase
-{
-    [Fact]
-    public async Task OrdersModule_ConsumingUsersApi_ShouldWorkCorrectly()
-    {
-        // Testa cenários reais de uso entre módulos
-    }
-}
-`csharp
-
-### **Evitando Arquivos de Exemplo**
-
-**❌ NÃO CRIAR** arquivos de exemplo nos testes E2E. Em vez disso:
-
-- **Documente** padrões no `architecture.md` (como acima)
-- **Use** testes reais que demonstram os padrões
-- **Mantenha** simplicidade nos exemplos de documentação
-- **Evite** código não executável em projetos de teste
-
-Os testes E2E devem focar em cenários reais e práticos, não em exemplos didáticos que podem ficar obsoletos.
+```
 
 ## 📡 API Collections e Documentação
 
