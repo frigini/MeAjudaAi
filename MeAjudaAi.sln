@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.0.11205.157
@@ -127,23 +127,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Search", "Search", "{6FF68F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{977BE21B-C0F0-4625-9C9D-8A5A6D8C2D49}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Search.API", "src\Modules\Search\API\MeAjudaAi.Modules.Search.API.csproj", "{68F39D90-3AF5-9037-B03D-B08B48E4A9A8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.SearchProviders.API", "src\Modules\SearchProviders\API\MeAjudaAi.Modules.SearchProviders.API.csproj", "{68F39D90-3AF5-9037-B03D-B08B48E4A9A8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{6F70C0C2-B928-4F73-9D70-038F3E625A95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Search.Application", "src\Modules\Search\Application\MeAjudaAi.Modules.Search.Application.csproj", "{0A5B25B9-7991-B208-5D91-476CF0A14A1B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.SearchProviders.Application", "src\Modules\SearchProviders\Application\MeAjudaAi.Modules.SearchProviders.Application.csproj", "{0A5B25B9-7991-B208-5D91-476CF0A14A1B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{855F30AA-D1A2-4A1F-BB2B-68DE6D78AFEF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Search.Domain", "src\Modules\Search\Domain\MeAjudaAi.Modules.Search.Domain.csproj", "{C5E6E9C4-A027-5880-D304-BE3FC5E9B964}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.SearchProviders.Domain", "src\Modules\SearchProviders\Domain\MeAjudaAi.Modules.SearchProviders.Domain.csproj", "{C5E6E9C4-A027-5880-D304-BE3FC5E9B964}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{9BC7D786-47F5-44BB-88A1-DDEB0022FF23}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Search.Infrastructure", "src\Modules\Search\Infrastructure\MeAjudaAi.Modules.Search.Infrastructure.csproj", "{0A64D976-2B75-C6F2-9C87-3A780C963FA3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.SearchProviders.Infrastructure", "src\Modules\SearchProviders\Infrastructure\MeAjudaAi.Modules.SearchProviders.Infrastructure.csproj", "{0A64D976-2B75-C6F2-9C87-3A780C963FA3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{4726175B-331E-49FA-A49A-EE5AC30B495A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Search.Tests", "src\Modules\Search\Tests\MeAjudaAi.Modules.Search.Tests.csproj", "{C7F6B6F4-4F9C-C844-500C-87E3802A6C4B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.SearchProviders.Tests", "src\Modules\SearchProviders\Tests\MeAjudaAi.Modules.SearchProviders.Tests.csproj", "{C7F6B6F4-4F9C-C844-500C-87E3802A6C4B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Catalogs", "Catalogs", "{8B551008-B254-EBAF-1B6D-AB7C420234EA}"
 EndProject
