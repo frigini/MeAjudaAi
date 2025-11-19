@@ -4,7 +4,7 @@
 
 ## 🎯 Visão Geral
 
-O módulo **Location** é responsável por abstrair funcionalidades de **geolocalização** e **lookup de CEP brasileiro**, fornecendo uma API unificada e resiliente para outros módulos consumirem dados de localização.
+O módulo **Locations** é responsável por abstrair funcionalidades de **geolocalização** e **lookup de CEP brasileiro**, fornecendo uma API unificada e resiliente para outros módulos consumirem dados de localização.
 
 ### **Responsabilidades**
 - ✅ **Lookup de CEP** com fallback automático entre APIs brasileiras
@@ -16,7 +16,7 @@ O módulo **Location** é responsável por abstrair funcionalidades de **geoloca
 
 ## 🏗️ Arquitetura Implementada
 
-### **Bounded Context: Location**
+### **Bounded Context: Locations**
 - **Sem schema próprio** (stateless module)
 - **Padrão**: Service Layer + Value Objects
 - **Integrações**: ViaCEP, BrasilAPI, OpenCEP
@@ -227,7 +227,7 @@ public sealed class LocationsModuleApi : ILocationModuleApi
 {
     private static class ModuleMetadata
     {
-        public const string Name = "Location";
+        public const string Name = "Locations";
         public const string Version = "1.0";
     }
 
@@ -317,9 +317,9 @@ services.AddHttpClient<IViaCepClient, ViaCepClient>()
 ## 📊 Estrutura de Pastas
 
 ```plaintext
-src/Modules/Location/
+src/Modules/Locations/
 ├── API/
-│   └── MeAjudaAi.Modules.Location.API.csproj
+│   └── MeAjudaAi.Modules.Locations.API.csproj
 ├── Application/
 │   ├── ModuleApi/
 │   │   └── LocationsModuleApi.cs
@@ -327,13 +327,13 @@ src/Modules/Location/
 │   │   ├── ICepLookupService.cs
 │   │   ├── CepLookupService.cs
 │   │   └── IGeocodingService.cs
-│   └── MeAjudaAi.Modules.Location.Application.csproj
+│   └── MeAjudaAi.Modules.Locations.Application.csproj
 ├── Domain/
 │   ├── ValueObjects/
 │   │   ├── Cep.cs
 │   │   ├── Coordinates.cs
 │   │   └── Address.cs
-│   └── MeAjudaAi.Modules.Location.Domain.csproj
+│   └── MeAjudaAi.Modules.Locations.Domain.csproj
 ├── Infrastructure/
 │   ├── ExternalServices/
 │   │   ├── ViaCEP/
@@ -346,7 +346,7 @@ src/Modules/Location/
 │   │       ├── IOpenCepClient.cs
 │   │       └── OpenCepClient.cs
 │   ├── Extensions.cs
-│   └── MeAjudaAi.Modules.Location.Infrastructure.csproj
+│   └── MeAjudaAi.Modules.Locations.Infrastructure.csproj
 └── Tests/
     └── Unit/
         └── Domain/
