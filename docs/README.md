@@ -56,7 +56,7 @@ Se você é novo no projeto, comece por aqui:
 | **[📅 Módulo Bookings](./modules/bookings.md)** | Sistema de agendamentos (planejado) |
 | **[📄 Módulo Documents](./modules/documents.md)** | Gerenciamento de documentos |
 | **[🔧 Módulo Providers](./modules/providers.md)** | Prestadores de serviços, verificação e documentos |
-| **[🔍 Módulo Search](./modules/search.md)** | Busca geoespacial de prestadores com PostGIS |
+| **[🔍 Módulo SearchProviders](./modules/search_providers.md)** | Busca geoespacial de prestadores com PostGIS |
 | **[📋 Módulo Services](./modules/services.md)** | Catálogo de serviços (planejado) |
 | **[👥 Módulo Users](./modules/users.md)** | Gestão de usuários, autenticação e perfis |
 

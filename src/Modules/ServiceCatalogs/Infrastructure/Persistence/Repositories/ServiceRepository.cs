@@ -17,7 +17,14 @@ public sealed class ServiceRepository(ServiceCatalogsDbContext context) : IServi
 
     public async Task<IReadOnlyList<Service>> GetByIdsAsync(IEnumerable<ServiceId> ids, CancellationToken cancellationToken = default)
     {
+        // Guard against null or empty to prevent NullReferenceException
+        if (ids == null)
+            return Array.Empty<Service>();
+        
         var idList = ids.ToList();
+        if (idList.Count == 0)
+            return Array.Empty<Service>();
+        
         return await context.Services
             .AsNoTracking()
             .Include(s => s.Category)

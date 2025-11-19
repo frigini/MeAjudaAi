@@ -37,7 +37,8 @@ public static class Extensions
             var isTestEnvironment = environment?.EnvironmentName == "Testing";
 
             // Use shared connection string resolution logic (same precedence as DapperConnection)
-            var connectionString = configuration.GetConnectionString("DefaultConnection")
+            var connectionString = configuration["Postgres:ConnectionString"]
+                                  ?? configuration.GetConnectionString("DefaultConnection")
                                   ?? configuration.GetConnectionString("ServiceCatalogs")
                                   ?? configuration.GetConnectionString("meajudaai-db");
 
