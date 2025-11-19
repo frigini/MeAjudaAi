@@ -138,7 +138,8 @@ public sealed class ServiceCatalogsModuleApi(
                 categoryName,
                 service.Name,
                 service.Description,
-                service.IsActive
+                service.IsActive,
+                service.DisplayOrder
             );
 
             return Result<ModuleServiceDto?>.Success(dto);
@@ -160,8 +161,8 @@ public sealed class ServiceCatalogsModuleApi(
 
             var dtos = services.Select(s => new ModuleServiceListDto(
                 s.Id.Value,
-                s.CategoryId.Value,
                 s.Name,
+                s.Description,
                 s.IsActive
             )).ToList();
 
@@ -193,7 +194,8 @@ public sealed class ServiceCatalogsModuleApi(
                 s.Category?.Name ?? ValidationMessages.Catalogs.UnknownCategoryName,
                 s.Name,
                 s.Description,
-                s.IsActive
+                s.IsActive,
+                s.DisplayOrder
             )).ToList();
 
             return Result<IReadOnlyList<ModuleServiceDto>>.Success(dtos);
