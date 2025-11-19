@@ -178,6 +178,10 @@ public class CatalogsEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        // Category should still exist after failed delete
+        var getResponse = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -235,6 +239,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         // Arrange
         var name = Faker.Commerce.Department();
         var description = Faker.Lorem.Sentence();
+        ServiceCategoryId? categoryId = null;
 
         // Act - Create category directly in database
         await WithServiceScopeAsync(async services =>
@@ -242,21 +247,23 @@ public class CatalogsEndToEndTests : TestContainerTestBase
             var context = services.GetRequiredService<CatalogsDbContext>();
 
             var category = ServiceCategory.Create(name, description, 1);
+            categoryId = category.Id;
 
             context.ServiceCategories.Add(category);
             await context.SaveChangesAsync();
         });
 
-        // Assert - Verify category was persisted
+        // Assert - Verify category was persisted by ID for determinism
         await WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<CatalogsDbContext>();
 
             var foundCategory = await context.ServiceCategories
-                .FirstOrDefaultAsync(c => c.Name == name);
+                .FirstOrDefaultAsync(c => c.Id == categoryId);
 
             foundCategory.Should().NotBeNull();
-            foundCategory!.Description.Should().Be(description);
+            foundCategory!.Name.Should().Be(name);
+            foundCategory.Description.Should().Be(description);
         });
     }
 
@@ -266,6 +273,7 @@ public class CatalogsEndToEndTests : TestContainerTestBase
         // Arrange
         ServiceCategory? category = null;
         var serviceName = Faker.Commerce.ProductName();
+        ServiceId? serviceId = null;
 
         // Act - Create category and service
         await WithServiceScopeAsync(async services =>
@@ -277,20 +285,22 @@ public class CatalogsEndToEndTests : TestContainerTestBase
             await context.SaveChangesAsync();
 
             var service = Service.Create(category.Id, serviceName, Faker.Commerce.ProductDescription(), 1);
+            serviceId = service.Id;
             context.Services.Add(service);
             await context.SaveChangesAsync();
         });
 
-        // Assert - Verify service and category relationship
+        // Assert - Verify service and category relationship by ID for determinism
         await WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<CatalogsDbContext>();
 
             var foundService = await context.Services
-                .FirstOrDefaultAsync(s => s.Name == serviceName);
+                .FirstOrDefaultAsync(s => s.Id == serviceId);
 
             foundService.Should().NotBeNull();
-            foundService!.CategoryId.Should().Be(category!.Id);
+            foundService!.Name.Should().Be(serviceName);
+            foundService.CategoryId.Should().Be(category!.Id);
         });
     }
 
