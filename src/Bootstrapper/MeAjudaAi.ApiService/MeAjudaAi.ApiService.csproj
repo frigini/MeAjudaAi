@@ -19,7 +19,7 @@
     <ProjectReference Include="..\..\Aspire\MeAjudaAi.ServiceDefaults\MeAjudaAi.ServiceDefaults.csproj" />
     <ProjectReference Include="..\..\Modules\Catalogs\API\MeAjudaAi.Modules.Catalogs.API.csproj" />
     <ProjectReference Include="..\..\Modules\Documents\API\MeAjudaAi.Modules.Documents.API.csproj" />
-    <ProjectReference Include="..\..\Modules\Location\Infrastructure\MeAjudaAi.Modules.Location.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Locations\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Providers\API\MeAjudaAi.Modules.Providers.API.csproj" />
     <ProjectReference Include="..\..\Modules\Search\API\MeAjudaAi.Modules.Search.API.csproj" />
     <ProjectReference Include="..\..\Modules\Users\API\MeAjudaAi.Modules.Users.API.csproj" />

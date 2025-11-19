@@ -109,19 +109,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Location", "Location", "{8B
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{A297266A-1ECB-AE19-8D6F-3A458F9AD28F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Location.Tests", "src\Modules\Location\Tests\MeAjudaAi.Modules.Location.Tests.csproj", "{D0E46405-E34A-4905-BF34-9DF22036512E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Locations.Tests", "src\Modules\Locations\Tests\MeAjudaAi.Modules.Locations.Tests.csproj", "{D0E46405-E34A-4905-BF34-9DF22036512E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{10AEE144-453E-4C4D-B928-DBD6A8C72108}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Location.Application", "src\Modules\Location\Application\MeAjudaAi.Modules.Location.Application.csproj", "{B98C73C8-F57C-747F-B86E-3A0429BFBE12}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Locations.Application", "src\Modules\Locations\Application\MeAjudaAi.Modules.Locations.Application.csproj", "{B98C73C8-F57C-747F-B86E-3A0429BFBE12}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{A7277AF8-7D65-4CE2-B6B0-2A0DB786780A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Location.Domain", "src\Modules\Location\Domain\MeAjudaAi.Modules.Location.Domain.csproj", "{72B40E16-5D54-DCE4-A235-AA9F7CF99665}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Locations.Domain", "src\Modules\Locations\Domain\MeAjudaAi.Modules.Locations.Domain.csproj", "{72B40E16-5D54-DCE4-A235-AA9F7CF99665}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{E4E48F48-72CF-41A4-AA66-9423D81C7970}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Location.Infrastructure", "src\Modules\Location\Infrastructure\MeAjudaAi.Modules.Location.Infrastructure.csproj", "{1E72996A-6FD1-9E16-5188-42DDCFF6518C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeAjudaAi.Modules.Locations.Infrastructure", "src\Modules\Locations\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj", "{1E72996A-6FD1-9E16-5188-42DDCFF6518C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Search", "Search", "{6FF68FBA-C4AF-48EC-AFE2-E320F2195C79}"
 EndProject

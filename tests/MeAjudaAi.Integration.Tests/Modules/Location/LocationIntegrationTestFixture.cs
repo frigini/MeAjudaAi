@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Location.Infrastructure.ExternalApis.Clients;
+using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Tests.Mocks;
 using MeAjudaAi.Shared.Tests.Mocks.Http;
@@ -46,9 +46,9 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         HttpMockBuilder = new MockHttpClientBuilder(services);
         ConfigureHttpClients(HttpMockBuilder);
 
-        // Adiciona serviços do módulo Location
+        // Adiciona serviços do módulo Locations
         var configuration = new ConfigurationBuilder().Build();
-        MeAjudaAi.Modules.Location.Infrastructure.Extensions.AddLocationModule(services, configuration);
+        MeAjudaAi.Modules.Locations.Infrastructure.Extensions.AddLocationModule(services, configuration);
 
         ServiceProvider = services.BuildServiceProvider();
         await Task.CompletedTask;
