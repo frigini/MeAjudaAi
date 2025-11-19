@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Queries.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
@@ -15,7 +16,7 @@ public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryRepositor
         CancellationToken cancellationToken = default)
     {
         if (request.Id == Guid.Empty)
-            return Result<ServiceCategoryDto?>.Success(null);
+            return Result<ServiceCategoryDto?>.Failure("Service Category ID cannot be empty.");
 
         var categoryId = ServiceCategoryId.From(request.Id);
         var category = await repository.GetByIdAsync(categoryId, cancellationToken);
@@ -23,15 +24,7 @@ public sealed class GetServiceCategoryByIdQueryHandler(IServiceCategoryRepositor
         if (category is null)
             return Result<ServiceCategoryDto?>.Success(null);
 
-        var dto = new ServiceCategoryDto(
-            category.Id.Value,
-            category.Name,
-            category.Description,
-            category.IsActive,
-            category.DisplayOrder,
-            category.CreatedAt,
-            category.UpdatedAt
-        );
+        var dto = category.ToDto();
 
         return Result<ServiceCategoryDto?>.Success(dto);
     }

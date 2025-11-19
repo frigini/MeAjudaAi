@@ -4,8 +4,9 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts.Modules;
-using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
-using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs.DTOs;
+// TODO Phase 2: Uncomment when shared contracts are added
+// using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
+// using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs.DTOs;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,12 +17,13 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
 
 /// <summary>
 /// Implementação da API pública para o módulo ServiceCatalogs.
+/// TODO Phase 2: Uncomment IServiceCatalogsModuleApi interface when shared contracts are added
 /// </summary>
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class ServiceCatalogsModuleApi(
     IServiceCategoryRepository categoryRepository,
     IServiceRepository serviceRepository,
-    ILogger<ServiceCatalogsModuleApi> logger) : IServiceCatalogsModuleApi
+    ILogger<ServiceCatalogsModuleApi> logger) // : IServiceCatalogsModuleApi
 {
     private static class ModuleMetadata
     {
@@ -136,7 +138,8 @@ public sealed class ServiceCatalogsModuleApi(
                 categoryName,
                 service.Name,
                 service.Description,
-                service.IsActive
+                service.IsActive,
+                service.DisplayOrder
             );
 
             return Result<ModuleServiceDto?>.Success(dto);
@@ -158,8 +161,8 @@ public sealed class ServiceCatalogsModuleApi(
 
             var dtos = services.Select(s => new ModuleServiceListDto(
                 s.Id.Value,
-                s.CategoryId.Value,
                 s.Name,
+                s.Description,
                 s.IsActive
             )).ToList();
 
@@ -191,7 +194,8 @@ public sealed class ServiceCatalogsModuleApi(
                 s.Category?.Name ?? ValidationMessages.Catalogs.UnknownCategoryName,
                 s.Name,
                 s.Description,
-                s.IsActive
+                s.IsActive,
+                s.DisplayOrder
             )).ToList();
 
             return Result<IReadOnlyList<ModuleServiceDto>>.Success(dtos);

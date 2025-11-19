@@ -40,6 +40,10 @@ public sealed class CreateServiceCommandHandler(
             if (await serviceRepository.ExistsWithNameAsync(normalizedName, null, categoryId, cancellationToken))
                 return Result<ServiceDto>.Failure($"A service with name '{normalizedName}' already exists in this category.");
 
+            // Validar DisplayOrder
+            if (request.DisplayOrder < 0)
+                return Result<ServiceDto>.Failure("Display order cannot be negative.");
+
             var service = Domain.Entities.Service.Create(categoryId, normalizedName, request.Description, request.DisplayOrder);
 
             await serviceRepository.AddAsync(service, cancellationToken);

@@ -1,7 +1,9 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs.Requests.Service;
+using MeAjudaAi.Modules.ServiceCatalogs.Application.ModuleApi;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Contracts;
-using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
+// TODO Phase 2: Uncomment when shared contracts are added
+// using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;
@@ -14,7 +16,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints.Service;
 public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/validate", ValidateAsync)
+        => app.MapPost("validate", ValidateAsync)
             .WithName("ValidateServices")
             .WithSummary("Validar múltiplos serviços")
             .Produces<Response<ValidateServicesResponse>>(StatusCodes.Status200OK)
@@ -22,7 +24,7 @@ public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
 
     private static async Task<IResult> ValidateAsync(
         [FromBody] ValidateServicesRequest request,
-        [FromServices] IServiceCatalogsModuleApi moduleApi,
+        [FromServices] ServiceCatalogsModuleApi moduleApi,
         CancellationToken cancellationToken)
     {
         var result = await moduleApi.ValidateServicesAsync(request.ServiceIds, cancellationToken);
