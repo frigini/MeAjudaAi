@@ -181,6 +181,24 @@ public class CatalogsEndToEndTests : TestContainerTestBase
     }
 
     [Fact]
+    public async Task DeleteServiceCategory_Should_Succeed_When_No_Services()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var category = await CreateTestServiceCategoryAsync();
+
+        // Act
+        var response = await ApiClient.DeleteAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        
+        // Verify category was deleted
+        var getResponse = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task ActivateDeactivate_Service_Should_Work_Correctly()
     {
         // Arrange

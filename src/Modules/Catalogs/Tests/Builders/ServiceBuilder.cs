@@ -17,10 +17,13 @@ public class ServiceBuilder : BuilderBase<Service>
         Faker = new Faker<Service>()
             .CustomInstantiator(f =>
             {
+                var generatedName = f.Commerce.ProductName();
+                var generatedDescription = f.Commerce.ProductDescription();
+                
                 var service = Service.Create(
                     _categoryId ?? ServiceCategoryId.New(),
-                    _name ?? f.Commerce.ProductName(),
-                    _description ?? f.Commerce.ProductDescription(),
+                    _name ?? (generatedName.Length <= 150 ? generatedName : generatedName[..150]),
+                    _description ?? (generatedDescription.Length <= 1000 ? generatedDescription : generatedDescription[..1000]),
                     _displayOrder ?? f.Random.Int(0, 100)
                 );
 
