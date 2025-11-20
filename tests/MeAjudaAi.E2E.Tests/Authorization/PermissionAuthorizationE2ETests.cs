@@ -152,6 +152,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     [Fact]
     public async Task SystemAdmin_HasFullAccess()
     {
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
         // Arrange - Administrador do sistema (role admin + permissões completas)
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "admin-sys-678",
@@ -188,6 +189,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     [Fact]
     public async Task UserWithoutAnyPermissions_ReturnsForbidden()
     {
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
         // Arrange - Usuário autenticado mas SEM nenhuma permissão
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-noperm-999",
@@ -208,6 +210,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     [Fact]
     public async Task UserPermissionsWork_AcrossMultipleRequests()
     {
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
         // Arrange
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-persist-901",

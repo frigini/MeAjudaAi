@@ -38,7 +38,7 @@ public static class TestBaseAuthExtensions
         string email,
         params string[] roles)
     {
-        ConfigurableTestAuthenticationHandler.ConfigureUser(userId, username, email, roles);
+        ConfigurableTestAuthenticationHandler.ConfigureUser(userId, username, email, Array.Empty<string>(), false, roles);
     }
 
     /// <summary>
