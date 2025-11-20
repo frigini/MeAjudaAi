@@ -110,6 +110,8 @@
     
     <!-- Package and Build Warnings -->
     <NoWarn>$(NoWarn);NU1608</NoWarn> <!-- Package version compatibility -->
+    <NoWarn>$(NoWarn);NU1510</NoWarn> <!-- Redundant package references (transitive dependencies) -->
+    <NoWarn>$(NoWarn);NU1902</NoWarn> <!-- Package vulnerability warnings (transitive dependencies) -->
     <NoWarn>$(NoWarn);MSB3026</NoWarn> <!-- File copy retries -->
     <NoWarn>$(NoWarn);MSB3027</NoWarn> <!-- File copy failures -->
     <NoWarn>$(NoWarn);MSB3021</NoWarn> <!-- File access issues -->
