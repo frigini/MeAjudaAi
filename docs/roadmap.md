@@ -46,10 +46,9 @@ Frontend Blazor WASM + MAUI Hybrid:
 O roadmap está organizado em **quatro fases principais** para entrega incremental de valor:
 
 1. **✅ Fase 1: Fundação (MVP Core)** - Registro de prestadores, busca geolocalizada, catálogo de serviços
-2. **🔄 Fase 1.5: Fundação Técnica** - Migration .NET 10, integração, testes, hardening
-3. **⏳ Fase 2: Frontend & Experiência** - Blazor WASM Admin Portal + Customer App
-4. **🔮 Fase 3: Qualidade e Monetização** - Sistema de avaliações, assinaturas premium, verificação automatizada
-5. **🔮 Fase 4: Experiência e Engajamento** - Agendamentos, comunicações, analytics avançado
+2. **🔄 Fase 2: Fundação Técnica & Frontend** - Migration .NET 10, integração, testes, Blazor WASM Admin + Customer App
+3. **🔮 Fase 3: Qualidade e Monetização** - Sistema de avaliações, assinaturas premium, verificação automatizada
+4. **🔮 Fase 4: Experiência e Engajamento** - Agendamentos, comunicações, analytics avançado
 
 A implementação segue os princípios arquiteturais definidos em `architecture.md`: **Modular Monolith**, **DDD**, **CQRS**, e **isolamento schema-per-module**.
 
@@ -1291,7 +1290,7 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 - **CI/CD**: [`docs/ci_cd.md`](./ci_cd.md) - Pipeline e deployment
 
 ### 🔧 Ferramentas e Tecnologias
-- **.NET 9.0** - Runtime principal
+- **.NET 10.0** - Runtime principal (migrado de .NET 9.0)
 - **PostgreSQL + PostGIS** - Database com suporte geoespacial
 - **Keycloak** - Identity & Access Management
 - **Stripe** - Payment processing
@@ -1300,5 +1299,5 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 
 ---
 
-*📅 Última atualização: Novembro 2025*  
+*📅 Última atualização: 20 de Novembro de 2025*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*

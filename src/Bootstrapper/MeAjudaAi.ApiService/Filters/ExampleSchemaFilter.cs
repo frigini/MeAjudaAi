@@ -13,8 +13,11 @@ public class ExampleSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        // Cast para OpenApiSchema concreto para mutação
-        var concreteSchema = (OpenApiSchema)schema;
+        // Cast seguro para OpenApiSchema concreto para mutação
+        if (schema is not OpenApiSchema concreteSchema)
+        {
+            return; // Skip if not concrete OpenApiSchema
+        }
         
         // Adicionar exemplos baseados em DefaultValueAttribute
         if (context.Type.IsClass && context.Type != typeof(string))

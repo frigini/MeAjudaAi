@@ -23,11 +23,10 @@ Criado arquivo na raiz do projeto especificando a versão do .NET 10 SDK:
 {
   "sdk": {
     "version": "10.0.100",
-    "rollForward": "latestMinor",
-    "allowPrerelease": true
+    "rollForward": "latestMinor"
   },
   "msbuild-sdks": {
-    "Aspire.AppHost.Sdk": "10.0.0",
+    "Aspire.AppHost.Sdk": "13.0.0",
     "Microsoft.Build.NoTargets": "3.7.56"
   }
 }
@@ -47,7 +46,7 @@ Criado arquivo na raiz do projeto especificando a versão do .NET 10 SDK:
 Pacotes atualizados para versões compatíveis com .NET 10:
 
 #### Microsoft Core & ASP.NET Core
-- `Microsoft.NET.Test.Sdk`: 18.0.0 → 18.1.0
+- `Microsoft.NET.Test.Sdk`: 18.0.0 → 18.0.1
 - `Microsoft.AspNetCore.*`: 9.0.9 → 10.0.0
 - `Microsoft.AspNetCore.Http.Abstractions`: 2.3.0 → 10.0.0
 
