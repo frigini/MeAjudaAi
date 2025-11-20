@@ -10,6 +10,11 @@
     <!-- .NET & Microsoft Core -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
+    <!-- Microsoft.Build packages - use latest to avoid CVE-2025-55247 -->
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.*" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.*" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.*" />
+    <PackageVersion Include="Microsoft.NET.StringTools" Version="17.*" />
     <!-- ASP.NET Core -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0-*" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
@@ -21,7 +26,7 @@
     <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <!-- Entity Framework Core -->
-    <!-- Entity Framework Core - RC porque Npgsql.EFCore s\u00f3 tem RC dispon\u00edvel -->
+    <!-- Entity Framework Core 10.0.0 RC with Npgsql RC for .NET 10 compatibility -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0-rc.2.25502.107" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0-rc.2.25502.107" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0-rc.2.25502.107" />
