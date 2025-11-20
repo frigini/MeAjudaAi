@@ -108,7 +108,18 @@ public sealed class ServiceRepository(ServiceCatalogsDbContext context) : IServi
 
     public async Task UpdateAsync(Service service, CancellationToken cancellationToken = default)
     {
-        context.Services.Update(service);
+        // Attach and mark as modified to ensure EF tracks changes
+        var entry = context.Entry(service);
+        if (entry.State == EntityState.Detached)
+        {
+            context.Services.Attach(service);
+            entry.State = EntityState.Modified;
+        }
+        else
+        {
+            context.Services.Update(service);
+        }
+        
         await context.SaveChangesAsync(cancellationToken);
     }
 

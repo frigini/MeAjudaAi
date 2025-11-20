@@ -54,7 +54,18 @@ public sealed class ServiceCategoryRepository(ServiceCatalogsDbContext context) 
 
     public async Task UpdateAsync(ServiceCategory category, CancellationToken cancellationToken = default)
     {
-        context.ServiceCategories.Update(category);
+        // Attach and mark as modified to ensure EF tracks changes
+        var entry = context.Entry(category);
+        if (entry.State == EntityState.Detached)
+        {
+            context.ServiceCategories.Attach(category);
+            entry.State = EntityState.Modified;
+        }
+        else
+        {
+            context.ServiceCategories.Update(category);
+        }
+        
         await context.SaveChangesAsync(cancellationToken);
     }
 

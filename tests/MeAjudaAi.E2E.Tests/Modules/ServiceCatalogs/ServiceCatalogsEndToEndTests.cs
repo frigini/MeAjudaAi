@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
@@ -158,8 +159,11 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         var getResponse = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var updatedCategory = await ReadJsonAsync<ServiceCategoryDto>(getResponse);
-        updatedCategory.Should().NotBeNull();
+        var responseWrapper = await ReadJsonAsync<Response<ServiceCategoryDto>>(getResponse);
+        responseWrapper.Should().NotBeNull();
+        responseWrapper!.Data.Should().NotBeNull();
+        
+        var updatedCategory = responseWrapper.Data;
         updatedCategory!.Name.Should().Be(updateRequest.Name);
         updatedCategory.Description.Should().Be(updateRequest.Description);
         updatedCategory.DisplayOrder.Should().Be(updateRequest.DisplayOrder);
@@ -217,8 +221,10 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         // Assert - Verify service is inactive
         var getAfterDeactivate = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service.Id.Value}");
         getAfterDeactivate.StatusCode.Should().Be(HttpStatusCode.OK);
-        var deactivatedService = await ReadJsonAsync<ServiceDto>(getAfterDeactivate);
-        deactivatedService.Should().NotBeNull();
+        var deactivatedResponse = await ReadJsonAsync<Response<ServiceDto>>(getAfterDeactivate);
+        deactivatedResponse.Should().NotBeNull();
+        deactivatedResponse!.Data.Should().NotBeNull();
+        var deactivatedService = deactivatedResponse.Data;
         deactivatedService!.IsActive.Should().BeFalse("service should be inactive after deactivate");
 
         // Act - Activate
@@ -228,8 +234,10 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         // Assert - Verify service is active again
         var getAfterActivate = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service.Id.Value}");
         getAfterActivate.StatusCode.Should().Be(HttpStatusCode.OK);
-        var activatedService = await ReadJsonAsync<ServiceDto>(getAfterActivate);
-        activatedService.Should().NotBeNull();
+        var activatedResponse = await ReadJsonAsync<Response<ServiceDto>>(getAfterActivate);
+        activatedResponse.Should().NotBeNull();
+        activatedResponse!.Data.Should().NotBeNull();
+        var activatedService = activatedResponse.Data;
         activatedService!.IsActive.Should().BeTrue("service should be active after activate");
     }
 
