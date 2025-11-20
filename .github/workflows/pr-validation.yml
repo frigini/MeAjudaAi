@@ -14,7 +14,7 @@ permissions:
   statuses: write
 
 env:
-  DOTNET_VERSION: '9.0.x'
+  DOTNET_VERSION: '10.0.x'
   # Temporary: Allow lenient coverage for this development PR
   # TODO: Remove this and improve coverage before merging to main
   STRICT_COVERAGE: false

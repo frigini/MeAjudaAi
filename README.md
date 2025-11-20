@@ -6,7 +6,7 @@ Uma plataforma abrangente de serviços construída com .NET Aspire, projetada pa
 
 ## 🎯 Visão Geral
 
-O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implementa as melhores práticas de desenvolvimento, incluindo Domain-Driven Design (DDD), CQRS, e arquitetura de monólito modular. A aplicação utiliza tecnologias de ponta como .NET 9, Azure, e containerização com Docker.
+O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implementa as melhores práticas de desenvolvimento, incluindo Domain-Driven Design (DDD), CQRS, e arquitetura de monólito modular. A aplicação utiliza tecnologias de ponta como .NET 10, Azure, e containerização com Docker.
 
 ### 🏗️ Arquitetura
 
@@ -18,9 +18,9 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 
 ### 🚀 Tecnologias Principais
 
-- **.NET 9** - Framework principal
-- **.NET Aspire** - Orquestração e observabilidade
-- **Entity Framework Core** - ORM e persistência
+- **.NET 10** - Framework principal
+- **.NET Aspire 13** - Orquestração e observabilidade
+- **Entity Framework Core 10** - ORM e persistência
 - **PostgreSQL** - Banco de dados principal
 - **Keycloak** - Autenticação e autorização
 - **Redis** - Cache distribuído
@@ -99,7 +99,7 @@ O projeto foi organizado para facilitar navegação e manutenção:
 
 ### Pré-requisitos
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
 - [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli) (para deploy em produção)
 - [Git](https://git-scm.com/) para controle de versão
@@ -219,7 +219,7 @@ MeAjudaAi/
 ## ⚡ Melhorias Recentes
 
 ### 🆔 UUID v7 Implementation
-- **Migração completa** de UUID v4 para UUID v7 (.NET 9)
+- **Migração completa** de UUID v4 para UUID v7 (.NET 10)
 - **Performance melhorada** com ordenação temporal nativa
 - **Compatibilidade PostgreSQL 18** para melhor indexação
 - **UuidGenerator centralizado** em `MeAjudaAi.Shared.Time`
@@ -328,7 +328,7 @@ O projeto possui pipelines automatizadas que executam em PRs e pushes para as br
 - Fazer push para essas branches
 
 ✅ **O que a pipeline faz:**
-- Build da solução .NET 9
+- Build da solução .NET 10
 - Execução de testes unitários
 - Validação da configuração Aspire
 - Verificações de qualidade de código

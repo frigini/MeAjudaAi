@@ -69,6 +69,11 @@ Pacotes atualizados para versões compatíveis com .NET 10:
 - `System.Text.Json`: 9.0.9 → 10.0.0
 - `Microsoft.Data.Sqlite`: 9.0.9 → 10.0.0
 
+#### Swagger/OpenAPI
+- `Swashbuckle.AspNetCore`: 6.4.0 → 10.0.1
+- `Swashbuckle.AspNetCore.Annotations`: 6.4.0 → 10.0.1
+- Migrado de `Microsoft.OpenApi.Any` para `System.Text.Json.Nodes`
+
 ### 4. Arquivos .csproj
 
 Todos os arquivos `.csproj` que tinham `<TargetFramework>net9.0</TargetFramework>` explícito foram atualizados para `net10.0`.
@@ -141,6 +146,26 @@ Todos os arquivos `.csproj` que tinham `<TargetFramework>net9.0</TargetFramework
 - Seq
 - Aspire Dashboard
 - Distributed tracing entre módulos
+
+### 5. Swashbuckle 10 - OpenAPI Migration
+
+**Impacto:** Toda geração de documentação OpenAPI
+
+**Mudança:**
+- `Microsoft.OpenApi.Any.IOpenApiAny` → `System.Text.Json.Nodes.JsonNode`
+- `OpenApiString/Integer/Boolean` → `JsonValue.Create()`
+- `OpenApiObject` → `JsonObject`
+- `OpenApiArray` → `JsonArray`
+- `OpenApiSchema.Type: string` → `JsonSchemaType` enum
+- `AddSecurityRequirement(obj)` → `AddSecurityRequirement(_ => obj)`
+- Removido `.WithOpenApi()` (deprecated no .NET 10)
+
+**Ação Requerida:**
+- ✅ Filtros OpenAPI migrados (DocumentationExtensions, ApiVersionOperationFilter, ExampleSchemaFilter, ModuleTagsDocumentFilter)
+- ✅ BaseEndpoint.cs - Removido `.WithOpenApi()`
+- ✅ OpenApiParameterExtensions.cs deletado
+
+**Status:** ✅ **CONCLUÍDO** - Build SUCCESS
 
 ---
 
@@ -302,5 +327,6 @@ Após validação completa:
 
 ---
 
-**Última atualização:** 2025-11-12  
+**Última atualização:** 2025-11-19  
+**Status:** ✅ CONCLUÍDO - Build SUCCESS, Swashbuckle 10 migrado  
 **Responsável:** Equipe de Desenvolvimento MeAjudaAi
