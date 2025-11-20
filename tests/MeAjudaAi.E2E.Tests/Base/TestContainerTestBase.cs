@@ -364,7 +364,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         {
             options.UseNpgsql(_postgresContainer.GetConnectionString())
                    .UseSnakeCaseNamingConvention()
-                   .EnableSensitiveDataLogging(false)
+                   .EnableSensitiveDataLogging(true)  // Useful for test debugging
                    .ConfigureWarnings(warnings =>
                        warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });

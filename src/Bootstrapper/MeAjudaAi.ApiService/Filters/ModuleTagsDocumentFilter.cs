@@ -94,8 +94,9 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
 
     private static void AddServerInformation(OpenApiDocument swaggerDoc)
     {
-        // TODO: Investigate OpenApiServer initialization issue in .NET 10 / Swashbuckle 10
-        // Temporarily disabled to fix UriFormatException
+        // TODO(#TechDebt): Investigate OpenApiServer initialization issue in .NET 10 / Swashbuckle 10
+        // Temporarily disabled to fix UriFormatException. Track restoration in backlog.
+        // Related: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/2816
         // swaggerDoc.Servers =
         // [
         //     new OpenApiServer

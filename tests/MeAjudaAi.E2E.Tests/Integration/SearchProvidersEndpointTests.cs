@@ -198,7 +198,7 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
 
         // Act
         var response = await ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={latitude}&longitude={longitude}&radiusInKm={radius}&pageNumber={pageNumber}&pageSize={pageSize}");
+            $"/api/v1/search/providers?latitude={latitude}&longitude={longitude}&radiusInKm={radius}&page={pageNumber}&pageSize={pageSize}");
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
@@ -246,7 +246,7 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
         var response = await ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={latitude}&longitude={longitude}&radiusInKm={radius}" +
             $"&minRating={minRating}&serviceIds={serviceId}&subscriptionTiers=Gold" +
-            $"&pageNumber={pageNumber}&pageSize={pageSize}");
+            $"&page={pageNumber}&pageSize={pageSize}");
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
