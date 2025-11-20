@@ -63,13 +63,11 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
             verificationRequest,
             JsonOptions);
 
-        // Assert
+        // Assert - Success path only
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.Accepted,
-            HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.BadRequest); // Múltiplos status aceitáveis dependendo da implementação
+            HttpStatusCode.NoContent);
 
         // Se a verificação foi aceita, verifica o status do documento
         if (response.IsSuccessStatusCode)
@@ -116,10 +114,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
             JsonOptions);
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.NotFound,
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.Conflict); // Documento não encontrado ou já verificado
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound, "document should not be found for this scenario");
     }
 
     [Fact]
@@ -142,8 +137,6 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
             JsonOptions);
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.NotFound);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest, "invalid request data should return BadRequest");
     }
 }

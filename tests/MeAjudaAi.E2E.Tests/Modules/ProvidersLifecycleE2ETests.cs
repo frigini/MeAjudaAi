@@ -47,15 +47,10 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-
-        if (createResponse.StatusCode != HttpStatusCode.Created)
-        {
-            // Skip test if provider creation fails (infrastructure issue)
-            return;
-        }
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created, "provider creation must succeed for update test to be meaningful");
 
         var locationHeader = createResponse.Headers.Location?.ToString();
-        locationHeader.Should().NotBeNullOrEmpty();
+        locationHeader.Should().NotBeNullOrEmpty("Created response must include Location header");
         var providerId = ExtractIdFromLocation(locationHeader!);
 
         // Act - Update provider
@@ -83,8 +78,7 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         // Assert
         updateResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound); // NotFound aceitável se provider foi excluído por outro teste
+            HttpStatusCode.NoContent);
 
         if (updateResponse.StatusCode == HttpStatusCode.OK)
         {
@@ -175,8 +169,7 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         // Assert
         deleteResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound); // NotFound aceitável se já foi deletado
+            HttpStatusCode.NoContent);
 
         // Verify provider is deleted
         if (deleteResponse.IsSuccessStatusCode)
@@ -242,9 +235,7 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         // Assert
         updateResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.BadRequest); // BadRequest aceitável se transição não permitida
+            HttpStatusCode.NoContent);
     }
 
     [Fact]
@@ -329,8 +320,6 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.Accepted,
-            HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.BadRequest); // Múltiplos status aceitáveis dependendo da implementação
+            HttpStatusCode.NoContent);
     }
 }

@@ -108,21 +108,21 @@ public class ExampleSchemaFilter : ISchemaFilter
     {
         return propertyName switch
         {
-            var name when name.Contains("email") => JsonValue.Create("usuario@example.com")!,
-            var name when name.Contains("phone") || name.Contains("telefone") => JsonValue.Create("+55 11 99999-9999")!,
-            var name when name.Contains("name") || name.Contains("nome") => JsonValue.Create("João Silva")!,
-            var name when name.Contains("username") => JsonValue.Create("joao.silva")!,
-            var name when name.Contains("firstname") => JsonValue.Create("João")!,
-            var name when name.Contains("lastname") => JsonValue.Create("Silva")!,
-            var name when name.Contains("password") => JsonValue.Create("MinhaSenh@123")!,
-            var name when name.Contains("description") || name.Contains("descricao") => JsonValue.Create("Descrição do item")!,
-            var name when name.Contains("title") || name.Contains("titulo") => JsonValue.Create("Título do Item")!,
-            var name when name.Contains("address") || name.Contains("endereco") => JsonValue.Create("Rua das Flores, 123")!,
-            var name when name.Contains("city") || name.Contains("cidade") => JsonValue.Create("São Paulo")!,
-            var name when name.Contains("state") || name.Contains("estado") => JsonValue.Create("SP")!,
-            var name when name.Contains("zipcode") || name.Contains("cep") => JsonValue.Create("01234-567")!,
-            var name when name.Contains("country") || name.Contains("pais") => JsonValue.Create("Brasil")!,
-            _ => JsonValue.Create("exemplo")!
+            var name when name.Contains("email") => JsonValue.Create("usuario@example.com"),
+            var name when name.Contains("phone") || name.Contains("telefone") => JsonValue.Create("+55 11 99999-9999"),
+            var name when name.Contains("name") || name.Contains("nome") => JsonValue.Create("João Silva"),
+            var name when name.Contains("username") => JsonValue.Create("joao.silva"),
+            var name when name.Contains("firstname") => JsonValue.Create("João"),
+            var name when name.Contains("lastname") => JsonValue.Create("Silva"),
+            var name when name.Contains("password") => JsonValue.Create("MinhaSenh@123"),
+            var name when name.Contains("description") || name.Contains("descricao") => JsonValue.Create("Descrição do item"),
+            var name when name.Contains("title") || name.Contains("titulo") => JsonValue.Create("Título do Item"),
+            var name when name.Contains("address") || name.Contains("endereco") => JsonValue.Create("Rua das Flores, 123"),
+            var name when name.Contains("city") || name.Contains("cidade") => JsonValue.Create("São Paulo"),
+            var name when name.Contains("state") || name.Contains("estado") => JsonValue.Create("SP"),
+            var name when name.Contains("zipcode") || name.Contains("cep") => JsonValue.Create("01234-567"),
+            var name when name.Contains("country") || name.Contains("pais") => JsonValue.Create("Brasil"),
+            _ => JsonValue.Create("exemplo")
         };
     }
 

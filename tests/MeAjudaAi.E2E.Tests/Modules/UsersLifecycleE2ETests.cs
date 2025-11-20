@@ -34,18 +34,10 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
 
         // Cria o usuário
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
-
-        if (createResponse.StatusCode != HttpStatusCode.Created)
-        {
-            // Skip test if user creation fails (pode ser conflito ou outro erro)
-            return;
-        }
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created, "user creation must succeed for delete test to be meaningful");
 
         var locationHeader = createResponse.Headers.Location?.ToString();
-        if (string.IsNullOrEmpty(locationHeader))
-        {
-            return;
-        }
+        locationHeader.Should().NotBeNullOrEmpty("Created response must include Location header");
 
         var userId = ExtractIdFromLocation(locationHeader);
 
@@ -128,17 +120,10 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
-
-        if (createResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created, "user creation must succeed for update test to be meaningful");
 
         var locationHeader = createResponse.Headers.Location?.ToString();
-        if (string.IsNullOrEmpty(locationHeader))
-        {
-            return;
-        }
+        locationHeader.Should().NotBeNullOrEmpty("Created response must include Location header");
 
         var userId = ExtractIdFromLocation(locationHeader);
 
@@ -230,11 +215,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         };
 
         var firstResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", firstUserRequest, JsonOptions);
-
-        if (firstResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created, "first user creation must succeed to test duplicate email validation");
 
         // Act - Tenta criar segundo usuário com mesmo email
         var secondUserRequest = new
@@ -253,25 +234,5 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
             HttpStatusCode.BadRequest,
             HttpStatusCode.Conflict,
             HttpStatusCode.UnprocessableEntity);
-    }
-
-    private static new Guid ExtractIdFromLocation(string locationHeader)
-    {
-        if (locationHeader.Contains("?id="))
-        {
-            var queryString = locationHeader.Split('?')[1];
-            var idParam = queryString.Split('&')
-                .FirstOrDefault(p => p.StartsWith("id="));
-
-            if (idParam != null)
-            {
-                var idValue = idParam.Split('=')[1];
-                return Guid.Parse(idValue);
-            }
-        }
-
-        var segments = locationHeader.Split('/');
-        var lastSegment = segments[^1].Split('?')[0];
-        return Guid.Parse(lastSegment);
     }
 }
