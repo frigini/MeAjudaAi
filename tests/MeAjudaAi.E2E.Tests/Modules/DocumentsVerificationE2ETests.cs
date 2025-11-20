@@ -19,10 +19,44 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         // Arrange
         AuthenticateAsAdmin();
 
-        // Primeiro tenta fazer upload de um documento
+        // Create a valid provider first to ensure ProviderId exists
+        var createProviderRequest = new
+        {
+            UserId = Guid.NewGuid(),
+            Name = "Test Provider for Document Verification",
+            Type = 0, // Individual
+            BusinessProfile = new
+            {
+                TaxId = "12345678901",
+                CompanyName = "Test Company",
+                Address = new
+                {
+                    Street = "123 Test St",
+                    City = "Test City",
+                    State = "TS",
+                    PostalCode = "12345",
+                    Country = "Brasil"
+                },
+                ContactInfo = new
+                {
+                    Email = "test@provider.com",
+                    Phone = "1234567890",
+                    Website = "https://test.com"
+                }
+            }
+        };
+
+        var providerResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createProviderRequest, JsonOptions);
+        providerResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Provider creation should succeed");
+        
+        var providerLocation = providerResponse.Headers.Location?.ToString();
+        providerLocation.Should().NotBeNullOrEmpty("Provider creation should return Location header");
+        var providerId = ExtractIdFromLocation(providerLocation!);
+
+        // Now upload a document with the valid ProviderId
         var uploadRequest = new
         {
-            ProviderId = Guid.NewGuid(),
+            ProviderId = providerId,
             DocumentType = "CPF",
             FileContent = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("Document content for verification")),
             FileName = "verification_test.pdf",
@@ -70,32 +104,28 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
             HttpStatusCode.NoContent);
 
         // Se a verificação foi aceita, verifica o status do documento
-        if (response.IsSuccessStatusCode)
-        {
-            var statusResponse = await ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
+        var statusResponse = await ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
+        statusResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Status endpoint should be available after successful verification");
+        
+        var statusContent = await statusResponse.Content.ReadAsStringAsync();
+        statusContent.Should().NotBeNullOrEmpty();
 
-            if (statusResponse.IsSuccessStatusCode)
-            {
-                var statusContent = await statusResponse.Content.ReadAsStringAsync();
-                statusContent.Should().NotBeNullOrEmpty();
-
-                // Parse JSON e verifica o campo status
-                var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
-                
-                statusResult.RootElement.TryGetProperty("data", out var dataProperty)
-                    .Should().BeTrue("Response should contain 'data' property");
-                
-                dataProperty.TryGetProperty("status", out var statusProperty)
-                    .Should().BeTrue("Data property should contain 'status' field");
-                    
-                var status = statusProperty.GetString();
-                status.Should().NotBeNullOrEmpty();
-                
-                // Document should be in verification state (case-insensitive)
-                status!.ToLowerInvariant().Should().BeOneOf(
-                    "pending", "pendingverification", "verifying");
-            }
-        }
+        // Parse JSON e verifica o campo status
+        var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
+        
+        statusResult.RootElement.TryGetProperty("data", out var dataProperty)
+            .Should().BeTrue("Response should contain 'data' property");
+        
+        dataProperty.TryGetProperty("status", out var statusProperty)
+            .Should().BeTrue("Data property should contain 'status' field");
+            
+        var status = statusProperty.GetString();
+        status.Should().NotBeNullOrEmpty();
+        
+        // Document should be in verification state (case-insensitive)
+        status!.ToLowerInvariant().Should().BeOneOf(
+            "pending", "pendingverification", "verifying");
     }
 
     [Fact]

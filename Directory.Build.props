@@ -8,13 +8,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <!-- Enable preview features for .NET 10 -->
+    <!-- Enable preview features for .NET 10 migration - revert to false once .NET 10 is stable -->
+    <!-- Consider scoping preview features to specific projects if only subset needs them -->
     <EnablePreviewFeatures>true</EnablePreviewFeatures>
     
     <!-- Central Package Management -->
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageVersionsFileLocation>$(MSBuildThisFileDirectory)Directory.Packages.props</CentralPackageVersionsFileLocation>
-    <!-- Allow floating versions for prerelease .NET 10 packages -->
+    <!-- Allow floating versions for prerelease .NET 10 packages - pin exact versions once .NET 10 is stable -->
+    <!-- Use lock file strategy (packages.lock.json) for production builds to ensure determinism -->
     <CentralPackageFloatingVersionsEnabled>true</CentralPackageFloatingVersionsEnabled>
     <DisableImplicitAssetTargetFallback>false</DisableImplicitAssetTargetFallback>
   </PropertyGroup>

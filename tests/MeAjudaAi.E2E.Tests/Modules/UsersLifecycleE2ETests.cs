@@ -72,7 +72,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
     }
 
     [Fact]
-    public async Task DeleteUser_WithoutPermission_Should_Return_Forbidden()
+    public async Task DeleteUser_WithoutPermission_Should_Return_ForbiddenOrUnauthorized()
     {
         // Arrange - Configure user without delete permission
         ConfigurableTestAuthenticationHandler.ConfigureUser(
@@ -177,13 +177,6 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         var content = await getByEmailResponse.Content.ReadAsStringAsync();
         content.Should().Contain(uniqueEmail,
             "Response should contain the queried email");
-
-        if (getByEmailResponse.StatusCode == HttpStatusCode.OK)
-        {
-            var content = await getByEmailResponse.Content.ReadAsStringAsync();
-            content.Should().Contain(uniqueEmail);
-            content.Should().Contain("ByEmail");
-        }
     }
 
     [Fact]
