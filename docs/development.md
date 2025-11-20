@@ -8,7 +8,7 @@ Este guia fornece instruções práticas e diretrizes abrangentes para desenvolv
 
 | Ferramenta | Versão | Descrição |
 |------------|--------|-----------|
-| **.NET SDK** | 9.0+ | Framework principal |
+| **.NET SDK** | 10.0+ | Framework principal |
 | **Docker Desktop** | Latest | Containers para desenvolvimento |
 | **Visual Studio** | 2022 17.8+ | IDE recomendada |
 | **PostgreSQL** | 15+ | Banco de dados (via Docker) |
@@ -22,7 +22,7 @@ git clone https://github.com/frigini/MeAjudaAi.git
 cd MeAjudaAi
 
 # 2. Verificar ferramentas
-dotnet --version    # Deve ser 9.0+
+dotnet --version    # Deve ser 10.0+
 docker --version    # Verificar se Docker está rodando
 
 # 3. Restaurar dependências
@@ -799,7 +799,7 @@ Após adicionar um novo módulo:
 - [📖 README Principal](../README.md)
 
 ### **Documentação Externa**
-- [.NET 9 Documentation](https://docs.microsoft.com/dotnet/)
+- [.NET 10 Documentation](https://docs.microsoft.com/dotnet/)
 - [Entity Framework Core](https://docs.microsoft.com/ef/core/)
 - [MediatR](https://github.com/jbogard/MediatR)
 - [FluentValidation](https://docs.fluentvalidation.net/)

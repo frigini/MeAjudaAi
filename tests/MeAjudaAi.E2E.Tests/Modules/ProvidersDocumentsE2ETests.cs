@@ -14,8 +14,6 @@ namespace MeAjudaAi.E2E.Tests.Modules;
 [Trait("Module", "Providers")]
 public class ProvidersDocumentsE2ETests : TestContainerTestBase
 {
-    private readonly Faker _faker = new();
-
     [Fact]
     public async Task UploadProviderDocument_Should_Return_Success()
     {

@@ -12,8 +12,6 @@ namespace MeAjudaAi.E2E.Tests.Authorization;
 /// </summary>
 public class PermissionAuthorizationE2ETests : TestContainerTestBase
 {
-    // Herda Client de TestContainerTestBase (chamado ApiClient lá)
-
     [Fact]
     public async Task UserWithReadPermission_CanListUsers()
     {

@@ -58,22 +58,22 @@ public class ConfigurableTestAuthenticationHandler(
     {
         var baseClaims = base.CreateStandardClaims().ToList();
 
-        // Se há configuração customizada com permissions, adiciona ou substitui
-        if (_currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config) && config.Permissions.Length > 0)
+        if (_currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config))
         {
-            // Remove as permissions geradas automaticamente pelos roles
-            baseClaims.RemoveAll(c => c.Type == Authorization.CustomClaimTypes.Permission);
-
-            // Adiciona as permissions customizadas
-            foreach (var permission in config.Permissions)
+            // Override permissions only when explicitly provided
+            if (config.Permissions is { Length: > 0 })
             {
-                baseClaims.Add(new System.Security.Claims.Claim(Authorization.CustomClaimTypes.Permission, permission));
+                baseClaims.RemoveAll(c => c.Type == Authorization.CustomClaimTypes.Permission);
+                foreach (var permission in config.Permissions)
+                {
+                    baseClaims.Add(new System.Security.Claims.Claim(Authorization.CustomClaimTypes.Permission, permission));
+                }
             }
 
-            // Se for system admin, adiciona a claim
+            // Always align IsSystemAdmin claim with config when a user config is present
+            baseClaims.RemoveAll(c => c.Type == Authorization.CustomClaimTypes.IsSystemAdmin);
             if (config.IsSystemAdmin)
             {
-                baseClaims.RemoveAll(c => c.Type == Authorization.CustomClaimTypes.IsSystemAdmin);
                 baseClaims.Add(new System.Security.Claims.Claim(Authorization.CustomClaimTypes.IsSystemAdmin, "true"));
             }
         }
