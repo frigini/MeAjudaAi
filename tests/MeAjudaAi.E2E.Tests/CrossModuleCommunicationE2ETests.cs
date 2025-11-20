@@ -30,7 +30,8 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
         {
             // User already exists - try to fetch the actual user by username
             // Note: This requires a by-username endpoint; if unavailable, use generic test data
-            return JsonDocument.Parse($$$"""{{{"id":"00000000-0000-0000-0000-000000000000","username":"{{{username}}}","email":"{{{email}}}","firstName":"{{{firstName}}}","lastName":"{{{lastName}}}"}}}""").RootElement;
+            var fallbackJson = $$"""{"id":"00000000-0000-0000-0000-000000000000","username":"{{username}}","email":"{{email}}","firstName":"{{firstName}}","lastName":"{{lastName}}"}""";
+            return JsonDocument.Parse(fallbackJson).RootElement;
         }
 
         var content = await response.Content.ReadAsStringAsync();
