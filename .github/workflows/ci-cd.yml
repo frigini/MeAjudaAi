@@ -57,7 +57,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln
+        run: dotnet restore MeAjudaAi.sln --force-evaluate
 
       - name: Build solution
         run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
