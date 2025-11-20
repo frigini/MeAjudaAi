@@ -63,7 +63,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
             verificationRequest,
             JsonOptions);
 
-        // Assert - Success path only
+        // Assert - Success path only (no BadRequest)
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.Accepted,
@@ -86,24 +86,25 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
                 {
                     var status = statusProperty.GetString();
                     status.Should().NotBeNullOrEmpty();
-                    // Document should be in verification state
-                    status!.Should().BeOneOf(
-                        "Pending", "PendingVerification", "Verifying", "pending", "pendingverification", "verifying");
+                    // Document should be in verification state (case-insensitive)
+                    status!.ToLowerInvariant().Should().BeOneOf(
+                        "pending", "pendingverification", "verifying",
+                        "Document should be in verification state");
                 }
             }
         }
     }
 
     [Fact]
-    public async Task RequestDocumentVerification_WhenAlreadyVerified_Should_Fail()
+    public async Task RequestDocumentVerification_WithNonExistentDocument_Should_ReturnNotFound()
     {
         // Arrange
         AuthenticateAsAdmin();
-        var documentId = Guid.NewGuid(); // Documento inexistente ou já verificado
+        var documentId = Guid.NewGuid(); // Non-existent document
 
         var verificationRequest = new
         {
-            VerifierNotes = "Attempting to verify already verified document",
+            VerifierNotes = "Attempting to verify non-existent document",
             Priority = "High"
         };
 
@@ -113,8 +114,8 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
             verificationRequest,
             JsonOptions);
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound, "document should not be found for this scenario");
+        // Assert - Only NotFound is expected for non-existent documents
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -126,8 +127,8 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
 
         var invalidRequest = new
         {
-            VerifierNotes = new string('a', 2001), // Muito longo
-            Priority = "InvalidPriority" // Prioridade inválida
+            VerifierNotes = new string('a', 2001), // Too long - exceeds validation limit
+            Priority = "InvalidPriority" // Invalid priority value
         };
 
         // Act
@@ -136,7 +137,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
             invalidRequest,
             JsonOptions);
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest, "invalid request data should return BadRequest");
+        // Assert - Validation should fail before checking document existence
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 }

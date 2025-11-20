@@ -32,12 +32,12 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
             Password = "Delete@123456"
         };
 
-        // Cria o usuário
+        // Create user - must succeed for delete test to be meaningful
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created, "user creation must succeed for delete test to be meaningful");
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var locationHeader = createResponse.Headers.Location?.ToString();
-        locationHeader.Should().NotBeNullOrEmpty("Created response must include Location header");
+        locationHeader.Should().NotBeNullOrEmpty();
 
         var userId = ExtractIdFromLocation(locationHeader);
 
@@ -78,8 +78,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
     [Fact]
     public async Task DeleteUser_WithoutPermission_Should_Return_Forbidden()
     {
-        // Arrange - Configurar usuário sem permissão de delete
-        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        // Arrange - Configure user without delete permission
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-no-delete-123",
             userName: "nodeleteuser",
@@ -120,10 +119,10 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created, "user creation must succeed for update test to be meaningful");
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var locationHeader = createResponse.Headers.Location?.ToString();
-        locationHeader.Should().NotBeNullOrEmpty("Created response must include Location header");
+        locationHeader.Should().NotBeNullOrEmpty();
 
         var userId = ExtractIdFromLocation(locationHeader);
 
@@ -175,11 +174,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
-
-        if (createResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Act
         var getByEmailResponse = await ApiClient.GetAsync($"/api/v1/users/by-email/{Uri.EscapeDataString(uniqueEmail)}");
@@ -215,7 +210,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         };
 
         var firstResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", firstUserRequest, JsonOptions);
-        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created, "first user creation must succeed to test duplicate email validation");
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Act - Tenta criar segundo usuário com mesmo email
         var secondUserRequest = new

@@ -12,7 +12,8 @@
     <PackageReference Include="Aspire.Npgsql" />
 	<PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
-    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" />
+    <!-- Microsoft.Extensions.ServiceDiscovery not available for .NET 10 yet -->
+    <!-- <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" /> -->
 	<PackageReference Include="OpenTelemetry.Exporter.Console" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />

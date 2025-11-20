@@ -22,9 +22,10 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="NetArchTest.Rules" />
     <PackageReference Include="Scrutor" />
-    <!-- Fix version conflicts with Rebus.ServiceProvider 10.5.0 which requires < 10.0.0 -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <!-- Version override for Rebus.ServiceProvider compatibility -->
+    <!-- Rebus 10.5.0 requires Microsoft.Extensions.Hosting.Abstractions < 10.0.0 -->
+    <!-- This override allows .NET 10 usage until Rebus releases compatible version -->
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" VersionOverride="10.0.0-*" />
   </ItemGroup>
 
   <ItemGroup>

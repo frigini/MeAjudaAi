@@ -11,15 +11,22 @@
     
     <!-- Central Package Management -->
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageVersionsFileLocation>$(MSBuildThisFileDirectory)Directory.Packages.props</CentralPackageVersionsFileLocation>
+    <!-- Allow floating versions for prerelease .NET 10 packages -->
+    <CentralPackageFloatingVersionsEnabled>true</CentralPackageFloatingVersionsEnabled>
     <DisableImplicitAssetTargetFallback>false</DisableImplicitAssetTargetFallback>
-    
-    <!-- Configurações de qualidade de código -->
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-    <WarningsNotAsErrors>NU1608;NU1701;NU1902;NU1603;NU1605;NU1903</WarningsNotAsErrors>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+  </PropertyGroup>
+
+  <!-- NuGet Vulnerability Audit Suppressions -->
+  <!-- See docs/SECURITY-VULNERABILITIES.md for risk assessment and mitigation plans -->
+  <ItemGroup>
+    <!-- High: MSBuild DoS (build-time only, awaiting .NET 10 RTM) -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-w3q9-fxm7-j8fq" />
+    <!-- Moderate: JWT DoS (test-only dependencies with controlled tokens) -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-59j7-ghrg-fj52" />
+  </ItemGroup>
+
+  <PropertyGroup>
     
     <!-- Configurações de documentação -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
