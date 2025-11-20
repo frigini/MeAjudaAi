@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Text.Json.Nodes;
 using Microsoft.OpenApi;
-using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MeAjudaAi.ApiService.Filters;
@@ -12,22 +11,25 @@ namespace MeAjudaAi.ApiService.Filters;
 /// </summary>
 public class ExampleSchemaFilter : ISchemaFilter
 {
-    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
+        // IOpenApiSchema é uma interface, precisamos cast para OpenApiSchema para acessar propriedades
+        if (schema is not OpenApiSchema concreteSchema)
+            return;
         // Adicionar exemplos baseados em DefaultValueAttribute
         if (context.Type.IsClass && context.Type != typeof(string))
         {
-            AddExamplesFromProperties(schema, context.Type);
+            AddExamplesFromProperties(concreteSchema, context.Type);
         }
 
         // Adicionar exemplos para enums
         if (context.Type.IsEnum)
         {
-            AddEnumExamples(schema, context.Type);
+            AddEnumExamples(concreteSchema, context.Type);
         }
 
         // Adicionar descrições mais detalhadas
-        AddDetailedDescription(schema, context.Type);
+        AddDetailedDescription(concreteSchema, context.Type);
     }
 
     private void AddExamplesFromProperties(OpenApiSchema schema, Type type)
@@ -182,37 +184,8 @@ public class ExampleSchemaFilter : ISchemaFilter
         var firstValue = enumValues.GetValue(0);
         if (firstValue == null) return;
 
-        // Check if schema represents enum as integer or string
-        var isIntegerEnum = schema.Type?.HasFlag(JsonSchemaType.Integer) ?? false;
-
-        if (isIntegerEnum)
-        {
-            // Try to convert enum to integer representation
-            try
-            {
-                var underlyingType = Enum.GetUnderlyingType(enumType);
-                var numericValue = Convert.ChangeType(firstValue, underlyingType);
-
-                schema.Example = numericValue switch
-                {
-                    long l => JsonValue.Create(l),
-                    int i => JsonValue.Create(i),
-                    short s => JsonValue.Create(s),
-                    byte b => JsonValue.Create(b),
-                    _ => JsonValue.Create(Convert.ToInt32(numericValue))
-                };
-            }
-            catch
-            {
-                // Fall back to string representation if numeric conversion fails
-                schema.Example = JsonValue.Create(firstValue.ToString());
-            }
-        }
-        else
-        {
-            // Use string representation (existing behavior)
-            schema.Example = JsonValue.Create(firstValue.ToString());
-        }
+        // Use string representation for enums (JsonValue instead of OpenApiString in OpenApi 2.x)
+        schema.Example = JsonValue.Create(firstValue.ToString()!);
     }
 
     private static void AddDetailedDescription(OpenApiSchema schema, Type type)

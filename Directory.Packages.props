@@ -28,7 +28,8 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0-rc.2.25502.107" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-rc.2.25502.107" />
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.0-rc.2" />
-    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.22" />
+    <!-- Microsoft.OpenApi version is controlled by Swashbuckle.AspNetCore transitive dependency (currently 2.3.0) -->
+    <!-- Do not pin this version as it will cause namespace conflicts with Swashbuckle -->
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-rc.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-rc.2" />
     <!-- Data Access -->

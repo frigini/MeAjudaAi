@@ -8,15 +8,24 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <!-- Enable preview features for .NET 10 migration - revert to false once .NET 10 is stable -->
-    <!-- Consider scoping preview features to specific projects if only subset needs them -->
-    <EnablePreviewFeatures>true</EnablePreviewFeatures>
+    
+    <!-- Enable preview features is scoped per-project for .NET 10 migration -->
+    <!-- Projects requiring preview features (C# 14, .NET 10 preview APIs) should set <EnablePreviewFeatures>true</EnablePreviewFeatures> -->
+    <!-- Currently, AppHost project (Aspire.AppHost.Sdk) may require preview features -->
+    <!-- Remove this setting from individual projects once .NET 10 is stable -->
     
     <!-- Central Package Management -->
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageVersionsFileLocation>$(MSBuildThisFileDirectory)Directory.Packages.props</CentralPackageVersionsFileLocation>
+    
+    <!-- NuGet lock file strategy for deterministic builds -->
+    <!-- Generate packages.lock.json for all projects -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- In CI/production builds, use locked mode to ensure exact package versions -->
+    <!-- In dev builds, allow lock file updates (RestoreLockedMode is false by default) -->
+    <RestoreLockedMode Condition="'$(CI)' == 'true' OR '$(Configuration)' == 'Release'">true</RestoreLockedMode>
+    
     <!-- Allow floating versions for prerelease .NET 10 packages - pin exact versions once .NET 10 is stable -->
-    <!-- Use lock file strategy (packages.lock.json) for production builds to ensure determinism -->
     <CentralPackageFloatingVersionsEnabled>true</CentralPackageFloatingVersionsEnabled>
     <DisableImplicitAssetTargetFallback>false</DisableImplicitAssetTargetFallback>
   </PropertyGroup>
@@ -25,7 +34,18 @@
     
     <!-- Configurações de documentação -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591;NU1903</NoWarn> <!-- Missing XML comment warnings + NuGet package vulnerability warnings (documented in security_vulnerabilities.md) -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn> <!-- Missing XML comment warnings -->
+    
+    <!-- Temporarily suppress NU1903 (package vulnerability warnings) globally -->
+    <!-- These are transitive dependencies with known vulnerabilities: -->
+    <!-- - Microsoft.Build.Tasks.Core 17.14.8 (high severity - GHSA-w3q9-fxm7-j8fq) -->
+    <!-- - Microsoft.Build.Utilities.Core 17.14.8 (high severity - GHSA-w3q9-fxm7-j8fq) -->
+    <!-- - Microsoft.IdentityModel.JsonWebTokens 6.8.0 (moderate severity - GHSA-59j7-ghrg-fj52) -->
+    <!-- - System.IdentityModel.Tokens.Jwt 6.8.0 (moderate severity - GHSA-59j7-ghrg-fj52) -->
+    <!-- TODO: Update source packages to bring in patched versions of these transitive dependencies -->
+    <!-- TODO: Track remediation in https://github.com/[organization]/[repo]/issues/[number] -->
+    <!-- See security_vulnerabilities.md for accepted risk documentation -->
+    <NoWarn>$(NoWarn);NU1903;NU1902</NoWarn>
     
     <!-- Configurações de performance -->
     <DebugType>portable</DebugType>
@@ -61,6 +81,7 @@
     <NoWarn>$(NoWarn);CA1310</NoWarn> <!-- StringComparison correctness -->
     
     <!-- Code Analysis - Performance and Design -->
+    <NoWarn>$(NoWarn);CA1062</NoWarn> <!-- Validate parameter non-null - handled by nullable reference types -->
     <NoWarn>$(NoWarn);CA1848</NoWarn> <!-- LoggerMessage delegates -->
     <NoWarn>$(NoWarn);CA2234</NoWarn> <!-- System.Uri instead of string -->
     <NoWarn>$(NoWarn);CA1054</NoWarn> <!-- URI parameters should be System.Uri -->
@@ -76,6 +97,8 @@
     <NoWarn>$(NoWarn);CA2214</NoWarn> <!-- Overridable methods in constructors -->
     
     <!-- Assembly version warnings - temporary -->
+    <!-- TODO: Add AssemblyVersion and AssemblyFileVersion to all assemblies -->
+    <!-- Track in issue: https://github.com/[organization]/[repo]/issues/[number] -->
     <NoWarn>$(NoWarn);CA1016</NoWarn> <!-- Assembly version warnings -->
     <NoWarn>$(NoWarn);S3904</NoWarn> <!-- Assembly version warnings from SonarAnalyzer -->
     

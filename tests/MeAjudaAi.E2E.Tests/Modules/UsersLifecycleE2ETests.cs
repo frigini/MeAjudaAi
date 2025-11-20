@@ -44,11 +44,10 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         // Act - Delete user
         var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/users/{userId}");
 
-        // Assert
+        // Assert - Deletion should return OK or NoContent
         deleteResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.NoContent,
-            "Deletion should return OK or NoContent");
+            HttpStatusCode.NoContent);
 
         // Verifica que o usuário não existe mais através da API
         var getAfterDelete = await ApiClient.GetAsync($"/api/v1/users/{userId}");
@@ -74,7 +73,27 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
     [Fact]
     public async Task DeleteUser_WithoutPermission_Should_Return_ForbiddenOrUnauthorized()
     {
-        // Arrange - Configure user without delete permission
+        // Arrange - First create a user as admin
+        AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        var createRequest = new
+        {
+            Username = $"testuser_{uniqueId}",
+            Email = $"testuser_{uniqueId}@example.com",
+            FirstName = "Test",
+            LastName = "User",
+            Password = "Test@123456"
+        };
+
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var locationHeader = createResponse.Headers.Location?.ToString();
+        locationHeader.Should().NotBeNullOrEmpty();
+        var userId = locationHeader!.Split('/').Last();
+
+        // Now configure a user without delete permission
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-no-delete-123",
             userName: "nodeleteuser",
@@ -87,15 +106,18 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
             roles: []
         );
 
-        var userId = Guid.NewGuid();
-
-        // Act
+        // Act - Try to delete the created user without permission
         var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/users/{userId}");
 
-        // Assert
+        // Assert - Should get Forbidden/Unauthorized, not NotFound
         deleteResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.Forbidden,
             HttpStatusCode.Unauthorized);
+
+        // Cleanup - Delete as admin
+        AuthenticateAsAdmin();
+        var cleanupResponse = await ApiClient.DeleteAsync($"/api/v1/users/{userId}");
+        cleanupResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);
     }
 
     [Fact]
@@ -132,11 +154,10 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
 
         var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, JsonOptions);
 
-        // Assert
+        // Assert - Update should return OK or NoContent
         updateResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.NoContent,
-            "Update should return OK or NoContent");
+            HttpStatusCode.NoContent);
 
         // Verifica que as mudanças foram persistidas através da API
         var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");

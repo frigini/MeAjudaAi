@@ -79,7 +79,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         {
             var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
             uploadContent.Should().NotBeNullOrEmpty("Response body required for document ID");
-            var uploadResult = System.Text.Json.JsonDocument.Parse(uploadContent);
+            using var uploadResult = System.Text.Json.JsonDocument.Parse(uploadContent);
             uploadResult.RootElement.TryGetProperty("data", out var dataProperty).Should().BeTrue();
             dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
             documentId = idProperty.GetGuid();
@@ -112,12 +112,12 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         statusContent.Should().NotBeNullOrEmpty();
 
         // Parse JSON e verifica o campo status
-        var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
+        using var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
         
-        statusResult.RootElement.TryGetProperty("data", out var dataProperty)
+        statusResult.RootElement.TryGetProperty("data", out var statusDataProperty)
             .Should().BeTrue("Response should contain 'data' property");
         
-        dataProperty.TryGetProperty("status", out var statusProperty)
+        statusDataProperty.TryGetProperty("status", out var statusProperty)
             .Should().BeTrue("Data property should contain 'status' field");
             
         var status = statusProperty.GetString();
