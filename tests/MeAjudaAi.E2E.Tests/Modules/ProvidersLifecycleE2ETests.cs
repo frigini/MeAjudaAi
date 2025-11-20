@@ -23,7 +23,7 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         AuthenticateAsAdmin();
         var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
-        
+
         var createRequest = new
         {
             UserId = userId,
@@ -47,7 +47,7 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-        
+
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             // Skip test if provider creation fails (infrastructure issue)
@@ -135,7 +135,7 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         AuthenticateAsAdmin();
         var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
-        
+
         var createRequest = new
         {
             UserId = userId,
@@ -159,7 +159,7 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-        
+
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             // Skip test if provider creation fails
@@ -193,7 +193,7 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         AuthenticateAsAdmin();
         var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
-        
+
         var createRequest = new
         {
             UserId = userId,
@@ -217,7 +217,7 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-        
+
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             // Skip test if provider creation fails
@@ -235,8 +235,8 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         };
 
         var updateResponse = await ApiClient.PutAsJsonAsync(
-            $"/api/v1/providers/{providerId}/verification-status", 
-            updateStatusRequest, 
+            $"/api/v1/providers/{providerId}/verification-status",
+            updateStatusRequest,
             JsonOptions);
 
         // Assert
@@ -262,8 +262,8 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
 
         // Act
         var response = await ApiClient.PutAsJsonAsync(
-            $"/api/v1/providers/{providerId}/verification-status", 
-            invalidRequest, 
+            $"/api/v1/providers/{providerId}/verification-status",
+            invalidRequest,
             JsonOptions);
 
         // Assert
@@ -279,7 +279,7 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         AuthenticateAsAdmin();
         var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
-        
+
         var createRequest = new
         {
             UserId = userId,
@@ -303,7 +303,7 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-        
+
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             // Skip test if provider creation fails
@@ -321,8 +321,8 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         };
 
         var response = await ApiClient.PostAsJsonAsync(
-            $"/api/v1/providers/{providerId}/require-basic-info-correction", 
-            correctionRequest, 
+            $"/api/v1/providers/{providerId}/require-basic-info-correction",
+            correctionRequest,
             JsonOptions);
 
         // Assert

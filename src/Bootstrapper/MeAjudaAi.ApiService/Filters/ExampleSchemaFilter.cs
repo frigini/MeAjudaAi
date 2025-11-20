@@ -18,7 +18,7 @@ public class ExampleSchemaFilter : ISchemaFilter
         {
             return; // Skip if not concrete OpenApiSchema
         }
-        
+
         // Adicionar exemplos baseados em DefaultValueAttribute
         if (context.Type.IsClass && context.Type != typeof(string))
         {

@@ -29,7 +29,7 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         };
 
         var categoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, JsonOptions);
-        
+
         categoryResponse.StatusCode.Should().Be(HttpStatusCode.Created,
             "Category creation is a precondition for this test. Response: {0}",
             await categoryResponse.Content.ReadAsStringAsync());
@@ -49,7 +49,7 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         };
 
         var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
-        
+
         serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created,
             "Service creation is a precondition for this test. Response: {0}",
             await serviceResponse.Content.ReadAsStringAsync());
@@ -65,8 +65,8 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         };
 
         var response = await ApiClient.PostAsJsonAsync(
-            $"/api/v1/service-catalogs/services/{serviceId}/validate", 
-            validateRequest, 
+            $"/api/v1/service-catalogs/services/{serviceId}/validate",
+            validateRequest,
             JsonOptions);
 
         // Assert - Apenas status de sucesso (happy path)
@@ -90,8 +90,8 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         // Act
         var response = await ApiClient.PostAsJsonAsync(
-            $"/api/v1/service-catalogs/services/{serviceId}/validate", 
-            invalidRequest, 
+            $"/api/v1/service-catalogs/services/{serviceId}/validate",
+            invalidRequest,
             JsonOptions);
 
         // Assert
@@ -116,7 +116,7 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         };
 
         var category1Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", category1Request, JsonOptions);
-        
+
         if (category1Response.StatusCode != HttpStatusCode.Created)
         {
             return;
@@ -133,7 +133,7 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         };
 
         var category2Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", category2Request, JsonOptions);
-        
+
         if (category2Response.StatusCode != HttpStatusCode.Created)
         {
             return;
@@ -153,7 +153,7 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         };
 
         var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
-        
+
         if (serviceResponse.StatusCode != HttpStatusCode.Created)
         {
             return;
@@ -169,8 +169,8 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         };
 
         var response = await ApiClient.PutAsJsonAsync(
-            $"/api/v1/service-catalogs/services/{serviceId}/change-category", 
-            changeCategoryRequest, 
+            $"/api/v1/service-catalogs/services/{serviceId}/change-category",
+            changeCategoryRequest,
             JsonOptions);
 
         // Assert
@@ -184,7 +184,7 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         if (response.IsSuccessStatusCode)
         {
             var getServiceResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{serviceId}");
-            
+
             if (getServiceResponse.IsSuccessStatusCode)
             {
                 var content = await getServiceResponse.Content.ReadAsStringAsync();
@@ -209,7 +209,7 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         };
 
         var activeCategoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", activeCategoryRequest, JsonOptions);
-        
+
         if (activeCategoryResponse.StatusCode != HttpStatusCode.Created)
         {
             return;
@@ -226,7 +226,7 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         };
 
         var inactiveCategoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", inactiveCategoryRequest, JsonOptions);
-        
+
         if (inactiveCategoryResponse.StatusCode != HttpStatusCode.Created)
         {
             return;
@@ -246,7 +246,7 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         };
 
         var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
-        
+
         if (serviceResponse.StatusCode != HttpStatusCode.Created)
         {
             return;
@@ -262,8 +262,8 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         };
 
         var response = await ApiClient.PutAsJsonAsync(
-            $"/api/v1/service-catalogs/services/{serviceId}/change-category", 
-            changeCategoryRequest, 
+            $"/api/v1/service-catalogs/services/{serviceId}/change-category",
+            changeCategoryRequest,
             JsonOptions);
 
         // Assert - Deve falhar
@@ -290,8 +290,8 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         // Act
         var response = await ApiClient.PutAsJsonAsync(
-            $"/api/v1/service-catalogs/services/{serviceId}/change-category", 
-            changeCategoryRequest, 
+            $"/api/v1/service-catalogs/services/{serviceId}/change-category",
+            changeCategoryRequest,
             JsonOptions);
 
         // Assert

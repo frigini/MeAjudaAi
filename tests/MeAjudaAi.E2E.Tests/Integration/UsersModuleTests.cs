@@ -37,7 +37,7 @@ public class UsersModuleTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin(); // CreateUser requer role admin
-        
+
         var createUserRequest = new CreateUserRequest
         {
             Username = $"testuser_{Guid.NewGuid():N}",

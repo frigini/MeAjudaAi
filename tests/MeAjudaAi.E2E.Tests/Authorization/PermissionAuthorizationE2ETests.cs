@@ -17,7 +17,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     {
         // Arrange - Limpar estado de testes anteriores
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
-        
+
         // Usuário com permissão de leitura
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-read-123",
@@ -38,7 +38,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     {
         // Arrange - Limpar estado de testes anteriores
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
-        
+
         // Usuário sem permissão de listagem
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-noperm-456",
@@ -59,7 +59,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     {
         // Arrange - Limpar estado de testes anteriores
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
-        
+
         // Usuário com permissão de criação E role admin (CreateUser requer AdminOnly policy)
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-creator-789",
@@ -90,7 +90,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     {
         // Arrange - Limpar estado de testes anteriores
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
-        
+
         // Usuário sem permissão de criação
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-readonly-012",
@@ -119,7 +119,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     {
         // Arrange - IMPORTANTE: Limpar estado de testes anteriores
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
-        
+
         // Usuário com múltiplas permissões (sem role admin, então não pode criar)
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-multi-345",

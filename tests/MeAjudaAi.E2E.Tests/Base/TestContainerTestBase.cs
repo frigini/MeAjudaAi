@@ -123,10 +123,10 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
                     if (postgresOptionsDescriptor != null)
                         services.Remove(postgresOptionsDescriptor);
-                    
-                    services.AddSingleton(new PostgresOptions 
-                    { 
-                        ConnectionString = _postgresContainer.GetConnectionString() 
+
+                    services.AddSingleton(new PostgresOptions
+                    {
+                        ConnectionString = _postgresContainer.GetConnectionString()
                     });
 
                     // Adicionar DatabaseMetrics se não existir
@@ -139,7 +139,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     var dapperDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDapperConnection));
                     if (dapperDescriptor != null)
                         services.Remove(dapperDescriptor);
-                    
+
                     services.AddScoped<IDapperConnection, DapperConnection>();
 
                     // Substituir IKeycloakService por MockKeycloakService para testes
@@ -406,14 +406,14 @@ public abstract class TestContainerTestBase : IAsyncLifetime
             var queryString = locationHeader.Split('?')[1];
             var idParam = queryString.Split('&')
                 .FirstOrDefault(p => p.StartsWith("id="));
-            
+
             if (idParam != null)
             {
                 var idValue = idParam.Split('=')[1];
                 return Guid.Parse(idValue);
             }
         }
-        
+
         var segments = locationHeader.Split('/');
         var lastSegment = segments[^1].Split('?')[0];
         return Guid.Parse(lastSegment);

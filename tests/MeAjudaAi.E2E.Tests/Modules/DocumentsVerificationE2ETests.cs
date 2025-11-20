@@ -35,7 +35,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
             "Document upload failed: {0}", await uploadResponse.Content.ReadAsStringAsync());
 
         Guid documentId;
-        
+
         if (uploadResponse.StatusCode == HttpStatusCode.Created)
         {
             var locationHeader = uploadResponse.Headers.Location?.ToString();
@@ -60,8 +60,8 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         };
 
         var response = await ApiClient.PostAsJsonAsync(
-            $"/api/v1/documents/{documentId}/verify", 
-            verificationRequest, 
+            $"/api/v1/documents/{documentId}/verify",
+            verificationRequest,
             JsonOptions);
 
         // Assert
@@ -76,12 +76,12 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         if (response.IsSuccessStatusCode)
         {
             var statusResponse = await ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
-            
+
             if (statusResponse.IsSuccessStatusCode)
             {
                 var statusContent = await statusResponse.Content.ReadAsStringAsync();
                 statusContent.Should().NotBeNullOrEmpty();
-                
+
                 // Parse JSON e verifica o campo status
                 var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
                 if (statusResult.RootElement.TryGetProperty("data", out var dataProperty) &&
@@ -112,8 +112,8 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
 
         // Act
         var response = await ApiClient.PostAsJsonAsync(
-            $"/api/v1/documents/{documentId}/verify", 
-            verificationRequest, 
+            $"/api/v1/documents/{documentId}/verify",
+            verificationRequest,
             JsonOptions);
 
         // Assert
@@ -138,8 +138,8 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
 
         // Act
         var response = await ApiClient.PostAsJsonAsync(
-            $"/api/v1/documents/{documentId}/verify", 
-            invalidRequest, 
+            $"/api/v1/documents/{documentId}/verify",
+            invalidRequest,
             JsonOptions);
 
         // Assert

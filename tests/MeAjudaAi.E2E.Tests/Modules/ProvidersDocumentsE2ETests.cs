@@ -21,7 +21,7 @@ public class ProvidersDocumentsE2ETests : TestContainerTestBase
         AuthenticateAsAdmin();
         var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
-        
+
         // Primeiro cria um provider
         var createRequest = new
         {
@@ -46,7 +46,7 @@ public class ProvidersDocumentsE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-        
+
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             // Skip test if provider creation fails
@@ -66,8 +66,8 @@ public class ProvidersDocumentsE2ETests : TestContainerTestBase
         };
 
         var uploadResponse = await ApiClient.PostAsJsonAsync(
-            $"/api/v1/providers/{providerId}/documents", 
-            documentRequest, 
+            $"/api/v1/providers/{providerId}/documents",
+            documentRequest,
             JsonOptions);
 
         // Assert
@@ -91,7 +91,7 @@ public class ProvidersDocumentsE2ETests : TestContainerTestBase
         AuthenticateAsAdmin();
         var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
-        
+
         // Primeiro cria um provider
         var createRequest = new
         {
@@ -116,7 +116,7 @@ public class ProvidersDocumentsE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-        
+
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             // Skip test if provider creation fails
@@ -136,8 +136,8 @@ public class ProvidersDocumentsE2ETests : TestContainerTestBase
         };
 
         var uploadResponse = await ApiClient.PostAsJsonAsync(
-            $"/api/v1/providers/{providerId}/documents", 
-            documentRequest, 
+            $"/api/v1/providers/{providerId}/documents",
+            documentRequest,
             JsonOptions);
 
         // Act - Delete document

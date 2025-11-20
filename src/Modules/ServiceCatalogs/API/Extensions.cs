@@ -47,7 +47,7 @@ public static class Extensions
             using var scope = app.Services.CreateScope();
             var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.ServiceCatalogsDbContext>>();
             var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.ServiceCatalogsDbContext>();
-            
+
             if (context == null)
             {
                 logger?.LogWarning("ServiceCatalogsDbContext not found in DI container. Skipping migrations.");

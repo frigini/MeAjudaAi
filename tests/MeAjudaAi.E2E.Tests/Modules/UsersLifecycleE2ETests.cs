@@ -20,7 +20,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         // Arrange
         AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
-        
+
         var createRequest = new
         {
             Username = $"todelete_{uniqueId}",
@@ -32,7 +32,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
 
         // Cria o usuário
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
-        
+
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             // Skip test if user creation fails (pode ser conflito ou outro erro)
@@ -60,7 +60,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         if (deleteResponse.IsSuccessStatusCode)
         {
             var getAfterDelete = await ApiClient.GetAsync($"/api/v1/users/{userId}");
-            getAfterDelete.StatusCode.Should().Be(HttpStatusCode.NotFound, 
+            getAfterDelete.StatusCode.Should().Be(HttpStatusCode.NotFound,
                 "User should not exist after deletion");
         }
     }
@@ -97,7 +97,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
             isSystemAdmin: false,
             roles: []
         );
-        
+
         var userId = Guid.NewGuid();
 
         // Act
@@ -115,7 +115,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         // Arrange
         AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
-        
+
         var createRequest = new
         {
             Username = $"toupdate_{uniqueId}",
@@ -126,7 +126,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
-        
+
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             return;
@@ -160,7 +160,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         {
             // Verifica que as mudanças foram persistidas através da API
             var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
-            
+
             if (getResponse.IsSuccessStatusCode)
             {
                 var content = await getResponse.Content.ReadAsStringAsync();
@@ -177,7 +177,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var uniqueEmail = $"byemail_{uniqueId}@example.com";
-        
+
         var createRequest = new
         {
             Username = $"byemail_{uniqueId}",
@@ -188,7 +188,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
-        
+
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             return;
@@ -217,7 +217,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var sharedEmail = $"duplicate_{uniqueId}@example.com";
-        
+
         var firstUserRequest = new
         {
             Username = $"first_{uniqueId}",
@@ -228,7 +228,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         };
 
         var firstResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", firstUserRequest, JsonOptions);
-        
+
         if (firstResponse.StatusCode != HttpStatusCode.Created)
         {
             return;
@@ -253,21 +253,21 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
             HttpStatusCode.UnprocessableEntity);
     }
 
-    private static Guid ExtractIdFromLocation(string locationHeader)
+    private static new Guid ExtractIdFromLocation(string locationHeader)
     {
         if (locationHeader.Contains("?id="))
         {
             var queryString = locationHeader.Split('?')[1];
             var idParam = queryString.Split('&')
                 .FirstOrDefault(p => p.StartsWith("id="));
-            
+
             if (idParam != null)
             {
                 var idValue = idParam.Split('=')[1];
                 return Guid.Parse(idValue);
             }
         }
-        
+
         var segments = locationHeader.Split('/');
         var lastSegment = segments[^1].Split('?')[0];
         return Guid.Parse(lastSegment);

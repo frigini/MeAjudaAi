@@ -162,7 +162,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         var responseWrapper = await ReadJsonAsync<Response<ServiceCategoryDto>>(getResponse);
         responseWrapper.Should().NotBeNull();
         responseWrapper!.Data.Should().NotBeNull();
-        
+
         var updatedCategory = responseWrapper.Data;
         updatedCategory!.Name.Should().Be(updateRequest.Name);
         updatedCategory.Description.Should().Be(updateRequest.Description);

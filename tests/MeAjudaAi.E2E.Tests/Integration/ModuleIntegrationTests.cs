@@ -50,7 +50,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin(); // CreateUser requer role admin
-        
+
         var uniqueId = Guid.NewGuid().ToString("N")[..8]; // 8 hex chars
         var createUserRequest = new
         {

@@ -14,7 +14,7 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
     private async Task<JsonElement> CreateUserAsync(string username, string email, string firstName, string lastName)
     {
         AuthenticateAsAdmin(); // CreateUser requer role admin (AdminOnly policy)
-        
+
         var createRequest = new
         {
             Username = username,
@@ -30,7 +30,7 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
         {
             // User already exists - try to fetch the actual user by username
             // Note: This requires a by-username endpoint; if unavailable, use generic test data
-            return JsonDocument.Parse($$$"""{{{"id":"00000000-0000-0000-0000-000000000000","username":"{{{username}}}","email":"{{{email}}}","firstName":"{{{firstName}}}","lastName":"{{{lastName}}}"}}}""" ).RootElement;
+            return JsonDocument.Parse($$$"""{{{"id":"00000000-0000-0000-0000-000000000000","username":"{{{username}}}","email":"{{{email}}}","firstName":"{{{firstName}}}","lastName":"{{{lastName}}}"}}}""").RootElement;
         }
 
         var content = await response.Content.ReadAsStringAsync();

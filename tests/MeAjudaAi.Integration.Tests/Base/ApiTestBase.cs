@@ -1,9 +1,9 @@
 using System.Text.Json;
 using MeAjudaAi.Integration.Tests.Infrastructure;
-using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;

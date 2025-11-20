@@ -210,7 +210,7 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
     {
         // Re-autenticar para evitar problemas de state em testes paralelos
         AuthenticateAsAdmin();
-        
+
         var request = new
         {
             CategoryId = categoryId,
