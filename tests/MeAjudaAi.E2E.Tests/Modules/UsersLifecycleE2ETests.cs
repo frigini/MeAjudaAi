@@ -2,8 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Tests.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.E2E.Tests.Modules;
@@ -75,7 +75,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
     {
         // Arrange - Configure user without delete permission
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
-        
+
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-no-delete-123",
             userName: "nodeleteuser",

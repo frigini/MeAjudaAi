@@ -48,7 +48,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
 
         var providerResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createProviderRequest, JsonOptions);
         providerResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Provider creation should succeed");
-        
+
         var providerLocation = providerResponse.Headers.Location?.ToString();
         providerLocation.Should().NotBeNullOrEmpty("Provider creation should return Location header");
         var providerId = ExtractIdFromLocation(providerLocation!);
@@ -107,22 +107,22 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         var statusResponse = await ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
         statusResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Status endpoint should be available after successful verification");
-        
+
         var statusContent = await statusResponse.Content.ReadAsStringAsync();
         statusContent.Should().NotBeNullOrEmpty();
 
         // Parse JSON e verifica o campo status
         using var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
-        
+
         statusResult.RootElement.TryGetProperty("data", out var statusDataProperty)
             .Should().BeTrue("Response should contain 'data' property");
-        
+
         statusDataProperty.TryGetProperty("status", out var statusProperty)
             .Should().BeTrue("Data property should contain 'status' field");
-            
+
         var status = statusProperty.GetString();
         status.Should().NotBeNullOrEmpty();
-        
+
         // Document should be in verification state (case-insensitive)
         status!.ToLowerInvariant().Should().BeOneOf(
             "pending", "pendingverification", "verifying");
