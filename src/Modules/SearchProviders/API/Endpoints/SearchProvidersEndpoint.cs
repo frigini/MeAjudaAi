@@ -60,6 +60,8 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken = default)
     {
         // Validar inputs no limite do endpoint
+        // Note: ASP.NET treats page=0 in query string as the default value (1)
+        // So we need special handling for explicit zero values
         if (page < 1)
         {
             return Results.BadRequest(new ProblemDetails

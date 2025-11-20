@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
+using MeAjudaAi.Shared.Contracts;
 
 namespace MeAjudaAi.E2E.Tests.Integration;
 
@@ -31,11 +33,11 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            var content = await response.Content.ReadFromJsonAsync<SearchProvidersResponse>(JsonOptions);
+            var content = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
             content.Should().NotBeNull();
             content!.Items.Should().NotBeNull();
             content.TotalCount.Should().BeGreaterThanOrEqualTo(0);
-            content.PageNumber.Should().Be(1);
+            content.Page.Should().Be(1);
         }
     }
 
@@ -121,7 +123,7 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            var content = await response.Content.ReadFromJsonAsync<SearchProvidersResponse>(JsonOptions);
+            var content = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
             content.Should().NotBeNull();
 
             // Se houver resultados, todos devem ter rating >= minRating
@@ -178,7 +180,7 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
 
         // Act
         var response = await ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={latitude}&longitude={longitude}&radiusInKm={radius}&subscriptionTiers=Premium&subscriptionTiers=Gold");
+            $"/api/v1/search/providers?latitude={latitude}&longitude={longitude}&radiusInKm={radius}&subscriptionTiers=Gold&subscriptionTiers=Platinum");
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
@@ -203,9 +205,9 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            var content = await response.Content.ReadFromJsonAsync<SearchProvidersResponse>(JsonOptions);
+            var content = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
             content.Should().NotBeNull();
-            content!.PageNumber.Should().Be(pageNumber);
+            content!.Page.Should().Be(pageNumber);
             content.PageSize.Should().Be(pageSize);
             content.Items.Count.Should().BeLessThanOrEqualTo(pageSize);
         }
@@ -218,7 +220,7 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
         var latitude = -23.5505;
         var longitude = -46.6333;
         var radius = 10;
-        var invalidPageNumber = 0; // PageNumber deve ser >= 1
+        var invalidPageNumber = -1; // PageNumber deve ser >= 1
 
         // Act
         var response = await ApiClient.GetAsync(
@@ -260,7 +262,7 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
         // Act
         var response = await ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={latitude}&longitude={longitude}&radiusInKm={radius}" +
-            $"&minRating={minRating}&serviceIds={serviceId}&subscriptionTiers=Premium" +
+            $"&minRating={minRating}&serviceIds={serviceId}&subscriptionTiers=Gold" +
             $"&pageNumber={pageNumber}&pageSize={pageSize}");
 
         // Assert
@@ -268,9 +270,9 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            var content = await response.Content.ReadFromJsonAsync<SearchProvidersResponse>(JsonOptions);
+            var content = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
             content.Should().NotBeNull();
-            content!.PageNumber.Should().Be(pageNumber);
+            content!.Page.Should().Be(pageNumber);
             content.PageSize.Should().Be(pageSize);
         }
     }
@@ -297,9 +299,9 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
 
         if (response1.StatusCode == HttpStatusCode.OK)
         {
-            var content1 = await response1.Content.ReadFromJsonAsync<SearchProvidersResponse>(JsonOptions);
-            var content2 = await response2.Content.ReadFromJsonAsync<SearchProvidersResponse>(JsonOptions);
-            var content3 = await response3.Content.ReadFromJsonAsync<SearchProvidersResponse>(JsonOptions);
+            var content1 = await response1.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
+            var content2 = await response2.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
+            var content3 = await response3.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
 
             // Total count deve ser consistente
             content1!.TotalCount.Should().Be(content2!.TotalCount);
@@ -316,29 +318,4 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-}
-
-/// <summary>
-/// Response DTO para deserialização
-/// </summary>
-public class SearchProvidersResponse
-{
-    public List<SearchableProviderDto> Items { get; set; } = new();
-    public int TotalCount { get; set; }
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
-}
-
-/// <summary>
-/// DTO simplificado para deserialização
-/// </summary>
-public class SearchableProviderDto
-{
-    public Guid Id { get; set; }
-    public Guid ProviderId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public double DistanceInKm { get; set; }
-    public decimal AverageRating { get; set; }
-    public int TotalReviews { get; set; }
-    public string SubscriptionTier { get; set; } = string.Empty;
 }

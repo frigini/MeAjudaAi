@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;
 using Microsoft.AspNetCore.Authentication;
@@ -117,6 +118,29 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     ReconfigureDbContext<DocumentsDbContext>(services);
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
                     ReconfigureSearchProvidersDbContext(services);
+
+                    // Configurar PostgresOptions e Dapper para SearchProviders
+                    var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
+                    if (postgresOptionsDescriptor != null)
+                        services.Remove(postgresOptionsDescriptor);
+                    
+                    services.AddSingleton(new PostgresOptions 
+                    { 
+                        ConnectionString = _postgresContainer.GetConnectionString() 
+                    });
+
+                    // Adicionar DatabaseMetrics se não existir
+                    if (!services.Any(d => d.ServiceType == typeof(DatabaseMetrics)))
+                    {
+                        services.AddSingleton<DatabaseMetrics>();
+                    }
+
+                    // Adicionar DapperConnection para SearchProviders
+                    var dapperDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDapperConnection));
+                    if (dapperDescriptor != null)
+                        services.Remove(dapperDescriptor);
+                    
+                    services.AddScoped<IDapperConnection, DapperConnection>();
 
                     // Substituir IKeycloakService por MockKeycloakService para testes
                     var keycloakDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IKeycloakService));
