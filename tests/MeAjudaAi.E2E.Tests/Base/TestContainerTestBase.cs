@@ -1,6 +1,7 @@
 using Bogus;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
@@ -115,6 +116,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     ReconfigureDbContext<ProvidersDbContext>(services);
                     ReconfigureDbContext<DocumentsDbContext>(services);
                     ReconfigureDbContext<ServiceCatalogsDbContext>(services);
+                    ReconfigureSearchProvidersDbContext(services);
 
                     // Substituir IKeycloakService por MockKeycloakService para testes
                     var keycloakDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IKeycloakService));
@@ -230,6 +232,10 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         // Para ServiceCatalogsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema catalogs)
         var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
         await catalogsContext.Database.MigrateAsync();
+
+        // Para SearchProvidersDbContext, só aplicar migrações (o banco já existe, só precisamos do schema search + PostGIS)
+        var searchContext = scope.ServiceProvider.GetRequiredService<SearchProvidersDbContext>();
+        await searchContext.Database.MigrateAsync();
     }
 
     // Helper methods usando serialização compartilhada
@@ -337,6 +343,31 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                    .EnableSensitiveDataLogging(false)
                    .ConfigureWarnings(warnings =>
                        warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
+    }
+
+    /// <summary>
+    /// Reconfigura SearchProvidersDbContext com suporte PostGIS/NetTopologySuite
+    /// </summary>
+    private void ReconfigureSearchProvidersDbContext(IServiceCollection services)
+    {
+        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<SearchProvidersDbContext>));
+        if (descriptor != null)
+            services.Remove(descriptor);
+
+        services.AddDbContext<SearchProvidersDbContext>(options =>
+        {
+            options.UseNpgsql(
+                _postgresContainer.GetConnectionString(),
+                npgsqlOptions =>
+                {
+                    npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
+                })
+                .UseSnakeCaseNamingConvention()
+                .EnableSensitiveDataLogging(false)
+                .ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
     }
 }
