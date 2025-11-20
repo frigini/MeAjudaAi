@@ -463,7 +463,7 @@ Com todos os 6 módulos core implementados (Fase 1 ✅), precisamos consolidar a
 - **.NET 9 EOL**: Suporte expira em maio 2025, migrar para .NET 10 LTS agora evita migração em produção
 - **Aspire 13**: Novas features de observability e orchestration
 - **Test Coverage**: Atual 40.51% → objetivo 80%+ para manutenibilidade
-- **Integração de Módulos**: IModuleApi implementado mas não utilizado com regras de negócio reais
+- **Integração de Módulos**: IModuleApi implementado mas não utilizado com as regras de negócio reais
 - **Restrição Geográfica**: MVP exige operação apenas em cidades piloto (SP, RJ, BH)
 
 ---
@@ -482,12 +482,19 @@ Com todos os 6 módulos core implementados (Fase 1 ✅), precisamos consolidar a
 **Tarefas**:
 - [x] Criar branch `migration-to-dotnet-10`
 - [x] Merge master (todos módulos Fase 1) ✅
-- [ ] Atualizar `Directory.Packages.props` para .NET 10
-- [ ] Atualizar todos `.csproj` para `<TargetFramework>net10.0</TargetFramework>`
-- [ ] Atualizar Aspire packages para v13.x
-- [ ] Atualizar EF Core para 10.x
-- [ ] Atualizar Npgsql para 10.x
-- [ ] Rodar todos testes e corrigir breaking changes
+- [x] Atualizar `Directory.Packages.props` para .NET 10 ✅
+- [x] Atualizar todos `.csproj` para `<TargetFramework>net10.0</TargetFramework>` ✅
+- [x] Atualizar Aspire packages para v13.x ✅
+- [x] Atualizar EF Core para 10.x (RC) ✅
+- [x] Atualizar Npgsql para 10.x (RC) ✅
+- [x] `dotnet restore` executado com sucesso ✅
+- [ ] **Verificação Incremental**:
+  - [ ] Build Domain projects → sem erros
+  - [ ] Build Application projects → sem erros
+  - [ ] Build Infrastructure projects → sem erros
+  - [ ] Build API projects → sem erros
+  - [ ] Run unit tests → todos passando
+  - [ ] Run integration tests → todos passando
 - [ ] Atualizar Azure DevOps pipeline YAML
 - [ ] Validar Docker images com .NET 10
 - [ ] Merge para master após validação completa
@@ -503,6 +510,11 @@ Com todos os 6 módulos core implementados (Fase 1 ✅), precisamos consolidar a
 ### 📅 Sprint 1: Integração de Módulos + Restrição Geográfica (1 semana)
 
 **Status**: ⏳ PLANEJADO
+
+**Pré-Requisitos (decidir no Sprint 0)**:
+- ✅ **Contratos de Módulos**: Finalizar interfaces IModuleApi para cada módulo
+- ✅ **Cache de Cidades**: Implementar caching da lista AllowedCities para evitar impacto de performance no SearchModule
+- ✅ **Background Workers**: Definir arquitetura (threading, retry logic, poison queue handling) para integration events
 
 **Objetivos**:
 - Implementar regras de negócio reais usando IModuleApi entre módulos

@@ -32,8 +32,7 @@ public abstract class BaseEndpoint
         // Esta é a abordagem de versionamento mais explícita e clara
         return app.MapGroup($"/api/v{{version:apiVersion}}/{module}")
             .WithApiVersionSet(versionSet)
-            .WithTags(tag ?? char.ToUpper(module[0]) + module[1..])
-            .WithOpenApi();
+            .WithTags(tag ?? char.ToUpper(module[0]) + module[1..]);
     }
 
 

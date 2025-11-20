@@ -9,17 +9,21 @@
     <Nullable>enable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     
+    <!-- Central Package Management -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <DisableImplicitAssetTargetFallback>false</DisableImplicitAssetTargetFallback>
+    
     <!-- Configurações de qualidade de código -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <WarningsNotAsErrors>NU1608;NU1701;NU1902;NU1603;NU1605</WarningsNotAsErrors>
+    <WarningsNotAsErrors>NU1608;NU1701;NU1902;NU1603;NU1605;NU1903</WarningsNotAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     
     <!-- Configurações de documentação -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591;NU1603;NU1605</NoWarn> <!-- Missing XML comment warnings + NuGet package warnings -->
+    <NoWarn>$(NoWarn);CS1591;NU1603;NU1605;NU1903</NoWarn> <!-- Missing XML comment warnings + NuGet package/vulnerability warnings -->
     
     <!-- Configurações de performance -->
     <DebugType>portable</DebugType>

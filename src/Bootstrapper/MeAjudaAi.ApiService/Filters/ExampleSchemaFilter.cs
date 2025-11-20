@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Reflection;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
+using System.Text.Json.Nodes;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MeAjudaAi.ApiService.Filters;
@@ -11,29 +11,32 @@ namespace MeAjudaAi.ApiService.Filters;
 /// </summary>
 public class ExampleSchemaFilter : ISchemaFilter
 {
-    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
+        // Cast para OpenApiSchema concreto para mutação
+        var concreteSchema = (OpenApiSchema)schema;
+        
         // Adicionar exemplos baseados em DefaultValueAttribute
         if (context.Type.IsClass && context.Type != typeof(string))
         {
-            AddExamplesFromProperties(schema, context.Type);
+            AddExamplesFromProperties(concreteSchema, context.Type);
         }
 
         // Adicionar exemplos para enums
         if (context.Type.IsEnum)
         {
-            AddEnumExamples(schema, context.Type);
+            AddEnumExamples(concreteSchema, context.Type);
         }
 
         // Adicionar descrições mais detalhadas
-        AddDetailedDescription(schema, context.Type);
+        AddDetailedDescription(concreteSchema, context.Type);
     }
 
     private void AddExamplesFromProperties(OpenApiSchema schema, Type type)
     {
         if (schema.Properties == null) return;
 
-        var example = new OpenApiObject();
+        var example = new JsonObject();
         var hasExamples = false;
 
         foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -64,13 +67,13 @@ public class ExampleSchemaFilter : ISchemaFilter
         }
     }
 
-    private IOpenApiAny? GetPropertyExample(PropertyInfo property)
+    private JsonNode? GetPropertyExample(PropertyInfo property)
     {
         // Verificar atributo DefaultValue
         var defaultValueAttr = property.GetCustomAttribute<DefaultValueAttribute>();
         if (defaultValueAttr != null)
         {
-            return ConvertToOpenApiAny(defaultValueAttr.Value);
+            return ConvertToJsonNode(defaultValueAttr.Value);
         }
 
         // Exemplos baseados no tipo e nome da propriedade
@@ -86,37 +89,37 @@ public class ExampleSchemaFilter : ISchemaFilter
         return propertyType.Name switch
         {
             nameof(String) => GetStringExample(propertyName),
-            nameof(Guid) => new OpenApiString("3fa85f64-5717-4562-b3fc-2c963f66afa6"),
-            nameof(DateTime) => new OpenApiDateTime(new DateTime(2024, 01, 15, 10, 30, 00, DateTimeKind.Utc)),
-            nameof(DateTimeOffset) => new OpenApiDateTime(new DateTimeOffset(2024, 01, 15, 10, 30, 00, TimeSpan.Zero)),
-            nameof(Int32) => new OpenApiInteger(GetIntegerExample(propertyName)),
-            nameof(Int64) => new OpenApiLong(GetLongExample(propertyName)),
-            nameof(Boolean) => new OpenApiBoolean(GetBooleanExample(propertyName)),
-            nameof(Decimal) => new OpenApiDouble(GetDecimalExample(propertyName)),
-            nameof(Double) => new OpenApiDouble(GetDoubleExample(propertyName)),
+            nameof(Guid) => JsonValue.Create("3fa85f64-5717-4562-b3fc-2c963f66afa6"),
+            nameof(DateTime) => JsonValue.Create(new DateTime(2024, 01, 15, 10, 30, 00, DateTimeKind.Utc)),
+            nameof(DateTimeOffset) => JsonValue.Create(new DateTimeOffset(2024, 01, 15, 10, 30, 00, TimeSpan.Zero)),
+            nameof(Int32) => JsonValue.Create(GetIntegerExample(propertyName)),
+            nameof(Int64) => JsonValue.Create(GetLongExample(propertyName)),
+            nameof(Boolean) => JsonValue.Create(GetBooleanExample(propertyName)),
+            nameof(Decimal) => JsonValue.Create(GetDecimalExample(propertyName)),
+            nameof(Double) => JsonValue.Create(GetDoubleExample(propertyName)),
             _ => null
         };
     }
 
-    private static IOpenApiAny GetStringExample(string propertyName)
+    private static JsonNode GetStringExample(string propertyName)
     {
         return propertyName switch
         {
-            var name when name.Contains("email") => new OpenApiString("usuario@example.com"),
-            var name when name.Contains("phone") || name.Contains("telefone") => new OpenApiString("+55 11 99999-9999"),
-            var name when name.Contains("name") || name.Contains("nome") => new OpenApiString("João Silva"),
-            var name when name.Contains("username") => new OpenApiString("joao.silva"),
-            var name when name.Contains("firstname") => new OpenApiString("João"),
-            var name when name.Contains("lastname") => new OpenApiString("Silva"),
-            var name when name.Contains("password") => new OpenApiString("MinhaSenh@123"),
-            var name when name.Contains("description") || name.Contains("descricao") => new OpenApiString("Descrição do item"),
-            var name when name.Contains("title") || name.Contains("titulo") => new OpenApiString("Título do Item"),
-            var name when name.Contains("address") || name.Contains("endereco") => new OpenApiString("Rua das Flores, 123"),
-            var name when name.Contains("city") || name.Contains("cidade") => new OpenApiString("São Paulo"),
-            var name when name.Contains("state") || name.Contains("estado") => new OpenApiString("SP"),
-            var name when name.Contains("zipcode") || name.Contains("cep") => new OpenApiString("01234-567"),
-            var name when name.Contains("country") || name.Contains("pais") => new OpenApiString("Brasil"),
-            _ => new OpenApiString("exemplo")
+            var name when name.Contains("email") => JsonValue.Create("usuario@example.com")!,
+            var name when name.Contains("phone") || name.Contains("telefone") => JsonValue.Create("+55 11 99999-9999")!,
+            var name when name.Contains("name") || name.Contains("nome") => JsonValue.Create("João Silva")!,
+            var name when name.Contains("username") => JsonValue.Create("joao.silva")!,
+            var name when name.Contains("firstname") => JsonValue.Create("João")!,
+            var name when name.Contains("lastname") => JsonValue.Create("Silva")!,
+            var name when name.Contains("password") => JsonValue.Create("MinhaSenh@123")!,
+            var name when name.Contains("description") || name.Contains("descricao") => JsonValue.Create("Descrição do item")!,
+            var name when name.Contains("title") || name.Contains("titulo") => JsonValue.Create("Título do Item")!,
+            var name when name.Contains("address") || name.Contains("endereco") => JsonValue.Create("Rua das Flores, 123")!,
+            var name when name.Contains("city") || name.Contains("cidade") => JsonValue.Create("São Paulo")!,
+            var name when name.Contains("state") || name.Contains("estado") => JsonValue.Create("SP")!,
+            var name when name.Contains("zipcode") || name.Contains("cep") => JsonValue.Create("01234-567")!,
+            var name when name.Contains("country") || name.Contains("pais") => JsonValue.Create("Brasil")!,
+            _ => JsonValue.Create("exemplo")!
         };
     }
 
@@ -182,8 +185,7 @@ public class ExampleSchemaFilter : ISchemaFilter
         if (firstValue == null) return;
 
         // Check if schema represents enum as integer or string
-        var isIntegerEnum = schema.Type == "integer" ||
-                           (schema.Enum?.Count > 0 && schema.Enum[0] is OpenApiInteger);
+        var isIntegerEnum = schema.Type?.HasFlag(JsonSchemaType.Integer) ?? false;
 
         if (isIntegerEnum)
         {
@@ -195,23 +197,23 @@ public class ExampleSchemaFilter : ISchemaFilter
 
                 schema.Example = numericValue switch
                 {
-                    long l => new OpenApiLong(l),
-                    int i => new OpenApiInteger(i),
-                    short s => new OpenApiInteger(s),
-                    byte b => new OpenApiInteger(b),
-                    _ => new OpenApiInteger(Convert.ToInt32(numericValue))
+                    long l => JsonValue.Create(l),
+                    int i => JsonValue.Create(i),
+                    short s => JsonValue.Create(s),
+                    byte b => JsonValue.Create(b),
+                    _ => JsonValue.Create(Convert.ToInt32(numericValue))
                 };
             }
             catch
             {
                 // Fall back to string representation if numeric conversion fails
-                schema.Example = new OpenApiString(firstValue.ToString());
+                schema.Example = JsonValue.Create(firstValue.ToString());
             }
         }
         else
         {
             // Use string representation (existing behavior)
-            schema.Example = new OpenApiString(firstValue.ToString());
+            schema.Example = JsonValue.Create(firstValue.ToString());
         }
     }
 
@@ -224,22 +226,24 @@ public class ExampleSchemaFilter : ISchemaFilter
         }
     }
 
-    private static IOpenApiAny? ConvertToOpenApiAny(object? value)
+    private static JsonNode? ConvertToJsonNode(object? value)
     {
         return value switch
         {
             null => null,
-            string s => new OpenApiString(s),
-            int i => new OpenApiInteger(i),
-            long l => new OpenApiLong(l),
-            float f => new OpenApiFloat(f),
-            double d => new OpenApiDouble(d),
-            decimal dec => new OpenApiDouble((double)dec),
-            bool b => new OpenApiBoolean(b),
-            DateTime dt => new OpenApiDateTime(dt),
-            DateTimeOffset dto => new OpenApiDateTime(dto),
-            Guid g => new OpenApiString(g.ToString()),
-            _ => new OpenApiString(value.ToString())
+            string s => JsonValue.Create(s),
+            int i => JsonValue.Create(i),
+            long l => JsonValue.Create(l),
+            float f => JsonValue.Create(f),
+            double d => JsonValue.Create(d),
+            decimal dec => JsonValue.Create(dec),
+            bool b => JsonValue.Create(b),
+            DateTime dt => JsonValue.Create(dt),
+            DateTimeOffset dto => JsonValue.Create(dto),
+            Guid g => JsonValue.Create(g.ToString()),
+            _ => JsonValue.Create(value.ToString())
         };
     }
 }
+
+
