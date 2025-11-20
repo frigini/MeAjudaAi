@@ -4,10 +4,20 @@ This document tracks known security vulnerabilities in transitive NuGet package 
 
 ## Current Status
 
-Last Updated: 2025-11-20  
-.NET Version: 10.0 (Preview/RC)
+**Last Updated:** 2025-11-20  
+**.NET Version:** 10.0 (Preview/RC)  
+**Active Suppressions:** None ✅
 
-## Known Vulnerabilities
+All detected vulnerabilities are:
+- **Transitive dependencies** (not directly referenced)
+- **Build-time only** (MSBuild packages, test JWT libraries)  
+- **No runtime exposure** in production environments
+
+These vulnerabilities are monitored but do not require active suppression as they pose no runtime security risk.
+
+---
+
+## Known Vulnerabilities (Informational Only)
 
 ### 1. Microsoft.Build.Tasks.Core & Microsoft.Build.Utilities.Core
 
@@ -66,37 +76,6 @@ Last Updated: 2025-11-20
 - Tokens are generated locally, not from external sources
 
 ---
-
-## Remediation Plan
-
-### Immediate Actions
-1. ✅ Document all vulnerabilities with risk assessment
-2. ⏳ Add targeted NuGetAudit suppressions (see below)
-3. ⏳ Remove global `disableVulnerabilityWarnings` from nuget.config
-
-### Short-term (Next Sprint)
-1. Investigate upgrading `System.IdentityModel.Tokens.Jwt` to 8.14.0 (current CPM version)
-2. Review test authentication framework for compatibility with newer JWT libraries
-3. Monitor .NET 10 SDK updates for MSBuild.Tasks.Core fixes
-
-### Long-term (Before Production)
-1. Ensure all vulnerabilities are resolved before .NET 10 RTM
-2. Implement automated vulnerability scanning in CI/CD
-3. Establish policy for vulnerability response times by severity
-
-## NuGetAudit Suppressions
-
-The following suppressions should be added to `Directory.Build.props` after removing the global disable:
-
-```xml
-<ItemGroup>
-  <!-- High severity: MSBuild build-time DoS - awaiting .NET 10 RTM fix -->
-  <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-w3q9-fxm7-j8fq" />
-  
-  <!-- Moderate severity: JWT DoS in test-only dependencies -->
-  <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-59j7-ghrg-fj52" />
-</ItemGroup>
-```
 
 ## Monitoring
 

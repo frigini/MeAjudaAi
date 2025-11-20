@@ -48,15 +48,12 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         deleteResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound); // NotFound aceitável se já foi deletado
+            "Deletion should return OK or NoContent");
 
         // Verifica que o usuário não existe mais através da API
-        if (deleteResponse.IsSuccessStatusCode)
-        {
-            var getAfterDelete = await ApiClient.GetAsync($"/api/v1/users/{userId}");
-            getAfterDelete.StatusCode.Should().Be(HttpStatusCode.NotFound,
-                "User should not exist after deletion");
-        }
+        var getAfterDelete = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        getAfterDelete.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "User should not exist after deletion");
     }
 
     [Fact]
@@ -70,9 +67,8 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/users/{nonExistentId}");
 
         // Assert
-        deleteResponse.StatusCode.Should().BeOneOf(
-            HttpStatusCode.NotFound,
-            HttpStatusCode.NoContent); // Alguns endpoints são idempotentes
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "Deleting non-existent user should return NotFound");
     }
 
     [Fact]
@@ -140,20 +136,15 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         updateResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound);
+            "Update should return OK or NoContent");
 
-        if (updateResponse.IsSuccessStatusCode)
-        {
-            // Verifica que as mudanças foram persistidas através da API
-            var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        // Verifica que as mudanças foram persistidas através da API
+        var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            if (getResponse.IsSuccessStatusCode)
-            {
-                var content = await getResponse.Content.ReadAsStringAsync();
-                content.Should().Contain("Updated");
-                content.Should().Contain("Profile");
-            }
-        }
+        var content = await getResponse.Content.ReadAsStringAsync();
+        content.Should().Contain("Updated");
+        content.Should().Contain("Profile");
     }
 
     [Fact]
@@ -180,9 +171,12 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         var getByEmailResponse = await ApiClient.GetAsync($"/api/v1/users/by-email/{Uri.EscapeDataString(uniqueEmail)}");
 
         // Assert
-        getByEmailResponse.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.NotFound);
+        getByEmailResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+            "User should be found by email after creation");
+
+        var content = await getByEmailResponse.Content.ReadAsStringAsync();
+        content.Should().Contain(uniqueEmail,
+            "Response should contain the queried email");
 
         if (getByEmailResponse.StatusCode == HttpStatusCode.OK)
         {

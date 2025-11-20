@@ -81,16 +81,19 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
 
                 // Parse JSON e verifica o campo status
                 var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
-                if (statusResult.RootElement.TryGetProperty("data", out var dataProperty) &&
-                    dataProperty.TryGetProperty("status", out var statusProperty))
-                {
-                    var status = statusProperty.GetString();
-                    status.Should().NotBeNullOrEmpty();
-                    // Document should be in verification state (case-insensitive)
-                    status!.ToLowerInvariant().Should().BeOneOf(
-                        "pending", "pendingverification", "verifying",
-                        "Document should be in verification state");
-                }
+                
+                statusResult.RootElement.TryGetProperty("data", out var dataProperty)
+                    .Should().BeTrue("Response should contain 'data' property");
+                
+                dataProperty.TryGetProperty("status", out var statusProperty)
+                    .Should().BeTrue("Data property should contain 'status' field");
+                    
+                var status = statusProperty.GetString();
+                status.Should().NotBeNullOrEmpty();
+                
+                // Document should be in verification state (case-insensitive)
+                status!.ToLowerInvariant().Should().BeOneOf(
+                    "pending", "pendingverification", "verifying");
             }
         }
     }
