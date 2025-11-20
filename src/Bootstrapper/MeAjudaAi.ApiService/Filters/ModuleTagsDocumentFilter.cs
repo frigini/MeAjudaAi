@@ -94,19 +94,21 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
 
     private static void AddServerInformation(OpenApiDocument swaggerDoc)
     {
-        swaggerDoc.Servers =
-        [
-            new OpenApiServer
-            {
-                Url = "http://localhost:5000",
-                Description = "Desenvolvimento Local"
-            },
-            new OpenApiServer
-            {
-                Url = "https://api.meajudaai.com",
-                Description = "Produção"
-            }
-        ];
+        // TODO: Investigate OpenApiServer initialization issue in .NET 10 / Swashbuckle 10
+        // Temporarily disabled to fix UriFormatException
+        // swaggerDoc.Servers =
+        // [
+        //     new OpenApiServer
+        //     {
+        //         Url = "http://localhost:5000",
+        //         Description = "Desenvolvimento Local"
+        //     },
+        //     new OpenApiServer
+        //     {
+        //         Url = "https://api.meajudaai.com",
+        //         Description = "Produção"
+        //     }
+        // ];
     }
 
     private static void AddGlobalExamples(OpenApiDocument swaggerDoc)
