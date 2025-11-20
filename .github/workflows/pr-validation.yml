@@ -118,8 +118,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate
+      - name: 🔧 Restore dependencies
+        run: dotnet restore MeAjudaAi.sln --force-evaluate --locked-mode
 
       - name: Build solution
         run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
@@ -775,7 +775,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate
+        run: dotnet restore MeAjudaAi.sln --force-evaluate --locked-mode
 
       - name: Run Security Audit
         run: dotnet list package --vulnerable --include-transitive

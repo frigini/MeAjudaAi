@@ -36,14 +36,14 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn> <!-- Missing XML comment warnings -->
     
-    <!-- Temporarily suppress NU1903 (package vulnerability warnings) globally -->
-    <!-- These are transitive dependencies with known vulnerabilities: -->
-    <!-- - Microsoft.Build.Tasks.Core 17.14.8 (high severity - GHSA-w3q9-fxm7-j8fq) -->
-    <!-- - Microsoft.Build.Utilities.Core 17.14.8 (high severity - GHSA-w3q9-fxm7-j8fq) -->
-    <!-- - Microsoft.IdentityModel.JsonWebTokens 6.8.0 (moderate severity - GHSA-59j7-ghrg-fj52) -->
-    <!-- - System.IdentityModel.Tokens.Jwt 6.8.0 (moderate severity - GHSA-59j7-ghrg-fj52) -->
-    <!-- TODO: Update source packages to bring in patched versions of these transitive dependencies -->
-    <!-- TODO: Track remediation in https://github.com/[organization]/[repo]/issues/[number] -->
+    <!-- Temporarily suppress NU1903 (package vulnerability warnings) for transitive dependencies -->
+    <!-- These vulnerabilities come from Microsoft.EntityFrameworkCore.Design 10.0.0-rc.2: -->
+    <!-- - Microsoft.Build.Tasks.Core 17.14.8 (CVE-2025-55247 - DoS) -->
+    <!-- - Microsoft.Build.Utilities.Core 17.14.8 (CVE-2025-55247 - DoS) -->
+    <!-- Note: Version 17.14.28 mentioned in security advisories is not yet available on NuGet -->
+    <!-- Central package constraints set to 17.* to automatically pick up patch when available -->
+    <!-- TODO: Monitor https://www.nuget.org/packages/Microsoft.Build.Tasks.Core for 17.14.28+ -->
+    <!-- TODO: Update EF Core Design to stable 10.0.0 when available (currently RC) -->
     <!-- See security_vulnerabilities.md for accepted risk documentation -->
     <NoWarn>$(NoWarn);NU1903;NU1902</NoWarn>
     

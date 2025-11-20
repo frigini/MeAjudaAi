@@ -11,25 +11,22 @@ namespace MeAjudaAi.ApiService.Filters;
 /// </summary>
 public class ExampleSchemaFilter : ISchemaFilter
 {
-    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
+    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
     {
-        // IOpenApiSchema é uma interface, precisamos cast para OpenApiSchema para acessar propriedades
-        if (schema is not OpenApiSchema concreteSchema)
-            return;
         // Adicionar exemplos baseados em DefaultValueAttribute
         if (context.Type.IsClass && context.Type != typeof(string))
         {
-            AddExamplesFromProperties(concreteSchema, context.Type);
+            AddExamplesFromProperties(schema, context.Type);
         }
 
         // Adicionar exemplos para enums
         if (context.Type.IsEnum)
         {
-            AddEnumExamples(concreteSchema, context.Type);
+            AddEnumExamples(schema, context.Type);
         }
 
         // Adicionar descrições mais detalhadas
-        AddDetailedDescription(concreteSchema, context.Type);
+        AddDetailedDescription(schema, context.Type);
     }
 
     private void AddExamplesFromProperties(OpenApiSchema schema, Type type)
