@@ -31,8 +31,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
 
         var uploadResponse = await ApiClient.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest, JsonOptions);
 
-        uploadResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK,
-            "Document upload failed: {0}", await uploadResponse.Content.ReadAsStringAsync());
+        uploadResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
 
         Guid documentId;
 
@@ -89,9 +88,9 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
                 {
                     var status = statusProperty.GetString();
                     status.Should().NotBeNullOrEmpty();
+                    // Document should be in verification state
                     status!.Should().BeOneOf(
-                        "Pending", "PendingVerification", "Verifying", "pending", "pendingverification", "verifying",
-                        because: "Document should be in verification state");
+                        "Pending", "PendingVerification", "Verifying", "pending", "pendingverification", "verifying");
                 }
             }
         }
