@@ -36,6 +36,8 @@ public class UsersModuleTests : TestContainerTestBase
     public async Task CreateUser_WithValidData_ShouldReturnCreatedOrConflict()
     {
         // Arrange
+        AuthenticateAsAdmin(); // CreateUser requer role admin
+        
         var createUserRequest = new CreateUserRequest
         {
             Username = $"testuser_{Guid.NewGuid():N}",
