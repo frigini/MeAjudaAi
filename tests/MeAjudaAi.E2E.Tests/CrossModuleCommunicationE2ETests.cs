@@ -13,6 +13,8 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
 {
     private async Task<JsonElement> CreateUserAsync(string username, string email, string firstName, string lastName)
     {
+        AuthenticateAsAdmin(); // CreateUser requer role admin (AdminOnly policy)
+        
         var createRequest = new
         {
             Username = username,
@@ -149,6 +151,7 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
         // This test simulates how failures in one module's usage shouldn't affect others
 
         // Arrange
+        AuthenticateAsAdmin(); // GetUserById requer autorização
         var validUser = await CreateUserAsync("recovery_test", "recovery@test.com", "Recovery", "Test");
         var invalidUserId = Guid.NewGuid();
 

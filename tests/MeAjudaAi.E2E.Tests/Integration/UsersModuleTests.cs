@@ -69,6 +69,7 @@ public class UsersModuleTests : TestContainerTestBase
     public async Task CreateUser_WithInvalidData_ShouldReturnBadRequest()
     {
         // Arrange
+        AuthenticateAsAdmin(); // CreateUser requer role admin (AdminOnly policy)
         var invalidRequest = new CreateUserRequest
         {
             Username = "", // Inválido: username vazio
@@ -116,6 +117,7 @@ public class UsersModuleTests : TestContainerTestBase
     public async Task UpdateUser_WithNonExistentId_ShouldReturnNotFound()
     {
         // Arrange
+        AuthenticateAsAdmin(); // UpdateUserProfile requer autorização (SelfOrAdmin policy)
         var nonExistentId = Guid.NewGuid();
         var updateRequest = new UpdateUserProfileRequest
         {

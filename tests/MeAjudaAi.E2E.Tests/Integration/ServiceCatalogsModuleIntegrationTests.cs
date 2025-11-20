@@ -206,6 +206,9 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
 
     private async Task<ServiceDto> CreateServiceAsync(Guid categoryId, string name, string description)
     {
+        // Re-autenticar para evitar problemas de state em testes paralelos
+        AuthenticateAsAdmin();
+        
         var request = new
         {
             CategoryId = categoryId,

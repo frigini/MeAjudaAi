@@ -49,7 +49,9 @@ public class ModuleIntegrationTests : TestContainerTestBase
     public async Task CreateAndUpdateUser_ShouldMaintainConsistency()
     {
         // Arrange
-        var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Mantém sob 30 caracteres  
+        AuthenticateAsAdmin(); // CreateUser requer role admin
+        
+        var uniqueId = Guid.NewGuid().ToString("N")[..8]; // 8 hex chars
         var createUserRequest = new
         {
             Username = $"test_{uniqueId}", // test_12345678 = 13 chars

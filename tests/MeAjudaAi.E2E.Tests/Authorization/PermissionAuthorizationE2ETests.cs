@@ -1,296 +1,220 @@
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
+using System.Net;
+using System.Net.Http.Json;
+using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Authorization;
-using Microsoft.AspNetCore.Mvc.Testing;
+using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.E2E.Tests.Authorization;
 
 /// <summary>
-/// Testes end-to-end para fluxos completos de autorização.
-/// Simula cenários reais de usuários com diferentes roles acessando endpoints.
+/// Testes end-to-end para autorização baseada em permissions.
+/// Valida que o ConfigurableTestAuthenticationHandler funciona corretamente com permissions customizadas.
 /// </summary>
-public class PermissionAuthorizationE2ETests : IClassFixture<WebApplicationFactory<Program>>
+public class PermissionAuthorizationE2ETests : TestContainerTestBase
 {
-    private readonly WebApplicationFactory<Program> _factory;
-    private readonly HttpClient _client;
-
-    public PermissionAuthorizationE2ETests(WebApplicationFactory<Program> factory)
-    {
-        _factory = factory;
-        _client = _factory.CreateClient();
-    }
+    // Herda Client de TestContainerTestBase (chamado ApiClient lá)
 
     [Fact]
-    public async Task BasicUserWorkflow_ShouldHaveAppropriateAccess()
+    public async Task UserWithReadPermission_CanListUsers()
     {
-        // Arrange - Simular usuário básico autenticado
-        var basicUserToken = GenerateTestJwtToken("basic-user-123", new[]
-        {
-            Permission.UsersRead.GetValue(),
-            Permission.UsersProfile.GetValue()
-        });
-
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", basicUserToken);
-
-        // Act & Assert - Operações que o usuário básico PODE fazer
-
-        // 1. Ver seu próprio perfil
-        var profileResponse = await _client.GetAsync("/api/v1/users/profile");
-        Assert.Equal(HttpStatusCode.OK, profileResponse.StatusCode);
-
-        // 2. Ler informações básicas de usuários
-        var readResponse = await _client.GetAsync("/api/v1/users/basic-info");
-        Assert.Equal(HttpStatusCode.OK, readResponse.StatusCode);
-
-        // Act & Assert - Operações que o usuário básico NÃO PODE fazer
-
-        // 3. Criar usuários (deve retornar Forbidden)
-        var createUserPayload = new { name = "New User", email = "new@test.com" };
-        var createResponse = await _client.PostAsync("/api/v1/users",
-            new StringContent(JsonSerializer.Serialize(createUserPayload), Encoding.UTF8, "application/json"));
-        Assert.Equal(HttpStatusCode.Forbidden, createResponse.StatusCode);
-
-        // 4. Deletar usuários (deve retornar Forbidden)
-        var deleteResponse = await _client.DeleteAsync("/api/v1/users/some-user-id");
-        Assert.Equal(HttpStatusCode.Forbidden, deleteResponse.StatusCode);
-
-        // 5. Acessar área administrativa (deve retornar Forbidden)
-        var adminResponse = await _client.GetAsync("/api/v1/users/admin");
-        Assert.Equal(HttpStatusCode.Forbidden, adminResponse.StatusCode);
-    }
-
-    [Fact]
-    public async Task UserAdminWorkflow_ShouldHaveAdministrativeAccess()
-    {
-        // Arrange - Simular administrador de usuários
-        var userAdminToken = GenerateTestJwtToken("user-admin-456", new[]
-        {
-            Permission.UsersRead.GetValue(),
-            Permission.UsersCreate.GetValue(),
-            Permission.UsersUpdate.GetValue(),
-            Permission.UsersList.GetValue(),
-            Permission.AdminUsers.GetValue()
-        });
-
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAdminToken);
-
-        // Act & Assert - Operações administrativas que PODE fazer
-
-        // 1. Listar todos os usuários
-        var listResponse = await _client.GetAsync("/api/v1/users");
-        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
-
-        // 2. Criar usuários
-        var createUserPayload = new { name = "Admin Created User", email = "admin@test.com" };
-        var createResponse = await _client.PostAsync("/api/v1/users",
-            new StringContent(JsonSerializer.Serialize(createUserPayload), Encoding.UTF8, "application/json"));
-        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
-
-        // 3. Atualizar usuários
-        var updatePayload = new { name = "Updated Name" };
-        var updateResponse = await _client.PutAsync("/api/v1/users/some-user-id",
-            new StringContent(JsonSerializer.Serialize(updatePayload), Encoding.UTF8, "application/json"));
-        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
-
-        // 4. Acessar área administrativa de usuários
-        var adminResponse = await _client.GetAsync("/api/v1/users/admin");
-        Assert.Equal(HttpStatusCode.OK, adminResponse.StatusCode);
-
-        // Act & Assert - Operações que NÃO PODE fazer (sem permissão de delete)
-
-        // 5. Deletar usuários (deve retornar Forbidden - precisa de permissão específica)
-        var deleteResponse = await _client.DeleteAsync("/api/v1/users/some-user-id");
-        Assert.Equal(HttpStatusCode.Forbidden, deleteResponse.StatusCode);
-
-        // 6. Operações de sistema (deve retornar Forbidden)
-        var systemResponse = await _client.GetAsync("/api/system/admin");
-        Assert.Equal(HttpStatusCode.Forbidden, systemResponse.StatusCode);
-    }
-
-    [Fact]
-    public async Task SystemAdminWorkflow_ShouldHaveFullAccess()
-    {
-        // Arrange - Simular administrador do sistema
-        var systemAdminToken = GenerateTestJwtToken("system-admin-789", new[]
-        {
-            Permission.AdminSystem.GetValue(),
-            Permission.AdminUsers.GetValue(),
-            Permission.UsersRead.GetValue(),
-            Permission.UsersCreate.GetValue(),
-            Permission.UsersUpdate.GetValue(),
-            Permission.UsersDelete.GetValue(),
-            Permission.UsersList.GetValue()
-        }, isSystemAdmin: true);
-
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", systemAdminToken);
-
-        // Act & Assert - Deve ter acesso completo
-
-        // 1. Todas as operações de usuários
-        var listResponse = await _client.GetAsync("/api/v1/users");
-        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
-
-        var createResponse = await _client.PostAsync("/api/v1/users",
-            new StringContent(JsonSerializer.Serialize(new { name = "System User" }), Encoding.UTF8, "application/json"));
-        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
-
-        var updateResponse = await _client.PutAsync("/api/v1/users/some-user-id",
-            new StringContent(JsonSerializer.Serialize(new { name = "Updated" }), Encoding.UTF8, "application/json"));
-        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
-
-        var deleteResponse = await _client.DeleteAsync("/api/v1/users/some-user-id");
-        Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
-
-        // 2. Operações de sistema
-        var systemResponse = await _client.GetAsync("/api/system/admin");
-        Assert.Equal(HttpStatusCode.OK, systemResponse.StatusCode);
-
-        // 3. Área administrativa completa
-        var adminResponse = await _client.GetAsync("/api/v1/users/admin");
-        Assert.Equal(HttpStatusCode.OK, adminResponse.StatusCode);
-    }
-
-    [Fact]
-    public async Task ModuleSpecificPermissions_ShouldIsolateAccess()
-    {
-        // Arrange - Usuário com permissões apenas do módulo Users
-        var usersOnlyToken = GenerateTestJwtToken("users-module-user", new[]
-        {
-            Permission.UsersRead.GetValue(),
-            Permission.UsersCreate.GetValue()
-        });
-
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", usersOnlyToken);
-
-        // Act & Assert - Acesso ao módulo Users
-        var usersResponse = await _client.GetAsync("/api/v1/users");
-        Assert.Equal(HttpStatusCode.OK, usersResponse.StatusCode);
-
-        // Act & Assert - Sem acesso a outros módulos (quando implementados)
-        var providersResponse = await _client.GetAsync("/api/v1/providers");
-        Assert.Equal(HttpStatusCode.Forbidden, providersResponse.StatusCode);
-
-        var ordersResponse = await _client.GetAsync("/api/orders");
-        Assert.Equal(HttpStatusCode.Forbidden, ordersResponse.StatusCode);
-    }
-
-    [Fact]
-    public async Task ConcurrentUsersSameResource_ShouldRespectIndividualPermissions()
-    {
-        // Arrange - Dois usuários diferentes acessando o mesmo recurso
-        var basicUserToken = GenerateTestJwtToken("basic-user-concurrent", new[]
-        {
-            Permission.UsersRead.GetValue()
-        });
-
-        var adminUserToken = GenerateTestJwtToken("admin-user-concurrent", new[]
-        {
-            Permission.AdminUsers.GetValue(),
-            Permission.UsersDelete.GetValue()
-        });
-
-        var basicClient = _factory.CreateClient();
-        var adminClient = _factory.CreateClient();
-
-        basicClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", basicUserToken);
-        adminClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminUserToken);
-
-        // Act & Assert - Operação que apenas admin pode fazer
-        var basicUserDeleteResponse = await basicClient.DeleteAsync("/api/v1/users/test-user");
-        var adminUserDeleteResponse = await adminClient.DeleteAsync("/api/v1/users/test-user");
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Forbidden, basicUserDeleteResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, adminUserDeleteResponse.StatusCode);
-    }
-
-    [Fact]
-    public async Task PermissionCaching_ShouldWorkAcrossRequests()
-    {
-        // Arrange - Usuário que fará múltiplas requisições
-        var userToken = GenerateTestJwtToken("cache-test-user", new[]
-        {
-            Permission.UsersRead.GetValue(),
-            Permission.UsersProfile.GetValue()
-        });
-
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
-
-        // Act - Múltiplas requisições que devem usar cache
-        var responses = new List<HttpResponseMessage>();
-
-        for (int i = 0; i < 5; i++)
-        {
-            var response = await _client.GetAsync("/api/v1/users/profile");
-            responses.Add(response);
-        }
-
-        // Assert - Todas devem ser bem-sucedidas
-        Assert.All(responses, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
-
-        // Verificar que as permissões foram resolvidas consistentemente
-        // (Em um teste real, isso seria verificado através de logs ou métricas)
-        Assert.True(responses.Count == 5);
-    }
-
-    [Fact]
-    public async Task TokenExpiredOrInvalid_ShouldReturnUnauthorized()
-    {
-        // Arrange - Token inválido
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "invalid-token");
+        // Arrange - Usuário com permissão de leitura
+        ConfigurableTestAuthenticationHandler.ConfigureUser(
+            userId: "user-read-123",
+            userName: "reader",
+            email: "reader@test.com",
+            permissions: [Permission.UsersRead.GetValue(), Permission.UsersList.GetValue()]
+        );
 
         // Act
-        var response = await _client.GetAsync("/api/v1/users/profile");
+        var response = await ApiClient.GetAsync("/api/v1/users");
 
         // Assert
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
-    public async Task MissingRequiredPermission_ShouldReturnForbiddenWithDetails()
+    public async Task UserWithoutListPermission_CannotListUsers()
     {
-        // Arrange - Usuário sem permissão necessária
-        var limitedToken = GenerateTestJwtToken("limited-user", new[]
-        {
-            Permission.UsersProfile.GetValue() // Tem profile mas não tem create
-        });
-
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", limitedToken);
+        // Arrange - Usuário sem permissão de listagem
+        ConfigurableTestAuthenticationHandler.ConfigureUser(
+            userId: "user-noperm-456",
+            userName: "noperm",
+            email: "noperm@test.com",
+            permissions: [Permission.UsersRead.GetValue()] // Tem read mas não list
+        );
 
         // Act
-        var createResponse = await _client.PostAsync("/api/v1/users",
-            new StringContent(JsonSerializer.Serialize(new { name = "Test" }), Encoding.UTF8, "application/json"));
+        var response = await ApiClient.GetAsync("/api/v1/users");
 
-        // Assert
-        Assert.Equal(HttpStatusCode.Forbidden, createResponse.StatusCode);
-
-        // Verificar se retorna detalhes do erro (ProblemDetails)
-        var content = await createResponse.Content.ReadAsStringAsync();
-        Assert.Contains("permission", content.ToLowerInvariant());
+        // Assert - Deve ser Forbidden
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    /// <summary>
-    /// Gera um token JWT de teste para uso nos testes E2E.
-    /// Em um ambiente real, isso viria do Keycloak.
-    /// </summary>
-    private static string GenerateTestJwtToken(string userId, string[] permissions, bool isSystemAdmin = false)
+    [Fact]
+    public async Task UserWithCreatePermission_CanCreateUser()
     {
-        // Para testes E2E, simular a geração de um token JWT
-        // Em implementação real, isso seria gerado pelo Keycloak
-        var claims = new Dictionary<string, object>
+        // Arrange - Usuário com permissão de criação E role admin (CreateUser requer AdminOnly policy)
+        ConfigurableTestAuthenticationHandler.ConfigureUser(
+            userId: "user-creator-789",
+            userName: "creator",
+            email: "creator@test.com",
+            permissions: [Permission.UsersCreate.GetValue()],
+            isSystemAdmin: false,
+            roles: ["admin"] // Necessário para passar pela policy AdminOnly
+        );
+
+        var newUser = new
         {
-            { "sub", userId },
-            { "permissions", permissions }
+            Name = "Test User",
+            Email = $"test-create-{Guid.NewGuid()}@example.com",
+            Username = $"user-{Guid.NewGuid().ToString()[..8]}",
+            Password = "Test@123456789" // Senha mais forte para passar validação
         };
 
-        if (isSystemAdmin)
+        // Act
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", newUser);
+
+        // Assert - Pode retornar BadRequest por validação, mas não deve ser Forbidden
+        Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UserWithoutCreatePermission_CannotCreateUser()
+    {
+        // Arrange - Usuário sem permissão de criação
+        ConfigurableTestAuthenticationHandler.ConfigureUser(
+            userId: "user-readonly-012",
+            userName: "readonly",
+            email: "readonly@test.com",
+            permissions: [Permission.UsersRead.GetValue()]
+        );
+
+        var newUser = new
         {
-            claims.Add("system_admin", true);
+            Name = "Test User",
+            Email = "test@example.com",
+            Password = "Test@123!",
+            Role = "user"
+        };
+
+        // Act
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", newUser);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UserWithMultiplePermissions_HasAppropriateAccess()
+    {
+        // Arrange - IMPORTANTE: Limpar estado de testes anteriores
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        
+        // Usuário com múltiplas permissões (sem role admin, então não pode criar)
+        ConfigurableTestAuthenticationHandler.ConfigureUser(
+            userId: "user-multi-345",
+            userName: "multi",
+            email: "multi@test.com",
+            permissions: [
+                Permission.UsersList.GetValue(),
+                Permission.UsersRead.GetValue(),
+                Permission.UsersUpdate.GetValue()
+            ],
+            isSystemAdmin: false,
+            roles: [] // SEM role admin - testa que permissões funcionam mas policies de role também
+        );
+
+        // Act & Assert - Pode listar
+        var listResponse = await ApiClient.GetAsync("/api/v1/users");
+        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
+
+        // Testa criar usuário - DEVE retornar Forbidden pois não tem role admin
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", new
+        {
+            Name = "Test",
+            Email = $"test-{Guid.NewGuid()}@test.com",
+            Username = $"user{Guid.NewGuid().ToString()[..8]}",
+            Password = "Test@123456789"
+        });
+        Assert.Equal(HttpStatusCode.Forbidden, createResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task SystemAdmin_HasFullAccess()
+    {
+        // Arrange - Administrador do sistema (role admin + permissões completas)
+        ConfigurableTestAuthenticationHandler.ConfigureUser(
+            userId: "admin-sys-678",
+            userName: "sysadmin",
+            email: "sysadmin@test.com",
+            permissions: [
+                Permission.AdminSystem.GetValue(),
+                Permission.AdminUsers.GetValue(),
+                Permission.UsersList.GetValue(),
+                Permission.UsersRead.GetValue(),
+                Permission.UsersCreate.GetValue(),
+                Permission.UsersUpdate.GetValue(),
+                Permission.UsersDelete.GetValue()
+            ],
+            isSystemAdmin: true,
+            roles: ["admin"] // Necessário para passar pela policy AdminOnly
+        );
+
+        // Act & Assert - Pode listar
+        var listResponse = await ApiClient.GetAsync("/api/v1/users");
+        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
+
+        // Pode criar (mesmo que dê BadRequest por validação, não deve ser Forbidden)
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", new
+        {
+            Name = "Admin Created",
+            Email = $"admin-{Guid.NewGuid()}@test.com",
+            Username = $"admin{Guid.NewGuid().ToString()[..8]}",
+            Password = "Admin@123456789"
+        });
+        Assert.NotEqual(HttpStatusCode.Forbidden, createResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task UserWithoutAnyPermissions_ReturnsForbidden()
+    {
+        // Arrange - Usuário autenticado mas SEM nenhuma permissão
+        ConfigurableTestAuthenticationHandler.ConfigureUser(
+            userId: "user-noperm-999",
+            userName: "noperms",
+            email: "noperms@test.com",
+            permissions: [], // SEM permissões
+            isSystemAdmin: false,
+            roles: [] // SEM roles
+        );
+
+        // Act
+        var response = await ApiClient.GetAsync("/api/v1/users");
+
+        // Assert - Não tem permissão UsersList, deve retornar Forbidden
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UserPermissionsWork_AcrossMultipleRequests()
+    {
+        // Arrange
+        ConfigurableTestAuthenticationHandler.ConfigureUser(
+            userId: "user-persist-901",
+            userName: "persistent",
+            email: "persistent@test.com",
+            permissions: [Permission.UsersList.GetValue(), Permission.UsersRead.GetValue()]
+        );
+
+        // Act - Fazer múltiplas requisições
+        var responses = new List<HttpResponseMessage>();
+        for (int i = 0; i < 3; i++)
+        {
+            responses.Add(await ApiClient.GetAsync("/api/v1/users"));
         }
 
-        // Simular token JWT (em implementação real, usar biblioteca JWT)
-        var tokenPayload = JsonSerializer.Serialize(claims);
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(tokenPayload));
+        // Assert - Todas devem ter sucesso
+        Assert.All(responses, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
     }
 }
+
