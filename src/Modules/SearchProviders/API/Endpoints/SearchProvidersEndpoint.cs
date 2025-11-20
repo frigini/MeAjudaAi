@@ -59,84 +59,8 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        // Validar inputs no limite do endpoint
-        // Note: ASP.NET treats page=0 in query string as the default value (1)
-        // So we need special handling for explicit zero values
-        if (page < 1)
-        {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Invalid Parameter",
-                Detail = "page must be greater than or equal to 1",
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-
-        if (pageSize <= 0)
-        {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Invalid Parameter",
-                Detail = "pageSize must be greater than 0",
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-
-        // Forçar máximo sensível para pageSize
-        const int MaxPageSize = 100;
-        if (pageSize > MaxPageSize)
-        {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Invalid Parameter",
-                Detail = $"pageSize must not exceed {MaxPageSize}",
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-
-        if (radiusInKm <= 0)
-        {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Invalid Parameter",
-                Detail = "radiusInKm must be greater than 0",
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-
-        // Optional: enforce sensible maximum for radius
-        const double MaxRadiusInKm = 500;
-        if (radiusInKm > MaxRadiusInKm)
-        {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Invalid Parameter",
-                Detail = $"radiusInKm must not exceed {MaxRadiusInKm} km",
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-
-        // Validar intervalos de latitude e longitude antes de construir GeoPoint
-        if (latitude < -90 || latitude > 90)
-        {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Invalid Parameter",
-                Detail = "latitude must be between -90 and 90",
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-
-        if (longitude < -180 || longitude > 180)
-        {
-            return Results.BadRequest(new ProblemDetails
-            {
-                Title = "Invalid Parameter",
-                Detail = "longitude must be between -180 and 180",
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-
+        // Note: Input validation is handled automatically by FluentValidation via MediatR pipeline
+        // See SearchProvidersQueryValidator for validation rules
         var query = new SearchProvidersQuery(
             latitude,
             longitude,

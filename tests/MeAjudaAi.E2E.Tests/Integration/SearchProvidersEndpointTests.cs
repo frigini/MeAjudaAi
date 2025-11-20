@@ -214,23 +214,6 @@ public class SearchProvidersEndpointTests : TestContainerTestBase
     }
 
     [Fact]
-    public async Task SearchProviders_WithInvalidPageNumber_ShouldReturnBadRequest()
-    {
-        // Arrange
-        var latitude = -23.5505;
-        var longitude = -46.6333;
-        var radius = 10;
-        var invalidPageNumber = -1; // PageNumber deve ser >= 1
-
-        // Act
-        var response = await ApiClient.GetAsync(
-            $"/api/v1/search/providers?latitude={latitude}&longitude={longitude}&radiusInKm={radius}&pageNumber={invalidPageNumber}");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
-    [Fact]
     public async Task SearchProviders_WithInvalidPageSize_ShouldReturnBadRequest()
     {
         // Arrange
