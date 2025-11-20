@@ -307,7 +307,7 @@ jobs:
             "Architecture:tests/MeAjudaAi.Architecture.Tests/"
             "Integration:tests/MeAjudaAi.Integration.Tests/"
             "Shared:tests/MeAjudaAi.Shared.Tests/"
-            # "E2E:tests/MeAjudaAi.E2E.Tests/"  # Uncomment when E2E tests are ready
+            "E2E:tests/MeAjudaAi.E2E.Tests/"
           )
 
           # Run system tests without coverage
