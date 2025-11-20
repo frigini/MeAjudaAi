@@ -1,6 +1,7 @@
 using Bogus;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
@@ -36,7 +37,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     {
         // Configurar containers com configuração mais robusta
         _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:13-alpine")
+            .WithImage("postgis/postgis:16-3.4") // Mesma imagem usada em CI/CD e compose
             .WithDatabase("meajudaai_test")
             .WithUsername("postgres")
             .WithPassword("test123")
@@ -109,48 +110,11 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         logging.SetMinimumLevel(LogLevel.Error);
                     });
 
-                    // Remover configuração existente do DbContext
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<UsersDbContext>));
-                    if (descriptor != null)
-                        services.Remove(descriptor);
-
-                    // Reconfigurar DbContext com TestContainer connection string
-                    services.AddDbContext<UsersDbContext>(options =>
-                    {
-                        options.UseNpgsql(_postgresContainer.GetConnectionString())
-                               .UseSnakeCaseNamingConvention()
-                               .EnableSensitiveDataLogging(false)
-                               .ConfigureWarnings(warnings =>
-                                   warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
-
-                    // Reconfigurar ProvidersDbContext com TestContainer connection string
-                    var providersDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ProvidersDbContext>));
-                    if (providersDescriptor != null)
-                        services.Remove(providersDescriptor);
-
-                    services.AddDbContext<ProvidersDbContext>(options =>
-                    {
-                        options.UseNpgsql(_postgresContainer.GetConnectionString())
-                               .UseSnakeCaseNamingConvention()
-                               .EnableSensitiveDataLogging(false)
-                               .ConfigureWarnings(warnings =>
-                                   warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
-
-                    // Reconfigurar DocumentsDbContext com TestContainer connection string
-                    var documentsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<DocumentsDbContext>));
-                    if (documentsDescriptor != null)
-                        services.Remove(documentsDescriptor);
-
-                    services.AddDbContext<DocumentsDbContext>(options =>
-                    {
-                        options.UseNpgsql(_postgresContainer.GetConnectionString())
-                               .UseSnakeCaseNamingConvention()
-                               .EnableSensitiveDataLogging(false)
-                               .ConfigureWarnings(warnings =>
-                                   warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
+                    // Reconfigurar todos os DbContexts com TestContainer connection string
+                    ReconfigureDbContext<UsersDbContext>(services);
+                    ReconfigureDbContext<ProvidersDbContext>(services);
+                    ReconfigureDbContext<DocumentsDbContext>(services);
+                    ReconfigureDbContext<ServiceCatalogsDbContext>(services);
 
                     // Substituir IKeycloakService por MockKeycloakService para testes
                     var keycloakDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IKeycloakService));
@@ -262,6 +226,10 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         // Para DocumentsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema documents)
         var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
         await documentsContext.Database.MigrateAsync();
+
+        // Para ServiceCatalogsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema catalogs)
+        var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+        await catalogsContext.Database.MigrateAsync();
     }
 
     // Helper methods usando serialização compartilhada
@@ -352,4 +320,23 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T content)
         => await PutJsonAsync(requestUri.ToString(), content);
+
+    /// <summary>
+    /// Reconfigura um DbContext para usar a connection string do TestContainer
+    /// </summary>
+    private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
+    {
+        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
+        if (descriptor != null)
+            services.Remove(descriptor);
+
+        services.AddDbContext<TContext>(options =>
+        {
+            options.UseNpgsql(_postgresContainer.GetConnectionString())
+                   .UseSnakeCaseNamingConvention()
+                   .EnableSensitiveDataLogging(false)
+                   .ConfigureWarnings(warnings =>
+                       warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
+    }
 }
