@@ -84,11 +84,21 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
     [Fact]
     public async Task DeleteUser_WithoutPermission_Should_Return_Forbidden()
     {
-        // Arrange - Usuário sem permissão de delete
-        var userId = Guid.NewGuid();
+        // Arrange - Configurar usuário sem permissão de delete
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        ConfigurableTestAuthenticationHandler.ConfigureUser(
+            userId: "user-no-delete-123",
+            userName: "nodeleteuser",
+            email: "nodelete@test.com",
+            permissions: [
+                Permission.UsersRead.GetValue(),
+                Permission.UsersList.GetValue()
+            ],
+            isSystemAdmin: false,
+            roles: []
+        );
         
-        // Não autentica como admin, usa autenticação padrão sem permissões
-        // (TestContainerTestBase já tem um handler configurado)
+        var userId = Guid.NewGuid();
 
         // Act
         var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/users/{userId}");
@@ -96,8 +106,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
         // Assert
         deleteResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.Forbidden,
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.NotFound); // Pode ser 404 se autorização acontece depois de validação de existência
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]

@@ -151,7 +151,7 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
         // This test simulates how failures in one module's usage shouldn't affect others
 
         // Arrange
-        AuthenticateAsAdmin(); // GetUserById requer autorização
+        AuthenticateAsAdmin(); // CreateUserAsync requer role Admin (AdminOnly policy)
         var validUser = await CreateUserAsync("recovery_test", "recovery@test.com", "Recovery", "Test");
         var invalidUserId = Guid.NewGuid();
 

@@ -17,7 +17,10 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     [Fact]
     public async Task UserWithReadPermission_CanListUsers()
     {
-        // Arrange - Usuário com permissão de leitura
+        // Arrange - Limpar estado de testes anteriores
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        
+        // Usuário com permissão de leitura
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-read-123",
             userName: "reader",
@@ -35,7 +38,10 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     [Fact]
     public async Task UserWithoutListPermission_CannotListUsers()
     {
-        // Arrange - Usuário sem permissão de listagem
+        // Arrange - Limpar estado de testes anteriores
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        
+        // Usuário sem permissão de listagem
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-noperm-456",
             userName: "noperm",
@@ -53,7 +59,10 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     [Fact]
     public async Task UserWithCreatePermission_CanCreateUser()
     {
-        // Arrange - Usuário com permissão de criação E role admin (CreateUser requer AdminOnly policy)
+        // Arrange - Limpar estado de testes anteriores
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        
+        // Usuário com permissão de criação E role admin (CreateUser requer AdminOnly policy)
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-creator-789",
             userName: "creator",
@@ -81,7 +90,10 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
     [Fact]
     public async Task UserWithoutCreatePermission_CannotCreateUser()
     {
-        // Arrange - Usuário sem permissão de criação
+        // Arrange - Limpar estado de testes anteriores
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+        
+        // Usuário sem permissão de criação
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-readonly-012",
             userName: "readonly",

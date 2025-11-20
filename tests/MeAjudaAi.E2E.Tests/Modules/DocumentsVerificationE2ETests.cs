@@ -31,60 +31,25 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
 
         var uploadResponse = await ApiClient.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest, JsonOptions);
 
-        // Se o upload falhar (Azure Blob não disponível), pula o teste
-        if (uploadResponse.StatusCode != HttpStatusCode.Created && 
-            uploadResponse.StatusCode != HttpStatusCode.OK)
-        {
-            // Azure Blob Storage pode não estar disponível em ambiente de teste
-            return;
-        }
+        uploadResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK,
+            "Document upload failed: {0}", await uploadResponse.Content.ReadAsStringAsync());
 
         Guid documentId;
         
-        // Tenta extrair o ID do documento da resposta
         if (uploadResponse.StatusCode == HttpStatusCode.Created)
         {
             var locationHeader = uploadResponse.Headers.Location?.ToString();
-            if (locationHeader != null)
-            {
-                documentId = ExtractIdFromLocation(locationHeader);
-            }
-            else
-            {
-                // Se não há Location header, tenta obter do corpo da resposta
-                var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
-                var uploadResult = System.Text.Json.JsonDocument.Parse(uploadContent);
-                
-                if (uploadResult.RootElement.TryGetProperty("data", out var dataProperty) &&
-                    dataProperty.TryGetProperty("id", out var idProperty))
-                {
-                    documentId = idProperty.GetGuid();
-                }
-                else
-                {
-                    return; // Não conseguiu obter o ID, pula o teste
-                }
-            }
+            locationHeader.Should().NotBeNullOrEmpty("Created response must include Location header");
+            documentId = ExtractIdFromLocation(locationHeader!);
         }
         else
         {
-            // Tenta extrair do corpo da resposta
             var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
-            if (string.IsNullOrEmpty(uploadContent))
-            {
-                return;
-            }
-            
+            uploadContent.Should().NotBeNullOrEmpty("Response body required for document ID");
             var uploadResult = System.Text.Json.JsonDocument.Parse(uploadContent);
-            if (uploadResult.RootElement.TryGetProperty("data", out var dataProperty) &&
-                dataProperty.TryGetProperty("id", out var idProperty))
-            {
-                documentId = idProperty.GetGuid();
-            }
-            else
-            {
-                return;
-            }
+            uploadResult.RootElement.TryGetProperty("data", out var dataProperty).Should().BeTrue();
+            dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
+            documentId = idProperty.GetGuid();
         }
 
         // Act - Request verification
@@ -116,9 +81,18 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
             {
                 var statusContent = await statusResponse.Content.ReadAsStringAsync();
                 statusContent.Should().NotBeNullOrEmpty();
-                // O status deve ter mudado para PendingVerification ou similar
-                statusContent.Should().MatchRegex("Pending|Verification|Verifying", 
-                    "Document should be in verification state");
+                
+                // Parse JSON e verifica o campo status
+                var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
+                if (statusResult.RootElement.TryGetProperty("data", out var dataProperty) &&
+                    dataProperty.TryGetProperty("status", out var statusProperty))
+                {
+                    var status = statusProperty.GetString();
+                    status.Should().NotBeNullOrEmpty();
+                    status!.Should().BeOneOf(
+                        "Pending", "PendingVerification", "Verifying", "pending", "pendingverification", "verifying",
+                        because: "Document should be in verification state");
+                }
             }
         }
     }
@@ -172,25 +146,5 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound);
-    }
-
-    private static Guid ExtractIdFromLocation(string locationHeader)
-    {
-        if (locationHeader.Contains("?id="))
-        {
-            var queryString = locationHeader.Split('?')[1];
-            var idParam = queryString.Split('&')
-                .FirstOrDefault(p => p.StartsWith("id="));
-            
-            if (idParam != null)
-            {
-                var idValue = idParam.Split('=')[1];
-                return Guid.Parse(idValue);
-            }
-        }
-        
-        var segments = locationHeader.Split('/');
-        var lastSegment = segments[^1].Split('?')[0];
-        return Guid.Parse(lastSegment);
     }
 }

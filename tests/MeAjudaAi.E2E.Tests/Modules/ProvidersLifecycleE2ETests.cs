@@ -333,26 +333,4 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
             HttpStatusCode.NotFound,
             HttpStatusCode.BadRequest); // Múltiplos status aceitáveis dependendo da implementação
     }
-
-    private static Guid ExtractIdFromLocation(string locationHeader)
-    {
-        // Suporta tanto formato de path quanto query string
-        if (locationHeader.Contains("?id="))
-        {
-            var queryString = locationHeader.Split('?')[1];
-            var idParam = queryString.Split('&')
-                .FirstOrDefault(p => p.StartsWith("id="));
-            
-            if (idParam != null)
-            {
-                var idValue = idParam.Split('=')[1];
-                return Guid.Parse(idValue);
-            }
-        }
-        
-        // Formato de path: /api/v1/providers/{guid}
-        var segments = locationHeader.Split('/');
-        var lastSegment = segments[^1].Split('?')[0]; // Remove query string se existir
-        return Guid.Parse(lastSegment);
-    }
 }

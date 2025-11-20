@@ -30,11 +30,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var categoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, JsonOptions);
         
-        if (categoryResponse.StatusCode != HttpStatusCode.Created)
-        {
-            // Skip if category creation fails
-            return;
-        }
+        categoryResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Category creation is a precondition for this test. Response: {0}",
+            await categoryResponse.Content.ReadAsStringAsync());
 
         var categoryLocation = categoryResponse.Headers.Location?.ToString();
         var categoryId = ExtractIdFromLocation(categoryLocation!);
@@ -52,10 +50,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
         
-        if (serviceResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Service creation is a precondition for this test. Response: {0}",
+            await serviceResponse.Content.ReadAsStringAsync());
 
         var serviceLocation = serviceResponse.Headers.Location?.ToString();
         var serviceId = ExtractIdFromLocation(serviceLocation!);
@@ -72,12 +69,10 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             validateRequest, 
             JsonOptions);
 
-        // Assert
+        // Assert - Apenas status de sucesso (happy path)
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.BadRequest); // Múltiplos status dependendo da implementação
+            HttpStatusCode.NoContent);
     }
 
     [Fact]
@@ -303,25 +298,5 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.NotFound,
             HttpStatusCode.BadRequest);
-    }
-
-    private static Guid ExtractIdFromLocation(string locationHeader)
-    {
-        if (locationHeader.Contains("?id="))
-        {
-            var queryString = locationHeader.Split('?')[1];
-            var idParam = queryString.Split('&')
-                .FirstOrDefault(p => p.StartsWith("id="));
-            
-            if (idParam != null)
-            {
-                var idValue = idParam.Split('=')[1];
-                return Guid.Parse(idValue);
-            }
-        }
-        
-        var segments = locationHeader.Split('/');
-        var lastSegment = segments[^1].Split('?')[0];
-        return Guid.Parse(lastSegment);
     }
 }
