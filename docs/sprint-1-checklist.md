@@ -11,7 +11,7 @@
 | Branch | Duração | Prioridade | Testes Skipped Resolvidos |
 |--------|---------|------------|---------------------------|
 | `feature/geographic-restriction` | 1-2 dias | 🚨 CRÍTICA | N/A |
-| `feature/module-integration` | 3-5 dias | 🚨 CRÍTICA | 6/7 (auth + isolation) |
+| `feature/module-integration` | 3-5 dias | 🚨 CRÍTICA | 8/8 (auth + isolation) |
 
 **Total**: 7 dias úteis (com buffer para code review)
 
@@ -194,10 +194,12 @@
 
 #### Afternoon (4h)
 - [ ] **Reativar testes de autenticação**
-  - [ ] Remover `Skip` de:
-    - [ ] `UserWithoutCreatePermission_CannotCreateUser`
-    - [ ] `UserWithMultiplePermissions_HasAppropriateAccess`
-    - [ ] `ApiVersioning_ShouldWork_ForDifferentModules`
+  - [ ] Remover `Skip` de 5 testes auth-related:
+    - [ ] `PermissionAuthorizationE2ETests.UserWithoutCreatePermission_CannotCreateUser`
+    - [ ] `PermissionAuthorizationE2ETests.UserWithMultiplePermissions_HasAppropriateAccess`
+    - [ ] `PermissionAuthorizationE2ETests.UserWithCreatePermission_CanCreateUser` ⚠️ NOVO (descoberto 21 Nov)
+    - [ ] `ApiVersioningTests.ApiVersioning_ShouldWork_ForDifferentModules`
+    - [ ] `ModuleIntegrationTests.CreateUser_ShouldTriggerDomainEvents` ⚠️ NOVO (descoberto 21 Nov)
   - [ ] Atualizar `TestContainerTestBase.cs`:
     ```csharp
     static TestContainerTestBase()
@@ -375,9 +377,10 @@
   - DocumentVerifiedIntegrationEvent → Provider activation
 
   **Tests Fixed:**
-  - ✅ Refactored ConfigurableTestAuthenticationHandler (3 tests reactivated)
+  - ✅ Refactored ConfigurableTestAuthenticationHandler (5 auth tests reactivated)
   - ✅ Fixed race condition in CrossModuleCommunicationE2ETests (3 tests reactivated)
-  - ✅ Total: 102/103 E2E tests passing (99.0%)
+  - ✅ Total: 98/100 E2E tests passing (98.0%)
+  - ⚠️ Remaining: 2 skipped (DocumentsVerification + 1 race condition edge case)
 
   **Documentation:**
   - docs/integration/module-apis.md
@@ -405,14 +408,14 @@
     ## ✅ Checklist
     - [x] 4 Module APIs implementadas
     - [x] Integration events configurados
-    - [x] 6 testes E2E reativados (102/103 passing)
+    - [x] 8 testes E2E reativados (98/100 passing)
     - [x] Documentação completa
     - [x] Code coverage > 45%
 
     ## 🧪 Tests
     - Unit: 100% coverage nos novos handlers
     - Integration: 15 novos testes
-    - E2E: 102/103 passing (99.0%)
+    - E2E: 98/100 passing (98.0%)
 
     ## 📚 Documentation
     - [x] docs/integration/module-apis.md
@@ -427,8 +430,9 @@
 ## 📊 Métricas de Sucesso - Sprint 1
 
 | Métrica | Antes (Sprint 0) | Meta Sprint 1 | Como Validar |
-|---------|------------------|---------------|--------------|
-| **E2E Tests Passing** | 96/103 (93.2%) | 102/103 (99.0%) | GitHub Actions PR |
+|---------|------------------|---------------|-------------|
+| **E2E Tests Passing** | 93/100 (93.0%) | 98/100 (98.0%) | GitHub Actions PR |
+| **E2E Tests Skipped** | 7 (auth + infra) | 2 (infra only) | dotnet test output |
 | **Code Coverage** | 40.51% | > 45% | Coverlet report |
 | **Build Warnings** | 0 | 0 | `dotnet build -warnaserror` |
 | **Module APIs** | 0 | 4 | Code review |
