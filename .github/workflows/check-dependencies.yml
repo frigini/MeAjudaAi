@@ -4,6 +4,7 @@ on:
   schedule:
     # Durante Sprint 0 (Migration .NET 10): DIÁRIO para detectar releases stable rapidamente
     # Após merge para master: Alterar para '0 9 * * 1' (semanal - segundas-feiras)
+    # TODO: Change to '0 9 * * 1' (weekly on Mondays) after Sprint 0 merge to master
     - cron: '0 9 * * *' # Diário às 9h UTC (6h Brasília)
   workflow_dispatch: # Permite execução manual
 
@@ -28,7 +29,7 @@ jobs:
         continue-on-error: true
         run: |
           echo "Verificando pacotes desatualizados..."
-          
+
           # Use --fail-on-updates to get exit code directly
           # Exit code 0 = no updates, non-zero = updates found
           if dotnet outdated --upgrade:Major --transitive:false --fail-on-updates > outdated-report.txt 2>&1; then
@@ -98,13 +99,14 @@ jobs:
               });
               console.log(`Nova issue criada: #${newIssue.data.number}`);
             }
-      
+
       - name: Summary
         run: |
           echo "### ✅ Verificação de Dependências Concluída" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ steps.check.outputs.outdated_found }}" == "true" ]; then
-            echo "⚠️ **Pacotes desatualizados encontrados!** Issue criada/atualizada automaticamente." >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Pacotes desatualizados encontrados!**" >> $GITHUB_STEP_SUMMARY
+            echo "Issue criada/atualizada automaticamente." >> $GITHUB_STEP_SUMMARY
           else
             echo "✅ **Todas as dependências estão atualizadas!**" >> $GITHUB_STEP_SUMMARY
           fi

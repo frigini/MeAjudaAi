@@ -191,7 +191,8 @@ steps:
     env:
       # ... (vars existentes)
       # ✅ Novo: Azure Storage (see .github/workflows/pr-validation.yml for actual connection string)
-      AZURE_STORAGE_CONNECTION_STRING: "<see_pr-validation.yml_for_azurite_connection_string>"
+      AZURE_STORAGE_CONNECTION_STRING: "<AZURITE_DEV_CONNECTION_STRING>"
+      # Reference: See .github/workflows/pr-validation.yml for actual development key
 ```
 
 **Fix authentication**:

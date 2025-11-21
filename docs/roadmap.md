@@ -43,12 +43,13 @@ Frontend Blazor WASM + MAUI Hybrid:
 
 ## 📖 Visão Geral
 
-O roadmap está organizado em **quatro fases principais** para entrega incremental de valor:
+O roadmap está organizado em **cinco fases principais** para entrega incremental de valor:
 
 1. **✅ Fase 1: Fundação (MVP Core)** - Registro de prestadores, busca geolocalizada, catálogo de serviços
-2. **🔄 Fase 2: Fundação Técnica & Frontend** - Migration .NET 10, integração, testes, Blazor WASM Admin + Customer App
-3. **🔮 Fase 3: Qualidade e Monetização** - Sistema de avaliações, assinaturas premium, verificação automatizada
-4. **🔮 Fase 4: Experiência e Engajamento** - Agendamentos, comunicações, analytics avançado
+2. **🔄 Fase 1.5: Fundação Técnica** - Migration .NET 10, integração, testes, observability
+3. **🔮 Fase 2: Frontend & Experiência** - Blazor WASM Admin + Customer App
+4. **🔮 Fase 3: Qualidade e Monetização** - Sistema de avaliações, assinaturas premium, verificação automatizada
+5. **🔮 Fase 4: Experiência e Engajamento** - Agendamentos, comunicações, analytics avançado
 
 A implementação segue os princípios arquiteturais definidos em `architecture.md`: **Modular Monolith**, **DDD**, **CQRS**, e **isolamento schema-per-module**.
 
@@ -507,6 +508,9 @@ Com todos os 6 módulos core implementados (Fase 1 ✅), precisamos consolidar a
 - ✅ Documentação atualizada
 
 #### 📦 Pacotes com Versões Não-Estáveis ou Pendentes de Atualização
+
+⚠️ **CRITICAL**: All packages listed below are Release Candidate (RC) or Preview versions.  
+**DO NOT deploy to production** until stable versions are released. See [.NET 10 Release Timeline](https://github.com/dotnet/core/releases).
 
 **Status da Migration**: A maioria dos pacotes core já está em .NET 10, mas alguns ainda estão em **RC (Release Candidate)** ou aguardando releases estáveis.
 
@@ -1221,7 +1225,7 @@ public interface IBillingModuleApi : IModuleApi
 
 ---
 
-### 2.3. 🤖 Documents - Verificação Automatizada (Planejado - Fase 2)
+### 3.3. 🤖 Documents - Verificação Automatizada (Planejado - Fase 2)
 
 **Objetivo**: Automatizar verificação de documentos via OCR e APIs governamentais.
 
@@ -1257,7 +1261,7 @@ Melhorar experiência do usuário com agendamentos, comunicações centralizadas
 
 ---
 
-### 3.2. 📧 Módulo Communications (Planejado)
+### 4.2. 📧 Módulo Communications (Planejado)
 
 **Objetivo**: Centralizar e orquestrar todas as comunicações da plataforma (email, SMS, push).
 
