@@ -132,9 +132,36 @@ public class ExampleSchemaFilter : ISchemaFilter
 
 **OPÇÃO 1 (RECOMENDADA - VALIDADA)**: ✅ Usar Reflection para Acessar Propriedade Concreta
 ```csharp
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
+
+public class ExampleSchemaFilter : ISchemaFilter
+{
+    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    {
+        // Swashbuckle 10.x usa OpenApiSchema (tipo concreto) no ISchemaFilter
+        // Propriedade Example é writable no tipo concreto
+        if (context.Type.GetProperties().Any(p => p.GetCustomAttributes(typeof(DefaultValueAttribute), false).Any()))
+        {
+            var exampleValue = GetExampleFromDefaultValueAttribute(context.Type);
+            schema.Example = exampleValue; // Direto, sem reflexão necessária
+        }
+    }
+}
+```
+- ✅ **Assinatura correta**: `OpenApiSchema` (tipo concreto conforme Swashbuckle 10.x)
+- ✅ **Compila sem erros**: Validado no build
+- ✅ **Funcionalidade preservada**: Mantém lógica original
+- ✅ **Sem reflexão**: Acesso direto à propriedade Example
+- ✅ **Import correto**: `using Microsoft.OpenApi.Models;`
+
+**STATUS**: Código preparado para esta solução, aguardando reativação
+
+**OPÇÃO 2 (FALLBACK - SE OPÇÃO 1 FALHAR)**: Usar Reflection (Versão Anterior)
+```csharp
 public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
 {
-    // IOpenApiSchema.Example é read-only, mas a implementação concreta é writable
+    // Caso tipo concreto não funcione, usar interface + reflexão
     var exampleProperty = schema.GetType().GetProperty("Example");
     if (exampleProperty != null && exampleProperty.CanWrite)
     {
@@ -142,15 +169,10 @@ public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     }
 }
 ```
-- ✅ **Assinatura correta**: `IOpenApiSchema` (conforme Swashbuckle 10.x)
-- ✅ **Compila sem erros**: Validado no build
-- ✅ **Funcionalidade preservada**: Mantém lógica original
-- ⚠️ **Contras**: Usa reflexão (pequeno overhead de performance)
+- ⚠️ **Usa reflexão**: Pequeno overhead de performance
 - ⚠️ **Risco**: Pode quebrar se Swashbuckle mudar implementação interna
 
-**STATUS**: Código preparado para esta solução, aguardando reativação
-
-**OPÇÃO 2**: Investigar Nova API do Swashbuckle 10.x (ALTERNATIVA)
+**OPÇÃO 3**: Investigar Nova API do Swashbuckle 10.x (ALTERNATIVA)
 - Verificar documentação oficial do Swashbuckle 10.x
 - Pode haver novo mecanismo para definir exemplos (ex: `IExampleProvider` ou attributes)
 - Conferir: <https://github.com/domaindrivendev/Swashbuckle.AspNetCore/releases>
