@@ -7,7 +7,8 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 namespace MeAjudaAi.ApiService.Filters;
 
 // TODO: Migrar para Swashbuckle 10.x - IOpenApiSchema.Example é read-only
-// Precisa encontrar tipo concreto ou usar reflexão para definir Example
+// SOLUÇÃO: Usar reflexão para acessar propriedade Example na implementação concreta
+// Exemplo: schema.GetType().GetProperty("Example")?.SetValue(schema, exampleValue, null);
 // Temporariamente desabilitado em DocumentationExtensions.cs
 
 #pragma warning disable IDE0051, IDE0060 // Remove unused private members
@@ -19,33 +20,31 @@ public class ExampleSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        // Swashbuckle 10.x: IOpenApiSchema.Example é read-only, precisamos do cast para OpenApiSchema
-        // PROBLEMA: OpenApiSchema não existe em Microsoft.OpenApi 2.3.0 nos namespaces esperados
-        // TODO: Investigar API correta para Swashbuckle 10.x
-        throw new NotImplementedException("Precisa migração para Swashbuckle 10.x");
+        // Swashbuckle 10.x: IOpenApiSchema.Example é read-only
+        // SOLUÇÃO QUANDO REATIVAR: Usar reflexão para acessar implementação concreta
+        // var exampleProp = schema.GetType().GetProperty("Example");
+        // if (exampleProp?.CanWrite == true) exampleProp.SetValue(schema, value, null);
+        throw new NotImplementedException("Precisa migração para Swashbuckle 10.x - usar reflexão para Example");
 
         /*
-        /*
-        if (schema is not OpenApiSchema openApiSchema) return;
-
         // Adicionar exemplos baseados em DefaultValueAttribute
         if (context.Type.IsClass && context.Type != typeof(string))
         {
-            AddExamplesFromProperties(openApiSchema, context.Type);
+            AddExamplesFromProperties(schema, context.Type);
         }
 
         // Adicionar exemplos para enums
         if (context.Type.IsEnum)
         {
-            AddEnumExamples(openApiSchema, context.Type);
+            AddEnumExamples(schema, context.Type);
         }
 
         // Adicionar descrições mais detalhadas
-        AddDetailedDescription(openApiSchema, context.Type);
+        AddDetailedDescription(schema, context.Type);
         */
     }
 
-    private void AddExamplesFromProperties(OpenApiSchema schema, Type type)
+    private void AddExamplesFromProperties(IOpenApiSchema schema, Type type)
     {
         /*
         if (schema.Properties == null) return;
@@ -232,7 +231,7 @@ public class ExampleSchemaFilter : ISchemaFilter
         return GetDecimalExample(propertyName);
     }
 
-    private static void AddEnumExamples(OpenApiSchema schema, Type enumType)
+    private static void AddEnumExamples(IOpenApiSchema schema, Type enumType)
     {
         /*
         var enumValues = Enum.GetValues(enumType);
@@ -241,12 +240,16 @@ public class ExampleSchemaFilter : ISchemaFilter
         var firstValue = enumValues.GetValue(0);
         if (firstValue == null) return;
 
-        // OpenApiSchema.Example accepts object
-        schema.Example = firstValue.ToString();
+        // Use reflexão para definir Example (read-only na interface)
+        var exampleProp = schema.GetType().GetProperty("Example");
+        if (exampleProp?.CanWrite == true)
+        {
+            exampleProp.SetValue(schema, firstValue.ToString(), null);
+        }
         */
     }
 
-    private static void AddDetailedDescription(OpenApiSchema schema, Type type)
+    private static void AddDetailedDescription(IOpenApiSchema schema, Type type)
     {
         /*
         var descriptionAttr = type.GetCustomAttribute<DescriptionAttribute>();

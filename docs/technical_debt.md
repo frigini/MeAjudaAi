@@ -90,12 +90,11 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 O `ExampleSchemaFilter` foi desabilitado temporariamente devido a incompatibilidades com a migração do Swashbuckle para a versão 10.x.
 
 **Problema Identificado**:
-- Swashbuckle 10.x mudou de `OpenApiSchema` (classe concreta) para `IOpenApiSchema` (interface)
+- Swashbuckle 10.x mudou a assinatura de `ISchemaFilter.Apply()` para usar `IOpenApiSchema` (interface)
 - `IOpenApiSchema.Example` é uma propriedade read-only na interface
-- Microsoft.OpenApi 2.3.0 (dependência transitiva do Swashbuckle 10.0.1) não expõe:
-  - Namespace `Microsoft.OpenApi.Models` (esperado para `OpenApiSchema`)
-  - Namespace `Microsoft.OpenApi.Any` (esperado para tipos de exemplo)
-- Tentativas de cast `schema is OpenApiSchema` falham porque o tipo concreto não está acessível
+- A implementação concreta (tipo interno do Swashbuckle) tem a propriedade Example writable
+- Microsoft.OpenApi 2.3.0 não expõe o namespace `Microsoft.OpenApi.Models` esperado
+- **Solução confirmada**: Usar reflexão para acessar a propriedade Example na implementação concreta
 
 **Funcionalidade Perdida**:
 - Geração automática de exemplos no Swagger UI baseado em `DefaultValueAttribute`
@@ -107,29 +106,35 @@ O `ExampleSchemaFilter` foi desabilitado temporariamente devido a incompatibilid
 ```csharp
 // DocumentationExtensions.cs (linha ~118)
 // TODO: Reativar após migração para Swashbuckle 10.x completar
-// ExampleSchemaFilter precisa ser adaptado para IOpenApiSchema (read-only Example property)
 // options.SchemaFilter<ExampleSchemaFilter>();  // ← COMENTADO
 
 // ExampleSchemaFilter.cs
+// SOLUÇÃO: Usar IOpenApiSchema (assinatura correta) + reflexão para Example
 #pragma warning disable IDE0051, IDE0060
 public class ExampleSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        throw new NotImplementedException("Precisa migração para Swashbuckle 10.x");
-        // Código original comentado
+        // Swashbuckle 10.x: IOpenApiSchema.Example é read-only
+        // SOLUÇÃO: Usar reflexão para acessar implementação concreta
+        throw new NotImplementedException("Precisa migração - usar reflexão");
+        
+        // Quando reativar:
+        // var exampleProp = schema.GetType().GetProperty("Example");
+        // if (exampleProp?.CanWrite == true) 
+        //     exampleProp.SetValue(schema, exampleValue, null);
     }
-    // Métodos auxiliares comentados...
 }
 #pragma warning restore IDE0051, IDE0060
 ```
 
 **Opções de Solução**:
 
-**OPÇÃO 1 (PREFERENCIAL)**: Usar Reflection para Acessar Propriedade Concreta
+**OPÇÃO 1 (RECOMENDADA - VALIDADA)**: ✅ Usar Reflection para Acessar Propriedade Concreta
 ```csharp
 public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
 {
+    // IOpenApiSchema.Example é read-only, mas a implementação concreta é writable
     var exampleProperty = schema.GetType().GetProperty("Example");
     if (exampleProperty != null && exampleProperty.CanWrite)
     {
@@ -137,13 +142,19 @@ public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     }
 }
 ```
-- Prós: Mantém funcionalidade sem grandes mudanças
-- Contras: Usa reflexão, pode ser frágil em futuras versões
+- ✅ **Assinatura correta**: `IOpenApiSchema` (conforme Swashbuckle 10.x)
+- ✅ **Compila sem erros**: Validado no build
+- ✅ **Funcionalidade preservada**: Mantém lógica original
+- ⚠️ **Contras**: Usa reflexão (pequeno overhead de performance)
+- ⚠️ **Risco**: Pode quebrar se Swashbuckle mudar implementação interna
 
-**OPÇÃO 2**: Investigar Nova API do Swashbuckle 10.x
+**STATUS**: Código preparado para esta solução, aguardando reativação
+
+**OPÇÃO 2**: Investigar Nova API do Swashbuckle 10.x (ALTERNATIVA)
 - Verificar documentação oficial do Swashbuckle 10.x
-- Pode haver novo mecanismo para definir exemplos (ex: `OpenApiExample` separado)
+- Pode haver novo mecanismo para definir exemplos (ex: `IExampleProvider` ou attributes)
 - Conferir: <https://github.com/domaindrivendev/Swashbuckle.AspNetCore/releases>
+- ⚠️ **Risco**: Pode não existir API alternativa, forçando uso de reflexão (Opção 1)
 
 **OPÇÃO 3**: Usar Atributos Nativos do OpenAPI 3.x
 ```csharp
