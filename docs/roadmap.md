@@ -1293,7 +1293,7 @@ public interface ICommunicationsModuleApi : IModuleApi
 
 ---
 
-### 3.3. 📊 Módulo Analytics & Reporting (Planejado)
+### 4.3. 📊 Módulo Analytics & Reporting (Planejado)
 
 **Objetivo**: Capturar, processar e visualizar dados de negócio e operacionais.
 

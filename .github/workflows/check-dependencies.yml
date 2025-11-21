@@ -37,7 +37,7 @@ jobs:
           else
             echo "outdated_found=true" >> $GITHUB_OUTPUT
           fi
-          
+
           # Display report for debugging
           cat outdated-report.txt
 
@@ -57,10 +57,10 @@ jobs:
               labels: 'dependencies,automated'
             });
 
-            const existingIssue = issues.data.find(issue => 
+            const existingIssue = issues.data.find(issue =>
               issue.title.includes('[AUTOMATED] Outdated NuGet Packages Detected')
             );
-            
+
             const issueBody = `## 📦 Pacotes Desatualizados Detectados\n\n` +
               `**Data da verificação:** ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}\n\n` +
               `### Relatório dotnet-outdated\n\n` +
@@ -78,7 +78,7 @@ jobs:
               `- **Aspire 13.x**: Verificar orchestration configs\n\n` +
               `---\n` +
               `*Issue criada automaticamente pelo workflow \`check-dependencies.yml\`*`;
-            
+
             if (existingIssue) {
               // Atualizar issue existente
               await github.rest.issues.createComment({
