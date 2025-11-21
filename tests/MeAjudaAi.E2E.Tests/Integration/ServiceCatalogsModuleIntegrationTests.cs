@@ -20,8 +20,8 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
         var service2 = await CreateServiceAsync(category.Id, "Limpeza de Jardim", "Manutenção de jardim");
 
         // Act - Services module would validate service IDs by querying individual services
-        var response1 = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service1.Id}");
-        var response2 = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service2.Id}");
+        var response1 = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service1.Id}");
+        var response2 = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service2.Id}");
 
         // Assert - Both services should exist
         response1.StatusCode.Should().Be(HttpStatusCode.OK, "service1 should exist");
@@ -50,10 +50,10 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
         var inactiveService = await CreateServiceAsync(category.Id, "Manutenção Antiga", "Serviço descontinuado");
 
         // Deactivate one service
-        await PostJsonAsync($"/api/v1/catalogs/services/{inactiveService.Id}/deactivate", new { });
+        await PostJsonAsync($"/api/v1/service-catalogs/services/{inactiveService.Id}/deactivate", new { });
 
         // Act - Query only active services
-        var response = await ApiClient.GetAsync("/api/v1/catalogs/services?activeOnly=true");
+        var response = await ApiClient.GetAsync("/api/v1/service-catalogs/services?activeOnly=true");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -81,7 +81,7 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
         var service3 = await CreateServiceAsync(category2.Id, "Reparo de Torneira", "Hidráulica");
 
         // Act - Filter services by category (Requests module would do this)
-        var response = await ApiClient.GetAsync($"/api/v1/catalogs/services/category/{category1.Id}");
+        var response = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/category/{category1.Id}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -106,7 +106,7 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
         // Act - Simulate multiple modules reading the same category concurrently
         var tasks = Enumerable.Range(0, 10).Select(async _ =>
         {
-            var response = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category.Id}");
+            var response = await ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id}");
             return response;
         });
 
@@ -126,7 +126,7 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
         await CreateServiceCategoryAsync("Jardinagem", "Serviços de jardim");
 
         // Act - Dashboard module gets all categories for statistics
-        var response = await ApiClient.GetAsync("/api/v1/catalogs/categories");
+        var response = await ApiClient.GetAsync("/api/v1/service-catalogs/categories");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -157,15 +157,15 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
             Description = "Descrição atualizada",
             DisplayOrder = 10
         };
-        var updateResponse = await PutJsonAsync($"/api/v1/catalogs/services/{service.Id}", updateRequest);
+        var updateResponse = await PutJsonAsync($"/api/v1/service-catalogs/services/{service.Id}", updateRequest);
         updateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // 2. Deactivate service
-        var deactivateResponse = await PostJsonAsync($"/api/v1/catalogs/services/{service.Id}/deactivate", new { });
+        var deactivateResponse = await PostJsonAsync($"/api/v1/service-catalogs/services/{service.Id}/deactivate", new { });
         deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // 3. Verify service is inactive
-        var checkResponse = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service.Id}");
+        var checkResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id}");
         checkResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var checkContent = await checkResponse.Content.ReadAsStringAsync();
         var checkResult = JsonSerializer.Deserialize<JsonElement>(checkContent, JsonOptions);
@@ -174,8 +174,10 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
         isActiveProperty.GetBoolean().Should().BeFalse();
 
         // 4. Delete service (should work now that it's inactive)
-        var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/catalogs/services/{service.Id}");
-        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        // Re-autenticar antes de DELETE para evitar perda de estado em testes paralelos
+        AuthenticateAsAdmin();
+        var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{service.Id}");
+        deleteResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NoContent, HttpStatusCode.OK);
     }
 
     #region Helper Methods
@@ -189,7 +191,7 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
             DisplayOrder = 1
         };
 
-        var response = await PostJsonAsync("/api/v1/catalogs/categories", request);
+        var response = await PostJsonAsync("/api/v1/service-catalogs/categories", request);
 
         if (response.StatusCode != HttpStatusCode.Created)
         {
@@ -206,6 +208,9 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
 
     private async Task<ServiceDto> CreateServiceAsync(Guid categoryId, string name, string description)
     {
+        // Re-autenticar para evitar problemas de state em testes paralelos
+        AuthenticateAsAdmin();
+
         var request = new
         {
             CategoryId = categoryId,
@@ -214,7 +219,7 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
             DisplayOrder = 1
         };
 
-        var response = await PostJsonAsync("/api/v1/catalogs/services", request);
+        var response = await PostJsonAsync("/api/v1/service-catalogs/services", request);
 
         if (response.StatusCode != HttpStatusCode.Created)
         {

@@ -1,9 +1,9 @@
 using System.Text.Json;
 using MeAjudaAi.Integration.Tests.Infrastructure;
-using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;
@@ -41,7 +41,9 @@ public abstract class ApiTestBase : IAsyncLifetime
         _databaseFixture = new SimpleDatabaseFixture();
         await _databaseFixture.InitializeAsync();
 
+#pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
         _factory = new WebApplicationFactory<Program>()
+#pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");

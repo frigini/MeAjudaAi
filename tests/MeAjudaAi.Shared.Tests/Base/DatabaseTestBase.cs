@@ -99,7 +99,9 @@ public abstract class DatabaseTestBase : IAsyncLifetime
         await Task.Delay(1000);
 
         // Executa scripts de inicialização do banco (com timeout)
+#pragma warning disable CA2000 // CancellationTokenSource usado em escopo limitado de inicialização
         var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token;
+#pragma warning restore CA2000
         try
         {
             await InitializeDatabaseAsync(cancellationToken);

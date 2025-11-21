@@ -3,22 +3,42 @@
   
   <PropertyGroup>
     <!-- Versão do .NET e configurações gerais -->
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     
-    <!-- Configurações de qualidade de código -->
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-    <WarningsNotAsErrors>NU1608;NU1701;NU1902;NU1603;NU1605</WarningsNotAsErrors>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <!-- Enable preview features is scoped per-project for .NET 10 migration -->
+    <!-- Projects requiring preview features (C# 14, .NET 10 preview APIs) should set <EnablePreviewFeatures>true</EnablePreviewFeatures> -->
+    <!-- Currently, AppHost project (Aspire.AppHost.Sdk) may require preview features -->
+    <!-- Remove this setting from individual projects once .NET 10 is stable -->
+    
+    <!-- Central Package Management -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageVersionsFileLocation>$(MSBuildThisFileDirectory)Directory.Packages.props</CentralPackageVersionsFileLocation>
+    
+    <!-- NuGet lock file strategy for deterministic builds -->
+    <!-- Generate packages.lock.json for all projects -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- In CI/production builds, use locked mode to ensure exact package versions -->
+    <!-- In dev builds, allow lock file updates (RestoreLockedMode is false by default) -->
+    <RestoreLockedMode Condition="'$(CI)' == 'true' OR '$(Configuration)' == 'Release'">true</RestoreLockedMode>
+    
+    <!-- Allow floating versions for prerelease .NET 10 packages - pin exact versions once .NET 10 is stable -->
+    <CentralPackageFloatingVersionsEnabled>true</CentralPackageFloatingVersionsEnabled>
+    <DisableImplicitAssetTargetFallback>false</DisableImplicitAssetTargetFallback>
+  </PropertyGroup>
+
+  <PropertyGroup>
     
     <!-- Configurações de documentação -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591;NU1603;NU1605</NoWarn> <!-- Missing XML comment warnings + NuGet package warnings -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn> <!-- Missing XML comment warnings -->
+    
+    <!-- Package vulnerability warnings (NU1903/NU1902) are now enabled -->
+    <!-- Microsoft.Build packages updated to 17.14.28 (CVE-2025-55247 resolved) -->
+    <!-- TODO: Update EF Core Design to stable 10.0.0 when available (currently RC) -->
     
     <!-- Configurações de performance -->
     <DebugType>portable</DebugType>
@@ -45,6 +65,62 @@
     <NoWarn>$(NoWarn);S3881</NoWarn> <!-- Dispose pattern - gerenciado pelo DI container -->
     <NoWarn>$(NoWarn);S6960</NoWarn> <!-- Primary constructors - usamos frequentemente -->
     <NoWarn>$(NoWarn);S1075</NoWarn> <!-- URI paths - necessário para documentação da API -->
+    
+    <!-- NuGet Package Source Warnings -->
+    <NoWarn>$(NoWarn);NU1507</NoWarn> <!-- Multiple package sources with CPM - esperado durante .NET 10 preview -->
+    <NoWarn>$(NoWarn);NU1601</NoWarn> <!-- Dependency version mismatch - esperado para Aspire preview -->
+    
+    <!-- Code Analysis - String and Culture -->
+    <NoWarn>$(NoWarn);CA1304</NoWarn> <!-- String culture specification -->
+    <NoWarn>$(NoWarn);CA1305</NoWarn> <!-- IFormatProvider specification -->
+    <NoWarn>$(NoWarn);CA1307</NoWarn> <!-- StringComparison specification -->
+    <NoWarn>$(NoWarn);CA1309</NoWarn> <!-- Ordinal string comparison -->
+    <NoWarn>$(NoWarn);CA1310</NoWarn> <!-- StringComparison correctness -->
+    
+    <!-- Code Analysis - Performance and Design -->
+    <NoWarn>$(NoWarn);CA1062</NoWarn> <!-- Validate parameter non-null - handled by nullable reference types -->
+    <NoWarn>$(NoWarn);CA1848</NoWarn> <!-- LoggerMessage delegates -->
+    <NoWarn>$(NoWarn);CA2234</NoWarn> <!-- System.Uri instead of string -->
+    <NoWarn>$(NoWarn);CA1054</NoWarn> <!-- URI parameters should be System.Uri -->
+    <NoWarn>$(NoWarn);CA2254</NoWarn> <!-- Logging message template consistency -->
+    <NoWarn>$(NoWarn);CA2208</NoWarn> <!-- ArgumentNullException parameter names -->
+    <NoWarn>$(NoWarn);CA1861</NoWarn> <!-- Static readonly vs constant arrays -->
+    <NoWarn>$(NoWarn);CA2263</NoWarn> <!-- Generic overload preference -->
+    <NoWarn>$(NoWarn);CA1829</NoWarn> <!-- Use Count property instead of Enumerable.Count() -->
+    <NoWarn>$(NoWarn);CA1827</NoWarn> <!-- Use Any() instead of Count() -->
+    <NoWarn>$(NoWarn);CA1008</NoWarn> <!-- Enums should have zero value - intencional em domain enums -->
+    <NoWarn>$(NoWarn);CA1819</NoWarn> <!-- Properties should not return arrays - usado em eventos de domínio para performance -->
+    <NoWarn>$(NoWarn);CA1721</NoWarn> <!-- Property name confusion -->
+    <NoWarn>$(NoWarn);CA2214</NoWarn> <!-- Overridable methods in constructors -->
+    
+    <!-- Assembly version warnings - temporary -->
+    <!-- TODO: Add AssemblyVersion and AssemblyFileVersion to all assemblies -->
+    <!-- Track in issue: https://github.com/[organization]/[repo]/issues/[number] -->
+    <NoWarn>$(NoWarn);CA1016</NoWarn> <!-- Assembly version warnings -->
+    <NoWarn>$(NoWarn);S3904</NoWarn> <!-- Assembly version warnings from SonarAnalyzer -->
+    
+    <!-- Build and Assembly Conflicts -->
+    <NoWarn>$(NoWarn);MSB3277</NoWarn> <!-- Assembly version conflicts -->
+    <NoWarn>$(NoWarn);MSB3026</NoWarn> <!-- File copy retries -->
+    <NoWarn>$(NoWarn);MSB3027</NoWarn> <!-- File copy failures -->
+    <NoWarn>$(NoWarn);MSB3021</NoWarn> <!-- File access issues -->
+    
+    <!-- Package and Build Warnings -->
+    <NoWarn>$(NoWarn);NU1608</NoWarn> <!-- Package version compatibility -->
+    
+    <!-- Warnings de estilo menos relevantes -->
+    <NoWarn>$(NoWarn);IDE0008</NoWarn> <!-- Use explicit type instead of 'var' -->
+    <NoWarn>$(NoWarn);IDE0058</NoWarn> <!-- Expression value is never used -->
+    <NoWarn>$(NoWarn);IDE0160</NoWarn> <!-- Convert to block scoped namespace -->
+    <NoWarn>$(NoWarn);IDE0011</NoWarn> <!-- Add braces to if statement -->
+    <NoWarn>$(NoWarn);IDE0028</NoWarn> <!-- Collection initialization can be simplified -->
+    <NoWarn>$(NoWarn);IDE0300</NoWarn> <!-- Collection initialization can be simplified (newer) -->
+    <NoWarn>$(NoWarn);IDE0055</NoWarn> <!-- Fix formatting (pode causar conflitos com outros formatters) -->
+    <NoWarn>$(NoWarn);IDE0060</NoWarn> <!-- Remove unused parameter -->
+  </PropertyGroup>
+
+  <!-- Test-specific suppressions -->
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
     <NoWarn>$(NoWarn);S101</NoWarn>  <!-- Naming conventions - relaxado para testes -->
     
     <!-- Code Analysis - Test Naming and Conventions -->
@@ -56,68 +132,56 @@
     <NoWarn>$(NoWarn);CA1024</NoWarn> <!-- Properties vs methods in test helpers -->
     <NoWarn>$(NoWarn);CA1508</NoWarn> <!-- Dead code detection in test fixtures -->
     <NoWarn>$(NoWarn);CA1826</NoWarn> <!-- Enumerable methods on collections -->
-    <NoWarn>$(NoWarn);CA1008</NoWarn> <!-- Enums should have zero value - intencional em domain enums -->
-    <NoWarn>$(NoWarn);CA1819</NoWarn> <!-- Properties should not return arrays - usado em eventos de domínio para performance -->
+    <NoWarn>$(NoWarn);CA1861</NoWarn> <!-- Prefer 'static readonly' fields over constant array arguments -->
     
-    <!-- Code Analysis - Resource Management -->
+    <!-- Code Analysis - Resource Management in Tests -->
     <NoWarn>$(NoWarn);CA2000</NoWarn> <!-- Dispose objects in test mocks -->
     <NoWarn>$(NoWarn);CA2213</NoWarn> <!-- Disposable fields in test infrastructure -->
     <NoWarn>$(NoWarn);CA1816</NoWarn> <!-- Dispose methods should call GC.SuppressFinalize -->
-    
-    <!-- Assembly version warnings - temporary -->
-    <NoWarn>$(NoWarn);CA1016</NoWarn> <!-- Assembly version warnings -->
-    <NoWarn>$(NoWarn);S3904</NoWarn> <!-- Assembly version warnings from SonarAnalyzer -->
-    
-    <!-- Code Analysis - String and Culture -->
-    <NoWarn>$(NoWarn);CA1304</NoWarn> <!-- String culture specification -->
-    <NoWarn>$(NoWarn);CA1305</NoWarn> <!-- IFormatProvider specification -->
-    <NoWarn>$(NoWarn);CA1307</NoWarn> <!-- StringComparison specification -->
-    <NoWarn>$(NoWarn);CA1309</NoWarn> <!-- Ordinal string comparison -->
-    <NoWarn>$(NoWarn);CA1310</NoWarn> <!-- StringComparison correctness -->
+    <NoWarn>$(NoWarn);CA1805</NoWarn> <!-- Explicit initialization to default value -->
+    <NoWarn>$(NoWarn);CA1063</NoWarn> <!-- Dispose pattern implementation -->
+    <NoWarn>$(NoWarn);CA2215</NoWarn> <!-- Base.DisposeAsync calls -->
     
     <!-- Code Analysis - Security (Test Context) -->
     <NoWarn>$(NoWarn);CA5351</NoWarn> <!-- MD5 usage in test scenarios -->
     
-    <!-- Code Analysis - Performance and Design -->
-    <NoWarn>$(NoWarn);CA1848</NoWarn> <!-- LoggerMessage delegates -->
+    <!-- Code Analysis - Performance in Tests -->
     <NoWarn>$(NoWarn);CA2007</NoWarn> <!-- ConfigureAwait in tests -->
-    <NoWarn>$(NoWarn);CA2234</NoWarn> <!-- System.Uri instead of string -->
     <NoWarn>$(NoWarn);CA1051</NoWarn> <!-- Public fields in test classes -->
-    <NoWarn>$(NoWarn);CA1805</NoWarn> <!-- Explicit initialization to default value -->
-    <NoWarn>$(NoWarn);CA1063</NoWarn> <!-- Dispose pattern implementation -->
-    <NoWarn>$(NoWarn);CA1721</NoWarn> <!-- Property name confusion -->
-    <NoWarn>$(NoWarn);CA2214</NoWarn> <!-- Overridable methods in constructors -->
-    <NoWarn>$(NoWarn);CA1054</NoWarn> <!-- URI parameters should be System.Uri -->
-    <NoWarn>$(NoWarn);CA2254</NoWarn> <!-- Logging message template consistency -->
-    <NoWarn>$(NoWarn);CA2208</NoWarn> <!-- ArgumentNullException parameter names -->
-    <NoWarn>$(NoWarn);CA1861</NoWarn> <!-- Static readonly vs constant arrays -->
-    <NoWarn>$(NoWarn);CA2215</NoWarn> <!-- Base.DisposeAsync calls -->
-    <NoWarn>$(NoWarn);CA2263</NoWarn> <!-- Generic overload preference -->
-    <NoWarn>$(NoWarn);CA1829</NoWarn> <!-- Use Count property instead of Enumerable.Count() -->
-    <NoWarn>$(NoWarn);CA1827</NoWarn> <!-- Use Any() instead of Count() -->
     
-    <!-- Build and Assembly Conflicts -->
-    <NoWarn>$(NoWarn);MSB3277</NoWarn> <!-- Assembly version conflicts -->
-    
-    <!-- xUnit Analyzers -->
-    <NoWarn>$(NoWarn);xUnit1051</NoWarn> <!-- CancellationToken usage in tests -->
-    <NoWarn>$(NoWarn);xUnit1012</NoWarn> <!-- Null values in theory data -->
-    
-    <!-- Package and Build Warnings -->
-    <NoWarn>$(NoWarn);NU1608</NoWarn> <!-- Package version compatibility -->
-    <NoWarn>$(NoWarn);MSB3026</NoWarn> <!-- File copy retries -->
-    <NoWarn>$(NoWarn);MSB3027</NoWarn> <!-- File copy failures -->
-    <NoWarn>$(NoWarn);MSB3021</NoWarn> <!-- File access issues -->
-    
-    <!-- Warnings de estilo menos relevantes -->
-    <NoWarn>$(NoWarn);IDE0008</NoWarn> <!-- Use explicit type instead of 'var' -->
-    <NoWarn>$(NoWarn);IDE0058</NoWarn> <!-- Expression value is never used -->
-    <NoWarn>$(NoWarn);IDE0160</NoWarn> <!-- Convert to block scoped namespace -->
-    <NoWarn>$(NoWarn);IDE0011</NoWarn> <!-- Add braces to if statement -->
-    <NoWarn>$(NoWarn);IDE0028</NoWarn> <!-- Collection initialization can be simplified -->
-    <NoWarn>$(NoWarn);IDE0300</NoWarn> <!-- Collection initialization can be simplified (newer) -->
-    <NoWarn>$(NoWarn);IDE0055</NoWarn> <!-- Fix formatting (pode causar conflitos com outros formatters) -->
-    <NoWarn>$(NoWarn);IDE0060</NoWarn> <!-- Remove unused parameter -->
+    <!-- xUnit Analyzers - Completamente suprimidos em testes -->
+    <NoWarn>$(NoWarn);xUnit1000</NoWarn> <!-- Test classes must be public -->
+    <NoWarn>$(NoWarn);xUnit1001</NoWarn> <!-- Fact methods cannot have parameters -->
+    <NoWarn>$(NoWarn);xUnit1002</NoWarn> <!-- Test methods cannot have multiple Fact attributes -->
+    <NoWarn>$(NoWarn);xUnit1003</NoWarn> <!-- Theory methods must have test data -->
+    <NoWarn>$(NoWarn);xUnit1004</NoWarn> <!-- Test methods should not be skipped -->
+    <NoWarn>$(NoWarn);xUnit1005</NoWarn> <!-- Fact methods should not have test data -->
+    <NoWarn>$(NoWarn);xUnit1006</NoWarn> <!-- Theory methods should have parameters -->
+    <NoWarn>$(NoWarn);xUnit1007</NoWarn> <!-- ClassData must point at valid class -->
+    <NoWarn>$(NoWarn);xUnit1008</NoWarn> <!-- Test data attribute must be used on a theory -->
+    <NoWarn>$(NoWarn);xUnit1009</NoWarn> <!-- InlineData must match the number of method parameters -->
+    <NoWarn>$(NoWarn);xUnit1012</NoWarn> <!-- Null should not be used for value type parameters -->
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn> <!-- Use TestContext.Current.CancellationToken for test cancellation -->
+    <NoWarn>$(NoWarn);xUnit1010</NoWarn> <!-- The value is not convertible to the method parameter type -->
+    <NoWarn>$(NoWarn);xUnit1011</NoWarn> <!-- Extra arguments provided -->
+    <NoWarn>$(NoWarn);xUnit1012</NoWarn> <!-- Null should not be used for value type parameters -->
+    <NoWarn>$(NoWarn);xUnit1013</NoWarn> <!-- Public method should be marked as test -->
+    <NoWarn>$(NoWarn);xUnit1014</NoWarn> <!-- MemberData must reference an existing member -->
+    <NoWarn>$(NoWarn);xUnit1015</NoWarn> <!-- MemberData must reference a member providing a valid data type -->
+    <NoWarn>$(NoWarn);xUnit1016</NoWarn> <!-- MemberData must reference a property with a getter -->
+    <NoWarn>$(NoWarn);xUnit1017</NoWarn> <!-- MemberData must reference a static member -->
+    <NoWarn>$(NoWarn);xUnit1018</NoWarn> <!-- MemberData must reference a valid member kind -->
+    <NoWarn>$(NoWarn);xUnit1019</NoWarn> <!-- MemberData must reference a member providing a valid data type -->
+    <NoWarn>$(NoWarn);xUnit1020</NoWarn> <!-- MemberData must reference a data type assignable to object[] -->
+    <NoWarn>$(NoWarn);xUnit1021</NoWarn> <!-- MemberData should reference a member providing data rows -->
+    <NoWarn>$(NoWarn);xUnit1022</NoWarn> <!-- Theory methods should use all of their parameters -->
+    <NoWarn>$(NoWarn);xUnit1023</NoWarn> <!-- Theory methods cannot have default parameter values -->
+    <NoWarn>$(NoWarn);xUnit1024</NoWarn> <!-- Test methods cannot be generic -->
+    <NoWarn>$(NoWarn);xUnit1025</NoWarn> <!-- InlineData should be unique within the test class -->
+    <NoWarn>$(NoWarn);xUnit1026</NoWarn> <!-- Theory methods should use all of their parameters -->
+    <NoWarn>$(NoWarn);xUnit1027</NoWarn> <!-- Collection definition classes must be public -->
+    <NoWarn>$(NoWarn);xUnit1028</NoWarn> <!-- Test method must use all test data parameters -->
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn> <!-- CancellationToken usage in tests (muito verboso) -->
   </PropertyGroup>
 
   <!-- Configurações específicas para Release -->

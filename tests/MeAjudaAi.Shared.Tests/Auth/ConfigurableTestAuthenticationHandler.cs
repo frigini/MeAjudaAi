@@ -54,23 +54,57 @@ public class ConfigurableTestAuthenticationHandler(
         _currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config)
             ? config.Roles : base.GetTestUserRoles();
 
+    protected override System.Security.Claims.Claim[] CreateStandardClaims()
+    {
+        var baseClaims = base.CreateStandardClaims().ToList();
+
+        if (_currentConfigKey != null && _userConfigs.TryGetValue(_currentConfigKey, out var config))
+        {
+            // Override permissions only when explicitly provided
+            if (config.Permissions is { Length: > 0 })
+            {
+                baseClaims.RemoveAll(c => c.Type == Authorization.CustomClaimTypes.Permission);
+                foreach (var permission in config.Permissions)
+                {
+                    baseClaims.Add(new System.Security.Claims.Claim(Authorization.CustomClaimTypes.Permission, permission));
+                }
+            }
+
+            // Always align IsSystemAdmin claim with config when a user config is present
+            baseClaims.RemoveAll(c => c.Type == Authorization.CustomClaimTypes.IsSystemAdmin);
+            if (config.IsSystemAdmin)
+            {
+                baseClaims.Add(new System.Security.Claims.Claim(Authorization.CustomClaimTypes.IsSystemAdmin, "true"));
+            }
+        }
+
+        return [.. baseClaims];
+    }
+
     protected override string GetAuthenticationScheme() => SchemeName;
 
-    public static void ConfigureUser(string userId, string userName, string email, params string[] roles)
+    public static void ConfigureUser(string userId, string userName, string email, string[] permissions, bool isSystemAdmin = false, params string[] roles)
     {
         var key = $"{userId}_{userName}";
-        _userConfigs[key] = new UserConfig(userId, userName, email, roles);
+        _userConfigs[key] = new UserConfig(userId, userName, email, roles.Length > 0 ? roles : ["user"], permissions, isSystemAdmin);
+        _currentConfigKey = key;
+    }
+
+    public static void ConfigureUserWithRoles(string userId, string userName, string email, params string[] roles)
+    {
+        var key = $"{userId}_{userName}";
+        _userConfigs[key] = new UserConfig(userId, userName, email, roles, [], false);
         _currentConfigKey = key;
     }
 
     public static void ConfigureAdmin(string userId = "admin-id", string userName = "admin", string email = "admin@test.com")
     {
-        ConfigureUser(userId, userName, email, "admin");
+        ConfigureUserWithRoles(userId, userName, email, "admin");
     }
 
     public static void ConfigureRegularUser(string userId = "user-id", string userName = "user", string email = "user@test.com")
     {
-        ConfigureUser(userId, userName, email, "user");
+        ConfigureUserWithRoles(userId, userName, email, "user");
     }
 
     public static void ClearConfiguration()
@@ -96,5 +130,5 @@ public class ConfigurableTestAuthenticationHandler(
         return _allowUnauthenticated;
     }
 
-    private record UserConfig(string UserId, string UserName, string Email, string[] Roles);
+    private record UserConfig(string UserId, string UserName, string Email, string[] Roles, string[] Permissions, bool IsSystemAdmin);
 }

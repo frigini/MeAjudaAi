@@ -14,7 +14,7 @@ permissions:
   statuses: write
 
 env:
-  DOTNET_VERSION: '9.0.x'
+  DOTNET_VERSION: '10.0.x'
   # Temporary: Allow lenient coverage for this development PR
   # TODO: Remove this and improve coverage before merging to main
   STRICT_COVERAGE: false
@@ -85,6 +85,13 @@ jobs:
         ports:
           - 5432:5432
 
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite:latest
+        ports:
+          - 10000:10000
+          - 10001:10001
+          - 10002:10002
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -118,8 +125,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln
+      - name: 🔧 Restore dependencies
+        run: dotnet restore MeAjudaAi.sln --force-evaluate
 
       - name: Build solution
         run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
@@ -186,6 +193,12 @@ jobs:
           DB_NAME: ${{ secrets.POSTGRES_DB }}
           # Keycloak settings
           KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+          # Azure Storage (Azurite emulator)
+          # ⚠️ TEST CREDENTIALS ONLY - These are the standard Azurite local emulator credentials
+          # These are intentionally public and documented at:
+          # https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite#well-known-storage-account-and-key
+          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
+          AzureStorage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
           # Map connection strings to .NET configuration using double underscore
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
@@ -307,7 +320,7 @@ jobs:
             "Architecture:tests/MeAjudaAi.Architecture.Tests/"
             "Integration:tests/MeAjudaAi.Integration.Tests/"
             "Shared:tests/MeAjudaAi.Shared.Tests/"
-            # "E2E:tests/MeAjudaAi.E2E.Tests/"  # Uncomment when E2E tests are ready
+            "E2E:tests/MeAjudaAi.E2E.Tests/"
           )
 
           # Run system tests without coverage
@@ -327,6 +340,78 @@ jobs:
           done
 
           echo "✅ Todos os testes executados com sucesso"
+
+      - name: CRITICAL - Hangfire Npgsql 10.x Compatibility Tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          EXTERNAL_POSTGRES_HOST: localhost
+          EXTERNAL_POSTGRES_PORT: 5432
+          MEAJUDAAI_DB_HOST: localhost
+          MEAJUDAAI_DB_PORT: 5432
+          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB }}
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__HangfireConnection: ${{ steps.db.outputs.connection-string }}
+        run: |
+          set -euo pipefail
+          echo "🚨 CRITICAL: Running Hangfire + Npgsql 10.x compatibility tests"
+          echo "=========================================================================="
+          echo "CONTEXT:"
+          echo "  - Hangfire.PostgreSql 1.20.12 compiled against Npgsql 6.x"
+          echo "  - Npgsql 10.x introduces BREAKING CHANGES"
+          echo "  - These tests VALIDATE runtime compatibility"
+          echo "  - DEPLOYMENT IS BLOCKED if these tests fail"
+          echo "=========================================================================="
+          echo ""
+
+          # Run ONLY Hangfire integration tests with explicit filter
+          TEST_EXIT_CODE=0
+          dotnet test tests/MeAjudaAi.Integration.Tests/ \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --filter "Category=HangfireIntegration" \
+            --logger "console;verbosity=detailed" \
+            --logger "trx;LogFileName=hangfire-integration-test-results.trx" \
+            || TEST_EXIT_CODE=$?
+
+          echo ""
+          if [ $TEST_EXIT_CODE -eq 0 ]; then
+            echo "✅ HANGFIRE COMPATIBILITY VALIDATED"
+            echo "   - All Hangfire integration tests passed"
+            echo "   - Hangfire.PostgreSql 1.20.12 is compatible with Npgsql 10.x"
+            echo "   - Safe to deploy to production"
+          else
+            echo "❌ HANGFIRE COMPATIBILITY TEST FAILED"
+            echo "=========================================================================="
+            echo "CRITICAL FAILURE: Hangfire.PostgreSql 1.20.12 is NOT compatible with Npgsql 10.x"
+            echo ""
+            echo "REQUIRED ACTIONS:"
+            echo "  1. DO NOT MERGE this PR"
+            echo "  2. DO NOT DEPLOY to production"
+            echo "  3. Review test failures in the logs above"
+            echo "  4. Choose one mitigation option:"
+            echo ""
+            echo "MITIGATION OPTIONS:"
+            echo "  A. DOWNGRADE (Recommended for immediate fix):"
+            echo "     - Downgrade to EF Core 9.x + Npgsql 8.x"
+            echo "     - Update Directory.Packages.props:"
+            echo "       <PackageVersion Include=\"Npgsql.EntityFrameworkCore.PostgreSQL\" Version=\"9.0.0\" />"
+            echo "       <PackageVersion Include=\"Npgsql\" Version=\"8.0.5\" />"
+            echo ""
+            echo "  B. WAIT FOR UPDATE:"
+            echo "     - Monitor: https://github.com/frankhommers/Hangfire.PostgreSql"
+            echo "     - Wait for Hangfire.PostgreSql 2.x with Npgsql 10 support"
+            echo ""
+            echo "  C. ALTERNATIVE BACKEND:"
+            echo "     - Switch to Hangfire.Pro.Redis (requires license)"
+            echo "     - Or use Hangfire.InMemory for testing only"
+            echo ""
+            echo "📖 See: docs/deployment_environments.md for rollback procedures"
+            echo "=========================================================================="
+            exit $TEST_EXIT_CODE
+          fi
 
       - name: Validate namespace reorganization
         run: |
@@ -775,7 +860,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln
+        run: dotnet restore MeAjudaAi.sln --force-evaluate
 
       - name: Run Security Audit
         run: dotnet list package --vulnerable --include-transitive

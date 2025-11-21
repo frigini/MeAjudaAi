@@ -36,6 +36,8 @@ public class UsersModuleTests : TestContainerTestBase
     public async Task CreateUser_WithValidData_ShouldReturnCreatedOrConflict()
     {
         // Arrange
+        AuthenticateAsAdmin(); // CreateUser requer role admin
+
         var createUserRequest = new CreateUserRequest
         {
             Username = $"testuser_{Guid.NewGuid():N}",
@@ -69,6 +71,7 @@ public class UsersModuleTests : TestContainerTestBase
     public async Task CreateUser_WithInvalidData_ShouldReturnBadRequest()
     {
         // Arrange
+        AuthenticateAsAdmin(); // CreateUser requer role admin (AdminOnly policy)
         var invalidRequest = new CreateUserRequest
         {
             Username = "", // Inválido: username vazio
@@ -116,6 +119,7 @@ public class UsersModuleTests : TestContainerTestBase
     public async Task UpdateUser_WithNonExistentId_ShouldReturnNotFound()
     {
         // Arrange
+        AuthenticateAsAdmin(); // UpdateUserProfile requer autorização (SelfOrAdmin policy)
         var nonExistentId = Guid.NewGuid();
         var updateRequest = new UpdateUserProfileRequest
         {
@@ -135,6 +139,7 @@ public class UsersModuleTests : TestContainerTestBase
     public async Task DeleteUser_WithNonExistentId_ShouldReturnNotFound()
     {
         // Arrange
+        AuthenticateAsAdmin(); // DELETE requer autorização Admin
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -147,6 +152,9 @@ public class UsersModuleTests : TestContainerTestBase
     [Fact]
     public async Task UserEndpoints_ShouldHandleInvalidGuids()
     {
+        // Arrange
+        AuthenticateAsAdmin(); // GET requer autorização
+
         // Act & Assert - Quando o constraint de GUID não bate, a rota retorna 404 
         var invalidGuidResponse = await ApiClient.GetAsync("/api/v1/users/invalid-guid");
         invalidGuidResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);

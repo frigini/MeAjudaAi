@@ -1,9 +1,12 @@
 using Bogus;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
+using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
+using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;
 using Microsoft.AspNetCore.Authentication;
@@ -32,11 +35,19 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
     protected static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
 
+    // Configure authentication handler for CI/CD environment
+    static TestContainerTestBase()
+    {
+        // In CI/CD, Keycloak is not available, so we allow the test authentication handler
+        // to auto-configure admin credentials when no explicit configuration is set
+        ConfigurableTestAuthenticationHandler.SetAllowUnauthenticated(true);
+    }
+
     public virtual async ValueTask InitializeAsync()
     {
         // Configurar containers com configuração mais robusta
         _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:13-alpine")
+            .WithImage("postgis/postgis:16-3.4") // Mesma imagem usada em CI/CD e compose
             .WithDatabase("meajudaai_test")
             .WithUsername("postgres")
             .WithPassword("test123")
@@ -53,7 +64,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         await _redisContainer.StartAsync();
 
         // Configurar WebApplicationFactory
+#pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
         _factory = new WebApplicationFactory<Program>()
+#pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
@@ -109,48 +122,35 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         logging.SetMinimumLevel(LogLevel.Error);
                     });
 
-                    // Remover configuração existente do DbContext
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<UsersDbContext>));
-                    if (descriptor != null)
-                        services.Remove(descriptor);
+                    // Reconfigurar todos os DbContexts com TestContainer connection string
+                    ReconfigureDbContext<UsersDbContext>(services);
+                    ReconfigureDbContext<ProvidersDbContext>(services);
+                    ReconfigureDbContext<DocumentsDbContext>(services);
+                    ReconfigureDbContext<ServiceCatalogsDbContext>(services);
+                    ReconfigureSearchProvidersDbContext(services);
 
-                    // Reconfigurar DbContext com TestContainer connection string
-                    services.AddDbContext<UsersDbContext>(options =>
+                    // Configurar PostgresOptions e Dapper para SearchProviders
+                    var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
+                    if (postgresOptionsDescriptor != null)
+                        services.Remove(postgresOptionsDescriptor);
+
+                    services.AddSingleton(new PostgresOptions
                     {
-                        options.UseNpgsql(_postgresContainer.GetConnectionString())
-                               .UseSnakeCaseNamingConvention()
-                               .EnableSensitiveDataLogging(false)
-                               .ConfigureWarnings(warnings =>
-                                   warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                        ConnectionString = _postgresContainer.GetConnectionString()
                     });
 
-                    // Reconfigurar ProvidersDbContext com TestContainer connection string
-                    var providersDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ProvidersDbContext>));
-                    if (providersDescriptor != null)
-                        services.Remove(providersDescriptor);
-
-                    services.AddDbContext<ProvidersDbContext>(options =>
+                    // Adicionar DatabaseMetrics se não existir
+                    if (!services.Any(d => d.ServiceType == typeof(DatabaseMetrics)))
                     {
-                        options.UseNpgsql(_postgresContainer.GetConnectionString())
-                               .UseSnakeCaseNamingConvention()
-                               .EnableSensitiveDataLogging(false)
-                               .ConfigureWarnings(warnings =>
-                                   warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
+                        services.AddSingleton<DatabaseMetrics>();
+                    }
 
-                    // Reconfigurar DocumentsDbContext com TestContainer connection string
-                    var documentsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<DocumentsDbContext>));
-                    if (documentsDescriptor != null)
-                        services.Remove(documentsDescriptor);
+                    // Adicionar DapperConnection para SearchProviders
+                    var dapperDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDapperConnection));
+                    if (dapperDescriptor != null)
+                        services.Remove(dapperDescriptor);
 
-                    services.AddDbContext<DocumentsDbContext>(options =>
-                    {
-                        options.UseNpgsql(_postgresContainer.GetConnectionString())
-                               .UseSnakeCaseNamingConvention()
-                               .EnableSensitiveDataLogging(false)
-                               .ConfigureWarnings(warnings =>
-                                   warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-                    });
+                    services.AddScoped<IDapperConnection, DapperConnection>();
 
                     // Substituir IKeycloakService por MockKeycloakService para testes
                     var keycloakDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IKeycloakService));
@@ -262,9 +262,18 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         // Para DocumentsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema documents)
         var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
         await documentsContext.Database.MigrateAsync();
+
+        // Para ServiceCatalogsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema catalogs)
+        var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+        await catalogsContext.Database.MigrateAsync();
+
+        // Para SearchProvidersDbContext, só aplicar migrações (o banco já existe, só precisamos do schema search + PostGIS)
+        var searchContext = scope.ServiceProvider.GetRequiredService<SearchProvidersDbContext>();
+        await searchContext.Database.MigrateAsync();
     }
 
     // Helper methods usando serialização compartilhada
+#pragma warning disable CA2000 // Dispose StringContent - handled by HttpClient
     protected async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
@@ -278,6 +287,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
         return await ApiClient.PutAsync(requestUri, stringContent);
     }
+#pragma warning restore CA2000
 
     protected static async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)
     {
@@ -352,4 +362,72 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T content)
         => await PutJsonAsync(requestUri.ToString(), content);
+
+    /// <summary>
+    /// Reconfigura um DbContext para usar a connection string do TestContainer
+    /// </summary>
+    private void ReconfigureDbContext<TContext>(IServiceCollection services) where TContext : DbContext
+    {
+        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<TContext>));
+        if (descriptor != null)
+            services.Remove(descriptor);
+
+        services.AddDbContext<TContext>(options =>
+        {
+            options.UseNpgsql(_postgresContainer.GetConnectionString())
+                   .UseSnakeCaseNamingConvention()
+                   .EnableSensitiveDataLogging(true)  // Useful for test debugging
+                   .ConfigureWarnings(warnings =>
+                       warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
+    }
+
+    /// <summary>
+    /// Reconfigura SearchProvidersDbContext com suporte PostGIS/NetTopologySuite
+    /// </summary>
+    private void ReconfigureSearchProvidersDbContext(IServiceCollection services)
+    {
+        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<SearchProvidersDbContext>));
+        if (descriptor != null)
+            services.Remove(descriptor);
+
+        services.AddDbContext<SearchProvidersDbContext>(options =>
+        {
+            options.UseNpgsql(
+                _postgresContainer.GetConnectionString(),
+                npgsqlOptions =>
+                {
+                    npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
+                })
+                .UseSnakeCaseNamingConvention()
+                .EnableSensitiveDataLogging(false)
+                .ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
+    }
+
+    /// <summary>
+    /// Extrai o ID de um recurso do header Location de uma resposta HTTP 201 Created.
+    /// Suporta formatos: /api/v1/resource/{id}, /api/v1/resource?id={id}
+    /// </summary>
+    protected static Guid ExtractIdFromLocation(string locationHeader)
+    {
+        if (locationHeader.Contains("?id="))
+        {
+            var queryString = locationHeader.Split('?')[1];
+            var idParam = queryString.Split('&')
+                .FirstOrDefault(p => p.StartsWith("id="));
+
+            if (idParam != null)
+            {
+                var idValue = idParam.Split('=')[1];
+                return Guid.Parse(idValue);
+            }
+        }
+
+        var segments = locationHeader.Split('/');
+        var lastSegment = segments[^1].Split('?')[0];
+        return Guid.Parse(lastSegment);
+    }
 }

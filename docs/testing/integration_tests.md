@@ -93,6 +93,8 @@ public class UsersApiTests : ApiTestBase
 | Authentication flows | ❌ | ✅ |
 | Cross-module communication | ❌ | ✅ |
 | Complete workflows | ❌ | ✅ |
+| Resource lifecycle (CRUD+) | ❌ | ✅ |
+| Business rule validation | ❌ | ✅ |
 
 ### Module Comparison
 
@@ -115,6 +117,43 @@ public class UsersApiTests : ApiTestBase
 1. **API Integration Tests** - Testing complete HTTP request/response cycles (E2E)
 2. **Database Integration Tests** - Testing data persistence and retrieval (Component)
 3. **Service Integration Tests** - Testing interaction between multiple services (Both levels)
+4. **Lifecycle Tests** - Testing complete resource lifecycle (Create → Read → Update → Delete + validations)
+5. **Advanced Feature Tests** - Testing complex business rules and domain-specific operations
+
+### E2E Test Organization by Scenario
+
+E2E tests are organized by **test scenario** rather than simply by module, improving maintainability and discoverability:
+
+**Pattern 1: Module Integration Tests** (`{Module}ModuleTests.cs`)
+- Focus: Basic module functionality and integration
+- Scope: Core CRUD operations and happy paths
+- Example: `UsersModuleTests.cs`, `ProvidersModuleTests.cs`
+
+**Pattern 2: Lifecycle Tests** (`{Module}LifecycleE2ETests.cs`)
+- Focus: Complete resource lifecycle validation
+- Scope: Create → Update → Delete + state transitions
+- Example: `ProvidersLifecycleE2ETests.cs`, `UsersLifecycleE2ETests.cs`
+- Coverage: PUT/PATCH/DELETE endpoints with business rule validation
+
+**Pattern 3: Feature-Specific Tests** (`{Module}{Feature}E2ETests.cs`)
+- Focus: Specific domain features or sub-resources
+- Scope: Complex workflows and related operations
+- Examples:
+  - `ProvidersDocumentsE2ETests.cs` - Document upload/deletion
+  - `DocumentsVerificationE2ETests.cs` - Document verification workflow
+  - `ServiceCatalogsAdvancedE2ETests.cs` - Advanced catalog operations
+
+**Pattern 4: Cross-Cutting Tests** (`{Concern}E2ETests.cs`)
+- Focus: Cross-module concerns
+- Scope: Authorization, authentication, infrastructure
+- Example: `PermissionAuthorizationE2ETests.cs`
+
+**Benefits of this organization:**
+- 🎯 **Clear Intent**: Test purpose is obvious from filename
+- 📁 **Easy Navigation**: Find tests by scenario (Ctrl+P → "lifecycle")
+- 🐛 **Isolated Failures**: Failures grouped by feature domain
+- 📊 **Coverage Tracking**: Track endpoint coverage by category
+- 🔄 **Better Maintenance**: Smaller, focused test files
 
 ### Test Environment Setup
 Integration tests use TestContainers for isolated, reproducible test environments:
@@ -234,14 +273,72 @@ public async Task CreateUser_ValidData_ReturnsCreatedUser()
 - Use test output helpers for debugging
 - Check container logs for infrastructure issues
 
+## Endpoint Coverage Metrics
+
+### Current Coverage Status
+
+O projeto mantém **100% de cobertura de endpoints E2E** através de 103 testes:
+
+| Module | Endpoints | Tests | Coverage |
+|--------|-----------|-------|----------|
+| **Providers** | 14 | 14 | 100% |
+| **ServiceCatalogs** | 17 | 17 | 100% |
+| **Documents** | 4 | 4 | 100% |
+| **Users** | 6 | 6 | 100% |
+| **TOTAL** | **41** | **41** | **100%** |
+
+### Test Distribution by Category
+
+- **Module Integration**: 36 tests (basic module functionality)
+- **Lifecycle Tests**: 18 tests (complete CRUD workflows)
+- **Authorization**: 8 tests (permission validation)
+- **Cross-Module**: 7 tests (inter-module communication)
+- **Infrastructure**: 34 tests (health checks, configuration)
+
+### Coverage by Test Type
+
+**Providers Module (14 endpoints)**:
+- Basic CRUD: `ProvidersModuleTests.cs` (6 tests)
+- Lifecycle: `ProvidersLifecycleE2ETests.cs` (6 tests)
+- Documents: `ProvidersDocumentsE2ETests.cs` (2 tests)
+
+**ServiceCatalogs Module (17 endpoints)**:
+- Integration: `ServiceCatalogsModuleIntegrationTests.cs` (12 tests)
+- Advanced: `ServiceCatalogsAdvancedE2ETests.cs` (5 tests)
+
+**Documents Module (4 endpoints)**:
+- Basic: `DocumentsModuleTests.cs` (1 test)
+- Verification: `DocumentsVerificationE2ETests.cs` (3 tests)
+
+**Users Module (6 endpoints)**:
+- Integration: `UsersModuleTests.cs` (2 tests)
+- Lifecycle: `UsersLifecycleE2ETests.cs` (6 tests) - comprehensive DELETE coverage
+
+### Coverage Evolution
+
+```text
+Before (78% coverage):
+├─ Providers: 8/14 (57%)
+├─ ServiceCatalogs: 15/17 (88%)
+├─ Documents: 3/4 (75%)
+└─ Users: 6/6 (100%)
+
+After (100% coverage):
+├─ Providers: 14/14 (100%) ✅ +6 endpoints
+├─ ServiceCatalogs: 17/17 (100%) ✅ +2 endpoints
+├─ Documents: 4/4 (100%) ✅ +1 endpoint
+└─ Users: 6/6 (100%) ✅ Enhanced DELETE coverage
+```
+
 ## CI/CD Integration
 
 ### Automated Test Execution
 Integration tests run as part of the CI/CD pipeline:
 
-- **Pull Request Validation** - All tests must pass
+- **Pull Request Validation** - All tests must pass (103/103)
 - **Parallel Execution** - Tests run in parallel for performance
 - **Coverage Reporting** - Integration test coverage is tracked
+- **Endpoint Coverage** - 100% endpoint coverage maintained
 
 ### Environment Configuration
 - Tests use environment-specific configuration

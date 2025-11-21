@@ -23,7 +23,8 @@ public static class Extensions
 
         builder.AddDefaultHealthChecks();
 
-        builder.Services.AddServiceDiscovery();
+        // Service discovery not available for .NET 10 yet
+        // builder.Services.AddServiceDiscovery();
 
         builder.ConfigureHttpClients();
 
@@ -76,7 +77,8 @@ public static class Extensions
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
             http.AddStandardResilienceHandler();
-            http.AddServiceDiscovery();
+            // Service discovery not available for .NET 10 yet
+            // http.AddServiceDiscovery();
             http.ConfigureHttpClient(client =>
             {
                 client.Timeout = TimeSpan.FromSeconds(30);

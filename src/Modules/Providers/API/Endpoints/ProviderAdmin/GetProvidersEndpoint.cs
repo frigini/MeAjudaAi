@@ -6,7 +6,6 @@ using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Endpoints.OpenApi;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Models;
 using MeAjudaAi.Shared.Queries;
@@ -72,12 +71,7 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
             .Produces<AuthorizationErrorResponse>(StatusCodes.Status403Forbidden, "application/json")
             .Produces<RateLimitErrorResponse>(StatusCodes.Status429TooManyRequests, "application/json")
             .Produces<InternalServerErrorResponse>(StatusCodes.Status500InternalServerError, "application/json")
-            .RequirePermission(Permission.ProvidersList)
-            .WithOpenApi(operation => operation
-                .AddNameFilterParameter("Termo de busca para filtrar por nome do prestador", "joão")
-                .AddTypeFilterParameter("type", "Filtro por tipo de serviço (ID numérico)", 1, 1)
-                .AddVerificationStatusParameter("Status de verificação do prestador (ID numérico)", 2)
-                .AddPaginationParameters(10, 100));
+            .RequirePermission(Permission.ProvidersList);
 
     /// <summary>
     /// Processa requisição de consulta de prestadores de forma assíncrona.

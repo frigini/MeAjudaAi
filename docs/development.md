@@ -8,7 +8,7 @@ Este guia fornece instruções práticas e diretrizes abrangentes para desenvolv
 
 | Ferramenta | Versão | Descrição |
 |------------|--------|-----------|
-| **.NET SDK** | 9.0+ | Framework principal |
+| **.NET SDK** | 10.0+ | Framework principal |
 | **Docker Desktop** | Latest | Containers para desenvolvimento |
 | **Visual Studio** | 2022 17.8+ | IDE recomendada |
 | **PostgreSQL** | 15+ | Banco de dados (via Docker) |
@@ -22,7 +22,7 @@ git clone https://github.com/frigini/MeAjudaAi.git
 cd MeAjudaAi
 
 # 2. Verificar ferramentas
-dotnet --version    # Deve ser 9.0+
+dotnet --version    # Deve ser 10.0+
 docker --version    # Verificar se Docker está rodando
 
 # 3. Restaurar dependências
@@ -304,6 +304,28 @@ O MeAjudaAi segue uma estratégia abrangente de testes baseada na pirâmide de t
           /                      \
          /   Architecture Tests   \
         /______________________\
+```
+
+**Cobertura de Testes E2E**: 103 testes cobrindo **100% dos endpoints** (41/41)
+- ✅ Providers: 14/14 endpoints (100%)
+- ✅ ServiceCatalogs: 17/17 endpoints (100%)
+- ✅ Documents: 4/4 endpoints (100%)
+- ✅ Users: 6/6 endpoints (100%)
+
+**Organização de Testes E2E**:
+```text
+tests/MeAjudaAi.E2E.Tests/Modules/
+├── {Module}ModuleTests.cs              # Testes básicos de integração
+├── {Module}LifecycleE2ETests.cs        # Testes de ciclo de vida (CRUD completo)
+└── {Module}{Feature}E2ETests.cs        # Testes de features específicas
+
+Exemplos:
+├── ProvidersModuleTests.cs             # 6 testes - CRUD básico
+├── ProvidersLifecycleE2ETests.cs       # 6 testes - Update, Delete, Status
+├── ProvidersDocumentsE2ETests.cs       # 2 testes - Upload/Delete documentos
+├── DocumentsVerificationE2ETests.cs    # 3 testes - Workflow de verificação
+├── ServiceCatalogsAdvancedE2ETests.cs  # 5 testes - Regras de negócio
+└── UsersLifecycleE2ETests.cs           # 6 testes - Ciclo de vida completo
 ```
 
 ### **1. Padrões de Nomenclatura para Testes**
@@ -757,7 +779,7 @@ Estes tipos de teste são executados, mas NÃO contribuem para o relatório de c
 - `tests/MeAjudaAi.Architecture.Tests/` - Testes de arquitetura
 - `tests/MeAjudaAi.Integration.Tests/` - Testes de integração
 - `tests/MeAjudaAi.Shared.Tests/` - Testes do shared
-- `tests/MeAjudaAi.E2E.Tests/` - Testes end-to-end
+- `tests/MeAjudaAi.E2E.Tests/` - Testes end-to-end (103 testes, 100% cobertura de endpoints)
 
 #### 6. Validação
 
@@ -777,7 +799,7 @@ Após adicionar um novo módulo:
 - [📖 README Principal](../README.md)
 
 ### **Documentação Externa**
-- [.NET 9 Documentation](https://docs.microsoft.com/dotnet/)
+- [.NET 10 Documentation](https://docs.microsoft.com/dotnet/)
 - [Entity Framework Core](https://docs.microsoft.com/ef/core/)
 - [MediatR](https://github.com/jbogard/MediatR)
 - [FluentValidation](https://docs.fluentvalidation.net/)

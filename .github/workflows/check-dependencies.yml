@@ -1,0 +1,127 @@
+name: Check Outdated Dependencies
+
+on:
+  schedule:
+    # Durante Sprint 0 (Migration .NET 10): DIÁRIO para detectar releases stable rapidamente
+    # Após merge para master: Alterar para '0 9 * * 1' (semanal - segundas-feiras)
+    # TODO (Issue #TBD): Change to '0 9 * * 1' (weekly on Mondays) after Sprint 0 merge to master
+    # Tracked in: https://github.com/frigini/MeAjudaAi/issues (create post-merge)
+    - cron: '0 9 * * *' # Diário às 9h UTC (6h Brasília)
+  workflow_dispatch: # Permite execução manual
+
+jobs:
+  check-outdated:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Install dotnet-outdated tool
+        run: dotnet tool install --global dotnet-outdated-tool
+
+      - name: Check for outdated packages
+        id: check
+        continue-on-error: true
+        run: |
+          echo "Verificando pacotes desatualizados..."
+
+          # Use --fail-on-updates to get exit code directly
+          # Exit code 0 = no updates, non-zero = updates found
+          # Note: With continue-on-error:true, we capture exit code for analysis
+          dotnet outdated --upgrade:Major --transitive:false --fail-on-updates > outdated-report.txt 2>&1
+          EXIT_CODE=$?
+
+          # Display report for debugging
+          cat outdated-report.txt
+
+          # Interpret exit code: 0 = no updates, 1+ = updates found (or error)
+          # dotnet-outdated-tool returns non-zero when updates exist with --fail-on-updates
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "outdated_found=false" >> $GITHUB_OUTPUT
+          else
+            # Could be updates OR tool failure - check report for "has newer versions"
+            if grep -q "has newer versions\|Upgrade" outdated-report.txt; then
+              echo "outdated_found=true" >> $GITHUB_OUTPUT
+            else
+              echo "outdated_found=false" >> $GITHUB_OUTPUT
+              echo "⚠️ dotnet-outdated exited with code $EXIT_CODE but no updates detected" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: Create Issue if outdated packages found
+        if: steps.check.outputs.outdated_found == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('outdated-report.txt', 'utf8');
+
+            // Verificar se já existe issue aberta
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'dependencies,automated'
+            });
+
+            const existingIssue = issues.data.find(issue =>
+              issue.title.includes('[AUTOMATED] Outdated NuGet Packages Detected')
+            );
+
+            const issueBody = `## 📦 Pacotes Desatualizados Detectados\n\n` +
+              `**Data da verificação:** ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}\n\n` +
+              `### Relatório dotnet-outdated\n\n` +
+              `\`\`\`\n${report}\n\`\`\`\n\n` +
+              `### 📋 Próximos Passos\n\n` +
+              `1. Revisar pacotes listados acima\n` +
+              `2. Verificar breaking changes nos release notes\n` +
+              `3. Atualizar \`Directory.Packages.props\` conforme necessário\n` +
+              `4. Executar \`dotnet restore\` e \`dotnet build\` localmente\n` +
+              `5. Executar suite completa de testes\n` +
+              `6. Criar PR com atualizações validadas\n\n` +
+              `### ⚠️ Pacotes Críticos (Requerem Atenção Especial)\n\n` +
+              `- **EF Core 10.x**: Testar migrations após atualização\n` +
+              `- **Npgsql 10.x**: Revalidar compatibilidade com Hangfire.PostgreSql\n` +
+              `- **Aspire 13.x**: Verificar orchestration configs\n\n` +
+              `---\n` +
+              `*Issue criada automaticamente pelo workflow \`check-dependencies.yml\`*`;
+
+            if (existingIssue) {
+              // Atualizar issue existente
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: `## 🔄 Atualização de Verificação\n\n${issueBody}`
+              });
+              console.log(`Issue #${existingIssue.number} atualizada com novo relatório`);
+            } else {
+              // Criar nova issue
+              const newIssue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '[AUTOMATED] Outdated NuGet Packages Detected',
+                body: issueBody,
+                labels: ['dependencies', 'automated', 'sprint-0']
+              });
+              console.log(`Nova issue criada: #${newIssue.data.number}`);
+            }
+
+      - name: Summary
+        run: |
+          echo "### ✅ Verificação de Dependências Concluída" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check.outputs.outdated_found }}" == "true" ]; then
+            echo "⚠️ **Pacotes desatualizados encontrados!**" >> $GITHUB_STEP_SUMMARY
+            echo "Issue criada/atualizada automaticamente." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Todas as dependências estão atualizadas!**" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📅 Próxima verificação: Segunda-feira às 9h UTC" >> $GITHUB_STEP_SUMMARY

@@ -1,5 +1,5 @@
 using MeAjudaAi.ApiService.Filters;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace MeAjudaAi.ApiService.Extensions;
 
@@ -54,19 +54,9 @@ public static class DocumentationExtensions
                 Description = "JWT Authorization header using Bearer scheme. Example: 'Bearer {token}'"
             });
 
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
             {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
-                }
+                [new OpenApiSecuritySchemeReference("Bearer")] = new List<string>()
             });
 
             // Incluir comentários XML se disponíveis
@@ -124,8 +114,10 @@ public static class DocumentationExtensions
                 return $"{ctrl}_{act}_{method}";
             });
 
+            // TODO: Reativar após migração para Swashbuckle 10.x completar
+            // ExampleSchemaFilter precisa ser adaptado para IOpenApiSchema (read-only Example property)
             // Exemplos automáticos baseados em annotations
-            options.SchemaFilter<ExampleSchemaFilter>();
+            // options.SchemaFilter<ExampleSchemaFilter>();
 
             // Filtros essenciais
             options.OperationFilter<ApiVersionOperationFilter>();
@@ -161,3 +153,4 @@ public static class DocumentationExtensions
         return app;
     }
 }
+

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
@@ -35,20 +35,20 @@
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     
     <!-- Configuration -->
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <!-- Removed: Microsoft.Extensions.Configuration.Abstractions - transitive from Microsoft.AspNetCore.App -->
+    <!-- Removed: Microsoft.Extensions.Configuration.Json - transitive from Microsoft.AspNetCore.App -->
+    <!-- Removed: Microsoft.Extensions.Configuration.EnvironmentVariables - transitive from Microsoft.AspNetCore.App -->
     
     <!-- Dependency Injection -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.Options" />
+    <!-- Removed: Microsoft.Extensions.DependencyInjection - transitive from Microsoft.AspNetCore.App -->
+    <!-- Removed: Microsoft.Extensions.DependencyInjection.Abstractions - transitive from Microsoft.AspNetCore.App -->
+    <!-- Removed: Microsoft.Extensions.Hosting.Abstractions - transitive from Microsoft.AspNetCore.App -->
+    <!-- Removed: Microsoft.Extensions.Options - transitive from Microsoft.AspNetCore.App -->
     <PackageReference Include="Scrutor" />
     
     <!-- Logging -->
-    <PackageReference Include="Microsoft.Extensions.Logging" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <!-- Removed: Microsoft.Extensions.Logging - transitive from Microsoft.AspNetCore.App -->
+    <!-- Removed: Microsoft.Extensions.Logging.Abstractions - transitive from Microsoft.AspNetCore.App -->
     <PackageReference Include="Serilog" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Enrichers.Environment" />
@@ -65,14 +65,15 @@
     <PackageReference Include="Rebus.RabbitMq" />
     <PackageReference Include="Rebus.ServiceProvider" />
     
+    
     <!-- Background Jobs -->
     <PackageReference Include="Hangfire.Core" />
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Hangfire.PostgreSql" />
     
     <!-- System -->
-    <PackageReference Include="Microsoft.CSharp" />
-    <PackageReference Include="System.Text.Json" />
+    <!-- Removed: Microsoft.CSharp - transitive from .NET runtime -->
+    <!-- Removed: System.Text.Json - transitive from Microsoft.AspNetCore.App -->
   </ItemGroup>
 
 </Project>

@@ -27,7 +27,7 @@ public static class DtoMappingExtensions
     public static ServiceDto ToDto(this Service service)
     {
         var categoryName = service.Category?.Name ?? ValidationMessages.Catalogs.UnknownCategoryName;
-        
+
         return new ServiceDto(
             service.Id.Value,
             service.CategoryId.Value,

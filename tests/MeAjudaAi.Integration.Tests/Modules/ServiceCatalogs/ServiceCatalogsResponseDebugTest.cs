@@ -24,7 +24,7 @@ public class ServiceCatalogsResponseDebugTest(ITestOutputHelper testOutput) : Ap
         };
 
         // Act
-        var response = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+        var response = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryData);
 
         // Assert - Log everything
         var content = await response.Content.ReadAsStringAsync();

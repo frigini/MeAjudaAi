@@ -39,7 +39,9 @@ public class ApplicationStartupDiagnosticTest(ITestOutputHelper testOutput) : IA
         {
             testOutput.WriteLine("🔧 Creating WebApplicationFactory...");
 
+#pragma warning disable CA2000 // Dispose é gerenciado pelo finally block
             factory = new WebApplicationFactory<Program>()
+#pragma warning restore CA2000
                 .WithWebHostBuilder(builder =>
                 {
                     builder.UseEnvironment("Testing");

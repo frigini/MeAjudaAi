@@ -1,0 +1,110 @@
+version: 2
+
+updates:
+  # Monitorar pacotes NuGet (.NET)
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Sao_Paulo"
+    
+    # Limitar número de PRs abertos simultaneamente
+    open-pull-requests-limit: 5
+    
+    # Configuração de commits
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    
+    # Labels para PRs criados
+    labels:
+      - "dependencies"
+      - "nuget"
+      - "automated"
+    
+    # Agrupar updates relacionados
+    groups:
+      # Grupo: .NET Runtime e Core packages
+      dotnet-core:
+        patterns:
+          - "Microsoft.Extensions.*"
+          - "System.*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Grupo: EF Core packages
+      ef-core:
+        patterns:
+          - "Microsoft.EntityFrameworkCore*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Grupo: Npgsql packages
+      npgsql:
+        patterns:
+          - "Npgsql*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Grupo: Aspire packages
+      aspire:
+        patterns:
+          - "Aspire.*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Grupo: Testing packages
+      testing:
+        patterns:
+          - "xunit*"
+          - "Moq*"
+          - "FluentAssertions*"
+          - "AutoFixture*"
+          - "coverlet*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Grupo: Observability packages
+      observability:
+        patterns:
+          - "OpenTelemetry*"
+          - "Serilog*"
+        update-types:
+          - "minor"
+          - "patch"
+    
+    # Ignorar updates específicos (temporariamente)
+    ignore:
+      # Não atualizar automaticamente para versões major (requer revisão manual)
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+    # Reviewers automáticos
+
+  # Monitorar GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Sao_Paulo"
+    
+    open-pull-requests-limit: 3
+    
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automated"

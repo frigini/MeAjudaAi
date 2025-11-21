@@ -135,7 +135,9 @@ public class GlobalExceptionHandlerTests
 
         // Assert
         responseStream.Position = 0;
+#pragma warning disable CA2000 // StreamReader será disposto com o responseStream
         var responseContent = await new StreamReader(responseStream).ReadToEndAsync();
+#pragma warning restore CA2000
         responseContent.Should().NotBeEmpty();
 
         var errorResponse = JsonSerializer.Deserialize<object>(responseContent);

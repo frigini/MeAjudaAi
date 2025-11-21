@@ -6,7 +6,6 @@ using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Endpoints.OpenApi;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Models;
 using MeAjudaAi.Shared.Queries;
@@ -68,10 +67,7 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
             .Produces<AuthorizationErrorResponse>(StatusCodes.Status403Forbidden, "application/json")
             .Produces<RateLimitErrorResponse>(StatusCodes.Status429TooManyRequests, "application/json")
             .Produces<InternalServerErrorResponse>(StatusCodes.Status500InternalServerError, "application/json")
-            .RequirePermission(Permission.UsersList)
-            .WithOpenApi(operation => operation
-                .AddSearchTermParameter("Termo de busca para filtrar por email, username, nome ou sobrenome", "joão")
-                .AddPaginationParameters(10, 100));
+            .RequirePermission(Permission.UsersList);
 
     /// <summary>
     /// Processa requisição de consulta de usuários de forma assíncrona.

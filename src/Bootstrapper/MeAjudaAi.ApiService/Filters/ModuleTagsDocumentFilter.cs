@@ -1,4 +1,5 @@
-using Microsoft.OpenApi.Models;
+using System.Text.Json.Nodes;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MeAjudaAi.ApiService.Filters;
@@ -25,7 +26,7 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
         var orderedTags = new List<string> { "Users",/* "Services", "Bookings", "Notifications", "Reports", "Admin",*/ "Health" };
 
         // Criar tags com descrições
-        swaggerDoc.Tags = [];
+        swaggerDoc.Tags = new HashSet<OpenApiTag>();
 
         foreach (var tagName in orderedTags)
         {
@@ -93,19 +94,22 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
 
     private static void AddServerInformation(OpenApiDocument swaggerDoc)
     {
-        swaggerDoc.Servers =
-        [
-            new OpenApiServer
-            {
-                Url = "http://localhost:5000",
-                Description = "Desenvolvimento Local"
-            },
-            new OpenApiServer
-            {
-                Url = "https://api.meajudaai.com",
-                Description = "Produção"
-            }
-        ];
+        // TODO(#TechDebt): Investigate OpenApiServer initialization issue in .NET 10 / Swashbuckle 10
+        // Temporarily disabled to fix UriFormatException. Track restoration in backlog.
+        // Related: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/2816
+        // swaggerDoc.Servers =
+        // [
+        //     new OpenApiServer
+        //     {
+        //         Url = "http://localhost:5000",
+        //         Description = "Desenvolvimento Local"
+        //     },
+        //     new OpenApiServer
+        //     {
+        //         Url = "https://api.meajudaai.com",
+        //         Description = "Produção"
+        //     }
+        // ];
     }
 
     private static void AddGlobalExamples(OpenApiDocument swaggerDoc)
@@ -114,28 +118,29 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
         swaggerDoc.Components ??= new OpenApiComponents();
 
         // Exemplo de erro padrão
-        swaggerDoc.Components.Examples ??= new Dictionary<string, OpenApiExample>();
+        if (swaggerDoc.Components.Examples == null)
+            swaggerDoc.Components.Examples = new Dictionary<string, IOpenApiExample>();
 
         swaggerDoc.Components.Examples["ErrorResponse"] = new OpenApiExample
         {
             Summary = "Resposta de Erro Padrão",
             Description = "Formato padrão das respostas de erro da API",
-            Value = new Microsoft.OpenApi.Any.OpenApiObject
+            Value = new JsonObject
             {
-                ["type"] = new Microsoft.OpenApi.Any.OpenApiString("ValidationError"),
-                ["title"] = new Microsoft.OpenApi.Any.OpenApiString("Dados de entrada inválidos"),
-                ["status"] = new Microsoft.OpenApi.Any.OpenApiInteger(400),
-                ["detail"] = new Microsoft.OpenApi.Any.OpenApiString("Um ou mais campos contêm valores inválidos"),
-                ["instance"] = new Microsoft.OpenApi.Any.OpenApiString("/api/v1/users"),
-                ["errors"] = new Microsoft.OpenApi.Any.OpenApiObject
+                ["type"] = "ValidationError",
+                ["title"] = "Dados de entrada inválidos",
+                ["status"] = 400,
+                ["detail"] = "Um ou mais campos contêm valores inválidos",
+                ["instance"] = "/api/v1/users",
+                ["errors"] = new JsonObject
                 {
-                    ["email"] = new Microsoft.OpenApi.Any.OpenApiArray
+                    ["email"] = new JsonArray
                     {
-                        new Microsoft.OpenApi.Any.OpenApiString("O campo Email é obrigatório"),
-                        new Microsoft.OpenApi.Any.OpenApiString("Email deve ter um formato válido")
+                        "O campo Email é obrigatório",
+                        "Email deve ter um formato válido"
                     }
                 },
-                ["traceId"] = new Microsoft.OpenApi.Any.OpenApiString("0HN7GKZB8K9QA:00000001")
+                ["traceId"] = "0HN7GKZB8K9QA:00000001"
             }
         };
 
@@ -143,40 +148,43 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
         {
             Summary = "Resposta de Sucesso Padrão",
             Description = "Formato padrão das respostas de sucesso da API",
-            Value = new Microsoft.OpenApi.Any.OpenApiObject
+            Value = new JsonObject
             {
-                ["success"] = new Microsoft.OpenApi.Any.OpenApiBoolean(true),
-                ["data"] = new Microsoft.OpenApi.Any.OpenApiObject
+                ["success"] = true,
+                ["data"] = new JsonObject
                 {
-                    ["id"] = new Microsoft.OpenApi.Any.OpenApiString("3fa85f64-5717-4562-b3fc-2c963f66afa6"),
-                    ["createdAt"] = new Microsoft.OpenApi.Any.OpenApiString("2024-01-15T10:30:00Z")
+                    ["id"] = "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    ["createdAt"] = "2024-01-15T10:30:00Z"
                 },
-                ["metadata"] = new Microsoft.OpenApi.Any.OpenApiObject
+                ["metadata"] = new JsonObject
                 {
-                    ["requestId"] = new Microsoft.OpenApi.Any.OpenApiString("req_abc123"),
-                    ["version"] = new Microsoft.OpenApi.Any.OpenApiString("1.0"),
-                    ["timestamp"] = new Microsoft.OpenApi.Any.OpenApiString("2024-01-15T10:30:00Z")
+                    ["requestId"] = "req_abc123",
+                    ["version"] = "1.0",
+                    ["timestamp"] = "2024-01-15T10:30:00Z"
                 }
             }
         };
 
         // Schemas reutilizáveis
-        swaggerDoc.Components.Schemas ??= new Dictionary<string, OpenApiSchema>();
+        if (swaggerDoc.Components.Schemas == null)
+            swaggerDoc.Components.Schemas = new Dictionary<string, IOpenApiSchema>();
 
         swaggerDoc.Components.Schemas["PaginationMetadata"] = new OpenApiSchema
         {
-            Type = "object",
+            Type = JsonSchemaType.Object,
             Description = "Metadados de paginação para listagens",
-            Properties = new Dictionary<string, OpenApiSchema>
+            Properties = new Dictionary<string, IOpenApiSchema>
             {
-                ["page"] = new OpenApiSchema { Type = "integer", Description = "Página atual (base 1)", Example = new Microsoft.OpenApi.Any.OpenApiInteger(1) },
-                ["pageSize"] = new OpenApiSchema { Type = "integer", Description = "Itens por página", Example = new Microsoft.OpenApi.Any.OpenApiInteger(20) },
-                ["totalItems"] = new OpenApiSchema { Type = "integer", Description = "Total de itens", Example = new Microsoft.OpenApi.Any.OpenApiInteger(150) },
-                ["totalPages"] = new OpenApiSchema { Type = "integer", Description = "Total de páginas", Example = new Microsoft.OpenApi.Any.OpenApiInteger(8) },
-                ["hasNextPage"] = new OpenApiSchema { Type = "boolean", Description = "Indica se há próxima página", Example = new Microsoft.OpenApi.Any.OpenApiBoolean(true) },
-                ["hasPreviousPage"] = new OpenApiSchema { Type = "boolean", Description = "Indica se há página anterior", Example = new Microsoft.OpenApi.Any.OpenApiBoolean(false) }
+                ["page"] = new OpenApiSchema { Type = JsonSchemaType.Integer, Description = "Página atual (base 1)", Example = JsonValue.Create(1) },
+                ["pageSize"] = new OpenApiSchema { Type = JsonSchemaType.Integer, Description = "Itens por página", Example = JsonValue.Create(20) },
+                ["totalItems"] = new OpenApiSchema { Type = JsonSchemaType.Integer, Description = "Total de itens", Example = JsonValue.Create(150) },
+                ["totalPages"] = new OpenApiSchema { Type = JsonSchemaType.Integer, Description = "Total de páginas", Example = JsonValue.Create(8) },
+                ["hasNextPage"] = new OpenApiSchema { Type = JsonSchemaType.Boolean, Description = "Indica se há próxima página", Example = JsonValue.Create(true) },
+                ["hasPreviousPage"] = new OpenApiSchema { Type = JsonSchemaType.Boolean, Description = "Indica se há página anterior", Example = JsonValue.Create(false) }
             },
             Required = new HashSet<string> { "page", "pageSize", "totalItems", "totalPages", "hasNextPage", "hasPreviousPage" }
         };
     }
 }
+
+

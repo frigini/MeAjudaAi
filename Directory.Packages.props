@@ -5,65 +5,131 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <!-- Enabled xUnit v3 -->
     <UseXUnitV3>true</UseXUnitV3>
+    <!-- Enable transitive pinning to override EF Core Design's Microsoft.Build dependencies -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-
   <ItemGroup>
     <!-- .NET & Microsoft Core -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
-    
+    <!-- Microsoft.Build packages - pinned to 17.14.28 to avoid CVE-2025-55247 -->
+    <PackageVersion Include="Microsoft.Build" Version="17.14.28" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.14.28" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.14.28" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.14.28" />
+    <PackageVersion Include="Microsoft.NET.StringTools" Version="17.14.28" />
     <!-- ASP.NET Core -->
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
-    
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.0" />
     <!-- API Versioning -->
     <PackageVersion Include="Asp.Versioning.Http" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
-    
     <!-- Entity Framework Core -->
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.9" />
-    <PackageVersion Include="EFCore.NamingConventions" Version="9.0.0" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="9.0.4" />
-    
+    <!-- EF Core 10.0.0 RTM was released 11/11/2025, but Npgsql.EntityFrameworkCore.PostgreSQL does not yet -->
+    <!-- have a compatible stable 10.x release. Npgsql 10.0.0-rc.2 requires EF Core 10.0.0-rc.2.25502.107. -->
+    <!-- TODO: Upgrade to EF Core 10.0.0 stable once Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0 is released -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0-rc.2.25502.107" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0-rc.2.25502.107" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0-rc.2.25502.107" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0-rc.2.25502.107" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-rc.2.25502.107" />
+    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.0-rc.2" />
+    <!-- Microsoft.OpenApi version is controlled by Swashbuckle.AspNetCore transitive dependency (currently 2.3.0) -->
+    <!-- Do not pin this version as it will cause namespace conflicts with Swashbuckle -->
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-rc.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-rc.2" />
+    <!-- ========================================================================== -->
+    <!-- CRITICAL: Npgsql 10.x COMPATIBILITY RISK WITH Hangfire.PostgreSql 1.20.12 -->
+    <!-- ========================================================================== -->
+    <!-- ISSUE SUMMARY:                                                             -->
+    <!--   - Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0-rc.2 forces Npgsql >= 10.x -->
+    <!--   - Hangfire.PostgreSql 1.20.12 was built against Npgsql 6.x               -->
+    <!--   - Npgsql 10.x introduces BREAKING CHANGES (see: https://www.npgsql.org/doc/release-notes/10.0.html) -->
+    <!--   - Runtime compatibility is UNVALIDATED and may fail in production         -->
+    <!--                                                                             -->
+    <!-- PACKAGE VERSION STRATEGY:                                                  -->
+    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.20.12       -->
+    <!--     - Requires comprehensive integration testing (see below)                -->
+    <!--     - Monitor: https://github.com/frankhommers/Hangfire.PostgreSql/issues  -->
+    <!--     - Fallback: Downgrade to EF Core 9.x + Npgsql 8.x if issues found      -->
+    <!--                                                                             -->
+    <!--   OPTION 2 (ALTERNATIVE): Pin Npgsql to 8.x explicitly                     -->
+    <!--     - Add: <PackageVersion Include="Npgsql" Version="8.0.5" />             -->
+    <!--     - Requires downgrading EF Core to 9.x                                  -->
+    <!--     - Safer but delays .NET 10 migration                                   -->
+    <!--                                                                             -->
+    <!--   OPTION 3 (FUTURE): Wait for Hangfire.PostgreSql 2.x with Npgsql 10 support -->
+    <!--     - Monitor releases at: https://www.nuget.org/packages/Hangfire.PostgreSql -->
+    <!--                                                                             -->
+    <!-- VALIDATION REQUIREMENTS (DO NOT DEPLOY WITHOUT):                           -->
+    <!--   ✅ Integration tests for Hangfire MUST pass in CI/CD pipeline            -->
+    <!--   ✅ Tests MUST cover: persistence, execution, retries, recurring jobs     -->
+    <!--   ✅ Staging environment testing with production-like workload             -->
+    <!--   ✅ Manual verification of Hangfire dashboard functionality               -->
+    <!--                                                                             -->
+    <!-- INTEGRATION TEST REQUIREMENTS:                                             -->
+    <!--   - Test file: tests/MeAjudaAi.Integration.Tests/Jobs/HangfireIntegrationTests.cs -->
+    <!--   - Coverage:                                                              -->
+    <!--     1. Job enqueue + execution against Npgsql 10 database                 -->
+    <!--     2. Job persistence + retrieval after restart                          -->
+    <!--     3. Automatic retry on failure (3 attempts)                            -->
+    <!--     4. Recurring job scheduling + execution                               -->
+    <!--     5. Background worker processing                                       -->
+    <!--     6. Dashboard API responsiveness                                       -->
+    <!--                                                                             -->
+    <!-- CI/CD GATING REQUIREMENT:                                                  -->
+    <!--   - GitHub Actions workflow MUST fail if Hangfire tests fail              -->
+    <!--   - Add to: .github/workflows/pr-validation.yml                           -->
+    <!--   - Command: dotnet test [dash][dash]filter Category=HangfireIntegration  -->
+    <!--                                                                             -->
+    <!-- MONITORING & FALLBACK PLAN:                                                -->
+    <!--   1. Monitor application logs for Hangfire/Npgsql exceptions              -->
+    <!--   2. Track Hangfire job failure rate in production                        -->
+    <!--   3. If failure rate > 5%: ROLLBACK to EF Core 9.x + Npgsql 8.x           -->
+    <!--   4. Document rollback procedure in docs/deployment_environments.md       -->
+    <!--                                                                             -->
+    <!-- ALTERNATIVE BACKENDS (if Npgsql 10 incompatibility confirmed):            -->
+    <!--   - Hangfire.Pro.Redis (requires license)                                 -->
+    <!--   - Hangfire.InMemory (dev/testing only)                                  -->
+    <!--   - Hangfire.SqlServer (requires SQL Server)                              -->
+    <!-- ========================================================================== -->
     <!-- Data Access -->
     <PackageVersion Include="Dapper" Version="2.1.66" />
-    <PackageVersion Include="Microsoft.Data.Sqlite" Version="9.0.9" />
-    
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.0" />
     <!-- Microsoft Extensions -->
-    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="9.9.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.9.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.0.1-preview.1.24557.2" />
-    
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0" />
     <!-- OpenTelemetry -->
-    <PackageVersion Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.4.0-beta.1" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.12.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.10.0-beta.1" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
-    
+    <PackageVersion Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.4.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.14.0-beta.2" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.14.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
     <!-- Logging -->
     <PackageVersion Include="Serilog" Version="4.2.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
@@ -73,78 +139,68 @@
     <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
-    
     <!-- Documentation -->
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.4" />
-    <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.4" />
-    
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.0.1" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="10.0.1" />
     <!-- Validation -->
     <PackageVersion Include="FluentValidation" Version="12.0.0" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
-    
     <!-- Azure -->
     <PackageVersion Include="Azure.AI.DocumentIntelligence" Version="1.0.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.24.0" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
-    
     <!-- Messaging -->
     <PackageVersion Include="RabbitMQ.Client" Version="7.1.2" />
-    <PackageVersion Include="Rebus" Version="8.8.0" />
-    <PackageVersion Include="Rebus.AzureServiceBus" Version="10.4.1" />
-    <PackageVersion Include="Rebus.RabbitMq" Version="10.0.2" />
-    <PackageVersion Include="Rebus.ServiceProvider" Version="10.5.0" />
-    
+    <PackageVersion Include="Rebus" Version="8.9.0" />
+    <PackageVersion Include="Rebus.AzureServiceBus" Version="10.5.1" />
+    <PackageVersion Include="Rebus.RabbitMq" Version="10.1.0" />
+    <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.0" />
     <!-- Background Jobs -->
     <PackageVersion Include="Hangfire.Core" Version="1.8.21" />
     <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.21" />
     <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.12" />
-    
     <!-- Dependency Injection -->
     <PackageVersion Include="Scrutor" Version="6.1.0" />
-    
     <!-- System -->
-    <PackageVersion Include="System.Text.Json" Version="9.0.9" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.0.1" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
-    
     <!-- Testing Framework -->
     <!-- Using xUnit v3 only -->
     <PackageVersion Include="xunit.v3" Version="3.1.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    
     <!-- Testing Libraries -->
     <PackageVersion Include="FluentAssertions" Version="8.6.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="Bogus" Version="35.6.4" />
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="AutoFixture.AutoMoq" Version="4.18.1" />
-    
     <!-- Test Containers -->
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.7.0" />
     <PackageVersion Include="Testcontainers.Redis" Version="4.7.0" />
     <PackageVersion Include="Respawn" Version="6.2.1" />
-    
-    <!-- Aspire -->
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.Hosting.Azure.ServiceBus" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.Hosting.Seq" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.Npgsql" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0-preview.5.24523.6" />
-    <PackageVersion Include="Aspire.StackExchange.Redis" Version="9.0.0-preview.5.24523.6" />
-    
+    <!-- Aspire - 13.0.0 stable + preview (Keycloak/Testing) -->
+    <!-- TEMPORARY: Aspire.Npgsql.EntityFrameworkCore.PostgreSQL omitted due to EF Core 10.x incompatibility -->
+    <!--   Current: 9.5.2 requires EF Core 8.x, conflicts with our EF Core 10.0.0-rc.2 -->
+    <!--   TODO: Re-add when Aspire releases version supporting EF Core 10.x -->
+    <!--   Monitor: https://www.nuget.org/packages/Aspire.Npgsql.EntityFrameworkCore.PostgreSQL -->
+    <!--   To restore: <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.x.x" /> -->
+    <!-- Aspire.Hosting.AppHost removido - incluído implicitamente pelo Aspire.AppHost.Sdk 13.0 -->
+    <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="13.0.0" />
+    <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.0.0" />
+    <PackageVersion Include="Aspire.Hosting.Azure.ServiceBus" Version="13.0.0" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.0.0" />
+    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="13.0.0-preview.1.25560.3" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.0.0" />
+    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.0.0" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="13.0.0" />
+    <PackageVersion Include="Aspire.Hosting.Seq" Version="13.0.0" />
+    <PackageVersion Include="Aspire.Npgsql" Version="13.0.0" />
+    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.0.0" />
     <!-- Architecture Testing -->
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
-    
     <!-- Code Analysis -->
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.15.0.120848" />
   </ItemGroup>
-
 </Project>

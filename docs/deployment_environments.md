@@ -28,6 +28,22 @@ This document describes the different deployment environments available for the 
 
 ## Deployment Process
 
+### ⚠️ CRITICAL: Pre-Deployment Validation
+
+**BEFORE deploying to ANY environment**, ensure ALL critical compatibility validations pass.
+
+For detailed Hangfire + Npgsql 10.x compatibility validation procedures, see the dedicated guide:
+📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)**
+
+**Quick Checklist** (see full guide for details):
+- [ ] All Hangfire integration tests pass (`dotnet test --filter Category=HangfireIntegration`)
+- [ ] Manual validation in staging complete
+- [ ] Monitoring configured (alerts, dashboards)
+- [ ] Rollback procedure tested
+- [ ] Team trained and stakeholders notified
+
+---
+
 ### Infrastructure Setup
 The deployment process uses Bicep templates for infrastructure as code:
 
@@ -52,7 +68,58 @@ Each environment requires specific configuration:
 - **Logging levels**
 - **Feature flags**
 
+## Rollback Procedures
+
+### Hangfire + Npgsql Rollback (CRITICAL)
+
+**Trigger Conditions** (execute rollback if ANY occur):
+- Hangfire job failure rate exceeds 5% for >1 hour
+- Critical background jobs fail repeatedly
+- Npgsql connection errors spike in logs
+- Dashboard unavailable or shows data corruption
+- Database performance degrades significantly
+
+For detailed rollback procedures and troubleshooting, see:
+📖 **[Hangfire Npgsql Compatibility Guide - Rollback Section](./hangfire-npgsql-compatibility.md#rollback-procedure)**
+
+**Quick Rollback Steps** (see full guide for details):
+
+1. **Stop Application** (~5 min)
+   ```bash
+   az webapp stop --name $APP_NAME --resource-group $RESOURCE_GROUP
+   ```
+
+2. **Database Backup** (~10 min, if needed)
+   ```bash
+   pg_dump -h $DB_HOST -U $DB_USER --schema=hangfire -Fc > hangfire_backup.dump
+   ```
+
+3. **Downgrade Packages** (~15 min)
+   - Revert to EF Core 9.x + Npgsql 8.x in `Directory.Packages.props`
+
+4. **Rebuild & Redeploy** (~30 min)
+   ```bash
+   dotnet test --filter Category=HangfireIntegration  # Validate
+   ```
+
+5. **Verify Health** (~30 min)
+   - Check Hangfire dashboard: `$API_ENDPOINT/hangfire`
+   - Monitor job processing and logs
+
+**Full Rollback Procedure**: See the dedicated compatibility guide for environment-agnostic commands and detailed troubleshooting.
+
 ## Monitoring and Maintenance
+
+### Critical Monitoring
+
+For comprehensive Hangfire + background jobs monitoring, see:
+📖 **[Hangfire Npgsql Compatibility Guide - Monitoring Section](./hangfire-npgsql-compatibility.md#production-monitoring)**
+
+**Key Metrics** (see guide for queries and alert configuration):
+1. **Job Failure Rate**: Alert if >5% → Investigate and consider rollback
+2. **Npgsql Connection Errors**: Monitor application logs
+3. **Dashboard Health**: Check `/hangfire` endpoint every 5 minutes
+4. **Job Processing Time**: Alert if >50% increase from baseline
 
 ### Health Checks
 - Application health endpoints
