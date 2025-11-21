@@ -144,7 +144,7 @@ public class HangfireIntegrationTests(AspireIntegrationFixture fixture, ITestOut
         // Arrange
         var connectionString = GetConnectionString();
         using var server = CreateHangfireServer(connectionString);
-        
+
         ResetCounters();
 
         // Act - Enqueue job
@@ -164,7 +164,7 @@ public class HangfireIntegrationTests(AspireIntegrationFixture fixture, ITestOut
 
         // Assert
         executed.Should().BeTrue("Job should execute within 30 seconds");
-        
+
         lock (_lock)
         {
             _testJobExecutionCount.Should().Be(1, "Job should execute exactly once");
@@ -193,7 +193,7 @@ public class HangfireIntegrationTests(AspireIntegrationFixture fixture, ITestOut
         // Arrange
         var connectionString = GetConnectionString();
         using var server = CreateHangfireServer(connectionString);
-        
+
         ResetCounters();
         var testParameter = "TestValue_" + Guid.NewGuid();
 
@@ -214,7 +214,7 @@ public class HangfireIntegrationTests(AspireIntegrationFixture fixture, ITestOut
 
         // Assert
         executed.Should().BeTrue("Job with parameter should execute");
-        
+
         lock (_lock)
         {
             _lastExecutedJobParam.Should().Be(testParameter, "Parameter should be deserialized correctly");
@@ -238,7 +238,7 @@ public class HangfireIntegrationTests(AspireIntegrationFixture fixture, ITestOut
         // Arrange
         var connectionString = GetConnectionString();
         using var server = CreateHangfireServer(connectionString);
-        
+
         ResetCounters();
 
         // Act - Enqueue failing job (Hangfire default: 10 retry attempts)
@@ -251,9 +251,9 @@ public class HangfireIntegrationTests(AspireIntegrationFixture fixture, ITestOut
         var storage = CreateHangfireStorage(connectionString);
         using var connection = storage.GetConnection();
         var jobData = connection.GetJobData(jobId);
-        
+
         jobData.Should().NotBeNull();
-        
+
         // Job should be in Scheduled state (waiting for retry) or Failed state
         var validStates = new[] { "Scheduled", "Failed", "Processing" };
         jobData!.State.Should().BeOneOf(validStates, "Job should be scheduled for retry or failed");
@@ -370,9 +370,9 @@ public class HangfireIntegrationTests(AspireIntegrationFixture fixture, ITestOut
         };
 
         // Create storage with connection string directly (Hangfire.PostgreSql 1.20.12 API)
-        #pragma warning disable CS0618 // Type or member is obsolete - using older API for compatibility
+#pragma warning disable CS0618 // Type or member is obsolete - using older API for compatibility
         return new PostgreSqlStorage(connectionString, options);
-        #pragma warning restore CS0618
+#pragma warning restore CS0618
     }
 
     private BackgroundJobServer CreateHangfireServer(string connectionString)

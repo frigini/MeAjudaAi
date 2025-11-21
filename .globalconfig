@@ -2,6 +2,12 @@
 # This file applies to all projects in the solution
 is_global = true
 
-# Note: Analyzer suppressions are managed in Directory.Build.props with appropriate scoping
-# (e.g., test-specific suppressions only apply to test projects)
-# This file is reserved for future global EditorConfig-style settings
+# Suppress xUnit warnings globally during .NET 10 migration
+# xUnit1051: TestContext.Current.CancellationToken is preferred, but causes too much noise during migration
+dotnet_diagnostic.xUnit1051.severity = none
+# xUnit1012: Null should not be used for value type parameters (affects test data)
+dotnet_diagnostic.xUnit1012.severity = none
+
+# Suppress code analysis warnings that are not critical
+# CA2000: Dispose objects before losing scope (false positives in test code)
+dotnet_diagnostic.CA2000.severity = none

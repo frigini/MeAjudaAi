@@ -265,6 +265,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     }
 
     // Helper methods usando serialização compartilhada
+#pragma warning disable CA2000 // Dispose StringContent - handled by HttpClient
     protected async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
@@ -278,6 +279,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
         return await ApiClient.PutAsync(requestUri, stringContent);
     }
+#pragma warning restore CA2000
 
     protected static async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)
     {

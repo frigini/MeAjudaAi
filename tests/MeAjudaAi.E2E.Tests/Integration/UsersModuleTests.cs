@@ -154,7 +154,7 @@ public class UsersModuleTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin(); // GET requer autorização
-        
+
         // Act & Assert - Quando o constraint de GUID não bate, a rota retorna 404 
         var invalidGuidResponse = await ApiClient.GetAsync("/api/v1/users/invalid-guid");
         invalidGuidResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);

@@ -107,7 +107,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin(); // GET requer autorização
-        
+
         // Act 1: Obtém a primeira página
         var page1Response = await ApiClient.GetAsync("/api/v1/users?pageNumber=1&pageSize=5");
 
@@ -135,7 +135,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
     {
         // Arrange: Cria requisição com múltiplos erros de validação
         AuthenticateAsAdmin(); // POST requer autorização
-        
+
         var invalidRequest = new
         {
             Username = "", // Muito curto

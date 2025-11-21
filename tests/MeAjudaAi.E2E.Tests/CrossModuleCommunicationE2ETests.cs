@@ -31,7 +31,7 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
             // User already exists - fetch by email
             AuthenticateAsAdmin();
             var getUserResponse = await ApiClient.GetAsync($"/api/v1/users/by-email/{Uri.EscapeDataString(email)}");
-            
+
             if (getUserResponse.IsSuccessStatusCode)
             {
                 var getUserContent = await getUserResponse.Content.ReadAsStringAsync();
@@ -41,7 +41,7 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
                     return existingUser;
                 }
             }
-            
+
             // Se não conseguiu buscar, falha o teste (não usar fake ID)
             throw new InvalidOperationException($"Failed to retrieve existing user by email: {email}");
         }

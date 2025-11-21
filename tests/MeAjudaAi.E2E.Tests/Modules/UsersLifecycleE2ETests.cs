@@ -151,7 +151,7 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
             // Se retornou NoContent, tenta buscar o usuário para confirmar as mudanças
             AuthenticateAsAdmin(); // GET requer autorização
             var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
-            
+
             // Se o usuário foi encontrado, verifica as mudanças
             if (getResponse.StatusCode == HttpStatusCode.OK)
             {
