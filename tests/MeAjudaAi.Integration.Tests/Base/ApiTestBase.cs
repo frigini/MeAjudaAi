@@ -5,9 +5,11 @@ using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.Mocks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -107,6 +109,16 @@ public abstract class ApiTestBase : IAsyncLifetime
 
                     // Adiciona mocks de serviços para testes
                     services.AddDocumentsTestServices();
+
+                    // Adiciona mock de validação geográfica para testes
+                    // Remove serviço real de validação geográfica (se existir)
+                    var geoValidationDescriptor = services.FirstOrDefault(d =>
+                        d.ServiceType == typeof(IGeographicValidationService));
+                    if (geoValidationDescriptor != null)
+                        services.Remove(geoValidationDescriptor);
+                    
+                    // Registra mock com cidades piloto padrão
+                    services.AddSingleton<IGeographicValidationService, MockGeographicValidationService>();
 
                     // Adiciona autenticação de teste baseada em instância para evitar estado estático
                     services.RemoveRealAuthentication();
