@@ -493,13 +493,31 @@ Após Sprint 1, apenas **1 teste** permanecerá skipped:
 
 ### Branch 2: `feature/module-integration`
 - [ ] 4 Module APIs implementadas
-- [ ] 6 testes E2E reativados e passando
+- [ ] 8 testes E2E reativados e passando
 - [ ] Integration events funcionando
 - [ ] Cobertura de testes > 45%
 - [ ] Documentação de integração completa
-- [ ] CI/CD passa (102/103 testes)
+- [ ] CI/CD passa (98/100 testes E2E)
 - [ ] Code review aprovado
 - [ ] Merged para `master`
+
+---
+
+## 📋 Rastreamento de Testes Skipped
+
+**Documento Detalhado**: [docs/skipped-tests-tracker.md](./skipped-tests-tracker.md)
+
+### Resumo de Todos os Testes Skipped (12 total)
+
+| Categoria | Quantidade | Prioridade | Sprint | Arquivos Afetados |
+|-----------|-----------|------------|--------|-------------------|
+| E2E - AUTH | 5 | 🚨 CRÍTICA | Sprint 1 Dia 3 | PermissionAuthorizationE2ETests.cs, ApiVersioningTests.cs, ModuleIntegrationTests.cs |
+| E2E - INFRA | 2 | 🔴 ALTA | Sprint 1-2 | DocumentsVerificationE2ETests.cs, CrossModuleCommunicationE2ETests.cs |
+| Integration - Aspire | 3 | 🟡 MÉDIA | Sprint 2 | DocumentsApiTests.cs |
+| Architecture | 1 | 🟢 BAIXA | Sprint 3+ | ModuleBoundaryTests.cs |
+| Diagnostic | 1 | ⚪ N/A | N/A | ServiceCatalogsResponseDebugTest.cs |
+
+**Ação**: Consultar [skipped-tests-tracker.md](./skipped-tests-tracker.md) para detalhes completos de cada teste, root cause analysis e plano de resolução.
 
 ---
 
