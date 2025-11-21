@@ -12,7 +12,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Services;
 /// Cache Redis: TTL de 7 dias (municípios raramente mudam)
 /// </summary>
 public sealed class IbgeService(
-    IbgeClient ibgeClient,
+    IIbgeClient ibgeClient,
     ICacheService cacheService,
     ILogger<IbgeService> logger) : IIbgeService
 {

@@ -11,7 +11,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 /// Cliente HTTP para a API IBGE Localidades.
 /// Documentação: https://servicodados.ibge.gov.br/api/docs/localidades
 /// </summary>
-public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger)
+public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger) : IIbgeClient
 {
     /// <summary>
     /// Busca um município por nome (URL-friendly).
