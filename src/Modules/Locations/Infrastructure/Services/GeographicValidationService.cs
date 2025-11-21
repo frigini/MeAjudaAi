@@ -37,7 +37,7 @@ public sealed class GeographicValidationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Erro no GeographicValidationService ao validar cidade {CityName}", cityName);
-            
+
             // Fail-closed: em caso de erro, bloquear acesso (segurança)
             return false;
         }

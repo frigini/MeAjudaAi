@@ -24,7 +24,7 @@ public static class Extensions
         builder.ConfigureOpenTelemetry();
 
         builder.AddDefaultHealthChecks();
-        
+
         builder.AddFeatureManagement();
 
         // Service discovery not available for .NET 10 yet

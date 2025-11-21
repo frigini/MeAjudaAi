@@ -1,10 +1,10 @@
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
 
 namespace MeAjudaAi.ApiService.Extensions;
 

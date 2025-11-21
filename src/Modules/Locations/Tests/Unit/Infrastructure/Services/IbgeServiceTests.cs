@@ -189,7 +189,7 @@ public sealed class IbgeServiceTests
         result.Nome.Should().Be("Muriaé");
         result.GetEstadoSigla().Should().Be("MG");
         _cacheServiceMock.Verify();
-        
+
         // Verify that the IBGE client was NOT called (cache hit)
         _ibgeClientMock.Verify(
             x => x.GetMunicipioByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),

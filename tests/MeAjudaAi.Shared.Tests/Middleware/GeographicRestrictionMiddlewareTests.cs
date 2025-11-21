@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
@@ -8,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using Moq;
-using System.Text.Json;
 
 namespace MeAjudaAi.Shared.Tests.Middleware;
 
@@ -70,7 +70,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
         _httpContext.Request.Path = "/api/providers";
 
@@ -162,7 +162,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-City"] = city;
@@ -194,7 +194,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-City"] = "São Paulo";
@@ -220,7 +220,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-Location"] = "Muriaé|MG";
@@ -237,7 +237,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-Location"] = "Muriaé|MG";
@@ -259,7 +259,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
         _httpContext.Request.Path = "/api/providers";
         _httpContext.Request.Headers["X-User-Location"] = invalidLocation;
@@ -277,7 +277,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         return Options.Create(new GeographicRestrictionOptions
         {
-            
+
             AllowedStates = ["MG", "RJ", "ES"],
             AllowedCities = ["Muriaé", "Itaperuna", "Linhares"],
             BlockedMessage = "Serviço indisponível na sua região. Disponível apenas em: {allowedRegions}"
@@ -291,7 +291,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
@@ -322,7 +322,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
@@ -354,7 +354,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
@@ -415,7 +415,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
@@ -446,7 +446,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
@@ -477,7 +477,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
@@ -512,7 +512,7 @@ public class GeographicRestrictionMiddlewareTests
     {
         // Arrange
         var options = CreateOptions();
-                SetupFeatureFlag(true);
+        SetupFeatureFlag(true);
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(

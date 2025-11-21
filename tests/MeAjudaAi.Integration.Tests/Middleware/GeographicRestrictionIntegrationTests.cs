@@ -1,7 +1,7 @@
-using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Base;
 using System.Net;
 using System.Text.Json;
+using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
 
 namespace MeAjudaAi.Integration.Tests.Middleware;
 
@@ -12,6 +12,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
     public async Task GetProviders_WhenAllowedCity_ShouldReturnOk()
     {
         // Arrange
+        AuthConfig.ConfigureAdmin(); // Authenticate before testing geographic restriction
         Client.DefaultRequestHeaders.Add("X-User-City", "Muriaé");
         Client.DefaultRequestHeaders.Add("X-User-State", "MG");
 
@@ -26,6 +27,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
     public async Task GetProviders_WhenBlockedCity_ShouldReturn451()
     {
         // Arrange
+        AuthConfig.ConfigureAdmin(); // Authenticate before testing geographic restriction
         Client.DefaultRequestHeaders.Add("X-User-City", "São Paulo");
         Client.DefaultRequestHeaders.Add("X-User-State", "SP");
 
@@ -48,6 +50,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
     public async Task GetProviders_WhenAllowedState_ShouldReturnOk()
     {
         // Arrange
+        AuthConfig.ConfigureAdmin(); // Authenticate before testing geographic restriction
         Client.DefaultRequestHeaders.Add("X-User-State", "MG");
 
         // Act
@@ -61,6 +64,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
     public async Task GetProviders_WhenLocationHeader_ShouldReturnOk()
     {
         // Arrange
+        AuthConfig.ConfigureAdmin(); // Authenticate before testing geographic restriction
         Client.DefaultRequestHeaders.Add("X-User-Location", "Itaperuna|RJ");
 
         // Act
@@ -107,6 +111,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
     public async Task GetProviders_WithAllowedCities_CaseInsensitive_ShouldWork(string city, string state)
     {
         // Arrange
+        AuthConfig.ConfigureAdmin(); // Authenticate before testing geographic restriction
         Client.DefaultRequestHeaders.Add("X-User-City", city);
         Client.DefaultRequestHeaders.Add("X-User-State", state);
 

@@ -45,7 +45,7 @@ public class MockGeographicValidationService : IGeographicValidationService
             return Task.FromResult(false);
 
         // Use provided allowed cities or fall back to instance list
-        var citiesToCheck = allowedCities?.Any() == true 
+        var citiesToCheck = allowedCities?.Any() == true
             ? new HashSet<string>(allowedCities, StringComparer.OrdinalIgnoreCase)
             : _allowedCities;
 

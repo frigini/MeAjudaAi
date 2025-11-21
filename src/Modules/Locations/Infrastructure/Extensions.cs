@@ -68,7 +68,7 @@ public static class Extensions
         services.AddScoped<ICepLookupService, CepLookupService>();
         services.AddScoped<IGeocodingService, GeocodingService>();
         services.AddScoped<IIbgeService, IbgeService>();
-        
+
         // Registrar adapter para middleware (Shared → Locations)
         services.AddScoped<IGeographicValidationService, GeographicValidationService>();
 

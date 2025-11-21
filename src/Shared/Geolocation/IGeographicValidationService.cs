@@ -16,8 +16,8 @@ public interface IGeographicValidationService
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>True se a cidade está permitida, False caso contrário</returns>
     Task<bool> ValidateCityAsync(
-        string cityName, 
-        string? stateSigla, 
+        string cityName,
+        string? stateSigla,
         IEnumerable<string> allowedCities,
         CancellationToken cancellationToken = default);
 }

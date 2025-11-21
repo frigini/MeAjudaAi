@@ -116,7 +116,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                         d.ServiceType == typeof(IGeographicValidationService));
                     if (geoValidationDescriptor != null)
                         services.Remove(geoValidationDescriptor);
-                    
+
                     // Registra mock com cidades piloto padrão
                     services.AddSingleton<IGeographicValidationService, MockGeographicValidationService>();
 

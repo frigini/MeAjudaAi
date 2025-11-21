@@ -44,11 +44,11 @@ public sealed class IbgeApiIntegrationTests : IDisposable
         result.Should().NotBeNull("Muriaé deve existir na API IBGE");
         result!.Nome.Should().Be("Muriaé");
         result.Id.Should().Be(3129707, "Código IBGE de Muriaé-MG");
-        
+
         // Validar hierarquia geográfica completa
         var ufSigla = result.GetEstadoSigla();
         ufSigla.Should().Be("MG");
-        
+
         result.Microrregiao.Should().NotBeNull();
         result.Microrregiao!.Mesorregiao.Should().NotBeNull();
         result.Microrregiao!.Mesorregiao!.UF.Should().NotBeNull();
@@ -70,10 +70,10 @@ public sealed class IbgeApiIntegrationTests : IDisposable
         result.Should().NotBeNull("Itaperuna deve existir na API IBGE");
         result!.Nome.Should().Be("Itaperuna");
         result.Id.Should().Be(3302270, "Código IBGE de Itaperuna-RJ");
-        
+
         var ufSigla = result.GetEstadoSigla();
         ufSigla.Should().Be("RJ");
-        
+
         result.Microrregiao!.Mesorregiao!.UF!.Nome.Should().Be("Rio de Janeiro");
         result.Microrregiao!.Mesorregiao!.UF!.Regiao!.Nome.Should().Be("Sudeste");
     }
@@ -91,10 +91,10 @@ public sealed class IbgeApiIntegrationTests : IDisposable
         result.Should().NotBeNull("Linhares deve existir na API IBGE");
         result!.Nome.Should().Be("Linhares");
         result.Id.Should().Be(3203205, "Código IBGE de Linhares-ES");
-        
+
         var ufSigla = result.GetEstadoSigla();
         ufSigla.Should().Be("ES");
-        
+
         result.Microrregiao!.Mesorregiao!.UF!.Nome.Should().Be("Espírito Santo");
         result.Microrregiao!.Mesorregiao!.UF!.Regiao!.Nome.Should().Be("Sudeste");
     }
@@ -125,10 +125,10 @@ public sealed class IbgeApiIntegrationTests : IDisposable
         result.Should().NotBeNull();
         result.Should().NotBeEmpty("Minas Gerais deve ter municípios");
         result.Count.Should().BeGreaterThan(800, "MG tem 853 municípios");
-        
+
         // Verificar que Muriaé está na lista
         result.Should().Contain(m => m.Nome == "Muriaé" && m.Id == 3129707);
-        
+
         // Verificar que todos têm UF = MG
         result.Should().OnlyContain(m => m.GetEstadoSigla() == "MG");
     }
@@ -146,10 +146,10 @@ public sealed class IbgeApiIntegrationTests : IDisposable
         result.Should().NotBeNull();
         result.Should().NotBeEmpty("Rio de Janeiro deve ter municípios");
         result.Count.Should().Be(92, "RJ tem 92 municípios");
-        
+
         // Verificar que Itaperuna está na lista
         result.Should().Contain(m => m.Nome == "Itaperuna" && m.Id == 3302270);
-        
+
         // Verificar que todos têm UF = RJ
         result.Should().OnlyContain(m => m.GetEstadoSigla() == "RJ");
     }
@@ -167,10 +167,10 @@ public sealed class IbgeApiIntegrationTests : IDisposable
         result.Should().NotBeNull();
         result.Should().NotBeEmpty("Espírito Santo deve ter municípios");
         result.Count.Should().Be(78, "ES tem 78 municípios");
-        
+
         // Verificar que Linhares está na lista
         result.Should().Contain(m => m.Nome == "Linhares" && m.Id == 3203205);
-        
+
         // Verificar que todos têm UF = ES
         result.Should().OnlyContain(m => m.GetEstadoSigla() == "ES");
     }

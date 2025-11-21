@@ -1,9 +1,9 @@
+using System.Text.Json;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
-using System.Text.Json;
 
 namespace MeAjudaAi.ApiService.Middlewares;
 
@@ -25,7 +25,7 @@ public class GeographicRestrictionMiddleware(
     {
         // Verificar se feature está habilitada (Microsoft.FeatureManagement)
         var isFeatureEnabled = await featureManager.IsEnabledAsync(FeatureFlags.GeographicRestriction);
-        
+
         // Skip se desabilitado via feature flag
         if (!isFeatureEnabled)
         {
@@ -61,7 +61,7 @@ public class GeographicRestrictionMiddleware(
 
             var allowedRegions = GetAllowedRegionsDescription();
             var message = _options.BlockedMessage.Replace("{allowedRegions}", allowedRegions);
-            
+
             var errorResponse = new
             {
                 error = "geographic_restriction",
@@ -140,7 +140,7 @@ public class GeographicRestrictionMiddleware(
             try
             {
                 logger.LogDebug("Validando cidade {City} via API IBGE", city);
-                
+
                 var ibgeValidation = await geographicValidationService.ValidateCityAsync(
                     city,
                     state,
