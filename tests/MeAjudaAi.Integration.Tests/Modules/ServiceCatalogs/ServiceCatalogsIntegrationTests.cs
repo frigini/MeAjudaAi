@@ -30,7 +30,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
         try
         {
             // Act
-            var response = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+            var response = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryData);
 
             // Assert
             var content = await response.Content.ReadAsStringAsync();
@@ -54,7 +54,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
             // Cleanup
             if (categoryId is not null)
             {
-                var deleteResponse = await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
+                var deleteResponse = await Client.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
                 if (!deleteResponse.IsSuccessStatusCode)
                 {
                     testOutput.WriteLine($"Cleanup failed: Could not delete category {categoryId}. Status: {deleteResponse.StatusCode}");
@@ -70,7 +70,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
         AuthConfig.ConfigureAdmin();
 
         // Act
-        var response = await Client.GetAsync("/api/v1/catalogs/categories");
+        var response = await Client.GetAsync("/api/v1/service-catalogs/categories");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -92,7 +92,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
         var randomId = Guid.NewGuid();
 
         // Act
-        var response = await Client.GetAsync($"/api/v1/catalogs/categories/{randomId}");
+        var response = await Client.GetAsync($"/api/v1/service-catalogs/categories/{randomId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,
@@ -107,7 +107,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
         var randomId = Guid.NewGuid();
 
         // Act
-        var response = await Client.GetAsync($"/api/v1/catalogs/services/{randomId}");
+        var response = await Client.GetAsync($"/api/v1/service-catalogs/services/{randomId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,
@@ -122,8 +122,8 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
 
         var endpoints = new[]
         {
-            "/api/v1/catalogs/categories",
-            "/api/v1/catalogs/services"
+            "/api/v1/service-catalogs/categories",
+            "/api/v1/service-catalogs/services"
         };
 
         // Act & Assert
@@ -161,7 +161,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
         try
         {
             // Act 1: Create Category
-            var createResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+            var createResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryData);
 
             // Assert 1: Creation successful
             var createContent = await createResponse.Content.ReadAsStringAsync();
@@ -181,7 +181,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
                 displayOrder = 2
             };
 
-            var updateResponse = await Client.PutAsJsonAsync($"/api/v1/catalogs/categories/{categoryId}", updateData);
+            var updateResponse = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/categories/{categoryId}", updateData);
 
             // Assert 2: Update successful
             updateResponse.StatusCode.Should().BeOneOf(
@@ -189,7 +189,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
                 "Update should succeed for existing categories");
 
             // Act 3: Get Category by ID
-            var getResponse = await Client.GetAsync($"/api/v1/catalogs/categories/{categoryId}");
+            var getResponse = await Client.GetAsync($"/api/v1/service-catalogs/categories/{categoryId}");
 
             // Assert 3: Can retrieve created category with updated fields
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -215,7 +215,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
             // Act 4: Delete Category (in finally to ensure cleanup)
             if (categoryId is not null)
             {
-                var deleteResponse = await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
+                var deleteResponse = await Client.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
 
                 // Assert 4: Deletion successful
                 deleteResponse.StatusCode.Should().BeOneOf(
@@ -241,7 +241,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
             displayOrder = 1
         };
 
-        var categoryResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+        var categoryResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryData);
         var categoryContent = await categoryResponse.Content.ReadAsStringAsync();
         categoryResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
@@ -260,7 +260,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
                 categoryId = categoryId
             };
 
-            var createResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/services", serviceData);
+            var createResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceData);
 
             // Assert 1: Creation successful
             var createContent = await createResponse.Content.ReadAsStringAsync();
@@ -281,7 +281,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
                 isActive = false
             };
 
-            var updateResponse = await Client.PutAsJsonAsync($"/api/v1/catalogs/services/{serviceId}", updateData);
+            var updateResponse = await Client.PutAsJsonAsync($"/api/v1/service-catalogs/services/{serviceId}", updateData);
 
             // Assert 2: Update successful
             updateResponse.StatusCode.Should().BeOneOf(
@@ -289,7 +289,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
                 "Update should succeed for existing services");
 
             // Act 3: Get Service by ID
-            var getResponse = await Client.GetAsync($"/api/v1/catalogs/services/{serviceId}");
+            var getResponse = await Client.GetAsync($"/api/v1/service-catalogs/services/{serviceId}");
 
             // Assert 3: Can retrieve created service with updated fields
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -304,7 +304,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
             retrievedDescProperty.GetString().Should().Be(updateData.description, "Updated description should be reflected");
 
             // Act 4: Delete Service
-            var deleteResponse = await Client.DeleteAsync($"/api/v1/catalogs/services/{serviceId}");
+            var deleteResponse = await Client.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
 
             // Assert 4: Deletion successful
             deleteResponse.StatusCode.Should().BeOneOf(
@@ -319,7 +319,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
         finally
         {
             // Cleanup category
-            var deleteCategoryResponse = await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
+            var deleteCategoryResponse = await Client.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
             if (!deleteCategoryResponse.IsSuccessStatusCode)
             {
                 testOutput.WriteLine($"Cleanup failed: Could not delete category {categoryId}. Status: {deleteCategoryResponse.StatusCode}");
@@ -341,7 +341,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
             displayOrder = 1
         };
 
-        var categoryResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+        var categoryResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryData);
         categoryResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Category creation should succeed");
         var categoryContent = await categoryResponse.Content.ReadAsStringAsync();
         var categoryJson = JsonSerializer.Deserialize<JsonElement>(categoryContent);
@@ -359,7 +359,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
                 categoryId = categoryId
             };
 
-            var serviceResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/services", serviceData);
+            var serviceResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceData);
             serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Service creation should succeed");
 
             var serviceContent = await serviceResponse.Content.ReadAsStringAsync();
@@ -371,7 +371,7 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
             try
             {
                 // Act: Get services by category
-                var response = await Client.GetAsync($"/api/v1/catalogs/services/category/{categoryId}");
+                var response = await Client.GetAsync($"/api/v1/service-catalogs/services/category/{categoryId}");
 
                 // Assert
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -406,13 +406,13 @@ public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : Api
             finally
             {
                 // Cleanup service
-                await Client.DeleteAsync($"/api/v1/catalogs/services/{serviceId}");
+                await Client.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
             }
         }
         finally
         {
             // Cleanup category
-            await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
+            await Client.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
         }
     }
 

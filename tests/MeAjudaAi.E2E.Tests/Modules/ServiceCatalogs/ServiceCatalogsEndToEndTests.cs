@@ -28,14 +28,14 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await PostJsonAsync("/api/v1/catalogs/categories", createCategoryRequest);
+        var response = await PostJsonAsync("/api/v1/service-catalogs/categories", createCategoryRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var locationHeader = response.Headers.Location?.ToString();
         locationHeader.Should().NotBeNull();
-        locationHeader.Should().Contain("/api/v1/catalogs/categories");
+        locationHeader.Should().Contain("/api/v1/service-catalogs/categories");
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         await CreateTestServiceCategoriesAsync(3);
 
         // Act
-        var response = await ApiClient.GetAsync("/api/v1/catalogs/categories");
+        var response = await ApiClient.GetAsync("/api/v1/service-catalogs/categories");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -76,14 +76,14 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await PostJsonAsync("/api/v1/catalogs/services", createServiceRequest);
+        var response = await PostJsonAsync("/api/v1/service-catalogs/services", createServiceRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var locationHeader = response.Headers.Location?.ToString();
         locationHeader.Should().NotBeNull();
-        locationHeader.Should().Contain("/api/v1/catalogs/services");
+        locationHeader.Should().Contain("/api/v1/service-catalogs/services");
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await PostJsonAsync("/api/v1/catalogs/services", createServiceRequest);
+        var response = await PostJsonAsync("/api/v1/service-catalogs/services", createServiceRequest);
 
         // Assert - Should reject with BadRequest or NotFound
         response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotFound, HttpStatusCode.UnprocessableEntity);
@@ -120,7 +120,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         await CreateTestServicesAsync(category.Id.Value, 3);
 
         // Act
-        var response = await ApiClient.GetAsync($"/api/v1/catalogs/services/category/{category.Id.Value}");
+        var response = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/category/{category.Id.Value}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -150,13 +150,13 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await PutJsonAsync($"/api/v1/catalogs/categories/{category.Id.Value}", updateRequest);
+        var response = await PutJsonAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}", updateRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify the category was actually updated
-        var getResponse = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
+        var getResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var responseWrapper = await ReadJsonAsync<Response<ServiceCategoryDto>>(getResponse);
@@ -178,13 +178,13 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         await CreateTestServicesAsync(category.Id.Value, 1);
 
         // Act
-        var response = await ApiClient.DeleteAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
+        var response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
         // Category should still exist after failed delete
-        var getResponse = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
+        var getResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -196,13 +196,13 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         var category = await CreateTestServiceCategoryAsync();
 
         // Act
-        var response = await ApiClient.DeleteAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
+        var response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify category was deleted
-        var getResponse = await ApiClient.GetAsync($"/api/v1/catalogs/categories/{category.Id.Value}");
+        var getResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -215,11 +215,11 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         var service = await CreateTestServiceAsync(category.Id.Value);
 
         // Act - Deactivate
-        var deactivateResponse = await PostJsonAsync($"/api/v1/catalogs/services/{service.Id.Value}/deactivate", new { });
+        var deactivateResponse = await PostJsonAsync($"/api/v1/service-catalogs/services/{service.Id.Value}/deactivate", new { });
         deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Assert - Verify service is inactive
-        var getAfterDeactivate = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service.Id.Value}");
+        var getAfterDeactivate = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
         getAfterDeactivate.StatusCode.Should().Be(HttpStatusCode.OK);
         var deactivatedResponse = await ReadJsonAsync<Response<ServiceDto>>(getAfterDeactivate);
         deactivatedResponse.Should().NotBeNull();
@@ -228,11 +228,11 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         deactivatedService!.IsActive.Should().BeFalse("service should be inactive after deactivate");
 
         // Act - Activate
-        var activateResponse = await PostJsonAsync($"/api/v1/catalogs/services/{service.Id.Value}/activate", new { });
+        var activateResponse = await PostJsonAsync($"/api/v1/service-catalogs/services/{service.Id.Value}/activate", new { });
         activateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Assert - Verify service is active again
-        var getAfterActivate = await ApiClient.GetAsync($"/api/v1/catalogs/services/{service.Id.Value}");
+        var getAfterActivate = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
         getAfterActivate.StatusCode.Should().Be(HttpStatusCode.OK);
         var activatedResponse = await ReadJsonAsync<Response<ServiceDto>>(getAfterActivate);
         activatedResponse.Should().NotBeNull();

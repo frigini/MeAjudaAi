@@ -16,7 +16,7 @@ public class ServiceCatalogsApiTests : ApiTestBase
     public async Task ServiceCategoriesEndpoint_ShouldBeAccessible()
     {
         // Act
-        var response = await Client.GetAsync("/api/v1/catalogs/categories");
+        var response = await Client.GetAsync("/api/v1/service-catalogs/categories");
 
         // Assert - Endpoint should exist (not 404) and not crash (not 500)
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound, "Endpoint should be registered");
@@ -34,7 +34,7 @@ public class ServiceCatalogsApiTests : ApiTestBase
     public async Task ServicesEndpoint_ShouldBeAccessible()
     {
         // Act
-        var response = await Client.GetAsync("/api/v1/catalogs/services");
+        var response = await Client.GetAsync("/api/v1/service-catalogs/services");
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
@@ -53,7 +53,7 @@ public class ServiceCatalogsApiTests : ApiTestBase
         AuthConfig.ConfigureAdmin();
 
         // Act
-        var response = await Client.GetAsync("/api/v1/catalogs/categories");
+        var response = await Client.GetAsync("/api/v1/service-catalogs/categories");
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
@@ -85,7 +85,7 @@ public class ServiceCatalogsApiTests : ApiTestBase
         AuthConfig.ConfigureAdmin();
 
         // Act
-        var response = await Client.GetAsync("/api/v1/catalogs/services");
+        var response = await Client.GetAsync("/api/v1/service-catalogs/services");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK,
@@ -110,7 +110,7 @@ public class ServiceCatalogsApiTests : ApiTestBase
         var randomId = Guid.NewGuid();
 
         // Act
-        var response = await Client.GetAsync($"/api/v1/catalogs/categories/{randomId}");
+        var response = await Client.GetAsync($"/api/v1/service-catalogs/categories/{randomId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,
@@ -125,7 +125,7 @@ public class ServiceCatalogsApiTests : ApiTestBase
         var randomId = Guid.NewGuid();
 
         // Act
-        var response = await Client.GetAsync($"/api/v1/catalogs/services/{randomId}");
+        var response = await Client.GetAsync($"/api/v1/service-catalogs/services/{randomId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,
@@ -146,7 +146,7 @@ public class ServiceCatalogsApiTests : ApiTestBase
         };
 
         // Act
-        var response = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+        var response = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryData);
 
         // Assert
         var content = await response.Content.ReadAsStringAsync();
@@ -165,7 +165,7 @@ public class ServiceCatalogsApiTests : ApiTestBase
         if (dataElement.TryGetProperty("id", out var idProperty))
         {
             var categoryId = idProperty.GetString();
-            await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
+            await Client.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
         }
     }
 
@@ -183,7 +183,7 @@ public class ServiceCatalogsApiTests : ApiTestBase
             displayOrder = 1
         };
 
-        var categoryResponse = await Client.PostAsJsonAsync("/api/v1/catalogs/categories", categoryData);
+        var categoryResponse = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryData);
         categoryResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var categoryContent = await categoryResponse.Content.ReadAsStringAsync();
@@ -203,7 +203,7 @@ public class ServiceCatalogsApiTests : ApiTestBase
             };
 
             // Act
-            var response = await Client.PostAsJsonAsync("/api/v1/catalogs/services", serviceData);
+            var response = await Client.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceData);
 
             // Assert
             var content = await response.Content.ReadAsStringAsync();
@@ -221,13 +221,13 @@ public class ServiceCatalogsApiTests : ApiTestBase
             if (dataElement.TryGetProperty("id", out var serviceIdProperty))
             {
                 var serviceId = serviceIdProperty.GetString();
-                await Client.DeleteAsync($"/api/v1/catalogs/services/{serviceId}");
+                await Client.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
             }
         }
         finally
         {
             // Cleanup category
-            await Client.DeleteAsync($"/api/v1/catalogs/categories/{categoryId}");
+            await Client.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
         }
     }
 
@@ -239,8 +239,8 @@ public class ServiceCatalogsApiTests : ApiTestBase
 
         var endpoints = new[]
         {
-            "/api/v1/catalogs/categories",
-            "/api/v1/catalogs/services"
+            "/api/v1/service-catalogs/categories",
+            "/api/v1/service-catalogs/services"
         };
 
         // Act & Assert
