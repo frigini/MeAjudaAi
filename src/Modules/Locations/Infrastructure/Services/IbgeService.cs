@@ -66,7 +66,7 @@ public sealed class IbgeService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Erro ao validar cidade {CityName} contra API IBGE", cityName);
-            return false; // Fail-open: em caso de erro, bloquear
+            return false; // Fail-closed: em caso de erro, bloquear acesso por segurança
         }
     }
 

@@ -178,7 +178,7 @@ public sealed class IbgeServiceTests
         const string cityName = "Muriaé";
         var expectedMunicipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
-        SetupCacheGetOrCreate(cityName, expectedMunicipio);
+        SetupCacheHit(cityName, expectedMunicipio);
 
         // Act
         var result = await _sut.GetCityDetailsAsync(cityName);
@@ -189,6 +189,11 @@ public sealed class IbgeServiceTests
         result.Nome.Should().Be("Muriaé");
         result.GetEstadoSigla().Should().Be("MG");
         _cacheServiceMock.Verify();
+        
+        // Verify that the IBGE client was NOT called (cache hit)
+        _ibgeClientMock.Verify(
+            x => x.GetMunicipioByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
@@ -321,6 +326,20 @@ public sealed class IbgeServiceTests
         };
     }
 
+    private void SetupCacheHit(string cityName, Municipio? municipio)
+    {
+        _cacheServiceMock
+            .Setup(x => x.GetOrCreateAsync<Municipio?>(
+                $"ibge:municipio:{cityName.ToLowerInvariant()}",
+                It.IsAny<Func<CancellationToken, ValueTask<Municipio?>>>(),
+                It.IsAny<TimeSpan>(),
+                It.IsAny<HybridCacheEntryOptions>(),
+                It.IsAny<IReadOnlyCollection<string>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(municipio)
+            .Verifiable();
+    }
+
     private void SetupCacheGetOrCreate(string cityName, Municipio? municipio)
     {
         _cacheServiceMock
@@ -331,10 +350,10 @@ public sealed class IbgeServiceTests
                 It.IsAny<HybridCacheEntryOptions>(),
                 It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string key, Func<CancellationToken, ValueTask<Municipio?>> factory, TimeSpan? expiration, HybridCacheEntryOptions? options, IReadOnlyCollection<string>? tags, CancellationToken ct) =>
+            .Returns(async (string key, Func<CancellationToken, ValueTask<Municipio?>> factory, TimeSpan? expiration, HybridCacheEntryOptions? options, IReadOnlyCollection<string>? tags, CancellationToken ct) =>
             {
                 // Simular cache miss: chamar factory
-                return factory(ct).AsTask().Result;
+                return await factory(ct);
             })
             .Verifiable();
 
@@ -378,10 +397,10 @@ public sealed class IbgeServiceTests
                 It.IsAny<HybridCacheEntryOptions>(),
                 It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((string key, Func<CancellationToken, ValueTask<List<Municipio>?>> factory, TimeSpan? expiration, HybridCacheEntryOptions? options, IReadOnlyCollection<string>? tags, CancellationToken ct) =>
+            .Returns(async (string key, Func<CancellationToken, ValueTask<List<Municipio>?>> factory, TimeSpan? expiration, HybridCacheEntryOptions? options, IReadOnlyCollection<string>? tags, CancellationToken ct) =>
             {
                 // Simular cache miss: chamar factory
-                return factory(ct).AsTask().Result;
+                return await factory(ct);
             })
             .Verifiable();
 

@@ -52,7 +52,7 @@ public class DddArchitectureTests
     }
 
     [Fact]
-    public void Application_Should_Only_DependOn_Domain_And_Shared()
+    public void Application_Should_Not_DependOn_Infrastructure()
     {
         // Arrange
         var applicationAssemblies = Types.InAssemblies(GetAssembliesMatchingPattern("*.Application.dll"));
@@ -72,9 +72,9 @@ public class DddArchitectureTests
     }
 
     [Fact]
-    public void Infrastructure_Should_Implement_Application_Interfaces()
+    public void Infrastructure_Should_Depend_On_Application_Or_Domain()
     {
-        // This test verifies that Infrastructure depends on Application (to implement interfaces)
+        // This test verifies that Infrastructure depends on Application or Domain (to implement interfaces/abstractions)
         // Arrange
         var infrastructureAssemblies = Types.InAssemblies(GetAssembliesMatchingPattern("*.Infrastructure.dll"));
 

@@ -56,6 +56,7 @@ public class GeographicRestrictionMiddleware(
 
             var allowedRegions = GetAllowedRegionsDescription();
             var message = _options.BlockedMessage.Replace("{allowedRegions}", allowedRegions);
+            
             var errorResponse = new
             {
                 error = "geographic_restriction",

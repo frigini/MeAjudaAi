@@ -54,6 +54,12 @@ public class GeographicRestrictionErrorResponse : ApiErrorResponse
     public IEnumerable<AllowedCity>? AllowedCities { get; set; }
 
     /// <summary>
+    /// Lista de estados (UFs) permitidos onde o serviço está disponível.
+    /// </summary>
+    /// <example>["MG", "RJ", "ES"]</example>
+    public IEnumerable<string>? AllowedStates { get; set; }
+
+    /// <summary>
     /// Código de erro específico para restrição geográfica.
     /// </summary>
     /// <example>geographic_restriction</example>
