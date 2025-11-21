@@ -13,7 +13,8 @@ public class ExampleSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        // Cast to concrete type to set properties
+        // Swashbuckle v10 uses IOpenApiSchema interface
+        // Cast to OpenApiSchema to access concrete properties
         if (schema is not OpenApiSchema openApiSchema) return;
 
         // Adicionar exemplos baseados em DefaultValueAttribute

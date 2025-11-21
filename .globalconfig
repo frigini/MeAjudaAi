@@ -2,10 +2,6 @@
 # This file applies to all projects in the solution
 is_global = true
 
-# Suppress noisy package warnings
-dotnet_diagnostic.NU1507.severity = none  # Multiple package sources with Central Package Management
-dotnet_diagnostic.NU1601.severity = none  # Dependency version resolved to different version
-
-# Suppress xUnit warnings globally for test projects
-dotnet_diagnostic.xUnit1051.severity = none  # Use TestContext.Current.CancellationToken
-dotnet_diagnostic.xUnit1012.severity = none  # Null should not be used for value type parameters
+# Note: Analyzer suppressions are managed in Directory.Build.props with appropriate scoping
+# (e.g., test-specific suppressions only apply to test projects)
+# This file is reserved for future global EditorConfig-style settings

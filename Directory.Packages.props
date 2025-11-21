@@ -42,6 +42,15 @@
     <!-- Do not pin this version as it will cause namespace conflicts with Swashbuckle -->
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-rc.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-rc.2" />
+    <!-- CRITICAL: Npgsql 10.x INCOMPATIBILITY WITH Hangfire.PostgreSql 1.20.12 -->
+    <!-- Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0-rc.2 forces Npgsql >= 10.0.0-rc.1 -->
+    <!-- Hangfire.PostgreSql 1.20.12 expects Npgsql 6.x and may fail with Npgsql 10.x -->
+    <!-- MITIGATION: -->
+    <!--   1. Monitor Hangfire.PostgreSql for 10.x support: https://github.com/frankhommers/Hangfire.PostgreSql -->
+    <!--   2. Test Hangfire background jobs thoroughly in integration/E2E tests -->
+    <!--   3. Consider alternative: Hangfire.Pro.Redis or downgrade to EF Core 8.x + Npgsql 8.x -->
+    <!--   4. Add comprehensive integration tests for: job persistence, execution, retries, recurring jobs -->
+    <!-- VALIDATION REQUIRED: Run integration tests exercising Hangfire.PostgreSql before deploying -->
     <!-- Data Access -->
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.0" />
