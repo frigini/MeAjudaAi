@@ -8,7 +8,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
 **Status Geral**: Fase 1 ✅ | Fase 1.5 🔄 (Sprint 0) | MVP Target: 31/Março/2025  
-**Test Coverage**: 40.51% → Meta 80%+  
+**Cobertura de Testes**: 40.51% → Meta 80%+  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
 ### Marcos Principais
@@ -1503,5 +1503,5 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 
 ---
 
-*📅 Última atualização: 20 de Novembro de 2025*  
+*📅 Última atualização: 21 de Novembro de 2025*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*

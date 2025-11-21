@@ -4,7 +4,8 @@ on:
   schedule:
     # Durante Sprint 0 (Migration .NET 10): DIÁRIO para detectar releases stable rapidamente
     # Após merge para master: Alterar para '0 9 * * 1' (semanal - segundas-feiras)
-    # TODO: Change to '0 9 * * 1' (weekly on Mondays) after Sprint 0 merge to master
+    # TODO (Issue #TBD): Change to '0 9 * * 1' (weekly on Mondays) after Sprint 0 merge to master
+    # Tracked in: https://github.com/frigini/MeAjudaAi/issues (create post-merge)
     - cron: '0 9 * * *' # Diário às 9h UTC (6h Brasília)
   workflow_dispatch: # Permite execução manual
 
@@ -32,14 +33,26 @@ jobs:
 
           # Use --fail-on-updates to get exit code directly
           # Exit code 0 = no updates, non-zero = updates found
-          if dotnet outdated --upgrade:Major --transitive:false --fail-on-updates > outdated-report.txt 2>&1; then
-            echo "outdated_found=false" >> $GITHUB_OUTPUT
-          else
-            echo "outdated_found=true" >> $GITHUB_OUTPUT
-          fi
+          # Note: With continue-on-error:true, we capture exit code for analysis
+          dotnet outdated --upgrade:Major --transitive:false --fail-on-updates > outdated-report.txt 2>&1
+          EXIT_CODE=$?
 
           # Display report for debugging
           cat outdated-report.txt
+
+          # Interpret exit code: 0 = no updates, 1+ = updates found (or error)
+          # dotnet-outdated-tool returns non-zero when updates exist with --fail-on-updates
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "outdated_found=false" >> $GITHUB_OUTPUT
+          else
+            # Could be updates OR tool failure - check report for "has newer versions"
+            if grep -q "has newer versions\|Upgrade" outdated-report.txt; then
+              echo "outdated_found=true" >> $GITHUB_OUTPUT
+            else
+              echo "outdated_found=false" >> $GITHUB_OUTPUT
+              echo "⚠️ dotnet-outdated exited with code $EXIT_CODE but no updates detected" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
 
       - name: Create Issue if outdated packages found
         if: steps.check.outputs.outdated_found == 'true'
