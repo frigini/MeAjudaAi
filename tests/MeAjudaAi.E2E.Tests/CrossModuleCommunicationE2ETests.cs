@@ -28,10 +28,22 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
 
         if (response.StatusCode == HttpStatusCode.Conflict)
         {
-            // User already exists - try to fetch the actual user by username
-            // Note: This requires a by-username endpoint; if unavailable, use generic test data
-            var fallbackJson = $$"""{"id":"00000000-0000-0000-0000-000000000000","username":"{{username}}","email":"{{email}}","firstName":"{{firstName}}","lastName":"{{lastName}}"}""";
-            return JsonDocument.Parse(fallbackJson).RootElement;
+            // User already exists - fetch by email
+            AuthenticateAsAdmin();
+            var getUserResponse = await ApiClient.GetAsync($"/api/v1/users/by-email/{Uri.EscapeDataString(email)}");
+            
+            if (getUserResponse.IsSuccessStatusCode)
+            {
+                var getUserContent = await getUserResponse.Content.ReadAsStringAsync();
+                var getUserResult = JsonSerializer.Deserialize<JsonElement>(getUserContent, JsonOptions);
+                if (getUserResult.TryGetProperty("data", out var existingUser))
+                {
+                    return existingUser;
+                }
+            }
+            
+            // Se não conseguiu buscar, falha o teste (não usar fake ID)
+            throw new InvalidOperationException($"Failed to retrieve existing user by email: {email}");
         }
 
         var content = await response.Content.ReadAsStringAsync();
@@ -62,20 +74,28 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
         {
             case "NotificationModule":
                 // Notification module needs user existence and email validation
-                var checkEmailResponse = await ApiClient.GetAsync($"/api/v1/users/check-email?email={email}");
+                AuthenticateAsAdmin(); // Requer autenticação para acessar users API
+                var checkEmailResponse = await ApiClient.GetAsync($"/api/v1/users/by-email/{Uri.EscapeDataString(email)}");
                 checkEmailResponse.IsSuccessStatusCode.Should().BeTrue(
                     "Email check should succeed for valid user created in Arrange");
                 break;
 
             case "OrdersModule":
                 // Orders module needs full user details and batch operations
+                AuthenticateAsAdmin(); // Requer autenticação para acessar users API
                 var getUserResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+                if (!getUserResponse.IsSuccessStatusCode)
+                {
+                    var errorContent = await getUserResponse.Content.ReadAsStringAsync();
+                    throw new Exception($"GET /api/v1/users/{userId} failed with {getUserResponse.StatusCode}: {errorContent}");
+                }
                 getUserResponse.IsSuccessStatusCode.Should().BeTrue(
                     "GetUser should succeed for valid user created in Arrange");
                 break;
 
             case "PaymentModule":
                 // Payment module needs user validation for security
+                AuthenticateAsAdmin(); // Requer autenticação para acessar users API
                 var userExistsResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
                 userExistsResponse.IsSuccessStatusCode.Should().BeTrue(
                     "User validation should succeed for valid user created in Arrange");
@@ -83,6 +103,7 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
 
             case "ReportingModule":
                 // Reporting module needs batch user data
+                AuthenticateAsAdmin(); // Requer autenticação para acessar users API
                 var batchResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
                 batchResponse.IsSuccessStatusCode.Should().BeTrue(
                     "Batch user data retrieval should succeed for valid user created in Arrange");
@@ -107,6 +128,7 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
         }
 
         // Act - Simulate multiple modules making concurrent requests
+        AuthenticateAsAdmin(); // Mantém autenticação para todas as requisições
         var tasks = users.Select(async user =>
         {
             var userId = user.GetProperty("id").GetGuid();
@@ -131,6 +153,7 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
         // Act & Assert - Test all contract methods behave consistently
 
         // 1. GetUserByIdAsync
+        AuthenticateAsAdmin(); // Requer autenticação para acessar users API
         var getUserResponse = await ApiClient.GetAsync($"/api/v1/users/{user.GetProperty("id").GetGuid()}");
         if (getUserResponse.StatusCode == HttpStatusCode.OK)
         {

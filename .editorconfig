@@ -142,7 +142,7 @@ dotnet_diagnostic.CA5351.severity = suggestion  # Broken cryptographic algorithm
 dotnet_diagnostic.CA2201.severity = none  # Exception type System.Exception is not sufficiently specific (test mocks)
 
 # xUnit specific warnings
-dotnet_diagnostic.xUnit1051.severity = suggestion  # CancellationToken usage (can be relaxed but good to see)
+dotnet_diagnostic.xUnit1051.severity = none  # CancellationToken usage (can be relaxed but good to see)
 dotnet_diagnostic.CA1827.severity = none  # Use Any() instead of Count() (test validations)
 dotnet_diagnostic.CA1829.severity = none  # Use Count property instead of Enumerable.Count (test validations)
 dotnet_diagnostic.CA1826.severity = none  # Use indexable collections directly (test data)

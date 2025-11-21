@@ -139,6 +139,7 @@ public class UsersModuleTests : TestContainerTestBase
     public async Task DeleteUser_WithNonExistentId_ShouldReturnNotFound()
     {
         // Arrange
+        AuthenticateAsAdmin(); // DELETE requer autorização Admin
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -151,6 +152,9 @@ public class UsersModuleTests : TestContainerTestBase
     [Fact]
     public async Task UserEndpoints_ShouldHandleInvalidGuids()
     {
+        // Arrange
+        AuthenticateAsAdmin(); // GET requer autorização
+        
         // Act & Assert - Quando o constraint de GUID não bate, a rota retorna 404 
         var invalidGuidResponse = await ApiClient.GetAsync("/api/v1/users/invalid-guid");
         invalidGuidResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);

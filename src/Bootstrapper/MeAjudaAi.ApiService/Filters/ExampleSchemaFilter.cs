@@ -117,10 +117,10 @@ public class ExampleSchemaFilter : ISchemaFilter
         {
             var name when name.Contains("email") => JsonValue.Create("usuario@example.com"),
             var name when name.Contains("phone") || name.Contains("telefone") => JsonValue.Create("+55 11 99999-9999"),
-            var name when name.Contains("name") || name.Contains("nome") => JsonValue.Create("João Silva"),
             var name when name.Contains("username") => JsonValue.Create("joao.silva"),
             var name when name.Contains("firstname") => JsonValue.Create("João"),
             var name when name.Contains("lastname") => JsonValue.Create("Silva"),
+            var name when name.Contains("name") || name.Contains("nome") => JsonValue.Create("João Silva"),
             var name when name.Contains("password") => JsonValue.Create("MinhaSenh@123"),
             var name when name.Contains("description") || name.Contains("descricao") => JsonValue.Create("Descrição do item"),
             var name when name.Contains("title") || name.Contains("titulo") => JsonValue.Create("Título do Item"),

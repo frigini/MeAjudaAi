@@ -2,6 +2,80 @@
 
 Este documento rastreia itens de débito técnico e melhorias planejadas identificadas durante o desenvolvimento que devem ser convertidas em issues do GitHub.
 
+## ⚠️ CRÍTICO: Hangfire + Npgsql 10.x Compatibility Risk
+
+**Arquivo**: `Directory.Packages.props`  
+**Linhas**: 45-103  
+**Situação**: VALIDAÇÃO EM ANDAMENTO - BLOQUEIO DE DEPLOY  
+**Severidade**: ALTA  
+**Issue**: [Criar issue para rastreamento]
+
+**Descrição**: 
+Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está migrando para Npgsql 10.x, que introduz breaking changes. A compatibilidade em runtime não foi validada pelo mantenedor do Hangfire.PostgreSql.
+
+**Problema Identificado**:
+- Npgsql 10.x introduz mudanças incompatíveis (breaking changes)
+- Hangfire.PostgreSql 1.20.12 não foi testado oficialmente com Npgsql 10.x
+- Risco de falhas em: persistência de jobs, serialização, conexão, corrupção de dados
+- Deploy para produção está BLOQUEADO até validação completa
+
+**Mitigação Implementada**:
+1. ✅ Documentação detalhada de estratégia de versões em `Directory.Packages.props`
+2. ✅ Testes de integração abrangentes criados (`tests/MeAjudaAi.Integration.Tests/Jobs/HangfireIntegrationTests.cs`)
+3. ✅ CI/CD gating configurado (`.github/workflows/pr-validation.yml`)
+4. ✅ Guia de compatibilidade documentado (`docs/hangfire-npgsql-compatibility.md`)
+5. ✅ Procedimentos de rollback documentados
+6. ✅ Plano de monitoramento de produção definido
+
+**Validação Necessária ANTES de Deploy para Produção**:
+- [ ] Todos os testes de integração Hangfire passando no CI/CD
+- [ ] Validação manual em ambiente de staging com carga realística
+- [ ] Monitoramento de produção configurado (alertas de taxa de falha >5%)
+- [ ] Procedimento de rollback testado em staging
+- [ ] Plano de comunicação para stakeholders aprovado
+
+**Opções de Implementação**:
+
+**OPÇÃO 1 (ATUAL)**: Manter Npgsql 10.x + Hangfire.PostgreSql 1.20.12
+- Requer validação completa via testes de integração
+- Monitorar: https://github.com/frankhommers/Hangfire.PostgreSql/issues
+- Rollback para Opção 2 se falhas detectadas
+
+**OPÇÃO 2 (FALLBACK SEGURO)**: Downgrade para Npgsql 8.x
+- Versões conhecidas e compatíveis
+- Trade-off: Adia benefícios da migração para .NET 10
+- Implementação imediata se Opção 1 falhar
+
+**OPÇÃO 3 (FUTURO)**: Aguardar Hangfire.PostgreSql 2.x
+- Suporte oficial para Npgsql 10.x
+- Timeline desconhecida
+
+**OPÇÃO 4 (EMERGÊNCIA)**: Backend alternativo
+- Hangfire.Pro.Redis (requer licença)
+- Hangfire.SqlServer (requer infraestrutura SQL Server)
+
+**Prioridade**: CRÍTICA  
+**Dependências**: Testes de integração, validação em staging, monitoramento de produção  
+**Prazo**: Antes de qualquer deploy para produção
+
+**Critérios de Aceitação**:
+- [x] Testes de integração implementados e passando
+- [x] CI/CD gating configurado para bloquear deploy se testes falharem
+- [x] Documentação de compatibilidade criada
+- [x] Procedimento de rollback documentado e testado
+- [ ] Validação em staging com carga de produção
+- [ ] Monitoramento de produção configurado
+- [ ] Equipe treinada em procedimento de rollback
+- [ ] Stakeholders notificados sobre o risco e plano de mitigação
+
+**Documentação**:
+- Guia completo: `docs/hangfire-npgsql-compatibility.md`
+- Testes: `tests/MeAjudaAi.Integration.Tests/Jobs/HangfireIntegrationTests.cs`
+- CI/CD: `.github/workflows/pr-validation.yml` (step "CRITICAL - Hangfire Npgsql 10.x Compatibility Tests")
+- Configuração: `Directory.Packages.props` (linhas 45-103)
+
+---
+
 ## Melhorias nos Testes de Integração
 
 ### Melhoria do Teste de Status de Verificação de Prestador

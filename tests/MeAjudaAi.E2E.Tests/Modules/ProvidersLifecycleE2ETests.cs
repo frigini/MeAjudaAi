@@ -26,23 +26,31 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
 
         var createRequest = new
         {
-            UserId = userId,
+            UserId = userId.ToString(), // UserId é string no Request base
+            Name = $"Provider_{uniqueId}",
             Type = 0, // Individual
-            CompanyName = $"Provider_{uniqueId}",
-            TradingName = $"Trading_{uniqueId}",
-            TaxId = _faker.Random.Replace("###########"),
-            Email = $"provider_{uniqueId}@example.com",
-            Phone = _faker.Phone.PhoneNumber("(##) #####-####"),
-            Description = "Original description",
-            Address = new
+            BusinessProfile = new
             {
-                Street = _faker.Address.StreetName(),
-                Number = _faker.Random.Number(1, 9999).ToString(),
-                City = _faker.Address.City(),
-                State = _faker.Address.StateAbbr(),
-                ZipCode = _faker.Random.Replace("#####-###"),
-                Latitude = _faker.Address.Latitude(),
-                Longitude = _faker.Address.Longitude()
+                LegalName = _faker.Company.CompanyName(),
+                FantasyName = $"Trading_{uniqueId}",
+                Description = "Original description",
+                ContactInfo = new
+                {
+                    Email = $"provider_{uniqueId}@example.com",
+                    Phone = _faker.Phone.PhoneNumber("(##) #####-####"),
+                    Website = (string?)null
+                },
+                PrimaryAddress = new
+                {
+                    Street = _faker.Address.StreetName(),
+                    Number = _faker.Random.Number(1, 9999).ToString(),
+                    Complement = (string?)null,
+                    Neighborhood = _faker.Address.County(),
+                    City = _faker.Address.City(),
+                    State = _faker.Address.StateAbbr(),
+                    ZipCode = _faker.Random.Replace("#####-###"),
+                    Country = "Brasil"
+                }
             }
         };
 
@@ -56,23 +64,34 @@ public class ProvidersLifecycleE2ETests : TestContainerTestBase
         // Act - Update provider
         var updateRequest = new
         {
-            CompanyName = $"Updated_{uniqueId}",
-            TradingName = $"UpdatedTrading_{uniqueId}",
-            Email = $"updated_{uniqueId}@example.com",
-            Phone = _faker.Phone.PhoneNumber("(##) #####-####"),
-            Description = "Updated description",
-            Address = new
+            Name = $"Updated_{uniqueId}",
+            BusinessProfile = new
             {
-                Street = "Updated Street",
-                Number = "999",
-                City = "São Paulo",
-                State = "SP",
-                ZipCode = "01234-567",
-                Latitude = -23.5505,
-                Longitude = -46.6333
+                LegalName = _faker.Company.CompanyName(),
+                FantasyName = $"UpdatedTrading_{uniqueId}",
+                Description = "Updated description",
+                ContactInfo = new
+                {
+                    Email = $"updated_{uniqueId}@example.com",
+                    Phone = _faker.Phone.PhoneNumber("(##) #####-####"),
+                    Website = (string?)null
+                },
+                PrimaryAddress = new
+                {
+                    Street = "Updated Street",
+                    Number = "999",
+                    Complement = (string?)null,
+                    Neighborhood = "Centro",
+                    City = "São Paulo",
+                    State = "SP",
+                    ZipCode = "01234-567",
+                    Country = "Brasil"
+                }
             }
         };
 
+        // Re-authenticate before the update operation
+        AuthenticateAsAdmin();
         var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", updateRequest, JsonOptions);
 
         // Assert

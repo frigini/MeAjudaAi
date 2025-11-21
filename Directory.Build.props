@@ -160,6 +160,8 @@
     <NoWarn>$(NoWarn);xUnit1007</NoWarn> <!-- ClassData must point at valid class -->
     <NoWarn>$(NoWarn);xUnit1008</NoWarn> <!-- Test data attribute must be used on a theory -->
     <NoWarn>$(NoWarn);xUnit1009</NoWarn> <!-- InlineData must match the number of method parameters -->
+    <NoWarn>$(NoWarn);xUnit1012</NoWarn> <!-- Null should not be used for value type parameters -->
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn> <!-- Use TestContext.Current.CancellationToken for test cancellation -->
     <NoWarn>$(NoWarn);xUnit1010</NoWarn> <!-- The value is not convertible to the method parameter type -->
     <NoWarn>$(NoWarn);xUnit1011</NoWarn> <!-- Extra arguments provided -->
     <NoWarn>$(NoWarn);xUnit1012</NoWarn> <!-- Null should not be used for value type parameters -->

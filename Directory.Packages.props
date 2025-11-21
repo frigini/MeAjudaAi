@@ -42,15 +42,61 @@
     <!-- Do not pin this version as it will cause namespace conflicts with Swashbuckle -->
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-rc.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-rc.2" />
-    <!-- CRITICAL: Npgsql 10.x INCOMPATIBILITY WITH Hangfire.PostgreSql 1.20.12 -->
-    <!-- Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0-rc.2 forces Npgsql >= 10.0.0-rc.1 -->
-    <!-- Hangfire.PostgreSql 1.20.12 expects Npgsql 6.x and may fail with Npgsql 10.x -->
-    <!-- MITIGATION: -->
-    <!--   1. Monitor Hangfire.PostgreSql for 10.x support: https://github.com/frankhommers/Hangfire.PostgreSql -->
-    <!--   2. Test Hangfire background jobs thoroughly in integration/E2E tests -->
-    <!--   3. Consider alternative: Hangfire.Pro.Redis or downgrade to EF Core 8.x + Npgsql 8.x -->
-    <!--   4. Add comprehensive integration tests for: job persistence, execution, retries, recurring jobs -->
-    <!-- VALIDATION REQUIRED: Run integration tests exercising Hangfire.PostgreSql before deploying -->
+    <!-- ========================================================================== -->
+    <!-- CRITICAL: Npgsql 10.x COMPATIBILITY RISK WITH Hangfire.PostgreSql 1.20.12 -->
+    <!-- ========================================================================== -->
+    <!-- ISSUE SUMMARY:                                                             -->
+    <!--   - Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0-rc.2 forces Npgsql >= 10.x -->
+    <!--   - Hangfire.PostgreSql 1.20.12 was built against Npgsql 6.x               -->
+    <!--   - Npgsql 10.x introduces BREAKING CHANGES (see: https://www.npgsql.org/doc/release-notes/10.0.html) -->
+    <!--   - Runtime compatibility is UNVALIDATED and may fail in production         -->
+    <!--                                                                             -->
+    <!-- PACKAGE VERSION STRATEGY:                                                  -->
+    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.20.12       -->
+    <!--     - Requires comprehensive integration testing (see below)                -->
+    <!--     - Monitor: https://github.com/frankhommers/Hangfire.PostgreSql/issues  -->
+    <!--     - Fallback: Downgrade to EF Core 9.x + Npgsql 8.x if issues found      -->
+    <!--                                                                             -->
+    <!--   OPTION 2 (ALTERNATIVE): Pin Npgsql to 8.x explicitly                     -->
+    <!--     - Add: <PackageVersion Include="Npgsql" Version="8.0.5" />             -->
+    <!--     - Requires downgrading EF Core to 9.x                                  -->
+    <!--     - Safer but delays .NET 10 migration                                   -->
+    <!--                                                                             -->
+    <!--   OPTION 3 (FUTURE): Wait for Hangfire.PostgreSql 2.x with Npgsql 10 support -->
+    <!--     - Monitor releases at: https://www.nuget.org/packages/Hangfire.PostgreSql -->
+    <!--                                                                             -->
+    <!-- VALIDATION REQUIREMENTS (DO NOT DEPLOY WITHOUT):                           -->
+    <!--   ✅ Integration tests for Hangfire MUST pass in CI/CD pipeline            -->
+    <!--   ✅ Tests MUST cover: persistence, execution, retries, recurring jobs     -->
+    <!--   ✅ Staging environment testing with production-like workload             -->
+    <!--   ✅ Manual verification of Hangfire dashboard functionality               -->
+    <!--                                                                             -->
+    <!-- INTEGRATION TEST REQUIREMENTS:                                             -->
+    <!--   - Test file: tests/MeAjudaAi.Integration.Tests/Jobs/HangfireIntegrationTests.cs -->
+    <!--   - Coverage:                                                              -->
+    <!--     1. Job enqueue + execution against Npgsql 10 database                 -->
+    <!--     2. Job persistence + retrieval after restart                          -->
+    <!--     3. Automatic retry on failure (3 attempts)                            -->
+    <!--     4. Recurring job scheduling + execution                               -->
+    <!--     5. Background worker processing                                       -->
+    <!--     6. Dashboard API responsiveness                                       -->
+    <!--                                                                             -->
+    <!-- CI/CD GATING REQUIREMENT:                                                  -->
+    <!--   - GitHub Actions workflow MUST fail if Hangfire tests fail              -->
+    <!--   - Add to: .github/workflows/pr-validation.yml                           -->
+    <!--   - Command: dotnet test [dash][dash]filter Category=HangfireIntegration  -->
+    <!--                                                                             -->
+    <!-- MONITORING & FALLBACK PLAN:                                                -->
+    <!--   1. Monitor application logs for Hangfire/Npgsql exceptions              -->
+    <!--   2. Track Hangfire job failure rate in production                        -->
+    <!--   3. If failure rate > 5%: ROLLBACK to EF Core 9.x + Npgsql 8.x           -->
+    <!--   4. Document rollback procedure in docs/deployment_environments.md       -->
+    <!--                                                                             -->
+    <!-- ALTERNATIVE BACKENDS (if Npgsql 10 incompatibility confirmed):            -->
+    <!--   - Hangfire.Pro.Redis (requires license)                                 -->
+    <!--   - Hangfire.InMemory (dev/testing only)                                  -->
+    <!--   - Hangfire.SqlServer (requires SQL Server)                              -->
+    <!-- ========================================================================== -->
     <!-- Data Access -->
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.0" />
@@ -116,6 +162,7 @@
     <!-- Dependency Injection -->
     <PackageVersion Include="Scrutor" Version="6.1.0" />
     <!-- System -->
+    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.0.1" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     <!-- Testing Framework -->
