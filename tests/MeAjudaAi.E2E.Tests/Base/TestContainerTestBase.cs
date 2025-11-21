@@ -56,7 +56,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         await _redisContainer.StartAsync();
 
         // Configurar WebApplicationFactory
+#pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
         _factory = new WebApplicationFactory<Program>()
+#pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");

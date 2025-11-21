@@ -103,7 +103,7 @@ public static class DocumentExtensions
     /// </summary>
     private static string GenerateValidDocument(int baseLength, int[] firstMultipliers, int[] secondMultipliers)
     {
-        var random = RandomNumberGenerator.Create();
+        using var random = RandomNumberGenerator.Create();
         var document = new char[baseLength + 2];
 
         // Gera números aleatórios para os primeiros dígitos

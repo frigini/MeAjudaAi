@@ -60,7 +60,9 @@ public sealed class MockHttpMessageHandler
                     req.RequestUri != null &&
                     req.RequestUri.ToString().Contains(urlPattern)),
                 ItExpr.IsAny<CancellationToken>())
+#pragma warning disable CA2000 // HttpResponseMessage em mock é ownership do caller
             .ReturnsAsync(new HttpResponseMessage
+#pragma warning restore CA2000
             {
                 StatusCode = statusCode
             });
