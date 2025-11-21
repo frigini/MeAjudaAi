@@ -1,8 +1,10 @@
-# 📋 Sprint 1 - Checklist Detalhado
+# 📋 Sprint 1 - Checklist Detalhado (Expandido)
 
-**Período**: 22 Nov - 29 Nov 2025 (1 semana)  
-**Objetivo**: Fundação Crítica para MVP - Restrição Geográfica + Integração de Módulos  
-**Pré-requisito**: ✅ Migration .NET 10 + Aspire 13 merged para `master`
+**Período**: 22 Nov - 2 Dez 2025 (10 dias úteis)  
+**Objetivo**: Fundação Crítica para MVP - Restrição Geográfica + Integração de Módulos + Test Coverage  
+**Pré-requisito**: ✅ Migration .NET 10 + Aspire 13 merged para `master` (21 Nov 2025)
+
+**⚠️ Coverage Baseline Atualizado**: 28.69% (caiu após migration) → Meta 70-80%
 
 ---
 
@@ -11,9 +13,10 @@
 | Branch | Duração | Prioridade | Testes Skipped Resolvidos |
 |--------|---------|------------|---------------------------|
 | `feature/geographic-restriction` | 1-2 dias | 🚨 CRÍTICA | N/A |
-| `feature/module-integration` | 3-5 dias | 🚨 CRÍTICA | 8/8 (auth + isolation) |
+| `feature/module-integration` | 3-7 dias | 🚨 CRÍTICA | 8/8 (auth + isolation) |
+| `test/increase-coverage` | 8-10 dias | 🎯 ALTA | N/A (165+ novos unit tests) |
 
-**Total**: 7 dias úteis (com buffer para code review)
+**Total**: 10 dias úteis (expandido para incluir test coverage)
 
 ---
 
@@ -429,15 +432,17 @@
 
 ## 📊 Métricas de Sucesso - Sprint 1
 
-| Métrica | Antes (Sprint 0) | Meta Sprint 1 | Como Validar |
-|---------|------------------|---------------|-------------|
+| Métrica | Baseline (22 Nov) | Meta Sprint 1 (2 Dez) | Como Validar |
+|---------|-------------------|----------------------|-------------|
 | **E2E Tests Passing** | 93/100 (93.0%) | 98/100 (98.0%) | GitHub Actions PR |
 | **E2E Tests Skipped** | 7 (auth + infra) | 2 (infra only) | dotnet test output |
-| **Code Coverage** | 40.51% | > 45% | Coverlet report |
+| **Code Coverage** | **28.69%** ⚠️ | **70-80%** 🎯 | Coverlet report |
 | **Build Warnings** | 0 | 0 | `dotnet build -warnaserror` |
 | **Module APIs** | 0 | 4 | Code review |
 | **Integration Events** | 0 | 2+ | Event handlers count |
-| **Documentation Pages** | 15 | 18+ | `docs/` folder |
+| **Documentation Pages** | 18 | 22+ | `docs/` folder |
+
+**Nota**: Coverage caiu de 40.51% → 28.69% após migration (novos arquivos sem testes: packages.lock.json, generated code).
 
 ---
 
@@ -476,8 +481,144 @@ Após Sprint 1, apenas **1 teste** permanecerá skipped:
 | 4 | 25 Nov | Provider → Documents integration | 8h |
 | 5 | 26 Nov | Provider → ServiceCatalogs + Search | 8h |
 | 6 | 27 Nov | Providers → Location + E2E tests | 8h |
-| 7 | 28-29 Nov | Documentação + Code Review | 6h |
-| **Total** | | | **54h (7 dias úteis)** |
+| 7 | 28 Nov | Documentação + Code Review | 6h |
+| **8** | **29 Nov** | **Test Coverage: Shared (ValueObjects + Extensions)** | **8h** |
+| **9** | **30 Nov** | **Test Coverage: Domain Entities** | **8h** |
+| **10** | **1-2 Dez** | **Test Coverage: Critical Handlers** | **8h** |
+| **Total** | | | **78h (10 dias úteis)** |
+
+---
+
+## 🧪 Dias 8-10: Test Coverage Sprint (PARALELO - NOVO)
+
+**Contexto**: Coverage caiu para 28.69% após migration (.NET 10 adicionou arquivos gerados sem testes).  
+**Meta**: 28.69% → 70-80% em 3 dias  
+**Estratégia**: Focar em código crítico de negócio (Handlers, Entities, ValueObjects)
+
+---
+
+### 📅 Dia 8 (29 Nov) - Shared.Tests Expansion
+
+#### Morning (4h)
+- [ ] **Unit tests para ValueObjects**
+  - [ ] `EmailTests.cs`: Validação de formato, case-insensitive, domínios bloqueados
+  - [ ] `CpfTests.cs`: Validação de dígitos, formato, CPFs inválidos conhecidos
+  - [ ] `CnpjTests.cs`: Validação de dígitos, formato
+  - [ ] `PhoneNumberTests.cs`: Formatos brasileiros, DDDs válidos
+  - [ ] **Target**: 20 testes → +3% coverage
+
+#### Afternoon (4h)
+- [ ] **Unit tests para Extensions**
+  - [ ] `StringExtensions.Tests`: ToSlug, RemoveAccents, Truncate, IsNullOrEmpty
+  - [ ] `DateTimeExtensions.Tests`: ToBrazilTime, IsBusinessDay, GetAge
+  - [ ] `EnumExtensions.Tests`: GetDescription, GetValue
+  - [ ] **Target**: 15 testes → +2% coverage
+
+- [ ] **Unit tests para Results**
+  - [ ] `Result.Tests`: Success, Failure, Map, Bind, Match
+  - [ ] `Error.Tests`: Creation, Validation, NotFound, Conflict
+  - [ ] **Target**: 12 testes → +2% coverage
+
+**Coverage esperado**: 28.69% → 35% (+7%)
+
+---
+
+### 📅 Dia 9 (30 Nov) - Domain Entities
+
+#### Morning (4h)
+- [ ] **Provider Entity Tests**
+  - [ ] Arquivo: `tests/MeAjudaAi.Modules.Providers.Tests/Domain/ProviderTests.cs`
+  - [ ] Testes:
+    - [ ] Constructor com dados válidos
+    - [ ] Invariant: CPF/CNPJ obrigatório
+    - [ ] UpdateBasicInfo mantém ID
+    - [ ] ChangeVerificationStatus valida transições
+    - [ ] AddService com categoria inválida lança exceção
+    - [ ] RemoveService com serviço inexistente lança exceção
+  - [ ] **Target**: 18 testes → +8% coverage
+
+#### Afternoon (4h)
+- [ ] **User Entity Tests**
+  - [ ] Arquivo: `tests/MeAjudaAi.Modules.Users.Tests/Domain/UserTests.cs`
+  - [ ] Testes:
+    - [ ] Constructor com email válido
+    - [ ] ChangeEmail valida formato
+    - [ ] ChangeUsername valida unicidade
+    - [ ] AssignRole adiciona role
+    - [ ] RemoveRole remove role existente
+    - [ ] Activate/Deactivate muda status
+  - [ ] **Target**: 15 testes → +6% coverage
+
+- [ ] **ServiceCategory + Service Aggregates**
+  - [ ] Arquivo: `tests/MeAjudaAi.Modules.ServiceCatalogs.Tests/Domain/ServiceCategoryTests.cs`
+  - [ ] Testes:
+    - [ ] Create com nome válido
+    - [ ] Activate/Deactivate
+    - [ ] AddService vincula corretamente
+    - [ ] RemoveService valida existência
+  - [ ] **Target**: 12 testes → +5% coverage
+
+**Coverage esperado**: 35% → 54% (+19%)
+
+---
+
+### 📅 Dia 10 (1-2 Dez) - Critical Handlers
+
+#### Morning (4h)
+- [ ] **CreateProviderHandler Tests**
+  - [ ] Arquivo: `tests/MeAjudaAi.Modules.Providers.Tests/Application/Commands/CreateProviderHandlerTests.cs`
+  - [ ] Testes:
+    - [ ] Handle com dados válidos retorna Success
+    - [ ] Handle com CPF duplicado retorna Conflict
+    - [ ] Handle com categoria inválida retorna BadRequest
+    - [ ] Validator valida campos obrigatórios
+    - [ ] Repository.AddAsync é chamado corretamente
+  - [ ] **Target**: 10 testes → +5% coverage
+
+- [ ] **UpdateProviderStatusHandler Tests**
+  - [ ] Arquivo: `tests/MeAjudaAi.Modules.Providers.Tests/Application/Commands/UpdateProviderStatusHandlerTests.cs`
+  - [ ] Testes:
+    - [ ] Handle transição válida (Pending → Verified)
+    - [ ] Handle transição inválida retorna BadRequest
+    - [ ] Handle provider inexistente retorna NotFound
+  - [ ] **Target**: 8 testes → +4% coverage
+
+#### Afternoon (4h)
+- [ ] **SearchProvidersHandler Tests**
+  - [ ] Arquivo: `tests/MeAjudaAi.Modules.SearchProviders.Tests/Application/Queries/SearchProvidersHandlerTests.cs`
+  - [ ] Testes:
+    - [ ] Handle com coordenadas válidas retorna providers próximos
+    - [ ] Handle com raio > 500km retorna BadRequest
+    - [ ] Handle com paginação funciona corretamente
+    - [ ] Handle com filtros combinados (rating + serviceIds)
+  - [ ] **Target**: 12 testes → +5% coverage
+
+- [ ] **CreateUserHandler Tests**
+  - [ ] Arquivo: `tests/MeAjudaAi.Modules.Users.Tests/Application/Commands/CreateUserHandlerTests.cs`
+  - [ ] Testes:
+    - [ ] Handle com dados válidos cria usuário
+    - [ ] Handle com email duplicado retorna Conflict
+    - [ ] Handle com senha fraca retorna BadRequest
+    - [ ] Keycloak integration mock funciona
+  - [ ] **Target**: 10 testes → +4% coverage
+
+**Coverage esperado**: 54% → 72% (+18%)
+
+---
+
+### 🎯 Coverage Roadmap - Sprint 1
+
+| Dia | Foco | Coverage Alvo | Delta | Testes Adicionados |
+|-----|------|---------------|-------|--------------------|
+| 1-2 | Geographic Restriction | 28.69% → 30% | +1.31% | ~8 unit tests |
+| 3-5 | Module APIs + Auth Refactor | 30% → 35% | +5% | ~25 unit tests |
+| 6-7 | Integration Events + Docs | 35% → 35% | 0% | (documentação) |
+| **8** | **Shared (ValueObjects, Extensions, Results)** | **35% → 42%** | **+7%** | **47 unit tests** |
+| **9** | **Domain (Provider, User, ServiceCategory)** | **42% → 61%** | **+19%** | **45 unit tests** |
+| **10** | **Handlers (Create, Update, Search)** | **61% → 79%** | **+18%** | **40 unit tests** |
+| **Total** | | **28.69% → 75-80%** | **+47-51%** | **~165 unit tests** |
+
+**Nota**: Targets ajustados considerando que packages.lock.json (não testável) está inflando denominador.
 
 ---
 
@@ -495,9 +636,19 @@ Após Sprint 1, apenas **1 teste** permanecerá skipped:
 - [ ] 4 Module APIs implementadas
 - [ ] 8 testes E2E reativados e passando
 - [ ] Integration events funcionando
-- [ ] Cobertura de testes > 45%
+- [ ] Cobertura de testes > 35% (após module APIs)
 - [ ] Documentação de integração completa
 - [ ] CI/CD passa (98/100 testes E2E)
+- [ ] Code review aprovado
+- [ ] Merged para `master`
+
+### 🆕 Branch 3: `test/increase-coverage` (Dias 8-10)
+- [ ] Shared.Tests expansion completo (ValueObjects + Extensions + Results)
+- [ ] Domain entity tests (Provider + User + ServiceCategory)
+- [ ] Critical handler tests (Create + Update + Search)
+- [ ] Cobertura de testes **70-80%** 🎯
+- [ ] 0 warnings em coverage report (apenas código testável)
+- [ ] CI/CD passa (165+ novos unit tests)
 - [ ] Code review aprovado
 - [ ] Merged para `master`
 
