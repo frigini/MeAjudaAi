@@ -4,7 +4,7 @@
     "net10.0": {
       "Aspire.Hosting.Testing": {
         "type": "Direct",
-        "requested": "[13.0.0-preview.1.25560.3, )",
+        "requested": "[13.0.0, )",
         "resolved": "13.0.0",
         "contentHash": "5h2ZsBxiYJtRaRC1P4EnsK3vKTQR/nGDEJSSAjUW20zVOD6fbYFOg8qJTp/icboS8DUCrc2P5ZBI+mE9k6jSjQ==",
         "dependencies": {

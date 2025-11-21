@@ -13,8 +13,7 @@ public class ExampleSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        // Swashbuckle v10 uses IOpenApiSchema interface
-        // Cast to OpenApiSchema to access concrete properties
+        // Swashbuckle v10 uses IOpenApiSchema; cast to OpenApiSchema for property access
         if (schema is not OpenApiSchema openApiSchema) return;
 
         // Adicionar exemplos baseados em DefaultValueAttribute
@@ -87,12 +86,22 @@ public class ExampleSchemaFilter : ISchemaFilter
             propertyType = Nullable.GetUnderlyingType(propertyType)!;
         }
 
+        // Handle enum types
+        if (propertyType.IsEnum)
+        {
+            var enumNames = Enum.GetNames(propertyType);
+            if (enumNames.Length > 0)
+            {
+                return JsonValue.Create(enumNames[0]);
+            }
+        }
+
         return propertyType.Name switch
         {
             nameof(String) => GetStringExample(propertyName),
             nameof(Guid) => JsonValue.Create("3fa85f64-5717-4562-b3fc-2c963f66afa6"),
-            nameof(DateTime) => JsonValue.Create(new DateTime(2025, 01, 15, 10, 30, 00, DateTimeKind.Utc)),
-            nameof(DateTimeOffset) => JsonValue.Create(new DateTimeOffset(2025, 01, 15, 10, 30, 00, TimeSpan.Zero)),
+            nameof(DateTime) => JsonValue.Create(new DateTime(2024, 01, 15, 10, 30, 00, DateTimeKind.Utc)),
+            nameof(DateTimeOffset) => JsonValue.Create(new DateTimeOffset(2024, 01, 15, 10, 30, 00, TimeSpan.Zero)),
             nameof(Int32) => JsonValue.Create(GetIntegerExample(propertyName)),
             nameof(Int64) => JsonValue.Create(GetLongExample(propertyName)),
             nameof(Boolean) => JsonValue.Create(GetBooleanExample(propertyName)),
