@@ -1,8 +1,9 @@
+using MeAjudaAi.Shared.Configuration;
+using MeAjudaAi.Shared.Geolocation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
-using MeAjudaAi.Shared.Configuration;
 
 namespace MeAjudaAi.Shared.Middleware;
 
@@ -13,7 +14,8 @@ namespace MeAjudaAi.Shared.Middleware;
 public class GeographicRestrictionMiddleware(
     RequestDelegate next,
     ILogger<GeographicRestrictionMiddleware> logger,
-    IOptions<GeographicRestrictionOptions> options)
+    IOptions<GeographicRestrictionOptions> options,
+    IGeographicValidationService? geographicValidationService = null)
 {
     private readonly GeographicRestrictionOptions _options = options.Value;
 
@@ -40,7 +42,8 @@ public class GeographicRestrictionMiddleware(
         var (city, state) = ExtractLocation(context);
 
         // Validar se cidade/estado está permitido
-        if (!IsLocationAllowed(city, state))
+        var isAllowed = await IsLocationAllowedAsync(city, state, context.RequestAborted);
+        if (!isAllowed)
         {
             logger.LogWarning(
                 "Geographic restriction: Request blocked from {City}/{State}. IP: {IpAddress}",
@@ -52,10 +55,11 @@ public class GeographicRestrictionMiddleware(
             context.Response.ContentType = "application/json";
 
             var allowedRegions = GetAllowedRegionsDescription();
+            var message = _options.BlockedMessage.Replace("{allowedRegions}", allowedRegions);
             var errorResponse = new
             {
                 error = "geographic_restriction",
-                message = string.Format(_options.BlockedMessage, allowedRegions),
+                message,
                 allowedCities = _options.AllowedCities,
                 allowedStates = _options.AllowedStates,
                 yourLocation = new { city, state }
@@ -102,13 +106,14 @@ public class GeographicRestrictionMiddleware(
         }
 
         // TODO Sprint 2: Implementar GeoIP lookup baseado em IP
+        // Opção 1: GeoIP (MaxMind, IP2Location)
         // var ip = context.Connection.RemoteIpAddress;
         // return await _geoIpService.GetLocationFromIpAsync(ip);
 
         return (null, null);
     }
 
-    private bool IsLocationAllowed(string? city, string? state)
+    private async Task<bool> IsLocationAllowedAsync(string? city, string? state, CancellationToken cancellationToken)
     {
         // Se não conseguiu detectar localização, permitir (fail-open)
         // Produção deve ter GeoIP obrigatório
@@ -118,18 +123,54 @@ public class GeographicRestrictionMiddleware(
             return true;
         }
 
-        // Validar cidade (case-insensitive)
-        if (!string.IsNullOrEmpty(city) &&
-            _options.AllowedCities.Any(c => c.Equals(city, StringComparison.OrdinalIgnoreCase)))
+        // Estratégia 1: Validação simples (case-insensitive string matching)
+        // Usada quando IBGE service não está disponível
+        var simpleValidation = ValidateLocationSimple(city, state);
+
+        // Estratégia 2: Validação via API IBGE (normalização + verificação precisa)
+        // Só executar se o serviço estiver disponível e temos cidade
+        if (geographicValidationService is not null && !string.IsNullOrEmpty(city))
         {
-            return true;
+            try
+            {
+                logger.LogDebug("Validando cidade {City} via API IBGE", city);
+                
+                var ibgeValidation = await geographicValidationService.ValidateCityAsync(
+                    city,
+                    state,
+                    _options.AllowedCities,
+                    cancellationToken);
+
+                // IBGE validation tem prioridade (mais precisa)
+                logger.LogInformation(
+                    "Validação IBGE para {City}/{State}: {Result} (simples: {SimpleResult})",
+                    city, state ?? "N/A", ibgeValidation, simpleValidation);
+
+                return ibgeValidation;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Erro ao validar com IBGE, fallback para validação simples");
+                // Fallback para validação simples em caso de erro
+            }
         }
 
-        // Validar estado (case-insensitive, sigla de 2 letras)
-        if (!string.IsNullOrEmpty(state) &&
-            _options.AllowedStates.Any(s => s.Equals(state, StringComparison.OrdinalIgnoreCase)))
+        // Fallback: validação simples se IBGE falhar ou não estiver disponível
+        return simpleValidation;
+    }
+
+    private bool ValidateLocationSimple(string? city, string? state)
+    {
+        // Se temos cidade, validar contra lista de cidades permitidas
+        if (!string.IsNullOrEmpty(city))
         {
-            return true;
+            return _options.AllowedCities.Any(c => c.Equals(city, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Se temos apenas estado (sem cidade), validar contra lista de estados permitidos
+        if (!string.IsNullOrEmpty(state))
+        {
+            return _options.AllowedStates.Any(s => s.Equals(state, StringComparison.OrdinalIgnoreCase));
         }
 
         return false;

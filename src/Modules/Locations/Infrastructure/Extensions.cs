@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Contracts.Modules.Location;
+using MeAjudaAi.Shared.Geolocation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,9 +52,20 @@ public static class Extensions
             client.DefaultRequestHeaders.Add("User-Agent", userAgent);
         });
 
+        // Registrar HTTP client para IBGE Localidades
+        services.AddHttpClient<IbgeClient>(client =>
+        {
+            var baseUrl = configuration["Locations:ExternalApis:IBGE:BaseUrl"] ?? "https://servicodados.ibge.gov.br/api/v1/localidades/";
+            client.BaseAddress = new Uri(baseUrl);
+        });
+
         // Registrar serviços
         services.AddScoped<ICepLookupService, CepLookupService>();
         services.AddScoped<IGeocodingService, GeocodingService>();
+        services.AddScoped<IIbgeService, IbgeService>();
+        
+        // Registrar adapter para middleware (Shared → Locations)
+        services.AddScoped<IGeographicValidationService, GeographicValidationService>();
 
         // Registrar Module API
         services.AddScoped<ILocationModuleApi, LocationsModuleApi>();
