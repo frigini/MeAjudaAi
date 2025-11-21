@@ -254,7 +254,7 @@ public interface ISearchModuleApi
 
 ### 1.5. ✅ Módulo Location Management (Concluído)
 
-**Status**: Implementado e testado
+**Status**: Implementado e testado com integração IBGE ativa
 
 **Objetivo**: Abstrair funcionalidades de geolocalização e lookup de CEP brasileiro.
 
@@ -264,6 +264,7 @@ public interface ISearchModuleApi
 - ✅ Fallback chain automático (ViaCEP → BrasilAPI → OpenCEP)
 - ✅ Resiliência HTTP via ServiceDefaults (retry, circuit breaker, timeout)
 - ✅ API pública (ILocationModuleApi) para comunicação inter-módulos
+- ✅ **Integração IBGE API** (Sprint 1 Dia 1): Validação geográfica oficial
 - ✅ Serviço de geocoding (stub para implementação futura)
 - ✅ 52 testes unitários passando (100% coverage em ValueObjects)
 
@@ -285,12 +286,47 @@ public interface ILocationModuleApi : IModuleApi
 **Serviços Implementados**:
 - `CepLookupService`: Implementa chain of responsibility com fallback entre provedores
 - `ViaCepClient`, `BrasilApiCepClient`, `OpenCepClient`: Clients HTTP com resiliência
+- **`IbgeClient`** (Novo): Cliente HTTP para IBGE Localidades API com normalização de nomes
+- **`IbgeService`** (Novo): Validação de municípios com HybridCache (7 dias TTL)
+- **`GeographicValidationService`** (Novo): Adapter pattern para integração com middleware
 - `GeocodingService`: Stub (TODO: integração com Nominatim ou Google Maps API)
+
+**Integração IBGE Implementada** (Sprint 1 Dia 1):
+```csharp
+// IbgeClient: Normalização de nomes (remove acentos, lowercase, hífens)
+public Task<Municipio?> GetMunicipioByNameAsync(string cityName, CancellationToken ct = default);
+public Task<List<Municipio>> GetMunicipiosByUFAsync(string ufSigla, CancellationToken ct = default);
+public Task<bool> ValidateCityInStateAsync(string city, string state, CancellationToken ct = default);
+
+// IbgeService: Business logic com cache (HybridCache, TTL: 7 dias)
+public Task<bool> ValidateCityInAllowedRegionsAsync(
+    string cityName, 
+    string stateSigla, 
+    List<string> allowedCities, 
+    CancellationToken ct = default);
+public Task<Municipio?> GetCityDetailsAsync(string cityName, CancellationToken ct = default);
+
+// GeographicValidationService: Adapter para Shared module
+public Task<bool> ValidateCityAsync(
+    string cityName, 
+    string stateSigla, 
+    List<string> allowedCities, 
+    CancellationToken ct = default);
+```
+
+**Modelos IBGE**:
+- `Regiao`: Norte, Nordeste, Sudeste, Sul, Centro-Oeste
+- `UF`: Unidade da Federação (estado) com região
+- `Mesorregiao`: Mesorregião com UF
+- `Microrregiao`: Microrregião com mesorregião
+- `Municipio`: Município com hierarquia completa + helper methods (GetUF, GetEstadoSigla, GetNomeCompleto)
+
+**API Base IBGE**: `https://servicodados.ibge.gov.br/api/v1/localidades/`
 
 **Próximas Melhorias (Opcional)**:
 - 🔄 Implementar GeocodingService com Nominatim (OpenStreetMap) ou Google Maps API
 - 🔄 Adicionar caching Redis para reduzir chamadas às APIs externas (TTL: 24h para CEP, 7d para geocoding)
-- 🔄 Integração com IBGE para lookup de municípios e estados
+- ✅ ~~Integração com IBGE para lookup de municípios e estados~~ (IMPLEMENTADO)
 
 ---
 
@@ -737,13 +773,22 @@ gantt
 
 **Estrutura (3 Branches)**:
 
-#### Branch 1: `feature/geographic-restriction` (Dias 1-2) 🔄 DIA 1
-- [ ] GeographicRestrictionMiddleware (validação cidade/estado)
-- [ ] GeographicRestrictionOptions (configuration)
-- [ ] Feature toggle (Development: disabled, Production: enabled)
-- [ ] Unit tests + Integration tests
-- [ ] Documentação + Swagger examples
-- **Target**: 28.69% → 30% coverage
+#### Branch 1: `feature/geographic-restriction` (Dias 1-2) ✅ DIA 1 COMPLETO
+- [x] GeographicRestrictionMiddleware (validação cidade/estado) ✅
+- [x] GeographicRestrictionOptions (configuration) ✅
+- [x] Feature toggle (Development: disabled, Production: enabled) ✅
+- [x] Unit tests (29 tests) + Integration tests (8 tests, skipped) ✅
+- [x] **Integração IBGE API** (validação oficial de municípios) ✅
+  - [x] IbgeClient com normalização de nomes (Muriaé → muriae) ✅
+  - [x] IbgeService com HybridCache (7 dias TTL) ✅
+  - [x] GeographicValidationService (adapter pattern) ✅
+  - [x] 2-layer validation (IBGE primary, simple fallback) ✅
+  - [x] 15 unit tests IbgeClient ✅
+  - [x] Configuração de APIs (ViaCep, BrasilApi, OpenCep, IBGE) ✅
+  - [x] Remoção de hardcoded URLs (enforce configuration) ✅
+- [ ] Documentação + Swagger examples ⏳
+- [x] **Commit**: feat(locations): Integrate IBGE API for geographic validation (520069a) ✅
+- **Target**: 28.69% → 30% coverage (ATUAL: 44 testes passando)
 
 #### Branch 2: `feature/module-integration` (Dias 3-7)
 - [ ] **Dia 3**: Refactor ConfigurableTestAuthenticationHandler (reativa 5 AUTH tests)
@@ -1536,6 +1581,24 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 - **Stripe** - Payment processing
 - **Azure Blob Storage** - Document storage
 - **OpenTelemetry + Aspire** - Observability
+
+### 🌐 APIs Externas
+- **IBGE Localidades API** - Validação oficial de municípios brasileiros
+  - Base URL: `https://servicodados.ibge.gov.br/api/v1/localidades/`
+  - Documentação: <https://servicodados.ibge.gov.br/api/docs/localidades>
+  - Uso: Validação geográfica para restrição de cidades piloto
+- **ViaCep API** - Lookup de CEP brasileiro
+  - Base URL: `https://viacep.com.br/ws/`
+  - Documentação: <https://viacep.com.br/>
+- **BrasilApi CEP** - Lookup de CEP (fallback)
+  - Base URL: `https://brasilapi.com.br/api/cep/v1/`
+  - Documentação: <https://brasilapi.com.br/docs>
+- **OpenCep API** - Lookup de CEP (fallback)
+  - Base URL: `https://opencep.com/v1/`
+  - Documentação: <https://opencep.com/>
+- **Nominatim (OpenStreetMap)** - Geocoding (planejado)
+  - Base URL: `https://nominatim.openstreetmap.org/`
+  - Documentação: <https://nominatim.org/release-docs/latest/>
 
 ---
 
