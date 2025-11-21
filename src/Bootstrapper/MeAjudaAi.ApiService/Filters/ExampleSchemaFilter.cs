@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Reflection;
 using System.Text.Json.Nodes;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MeAjudaAi.ApiService.Filters;
@@ -11,22 +11,25 @@ namespace MeAjudaAi.ApiService.Filters;
 /// </summary>
 public class ExampleSchemaFilter : ISchemaFilter
 {
-    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
+        // Cast to concrete type to set properties
+        if (schema is not OpenApiSchema openApiSchema) return;
+
         // Adicionar exemplos baseados em DefaultValueAttribute
         if (context.Type.IsClass && context.Type != typeof(string))
         {
-            AddExamplesFromProperties(schema, context.Type);
+            AddExamplesFromProperties(openApiSchema, context.Type);
         }
 
         // Adicionar exemplos para enums
         if (context.Type.IsEnum)
         {
-            AddEnumExamples(schema, context.Type);
+            AddEnumExamples(openApiSchema, context.Type);
         }
 
         // Adicionar descrições mais detalhadas
-        AddDetailedDescription(schema, context.Type);
+        AddDetailedDescription(openApiSchema, context.Type);
     }
 
     private void AddExamplesFromProperties(OpenApiSchema schema, Type type)
