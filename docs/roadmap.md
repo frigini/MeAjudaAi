@@ -7,14 +7,15 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Fase 1.5 🔄 (Sprint 0) | MVP Target: 31/Março/2025  
-**Cobertura de Testes**: 40.51% → Meta 80%+  
+**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ | Sprint 1 🔄 (Dia 1) | MVP Target: 31/Março/2025  
+**Cobertura de Testes**: 28.69% → Meta 75-80% (Sprint 1)  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
 ### Marcos Principais
 - ✅ **Janeiro 2025**: Fase 1 concluída - 6 módulos core implementados
-- 🔄 **Jan 20 - Feb 2**: Sprint 0 - Migration .NET 10 + Aspire 13
-- ⏳ **Fevereiro 2025**: Sprints 1-2 - Integração + Testes + Hardening
+- ✅ **Jan 20 - 21 Nov**: Sprint 0 - Migration .NET 10 + Aspire 13 (CONCLUÍDO)
+- 🔄 **22 Nov - 2 Dez**: Sprint 1 - Geographic Restriction + Module Integration + Test Coverage (EM ANDAMENTO)
+- ⏳ **Dezembro 2025**: Sprint 2 - Frontend Blazor (Web)
 - ⏳ **Fevereiro-Março 2025**: Sprints 3-5 - Frontend Blazor (Web + Mobile)
 - 🎯 **31 Março 2025**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2025+**: Fase 3 - Reviews, Assinaturas, Agendamentos
@@ -27,11 +28,11 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 Todos os 6 módulos core implementados, testados e integrados:
 - Users • Providers • Documents • Search & Discovery • Locations • ServiceCatalogs
 
-**🔄 Fase 1.5: EM ANDAMENTO** (Janeiro-Fevereiro 2025)  
+**🔄 Fase 1.5: EM ANDAMENTO** (Novembro-Dezembro 2025)  
 Fundação técnica para escalabilidade e produção:
-- Migration .NET 10 + Aspire 13 (Sprint 0)
-- Integração de módulos + Restrições geográficas (Sprint 1)
-- Test coverage 80%+ + Health checks + Data seeding (Sprint 2)
+- ✅ Migration .NET 10 + Aspire 13 (Sprint 0 - CONCLUÍDO 21 Nov)
+- 🔄 Geographic Restriction + Module Integration + Test Coverage 75-80% (Sprint 1 - DIA 1)
+- ⏳ Frontend Blazor Admin Portal (Sprint 2)
 
 **⏳ Fase 2: PLANEJADO** (Fevereiro-Março 2025)  
 Frontend Blazor WASM + MAUI Hybrid:
@@ -59,9 +60,9 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 
 | Sprint | Duração | Período | Objetivo | Status |
 |--------|---------|---------|----------|--------|
-| **Sprint 0** | 1-2 semanas | Jan 20 - Feb 2 | Migration .NET 10 + Aspire 13 | 🔄 EM ANDAMENTO |
-| **Sprint 1** | 1 semana | Feb 3 - Feb 9 | Integração de Módulos + Restrição Geográfica | ⏳ Planejado |
-| **Sprint 2** | 1 semana | Feb 10 - Feb 16 | Test Coverage 80% + Hardening | ⏳ Planejado |
+| **Sprint 0** | 4 semanas | Jan 20 - 21 Nov | Migration .NET 10 + Aspire 13 | ✅ CONCLUÍDO |
+| **Sprint 1** | 10 dias | 22 Nov - 2 Dez | Geographic Restriction + Module Integration + Coverage 75-80% | 🔄 DIA 1 |
+| **Sprint 2** | 2 semanas | 3 Dez - 16 Dez | Blazor Admin Portal (Web) | ⏳ Planejado |
 | **Sprint 3** | 2 semanas | Feb 17 - Mar 2 | Blazor Admin Portal (Web) | ⏳ Planejado |
 | **Sprint 4** | 3 semanas | Mar 3 - Mar 23 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
 | **Sprint 5** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
@@ -88,12 +89,13 @@ Estabelecer as capacidades essenciais da plataforma: registro multi-etapas de pr
 6. ✅ **ServiceCatalogs** - Catálogo hierárquico de serviços
 
 **Conquistas:**
-- 40.51% test coverage (296 testes passando)
+- 28.69% test coverage (93/100 E2E passing, 296 unit tests)
+- ⚠️ Coverage caiu após migration (packages.lock.json + generated code)
 - APIs públicas (IModuleApi) implementadas para todos módulos
 - Integration events funcionais entre módulos
 - Health checks configurados
-- CI/CD pipeline completo no Azure DevOps
-- Documentação arquitetural completa
+- CI/CD pipeline completo no GitHub Actions
+- Documentação arquitetural completa + skipped tests tracker
 
 ### 1.1. ✅ Módulo Users (Concluído)
 **Status**: Implementado e em produção
@@ -710,21 +712,55 @@ gantt
 
 ---
 
-### 📅 Sprint 1: Integração de Módulos + Restrição Geográfica (1 semana)
+### 📅 Sprint 1: Geographic Restriction + Module Integration + Test Coverage (10 dias)
 
-**Status**: ⏳ PLANEJADO
+**Status**: 🔄 DIA 1 - EM ANDAMENTO (22 Nov 2025)  
+**Branch Atual**: `feature/geographic-restriction`  
+**Documentação**: [docs/sprint-1-checklist.md](./sprint-1-checklist.md)
 
-**Pré-Requisitos (decidir no Sprint 0)**:
-- ✅ **Contratos de Módulos**: Finalizar interfaces IModuleApi para cada módulo
-- ✅ **Cache de Cidades**: Implementar caching da lista AllowedCities para evitar impacto de performance no SearchModule
-- ✅ **Background Workers**: Definir arquitetura (threading, retry logic, poison queue handling) para integration events
+**Contexto**:
+- ✅ Sprint 0 concluído: Migration .NET 10 + Aspire 13 merged (21 Nov)
+- ⚠️ Coverage caiu: 40.51% → 28.69% (packages.lock.json + generated code)
+- 🎯 Meta Sprint 1: 28.69% → 75-80% coverage
 
-**Objetivos**:
-- Implementar regras de negócio reais usando IModuleApi entre módulos
-- Adicionar restrição geográfica (operação apenas em cidades piloto)
-- Melhorar validações e business rules cross-module
+**Pré-Requisitos** (✅ DECIDIDO no Sprint 0):
+- ✅ **Contratos de Módulos**: Interfaces IModuleApi definidas para todos módulos
+- ✅ **Cache de Cidades**: Implementar caching da lista AllowedCities para evitar impacto de performance
+- ✅ **Background Workers**: Arquitetura definida (threading, retry logic, poison queue handling)
+- ✅ **8 E2E Tests Skipped**: Documentados em [skipped-tests-tracker.md](./skipped-tests-tracker.md)
 
-**Tarefas**:
+**Objetivos Expandidos**:
+- ✅ Implementar middleware de restrição geográfica (compliance legal)
+- ✅ Implementar 4 Module APIs usando IModuleApi entre módulos
+- ✅ Reativar 8 testes E2E skipped (auth refactor + race condition fixes)
+- 🆕 Aumentar coverage: 28.69% → 75-80% (165+ novos unit tests)
+
+**Estrutura (3 Branches)**:
+
+#### Branch 1: `feature/geographic-restriction` (Dias 1-2) 🔄 DIA 1
+- [ ] GeographicRestrictionMiddleware (validação cidade/estado)
+- [ ] GeographicRestrictionOptions (configuration)
+- [ ] Feature toggle (Development: disabled, Production: enabled)
+- [ ] Unit tests + Integration tests
+- [ ] Documentação + Swagger examples
+- **Target**: 28.69% → 30% coverage
+
+#### Branch 2: `feature/module-integration` (Dias 3-7)
+- [ ] **Dia 3**: Refactor ConfigurableTestAuthenticationHandler (reativa 5 AUTH tests)
+- [ ] **Dia 3**: Fix race conditions (reativa 3 INFRA tests)
+- [ ] **Dia 4**: IDocumentsModuleApi implementation
+- [ ] **Dia 5**: IServiceCatalogsModuleApi + ISearchModuleApi
+- [ ] **Dia 6**: ILocationModuleApi + Integration events
+- [ ] **Dia 7**: Documentação + Code review
+- **Target**: 30% → 35% coverage, 93/100 → 98/100 E2E tests
+
+#### 🆕 Branch 3: `test/increase-coverage` (Dias 8-10)
+- [ ] **Dia 8**: Shared.Tests (ValueObjects + Extensions + Results) → +7% coverage
+- [ ] **Dia 9**: Domain Entities (Provider + User + ServiceCategory) → +19% coverage
+- [ ] **Dia 10**: Critical Handlers (Create + Update + Search) → +18% coverage
+- **Target**: 35% → 75-80% coverage (+165 unit tests)
+
+**Tarefas Detalhadas**:
 
 #### 1. Integração Providers ↔ Documents
 - [ ] Providers: Validar `HasVerifiedDocuments` antes de aprovar prestador

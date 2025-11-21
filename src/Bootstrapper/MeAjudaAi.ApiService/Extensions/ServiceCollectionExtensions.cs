@@ -3,6 +3,8 @@ using System.Text.Encodings.Web;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Authorization.Middleware;
+using MeAjudaAi.Shared.Configuration;
+using MeAjudaAi.Shared.Middleware;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
@@ -54,6 +56,10 @@ public static class ServiceCollectionExtensions
         services.AddCorsPolicy(configuration, environment);
         services.AddMemoryCache();
 
+        // Configurar Geographic Restriction
+        services.Configure<GeographicRestrictionOptions>(
+            configuration.GetSection("GeographicRestriction"));
+
         // Adiciona autenticação segura baseada no ambiente
         // Configuração de autenticação baseada no ambiente
         if (!isTestEnvironment)
@@ -90,6 +96,9 @@ public static class ServiceCollectionExtensions
         // Middlewares de performance devem estar no início do pipeline
         app.UseResponseCompression();
         app.UseResponseCaching();
+
+        // Geographic Restriction ANTES de qualquer roteamento
+        app.UseMiddleware<GeographicRestrictionMiddleware>();
 
         // Middleware de arquivos estáticos com cache
         app.UseMiddleware<StaticFilesMiddleware>();
