@@ -6,6 +6,12 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MeAjudaAi.ApiService.Filters;
 
+// TODO: Migrar para Swashbuckle 10.x - IOpenApiSchema.Example é read-only
+// Precisa encontrar tipo concreto ou usar reflexão para definir Example
+// Temporariamente desabilitado em DocumentationExtensions.cs
+
+#pragma warning disable IDE0051, IDE0060 // Remove unused private members
+
 /// <summary>
 /// Filtro para adicionar exemplos automáticos aos schemas baseado em atributos
 /// </summary>
@@ -13,7 +19,13 @@ public class ExampleSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        // Swashbuckle v10 usa IOpenApiSchema; cast para OpenApiSchema para acessar propriedades
+        // Swashbuckle 10.x: IOpenApiSchema.Example é read-only, precisamos do cast para OpenApiSchema
+        // PROBLEMA: OpenApiSchema não existe em Microsoft.OpenApi 2.3.0 nos namespaces esperados
+        // TODO: Investigar API correta para Swashbuckle 10.x
+        throw new NotImplementedException("Precisa migração para Swashbuckle 10.x");
+
+        /*
+        /*
         if (schema is not OpenApiSchema openApiSchema) return;
 
         // Adicionar exemplos baseados em DefaultValueAttribute
@@ -30,10 +42,12 @@ public class ExampleSchemaFilter : ISchemaFilter
 
         // Adicionar descrições mais detalhadas
         AddDetailedDescription(openApiSchema, context.Type);
+        */
     }
 
     private void AddExamplesFromProperties(OpenApiSchema schema, Type type)
     {
+        /*
         if (schema.Properties == null) return;
 
         var example = new JsonObject();
@@ -63,17 +77,32 @@ public class ExampleSchemaFilter : ISchemaFilter
 
         if (hasExamples)
         {
+            // OpenApiSchema.Example accepts object, so use JsonNode directly
             schema.Example = example;
         }
+        */
     }
 
     private JsonNode? GetPropertyExample(PropertyInfo property)
     {
-        // Verificar atributo DefaultValue
+        /*
+        // Verificar atributo DefaultValue primeiro
         var defaultValueAttr = property.GetCustomAttribute<DefaultValueAttribute>();
         if (defaultValueAttr != null)
         {
-            return ConvertToJsonNode(defaultValueAttr.Value);
+            var convertedValue = ConvertToJsonNode(defaultValueAttr.Value);
+            if (convertedValue != null)
+            {
+                return convertedValue;
+            }
+
+            // Fallback para enums: tentar ToString() se a conversão retornou null
+            if (defaultValueAttr.Value?.GetType().IsEnum == true)
+            {
+                return JsonValue.Create(defaultValueAttr.Value.ToString());
+            }
+
+            // Se não conseguiu converter, continua com a lógica baseada em tipo/nome
         }
 
         // Exemplos baseados no tipo e nome da propriedade
@@ -109,10 +138,13 @@ public class ExampleSchemaFilter : ISchemaFilter
             nameof(Double) => JsonValue.Create(GetDoubleExample(propertyName)),
             _ => null
         };
+        */
+        return null;
     }
 
     private static JsonNode GetStringExample(string propertyName)
     {
+        /*
         return propertyName switch
         {
             var name when name.Contains("email") => JsonValue.Create("usuario@example.com"),
@@ -131,10 +163,13 @@ public class ExampleSchemaFilter : ISchemaFilter
             var name when name.Contains("country") || name.Contains("pais") => JsonValue.Create("Brasil"),
             _ => JsonValue.Create("exemplo")
         };
+        */
+        return JsonValue.Create("exemplo");
     }
 
     private static int GetIntegerExample(string propertyName)
     {
+        /*
         return propertyName switch
         {
             var name when name.Contains("age") || name.Contains("idade") => 30,
@@ -146,19 +181,25 @@ public class ExampleSchemaFilter : ISchemaFilter
             var name when name.Contains("day") || name.Contains("dia") => DateTime.Now.Day,
             _ => 1
         };
+        */
+        return 1;
     }
 
     private static long GetLongExample(string propertyName)
     {
+        /*
         return propertyName switch
         {
             var name when name.Contains("timestamp") => DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             _ => 1L
         };
+        */
+        return 1L;
     }
 
     private static bool GetBooleanExample(string propertyName)
     {
+        /*
         return propertyName switch
         {
             var name when name.Contains("active") || name.Contains("ativo") => true,
@@ -168,10 +209,13 @@ public class ExampleSchemaFilter : ISchemaFilter
             var name when name.Contains("disabled") || name.Contains("desabilitado") => false,
             _ => true
         };
+        */
+        return true;
     }
 
     private static double GetDecimalExample(string propertyName)
     {
+        /*
         return propertyName switch
         {
             var name when name.Contains("price") || name.Contains("preco") => 99.99,
@@ -179,6 +223,8 @@ public class ExampleSchemaFilter : ISchemaFilter
             var name when name.Contains("percentage") || name.Contains("porcentagem") => 15.0,
             _ => 1.0
         };
+        */
+        return 1.0;
     }
 
     private double GetDoubleExample(string propertyName)
@@ -188,23 +234,27 @@ public class ExampleSchemaFilter : ISchemaFilter
 
     private static void AddEnumExamples(OpenApiSchema schema, Type enumType)
     {
+        /*
         var enumValues = Enum.GetValues(enumType);
         if (enumValues.Length == 0) return;
 
         var firstValue = enumValues.GetValue(0);
         if (firstValue == null) return;
 
-        // Use string representation for enums (JsonValue instead of OpenApiString in OpenApi 2.x)
-        schema.Example = JsonValue.Create(firstValue.ToString()!);
+        // OpenApiSchema.Example accepts object
+        schema.Example = firstValue.ToString();
+        */
     }
 
     private static void AddDetailedDescription(OpenApiSchema schema, Type type)
     {
+        /*
         var descriptionAttr = type.GetCustomAttribute<DescriptionAttribute>();
         if (descriptionAttr != null && string.IsNullOrEmpty(schema.Description))
         {
             schema.Description = descriptionAttr.Description;
         }
+        */
     }
 
     private static JsonNode? ConvertToJsonNode(object? value)
@@ -227,4 +277,4 @@ public class ExampleSchemaFilter : ISchemaFilter
     }
 }
 
-
+#pragma warning restore IDE0051, IDE0060

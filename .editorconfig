@@ -141,8 +141,7 @@ dotnet_diagnostic.CA2263.severity = none  # Prefer generic overloads (test asser
 dotnet_diagnostic.CA5351.severity = suggestion  # Broken cryptographic algorithms OK for test data
 dotnet_diagnostic.CA2201.severity = none  # Exception type System.Exception is not sufficiently specific (test mocks)
 
-# xUnit specific warnings
-dotnet_diagnostic.xUnit1051.severity = none  # CancellationToken usage (can be relaxed but good to see)
+# Performance and code quality (relaxed for tests)
 dotnet_diagnostic.CA1827.severity = none  # Use Any() instead of Count() (test validations)
 dotnet_diagnostic.CA1829.severity = none  # Use Count property instead of Enumerable.Count (test validations)
 dotnet_diagnostic.CA1826.severity = none  # Use indexable collections directly (test data)
@@ -154,9 +153,9 @@ dotnet_diagnostic.CA2254.severity = none  # Logging message template should not 
 dotnet_diagnostic.CA2208.severity = none  # Argument exception parameter names (test scenarios)
 dotnet_diagnostic.CA2215.severity = none  # Dispose methods should call base.Dispose (test infrastructure)
 
-# xUnit specific
-dotnet_diagnostic.xUnit1012.severity = none  # Null should not be used for type parameter (test data)
-dotnet_diagnostic.xUnit1051.severity = none  # Calls to methods which accept CancellationToken should use TestContext.Current.CancellationToken
+# xUnit specific suppressions (globally disabled to reduce noise during .NET 10 migration)
+dotnet_diagnostic.xUnit1012.severity = none  # Null should not be used for type parameter (common in test data)
+dotnet_diagnostic.xUnit1051.severity = none  # Use TestContext.Current.CancellationToken (755+ warnings, intentionally disabled)
 
 # Code analysis suppressions for test code
 dotnet_diagnostic.CA2000.severity = none  # Dispose objects before losing scope (false positives with StringContent in tests)

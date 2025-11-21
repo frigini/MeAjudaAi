@@ -30,31 +30,17 @@ This document describes the different deployment environments available for the 
 
 ### ⚠️ CRITICAL: Pre-Deployment Validation
 
-**BEFORE deploying to ANY environment**, ensure ALL critical compatibility validations pass:
+**BEFORE deploying to ANY environment**, ensure ALL critical compatibility validations pass.
 
-#### Hangfire + Npgsql 10.x Compatibility Check
+For detailed Hangfire + Npgsql 10.x compatibility validation procedures, see the dedicated guide:
+📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)**
 
-**Status**: MANDATORY - Deployment BLOCKED until validated  
-**Documentation**: See `docs/hangfire-npgsql-compatibility.md`
-
-**Pre-Deployment Checklist**:
-- [ ] All Hangfire integration tests pass in CI/CD (`Category=HangfireIntegration`)
-- [ ] Manual validation completed in staging environment
-- [ ] Production monitoring configured (job failure rate, Npgsql errors)
-- [ ] Rollback procedure tested and documented
-- [ ] Database backup verified before production deploy
-- [ ] Team trained on rollback procedure
-- [ ] Stakeholders notified of compatibility risk
-
-**Validation Command**:
-```bash
-# Must pass before deploy
-dotnet test --filter Category=HangfireIntegration
-```
-
-**Risk**: Hangfire.PostgreSql 1.20.12 compiled against Npgsql 6.x, migrating to Npgsql 10.x with breaking changes. Runtime compatibility UNVALIDATED by upstream maintainer.
-
-**Rollback Plan**: If Hangfire failures >5%, immediately execute rollback to Npgsql 8.x (see Rollback Procedures section below)
+**Quick Checklist** (see full guide for details):
+- [ ] All Hangfire integration tests pass (`dotnet test --filter Category=HangfireIntegration`)
+- [ ] Manual validation in staging complete
+- [ ] Monitoring configured (alerts, dashboards)
+- [ ] Rollback procedure tested
+- [ ] Team trained and stakeholders notified
 
 ---
 
@@ -93,103 +79,47 @@ Each environment requires specific configuration:
 - Dashboard unavailable or shows data corruption
 - Database performance degrades significantly
 
-**Rollback Steps** (Estimated time: 1.5 hours):
+For detailed rollback procedures and troubleshooting, see:
+📖 **[Hangfire Npgsql Compatibility Guide - Rollback Section](./hangfire-npgsql-compatibility.md#rollback-procedure)**
 
-#### 1. Stop Application (5 minutes)
-```bash
-# Azure App Service
-az webapp stop --name meajudaai-api --resource-group meajudaai-prod
+**Quick Rollback Steps** (see full guide for details):
 
-# Kubernetes
-kubectl scale deployment meajudaai-api --replicas=0
-```
+1. **Stop Application** (~5 min)
+   ```bash
+   az webapp stop --name $APP_NAME --resource-group $RESOURCE_GROUP
+   ```
 
-#### 2. Database Backup (10 minutes) - OPTIONAL if schema corrupted
-```bash
-# Only if Hangfire schema is corrupted
-pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME \
-  --schema=hangfire \
-  --clean --if-exists \
-  hangfire_backup_$(date +%Y%m%d).dump
-```
+2. **Database Backup** (~10 min, if needed)
+   ```bash
+   pg_dump -h $DB_HOST -U $DB_USER --schema=hangfire -Fc > hangfire_backup.dump
+   ```
 
-#### 3. Downgrade Packages (15 minutes)
+3. **Downgrade Packages** (~15 min)
+   - Revert to EF Core 9.x + Npgsql 8.x in `Directory.Packages.props`
 
-Update `Directory.Packages.props`:
-```xml
-<!-- Rollback to EF Core 9.x + Npgsql 8.x -->
-<PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
-<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
-<PackageVersion Include="Npgsql" Version="8.0.5" />
-<!-- Hangfire.PostgreSql remains unchanged -->
-<PackageVersion Include="Hangfire.PostgreSql" Version="1.20.12" />
-```
+4. **Rebuild & Redeploy** (~30 min)
+   ```bash
+   dotnet test --filter Category=HangfireIntegration  # Validate
+   ```
 
-#### 4. Rebuild and Redeploy (30 minutes)
-```bash
-dotnet restore MeAjudaAi.sln --force
-dotnet build MeAjudaAi.sln --configuration Release
-dotnet test --filter Category=HangfireIntegration  # Validate rollback
+5. **Verify Health** (~30 min)
+   - Check Hangfire dashboard: `$API_ENDPOINT/hangfire`
+   - Monitor job processing and logs
 
-# Deploy rolled-back version
-az webapp deployment source config-zip \
-  --resource-group meajudaai-prod \
-  --name meajudaai-api \
-  --src release.zip
-```
-
-#### 5. Verify System Health (30 minutes)
-```bash
-# Check Hangfire dashboard
-curl -f https://api.meajudaai.com/hangfire
-
-# Verify jobs processing
-dotnet run -- test-hangfire-job
-
-# Monitor logs
-az webapp log tail --name meajudaai-api --resource-group meajudaai-prod
-```
-
-#### 6. Post-Rollback Actions
-- [ ] Document failure root cause
-- [ ] Open GitHub issue / Hangfire.PostgreSql bug report
-- [ ] Update documentation with lessons learned
-- [ ] Notify stakeholders of rollback completion
-
-**Detailed Rollback Guide**: See `docs/hangfire-npgsql-compatibility.md`
+**Full Rollback Procedure**: See the dedicated compatibility guide for environment-agnostic commands and detailed troubleshooting.
 
 ## Monitoring and Maintenance
 
-### Critical Monitoring (Hangfire + Background Jobs)
+### Critical Monitoring
 
-**Mandatory Monitoring**:
-1. **Job Failure Rate**: Alert if >5%
-   ```sql
-   SELECT COUNT(CASE WHEN s.name = 'Failed' THEN 1 END)::float / COUNT(*)::float * 100
-   FROM hangfire.job j JOIN hangfire.state s ON s.jobid = j.id
-   WHERE j.createdat > NOW() - INTERVAL '24 hours';
-   ```
+For comprehensive Hangfire + background jobs monitoring, see:
+📖 **[Hangfire Npgsql Compatibility Guide - Monitoring Section](./hangfire-npgsql-compatibility.md#production-monitoring)**
 
+**Key Metrics** (see guide for queries and alert configuration):
+1. **Job Failure Rate**: Alert if >5% → Investigate and consider rollback
 2. **Npgsql Connection Errors**: Monitor application logs
-   - Pattern: `NpgsqlException`, `connection pool exhausted`
-   - Action: Investigate and consider rollback
-
-3. **Dashboard Health**: `/hangfire` endpoint check every 5 minutes
-
-4. **Job Processing Time**: Baseline + alert if >50% increase
-
-**Logging Configuration for Troubleshooting**:
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "Hangfire": "Information",
-      "Npgsql": "Warning",
-      "Npgsql.Connection": "Information"
-    }
-  }
-}
-```
+3. **Dashboard Health**: Check `/hangfire` endpoint every 5 minutes
+4. **Job Processing Time**: Alert if >50% increase from baseline
 
 ### Health Checks
 - Application health endpoints
