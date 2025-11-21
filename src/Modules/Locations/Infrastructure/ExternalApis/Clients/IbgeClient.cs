@@ -22,6 +22,8 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
         try
         {
             var normalizedName = NormalizeCityName(cityName);
+            // Using IBGE Localidades API v1 documented endpoint: /localidades/v1/municipios/{nome}
+            // See: https://servicodados.ibge.gov.br/api/docs/localidades
             var url = $"municipios/{normalizedName}";
 
             logger.LogDebug("Buscando município {CityName} (normalizado: {NormalizedName}) na API IBGE", cityName, normalizedName);

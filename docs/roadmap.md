@@ -314,6 +314,8 @@ public Task<bool> ValidateCityAsync(
     CancellationToken ct = default);
 ```
 
+**Observação**: IBGE integration provides city/state validation for geographic restriction; geocoding (lat/lon lookup) via Nominatim is planned for Sprint 3 (optional improvement).
+
 **Modelos IBGE**:
 - `Regiao`: Norte, Nordeste, Sudeste, Sul, Centro-Oeste
 - `UF`: Unidade da Federação (estado) com região
@@ -1587,6 +1589,9 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
   - Base URL: `https://servicodados.ibge.gov.br/api/v1/localidades/`
   - Documentação: <https://servicodados.ibge.gov.br/api/docs/localidades>
   - Uso: Validação geográfica para restrição de cidades piloto
+- **Nominatim (OpenStreetMap)** - Planned for Sprint 3 (optional improvement)
+  - Geocoding (lat/lon lookup) para cidades/endereços
+  - **Note**: Post-MVP feature, not a blocker for initial geographic-restriction release
 - **ViaCep API** - Lookup de CEP brasileiro
   - Base URL: `https://viacep.com.br/ws/`
   - Documentação: <https://viacep.com.br/>

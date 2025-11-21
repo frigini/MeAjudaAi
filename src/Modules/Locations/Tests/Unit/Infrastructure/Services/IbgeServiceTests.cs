@@ -304,11 +304,11 @@ public sealed class IbgeServiceTests
             Microrregiao = new Microrregiao
             {
                 Id = 31056,
-                Nome = "Muriaé",
+                Nome = $"Microrregiao de {nome}",
                 Mesorregiao = new Mesorregiao
                 {
                     Id = 3112,
-                    Nome = "Zona da Mata",
+                    Nome = $"Mesorregiao de {nome}",
                     UF = new UF
                     {
                         Id = 31,

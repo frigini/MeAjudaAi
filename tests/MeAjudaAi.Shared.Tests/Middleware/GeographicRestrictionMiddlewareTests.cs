@@ -19,6 +19,7 @@ public class GeographicRestrictionMiddlewareTests
     public GeographicRestrictionMiddlewareTests()
     {
         _nextMock = new Mock<RequestDelegate>();
+        _nextMock.Setup(d => d(It.IsAny<HttpContext>())).Returns(Task.CompletedTask);
         _loggerMock = new Mock<ILogger<GeographicRestrictionMiddleware>>();
         _httpContext = new DefaultHttpContext();
         _httpContext.Response.Body = new MemoryStream();

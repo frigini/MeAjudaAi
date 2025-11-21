@@ -27,7 +27,7 @@ public class GeographicRestrictionOptions
 
     /// <summary>
     /// Mensagem exibida quando acesso é bloqueado.
-    /// Placeholder {allowedRegions} será substituído pelas regiões permitidas.
+    /// Placeholder {allowedRegions} será substituído pelas regiões permitidas pelo GeographicRestrictionMiddleware.
     /// </summary>
     public string BlockedMessage { get; set; } =
         "Serviço indisponível na sua região. Disponível apenas em: {allowedRegions}";

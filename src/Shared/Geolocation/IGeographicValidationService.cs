@@ -10,9 +10,9 @@ public interface IGeographicValidationService
     /// Valida se uma cidade está na lista de regiões permitidas (MVP cidades piloto).
     /// Usa API IBGE para normalização e validação precisa.
     /// </summary>
-    /// <param name="cityName">Nome da cidade (case-insensitive, aceita acentos)</param>
+    /// <param name="cityName">Nome da cidade (case-insensitive, aceita acentos). Não deve ser null ou vazio.</param>
     /// <param name="stateSigla">Sigla do estado (opcional, ex: "MG", "RJ", "ES")</param>
-    /// <param name="allowedCities">Lista de cidades permitidas do appsettings</param>
+    /// <param name="allowedCities">Lista de cidades permitidas do appsettings. Será enumerada múltiplas vezes, considere materializar antes de passar.</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>True se a cidade está permitida, False caso contrário</returns>
     Task<bool> ValidateCityAsync(

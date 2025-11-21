@@ -99,7 +99,7 @@
 **Status:** 🔴 **REQUER INFRAESTRUTURA**
 
 **Motivo do Skip:** 
-```
+```text
 INFRA: Azurite container not accessible from app container in CI/CD 
 (localhost mismatch). Fix: Configure proper Docker networking or 
 use TestContainers.Azurite. See docs/e2e-test-failures-analysis.md
@@ -127,7 +127,7 @@ use TestContainers.Azurite. See docs/e2e-test-failures-analysis.md
 **Status:** ⏭️ **DEVEM PERMANECER SKIPPED (ambiente específico)**
 
 **Motivo do Skip:** 
-```
+```text
 Requires Aspire DCP/Dashboard not available in CI/CD - 
 run locally for validation
 ```
