@@ -87,11 +87,6 @@ jobs:
 
       azurite:
         image: mcr.microsoft.com/azure-storage/azurite:latest
-        options: >-
-          --health-cmd "nc -z localhost 10000"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
         ports:
           - 10000:10000
           - 10001:10001
