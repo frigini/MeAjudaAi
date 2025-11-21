@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Reflection;
 using System.Text.Json.Nodes;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MeAjudaAi.ApiService.Filters;
