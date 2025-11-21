@@ -8,7 +8,7 @@ namespace MeAjudaAi.Integration.Tests.Middleware;
 [Collection("Integration")]
 public class GeographicRestrictionIntegrationTests : ApiTestBase
 {
-    [Fact(Skip = "Geographic restriction disabled in Testing environment")]
+    [Fact(Skip = "Requires IGeographicValidationService (IBGE) mock setup in WebApplicationFactory - TODO: Configure in ApiTestBase")]
     public async Task GetProviders_WhenAllowedCity_ShouldReturnOk()
     {
         // Arrange
@@ -22,7 +22,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons);
     }
 
-    [Fact(Skip = "Geographic restriction disabled in Testing environment")]
+    [Fact(Skip = "Requires IGeographicValidationService (IBGE) mock setup in WebApplicationFactory - TODO: Configure in ApiTestBase")]
     public async Task GetProviders_WhenBlockedCity_ShouldReturn451()
     {
         // Arrange
@@ -44,7 +44,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         json.GetProperty("yourLocation").GetProperty("city").GetString().Should().Be("São Paulo");
     }
 
-    [Fact(Skip = "Geographic restriction disabled in Testing environment")]
+    [Fact(Skip = "Requires IGeographicValidationService (IBGE) mock setup in WebApplicationFactory - TODO: Configure in ApiTestBase")]
     public async Task GetProviders_WhenAllowedState_ShouldReturnOk()
     {
         // Arrange
@@ -57,7 +57,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons);
     }
 
-    [Fact(Skip = "Geographic restriction disabled in Testing environment")]
+    [Fact(Skip = "Requires IGeographicValidationService (IBGE) mock setup in WebApplicationFactory - TODO: Configure in ApiTestBase")]
     public async Task GetProviders_WhenLocationHeader_ShouldReturnOk()
     {
         // Arrange
