@@ -49,6 +49,26 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
                 - 📄 Paginação otimizada com metadados
                 - ⚡ Cache automático para consultas frequentes
                 - 🔒 Controle de acesso baseado em papéis
+                - 🌍 Restrição geográfica (piloto em cidades específicas)
+                
+                **Restrição geográfica (HTTP 451):**
+                
+                Este endpoint está sujeito a restrições geográficas durante a fase piloto.
+                O acesso é permitido apenas para usuários nas seguintes cidades:
+                
+                - **Muriaé** (MG) - IBGE: 3129707
+                - **Itaperuna** (RJ) - IBGE: 3302270
+                - **Linhares** (ES) - IBGE: 3203205
+                
+                A localização é determinada através dos headers HTTP:
+                - `X-User-City`: Nome da cidade
+                - `X-User-State`: Sigla do estado (UF)
+                - `X-User-Location`: Combinação "cidade|estado"
+                
+                Se o acesso for bloqueado, você receberá HTTP 451 com detalhes:
+                - Sua localização detectada
+                - Lista de cidades permitidas
+                - Códigos IBGE para validação
                 
                 **Parâmetros de busca:**
                 - `name`: Termo para filtrar prestadores por nome
@@ -69,6 +89,7 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces<AuthenticationErrorResponse>(StatusCodes.Status401Unauthorized, "application/json")
             .Produces<AuthorizationErrorResponse>(StatusCodes.Status403Forbidden, "application/json")
+            .Produces<GeographicRestrictionErrorResponse>(451, "application/json") // HTTP 451 - Unavailable For Legal Reasons (RFC 7725)
             .Produces<RateLimitErrorResponse>(StatusCodes.Status429TooManyRequests, "application/json")
             .Produces<InternalServerErrorResponse>(StatusCodes.Status500InternalServerError, "application/json")
             .RequirePermission(Permission.ProvidersList);
