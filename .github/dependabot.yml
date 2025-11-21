@@ -83,21 +83,11 @@ updates:
     
     # Ignorar updates específicos (temporariamente)
     ignore:
-      # Ignorar Hangfire.PostgreSql até confirmar compatibilidade com Npgsql 10.x
-      - dependency-name: "Hangfire.PostgreSql"
-        update-types: ["version-update:semver-major"]
-      
       # Não atualizar automaticamente para versões major (requer revisão manual)
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-    
-    # Reviewers automáticos (opcional - ajustar com usernames reais)
-    # reviewers:
-    #   - "frigini"
-    
-    # Assignees automáticos (opcional)
-    # assignees:
-    #   - "frigini"
+
+    # Reviewers automáticos
 
   # Monitorar GitHub Actions
   - package-ecosystem: "github-actions"

@@ -1,8 +1,15 @@
 # 🔍 Análise de Falhas - E2E Tests no CI/CD
 
+> **Propósito**: Documentação de root cause analysis para falhas de E2E tests no GitHub Actions  
+> **Audiência**: Desenvolvedores trabalhando em CI/CD e infraestrutura de testes  
+> **Última atualização**: 21 de Novembro de 2025  
+> **Autor**: GitHub Copilot (automated analysis)  
+> **Status**: ✅ RESOLVIDO - Implementado em commits 60488e4, 18aed71  
+> **Ciclo de vida**: Documento permanente para referência histórica e troubleshooting futuro
+
 **Data**: 21 de Novembro de 2025  
 **Branch**: `migration-to-dotnet-10`  
-**Contexto**: Testes E2E falhando no GitHub Actions mas passando localmente
+**Contexto**: Testes E2E falhando no GitHub Actions, mas passando localmente
 
 ---
 
@@ -34,7 +41,7 @@
 
 | Teste | Erro | Linha |
 |-------|------|-------|
-| `RequestDocumentVerification_Should_UpdateStatus` | 500 Internal Server Error | 73 |
+| `RequestDocumentVerification_Should_UpdateStatus` | 500 Internal Server Error | 17 |
 
 **Causa**: Upload de documento falhando (Azure Blob Storage não configurado)
 
@@ -44,7 +51,7 @@
 
 | Teste | Erro | Linha |
 |-------|------|-------|
-| `RequestsModule_Can_Filter_Services_By_Category` | 403 Forbidden | 199 |
+| `RequestsModule_Can_Filter_Services_By_Category` | 403 Forbidden | 72 |
 
 **Causa**: Sem permissão para criar categoria (autenticação inválida)
 
@@ -54,7 +61,7 @@
 
 | Teste | Erro | Linha |
 |-------|------|-------|
-| `UpdateVerificationStatus_InvalidTransition_Should_Fail` | 403 Forbidden (esperava 400/404) | 280 |
+| `UpdateVerificationStatus_InvalidTransition_Should_Fail` | 403 Forbidden (esperava 400/404) | 261 |
 
 **Causa**: Autorização falhando antes de validação de negócio
 
@@ -183,8 +190,8 @@ steps:
   - name: Run tests with coverage
     env:
       # ... (vars existentes)
-      # ✅ Novo: Azure Storage
-      AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://localhost:10000/devstoreaccount1;"
+      # ✅ Novo: Azure Storage (see .github/workflows/pr-validation.yml for actual connection string)
+      AZURE_STORAGE_CONNECTION_STRING: "<see_pr-validation.yml_for_azurite_connection_string>"
 ```
 
 **Fix authentication**:
@@ -264,8 +271,11 @@ public class TestContainerTestBase : IAsyncLifetime
 - **Workflow**: `.github/workflows/pr-validation.yml`
 - **Authentication Handler**: `tests/MeAjudaAi.Shared.Tests/Auth/ConfigurableTestAuthenticationHandler.cs`
 - **Testes falhando**: `tests/MeAjudaAi.E2E.Tests/`
-- **Azurite Docs**: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite
-- **GitHub Actions Services**: https://docs.github.com/en/actions/using-containerized-services
+
+### 📚 Documentação Externa
+
+- **Azurite Docs**: [Azure Storage Emulator (Azurite)](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite)
+- **GitHub Actions Services**: [Using containerized services](https://docs.github.com/en/actions/using-containerized-services)
 
 ---
 

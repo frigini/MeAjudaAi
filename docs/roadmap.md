@@ -1110,7 +1110,7 @@ src/
 ### Objetivo
 Introduzir sistema de avaliações para ranking, modelo de assinaturas premium via Stripe, e verificação automatizada de documentos.
 
-### 2.1. ⭐ Módulo Reviews & Ratings (Planejado)
+### 3.1. ⭐ Módulo Reviews & Ratings (Planejado)
 
 **Objetivo**: Permitir que clientes avaliem prestadores, influenciando ranking de busca.
 
@@ -1165,7 +1165,7 @@ public interface IReviewsModuleApi : IModuleApi
 
 ---
 
-### 2.2. 💳 Módulo Payments & Billing (Planejado)
+### 3.2. 💳 Módulo Payments & Billing (Planejado)
 
 **Objetivo**: Gerenciar assinaturas de prestadores via Stripe (Free, Standard, Gold, Platinum).
 
@@ -1240,12 +1240,12 @@ public interface IBillingModuleApi : IModuleApi
 
 ---
 
-## 🚀 Fase 3: Experiência e Engajamento (Post-MVP)
+## 🚀 Fase 4: Experiência e Engajamento (Post-MVP)
 
 ### Objetivo
 Melhorar experiência do usuário com agendamentos, comunicações centralizadas e analytics avançado.
 
-### 3.1. 📅 Módulo Service Requests & Booking (Planejado)
+### 4.1. 📅 Módulo Service Requests & Booking (Planejado)
 
 **Objetivo**: Permitir que clientes solicitem serviços e agendem horários com prestadores.
 

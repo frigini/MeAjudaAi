@@ -10,34 +10,36 @@ on:
 jobs:
   check-outdated:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.x'
-      
+
       - name: Install dotnet-outdated tool
         run: dotnet tool install --global dotnet-outdated-tool
-      
+
       - name: Check for outdated packages
         id: check
         continue-on-error: true
         run: |
           echo "Verificando pacotes desatualizados..."
-          dotnet outdated --upgrade:Major --transitive:false > outdated-report.txt 2>&1
-          cat outdated-report.txt
           
-          # Verificar se há pacotes desatualizados
-          if grep -q "has newer versions" outdated-report.txt; then
-            echo "outdated_found=true" >> $GITHUB_OUTPUT
-          else
+          # Use --fail-on-updates to get exit code directly
+          # Exit code 0 = no updates, non-zero = updates found
+          if dotnet outdated --upgrade:Major --transitive:false --fail-on-updates > outdated-report.txt 2>&1; then
             echo "outdated_found=false" >> $GITHUB_OUTPUT
+          else
+            echo "outdated_found=true" >> $GITHUB_OUTPUT
           fi
-      
+          
+          # Display report for debugging
+          cat outdated-report.txt
+
       - name: Create Issue if outdated packages found
         if: steps.check.outputs.outdated_found == 'true'
         uses: actions/github-script@v7
@@ -45,7 +47,7 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('outdated-report.txt', 'utf8');
-            
+
             // Verificar se já existe issue aberta
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
@@ -53,7 +55,7 @@ jobs:
               state: 'open',
               labels: 'dependencies,automated'
             });
-            
+
             const existingIssue = issues.data.find(issue => 
               issue.title.includes('[AUTOMATED] Outdated NuGet Packages Detected')
             );
