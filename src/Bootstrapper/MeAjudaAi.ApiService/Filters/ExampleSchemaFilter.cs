@@ -13,7 +13,7 @@ public class ExampleSchemaFilter : ISchemaFilter
 {
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        // Swashbuckle v10 uses IOpenApiSchema; cast to OpenApiSchema for property access
+        // Swashbuckle v10 usa IOpenApiSchema; cast para OpenApiSchema para acessar propriedades
         if (schema is not OpenApiSchema openApiSchema) return;
 
         // Adicionar exemplos baseados em DefaultValueAttribute
@@ -80,13 +80,13 @@ public class ExampleSchemaFilter : ISchemaFilter
         var propertyName = property.Name.ToLowerInvariant();
         var propertyType = property.PropertyType;
 
-        // Handle nullable types
+        // Tratar tipos nullable
         if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
         {
             propertyType = Nullable.GetUnderlyingType(propertyType)!;
         }
 
-        // Handle enum types
+        // Tratar tipos enum
         if (propertyType.IsEnum)
         {
             var enumNames = Enum.GetNames(propertyType);
