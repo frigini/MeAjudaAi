@@ -90,8 +90,8 @@ public class ExampleSchemaFilter : ISchemaFilter
         {
             nameof(String) => GetStringExample(propertyName),
             nameof(Guid) => JsonValue.Create("3fa85f64-5717-4562-b3fc-2c963f66afa6"),
-            nameof(DateTime) => JsonValue.Create(new DateTime(2024, 01, 15, 10, 30, 00, DateTimeKind.Utc)),
-            nameof(DateTimeOffset) => JsonValue.Create(new DateTimeOffset(2024, 01, 15, 10, 30, 00, TimeSpan.Zero)),
+            nameof(DateTime) => JsonValue.Create(new DateTime(2025, 01, 15, 10, 30, 00, DateTimeKind.Utc)),
+            nameof(DateTimeOffset) => JsonValue.Create(new DateTimeOffset(2025, 01, 15, 10, 30, 00, TimeSpan.Zero)),
             nameof(Int32) => JsonValue.Create(GetIntegerExample(propertyName)),
             nameof(Int64) => JsonValue.Create(GetLongExample(propertyName)),
             nameof(Boolean) => JsonValue.Create(GetBooleanExample(propertyName)),
@@ -212,7 +212,7 @@ public class ExampleSchemaFilter : ISchemaFilter
             DateTime dt => JsonValue.Create(dt),
             DateTimeOffset dto => JsonValue.Create(dto),
             Guid g => JsonValue.Create(g.ToString()),
-            _ => JsonValue.Create(value.ToString())
+            _ => null // Unsupported type; return null instead of ToString() to avoid unexpected JSON
         };
     }
 }

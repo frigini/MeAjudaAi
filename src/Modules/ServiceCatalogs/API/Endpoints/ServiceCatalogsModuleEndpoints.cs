@@ -17,7 +17,7 @@ public static class ServiceCatalogsModuleEndpoints
     public static void MapServiceCatalogsEndpoints(this WebApplication app)
     {
         // Service Categories endpoints
-        var categoriesEndpoints = BaseEndpoint.CreateVersionedGroup(app, "catalogs/categories", "ServiceCategories");
+        var categoriesEndpoints = BaseEndpoint.CreateVersionedGroup(app, "service-catalogs/categories", "ServiceCategories");
 
         categoriesEndpoints.MapEndpoint<GetAllServiceCategoriesEndpoint>()
             .MapEndpoint<GetServiceCategoryByIdEndpoint>()
@@ -28,7 +28,7 @@ public static class ServiceCatalogsModuleEndpoints
             .MapEndpoint<DeleteServiceCategoryEndpoint>();
 
         // Services endpoints
-        var servicesEndpoints = BaseEndpoint.CreateVersionedGroup(app, "catalogs/services", "Services");
+        var servicesEndpoints = BaseEndpoint.CreateVersionedGroup(app, "service-catalogs/services", "Services");
 
         servicesEndpoints.MapEndpoint<GetAllServicesEndpoint>()
             .MapEndpoint<GetServiceByIdEndpoint>()

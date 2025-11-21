@@ -228,18 +228,6 @@
         "resolved": "8.0.0",
         "contentHash": "3WA9q9yVqJp222P3x1wYIGDAkpjAku0TMUaaQV22g6L67AI0LdOIrVS7Ht2vJfLHGSPVuqN94vIr15qn+HEkHw=="
       },
-      "Microsoft.Build": {
-        "type": "Transitive",
-        "resolved": "17.7.2",
-        "contentHash": "AmWnumxsMiRycFfE3kq/XnFFTAoPpCWl3UuiKQWCa5Z0+hBKVoiydzS2iXJGd3x+jry+qaTR9GzoezjV9NFT5A==",
-        "dependencies": {
-          "Microsoft.Build.Framework": "17.7.2",
-          "Microsoft.NET.StringTools": "17.7.2",
-          "System.Configuration.ConfigurationManager": "7.0.0",
-          "System.Reflection.MetadataLoadContext": "7.0.0",
-          "System.Security.Permissions": "7.0.0"
-        }
-      },
       "Microsoft.CodeAnalysis.Analyzers": {
         "type": "Transitive",
         "resolved": "3.11.0",
@@ -782,8 +770,8 @@
       },
       "System.Reflection.MetadataLoadContext": {
         "type": "Transitive",
-        "resolved": "7.0.0",
-        "contentHash": "z9PvtMJra5hK8n+g0wmPtaG7HQRZpTmIPRw5Z0LEemlcdQMHuTD5D7OAY/fZuuz1L9db++QOcDF0gJTLpbMtZQ=="
+        "resolved": "9.0.0",
+        "contentHash": "nGdCUVhEQ9/CWYqgaibYEDwIJjokgIinQhCnpmtZfSXdMS6ysLZ8p9xvcJ8VPx6Xpv5OsLIUrho4B9FN+VV/tw=="
       },
       "System.Resources.Extensions": {
         "type": "Transitive",
@@ -1113,6 +1101,20 @@
         "contentHash": "0aqIF1t+sA2T62LIeMtXGSiaV7keGQaJnvwwmu+htQdjCaKYARfXAeqp4nHH9y2etpilyZ/tnQzZg4Ilmo/c4Q==",
         "dependencies": {
           "Microsoft.OpenApi": "2.0.0"
+        }
+      },
+      "Microsoft.Build": {
+        "type": "CentralTransitive",
+        "requested": "[17.14.28, )",
+        "resolved": "17.14.28",
+        "contentHash": "MmGLEsROW1C9dH/d4sOqUX0sVNs2uwTCFXRQb89+pYNWDNJE+7bTJG9kOCbHeCH252XLnP55KIaOgwSpf6J4Kw==",
+        "dependencies": {
+          "Microsoft.Build.Framework": "17.14.28",
+          "Microsoft.NET.StringTools": "17.14.28",
+          "System.Configuration.ConfigurationManager": "9.0.0",
+          "System.Diagnostics.EventLog": "9.0.0",
+          "System.Reflection.MetadataLoadContext": "9.0.0",
+          "System.Security.Cryptography.ProtectedData": "9.0.0"
         }
       },
       "Microsoft.Build.Framework": {
