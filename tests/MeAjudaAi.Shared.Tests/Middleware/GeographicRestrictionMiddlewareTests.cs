@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Configuration;
+using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Middleware;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -266,4 +267,279 @@ public class GeographicRestrictionMiddlewareTests
             BlockedMessage = "Serviço indisponível na sua região. Disponível apenas em: {allowedRegions}"
         });
     }
+
+    #region IBGE Validation Tests
+
+    [Fact]
+    public async Task InvokeAsync_WithIbgeValidation_WhenCityAllowed_ShouldCallNext()
+    {
+        // Arrange
+        var options = CreateOptions(enabled: true);
+        var geographicValidationMock = new Mock<IGeographicValidationService>();
+        geographicValidationMock
+            .Setup(x => x.ValidateCityAsync(
+                "Muriaé",
+                "MG",
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var middleware = new GeographicRestrictionMiddleware(
+            _nextMock.Object,
+            _loggerMock.Object,
+            options,
+            geographicValidationMock.Object);
+
+        _httpContext.Request.Path = "/api/providers";
+        _httpContext.Request.Headers["X-User-City"] = "Muriaé";
+        _httpContext.Request.Headers["X-User-State"] = "MG";
+
+        // Act
+        await middleware.InvokeAsync(_httpContext);
+
+        // Assert
+        _nextMock.Verify(next => next(_httpContext), Times.Once);
+        geographicValidationMock.Verify(
+            x => x.ValidateCityAsync("Muriaé", "MG", It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithIbgeValidation_WhenCityBlocked_ShouldReturn451()
+    {
+        // Arrange
+        var options = CreateOptions(enabled: true);
+        var geographicValidationMock = new Mock<IGeographicValidationService>();
+        geographicValidationMock
+            .Setup(x => x.ValidateCityAsync(
+                "São Paulo",
+                "SP",
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var middleware = new GeographicRestrictionMiddleware(
+            _nextMock.Object,
+            _loggerMock.Object,
+            options,
+            geographicValidationMock.Object);
+
+        _httpContext.Request.Path = "/api/providers";
+        _httpContext.Request.Headers["X-User-City"] = "São Paulo";
+        _httpContext.Request.Headers["X-User-State"] = "SP";
+
+        // Act
+        await middleware.InvokeAsync(_httpContext);
+
+        // Assert
+        _nextMock.Verify(next => next(_httpContext), Times.Never);
+        _httpContext.Response.StatusCode.Should().Be(451);
+        geographicValidationMock.Verify(
+            x => x.ValidateCityAsync("São Paulo", "SP", It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithIbgeValidation_WhenServiceThrowsException_ShouldFallbackToSimple()
+    {
+        // Arrange
+        var options = CreateOptions(enabled: true);
+        var geographicValidationMock = new Mock<IGeographicValidationService>();
+        geographicValidationMock
+            .Setup(x => x.ValidateCityAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("IBGE API down"));
+
+        var middleware = new GeographicRestrictionMiddleware(
+            _nextMock.Object,
+            _loggerMock.Object,
+            options,
+            geographicValidationMock.Object);
+
+        _httpContext.Request.Path = "/api/providers";
+        _httpContext.Request.Headers["X-User-City"] = "Muriaé";
+        _httpContext.Request.Headers["X-User-State"] = "MG";
+
+        // Act
+        await middleware.InvokeAsync(_httpContext);
+
+        // Assert (fallback to simple validation - Muriaé is in AllowedCities)
+        _nextMock.Verify(next => next(_httpContext), Times.Once);
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Erro ao validar com IBGE")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithIbgeValidation_WhenServiceUnavailable_ShouldFallbackToSimple()
+    {
+        // Arrange
+        var options = CreateOptions(enabled: true);
+        // Null service simula serviço não disponível
+        var middleware = new GeographicRestrictionMiddleware(
+            _nextMock.Object,
+            _loggerMock.Object,
+            options,
+            geographicValidationService: null);
+
+        _httpContext.Request.Path = "/api/providers";
+        _httpContext.Request.Headers["X-User-City"] = "Muriaé";
+        _httpContext.Request.Headers["X-User-State"] = "MG";
+
+        // Act
+        await middleware.InvokeAsync(_httpContext);
+
+        // Assert (fallback to simple validation - Muriaé is in AllowedCities)
+        _nextMock.Verify(next => next(_httpContext), Times.Once);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithIbgeValidation_CaseInsensitive_ShouldWork()
+    {
+        // Arrange
+        var options = CreateOptions(enabled: true);
+        var geographicValidationMock = new Mock<IGeographicValidationService>();
+        geographicValidationMock
+            .Setup(x => x.ValidateCityAsync(
+                "muriaé", // lowercase
+                "mg",
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var middleware = new GeographicRestrictionMiddleware(
+            _nextMock.Object,
+            _loggerMock.Object,
+            options,
+            geographicValidationMock.Object);
+
+        _httpContext.Request.Path = "/api/providers";
+        _httpContext.Request.Headers["X-User-City"] = "muriaé";
+        _httpContext.Request.Headers["X-User-State"] = "mg";
+
+        // Act
+        await middleware.InvokeAsync(_httpContext);
+
+        // Assert
+        _nextMock.Verify(next => next(_httpContext), Times.Once);
+        geographicValidationMock.Verify(
+            x => x.ValidateCityAsync("muriaé", "mg", It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithIbgeValidation_WhenStateNotProvided_ShouldPassNull()
+    {
+        // Arrange
+        var options = CreateOptions(enabled: true);
+        var geographicValidationMock = new Mock<IGeographicValidationService>();
+        geographicValidationMock
+            .Setup(x => x.ValidateCityAsync(
+                "Muriaé",
+                null,
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var middleware = new GeographicRestrictionMiddleware(
+            _nextMock.Object,
+            _loggerMock.Object,
+            options,
+            geographicValidationMock.Object);
+
+        _httpContext.Request.Path = "/api/providers";
+        _httpContext.Request.Headers["X-User-City"] = "Muriaé";
+        // No state header
+
+        // Act
+        await middleware.InvokeAsync(_httpContext);
+
+        // Assert
+        _nextMock.Verify(next => next(_httpContext), Times.Once);
+        geographicValidationMock.Verify(
+            x => x.ValidateCityAsync("Muriaé", null, It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithIbgeValidation_LogsIbgeUsage()
+    {
+        // Arrange
+        var options = CreateOptions(enabled: true);
+        var geographicValidationMock = new Mock<IGeographicValidationService>();
+        geographicValidationMock
+            .Setup(x => x.ValidateCityAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var middleware = new GeographicRestrictionMiddleware(
+            _nextMock.Object,
+            _loggerMock.Object,
+            options,
+            geographicValidationMock.Object);
+
+        _httpContext.Request.Path = "/api/providers";
+        _httpContext.Request.Headers["X-User-City"] = "Muriaé";
+        _httpContext.Request.Headers["X-User-State"] = "MG";
+
+        // Act
+        await middleware.InvokeAsync(_httpContext);
+
+        // Assert
+        _loggerMock.Verify(
+            x => x.Log(
+                It.Is<LogLevel>(l => l == LogLevel.Debug || l == LogLevel.Information),
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Validando cidade") || v.ToString()!.Contains("Validação IBGE")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithIbgeValidation_WhenBothIbgeAndSimpleAgree_ShouldAllow()
+    {
+        // Arrange
+        var options = CreateOptions(enabled: true);
+        var geographicValidationMock = new Mock<IGeographicValidationService>();
+        geographicValidationMock
+            .Setup(x => x.ValidateCityAsync(
+                "Itaperuna",
+                "RJ",
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var middleware = new GeographicRestrictionMiddleware(
+            _nextMock.Object,
+            _loggerMock.Object,
+            options,
+            geographicValidationMock.Object);
+
+        _httpContext.Request.Path = "/api/providers";
+        _httpContext.Request.Headers["X-User-City"] = "Itaperuna";
+        _httpContext.Request.Headers["X-User-State"] = "RJ";
+
+        // Act
+        await middleware.InvokeAsync(_httpContext);
+
+        // Assert (both IBGE and simple validation should agree - Itaperuna is in AllowedCities)
+        _nextMock.Verify(next => next(_httpContext), Times.Once);
+        geographicValidationMock.Verify(
+            x => x.ValidateCityAsync("Itaperuna", "RJ", It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    #endregion
 }
