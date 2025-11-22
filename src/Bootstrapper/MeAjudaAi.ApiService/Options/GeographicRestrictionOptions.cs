@@ -1,18 +1,15 @@
-namespace MeAjudaAi.Shared.Configuration;
+namespace MeAjudaAi.ApiService.Options;
 
 /// <summary>
 /// Opções de configuração para restrição geográfica.
 /// Permite limitar acesso da plataforma a cidades/estados específicos (MVP piloto).
 /// </summary>
+/// <remarks>
+/// NOTA: O controle de habilitação é feito via Microsoft.FeatureManagement (FeatureFlags.GeographicRestriction).
+/// Esta classe contém apenas a configuração de quais regiões são permitidas.
+/// </remarks>
 public class GeographicRestrictionOptions
 {
-    /// <summary>
-    /// Habilita/desabilita a restrição geográfica.
-    /// Development: false (permitir tudo)
-    /// Production: true (apenas cidades piloto)
-    /// </summary>
-    public bool Enabled { get; set; }
-
     /// <summary>
     /// Lista de estados permitidos (siglas de 2 letras, ex: "SP", "RJ").
     /// Se vazio, validação de estado é ignorada.

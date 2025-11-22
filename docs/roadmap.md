@@ -1036,6 +1036,7 @@ src/
 - Portal administrativo para gestão de plataforma
 - CRUD de prestadores, serviços, moderação
 - Dashboard com métricas básicas
+- **Gestão de Restrições Geográficas** (Sprint 1 dependency)
 
 **Funcionalidades**:
 
@@ -1067,7 +1068,206 @@ src/
 - [ ] **Ativar/Desativar**: Toggle switch para cada item
 - [ ] **Preview**: Exibir hierarquia completa do catálogo
 
-#### 6. Moderação de Reviews (Preparação para Fase 3)
+#### 6. 🆕 Gestão de Restrições Geográficas
+> **⚠️ CRITICAL**: Feature implementada no Sprint 1 Dia 1 requer UI administrativa para produção.
+
+**Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configuração dinâmica via `Microsoft.FeatureManagement`, mas atualmente as cidades/estados permitidos são gerenciados via `appsettings.json` (requer redeploy). Esta seção implementa gestão via banco de dados com UI administrativa.
+
+**Decisões de Arquitetura (Sprint 1 Dia 1 - 21 Nov 2025)**:
+
+1. **Localização de Código** ✅ **ATUALIZADO 21 Nov 2025**
+   - ✅ **MOVIDO** `GeographicRestrictionMiddleware` para `ApiService/Middlewares` (específico para API HTTP)
+   - ✅ **MOVIDO** `GeographicRestrictionOptions` para `ApiService/Options` (configuração lida de appsettings da API)
+   - ✅ **MOVIDO** `FeatureFlags.cs` para `Shared/Constants` (constantes globais como AuthConstants, ValidationConstants)
+   - ❌ **DELETADO** `Shared/Configuration/` (pasta vazia após movimentações)
+   - ❌ **DELETADO** `Shared/Middleware/` (pasta vazia, middleware único movido para ApiService)
+   - **Justificativa**: 
+     - GeographicRestriction é feature **exclusiva da API HTTP** (não será usada por Workers/Background Jobs)
+     - Options são lidas de appsettings que só existem em ApiService
+     - FeatureFlags são constantes (similar a `AuthConstants.Claims.*`, `ValidationConstants.MaxLength.*`)
+     - Middlewares genéricos já estão em pastas temáticas (Authorization/Middleware, Logging/, Monitoring/)
+
+2. **Propósito da Feature Toggle** ✅
+   - ✅ **Feature flag ativa/desativa TODA a restrição geográfica** (on/off global)
+   - ✅ **Cidades individuais controladas via banco de dados** (Sprint 3 - tabela `allowed_regions`)
+   - ✅ **Arquitetura proposta**:
+     ```
+     FeatureManagement:GeographicRestriction = true  → Liga TODA validação
+         ↓
+     allowed_regions.is_active = true              → Ativa cidade ESPECÍFICA
+     ```
+   - **MVP (Sprint 1)**: Feature toggle + appsettings (hardcoded cities)
+   - **Sprint 3**: Migration para database-backed + Admin Portal UI
+
+3. **Remoção de Redundância** ✅ **JÁ REMOVIDO**
+   - ❌ **REMOVIDO**: Propriedade `GeographicRestrictionOptions.Enabled` (redundante com feature flag)
+   - ❌ **REMOVIDO**: Verificação `|| !_options.Enabled` do middleware
+   - ✅ **ÚNICA FONTE DE VERDADE**: `FeatureManagement:GeographicRestriction` (feature toggle)
+   - **Justificativa**: Ter duas formas de habilitar/desabilitar causa confusão e potenciais conflitos.
+   - **Benefício**: Menos configurações duplicadas, arquitetura mais clara e segura.
+
+**Organização de Pastas** (21 Nov 2025):
+```
+src/
+  Shared/
+    Constants/
+      FeatureFlags.cs          ← MOVIDO de Configuration/ (constantes globais)
+      AuthConstants.cs         (existente)
+      ValidationConstants.cs   (existente)
+    Authorization/Middleware/  (middlewares de autorização)
+    Logging/                   (LoggingContextMiddleware)
+    Monitoring/                (BusinessMetricsMiddleware)
+    Messaging/Handlers/        (MessageRetryMiddleware)
+  
+  Bootstrapper/MeAjudaAi.ApiService/
+    Middlewares/
+      GeographicRestrictionMiddleware.cs  ← MOVIDO de Shared/Middleware/
+      RateLimitingMiddleware.cs           (específico HTTP)
+      SecurityHeadersMiddleware.cs        (específico HTTP)
+    Options/
+      GeographicRestrictionOptions.cs     ← MOVIDO de Shared/Configuration/
+      RateLimitOptions.cs                 (existente)
+      CorsOptions.cs                      (existente)
+```
+
+**Arquitetura Proposta**:
+```sql
+-- Schema: geographic_restrictions (novo)
+CREATE TABLE geographic_restrictions.allowed_regions (
+    region_id UUID PRIMARY KEY,
+    type VARCHAR(10) NOT NULL, -- 'City' ou 'State'
+    city_name VARCHAR(200),
+    state_code VARCHAR(2) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    added_at TIMESTAMP NOT NULL,
+    added_by_user_id UUID,
+    notes TEXT
+);
+
+CREATE INDEX idx_allowed_regions_state ON geographic_restrictions.allowed_regions(state_code);
+CREATE INDEX idx_allowed_regions_active ON geographic_restrictions.allowed_regions(is_active);
+```
+
+**Funcionalidades Admin Portal**:
+
+- [ ] **Visualização de Restrições Atuais**
+  - [ ] Tabela com cidades/estados permitidos
+  - [ ] Filtros: Tipo (Cidade/Estado), Estado, Status (Ativo/Inativo)
+  - [ ] Ordenação: Alfabética, Data de Adição
+  - [ ] Indicador visual: Badgets para "Cidade" vs "Estado"
+
+- [ ] **Adicionar Cidade/Estado**
+  - [ ] Form com campos:
+    - Tipo: Dropdown (Cidade, Estado)
+    - Estado: Dropdown preenchido via IBGE API (27 UFs)
+    - Cidade: Autocomplete via IBGE API (se tipo=Cidade)
+    - Notas: Campo opcional (ex: "Piloto Beta Q1 2025")
+  - [ ] Validações:
+    - Estado deve ser sigla válida (RJ, SP, MG, etc.)
+    - Cidade deve existir no IBGE (validação server-side)
+    - Não permitir duplicatas (cidade+estado único)
+  - [ ] Preview: "Você está adicionando: Muriaé/MG"
+
+- [ ] **Editar Região**
+  - [ ] Apenas permitir editar "Notas" e "Status"
+  - [ ] Cidade/Estado são imutáveis (delete + re-add se necessário)
+  - [ ] Confirmação antes de desativar região com prestadores ativos
+
+- [ ] **Ativar/Desativar Região**
+  - [ ] Toggle switch inline na tabela
+  - [ ] Confirmação: "Desativar [Cidade/Estado] irá bloquear novos registros. Prestadores existentes não serão afetados."
+  - [ ] Audit log: Registrar quem ativou/desativou e quando
+
+- [ ] **Remover Região**
+  - [ ] Botão de exclusão com confirmação dupla
+  - [ ] Validação: Bloquear remoção se houver prestadores registrados nesta região
+  - [ ] Mensagem: "Não é possível remover [Cidade]. Existem 15 prestadores registrados."
+
+**Integração com Middleware** (Refactor Necessário):
+
+**Abordagem 1: Database-First (Recomendado)**
+```csharp
+// GeographicRestrictionOptions (modificado)
+public class GeographicRestrictionOptions
+{
+    public bool Enabled { get; set; }
+    public string BlockedMessage { get; set; } = "...";
+    
+    // DEPRECATED: Remover após migration para database
+    [Obsolete("Use database-backed AllowedRegionsService instead")]
+    public List<string> AllowedCities { get; set; } = new();
+    [Obsolete("Use database-backed AllowedRegionsService instead")]
+    public List<string> AllowedStates { get; set; } = new();
+}
+
+// Novo serviço
+public interface IAllowedRegionsService
+{
+    Task<List<string>> GetAllowedCitiesAsync(CancellationToken ct = default);
+    Task<List<string>> GetAllowedStatesAsync(CancellationToken ct = default);
+}
+
+// GeographicRestrictionMiddleware (modificado)
+public class GeographicRestrictionMiddleware
+{
+    private readonly IAllowedRegionsService _regionsService;
+    
+    public async Task InvokeAsync(HttpContext context)
+    {
+        // Buscar listas do banco (com cache)
+        var allowedCities = await _regionsService.GetAllowedCitiesAsync(ct);
+        var allowedStates = await _regionsService.GetAllowedStatesAsync(ct);
+        
+        // Lógica de validação permanece igual
+        if (!allowedCities.Contains(userCity) && !allowedStates.Contains(userState))
+        {
+            // Bloquear
+        }
+    }
+}
+```
+
+**Abordagem 2: Hybrid (Fallback para appsettings)**
+- Se banco estiver vazio, usar `appsettings.json`
+- Migração gradual: Admin adiciona regiões no portal, depois remove de appsettings
+
+**Cache Strategy**:
+- Usar `HybridCache` (já implementado no `IbgeService`)
+- TTL: 5 minutos (balanço entre performance e fresh data)
+- Invalidação: Ao adicionar/remover/editar região no admin portal
+
+**Migration Path**:
+1. **Sprint 3 Semana 1**: Criar schema `geographic_restrictions` + tabela
+2. **Sprint 3 Semana 1**: Implementar `AllowedRegionsService` com cache
+3. **Sprint 3 Semana 1**: Refactor middleware para usar serviço (mantém fallback appsettings)
+4. **Sprint 3 Semana 2**: Implementar CRUD endpoints no Admin API
+5. **Sprint 3 Semana 2**: Implementar UI no Blazor Admin Portal
+6. **Sprint 3 Pós-Deploy**: Popular banco com dados iniciais (Muriaé, Itaperuna, Linhares)
+7. **Sprint 4**: Remover valores de appsettings.json (obsoleto)
+
+**Testes Necessários**:
+- [ ] Unit tests: `AllowedRegionsService` (CRUD + cache invalidation)
+- [ ] Integration tests: Middleware com banco populado vs vazio
+- [ ] E2E tests: Admin adiciona cidade → Middleware bloqueia outras cidades
+
+**Documentação**:
+- [ ] Admin User Guide: Como adicionar/remover cidades piloto
+- [ ] Technical Debt: Marcar `AllowedCities` e `AllowedStates` como obsoletos
+
+**⚠️ Breaking Changes**:
+- ~~`GeographicRestrictionOptions.Enabled` será removido~~ ✅ **JÁ REMOVIDO** (Sprint 1 Dia 1)
+  - **Motivo**: Redundante com feature toggle - fonte de verdade única
+  - **Migração**: Usar apenas `FeatureManagement:GeographicRestriction` em appsettings
+- `GeographicRestrictionOptions.AllowedCities/AllowedStates` será deprecado (Sprint 3)
+  - **Migração**: Admin Portal populará tabela `allowed_regions` via UI
+
+**Estimativa**:
+- **Backend (API + Service)**: 2 dias
+- **Frontend (Admin Portal UI)**: 2 dias
+- **Migration + Testes**: 1 dia
+- **Total**: 5 dias (dentro do Sprint 3 de 2 semanas)
+
+#### 7. Moderação de Reviews (Preparação para Fase 3)
 - [ ] **Listagem**: Reviews flagged/reportados
 - [ ] **Ações**: Aprovar, Remover, Banir usuário
 - [ ] Stub para módulo Reviews (a ser implementado na Fase 3)

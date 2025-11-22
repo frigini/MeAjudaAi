@@ -1,28 +1,33 @@
-using MeAjudaAi.Shared.Configuration;
+using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Geolocation;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using System.Text.Json;
 
-namespace MeAjudaAi.Shared.Middleware;
+namespace MeAjudaAi.ApiService.Middlewares;
 
 /// <summary>
 /// Middleware para restringir acesso baseado em localização geográfica.
 /// Bloqueia requisições de cidades/estados não permitidos (compliance legal).
+/// Usa Microsoft.FeatureManagement para controle dinâmico via Azure App Configuration.
 /// </summary>
 public class GeographicRestrictionMiddleware(
     RequestDelegate next,
     ILogger<GeographicRestrictionMiddleware> logger,
     IOptions<GeographicRestrictionOptions> options,
+    IFeatureManager featureManager,
     IGeographicValidationService? geographicValidationService = null)
 {
     private readonly GeographicRestrictionOptions _options = options.Value;
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Skip se desabilitado (ex: Development)
-        if (!_options.Enabled)
+        // Verificar se feature está habilitada (Microsoft.FeatureManagement)
+        var isFeatureEnabled = await featureManager.IsEnabledAsync(FeatureFlags.GeographicRestriction);
+        
+        // Skip se desabilitado via feature flag
+        if (!isFeatureEnabled)
         {
             await next(context);
             return;
