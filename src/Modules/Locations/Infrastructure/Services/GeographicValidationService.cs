@@ -15,7 +15,7 @@ public sealed class GeographicValidationService(
     public async Task<bool> ValidateCityAsync(
         string cityName,
         string? stateSigla,
-        IEnumerable<string> allowedCities,
+        IReadOnlyCollection<string> allowedCities,
         CancellationToken cancellationToken = default)
     {
         try

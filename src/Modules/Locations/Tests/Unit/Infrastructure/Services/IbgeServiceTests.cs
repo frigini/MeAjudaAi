@@ -311,9 +311,21 @@ public sealed class IbgeServiceTests
                     Nome = $"Mesorregiao de {nome}",
                     UF = new UF
                     {
-                        Id = 31,
+                        Id = ufSigla switch
+                        {
+                            "MG" => 31,
+                            "RJ" => 33,
+                            "ES" => 32,
+                            _ => throw new ArgumentException($"UF não suportada: {ufSigla}")
+                        },
                         Sigla = ufSigla,
-                        Nome = ufSigla == "MG" ? "Minas Gerais" : ufSigla == "RJ" ? "Rio de Janeiro" : "Espírito Santo",
+                        Nome = ufSigla switch
+                        {
+                            "MG" => "Minas Gerais",
+                            "RJ" => "Rio de Janeiro",
+                            "ES" => "Espírito Santo",
+                            _ => ufSigla
+                        },
                         Regiao = new Regiao
                         {
                             Id = 3,

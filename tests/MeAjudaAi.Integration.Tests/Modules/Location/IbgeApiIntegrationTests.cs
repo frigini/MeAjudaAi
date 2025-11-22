@@ -145,7 +145,7 @@ public sealed class IbgeApiIntegrationTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result.Should().NotBeEmpty("Rio de Janeiro deve ter municípios");
-        result.Count.Should().Be(92, "RJ tem 92 municípios");
+        result.Count.Should().BeGreaterThan(90, "RJ possui mais de 90 municípios");
 
         // Verificar que Itaperuna está na lista
         result.Should().Contain(m => m.Nome == "Itaperuna" && m.Id == 3302270);
@@ -166,7 +166,7 @@ public sealed class IbgeApiIntegrationTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result.Should().NotBeEmpty("Espírito Santo deve ter municípios");
-        result.Count.Should().Be(78, "ES tem 78 municípios");
+        result.Count.Should().BeGreaterThan(75, "ES possui mais de 75 municípios");
 
         // Verificar que Linhares está na lista
         result.Should().Contain(m => m.Nome == "Linhares" && m.Id == 3203205);

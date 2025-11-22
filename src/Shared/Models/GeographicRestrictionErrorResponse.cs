@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace MeAjudaAi.Shared.Models;
 
 /// <summary>
@@ -40,6 +42,7 @@ public class GeographicRestrictionErrorResponse : ApiErrorResponse
     /// <example>
     /// { "city": "São Paulo", "state": "SP" }
     /// </example>
+    [JsonPropertyName("yourLocation")]
     public UserLocation? YourLocation { get; set; }
 
     /// <summary>
@@ -51,18 +54,21 @@ public class GeographicRestrictionErrorResponse : ApiErrorResponse
     ///   { "name": "Itaperuna", "state": "RJ", "ibgeCode": "3302270" }
     /// ]
     /// </example>
+    [JsonPropertyName("allowedCities")]
     public IEnumerable<AllowedCity>? AllowedCities { get; set; }
 
     /// <summary>
     /// Lista de estados (UFs) permitidos onde o serviço está disponível.
     /// </summary>
     /// <example>["MG", "RJ", "ES"]</example>
+    [JsonPropertyName("allowedStates")]
     public IEnumerable<string>? AllowedStates { get; set; }
 
     /// <summary>
     /// Código de erro específico para restrição geográfica.
     /// </summary>
     /// <example>geographic_restriction</example>
+    [JsonPropertyName("error")]
     public string Error { get; set; } = "geographic_restriction";
 
     /// <summary>
@@ -93,12 +99,14 @@ public class UserLocation
     /// Nome da cidade.
     /// </summary>
     /// <example>São Paulo</example>
+    [JsonPropertyName("city")]
     public string? City { get; set; }
 
     /// <summary>
     /// Sigla do estado (UF).
     /// </summary>
     /// <example>SP</example>
+    [JsonPropertyName("state")]
     public string? State { get; set; }
 }
 
@@ -111,17 +119,20 @@ public class AllowedCity
     /// Nome da cidade.
     /// </summary>
     /// <example>Muriaé</example>
+    [JsonPropertyName("name")]
     public required string Name { get; set; }
 
     /// <summary>
     /// Sigla do estado (UF).
     /// </summary>
     /// <example>MG</example>
+    [JsonPropertyName("state")]
     public required string State { get; set; }
 
     /// <summary>
     /// Código IBGE do município (7 dígitos).
     /// </summary>
     /// <example>3129707</example>
+    [JsonPropertyName("ibgeCode")]
     public string? IbgeCode { get; set; }
 }

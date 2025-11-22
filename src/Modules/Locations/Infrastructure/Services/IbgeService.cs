@@ -19,7 +19,7 @@ public sealed class IbgeService(
     public async Task<bool> ValidateCityInAllowedRegionsAsync(
         string cityName,
         string? stateSigla,
-        IEnumerable<string> allowedCities,
+        IReadOnlyCollection<string> allowedCities,
         CancellationToken cancellationToken = default)
     {
         try

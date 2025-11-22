@@ -38,7 +38,7 @@ public class MockGeographicValidationService : IGeographicValidationService
     public Task<bool> ValidateCityAsync(
         string cityName,
         string? stateSigla,
-        IEnumerable<string> allowedCities,
+        IReadOnlyCollection<string> allowedCities,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(cityName))

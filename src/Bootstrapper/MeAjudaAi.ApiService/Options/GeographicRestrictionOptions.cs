@@ -19,6 +19,7 @@ public class GeographicRestrictionOptions
     /// <summary>
     /// Lista de cidades permitidas (nomes completos, ex: "São Paulo").
     /// Validação case-insensitive.
+    /// Se vazia, a validação geográfica será ignorada.
     /// </summary>
     public List<string> AllowedCities { get; set; } = [];
 

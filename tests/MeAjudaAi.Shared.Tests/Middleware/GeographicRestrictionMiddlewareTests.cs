@@ -297,7 +297,7 @@ public class GeographicRestrictionMiddlewareTests
             .Setup(x => x.ValidateCityAsync(
                 "Muriaé",
                 "MG",
-                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -313,7 +313,7 @@ public class GeographicRestrictionMiddlewareTests
         // Assert
         _nextMock.Verify(next => next(_httpContext), Times.Once);
         geographicValidationMock.Verify(
-            x => x.ValidateCityAsync("Muriaé", "MG", It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateCityAsync("Muriaé", "MG", It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -328,7 +328,7 @@ public class GeographicRestrictionMiddlewareTests
             .Setup(x => x.ValidateCityAsync(
                 "São Paulo",
                 "SP",
-                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
@@ -345,7 +345,7 @@ public class GeographicRestrictionMiddlewareTests
         _nextMock.Verify(next => next(_httpContext), Times.Never);
         _httpContext.Response.StatusCode.Should().Be(451);
         geographicValidationMock.Verify(
-            x => x.ValidateCityAsync("São Paulo", "SP", It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateCityAsync("São Paulo", "SP", It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -360,7 +360,7 @@ public class GeographicRestrictionMiddlewareTests
             .Setup(x => x.ValidateCityAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException("IBGE API down"));
 
@@ -421,7 +421,7 @@ public class GeographicRestrictionMiddlewareTests
             .Setup(x => x.ValidateCityAsync(
                 "muriaé", // lowercase
                 "mg",
-                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -437,7 +437,7 @@ public class GeographicRestrictionMiddlewareTests
         // Assert
         _nextMock.Verify(next => next(_httpContext), Times.Once);
         geographicValidationMock.Verify(
-            x => x.ValidateCityAsync("muriaé", "mg", It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateCityAsync("muriaé", "mg", It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -452,7 +452,7 @@ public class GeographicRestrictionMiddlewareTests
             .Setup(x => x.ValidateCityAsync(
                 "Muriaé",
                 null,
-                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -468,7 +468,7 @@ public class GeographicRestrictionMiddlewareTests
         // Assert
         _nextMock.Verify(next => next(_httpContext), Times.Once);
         geographicValidationMock.Verify(
-            x => x.ValidateCityAsync("Muriaé", null, It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateCityAsync("Muriaé", null, It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -483,7 +483,7 @@ public class GeographicRestrictionMiddlewareTests
             .Setup(x => x.ValidateCityAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -518,7 +518,7 @@ public class GeographicRestrictionMiddlewareTests
             .Setup(x => x.ValidateCityAsync(
                 "Itaperuna",
                 "RJ",
-                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<IReadOnlyCollection<string>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -534,7 +534,7 @@ public class GeographicRestrictionMiddlewareTests
         // Assert (both IBGE and simple validation should agree - Itaperuna is in AllowedCities)
         _nextMock.Verify(next => next(_httpContext), Times.Once);
         geographicValidationMock.Verify(
-            x => x.ValidateCityAsync("Itaperuna", "RJ", It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateCityAsync("Itaperuna", "RJ", It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
