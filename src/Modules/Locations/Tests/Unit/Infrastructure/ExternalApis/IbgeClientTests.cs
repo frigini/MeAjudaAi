@@ -32,11 +32,11 @@ public sealed class IbgeClientTests : IDisposable
     }
 
     [Theory]
-    [InlineData("Muriaé", "muriae")]
-    [InlineData("São Paulo", "sao-paulo")]
-    [InlineData("Rio de Janeiro", "rio-de-janeiro")]
-    [InlineData("Itaperuna", "itaperuna")]
-    public async Task GetMunicipioByNameAsync_WithValidCity_ShouldNormalizeName(string input, string expectedNormalized)
+    [InlineData("Muriaé")]
+    [InlineData("São Paulo")]
+    [InlineData("Rio de Janeiro")]
+    [InlineData("Itaperuna")]
+    public async Task GetMunicipioByNameAsync_WithValidCity_ShouldUseQueryParameter(string input)
     {
         // Arrange
         var municipio = CreateMockMunicipio(1, input);
@@ -47,7 +47,10 @@ public sealed class IbgeClientTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        _mockHandler.LastRequestUri.Should().Contain(expectedNormalized);
+        // A URI pode estar decoded ou encoded dependendo do HttpClient, então validamos que contém a query string
+        var uriString = _mockHandler.LastRequestUri!.ToString();
+        uriString.Should().Contain("municipios?nome=");
+        uriString.Should().Contain(input); // A query string estará decodificada na URI
     }
 
     [Fact]

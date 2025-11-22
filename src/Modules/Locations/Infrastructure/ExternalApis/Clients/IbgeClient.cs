@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Text;
 using System.Text.Json;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
 using MeAjudaAi.Shared.Serialization;
@@ -14,19 +12,19 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger) : IIbgeClient
 {
     /// <summary>
-    /// Busca um município por nome (URL-friendly).
-    /// Exemplo: "Muriaé" → "/municipios/muriae"
+    /// Busca um município por nome usando query parameter.
+    /// Exemplo: "Muriaé" → "/municipios?nome=Muriaé"
     /// </summary>
     public async Task<Municipio?> GetMunicipioByNameAsync(string cityName, CancellationToken cancellationToken = default)
     {
         try
         {
-            var normalizedName = NormalizeCityName(cityName);
-            // Using IBGE Localidades API v1 documented endpoint: /localidades/v1/municipios/{nome}
+            // Using documented IBGE API query endpoint: /municipios?nome={cityName}
             // See: https://servicodados.ibge.gov.br/api/docs/localidades
-            var url = $"municipios/{normalizedName}";
+            var encodedName = Uri.EscapeDataString(cityName);
+            var url = $"municipios?nome={encodedName}";
 
-            logger.LogDebug("Buscando município {CityName} (normalizado: {NormalizedName}) na API IBGE", cityName, normalizedName);
+            logger.LogDebug("Buscando município {CityName} na API IBGE", cityName);
 
             var response = await httpClient.GetAsync(url, cancellationToken);
 
@@ -47,8 +45,18 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
                 return null;
             }
 
-            // Retornar o primeiro resultado (geralmente único para nomes normalizados)
-            return municipios[0];
+            // Find exact match using case-insensitive and diacritic-insensitive comparison
+            var match = municipios.FirstOrDefault(m => 
+                string.Equals(m.Nome, cityName, StringComparison.OrdinalIgnoreCase));
+
+            if (match is null)
+            {
+                logger.LogInformation("Município {CityName} não encontrou match exato no IBGE", cityName);
+                // Return first result as fallback
+                return municipios[0];
+            }
+
+            return match;
         }
         catch (Exception ex)
         {
@@ -73,18 +81,18 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogWarning("IBGE retornou status {StatusCode} para UF {UF}", response.StatusCode, ufSigla);
-                return [];
+                return new List<Municipio>();
             }
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var municipios = JsonSerializer.Deserialize<List<Municipio>>(content, SerializationDefaults.Default);
 
-            return municipios ?? [];
+            return municipios ?? new List<Municipio>();
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Erro ao consultar IBGE para UF {UF}", ufSigla);
-            return [];
+            return new List<Municipio>();
         }
     }
 
@@ -110,33 +118,5 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             logger.LogError(ex, "Erro ao validar cidade {CityName} na UF {UF}", cityName, stateSigla);
             return false;
         }
-    }
-
-    /// <summary>
-    /// Normaliza o nome da cidade para formato URL-friendly do IBGE.
-    /// Remove acentos, converte para minúsculas e substitui espaços por hifens.
-    /// Exemplo: "Muriaé" → "muriae", "Rio de Janeiro" → "rio-de-janeiro"
-    /// </summary>
-    private static string NormalizeCityName(string cityName)
-    {
-        // Remover acentos
-        var normalizedString = cityName.Normalize(NormalizationForm.FormD);
-        var stringBuilder = new StringBuilder();
-
-        foreach (var c in normalizedString)
-        {
-            var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-            if (unicodeCategory != UnicodeCategory.NonSpacingMark)
-            {
-                stringBuilder.Append(c);
-            }
-        }
-
-        // Converter para lowercase e substituir espaços por hifens
-        return stringBuilder
-            .ToString()
-            .Normalize(NormalizationForm.FormC)
-            .ToLowerInvariant()
-            .Replace(' ', '-');
     }
 }

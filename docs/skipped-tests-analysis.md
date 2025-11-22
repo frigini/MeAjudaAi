@@ -2,7 +2,8 @@
 
 ## Resumo Executivo
 
-**Total de testes skipped: 18**
+## Total de testes skipped: 18
+
 - 4 Geographic Restriction (Integration)
 - 10 IBGE API (Integration - real API calls)
 - 3 Documents API (Integration - 500 errors)
@@ -108,7 +109,7 @@ use TestContainers.Azurite. See docs/e2e-test-failures-analysis.md
 **Análise:**
 - Teste E2E requer Azurite (Azure Storage Emulator)
 - Problema: Container networking em CI/CD (localhost não resolve entre containers)
-- Testcontainers.Azurite existe mas não está configurado
+- Testcontainers.Azurite existe, mas não está configurado
 
 **Solução:**
 1. Adicionar `Testcontainers.Azurite` ao projeto E2E
@@ -136,7 +137,7 @@ run locally for validation
 - Testes requerem Aspire DCP (Developer Control Plane)
 - DCP não está disponível em runners GitHub Actions
 - Testes são válidos para execução local (desenvolvimento)
-- Alternativa: Usar Testcontainers.PostgreSQL + in-memory Hangfire
+- Alternativa: Usar Testcontainers.PostgreSQL, mas in-memory Hangfire
 
 **Testes Skipped:**
 1. `EnqueueJob_ShouldPersistAndExecute`
@@ -148,7 +149,7 @@ run locally for validation
 2. **Opção B (Pragmática):** Manter skip, executar manualmente antes de deploys
 3. Documentar em README como executar localmente com Aspire
 
-**Prioridade:** 🟡 MÉDIA - Importante mas requer refactoring significativo
+**Prioridade:** 🟡 MÉDIA - Importante, mas requer refactoring significativo
 
 ---
 
