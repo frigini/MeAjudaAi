@@ -56,8 +56,8 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
                 Este endpoint está sujeito a restrições geográficas durante a fase piloto.
                 O acesso é permitido apenas para usuários nas seguintes cidades:
                 
-                - **Muriaé** (MG) - IBGE: 3129707
-                - **Itaperuna** (RJ) - IBGE: 3302270
+                - **Muriaé** (MG) - IBGE: 3143906
+                - **Itaperuna** (RJ) - IBGE: 3302205
                 - **Linhares** (ES) - IBGE: 3203205
                 
                 A localização é determinada através dos headers HTTP:

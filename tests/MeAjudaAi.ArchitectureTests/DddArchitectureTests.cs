@@ -6,10 +6,10 @@ namespace MeAjudaAi.ArchitectureTests;
 /// </summary>
 public class DddArchitectureTests
 {
-    private const string DomainNamespace = "MeAjudaAi.Modules.*.Domain";
-    private const string ApplicationNamespace = "MeAjudaAi.Modules.*.Application";
-    private const string InfrastructureNamespace = "MeAjudaAi.Modules.*.Infrastructure";
-    private const string SharedNamespace = "MeAjudaAi.Shared";
+    private const string DomainNamespaceRegex = @"^MeAjudaAi\.Modules\..*\.Domain($|\.)";
+    private const string ApplicationNamespaceRegex = @"^MeAjudaAi\.Modules\..*\.Application($|\.)";
+    private const string InfrastructureNamespaceRegex = @"^MeAjudaAi\.Modules\..*\.Infrastructure($|\.)";
+    private const string SharedNamespaceRegex = @"^MeAjudaAi\.Shared($|\.)";
 
     [Fact]
     public void Domain_Should_Not_DependOn_Infrastructure()
@@ -20,9 +20,9 @@ public class DddArchitectureTests
         // Act
         var result = domainAssemblies
             .That()
-            .ResideInNamespace(DomainNamespace)
+            .ResideInNamespaceMatching(DomainNamespaceRegex)
             .ShouldNot()
-            .HaveDependencyOn(InfrastructureNamespace)
+            .HaveDependencyOnAny(InfrastructureNamespaceRegex)
             .GetResult();
 
         // Assert
@@ -40,9 +40,9 @@ public class DddArchitectureTests
         // Act
         var result = domainAssemblies
             .That()
-            .ResideInNamespace(DomainNamespace)
+            .ResideInNamespaceMatching(DomainNamespaceRegex)
             .ShouldNot()
-            .HaveDependencyOn(ApplicationNamespace)
+            .HaveDependencyOnAny(ApplicationNamespaceRegex)
             .GetResult();
 
         // Assert
@@ -60,9 +60,9 @@ public class DddArchitectureTests
         // Act
         var result = applicationAssemblies
             .That()
-            .ResideInNamespace(ApplicationNamespace)
+            .ResideInNamespaceMatching(ApplicationNamespaceRegex)
             .ShouldNot()
-            .HaveDependencyOn(InfrastructureNamespace)
+            .HaveDependencyOnAny(InfrastructureNamespaceRegex)
             .GetResult();
 
         // Assert
@@ -81,11 +81,11 @@ public class DddArchitectureTests
         // Act
         var result = infrastructureAssemblies
             .That()
-            .ResideInNamespace(InfrastructureNamespace)
+            .ResideInNamespaceMatching(InfrastructureNamespaceRegex)
             .Should()
-            .HaveDependencyOn(ApplicationNamespace)
+            .HaveDependencyOnAny(ApplicationNamespaceRegex)
             .Or()
-            .HaveDependencyOn(DomainNamespace)
+            .HaveDependencyOnAny(DomainNamespaceRegex)
             .GetResult();
 
         // Assert
@@ -103,7 +103,7 @@ public class DddArchitectureTests
         // Act
         var result = sharedAssemblies
             .That()
-            .ResideInNamespace(SharedNamespace)
+            .ResideInNamespaceMatching(SharedNamespaceRegex)
             .ShouldNot()
             .HaveDependencyOn("MeAjudaAi.Modules")
             .GetResult();
@@ -115,24 +115,41 @@ public class DddArchitectureTests
     }
 
     [Fact]
-    public void GeographicRestrictionMiddleware_Should_Use_IGeographicValidationService_Interface()
+    public void GeographicRestrictionMiddleware_Should_Not_Depend_On_Locations_Infrastructure()
     {
         // Verifies that middleware uses interface from Shared, not concrete implementation from Locations
         // Arrange
-        var sharedAssemblies = Types.InAssemblies(GetAssembliesMatchingPattern("MeAjudaAi.Shared.dll"));
+        var apiAssemblies = GetAssembliesMatchingPattern("MeAjudaAi.ApiService.dll");
+        var apiAssembly = apiAssemblies.FirstOrDefault();
+        
+        if (apiAssembly == null)
+        {
+            throw new InvalidOperationException("ApiService assembly not found for architecture test");
+        }
 
-        // Act - verify IGeographicValidationService exists in Shared namespace
-        var interfaceExists = sharedAssemblies
-            .That()
-            .ResideInNamespace("MeAjudaAi.Shared.Geolocation")
-            .And()
-            .HaveNameMatching("IGeographicValidationService")
-            .GetTypes()
-            .Any();
+        var middlewareType = apiAssembly.GetType("MeAjudaAi.Bootstrapper.ApiService.Middlewares.GeographicRestrictionMiddleware");
+        if (middlewareType == null)
+        {
+            throw new InvalidOperationException("GeographicRestrictionMiddleware type not found in ApiService assembly");
+        }
 
-        // Assert
-        interfaceExists.Should().BeTrue(
-            "IGeographicValidationService interface must exist in Shared.Geolocation namespace for dependency inversion");
+        // Act & Assert - Middleware should NOT depend on Locations.Infrastructure
+        var constructorParams = middlewareType.GetConstructors()
+            .SelectMany(c => c.GetParameters())
+            .Select(p => p.ParameterType);
+
+        var hasLocationsInfraDependency = constructorParams.Any(t => 
+            t.FullName?.StartsWith("MeAjudaAi.Modules.Locations.Infrastructure") == true);
+
+        hasLocationsInfraDependency.Should().BeFalse(
+            "GeographicRestrictionMiddleware must not depend on MeAjudaAi.Modules.Locations.Infrastructure - use IGeographicValidationService from Shared instead");
+
+        // Middleware SHOULD depend on IGeographicValidationService from Shared
+        var hasSharedInterfaceDependency = constructorParams.Any(t => 
+            t.FullName == "MeAjudaAi.Shared.Geolocation.IGeographicValidationService");
+
+        hasSharedInterfaceDependency.Should().BeTrue(
+            "GeographicRestrictionMiddleware must inject IGeographicValidationService from MeAjudaAi.Shared.Geolocation");
     }
 
     [Fact]

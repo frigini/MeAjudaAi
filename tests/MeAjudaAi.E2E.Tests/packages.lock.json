@@ -1077,13 +1077,14 @@
       },
       "Microsoft.FeatureManagement": {
         "type": "Transitive",
-        "resolved": "4.1.0",
-        "contentHash": "b0IpwPFjAqGj1x9pcr0CG0l2eS1WBkJeV3hgmL1WjrKFxTVL6CCf67qoNaCWw1GNidoqAJVZQPPFiWz6xU5dPg==",
+        "resolved": "4.3.0",
+        "contentHash": "6FJz8K6xzjuUBG5DZ55gttMU2/MxObqPDTRMXC950EjljJqZPrigMm1EMsPK+HbPR84+T4PCXgjmdlkw+8Piow==",
         "dependencies": {
           "Microsoft.Bcl.TimeProvider": "8.0.1",
-          "Microsoft.Extensions.Caching.Memory": "2.1.23",
-          "Microsoft.Extensions.Configuration.Binder": "2.1.10",
-          "Microsoft.Extensions.Logging": "2.1.1"
+          "Microsoft.Extensions.Caching.Memory": "8.0.1",
+          "Microsoft.Extensions.Configuration": "8.0.0",
+          "Microsoft.Extensions.Configuration.Binder": "8.0.2",
+          "Microsoft.Extensions.Logging": "8.0.1"
         }
       },
       "Microsoft.Identity.Client": {
@@ -1941,7 +1942,7 @@
           "Azure.Monitor.OpenTelemetry.AspNetCore": "[1.4.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.Extensions.Http.Resilience": "[10.0.0, )",
-          "Microsoft.FeatureManagement.AspNetCore": "[4.1.0, )",
+          "Microsoft.FeatureManagement.AspNetCore": "[4.3.0, )",
           "OpenTelemetry.Exporter.Console": "[1.14.0, )",
           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.14.0, )",
           "OpenTelemetry.Extensions.Hosting": "[1.14.0, )",
@@ -1968,7 +1969,7 @@
           "Microsoft.EntityFrameworkCore.Design": "[10.0.0-rc.2.25502.107, )",
           "Microsoft.Extensions.Caching.Hybrid": "[10.0.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.0, )",
-          "Microsoft.FeatureManagement.AspNetCore": "[4.1.0, )",
+          "Microsoft.FeatureManagement.AspNetCore": "[4.3.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0-rc.2, )",
           "RabbitMQ.Client": "[7.1.2, )",
           "Rebus": "[8.9.0, )",
@@ -2840,11 +2841,11 @@
       },
       "Microsoft.FeatureManagement.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[4.1.0, )",
-        "resolved": "4.1.0",
-        "contentHash": "k2XdVC9LA9UJqLgVOrm3sYmBKEVuDUJHl9FqLEbUUQ8x6xDeWqucXMa/MurYF4oAeVy4B1LTRWFbb93MVR5rMQ==",
+        "requested": "[4.3.0, )",
+        "resolved": "4.3.0",
+        "contentHash": "QUTCPSMDutLPw8s5z8H2DJ/CIjeXkKpXVi377EmGcLuoUhiAIHZIw+cqcEWWOYbgd09eyxKfFPSM7RCGedb/UQ==",
         "dependencies": {
-          "Microsoft.FeatureManagement": "4.1.0"
+          "Microsoft.FeatureManagement": "4.3.0"
         }
       },
       "Microsoft.NET.StringTools": {
