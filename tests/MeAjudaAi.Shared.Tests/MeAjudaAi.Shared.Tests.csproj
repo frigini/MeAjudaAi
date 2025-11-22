@@ -56,6 +56,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Shared\MeAjudaAi.Shared.csproj" />
+    <ProjectReference Include="..\..\src\Bootstrapper\MeAjudaAi.ApiService\MeAjudaAi.ApiService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

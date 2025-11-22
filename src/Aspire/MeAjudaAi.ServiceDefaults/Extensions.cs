@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -22,6 +24,8 @@ public static class Extensions
         builder.ConfigureOpenTelemetry();
 
         builder.AddDefaultHealthChecks();
+
+        builder.AddFeatureManagement();
 
         // Service discovery not available for .NET 10 yet
         // builder.Services.AddServiceDiscovery();
@@ -223,5 +227,17 @@ public static class Extensions
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Configura Microsoft.FeatureManagement para controle dinâmico de features.
+    /// Suporta Azure App Configuration ou configuração local via appsettings.json.
+    /// </summary>
+    private static TBuilder AddFeatureManagement<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    {
+        // Adicionar Feature Management com suporte a filters (TimeWindow, Percentage, etc)
+        builder.Services.AddFeatureManagement(builder.Configuration.GetSection("FeatureManagement"));
+
+        return builder;
     }
 }

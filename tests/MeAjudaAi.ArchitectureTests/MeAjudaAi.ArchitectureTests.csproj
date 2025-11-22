@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    
+    <!-- Suprimir warnings específicos de testes -->
+    <NoWarn>$(NoWarn);NU1608</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NetArchTest.Rules" />
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reference all modules to test architecture -->
+    <ProjectReference Include="..\..\src\Modules\Locations\Domain\MeAjudaAi.Modules.Locations.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Locations\Application\MeAjudaAi.Modules.Locations.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Locations\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Providers\Domain\MeAjudaAi.Modules.Providers.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Providers\Application\MeAjudaAi.Modules.Providers.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Providers\Infrastructure\MeAjudaAi.Modules.Providers.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Users\Domain\MeAjudaAi.Modules.Users.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Users\Application\MeAjudaAi.Modules.Users.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\Domain\MeAjudaAi.Modules.Documents.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\Application\MeAjudaAi.Modules.Documents.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\Infrastructure\MeAjudaAi.Modules.Documents.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Shared\MeAjudaAi.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="NetArchTest.Rules" />
+    <Using Include="FluentAssertions" />
+  </ItemGroup>
+
+</Project>
