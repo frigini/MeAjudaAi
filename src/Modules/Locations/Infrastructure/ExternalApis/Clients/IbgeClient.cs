@@ -46,7 +46,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             }
 
             // Find exact match using case-insensitive and diacritic-insensitive comparison
-            var match = municipios.FirstOrDefault(m => 
+            var match = municipios.FirstOrDefault(m =>
                 string.Equals(m.Nome, cityName, StringComparison.OrdinalIgnoreCase));
 
             if (match is null)

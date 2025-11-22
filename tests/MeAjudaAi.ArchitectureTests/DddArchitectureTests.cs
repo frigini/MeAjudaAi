@@ -121,7 +121,7 @@ public class DddArchitectureTests
         // Arrange
         var apiAssemblies = GetAssembliesMatchingPattern("MeAjudaAi.ApiService.dll");
         var apiAssembly = apiAssemblies.FirstOrDefault();
-        
+
         if (apiAssembly == null)
         {
             throw new InvalidOperationException("ApiService assembly not found for architecture test");
@@ -138,14 +138,14 @@ public class DddArchitectureTests
             .SelectMany(c => c.GetParameters())
             .Select(p => p.ParameterType);
 
-        var hasLocationsInfraDependency = constructorParams.Any(t => 
+        var hasLocationsInfraDependency = constructorParams.Any(t =>
             t.FullName?.StartsWith("MeAjudaAi.Modules.Locations.Infrastructure") == true);
 
         hasLocationsInfraDependency.Should().BeFalse(
             "GeographicRestrictionMiddleware must not depend on MeAjudaAi.Modules.Locations.Infrastructure - use IGeographicValidationService from Shared instead");
 
         // Middleware SHOULD depend on IGeographicValidationService from Shared
-        var hasSharedInterfaceDependency = constructorParams.Any(t => 
+        var hasSharedInterfaceDependency = constructorParams.Any(t =>
             t.FullName == "MeAjudaAi.Shared.Geolocation.IGeographicValidationService");
 
         hasSharedInterfaceDependency.Should().BeTrue(
