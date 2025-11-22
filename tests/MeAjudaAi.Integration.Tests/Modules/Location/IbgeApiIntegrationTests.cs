@@ -19,9 +19,13 @@ public sealed class IbgeApiIntegrationTests : IDisposable
 
     public IbgeApiIntegrationTests()
     {
+        var baseUrl = Environment.GetEnvironmentVariable("IBGE_API_BASE_URL")
+            ?? "https://servicodados.ibge.gov.br/api/v1/localidades/";
+
         _httpClient = new HttpClient
         {
-            BaseAddress = new Uri("https://servicodados.ibge.gov.br/api/v1/localidades/")
+            BaseAddress = new Uri(baseUrl),
+            Timeout = TimeSpan.FromSeconds(30)
         };
         _client = new IbgeClient(_httpClient, NullLogger<IbgeClient>.Instance);
     }

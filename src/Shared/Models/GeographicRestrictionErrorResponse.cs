@@ -27,8 +27,8 @@ namespace MeAjudaAi.Shared.Models;
 ///     "state": "SP"
 ///   },
 ///   "allowedCities": [
-///     { "name": "Muriaé", "state": "MG", "ibgeCode": "3129707" },
-///     { "name": "Itaperuna", "state": "RJ", "ibgeCode": "3302270" },
+///     { "name": "Muriaé", "state": "MG", "ibgeCode": "3143906" },
+///     { "name": "Itaperuna", "state": "RJ", "ibgeCode": "3302205" },
 ///     { "name": "Linhares", "state": "ES", "ibgeCode": "3203205" }
 ///   ]
 /// }

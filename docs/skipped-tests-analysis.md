@@ -117,7 +117,7 @@ use TestContainers.Azurite. See docs/e2e-test-failures-analysis.md
 3. Substituir localhost por container hostname
 4. Alternativa: Usar TestServer com mock de IBlobStorageService
 
-**Prioridade:** 🟡 MÉDIA - E2E importante mas não crítico para Sprint 1
+**Prioridade:** 🟡 MÉDIA - E2E importante, mas não crítico para Sprint 1
 
 ---
 

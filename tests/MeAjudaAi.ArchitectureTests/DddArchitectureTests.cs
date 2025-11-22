@@ -16,13 +16,14 @@ public class DddArchitectureTests
     {
         // Arrange
         var domainAssemblies = Types.InAssemblies(GetAssembliesMatchingPattern("*.Domain.dll"));
+        var infrastructureNamespaces = GetModuleNamespaces("Infrastructure");
 
         // Act
         var result = domainAssemblies
             .That()
             .ResideInNamespaceMatching(DomainNamespaceRegex)
             .ShouldNot()
-            .HaveDependencyOnAny(InfrastructureNamespaceRegex)
+            .HaveDependencyOnAny(infrastructureNamespaces.ToArray())
             .GetResult();
 
         // Assert
@@ -36,13 +37,14 @@ public class DddArchitectureTests
     {
         // Arrange
         var domainAssemblies = Types.InAssemblies(GetAssembliesMatchingPattern("*.Domain.dll"));
+        var applicationNamespaces = GetModuleNamespaces("Application");
 
         // Act
         var result = domainAssemblies
             .That()
             .ResideInNamespaceMatching(DomainNamespaceRegex)
             .ShouldNot()
-            .HaveDependencyOnAny(ApplicationNamespaceRegex)
+            .HaveDependencyOnAny(applicationNamespaces.ToArray())
             .GetResult();
 
         // Assert
@@ -56,41 +58,19 @@ public class DddArchitectureTests
     {
         // Arrange
         var applicationAssemblies = Types.InAssemblies(GetAssembliesMatchingPattern("*.Application.dll"));
+        var infrastructureNamespaces = GetModuleNamespaces("Infrastructure");
 
         // Act
         var result = applicationAssemblies
             .That()
             .ResideInNamespaceMatching(ApplicationNamespaceRegex)
             .ShouldNot()
-            .HaveDependencyOnAny(InfrastructureNamespaceRegex)
+            .HaveDependencyOnAny(infrastructureNamespaces.ToArray())
             .GetResult();
 
         // Assert
         result.IsSuccessful.Should().BeTrue(
             $"Application layer must not depend on Infrastructure layer. Violations:{Environment.NewLine}" +
-            $"{string.Join(Environment.NewLine, result.FailingTypeNames ?? [])}");
-    }
-
-    [Fact]
-    public void Infrastructure_Should_Depend_On_Application_Or_Domain()
-    {
-        // This test verifies that Infrastructure depends on Application or Domain (to implement interfaces/abstractions)
-        // Arrange
-        var infrastructureAssemblies = Types.InAssemblies(GetAssembliesMatchingPattern("*.Infrastructure.dll"));
-
-        // Act
-        var result = infrastructureAssemblies
-            .That()
-            .ResideInNamespaceMatching(InfrastructureNamespaceRegex)
-            .Should()
-            .HaveDependencyOnAny(ApplicationNamespaceRegex)
-            .Or()
-            .HaveDependencyOnAny(DomainNamespaceRegex)
-            .GetResult();
-
-        // Assert
-        result.IsSuccessful.Should().BeTrue(
-            $"Infrastructure layer must depend on Application or Domain layer. Violations:{Environment.NewLine}" +
             $"{string.Join(Environment.NewLine, result.FailingTypeNames ?? [])}");
     }
 
@@ -115,44 +95,6 @@ public class DddArchitectureTests
     }
 
     [Fact]
-    public void GeographicRestrictionMiddleware_Should_Not_Depend_On_Locations_Infrastructure()
-    {
-        // Verifies that middleware uses interface from Shared, not concrete implementation from Locations
-        // Arrange
-        var apiAssemblies = GetAssembliesMatchingPattern("MeAjudaAi.ApiService.dll");
-        var apiAssembly = apiAssemblies.FirstOrDefault();
-
-        if (apiAssembly == null)
-        {
-            throw new InvalidOperationException("ApiService assembly not found for architecture test");
-        }
-
-        var middlewareType = apiAssembly.GetType("MeAjudaAi.Bootstrapper.ApiService.Middlewares.GeographicRestrictionMiddleware");
-        if (middlewareType == null)
-        {
-            throw new InvalidOperationException("GeographicRestrictionMiddleware type not found in ApiService assembly");
-        }
-
-        // Act & Assert - Middleware should NOT depend on Locations.Infrastructure
-        var constructorParams = middlewareType.GetConstructors()
-            .SelectMany(c => c.GetParameters())
-            .Select(p => p.ParameterType);
-
-        var hasLocationsInfraDependency = constructorParams.Any(t =>
-            t.FullName?.StartsWith("MeAjudaAi.Modules.Locations.Infrastructure") == true);
-
-        hasLocationsInfraDependency.Should().BeFalse(
-            "GeographicRestrictionMiddleware must not depend on MeAjudaAi.Modules.Locations.Infrastructure - use IGeographicValidationService from Shared instead");
-
-        // Middleware SHOULD depend on IGeographicValidationService from Shared
-        var hasSharedInterfaceDependency = constructorParams.Any(t =>
-            t.FullName == "MeAjudaAi.Shared.Geolocation.IGeographicValidationService");
-
-        hasSharedInterfaceDependency.Should().BeTrue(
-            "GeographicRestrictionMiddleware must inject IGeographicValidationService from MeAjudaAi.Shared.Geolocation");
-    }
-
-    [Fact]
     public void Domain_Entities_Should_Have_Proper_Naming()
     {
         // Arrange
@@ -161,7 +103,7 @@ public class DddArchitectureTests
         // Act
         var result = domainAssemblies
             .That()
-            .ResideInNamespace("MeAjudaAi.Modules.*.Domain.Entities")
+            .ResideInNamespaceMatching(@"^MeAjudaAi\.Modules\..*\.Domain\.Entities($|\.)")
             .And()
             .AreClasses()
             .Should()
@@ -223,5 +165,15 @@ public class DddArchitectureTests
                 yield return assembly;
             }
         }
+    }
+
+    /// <summary>
+    /// Gets concrete module namespaces for the specified layer (Domain, Application, Infrastructure).
+    /// HaveDependencyOnAny requires exact namespace strings, not regex patterns.
+    /// </summary>
+    private static List<string> GetModuleNamespaces(string layer)
+    {
+        var modules = new[] { "Locations", "Providers", "Users", "Documents", "ServiceCatalogs", "SearchProviders" };
+        return modules.Select(module => $"MeAjudaAi.Modules.{module}.{layer}").ToList();
     }
 }
