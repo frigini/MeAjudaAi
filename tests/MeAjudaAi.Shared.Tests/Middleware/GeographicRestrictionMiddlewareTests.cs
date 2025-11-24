@@ -179,10 +179,15 @@ public class GeographicRestrictionMiddlewareTests
         _httpContext.Response.Body.Seek(0, SeekOrigin.Begin);
         using var reader = new StreamReader(_httpContext.Response.Body);
         var responseBody = await reader.ReadToEndAsync();
+        
+        // Debug: verify body is not empty
+        responseBody.Should().NotBeNullOrEmpty();
+        
         var response = JsonSerializer.Deserialize<JsonElement>(responseBody);
 
         response.GetProperty("error").GetString().Should().Be("geographic_restriction");
-        response.GetProperty("message").GetString().Should().Contain("Muriaé");
+        // The response uses "detail" property, not "message"
+        response.GetProperty("detail").GetString().Should().Contain("Muriaé");
         response.GetProperty("allowedCities").GetArrayLength().Should().Be(3);
         response.GetProperty("yourLocation").GetProperty("city").GetString().Should().Be(city);
         response.GetProperty("yourLocation").GetProperty("state").GetString().Should().Be(state);
