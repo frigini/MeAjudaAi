@@ -28,11 +28,13 @@ namespace MeAjudaAi.Integration.Tests.Base;
 public abstract class ApiTestBase : IAsyncLifetime
 {
     private SimpleDatabaseFixture? _databaseFixture;
+    private WireMockFixture? _wireMockFixture;
     private WebApplicationFactory<Program>? _factory;
 
     protected HttpClient Client { get; private set; } = null!;
     protected IServiceProvider Services => _factory!.Services;
     protected ITestAuthenticationConfiguration AuthConfig { get; private set; } = null!;
+    protected WireMockFixture WireMock => _wireMockFixture ?? throw new InvalidOperationException("WireMock not initialized");
 
     public async ValueTask InitializeAsync()
     {
@@ -40,6 +42,10 @@ public abstract class ApiTestBase : IAsyncLifetime
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
+
+        // Inicializa WireMock antes da aplicação para que as URLs mockadas estejam disponíveis
+        _wireMockFixture = new WireMockFixture();
+        await _wireMockFixture.StartAsync();
 
         _databaseFixture = new SimpleDatabaseFixture();
         await _databaseFixture.InitializeAsync();
@@ -201,6 +207,8 @@ public abstract class ApiTestBase : IAsyncLifetime
         _factory?.Dispose();
         if (_databaseFixture != null)
             await _databaseFixture.DisposeAsync();
+        if (_wireMockFixture != null)
+            await _wireMockFixture.DisposeAsync();
     }
 
     /// <summary>

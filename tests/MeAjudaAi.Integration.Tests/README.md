@@ -57,13 +57,80 @@ The connection strings in these files use **test-only, localhost credentials**:
 
 ### WireMock.Net Infrastructure
 
-The test suite uses **WireMock.Net** to mock external HTTP APIs, eliminating network dependencies.
+The test suite uses **WireMock.Net** to mock external HTTP APIs, eliminating network dependencies and enabling consistent test behavior.
+
+#### Global WireMock Server (Available)
+
+**All tests inherit a pre-configured WireMock server from `ApiTestBase`:**
+
+- Automatically started before each test via `InitializeAsync()`
+- Running on **localhost:5050**
+- Pre-configured with all external API stubs (IBGE, ViaCep, BrasilApi, OpenCep, Nominatim)
+- Application configured to use mock URLs in `appsettings.Testing.json`
+- Accessible via `WireMock` property in test classes
+- Automatic cleanup on test disposal
+
+**Benefits:**
+- No network calls to real external APIs during tests
+- Consistent, predictable responses
+- Fast test execution
+- No rate limiting or external dependencies
+
+**Note:** Existing unavailability tests (IbgeUnavailabilityTests, CepProvidersUnavailabilityTests) create their own WireMockFixture instances to override default stubs with custom error scenarios. This is an advanced pattern - most tests can simply rely on the global instance.
+
+**Usage Example (using global WireMock):**
+```csharp
+public class MyIntegrationTests : ApiTestBase
+{
+    [Fact]
+    public async Task MyTest_WithExternalApi_ShouldWork()
+    {
+        // WireMock is already running with all stubs configured
+        // External API calls are automatically mocked
+
+        AuthConfig.ConfigureAdmin();
+        Client.DefaultRequestHeaders.Add("X-User-Location", "Muriaé|MG");
+        var response = await Client.GetAsync("/api/v1/users");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        // IBGE validation happened automatically via mock
+    }
+}
+```
+
+#### Custom WireMock Configuration (Optional)
+
+For tests requiring **custom stub configuration** (error scenarios, timeouts, etc.):
+
+```csharp
+public class MyUnavailabilityTests : ApiTestBase
+{
+    [Fact]
+    public async Task MyTest_WhenApiReturns500_ShouldHandleGracefully()
+    {
+        // Override default stub with custom behavior
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/municipios")
+                .WithParam("nome", "muriaé")
+                .UsingGet())
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(500)
+                .WithBody("Internal Server Error"));
+
+        // Test continues...
+    }
+}
+```
+
+**Note:** Use `global::WireMock` namespace prefix to avoid ambiguity with the `WireMock` property.
 
 **WireMockFixture** (`Infrastructure/WireMockFixture.cs`):
 - HTTP server running on **localhost:5050**
 - Comprehensive API stubs for all external services
 - Automatic lifecycle management (`IAsyncDisposable`)
 - Console logging for debugging
+- Reset() method to clear all stubs between tests
 
 **Configured Mock Endpoints:**
 
