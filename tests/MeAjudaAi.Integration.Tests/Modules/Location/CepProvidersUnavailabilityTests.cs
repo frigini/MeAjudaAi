@@ -69,7 +69,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithBody("{}")
-                .WithDelay(TimeSpan.FromSeconds(10))); // Reduced delay for faster tests
+                .WithDelay(TimeSpan.FromSeconds(2))); // Reduced delay for faster tests
 
         // BrasilAPI times out
         WireMock.Server
@@ -79,7 +79,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithBody("{}")
-                .WithDelay(TimeSpan.FromSeconds(10))); // Reduced delay for faster tests
+                .WithDelay(TimeSpan.FromSeconds(2))); // Reduced delay for faster tests
 
         // OpenCEP succeeds
         WireMock.Server

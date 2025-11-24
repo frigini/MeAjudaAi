@@ -183,6 +183,13 @@ public class GeographicRestrictionMiddleware(
                 // Fallback para validação simples em caso de erro
             }
         }
+        else
+        {
+            if (geographicValidationService is null)
+                logger.LogDebug("IBGE validation service not available, using simple validation");
+            else if (string.IsNullOrEmpty(city))
+                logger.LogDebug("No city provided, skipping IBGE validation");
+        }
 
         // Fallback: validação simples se IBGE falhar ou não estiver disponível
         return simpleValidation;

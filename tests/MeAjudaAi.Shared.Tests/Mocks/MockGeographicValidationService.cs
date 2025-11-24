@@ -82,28 +82,34 @@ public class MockGeographicValidationService : IGeographicValidationService
     /// <summary>
     /// Configures the mock to allow a specific city.
     /// </summary>
-    public void AllowCity(string cityName)
+    /// <returns>This instance for fluent chaining.</returns>
+    public MockGeographicValidationService AllowCity(string cityName)
     {
         _allowedCities.Add(cityName);
+        return this;
     }
 
     /// <summary>
     /// Configures the mock to block a specific city.
     /// </summary>
-    public void BlockCity(string cityName)
+    /// <returns>This instance for fluent chaining.</returns>
+    public MockGeographicValidationService BlockCity(string cityName)
     {
         _allowedCities.Remove(cityName);
+        return this;
     }
 
     /// <summary>
     /// Resets the mock to the default pilot cities.
     /// </summary>
-    public void Reset()
+    /// <returns>This instance for fluent chaining.</returns>
+    public MockGeographicValidationService Reset()
     {
         _allowedCities.Clear();
         foreach (var city in DefaultCities)
         {
             _allowedCities.Add(city);
         }
+        return this;
     }
 }

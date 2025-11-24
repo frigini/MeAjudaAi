@@ -183,6 +183,24 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
             "Empty city should be treated as undetermined location (fail-open)");
     }
 
+    [Theory]
+    [InlineData("")] // Empty state
+    [InlineData("  ")] // Only spaces
+    public async Task GetProviders_WithEmptyStateHeader_ShouldValidateByCityList(string emptyState)
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        Client.DefaultRequestHeaders.Add("X-User-City", "Muriaé");
+        Client.DefaultRequestHeaders.Add("X-User-State", emptyState);
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/providers");
+
+        // Assert - should validate against city list (Muriaé is allowed)
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Valid city with empty state should validate against city list");
+    }
+
     [Fact]
     public async Task GetProviders_WhenNoLocationHeaders_ShouldFailOpen()
     {
