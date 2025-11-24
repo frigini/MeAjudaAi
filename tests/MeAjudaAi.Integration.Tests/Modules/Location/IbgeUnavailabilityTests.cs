@@ -52,6 +52,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
 
         // Act - Request with Itaperuna (allowed city) should succeed via simple validation
         AuthConfig.ConfigureAdmin();
+        Client.Timeout = TimeSpan.FromSeconds(10); // Set timeout lower than WireMock delay to trigger timeout
         Client.DefaultRequestHeaders.Add("X-User-Location", "Itaperuna|RJ");
         var response = await Client.GetAsync("/api/v1/users");
 

@@ -134,7 +134,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
     [InlineData(" |MG")] // Empty city (spaces) with state
     [InlineData("|")] // Both empty
     [InlineData("  |  ")] // Both empty with spaces
-    public async Task GetProviders_WithMalformedLocationHeader_ShouldBeRejected(string malformedLocation)
+    public async Task GetProviders_WithMalformedLocationHeader_ShouldFailOpen(string malformedLocation)
     {
         // Arrange
         AuthConfig.ConfigureAdmin();

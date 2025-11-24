@@ -2,6 +2,7 @@ using System.Text.Json;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 
@@ -62,14 +63,19 @@ public class GeographicRestrictionMiddleware(
             var allowedRegions = GetAllowedRegionsDescription();
             var message = _options.BlockedMessage.Replace("{allowedRegions}", allowedRegions);
 
-            var errorResponse = new
+            // Convert simple city names to AllowedCity objects
+            var allowedCitiesResponse = _options.AllowedCities?.Select(cityName => new AllowedCity
             {
-                error = "geographic_restriction",
-                message,
-                allowedCities = _options.AllowedCities,
-                allowedStates = _options.AllowedStates,
-                yourLocation = new { city, state }
-            };
+                Name = cityName,
+                State = string.Empty, // State info not available in simple list
+                IbgeCode = null
+            });
+
+            var errorResponse = new GeographicRestrictionErrorResponse(
+                message: message,
+                userLocation: new UserLocation { City = city, State = state },
+                allowedCities: allowedCitiesResponse,
+                allowedStates: _options.AllowedStates);
 
             await context.Response.WriteAsync(
                 JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
