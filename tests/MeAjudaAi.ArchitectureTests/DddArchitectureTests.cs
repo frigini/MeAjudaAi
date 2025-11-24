@@ -154,9 +154,12 @@ public class DddArchitectureTests
             {
                 assembly = System.Reflection.Assembly.LoadFrom(file);
             }
-            catch
+            catch (Exception ex) when (
+                ex is BadImageFormatException or
+                FileLoadException or
+                FileNotFoundException)
             {
-                // Skip assemblies that can't be loaded
+                // Skip assemblies that can't be loaded (native DLLs, missing dependencies, etc.)
                 continue;
             }
 

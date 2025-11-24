@@ -93,7 +93,15 @@ public class GeographicRestrictionMiddleware(
             var parts = locationHeader.ToString().Split('|');
             if (parts.Length == 2)
             {
-                return (parts[0].Trim(), parts[1].Trim());
+                var locationCity = parts[0].Trim();
+                var locationState = parts[1].Trim();
+
+                // Rejeitar entradas malformadas onde city ou state estão vazios
+                // Exemplos rejeitados: "City|", "|State", "City| ", " |State"
+                if (!string.IsNullOrEmpty(locationCity) && !string.IsNullOrEmpty(locationState))
+                {
+                    return (locationCity, locationState);
+                }
             }
         }
 
@@ -170,7 +178,40 @@ public class GeographicRestrictionMiddleware(
         // Se temos cidade, validar contra lista de cidades permitidas
         if (!string.IsNullOrEmpty(city))
         {
-            return _options.AllowedCities.Any(c => c.Equals(city, StringComparison.OrdinalIgnoreCase));
+            // Validar contra formato "City|State" das cidades permitidas
+            foreach (var allowedCity in _options.AllowedCities)
+            {
+                var parts = allowedCity.Split('|');
+                if (parts.Length != 2)
+                {
+                    // Rejeitar configuração malformada
+                    logger.LogWarning("Configuração malformada de cidade permitida: {AllowedCity}", allowedCity);
+                    continue;
+                }
+
+                var configCity = parts[0].Trim();
+                var configState = parts[1].Trim();
+
+                // Rejeitar entradas onde city ou state estão vazios
+                if (string.IsNullOrEmpty(configCity) || string.IsNullOrEmpty(configState))
+                {
+                    logger.LogWarning("Configuração malformada (valores vazios): {AllowedCity}", allowedCity);
+                    continue;
+                }
+
+                // Match city (case-insensitive)
+                if (configCity.Equals(city, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Se temos state, validar também
+                    if (!string.IsNullOrEmpty(state))
+                    {
+                        return configState.Equals(state, StringComparison.OrdinalIgnoreCase);
+                    }
+                    // Se não temos state, match apenas por cidade
+                    return true;
+                }
+            }
+            return false;
         }
 
         // Se temos apenas estado (sem cidade), validar contra lista de estados permitidos

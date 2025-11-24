@@ -45,7 +45,9 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
                 return null;
             }
 
-            // Find exact match using case-insensitive and diacritic-insensitive comparison
+            // Find exact match using case-insensitive comparison
+            // Note: This does NOT remove diacritics (e.g., "Muriae" won't match "Muriaé")
+            // For diacritic-insensitive matching, use normalization or CultureInfo.CompareInfo
             var match = municipios.FirstOrDefault(m =>
                 string.Equals(m.Nome, cityName, StringComparison.OrdinalIgnoreCase));
 

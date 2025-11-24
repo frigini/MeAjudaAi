@@ -30,7 +30,8 @@ namespace MeAjudaAi.Shared.Models;
 ///     { "name": "Muriaé", "state": "MG", "ibgeCode": "3143906" },
 ///     { "name": "Itaperuna", "state": "RJ", "ibgeCode": "3302205" },
 ///     { "name": "Linhares", "state": "ES", "ibgeCode": "3203205" }
-///   ]
+///   ],
+///   "allowedStates": ["MG", "RJ", "ES"]
 /// }
 /// ```
 /// </remarks>
@@ -50,8 +51,8 @@ public class GeographicRestrictionErrorResponse : ApiErrorResponse
     /// </summary>
     /// <example>
     /// [
-    ///   { "name": "Muriaé", "state": "MG", "ibgeCode": "3129707" },
-    ///   { "name": "Itaperuna", "state": "RJ", "ibgeCode": "3302270" }
+    ///   { "name": "Muriaé", "state": "MG", "ibgeCode": "3143906" },
+    ///   { "name": "Itaperuna", "state": "RJ", "ibgeCode": "3302205" }
     /// ]
     /// </example>
     [JsonPropertyName("allowedCities")]
@@ -77,16 +78,19 @@ public class GeographicRestrictionErrorResponse : ApiErrorResponse
     /// <param name="message">Mensagem descritiva sobre a restrição (opcional)</param>
     /// <param name="userLocation">Localização detectada do usuário (opcional)</param>
     /// <param name="allowedCities">Lista de cidades permitidas (opcional)</param>
+    /// <param name="allowedStates">Lista de estados permitidos (opcional)</param>
     public GeographicRestrictionErrorResponse(
         string? message = null,
         UserLocation? userLocation = null,
-        IEnumerable<AllowedCity>? allowedCities = null)
+        IEnumerable<AllowedCity>? allowedCities = null,
+        IEnumerable<string>? allowedStates = null)
     {
         StatusCode = 451; // HTTP 451 - Unavailable For Legal Reasons (RFC 7725)
         Title = "Unavailable For Legal Reasons";
         Detail = message ?? "Serviço indisponível na sua região.";
         YourLocation = userLocation;
         AllowedCities = allowedCities;
+        AllowedStates = allowedStates;
     }
 }
 
@@ -132,7 +136,7 @@ public class AllowedCity
     /// <summary>
     /// Código IBGE do município (7 dígitos).
     /// </summary>
-    /// <example>3129707</example>
+    /// <example>3143906</example>
     [JsonPropertyName("ibgeCode")]
     public string? IbgeCode { get; set; }
 }

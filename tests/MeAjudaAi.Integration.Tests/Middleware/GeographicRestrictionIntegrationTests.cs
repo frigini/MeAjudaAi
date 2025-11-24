@@ -122,4 +122,68 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
             $"City '{city}' in state '{state}' should be allowed");
     }
+
+    /// <summary>
+    /// Edge case tests for malformed location headers.
+    /// These should be rejected and treated as non-matching.
+    /// </summary>
+    [Theory]
+    [InlineData("Muriaé|")] // City without state
+    [InlineData("|MG")] // State without city
+    [InlineData("Muriaé| ")] // City with empty state (spaces)
+    [InlineData(" |MG")] // Empty city (spaces) with state
+    [InlineData("|")] // Both empty
+    [InlineData("  |  ")] // Both empty with spaces
+    public async Task GetProviders_WithMalformedLocationHeader_ShouldBeRejected(string malformedLocation)
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        Client.DefaultRequestHeaders.Add("X-User-Location", malformedLocation);
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/providers");
+
+        // Assert - malformed entries should be treated as no location (fail-open)
+        // Since we can't determine location, middleware allows access
+        response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
+            $"Malformed location '{malformedLocation}' should be ignored and fail-open");
+    }
+
+    [Theory]
+    [InlineData("")] // Empty city
+    [InlineData("  ")] // Only spaces
+    [InlineData(null)] // Null city
+    public async Task GetProviders_WithEmptyCityHeader_ShouldFailOpen(string? emptyCity)
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        if (emptyCity != null)
+        {
+            Client.DefaultRequestHeaders.Add("X-User-City", emptyCity);
+        }
+        Client.DefaultRequestHeaders.Add("X-User-State", "MG");
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/providers");
+
+        // Assert - empty city should fail-open (can't determine location)
+        response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
+            "Empty city should be treated as undetermined location (fail-open)");
+    }
+
+    [Fact]
+    public async Task GetProviders_WhenNoLocationHeaders_ShouldFailOpen()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        // No location headers added
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/providers");
+
+        // Assert - no location should fail-open (allow access)
+        response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
+            "Missing location headers should allow access (fail-open)");
+    }
 }
+
