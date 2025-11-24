@@ -61,6 +61,12 @@ public static class Extensions
         {
             var baseUrl = configuration["Locations:ExternalApis:IBGE:BaseUrl"]
                 ?? "https://servicodados.ibge.gov.br/api/v1/localidades/"; // Fallback para testes
+
+            if (!baseUrl.EndsWith("/"))
+            {
+                baseUrl += "/";
+            }
+
             client.BaseAddress = new Uri(baseUrl);
         });
 
