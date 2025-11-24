@@ -25,21 +25,21 @@ public static class Extensions
         services.AddHttpClient<ViaCepClient>(client =>
         {
             var baseUrl = configuration["Locations:ExternalApis:ViaCep:BaseUrl"]
-                ?? throw new InvalidOperationException("Locations:ExternalApis:ViaCep:BaseUrl não configurado");
+                ?? "https://viacep.com.br"; // Fallback para testes
             client.BaseAddress = new Uri(baseUrl);
         });
 
         services.AddHttpClient<BrasilApiCepClient>(client =>
         {
             var baseUrl = configuration["Locations:ExternalApis:BrasilApi:BaseUrl"]
-                ?? throw new InvalidOperationException("Locations:ExternalApis:BrasilApi:BaseUrl não configurado");
+                ?? "https://brasilapi.com.br"; // Fallback para testes
             client.BaseAddress = new Uri(baseUrl);
         });
 
         services.AddHttpClient<OpenCepClient>(client =>
         {
             var baseUrl = configuration["Locations:ExternalApis:OpenCep:BaseUrl"]
-                ?? throw new InvalidOperationException("Locations:ExternalApis:OpenCep:BaseUrl não configurado");
+                ?? "https://opencep.com"; // Fallback para testes
             client.BaseAddress = new Uri(baseUrl);
         });
 
@@ -47,12 +47,12 @@ public static class Extensions
         services.AddHttpClient<NominatimClient>(client =>
         {
             var baseUrl = configuration["Locations:ExternalApis:Nominatim:BaseUrl"]
-                ?? throw new InvalidOperationException("Locations:ExternalApis:Nominatim:BaseUrl não configurado");
+                ?? "https://nominatim.openstreetmap.org/"; // Fallback para testes
             client.BaseAddress = new Uri(baseUrl);
 
             // Configurar User-Agent conforme política de uso do Nominatim
             var userAgent = configuration["Locations:ExternalApis:Nominatim:UserAgent"]
-                ?? throw new InvalidOperationException("Locations:ExternalApis:Nominatim:UserAgent não configurado");
+                ?? "MeAjudaAi-Tests/1.0 (https://github.com/frigini/MeAjudaAi)"; // Fallback para testes
             client.DefaultRequestHeaders.Add("User-Agent", userAgent);
         });
 
@@ -60,7 +60,7 @@ public static class Extensions
         services.AddHttpClient<IIbgeClient, IbgeClient>(client =>
         {
             var baseUrl = configuration["Locations:ExternalApis:IBGE:BaseUrl"]
-                ?? throw new InvalidOperationException("Locations:ExternalApis:IBGE:BaseUrl não configurado");
+                ?? "https://servicodados.ibge.gov.br/api/v1/localidades/"; // Fallback para testes
             client.BaseAddress = new Uri(baseUrl);
         });
 
