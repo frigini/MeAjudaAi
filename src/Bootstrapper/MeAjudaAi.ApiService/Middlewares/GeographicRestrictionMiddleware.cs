@@ -197,7 +197,7 @@ public class GeographicRestrictionMiddleware(
             foreach (var allowedCity in _options.AllowedCities)
             {
                 var parts = allowedCity.Split('|');
-                
+
                 if (parts.Length != 2)
                 {
                     // Tratar como entrada somente de cidade (sem estado)

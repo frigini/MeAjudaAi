@@ -291,9 +291,9 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         result1.IsSuccess.Should().BeTrue();
         result2.IsSuccess.Should().BeTrue();
         result2.Value!.City.Should().Be("São Paulo");
-        
+
         // Verify no HTTP requests were made during cached call
-        requestCountAfter.Should().Be(requestCountBefore, 
+        requestCountAfter.Should().Be(requestCountBefore,
             "Second call should use cache and not make HTTP requests");
     }
 }

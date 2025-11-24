@@ -58,7 +58,7 @@ public class MockGeographicValidationService : IGeographicValidationService
 
             // Match city name (case-insensitive)
             var cityMatches = string.Equals(allowedCity, cityName, StringComparison.OrdinalIgnoreCase);
-            
+
             if (!cityMatches)
                 return false;
 
