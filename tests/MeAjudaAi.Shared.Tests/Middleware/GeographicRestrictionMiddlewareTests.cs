@@ -165,7 +165,7 @@ public class GeographicRestrictionMiddlewareTests
         SetupFeatureFlag(true);
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object);
         _httpContext.Request.Path = "/api/providers";
-        _httpContext.Request.Headers["X-User-Location"] = $"{city}|{state}"; // Use novo formato
+        _httpContext.Request.Headers["X-User-Location"] = $"{city}|{state}"; // Use new format
 
         // Act
         await middleware.InvokeAsync(_httpContext);

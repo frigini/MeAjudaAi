@@ -21,6 +21,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
     public async Task GeographicRestriction_WhenIbgeReturns500_ShouldFallbackToSimpleValidation()
     {
         // Arrange - Configure endpoint to simulate IBGE 500 error
+        // Note: IbgeClient normalizes city names to lowercase before querying
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
@@ -39,37 +40,13 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
     }
 
-    [Fact(Skip = "Timeout test causes test infrastructure issues. Covered by HTTP error tests.")]
-    public async Task GeographicRestriction_WhenIbgeTimesOut_ShouldFallbackToSimpleValidation()
-    {
-        // Arrange - Configure endpoint to simulate IBGE timeout
-        // Note: This test is skipped because simulating timeout via WireMock delay causes
-        // test infrastructure issues (client aborted request). The important fallback scenario
-        // is covered by GeographicRestriction_WhenIbgeUnavailableAndCityNotAllowed_ShouldDenyAccess
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/v1/localidades/municipios")
-                .WithParam("nome", "itaperuna")
-                .UsingGet())
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
-                .WithBody("[]")
-                .WithDelay(TimeSpan.FromSeconds(2))); // Simulate slow IBGE response
 
-        // Act - Request with Itaperuna (allowed city) should succeed via simple validation
-        AuthConfig.ConfigureAdmin();
-        Client.DefaultRequestHeaders.Add("X-User-Location", "Itaperuna|RJ");
-        var response = await Client.GetAsync("/api/v1/users");
-
-        // Assert - Should allow access because Itaperuna is in allowed cities list
-        // Even with delay, IBGE returns empty array (city not found), so fallback should allow Itaperuna
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
-    }
 
     [Fact]
     public async Task GeographicRestriction_WhenIbgeReturnsMalformedJson_ShouldFallbackToSimpleValidation()
     {
         // Arrange - Configure endpoint to simulate malformed IBGE response
+        // Note: IbgeClient normalizes city names to lowercase before querying
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
@@ -93,6 +70,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
     public async Task GeographicRestriction_WhenIbgeUnavailableAndCityNotAllowed_ShouldDenyAccess()
     {
         // Arrange - Configure IBGE to fail
+        // Note: IbgeClient normalizes city names to lowercase before querying
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
