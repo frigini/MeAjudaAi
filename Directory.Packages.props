@@ -164,7 +164,7 @@
     <!-- System -->
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.0.1" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
     <!-- Testing Framework -->
     <!-- Using xUnit v3 only -->
     <PackageVersion Include="xunit.v3" Version="3.1.0" />
