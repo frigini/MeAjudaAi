@@ -45,6 +45,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase, IAsyncLifetime
                 .WithBody("Internal Server Error"));
 
         // Act - Request with Muriaé (allowed city) should succeed via simple validation
+        AuthConfig.ConfigureAdmin();
         Client.DefaultRequestHeaders.Add("X-User-Location", "Muriaé|MG");
         var response = await Client.GetAsync("/api/v1/users");
 
@@ -67,6 +68,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase, IAsyncLifetime
                 .WithDelay(TimeSpan.FromSeconds(30))); // Exceeds typical timeout
 
         // Act - Request with Itaperuna (allowed city) should succeed via simple validation
+        AuthConfig.ConfigureAdmin();
         Client.DefaultRequestHeaders.Add("X-User-Location", "Itaperuna|RJ");
         var response = await Client.GetAsync("/api/v1/users");
 
@@ -89,6 +91,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase, IAsyncLifetime
                 .WithBody("{invalid json"));
 
         // Act - Request with Linhares (allowed city) should succeed via simple validation
+        AuthConfig.ConfigureAdmin();
         Client.DefaultRequestHeaders.Add("X-User-Location", "Linhares|ES");
         var response = await Client.GetAsync("/api/v1/users");
 
@@ -109,11 +112,12 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase, IAsyncLifetime
                 .WithStatusCode(500));
 
         // Act - Request with Rio de Janeiro (NOT allowed) should be denied
+        AuthConfig.ConfigureAdmin();
         Client.DefaultRequestHeaders.Add("X-User-Location", "Rio de Janeiro|RJ");
         var response = await Client.GetAsync("/api/v1/users");
 
-        // Assert - Should deny access because city is not in allowed list
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
+        // Assert - Should deny access because city is not in allowed list (451 UnavailableForLegalReasons)
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.UnavailableForLegalReasons);
     }
 
     [Fact]
@@ -131,6 +135,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase, IAsyncLifetime
                 .WithBody("[]"));
 
         // Act - Request with Muriaé (allowed city) should succeed via simple validation
+        AuthConfig.ConfigureAdmin();
         Client.DefaultRequestHeaders.Add("X-User-Location", "Muriaé|MG");
         var response = await Client.GetAsync("/api/v1/users");
 

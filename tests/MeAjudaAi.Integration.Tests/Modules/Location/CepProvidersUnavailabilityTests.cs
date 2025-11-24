@@ -131,24 +131,26 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase, IAsyncLifetim
     [Fact]
     public async Task LookupCep_WhenAllProvidersReturn500_ShouldReturnFailure()
     {
-        // Arrange - All providers fail
+        // Arrange - All providers fail for a unique CEP to avoid cache hits
+        var uniqueCep = "88888888"; // CEP not used in other tests
+
         _wireMockFixture!.Server
             .Given(WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/01310100/json")
+                .WithPath($"/ws/{uniqueCep}/json")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
         _wireMockFixture.Server
             .Given(WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v1/01310100")
+                .WithPath($"/api/cep/v1/{uniqueCep}")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
         _wireMockFixture.Server
             .Given(WireMock.RequestBuilders.Request.Create()
-                .WithPath("/01310100.json")
+                .WithPath($"/{uniqueCep}.json")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
@@ -156,7 +158,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase, IAsyncLifetim
         var locationApi = Services.GetRequiredService<ILocationModuleApi>();
 
         // Act
-        var result = await locationApi.GetAddressFromCepAsync("01310100");
+        var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
         // Assert - Should return failure when all providers down
         result.IsSuccess.Should().BeFalse();
