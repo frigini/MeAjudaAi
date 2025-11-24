@@ -46,9 +46,9 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
         {
             Client.DefaultRequestHeaders.Remove("X-User-Location");
             Client.DefaultRequestHeaders.Add("X-User-Location", $"{city}|{state}");
-            
+
             var response = await Client.GetAsync("/api/v1/providers");
-            
+
             response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
                 $"{city}/{state} should be allowed when it's in the configured list");
         }
@@ -64,9 +64,9 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
         {
             Client.DefaultRequestHeaders.Remove("X-User-Location");
             Client.DefaultRequestHeaders.Add("X-User-Location", $"{city}|{state}");
-            
+
             var response = await Client.GetAsync("/api/v1/providers");
-            
+
             response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
                 $"{city}/{state} should be blocked when not in the configured list");
         }
@@ -88,7 +88,7 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
         // Assert - Should allow when location cannot be determined (fail-open)
         responseWithoutHeader.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
             "Missing location header should fail-open (allow access)");
-        
+
         responseWithMalformedHeader.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
             "Malformed location header should fail-open (allow access)");
     }

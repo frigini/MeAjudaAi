@@ -13,44 +13,27 @@ namespace MeAjudaAi.Integration.Tests.Modules.Location;
 /// ViaCEP → BrasilAPI → OpenCEP
 /// </summary>
 [Collection("Integration")]
-public sealed class CepProvidersUnavailabilityTests : ApiTestBase, IAsyncLifetime
+public sealed class CepProvidersUnavailabilityTests : ApiTestBase
 {
-    private WireMockFixture? _wireMockFixture;
-
-    public new async ValueTask InitializeAsync()
-    {
-        await base.InitializeAsync();
-        _wireMockFixture = new WireMockFixture();
-        await _wireMockFixture.StartAsync();
-    }
-
-    public new async ValueTask DisposeAsync()
-    {
-        if (_wireMockFixture is not null)
-        {
-            await _wireMockFixture.DisposeAsync();
-        }
-        await base.DisposeAsync();
-    }
 
     [Fact]
     public async Task LookupCep_WhenViaCepReturns500_ShouldFallbackToBrasilApi()
     {
         // Arrange - ViaCEP fails with 500
-        _wireMockFixture!.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/ws/01310100/json")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500)
                 .WithBody("Internal Server Error"));
 
         // BrasilAPI succeeds
-        _wireMockFixture.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/cep/v1/01310100")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
                 .WithBody("""
@@ -79,31 +62,31 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase, IAsyncLifetim
     public async Task LookupCep_WhenViaCepAndBrasilApiTimeout_ShouldFallbackToOpenCep()
     {
         // Arrange - ViaCEP times out
-        _wireMockFixture!.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/ws/01310100/json")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithBody("{}")
                 .WithDelay(TimeSpan.FromSeconds(30)));
 
         // BrasilAPI times out
-        _wireMockFixture.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/cep/v1/01310100")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithBody("{}")
                 .WithDelay(TimeSpan.FromSeconds(30)));
 
         // OpenCEP succeeds
-        _wireMockFixture.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/01310100.json")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
                 .WithBody("""
@@ -134,25 +117,25 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase, IAsyncLifetim
         // Arrange - All providers fail for a unique CEP to avoid cache hits
         var uniqueCep = "88888888"; // CEP not used in other tests
 
-        _wireMockFixture!.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/ws/{uniqueCep}/json")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
-        _wireMockFixture.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/api/cep/v1/{uniqueCep}")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
-        _wireMockFixture.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/{uniqueCep}.json")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
         var locationApi = Services.GetRequiredService<ILocationModuleApi>();
@@ -169,21 +152,21 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase, IAsyncLifetim
     public async Task LookupCep_WhenViaCepReturnsMalformedJson_ShouldFallbackToBrasilApi()
     {
         // Arrange - ViaCEP returns invalid JSON
-        _wireMockFixture!.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/ws/01310100/json")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
                 .WithBody("{invalid json}"));
 
         // BrasilAPI succeeds
-        _wireMockFixture.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/cep/v1/01310100")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
                 .WithBody("""
@@ -210,30 +193,30 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase, IAsyncLifetim
     public async Task LookupCep_WhenViaCepReturnsErrorTrue_ShouldFallbackToBrasilApi()
     {
         // Arrange - ViaCEP returns "erro: true" for invalid CEP
-        _wireMockFixture!.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/ws/00000000/json")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
                 .WithBody("""{"erro": true}"""));
 
         // BrasilAPI also fails (404 for invalid CEP)
-        _wireMockFixture.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/cep/v1/00000000")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(404)
                 .WithBody("CEP não encontrado"));
 
         // OpenCEP also fails
-        _wireMockFixture.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/00000000.json")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(404));
 
         var locationApi = Services.GetRequiredService<ILocationModuleApi>();
@@ -249,18 +232,18 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase, IAsyncLifetim
     public async Task LookupCep_WhenBrasilApiSucceedsButViaCepDown_ShouldUseCache()
     {
         // Arrange - First call: ViaCEP down, BrasilAPI succeeds
-        _wireMockFixture!.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/ws/01310100/json")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
-        _wireMockFixture.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/cep/v1/01310100")
                 .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
                 .WithBody("""
@@ -279,11 +262,11 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase, IAsyncLifetim
         var result1 = await locationApi.GetAddressFromCepAsync("01310100");
 
         // Reset WireMock to simulate all providers down
-        _wireMockFixture.Reset();
-        _wireMockFixture.Server
-            .Given(WireMock.RequestBuilders.Request.Create()
+        WireMock.Reset();
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
                 .UsingAnyMethod())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
         // Act - Second call (should use cache)

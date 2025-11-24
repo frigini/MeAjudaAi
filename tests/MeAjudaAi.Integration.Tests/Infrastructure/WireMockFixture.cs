@@ -1,7 +1,7 @@
-using WireMock.Server;
-using WireMock.Settings;
 using WireMock.Admin.Requests;
 using WireMock.Logging;
+using WireMock.Server;
+using WireMock.Settings;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
 
