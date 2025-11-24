@@ -26,7 +26,7 @@ public class WireMockFixture : IAsyncDisposable
     /// <summary>
     /// Starts the WireMock server and configures all API stubs.
     /// </summary>
-    public async Task StartAsync()
+    public Task StartAsync()
     {
         _server = WireMockServer.Start(new WireMockServerSettings
         {
@@ -44,7 +44,7 @@ public class WireMockFixture : IAsyncDisposable
         ConfigureOpenCepStubs();
         ConfigureNominatimStubs();
 
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -367,13 +367,13 @@ public class WireMockFixture : IAsyncDisposable
     /// <summary>
     /// Disposes the WireMock server.
     /// </summary>
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         _server?.Stop();
         _server?.Dispose();
         _server = null;
-        await Task.CompletedTask;
         GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
     }
 }
 

@@ -261,20 +261,39 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Act - First call (cache miss)
         var result1 = await locationApi.GetAddressFromCepAsync("01310100");
 
-        // Reset WireMock to simulate all providers down
-        WireMock.Reset();
+        // Get request count before second call
+        var requestCountBefore = WireMock.Server.LogEntries.Count();
+
+        // Configure providers to fail for second call - proving cache is used
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .UsingAnyMethod())
+                .WithPath("/ws/01310100/json")
+                .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(500));
+                .WithStatusCode(500)
+                .WithBody("Service Unavailable"));
 
-        // Act - Second call (should use cache)
+        WireMock.Server
+            .Given(global::WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/cep/v1/01310100")
+                .UsingGet())
+            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(500)
+                .WithBody("Service Unavailable"));
+
+        // Act - Second call (should use cache, no HTTP requests)
         var result2 = await locationApi.GetAddressFromCepAsync("01310100");
+
+        // Get request count after second call
+        var requestCountAfter = WireMock.Server.LogEntries.Count();
 
         // Assert - Both calls should succeed (second via cache)
         result1.IsSuccess.Should().BeTrue();
         result2.IsSuccess.Should().BeTrue();
         result2.Value!.City.Should().Be("São Paulo");
+        
+        // Verify no HTTP requests were made during cached call
+        requestCountAfter.Should().Be(requestCountBefore, 
+            "Second call should use cache and not make HTTP requests");
     }
 }

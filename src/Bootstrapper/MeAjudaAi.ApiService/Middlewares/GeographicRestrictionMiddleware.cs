@@ -61,15 +61,24 @@ public class GeographicRestrictionMiddleware(
             context.Response.ContentType = "application/json";
 
             var allowedRegions = GetAllowedRegionsDescription();
-            var message = _options.BlockedMessage.Replace("{allowedRegions}", allowedRegions);
+            var template = _options.BlockedMessage ?? "Access from your region is not allowed. Allowed regions: {allowedRegions}.";
+            var message = template.Replace("{allowedRegions}", allowedRegions);
 
-            // Convert simple city names to AllowedCity objects
-            var allowedCitiesResponse = _options.AllowedCities?.Select(cityName => new AllowedCity
-            {
-                Name = cityName,
-                State = string.Empty, // State info not available in simple list
-                IbgeCode = null
-            });
+            // Convert configured "City|State" entries (or plain city names) to AllowedCity objects
+            var allowedCitiesResponse = _options.AllowedCities?
+                .Select(raw =>
+                {
+                    var parts = raw.Split('|');
+                    var name = parts.Length > 0 ? parts[0].Trim() : raw;
+                    var state = parts.Length > 1 ? parts[1].Trim() : string.Empty;
+
+                    return new AllowedCity
+                    {
+                        Name = name,
+                        State = state,
+                        IbgeCode = null
+                    };
+                });
 
             var errorResponse = new GeographicRestrictionErrorResponse(
                 message: message,
@@ -182,16 +191,28 @@ public class GeographicRestrictionMiddleware(
     private bool ValidateLocationSimple(string? city, string? state)
     {
         // Se temos cidade, validar contra lista de cidades permitidas
+        // Suporta tanto formato "City|State" quanto apenas nome da cidade
         if (!string.IsNullOrEmpty(city))
         {
-            // Validar contra formato "City|State" das cidades permitidas
             foreach (var allowedCity in _options.AllowedCities)
             {
                 var parts = allowedCity.Split('|');
+                
                 if (parts.Length != 2)
                 {
-                    // Rejeitar configuração malformada
-                    logger.LogWarning("Configuração malformada de cidade permitida: {AllowedCity}", allowedCity);
+                    // Tratar como entrada somente de cidade (sem estado)
+                    var configCityOnly = allowedCity.Trim();
+                    if (!string.IsNullOrEmpty(configCityOnly) &&
+                        configCityOnly.Equals(city, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Se não temos estado informado, aceitar apenas pelo nome da cidade
+                        if (string.IsNullOrEmpty(state))
+                            return true;
+
+                        // Com estado informado, dependerá da regra de estados permitidos
+                        return _options.AllowedStates?.Any(s =>
+                            s.Equals(state, StringComparison.OrdinalIgnoreCase)) == true;
+                    }
                     continue;
                 }
 
@@ -231,14 +252,14 @@ public class GeographicRestrictionMiddleware(
 
     private string GetAllowedRegionsDescription()
     {
-        var cities = _options.AllowedCities.Any()
+        var cities = _options.AllowedCities?.Any() == true
             ? string.Join(", ", _options.AllowedCities)
             : "N/A";
 
-        var states = _options.AllowedStates.Any()
+        var states = _options.AllowedStates?.Any() == true
             ? string.Join(", ", _options.AllowedStates)
             : "N/A";
 
-        return $"Cidades: {cities} | Estados: {states}";
+        return $"Cities: {cities} | States: {states}";
     }
 }

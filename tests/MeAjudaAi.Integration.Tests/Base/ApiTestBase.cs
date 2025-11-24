@@ -36,6 +36,12 @@ public abstract class ApiTestBase : IAsyncLifetime
     protected ITestAuthenticationConfiguration AuthConfig { get; private set; } = null!;
     protected WireMockFixture WireMock => _wireMockFixture ?? throw new InvalidOperationException("WireMock not initialized");
 
+    /// <summary>
+    /// Controls whether to use mock geographic validation service.
+    /// Set to false in IBGE-focused tests to use real service with WireMock.
+    /// </summary>
+    protected virtual bool UseMockGeographicValidation => true;
+
     public async ValueTask InitializeAsync()
     {
         // Define variáveis de ambiente para testes
@@ -126,15 +132,18 @@ public abstract class ApiTestBase : IAsyncLifetime
                     // Adiciona mocks de serviços para testes
                     services.AddDocumentsTestServices();
 
-                    // Adiciona mock de validação geográfica para testes
-                    // Remove serviço real de validação geográfica (se existir)
-                    var geoValidationDescriptor = services.FirstOrDefault(d =>
-                        d.ServiceType == typeof(IGeographicValidationService));
-                    if (geoValidationDescriptor != null)
-                        services.Remove(geoValidationDescriptor);
+                    // Conditionally replace geographic validation with mock
+                    // IBGE-focused tests can override UseMockGeographicValidation to use real service with WireMock
+                    if (UseMockGeographicValidation)
+                    {
+                        var geoValidationDescriptor = services.FirstOrDefault(d =>
+                            d.ServiceType == typeof(IGeographicValidationService));
+                        if (geoValidationDescriptor != null)
+                            services.Remove(geoValidationDescriptor);
 
-                    // Registra mock com cidades piloto padrão (Scoped para isolamento entre testes)
-                    services.AddScoped<IGeographicValidationService, MockGeographicValidationService>();
+                        // Registra mock com cidades piloto padrão (Scoped para isolamento entre testes)
+                        services.AddScoped<IGeographicValidationService, MockGeographicValidationService>();
+                    }
 
                     // Adiciona autenticação de teste baseada em instância para evitar estado estático
                     services.RemoveRealAuthentication();
