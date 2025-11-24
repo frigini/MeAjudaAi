@@ -47,10 +47,10 @@ public sealed class IbgeClientTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        // IbgeClient uses lowercase for API queries
+        // IbgeClient uses lowercase for API queries (client internally URL-encodes but Uri.ToString() displays decoded)
         var uriString = _mockHandler.LastRequestUri!.ToString();
         uriString.Should().Contain("municipios?nome=");
-        uriString.Should().Contain(input.ToLowerInvariant()); // Query string is lowercase
+        uriString.Should().Contain(input.ToLowerInvariant()); // Query string is lowercase (displayed decoded by Uri.ToString())
     }
 
     [Fact]
