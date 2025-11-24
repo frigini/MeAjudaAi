@@ -30,7 +30,7 @@ public class WireMockFixture : IAsyncDisposable
     {
         _server = WireMockServer.Start(new WireMockServerSettings
         {
-            Port = 5050,
+            Port = 0, // Use dynamic port to avoid conflicts in parallel test execution
             StartAdminInterface = true,
             ReadStaticMappings = false,
             WatchStaticMappings = false,

@@ -47,6 +47,14 @@ public abstract class ApiTestBase : IAsyncLifetime
         _wireMockFixture = new WireMockFixture();
         await _wireMockFixture.StartAsync();
 
+        // Configure environment variables with dynamic WireMock URLs
+        var wireMockUrl = _wireMockFixture.BaseUrl;
+        Environment.SetEnvironmentVariable("ExternalApis__ViaCep__BaseUrl", wireMockUrl);
+        Environment.SetEnvironmentVariable("ExternalApis__BrasilApi__BaseUrl", wireMockUrl);
+        Environment.SetEnvironmentVariable("ExternalApis__OpenCep__BaseUrl", wireMockUrl);
+        Environment.SetEnvironmentVariable("ExternalApis__Nominatim__BaseUrl", wireMockUrl);
+        Environment.SetEnvironmentVariable("ExternalApis__IbgeLocalidades__BaseUrl", $"{wireMockUrl}/api/v1/localidades/");
+
         _databaseFixture = new SimpleDatabaseFixture();
         await _databaseFixture.InitializeAsync();
 
