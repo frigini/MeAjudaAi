@@ -102,6 +102,16 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
 
         // Assert - Should deny access because city is not in allowed list (451 UnavailableForLegalReasons)
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.UnavailableForLegalReasons);
+
+        // Verify error payload structure
+        var content = await response.Content.ReadAsStringAsync();
+        var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
+
+        json.GetProperty("error").GetString().Should().Be("geographic_restriction");
+        json.GetProperty("yourLocation").GetProperty("city").GetString().Should().Be("Rio de Janeiro");
+        json.GetProperty("yourLocation").GetProperty("state").GetString().Should().Be("RJ");
+        json.GetProperty("allowedCities").GetArrayLength().Should().BeGreaterThan(0);
+        json.GetProperty("allowedStates").GetArrayLength().Should().BeGreaterThan(0);
     }
 
     [Fact]

@@ -69,7 +69,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithBody("{}")
-                .WithDelay(TimeSpan.FromSeconds(30)));
+                .WithDelay(TimeSpan.FromSeconds(10))); // Reduced delay for faster tests
 
         // BrasilAPI times out
         WireMock.Server
@@ -79,7 +79,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithBody("{}")
-                .WithDelay(TimeSpan.FromSeconds(30)));
+                .WithDelay(TimeSpan.FromSeconds(10))); // Reduced delay for faster tests
 
         // OpenCEP succeeds
         WireMock.Server
@@ -190,7 +190,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
     }
 
     [Fact]
-    public async Task LookupCep_WhenViaCepReturnsErrorTrue_ShouldFallbackToBrasilApi()
+    public async Task LookupCep_WhenViaCepReturnsErrorTrueAndOthersFail_ShouldReturnFailure()
     {
         // Arrange - ViaCEP returns "erro: true" for invalid CEP
         WireMock.Server

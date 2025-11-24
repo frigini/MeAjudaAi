@@ -49,7 +49,7 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
 
             var response = await Client.GetAsync("/api/v1/providers");
 
-            response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
+            response.StatusCode.Should().Be(HttpStatusCode.OK,
                 $"{city}/{state} should be allowed when it's in the configured list");
         }
 
