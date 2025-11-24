@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Shared.Models;
 
 namespace MeAjudaAi.Integration.Tests.Middleware;
 
@@ -35,15 +36,26 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         var response = await Client.GetAsync("/api/v1/providers");
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons); // 451
-
         var content = await response.Content.ReadAsStringAsync();
-        var json = JsonSerializer.Deserialize<JsonElement>(content);
+        
+        response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
+            $"Expected 451 but got {(int)response.StatusCode}. Response: {content}"); // 451
 
-        json.GetProperty("error").GetString().Should().Be("geographic_restriction");
-        json.GetProperty("message").GetString().Should().Contain("Muriaé");
-        json.GetProperty("allowedCities").GetArrayLength().Should().Be(3);
-        json.GetProperty("yourLocation").GetProperty("city").GetString().Should().Be("São Paulo");
+        content.Should().NotBeNullOrWhiteSpace("Response body should not be empty");
+
+        var json = JsonSerializer.Deserialize<JsonElement>(content);
+        
+        // Verify all expected fields are present
+        json.TryGetProperty("error", out var errorProp).Should().BeTrue($"Missing 'error' property. JSON: {content}");
+        json.TryGetProperty("detail", out var detailProp).Should().BeTrue($"Missing 'detail' property. JSON: {content}");
+        json.TryGetProperty("allowedCities", out var citiesProp).Should().BeTrue($"Missing 'allowedCities' property. JSON: {content}");
+        json.TryGetProperty("yourLocation", out var locationProp).Should().BeTrue($"Missing 'yourLocation' property. JSON: {content}");
+        
+        errorProp.GetString().Should().Be("geographic_restriction");
+        detailProp.GetString().Should().Contain("Muriaé");
+        citiesProp.GetArrayLength().Should().Be(3);
+        locationProp.TryGetProperty("city", out var cityProp).Should().BeTrue();
+        cityProp.GetString().Should().Be("São Paulo");
     }
 
     [Fact]

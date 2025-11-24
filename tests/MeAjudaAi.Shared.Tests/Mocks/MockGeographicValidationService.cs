@@ -34,6 +34,7 @@ public class MockGeographicValidationService : IGeographicValidationService
     /// <summary>
     /// Validates if a city is in the allowed list using case-insensitive matching.
     /// Simplified implementation for testing - does not call IBGE API.
+    /// Supports both "City|State" and plain "City" formats in allowed cities list.
     /// </summary>
     public Task<bool> ValidateCityAsync(
         string cityName,
@@ -45,11 +46,34 @@ public class MockGeographicValidationService : IGeographicValidationService
             return Task.FromResult(false);
 
         // Use provided allowed cities or fall back to instance list
-        var citiesToCheck = allowedCities?.Any() == true
-            ? new HashSet<string>(allowedCities, StringComparer.OrdinalIgnoreCase)
-            : _allowedCities;
+        var citiesToCheck = allowedCities?.Any() == true ? allowedCities : _allowedCities;
 
-        var isAllowed = citiesToCheck.Contains(cityName);
+        // Check if city is allowed - supports "City|State" and "City" formats
+        var isAllowed = citiesToCheck.Any(allowedEntry =>
+        {
+            // Parse allowed entry (supports "City|State" or "City")
+            var parts = allowedEntry.Split('|');
+            var allowedCity = parts[0].Trim();
+            var allowedState = parts.Length > 1 ? parts[1].Trim() : null;
+
+            // Match city name (case-insensitive)
+            var cityMatches = string.Equals(allowedCity, cityName, StringComparison.OrdinalIgnoreCase);
+            
+            if (!cityMatches)
+                return false;
+
+            // If both have state information, validate state match
+            if (!string.IsNullOrEmpty(stateSigla) && !string.IsNullOrEmpty(allowedState))
+            {
+                return string.Equals(allowedState, stateSigla, StringComparison.OrdinalIgnoreCase);
+            }
+
+            // If user provided state but config doesn't have it, accept (city-only match)
+            // If config has state but user didn't provide it, accept (city-only match)
+            // If neither has state, accept (city-only match)
+            return true;
+        });
+
         return Task.FromResult(isAllowed);
     }
 

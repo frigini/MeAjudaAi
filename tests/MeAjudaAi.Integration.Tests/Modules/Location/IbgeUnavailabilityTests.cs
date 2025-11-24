@@ -9,10 +9,13 @@ namespace MeAjudaAi.Integration.Tests.Modules.Location;
 /// Integration tests for IBGE service unavailability scenarios.
 /// Validates that the geographic restriction middleware properly handles IBGE failures
 /// by falling back to simple validation (city/state name matching).
+/// Uses real IGeographicValidationService with WireMock stubs for IBGE API.
 /// </summary>
 [Collection("Integration")]
 public sealed class IbgeUnavailabilityTests : ApiTestBase
 {
+    // Override to use real IBGE service with WireMock stubs instead of mock
+    protected override bool UseMockGeographicValidation => false;
 
     [Fact]
     public async Task GeographicRestriction_WhenIbgeReturns500_ShouldFallbackToSimpleValidation()
