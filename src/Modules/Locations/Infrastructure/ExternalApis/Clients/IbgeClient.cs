@@ -42,7 +42,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogWarning("IBGE retornou status {StatusCode} para município {CityName}", response.StatusCode, cityName);
-                
+
                 // Throw exception for HTTP errors to enable middleware fallback to simple validation
                 // This ensures fail-open behavior when IBGE service is unavailable
                 throw new HttpRequestException(
