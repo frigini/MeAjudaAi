@@ -19,12 +19,20 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
     {
         try
         {
+            // Normalize city name (trim + lowercase) for consistent WireMock stub matching
+            var normalizedCity = cityName?.Trim().ToLowerInvariant();
+            if (string.IsNullOrEmpty(normalizedCity))
+            {
+                logger.LogWarning("City name is null or empty");
+                return null;
+            }
+
             // Using documented IBGE API query endpoint: /municipios?nome={cityName}
             // See: https://servicodados.ibge.gov.br/api/docs/localidades
-            var encodedName = Uri.EscapeDataString(cityName);
+            var encodedName = Uri.EscapeDataString(normalizedCity);
             var url = $"municipios?nome={encodedName}";
 
-            logger.LogDebug("Buscando município {CityName} na API IBGE", cityName);
+            logger.LogDebug("Buscando município {CityName} na API IBGE", normalizedCity);
 
             var response = await httpClient.GetAsync(url, cancellationToken);
 

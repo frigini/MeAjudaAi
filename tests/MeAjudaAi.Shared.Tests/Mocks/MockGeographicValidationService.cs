@@ -8,6 +8,7 @@ namespace MeAjudaAi.Shared.Tests.Mocks;
 /// </summary>
 public class MockGeographicValidationService : IGeographicValidationService
 {
+    private static readonly string[] DefaultCities = { "Muriaé", "Itaperuna", "Linhares" };
     private readonly HashSet<string> _allowedCities;
 
     /// <summary>
@@ -15,12 +16,7 @@ public class MockGeographicValidationService : IGeographicValidationService
     /// </summary>
     public MockGeographicValidationService()
     {
-        _allowedCities = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "Muriaé",
-            "Itaperuna",
-            "Linhares"
-        };
+        _allowedCities = new HashSet<string>(DefaultCities, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -36,6 +32,10 @@ public class MockGeographicValidationService : IGeographicValidationService
     /// Simplified implementation for testing - does not call IBGE API.
     /// Supports both "City|State" and plain "City" formats in allowed cities list.
     /// </summary>
+    /// <param name="cityName">Name of the city to validate.</param>
+    /// <param name="stateSigla">Optional state abbreviation (e.g., "MG", "RJ").</param>
+    /// <param name="allowedCities">List of allowed cities. If null, uses instance defaults. If empty, blocks all.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     public Task<bool> ValidateCityAsync(
         string cityName,
         string? stateSigla,
@@ -46,7 +46,9 @@ public class MockGeographicValidationService : IGeographicValidationService
             return Task.FromResult(false);
 
         // Use provided allowed cities or fall back to instance list
-        var citiesToCheck = allowedCities?.Any() == true ? allowedCities : _allowedCities;
+        // null = use defaults, empty = block all
+        var citiesToCheck = allowedCities == null ? _allowedCities :
+                           allowedCities.Any() ? allowedCities : [];
 
         // Check if city is allowed - supports "City|State" and "City" formats
         var isAllowed = citiesToCheck.Any(allowedEntry =>
@@ -99,8 +101,9 @@ public class MockGeographicValidationService : IGeographicValidationService
     public void Reset()
     {
         _allowedCities.Clear();
-        _allowedCities.Add("Muriaé");
-        _allowedCities.Add("Itaperuna");
-        _allowedCities.Add("Linhares");
+        foreach (var city in DefaultCities)
+        {
+            _allowedCities.Add(city);
+        }
     }
 }

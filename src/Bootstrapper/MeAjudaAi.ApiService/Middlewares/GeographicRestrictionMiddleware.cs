@@ -194,6 +194,12 @@ public class GeographicRestrictionMiddleware(
         // Suporta tanto formato "City|State" quanto apenas nome da cidade
         if (!string.IsNullOrEmpty(city))
         {
+            if (_options.AllowedCities == null)
+            {
+                logger.LogWarning("Geographic restriction enabled but AllowedCities is null - failing open");
+                return true; // Fail-open when misconfigured
+            }
+
             foreach (var allowedCity in _options.AllowedCities)
             {
                 var parts = allowedCity.Split('|');
@@ -244,6 +250,12 @@ public class GeographicRestrictionMiddleware(
         // Se temos apenas estado (sem cidade), validar contra lista de estados permitidos
         if (!string.IsNullOrEmpty(state))
         {
+            if (_options.AllowedStates == null)
+            {
+                logger.LogWarning("Geographic restriction enabled but AllowedStates is null - failing open");
+                return true; // Fail-open when misconfigured
+            }
+
             return _options.AllowedStates.Any(s => s.Equals(state, StringComparison.OrdinalIgnoreCase));
         }
 
