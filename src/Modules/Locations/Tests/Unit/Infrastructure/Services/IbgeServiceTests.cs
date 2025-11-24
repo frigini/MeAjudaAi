@@ -316,6 +316,7 @@ public sealed class IbgeServiceTests
                             "MG" => 31,
                             "RJ" => 33,
                             "ES" => 32,
+                            "SP" => 35,
                             _ => throw new ArgumentException($"UF não suportada: {ufSigla}")
                         },
                         Sigla = ufSigla,
@@ -324,6 +325,7 @@ public sealed class IbgeServiceTests
                             "MG" => "Minas Gerais",
                             "RJ" => "Rio de Janeiro",
                             "ES" => "Espírito Santo",
+                            "SP" => "São Paulo",
                             _ => ufSigla
                         },
                         Regiao = new Regiao

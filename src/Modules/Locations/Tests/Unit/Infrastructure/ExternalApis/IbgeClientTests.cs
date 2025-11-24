@@ -47,10 +47,10 @@ public sealed class IbgeClientTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        // A URI pode estar decoded ou encoded dependendo do HttpClient, então validamos que contém a query string
+        // IbgeClient uses lowercase for API queries
         var uriString = _mockHandler.LastRequestUri!.ToString();
         uriString.Should().Contain("municipios?nome=");
-        uriString.Should().Contain(input); // A query string estará decodificada na URI
+        uriString.Should().Contain(input.ToLowerInvariant()); // Query string is lowercase
     }
 
     [Fact]
@@ -83,29 +83,30 @@ public sealed class IbgeClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetMunicipioByNameAsync_WhenApiReturnsError_ShouldReturnNull()
+    public async Task GetMunicipioByNameAsync_WhenApiReturnsError_ShouldThrowHttpRequestException()
     {
         // Arrange
         _mockHandler.SetResponse(HttpStatusCode.NotFound, "");
 
         // Act
-        var result = await _client.GetMunicipioByNameAsync("Muriaé");
+        var act = async () => await _client.GetMunicipioByNameAsync("Muriaé");
 
         // Assert
-        result.Should().BeNull();
+        await act.Should().ThrowAsync<HttpRequestException>();
     }
 
     [Fact]
-    public async Task GetMunicipioByNameAsync_WhenApiThrowsException_ShouldReturnNull()
+    public async Task GetMunicipioByNameAsync_WhenApiThrowsException_ShouldPropagateException()
     {
         // Arrange
         _mockHandler.SetException(new HttpRequestException("Network error"));
 
         // Act
-        var result = await _client.GetMunicipioByNameAsync("Muriaé");
+        var act = async () => await _client.GetMunicipioByNameAsync("Muriaé");
 
         // Assert
-        result.Should().BeNull();
+        await act.Should().ThrowAsync<HttpRequestException>()
+            .WithMessage("Network error");
     }
 
     [Theory]
