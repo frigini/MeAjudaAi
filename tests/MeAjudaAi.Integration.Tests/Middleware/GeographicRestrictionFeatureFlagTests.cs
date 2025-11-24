@@ -51,6 +51,9 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
 
             response.StatusCode.Should().Be(HttpStatusCode.OK,
                 $"{city}/{state} should be allowed when it's in the configured list");
+            
+            // Add small delay to avoid potential rate limiting or connection pooling issues
+            await Task.Delay(100);
         }
 
         // Act & Assert - Blocked cities should be denied
@@ -69,6 +72,9 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
 
             response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
                 $"{city}/{state} should be blocked when not in the configured list");
+            
+            // Add small delay to avoid potential rate limiting or connection pooling issues
+            await Task.Delay(100);
         }
     }
 

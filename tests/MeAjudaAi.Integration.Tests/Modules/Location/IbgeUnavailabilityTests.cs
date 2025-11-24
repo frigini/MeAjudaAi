@@ -107,10 +107,11 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
         var response = await Client.GetAsync("/api/v1/users");
 
         // Assert - Should deny access because city is not in allowed list (451 UnavailableForLegalReasons)
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.UnavailableForLegalReasons);
+        var content = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.UnavailableForLegalReasons,
+            $"Expected 451 but got {(int)response.StatusCode}. Response body: {content}");
 
         // Verify error payload structure
-        var content = await response.Content.ReadAsStringAsync();
         var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
 
         json.GetProperty("error").GetString().Should().Be("geographic_restriction");
