@@ -55,31 +55,112 @@ The connection strings in these files use **test-only, localhost credentials**:
 
 ## External API Mocking
 
-### Current State (TODO)
+### WireMock.Net Infrastructure
 
-Currently, `appsettings.Testing.json` points to **real external services**:
+The test suite uses **WireMock.Net** to mock external HTTP APIs, eliminating network dependencies.
 
-```json
-"ViaCep": { "BaseUrl": "https://viacep.com.br" },
-"IBGE": { "BaseUrl": "https://servicodados.ibge.gov.br/api/v1/localidades/" }
+**WireMockFixture** (`Infrastructure/WireMockFixture.cs`):
+- HTTP server running on **localhost:5050**
+- Comprehensive API stubs for all external services
+- Automatic lifecycle management (`IAsyncDisposable`)
+- Console logging for debugging
+
+**Configured Mock Endpoints:**
+
+1. **IBGE Localidades API** (`/api/v1/localidades/municipios`)
+   - Successful lookups: Muriaé (3143906), Itaperuna (3302205), Linhares (3203205)
+   - Unknown cities: Empty array response
+   - Error scenarios: 500 errors, timeouts (30s delay), malformed JSON
+   - Query parameters: `?nome={cityName}&orderBy=nome`
+
+2. **ViaCep API** (`/ws/{cep}/json`)
+   - CEP 01310-100: Avenida Paulista, São Paulo/SP
+   - Invalid CEPs: `{"erro": true}` response
+
+3. **BrasilApi CEP** (`/api/cep/v1/{cep}`)
+   - CEP 01310-100: Structured JSON response with state/city/street
+
+4. **OpenCep API** (`/{cep}.json`)
+   - CEP 01310-100: Full address with IBGE code
+
+5. **Nominatim Geocoding** (`/reverse?lat={lat}&lon={lon}&format=json`)
+   - São Paulo coordinates (-23.5505, -46.6333)
+
+### Using WireMock in Tests
+
+```csharp
+[Collection("Integration")]
+public class MyTests : ApiTestBase, IAsyncLifetime
+{
+    private WireMockFixture? _wireMock;
+
+    public new async ValueTask InitializeAsync()
+    {
+        await base.InitializeAsync();
+        _wireMock = new WireMockFixture();
+        await _wireMock.StartAsync();
+    }
+
+    [Fact]
+    public async Task Test_WithMockedIbge()
+    {
+        // WireMock server is ready at localhost:5050
+        // All configured stubs are available
+        Client.DefaultRequestHeaders.Add("X-User-Location", "Muriaé|MG");
+        var response = await Client.GetAsync("/api/v1/users");
+        response.Should().BeSuccessful();
+    }
+
+    public new async ValueTask DisposeAsync()
+    {
+        if (_wireMock is not null)
+            await _wireMock.DisposeAsync();
+        await base.DisposeAsync();
+    }
+}
 ```
 
-This causes integration tests to make actual network calls, which is not ideal for CI/CD.
+### IBGE Unavailability Tests
 
-### Future Implementation (Recommended)
+`IbgeUnavailabilityTests.cs` validates resilient fallback behavior:
 
-Tests should use mocked endpoints to avoid external dependencies:
+✅ **500 Error Fallback** - Falls back to simple city/state name validation  
+✅ **Timeout Fallback** - Handles 30-second timeout gracefully  
+✅ **Malformed JSON Fallback** - Handles invalid JSON responses  
+✅ **Empty Array Fallback** - Handles "city not found" responses  
+✅ **Fail-Closed Security** - Denies unauthorized cities even when IBGE down  
+
+### Configuration
+
+Update `appsettings.Testing.json` to use WireMock:
 
 ```json
-"ViaCep": { "BaseUrl": "http://localhost:5050/viacep" },
-"IBGE": { "BaseUrl": "http://localhost:5050/ibge/" }
+"ViaCep": { "BaseUrl": "http://localhost:5050" },
+"IBGE": { "BaseUrl": "http://localhost:5050/api/v1/localidades/" },
+"BrasilApi": { "BaseUrl": "http://localhost:5050" },
+"OpenCep": { "BaseUrl": "http://localhost:5050" },
+"Nominatim": { "BaseUrl": "http://localhost:5050" }
 ```
 
-**Implementation Options:**
+### Troubleshooting
 
-1. **WireMock.Net** - Start a mock HTTP server in test setup
-2. **HttpMessageHandler mocking** - Inject test doubles for HttpClient
-3. **Test containers** - Spin up containerized mock services
+**Port 5050 already in use:**
+```powershell
+# Find process using port 5050
+netstat -ano | findstr :5050
+# Kill the process
+taskkill /PID <process_id> /F
+```
+
+**WireMock not responding:**
+- Check WireMock console logs for startup errors
+- Verify `_wireMock.StartAsync()` is called in `InitializeAsync()`
+- Ensure `DisposeAsync()` is properly called to cleanup
+
+**Stub not matching:**
+- WireMock matches exact paths and query parameters
+- Check case sensitivity in paths
+- Verify query parameter order doesn't matter (WireMock ignores order)
 
 ## Running Tests
 
