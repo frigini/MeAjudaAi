@@ -42,7 +42,11 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogWarning("IBGE retornou status {StatusCode} para município {CityName}", response.StatusCode, cityName);
-                return null;
+                
+                // Throw exception for HTTP errors to enable middleware fallback to simple validation
+                // This ensures fail-open behavior when IBGE service is unavailable
+                throw new HttpRequestException(
+                    $"IBGE API returned {response.StatusCode} for municipality {cityName}");
             }
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -74,10 +78,23 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
 
             return match;
         }
+        catch (HttpRequestException ex)
+        {
+            // Re-throw HTTP exceptions (500, timeout, etc) to enable middleware fallback
+            logger.LogError(ex, "HTTP error querying IBGE for municipality {CityName}", cityName);
+            throw;
+        }
+        catch (TaskCanceledException ex)
+        {
+            // Re-throw timeout exceptions to enable middleware fallback
+            logger.LogError(ex, "Timeout querying IBGE for municipality {CityName}", cityName);
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao consultar IBGE para município {CityName}", cityName);
-            return null;
+            // For other exceptions (JSON parsing, etc), re-throw to enable fallback
+            logger.LogError(ex, "Unexpected error querying IBGE for municipality {CityName}", cityName);
+            throw;
         }
     }
 
