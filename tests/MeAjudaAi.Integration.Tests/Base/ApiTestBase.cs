@@ -50,7 +50,7 @@ public abstract class ApiTestBase : IAsyncLifetime
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
-                
+
                 builder.ConfigureServices(services =>
                 {
                     // Substitui banco de dados por container de teste - Remove todos os serviços relacionados ao DbContext
