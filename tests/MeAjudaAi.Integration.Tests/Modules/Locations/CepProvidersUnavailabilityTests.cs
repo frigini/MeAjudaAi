@@ -19,10 +19,13 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
     [Fact]
     public async Task LookupCep_WhenViaCepReturns500_ShouldFallbackToBrasilApi()
     {
-        // Arrange - ViaCEP fails with 500
+        // Arrange - Use unique CEP to avoid conflicts with default stubs
+        var uniqueCep = "23456789";
+
+        // ViaCEP fails with 500
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/01310100/json/")
+                .WithPath($"/ws/{uniqueCep}/json/")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500)
@@ -31,14 +34,14 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // BrasilAPI succeeds
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v2/01310100")
+                .WithPath($"/api/cep/v2/{uniqueCep}")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
-                .WithBody("""
+                .WithBody($$"""
                     {
-                        "cep": "01310100",
+                        "cep": "{{uniqueCep}}",
                         "state": "SP",
                         "city": "São Paulo",
                         "neighborhood": "Bela Vista",
@@ -49,7 +52,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         var locationApi = Services.GetRequiredService<ILocationModuleApi>();
 
         // Act
-        var result = await locationApi.GetAddressFromCepAsync("01310100");
+        var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
         // Assert - Should succeed via BrasilAPI fallback
         result.IsSuccess.Should().BeTrue();
@@ -61,10 +64,13 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
     [Fact]
     public async Task LookupCep_WhenViaCepAndBrasilApiReturnInvalidJson_ShouldFallbackToOpenCep()
     {
-        // Arrange - ViaCEP returns invalid/empty JSON (200 with "{}" triggers deserialization failure)
+        // Arrange - Use unique CEP to avoid conflicts with default stubs
+        var uniqueCep = "34567890";
+
+        // ViaCEP returns invalid/empty JSON (200 with "{}" triggers deserialization failure)
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/01310100/json/")
+                .WithPath($"/ws/{uniqueCep}/json/")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -74,7 +80,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // BrasilAPI returns invalid/empty JSON (200 with "{}" triggers deserialization failure)
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v2/01310100")
+                .WithPath($"/api/cep/v2/{uniqueCep}")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -84,14 +90,14 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // OpenCEP succeeds
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/v1/01310100")
+                .WithPath($"/v1/{uniqueCep}")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
-                .WithBody("""
+                .WithBody($$"""
                     {
-                        "cep": "01310-100",
+                        "cep": "{{uniqueCep}}",
                         "logradouro": "Avenida Paulista",
                         "bairro": "Bela Vista",
                         "localidade": "São Paulo",
@@ -103,7 +109,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         var locationApi = Services.GetRequiredService<ILocationModuleApi>();
 
         // Act
-        var result = await locationApi.GetAddressFromCepAsync("01310100");
+        var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
         // Assert - Should succeed via OpenCEP fallback
         result.IsSuccess.Should().BeTrue();
@@ -234,24 +240,27 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
     [Fact(Skip = "Caching is disabled in integration tests (Caching:Enabled = false). This test cannot validate cache behavior without enabling caching infrastructure.")]
     public async Task LookupCep_WhenBrasilApiSucceedsButViaCepDown_ShouldUseCache()
     {
-        // Arrange - First call: ViaCEP down, BrasilAPI succeeds
+        // Arrange - Use unique CEP to avoid conflicts with default stubs
+        var uniqueCep = "45678901";
+
+        // First call: ViaCEP down, BrasilAPI succeeds
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/01310100/json/")
+                .WithPath($"/ws/{uniqueCep}/json/")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v2/01310100")
+                .WithPath($"/api/cep/v2/{uniqueCep}")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
-                .WithBody("""
+                .WithBody($$"""
                     {
-                        "cep": "01310100",
+                        "cep": "{{uniqueCep}}",
                         "state": "SP",
                         "city": "São Paulo",
                         "neighborhood": "Bela Vista",
@@ -262,7 +271,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         var locationApi = Services.GetRequiredService<ILocationModuleApi>();
 
         // Act - First call (cache miss)
-        var result1 = await locationApi.GetAddressFromCepAsync("01310100");
+        var result1 = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
         // Get request count before second call
         var requestCountBefore = WireMock.Server.LogEntries.Count();
@@ -270,7 +279,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Act - Second call (should use cache, no HTTP requests)
         // Note: We don't reconfigure stubs here to avoid WireMock mapping conflicts.
         // Cache behavior is validated by verifying no new HTTP requests were made.
-        var result2 = await locationApi.GetAddressFromCepAsync("01310100");
+        var result2 = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
         // Get request count after second call
         var requestCountAfter = WireMock.Server.LogEntries.Count();
