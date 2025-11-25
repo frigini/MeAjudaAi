@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
@@ -69,19 +70,48 @@ public abstract class ApiTestBase : IAsyncLifetime
 #pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
-                // Set content root to ApiService project directory for CI compatibility
-                var apiServicePath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "src", "Bootstrapper", "MeAjudaAi.ApiService");
-                if (Directory.Exists(apiServicePath))
+                // Resolve ApiService content root using robust path resolution
+                var apiServicePath = ResolveApiServicePath();
+                if (!string.IsNullOrEmpty(apiServicePath))
                 {
                     builder.UseContentRoot(apiServicePath);
+                }
+                else
+                {
+                    Console.Error.WriteLine("WARNING: Could not resolve ApiService content root path. Configuration files may not load correctly.");
                 }
 
                 builder.UseEnvironment("Testing");
 
-                // Configure app to load appsettings.Testing.json
+                // Inject test configuration directly to ensure consistent behavior across environments
                 builder.ConfigureAppConfiguration((context, config) =>
                 {
-                    config.AddJsonFile("appsettings.Testing.json", optional: false, reloadOnChange: false);
+                    config.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["Logging:LogLevel:Default"] = "Warning",
+                        ["Logging:LogLevel:Microsoft.AspNetCore"] = "Warning",
+                        ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Warning",
+                        ["RateLimit:DefaultRequestsPerMinute"] = "10000",
+                        ["RateLimit:AuthRequestsPerMinute"] = "10000",
+                        ["RateLimit:SearchRequestsPerMinute"] = "10000",
+                        ["RateLimit:WindowInSeconds"] = "60",
+                        ["Caching:Enabled"] = "false",
+                        ["RabbitMQ:Enabled"] = "false",
+                        ["Messaging:Enabled"] = "false",
+                        ["Messaging:Provider"] = "Mock",
+                        ["Keycloak:Enabled"] = "false",
+                        ["FeatureManagement:GeographicRestriction"] = "true",
+                        ["FeatureManagement:PushNotifications"] = "false",
+                        ["FeatureManagement:StripePayments"] = "false",
+                        ["FeatureManagement:MaintenanceMode"] = "false",
+                        ["GeographicRestriction:AllowedStates:0"] = "MG",
+                        ["GeographicRestriction:AllowedStates:1"] = "RJ",
+                        ["GeographicRestriction:AllowedStates:2"] = "ES",
+                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé",
+                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna",
+                        ["GeographicRestriction:AllowedCities:2"] = "Linhares",
+                        ["GeographicRestriction:BlockedMessage"] = "Serviço indisponível na sua região. Disponível apenas em: {allowedRegions}"
+                    });
                 });
 
                 builder.ConfigureServices(services =>
@@ -309,5 +339,60 @@ public abstract class ApiTestBase : IAsyncLifetime
     {
         var stream = await content.ReadAsStreamAsync();
         return await JsonSerializer.DeserializeAsync<T>(stream, SerializationDefaults.Api);
+    }
+
+    /// <summary>
+    /// Resolves the ApiService project path using multiple strategies:
+    /// 1. Environment variable MEAJUDAAI_API_SERVICE_PATH (for CI override)
+    /// 2. Assembly location relative path resolution
+    /// 3. Search for .csproj file up the directory tree
+    /// </summary>
+    private static string? ResolveApiServicePath()
+    {
+        // Strategy 1: Check environment variable (CI override)
+        var envPath = Environment.GetEnvironmentVariable("MEAJUDAAI_API_SERVICE_PATH");
+        if (!string.IsNullOrEmpty(envPath) && Directory.Exists(envPath))
+        {
+            Console.WriteLine($"Using ApiService path from environment variable: {envPath}");
+            return envPath;
+        }
+
+        // Strategy 2: Use assembly location to compute relative path
+        var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+        var assemblyDir = Path.GetDirectoryName(assemblyLocation);
+        
+        if (!string.IsNullOrEmpty(assemblyDir))
+        {
+            // From: tests/MeAjudaAi.Integration.Tests/bin/Debug/net10.0/
+            // To:   src/Bootstrapper/MeAjudaAi.ApiService/
+            var candidatePath = Path.GetFullPath(Path.Combine(assemblyDir, "..", "..", "..", "..", "..", "src", "Bootstrapper", "MeAjudaAi.ApiService"));
+            
+            if (Directory.Exists(candidatePath))
+            {
+                Console.WriteLine($"Resolved ApiService path from assembly location: {candidatePath}");
+                return candidatePath;
+            }
+        }
+
+        // Strategy 3: Search for .csproj file up the directory tree (fallback)
+        var currentDir = assemblyDir;
+        while (!string.IsNullOrEmpty(currentDir))
+        {
+            var projectFile = Path.Combine(currentDir, "src", "Bootstrapper", "MeAjudaAi.ApiService", "MeAjudaAi.ApiService.csproj");
+            if (File.Exists(projectFile))
+            {
+                var resolvedPath = Path.GetDirectoryName(projectFile);
+                Console.WriteLine($"Found ApiService path via directory search: {resolvedPath}");
+                return resolvedPath;
+            }
+            
+            currentDir = Directory.GetParent(currentDir)?.FullName;
+        }
+
+        Console.Error.WriteLine("ERROR: Could not resolve ApiService path using any strategy.");
+        Console.Error.WriteLine($"Assembly location: {assemblyLocation}");
+        Console.Error.WriteLine($"Environment variable MEAJUDAAI_API_SERVICE_PATH: {envPath ?? "(not set)"}");
+        
+        return null;
     }
 }

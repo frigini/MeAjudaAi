@@ -18,14 +18,22 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
-        Client.DefaultRequestHeaders.Add("X-User-Location", "São Paulo|SP"); // Blocked city
 
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers");
+        try
+        {
+            Client.DefaultRequestHeaders.Add("X-User-Location", "São Paulo|SP"); // Blocked city
 
-        // Assert - Feature enabled: should block unauthorized locations
-        response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
-            "Geographic restriction should block São Paulo when feature is enabled");
+            // Act
+            var response = await Client.GetAsync("/api/v1/providers");
+
+            // Assert - Feature enabled: should block unauthorized locations
+            response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
+                "Geographic restriction should block São Paulo when feature is enabled");
+        }
+        finally
+        {
+            Client.DefaultRequestHeaders.Remove("X-User-Location");
+        }
     }
 
     [Fact(Skip = "Intermittent 429 TooManyRequests in CI due to rapid sequential requests. Individual city tests pass. Functionality validated by other tests.")]
@@ -34,47 +42,54 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
         // Arrange
         AuthConfig.ConfigureAdmin();
 
-        // Act & Assert - Allowed cities should work
-        var allowedCities = new[]
+        try
         {
-            ("Muriaé", "MG"),
-            ("Itaperuna", "RJ"),
-            ("Linhares", "ES")
-        };
+            // Act & Assert - Allowed cities should work
+            var allowedCities = new[]
+            {
+                ("Muriaé", "MG"),
+                ("Itaperuna", "RJ"),
+                ("Linhares", "ES")
+            };
 
-        foreach (var (city, state) in allowedCities)
-        {
-            Client.DefaultRequestHeaders.Remove("X-User-Location");
-            Client.DefaultRequestHeaders.Add("X-User-Location", $"{city}|{state}");
+            foreach (var (city, state) in allowedCities)
+            {
+                Client.DefaultRequestHeaders.Remove("X-User-Location");
+                Client.DefaultRequestHeaders.Add("X-User-Location", $"{city}|{state}");
 
-            var response = await Client.GetAsync("/api/v1/providers");
+                var response = await Client.GetAsync("/api/v1/providers");
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK,
-                $"{city}/{state} should be allowed when it's in the configured list");
+                response.StatusCode.Should().Be(HttpStatusCode.OK,
+                    $"{city}/{state} should be allowed when it's in the configured list");
 
-            // Add delay to avoid rate limiting or connection pooling issues
-            await Task.Delay(500);
+                // Add delay to avoid rate limiting or connection pooling issues
+                await Task.Delay(500);
+            }
+
+            // Act & Assert - Blocked cities should be denied
+            var blockedCities = new[]
+            {
+                ("São Paulo", "SP"),
+                ("Rio de Janeiro", "RJ")
+            };
+
+            foreach (var (city, state) in blockedCities)
+            {
+                Client.DefaultRequestHeaders.Remove("X-User-Location");
+                Client.DefaultRequestHeaders.Add("X-User-Location", $"{city}|{state}");
+
+                var response = await Client.GetAsync("/api/v1/providers");
+
+                response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
+                    $"{city}/{state} should be blocked when not in the configured list");
+
+                // Add delay to avoid rate limiting or connection pooling issues
+                await Task.Delay(500);
+            }
         }
-
-        // Act & Assert - Blocked cities should be denied
-        var blockedCities = new[]
-        {
-            ("São Paulo", "SP"),
-            ("Rio de Janeiro", "RJ")
-        };
-
-        foreach (var (city, state) in blockedCities)
+        finally
         {
             Client.DefaultRequestHeaders.Remove("X-User-Location");
-            Client.DefaultRequestHeaders.Add("X-User-Location", $"{city}|{state}");
-
-            var response = await Client.GetAsync("/api/v1/providers");
-
-            response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
-                $"{city}/{state} should be blocked when not in the configured list");
-
-            // Add delay to avoid rate limiting or connection pooling issues
-            await Task.Delay(500);
         }
     }
 
@@ -86,6 +101,9 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
 
         try
         {
+            // Ensure no stale header from previous tests
+            Client.DefaultRequestHeaders.Remove("X-User-Location");
+
             // Act - Send request without location header
             var responseWithoutHeader = await Client.GetAsync("/api/v1/providers");
 
