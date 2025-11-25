@@ -84,18 +84,26 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
         // Arrange
         AuthConfig.ConfigureAdmin();
 
-        // Act - Send request without location header
-        var responseWithoutHeader = await Client.GetAsync("/api/v1/providers");
+        try
+        {
+            // Act - Send request without location header
+            var responseWithoutHeader = await Client.GetAsync("/api/v1/providers");
 
-        // Send request with malformed location header  
-        Client.DefaultRequestHeaders.Add("X-User-Location", "InvalidFormat");
-        var responseWithMalformedHeader = await Client.GetAsync("/api/v1/providers");
+            // Send request with malformed location header  
+            Client.DefaultRequestHeaders.Add("X-User-Location", "InvalidFormat");
+            var responseWithMalformedHeader = await Client.GetAsync("/api/v1/providers");
 
-        // Assert - Should allow when location cannot be determined (fail-open)
-        responseWithoutHeader.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
-            "Missing location header should fail-open (allow access)");
+            // Assert - Should allow when location cannot be determined (fail-open)
+            responseWithoutHeader.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
+                "Missing location header should fail-open (allow access)");
 
-        responseWithMalformedHeader.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
-            "Malformed location header should fail-open (allow access)");
+            responseWithMalformedHeader.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
+                "Malformed location header should fail-open (allow access)");
+        }
+        finally
+        {
+            // Clean up header to avoid leaking into other tests
+            Client.DefaultRequestHeaders.Remove("X-User-Location");
+        }
     }
 }

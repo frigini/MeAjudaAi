@@ -287,7 +287,6 @@ public class GeographicRestrictionMiddlewareTests
         var mock = new Mock<IOptionsMonitor<GeographicRestrictionOptions>>();
         mock.Setup(m => m.CurrentValue).Returns(new GeographicRestrictionOptions
         {
-
             AllowedStates = ["MG", "RJ", "ES"],
             AllowedCities = ["Muriaé", "Itaperuna", "Linhares"],
             BlockedMessage = "Serviço indisponível na sua região. Disponível apenas em: {allowedRegions}"
