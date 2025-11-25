@@ -35,13 +35,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
     protected static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
 
-    // Configure authentication handler for CI/CD environment
-    static TestContainerTestBase()
-    {
-        // In CI/CD, Keycloak is not available, so we allow the test authentication handler
-        // to auto-configure admin credentials when no explicit configuration is set
-        ConfigurableTestAuthenticationHandler.SetAllowUnauthenticated(true);
-    }
+    // Note: Removed static constructor with SetAllowUnauthenticated(true)
+    // Tests must now explicitly configure authentication via AuthenticateAsAdmin(), AuthenticateAsUser(), etc.
+    // This prevents race conditions where tests expect specific permissions but get admin access instead
 
     public virtual async ValueTask InitializeAsync()
     {

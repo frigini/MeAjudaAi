@@ -23,16 +23,19 @@ public class ConfigurableTestAuthenticationHandler(
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        // Se não há configuração e não permitimos usuários não autenticados, falha a autenticação
+        // Authentication must be explicitly configured via ConfigureUser/ConfigureAdmin/etc.
+        // No auto-configuration - this prevents race conditions in tests
         if (_currentConfigKey == null || !_userConfigs.TryGetValue(_currentConfigKey, out _))
         {
-            if (!_allowUnauthenticated)
+            // If allowUnauthenticated is true, succeed with no claims (anonymous user)
+            // Otherwise fail authentication
+            if (_allowUnauthenticated)
             {
-                return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
+                // Return success with minimal anonymous claims
+                return Task.FromResult(CreateSuccessResult());
             }
 
-            // Auto-configure como admin se não há configuração e permitimos usuários não autenticados
-            ConfigureAdmin();
+            return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
         }
 
         return Task.FromResult(CreateSuccessResult());

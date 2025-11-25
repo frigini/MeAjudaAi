@@ -41,10 +41,11 @@ public class ApiVersioningTests : TestContainerTestBase
         }
     }
 
-    [Fact(Skip = "AUTH: SetAllowUnauthenticated(true) causes inconsistent auth behavior. Test expects OK/401/400 but gets 403 Forbidden. Requires ConfigurableTestAuthenticationHandler refactor (same as PermissionAuthorizationE2ETests).")]
+    [Fact]
     public async Task ApiVersioning_ShouldWork_ForDifferentModules()
     {
-        // Arrange & Act - Testa se o versionamento funciona para qualquer padrão de módulo
+        // Arrange
+        AuthenticateAsAdmin(); // Ensure authenticated for API access & Act - Testa se o versionamento funciona para qualquer padrão de módulo
         var responses = new[]
         {
             await ApiClient.GetAsync("/api/v1/users"),
