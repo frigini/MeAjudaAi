@@ -2,7 +2,7 @@ using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Caching;
-using MeAjudaAi.Shared.Contracts.Modules.Location;
+using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Tests.Mocks;
 using MeAjudaAi.Shared.Tests.Mocks.Http;
 using MeAjudaAi.Shared.Time;
@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace MeAjudaAi.Integration.Tests.Modules.Location;
+namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
 /// <summary>
 /// Testes de integração para o serviço de lookup de CEP com mock HTTP handlers.

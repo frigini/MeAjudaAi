@@ -105,9 +105,9 @@ public class UsersApiTests : ApiTestBase
 
 **Modules with Only E2E Tests**:
 - ✅ Documents (simpler infrastructure, no complex repositories)
-- ✅ Location (service-level integration tests with mocked HTTP clients for external APIs - CEP lookup and geocoding)
+- ✅ Locations (service-level integration tests with mocked HTTP clients for external APIs - CEP lookup and geocoding)
 
-**Note on Location Module**: While Location has no E2E tests (no HTTP endpoints), it has module-level integration tests in `tests/MeAjudaAi.Integration.Tests/Modules/Location/` that:
+**Note on Locations Module**: While Locations has no E2E tests (no HTTP endpoints), it has module-level integration tests in `tests/MeAjudaAi.Integration.Tests/Modules/Locations/` that:
 - Use dependency injection to wire up real services
 - Mock external HTTP APIs (ViaCep, BrasilApi, OpenCep, Nominatim)
 - Test caching behavior with HybridCache

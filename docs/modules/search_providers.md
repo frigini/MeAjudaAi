@@ -18,7 +18,7 @@ O módulo SearchProviders implementa um **read model otimizado** para buscas geo
 
 ### **Estrutura de Pastas**
 ```text
-src/Modules/Search/
+src/Modules/SearchProviders/
 ├── API/                           # Camada de apresentação (endpoints)
 │   └── Endpoints/                 # Minimal APIs
 │       └── SearchProvidersEndpoint.cs
@@ -105,7 +105,7 @@ cd src\Aspire\MeAjudaAi.AppHost
 dotnet run
 
 # Ou aplicar manualmente
-cd src\Modules\Search\Infrastructure
+cd src\Modules\SearchProviders\Infrastructure
 dotnet ef database update --startup-project ..\..\..\..\Bootstrapper\MeAjudaAi.ApiService
 
 # Criar nova migração (se necessário)
@@ -404,14 +404,14 @@ Tests/
 ```powershell
 ```powershell
 # Todos os testes do módulo SearchProviders
-dotnet test src\Modules\Search\Tests\
-dotnet test src\Modules\Search\Tests\
+dotnet test src\Modules\SearchProviders\Tests\
+dotnet test src\Modules\SearchProviders\Tests\
 
 # Apenas testes unitários
-dotnet test src\Modules\Search\Tests\ --filter "Category=Unit"
+dotnet test src\Modules\SearchProviders\Tests\ --filter "Category=Unit"
 
 # Apenas testes de integração (requer Docker)
-dotnet test src\Modules\Search\Tests\ --filter "Category=Integration"
+dotnet test src\Modules\SearchProviders\Tests\ --filter "Category=Integration"
 ```
 
 ### **Testes de Integração com Testcontainers**
@@ -478,7 +478,7 @@ WHERE ST_DWithin(location, ST_MakePoint(-46.6333, -23.5505)::geography, 10000);
 
 **Solução:**
 ```powershell
-cd src\Modules\Search\Infrastructure
+cd src\Modules\SearchProviders\Infrastructure
 dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite
 dotnet ef database update --startup-project ..\..\..\..\Bootstrapper\MeAjudaAi.ApiService
 ```

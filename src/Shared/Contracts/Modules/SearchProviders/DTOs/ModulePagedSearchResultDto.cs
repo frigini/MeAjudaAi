@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Contracts.Modules.Search.DTOs;
+namespace MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
 
 /// <summary>
 /// Paginated search result DTO for module API.

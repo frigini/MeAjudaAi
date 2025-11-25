@@ -1175,7 +1175,7 @@ public class CreateUserCommandHandler(IMessageBus messageBus, /* outras dependê
 **Exemplo de Código (Consumidor):**
 
 ```csharp
-// Local: C:\Code\MeAjudaAi\src\Modules\Search\Application\EventHandlers\UserRegisteredIntegrationEventHandler.cs
+// Local: C:\Code\MeAjudaAi\src\Modules\SearchProviders\Application\EventHandlers\UserRegisteredIntegrationEventHandler.cs
 
 // 1. Criar o handler
 public class UserRegisteredIntegrationEventHandler : IEventHandler<UserRegisteredIntegrationEvent>
@@ -1199,7 +1199,7 @@ public class UserRegisteredIntegrationEventHandler : IEventHandler<UserRegistere
     }
 }
 
-// Local: C:\Code\MeAjudaAi\src\Modules\Search\Infrastructure\Extensions.cs
+// Local: C:\Code\MeAjudaAi\src\Modules\SearchProviders\Infrastructure\Extensions.cs
 public static IServiceCollection AddSearchInfrastructure(this IServiceCollection services, IConfiguration configuration)
 {
     // ... outras configurações

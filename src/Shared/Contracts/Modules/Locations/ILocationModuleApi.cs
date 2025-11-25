@@ -1,10 +1,10 @@
-using MeAjudaAi.Shared.Contracts.Modules.Location.DTOs;
+using MeAjudaAi.Shared.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Shared.Functional;
 
-namespace MeAjudaAi.Shared.Contracts.Modules.Location;
+namespace MeAjudaAi.Shared.Contracts.Modules.Locations;
 
 /// <summary>
-/// API pública do módulo Location para consumo por outros módulos.
+/// API pública do módulo Locations para consumo por outros módulos.
 /// </summary>
 public interface ILocationModuleApi
 {

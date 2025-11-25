@@ -1,17 +1,22 @@
+using System.Reflection;
 using System.Text.Json;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests;
+using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
+using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.Mocks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -25,11 +30,29 @@ namespace MeAjudaAi.Integration.Tests.Base;
 public abstract class ApiTestBase : IAsyncLifetime
 {
     private SimpleDatabaseFixture? _databaseFixture;
+    private WireMockFixture? _wireMockFixture;
     private WebApplicationFactory<Program>? _factory;
 
     protected HttpClient Client { get; private set; } = null!;
     protected IServiceProvider Services => _factory!.Services;
     protected ITestAuthenticationConfiguration AuthConfig { get; private set; } = null!;
+    protected WireMockFixture WireMock => _wireMockFixture ?? throw new InvalidOperationException("WireMock not initialized");
+
+    /// <summary>
+    /// HTTP header name for user location (format: "City|State")
+    /// </summary>
+    protected const string UserLocationHeader = "X-User-Location";
+
+    /// <summary>
+    /// API endpoint for providers listing
+    /// </summary>
+    protected const string ProvidersEndpoint = "/api/v1/providers";
+
+    /// <summary>
+    /// Controls whether to use mock geographic validation service.
+    /// Set to false in IBGE-focused tests to use real service with WireMock.
+    /// </summary>
+    protected virtual bool UseMockGeographicValidation => true;
 
     public async ValueTask InitializeAsync()
     {
@@ -37,6 +60,18 @@ public abstract class ApiTestBase : IAsyncLifetime
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
+
+        // Inicializa WireMock antes da aplicação para que as URLs mockadas estejam disponíveis
+        _wireMockFixture = new WireMockFixture();
+        await _wireMockFixture.StartAsync();
+
+        // Configure environment variables with dynamic WireMock URLs
+        var wireMockUrl = _wireMockFixture.BaseUrl;
+        Environment.SetEnvironmentVariable("Locations__ExternalApis__ViaCep__BaseUrl", wireMockUrl);
+        Environment.SetEnvironmentVariable("Locations__ExternalApis__BrasilApi__BaseUrl", wireMockUrl);
+        Environment.SetEnvironmentVariable("Locations__ExternalApis__OpenCep__BaseUrl", wireMockUrl);
+        Environment.SetEnvironmentVariable("Locations__ExternalApis__Nominatim__BaseUrl", wireMockUrl);
+        Environment.SetEnvironmentVariable("Locations__ExternalApis__IBGE__BaseUrl", $"{wireMockUrl}/api/v1/localidades/");
 
         _databaseFixture = new SimpleDatabaseFixture();
         await _databaseFixture.InitializeAsync();
@@ -46,7 +81,50 @@ public abstract class ApiTestBase : IAsyncLifetime
 #pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
+                // Resolve ApiService content root using robust path resolution
+                var apiServicePath = ResolveApiServicePath();
+                if (!string.IsNullOrEmpty(apiServicePath))
+                {
+                    builder.UseContentRoot(apiServicePath);
+                }
+                else
+                {
+                    Console.Error.WriteLine("WARNING: Could not resolve ApiService content root path. Configuration files may not load correctly.");
+                }
+
                 builder.UseEnvironment("Testing");
+
+                // Inject test configuration directly to ensure consistent behavior across environments
+                builder.ConfigureAppConfiguration((context, config) =>
+                {
+                    config.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["Logging:LogLevel:Default"] = "Warning",
+                        ["Logging:LogLevel:Microsoft.AspNetCore"] = "Warning",
+                        ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Warning",
+                        ["RateLimit:DefaultRequestsPerMinute"] = "10000",
+                        ["RateLimit:AuthRequestsPerMinute"] = "10000",
+                        ["RateLimit:SearchRequestsPerMinute"] = "10000",
+                        ["RateLimit:WindowInSeconds"] = "60",
+                        ["Caching:Enabled"] = "false",
+                        ["RabbitMQ:Enabled"] = "false",
+                        ["Messaging:Enabled"] = "false",
+                        ["Messaging:Provider"] = "Mock",
+                        ["Keycloak:Enabled"] = "false",
+                        ["FeatureManagement:GeographicRestriction"] = "true",
+                        ["FeatureManagement:PushNotifications"] = "false",
+                        ["FeatureManagement:StripePayments"] = "false",
+                        ["FeatureManagement:MaintenanceMode"] = "false",
+                        ["GeographicRestriction:AllowedStates:0"] = "MG",
+                        ["GeographicRestriction:AllowedStates:1"] = "RJ",
+                        ["GeographicRestriction:AllowedStates:2"] = "ES",
+                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé",
+                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna",
+                        ["GeographicRestriction:AllowedCities:2"] = "Linhares",
+                        ["GeographicRestriction:BlockedMessage"] = "Serviço indisponível na sua região. Disponível apenas em: {allowedRegions}"
+                    });
+                });
+
                 builder.ConfigureServices(services =>
                 {
                     // Substitui banco de dados por container de teste - Remove todos os serviços relacionados ao DbContext
@@ -54,6 +132,9 @@ public abstract class ApiTestBase : IAsyncLifetime
                     RemoveDbContextRegistrations<ProvidersDbContext>(services);
                     RemoveDbContextRegistrations<DocumentsDbContext>(services);
                     RemoveDbContextRegistrations<ServiceCatalogsDbContext>(services);
+
+                    // Reconfigure CEP provider HttpClients to use WireMock
+                    ReconfigureCepProviderClients(services);
 
                     // Adiciona contextos de banco de dados para testes
                     services.AddDbContext<UsersDbContext>(options =>
@@ -107,6 +188,19 @@ public abstract class ApiTestBase : IAsyncLifetime
 
                     // Adiciona mocks de serviços para testes
                     services.AddDocumentsTestServices();
+
+                    // Conditionally replace geographic validation with mock
+                    // IBGE-focused tests can override UseMockGeographicValidation to use real service with WireMock
+                    if (UseMockGeographicValidation)
+                    {
+                        var geoValidationDescriptor = services.FirstOrDefault(d =>
+                            d.ServiceType == typeof(IGeographicValidationService));
+                        if (geoValidationDescriptor != null)
+                            services.Remove(geoValidationDescriptor);
+
+                        // Registra mock com cidades piloto padrão (Scoped para isolamento entre testes)
+                        services.AddScoped<IGeographicValidationService, MockGeographicValidationService>();
+                    }
 
                     // Adiciona autenticação de teste baseada em instância para evitar estado estático
                     services.RemoveRealAuthentication();
@@ -187,6 +281,8 @@ public abstract class ApiTestBase : IAsyncLifetime
         _factory?.Dispose();
         if (_databaseFixture != null)
             await _databaseFixture.DisposeAsync();
+        if (_wireMockFixture != null)
+            await _wireMockFixture.DisposeAsync();
     }
 
     /// <summary>
@@ -201,6 +297,39 @@ public abstract class ApiTestBase : IAsyncLifetime
         var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
         if (contextDescriptor != null)
             services.Remove(contextDescriptor);
+    }
+
+    /// <summary>
+    /// Reconfigura os HttpClients dos provedores de CEP para usar o WireMock ao invés das APIs reais.
+    /// </summary>
+    private void ReconfigureCepProviderClients(IServiceCollection services)
+    {
+        // Configure HttpClients to point to WireMock
+        // AddHttpClient will replace existing registrations if called again
+        services.AddHttpClient<ViaCepClient>(client =>
+        {
+            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
+        });
+
+        services.AddHttpClient<BrasilApiCepClient>(client =>
+        {
+            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
+        });
+
+        services.AddHttpClient<OpenCepClient>(client =>
+        {
+            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
+        });
+
+        services.AddHttpClient<IbgeClient>(client =>
+        {
+            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl + "/api/v1/localidades/");
+        });
+
+        services.AddHttpClient<NominatimClient>(client =>
+        {
+            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
+        });
     }
 
     /// <summary>
@@ -257,5 +386,60 @@ public abstract class ApiTestBase : IAsyncLifetime
     {
         var stream = await content.ReadAsStreamAsync();
         return await JsonSerializer.DeserializeAsync<T>(stream, SerializationDefaults.Api);
+    }
+
+    /// <summary>
+    /// Resolves the ApiService project path using multiple strategies:
+    /// 1. Environment variable MEAJUDAAI_API_SERVICE_PATH (for CI override)
+    /// 2. Assembly location relative path resolution
+    /// 3. Search for .csproj file up the directory tree
+    /// </summary>
+    private static string? ResolveApiServicePath()
+    {
+        // Strategy 1: Check environment variable (CI override)
+        var envPath = Environment.GetEnvironmentVariable("MEAJUDAAI_API_SERVICE_PATH");
+        if (!string.IsNullOrEmpty(envPath) && Directory.Exists(envPath))
+        {
+            Console.WriteLine($"Using ApiService path from environment variable: {envPath}");
+            return envPath;
+        }
+
+        // Strategy 2: Use assembly location to compute relative path
+        var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+        var assemblyDir = Path.GetDirectoryName(assemblyLocation);
+
+        if (!string.IsNullOrEmpty(assemblyDir))
+        {
+            // From: tests/MeAjudaAi.Integration.Tests/bin/Debug/net10.0/
+            // To:   src/Bootstrapper/MeAjudaAi.ApiService/
+            var candidatePath = Path.GetFullPath(Path.Combine(assemblyDir, "..", "..", "..", "..", "..", "src", "Bootstrapper", "MeAjudaAi.ApiService"));
+
+            if (Directory.Exists(candidatePath))
+            {
+                Console.WriteLine($"Resolved ApiService path from assembly location: {candidatePath}");
+                return candidatePath;
+            }
+        }
+
+        // Strategy 3: Search for .csproj file up the directory tree (fallback)
+        var currentDir = assemblyDir;
+        while (!string.IsNullOrEmpty(currentDir))
+        {
+            var projectFile = Path.Combine(currentDir, "src", "Bootstrapper", "MeAjudaAi.ApiService", "MeAjudaAi.ApiService.csproj");
+            if (File.Exists(projectFile))
+            {
+                var resolvedPath = Path.GetDirectoryName(projectFile);
+                Console.WriteLine($"Found ApiService path via directory search: {resolvedPath}");
+                return resolvedPath;
+            }
+
+            currentDir = Directory.GetParent(currentDir)?.FullName;
+        }
+
+        Console.Error.WriteLine("ERROR: Could not resolve ApiService path using any strategy.");
+        Console.Error.WriteLine($"Assembly location: {assemblyLocation}");
+        Console.Error.WriteLine($"Environment variable MEAJUDAAI_API_SERVICE_PATH: {envPath ?? "(not set)"}");
+
+        return null;
     }
 }

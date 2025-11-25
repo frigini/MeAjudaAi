@@ -121,6 +121,8 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0" />
+    <!-- Feature Management -->
+    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.3.0" />
     <!-- OpenTelemetry -->
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.4.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.14.0" />
@@ -167,6 +169,7 @@
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     <!-- Testing Framework -->
     <!-- Using xUnit v3 only -->
+    <PackageVersion Include="WireMock.Net" Version="1.16.0" />
     <PackageVersion Include="xunit.v3" Version="3.1.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
