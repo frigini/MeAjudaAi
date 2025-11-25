@@ -360,13 +360,13 @@ public abstract class ApiTestBase : IAsyncLifetime
         // Strategy 2: Use assembly location to compute relative path
         var assemblyLocation = Assembly.GetExecutingAssembly().Location;
         var assemblyDir = Path.GetDirectoryName(assemblyLocation);
-        
+
         if (!string.IsNullOrEmpty(assemblyDir))
         {
             // From: tests/MeAjudaAi.Integration.Tests/bin/Debug/net10.0/
             // To:   src/Bootstrapper/MeAjudaAi.ApiService/
             var candidatePath = Path.GetFullPath(Path.Combine(assemblyDir, "..", "..", "..", "..", "..", "src", "Bootstrapper", "MeAjudaAi.ApiService"));
-            
+
             if (Directory.Exists(candidatePath))
             {
                 Console.WriteLine($"Resolved ApiService path from assembly location: {candidatePath}");
@@ -385,14 +385,14 @@ public abstract class ApiTestBase : IAsyncLifetime
                 Console.WriteLine($"Found ApiService path via directory search: {resolvedPath}");
                 return resolvedPath;
             }
-            
+
             currentDir = Directory.GetParent(currentDir)?.FullName;
         }
 
         Console.Error.WriteLine("ERROR: Could not resolve ApiService path using any strategy.");
         Console.Error.WriteLine($"Assembly location: {assemblyLocation}");
         Console.Error.WriteLine($"Environment variable MEAJUDAAI_API_SERVICE_PATH: {envPath ?? "(not set)"}");
-        
+
         return null;
     }
 }
