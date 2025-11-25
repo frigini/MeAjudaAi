@@ -31,4 +31,22 @@ public interface ISearchModuleApi
         int pageNumber = 1,
         int pageSize = 20,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Indexes or updates a provider in the search index.
+    /// Called when provider is verified/activated to make them discoverable.
+    /// </summary>
+    /// <param name="providerId">Provider ID to index</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result indicating success or failure</returns>
+    Task<Result> IndexProviderAsync(Guid providerId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes a provider from the search index.
+    /// Called when provider is rejected, suspended, or deleted.
+    /// </summary>
+    /// <param name="providerId">Provider ID to remove</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Result indicating success or failure</returns>
+    Task<Result> RemoveProviderAsync(Guid providerId, CancellationToken cancellationToken = default);
 }

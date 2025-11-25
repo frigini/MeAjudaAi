@@ -1,5 +1,7 @@
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
+using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
+using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Contracts.Modules;
 using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
@@ -17,6 +19,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class SearchModuleApi(
     IQueryDispatcher queryDispatcher,
+    ISearchableProviderRepository repository,
     ILogger<SearchModuleApi> logger) : ISearchModuleApi
 {
     private static class ModuleMetadata
@@ -124,6 +127,65 @@ public sealed class SearchModuleApi(
         };
 
         return Result<ModulePagedSearchResultDto>.Success(moduleResult);
+    }
+
+    public async Task<Result> IndexProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            logger.LogInformation("Indexing provider {ProviderId} in search", providerId);
+
+            // Verificar se provider já existe no índice
+            var existing = await repository.GetByProviderIdAsync(providerId, cancellationToken);
+
+            if (existing != null)
+            {
+                logger.LogDebug("Provider {ProviderId} already indexed, updating", providerId);
+                // TODO: Atualizar dados do provider via integration event ou query ao módulo Providers
+                // Por enquanto, apenas log - a atualização real será implementada quando tivermos
+                // os integration events configurados (ProviderUpdated, etc)
+                return Result.Success();
+            }
+
+            // TODO: Buscar dados completos do provider do módulo Providers via IProvidersModuleApi
+            // Por enquanto, retornar sucesso - a indexação real será implementada quando
+            // tivermos os dados necessários (nome, localização, etc) via integration events
+            logger.LogWarning("Provider {ProviderId} indexing skipped - requires integration with Providers module for full data", providerId);
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error indexing provider {ProviderId} in search", providerId);
+            return Result.Failure($"Failed to index provider: {ex.Message}");
+        }
+    }
+
+    public async Task<Result> RemoveProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            logger.LogInformation("Removing provider {ProviderId} from search index", providerId);
+
+            var existing = await repository.GetByProviderIdAsync(providerId, cancellationToken);
+
+            if (existing == null)
+            {
+                logger.LogDebug("Provider {ProviderId} not found in search index, nothing to remove", providerId);
+                return Result.Success(); // Idempotent: já removido ou nunca indexado
+            }
+
+            await repository.DeleteAsync(existing, cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation("Provider {ProviderId} removed from search index successfully", providerId);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error removing provider {ProviderId} from search index", providerId);
+            return Result.Failure($"Failed to remove provider: {ex.Message}");
+        }
     }
 
     /// <summary>

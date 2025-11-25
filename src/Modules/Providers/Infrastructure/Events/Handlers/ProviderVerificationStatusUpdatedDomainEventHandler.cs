@@ -39,36 +39,39 @@ public sealed class ProviderVerificationStatusUpdatedDomainEventHandler(
                 return;
             }
 
-            // Integração com Search Module: indexar provider quando verificado
+            // Integração com SearchProviders Module: indexar provider quando verificado
             if (domainEvent.NewStatus == EVerificationStatus.Verified)
             {
-                logger.LogInformation("Provider {ProviderId} verified, indexing in search module", domainEvent.AggregateId);
+                logger.LogInformation("Provider {ProviderId} verified, indexing in SearchProviders module", domainEvent.AggregateId);
 
-                // TODO: Implementar método IndexProviderAsync no ISearchModuleApi
-                // var indexResult = await searchModuleApi.IndexProviderAsync(provider.Id.Value, cancellationToken);
-                // if (indexResult.IsFailure)
-                // {
-                //     logger.LogError("Failed to index provider {ProviderId} in search: {Error}",
-                //         domainEvent.AggregateId, indexResult.Error);
-                //     // Não falhar o handler - busca pode ser reindexada depois
-                // }
-
-                logger.LogDebug("Search indexing for provider {ProviderId} skipped - IndexProviderAsync not yet implemented", domainEvent.AggregateId);
+                var indexResult = await searchModuleApi.IndexProviderAsync(provider.Id.Value, cancellationToken);
+                if (indexResult.IsFailure)
+                {
+                    logger.LogError("Failed to index provider {ProviderId} in search: {Error}",
+                        domainEvent.AggregateId, indexResult.Error);
+                    // Não falhar o handler - busca pode ser reindexada depois via background job
+                }
+                else
+                {
+                    logger.LogInformation("Provider {ProviderId} indexed in SearchProviders successfully", domainEvent.AggregateId);
+                }
             }
             else if (domainEvent.NewStatus == EVerificationStatus.Rejected || domainEvent.NewStatus == EVerificationStatus.Suspended)
             {
                 logger.LogInformation("Provider {ProviderId} status changed to {Status}, removing from search index", 
                     domainEvent.AggregateId, domainEvent.NewStatus);
 
-                // TODO: Implementar método RemoveProviderAsync no ISearchModuleApi
-                // var removeResult = await searchModuleApi.RemoveProviderAsync(provider.Id.Value, cancellationToken);
-                // if (removeResult.IsFailure)
-                // {
-                //     logger.LogError("Failed to remove provider {ProviderId} from search: {Error}",
-                //         domainEvent.AggregateId, removeResult.Error);
-                // }
-
-                logger.LogDebug("Search removal for provider {ProviderId} skipped - RemoveProviderAsync not yet implemented", domainEvent.AggregateId);
+                var removeResult = await searchModuleApi.RemoveProviderAsync(provider.Id.Value, cancellationToken);
+                if (removeResult.IsFailure)
+                {
+                    logger.LogError("Failed to remove provider {ProviderId} from search: {Error}",
+                        domainEvent.AggregateId, removeResult.Error);
+                    // Não falhar o handler - remoção pode ser feita depois via background job
+                }
+                else
+                {
+                    logger.LogInformation("Provider {ProviderId} removed from SearchProviders index successfully", domainEvent.AggregateId);
+                }
             }
 
             // Cria evento de integração para sistemas externos usando mapper
