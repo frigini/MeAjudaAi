@@ -239,7 +239,7 @@ public class WireMockFixture : IAsyncDisposable
         // CEP 01310-100 - Avenida Paulista, São Paulo/SP
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/01310100/json")
+                .WithPath("/ws/01310100/json/")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -259,7 +259,7 @@ public class WireMockFixture : IAsyncDisposable
         // CEP inválido - erro
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/00000000/json")
+                .WithPath("/ws/00000000/json/")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)

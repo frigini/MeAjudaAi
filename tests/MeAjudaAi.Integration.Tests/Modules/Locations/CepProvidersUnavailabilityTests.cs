@@ -119,7 +119,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
 
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/ws/{uniqueCep}/json")
+                .WithPath($"/ws/{uniqueCep}/json/")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
@@ -151,10 +151,10 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
     [Fact]
     public async Task LookupCep_WhenViaCepReturnsMalformedJson_ShouldFallbackToBrasilApi()
     {
-        // Arrange - ViaCEP returns invalid JSON
+        // Arrange - ViaCEP returns malformed JSON
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/01310100/json")
+                .WithPath("/ws/01310100/json/")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -195,7 +195,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Arrange - ViaCEP returns "erro: true" for invalid CEP
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/00000000/json")
+                .WithPath("/ws/00000000/json/")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
