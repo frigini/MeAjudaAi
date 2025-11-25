@@ -40,8 +40,6 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
     }
 
-
-
     [Fact]
     public async Task GeographicRestriction_WhenIbgeReturnsMalformedJson_ShouldFallbackToSimpleValidation()
     {

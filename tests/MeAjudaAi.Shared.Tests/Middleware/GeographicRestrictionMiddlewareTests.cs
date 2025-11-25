@@ -510,7 +510,7 @@ public class GeographicRestrictionMiddlewareTests
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Debug || l == LogLevel.Information),
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Validando cidade") || v.ToString()!.Contains("Validação IBGE")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Validating city") || v.ToString()!.Contains("IBGE Validation")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.AtLeastOnce);

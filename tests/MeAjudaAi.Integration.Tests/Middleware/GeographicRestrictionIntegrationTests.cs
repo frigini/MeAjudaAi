@@ -17,11 +17,19 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         Client.DefaultRequestHeaders.Add("X-User-City", "Muriaé");
         Client.DefaultRequestHeaders.Add("X-User-State", "MG");
 
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers");
+        try
+        {
+            // Act
+            var response = await Client.GetAsync("/api/v1/providers");
 
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons);
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+        finally
+        {
+            Client.DefaultRequestHeaders.Remove("X-User-City");
+            Client.DefaultRequestHeaders.Remove("X-User-State");
+        }
     }
 
     [Fact(Skip = "CI returns 200 OK instead of 451 - middleware not blocking. Likely feature flag or middleware registration issue in CI environment.")]
@@ -65,11 +73,18 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         AuthConfig.ConfigureAdmin(); // Authenticate before testing geographic restriction
         Client.DefaultRequestHeaders.Add("X-User-State", "MG");
 
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers");
+        try
+        {
+            // Act
+            var response = await Client.GetAsync("/api/v1/providers");
 
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons);
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+        finally
+        {
+            Client.DefaultRequestHeaders.Remove("X-User-State");
+        }
     }
 
     [Fact]
@@ -79,11 +94,18 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         AuthConfig.ConfigureAdmin(); // Authenticate before testing geographic restriction
         Client.DefaultRequestHeaders.Add("X-User-Location", "Itaperuna|RJ");
 
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers");
+        try
+        {
+            // Act
+            var response = await Client.GetAsync("/api/v1/providers");
 
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons);
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+        finally
+        {
+            Client.DefaultRequestHeaders.Remove("X-User-Location");
+        }
     }
 
     [Fact]
@@ -93,11 +115,19 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         Client.DefaultRequestHeaders.Add("X-User-City", "Invalid City");
         Client.DefaultRequestHeaders.Add("X-User-State", "XX");
 
-        // Act
-        var response = await Client.GetAsync("/health");
+        try
+        {
+            // Act
+            var response = await Client.GetAsync("/health");
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+        finally
+        {
+            Client.DefaultRequestHeaders.Remove("X-User-City");
+            Client.DefaultRequestHeaders.Remove("X-User-State");
+        }
     }
 
     [Fact]
@@ -106,11 +136,18 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         // Arrange
         Client.DefaultRequestHeaders.Add("X-User-City", "Invalid City");
 
-        // Act
-        var response = await Client.GetAsync("/swagger/index.html");
+        try
+        {
+            // Act
+            var response = await Client.GetAsync("/swagger/index.html");
 
-        // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound); // NotFound if swagger disabled
+            // Assert
+            response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound); // NotFound if swagger disabled
+        }
+        finally
+        {
+            Client.DefaultRequestHeaders.Remove("X-User-City");
+        }
     }
 
     [Theory]
@@ -127,17 +164,25 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         Client.DefaultRequestHeaders.Add("X-User-City", city);
         Client.DefaultRequestHeaders.Add("X-User-State", state);
 
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers");
+        try
+        {
+            // Act
+            var response = await Client.GetAsync("/api/v1/providers");
 
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
-            $"City '{city}' in state '{state}' should be allowed");
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK,
+                $"City '{city}' in state '{state}' should be allowed");
+        }
+        finally
+        {
+            Client.DefaultRequestHeaders.Remove("X-User-City");
+            Client.DefaultRequestHeaders.Remove("X-User-State");
+        }
     }
 
     /// <summary>
     /// Edge case tests for malformed location headers.
-    /// These should be rejected and treated as non-matching.
+    /// These should trigger fail-open behavior (allow access) since location cannot be reliably determined.
     /// </summary>
     [Theory]
     [InlineData("Muriaé|")] // City without state
@@ -152,13 +197,20 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         AuthConfig.ConfigureAdmin();
         Client.DefaultRequestHeaders.Add("X-User-Location", malformedLocation);
 
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers");
+        try
+        {
+            // Act
+            var response = await Client.GetAsync("/api/v1/providers");
 
-        // Assert - malformed entries should be treated as no location (fail-open)
-        // Since we can't determine location, middleware allows access
-        response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
-            $"Malformed location '{malformedLocation}' should be ignored and fail-open");
+            // Assert - malformed entries should be treated as no location (fail-open)
+            // Since we can't determine location, middleware allows access
+            response.StatusCode.Should().Be(HttpStatusCode.OK,
+                $"Malformed location '{malformedLocation}' should be ignored and fail-open");
+        }
+        finally
+        {
+            Client.DefaultRequestHeaders.Remove("X-User-Location");
+        }
     }
 
     [Theory]
@@ -175,12 +227,23 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         }
         Client.DefaultRequestHeaders.Add("X-User-State", "MG");
 
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers");
+        try
+        {
+            // Act
+            var response = await Client.GetAsync("/api/v1/providers");
 
-        // Assert - empty city should fail-open (can't determine location)
-        response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
-            "Empty city should be treated as undetermined location (fail-open)");
+            // Assert - empty city should fail-open (can't determine location)
+            response.StatusCode.Should().Be(HttpStatusCode.OK,
+                "Empty city should be treated as undetermined location (fail-open)");
+        }
+        finally
+        {
+            if (emptyCity != null)
+            {
+                Client.DefaultRequestHeaders.Remove("X-User-City");
+            }
+            Client.DefaultRequestHeaders.Remove("X-User-State");
+        }
     }
 
     [Theory]
@@ -193,12 +256,20 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         Client.DefaultRequestHeaders.Add("X-User-City", "Muriaé");
         Client.DefaultRequestHeaders.Add("X-User-State", emptyState);
 
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers");
+        try
+        {
+            // Act
+            var response = await Client.GetAsync("/api/v1/providers");
 
-        // Assert - should validate against city list (Muriaé is allowed)
-        response.StatusCode.Should().Be(HttpStatusCode.OK,
-            "Valid city with empty state should validate against city list");
+            // Assert - should validate against city list (Muriaé is allowed)
+            response.StatusCode.Should().Be(HttpStatusCode.OK,
+                "Valid city with empty state should validate against city list");
+        }
+        finally
+        {
+            Client.DefaultRequestHeaders.Remove("X-User-City");
+            Client.DefaultRequestHeaders.Remove("X-User-State");
+        }
     }
 
     [Fact]
@@ -212,7 +283,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         var response = await Client.GetAsync("/api/v1/providers");
 
         // Assert - no location should fail-open (allow access)
-        response.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
             "Missing location headers should allow access (fail-open)");
     }
 }
