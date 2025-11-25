@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
+using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Caching;
@@ -92,7 +93,7 @@ public sealed class IbgeServiceTests
     }
 
     [Fact]
-    public async Task ValidateCityInAllowedRegionsAsync_MunicipioNotFound_ReturnsFalse()
+    public async Task ValidateCityInAllowedRegionsAsync_MunicipioNotFound_ThrowsException()
     {
         // Arrange
         const string cityName = "CidadeInexistente";
@@ -101,11 +102,12 @@ public sealed class IbgeServiceTests
 
         SetupCacheGetOrCreate(cityName, null); // Município não existe
 
-        // Act
-        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities);
+        // Act & Assert - Lança MunicipioNotFoundException para que middleware faça fallback
+        var exception = await Assert.ThrowsAsync<MunicipioNotFoundException>(
+            () => _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities));
 
-        // Assert
-        result.Should().BeFalse();
+        exception.CityName.Should().Be(cityName);
+        exception.StateSigla.Should().Be(stateSigla);
         _cacheServiceMock.Verify();
     }
 
@@ -150,7 +152,7 @@ public sealed class IbgeServiceTests
     }
 
     [Fact]
-    public async Task ValidateCityInAllowedRegionsAsync_IbgeClientThrowsException_ReturnsFalse()
+    public async Task ValidateCityInAllowedRegionsAsync_IbgeClientThrowsException_PropagatesException()
     {
         // Arrange
         const string cityName = "Muriaé";
@@ -159,11 +161,10 @@ public sealed class IbgeServiceTests
 
         SetupCacheGetOrCreateWithException(cityName, new HttpRequestException("IBGE API unreachable"));
 
-        // Act
-        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities);
+        // Act & Assert - Propaga exceção para middleware fazer fallback
+        await Assert.ThrowsAsync<HttpRequestException>(
+            () => _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities));
 
-        // Assert
-        result.Should().BeFalse(); // Fail-closed
         _cacheServiceMock.Verify();
     }
 

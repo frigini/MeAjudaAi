@@ -20,7 +20,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
     // TODO: Fix middleware simple validation fallback - currently blocks even allowed cities when IBGE fails
     // Expected: When IBGE unavailable, allow cities in AllowedCities list via simple name matching
     // Actual: Returns 451 (blocked) for all cities when IBGE fails, even allowed ones
-    [Fact(Skip = "Middleware doesn't fall back to simple validation correctly - blocks allowed cities when IBGE unavailable")]
+    [Fact]
     public async Task GeographicRestriction_WhenIbgeReturns500_ShouldFallbackToSimpleValidation()
     {
         // Arrange - Configure endpoint to simulate IBGE 500 error
@@ -44,7 +44,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
     }
 
     // TODO: Fix middleware simple validation fallback
-    [Fact(Skip = "Middleware doesn't fall back to simple validation correctly - blocks allowed cities when IBGE unavailable")]
+    [Fact]
     public async Task GeographicRestriction_WhenIbgeReturnsMalformedJson_ShouldFallbackToSimpleValidation()
     {
         // Arrange - Configure endpoint to simulate malformed IBGE response
@@ -106,7 +106,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
     }
 
     // TODO: Fix middleware simple validation fallback
-    [Fact(Skip = "Middleware doesn't fall back to simple validation correctly - blocks allowed cities when IBGE unavailable")]
+    [Fact]
     public async Task GeographicRestriction_WhenIbgeReturnsEmptyArray_ShouldFallbackToSimpleValidation()
     {
         // Arrange - IBGE returns empty array (city not found)
