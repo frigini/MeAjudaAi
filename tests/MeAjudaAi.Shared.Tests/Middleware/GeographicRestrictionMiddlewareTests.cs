@@ -282,15 +282,17 @@ public class GeographicRestrictionMiddlewareTests
         _nextMock.Verify(next => next(_httpContext), Times.Once);
     }
 
-    private static IOptions<GeographicRestrictionOptions> CreateOptions()
+    private static IOptionsMonitor<GeographicRestrictionOptions> CreateOptions()
     {
-        return Options.Create(new GeographicRestrictionOptions
+        var mock = new Mock<IOptionsMonitor<GeographicRestrictionOptions>>();
+        mock.Setup(m => m.CurrentValue).Returns(new GeographicRestrictionOptions
         {
 
             AllowedStates = ["MG", "RJ", "ES"],
             AllowedCities = ["Muriaé", "Itaperuna", "Linhares"],
             BlockedMessage = "Serviço indisponível na sua região. Disponível apenas em: {allowedRegions}"
         });
+        return mock.Object;
     }
 
     #region IBGE Validation Tests
