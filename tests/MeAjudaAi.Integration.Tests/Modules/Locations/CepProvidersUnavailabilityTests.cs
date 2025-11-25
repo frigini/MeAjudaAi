@@ -213,6 +213,8 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Assert - Should fallback to BrasilAPI
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
+        result.Value!.City.Should().Be("São Paulo");
+        result.Value.State.Should().Be("SP");
     }
 
     [Fact]
@@ -257,7 +259,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         result.IsSuccess.Should().BeFalse();
     }
 
-    // TODO: Create GitHub issue to track enabling caching infrastructure for integration tests.
+    // TODO: Create GitHub issue #<TBD> to track enabling caching infrastructure for integration tests.
     // This would allow validation of cache behavior, including TTL, eviction, and hit/miss scenarios.
     [Fact(Skip = "Caching is disabled in integration tests (Caching:Enabled = false). This test cannot validate cache behavior without enabling caching infrastructure.")]
     public async Task LookupCep_WhenBrasilApiSucceedsButViaCepDown_ShouldUseCache()

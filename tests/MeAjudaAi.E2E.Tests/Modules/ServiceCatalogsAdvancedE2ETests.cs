@@ -13,10 +13,12 @@ namespace MeAjudaAi.E2E.Tests.Modules;
 [Trait("Module", "ServiceCatalogs")]
 public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 {
-    // TODO: Create GitHub issue to track E2E authentication infrastructure refactor.
+    // TODO: Link to GitHub issue #<TBD> tracking E2E authentication infrastructure refactor.
     // 13+ E2E tests affected by ConfigurableTestAuthenticationHandler race condition.
-    // TODO: Fix test auth setup and unskip once auth refactor lands.
-    [Fact(Skip = "AUTH: Returns 403 instead of expected 200/204. ConfigurableTestAuthenticationHandler race condition - see issue tracking comment above.")]
+    private const string AuthRaceConditionSkipReason =
+        "AUTH: Returns 403 instead of expected {{0}} due to ConfigurableTestAuthenticationHandler race condition. See GitHub issue #<TBD>.";
+
+    [Fact(Skip = "AUTH: Returns 403 instead of expected 200/204 due to ConfigurableTestAuthenticationHandler race condition. See GitHub issue #<TBD>.")]
     public async Task ValidateService_WithBusinessRules_Should_Succeed()
     {
         // Arrange
@@ -77,7 +79,7 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             HttpStatusCode.NoContent);
     }
 
-    [Fact(Skip = "AUTH: Returns 403 instead of expected 400/404/200. ConfigurableTestAuthenticationHandler race condition - see issue tracking comment above.")]
+    [Fact(Skip = "AUTH: Returns 403 instead of expected 400/404/200 due to ConfigurableTestAuthenticationHandler race condition. See GitHub issue #<TBD>.")]
     public async Task ValidateService_WithInvalidRules_Should_Return_BadRequest()
     {
         // Arrange
