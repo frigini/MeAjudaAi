@@ -304,39 +304,31 @@ public abstract class ApiTestBase : IAsyncLifetime
     /// </summary>
     private void ReconfigureCepProviderClients(IServiceCollection services)
     {
-        // Remove registrations existentes dos HttpClients CEP
-        var viaCepDescriptors = services.Where(d =>
-            d.ServiceType == typeof(IHttpClientFactory) ||
-            (d.ServiceType.IsGenericType && d.ServiceType.GetGenericTypeDefinition() == typeof(IHttpMessageHandlerBuilderFilter)) ||
-            d.ImplementationType?.FullName?.Contains("ViaCepClient") == true).ToList();
-
-        // Não removemos os descriptors, apenas reconfiguramos os HttpClients
-        // porque o AddHttpClient é registrado de forma diferente
-
         // Configure HttpClients to point to WireMock
+        // AddHttpClient will replace existing registrations if called again
         services.AddHttpClient<ViaCepClient>(client =>
         {
-            client.BaseAddress = new Uri(_wireMockFixture.BaseUrl);
+            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
         });
 
         services.AddHttpClient<BrasilApiCepClient>(client =>
         {
-            client.BaseAddress = new Uri(_wireMockFixture.BaseUrl);
+            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
         });
 
         services.AddHttpClient<OpenCepClient>(client =>
         {
-            client.BaseAddress = new Uri(_wireMockFixture.BaseUrl);
+            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
         });
 
         services.AddHttpClient<IbgeClient>(client =>
         {
-            client.BaseAddress = new Uri(_wireMockFixture.BaseUrl);
+            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
         });
 
         services.AddHttpClient<NominatimClient>(client =>
         {
-            client.BaseAddress = new Uri(_wireMockFixture.BaseUrl);
+            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
         });
     }
 
