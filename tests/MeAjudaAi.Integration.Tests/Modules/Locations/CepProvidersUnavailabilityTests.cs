@@ -56,11 +56,23 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Act
         var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
-        // Assert - Should succeed via BrasilAPI fallback
+        // Assert - Should succeed via OpenCEP fallback
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.City.Should().Be("São Paulo");
         result.Value.State.Should().Be("SP");
+
+        // Verify provider usage order (contract enforcement)
+        var viaCepHits = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/ws/{uniqueCep}/json/");
+        var brasilApiHits = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/api/cep/v2/{uniqueCep}");
+        var openCepHits = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/v1/{uniqueCep}");
+
+        viaCepHits.Should().Be(1, "ViaCEP should be tried first");
+        brasilApiHits.Should().Be(1, "BrasilAPI should be tried as fallback");
+        openCepHits.Should().Be(1, "OpenCEP should succeed as final fallback");
     }
 
     [Fact]
@@ -286,16 +298,22 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Act - First call (cache miss)
         var result1 = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
-        // Get request count before second call
-        var requestCountBefore = WireMock.Server.LogEntries.Count();
+        // Get request count before second call (filter by this CEP for test isolation)
+        var requestCountBefore = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/ws/{uniqueCep}/json/" ||
+            e.RequestMessage.Path == $"/api/cep/v2/{uniqueCep}" ||
+            e.RequestMessage.Path == $"/v1/{uniqueCep}");
 
         // Act - Second call (should use cache, no HTTP requests)
         // Note: We don't reconfigure stubs here to avoid WireMock mapping conflicts.
         // Cache behavior is validated by verifying no new HTTP requests were made.
         var result2 = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
-        // Get request count after second call
-        var requestCountAfter = WireMock.Server.LogEntries.Count();
+        // Get request count after second call (filter by this CEP for test isolation)
+        var requestCountAfter = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/ws/{uniqueCep}/json/" ||
+            e.RequestMessage.Path == $"/api/cep/v2/{uniqueCep}" ||
+            e.RequestMessage.Path == $"/v1/{uniqueCep}");
 
         // Assert - Both calls should succeed (second via cache)
         result1.IsSuccess.Should().BeTrue();

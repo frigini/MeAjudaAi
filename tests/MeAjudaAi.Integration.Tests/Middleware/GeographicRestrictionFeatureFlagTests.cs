@@ -9,6 +9,11 @@ namespace MeAjudaAi.Integration.Tests.Middleware;
 /// Parameterized tests for GeographicRestriction feature flag.
 /// Validates behavior when feature is enabled in appsettings.Testing.json.
 /// Note: Testing with disabled feature requires separate test class with different environment setup.
+/// 
+/// TODO: Once CI middleware registration issue is resolved, consolidate with GeographicRestrictionIntegrationTests.cs
+/// to eliminate duplication. Current overlap exists because these Theory-based tests were created as an alternative
+/// approach to diagnose CI failures, but GeographicRestrictionIntegrationTests.cs already covers the same scenarios
+/// with passing tests.
 /// </summary>
 [Collection("Integration")]
 public class GeographicRestrictionFeatureFlagTests : ApiTestBase
