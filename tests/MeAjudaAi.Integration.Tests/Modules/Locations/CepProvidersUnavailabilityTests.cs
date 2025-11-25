@@ -27,6 +27,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/ws/{uniqueCep}/json/")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500)
                 .WithBody("Internal Server Error"));
@@ -36,6 +37,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/api/cep/v2/{uniqueCep}")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
@@ -72,6 +74,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/ws/{uniqueCep}/json/")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithBody("{}")
@@ -82,6 +85,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/api/cep/v2/{uniqueCep}")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithBody("{}")
@@ -92,6 +96,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/v1/{uniqueCep}")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
@@ -127,6 +132,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/ws/{uniqueCep}/json/")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
@@ -134,6 +140,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/api/cep/v2/{uniqueCep}")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
@@ -141,6 +148,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/v1/{uniqueCep}")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
@@ -165,6 +173,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/ws/{uniqueCep}/json/")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
@@ -175,6 +184,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/api/cep/v2/{uniqueCep}")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
@@ -206,6 +216,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/ws/00000000/json/")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
@@ -216,6 +227,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/cep/v2/00000000")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(404)
                 .WithBody("CEP não encontrado"));
@@ -225,6 +237,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/v1/00000000")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(404));
 
@@ -248,6 +261,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/ws/{uniqueCep}/json/")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
@@ -255,6 +269,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/api/cep/v2/{uniqueCep}")
                 .UsingGet())
+            .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
