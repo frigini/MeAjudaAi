@@ -3,6 +3,7 @@ using System.Text.Json;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests;
+using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
@@ -131,6 +132,9 @@ public abstract class ApiTestBase : IAsyncLifetime
                     RemoveDbContextRegistrations<ProvidersDbContext>(services);
                     RemoveDbContextRegistrations<DocumentsDbContext>(services);
                     RemoveDbContextRegistrations<ServiceCatalogsDbContext>(services);
+
+                    // Reconfigure CEP provider HttpClients to use WireMock
+                    ReconfigureCepProviderClients(services);
 
                     // Adiciona contextos de banco de dados para testes
                     services.AddDbContext<UsersDbContext>(options =>
@@ -293,6 +297,47 @@ public abstract class ApiTestBase : IAsyncLifetime
         var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(TContext));
         if (contextDescriptor != null)
             services.Remove(contextDescriptor);
+    }
+
+    /// <summary>
+    /// Reconfigura os HttpClients dos provedores de CEP para usar o WireMock ao invés das APIs reais.
+    /// </summary>
+    private void ReconfigureCepProviderClients(IServiceCollection services)
+    {
+        // Remove registrations existentes dos HttpClients CEP
+        var viaCepDescriptors = services.Where(d =>
+            d.ServiceType == typeof(IHttpClientFactory) ||
+            (d.ServiceType.IsGenericType && d.ServiceType.GetGenericTypeDefinition() == typeof(IHttpMessageHandlerBuilderFilter)) ||
+            d.ImplementationType?.FullName?.Contains("ViaCepClient") == true).ToList();
+
+        // Não removemos os descriptors, apenas reconfiguramos os HttpClients
+        // porque o AddHttpClient é registrado de forma diferente
+
+        // Configure HttpClients to point to WireMock
+        services.AddHttpClient<ViaCepClient>(client =>
+        {
+            client.BaseAddress = new Uri(_wireMockFixture.BaseUrl);
+        });
+
+        services.AddHttpClient<BrasilApiCepClient>(client =>
+        {
+            client.BaseAddress = new Uri(_wireMockFixture.BaseUrl);
+        });
+
+        services.AddHttpClient<OpenCepClient>(client =>
+        {
+            client.BaseAddress = new Uri(_wireMockFixture.BaseUrl);
+        });
+
+        services.AddHttpClient<IbgeClient>(client =>
+        {
+            client.BaseAddress = new Uri(_wireMockFixture.BaseUrl);
+        });
+
+        services.AddHttpClient<NominatimClient>(client =>
+        {
+            client.BaseAddress = new Uri(_wireMockFixture.BaseUrl);
+        });
     }
 
     /// <summary>
