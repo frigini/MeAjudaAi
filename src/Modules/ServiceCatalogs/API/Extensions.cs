@@ -22,6 +22,9 @@ public static class Extensions
         services.AddApplication();
         services.AddServiceCatalogsInfrastructure(configuration);
 
+        // Register module public API for cross-module communication
+        services.AddScoped<IServiceCatalogsModuleApi, ServiceCatalogsModuleApi>();
+
         return services;
     }
 
