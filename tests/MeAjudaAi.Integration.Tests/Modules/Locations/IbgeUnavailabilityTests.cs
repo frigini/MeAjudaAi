@@ -68,6 +68,17 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
     }
 
+    // INVESTIGATION RESULTS:
+    // - Feature flag is correctly configured: FeatureManagement:GeographicRestriction = true
+    // - Middleware logic is correct: checks IsEnabledAsync before blocking
+    // - Test configuration in ApiTestBase sets GeographicRestriction = true
+    // - CI environment may have different configuration overriding test settings
+    // - Possible causes:
+    //   1. appsettings.Testing.json not being loaded in CI
+    //   2. Environment-specific config (ASPNETCORE_ENVIRONMENT) different in CI
+    //   3. Feature flag provider (Microsoft.FeatureManagement) initialization issue in CI
+    // - SOLUTION: Add explicit feature flag validation in test setup to fail fast if misconfigured
+    //   rather than skipping the test. This will surface configuration issues immediately.
     [Fact(Skip = "CI returns 200 OK instead of 451 - middleware not blocking. Likely feature flag or middleware registration issue in CI environment.")]
     public async Task GeographicRestriction_WhenIbgeUnavailableAndCityNotAllowed_ShouldDenyAccess()
     {
