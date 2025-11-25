@@ -1,3 +1,4 @@
+using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Caching;
@@ -9,7 +10,6 @@ using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Net;
 using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;

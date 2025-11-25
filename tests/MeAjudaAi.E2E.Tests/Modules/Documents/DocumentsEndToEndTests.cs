@@ -1,10 +1,10 @@
+using System.Net;
+using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
-using System.Text.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Documents;
 

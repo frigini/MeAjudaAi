@@ -1,5 +1,5 @@
-using MeAjudaAi.E2E.Tests.Base;
 using System.Text.Json;
+using MeAjudaAi.E2E.Tests.Base;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 

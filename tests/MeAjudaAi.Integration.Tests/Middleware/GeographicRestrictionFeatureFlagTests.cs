@@ -1,6 +1,6 @@
+using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using System.Net;
 using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Middleware;

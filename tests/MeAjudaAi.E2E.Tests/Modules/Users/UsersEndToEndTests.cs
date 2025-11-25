@@ -1,9 +1,9 @@
+using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Users;
 
