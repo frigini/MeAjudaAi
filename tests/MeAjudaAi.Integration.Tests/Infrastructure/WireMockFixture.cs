@@ -52,7 +52,7 @@ public class WireMockFixture : IAsyncDisposable
     /// </summary>
     private void ConfigureIbgeStubs()
     {
-        // Muriaé/MG - IBGE code: 3143906
+        // Search by city name: Muriaé/MG - IBGE code: 3143906
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
@@ -79,25 +79,11 @@ public class WireMockFixture : IAsyncDisposable
                                     "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
                                 }
                             }
-                        },
-                        "regiao-imediata": {
-                            "id": 310027,
-                            "nome": "Muriaé",
-                            "regiao-intermediaria": {
-                                "id": 3106,
-                                "nome": "Juiz de Fora",
-                                "UF": {
-                                    "id": 31,
-                                    "sigla": "MG",
-                                    "nome": "Minas Gerais",
-                                    "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
-                                }
-                            }
                         }
                     }]
                     """));
 
-        // Itaperuna/RJ - IBGE code: 3302205
+        // Search by city name: Itaperuna/RJ - IBGE code: 3302205
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
@@ -124,17 +110,126 @@ public class WireMockFixture : IAsyncDisposable
                                     "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
                                 }
                             }
-                        },
-                        "regiao-imediata": {
-                            "id": 330007,
-                            "nome": "Itaperuna",
-                            "regiao-intermediaria": {
-                                "id": 3301,
-                                "nome": "Rio de Janeiro",
+                        }
+                    }]
+                    """));
+
+        // Get city by ID: Muriaé/MG
+        Server
+            .Given(WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/municipios/3143906")
+                .UsingGet())
+            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json; charset=utf-8")
+                .WithBody("""
+                    {
+                        "id": 3143906,
+                        "nome": "Muriaé",
+                        "microrregiao": {
+                            "id": 31054,
+                            "nome": "Muriaé",
+                            "mesorregiao": {
+                                "id": 3107,
+                                "nome": "Zona da Mata",
                                 "UF": {
-                                    "id": 33,
-                                    "sigla": "RJ",
-                                    "nome": "Rio de Janeiro",
+                                    "id": 31,
+                                    "sigla": "MG",
+                                    "nome": "Minas Gerais",
+                                    "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
+                                }
+                            }
+                        }
+                    }
+                    """));
+
+        // Get all states (UFs)
+        Server
+            .Given(WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/estados")
+                .UsingGet())
+            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json; charset=utf-8")
+                .WithBody("""
+                    [
+                        {
+                            "id": 31,
+                            "sigla": "MG",
+                            "nome": "Minas Gerais",
+                            "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
+                        },
+                        {
+                            "id": 33,
+                            "sigla": "RJ",
+                            "nome": "Rio de Janeiro",
+                            "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
+                        },
+                        {
+                            "id": 35,
+                            "sigla": "SP",
+                            "nome": "São Paulo",
+                            "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
+                        }
+                    ]
+                    """));
+
+        // Get state by ID: MG
+        Server
+            .Given(WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/estados/31")
+                .UsingGet())
+            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json; charset=utf-8")
+                .WithBody("""
+                    {
+                        "id": 31,
+                        "sigla": "MG",
+                        "nome": "Minas Gerais",
+                        "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
+                    }
+                    """));
+
+        // Get state by UF: MG
+        Server
+            .Given(WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/estados/MG")
+                .UsingGet())
+            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json; charset=utf-8")
+                .WithBody("""
+                    {
+                        "id": 31,
+                        "sigla": "MG",
+                        "nome": "Minas Gerais",
+                        "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
+                    }
+                    """));
+
+        // Search by state: SP
+        Server
+            .Given(WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/estados/SP/municipios")
+                .UsingGet())
+            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json; charset=utf-8")
+                .WithBody("""
+                    [{
+                        "id": 3550308,
+                        "nome": "São Paulo",
+                        "microrregiao": {
+                            "id": 35061,
+                            "nome": "São Paulo",
+                            "mesorregiao": {
+                                "id": 3515,
+                                "nome": "Metropolitana de São Paulo",
+                                "UF": {
+                                    "id": 35,
+                                    "sigla": "SP",
+                                    "nome": "São Paulo",
                                     "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
                                 }
                             }
@@ -142,50 +237,25 @@ public class WireMockFixture : IAsyncDisposable
                     }]
                     """));
 
-        // Linhares/ES - IBGE code: 3203205
+        // Invalid city ID - 404
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/v1/localidades/municipios")
-                .WithParam("nome", "linhares")
-                .WithParam("orderBy", "nome")
+                .WithPath("/api/v1/localidades/municipios/9999999")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
+                .WithStatusCode(404)
                 .WithHeader("Content-Type", "application/json; charset=utf-8")
-                .WithBody("""
-                    [{
-                        "id": 3203205,
-                        "nome": "Linhares",
-                        "microrregiao": {
-                            "id": 32009,
-                            "nome": "Linhares",
-                            "mesorregiao": {
-                                "id": 3202,
-                                "nome": "Litoral Norte Espírito-Santense",
-                                "UF": {
-                                    "id": 32,
-                                    "sigla": "ES",
-                                    "nome": "Espírito Santo",
-                                    "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
-                                }
-                            }
-                        },
-                        "regiao-imediata": {
-                            "id": 320002,
-                            "nome": "Linhares",
-                            "regiao-intermediaria": {
-                                "id": 3201,
-                                "nome": "Vitória",
-                                "UF": {
-                                    "id": 32,
-                                    "sigla": "ES",
-                                    "nome": "Espírito Santo",
-                                    "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
-                                }
-                            }
-                        }
-                    }]
-                    """));
+                .WithBody("[]"));
+
+        // Invalid state ID - 404
+        Server
+            .Given(WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/estados/999")
+                .UsingGet())
+            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(404)
+                .WithHeader("Content-Type", "application/json; charset=utf-8")
+                .WithBody("[]"));
 
         // Unknown city - empty array response
         Server
@@ -198,6 +268,37 @@ public class WireMockFixture : IAsyncDisposable
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json; charset=utf-8")
                 .WithBody("[]"));
+
+        // Special characters handling: São Paulo
+        Server
+            .Given(WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/municipios")
+                .WithParam("nome", "são paulo")
+                .WithParam("orderBy", "nome")
+                .UsingGet())
+            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json; charset=utf-8")
+                .WithBody("""
+                    [{
+                        "id": 3550308,
+                        "nome": "São Paulo",
+                        "microrregiao": {
+                            "id": 35061,
+                            "nome": "São Paulo",
+                            "mesorregiao": {
+                                "id": 3515,
+                                "nome": "Metropolitana de São Paulo",
+                                "UF": {
+                                    "id": 35,
+                                    "sigla": "SP",
+                                    "nome": "São Paulo",
+                                    "regiao": { "id": 3, "sigla": "SE", "nome": "Sudeste" }
+                                }
+                            }
+                        }
+                    }]
+                    """));
 
         // Service unavailability simulation - 500 error
         Server

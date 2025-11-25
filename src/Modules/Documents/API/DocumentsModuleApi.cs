@@ -36,7 +36,7 @@ public class DocumentsModuleApi : IDocumentsModuleApi
         }
     }
 
-    public async Task<Result<List<DocumentDto>>> GetProviderDocumentsAsync(Guid providerId, CancellationToken cancellationToken = default)
+    public async Task<Result<List<DocumentInfoDto>>> GetProviderDocumentsAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -47,12 +47,12 @@ public class DocumentsModuleApi : IDocumentsModuleApi
 
             await Task.CompletedTask; // Remove when implementing actual query
 
-            return Result<List<DocumentDto>>.Success(new List<DocumentDto>());
+            return Result<List<DocumentInfoDto>>.Success(new List<DocumentInfoDto>());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting documents for provider {ProviderId}", providerId);
-            return Result<List<DocumentDto>>.Failure(Error.Internal("Failed to get provider documents"));
+            return Result<List<DocumentInfoDto>>.Failure(Error.Internal("Failed to get provider documents"));
         }
     }
 

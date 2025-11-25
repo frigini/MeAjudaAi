@@ -23,7 +23,7 @@ public interface IDocumentsModuleApi
     /// <param name="providerId">Provider unique identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of documents with verification status</returns>
-    Task<Result<List<DocumentDto>>> GetProviderDocumentsAsync(Guid providerId, CancellationToken cancellationToken = default);
+    Task<Result<List<DocumentInfoDto>>> GetProviderDocumentsAsync(Guid providerId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the verification status of a specific document.
@@ -37,7 +37,7 @@ public interface IDocumentsModuleApi
 /// <summary>
 /// Document data transfer object for cross-module communication.
 /// </summary>
-public record DocumentDto(
+public record DocumentInfoDto(
     Guid Id,
     Guid ProviderId,
     string DocumentType,

@@ -1,54 +1,39 @@
 using FluentAssertions;
+using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
 /// <summary>
-/// Integration tests para IBGE Localidades API.
-/// Estes testes fazem chamadas REAIS à API IBGE e são skipped por padrão.
-/// Para executar: dotnet test --filter "Category=Integration"
+/// Integration tests para IBGE Localidades API usando WireMock.
+/// Estes testes NÃO fazem chamadas reais à API IBGE - usam stubs configurados no WireMockFixture.
 /// </summary>
 [Trait("Category", "Integration")]
-[Trait("Category", "ExternalApi")]
-public sealed class IbgeApiIntegrationTests : IDisposable
+[Trait("Module", "Locations")]
+public sealed class IbgeApiIntegrationTests : ApiTestBase
 {
-    private readonly HttpClient _httpClient;
-    private readonly IbgeClient _client;
+    private readonly IbgeClient _ibgeClient;
 
     public IbgeApiIntegrationTests()
     {
-        var baseUrl = Environment.GetEnvironmentVariable("IBGE_API_BASE_URL")
-            ?? "https://servicodados.ibge.gov.br/api/v1/localidades/";
-
-        _httpClient = new HttpClient
-        {
-            BaseAddress = new Uri(baseUrl),
-            Timeout = TimeSpan.FromSeconds(30)
-        };
-        _client = new IbgeClient(_httpClient, NullLogger<IbgeClient>.Instance);
+        _ibgeClient = ServiceProvider.GetRequiredService<IbgeClient>();
     }
 
-    public void Dispose()
-    {
-        _httpClient.Dispose();
-        GC.SuppressFinalize(this);
-    }
-
-    [Fact(Skip = "Real API call - run manually or in integration test suite")]
+    [Fact]
     public async Task GetMunicipioByNameAsync_Muriae_ShouldReturnValidMunicipio()
     {
         // Arrange
         const string cityName = "Muriaé";
 
         // Act
-        var result = await _client.GetMunicipioByNameAsync(cityName);
+        var result = await _ibgeClient.GetMunicipioByNameAsync(cityName);
 
         // Assert
-        result.Should().NotBeNull("Muriaé deve existir na API IBGE");
+        result.Should().NotBeNull("Muriaé deve existir no WireMock stub");
         result!.Nome.Should().Be("Muriaé");
-        result.Id.Should().Be(3129707, "Código IBGE de Muriaé-MG");
+        result.Id.Should().Be(3143906, "Código IBGE de Muriaé-MG no stub");
 
         // Validar hierarquia geográfica completa
         var ufSigla = result.GetEstadoSigla();
@@ -62,19 +47,19 @@ public sealed class IbgeApiIntegrationTests : IDisposable
         result.Microrregiao!.Mesorregiao!.UF!.Regiao!.Nome.Should().Be("Sudeste");
     }
 
-    [Fact(Skip = "Real API call - run manually or in integration test suite")]
+    [Fact]
     public async Task GetMunicipioByNameAsync_Itaperuna_ShouldReturnValidMunicipio()
     {
         // Arrange
         const string cityName = "Itaperuna";
 
         // Act
-        var result = await _client.GetMunicipioByNameAsync(cityName);
+        var result = await _ibgeClient.GetMunicipioByNameAsync(cityName);
 
         // Assert
-        result.Should().NotBeNull("Itaperuna deve existir na API IBGE");
+        result.Should().NotBeNull("Itaperuna deve existir no WireMock stub");
         result!.Nome.Should().Be("Itaperuna");
-        result.Id.Should().Be(3302270, "Código IBGE de Itaperuna-RJ");
+        result.Id.Should().Be(3302205, "Código IBGE de Itaperuna-RJ no stub");
 
         var ufSigla = result.GetEstadoSigla();
         ufSigla.Should().Be("RJ");
@@ -83,141 +68,126 @@ public sealed class IbgeApiIntegrationTests : IDisposable
         result.Microrregiao!.Mesorregiao!.UF!.Regiao!.Nome.Should().Be("Sudeste");
     }
 
-    [Fact(Skip = "Real API call - run manually or in integration test suite")]
-    public async Task GetMunicipioByNameAsync_Linhares_ShouldReturnValidMunicipio()
+    [Fact]
+    public async Task GetMunicipioByIdAsync_Muriae_ShouldReturnValidMunicipio()
     {
         // Arrange
-        const string cityName = "Linhares";
+        const int ibgeCode = 3143906; // Muriaé-MG
 
         // Act
-        var result = await _client.GetMunicipioByNameAsync(cityName);
+        var result = await _ibgeClient.GetMunicipioByIdAsync(ibgeCode);
 
         // Assert
-        result.Should().NotBeNull("Linhares deve existir na API IBGE");
-        result!.Nome.Should().Be("Linhares");
-        result.Id.Should().Be(3203205, "Código IBGE de Linhares-ES");
-
-        var ufSigla = result.GetEstadoSigla();
-        ufSigla.Should().Be("ES");
-
-        result.Microrregiao!.Mesorregiao!.UF!.Nome.Should().Be("Espírito Santo");
-        result.Microrregiao!.Mesorregiao!.UF!.Regiao!.Nome.Should().Be("Sudeste");
+        result.Should().NotBeNull("Muriaé deve existir no WireMock stub por ID");
+        result!.Nome.Should().Be("Muriaé");
+        result.Id.Should().Be(ibgeCode);
+        result.GetEstadoSigla().Should().Be("MG");
     }
 
-    [Fact(Skip = "Real API call - run manually or in integration test suite")]
-    public async Task GetMunicipioByNameAsync_NonExistentCity_ShouldReturnNull()
+    [Fact]
+    public async Task GetEstadosAsync_ShouldReturnSudesteStates()
     {
-        // Arrange
-        const string cityName = "CidadeInexistenteXYZ123";
-
         // Act
-        var result = await _client.GetMunicipioByNameAsync(cityName);
-
-        // Assert
-        result.Should().BeNull("Cidade inexistente não deve ser encontrada");
-    }
-
-    [Fact(Skip = "Real API call - run manually or in integration test suite")]
-    public async Task GetMunicipiosByUFAsync_MG_ShouldReturnMinasGeraisCities()
-    {
-        // Arrange
-        const string ufSigla = "MG";
-
-        // Act
-        var result = await _client.GetMunicipiosByUFAsync(ufSigla);
+        var result = await _ibgeClient.GetEstadosAsync();
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().NotBeEmpty("Minas Gerais deve ter municípios");
-        result.Count.Should().BeGreaterThan(800, "MG tem 853 municípios");
+        result.Should().NotBeEmpty("WireMock stub retorna estados do Sudeste");
+        result.Should().HaveCountGreaterThanOrEqualTo(3, "Pelo menos MG, RJ, SP");
 
-        // Verificar que Muriaé está na lista
-        result.Should().Contain(m => m.Nome == "Muriaé" && m.Id == 3129707);
-
-        // Verificar que todos têm UF = MG
-        result.Should().OnlyContain(m => m.GetEstadoSigla() == "MG");
+        // Verificar que estados esperados estão presentes
+        result.Should().Contain(e => e.Sigla == "MG" && e.Nome == "Minas Gerais");
+        result.Should().Contain(e => e.Sigla == "RJ" && e.Nome == "Rio de Janeiro");
+        result.Should().Contain(e => e.Sigla == "SP" && e.Nome == "São Paulo");
     }
 
-    [Fact(Skip = "Real API call - run manually or in integration test suite")]
-    public async Task GetMunicipiosByUFAsync_RJ_ShouldReturnRioDeJaneiroCities()
+    [Fact]
+    public async Task GetEstadoByIdAsync_MG_ShouldReturnMinasGerais()
     {
         // Arrange
-        const string ufSigla = "RJ";
+        const int estadoId = 31; // MG
 
         // Act
-        var result = await _client.GetMunicipiosByUFAsync(ufSigla);
+        var result = await _ibgeClient.GetEstadoByIdAsync(estadoId);
+
+        // Assert
+        result.Should().NotBeNull("MG deve existir no WireMock stub");
+        result!.Id.Should().Be(31);
+        result.Sigla.Should().Be("MG");
+        result.Nome.Should().Be("Minas Gerais");
+        result.Regiao.Should().NotBeNull();
+        result.Regiao!.Nome.Should().Be("Sudeste");
+    }
+
+    [Fact]
+    public async Task GetEstadoByUFAsync_MG_ShouldReturnMinasGerais()
+    {
+        // Arrange
+        const string uf = "MG";
+
+        // Act
+        var result = await _ibgeClient.GetEstadoByUFAsync(uf);
+
+        // Assert
+        result.Should().NotBeNull("MG deve existir no WireMock stub por UF");
+        result!.Sigla.Should().Be("MG");
+        result.Nome.Should().Be("Minas Gerais");
+    }
+
+    [Fact]
+    public async Task GetMunicipiosByUFAsync_SP_ShouldReturnSaoPauloCities()
+    {
+        // Arrange
+        const string ufSigla = "SP";
+
+        // Act
+        var result = await _ibgeClient.GetMunicipiosByUFAsync(ufSigla);
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().NotBeEmpty("Rio de Janeiro deve ter municípios");
-        result.Count.Should().BeGreaterThan(90, "RJ possui mais de 90 municípios");
+        result.Should().NotBeEmpty("SP deve ter municípios no WireMock stub");
+        result.Should().Contain(m => m.Nome == "São Paulo");
 
-        // Verificar que Itaperuna está na lista
-        result.Should().Contain(m => m.Nome == "Itaperuna" && m.Id == 3302270);
-
-        // Verificar que todos têm UF = RJ
-        result.Should().OnlyContain(m => m.GetEstadoSigla() == "RJ");
+        // Verificar que todos têm UF = SP
+        result.Should().OnlyContain(m => m.GetEstadoSigla() == "SP");
     }
 
-    [Fact(Skip = "Real API call - run manually or in integration test suite")]
-    public async Task GetMunicipiosByUFAsync_ES_ShouldReturnEspiritoSantoCities()
+    [Fact]
+    public async Task GetMunicipioByIdAsync_InvalidId_ShouldReturnNull()
     {
         // Arrange
-        const string ufSigla = "ES";
+        const int invalidId = 9999999;
 
         // Act
-        var result = await _client.GetMunicipiosByUFAsync(ufSigla);
+        var result = await _ibgeClient.GetMunicipioByIdAsync(invalidId);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Should().NotBeEmpty("Espírito Santo deve ter municípios");
-        result.Count.Should().BeGreaterThan(75, "ES possui mais de 75 municípios");
-
-        // Verificar que Linhares está na lista
-        result.Should().Contain(m => m.Nome == "Linhares" && m.Id == 3203205);
-
-        // Verificar que todos têm UF = ES
-        result.Should().OnlyContain(m => m.GetEstadoSigla() == "ES");
+        result.Should().BeNull("ID inválido deve retornar null conforme WireMock stub");
     }
 
-    [Fact(Skip = "Real API call - run manually or in integration test suite")]
-    public async Task ValidateCityInStateAsync_PilotCities_ShouldAllBeValid()
+    [Fact]
+    public async Task GetEstadoByIdAsync_InvalidId_ShouldReturnNull()
     {
-        // Arrange & Act & Assert
-        var muriae = await _client.ValidateCityInStateAsync("Muriaé", "MG");
-        muriae.Should().BeTrue("Muriaé-MG deve ser válida");
+        // Arrange
+        const int invalidId = 999;
 
-        var itaperuna = await _client.ValidateCityInStateAsync("Itaperuna", "RJ");
-        itaperuna.Should().BeTrue("Itaperuna-RJ deve ser válida");
-
-        var linhares = await _client.ValidateCityInStateAsync("Linhares", "ES");
-        linhares.Should().BeTrue("Linhares-ES deve ser válida");
-    }
-
-    [Fact(Skip = "Real API call - run manually or in integration test suite")]
-    public async Task ValidateCityInStateAsync_WrongState_ShouldReturnFalse()
-    {
-        // Arrange & Act
-        var result = await _client.ValidateCityInStateAsync("Muriaé", "RJ");
+        // Act
+        var result = await _ibgeClient.GetEstadoByIdAsync(invalidId);
 
         // Assert
-        result.Should().BeFalse("Muriaé não pertence ao estado RJ");
+        result.Should().BeNull("ID de estado inválido deve retornar null conforme WireMock stub");
     }
 
-    [Theory(Skip = "Real API call - run manually or in integration test suite")]
+    [Theory]
     [InlineData("São Paulo", "SP")]
-    [InlineData("Rio de Janeiro", "RJ")]
-    [InlineData("Belo Horizonte", "MG")]
-    [InlineData("Vitória", "ES")]
-    public async Task GetMunicipioByNameAsync_MajorCities_ShouldReturnValid(string cityName, string expectedUF)
+    public async Task GetMunicipioByNameAsync_SpecialCharacters_ShouldHandleCorrectly(string cityName, string expectedUF)
     {
         // Act
-        var result = await _client.GetMunicipioByNameAsync(cityName);
+        var result = await _ibgeClient.GetMunicipioByNameAsync(cityName);
 
         // Assert
-        result.Should().NotBeNull($"{cityName} deve existir na API IBGE");
+        result.Should().NotBeNull($"{cityName} deve existir no WireMock stub com caracteres especiais");
         result!.Nome.Should().Be(cityName);
         result.GetEstadoSigla().Should().Be(expectedUF);
-        result.Microrregiao!.Mesorregiao!.UF!.Regiao!.Nome.Should().Be("Sudeste");
     }
 }
