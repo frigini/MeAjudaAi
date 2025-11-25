@@ -168,7 +168,7 @@ public sealed class SearchableProviderRepository(
                     location::geography,
                     ST_SetSRID(ST_MakePoint(@Lng, @Lat), 4326)::geography
                 ) / 1000.0 AS DistanceKm
-            FROM search.searchable_providers
+            FROM search_providers.searchable_providers
             WHERE is_active = true
                 AND ST_DWithin(
                     location::geography,
@@ -201,8 +201,8 @@ public sealed class SearchableProviderRepository(
             : "";
 
         return $"""
-            SELECT COUNT(*)::int
-            FROM search.searchable_providers
+            SELECT COUNT(*)
+            FROM search_providers.searchable_providers
             WHERE is_active = true
                 AND ST_DWithin(
                     location::geography,
