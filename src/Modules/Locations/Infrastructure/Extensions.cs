@@ -1,8 +1,9 @@
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
+using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
-using MeAjudaAi.Shared.Contracts.Modules.Location;
+using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -11,12 +12,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Modules.Locations.Infrastructure;
 
 /// <summary>
-/// Métodos de extensão para registrar serviços do módulo Location.
+/// Métodos de extensão para registrar serviços do módulo Locations.
 /// </summary>
 public static class Extensions
 {
     /// <summary>
-    /// Registra todos os serviços do módulo Location.
+    /// Registra todos os serviços do módulo Locations.
     /// </summary>
     public static IServiceCollection AddLocationModule(this IServiceCollection services, IConfiguration configuration)
     {

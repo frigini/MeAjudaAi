@@ -1,11 +1,11 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Integration.Tests.Infrastructure;
-using MeAjudaAi.Shared.Contracts.Modules.Location;
+using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace MeAjudaAi.Integration.Tests.Modules.Location;
+namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
 /// <summary>
 /// Integration tests for CEP provider unavailability scenarios.

@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
 
-namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
+namespace MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 
 /// <summary>
 /// Interface para cliente HTTP da API IBGE Localidades.

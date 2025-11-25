@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Locations.Infrastructure;
@@ -11,6 +10,7 @@ using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Logging;
 using Serilog;
 using Serilog.Context;
+using System.Diagnostics;
 
 public partial class Program
 {

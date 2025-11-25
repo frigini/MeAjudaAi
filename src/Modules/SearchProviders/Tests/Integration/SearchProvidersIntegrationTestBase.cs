@@ -13,7 +13,7 @@ using Testcontainers.PostgreSql;
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 
 /// <summary>
-/// Classe base para testes de integração do módulo Search.
+/// Classe base para testes de integração do módulo SearchProviders.
 /// Usa Testcontainers PostgreSQL com extensão PostGIS.
 /// </summary>
 public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime

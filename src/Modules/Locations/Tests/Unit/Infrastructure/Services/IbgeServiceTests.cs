@@ -1,6 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
-using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
+using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;

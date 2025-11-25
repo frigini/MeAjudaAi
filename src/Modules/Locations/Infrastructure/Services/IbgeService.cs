@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
-using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
+using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;

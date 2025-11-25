@@ -1,7 +1,7 @@
-using MeAjudaAi.Shared.Contracts.Modules.Search.DTOs;
+using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Shared.Functional;
 
-namespace MeAjudaAi.Shared.Contracts.Modules.Search;
+namespace MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
 
 /// <summary>
 /// Public API for the Search & Discovery module.

@@ -38,7 +38,7 @@
 
 ## 2. IBGE API Integration Tests (10 testes)
 
-**Arquivo:** `tests/MeAjudaAi.Integration.Tests/Modules/Location/IbgeApiIntegrationTests.cs`
+**Arquivo:** `tests/MeAjudaAi.Integration.Tests/Modules/Locations/IbgeApiIntegrationTests.cs`
 
 **Status:** ⏭️ **DEVEM PERMANECER SKIPPED (por padrão)**
 

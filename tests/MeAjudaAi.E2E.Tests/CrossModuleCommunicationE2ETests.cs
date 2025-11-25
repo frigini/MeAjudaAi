@@ -1,7 +1,7 @@
-using System.Net;
-using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
+using System.Net;
+using System.Text.Json;
 
 namespace MeAjudaAi.Tests.E2E.ModuleApis;
 

@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace MeAjudaAi.Integration.Tests.Modules.Location;
+namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
 /// <summary>
 /// Integration tests para IBGE Localidades API.

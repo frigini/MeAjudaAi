@@ -3,7 +3,7 @@ using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using Xunit;
 
-namespace MeAjudaAi.Integration.Tests.Modules.Location;
+namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
 /// <summary>
 /// Integration tests for IBGE service unavailability scenarios.

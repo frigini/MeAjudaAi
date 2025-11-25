@@ -487,7 +487,7 @@ src/Modules/ServiceCatalogs/
 - **[Roadmap](../roadmap.md)** - Planejamento estratégico
 - **[Architecture](../architecture.md)** - Padrões arquiteturais
 - **[Providers Module](./providers.md)** - Integração futura
-- **[Search Module](./search.md)** - Integração de busca
+- **[SearchProviders Module](./search_providers.md)** - Integração de busca
 
 ---
 

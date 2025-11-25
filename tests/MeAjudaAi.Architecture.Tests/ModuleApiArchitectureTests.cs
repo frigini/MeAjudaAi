@@ -1,6 +1,6 @@
 using System.Reflection;
 using MeAjudaAi.Shared.Contracts.Modules;
-using MeAjudaAi.Shared.Contracts.Modules.Location;
+using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Contracts.Modules.Users;

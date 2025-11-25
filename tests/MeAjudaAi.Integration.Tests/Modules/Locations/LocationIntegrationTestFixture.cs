@@ -8,10 +8,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Integration.Tests.Modules.Location;
+namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 
 /// <summary>
-/// Classe base para testes de integração do módulo Location.
+/// Classe base para testes de integração do módulo Locations.
 /// Fornece configuração compartilhada de DI para testes de CEP e geocodificação.
 /// </summary>
 public abstract class LocationIntegrationTestFixture : IAsyncLifetime

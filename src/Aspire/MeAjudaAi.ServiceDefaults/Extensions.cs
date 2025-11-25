@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.AspNetCore.Builder;
@@ -14,6 +13,7 @@ using Microsoft.FeatureManagement;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using System.Text.Json;
 
 namespace MeAjudaAi.ServiceDefaults;
 

@@ -100,7 +100,7 @@ public class GeographicRestrictionMiddleware(
         await next(context);
     }
 
-    private (string? City, string? State) ExtractLocation(HttpContext context)
+    private static (string? City, string? State) ExtractLocation(HttpContext context)
     {
         // Prioridade 1: Header X-User-Location (formato: "City|State")
         if (context.Request.Headers.TryGetValue("X-User-Location", out var locationHeader))

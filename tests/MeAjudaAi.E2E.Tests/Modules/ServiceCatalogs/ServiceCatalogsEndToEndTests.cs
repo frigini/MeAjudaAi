@@ -1,4 +1,3 @@
-using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.DTOs;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
@@ -6,6 +5,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Contracts;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
 

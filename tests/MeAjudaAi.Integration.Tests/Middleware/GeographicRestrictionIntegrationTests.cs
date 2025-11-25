@@ -1,8 +1,8 @@
-using System.Net;
-using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Shared.Models;
+using System.Net;
+using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Middleware;
 
@@ -32,7 +32,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         }
     }
 
-    [Fact(Skip = "CI returns 200 OK instead of 451 - middleware not blocking. Likely feature flag or middleware registration issue in CI environment.")]
+    [Fact]
     public async Task GetProviders_WhenBlockedCity_ShouldReturn451()
     {
         // Arrange

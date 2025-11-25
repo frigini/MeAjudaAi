@@ -1,4 +1,3 @@
-using System.Text.Json;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests;
@@ -17,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 
@@ -70,6 +70,12 @@ public abstract class ApiTestBase : IAsyncLifetime
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
+
+                // Configure app to load appsettings.Testing.json
+                builder.ConfigureAppConfiguration((context, config) =>
+                {
+                    config.AddJsonFile("appsettings.Testing.json", optional: false, reloadOnChange: false);
+                });
 
                 builder.ConfigureServices(services =>
                 {
