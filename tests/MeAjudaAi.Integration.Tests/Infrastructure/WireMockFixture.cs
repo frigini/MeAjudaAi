@@ -279,7 +279,7 @@ public class WireMockFixture : IAsyncDisposable
         // CEP 01310-100 - Avenida Paulista, São Paulo/SP
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v1/01310100")
+                .WithPath("/api/cep/v2/01310100")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -304,7 +304,7 @@ public class WireMockFixture : IAsyncDisposable
         // CEP 01310-100 - Avenida Paulista, São Paulo/SP
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
-                .WithPath("/01310100.json")
+                .WithPath("/v1/01310100")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -327,12 +327,11 @@ public class WireMockFixture : IAsyncDisposable
     /// </summary>
     private void ConfigureNominatimStubs()
     {
-        // São Paulo coordinates (example: -23.5505, -46.6333)
+        // São Paulo search
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
-                .WithPath("/reverse")
-                .WithParam("lat", "-23.5505")
-                .WithParam("lon", "-46.6333")
+                .WithPath("/search")
+                .WithParam("q", "São Paulo, Brasil")
                 .WithParam("format", "json")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()

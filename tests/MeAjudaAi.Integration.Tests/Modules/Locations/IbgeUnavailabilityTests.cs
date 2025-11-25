@@ -91,6 +91,10 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.UnavailableForLegalReasons,
             $"Expected 451 but got {(int)response.StatusCode}. Response body: {content}");
 
+        // Only validate payload structure if status code is correct
+        if (response.StatusCode != System.Net.HttpStatusCode.UnavailableForLegalReasons)
+            return;
+
         // Verify error payload structure
         var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
 

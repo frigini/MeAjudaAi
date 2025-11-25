@@ -59,7 +59,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
     }
 
     [Fact]
-    public async Task LookupCep_WhenViaCepAndBrasilApiTimeout_ShouldFallbackToOpenCep()
+    public async Task LookupCep_WhenViaCepAndBrasilApiReturnInvalidJson_ShouldFallbackToOpenCep()
     {
         // Arrange - ViaCEP returns invalid/empty JSON (200 with "{}" triggers deserialization failure)
         WireMock.Server
@@ -151,10 +151,13 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
     [Fact]
     public async Task LookupCep_WhenViaCepReturnsMalformedJson_ShouldFallbackToBrasilApi()
     {
-        // Arrange - ViaCEP returns malformed JSON
+        // Arrange - Use unique CEP to avoid conflicts with default stubs
+        var uniqueCep = "12345678";
+
+        // ViaCEP returns malformed JSON
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/01310100/json/")
+                .WithPath($"/ws/{uniqueCep}/json/")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -164,14 +167,14 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // BrasilAPI succeeds
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v2/01310100")
+                .WithPath($"/api/cep/v2/{uniqueCep}")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
-                .WithBody("""
+                .WithBody($$"""
                     {
-                        "cep": "01310100",
+                        "cep": "{{uniqueCep}}",
                         "state": "SP",
                         "city": "São Paulo",
                         "neighborhood": "Bela Vista",
@@ -182,7 +185,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         var locationApi = Services.GetRequiredService<ILocationModuleApi>();
 
         // Act
-        var result = await locationApi.GetAddressFromCepAsync("01310100");
+        var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
         // Assert - Should fallback to BrasilAPI
         result.IsSuccess.Should().BeTrue();
