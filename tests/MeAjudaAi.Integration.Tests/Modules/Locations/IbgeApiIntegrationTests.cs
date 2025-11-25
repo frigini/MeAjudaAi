@@ -32,7 +32,7 @@ public sealed class IbgeApiIntegrationTests : IDisposable
 
     public void Dispose()
     {
-        _httpClient?.Dispose();
+        _httpClient.Dispose();
     }
 
     [Fact(Skip = "Real API call - run manually or in integration test suite")]

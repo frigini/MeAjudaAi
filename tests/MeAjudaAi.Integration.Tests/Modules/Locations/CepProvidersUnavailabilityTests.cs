@@ -31,7 +31,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // BrasilAPI succeeds
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v1/01310100")
+                .WithPath("/api/cep/v2/01310100")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -74,7 +74,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // BrasilAPI times out
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v1/01310100")
+                .WithPath("/api/cep/v2/01310100")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -126,7 +126,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
 
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/api/cep/v1/{uniqueCep}")
+                .WithPath($"/api/cep/v2/{uniqueCep}")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
@@ -145,7 +145,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
 
         // Assert - Should return failure when all providers down
         result.IsSuccess.Should().BeFalse();
-        result.Value.Should().BeNull();
+        result.Error.Should().NotBeNull();
     }
 
     [Fact]
@@ -202,10 +202,10 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
                 .WithHeader("Content-Type", "application/json")
                 .WithBody("""{"erro": true}"""));
 
-        // BrasilAPI also fails (404 for invalid CEP)
+        // BrasilAPI also fails (404 for invalid CEP - v2 behavior)
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v1/00000000")
+                .WithPath("/api/cep/v2/00000000")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(404)
@@ -241,7 +241,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
 
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v1/01310100")
+                .WithPath("/api/cep/v2/01310100")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -275,7 +275,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
 
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v1/01310100")
+                .WithPath("/api/cep/v2/01310100")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500)
