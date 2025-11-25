@@ -1,6 +1,5 @@
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
-using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Contracts.Modules;
 using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
@@ -8,6 +7,7 @@ using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
+using DomainEnums = MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 
 namespace MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 
@@ -72,13 +72,13 @@ public sealed class SearchModuleApi(
         double radiusInKm,
         Guid[]? serviceIds = null,
         decimal? minRating = null,
-        SubscriptionTier[]? subscriptionTiers = null,
+        ESubscriptionTier[]? subscriptionTiers = null,
         int pageNumber = 1,
         int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
         // Mapear enums do módulo para enums do domínio usando mapeamento explícito
-        ESubscriptionTier[]? domainTiers = subscriptionTiers?.Select(ToDomainTier).ToArray();
+        DomainEnums.ESubscriptionTier[]? domainTiers = subscriptionTiers?.Select(ToDomainTier).ToArray();
 
         var query = new SearchProvidersQuery(
             latitude,
@@ -129,24 +129,24 @@ public sealed class SearchModuleApi(
     /// <summary>
     /// Mapeia o enum de tier do módulo para o enum de tier do domínio com conversão explícita.
     /// </summary>
-    private static ESubscriptionTier ToDomainTier(SubscriptionTier tier) => tier switch
+    private static DomainEnums.ESubscriptionTier ToDomainTier(ESubscriptionTier tier) => tier switch
     {
-        SubscriptionTier.Free => ESubscriptionTier.Free,
-        SubscriptionTier.Standard => ESubscriptionTier.Standard,
-        SubscriptionTier.Gold => ESubscriptionTier.Gold,
-        SubscriptionTier.Platinum => ESubscriptionTier.Platinum,
+        ESubscriptionTier.Free => DomainEnums.ESubscriptionTier.Free,
+        ESubscriptionTier.Standard => DomainEnums.ESubscriptionTier.Standard,
+        ESubscriptionTier.Gold => DomainEnums.ESubscriptionTier.Gold,
+        ESubscriptionTier.Platinum => DomainEnums.ESubscriptionTier.Platinum,
         _ => throw new ArgumentOutOfRangeException(nameof(tier), tier, "Unknown subscription tier")
     };
 
     /// <summary>
     /// Mapeia o enum de tier do domínio para o enum de tier do módulo com conversão explícita.
     /// </summary>
-    private static SubscriptionTier ToModuleTier(ESubscriptionTier tier) => tier switch
+    private static ESubscriptionTier ToModuleTier(DomainEnums.ESubscriptionTier tier) => tier switch
     {
-        ESubscriptionTier.Free => SubscriptionTier.Free,
-        ESubscriptionTier.Standard => SubscriptionTier.Standard,
-        ESubscriptionTier.Gold => SubscriptionTier.Gold,
-        ESubscriptionTier.Platinum => SubscriptionTier.Platinum,
+        DomainEnums.ESubscriptionTier.Free => ESubscriptionTier.Free,
+        DomainEnums.ESubscriptionTier.Standard => ESubscriptionTier.Standard,
+        DomainEnums.ESubscriptionTier.Gold => ESubscriptionTier.Gold,
+        DomainEnums.ESubscriptionTier.Platinum => ESubscriptionTier.Platinum,
         _ => throw new ArgumentOutOfRangeException(nameof(tier), tier, "Unknown subscription tier")
     };
 }

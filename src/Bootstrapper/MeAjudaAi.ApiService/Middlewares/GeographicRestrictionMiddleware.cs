@@ -16,12 +16,10 @@ namespace MeAjudaAi.ApiService.Middlewares;
 public class GeographicRestrictionMiddleware(
     RequestDelegate next,
     ILogger<GeographicRestrictionMiddleware> logger,
-    IOptions<GeographicRestrictionOptions> options,
+    IOptionsMonitor<GeographicRestrictionOptions> options,
     IFeatureManager featureManager,
     IGeographicValidationService? geographicValidationService = null)
 {
-    private readonly GeographicRestrictionOptions _options = options.Value;
-
     public async Task InvokeAsync(HttpContext context)
     {
         // Verificar se feature está habilitada (Microsoft.FeatureManagement)
@@ -61,11 +59,11 @@ public class GeographicRestrictionMiddleware(
             context.Response.ContentType = "application/json";
 
             var allowedRegions = GetAllowedRegionsDescription();
-            var template = _options.BlockedMessage ?? "Access from your region is not allowed. Allowed regions: {allowedRegions}.";
+            var template = options.CurrentValue.BlockedMessage ?? "Access from your region is not allowed. Allowed regions: {allowedRegions}.";
             var message = template.Replace("{allowedRegions}", allowedRegions);
 
             // Convert configured "City|State" entries (or plain city names) to AllowedCity objects
-            var allowedCitiesResponse = _options.AllowedCities?
+            var allowedCitiesResponse = options.CurrentValue.AllowedCities?
                 .Select(raw =>
                 {
                     var parts = raw.Split('|');
@@ -84,7 +82,7 @@ public class GeographicRestrictionMiddleware(
                 message: message,
                 userLocation: new UserLocation { City = city, State = state },
                 allowedCities: allowedCitiesResponse,
-                allowedStates: _options.AllowedStates);
+                allowedStates: options.CurrentValue.AllowedStates);
 
             await context.Response.WriteAsync(
                 JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
@@ -167,7 +165,7 @@ public class GeographicRestrictionMiddleware(
                 var ibgeValidation = await geographicValidationService.ValidateCityAsync(
                     city,
                     state,
-                    _options.AllowedCities,
+                    options.CurrentValue.AllowedCities,
                     cancellationToken);
 
                 // IBGE validation tem prioridade (mais precisa)
@@ -201,13 +199,13 @@ public class GeographicRestrictionMiddleware(
         // Suporta tanto formato "City|State" quanto apenas nome da cidade
         if (!string.IsNullOrEmpty(city))
         {
-            if (_options.AllowedCities == null)
+            if (options.CurrentValue.AllowedCities == null)
             {
                 logger.LogWarning("Geographic restriction enabled but AllowedCities is null - failing open");
                 return true; // Fail-open when misconfigured
             }
 
-            foreach (var allowedCity in _options.AllowedCities)
+            foreach (var allowedCity in options.CurrentValue.AllowedCities)
             {
                 var parts = allowedCity.Split('|');
 
@@ -223,7 +221,7 @@ public class GeographicRestrictionMiddleware(
                             return true;
 
                         // Com estado informado, dependerá da regra de estados permitidos
-                        return _options.AllowedStates?.Any(s =>
+                        return options.CurrentValue.AllowedStates?.Any(s =>
                             s.Equals(state, StringComparison.OrdinalIgnoreCase)) == true;
                     }
                     continue;
@@ -257,13 +255,13 @@ public class GeographicRestrictionMiddleware(
         // Se temos apenas estado (sem cidade), validar contra lista de estados permitidos
         if (!string.IsNullOrEmpty(state))
         {
-            if (_options.AllowedStates == null)
+            if (options.CurrentValue.AllowedStates == null)
             {
                 logger.LogWarning("Geographic restriction enabled but AllowedStates is null - failing open");
                 return true; // Fail-open when misconfigured
             }
 
-            return _options.AllowedStates.Any(s => s.Equals(state, StringComparison.OrdinalIgnoreCase));
+            return options.CurrentValue.AllowedStates.Any(s => s.Equals(state, StringComparison.OrdinalIgnoreCase));
         }
 
         return false;
@@ -271,12 +269,12 @@ public class GeographicRestrictionMiddleware(
 
     private string GetAllowedRegionsDescription()
     {
-        var cities = _options.AllowedCities?.Any() == true
-            ? string.Join(", ", _options.AllowedCities)
+        var cities = options.CurrentValue.AllowedCities?.Any() == true
+            ? string.Join(", ", options.CurrentValue.AllowedCities)
             : "N/A";
 
-        var states = _options.AllowedStates?.Any() == true
-            ? string.Join(", ", _options.AllowedStates)
+        var states = options.CurrentValue.AllowedStates?.Any() == true
+            ? string.Join(", ", options.CurrentValue.AllowedStates)
             : "N/A";
 
         return $"Cities: {cities} | States: {states}";
