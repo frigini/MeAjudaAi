@@ -40,30 +40,38 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         Client.DefaultRequestHeaders.Add("X-User-City", "São Paulo");
         Client.DefaultRequestHeaders.Add("X-User-State", "SP");
 
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers");
+        try
+        {
+            // Act
+            var response = await Client.GetAsync("/api/v1/providers");
 
-        // Assert
-        var content = await response.Content.ReadAsStringAsync();
+            // Assert
+            var content = await response.Content.ReadAsStringAsync();
 
-        response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
-            $"Expected 451 but got {(int)response.StatusCode}. Response: {content}"); // 451
+            response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
+                $"Expected 451 but got {(int)response.StatusCode}. Response: {content}"); // 451
 
-        content.Should().NotBeNullOrWhiteSpace("Response body should not be empty");
+            content.Should().NotBeNullOrWhiteSpace("Response body should not be empty");
 
-        var json = JsonSerializer.Deserialize<JsonElement>(content);
+            var json = JsonSerializer.Deserialize<JsonElement>(content);
 
-        // Verify all expected fields are present
-        json.TryGetProperty("error", out var errorProp).Should().BeTrue($"Missing 'error' property. JSON: {content}");
-        json.TryGetProperty("detail", out var detailProp).Should().BeTrue($"Missing 'detail' property. JSON: {content}");
-        json.TryGetProperty("allowedCities", out var citiesProp).Should().BeTrue($"Missing 'allowedCities' property. JSON: {content}");
-        json.TryGetProperty("yourLocation", out var locationProp).Should().BeTrue($"Missing 'yourLocation' property. JSON: {content}");
+            // Verify all expected fields are present
+            json.TryGetProperty("error", out var errorProp).Should().BeTrue($"Missing 'error' property. JSON: {content}");
+            json.TryGetProperty("detail", out var detailProp).Should().BeTrue($"Missing 'detail' property. JSON: {content}");
+            json.TryGetProperty("allowedCities", out var citiesProp).Should().BeTrue($"Missing 'allowedCities' property. JSON: {content}");
+            json.TryGetProperty("yourLocation", out var locationProp).Should().BeTrue($"Missing 'yourLocation' property. JSON: {content}");
 
-        errorProp.GetString().Should().Be("geographic_restriction");
-        detailProp.GetString().Should().Contain("Muriaé");
-        citiesProp.GetArrayLength().Should().BeGreaterThan(0, "should have at least one allowed city");
-        locationProp.TryGetProperty("city", out var cityProp).Should().BeTrue();
-        cityProp.GetString().Should().Be("São Paulo");
+            errorProp.GetString().Should().Be("geographic_restriction");
+            detailProp.GetString().Should().Contain("Muriaé");
+            citiesProp.GetArrayLength().Should().BeGreaterThan(0, "should have at least one allowed city");
+            locationProp.TryGetProperty("city", out var cityProp).Should().BeTrue();
+            cityProp.GetString().Should().Be("São Paulo");
+        }
+        finally
+        {
+            Client.DefaultRequestHeaders.Remove("X-User-City");
+            Client.DefaultRequestHeaders.Remove("X-User-State");
+        }
     }
 
     [Fact]
