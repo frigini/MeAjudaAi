@@ -22,6 +22,14 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Arrange - Use unique CEP to avoid conflicts with default stubs
         var uniqueCep = "23456789";
 
+        // Get baseline count before test (for parallel test isolation)
+        var baselineViaCepCount = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/ws/{uniqueCep}/json/");
+        var baselineBrasilApiCount = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/api/cep/v2/{uniqueCep}");
+        var baselineOpenCepCount = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/v1/{uniqueCep}");
+
         // ViaCEP fails with 500
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
@@ -62,13 +70,13 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         result.Value!.City.Should().Be("São Paulo");
         result.Value.State.Should().Be("SP");
 
-        // Verify provider usage order (contract enforcement)
+        // Verify provider usage order (contract enforcement) - use delta from baseline
         var viaCepHits = WireMock.Server.LogEntries.Count(e =>
-            e.RequestMessage.Path == $"/ws/{uniqueCep}/json/");
+            e.RequestMessage.Path == $"/ws/{uniqueCep}/json/") - baselineViaCepCount;
         var brasilApiHits = WireMock.Server.LogEntries.Count(e =>
-            e.RequestMessage.Path == $"/api/cep/v2/{uniqueCep}");
+            e.RequestMessage.Path == $"/api/cep/v2/{uniqueCep}") - baselineBrasilApiCount;
         var openCepHits = WireMock.Server.LogEntries.Count(e =>
-            e.RequestMessage.Path == $"/v1/{uniqueCep}");
+            e.RequestMessage.Path == $"/v1/{uniqueCep}") - baselineOpenCepCount;
 
         viaCepHits.Should().Be(1, "ViaCEP should be tried first");
         brasilApiHits.Should().Be(1, "BrasilAPI should succeed as fallback");
@@ -80,6 +88,14 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
     {
         // Arrange - Use unique CEP to avoid conflicts with default stubs
         var uniqueCep = "34567890";
+
+        // Get baseline count before test (for parallel test isolation)
+        var baselineViaCepCount = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/ws/{uniqueCep}/json/");
+        var baselineBrasilApiCount = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/api/cep/v2/{uniqueCep}");
+        var baselineOpenCepCount = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/v1/{uniqueCep}");
 
         // ViaCEP returns invalid/empty JSON (missing required fields triggers deserialization failure)
         WireMock.Server
@@ -130,6 +146,19 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.City.Should().Be("São Paulo");
+        result.Value.State.Should().Be("SP");
+
+        // Verify provider usage order (contract enforcement) - use delta from baseline
+        var viaCepHits = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/ws/{uniqueCep}/json/") - baselineViaCepCount;
+        var brasilApiHits = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/api/cep/v2/{uniqueCep}") - baselineBrasilApiCount;
+        var openCepHits = WireMock.Server.LogEntries.Count(e =>
+            e.RequestMessage.Path == $"/v1/{uniqueCep}") - baselineOpenCepCount;
+
+        viaCepHits.Should().Be(1, "ViaCEP should be tried first");
+        brasilApiHits.Should().Be(1, "BrasilAPI should be tried as fallback");
+        openCepHits.Should().Be(1, "OpenCEP should succeed as final fallback");
     }
 
     [Fact]
