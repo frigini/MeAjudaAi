@@ -323,7 +323,7 @@ public abstract class ApiTestBase : IAsyncLifetime
 
         services.AddHttpClient<IbgeClient>(client =>
         {
-            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl);
+            client.BaseAddress = new Uri(_wireMockFixture!.BaseUrl + "/api/v1/localidades/");
         });
 
         services.AddHttpClient<NominatimClient>(client =>

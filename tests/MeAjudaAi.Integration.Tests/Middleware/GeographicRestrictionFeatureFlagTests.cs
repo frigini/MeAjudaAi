@@ -13,6 +13,9 @@ namespace MeAjudaAi.Integration.Tests.Middleware;
 [Collection("Integration")]
 public class GeographicRestrictionFeatureFlagTests : ApiTestBase
 {
+    // TODO: Create GitHub issue to track CI middleware registration problem.
+    // Multiple tests skipped due to feature flag defaulting to disabled in CI.
+    // Issue affects GeographicRestrictionMiddleware not being registered during CI test runs.
     // TODO: Re-enable when CI middleware registration issue is resolved
     // Track: Feature flag/middleware not blocking in CI despite GeographicRestriction:true
     [Fact(Skip = "CI returns 200 OK instead of 451 - middleware not blocking. Likely feature flag or middleware registration issue in CI environment.")]
@@ -83,65 +86,6 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
                 $"{city}/{state} should be blocked when not in the configured list");
-        }
-        finally
-        {
-            Client.DefaultRequestHeaders.Remove(UserLocationHeader);
-        }
-    }
-
-    // Legacy combined test - replaced by individual Theory tests above for better isolation
-    // Keeping for reference until Theory tests are proven in CI
-    [Fact(Skip = "Replaced by Theory tests above. Remove after confirming Theory tests work in CI.")]
-    public async Task GeographicRestriction_WhenEnabled_ShouldOnlyAllowConfiguredCities_Legacy()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-
-        try
-        {
-            // Act & Assert - Allowed cities should work
-            var allowedCities = new[]
-            {
-                ("Muriaé", "MG"),
-                ("Itaperuna", "RJ"),
-                ("Linhares", "ES")
-            };
-
-            foreach (var (city, state) in allowedCities)
-            {
-                Client.DefaultRequestHeaders.Remove(UserLocationHeader);
-                Client.DefaultRequestHeaders.Add(UserLocationHeader, $"{city}|{state}");
-
-                var response = await Client.GetAsync(ProvidersEndpoint);
-
-                response.StatusCode.Should().Be(HttpStatusCode.OK,
-                    $"{city}/{state} should be allowed when it's in the configured list");
-
-                // Add delay to avoid rate limiting or connection pooling issues
-                await Task.Delay(500);
-            }
-
-            // Act & Assert - Blocked cities should be denied
-            var blockedCities = new[]
-            {
-                ("São Paulo", "SP"),
-                ("Rio de Janeiro", "RJ")
-            };
-
-            foreach (var (city, state) in blockedCities)
-            {
-                Client.DefaultRequestHeaders.Remove(UserLocationHeader);
-                Client.DefaultRequestHeaders.Add(UserLocationHeader, $"{city}|{state}");
-
-                var response = await Client.GetAsync(ProvidersEndpoint);
-
-                response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
-                    $"{city}/{state} should be blocked when not in the configured list");
-
-                // Add delay to avoid rate limiting or connection pooling issues
-                await Task.Delay(500);
-            }
         }
         finally
         {

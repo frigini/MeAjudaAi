@@ -69,7 +69,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Arrange - Use unique CEP to avoid conflicts with default stubs
         var uniqueCep = "34567890";
 
-        // ViaCEP returns invalid/empty JSON (200 with "{}" triggers deserialization failure)
+        // ViaCEP returns invalid/empty JSON (missing required fields triggers deserialization failure)
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/ws/{uniqueCep}/json/")
@@ -77,10 +77,9 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
-                .WithBody("{}")
-                .WithDelay(TimeSpan.FromSeconds(2))); // Delay to simulate slow response
+                .WithBody("{}")); // Empty JSON lacks required fields, causing validation to fail
 
-        // BrasilAPI returns invalid/empty JSON (200 with "{}" triggers deserialization failure)
+        // BrasilAPI also returns invalid/empty JSON
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath($"/api/cep/v2/{uniqueCep}")
@@ -88,8 +87,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .AtPriority(1) // Higher priority than default stubs
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
-                .WithBody("{}")
-                .WithDelay(TimeSpan.FromSeconds(2))); // Delay to simulate slow response
+                .WithBody("{}")); // Empty JSON lacks required fields, causing validation to fail
 
         // OpenCEP succeeds
         WireMock.Server
