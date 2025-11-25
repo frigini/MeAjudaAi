@@ -22,7 +22,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Arrange - ViaCEP fails with 500
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/01310100/json")
+                .WithPath("/ws/01310100/json/")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500)
@@ -61,17 +61,17 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
     [Fact]
     public async Task LookupCep_WhenViaCepAndBrasilApiTimeout_ShouldFallbackToOpenCep()
     {
-        // Arrange - ViaCEP times out
+        // Arrange - ViaCEP returns invalid/empty JSON (200 with "{}" triggers deserialization failure)
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/01310100/json")
+                .WithPath("/ws/01310100/json/")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithBody("{}")
-                .WithDelay(TimeSpan.FromSeconds(2))); // Reduced delay for faster tests
+                .WithDelay(TimeSpan.FromSeconds(2))); // Delay to simulate slow response
 
-        // BrasilAPI times out
+        // BrasilAPI returns invalid/empty JSON (200 with "{}" triggers deserialization failure)
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/cep/v2/01310100")
@@ -79,7 +79,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
                 .WithBody("{}")
-                .WithDelay(TimeSpan.FromSeconds(2))); // Reduced delay for faster tests
+                .WithDelay(TimeSpan.FromSeconds(2))); // Delay to simulate slow response
 
         // OpenCEP succeeds
         WireMock.Server
@@ -234,7 +234,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Arrange - First call: ViaCEP down, BrasilAPI succeeds
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/ws/01310100/json")
+                .WithPath("/ws/01310100/json/")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));

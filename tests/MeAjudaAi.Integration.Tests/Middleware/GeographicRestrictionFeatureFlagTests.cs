@@ -13,6 +13,8 @@ namespace MeAjudaAi.Integration.Tests.Middleware;
 [Collection("Integration")]
 public class GeographicRestrictionFeatureFlagTests : ApiTestBase
 {
+    // TODO: Re-enable when CI middleware registration issue is resolved
+    // Track: Feature flag/middleware not blocking in CI despite GeographicRestriction:true
     [Fact(Skip = "CI returns 200 OK instead of 451 - middleware not blocking. Likely feature flag or middleware registration issue in CI environment.")]
     public async Task GeographicRestriction_WhenEnabled_ShouldBlockUnauthorizedCities()
     {
@@ -21,10 +23,10 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
 
         try
         {
-            Client.DefaultRequestHeaders.Add("X-User-Location", "São Paulo|SP"); // Blocked city
+            Client.DefaultRequestHeaders.Add(UserLocationHeader, "São Paulo|SP"); // Blocked city
 
             // Act
-            var response = await Client.GetAsync("/api/v1/providers");
+            var response = await Client.GetAsync(ProvidersEndpoint);
 
             // Assert - Feature enabled: should block unauthorized locations
             response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
@@ -32,10 +34,12 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
         }
         finally
         {
-            Client.DefaultRequestHeaders.Remove("X-User-Location");
+            Client.DefaultRequestHeaders.Remove(UserLocationHeader);
         }
     }
 
+    // TODO: Split into individual per-city tests or resolve CI rate-limit config to re-enable
+    // Track: Intermittent 429 errors from rapid sequential requests in CI environment
     [Fact(Skip = "Intermittent 429 TooManyRequests in CI due to rapid sequential requests. Individual city tests pass. Functionality validated by other tests.")]
     public async Task GeographicRestriction_WhenEnabled_ShouldOnlyAllowConfiguredCities()
     {
@@ -54,10 +58,10 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
 
             foreach (var (city, state) in allowedCities)
             {
-                Client.DefaultRequestHeaders.Remove("X-User-Location");
-                Client.DefaultRequestHeaders.Add("X-User-Location", $"{city}|{state}");
+                Client.DefaultRequestHeaders.Remove(UserLocationHeader);
+                Client.DefaultRequestHeaders.Add(UserLocationHeader, $"{city}|{state}");
 
-                var response = await Client.GetAsync("/api/v1/providers");
+                var response = await Client.GetAsync(ProvidersEndpoint);
 
                 response.StatusCode.Should().Be(HttpStatusCode.OK,
                     $"{city}/{state} should be allowed when it's in the configured list");
@@ -75,10 +79,10 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
 
             foreach (var (city, state) in blockedCities)
             {
-                Client.DefaultRequestHeaders.Remove("X-User-Location");
-                Client.DefaultRequestHeaders.Add("X-User-Location", $"{city}|{state}");
+                Client.DefaultRequestHeaders.Remove(UserLocationHeader);
+                Client.DefaultRequestHeaders.Add(UserLocationHeader, $"{city}|{state}");
 
-                var response = await Client.GetAsync("/api/v1/providers");
+                var response = await Client.GetAsync(ProvidersEndpoint);
 
                 response.StatusCode.Should().Be(HttpStatusCode.UnavailableForLegalReasons,
                     $"{city}/{state} should be blocked when not in the configured list");
@@ -89,7 +93,7 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
         }
         finally
         {
-            Client.DefaultRequestHeaders.Remove("X-User-Location");
+            Client.DefaultRequestHeaders.Remove(UserLocationHeader);
         }
     }
 
@@ -102,14 +106,14 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
         try
         {
             // Ensure no stale header from previous tests
-            Client.DefaultRequestHeaders.Remove("X-User-Location");
+            Client.DefaultRequestHeaders.Remove(UserLocationHeader);
 
             // Act - Send request without location header
-            var responseWithoutHeader = await Client.GetAsync("/api/v1/providers");
+            var responseWithoutHeader = await Client.GetAsync(ProvidersEndpoint);
 
             // Send request with malformed location header  
-            Client.DefaultRequestHeaders.Add("X-User-Location", "InvalidFormat");
-            var responseWithMalformedHeader = await Client.GetAsync("/api/v1/providers");
+            Client.DefaultRequestHeaders.Add(UserLocationHeader, "InvalidFormat");
+            var responseWithMalformedHeader = await Client.GetAsync(ProvidersEndpoint);
 
             // Assert - Should allow when location cannot be determined (fail-open)
             responseWithoutHeader.StatusCode.Should().NotBe(HttpStatusCode.UnavailableForLegalReasons,
@@ -121,7 +125,7 @@ public class GeographicRestrictionFeatureFlagTests : ApiTestBase
         finally
         {
             // Clean up header to avoid leaking into other tests
-            Client.DefaultRequestHeaders.Remove("X-User-Location");
+            Client.DefaultRequestHeaders.Remove(UserLocationHeader);
         }
     }
 }

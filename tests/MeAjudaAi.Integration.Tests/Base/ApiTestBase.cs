@@ -38,6 +38,16 @@ public abstract class ApiTestBase : IAsyncLifetime
     protected WireMockFixture WireMock => _wireMockFixture ?? throw new InvalidOperationException("WireMock not initialized");
 
     /// <summary>
+    /// HTTP header name for user location (format: "City|State")
+    /// </summary>
+    protected const string UserLocationHeader = "X-User-Location";
+
+    /// <summary>
+    /// API endpoint for providers listing
+    /// </summary>
+    protected const string ProvidersEndpoint = "/api/v1/providers";
+
+    /// <summary>
     /// Controls whether to use mock geographic validation service.
     /// Set to false in IBGE-focused tests to use real service with WireMock.
     /// </summary>
