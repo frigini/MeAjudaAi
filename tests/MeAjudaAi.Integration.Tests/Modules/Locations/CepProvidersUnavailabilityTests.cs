@@ -56,7 +56,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Act
         var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
 
-        // Assert - Should succeed via OpenCEP fallback
+        // Assert - Should succeed via BrasilAPI fallback (ViaCEP fails, BrasilAPI succeeds)
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.City.Should().Be("São Paulo");
@@ -71,8 +71,8 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             e.RequestMessage.Path == $"/v1/{uniqueCep}");
 
         viaCepHits.Should().Be(1, "ViaCEP should be tried first");
-        brasilApiHits.Should().Be(1, "BrasilAPI should be tried as fallback");
-        openCepHits.Should().Be(1, "OpenCEP should succeed as final fallback");
+        brasilApiHits.Should().Be(1, "BrasilAPI should succeed as fallback");
+        openCepHits.Should().Be(0, "OpenCEP should not be called when BrasilAPI succeeds");
     }
 
     [Fact]
@@ -260,6 +260,8 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         result.IsSuccess.Should().BeFalse();
     }
 
+    // TODO: Create GitHub issue to track enabling caching infrastructure for integration tests.
+    // This would allow validation of cache behavior, including TTL, eviction, and hit/miss scenarios.
     [Fact(Skip = "Caching is disabled in integration tests (Caching:Enabled = false). This test cannot validate cache behavior without enabling caching infrastructure.")]
     public async Task LookupCep_WhenBrasilApiSucceedsButViaCepDown_ShouldUseCache()
     {
