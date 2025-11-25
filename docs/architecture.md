@@ -1079,12 +1079,226 @@ public sealed record UserRegisteredIntegrationEvent(
 
 ## 🚦 Status Atual da Implementação
 
-Atualmente, a arquitetura do projeto **define os padrões** para comunicação síncrona (`IModuleApi`) e assíncrona (`IIntegrationEvent`), mas **eles ainda não foram implementados para comunicação entre os módulos existentes**.
+**Status**: ✅ **PARCIALMENTE IMPLEMENTADO** (Sprint 1 Dias 3-6, Nov 2025)
 
-- **`IModuleApi`**: As interfaces e implementações estão definidas dentro de seus respectivos módulos, mas nenhum módulo está injetando ou consumindo a API de outro módulo.
-- **`IIntegrationEvent`**: Os eventos estão definidos no projeto `Shared`, mas não há `Handlers` nos módulos para consumir esses eventos. Os módulos atualmente lidam apenas com `Domain Events` internos.
+### Module APIs Implementados:
 
-A sua percepção de que os módulos não se comunicam está correta. O próximo passo no desenvolvimento é implementar esses padrões para criar um sistema coeso.
+#### 1. **IDocumentsModuleApi** ✅ COMPLETO
+**Localização**: `src/Shared/Contracts/Modules/Documents/IDocumentsModuleApi.cs`  
+**Implementação**: `src/Modules/Documents/Application/ModuleApi/DocumentsModuleApi.cs`
+
+**Métodos (7)**:
+```csharp
+Task<Result<ModuleDocumentDto?>> GetDocumentByIdAsync(Guid documentId, CancellationToken ct);
+Task<Result<IReadOnlyList<ModuleDocumentDto>>> GetProviderDocumentsAsync(Guid providerId, CancellationToken ct);
+Task<Result<ModuleDocumentStatusDto?>> GetDocumentStatusAsync(Guid documentId, CancellationToken ct);
+Task<Result<bool>> HasVerifiedDocumentsAsync(Guid providerId, CancellationToken ct);
+Task<Result<bool>> HasRequiredDocumentsAsync(Guid providerId, CancellationToken ct);
+Task<Result<bool>> HasPendingDocumentsAsync(Guid providerId, CancellationToken ct);
+Task<Result<bool>> HasRejectedDocumentsAsync(Guid providerId, CancellationToken ct);
+```
+
+**Usado por**: 
+- ✅ `ActivateProviderCommandHandler` (Providers) - valida documentos antes de ativação
+
+**Exemplo de Uso**:
+```csharp
+// src/Modules/Providers/Application/Handlers/Commands/ActivateProviderCommandHandler.cs
+public sealed class ActivateProviderCommandHandler(
+    IProviderRepository providerRepository,
+    IDocumentsModuleApi documentsModuleApi, // ✅ Injetado
+    ILogger<ActivateProviderCommandHandler> logger
+) : ICommandHandler<ActivateProviderCommand, Result>
+{
+    public async Task<Result> HandleAsync(ActivateProviderCommand command, CancellationToken ct)
+    {
+        // Validar documentos via Documents module
+        var hasRequiredResult = await documentsModuleApi.HasRequiredDocumentsAsync(command.ProviderId, ct);
+        if (!hasRequiredResult.Value)
+            return Result.Failure("Provider must have all required documents before activation");
+
+        var hasVerifiedResult = await documentsModuleApi.HasVerifiedDocumentsAsync(command.ProviderId, ct);
+        if (!hasVerifiedResult.Value)
+            return Result.Failure("Provider must have verified documents before activation");
+
+        var hasPendingResult = await documentsModuleApi.HasPendingDocumentsAsync(command.ProviderId, ct);
+        if (hasPendingResult.Value)
+            return Result.Failure("Provider cannot be activated while documents are pending verification");
+
+        var hasRejectedResult = await documentsModuleApi.HasRejectedDocumentsAsync(command.ProviderId, ct);
+        if (hasRejectedResult.Value)
+            return Result.Failure("Provider cannot be activated with rejected documents");
+
+        // Ativar provider
+        provider.Activate(command.ActivatedBy);
+        await providerRepository.UpdateAsync(provider, ct);
+        return Result.Success();
+    }
+}
+```
+
+---
+
+#### 2. **IServiceCatalogsModuleApi** ⏳ STUB IMPLEMENTADO
+**Localização**: `src/Shared/Contracts/Modules/ServiceCatalogs/IServiceCatalogsModuleApi.cs`  
+**Implementação**: `src/Modules/ServiceCatalogs/Application/ModuleApi/ServiceCatalogsModuleApi.cs`
+
+**Métodos (3)**:
+```csharp
+Task<Result<ServiceValidationResult>> ValidateServicesAsync(IReadOnlyCollection<Guid> serviceIds, CancellationToken ct);
+Task<Result<ServiceInfoDto?>> GetServiceByIdAsync(Guid serviceId, CancellationToken ct);
+Task<Result<List<ServiceInfoDto>>> GetServicesByCategoryAsync(Guid categoryId, CancellationToken ct);
+```
+
+**Status**: Stub implementado, aguarda integração com Provider entity (ProviderServices many-to-many table)
+
+**TODO**: 
+- Criar tabela `ProviderServices` no módulo Providers
+- Implementar validação de serviços ao associar provider
+
+---
+
+#### 3. **ISearchModuleApi** ✅ COMPLETO
+**Localização**: `src/Shared/Contracts/Modules/SearchProviders/ISearchModuleApi.cs`  
+**Implementação**: `src/Modules/SearchProviders/Application/ModuleApi/SearchModuleApi.cs`
+
+**Métodos (3)**:
+```csharp
+Task<Result<ModulePagedSearchResultDto>> SearchProvidersAsync(
+    double latitude, double longitude, double radiusInKm, Guid[]? serviceIds, 
+    decimal? minRating, ESubscriptionTier[]? subscriptionTiers, 
+    int pageNumber, int pageSize, CancellationToken ct);
+
+Task<Result> IndexProviderAsync(Guid providerId, CancellationToken ct); // ✅ NOVO (Sprint 1)
+Task<Result> RemoveProviderAsync(Guid providerId, CancellationToken ct); // ✅ NOVO (Sprint 1)
+```
+
+**Usado por**:
+- ✅ `ProviderVerificationStatusUpdatedDomainEventHandler` (Providers) - indexa/remove providers em busca
+
+**Exemplo de Uso**:
+```csharp
+// src/Modules/Providers/Infrastructure/Events/Handlers/ProviderVerificationStatusUpdatedDomainEventHandler.cs
+public sealed class ProviderVerificationStatusUpdatedDomainEventHandler(
+    IMessageBus messageBus,
+    ProvidersDbContext context,
+    ISearchModuleApi searchModuleApi, // ✅ Injetado
+    ILogger<ProviderVerificationStatusUpdatedDomainEventHandler> logger
+) : IEventHandler<ProviderVerificationStatusUpdatedDomainEvent>
+{
+    public async Task HandleAsync(ProviderVerificationStatusUpdatedDomainEvent domainEvent, CancellationToken ct)
+    {
+        var provider = await context.Providers.FirstOrDefaultAsync(p => p.Id == domainEvent.AggregateId, ct);
+
+        // Integração com SearchProviders: indexar quando verificado
+        if (domainEvent.NewStatus == EVerificationStatus.Verified)
+        {
+            var indexResult = await searchModuleApi.IndexProviderAsync(provider.Id.Value, ct);
+            if (indexResult.IsFailure)
+                logger.LogError("Failed to index provider {ProviderId}: {Error}", 
+                    domainEvent.AggregateId, indexResult.Error);
+        }
+        // Remover do índice quando rejeitado/suspenso
+        else if (domainEvent.NewStatus == EVerificationStatus.Rejected || 
+                 domainEvent.NewStatus == EVerificationStatus.Suspended)
+        {
+            var removeResult = await searchModuleApi.RemoveProviderAsync(provider.Id.Value, ct);
+            if (removeResult.IsFailure)
+                logger.LogError("Failed to remove provider {ProviderId}: {Error}", 
+                    domainEvent.AggregateId, removeResult.Error);
+        }
+
+        // Publicar integration event
+        var integrationEvent = domainEvent.ToIntegrationEvent(provider.UserId, provider.Name);
+        await messageBus.PublishAsync(integrationEvent, cancellationToken: ct);
+    }
+}
+```
+
+---
+
+#### 4. **ILocationModuleApi** ✅ JÁ EXISTIA
+**Localização**: `src/Shared/Contracts/Modules/Locations/ILocationModuleApi.cs`  
+**Implementação**: `src/Modules/Locations/Application/ModuleApi/LocationModuleApi.cs`
+
+**Métodos**: GetAddressFromCepAsync, ValidateCepAsync, GeocodeAddressAsync
+
+**Status**: Pronto para uso, não utilizado ainda (baixa prioridade)
+
+---
+
+### Integration Events Implementados:
+
+#### ProviderVerificationStatusUpdated
+- **Publicado por**: `ProviderVerificationStatusUpdatedDomainEventHandler` (Providers)
+- **Consumido por**: Nenhum módulo ainda (preparado para futura expansão)
+- **Payload**: ProviderId, UserId, Name, OldStatus, NewStatus, UpdatedAt
+
+---
+
+### Padrão de Implementação (Resumo):
+
+**1. Definir Interface em Shared/Contracts/Modules/[ModuleName]**
+```csharp
+public interface IDocumentsModuleApi : IModuleApi
+{
+    Task<Result<bool>> HasVerifiedDocumentsAsync(Guid providerId, CancellationToken ct);
+}
+```
+
+**2. Implementar em Module/Application/ModuleApi**
+```csharp
+[ModuleApi("Documents", "1.0")]
+public sealed class DocumentsModuleApi(IQueryDispatcher queryDispatcher) : IDocumentsModuleApi
+{
+    public async Task<Result<bool>> HasVerifiedDocumentsAsync(Guid providerId, CancellationToken ct)
+    {
+        var query = new GetProviderDocumentsQuery(providerId);
+        var result = await queryDispatcher.QueryAsync<GetProviderDocumentsQuery, Result<List<DocumentDto>>>(query, ct);
+        return Result.Success(result.Value?.Any(d => d.Status == EDocumentStatus.Verified) ?? false);
+    }
+}
+```
+
+**3. Registrar em DI (Module/Application/Extensions.cs)**
+```csharp
+services.AddScoped<IDocumentsModuleApi, DocumentsModuleApi>();
+```
+
+**4. Injetar e Usar em Outro Módulo**
+```csharp
+public sealed class ActivateProviderCommandHandler(
+    IDocumentsModuleApi documentsApi) // ✅ Cross-module dependency
+{
+    public async Task<Result> HandleAsync(...)
+    {
+        var hasVerified = await documentsApi.HasVerifiedDocumentsAsync(providerId, ct);
+        if (!hasVerified.Value)
+            return Result.Failure("Documents not verified");
+    }
+}
+```
+
+---
+
+### Benefícios Alcançados:
+
+✅ **Type-Safe**: Contratos bem definidos em Shared/Contracts  
+✅ **Testável**: Fácil mockar IModuleApi em unit tests  
+✅ **Desacoplado**: Módulos não conhecem implementação interna de outros  
+✅ **Versionado**: Atributo [ModuleApi] permite versionamento  
+✅ **Observável**: Logging integrado em todas as operações  
+✅ **Resiliente**: Result pattern para error handling consistente  
+
+---
+
+### Próximos Passos (Sprint 2):
+
+- [ ] Implementar full provider data sync (IndexProviderAsync com dados completos)
+- [ ] Criar IProvidersModuleApi para SearchProviders consumir
+- [ ] Implementar ProviderServices many-to-many table
+- [ ] Integrar IServiceCatalogsModuleApi em Provider lifecycle
+- [ ] Adicionar integration event handlers entre módulos
 
 ---
 
