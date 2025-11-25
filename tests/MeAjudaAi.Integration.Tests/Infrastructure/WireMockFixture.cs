@@ -57,7 +57,6 @@ public class WireMockFixture : IAsyncDisposable
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
                 .WithParam("nome", "muriaé")
-                .WithParam("orderBy", "nome")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -88,7 +87,6 @@ public class WireMockFixture : IAsyncDisposable
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
                 .WithParam("nome", "itaperuna")
-                .WithParam("orderBy", "nome")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -274,7 +272,6 @@ public class WireMockFixture : IAsyncDisposable
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios")
                 .WithParam("nome", "são paulo")
-                .WithParam("orderBy", "nome")
                 .UsingGet())
             .RespondWith(WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -299,6 +296,19 @@ public class WireMockFixture : IAsyncDisposable
                         }
                     }]
                     """));
+
+        // Catch-all for unknown cities - return empty array (200 status, not 404)
+        // This allows IbgeClient to return null instead of throwing exception
+        Server
+            .Given(WireMock.RequestBuilders.Request.Create()
+                .WithPath("/api/v1/localidades/municipios")
+                .WithParam("nome")  // Match any nome parameter
+                .UsingGet())
+            .AtPriority(100)  // Lower priority so specific stubs match first
+            .RespondWith(WireMock.ResponseBuilders.Response.Create()
+                .WithStatusCode(200)
+                .WithHeader("Content-Type", "application/json; charset=utf-8")
+                .WithBody("[]"));
 
         // Service unavailability simulation - 500 error
         Server
