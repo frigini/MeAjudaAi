@@ -1,12 +1,15 @@
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
+using MeAjudaAi.Modules.SearchProviders.Domain.Entities;
 using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Contracts.Modules;
+using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
 using DomainEnums = MeAjudaAi.Modules.SearchProviders.Domain.Enums;
@@ -20,6 +23,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 public sealed class SearchModuleApi(
     IQueryDispatcher queryDispatcher,
     ISearchableProviderRepository repository,
+    IProvidersModuleApi providersApi,
     ILogger<SearchModuleApi> logger) : ISearchModuleApi
 {
     private static class ModuleMetadata
@@ -135,23 +139,73 @@ public sealed class SearchModuleApi(
         {
             logger.LogInformation("Indexing provider {ProviderId} in search", providerId);
 
-            // Verificar se provider já existe no índice
+            // 1. Buscar dados completos do provider via IProvidersModuleApi
+            var providerDataResult = await providersApi.GetProviderForIndexingAsync(providerId, cancellationToken);
+
+            if (providerDataResult.IsFailure)
+            {
+                logger.LogError("Failed to get provider data for indexing provider {ProviderId}: {Error}",
+                    providerId, providerDataResult.Error.Message);
+                return Result.Failure(providerDataResult.Error);
+            }
+
+            var providerData = providerDataResult.Value;
+            if (providerData == null)
+            {
+                logger.LogWarning("Provider {ProviderId} not found in Providers module, cannot index", providerId);
+                return Result.Failure($"Provider {providerId} not found");
+            }
+
+            // 2. Verificar se provider já existe no índice
             var existing = await repository.GetByProviderIdAsync(providerId, cancellationToken);
 
             if (existing != null)
             {
                 logger.LogDebug("Provider {ProviderId} already indexed, updating", providerId);
-                // TODO: Atualizar dados do provider via integration event ou query ao módulo Providers
-                // Por enquanto, apenas log - a atualização real será implementada quando tivermos
-                // os integration events configurados (ProviderUpdated, etc)
-                return Result.Success();
+
+                // Atualizar informações do provider existente
+                var location = new GeoPoint(providerData.Latitude, providerData.Longitude);
+                existing.UpdateBasicInfo(providerData.Name, providerData.Description, providerData.City, providerData.State);
+                existing.UpdateLocation(location);
+                existing.UpdateRating(providerData.AverageRating, providerData.TotalReviews);
+                existing.UpdateSubscriptionTier(ToDomainTier(providerData.SubscriptionTier));
+                existing.UpdateServices(providerData.ServiceIds);
+
+                if (providerData.IsActive)
+                    existing.Activate();
+                else
+                    existing.Deactivate();
+
+                await repository.UpdateAsync(existing, cancellationToken);
+            }
+            else
+            {
+                logger.LogDebug("Creating new search index entry for provider {ProviderId}", providerId);
+
+                // Criar novo SearchableProvider
+                var location = new GeoPoint(providerData.Latitude, providerData.Longitude);
+                var searchableProvider = SearchableProvider.Create(
+                    providerId: providerData.ProviderId,
+                    name: providerData.Name,
+                    location: location,
+                    subscriptionTier: ToDomainTier(providerData.SubscriptionTier),
+                    description: providerData.Description,
+                    city: providerData.City,
+                    state: providerData.State);
+
+                // Atualizar dados adicionais
+                searchableProvider.UpdateRating(providerData.AverageRating, providerData.TotalReviews);
+                searchableProvider.UpdateServices(providerData.ServiceIds);
+
+                if (!providerData.IsActive)
+                    searchableProvider.Deactivate();
+
+                await repository.AddAsync(searchableProvider, cancellationToken);
             }
 
-            // TODO: Buscar dados completos do provider do módulo Providers via IProvidersModuleApi
-            // Por enquanto, retornar sucesso - a indexação real será implementada quando
-            // tivermos os dados necessários (nome, localização, etc) via integration events
-            logger.LogWarning("Provider {ProviderId} indexing skipped - requires integration with Providers module for full data", providerId);
+            await repository.SaveChangesAsync(cancellationToken);
 
+            logger.LogInformation("Provider {ProviderId} indexed successfully in search", providerId);
             return Result.Success();
         }
         catch (Exception ex)

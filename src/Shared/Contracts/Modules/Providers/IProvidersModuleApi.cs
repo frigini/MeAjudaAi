@@ -103,4 +103,13 @@ public interface IProvidersModuleApi : IModuleApi
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Lista de providers com o status especificado</returns>
     Task<Result<IReadOnlyList<ModuleProviderBasicDto>>> GetProvidersByVerificationStatusAsync(string verificationStatus, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Obtém dados completos do provider otimizados para indexação em busca.
+    /// Retorna todos os dados necessários para criar/atualizar um SearchableProvider.
+    /// </summary>
+    /// <param name="providerId">ID do provider</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Dados do provider para indexação, ou null se não encontrado</returns>
+    Task<Result<ProviderIndexingDto?>> GetProviderForIndexingAsync(Guid providerId, CancellationToken cancellationToken = default);
 }
