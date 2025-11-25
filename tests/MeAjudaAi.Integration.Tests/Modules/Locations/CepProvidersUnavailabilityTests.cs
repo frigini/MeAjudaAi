@@ -84,7 +84,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // OpenCEP succeeds
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/01310100.json")
+                .WithPath("/v1/01310100")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -133,7 +133,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
 
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/{uniqueCep}.json")
+                .WithPath($"/v1/{uniqueCep}")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
@@ -164,7 +164,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // BrasilAPI succeeds
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/cep/v1/01310100")
+                .WithPath("/api/cep/v2/01310100")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(200)
@@ -214,7 +214,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // OpenCEP also fails
         WireMock.Server
             .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath("/00000000.json")
+                .WithPath("/v1/00000000")
                 .UsingGet())
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(404));
