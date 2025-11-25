@@ -73,6 +73,12 @@ public sealed class Provider : AggregateRoot<ProviderId>
     public IReadOnlyCollection<Qualification> Qualifications => _qualifications.AsReadOnly();
 
     /// <summary>
+    /// Coleção de serviços que o prestador oferece (many-to-many com ServiceCatalogs).
+    /// </summary>
+    private readonly List<ProviderService> _services = [];
+    public IReadOnlyCollection<ProviderService> Services => _services.AsReadOnly();
+
+    /// <summary>
     /// Indica se o prestador de serviços foi excluído logicamente do sistema.
     /// </summary>
     public bool IsDeleted { get; private set; }
@@ -526,6 +532,61 @@ public sealed class Provider : AggregateRoot<ProviderId>
         RejectionReason = reason;
         UpdateStatus(EProviderStatus.Rejected, updatedBy);
         UpdateVerificationStatus(EVerificationStatus.Rejected, updatedBy, skipMarkAsUpdated: true);
+    }
+
+    /// <summary>
+    /// Adiciona um serviço à lista de serviços oferecidos pelo provider.
+    /// </summary>
+    /// <param name="serviceId">ID do serviço do catálogo (ServiceCatalogs module)</param>
+    /// <exception cref="ProviderDomainException">Lançada se o serviço já estiver na lista</exception>
+    public void AddService(Guid serviceId)
+    {
+        if (serviceId == Guid.Empty)
+            throw new ProviderDomainException("ServiceId cannot be empty");
+
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot add services to deleted provider");
+
+        if (_services.Any(s => s.ServiceId == serviceId))
+            throw new ProviderDomainException($"Service {serviceId} is already offered by this provider");
+
+        var providerService = new ProviderService(Id, serviceId);
+        _services.Add(providerService);
+        MarkAsUpdated();
+    }
+
+    /// <summary>
+    /// Remove um serviço da lista de serviços oferecidos pelo provider.
+    /// </summary>
+    /// <param name="serviceId">ID do serviço do catálogo</param>
+    /// <exception cref="ProviderDomainException">Lançada se o serviço não estiver na lista</exception>
+    public void RemoveService(Guid serviceId)
+    {
+        if (serviceId == Guid.Empty)
+            throw new ProviderDomainException("ServiceId cannot be empty");
+
+        var providerService = _services.FirstOrDefault(s => s.ServiceId == serviceId);
+        if (providerService == null)
+            throw new ProviderDomainException($"Service {serviceId} is not offered by this provider");
+
+        _services.Remove(providerService);
+        MarkAsUpdated();
+    }
+
+    /// <summary>
+    /// Verifica se o provider oferece um determinado serviço.
+    /// </summary>
+    public bool OffersService(Guid serviceId)
+    {
+        return _services.Any(s => s.ServiceId == serviceId);
+    }
+
+    /// <summary>
+    /// Obtém os IDs de todos os serviços oferecidos pelo provider.
+    /// </summary>
+    public Guid[] GetServiceIds()
+    {
+        return _services.Select(s => s.ServiceId).ToArray();
     }
 
     /// <summary>

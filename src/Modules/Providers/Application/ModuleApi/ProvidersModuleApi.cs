@@ -1,6 +1,8 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Contracts.Modules;
 using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Contracts.Modules.Providers;
@@ -29,6 +31,7 @@ public sealed class ProvidersModuleApi(
     IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByTypeHandler,
     IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByVerificationStatusHandler,
     ILocationModuleApi locationApi,
+    IProviderRepository providerRepository,
     IServiceProvider serviceProvider,
     ILogger<ProvidersModuleApi> logger) : IProvidersModuleApi
 {
@@ -279,26 +282,17 @@ public sealed class ProvidersModuleApi(
     {
         logger.LogDebug("Getting provider indexing data for provider {ProviderId}", providerId);
 
-        // 1. Buscar dados do provider
-        var query = new GetProviderByIdQuery(providerId);
-        var providerResult = await getProviderByIdHandler.HandleAsync(query, cancellationToken);
+        // 1. Buscar entidade Provider diretamente do repositório (inclui Services)
+        var providerEntity = await providerRepository.GetByIdAsync(new ProviderId(providerId), cancellationToken);
 
-        if (providerResult.IsFailure)
-        {
-            logger.LogWarning("Failed to get provider {ProviderId} for indexing: {Error}",
-                providerId, providerResult.Error.Message);
-            return Result<ProviderIndexingDto?>.Failure(providerResult.Error);
-        }
-
-        var provider = providerResult.Value;
-        if (provider == null)
+        if (providerEntity == null)
         {
             logger.LogDebug("Provider {ProviderId} not found for indexing", providerId);
             return Result<ProviderIndexingDto?>.Success(null);
         }
 
         // 2. Obter coordenadas do endereço primário via ILocationModuleApi
-        var address = provider.BusinessProfile.PrimaryAddress;
+        var address = providerEntity.BusinessProfile.PrimaryAddress;
         var fullAddress = $"{address.Street}, {address.Number}, {address.Neighborhood}, {address.City}/{address.State}, {address.ZipCode}";
 
         var coordinatesResult = await locationApi.GetCoordinatesFromAddressAsync(fullAddress, cancellationToken);
@@ -315,9 +309,8 @@ public sealed class ProvidersModuleApi(
 
         var coordinates = coordinatesResult.Value;
 
-        // 3. TODO: Buscar ServiceIds do provider (quando implementarmos ProviderServices)
-        // Por enquanto, array vazio
-        var serviceIds = Array.Empty<Guid>();
+        // 3. Obter ServiceIds do provider (da coleção Services)
+        var serviceIds = providerEntity.GetServiceIds();
 
         // 4. TODO: Buscar rating e reviews do provider (quando implementarmos Reviews)
         // Por enquanto, valores padrão
@@ -331,9 +324,9 @@ public sealed class ProvidersModuleApi(
         // 6. Criar DTO de indexação
         var indexingDto = new ProviderIndexingDto
         {
-            ProviderId = provider.Id,
-            Name = provider.Name,
-            Description = provider.BusinessProfile.Description,
+            ProviderId = providerEntity.Id.Value,
+            Name = providerEntity.Name,
+            Description = providerEntity.BusinessProfile.Description,
             Latitude = coordinates.Latitude,
             Longitude = coordinates.Longitude,
             ServiceIds = serviceIds,
@@ -342,7 +335,7 @@ public sealed class ProvidersModuleApi(
             SubscriptionTier = subscriptionTier,
             City = address.City,
             State = address.State,
-            IsActive = provider.VerificationStatus == EVerificationStatus.Verified && !provider.IsDeleted
+            IsActive = providerEntity.VerificationStatus == EVerificationStatus.Verified && !providerEntity.IsDeleted
         };
 
         logger.LogInformation(

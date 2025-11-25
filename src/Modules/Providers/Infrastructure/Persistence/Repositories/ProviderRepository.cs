@@ -23,7 +23,8 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     private IQueryable<Provider> GetProvidersQuery() =>
         context.Providers
             .Include(p => p.Documents)
-            .Include(p => p.Qualifications);
+            .Include(p => p.Qualifications)
+            .Include(p => p.Services);
 
     /// <summary>
     /// Adiciona um novo prestador de serviços ao repositório.

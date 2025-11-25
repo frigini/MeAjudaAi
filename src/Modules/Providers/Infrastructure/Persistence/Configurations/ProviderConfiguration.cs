@@ -212,6 +212,12 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
             qual.Property("Id").HasColumnName("id");
         });
 
+        // Configuração da coleção de serviços (ProviderServices many-to-many)
+        builder.HasMany(p => p.Services)
+            .WithOne(ps => ps.Provider)
+            .HasForeignKey(ps => ps.ProviderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Índices
         builder.HasIndex(p => p.UserId)
             .IsUnique()

@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.ModuleApi;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -32,6 +33,7 @@ public class ProvidersModuleApiTests
     private readonly Mock<IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByTypeHandlerMock;
     private readonly Mock<IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByVerificationStatusHandlerMock;
     private readonly Mock<ILocationModuleApi> _locationApiMock;
+    private readonly Mock<IProviderRepository> _providerRepositoryMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<ILogger<ProvidersModuleApi>> _logger;
     private readonly ProvidersModuleApi _sut;
@@ -47,6 +49,7 @@ public class ProvidersModuleApiTests
         _getProvidersByTypeHandlerMock = new Mock<IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>>>();
         _getProvidersByVerificationStatusHandlerMock = new Mock<IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>>>();
         _locationApiMock = new Mock<ILocationModuleApi>();
+        _providerRepositoryMock = new Mock<IProviderRepository>();
         _serviceProviderMock = new Mock<IServiceProvider>();
         _logger = new Mock<ILogger<ProvidersModuleApi>>();
 
@@ -60,6 +63,7 @@ public class ProvidersModuleApiTests
             _getProvidersByTypeHandlerMock.Object,
             _getProvidersByVerificationStatusHandlerMock.Object,
             _locationApiMock.Object,
+            _providerRepositoryMock.Object,
             _serviceProviderMock.Object,
             _logger.Object);
     }
