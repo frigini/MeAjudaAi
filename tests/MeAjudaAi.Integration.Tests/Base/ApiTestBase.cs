@@ -69,6 +69,13 @@ public abstract class ApiTestBase : IAsyncLifetime
 #pragma warning restore CA2000
             .WithWebHostBuilder(builder =>
             {
+                // Set content root to ApiService project directory for CI compatibility
+                var apiServicePath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "src", "Bootstrapper", "MeAjudaAi.ApiService");
+                if (Directory.Exists(apiServicePath))
+                {
+                    builder.UseContentRoot(apiServicePath);
+                }
+
                 builder.UseEnvironment("Testing");
 
                 // Configure app to load appsettings.Testing.json
