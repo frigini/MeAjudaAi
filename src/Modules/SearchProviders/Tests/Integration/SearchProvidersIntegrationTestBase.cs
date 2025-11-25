@@ -62,7 +62,7 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
                 npgsqlOptions =>
                 {
                     npgsqlOptions.UseNetTopologySuite();
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
                 });
 
             // Use same naming convention as production
@@ -218,11 +218,11 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
 
         try
         {
-            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE search.searchable_providers CASCADE;");
+            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE search_providers.searchable_providers CASCADE;");
         }
         catch
         {
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM search.searchable_providers;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM search_providers.searchable_providers;");
         }
 
         var remainingCount = await dbContext.SearchableProviders.CountAsync();
