@@ -11,7 +11,7 @@ public sealed record ModuleSearchableProviderDto
     public required ModuleLocationDto Location { get; init; }
     public decimal AverageRating { get; init; }
     public int TotalReviews { get; init; }
-    public SubscriptionTier SubscriptionTier { get; init; }
+    public ESubscriptionTier SubscriptionTier { get; init; }
     public IReadOnlyCollection<Guid> ServiceIds { get; init; } = Array.Empty<Guid>();
     public double? DistanceInKm { get; init; }
     public string? City { get; init; }

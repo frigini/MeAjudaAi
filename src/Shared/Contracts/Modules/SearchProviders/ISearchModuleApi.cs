@@ -27,7 +27,7 @@ public interface ISearchModuleApi
         double radiusInKm,
         Guid[]? serviceIds = null,
         decimal? minRating = null,
-        SubscriptionTier[]? subscriptionTiers = null,
+        ESubscriptionTier[]? subscriptionTiers = null,
         int pageNumber = 1,
         int pageSize = 20,
         CancellationToken cancellationToken = default);
