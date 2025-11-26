@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Users.Infrastructure.Services;
+using MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using Microsoft.EntityFrameworkCore;
@@ -134,9 +135,9 @@ public static class Extensions
         }
         else
         {
-            // Registra implementações mock quando Keycloak não está disponível ou configurado
-            services.AddScoped<IUserDomainService, MockUserDomainService>();
-            services.AddScoped<IAuthenticationDomainService, MockAuthenticationDomainService>();
+            // Registra implementações de desenvolvimento local quando Keycloak não está disponível ou configurado
+            services.AddScoped<IUserDomainService, LocalDevelopmentUserDomainService>();
+            services.AddScoped<IAuthenticationDomainService, LocalDevelopmentAuthenticationDomainService>();
         }
 
         return services;

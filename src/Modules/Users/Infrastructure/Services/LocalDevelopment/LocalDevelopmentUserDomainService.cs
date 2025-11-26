@@ -3,13 +3,14 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Functional;
 
-namespace MeAjudaAi.Modules.Users.Infrastructure.Services;
+namespace MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 
 /// <summary>
-/// Mock implementation of IUserDomainService for environments where Keycloak is not available.
+/// Local development implementation of IUserDomainService for environments where Keycloak is not available.
 /// This service creates users locally without external authentication integration.
+/// Used only for local development when Keycloak is disabled in configuration.
 /// </summary>
-public class MockUserDomainService : IUserDomainService
+public class LocalDevelopmentUserDomainService : IUserDomainService
 {
     /// <summary>
     /// Creates a user locally without Keycloak integration.

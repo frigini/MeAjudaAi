@@ -4,23 +4,24 @@ using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.Services.Models;
 using MeAjudaAi.Shared.Functional;
 
-namespace MeAjudaAi.Modules.Users.Infrastructure.Services;
+namespace MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 
 /// <summary>
-/// Mock implementation of IAuthenticationDomainService for environments where Keycloak is not available.
-/// Provides basic authentication logic for testing and development scenarios.
+/// Local development implementation of IAuthenticationDomainService for environments where Keycloak is not available.
+/// Provides basic authentication logic for local development scenarios.
+/// Used only for local development when Keycloak is disabled in configuration.
 /// </summary>
-internal class MockAuthenticationDomainService : IAuthenticationDomainService
+internal class LocalDevelopmentAuthenticationDomainService : IAuthenticationDomainService
 {
     /// <summary>
-    /// Authenticates users with mock credentials for testing purposes.
+    /// Authenticates users with mock credentials for local development.
     /// </summary>
     public Task<Result<AuthenticationResult>> AuthenticateAsync(
         string usernameOrEmail,
         string password,
         CancellationToken cancellationToken = default)
     {
-        // Para ambientes de teste/desenvolvimento, aceitar credenciais específicas
+        // Para ambientes de desenvolvimento local, aceitar credenciais específicas
         if ((usernameOrEmail == "testuser" || usernameOrEmail == "test@example.com") && password == "testpassword")
         {
             var deterministicUserId = GenerateDeterministicGuid(usernameOrEmail);
@@ -40,13 +41,13 @@ internal class MockAuthenticationDomainService : IAuthenticationDomainService
     }
 
     /// <summary>
-    /// Validates mock tokens for testing purposes.
+    /// Validates mock tokens for local development.
     /// </summary>
     public Task<Result<TokenValidationResult>> ValidateTokenAsync(
         string token,
         CancellationToken cancellationToken = default)
     {
-        // Para ambientes de teste, validar tokens que começam com "mock_token_"
+        // Para ambientes de desenvolvimento local, validar tokens que começam com "mock_token_"
         if (token.StartsWith("mock_token_"))
         {
             // Extrair o userId do token: "mock_token_{userId}_{timestamp}"
