@@ -255,18 +255,6 @@ public class WireMockFixture : IAsyncDisposable
                 .WithHeader("Content-Type", "application/json; charset=utf-8")
                 .WithBody("[]"));
 
-        // Unknown city - empty array response
-        Server
-            .Given(WireMock.RequestBuilders.Request.Create()
-                .WithPath("/api/v1/localidades/municipios")
-                .WithParam("nome", "CidadeInexistente")
-                .WithParam("orderBy", "nome")
-                .UsingGet())
-            .RespondWith(WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
-                .WithHeader("Content-Type", "application/json; charset=utf-8")
-                .WithBody("[]"));
-
         // Special characters handling: São Paulo
         Server
             .Given(WireMock.RequestBuilders.Request.Create()

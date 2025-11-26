@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Documents.API.Endpoints;
 using MeAjudaAi.Modules.Documents.Application;
 using MeAjudaAi.Modules.Documents.Infrastructure;
+using MeAjudaAi.Shared.Contracts.Modules.Documents;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,7 +24,7 @@ public static class Extensions
         services.AddInfrastructure(configuration);
 
         // Register module public API for cross-module communication
-        services.AddScoped<IDocumentsModuleApi, DocumentsModuleApi>();
+        services.AddScoped<IDocumentsModuleApi, Application.ModuleApi.DocumentsModuleApi>();
 
         return services;
     }

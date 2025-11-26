@@ -22,7 +22,7 @@ public class DocumentsDbContext : BaseDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("documents");
+        modelBuilder.HasDefaultSchema("meajudaai_documents");
 
         // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

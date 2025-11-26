@@ -769,7 +769,7 @@ gantt
 - ✅ Integração cross-module: Providers ↔ Documents, Providers ↔ SearchProviders
 - 🔄 Aumentar coverage: 28.69% → 75-80% (165+ novos unit tests) - **Dias 8-10**
 
-**Estrutura (3 Branches)**:
+**Estrutura (2 Branches + Próxima Sprint)**:
 
 #### Branch 1: `feature/geographic-restriction` (Dias 1-2) ✅ CONCLUÍDO
 - [x] GeographicRestrictionMiddleware (validação cidade/estado) ✅
@@ -784,24 +784,36 @@ gantt
   - [x] 15 unit tests IbgeClient ✅
   - [x] Configuração de APIs (ViaCep, BrasilApi, OpenCep, IBGE) ✅
   - [x] Remoção de hardcoded URLs (enforce configuration) ✅
-- [ ] Documentação + Swagger examples ⏳
 - [x] **Commit**: feat(locations): Integrate IBGE API for geographic validation (520069a) ✅
 - **Target**: 28.69% → 30% coverage ✅ (CONCLUÍDO: 92/104 testes passando)
+- **Merged**: 25 Nov 2025 ✅
 
-#### Branch 2: `feature/module-integration` (Dias 3-7) ✅ DIAS 3-6 CONCLUÍDOS
+#### Branch 2: `feature/module-integration` (Dias 3-10) ✅ DIAS 3-6 CONCLUÍDOS | 🔄 DIA 7-10 CODE REVIEW
 - [x] **Dia 3**: Refactor ConfigurableTestAuthenticationHandler (reativou 11 AUTH tests) ✅
-- [x] **Dia 3**: Fix race conditions (identificados 2 para Sprint 2)
+- [x] **Dia 3**: Fix race conditions (identificados 2 para Sprint 2) ✅
 - [x] **Dia 4**: IDocumentsModuleApi implementation (7 métodos) ✅
 - [x] **Dia 5**: IServiceCatalogsModuleApi (3 métodos stub) + ISearchModuleApi (2 novos métodos) ✅
 - [x] **Dia 6**: Integration events (Providers → SearchProviders indexing) ✅
-- [ ] **Dia 7**: Documentação + Code review 🔄
+  - [x] DocumentVerifiedIntegrationEvent + handler ✅
+  - [x] ProviderActivatedIntegrationEventHandler ✅
+  - [x] SearchProviders schema fix (search → search_providers) ✅
+  - [x] Clean InitialCreate migration ✅
+- [x] **Dia 7**: Naming standardization (Module APIs) ✅
+  - [x] ILocationModuleApi → ILocationsModuleApi ✅
+  - [x] ISearchModuleApi → ISearchProvidersModuleApi ✅
+  - [x] SearchModuleApi → SearchProvidersModuleApi ✅
+  - [x] ProviderIndexingDto → ModuleProviderIndexingDto ✅
+- [x] **Dia 7**: Test cleanup (remove diagnostics) ✅
+- [ ] **Dia 7-10**: Code review & documentation 🔄
 - **Target**: 30% → 35% coverage, 93/100 → 98/100 E2E tests
-- **Atual**: 92/104 testes passing (88.5%), 12 skipped (11.5%)
-- **Commits**: 12 total em feature/module-integration
+- **Atual**: 2,076 tests (2,065 passing - 99.5%, 11 skipped - 0.5%)
+- **Commits**: 25+ total (583 commits total na branch)
+- **Status**: Aguardando code review antes de merge
 
 **Integrações Implementadas**:
 - ✅ **Providers → Documents**: ActivateProviderCommandHandler valida documentos (4 checks)
-- ✅ **Providers → SearchProviders**: ProviderVerificationStatusUpdatedDomainEventHandler indexa/remove providers
+- ✅ **Providers → SearchProviders**: ProviderActivatedIntegrationEventHandler indexa providers
+- ✅ **Documents → Providers**: DocumentVerifiedDomainEventHandler publica integration event
 - ⏳ **Providers → ServiceCatalogs**: API criada, aguarda implementação de gestão de serviços
 - ⏳ **Providers → Locations**: CEP lookup (baixa prioridade)
 
@@ -809,12 +821,13 @@ gantt
 - ✅ AUTH Race Condition (ConfigurableTestAuthenticationHandler thread-safety)
 - ✅ IBGE Fail-Closed Bug (GeographicValidationService + IbgeService)
 - ✅ MunicipioNotFoundException criada para fallback correto
+- ✅ SearchProviders schema hardcoded (search → search_providers)
 
-#### 🆕 Branch 3: `test/increase-coverage` (Dias 8-10) ⏳ PLANEJADO
-- [ ] **Dia 8**: Shared.Tests (ValueObjects + Extensions + Results) → +7% coverage
-- [ ] **Dia 9**: Domain Entities (Provider + User + ServiceCategory) → +19% coverage
-- [ ] **Dia 10**: Critical Handlers (Create + Update + Search) → +18% coverage
-- **Target**: 35% → 75-80% coverage (+165 unit tests)
+#### 🆕 Sprint Separada: Test Coverage 75-80% + E2E Provider Indexing ⏳ MOVIDO PARA PRÓXIMA SPRINT
+- [ ] **TODO #5**: Aumentar coverage 35% → 75-80% (+165 unit tests)
+- [ ] **TODO #7**: E2E test para provider indexing flow
+- **Justificativa**: Focar em code review de qualidade antes de adicionar novos testes
+- **Planejamento**: Dedicar sprint completa para coverage após merge de module-integration
 
 **Tarefas Detalhadas**:
 

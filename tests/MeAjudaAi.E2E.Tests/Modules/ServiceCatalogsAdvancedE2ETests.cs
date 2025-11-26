@@ -75,7 +75,7 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
     }
 
     [Fact]
-    public async Task ValidateService_WithInvalidRules_Should_Return_BadRequest()
+    public async Task ValidateService_WithInvalidService_Should_ReturnErrorOrValidationResult()
     {
         // Arrange
         AuthenticateAsAdmin();

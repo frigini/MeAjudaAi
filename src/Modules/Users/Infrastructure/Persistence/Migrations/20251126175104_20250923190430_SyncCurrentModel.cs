@@ -1,11 +1,11 @@
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class SyncCurrentModel : Migration
+    public partial class _20250923190430_SyncCurrentModel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
+namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -15,9 +15,12 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
             migrationBuilder.EnsureSchema(
                 name: "providers");
 
+            migrationBuilder.EnsureSchema(
+                name: "meajudaai_providers");
+
             migrationBuilder.CreateTable(
                 name: "providers",
-                schema: "providers",
+                schema: "meajudaai_providers",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -38,11 +41,14 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                     state = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     zip_code = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     country = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    status = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     verification_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    suspension_reason = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    rejection_reason = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -50,35 +56,57 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Document",
+                name: "document",
                 schema: "providers",
                 columns: table => new
                 {
-                    ProviderId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    provider_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     number = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    document_type = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
+                    document_type = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    is_primary = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Document", x => new { x.ProviderId, x.Id });
+                    table.PrimaryKey("PK_document", x => new { x.provider_id, x.id });
                     table.ForeignKey(
-                        name: "FK_Document_providers_ProviderId",
-                        column: x => x.ProviderId,
-                        principalSchema: "providers",
+                        name: "FK_document_providers_provider_id",
+                        column: x => x.provider_id,
+                        principalSchema: "meajudaai_providers",
                         principalTable: "providers",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Qualification",
+                name: "provider_services",
                 schema: "providers",
                 columns: table => new
                 {
-                    ProviderId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    provider_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    service_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    added_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_provider_services", x => new { x.provider_id, x.service_id });
+                    table.ForeignKey(
+                        name: "FK_provider_services_providers_provider_id",
+                        column: x => x.provider_id,
+                        principalSchema: "meajudaai_providers",
+                        principalTable: "providers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "qualification",
+                schema: "providers",
+                columns: table => new
+                {
+                    provider_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
@@ -89,44 +117,70 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Qualification", x => new { x.ProviderId, x.Id });
+                    table.PrimaryKey("PK_qualification", x => new { x.provider_id, x.id });
                     table.ForeignKey(
-                        name: "FK_Qualification_providers_ProviderId",
-                        column: x => x.ProviderId,
-                        principalSchema: "providers",
+                        name: "FK_qualification_providers_provider_id",
+                        column: x => x.provider_id,
+                        principalSchema: "meajudaai_providers",
                         principalTable: "providers",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ix_providers_is_deleted",
+                name: "IX_document_provider_id_document_type",
                 schema: "providers",
+                table: "document",
+                columns: new[] { "provider_id", "document_type" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_provider_services_provider_service",
+                schema: "providers",
+                table: "provider_services",
+                columns: new[] { "provider_id", "service_id" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_provider_services_service_id",
+                schema: "providers",
+                table: "provider_services",
+                column: "service_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_providers_is_deleted",
+                schema: "meajudaai_providers",
                 table: "providers",
                 column: "is_deleted");
 
             migrationBuilder.CreateIndex(
                 name: "ix_providers_name",
-                schema: "providers",
+                schema: "meajudaai_providers",
                 table: "providers",
                 column: "name");
 
             migrationBuilder.CreateIndex(
+                name: "ix_providers_status",
+                schema: "meajudaai_providers",
+                table: "providers",
+                column: "status");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_providers_type",
-                schema: "providers",
+                schema: "meajudaai_providers",
                 table: "providers",
                 column: "type");
 
             migrationBuilder.CreateIndex(
                 name: "ix_providers_user_id",
-                schema: "providers",
+                schema: "meajudaai_providers",
                 table: "providers",
                 column: "user_id",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_providers_verification_status",
-                schema: "providers",
+                schema: "meajudaai_providers",
                 table: "providers",
                 column: "verification_status");
         }
@@ -135,16 +189,20 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Document",
+                name: "document",
                 schema: "providers");
 
             migrationBuilder.DropTable(
-                name: "Qualification",
+                name: "provider_services",
+                schema: "providers");
+
+            migrationBuilder.DropTable(
+                name: "qualification",
                 schema: "providers");
 
             migrationBuilder.DropTable(
                 name: "providers",
-                schema: "providers");
+                schema: "meajudaai_providers");
         }
     }
 }
