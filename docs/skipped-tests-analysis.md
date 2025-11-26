@@ -181,7 +181,7 @@ mas conceitualmente deveria ser internal.
 **Impacto**: Violação de Onion Architecture (Infrastructure vazando para fora do módulo).
 
 **Mitigação Atual**:
-- DbContext está `public` mas **não** exposto via DI para outros módulos
+- DbContext está `public`, mas não é exposto via DI para outros módulos
 - Documentação clara que DbContext **não** deve ser usado externamente
 - Migrations controladas via CLI tools, não via código
 

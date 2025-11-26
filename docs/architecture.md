@@ -1246,7 +1246,8 @@ public interface IDocumentsModuleApi : IModuleApi
 }
 ```
 
-**2. Implementar em Module/Application/ModuleApi**
+##### 2. Implementar em Module/Application/ModuleApi
+
 ```csharp
 [ModuleApi("Documents", "1.0")]
 public sealed class DocumentsModuleApi(IQueryDispatcher queryDispatcher) : IDocumentsModuleApi
@@ -1260,12 +1261,14 @@ public sealed class DocumentsModuleApi(IQueryDispatcher queryDispatcher) : IDocu
 }
 ```
 
-**3. Registrar em DI (Module/Application/Extensions.cs)**
+##### 3. Registrar em DI (Module/Application/Extensions.cs)
+
 ```csharp
 services.AddScoped<IDocumentsModuleApi, DocumentsModuleApi>();
 ```
 
-**4. Injetar e Usar em Outro Módulo**
+##### 4. Injetar e Usar em Outro Módulo
+
 ```csharp
 public sealed class ActivateProviderCommandHandler(
     IDocumentsModuleApi documentsApi) // ✅ Cross-module dependency

@@ -228,6 +228,12 @@ public sealed class ServiceCatalogsModuleApi(
         }
     }
 
+    /// <summary>
+    /// Validates that the specified service IDs exist in the catalog.
+    /// </summary>
+    /// <param name="serviceIds">Collection of service IDs to validate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Validation result indicating which services are valid.</returns>
     public async Task<Result<ModuleServiceValidationResultDto>> ValidateServicesAsync(
         IReadOnlyCollection<Guid> serviceIds,
         CancellationToken cancellationToken = default)

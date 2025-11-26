@@ -33,10 +33,5 @@ public class ProviderServiceConfiguration : IEntityTypeConfiguration<ProviderSer
         // Índice para busca eficiente por ServiceId
         builder.HasIndex(ps => ps.ServiceId)
             .HasDatabaseName("ix_provider_services_service_id");
-
-        // Índice composto para queries comuns
-        builder.HasIndex(ps => new { ps.ProviderId, ps.ServiceId })
-            .IsUnique()
-            .HasDatabaseName("ix_provider_services_provider_service");
     }
 }

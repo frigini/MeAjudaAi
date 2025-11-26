@@ -61,9 +61,6 @@ public sealed class DocumentVerifiedIntegrationEventHandler(
                 integrationEvent.DocumentType,
                 integrationEvent.ProviderId,
                 provider.Status);
-
-            // Não precisa salvar mudanças pois não estamos modificando o provider aqui
-            await Task.CompletedTask;
         }
         catch (Exception ex)
         {
