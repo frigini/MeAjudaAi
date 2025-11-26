@@ -247,7 +247,7 @@ public sealed class ServiceCatalogsModuleApi(
             if (serviceIds.Count == 0)
             {
                 return Result<ModuleServiceValidationResultDto>.Success(
-                    new ModuleServiceValidationResultDto(true, [], []));
+                    new ModuleServiceValidationResultDto(true, Array.Empty<Guid>(), Array.Empty<Guid>()));
             }
 
             var invalidIds = new List<Guid>();
