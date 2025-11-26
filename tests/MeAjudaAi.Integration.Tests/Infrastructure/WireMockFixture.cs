@@ -317,7 +317,7 @@ public class WireMockFixture : IAsyncDisposable
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json; charset=utf-8")
                 .WithBody("[]")
-                .WithDelay(TimeSpan.FromSeconds(30)));
+                .WithDelay(TimeSpan.FromSeconds(5)));
 
         // Malformed response simulation - invalid JSON
         Server
