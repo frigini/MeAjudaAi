@@ -125,10 +125,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var category1Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", category1Request, JsonOptions);
 
-        if (category1Response.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        category1Response.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Category creation is a precondition for this test. Response: {0}",
+            await category1Response.Content.ReadAsStringAsync());
 
         var category1Id = ExtractIdFromLocation(category1Response.Headers.Location!.ToString());
 
@@ -142,10 +141,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var category2Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", category2Request, JsonOptions);
 
-        if (category2Response.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        category2Response.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Category creation is a precondition for this test. Response: {0}",
+            await category2Response.Content.ReadAsStringAsync());
 
         var category2Id = ExtractIdFromLocation(category2Response.Headers.Location!.ToString());
 
@@ -162,10 +160,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
 
-        if (serviceResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Service creation is a precondition for this test. Response: {0}",
+            await serviceResponse.Content.ReadAsStringAsync());
 
         var serviceId = ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
 
@@ -221,10 +218,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var activeCategoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", activeCategoryRequest, JsonOptions);
 
-        if (activeCategoryResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        activeCategoryResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Active category creation is a precondition for this test. Response: {0}",
+            await activeCategoryResponse.Content.ReadAsStringAsync());
 
         var activeCategoryId = ExtractIdFromLocation(activeCategoryResponse.Headers.Location!.ToString());
 
@@ -238,10 +234,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var inactiveCategoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", inactiveCategoryRequest, JsonOptions);
 
-        if (inactiveCategoryResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        inactiveCategoryResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Inactive category creation is a precondition for this test. Response: {0}",
+            await inactiveCategoryResponse.Content.ReadAsStringAsync());
 
         var inactiveCategoryId = ExtractIdFromLocation(inactiveCategoryResponse.Headers.Location!.ToString());
 
@@ -258,10 +253,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
 
-        if (serviceResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Service creation is a precondition for this test. Response: {0}",
+            await serviceResponse.Content.ReadAsStringAsync());
 
         var serviceId = ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
 

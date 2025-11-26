@@ -112,12 +112,15 @@ public class DocumentVerifiedIntegrationEventHandlerTests
         );
     }
 
-    [Fact]
-    public async Task HandleAsync_WithDifferentDocumentTypes_ShouldProcessAll()
+    [Theory]
+    [InlineData("CNH")]
+    [InlineData("RG")]
+    [InlineData("CPF")]
+    [InlineData("CRM")]
+    public async Task HandleAsync_WithDifferentDocumentTypes_ShouldProcessAll(string documentType)
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var documentTypes = new[] { "CNH", "RG", "CPF", "CRM" };
 
         var provider = new ProviderBuilder()
             .WithId(providerId)
@@ -127,32 +130,29 @@ public class DocumentVerifiedIntegrationEventHandlerTests
             .Setup(x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
-        foreach (var documentType in documentTypes)
-        {
-            var integrationEvent = new DocumentVerifiedIntegrationEvent(
-                "Documents",
-                Guid.NewGuid(),
-                providerId,
-                documentType,
-                false,
-                DateTime.UtcNow
-            );
+        var integrationEvent = new DocumentVerifiedIntegrationEvent(
+            "Documents",
+            Guid.NewGuid(),
+            providerId,
+            documentType,
+            false,
+            DateTime.UtcNow
+        );
 
-            // Act
-            await _handler.HandleAsync(integrationEvent, CancellationToken.None);
+        // Act
+        await _handler.HandleAsync(integrationEvent, CancellationToken.None);
 
-            // Assert - should log for each document type
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(documentType)),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-                Times.AtLeastOnce
-            );
-        }
+        // Assert
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(documentType)),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+            ),
+            Times.AtLeastOnce
+        );
     }
 
     [Fact]
