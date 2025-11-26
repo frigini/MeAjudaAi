@@ -120,4 +120,22 @@ public interface IProviderRepository
     Task<IReadOnlyList<Provider>> GetByTypeAsync(
         EProviderType type,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Obtém o status de verificação de um prestador de serviços sem carregar a entidade completa.
+    /// </summary>
+    /// <param name="id">Identificador do prestador</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <returns>
+    /// Uma tupla contendo:
+    /// - Exists: indica se o prestador existe
+    /// - Status: o status de verificação do prestador (null se não existir)
+    /// </returns>
+    /// <remarks>
+    /// Este método é otimizado para consultas leves que precisam apenas do status,
+    /// evitando carregar a entidade completa com todas as suas relações.
+    /// </remarks>
+    Task<(bool Exists, EVerificationStatus? Status)> GetProviderStatusAsync(
+        ProviderId id,
+        CancellationToken cancellationToken = default);
 }

@@ -47,60 +47,61 @@ public sealed class ActivateProviderCommandHandler(
 
             // Validar que provider tem documentos verificados via Documents module
             logger.LogDebug("Validating documents for provider {ProviderId} via IDocumentsModuleApi", command.ProviderId);
+            
             var hasRequiredDocsResult = await documentsModuleApi.HasRequiredDocumentsAsync(command.ProviderId, cancellationToken);
-            if (hasRequiredDocsResult.IsFailure)
+            var requiredDocsValidation = hasRequiredDocsResult.Match(
+                hasRequired => hasRequired
+                    ? Result.Success()
+                    : Result.Failure("Provider must have all required documents before activation"),
+                error => Result.Failure($"Failed to validate documents: {error.Message}"));
+            
+            if (requiredDocsValidation.IsFailure)
             {
-                logger.LogError("Failed to check required documents for provider {ProviderId}: {Error}",
-                    command.ProviderId, hasRequiredDocsResult.Error);
-                return Result.Failure($"Failed to validate documents: {hasRequiredDocsResult.Error}");
-            }
-
-            if (!hasRequiredDocsResult.Value)
-            {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: missing required documents", command.ProviderId);
-                return Result.Failure("Provider must have all required documents before activation");
+                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}", 
+                    command.ProviderId, requiredDocsValidation.Error);
+                return requiredDocsValidation;
             }
 
             var hasVerifiedDocsResult = await documentsModuleApi.HasVerifiedDocumentsAsync(command.ProviderId, cancellationToken);
-            if (hasVerifiedDocsResult.IsFailure)
+            var verifiedDocsValidation = hasVerifiedDocsResult.Match(
+                hasVerified => hasVerified
+                    ? Result.Success()
+                    : Result.Failure("Provider must have verified documents before activation"),
+                error => Result.Failure($"Failed to validate documents: {error.Message}"));
+            
+            if (verifiedDocsValidation.IsFailure)
             {
-                logger.LogError("Failed to check verified documents for provider {ProviderId}: {Error}",
-                    command.ProviderId, hasVerifiedDocsResult.Error);
-                return Result.Failure($"Failed to validate documents: {hasVerifiedDocsResult.Error}");
-            }
-
-            if (!hasVerifiedDocsResult.Value)
-            {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: no verified documents", command.ProviderId);
-                return Result.Failure("Provider must have verified documents before activation");
+                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}", 
+                    command.ProviderId, verifiedDocsValidation.Error);
+                return verifiedDocsValidation;
             }
 
             var hasPendingDocsResult = await documentsModuleApi.HasPendingDocumentsAsync(command.ProviderId, cancellationToken);
-            if (hasPendingDocsResult.IsFailure)
+            var pendingDocsValidation = hasPendingDocsResult.Match(
+                hasPending => hasPending
+                    ? Result.Failure("Provider cannot be activated while documents are pending verification")
+                    : Result.Success(),
+                error => Result.Failure($"Failed to validate documents: {error.Message}"));
+            
+            if (pendingDocsValidation.IsFailure)
             {
-                logger.LogError("Failed to check pending documents for provider {ProviderId}: {Error}",
-                    command.ProviderId, hasPendingDocsResult.Error);
-                return Result.Failure($"Failed to validate documents: {hasPendingDocsResult.Error}");
-            }
-
-            if (hasPendingDocsResult.Value)
-            {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: has pending documents", command.ProviderId);
-                return Result.Failure("Provider cannot be activated while documents are pending verification");
+                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}", 
+                    command.ProviderId, pendingDocsValidation.Error);
+                return pendingDocsValidation;
             }
 
             var hasRejectedDocsResult = await documentsModuleApi.HasRejectedDocumentsAsync(command.ProviderId, cancellationToken);
-            if (hasRejectedDocsResult.IsFailure)
+            var rejectedDocsValidation = hasRejectedDocsResult.Match(
+                hasRejected => hasRejected
+                    ? Result.Failure("Provider cannot be activated with rejected documents. Please resubmit correct documents.")
+                    : Result.Success(),
+                error => Result.Failure($"Failed to validate documents: {error.Message}"));
+            
+            if (rejectedDocsValidation.IsFailure)
             {
-                logger.LogError("Failed to check rejected documents for provider {ProviderId}: {Error}",
-                    command.ProviderId, hasRejectedDocsResult.Error);
-                return Result.Failure($"Failed to validate documents: {hasRejectedDocsResult.Error}");
-            }
-
-            if (hasRejectedDocsResult.Value)
-            {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: has rejected documents", command.ProviderId);
-                return Result.Failure("Provider cannot be activated with rejected documents. Please resubmit correct documents.");
+                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}", 
+                    command.ProviderId, rejectedDocsValidation.Error);
+                return rejectedDocsValidation;
             }
 
             logger.LogInformation("Provider {ProviderId} passed all document validations", command.ProviderId);

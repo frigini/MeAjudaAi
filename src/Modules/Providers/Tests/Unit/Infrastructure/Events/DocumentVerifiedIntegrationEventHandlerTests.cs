@@ -10,6 +10,10 @@ using Xunit;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events;
 
+/// <summary>
+/// Unit tests for <see cref="DocumentVerifiedIntegrationEventHandler"/>.
+/// Validates document verification event handling and provider status logging.
+/// </summary>
 public class DocumentVerifiedIntegrationEventHandlerTests
 {
     private readonly Mock<IProviderRepository> _providerRepositoryMock;

@@ -51,4 +51,27 @@ public class Result
     public static Result Failure(string message) => new(false, Error.BadRequest(message));
 
     public static implicit operator Result(Error error) => Failure(error);
+
+    /// <summary>
+    /// Matches the result with success or failure actions.
+    /// </summary>
+    /// <param name="onSuccess">Action to execute on success</param>
+    /// <param name="onFailure">Action to execute on failure</param>
+    public void Match(Action onSuccess, Action<Error> onFailure)
+    {
+        if (IsSuccess)
+            onSuccess();
+        else
+            onFailure(Error);
+    }
+
+    /// <summary>
+    /// Matches the result with success or failure functions.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the result</typeparam>
+    /// <param name="onSuccess">Function to execute on success</param>
+    /// <param name="onFailure">Function to execute on failure</param>
+    /// <returns>The result of the executed function</returns>
+    public TResult Match<TResult>(Func<TResult> onSuccess, Func<Error, TResult> onFailure)
+        => IsSuccess ? onSuccess() : onFailure(Error);
 }

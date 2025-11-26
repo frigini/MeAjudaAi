@@ -539,6 +539,12 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// </summary>
     /// <param name="serviceId">ID do serviço do catálogo (ServiceCatalogs module)</param>
     /// <exception cref="ProviderDomainException">Lançada se o serviço já estiver na lista</exception>
+    /// <remarks>
+    /// IMPORTANTE: Quando implementar o command handler para adicionar serviços, validar que:
+    /// 1. O serviceId existe no módulo ServiceCatalogs (via IServiceCatalogsModuleApi)
+    /// 2. O serviço está ativo e disponível para associação
+    /// A validação deve ocorrer no command handler antes de chamar este método.
+    /// </remarks>
     public void AddService(Guid serviceId)
     {
         if (serviceId == Guid.Empty)

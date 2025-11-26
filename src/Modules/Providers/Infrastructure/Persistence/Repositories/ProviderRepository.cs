@@ -193,6 +193,23 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
             .AnyAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
     }
 
+    /// <summary>
+    /// Obtém o status de verificação de um prestador de serviços sem carregar a entidade completa.
+    /// </summary>
+    public async Task<(bool Exists, EVerificationStatus? Status)> GetProviderStatusAsync(
+        ProviderId id,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await context.Providers
+            .Where(p => p.Id == id && !p.IsDeleted)
+            .Select(p => new { p.VerificationStatus })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return result is null
+            ? (false, null)
+            : (true, result.VerificationStatus);
+    }
+
     private static void ValidateSearchInput(string input, string paramName)
     {
         if (input.Contains('%') || input.Contains('_'))

@@ -34,12 +34,12 @@ public sealed class DocumentVerifiedIntegrationEventHandler(
                 integrationEvent.ProviderId,
                 integrationEvent.DocumentId);
 
-            // Busca o provider para validar que existe
-            var provider = await providerRepository.GetByIdAsync(
+            // Usa consulta leve para obter apenas o status sem carregar a entidade completa
+            var (exists, status) = await providerRepository.GetProviderStatusAsync(
                 new ProviderId(integrationEvent.ProviderId),
                 cancellationToken);
 
-            if (provider == null)
+            if (!exists)
             {
                 logger.LogWarning(
                     "Provider {ProviderId} not found when handling DocumentVerifiedIntegrationEvent for document {DocumentId}",
@@ -60,7 +60,7 @@ public sealed class DocumentVerifiedIntegrationEventHandler(
                 integrationEvent.DocumentId,
                 integrationEvent.DocumentType,
                 integrationEvent.ProviderId,
-                provider.Status);
+                status);
         }
         catch (Exception ex)
         {

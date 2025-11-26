@@ -6,16 +6,30 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 
+/// <summary>
+/// Database context for the Documents module.
+/// Manages document entities and their persistence.
+/// </summary>
 public class DocumentsDbContext : BaseDbContext
 {
+    /// <summary>
+    /// Gets the collection of documents.
+    /// </summary>
     public DbSet<Document> Documents => Set<Document>();
 
-    // Construtor para design-time (migrations)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DocumentsDbContext"/> class for design-time (migrations).
+    /// </summary>
+    /// <param name="options">The options to be used by the DbContext.</param>
     public DocumentsDbContext(DbContextOptions<DocumentsDbContext> options) : base(options)
     {
     }
 
-    // Construtor para runtime com DI
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DocumentsDbContext"/> class for runtime with dependency injection.
+    /// </summary>
+    /// <param name="options">The options to be used by the DbContext.</param>
+    /// <param name="domainEventProcessor">The domain event processor for publishing events.</param>
     public DocumentsDbContext(DbContextOptions<DocumentsDbContext> options, IDomainEventProcessor domainEventProcessor) : base(options, domainEventProcessor)
     {
     }
