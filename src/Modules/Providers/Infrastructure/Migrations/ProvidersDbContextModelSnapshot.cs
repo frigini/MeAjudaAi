@@ -130,7 +130,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_provider_services_provider_service");
 
-                    b.ToTable("provider_services", "providers");
+                    b.ToTable("provider_services", "meajudaai_providers");
                 });
 
             modelBuilder.Entity("MeAjudaAi.Modules.Providers.Domain.Entities.Provider", b =>
@@ -295,7 +295,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
                             b1.HasIndex("ProviderId", "DocumentType")
                                 .IsUnique();
 
-                            b1.ToTable("document", "providers");
+                            b1.ToTable("document", "meajudaai_providers");
 
                             b1.WithOwner()
                                 .HasForeignKey("ProviderId");
@@ -345,7 +345,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
 
                             b1.HasKey("ProviderId", "Id");
 
-                            b1.ToTable("qualification", "providers");
+                            b1.ToTable("qualification", "meajudaai_providers");
 
                             b1.WithOwner()
                                 .HasForeignKey("ProviderId");

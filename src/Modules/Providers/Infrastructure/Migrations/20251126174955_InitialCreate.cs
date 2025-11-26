@@ -13,9 +13,6 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
-                name: "providers");
-
-            migrationBuilder.EnsureSchema(
                 name: "meajudaai_providers");
 
             migrationBuilder.CreateTable(
@@ -57,7 +54,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "document",
-                schema: "providers",
+                schema: "meajudaai_providers",
                 columns: table => new
                 {
                     provider_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -81,7 +78,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "provider_services",
-                schema: "providers",
+                schema: "meajudaai_providers",
                 columns: table => new
                 {
                     provider_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -102,7 +99,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "qualification",
-                schema: "providers",
+                schema: "meajudaai_providers",
                 columns: table => new
                 {
                     provider_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -129,21 +126,21 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_document_provider_id_document_type",
-                schema: "providers",
+                schema: "meajudaai_providers",
                 table: "document",
                 columns: new[] { "provider_id", "document_type" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_provider_services_provider_service",
-                schema: "providers",
+                schema: "meajudaai_providers",
                 table: "provider_services",
                 columns: new[] { "provider_id", "service_id" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_provider_services_service_id",
-                schema: "providers",
+                schema: "meajudaai_providers",
                 table: "provider_services",
                 column: "service_id");
 
@@ -190,15 +187,15 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "document",
-                schema: "providers");
+                schema: "meajudaai_providers");
 
             migrationBuilder.DropTable(
                 name: "provider_services",
-                schema: "providers");
+                schema: "meajudaai_providers");
 
             migrationBuilder.DropTable(
                 name: "qualification",
-                schema: "providers");
+                schema: "meajudaai_providers");
 
             migrationBuilder.DropTable(
                 name: "providers",

@@ -177,25 +177,20 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             changeCategoryRequest,
             JsonOptions);
 
-        // Assert
+        // Assert - Change is expected to succeed in this scenario
         response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.BadRequest);
+            [HttpStatusCode.OK, HttpStatusCode.NoContent],
+            "the service category change should succeed in this scenario");
 
-        // Se a mudança foi bem-sucedida, verifica que o serviço está na nova categoria
-        if (response.IsSuccessStatusCode)
-        {
-            AuthenticateAsAdmin(); // Re-autenticar antes do GET
-            var getServiceResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{serviceId}");
+        // Verifica que o serviço está na nova categoria
+        AuthenticateAsAdmin(); // Re-autenticar antes do GET
+        var getServiceResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{serviceId}");
+        getServiceResponse.IsSuccessStatusCode.Should().BeTrue(
+            "the updated service should be retrievable after changing category");
 
-            if (getServiceResponse.IsSuccessStatusCode)
-            {
-                var content = await getServiceResponse.Content.ReadAsStringAsync();
-                content.Should().Contain(category2Id.ToString());
-            }
-        }
+        var content = await getServiceResponse.Content.ReadAsStringAsync();
+        content.Should().Contain(category2Id.ToString(),
+            "the service should now be associated with the new category");
     }
 
     /// <summary>
@@ -270,14 +265,10 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             changeCategoryRequest,
             JsonOptions);
 
-        // Assert - Pode retornar BadRequest, Conflict, NotFound, ou NoContent se a API permitir
-        // (business logic pode permitir mover para categoria inativa)
+        // Assert - Must fail when trying to move to inactive category
         response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.Conflict,
-            HttpStatusCode.UnprocessableEntity,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.NoContent);
+            [HttpStatusCode.BadRequest, HttpStatusCode.Conflict, HttpStatusCode.UnprocessableEntity, HttpStatusCode.NotFound],
+            "changing to an inactive category should be rejected");
     }
 
     /// <summary>

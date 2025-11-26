@@ -168,7 +168,7 @@ public sealed class SearchableProviderRepository(
                     location::geography,
                     ST_SetSRID(ST_MakePoint(@Lng, @Lat), 4326)::geography
                 ) / 1000.0 AS DistanceKm
-            FROM search_providers.searchable_providers
+            FROM meajudaai_searchproviders.searchable_providers
             WHERE is_active = true
                 AND ST_DWithin(
                     location::geography,

@@ -113,7 +113,7 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Migrations
                         .HasDatabaseName("ix_users_deleted_username")
                         .HasFilter("is_deleted = false");
 
-                    b.ToTable("users", "users");
+                    b.ToTable("users", "meajudaai_users");
                 });
 #pragma warning restore 612, 618
         }
