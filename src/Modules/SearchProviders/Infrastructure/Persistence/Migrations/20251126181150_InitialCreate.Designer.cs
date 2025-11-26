@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Migrations
 {
     [DbContext(typeof(SearchProvidersDbContext))]
-    [Migration("20251126175013_InitialCreate")]
+    [Migration("20251126181150_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -122,7 +122,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Migrations
                     b.HasIndex("IsActive", "SubscriptionTier", "AverageRating")
                         .HasDatabaseName("ix_searchable_providers_search_ranking");
 
-                    b.ToTable("searchable_providers", "search_providers");
+                    b.ToTable("searchable_providers", "meajudaai_searchproviders");
                 });
 #pragma warning restore 612, 618
         }

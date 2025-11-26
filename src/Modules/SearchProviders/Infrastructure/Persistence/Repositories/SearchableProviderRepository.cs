@@ -202,7 +202,7 @@ public sealed class SearchableProviderRepository(
 
         return $"""
             SELECT COUNT(*)
-            FROM search_providers.searchable_providers
+            FROM meajudaai_searchproviders.searchable_providers
             WHERE is_active = true
                 AND ST_DWithin(
                     location::geography,

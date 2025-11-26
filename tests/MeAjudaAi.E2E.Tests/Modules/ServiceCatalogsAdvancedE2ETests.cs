@@ -13,6 +13,9 @@ namespace MeAjudaAi.E2E.Tests.Modules;
 [Trait("Module", "ServiceCatalogs")]
 public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 {
+    /// <summary>
+    /// Validates that a service can be successfully validated when it meets all business rules.
+    /// </summary>
     [Fact]
     public async Task ValidateService_WithBusinessRules_Should_Succeed()
     {
@@ -74,6 +77,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             HttpStatusCode.NoContent);
     }
 
+    /// <summary>
+    /// Validates that validating a non-existent service returns an appropriate error or validation result.
+    /// </summary>
     [Fact]
     public async Task ValidateService_WithInvalidService_Should_ReturnErrorOrValidationResult()
     {
@@ -99,6 +105,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             HttpStatusCode.OK);
     }
 
+    /// <summary>
+    /// Validates that a service category can be successfully changed and the relationship is updated.
+    /// </summary>
     [Fact]
     public async Task ChangeServiceCategory_Should_UpdateRelationship()
     {
@@ -192,6 +201,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
         }
     }
 
+    /// <summary>
+    /// Validates that attempting to change a service to an inactive category returns a failure.
+    /// </summary>
     [Fact]
     public async Task ChangeServiceCategory_ToInactiveCategory_Should_Fail()
     {
@@ -274,6 +286,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             HttpStatusCode.NoContent);
     }
 
+    /// <summary>
+    /// Validates that attempting to change a service to a non-existent category returns NotFound.
+    /// </summary>
     [Fact]
     public async Task ChangeServiceCategory_ToNonExistentCategory_Should_Return_NotFound()
     {
