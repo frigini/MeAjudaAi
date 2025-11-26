@@ -30,7 +30,7 @@ public sealed class ProvidersModuleApi(
     IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByStateHandler,
     IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByTypeHandler,
     IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByVerificationStatusHandler,
-    ILocationModuleApi locationApi,
+    ILocationsModuleApi locationApi,
     IProviderRepository providerRepository,
     IServiceProvider serviceProvider,
     ILogger<ProvidersModuleApi> logger) : IProvidersModuleApi
@@ -276,7 +276,7 @@ public sealed class ProvidersModuleApi(
         );
     }
 
-    public async Task<Result<ProviderIndexingDto?>> GetProviderForIndexingAsync(
+    public async Task<Result<ModuleProviderIndexingDto?>> GetProviderForIndexingAsync(
         Guid providerId,
         CancellationToken cancellationToken = default)
     {
@@ -288,10 +288,10 @@ public sealed class ProvidersModuleApi(
         if (providerEntity == null)
         {
             logger.LogDebug("Provider {ProviderId} not found for indexing", providerId);
-            return Result<ProviderIndexingDto?>.Success(null);
+            return Result<ModuleProviderIndexingDto?>.Success(null);
         }
 
-        // 2. Obter coordenadas do endereço primário via ILocationModuleApi
+        // 2. Obter coordenadas do endereço primário via ILocationsModuleApi
         var address = providerEntity.BusinessProfile.PrimaryAddress;
         var fullAddress = $"{address.Street}, {address.Number}, {address.Neighborhood}, {address.City}/{address.State}, {address.ZipCode}";
 
@@ -304,7 +304,7 @@ public sealed class ProvidersModuleApi(
                 providerId, fullAddress, coordinatesResult.Error.Message);
 
             // Sem coordenadas não podemos indexar (SearchableProvider exige Location)
-            return Result<ProviderIndexingDto?>.Failure(coordinatesResult.Error);
+            return Result<ModuleProviderIndexingDto?>.Failure(coordinatesResult.Error);
         }
 
         var coordinates = coordinatesResult.Value;
@@ -322,7 +322,7 @@ public sealed class ProvidersModuleApi(
         var subscriptionTier = ESubscriptionTier.Free;
 
         // 6. Criar DTO de indexação
-        var indexingDto = new ProviderIndexingDto
+        var indexingDto = new ModuleProviderIndexingDto
         {
             ProviderId = providerEntity.Id.Value,
             Name = providerEntity.Name,
@@ -342,7 +342,7 @@ public sealed class ProvidersModuleApi(
             "Successfully prepared indexing data for provider {ProviderId} at ({Lat}, {Lon})",
             providerId, coordinates.Latitude, coordinates.Longitude);
 
-        return Result<ProviderIndexingDto?>.Success(indexingDto);
+        return Result<ModuleProviderIndexingDto?>.Success(indexingDto);
     }
 
     /// <summary>

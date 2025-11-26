@@ -6,7 +6,7 @@ namespace MeAjudaAi.Shared.Contracts.Modules.Locations;
 /// <summary>
 /// API pública do módulo Locations para consumo por outros módulos.
 /// </summary>
-public interface ILocationModuleApi
+public interface ILocationsModuleApi : IModuleApi
 {
     /// <summary>
     /// Busca um endereço a partir de um CEP brasileiro.

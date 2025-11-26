@@ -111,5 +111,5 @@ public interface IProvidersModuleApi : IModuleApi
     /// <param name="providerId">ID do provider</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Dados do provider para indexação, ou null se não encontrado</returns>
-    Task<Result<ProviderIndexingDto?>> GetProviderForIndexingAsync(Guid providerId, CancellationToken cancellationToken = default);
+    Task<Result<ModuleProviderIndexingDto?>> GetProviderForIndexingAsync(Guid providerId, CancellationToken cancellationToken = default);
 }

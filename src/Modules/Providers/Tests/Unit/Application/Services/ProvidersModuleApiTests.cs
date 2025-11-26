@@ -32,7 +32,7 @@ public class ProvidersModuleApiTests
     private readonly Mock<IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByStateHandlerMock;
     private readonly Mock<IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByTypeHandlerMock;
     private readonly Mock<IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByVerificationStatusHandlerMock;
-    private readonly Mock<ILocationModuleApi> _locationApiMock;
+    private readonly Mock<ILocationsModuleApi> _locationApiMock;
     private readonly Mock<IProviderRepository> _providerRepositoryMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<ILogger<ProvidersModuleApi>> _logger;
@@ -48,7 +48,7 @@ public class ProvidersModuleApiTests
         _getProvidersByStateHandlerMock = new Mock<IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>>();
         _getProvidersByTypeHandlerMock = new Mock<IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>>>();
         _getProvidersByVerificationStatusHandlerMock = new Mock<IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>>>();
-        _locationApiMock = new Mock<ILocationModuleApi>();
+        _locationApiMock = new Mock<ILocationsModuleApi>();
         _providerRepositoryMock = new Mock<IProviderRepository>();
         _serviceProviderMock = new Mock<IServiceProvider>();
         _logger = new Mock<ILogger<ProvidersModuleApi>>();

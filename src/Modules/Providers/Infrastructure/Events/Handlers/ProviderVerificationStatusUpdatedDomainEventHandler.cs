@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 public sealed class ProviderVerificationStatusUpdatedDomainEventHandler(
     IMessageBus messageBus,
     ProvidersDbContext context,
-    ISearchModuleApi searchModuleApi,
+    ISearchProvidersModuleApi SearchProvidersModuleApi,
     ILogger<ProviderVerificationStatusUpdatedDomainEventHandler> logger) : IEventHandler<ProviderVerificationStatusUpdatedDomainEvent>
 {
     /// <summary>
@@ -45,7 +45,7 @@ public sealed class ProviderVerificationStatusUpdatedDomainEventHandler(
             {
                 logger.LogInformation("Provider {ProviderId} verified, indexing in SearchProviders module", domainEvent.AggregateId);
 
-                var indexResult = await searchModuleApi.IndexProviderAsync(provider.Id.Value, cancellationToken);
+                var indexResult = await SearchProvidersModuleApi.IndexProviderAsync(provider.Id.Value, cancellationToken);
                 if (indexResult.IsFailure)
                 {
                     logger.LogError("Failed to index provider {ProviderId} in search: {Error}",
@@ -62,7 +62,7 @@ public sealed class ProviderVerificationStatusUpdatedDomainEventHandler(
                 logger.LogInformation("Provider {ProviderId} status changed to {Status}, removing from search index", 
                     domainEvent.AggregateId, domainEvent.NewStatus);
 
-                var removeResult = await searchModuleApi.RemoveProviderAsync(provider.Id.Value, cancellationToken);
+                var removeResult = await SearchProvidersModuleApi.RemoveProviderAsync(provider.Id.Value, cancellationToken);
                 if (removeResult.IsFailure)
                 {
                     logger.LogError("Failed to remove provider {ProviderId} from search: {Error}",

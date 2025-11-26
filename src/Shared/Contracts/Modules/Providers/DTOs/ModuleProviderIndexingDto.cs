@@ -6,7 +6,7 @@ namespace MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
 /// DTO otimizado para indexação de providers no módulo SearchProviders.
 /// Contém todos os dados necessários para criar/atualizar um SearchableProvider.
 /// </summary>
-public sealed record ProviderIndexingDto
+public sealed record ModuleProviderIndexingDto
 {
     /// <summary>
     /// ID único do provider

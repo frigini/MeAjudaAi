@@ -15,7 +15,7 @@ namespace MeAjudaAi.Modules.Locations.Application.ModuleApi;
 public sealed class LocationsModuleApi(
     ICepLookupService cepLookupService,
     IGeocodingService geocodingService,
-    ILogger<LocationsModuleApi> logger) : ILocationModuleApi
+    ILogger<LocationsModuleApi> logger) : ILocationsModuleApi
 {
     private static class ModuleMetadata
     {

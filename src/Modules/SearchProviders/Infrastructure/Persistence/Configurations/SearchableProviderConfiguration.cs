@@ -15,7 +15,7 @@ internal sealed class SearchableProviderConfiguration : IEntityTypeConfiguration
 {
     public void Configure(EntityTypeBuilder<SearchableProvider> builder)
     {
-        builder.ToTable("searchable_providers", "search");
+        builder.ToTable("searchable_providers", "search_providers");
 
         // Primary key
         builder.HasKey(p => p.Id);

@@ -80,7 +80,7 @@ public static class Extensions
         services.AddScoped<IGeographicValidationService, GeographicValidationService>();
 
         // Registrar Module API
-        services.AddScoped<ILocationModuleApi, LocationsModuleApi>();
+        services.AddScoped<ILocationsModuleApi, LocationsModuleApi>();
 
         return services;
     }

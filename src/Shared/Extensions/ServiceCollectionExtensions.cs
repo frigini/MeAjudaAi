@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Common.Constants;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;

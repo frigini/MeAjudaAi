@@ -20,11 +20,11 @@ namespace MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 /// Implementação da API pública do módulo SearchProviders para outros módulos.
 /// </summary>
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
-public sealed class SearchModuleApi(
+public sealed class SearchProvidersModuleApi(
     IQueryDispatcher queryDispatcher,
     ISearchableProviderRepository repository,
     IProvidersModuleApi providersApi,
-    ILogger<SearchModuleApi> logger) : ISearchModuleApi
+    ILogger<SearchProvidersModuleApi> logger) : ISearchProvidersModuleApi
 {
     private static class ModuleMetadata
     {

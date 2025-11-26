@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SearchProvidersDbContext))]
-    [Migration("20251114205434_InitialCreate")]
+    [Migration("20251125231346_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -21,8 +21,8 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migration
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("search")
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasDefaultSchema("search_providers")
+                .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
@@ -122,7 +122,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migration
                     b.HasIndex("IsActive", "SubscriptionTier", "AverageRating")
                         .HasDatabaseName("ix_searchable_providers_search_ranking");
 
-                    b.ToTable("searchable_providers", "search");
+                    b.ToTable("searchable_providers", "search_providers");
                 });
 #pragma warning restore 612, 618
         }

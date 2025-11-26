@@ -67,6 +67,9 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
 
             // Use same naming convention as production
             options.UseSnakeCaseNamingConvention();
+
+            // Suppress pending model changes warning for tests (EnsureCreatedAsync doesn't use migrations)
+            options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
 
         // Registrar PostgresOptions para Dapper
@@ -99,7 +102,8 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
     {
         var dbContext = _serviceProvider!.GetRequiredService<SearchProvidersDbContext>();
 
-        // Criar banco de dados
+        // IMPORTANTE: Usar EnsureCreatedAsync para testes (não migrations)
+        // Migrations tem problema com schema 'search' vs 'search_providers'
         await dbContext.Database.EnsureCreatedAsync();
 
         // Verificar se PostGIS está disponível

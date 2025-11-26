@@ -19,7 +19,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migration
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("search_providers")
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");

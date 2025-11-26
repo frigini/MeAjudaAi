@@ -6,7 +6,7 @@ namespace MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
 /// <summary>
 /// Public API for the Search & Discovery module.
 /// </summary>
-public interface ISearchModuleApi
+public interface ISearchProvidersModuleApi : IModuleApi
 {
     /// <summary>
     /// Searches for providers based on geolocation and other criteria.
