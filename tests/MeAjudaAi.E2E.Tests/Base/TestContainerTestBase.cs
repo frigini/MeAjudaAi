@@ -441,7 +441,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
             var contextId = ConfigurableTestAuthenticationHandler.GetCurrentTestContextId();
             if (contextId != null)
             {
-                request.Headers.Add("X-Test-Context-Id", contextId);
+                request.Headers.Add(ConfigurableTestAuthenticationHandler.TestContextHeader, contextId);
             }
 
             return await base.SendAsync(request, cancellationToken);

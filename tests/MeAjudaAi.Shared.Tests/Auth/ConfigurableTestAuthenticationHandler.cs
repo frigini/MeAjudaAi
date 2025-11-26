@@ -17,7 +17,11 @@ public class ConfigurableTestAuthenticationHandler(
     UrlEncoder encoder) : BaseTestAuthenticationHandler(options, logger, encoder)
 {
     public const string SchemeName = "TestConfigurable";
-    private const string TestContextHeader = "X-Test-Context-Id";
+    
+    /// <summary>
+    /// HTTP header name used to transmit the test context ID for per-test authentication isolation.
+    /// </summary>
+    public const string TestContextHeader = "X-Test-Context-Id";
 
     // Thread-safe dictionary indexed by test context ID
     private static readonly ConcurrentDictionary<string, UserConfig> _userConfigs = new();
