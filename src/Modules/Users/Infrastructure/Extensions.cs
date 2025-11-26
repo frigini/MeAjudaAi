@@ -27,6 +27,27 @@ public static class Extensions
         return services;
     }
 
+    /// <summary>
+    /// Determines whether mock Keycloak services should be used based on configuration.
+    /// Checks if Keycloak is explicitly disabled or if required configuration is missing.
+    /// </summary>
+    private static bool ShouldUseMockKeycloakServices(IConfiguration configuration)
+    {
+        // Verifica se Keycloak está habilitado - verifica múltiplas variações da configuração
+        var keycloakEnabledString = configuration["Keycloak:Enabled"] ?? configuration["Keycloak__Enabled"];
+        var keycloakEnabled = !string.Equals(keycloakEnabledString, "false", StringComparison.OrdinalIgnoreCase);
+
+        // Verifica também se existe uma seção de configuração do Keycloak com valores válidos
+        var keycloakSection = configuration.GetSection("Keycloak");
+        var hasValidKeycloakConfig = !string.IsNullOrEmpty(keycloakSection["BaseUrl"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["Realm"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["ClientId"]) &&
+                                   !string.IsNullOrEmpty(keycloakSection["ClientSecret"]);
+
+        // Se Keycloak está explicitamente desabilitado OU não há configuração válida, usa mock
+        return !keycloakEnabled || !hasValidKeycloakConfig;
+    }
+
     private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
         // Usa PostgreSQL para todos os ambientes (TestContainers fornecerá database de teste)
@@ -87,19 +108,7 @@ public static class Extensions
             return options;
         });
 
-        // Verifica se Keycloak está habilitado - verifica múltiplas variações da configuração
-        var keycloakEnabledString = configuration["Keycloak:Enabled"] ?? configuration["Keycloak__Enabled"];
-        var keycloakEnabled = !string.Equals(keycloakEnabledString, "false", StringComparison.OrdinalIgnoreCase);
-
-        // Verifica também se existe uma seção de configuração do Keycloak com valores válidos
-        var keycloakSection = configuration.GetSection("Keycloak");
-        var hasValidKeycloakConfig = !string.IsNullOrEmpty(keycloakSection["BaseUrl"]) &&
-                                   !string.IsNullOrEmpty(keycloakSection["Realm"]) &&
-                                   !string.IsNullOrEmpty(keycloakSection["ClientId"]) &&
-                                   !string.IsNullOrEmpty(keycloakSection["ClientSecret"]);
-
-        // Se Keycloak está explicitamente desabilitado OU não há configuração válida, usa mock
-        var shouldUseMock = !keycloakEnabled || !hasValidKeycloakConfig;
+        var shouldUseMock = ShouldUseMockKeycloakServices(configuration);
 
         if (!shouldUseMock)
         {
@@ -113,19 +122,7 @@ public static class Extensions
 
     private static IServiceCollection AddDomainServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // Verifica se Keycloak está habilitado - verifica múltiplas variações da configuração
-        var keycloakEnabledString = configuration["Keycloak:Enabled"] ?? configuration["Keycloak__Enabled"];
-        var keycloakEnabled = !string.Equals(keycloakEnabledString, "false", StringComparison.OrdinalIgnoreCase);
-
-        // Verifica também se existe uma seção de configuração do Keycloak com valores válidos
-        var keycloakSection = configuration.GetSection("Keycloak");
-        var hasValidKeycloakConfig = !string.IsNullOrEmpty(keycloakSection["BaseUrl"]) &&
-                                   !string.IsNullOrEmpty(keycloakSection["Realm"]) &&
-                                   !string.IsNullOrEmpty(keycloakSection["ClientId"]) &&
-                                   !string.IsNullOrEmpty(keycloakSection["ClientSecret"]);
-
-        // Se Keycloak está explicitamente desabilitado OU não há configuração válida, usa mock
-        var shouldUseMock = !keycloakEnabled || !hasValidKeycloakConfig;
+        var shouldUseMock = ShouldUseMockKeycloakServices(configuration);
 
         if (!shouldUseMock)
         {
