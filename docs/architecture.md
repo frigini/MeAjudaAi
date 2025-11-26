@@ -1158,9 +1158,9 @@ Task<Result<List<ServiceInfoDto>>> GetServicesByCategoryAsync(Guid categoryId, C
 
 ---
 
-#### 3. **ISearchModuleApi** ✅ COMPLETO
-**Localização**: `src/Shared/Contracts/Modules/SearchProviders/ISearchModuleApi.cs`  
-**Implementação**: `src/Modules/SearchProviders/Application/ModuleApi/SearchModuleApi.cs`
+#### 3. **ISearchProvidersModuleApi** ✅ COMPLETO
+**Localização**: `src/Shared/Contracts/Modules/SearchProviders/ISearchProvidersModuleApi.cs`  
+**Implementação**: `src/Modules/SearchProviders/Application/ModuleApi/SearchProvidersModuleApi.cs`
 
 **Métodos (3)**:
 ```csharp

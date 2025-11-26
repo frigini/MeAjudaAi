@@ -553,6 +553,11 @@ public sealed class Provider : AggregateRoot<ProviderId>
         var providerService = new ProviderService(Id, serviceId);
         _services.Add(providerService);
         MarkAsUpdated();
+
+        AddDomainEvent(new ProviderServiceAddedDomainEvent(
+            Id.Value,
+            1,
+            serviceId));
     }
 
     /// <summary>
@@ -565,12 +570,20 @@ public sealed class Provider : AggregateRoot<ProviderId>
         if (serviceId == Guid.Empty)
             throw new ProviderDomainException("ServiceId cannot be empty");
 
+        if (IsDeleted)
+            throw new ProviderDomainException("Cannot remove services from deleted provider");
+
         var providerService = _services.FirstOrDefault(s => s.ServiceId == serviceId);
         if (providerService == null)
             throw new ProviderDomainException($"Service {serviceId} is not offered by this provider");
 
         _services.Remove(providerService);
         MarkAsUpdated();
+
+        AddDomainEvent(new ProviderServiceRemovedDomainEvent(
+            Id.Value,
+            1,
+            serviceId));
     }
 
     /// <summary>

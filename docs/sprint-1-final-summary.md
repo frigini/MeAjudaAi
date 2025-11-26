@@ -36,7 +36,7 @@
 - Provider Verified → indexa em busca
 - Provider Rejected/Suspended → remove de busca
 
-#### ILocationModuleApi ✅ JÁ EXISTIA
+#### ILocationsModuleApi ✅ JÁ EXISTIA
 - Pronto para uso (baixa prioridade)
 
 ### ✅ 3. Bugs Críticos Corrigidos (2 bugs)
@@ -180,7 +180,7 @@ public sealed class ActivateProviderCommandHandler(IDocumentsModuleApi documents
 - [x] Todos os testes passando (2,023/2,038)
 - [x] Nenhum warning de compilação
 - [x] Code review guidelines seguidas
-- [x] Logging apropriado em todas operações
+- [x] Logging apropriado em todas as operações
 - [x] Error handling com Result pattern
 - [x] Null checks e validações
 

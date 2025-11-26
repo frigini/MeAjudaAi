@@ -211,7 +211,7 @@ public sealed class SearchProvidersModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error indexing provider {ProviderId} in search", providerId);
-            return Result.Failure($"Failed to index provider: {ex.Message}");
+            return Result.Failure("Failed to index provider due to an internal error");
         }
     }
 
@@ -238,7 +238,7 @@ public sealed class SearchProvidersModuleApi(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error removing provider {ProviderId} from search index", providerId);
-            return Result.Failure($"Failed to remove provider: {ex.Message}");
+            return Result.Failure("Failed to remove provider due to an internal error");
         }
     }
 
