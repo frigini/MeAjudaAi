@@ -187,7 +187,8 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                 });
             });
 
-        ApiClient = _factory.CreateClient();
+        // Create HTTP client with test context header injection
+        ApiClient = _factory.CreateDefaultClient(new TestContextHeaderHandler());
 
         // Aplicar migrações diretamente no banco TestContainer
         await ApplyMigrationsAsync();
@@ -425,5 +426,25 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         var segments = locationHeader.Split('/');
         var lastSegment = segments[^1].Split('?')[0];
         return Guid.Parse(lastSegment);
+    }
+
+    /// <summary>
+    /// HTTP message handler that injects test context ID header into all requests
+    /// </summary>
+    private class TestContextHeaderHandler : DelegatingHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, 
+            CancellationToken cancellationToken)
+        {
+            // Add test context ID header to isolate authentication between parallel tests
+            var contextId = ConfigurableTestAuthenticationHandler.GetCurrentTestContextId();
+            if (contextId != null)
+            {
+                request.Headers.Add("X-Test-Context-Id", contextId);
+            }
+
+            return await base.SendAsync(request, cancellationToken);
+        }
     }
 }
