@@ -31,11 +31,18 @@ public class ConfigurableTestAuthenticationHandler(
         // Authentication must be explicitly configured via ConfigureUser/ConfigureAdmin/etc.
         if (contextId == null || !_userConfigs.TryGetValue(contextId, out _))
         {
-            // If allowUnauthenticated is true for this context, succeed with no claims
+            // If allowUnauthenticated is true for this context, succeed with an anonymous principal
             if (contextId != null && _allowUnauthenticatedByContext.TryGetValue(contextId, out var allowUnauth) && allowUnauth)
             {
-                // Return success with minimal anonymous claims
-                return Task.FromResult(CreateSuccessResult());
+                // Return success with an empty identity (no claims, no roles, no permissions)
+                // This represents a truly anonymous/unauthenticated user
+                var anonymousIdentity = new System.Security.Claims.ClaimsIdentity(
+                    authenticationType: SchemeName,
+                    nameType: null,
+                    roleType: null);
+                var anonymousPrincipal = new System.Security.Claims.ClaimsPrincipal(anonymousIdentity);
+                var ticket = new AuthenticationTicket(anonymousPrincipal, SchemeName);
+                return Task.FromResult(AuthenticateResult.Success(ticket));
             }
 
             return Task.FromResult(AuthenticateResult.Fail("No authentication configuration set"));
