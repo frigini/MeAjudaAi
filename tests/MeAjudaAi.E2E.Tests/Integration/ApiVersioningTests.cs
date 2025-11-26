@@ -44,8 +44,10 @@ public class ApiVersioningTests : TestContainerTestBase
     [Fact]
     public async Task ApiVersioning_ShouldWork_ForDifferentModules()
     {
-        // Arrange
-        AuthenticateAsAdmin(); // Ensure authenticated for API access & Act - Testa se o versionamento funciona para qualquer padrão de módulo
+        // Arrange - Configure authentication for API access
+        AuthenticateAsAdmin();
+        
+        // Act - Test that versioning works for different module patterns
         var responses = new[]
         {
             await ApiClient.GetAsync("/api/v1/users"),

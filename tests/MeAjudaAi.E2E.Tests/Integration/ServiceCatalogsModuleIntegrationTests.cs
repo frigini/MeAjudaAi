@@ -10,11 +10,6 @@ namespace MeAjudaAi.E2E.Tests.Integration;
 /// </summary>
 public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
 {
-    // TODO: Link to GitHub issue #<TBD> tracking E2E authentication infrastructure refactor.
-    // 14+ E2E tests affected by ConfigurableTestAuthenticationHandler race condition.
-    private const string AuthRaceConditionSkipReason =
-        "AUTH: Returns 403 instead of expected success due to ConfigurableTestAuthenticationHandler race condition. See GitHub issue #<TBD>.";
-
     [Fact]
     public async Task ServicesModule_Can_Validate_Services_From_Catalogs()
     {

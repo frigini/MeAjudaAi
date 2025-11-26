@@ -43,5 +43,5 @@ GRANT SELECT ON ALL TABLES IN SCHEMA providers TO search_role;
 GRANT SELECT ON TABLE public.spatial_ref_sys TO search_role;
 GRANT SELECT ON TABLE public.spatial_ref_sys TO meajudaai_app_role;
 
--- Document schema purpose
+-- Search Providers schema purpose
 COMMENT ON SCHEMA search_providers IS 'Search & Discovery module - Geospatial provider search with PostGIS';
