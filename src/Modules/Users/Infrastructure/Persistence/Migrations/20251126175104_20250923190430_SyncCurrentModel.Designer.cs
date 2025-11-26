@@ -20,7 +20,7 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("users")
+                .HasDefaultSchema("meajudaai_users")
                 .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 

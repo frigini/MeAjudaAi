@@ -6,6 +6,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Configuração do Entity Framework Core para a entidade Provider.
+/// Define mapeamento de tabela, propriedades, value objects e relacionamentos.
+/// </summary>
 public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
 {
     public void Configure(EntityTypeBuilder<Provider> builder)

@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration;
@@ -50,15 +51,15 @@ public class DocumentVerifiedIntegrationEventHandlerTests
             .Build();
 
         _providerRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(provider);
+            .Setup(x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((true, provider.VerificationStatus));
 
         // Act
         await _handler.HandleAsync(integrationEvent, CancellationToken.None);
 
         // Assert
         _providerRepositoryMock.Verify(
-            x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()),
+            x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()),
             Times.Once
         );
 
@@ -91,15 +92,15 @@ public class DocumentVerifiedIntegrationEventHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Provider?)null);
+            .Setup(x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((false, null));
 
         // Act
         await _handler.HandleAsync(integrationEvent, CancellationToken.None);
 
         // Assert
         _providerRepositoryMock.Verify(
-            x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()),
+            x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()),
             Times.Once
         );
 
@@ -131,8 +132,8 @@ public class DocumentVerifiedIntegrationEventHandlerTests
             .Build();
 
         _providerRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(provider);
+            .Setup(x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((true, provider.VerificationStatus));
 
         var integrationEvent = new DocumentVerifiedIntegrationEvent(
             "Documents",
@@ -174,7 +175,7 @@ public class DocumentVerifiedIntegrationEventHandlerTests
         );
 
         _providerRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database unavailable"));
 
         // Act & Assert
@@ -218,15 +219,15 @@ public class DocumentVerifiedIntegrationEventHandlerTests
             .Build();
 
         _providerRepositoryMock
-            .Setup(x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(provider);
+            .Setup(x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((true, provider.VerificationStatus));
 
         // Act
         await _handler.HandleAsync(integrationEvent, CancellationToken.None);
 
         // Assert
         _providerRepositoryMock.Verify(
-            x => x.GetByIdAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()),
+            x => x.GetProviderStatusAsync(It.Is<ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()),
             Times.Once
         );
     }

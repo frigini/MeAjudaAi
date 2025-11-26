@@ -10,7 +10,7 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 /// This service creates users locally without external authentication integration.
 /// Used only for local development when Keycloak is disabled in configuration.
 /// </summary>
-public class LocalDevelopmentUserDomainService : IUserDomainService
+internal class LocalDevelopmentUserDomainService : IUserDomainService
 {
     /// <summary>
     /// Creates a user locally without Keycloak integration.
