@@ -89,27 +89,56 @@ class Program
         {
             var connectionString = GetConnectionStringForModule(contextInfo.ModuleName);
             
-            // Use reflection to call AddDbContext<TContext> with the discovered type
+            // Use robust reflection to call AddDbContext<TContext> with the discovered type
+            // Enumerate all methods to find the correct generic overload
             var addDbContextMethod = typeof(EntityFrameworkServiceCollectionExtensions)
-                .GetMethod(nameof(EntityFrameworkServiceCollectionExtensions.AddDbContext), 
-                    new[] { typeof(IServiceCollection), typeof(Action<DbContextOptionsBuilder>), typeof(ServiceLifetime), typeof(ServiceLifetime) })
-                ?.MakeGenericMethod(contextInfo.Type);
+                .GetMethods()
+                .Where(m => m.Name == nameof(EntityFrameworkServiceCollectionExtensions.AddDbContext))
+                .Where(m => m.IsGenericMethodDefinition)
+                .Where(m => m.GetParameters().Length == 4)
+                .Where(m => 
+                    m.GetParameters()[0].ParameterType == typeof(IServiceCollection) &&
+                    m.GetParameters()[1].ParameterType == typeof(Action<DbContextOptionsBuilder>) &&
+                    m.GetParameters()[2].ParameterType == typeof(ServiceLifetime) &&
+                    m.GetParameters()[3].ParameterType == typeof(ServiceLifetime))
+                .FirstOrDefault();
             
-            addDbContextMethod?.Invoke(null, new object[] 
-            { 
-                services, 
-                new Action<DbContextOptionsBuilder>(options =>
-                {
-                    options.UseNpgsql(connectionString, npgsqlOptions =>
+            if (addDbContextMethod == null)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to locate AddDbContext method via reflection for context: {contextInfo.Type.Name} (schema: {contextInfo.SchemaName}). " +
+                    "This indicates a breaking change in EntityFrameworkServiceCollectionExtensions API.");
+            }
+            
+            var genericMethod = addDbContextMethod.MakeGenericMethod(contextInfo.Type);
+            
+            try
+            {
+                genericMethod.Invoke(null, new object[] 
+                { 
+                    services, 
+                    new Action<DbContextOptionsBuilder>(options =>
                     {
-                        npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", contextInfo.SchemaName);
-                    });
-                    options.EnableSensitiveDataLogging();
-                    options.EnableDetailedErrors();
-                }),
-                ServiceLifetime.Scoped,
-                ServiceLifetime.Scoped
-            });
+                        options.UseNpgsql(connectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", contextInfo.SchemaName);
+                        })
+                        .UseSnakeCaseNamingConvention(); // Apply snake_case to match other modules
+                        
+                        options.EnableSensitiveDataLogging();
+                        options.EnableDetailedErrors();
+                    }),
+                    ServiceLifetime.Scoped,
+                    ServiceLifetime.Scoped
+                });
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to register DbContext {contextInfo.Type.Name} (schema: {contextInfo.SchemaName}). " +
+                    $"Inner exception: {ex.InnerException?.Message ?? ex.Message}", 
+                    ex.InnerException ?? ex);
+            }
         }
     }
 
@@ -369,9 +398,9 @@ class Program
             return connectionString;
         }
         
-        // Fallback: generate connection string
+        // Fallback: generate connection string with consistent test credentials
         var dbName = $"meajudaai_{moduleName.ToLowerInvariant()}";
-        return $"Host=localhost;Port=5432;Database={dbName};Username=postgres;Password=postgres";
+        return $"Host=localhost;Port=5432;Database={dbName};Username=postgres;Password=test123";
     }
 
     private static string? FindSolutionRoot()

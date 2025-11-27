@@ -59,8 +59,25 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Check Database Configuration
-        run: echo "✅ GitHub secrets configured (enforced by check-secrets)"
+      - name: Validate Secrets Configuration
+        run: |
+          echo "🔍 Validating secrets configuration..."
+          
+          # Check if running in main repository (not a fork)
+          if [ "${{ github.repository }}" = "frigini/MeAjudaAi" ] && [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "ℹ️  Running in main repository - using configured secrets or safe defaults"
+            
+            # Validate critical secrets are available or have safe defaults
+            if [ -z "${{ secrets.POSTGRES_PASSWORD }}" ]; then
+              echo "⚠️  POSTGRES_PASSWORD secret not configured - using test default 'test123'"
+            else
+              echo "✅ POSTGRES_PASSWORD secret configured"
+            fi
+          else
+            echo "ℹ️  Running in fork or workflow_dispatch - using test defaults"
+          fi
+          
+          echo "✅ Database configuration validated"
 
       - name: Check Keycloak Configuration
         env:
