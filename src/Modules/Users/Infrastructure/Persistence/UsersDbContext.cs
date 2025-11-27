@@ -44,7 +44,7 @@ public class UsersDbContext : BaseDbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    protected override async Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
+    protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
     {
         var domainEvents = ChangeTracker
             .Entries<User>()
@@ -52,7 +52,7 @@ public class UsersDbContext : BaseDbContext
             .SelectMany(entry => entry.Entity.DomainEvents)
             .ToList();
 
-        return await Task.FromResult(domainEvents);
+        return Task.FromResult(domainEvents);
     }
 
     protected override void ClearDomainEvents()

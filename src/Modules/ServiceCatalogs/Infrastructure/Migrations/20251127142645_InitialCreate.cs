@@ -12,11 +12,11 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
-                name: "service_catalogs");
+                name: "meajudaai_service_catalogs");
 
             migrationBuilder.CreateTable(
                 name: "service_categories",
-                schema: "service_catalogs",
+                schema: "meajudaai_service_catalogs",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -34,7 +34,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "services",
-                schema: "service_catalogs",
+                schema: "meajudaai_service_catalogs",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -52,7 +52,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "fk_services_category",
                         column: x => x.category_id,
-                        principalSchema: "service_catalogs",
+                        principalSchema: "meajudaai_service_catalogs",
                         principalTable: "service_categories",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
@@ -60,44 +60,44 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "ix_service_categories_display_order",
-                schema: "service_catalogs",
+                schema: "meajudaai_service_catalogs",
                 table: "service_categories",
                 column: "display_order");
 
             migrationBuilder.CreateIndex(
                 name: "ix_service_categories_is_active",
-                schema: "service_catalogs",
+                schema: "meajudaai_service_catalogs",
                 table: "service_categories",
                 column: "is_active");
 
             migrationBuilder.CreateIndex(
                 name: "ix_service_categories_name",
-                schema: "service_catalogs",
+                schema: "meajudaai_service_catalogs",
                 table: "service_categories",
                 column: "name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_services_category_display_order",
-                schema: "service_catalogs",
+                schema: "meajudaai_service_catalogs",
                 table: "services",
                 columns: new[] { "category_id", "display_order" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_services_category_id",
-                schema: "service_catalogs",
+                schema: "meajudaai_service_catalogs",
                 table: "services",
                 column: "category_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_services_is_active",
-                schema: "service_catalogs",
+                schema: "meajudaai_service_catalogs",
                 table: "services",
                 column: "is_active");
 
             migrationBuilder.CreateIndex(
                 name: "ix_services_name",
-                schema: "service_catalogs",
+                schema: "meajudaai_service_catalogs",
                 table: "services",
                 column: "name",
                 unique: true);
@@ -108,11 +108,11 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "services",
-                schema: "service_catalogs");
+                schema: "meajudaai_service_catalogs");
 
             migrationBuilder.DropTable(
                 name: "service_categories",
-                schema: "service_catalogs");
+                schema: "meajudaai_service_catalogs");
         }
     }
 }

@@ -189,7 +189,11 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             "the updated service should be retrievable after changing category");
 
         var content = await getServiceResponse.Content.ReadAsStringAsync();
-        content.Should().Contain(category2Id.ToString(),
+        var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, JsonOptions);
+        result.TryGetProperty("data", out var data).Should().BeTrue("response should contain data property");
+        data.TryGetProperty("categoryId", out var categoryIdElement).Should().BeTrue("service should have categoryId property");
+        var actualCategoryId = categoryIdElement.GetGuid();
+        actualCategoryId.Should().Be(category2Id,
             "the service should now be associated with the new category");
     }
 
