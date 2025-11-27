@@ -115,12 +115,13 @@ public abstract class ApiTestBase : IAsyncLifetime
                         ["FeatureManagement:PushNotifications"] = "false",
                         ["FeatureManagement:StripePayments"] = "false",
                         ["FeatureManagement:MaintenanceMode"] = "false",
+                        // Geographic restriction: Only specific cities allowed, NOT entire states
+                        // This ensures fallback validation properly blocks non-allowed cities in same state
                         ["GeographicRestriction:AllowedStates:0"] = "MG",
-                        ["GeographicRestriction:AllowedStates:1"] = "RJ",
-                        ["GeographicRestriction:AllowedStates:2"] = "ES",
-                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé",
-                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna",
-                        ["GeographicRestriction:AllowedCities:2"] = "Linhares",
+                        ["GeographicRestriction:AllowedStates:1"] = "ES",
+                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé|MG",
+                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna|RJ",
+                        ["GeographicRestriction:AllowedCities:2"] = "Linhares|ES",
                         ["GeographicRestriction:BlockedMessage"] = "Serviço indisponível na sua região. Disponível apenas em: {allowedRegions}"
                     });
                 });
