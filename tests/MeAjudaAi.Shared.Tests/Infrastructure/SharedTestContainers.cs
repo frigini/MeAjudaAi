@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Shared.Tests.Infrastructure;
@@ -12,6 +13,7 @@ namespace MeAjudaAi.Shared.Tests.Infrastructure;
 public static class SharedTestContainers
 {
     private static PostgreSqlContainer? _postgreSqlContainer;
+    private static AzuriteContainer? _azuriteContainer;
     private static TestDatabaseOptions? _databaseOptions;
     private static readonly Lock _lock = new();
     private static bool _isInitialized;
@@ -25,6 +27,18 @@ public static class SharedTestContainers
         {
             EnsureInitialized();
             return _postgreSqlContainer!;
+        }
+    }
+
+    /// <summary>
+    /// Container Azurite (Azure Storage Emulator) compartilhado para testes de upload/blob storage
+    /// </summary>
+    public static AzuriteContainer Azurite
+    {
+        get
+        {
+            EnsureInitialized();
+            return _azuriteContainer!;
         }
     }
 
@@ -71,6 +85,12 @@ public static class SharedTestContainers
                 .WithPortBinding(0, true) // Porta aleatória para evitar conflitos
                 .Build();
 
+            // Azurite (Azure Storage Emulator) para testes de blob storage/documents
+            // Expõe serviços Blob, Queue e Table
+            _azuriteContainer = new AzuriteBuilder()
+                .WithImage("mcr.microsoft.com/azure-storage/azurite:latest")
+                .Build();
+
             _isInitialized = true;
         }
     }
@@ -82,9 +102,13 @@ public static class SharedTestContainers
     {
         EnsureInitialized();
 
-        await _postgreSqlContainer!.StartAsync();
+        // Inicia containers em paralelo para performance
+        await Task.WhenAll(
+            _postgreSqlContainer!.StartAsync(),
+            _azuriteContainer!.StartAsync()
+        );
 
-        // Verifica se o container está realmente pronto
+        // Verifica se o container PostgreSQL está realmente pronto
         await ValidateContainerHealthAsync();
     }
 
@@ -126,8 +150,15 @@ public static class SharedTestContainers
     {
         if (!_isInitialized) return;
 
+        var stopTasks = new List<Task>();
+        
         if (_postgreSqlContainer != null)
-            await _postgreSqlContainer.StopAsync();
+            stopTasks.Add(_postgreSqlContainer.StopAsync());
+        
+        if (_azuriteContainer != null)
+            stopTasks.Add(_azuriteContainer.StopAsync());
+
+        await Task.WhenAll(stopTasks);
     }
 
     /// <summary>

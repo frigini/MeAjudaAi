@@ -1459,6 +1459,7 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0-rc.2, )",
           "Respawn": "[6.2.1, )",
           "Scrutor": "[6.1.0, )",
+          "Testcontainers.Azurite": "[4.7.0, )",
           "Testcontainers.PostgreSql": "[4.7.0, )",
           "xunit.v3": "[3.1.0, )"
         }
@@ -2255,6 +2256,15 @@
         "dependencies": {
           "Microsoft.IdentityModel.JsonWebTokens": "8.14.0",
           "Microsoft.IdentityModel.Tokens": "8.14.0"
+        }
+      },
+      "Testcontainers.Azurite": {
+        "type": "CentralTransitive",
+        "requested": "[4.7.0, )",
+        "resolved": "4.7.0",
+        "contentHash": "YgB1kWcDHXMO89fVNyuktetyq380IqYOD3gV21QpMmRWIXZWiMA5cX/mIYdJ7XvjRMVRzhXi9ixAgqvyFqn+6w==",
+        "dependencies": {
+          "Testcontainers": "4.7.0"
         }
       }
     }

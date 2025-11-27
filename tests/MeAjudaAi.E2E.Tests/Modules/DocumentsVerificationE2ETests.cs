@@ -13,7 +13,7 @@ namespace MeAjudaAi.E2E.Tests.Modules;
 [Trait("Module", "Documents")]
 public class DocumentsVerificationE2ETests : TestContainerTestBase
 {
-    [Fact(Skip = "INFRA: Azurite container not accessible from app container in CI/CD (localhost mismatch). Fix: Configure proper Docker networking or use TestContainers.Azurite. See docs/e2e-test-failures-analysis.md")]
+    [Fact]
     public async Task RequestDocumentVerification_Should_UpdateStatus()
     {
         // Arrange

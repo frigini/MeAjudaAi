@@ -144,6 +144,15 @@
           "Microsoft.Extensions.DependencyModel": "8.0.2"
         }
       },
+      "Testcontainers.Azurite": {
+        "type": "Direct",
+        "requested": "[4.7.0, )",
+        "resolved": "4.7.0",
+        "contentHash": "YgB1kWcDHXMO89fVNyuktetyq380IqYOD3gV21QpMmRWIXZWiMA5cX/mIYdJ7XvjRMVRzhXi9ixAgqvyFqn+6w==",
+        "dependencies": {
+          "Testcontainers": "4.7.0"
+        }
+      },
       "Testcontainers.PostgreSql": {
         "type": "Direct",
         "requested": "[4.7.0, )",

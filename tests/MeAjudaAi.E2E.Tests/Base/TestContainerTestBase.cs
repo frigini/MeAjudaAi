@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
@@ -28,6 +29,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 {
     private PostgreSqlContainer _postgresContainer = null!;
     private RedisContainer _redisContainer = null!;
+    private AzuriteContainer _azuriteContainer = null!;
     private WebApplicationFactory<Program> _factory = null!;
 
     protected HttpClient ApiClient { get; private set; } = null!;
@@ -55,9 +57,15 @@ public abstract class TestContainerTestBase : IAsyncLifetime
             .WithCleanUp(true)
             .Build();
 
+        _azuriteContainer = new AzuriteBuilder()
+            .WithImage("mcr.microsoft.com/azure-storage/azurite:latest")
+            .WithCleanUp(true)
+            .Build();
+
         // Iniciar containers
         await _postgresContainer.StartAsync();
         await _redisContainer.StartAsync();
+        await _azuriteContainer.StartAsync();
 
         // Configurar WebApplicationFactory
 #pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
@@ -79,6 +87,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         ["ConnectionStrings:ProvidersDb"] = _postgresContainer.GetConnectionString(),
                         ["ConnectionStrings:DocumentsDb"] = _postgresContainer.GetConnectionString(),
                         ["ConnectionStrings:Redis"] = _redisContainer.GetConnectionString(),
+                        ["Azure:Storage:ConnectionString"] = _azuriteContainer.GetConnectionString(),
                         ["Hangfire:Enabled"] = "false", // Desabilitar Hangfire nos testes E2E
                         ["Logging:LogLevel:Default"] = "Warning",
                         ["Logging:LogLevel:Microsoft"] = "Error",
@@ -207,6 +216,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
         if (_redisContainer != null)
             await _redisContainer.StopAsync();
+
+        if (_azuriteContainer != null)
+            await _azuriteContainer.StopAsync();
     }
 
     private async Task WaitForApiHealthAsync()

@@ -2941,6 +2941,7 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0-rc.2, )",
           "Respawn": "[6.2.1, )",
           "Scrutor": "[6.1.0, )",
+          "Testcontainers.Azurite": "[4.7.0, )",
           "Testcontainers.PostgreSql": "[4.7.0, )",
           "xunit.v3": "[3.1.0, )"
         }
@@ -4043,6 +4044,15 @@
         "contentHash": "vMMBDiTC53KclPs1aiedRZnXkoI2ZgF5/JFr3Dqr8KT7wvIbA/MwD+ormQ4qf25gN5xCrJbmz/9/Z3RrpSofMA==",
         "dependencies": {
           "Swashbuckle.AspNetCore.Swagger": "10.0.1"
+        }
+      },
+      "Testcontainers.Azurite": {
+        "type": "CentralTransitive",
+        "requested": "[4.7.0, )",
+        "resolved": "4.7.0",
+        "contentHash": "YgB1kWcDHXMO89fVNyuktetyq380IqYOD3gV21QpMmRWIXZWiMA5cX/mIYdJ7XvjRMVRzhXi9ixAgqvyFqn+6w==",
+        "dependencies": {
+          "Testcontainers": "4.7.0"
         }
       }
     }
