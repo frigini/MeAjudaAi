@@ -5,24 +5,50 @@
       "name": "default",
       "reportTypes": ["Html", "Cobertura", "JsonSummary", "TextSummary"],
       "targetdir": "TestResults/Coverage",
-      "reporttitle": "MeAjudaAi - Code Coverage Report",
+      "reporttitle": "MeAjudaAi - Code Coverage Report (Business Modules Focus)",
       "assemblyfilters": [
         "-*.Tests*",
         "-*.Testing*",
-        "-testhost*"
+        "-testhost*",
+        "-MeAjudaAi.AppHost",
+        "-MeAjudaAi.ServiceDefaults"
       ],
       "classfilters": [
         "-*.Migrations*",
+        "-*MigrationBuilder*",
+        "-*DbContextModelSnapshot*",
         "-Program",
-        "-Startup"
+        "-Startup",
+        "-*KeycloakConfiguration*",
+        "-*KeycloakPermissionResolver*",
+        "-*KeycloakRole*",
+        "-*KeycloakUser*",
+        "-*RabbitMq*",
+        "-*ServiceBus*",
+        "-*Hangfire*",
+        "-*Serilog*",
+        "-*HealthCheck*",
+        "-*Metrics*",
+        "-*Monitoring*",
+        "-*OpenApi.Generated*",
+        "-System.Runtime.CompilerServices*",
+        "-System.Text.RegularExpressions.Generated*"
       ],
       "filefilters": [
         "-**/Migrations/**",
         "-**/bin/**",
-        "-**/obj/**"
+        "-**/obj/**",
+        "-**/Logging/**",
+        "-**/Jobs/Hangfire*",
+        "-**/Messaging/RabbitMq/**",
+        "-**/Messaging/ServiceBus/**",
+        "-**/Monitoring/**",
+        "-**/HealthChecks/**"
       ],
       "verbosity": "Info",
-      "tag": "main"
+      "tag": "business-focus",
+      "thresholdType": "line,branch,method",
+      "threshold": "80,70,75"
     }
   ]
 }
