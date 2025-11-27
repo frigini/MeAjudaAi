@@ -111,8 +111,8 @@ public abstract class ServiceCatalogsIntegrationTestBase : IntegrationTestBase
         var maxBaseLength = maxTotalLength - guidLength - separatorLength;
 
         // Truncate base name if necessary to avoid exceeding max length
-        var safeName = baseName.Length > maxBaseLength 
-            ? baseName[..maxBaseLength] 
+        var safeName = baseName.Length > maxBaseLength
+            ? baseName[..maxBaseLength]
             : baseName;
 
         return $"{safeName}_{Guid.NewGuid():N}";

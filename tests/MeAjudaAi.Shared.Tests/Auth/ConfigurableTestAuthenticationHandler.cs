@@ -26,7 +26,7 @@ public class ConfigurableTestAuthenticationHandler(
     /// <seealso cref="GetAuthenticationScheme"/>
     /// <seealso cref="TestContextHeader"/>
     public const string SchemeName = "TestConfigurable";
-    
+
     /// <summary>
     /// HTTP header name used to transmit the test context ID for per-test authentication isolation.
     /// </summary>
@@ -40,7 +40,7 @@ public class ConfigurableTestAuthenticationHandler(
     {
         // Get test context ID from header
         var contextId = GetTestContextId();
-        
+
         // Authentication must be explicitly configured via ConfigureUser/ConfigureAdmin/etc.
         if (contextId == null || !_userConfigs.TryGetValue(contextId, out _))
         {
@@ -90,16 +90,16 @@ public class ConfigurableTestAuthenticationHandler(
             : defaultValue();
     }
 
-    protected override string GetTestUserId() => 
+    protected override string GetTestUserId() =>
         GetConfigValueOrDefault(c => c.UserId, base.GetTestUserId);
 
-    protected override string GetTestUserName() => 
+    protected override string GetTestUserName() =>
         GetConfigValueOrDefault(c => c.UserName, base.GetTestUserName);
 
-    protected override string GetTestUserEmail() => 
+    protected override string GetTestUserEmail() =>
         GetConfigValueOrDefault(c => c.Email, base.GetTestUserEmail);
 
-    protected override string[] GetTestUserRoles() => 
+    protected override string[] GetTestUserRoles() =>
         GetConfigValueOrDefault(c => c.Roles, base.GetTestUserRoles);
 
     protected override System.Security.Claims.Claim[] CreateStandardClaims()
@@ -162,11 +162,11 @@ public class ConfigurableTestAuthenticationHandler(
     {
         var contextId = GetOrCreateTestContext();
         _userConfigs[contextId] = new UserConfig(
-            userId, 
-            userName, 
-            email, 
-            roles.Length > 0 ? roles : ["user"], 
-            permissions, 
+            userId,
+            userName,
+            email,
+            roles.Length > 0 ? roles : ["user"],
+            permissions,
             isSystemAdmin);
     }
 
@@ -256,8 +256,8 @@ public class ConfigurableTestAuthenticationHandler(
     public static bool GetAllowUnauthenticated()
     {
         var contextId = _currentTestContextId.Value;
-        return contextId != null && 
-               _allowUnauthenticatedByContext.TryGetValue(contextId, out var allow) && 
+        return contextId != null &&
+               _allowUnauthenticatedByContext.TryGetValue(contextId, out var allow) &&
                allow;
     }
 

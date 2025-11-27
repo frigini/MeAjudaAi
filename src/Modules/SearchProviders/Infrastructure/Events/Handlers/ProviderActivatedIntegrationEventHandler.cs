@@ -41,7 +41,7 @@ public sealed class ProviderActivatedIntegrationEventHandler(
                     "Failed to index provider {ProviderId} in search: {Error}",
                     integrationEvent.ProviderId,
                     indexResult.Error.Message);
-                
+
                 // NOTA: Não propagamos a exceção porque o provider já foi ativado com sucesso.
                 // A indexação pode ser refeita posteriormente via retry mechanism ou comando manual.
                 // Log de erro é suficiente para alertar sobre o problema.
@@ -59,7 +59,7 @@ public sealed class ProviderActivatedIntegrationEventHandler(
                 ex,
                 "Error handling ProviderActivatedIntegrationEvent for provider {ProviderId}",
                 integrationEvent.ProviderId);
-            
+
             // Mesma lógica: não propagamos erro para não falhar a transação do módulo Providers
             // A indexação é uma operação secundária que pode ser refeita
         }

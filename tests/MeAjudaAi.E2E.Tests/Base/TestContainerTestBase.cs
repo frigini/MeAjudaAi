@@ -480,7 +480,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     private class TestContextHeaderHandler : DelegatingHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request, 
+            HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
             // Add test context ID header to isolate authentication between parallel tests

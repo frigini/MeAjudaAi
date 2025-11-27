@@ -151,10 +151,10 @@ public static class SharedTestContainers
         if (!_isInitialized) return;
 
         var stopTasks = new List<Task>();
-        
+
         if (_postgreSqlContainer != null)
             stopTasks.Add(_postgreSqlContainer.StopAsync());
-        
+
         if (_azuriteContainer != null)
             stopTasks.Add(_azuriteContainer.StopAsync());
 

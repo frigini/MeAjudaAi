@@ -47,17 +47,17 @@ public sealed class ActivateProviderCommandHandler(
 
             // Validar que provider tem documentos verificados via Documents module
             logger.LogDebug("Validating documents for provider {ProviderId} via IDocumentsModuleApi", command.ProviderId);
-            
+
             var hasRequiredDocsResult = await documentsModuleApi.HasRequiredDocumentsAsync(command.ProviderId, cancellationToken);
             var requiredDocsValidation = hasRequiredDocsResult.Match(
                 hasRequired => hasRequired
                     ? Result.Success()
                     : Result.Failure("Provider must have all required documents before activation"),
                 error => Result.Failure($"Failed to validate documents: {error.Message}"));
-            
+
             if (requiredDocsValidation.IsFailure)
             {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}", 
+                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}",
                     command.ProviderId, requiredDocsValidation.Error);
                 return requiredDocsValidation;
             }
@@ -68,10 +68,10 @@ public sealed class ActivateProviderCommandHandler(
                     ? Result.Success()
                     : Result.Failure("Provider must have verified documents before activation"),
                 error => Result.Failure($"Failed to validate documents: {error.Message}"));
-            
+
             if (verifiedDocsValidation.IsFailure)
             {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}", 
+                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}",
                     command.ProviderId, verifiedDocsValidation.Error);
                 return verifiedDocsValidation;
             }
@@ -82,10 +82,10 @@ public sealed class ActivateProviderCommandHandler(
                     ? Result.Failure("Provider cannot be activated while documents are pending verification")
                     : Result.Success(),
                 error => Result.Failure($"Failed to validate documents: {error.Message}"));
-            
+
             if (pendingDocsValidation.IsFailure)
             {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}", 
+                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}",
                     command.ProviderId, pendingDocsValidation.Error);
                 return pendingDocsValidation;
             }
@@ -96,10 +96,10 @@ public sealed class ActivateProviderCommandHandler(
                     ? Result.Failure("Provider cannot be activated with rejected documents. Please resubmit correct documents.")
                     : Result.Success(),
                 error => Result.Failure($"Failed to validate documents: {error.Message}"));
-            
+
             if (rejectedDocsValidation.IsFailure)
             {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}", 
+                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}",
                     command.ProviderId, rejectedDocsValidation.Error);
                 return rejectedDocsValidation;
             }

@@ -59,7 +59,7 @@ public sealed class ProviderVerificationStatusUpdatedDomainEventHandler(
             }
             else if (domainEvent.NewStatus == EVerificationStatus.Rejected || domainEvent.NewStatus == EVerificationStatus.Suspended)
             {
-                logger.LogInformation("Provider {ProviderId} status changed to {Status}, removing from search index", 
+                logger.LogInformation("Provider {ProviderId} status changed to {Status}, removing from search index",
                     domainEvent.AggregateId, domainEvent.NewStatus);
 
                 var removeResult = await searchProvidersModuleApi.RemoveProviderAsync(provider.Id.Value, cancellationToken);
