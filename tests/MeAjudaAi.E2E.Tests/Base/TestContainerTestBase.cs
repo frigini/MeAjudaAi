@@ -208,6 +208,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
     public virtual async ValueTask DisposeAsync()
     {
+        // Clear authentication context to prevent state pollution between tests
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+
         ApiClient?.Dispose();
         _factory?.Dispose();
 

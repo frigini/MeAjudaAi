@@ -52,7 +52,7 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
         return dataProperty;
     }
 
-    [Theory(Skip = "INFRA: Race condition or test isolation issue in CI/CD. Users created in Arrange not found in Act. Passes locally. Needs investigation of TestContainers database persistence in GitHub Actions.")]
+    [Theory]
     [InlineData("NotificationModule", "notification@test.com")]
     [InlineData("OrdersModule", "orders@test.com")]
     [InlineData("PaymentModule", "payment@test.com")]
