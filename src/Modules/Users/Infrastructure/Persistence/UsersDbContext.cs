@@ -6,16 +6,30 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 
+/// <summary>
+/// Entity Framework Core database context for the Users module.
+/// Manages user entities and applies module-specific database configurations.
+/// </summary>
 public class UsersDbContext : BaseDbContext
 {
+    /// <summary>
+    /// Gets the Users entity set for querying and saving User entities.
+    /// </summary>
     public DbSet<User> Users => Set<User>();
 
-    // Construtor para design-time (migrations)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UsersDbContext"/> class for design-time operations (migrations).
+    /// </summary>
+    /// <param name="options">The options to be used by the DbContext.</param>
     public UsersDbContext(DbContextOptions<UsersDbContext> options) : base(options)
     {
     }
 
-    // Construtor para runtime com DI
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UsersDbContext"/> class for runtime with dependency injection.
+    /// </summary>
+    /// <param name="options">The options to be used by the DbContext.</param>
+    /// <param name="domainEventProcessor">The domain event processor for handling domain events.</param>
     public UsersDbContext(DbContextOptions<UsersDbContext> options, IDomainEventProcessor domainEventProcessor) : base(options, domainEventProcessor)
     {
     }

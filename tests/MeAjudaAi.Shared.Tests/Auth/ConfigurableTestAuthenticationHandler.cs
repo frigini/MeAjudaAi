@@ -16,6 +16,15 @@ public class ConfigurableTestAuthenticationHandler(
     ILoggerFactory logger,
     UrlEncoder encoder) : BaseTestAuthenticationHandler(options, logger, encoder)
 {
+    /// <summary>
+    /// Authentication scheme name used by the configurable test handler.
+    /// </summary>
+    /// <remarks>
+    /// This scheme name is registered with ASP.NET Core authentication services during test setup.
+    /// It identifies the authentication handler that processes test authentication requests.
+    /// </remarks>
+    /// <seealso cref="GetAuthenticationScheme"/>
+    /// <seealso cref="TestContextHeader"/>
     public const string SchemeName = "TestConfigurable";
     
     /// <summary>
@@ -66,33 +75,32 @@ public class ConfigurableTestAuthenticationHandler(
         return null;
     }
 
-    protected override string GetTestUserId()
+    /// <summary>
+    /// Retrieves a value from the current test context's user configuration, or returns a default value.
+    /// </summary>
+    /// <typeparam name="T">The type of value to retrieve</typeparam>
+    /// <param name="selector">Function to extract the desired value from the user configuration</param>
+    /// <param name="defaultValue">Function to provide the default value if no configuration exists</param>
+    /// <returns>The configured value or the default value</returns>
+    private T GetConfigValueOrDefault<T>(Func<UserConfig, T> selector, Func<T> defaultValue)
     {
         var contextId = GetTestContextId();
         return contextId != null && _userConfigs.TryGetValue(contextId, out var config)
-            ? config.UserId : base.GetTestUserId();
+            ? selector(config)
+            : defaultValue();
     }
 
-    protected override string GetTestUserName()
-    {
-        var contextId = GetTestContextId();
-        return contextId != null && _userConfigs.TryGetValue(contextId, out var config)
-            ? config.UserName : base.GetTestUserName();
-    }
+    protected override string GetTestUserId() => 
+        GetConfigValueOrDefault(c => c.UserId, base.GetTestUserId);
 
-    protected override string GetTestUserEmail()
-    {
-        var contextId = GetTestContextId();
-        return contextId != null && _userConfigs.TryGetValue(contextId, out var config)
-            ? config.Email : base.GetTestUserEmail();
-    }
+    protected override string GetTestUserName() => 
+        GetConfigValueOrDefault(c => c.UserName, base.GetTestUserName);
 
-    protected override string[] GetTestUserRoles()
-    {
-        var contextId = GetTestContextId();
-        return contextId != null && _userConfigs.TryGetValue(contextId, out var config)
-            ? config.Roles : base.GetTestUserRoles();
-    }
+    protected override string GetTestUserEmail() => 
+        GetConfigValueOrDefault(c => c.Email, base.GetTestUserEmail);
+
+    protected override string[] GetTestUserRoles() => 
+        GetConfigValueOrDefault(c => c.Roles, base.GetTestUserRoles);
 
     protected override System.Security.Claims.Claim[] CreateStandardClaims()
     {
@@ -136,7 +144,7 @@ public class ConfigurableTestAuthenticationHandler(
     {
         if (_currentTestContextId.Value == null)
         {
-            _currentTestContextId.Value = Guid.NewGuid().ToString();
+            _currentTestContextId.Value = Guid.CreateVersion7().ToString();
         }
         return _currentTestContextId.Value;
     }
