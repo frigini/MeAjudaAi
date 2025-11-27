@@ -66,7 +66,7 @@ public abstract class ServiceCatalogsIntegrationTestBase : IntegrationTestBase
         CancellationToken cancellationToken = default)
     {
         // Adiciona Guid ao nome para garantir unicidade entre testes paralelos
-        var uniqueName = $"{name}_{Guid.NewGuid():N}";
+        var uniqueName = GenerateUniqueName(name);
         var category = ServiceCategory.Create(uniqueName, description, displayOrder);
 
         var dbContext = GetService<ServiceCatalogsDbContext>();
@@ -87,7 +87,7 @@ public abstract class ServiceCatalogsIntegrationTestBase : IntegrationTestBase
         CancellationToken cancellationToken = default)
     {
         // Adiciona Guid ao nome para garantir unicidade entre testes paralelos
-        var uniqueName = $"{name}_{Guid.NewGuid():N}";
+        var uniqueName = GenerateUniqueName(name);
         var service = Service.Create(categoryId, uniqueName, description, displayOrder);
 
         var dbContext = GetService<ServiceCatalogsDbContext>();
@@ -95,6 +95,27 @@ public abstract class ServiceCatalogsIntegrationTestBase : IntegrationTestBase
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return service;
+    }
+
+    /// <summary>
+    /// Gera um nome único para entidades de teste combinando base name + GUID.
+    /// Limita o tamanho do base name para evitar violações de max length quando o GUID é adicionado.
+    /// </summary>
+    /// <param name="baseName">Nome base da entidade</param>
+    /// <param name="maxTotalLength">Comprimento máximo total permitido (default 200 chars)</param>
+    /// <returns>Nome único no formato: baseName_guid</returns>
+    private static string GenerateUniqueName(string baseName, int maxTotalLength = 200)
+    {
+        const int guidLength = 32; // Guid.NewGuid():N format (no hyphens)
+        const int separatorLength = 1; // underscore
+        var maxBaseLength = maxTotalLength - guidLength - separatorLength;
+
+        // Truncate base name if necessary to avoid exceeding max length
+        var safeName = baseName.Length > maxBaseLength 
+            ? baseName[..maxBaseLength] 
+            : baseName;
+
+        return $"{safeName}_{Guid.NewGuid():N}";
     }
 
     /// <summary>
