@@ -61,9 +61,10 @@ public static class SharedTestContainers
 
             _databaseOptions ??= GetDefaultDatabaseOptions();
 
-            // PostgreSQL otimizado para testes com configurações padronizadas
+            // PostgreSQL com PostGIS para suportar queries geoespaciais nos testes
+            // Usando postgis/postgis:15-alpine para manter compatibilidade e tamanho reduzido
             _postgreSqlContainer = new PostgreSqlBuilder()
-                .WithImage("postgres:15-alpine") // Imagem menor e mais rápida
+                .WithImage("postgis/postgis:15-alpine") // Imagem com PostGIS habilitado
                 .WithDatabase(_databaseOptions.DatabaseName)
                 .WithUsername(_databaseOptions.Username)
                 .WithPassword(_databaseOptions.Password)
