@@ -65,7 +65,9 @@ public abstract class ServiceCatalogsIntegrationTestBase : IntegrationTestBase
         int displayOrder = 0,
         CancellationToken cancellationToken = default)
     {
-        var category = ServiceCategory.Create(name, description, displayOrder);
+        // Adiciona Guid ao nome para garantir unicidade entre testes paralelos
+        var uniqueName = $"{name}_{Guid.NewGuid():N}";
+        var category = ServiceCategory.Create(uniqueName, description, displayOrder);
 
         var dbContext = GetService<ServiceCatalogsDbContext>();
         await dbContext.ServiceCategories.AddAsync(category, cancellationToken);
@@ -84,7 +86,9 @@ public abstract class ServiceCatalogsIntegrationTestBase : IntegrationTestBase
         int displayOrder = 0,
         CancellationToken cancellationToken = default)
     {
-        var service = Service.Create(categoryId, name, description, displayOrder);
+        // Adiciona Guid ao nome para garantir unicidade entre testes paralelos
+        var uniqueName = $"{name}_{Guid.NewGuid():N}";
+        var service = Service.Create(categoryId, uniqueName, description, displayOrder);
 
         var dbContext = GetService<ServiceCatalogsDbContext>();
         await dbContext.Services.AddAsync(service, cancellationToken);
