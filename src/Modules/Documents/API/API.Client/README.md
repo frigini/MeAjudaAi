@@ -2,9 +2,9 @@
 
 Esta coleção do Bruno contém todos os endpoints do módulo de documentos da aplicação MeAjudaAi.
 
-## 📁 Estrutura da Collection
+## 📁 Estrutura da Coleção
 
-```
+```yaml
 API.Client/
 ├── collection.bru.example       # Template de configuração (copie para collection.bru)
 ├── collection.bru               # Configuração local (não versionado - criar local)

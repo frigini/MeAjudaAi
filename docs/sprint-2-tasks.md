@@ -77,7 +77,7 @@
 - [ ] **validate-city.bru** - POST /api/v1/locations/validate-city
 - [ ] **get-city-details.bru** - GET /api/v1/locations/city/{cityName}
 
-**Referência**: Usar tools/api-collections/Users/ como template
+**Referência**: Usar tools/api-collections/Users/ como modelo
 
 ---
 
@@ -156,7 +156,7 @@
 
 **Domain Layer**:
 - [ ] Provider aggregate (state transitions, business rules)
-  - [ ] Test: CreateProvider com todos campos válidos
+  - [ ] Test: CreateProvider com todos os campos válidos
   - [ ] Test: UpdateBusinessProfile com dados válidos
   - [ ] Test: ActivateProvider valida HasVerifiedDocuments
   - [ ] Test: ActivateProvider bloqueia se HasRejectedDocuments

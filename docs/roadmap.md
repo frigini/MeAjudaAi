@@ -831,10 +831,10 @@ gantt
 - ✅ SearchProviders schema hardcoded (search → search_providers)
 
 #### 🆕 Coverage Improvement: MOVIDO PARA SPRINT 2 ✅
-- ⏳ **TODO**: Aumentar coverage 35.11% → 80%+ (+200 unit tests)
-- ⏳ **TODO**: E2E test para provider indexing flow
-- ⏳ **TODO**: Criar .bru API collections para 5 módulos restantes
-- ⏳ **TODO**: Atualizar tools/ projects (MigrationTool, etc.)
+- ⏳ Aumentar coverage 35.11% → 80%+ (+200 unit tests)
+- ⏳ E2E test para provider indexing flow
+- ⏳ Criar .bru API collections para 5 módulos restantes
+- ⏳ Atualizar tools/ projects (MigrationTool, etc.)
 - **Justificativa**: Focar em code review de qualidade antes de adicionar novos testes
 - **Planejamento**: Sprint 2 dedicada (3-16 Dez) para coverage + collections + tools update
 

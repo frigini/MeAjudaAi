@@ -1,13 +1,13 @@
 meta {
-  name: Get Address from CEP
+  name: Get Address From CEP
   type: http
   seq: 1
 }
 
 get {
-  url: {{baseUrl}}/api/v1/locations/cep/36880000
+  url: {{baseUrl}}/api/v1/locations/cep/{{cep}}
   body: none
-  auth: none
+  auth: bearer
 }
 
 docs {

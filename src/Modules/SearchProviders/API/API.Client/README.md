@@ -4,7 +4,7 @@ Esta coleção do Bruno contém todos os endpoints do módulo de busca de presta
 
 ## 📁 Estrutura da Collection
 
-```
+```text
 API.Client/
 ├── README.md                    # Documentação completa  
 └── SearchAdmin/
@@ -35,7 +35,7 @@ A busca ordena resultados por:
 
 ## 🔧 Variáveis da Collection
 
-```
+```text
 baseUrl: http://localhost:5000
 accessToken: [AUTO-SET by shared setup]
 providerId: [CONFIGURE_AQUI]
