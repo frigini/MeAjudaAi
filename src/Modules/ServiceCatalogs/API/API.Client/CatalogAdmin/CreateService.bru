@@ -1,0 +1,40 @@
+meta {
+  name: Create Service
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/catalogs/services
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "categoryId": "{{categoryId}}",
+    "name": "Instalação de Tomadas",
+    "description": "Instalação de tomadas residenciais e comerciais",
+    "displayOrder": 1
+  }
+}
+
+docs {
+  # Create Service
+  
+  Cria novo serviço em categoria (admin).
+  
+  ## Validações
+  - Categoria deve existir e estar ativa
+  - Nome único por categoria
+  
+  ## Status: 201 Created
+}

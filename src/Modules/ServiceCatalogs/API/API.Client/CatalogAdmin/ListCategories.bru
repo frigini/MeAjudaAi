@@ -1,0 +1,22 @@
+meta {
+  name: List Categories
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/catalogs/categories?activeOnly=true
+  body: none
+  auth: none
+}
+
+docs {
+  # List Categories
+  
+  Lista todas categorias (público).
+  
+  ## Query
+  - `activeOnly`: Filtrar apenas ativas (default: true)
+  
+  ## Status: 200 OK
+}
