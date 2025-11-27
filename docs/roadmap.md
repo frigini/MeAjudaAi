@@ -14,9 +14,10 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ### Marcos Principais
 - ✅ **Janeiro 2025**: Fase 1 concluída - 6 módulos core implementados
 - ✅ **Jan 20 - 21 Nov**: Sprint 0 - Migration .NET 10 + Aspire 13 (CONCLUÍDO)
-- 🔄 **22 Nov - 2 Dez**: Sprint 1 - Geographic Restriction + Module Integration + Test Coverage (EM ANDAMENTO)
-- ⏳ **Dezembro 2025**: Sprint 2 - Frontend Blazor (Web)
-- ⏳ **Fevereiro-Março 2025**: Sprints 3-5 - Frontend Blazor (Web + Mobile)
+- 🔄 **22 Nov - 2 Dez**: Sprint 1 - Geographic Restriction + Module Integration + Test Coverage (DIAS 1-6 CONCLUÍDOS, FINALIZANDO)
+- ⏳ **3 Dez - 16 Dez**: Sprint 2 - Test Coverage 80% + API Collections + Tools Update
+- ⏳ **Dezembro 2025**: Sprint 3 - Frontend Blazor (Web)
+- ⏳ **Fevereiro-Março 2025**: Sprints 4-6 - Frontend Blazor (Web + Mobile)
 - 🎯 **31 Março 2025**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2025+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
@@ -31,8 +32,9 @@ Todos os 6 módulos core implementados, testados e integrados:
 **🔄 Fase 1.5: EM ANDAMENTO** (Novembro-Dezembro 2025)  
 Fundação técnica para escalabilidade e produção:
 - ✅ Migration .NET 10 + Aspire 13 (Sprint 0 - CONCLUÍDO 21 Nov)
-- 🔄 Geographic Restriction + Module Integration + Test Coverage 75-80% (Sprint 1 - DIA 1)
-- ⏳ Frontend Blazor Admin Portal (Sprint 2)
+- 🔄 Geographic Restriction + Module Integration (Sprint 1 - DIAS 1-6 CONCLUÍDOS, EM FINALIZAÇÂO)
+- ⏳ Test Coverage 80% + API Collections + Tools Update (Sprint 2 - Planejado 3-16 Dez)
+- ⏳ Frontend Blazor Admin Portal (Sprint 3 - Planejado)
 
 **⏳ Fase 2: PLANEJADO** (Fevereiro-Março 2025)  
 Frontend Blazor WASM + MAUI Hybrid:
@@ -61,11 +63,12 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | Sprint | Duração | Período | Objetivo | Status |
 |--------|---------|---------|----------|--------|
 | **Sprint 0** | 4 semanas | Jan 20 - 21 Nov | Migration .NET 10 + Aspire 13 | ✅ CONCLUÍDO |
-| **Sprint 1** | 10 dias | 22 Nov - 2 Dez | Geographic Restriction + Module Integration + Coverage 75-80% | 🔄 DIA 1 |
-| **Sprint 2** | 2 semanas | 3 Dez - 16 Dez | Blazor Admin Portal (Web) | ⏳ Planejado |
-| **Sprint 3** | 2 semanas | Feb 17 - Mar 2 | Blazor Admin Portal (Web) | ⏳ Planejado |
-| **Sprint 4** | 3 semanas | Mar 3 - Mar 23 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
-| **Sprint 5** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
+| **Sprint 1** | 10 dias | 22 Nov - 2 Dez | Geographic Restriction + Module Integration | 🔄 DIAS 1-6 CONCLUÍDOS |
+| **Sprint 2** | 2 semanas | 3 Dez - 16 Dez | Test Coverage 80% + API Collections + Tools Update | ⏳ Planejado |
+| **Sprint 3** | 2 semanas | 17 Dez - 31 Dez | Blazor Admin Portal (Web) | ⏳ Planejado |
+| **Sprint 4** | 2 semanas | Feb 17 - Mar 2 | Blazor Admin Portal (Web) | ⏳ Planejado |
+| **Sprint 5** | 3 semanas | Mar 3 - Mar 23 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
+| **Sprint 6** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
 
 **MVP Launch Target**: 31 de Março de 2025 🎯
 
@@ -750,24 +753,28 @@ gantt
 
 ---
 
-### 📅 Sprint 1: Geographic Restriction + Module Integration + Test Coverage (10 dias)
+### 📅 Sprint 1: Geographic Restriction + Module Integration (10 dias)
 
-**Status**: ✅ DIAS 1-6 CONCLUÍDOS (22-25 Nov 2025) | 🔄 DIAS 7-10 EM ANDAMENTO  
-**Branches**: `feature/geographic-restriction` (merged), `feature/module-integration` (em review)  
-**Documentação**: [docs/skipped-tests-analysis.md](./skipped-tests-analysis.md)
+**Status**: 🔄 DIAS 1-6 CONCLUÍDOS | FINALIZANDO (22-25 Nov 2025)  
+**Branches**: `feature/geographic-restriction` (merged ✅), `feature/module-integration` (em review), `improve-tests-coverage` (criada)  
+**Documentação**: [docs/skipped-tests-analysis.md](./testing/skipped-tests-analysis.md)
 
-**Contexto**:
+**Conquistas**:
 - ✅ Sprint 0 concluído: Migration .NET 10 + Aspire 13 merged (21 Nov)
-- ✅ Coverage melhorado: 28.69% → **meta 75-80%** (Dias 8-10)
+- ✅ Middleware de restrição geográfica implementado com IBGE API integration
+- ✅ 4 Module APIs implementados (Documents, ServiceCatalogs, SearchProviders, Locations)
 - ✅ Testes reativados: 28 testes (11 AUTH + 9 IBGE + 2 ServiceCatalogs + 3 IBGE unavailability + 3 duplicates removed)
-- ✅ Skipped tests reduzidos: 20 (26%) → 12 (11.5%) ⬇️ **-14.5%**
+- ✅ Skipped tests reduzidos: 20 (26%) → 11 (11.5%) ⬇️ **-14.5%**
+- ✅ Integration events: Providers → SearchProviders indexing
+- ✅ Schema fixes: search_providers standardization
+- ✅ CI/CD fix: Workflow secrets validation removido
 
-**Objetivos Expandidos**:
+**Objetivos Alcançados**:
 - ✅ Implementar middleware de restrição geográfica (compliance legal)
 - ✅ Implementar 4 Module APIs usando IModuleApi entre módulos
 - ✅ Reativar 28 testes E2E skipped (auth refactor + race condition fixes)
 - ✅ Integração cross-module: Providers ↔ Documents, Providers ↔ SearchProviders
-- 🔄 Aumentar coverage: 28.69% → 75-80% (165+ novos unit tests) - **Dias 8-10**
+- ⏳ Aumentar coverage: 35.11% → 80%+ (MOVIDO PARA SPRINT 2)
 
 **Estrutura (2 Branches + Próxima Sprint)**:
 
@@ -823,11 +830,13 @@ gantt
 - ✅ MunicipioNotFoundException criada para fallback correto
 - ✅ SearchProviders schema hardcoded (search → search_providers)
 
-#### 🆕 Sprint Separada: Test Coverage 75-80% + E2E Provider Indexing ⏳ MOVIDO PARA PRÓXIMA SPRINT
-- [ ] **TODO #5**: Aumentar coverage 35% → 75-80% (+165 unit tests)
-- [ ] **TODO #7**: E2E test para provider indexing flow
+#### 🆕 Coverage Improvement: MOVIDO PARA SPRINT 2 ✅
+- ⏳ **TODO**: Aumentar coverage 35.11% → 80%+ (+200 unit tests)
+- ⏳ **TODO**: E2E test para provider indexing flow
+- ⏳ **TODO**: Criar .bru API collections para 5 módulos restantes
+- ⏳ **TODO**: Atualizar tools/ projects (MigrationTool, etc.)
 - **Justificativa**: Focar em code review de qualidade antes de adicionar novos testes
-- **Planejamento**: Dedicar sprint completa para coverage após merge de module-integration
+- **Planejamento**: Sprint 2 dedicada (3-16 Dez) para coverage + collections + tools update
 
 **Tarefas Detalhadas**:
 
@@ -862,17 +871,33 @@ gantt
 - [ ] Admin: Endpoint para gerenciar cidades permitidas (Sprint 2)
 - [x] Integration test: 24 testes passando ✅
 
-**Resultado Esperado**:
-- ✅ Módulos parcialmente integrados com business rules reais
-- ✅ Operação restrita a cidades piloto configuradas
-- ✅ Background workers consumindo integration events (ProviderVerificationStatusUpdated)
-- ✅ Validações cross-module funcionando (Providers → Documents)
+**Resultado Alcançado (Sprint 1)**:
+- ✅ Módulos integrados com business rules reais (Providers ↔ Documents, Providers ↔ SearchProviders)
+- ✅ Operação restrita a cidades piloto configuradas (IBGE API validation)
+- ✅ Background workers consumindo integration events (ProviderActivated, DocumentVerified)
+- ✅ Validações cross-module funcionando (HasVerifiedDocuments, HasRejectedDocuments)
+- ✅ Naming standardization (ILocationsModuleApi, ISearchProvidersModuleApi)
+- ✅ CI/CD fix (secrets validation removido)
+- 🔄 Code review pendente antes de merge
 
 ---
 
-### 📅 Sprint 2: Test Coverage 80% + Hardening (1 semana)
+### 📅 Sprint 2: Test Coverage 80% + API Collections + Tools Update (2 semanas)
 
-**Status**: ⏳ PLANEJADO
+**Status**: ⏳ PLANEJADO (3-16 Dez 2025)  
+**Branch**: `improve-tests-coverage` (criada, ready to work)
+
+**Objetivos**:
+- Aumentar test coverage de 35.11% para 80%+
+- Criar .bru API collections para 5 módulos restantes
+- Atualizar tools/ projects (MigrationTool, etc.)
+- Corrigir testes skipped restantes (9 E2E tests)
+
+**Contexto**:
+- Coverage atual: 35.11% (caiu após migration devido a packages.lock.json + generated code)
+- Skipped tests: 11 (11.5%) - maioria é E2E PostGIS/Azurite
+- Módulos sem .bru files: Providers, Documents, SearchProviders, ServiceCatalogs, Locations
+- Tools projects desatualizados: MigrationTool precisa EF Core 10
 
 **Objetivos**:
 - Aumentar test coverage de 40.51% para 80%+
