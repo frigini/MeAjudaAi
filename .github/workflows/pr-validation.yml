@@ -62,11 +62,12 @@ jobs:
       - name: Validate Secrets Configuration
         run: |
           echo "Validating secrets configuration..."
-          
+
           # Check if running in main repository (not a fork)
-          if [ "${{ github.repository }}" = "frigini/MeAjudaAi" ] && [ "${{ github.event_name }}" = "pull_request" ]; then
+          if [ "${{ github.repository }}" = "frigini/MeAjudaAi" ] && \
+             [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "Running in main repository - using configured secrets or safe defaults"
-            
+
             # Validate critical secrets are available or have safe defaults
             if [ -z "${{ secrets.POSTGRES_PASSWORD }}" ]; then
               echo "WARNING: POSTGRES_PASSWORD secret not configured - using test default"
@@ -76,7 +77,7 @@ jobs:
           else
             echo "Running in fork or workflow_dispatch - using test defaults"
           fi
-          
+
           echo "Database configuration validated"
 
       - name: Check Keycloak Configuration

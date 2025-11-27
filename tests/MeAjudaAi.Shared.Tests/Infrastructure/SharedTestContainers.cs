@@ -88,7 +88,7 @@ public static class SharedTestContainers
             // Azurite (Azure Storage Emulator) para testes de blob storage/documents
             // Expõe serviços Blob, Queue e Table
             _azuriteContainer = new AzuriteBuilder()
-                .WithImage("mcr.microsoft.com/azure-storage/azurite:latest")
+                .WithImage("mcr.microsoft.com/azure-storage/azurite:3.33.0")
                 .Build();
 
             _isInitialized = true;

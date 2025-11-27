@@ -75,7 +75,7 @@ dotnet run --project src/Aspire/MeAjudaAi.AppHost
 
 ## 🔧 Variáveis da Collection
 
-```
+```yaml
 baseUrl: http://localhost:5000
 accessToken: [AUTO-SET by shared setup]
 providerId: [CONFIGURE_AQUI]

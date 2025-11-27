@@ -9,7 +9,6 @@ API.Client/
 ├── README.md                    # Documentação completa  
 └── SearchAdmin/
     ├── SearchProviders.bru      # POST /api/v1/search
-    ├── SearchByRadius.bru       # POST /api/v1/search/radius
     ├── IndexProvider.bru        # POST /api/v1/search/providers/{id}/index
     └── RemoveProvider.bru       # DELETE /api/v1/search/providers/{id}
 ```
@@ -22,7 +21,6 @@ API.Client/
 | Método | Endpoint | Descrição | Autorização |
 |--------|----------|-----------|-------------|
 | POST | `/api/v1/search` | Buscar prestadores por critérios | AllowAnonymous |
-| POST | `/api/v1/search/radius` | Buscar por raio geográfico | AllowAnonymous |
 | POST | `/api/v1/search/providers/{id}/index` | Indexar prestador (admin) | AdminOnly |
 | DELETE | `/api/v1/search/providers/{id}` | Remover do índice (admin) | AdminOnly |
 

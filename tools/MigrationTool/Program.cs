@@ -122,6 +122,12 @@ class Program
                         options.UseNpgsql(connectionString, npgsqlOptions =>
                         {
                             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", contextInfo.SchemaName);
+                            
+                            // Enable NetTopologySuite for modules using PostGIS (e.g., SearchProviders)
+                            if (contextInfo.ModuleName == "SearchProviders")
+                            {
+                                npgsqlOptions.UseNetTopologySuite();
+                            }
                         })
                         .UseSnakeCaseNamingConvention(); // Apply snake_case to match other modules
                         
