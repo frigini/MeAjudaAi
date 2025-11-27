@@ -269,7 +269,7 @@ O teste `GetProvidersByVerificationStatus_ShouldReturnOnlyPendingProviders` atua
 **Issue**: [Criar issue para rastreamento]
 
 **Descrição**:
-O módulo SearchProviders não possui testes E2E (end-to-end), apenas testes de integração e unitários. Testes E2E são necessários para validar o fluxo completo de busca de prestadores incluindo integração com APIs externas (IBGE), filtros, paginação, e respostas HTTP completas.
+O módulo SearchProviders não possui testes E2E (end-to-end), apenas testes de integração e unitários. Testes E2E são necessários para validar o fluxo completo de busca de prestadores, incluindo integração com APIs externas (IBGE), filtros, paginação, e respostas HTTP completas.
 
 **Contexto**:
 - Identificado durante code review automatizado (CodeRabbit)
@@ -300,7 +300,7 @@ O módulo SearchProviders não possui testes E2E (end-to-end), apenas testes de 
    - [ ] Busca por status de verificação
    - [ ] Combinação de múltiplos filtros
 
-4. **Performance e Carga**:
+4. **Desempenho e Carga**:
    - [ ] Busca com grande volume de resultados (1000+ prestadores)
    - [ ] Validação de tempos de resposta (<500ms para buscas simples)
    - [ ] Cache de resultados de API externa

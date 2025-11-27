@@ -308,7 +308,7 @@ public class WireMockFixture : IAsyncDisposable
                 .WithHeader("Content-Type", "text/plain")
                 .WithBody("Internal Server Error"));
 
-        // Timeout simulation - 5 second delay (exceeds typical HTTP client timeout)
+        // Timeout simulation - 5 second delay (well within the 30 second HTTP client timeout configured for tests)
         Server
             .Given(WireMock.RequestBuilders.Request.Create()
                 .WithPath("/api/v1/localidades/municipios/timeout")

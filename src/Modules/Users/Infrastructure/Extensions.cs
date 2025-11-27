@@ -17,6 +17,12 @@ namespace MeAjudaAi.Modules.Users.Infrastructure;
 
 public static class Extensions
 {
+    /// <summary>
+    /// Registers Users module infrastructure services including persistence, Keycloak integration, domain services, and event handlers.
+    /// </summary>
+    /// <param name="services">The service collection to configure.</param>
+    /// <param name="configuration">The application configuration containing database and Keycloak settings.</param>
+    /// <returns>The configured service collection for fluent chaining.</returns>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddPersistence(configuration);

@@ -207,6 +207,7 @@ public class ConfigurableTestAuthenticationHandler(
     /// <summary>
     /// Clears the authentication configuration for the current test context.
     /// Should be called at the end of each test to avoid state pollution.
+    /// Recommended: invoke from test cleanup hooks (e.g., xUnit IAsyncLifetime.DisposeAsync) rather than ad hoc in tests.
     /// </summary>
     public static void ClearConfiguration()
     {

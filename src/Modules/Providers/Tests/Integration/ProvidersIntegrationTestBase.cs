@@ -40,7 +40,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
                 DatabaseName = $"providers_test_{_testClassId}",
                 Username = "test_user",
                 Password = "test_password",
-                Schema = "providers",
+                Schema = "meajudaai_providers",
                 UseInMemoryDatabase = false
             },
             Cache = new TestCacheOptions
