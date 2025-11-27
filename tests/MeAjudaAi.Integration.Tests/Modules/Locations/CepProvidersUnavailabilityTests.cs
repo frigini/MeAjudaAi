@@ -51,7 +51,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
                     }
                     """));
 
-        var locationApi = Services.GetRequiredService<ILocationModuleApi>();
+        var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
@@ -113,7 +113,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
                     }
                     """));
 
-        var locationApi = Services.GetRequiredService<ILocationModuleApi>();
+        var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
@@ -159,7 +159,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(500));
 
-        var locationApi = Services.GetRequiredService<ILocationModuleApi>();
+        var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
@@ -205,7 +205,7 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
                     }
                     """));
 
-        var locationApi = Services.GetRequiredService<ILocationModuleApi>();
+        var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(uniqueCep);
@@ -213,6 +213,8 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
         // Assert - Should fallback to BrasilAPI
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
+        result.Value!.City.Should().Be("São Paulo");
+        result.Value.State.Should().Be("SP");
     }
 
     [Fact]
@@ -248,79 +250,12 @@ public sealed class CepProvidersUnavailabilityTests : ApiTestBase
             .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
                 .WithStatusCode(404));
 
-        var locationApi = Services.GetRequiredService<ILocationModuleApi>();
+        var locationApi = Services.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync("00000000");
 
         // Assert - Should return failure for truly invalid CEP
         result.IsSuccess.Should().BeFalse();
-    }
-
-    // TODO: Create GitHub issue to track enabling caching infrastructure for integration tests.
-    // This would allow validation of cache behavior, including TTL, eviction, and hit/miss scenarios.
-    [Fact(Skip = "Caching is disabled in integration tests (Caching:Enabled = false). This test cannot validate cache behavior without enabling caching infrastructure.")]
-    public async Task LookupCep_WhenBrasilApiSucceedsButViaCepDown_ShouldUseCache()
-    {
-        // Arrange - Use unique CEP to avoid conflicts with default stubs
-        var uniqueCep = "45678901";
-
-        // First call: ViaCEP down, BrasilAPI succeeds
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/ws/{uniqueCep}/json/")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(500));
-
-        WireMock.Server
-            .Given(global::WireMock.RequestBuilders.Request.Create()
-                .WithPath($"/api/cep/v2/{uniqueCep}")
-                .UsingGet())
-            .AtPriority(1) // Higher priority than default stubs
-            .RespondWith(global::WireMock.ResponseBuilders.Response.Create()
-                .WithStatusCode(200)
-                .WithHeader("Content-Type", "application/json")
-                .WithBody($$"""
-                    {
-                        "cep": "{{uniqueCep}}",
-                        "state": "SP",
-                        "city": "São Paulo",
-                        "neighborhood": "Bela Vista",
-                        "street": "Avenida Paulista"
-                    }
-                    """));
-
-        var locationApi = Services.GetRequiredService<ILocationModuleApi>();
-
-        // Act - First call (cache miss)
-        var result1 = await locationApi.GetAddressFromCepAsync(uniqueCep);
-
-        // Get request count before second call (filter by this CEP for test isolation)
-        var requestCountBefore = WireMock.Server.LogEntries.Count(e =>
-            e.RequestMessage.Path == $"/ws/{uniqueCep}/json/" ||
-            e.RequestMessage.Path == $"/api/cep/v2/{uniqueCep}" ||
-            e.RequestMessage.Path == $"/v1/{uniqueCep}");
-
-        // Act - Second call (should use cache, no HTTP requests)
-        // Note: We don't reconfigure stubs here to avoid WireMock mapping conflicts.
-        // Cache behavior is validated by verifying no new HTTP requests were made.
-        var result2 = await locationApi.GetAddressFromCepAsync(uniqueCep);
-
-        // Get request count after second call (filter by this CEP for test isolation)
-        var requestCountAfter = WireMock.Server.LogEntries.Count(e =>
-            e.RequestMessage.Path == $"/ws/{uniqueCep}/json/" ||
-            e.RequestMessage.Path == $"/api/cep/v2/{uniqueCep}" ||
-            e.RequestMessage.Path == $"/v1/{uniqueCep}");
-
-        // Assert - Both calls should succeed (second via cache)
-        result1.IsSuccess.Should().BeTrue();
-        result2.IsSuccess.Should().BeTrue();
-        result2.Value!.City.Should().Be("São Paulo");
-
-        // Verify no HTTP requests were made during cached call
-        requestCountAfter.Should().Be(requestCountBefore,
-            "Second call should use cache and not make HTTP requests");
     }
 }

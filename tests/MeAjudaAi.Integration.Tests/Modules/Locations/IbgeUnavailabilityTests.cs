@@ -20,7 +20,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
     // TODO: Fix middleware simple validation fallback - currently blocks even allowed cities when IBGE fails
     // Expected: When IBGE unavailable, allow cities in AllowedCities list via simple name matching
     // Actual: Returns 451 (blocked) for all cities when IBGE fails, even allowed ones
-    [Fact(Skip = "Middleware doesn't fall back to simple validation correctly - blocks allowed cities when IBGE unavailable")]
+    [Fact]
     public async Task GeographicRestriction_WhenIbgeReturns500_ShouldFallbackToSimpleValidation()
     {
         // Arrange - Configure endpoint to simulate IBGE 500 error
@@ -44,7 +44,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
     }
 
     // TODO: Fix middleware simple validation fallback
-    [Fact(Skip = "Middleware doesn't fall back to simple validation correctly - blocks allowed cities when IBGE unavailable")]
+    [Fact]
     public async Task GeographicRestriction_WhenIbgeReturnsMalformedJson_ShouldFallbackToSimpleValidation()
     {
         // Arrange - Configure endpoint to simulate malformed IBGE response
@@ -68,6 +68,17 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
     }
 
+    // INVESTIGATION RESULTS:
+    // - Feature flag is correctly configured: FeatureManagement:GeographicRestriction = true
+    // - Middleware logic is correct: checks IsEnabledAsync before blocking
+    // - Test configuration in ApiTestBase sets GeographicRestriction = true
+    // - CI environment may have different configuration overriding test settings
+    // - Possible causes:
+    //   1. appsettings.Testing.json not being loaded in CI
+    //   2. Environment-specific config (ASPNETCORE_ENVIRONMENT) different in CI
+    //   3. Feature flag provider (Microsoft.FeatureManagement) initialization issue in CI
+    // - SOLUTION: Add explicit feature flag validation in test setup to fail fast if misconfigured
+    //   rather than skipping the test. This will surface configuration issues immediately.
     [Fact(Skip = "CI returns 200 OK instead of 451 - middleware not blocking. Likely feature flag or middleware registration issue in CI environment.")]
     public async Task GeographicRestriction_WhenIbgeUnavailableAndCityNotAllowed_ShouldDenyAccess()
     {
@@ -106,7 +117,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
     }
 
     // TODO: Fix middleware simple validation fallback
-    [Fact(Skip = "Middleware doesn't fall back to simple validation correctly - blocks allowed cities when IBGE unavailable")]
+    [Fact]
     public async Task GeographicRestriction_WhenIbgeReturnsEmptyArray_ShouldFallbackToSimpleValidation()
     {
         // Arrange - IBGE returns empty array (city not found)

@@ -784,4 +784,205 @@ public class ProviderTests
     }
 
     #endregion
+
+    #region ProviderServices Tests
+
+    [Fact]
+    public void AddService_WithValidServiceId_ShouldAddService()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var serviceId = Guid.NewGuid();
+
+        // Act
+        provider.AddService(serviceId);
+
+        // Assert
+        provider.Services.Should().HaveCount(1);
+        provider.Services.First().ServiceId.Should().Be(serviceId);
+        provider.Services.First().ProviderId.Should().Be(provider.Id);
+        provider.OffersService(serviceId).Should().BeTrue();
+        provider.GetServiceIds().Should().ContainSingle().Which.Should().Be(serviceId);
+    }
+
+    [Fact]
+    public void AddService_WithMultipleServices_ShouldAddAll()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var serviceId1 = Guid.NewGuid();
+        var serviceId2 = Guid.NewGuid();
+        var serviceId3 = Guid.NewGuid();
+
+        // Act
+        provider.AddService(serviceId1);
+        provider.AddService(serviceId2);
+        provider.AddService(serviceId3);
+
+        // Assert
+        provider.Services.Should().HaveCount(3);
+        var serviceIds = provider.GetServiceIds();
+        serviceIds.Should().Contain(serviceId1);
+        serviceIds.Should().Contain(serviceId2);
+        serviceIds.Should().Contain(serviceId3);
+    }
+
+    [Fact]
+    public void AddService_WithEmptyGuid_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+
+        // Act
+        var act = () => provider.AddService(Guid.Empty);
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage("ServiceId cannot be empty");
+    }
+
+    [Fact]
+    public void AddService_WithDuplicateService_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var serviceId = Guid.NewGuid();
+        provider.AddService(serviceId);
+
+        // Act
+        var act = () => provider.AddService(serviceId);
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage($"Service {serviceId} is already offered by this provider");
+    }
+
+    [Fact]
+    public void AddService_ToDeletedProvider_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var dateTimeProvider = CreateMockDateTimeProvider();
+        provider.Delete(dateTimeProvider);
+        var serviceId = Guid.NewGuid();
+
+        // Act
+        var act = () => provider.AddService(serviceId);
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage("Cannot add services to deleted provider");
+    }
+
+    [Fact]
+    public void RemoveService_WithExistingService_ShouldRemoveService()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var serviceId = Guid.NewGuid();
+        provider.AddService(serviceId);
+
+        // Act
+        provider.RemoveService(serviceId);
+
+        // Assert
+        provider.Services.Should().BeEmpty();
+        provider.OffersService(serviceId).Should().BeFalse();
+        provider.GetServiceIds().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void RemoveService_WithNonExistingService_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var serviceId = Guid.NewGuid();
+
+        // Act
+        var act = () => provider.RemoveService(serviceId);
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage($"Service {serviceId} is not offered by this provider");
+    }
+
+    [Fact]
+    public void RemoveService_WithEmptyGuid_ShouldThrowException()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+
+        // Act
+        var act = () => provider.RemoveService(Guid.Empty);
+
+        // Assert
+        act.Should().Throw<ProviderDomainException>()
+            .WithMessage("ServiceId cannot be empty");
+    }
+
+    [Fact]
+    public void OffersService_WithExistingService_ShouldReturnTrue()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var serviceId = Guid.NewGuid();
+        provider.AddService(serviceId);
+
+        // Act
+        var result = provider.OffersService(serviceId);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void OffersService_WithNonExistingService_ShouldReturnFalse()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var serviceId = Guid.NewGuid();
+
+        // Act
+        var result = provider.OffersService(serviceId);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetServiceIds_WithNoServices_ShouldReturnEmptyArray()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+
+        // Act
+        var serviceIds = provider.GetServiceIds();
+
+        // Assert
+        serviceIds.Should().BeEmpty();
+        serviceIds.Should().BeOfType<Guid[]>();
+    }
+
+    [Fact]
+    public void GetServiceIds_WithMultipleServices_ShouldReturnAllIds()
+    {
+        // Arrange
+        var provider = CreateValidProvider();
+        var serviceId1 = Guid.NewGuid();
+        var serviceId2 = Guid.NewGuid();
+        var serviceId3 = Guid.NewGuid();
+        provider.AddService(serviceId1);
+        provider.AddService(serviceId2);
+        provider.AddService(serviceId3);
+
+        // Act
+        var serviceIds = provider.GetServiceIds();
+
+        // Assert
+        serviceIds.Should().HaveCount(3);
+        serviceIds.Should().Contain(new[] { serviceId1, serviceId2, serviceId3 });
+    }
+
+    #endregion
 }
+

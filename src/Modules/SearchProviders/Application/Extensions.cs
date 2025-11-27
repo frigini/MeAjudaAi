@@ -27,7 +27,7 @@ public static class Extensions
         services.AddValidatorsFromAssembly(typeof(Extensions).Assembly);
 
         // Registrar API do módulo
-        services.AddScoped<ISearchModuleApi, SearchModuleApi>();
+        services.AddScoped<ISearchProvidersModuleApi, SearchProvidersModuleApi>();
 
         return services;
     }

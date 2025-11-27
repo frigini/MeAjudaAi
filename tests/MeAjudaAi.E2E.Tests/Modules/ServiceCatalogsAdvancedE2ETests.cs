@@ -13,10 +13,10 @@ namespace MeAjudaAi.E2E.Tests.Modules;
 [Trait("Module", "ServiceCatalogs")]
 public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 {
-    // TODO: Create GitHub issue to track E2E authentication infrastructure refactor.
-    // 13+ E2E tests affected by ConfigurableTestAuthenticationHandler race condition.
-    // TODO: Fix test auth setup and unskip once auth refactor lands.
-    [Fact(Skip = "AUTH: Returns 403 instead of expected 200/204. ConfigurableTestAuthenticationHandler race condition - see issue tracking comment above.")]
+    /// <summary>
+    /// Validates that a service can be successfully validated when it meets all business rules.
+    /// </summary>
+    [Fact]
     public async Task ValidateService_WithBusinessRules_Should_Succeed()
     {
         // Arrange
@@ -77,8 +77,11 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             HttpStatusCode.NoContent);
     }
 
-    [Fact(Skip = "AUTH: Returns 403 instead of expected 400/404/200. ConfigurableTestAuthenticationHandler race condition - see issue tracking comment above.")]
-    public async Task ValidateService_WithInvalidRules_Should_Return_BadRequest()
+    /// <summary>
+    /// Validates that validating a non-existent service returns an appropriate error or validation result.
+    /// </summary>
+    [Fact]
+    public async Task ValidateService_WithInvalidService_Should_ReturnErrorOrValidationResult()
     {
         // Arrange
         AuthenticateAsAdmin();
@@ -102,6 +105,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             HttpStatusCode.OK);
     }
 
+    /// <summary>
+    /// Validates that a service category can be successfully changed and the relationship is updated.
+    /// </summary>
     [Fact]
     public async Task ChangeServiceCategory_Should_UpdateRelationship()
     {
@@ -119,10 +125,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var category1Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", category1Request, JsonOptions);
 
-        if (category1Response.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        category1Response.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Category creation is a precondition for this test. Response: {0}",
+            await category1Response.Content.ReadAsStringAsync());
 
         var category1Id = ExtractIdFromLocation(category1Response.Headers.Location!.ToString());
 
@@ -136,10 +141,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var category2Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", category2Request, JsonOptions);
 
-        if (category2Response.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        category2Response.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Category creation is a precondition for this test. Response: {0}",
+            await category2Response.Content.ReadAsStringAsync());
 
         var category2Id = ExtractIdFromLocation(category2Response.Headers.Location!.ToString());
 
@@ -156,10 +160,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
 
-        if (serviceResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Service creation is a precondition for this test. Response: {0}",
+            await serviceResponse.Content.ReadAsStringAsync());
 
         var serviceId = ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
 
@@ -174,27 +177,29 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             changeCategoryRequest,
             JsonOptions);
 
-        // Assert
+        // Assert - Change is expected to succeed in this scenario
         response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.BadRequest);
+            [HttpStatusCode.OK, HttpStatusCode.NoContent],
+            "the service category change should succeed in this scenario");
 
-        // Se a mudança foi bem-sucedida, verifica que o serviço está na nova categoria
-        if (response.IsSuccessStatusCode)
-        {
-            AuthenticateAsAdmin(); // Re-autenticar antes do GET
-            var getServiceResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{serviceId}");
+        // Verifica que o serviço está na nova categoria
+        AuthenticateAsAdmin(); // Re-autenticar antes do GET
+        var getServiceResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{serviceId}");
+        getServiceResponse.IsSuccessStatusCode.Should().BeTrue(
+            "the updated service should be retrievable after changing category");
 
-            if (getServiceResponse.IsSuccessStatusCode)
-            {
-                var content = await getServiceResponse.Content.ReadAsStringAsync();
-                content.Should().Contain(category2Id.ToString());
-            }
-        }
+        var content = await getServiceResponse.Content.ReadAsStringAsync();
+        var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, JsonOptions);
+        result.TryGetProperty("data", out var data).Should().BeTrue("response should contain data property");
+        data.TryGetProperty("categoryId", out var categoryIdElement).Should().BeTrue("service should have categoryId property");
+        var actualCategoryId = categoryIdElement.GetGuid();
+        actualCategoryId.Should().Be(category2Id,
+            "the service should now be associated with the new category");
     }
 
+    /// <summary>
+    /// Validates that attempting to change a service to an inactive category returns a failure.
+    /// </summary>
     [Fact]
     public async Task ChangeServiceCategory_ToInactiveCategory_Should_Fail()
     {
@@ -212,29 +217,36 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var activeCategoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", activeCategoryRequest, JsonOptions);
 
-        if (activeCategoryResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        activeCategoryResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Active category creation is a precondition for this test. Response: {0}",
+            await activeCategoryResponse.Content.ReadAsStringAsync());
 
         var activeCategoryId = ExtractIdFromLocation(activeCategoryResponse.Headers.Location!.ToString());
 
-        // Cria categoria inativa
-        var inactiveCategoryRequest = new
+        // Cria outra categoria (sempre criada como ativa) e depois a desativa
+        var toBeInactiveCategoryRequest = new
         {
             Name = $"InactiveCategory_{uniqueId}",
-            Description = "Inactive category",
-            IsActive = false
+            Description = "Category to be deactivated",
+            DisplayOrder = 0
         };
 
-        var inactiveCategoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", inactiveCategoryRequest, JsonOptions);
+        var inactiveCategoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", toBeInactiveCategoryRequest, JsonOptions);
 
-        if (inactiveCategoryResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        inactiveCategoryResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Category creation is a precondition for this test. Response: {0}",
+            await inactiveCategoryResponse.Content.ReadAsStringAsync());
 
         var inactiveCategoryId = ExtractIdFromLocation(inactiveCategoryResponse.Headers.Location!.ToString());
+
+        // Desativa a categoria
+        var deactivateResponse = await ApiClient.PostAsync(
+            $"/api/v1/service-catalogs/categories/{inactiveCategoryId}/deactivate",
+            null);
+
+        deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent,
+            "Category deactivation is a precondition for this test. Response: {0}",
+            await deactivateResponse.Content.ReadAsStringAsync());
 
         // Cria serviço na categoria ativa
         var serviceRequest = new
@@ -249,10 +261,9 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
 
-        if (serviceResponse.StatusCode != HttpStatusCode.Created)
-        {
-            return;
-        }
+        serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "Service creation is a precondition for this test. Response: {0}",
+            await serviceResponse.Content.ReadAsStringAsync());
 
         var serviceId = ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
 
@@ -267,16 +278,15 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
             changeCategoryRequest,
             JsonOptions);
 
-        // Assert - Pode retornar BadRequest, Conflict, NotFound, ou NoContent se a API permitir
-        // (business logic pode permitir mover para categoria inativa)
+        // Assert - Must fail when trying to move to inactive category
         response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.Conflict,
-            HttpStatusCode.UnprocessableEntity,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.NoContent);
+            [HttpStatusCode.BadRequest, HttpStatusCode.Conflict, HttpStatusCode.UnprocessableEntity, HttpStatusCode.NotFound],
+            "changing to an inactive category should be rejected");
     }
 
+    /// <summary>
+    /// Validates that attempting to change a service to a non-existent category returns NotFound.
+    /// </summary>
     [Fact]
     public async Task ChangeServiceCategory_ToNonExistentCategory_Should_Return_NotFound()
     {

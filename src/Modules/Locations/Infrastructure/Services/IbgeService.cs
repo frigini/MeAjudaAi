@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
+using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -22,52 +23,45 @@ public sealed class IbgeService(
         IReadOnlyCollection<string> allowedCities,
         CancellationToken cancellationToken = default)
     {
-        try
+        logger.LogDebug("Validando cidade {CityName} (UF: {State}) contra lista de cidades permitidas", cityName, stateSigla ?? "N/A");
+
+        // Buscar detalhes do município na API IBGE (com cache)
+        // Exceções são propagadas para GeographicValidationService -> Middleware (fail-open com fallback)
+        var municipio = await GetCityDetailsAsync(cityName, cancellationToken);
+
+        if (municipio is null)
         {
-            logger.LogDebug("Validando cidade {CityName} (UF: {State}) contra lista de cidades permitidas", cityName, stateSigla ?? "N/A");
+            logger.LogWarning("Município {CityName} não encontrado na API IBGE - lançando exceção para fallback", cityName);
+            throw new MunicipioNotFoundException(cityName, stateSigla);
+        }
 
-            // Buscar detalhes do município na API IBGE (com cache)
-            var municipio = await GetCityDetailsAsync(cityName, cancellationToken);
-
-            if (municipio is null)
+        // Validar se o estado bate (se fornecido)
+        if (!string.IsNullOrEmpty(stateSigla))
+        {
+            var ufSigla = municipio.GetEstadoSigla();
+            if (!string.Equals(ufSigla, stateSigla, StringComparison.OrdinalIgnoreCase))
             {
-                logger.LogWarning("Município {CityName} não encontrado na API IBGE", cityName);
+                logger.LogWarning(
+                    "Município {CityName} encontrado, mas estado não corresponde. Esperado: {ExpectedState}, Encontrado: {FoundState}",
+                    cityName, stateSigla, ufSigla);
                 return false;
             }
-
-            // Validar se o estado bate (se fornecido)
-            if (!string.IsNullOrEmpty(stateSigla))
-            {
-                var ufSigla = municipio.GetEstadoSigla();
-                if (!string.Equals(ufSigla, stateSigla, StringComparison.OrdinalIgnoreCase))
-                {
-                    logger.LogWarning(
-                        "Município {CityName} encontrado, mas estado não corresponde. Esperado: {ExpectedState}, Encontrado: {FoundState}",
-                        cityName, stateSigla, ufSigla);
-                    return false;
-                }
-            }
-
-            // Validar se a cidade está na lista de permitidas (case-insensitive)
-            var isAllowed = allowedCities.Any(allowedCity =>
-                string.Equals(allowedCity, municipio.Nome, StringComparison.OrdinalIgnoreCase));
-
-            if (isAllowed)
-            {
-                logger.LogInformation("Município {CityName} ({Id}) está na lista de cidades permitidas", municipio.Nome, municipio.Id);
-            }
-            else
-            {
-                logger.LogWarning("Município {CityName} ({Id}) NÃO está na lista de cidades permitidas", municipio.Nome, municipio.Id);
-            }
-
-            return isAllowed;
         }
-        catch (Exception ex)
+
+        // Validar se a cidade está na lista de permitidas (case-insensitive)
+        var isAllowed = allowedCities.Any(allowedCity =>
+            string.Equals(allowedCity, municipio.Nome, StringComparison.OrdinalIgnoreCase));
+
+        if (isAllowed)
         {
-            logger.LogError(ex, "Erro ao validar cidade {CityName} contra API IBGE", cityName);
-            return false; // Fail-closed: em caso de erro, bloquear acesso por segurança
+            logger.LogInformation("Município {CityName} ({Id}) está na lista de cidades permitidas", municipio.Nome, municipio.Id);
         }
+        else
+        {
+            logger.LogWarning("Município {CityName} ({Id}) NÃO está na lista de cidades permitidas", municipio.Nome, municipio.Id);
+        }
+
+        return isAllowed;
     }
 
     public async Task<Municipio?> GetCityDetailsAsync(string cityName, CancellationToken cancellationToken = default)

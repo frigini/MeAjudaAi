@@ -271,10 +271,10 @@ public class ModuleApiArchitectureTests
     }
 
     [Fact]
-    public void ILocationModuleApi_ShouldHaveAllEssentialMethods()
+    public void ILocationsModuleApi_ShouldHaveAllEssentialMethods()
     {
         // Arrange
-        var type = typeof(ILocationModuleApi);
+        var type = typeof(ILocationsModuleApi);
 
         // Act
         var methods = type.GetMethods()

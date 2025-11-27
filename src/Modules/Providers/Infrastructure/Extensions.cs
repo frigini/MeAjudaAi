@@ -2,10 +2,12 @@ using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
+using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers.Integration;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Messages.Documents;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -92,11 +94,14 @@ public static class Extensions
     /// </summary>
     private static IServiceCollection AddEventHandlers(this IServiceCollection services)
     {
-        // Event Handlers específicos do módulo Providers
+        // Domain Event Handlers
         services.AddScoped<IEventHandler<ProviderRegisteredDomainEvent>, ProviderRegisteredDomainEventHandler>();
         services.AddScoped<IEventHandler<ProviderDeletedDomainEvent>, ProviderDeletedDomainEventHandler>();
         services.AddScoped<IEventHandler<ProviderVerificationStatusUpdatedDomainEvent>, ProviderVerificationStatusUpdatedDomainEventHandler>();
         services.AddScoped<IEventHandler<ProviderProfileUpdatedDomainEvent>, ProviderProfileUpdatedDomainEventHandler>();
+
+        // Integration Event Handlers
+        services.AddScoped<IEventHandler<DocumentVerifiedIntegrationEvent>, DocumentVerifiedIntegrationEventHandler>();
 
         return services;
     }

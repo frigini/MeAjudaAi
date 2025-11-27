@@ -18,28 +18,19 @@ public sealed class GeographicValidationService(
         IReadOnlyCollection<string> allowedCities,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            logger.LogDebug(
-                "GeographicValidationService: Validando cidade {CityName} (UF: {State})",
-                cityName,
-                stateSigla ?? "N/A");
+        logger.LogDebug(
+            "GeographicValidationService: Validando cidade {CityName} (UF: {State})",
+            cityName,
+            stateSigla ?? "N/A");
 
-            // Delegar para o IbgeService
-            var isAllowed = await ibgeService.ValidateCityInAllowedRegionsAsync(
-                cityName,
-                stateSigla,
-                allowedCities,
-                cancellationToken);
+        // Delegar para o IbgeService
+        // Exceções são propagadas para o middleware decidir (fail-open com fallback)
+        var isAllowed = await ibgeService.ValidateCityInAllowedRegionsAsync(
+            cityName,
+            stateSigla,
+            allowedCities,
+            cancellationToken);
 
-            return isAllowed;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Erro no GeographicValidationService ao validar cidade {CityName}", cityName);
-
-            // Fail-closed: em caso de erro, bloquear acesso (segurança)
-            return false;
-        }
+        return isAllowed;
     }
 }

@@ -3,6 +3,8 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.ModuleApi;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
@@ -30,6 +32,8 @@ public class ProvidersModuleApiTests
     private readonly Mock<IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByStateHandlerMock;
     private readonly Mock<IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByTypeHandlerMock;
     private readonly Mock<IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>>> _getProvidersByVerificationStatusHandlerMock;
+    private readonly Mock<ILocationsModuleApi> _locationApiMock;
+    private readonly Mock<IProviderRepository> _providerRepositoryMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
     private readonly Mock<ILogger<ProvidersModuleApi>> _logger;
     private readonly ProvidersModuleApi _sut;
@@ -44,6 +48,8 @@ public class ProvidersModuleApiTests
         _getProvidersByStateHandlerMock = new Mock<IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>>>();
         _getProvidersByTypeHandlerMock = new Mock<IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>>>();
         _getProvidersByVerificationStatusHandlerMock = new Mock<IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>>>();
+        _locationApiMock = new Mock<ILocationsModuleApi>();
+        _providerRepositoryMock = new Mock<IProviderRepository>();
         _serviceProviderMock = new Mock<IServiceProvider>();
         _logger = new Mock<ILogger<ProvidersModuleApi>>();
 
@@ -56,6 +62,8 @@ public class ProvidersModuleApiTests
             _getProvidersByStateHandlerMock.Object,
             _getProvidersByTypeHandlerMock.Object,
             _getProvidersByVerificationStatusHandlerMock.Object,
+            _locationApiMock.Object,
+            _providerRepositoryMock.Object,
             _serviceProviderMock.Object,
             _logger.Object);
     }

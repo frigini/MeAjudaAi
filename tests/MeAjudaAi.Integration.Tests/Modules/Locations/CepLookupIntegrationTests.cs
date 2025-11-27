@@ -49,7 +49,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
             .GetHandler<ViaCepClient>()
             .SetupResponse($"viacep.com.br/ws/{cep}/json", HttpStatusCode.OK, viaCepResponse);
 
-        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(cep);
@@ -90,7 +90,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
             .GetHandler<BrasilApiCepClient>()
             .SetupResponse($"brasilapi.com.br/api/cep/v2/{cep}", HttpStatusCode.OK, brasilApiResponse);
 
-        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(cep);
@@ -106,7 +106,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
     {
         // Arrange
         var invalidCep = "abcd1234";
-        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(invalidCep);
@@ -136,7 +136,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
             .GetHandler<OpenCepClient>()
             .SetupErrorResponse("opencep.com", HttpStatusCode.NotFound);
 
-        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetAddressFromCepAsync(cep);
@@ -166,7 +166,7 @@ public sealed class CepLookupIntegrationTests : LocationIntegrationTestFixture
         var mockHandler = HttpMockBuilder!.GetHandler<ViaCepClient>();
         mockHandler.SetupResponse($"viacep.com.br/ws/{cep}/json", HttpStatusCode.OK, viaCepResponse);
 
-        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
         // Act - Primeira chamada (cache miss)
         var result1 = await locationApi.GetAddressFromCepAsync(cep);

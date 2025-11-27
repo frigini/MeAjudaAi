@@ -135,7 +135,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         services.Should().OnlyContain(s => s.CategoryId == category.Id.Value, "all services should belong to the specified category");
     }
 
-    [Fact(Skip = "AUTH: Returns 403 Forbidden instead of expected 204 NoContent. Same authentication issue as other E2E tests - ConfigurableTestAuthenticationHandler not applying admin role correctly in CI.")]
+    [Fact]
     public async Task UpdateServiceCategory_Should_Modify_Existing_Category()
     {
         // Arrange

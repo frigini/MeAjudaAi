@@ -23,7 +23,8 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     private IQueryable<Provider> GetProvidersQuery() =>
         context.Providers
             .Include(p => p.Documents)
-            .Include(p => p.Qualifications);
+            .Include(p => p.Qualifications)
+            .Include(p => p.Services);
 
     /// <summary>
     /// Adiciona um novo prestador de serviços ao repositório.
@@ -190,6 +191,23 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
     {
         return await context.Providers
             .AnyAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
+    }
+
+    /// <summary>
+    /// Obtém o status de verificação de um prestador de serviços sem carregar a entidade completa.
+    /// </summary>
+    public async Task<(bool Exists, EVerificationStatus? Status)> GetProviderStatusAsync(
+        ProviderId id,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await context.Providers
+            .Where(p => p.Id == id && !p.IsDeleted)
+            .Select(p => new { p.VerificationStatus })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return result is null
+            ? (false, null)
+            : (true, result.VerificationStatus);
     }
 
     private static void ValidateSearchInput(string input, string paramName)

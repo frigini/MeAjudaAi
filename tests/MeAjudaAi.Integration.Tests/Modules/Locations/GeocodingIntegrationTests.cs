@@ -42,7 +42,7 @@ public sealed class GeocodingIntegrationTests : LocationIntegrationTestFixture
         HttpMockBuilder!.GetHandler<NominatimClient>()
             .SetupResponse("nominatim.openstreetmap.org", HttpStatusCode.OK, nominatimResponse);
 
-        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetCoordinatesFromAddressAsync(address);
@@ -58,7 +58,7 @@ public sealed class GeocodingIntegrationTests : LocationIntegrationTestFixture
     public async Task GetCoordinatesFromAddressAsync_WithEmptyAddress_ShouldReturnFailure()
     {
         // Arrange
-        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetCoordinatesFromAddressAsync("");
@@ -79,7 +79,7 @@ public sealed class GeocodingIntegrationTests : LocationIntegrationTestFixture
         HttpMockBuilder!.GetHandler<NominatimClient>()
             .SetupResponse("nominatim.openstreetmap.org", HttpStatusCode.OK, emptyResponse);
 
-        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetCoordinatesFromAddressAsync(address);
@@ -99,7 +99,7 @@ public sealed class GeocodingIntegrationTests : LocationIntegrationTestFixture
         HttpMockBuilder!.GetHandler<NominatimClient>()
             .SetupErrorResponse("nominatim.openstreetmap.org", HttpStatusCode.ServiceUnavailable);
 
-        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
         // Act
         var result = await locationApi.GetCoordinatesFromAddressAsync(address);
@@ -126,7 +126,7 @@ public sealed class GeocodingIntegrationTests : LocationIntegrationTestFixture
         var handler = HttpMockBuilder!.GetHandler<NominatimClient>();
         handler.SetupResponse("nominatim.openstreetmap.org", HttpStatusCode.OK, nominatimResponse);
 
-        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
         // Act - Primeira chamada
         var result1 = await locationApi.GetCoordinatesFromAddressAsync(address);
@@ -182,7 +182,7 @@ public sealed class GeocodingIntegrationTests : LocationIntegrationTestFixture
         HttpMockBuilder!.GetHandler<NominatimClient>()
             .SetupResponse("nominatim.openstreetmap.org", HttpStatusCode.OK, nominatimResponse);
 
-        var locationApi = ServiceProvider!.GetRequiredService<ILocationModuleApi>();
+        var locationApi = ServiceProvider!.GetRequiredService<ILocationsModuleApi>();
 
         // Act - Chamar múltiplas vezes para testar rate limiting
         var tasks = addresses.Select(addr => locationApi.GetCoordinatesFromAddressAsync(addr)).ToArray();

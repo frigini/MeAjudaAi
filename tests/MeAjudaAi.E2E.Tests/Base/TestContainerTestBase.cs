@@ -35,13 +35,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
     protected static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
 
-    // Configure authentication handler for CI/CD environment
-    static TestContainerTestBase()
-    {
-        // In CI/CD, Keycloak is not available, so we allow the test authentication handler
-        // to auto-configure admin credentials when no explicit configuration is set
-        ConfigurableTestAuthenticationHandler.SetAllowUnauthenticated(true);
-    }
+    // Note: Removed static constructor with SetAllowUnauthenticated(true)
+    // Tests must now explicitly configure authentication via AuthenticateAsAdmin(), AuthenticateAsUser(), etc.
+    // This prevents race conditions where tests expect specific permissions but get admin access instead
 
     public virtual async ValueTask InitializeAsync()
     {
@@ -191,7 +187,8 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                 });
             });
 
-        ApiClient = _factory.CreateClient();
+        // Create HTTP client with test context header injection
+        ApiClient = _factory.CreateDefaultClient(new TestContextHeaderHandler());
 
         // Aplicar migrações diretamente no banco TestContainer
         await ApplyMigrationsAsync();
@@ -227,12 +224,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                     return;
                 }
             }
-            catch (Exception ex) when (attempt < maxAttempts)
+            catch (Exception) when (attempt < maxAttempts)
             {
-                if (attempt == maxAttempts)
-                {
-                    throw new InvalidOperationException($"API não respondeu após {maxAttempts} tentativas: {ex.Message}");
-                }
+                // Continue to next attempt
             }
 
             if (attempt < maxAttempts)
@@ -274,6 +268,13 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
     // Helper methods usando serialização compartilhada
 #pragma warning disable CA2000 // Dispose StringContent - handled by HttpClient
+    /// <summary>
+    /// Sends a POST request with JSON content to the specified URI.
+    /// </summary>
+    /// <typeparam name="T">The type of the content to serialize.</typeparam>
+    /// <param name="requestUri">The URI to send the request to.</param>
+    /// <param name="content">The content to serialize and send.</param>
+    /// <returns>The HTTP response message.</returns>
     protected async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
@@ -281,6 +282,13 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         return await ApiClient.PostAsync(requestUri, stringContent);
     }
 
+    /// <summary>
+    /// Sends a PUT request with JSON content to the specified URI.
+    /// </summary>
+    /// <typeparam name="T">The type of the content to serialize.</typeparam>
+    /// <param name="requestUri">The URI to send the request to.</param>
+    /// <param name="content">The content to serialize and send.</param>
+    /// <returns>The HTTP response message.</returns>
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(string requestUri, T content)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
@@ -289,6 +297,12 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     }
 #pragma warning restore CA2000
 
+    /// <summary>
+    /// Deserializes JSON content from an HTTP response.
+    /// </summary>
+    /// <typeparam name="T">The type to deserialize to.</typeparam>
+    /// <param name="response">The HTTP response containing JSON content.</param>
+    /// <returns>The deserialized object, or null if deserialization fails.</returns>
     protected static async Task<T?> ReadJsonAsync<T>(HttpResponseMessage response)
     {
         var content = await response.Content.ReadAsStringAsync();
@@ -357,9 +371,23 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
     }
 
+    /// <summary>
+    /// Sends a POST request with JSON content to the specified URI.
+    /// </summary>
+    /// <typeparam name="T">The type of the content to serialize.</typeparam>
+    /// <param name="requestUri">The URI to send the request to.</param>
+    /// <param name="content">The content to serialize and send.</param>
+    /// <returns>The HTTP response message.</returns>
     protected async Task<HttpResponseMessage> PostJsonAsync<T>(Uri requestUri, T content)
         => await PostJsonAsync(requestUri.ToString(), content);
 
+    /// <summary>
+    /// Sends a PUT request with JSON content to the specified URI.
+    /// </summary>
+    /// <typeparam name="T">The type of the content to serialize.</typeparam>
+    /// <param name="requestUri">The URI to send the request to.</param>
+    /// <param name="content">The content to serialize and send.</param>
+    /// <returns>The HTTP response message.</returns>
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(Uri requestUri, T content)
         => await PutJsonAsync(requestUri.ToString(), content);
 
@@ -429,5 +457,25 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         var segments = locationHeader.Split('/');
         var lastSegment = segments[^1].Split('?')[0];
         return Guid.Parse(lastSegment);
+    }
+
+    /// <summary>
+    /// HTTP message handler that injects test context ID header into all requests
+    /// </summary>
+    private class TestContextHeaderHandler : DelegatingHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, 
+            CancellationToken cancellationToken)
+        {
+            // Add test context ID header to isolate authentication between parallel tests
+            var contextId = ConfigurableTestAuthenticationHandler.GetCurrentTestContextId();
+            if (contextId != null)
+            {
+                request.Headers.Add(ConfigurableTestAuthenticationHandler.TestContextHeader, contextId);
+            }
+
+            return await base.SendAsync(request, cancellationToken);
+        }
     }
 }

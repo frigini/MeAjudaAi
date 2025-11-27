@@ -40,7 +40,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
                 DatabaseName = $"providers_test_{_testClassId}",
                 Username = "test_user",
                 Password = "test_password",
-                Schema = "providers",
+                Schema = "meajudaai_providers",
                 UseInMemoryDatabase = false
             },
             Cache = new TestCacheOptions
@@ -159,11 +159,12 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     protected async Task CleanupDatabase()
     {
         var dbContext = GetService<ProvidersDbContext>();
+        var schema = GetTestOptions().Database.Schema;
 
         try
         {
             // Com banco isolado, podemos usar TRUNCATE com segurança
-            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE providers.providers CASCADE;");
+            await dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}.providers CASCADE;");
         }
         catch (Exception ex)
         {
@@ -171,9 +172,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
             logger.LogWarning(ex, "TRUNCATE failed: {Message}. Using DELETE fallback...", ex.Message);
 
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.qualification;");
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.document;");
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.qualification;");
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.document;");
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.providers;");
         }
 
         // Verificar se limpeza foi bem-sucedida
@@ -191,11 +192,12 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
     protected async Task ForceCleanDatabase()
     {
         var dbContext = GetService<ProvidersDbContext>();
+        var schema = GetTestOptions().Database.Schema;
 
         try
         {
             // Estratégia 1: TRUNCATE CASCADE
-            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE providers.providers CASCADE;");
+            await dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}.providers CASCADE;");
             return;
         }
         catch (Exception ex)
@@ -207,9 +209,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         try
         {
             // Estratégia 2: DELETE em ordem reversa
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.qualification;");
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.document;");
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.qualification;");
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.document;");
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.providers;");
             return;
         }
         catch (Exception ex)
