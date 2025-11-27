@@ -219,21 +219,30 @@ public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
 
         var activeCategoryId = ExtractIdFromLocation(activeCategoryResponse.Headers.Location!.ToString());
 
-        // Cria categoria inativa
-        var inactiveCategoryRequest = new
+        // Cria outra categoria (sempre criada como ativa) e depois a desativa
+        var toBeInactiveCategoryRequest = new
         {
             Name = $"InactiveCategory_{uniqueId}",
-            Description = "Inactive category",
-            IsActive = false
+            Description = "Category to be deactivated",
+            DisplayOrder = 0
         };
 
-        var inactiveCategoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", inactiveCategoryRequest, JsonOptions);
+        var inactiveCategoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", toBeInactiveCategoryRequest, JsonOptions);
 
         inactiveCategoryResponse.StatusCode.Should().Be(HttpStatusCode.Created,
-            "Inactive category creation is a precondition for this test. Response: {0}",
+            "Category creation is a precondition for this test. Response: {0}",
             await inactiveCategoryResponse.Content.ReadAsStringAsync());
 
         var inactiveCategoryId = ExtractIdFromLocation(inactiveCategoryResponse.Headers.Location!.ToString());
+
+        // Desativa a categoria
+        var deactivateResponse = await ApiClient.PostAsync(
+            $"/api/v1/service-catalogs/categories/{inactiveCategoryId}/deactivate",
+            null);
+
+        deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent,
+            "Category deactivation is a precondition for this test. Response: {0}",
+            await deactivateResponse.Content.ReadAsStringAsync());
 
         // Cria serviço na categoria ativa
         var serviceRequest = new

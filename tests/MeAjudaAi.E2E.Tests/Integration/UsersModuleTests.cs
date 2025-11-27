@@ -12,6 +12,9 @@ public class UsersModuleTests : TestContainerTestBase
     [Fact]
     public async Task GetUsers_ShouldReturnOkWithPaginatedResult()
     {
+        // Arrange
+        AuthenticateAsAdmin();
+
         // Act
         var response = await ApiClient.GetAsync("/api/v1/users?pageNumber=1&pageSize=10");
 
