@@ -19,6 +19,9 @@
     <!-- Reference all Infrastructure projects to discover DbContexts -->
     <ProjectReference Include="..\..\src\Modules\Users\Infrastructure\MeAjudaAi.Modules.Users.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Providers\Infrastructure\MeAjudaAi.Modules.Providers.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Documents\Infrastructure\MeAjudaAi.Modules.Documents.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\SearchProviders\Infrastructure\MeAjudaAi.Modules.SearchProviders.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\ServiceCatalogs\Infrastructure\MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Shared\MeAjudaAi.Shared.csproj" />
   </ItemGroup>
 

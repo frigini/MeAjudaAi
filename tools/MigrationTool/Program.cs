@@ -89,14 +89,26 @@ class Program
         {
             var connectionString = GetConnectionStringForModule(contextInfo.ModuleName);
             
-            services.AddDbContext(contextInfo.Type, options =>
-            {
-                options.UseNpgsql(connectionString, npgsqlOptions =>
+            // Use reflection to call AddDbContext<TContext> with the discovered type
+            var addDbContextMethod = typeof(EntityFrameworkServiceCollectionExtensions)
+                .GetMethod(nameof(EntityFrameworkServiceCollectionExtensions.AddDbContext), 
+                    new[] { typeof(IServiceCollection), typeof(Action<DbContextOptionsBuilder>), typeof(ServiceLifetime), typeof(ServiceLifetime) })
+                ?.MakeGenericMethod(contextInfo.Type);
+            
+            addDbContextMethod?.Invoke(null, new object[] 
+            { 
+                services, 
+                new Action<DbContextOptionsBuilder>(options =>
                 {
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", contextInfo.SchemaName);
-                });
-                options.EnableSensitiveDataLogging();
-                options.EnableDetailedErrors();
+                    options.UseNpgsql(connectionString, npgsqlOptions =>
+                    {
+                        npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", contextInfo.SchemaName);
+                    });
+                    options.EnableSensitiveDataLogging();
+                    options.EnableDetailedErrors();
+                }),
+                ServiceLifetime.Scoped,
+                ServiceLifetime.Scoped
             });
         }
     }
