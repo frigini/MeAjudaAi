@@ -132,13 +132,6 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_provider_services_provider_service",
-                schema: "meajudaai_providers",
-                table: "provider_services",
-                columns: new[] { "provider_id", "service_id" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "ix_provider_services_service_id",
                 schema: "meajudaai_providers",
                 table: "provider_services",

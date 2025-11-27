@@ -163,7 +163,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         try
         {
             // Com banco isolado, podemos usar TRUNCATE com segurança
-            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE providers.providers CASCADE;");
+            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE meajudaai_providers.providers CASCADE;");
         }
         catch (Exception ex)
         {
@@ -171,9 +171,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
             logger.LogWarning(ex, "TRUNCATE failed: {Message}. Using DELETE fallback...", ex.Message);
 
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.qualification;");
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.document;");
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM meajudaai_providers.qualification;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM meajudaai_providers.document;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM meajudaai_providers.providers;");
         }
 
         // Verificar se limpeza foi bem-sucedida
@@ -195,7 +195,7 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         try
         {
             // Estratégia 1: TRUNCATE CASCADE
-            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE providers.providers CASCADE;");
+            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE meajudaai_providers.providers CASCADE;");
             return;
         }
         catch (Exception ex)
@@ -207,9 +207,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         try
         {
             // Estratégia 2: DELETE em ordem reversa
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.qualification;");
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.document;");
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM providers.providers;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM meajudaai_providers.qualification;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM meajudaai_providers.document;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM meajudaai_providers.providers;");
             return;
         }
         catch (Exception ex)

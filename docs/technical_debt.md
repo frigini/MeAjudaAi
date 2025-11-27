@@ -261,6 +261,79 @@ O teste `GetProvidersByVerificationStatus_ShouldReturnOnlyPendingProviders` atua
 
 ---
 
+## 🧪 Testes E2E Ausentes - Módulo SearchProviders
+
+**Módulo**: `src/Modules/SearchProviders`  
+**Tipo**: Débito de Teste  
+**Severidade**: MÉDIA  
+**Issue**: [Criar issue para rastreamento]
+
+**Descrição**:
+O módulo SearchProviders não possui testes E2E (end-to-end), apenas testes de integração e unitários. Testes E2E são necessários para validar o fluxo completo de busca de prestadores incluindo integração com APIs externas (IBGE), filtros, paginação, e respostas HTTP completas.
+
+**Contexto**:
+- Identificado durante code review automatizado (CodeRabbit)
+- Testes de integração existentes cobrem lógica de negócio e repositórios
+- Faltam testes que validam endpoints HTTP completos com autenticação real
+
+**Impacto**:
+- Risco de regressões em endpoints de busca não detectadas até produção
+- Falta de validação de integração completa API externa → Aplicação → Resposta HTTP
+- Dificuldade em validar comportamento de autenticação e autorização em cenários reais
+
+**Escopo de Testes E2E Necessários**:
+
+1. **SearchProviders API Endpoints**:
+   - [ ] `GET /api/search-providers/search` - Busca com múltiplos filtros
+   - [ ] `GET /api/search-providers/search` - Paginação e ordenação
+   - [ ] `GET /api/search-providers/search` - Busca com autenticação/autorização
+   - [ ] `GET /api/search-providers/search` - Respostas de erro (400, 401, 404, 500)
+
+2. **Integração com IBGE API**:
+   - [ ] Validação de respostas da API do IBGE (mock ou real)
+   - [ ] Tratamento de timeouts e erros de rede
+   - [ ] Validação de mapeamento de dados geográficos (UF, município)
+
+3. **Filtros e Busca**:
+   - [ ] Busca por localização (estado, cidade)
+   - [ ] Busca por tipo de serviço
+   - [ ] Busca por status de verificação
+   - [ ] Combinação de múltiplos filtros
+
+4. **Performance e Carga**:
+   - [ ] Busca com grande volume de resultados (1000+ prestadores)
+   - [ ] Validação de tempos de resposta (<500ms para buscas simples)
+   - [ ] Cache de resultados de API externa
+
+**Arquivos Relacionados**:
+- `src/Modules/SearchProviders/API/` - Endpoints a serem testados
+- `tests/MeAjudaAi.E2E.Tests/` - Localização sugerida para novos testes
+- `tests/MeAjudaAi.Integration.Tests/Infrastructure/WireMockFixture.cs` - Mock de IBGE API
+
+**Prioridade**: Média  
+**Estimativa**: 2-3 sprints  
+**Dependências**: 
+- Infraestrutura de testes E2E já estabelecida (`MeAjudaAi.E2E.Tests`)
+- WireMock configurado para simulação de IBGE API
+- TestContainers disponível para PostgreSQL e Redis
+
+**Critérios de Aceitação**:
+- [ ] Pelo menos 15 testes E2E cobrindo cenários principais de busca
+- [ ] Cobertura de autenticação/autorização em todos os endpoints
+- [ ] Testes validam códigos de status HTTP corretos
+- [ ] Testes validam estrutura completa de resposta JSON
+- [ ] Testes incluem cenários de erro e edge cases
+- [ ] Testes executam em CI/CD com sucesso
+- [ ] Documentação de testes E2E atualizada
+
+**Notas Técnicas**:
+- Utilizar `TestContainerTestBase` como base para testes E2E
+- Configurar WireMock para simular respostas da API do IBGE
+- Usar `ConfigurableTestAuthenticationHandler` para cenários de autenticação
+- Validar integração com Redis (cache) e PostgreSQL (dados)
+
+---
+
 ## Instruções para Mantenedores
 
 1. **Conversão para Issues do GitHub**: 

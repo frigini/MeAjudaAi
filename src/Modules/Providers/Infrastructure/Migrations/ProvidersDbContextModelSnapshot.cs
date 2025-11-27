@@ -126,10 +126,6 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
                     b.HasIndex("ServiceId")
                         .HasDatabaseName("ix_provider_services_service_id");
 
-                    b.HasIndex("ProviderId", "ServiceId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_provider_services_provider_service");
-
                     b.ToTable("provider_services", "meajudaai_providers");
                 });
 

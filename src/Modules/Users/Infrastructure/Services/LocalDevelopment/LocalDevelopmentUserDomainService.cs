@@ -14,7 +14,7 @@ internal class LocalDevelopmentUserDomainService : IUserDomainService
 {
     /// <summary>
     /// Creates a user locally without Keycloak integration.
-    /// Generates a mock Keycloak ID for consistency.
+    /// Generates a mock Keycloak ID using UUID v7 for time-based ordering.
     /// </summary>
     public Task<Result<User>> CreateUserAsync(
         Username username,
@@ -26,7 +26,8 @@ internal class LocalDevelopmentUserDomainService : IUserDomainService
         CancellationToken cancellationToken = default)
     {
         // Para ambientes sem Keycloak, criar usuário mock com ID simulado
-        var user = new User(username, email, firstName, lastName, $"mock_keycloak_{Guid.NewGuid()}");
+        // Using Guid.CreateVersion7() for better time-based ordering and performance
+        var user = new User(username, email, firstName, lastName, $"mock_keycloak_{Guid.CreateVersion7()}");
         return Task.FromResult(Result<User>.Success(user));
     }
 
