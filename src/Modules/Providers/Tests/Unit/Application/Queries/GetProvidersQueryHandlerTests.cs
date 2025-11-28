@@ -69,7 +69,7 @@ public class GetProvidersQueryHandlerTests
             ProviderBuilder.Create().WithName("John's Plumbing").Build()
         };
 
-        var pagedProviders = new PagedResult<Provider>(providers, 1, 1, 10);
+        var pagedProviders = new PagedResult<Provider>(providers, 1, 10, 1);
         var query = new GetProvidersQuery(Page: 1, PageSize: 10, Name: "John");
 
         _providerQueryServiceMock
@@ -100,7 +100,7 @@ public class GetProvidersQueryHandlerTests
             ProviderBuilder.Create().WithType(providerType).Build()
         };
 
-        var pagedProviders = new PagedResult<Provider>(providers, 1, 1, 10);
+        var pagedProviders = new PagedResult<Provider>(providers, 1, 10, 1);
         var query = new GetProvidersQuery(Page: 1, PageSize: 10, Type: (int)providerType);
 
         _providerQueryServiceMock
@@ -132,7 +132,7 @@ public class GetProvidersQueryHandlerTests
             ProviderBuilder.Create().WithVerificationStatus(status).Build()
         };
 
-        var pagedProviders = new PagedResult<Provider>(providers, 1, 1, 10);
+        var pagedProviders = new PagedResult<Provider>(providers, 1, 10, 1);
         var query = new GetProvidersQuery(Page: 1, PageSize: 10, VerificationStatus: (int)status);
 
         _providerQueryServiceMock
@@ -165,7 +165,7 @@ public class GetProvidersQueryHandlerTests
                 .Build()
         };
 
-        var pagedProviders = new PagedResult<Provider>(providers, 1, 1, 10);
+        var pagedProviders = new PagedResult<Provider>(providers, 1, 10, 1);
         var query = new GetProvidersQuery(
             Page: 1,
             PageSize: 10,
