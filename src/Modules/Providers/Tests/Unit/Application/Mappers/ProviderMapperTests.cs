@@ -46,7 +46,7 @@ public class ProviderMapperTests
         dto.DeletedAt.Should().Be(provider.DeletedAt);
         dto.SuspensionReason.Should().Be(provider.SuspensionReason);
         dto.RejectionReason.Should().Be(provider.RejectionReason);
-        
+
         // Assert nested BusinessProfile mapping
         dto.BusinessProfile.Should().NotBeNull();
         dto.BusinessProfile!.LegalName.Should().Be("Legal Name Ltd");

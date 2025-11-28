@@ -69,6 +69,9 @@ public sealed class GeographicValidationServiceTests
 
         // Assert
         result.Should().BeFalse();
+        _mockIbgeService.Verify(
+            x => x.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities, cancellationToken),
+            Times.Once);
     }
 
     [Fact]

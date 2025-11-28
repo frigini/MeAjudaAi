@@ -11,6 +11,35 @@ namespace MeAjudaAi.Tests.E2E.ModuleApis;
 /// </summary>
 public class CrossModuleCommunicationE2ETests : TestContainerTestBase
 {
+    /// <summary>
+    /// Waits for user to become available in the system using poll-and-retry.
+    /// Timeout and backoff interval configurable via environment variables.
+    /// </summary>
+    private async Task WaitForUserAvailabilityAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var timeoutMs = int.TryParse(Environment.GetEnvironmentVariable("E2E_USER_AVAILABILITY_TIMEOUT_MS"), out var t) ? t : 5000;
+        var backoffMs = int.TryParse(Environment.GetEnvironmentVariable("E2E_USER_AVAILABILITY_BACKOFF_MS"), out var b) ? b : 100;
+        
+        var timeout = TimeSpan.FromMilliseconds(timeoutMs);
+        var backoff = TimeSpan.FromMilliseconds(backoffMs);
+        var deadline = DateTime.UtcNow.Add(timeout);
+
+        while (DateTime.UtcNow < deadline)
+        {
+            AuthenticateAsAdmin();
+            var checkResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}", cancellationToken);
+            
+            if (checkResponse.IsSuccessStatusCode)
+            {
+                return; // User is available
+            }
+
+            await Task.Delay(backoff, cancellationToken);
+        }
+
+        throw new TimeoutException($"User {userId} did not become available within {timeout.TotalSeconds}s");
+    }
+
     private async Task<JsonElement> CreateUserAsync(string username, string email, string firstName, string lastName)
     {
         AuthenticateAsAdmin(); // CreateUser requer role admin (AdminOnly policy)
@@ -69,8 +98,8 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
 
         var userId = user.GetProperty("id").GetGuid();
 
-        // Small delay to ensure DB consistency (eventual consistency in distributed systems)
-        await Task.Delay(500);
+        // Poll for user availability (eventual consistency in distributed systems)
+        await WaitForUserAvailabilityAsync(userId, CancellationToken.None);
 
         // Act & Assert - Each module would have different use patterns
         switch (moduleName)
@@ -105,11 +134,11 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
                 break;
 
             case "ReportingModule":
-                // Reporting module needs batch user data
+                // Reporting module needs user data for report generation
                 AuthenticateAsAdmin(); // Requer autenticação para acessar users API
-                var batchResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
-                batchResponse.IsSuccessStatusCode.Should().BeTrue(
-                    "Batch user data retrieval should succeed for valid user created in Arrange");
+                var reportingResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+                reportingResponse.IsSuccessStatusCode.Should().BeTrue(
+                    "User data retrieval should succeed for valid user created in Arrange");
                 break;
         }
     }
