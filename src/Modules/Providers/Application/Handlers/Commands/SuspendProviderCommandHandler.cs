@@ -69,7 +69,7 @@ public sealed class SuspendProviderCommandHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error suspending provider {ProviderId}", command.ProviderId);
-            return Result.Failure($"Failed to suspend provider: {ex.Message}");
+            return Result.Failure("Failed to suspend provider");
         }
     }
 }

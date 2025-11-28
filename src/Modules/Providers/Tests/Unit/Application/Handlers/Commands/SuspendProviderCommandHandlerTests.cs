@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Application.Commands;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
@@ -166,8 +167,39 @@ public sealed class SuspendProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Failed to suspend provider");
-        result.Error.Message.Should().Contain("Database error");
+        result.Error.Message.Should().Be("Failed to suspend provider");
+
+        _providerRepositoryMock.Verify(
+            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenDomainValidationFails_ShouldReturnDomainErrorMessage()
+    {
+        // Arrange
+        var command = new SuspendProviderCommand(
+            Guid.NewGuid(),
+            "admin@test.com",
+            "Policy violation");
+
+        // Create provider in PendingBasicInfo status (default after creation)
+        // Attempting to suspend will fail with domain exception because only Active providers can be suspended
+        var provider = ProviderBuilder.Create()
+            .WithType(EProviderType.Individual)
+            .Build();
+
+        _providerRepositoryMock
+            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        // Domain exception message should be propagated
+        result.Error.Message.Should().StartWith("Invalid status transition");
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
