@@ -140,8 +140,8 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         // Document should be in uploaded or pending verification status
         // EDocumentStatus: Uploaded, PendingVerification, Verified, Rejected, Failed
         statusString!.ToLowerInvariant().Should().BeOneOf(
-            "uploaded", "pendingverification",
-            "Document should be Uploaded or PendingVerification after upload");
+            "uploaded", "pendingverification")
+            .Because("Document should be Uploaded or PendingVerification after upload");
     }
 
     [Fact]
