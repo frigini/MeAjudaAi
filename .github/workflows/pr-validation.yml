@@ -61,6 +61,8 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Validate Secrets Configuration
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
           echo "Validating secrets configuration..."
 
@@ -70,7 +72,7 @@ jobs:
             echo "Running in main repository - validating required secrets"
 
             # Validate critical secrets are available
-            if [ -z "${{ secrets.POSTGRES_PASSWORD }}" ]; then
+            if [ -z "$POSTGRES_PASSWORD" ]; then
               echo "ERROR: POSTGRES_PASSWORD secret not configured in main repository"
               echo "This secret is required for pull request validation"
               exit 1

@@ -38,11 +38,13 @@ public class AddDocumentRequestValidatorTests
     public async Task Validate_WithEmptyNumber_ShouldHaveValidationError(string? number)
     {
         // Arrange
+#pragma warning disable CS8601 // Possible null reference assignment - intentional for test
         var request = new AddDocumentRequest
         {
-            Number = number!,
+            Number = number,
             DocumentType = EDocumentType.CPF
         };
+#pragma warning restore CS8601
 
         // Act
         var result = await _validator.TestValidateAsync(request);
