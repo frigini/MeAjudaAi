@@ -18,6 +18,9 @@ env:
   # CRITICAL: Set STRICT_COVERAGE: true before merging to main
   # This enforces 70% minimum coverage threshold (lines 785, 810)
   # Current bypass is TEMPORARY for development only
+  # TODO: Create tracking issue for re-enabling before main branch merge
+  # TODO: Add branch protection rule to enforce STRICT_COVERAGE=true on master branch
+  # Timeline: Re-enable after Domain layer reaches 100% coverage (current PR objective)
   STRICT_COVERAGE: false
 
 jobs:
@@ -686,6 +689,9 @@ jobs:
 
       - name: Validate Coverage Thresholds
         if: always()
+        # NOTE: This multi-stage fallback logic (step outputs → file analysis → manual XML parsing)
+        # provides robustness for varying coverage formats but adds complexity.
+        # Consider extracting to reusable GitHub Action if similar logic needed in other workflows.
         run: |
           echo "🎯 VALIDATING COVERAGE THRESHOLDS"
           echo "================================="
