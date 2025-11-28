@@ -13,6 +13,27 @@ namespace MeAjudaAi.E2E.Tests.Modules;
 [Trait("Module", "Documents")]
 public class DocumentsVerificationE2ETests : TestContainerTestBase
 {
+    private async Task WaitForProviderAsync(Guid providerId, int maxAttempts = 10)
+    {
+        var delay = 100; // Start with 100ms
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            var response = await HttpClient.GetAsync($"/api/v1/providers/{providerId}");
+            if (response.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            if (attempt < maxAttempts - 1)
+            {
+                await Task.Delay(delay);
+                delay = Math.Min(delay * 2, 2000); // Exponential backoff, max 2s
+            }
+        }
+
+        throw new TimeoutException($"Provider {providerId} was not found after {maxAttempts} attempts");
+    }
+
     [Fact]
     public async Task RequestDocumentVerification_Should_UpdateStatus()
     {
@@ -58,7 +79,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         var providerId = ExtractIdFromLocation(providerLocation!);
 
         // Wait for provider to be fully persisted (eventual consistency)
-        await Task.Delay(1000);
+        await WaitForProviderAsync(providerId);
 
         // Now upload a document with the valid ProviderId
         var uploadRequest = new
@@ -168,7 +189,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
     }
 
     [Fact]
-    public async Task RequestDocumentVerification_WithInvalidData_ShouldReturnBadRequest()
+    public async Task RequestDocumentVerification_WithInvalidData_Should_ReturnBadRequest()
     {
         // Arrange
         AuthenticateAsAdmin();
