@@ -19,10 +19,17 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         var delay = 100; // Start with 100ms
         for (var attempt = 0; attempt < maxAttempts; attempt++)
         {
-            var response = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return;
+                var response = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return;
+                }
+            }
+            catch (Exception) when (attempt < maxAttempts - 1)
+            {
+                // Treat transient network errors as retryable
             }
 
             if (attempt < maxAttempts - 1)
@@ -95,9 +102,9 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         AuthenticateAsAdmin(); // POST upload requer autorização
         var uploadResponse = await ApiClient.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest, JsonOptions);
 
-        var errorContent = await uploadResponse.Content.ReadAsStringAsync();
+        var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
         uploadResponse.IsSuccessStatusCode.Should().BeTrue(
-            because: $"Document upload should succeed, but got {uploadResponse.StatusCode}: {errorContent}");
+            because: $"Document upload should succeed, but got {uploadResponse.StatusCode}: {uploadContent}");
 
         uploadResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
 
@@ -111,7 +118,6 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         }
         else
         {
-            var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
             uploadContent.Should().NotBeNullOrEmpty("Response body required for document ID");
             using var uploadResult = System.Text.Json.JsonDocument.Parse(uploadContent);
 
@@ -153,15 +159,16 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         statusResult.RootElement.TryGetProperty("status", out var statusProperty)
             .Should().BeTrue("Response should contain 'status' property");
 
-        // Status é esperado como string conforme a enumeração EDocumentStatus
+        // Parse status as enum to avoid string drift
         var statusString = statusProperty.GetString();
         statusString.Should().NotBeNullOrEmpty("Status should have a value");
 
+        var statusParsed = Enum.TryParse<EDocumentStatus>(statusString, ignoreCase: true, out var documentStatus);
+        statusParsed.Should().BeTrue($"Status '{statusString}' should be a valid EDocumentStatus");
+
         // Document should be in uploaded or pending verification status
-        // EDocumentStatus: Uploaded, PendingVerification, Verified, Rejected, Failed
-        statusString!.ToLowerInvariant().Should().BeOneOf(
-            new[] { "uploaded", "pendingverification" },
-            because: "Document should be Uploaded or PendingVerification after upload");
+        documentStatus.Should().BeOneOf(EDocumentStatus.Uploaded, EDocumentStatus.PendingVerification)
+            .And.Subject.Should().NotBe(EDocumentStatus.Verified, "Document should not be verified immediately after upload");
     }
 
     [Fact]
