@@ -27,10 +27,12 @@ public class UploadDocumentCommandHandler(
 
     public async Task<UploadDocumentResponse> HandleAsync(UploadDocumentCommand command, CancellationToken cancellationToken = default)
     {
-        // Resource-level authorization: user must match the ProviderId or have admin permissions
-        var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null)
-            throw new UnauthorizedAccessException("HTTP context not available");
+        try
+        {
+            // Resource-level authorization: user must match the ProviderId or have admin permissions
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null)
+                throw new UnauthorizedAccessException("HTTP context not available");
 
         var user = httpContext.User;
         if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
@@ -105,17 +107,33 @@ public class UploadDocumentCommandHandler(
         await _documentRepository.AddAsync(document, cancellationToken);
         await _documentRepository.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Documento {DocumentId} criado para provedor {ProviderId}",
-            document.Id, command.ProviderId);
+            _logger.LogInformation("Documento {DocumentId} criado para provedor {ProviderId}",
+                document.Id, command.ProviderId);
 
-        // Enfileira job de verificação do documento
-        await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
-            service => service.ProcessDocumentAsync(document.Id, CancellationToken.None));
+            // Enfileira job de verificação do documento
+            await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
+                service => service.ProcessDocumentAsync(document.Id, CancellationToken.None));
 
-        return new UploadDocumentResponse(
-            document.Id,
-            uploadUrl,
-            blobName,
-            expiresAt);
+            return new UploadDocumentResponse(
+                document.Id,
+                uploadUrl,
+                blobName,
+                expiresAt);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Authorization failed while uploading document for provider {ProviderId}", command.ProviderId);
+            throw; // Re-throw para middleware tratar com 401/403
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation failed while uploading document: {Message}", ex.Message);
+            throw; // Re-throw para middleware tratar com 400
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while uploading document for provider {ProviderId}", command.ProviderId);
+            throw new InvalidOperationException($"Failed to upload document: {ex.Message}", ex);
+        }
     }
 }

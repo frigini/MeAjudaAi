@@ -24,8 +24,10 @@ public class RequestVerificationCommandHandler(
 
     public async Task<Result> HandleAsync(RequestVerificationCommand command, CancellationToken cancellationToken = default)
     {
-        // Validar se o documento existe
-        var document = await _repository.GetByIdAsync(command.DocumentId, cancellationToken);
+        try
+        {
+            // Validar se o documento existe
+            var document = await _repository.GetByIdAsync(command.DocumentId, cancellationToken);
         if (document == null)
         {
             _logger.LogWarning("Document {DocumentId} not found for verification request", command.DocumentId);
@@ -76,12 +78,18 @@ public class RequestVerificationCommandHandler(
         await _repository.UpdateAsync(document, cancellationToken);
         await _repository.SaveChangesAsync(cancellationToken);
 
-        // Enfileirar job de verificação
-        await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
-            service => service.ProcessDocumentAsync(command.DocumentId, CancellationToken.None));
+            // Enfileirar job de verificação
+            await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
+                service => service.ProcessDocumentAsync(command.DocumentId, CancellationToken.None));
 
-        _logger.LogInformation("Document {DocumentId} marked for verification and job enqueued", command.DocumentId);
+            _logger.LogInformation("Document {DocumentId} marked for verification and job enqueued", command.DocumentId);
 
-        return Result.Success();
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while requesting verification for document {DocumentId}", command.DocumentId);
+            return Result.Failure(Error.Internal($"Failed to request verification: {ex.Message}"));
+        }
     }
 }

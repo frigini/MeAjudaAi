@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -164,7 +165,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         try
         {
             // Com banco isolado, podemos usar TRUNCATE com segurança
-            await dbContext.Database.ExecuteSqlAsync($"TRUNCATE TABLE {schema}.providers CASCADE;");
+            var truncateSql = FormattableStringFactory.Create($"TRUNCATE TABLE {schema}.providers CASCADE");
+            await dbContext.Database.ExecuteSqlAsync(truncateSql);
         }
         catch (Exception ex)
         {
@@ -172,9 +174,14 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
             logger.LogWarning(ex, "TRUNCATE failed: {Message}. Using DELETE fallback...", ex.Message);
 
-            await dbContext.Database.ExecuteSqlAsync($"DELETE FROM {schema}.qualification;");
-            await dbContext.Database.ExecuteSqlAsync($"DELETE FROM {schema}.document;");
-            await dbContext.Database.ExecuteSqlAsync($"DELETE FROM {schema}.providers;");
+            var deleteQualificationSql = FormattableStringFactory.Create($"DELETE FROM {schema}.qualification");
+            await dbContext.Database.ExecuteSqlAsync(deleteQualificationSql);
+
+            var deleteDocumentSql = FormattableStringFactory.Create($"DELETE FROM {schema}.document");
+            await dbContext.Database.ExecuteSqlAsync(deleteDocumentSql);
+
+            var deleteProvidersSql = FormattableStringFactory.Create($"DELETE FROM {schema}.providers");
+            await dbContext.Database.ExecuteSqlAsync(deleteProvidersSql);
         }
 
         // Verificar se limpeza foi bem-sucedida
@@ -197,7 +204,8 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         try
         {
             // Estratégia 1: TRUNCATE CASCADE
-            await dbContext.Database.ExecuteSqlAsync($"TRUNCATE TABLE {schema}.providers CASCADE;");
+            var truncateSql = FormattableStringFactory.Create($"TRUNCATE TABLE {schema}.providers CASCADE");
+            await dbContext.Database.ExecuteSqlAsync(truncateSql);
             return;
         }
         catch (Exception ex)
@@ -209,9 +217,14 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         try
         {
             // Estratégia 2: DELETE em ordem reversa
-            await dbContext.Database.ExecuteSqlAsync($"DELETE FROM {schema}.qualification;");
-            await dbContext.Database.ExecuteSqlAsync($"DELETE FROM {schema}.document;");
-            await dbContext.Database.ExecuteSqlAsync($"DELETE FROM {schema}.providers;");
+            var deleteQualificationSql = FormattableStringFactory.Create($"DELETE FROM {schema}.qualification");
+            await dbContext.Database.ExecuteSqlAsync(deleteQualificationSql);
+
+            var deleteDocumentSql = FormattableStringFactory.Create($"DELETE FROM {schema}.document");
+            await dbContext.Database.ExecuteSqlAsync(deleteDocumentSql);
+
+            var deleteProvidersSql = FormattableStringFactory.Create($"DELETE FROM {schema}.providers");
+            await dbContext.Database.ExecuteSqlAsync(deleteProvidersSql);
             return;
         }
         catch (Exception ex)

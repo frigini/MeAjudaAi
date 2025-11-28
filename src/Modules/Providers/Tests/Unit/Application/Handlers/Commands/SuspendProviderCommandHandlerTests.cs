@@ -28,7 +28,7 @@ public sealed class SuspendProviderCommandHandlerTests
             _loggerMock.Object);
     }
 
-    [Fact(Skip = "UpdateAsync mock configuration issue - needs investigation")]
+    [Fact]
     public async Task HandleAsync_WithValidCommand_ShouldSuspendProvider()
     {
         // Arrange
@@ -36,6 +36,10 @@ public sealed class SuspendProviderCommandHandlerTests
         var provider = new ProviderBuilder()
             .WithId(providerId)
             .Build();
+        
+        // Provider precisa estar Active para ser suspenso
+        provider.CompleteBasicInfo();
+        provider.Activate();
 
         var command = new SuspendProviderCommand(
             providerId,
