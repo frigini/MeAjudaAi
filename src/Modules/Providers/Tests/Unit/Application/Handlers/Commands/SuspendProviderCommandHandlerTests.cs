@@ -89,6 +89,10 @@ public sealed class SuspendProviderCommandHandlerTests
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
+
+        _providerRepositoryMock.Verify(
+            r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Theory]
@@ -158,5 +162,9 @@ public sealed class SuspendProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("Failed to suspend provider");
+
+        _providerRepositoryMock.Verify(
+            r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }

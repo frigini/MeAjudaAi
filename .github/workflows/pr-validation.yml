@@ -15,8 +15,9 @@ permissions:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  # Temporary: Allow lenient coverage for this development PR
-  # TODO: Remove this and improve coverage before merging to main
+  # CRITICAL: Set STRICT_COVERAGE: true before merging to main
+  # This enforces 70% minimum coverage threshold (lines 785, 810)
+  # Current bypass is TEMPORARY for development only
   STRICT_COVERAGE: false
 
 jobs:

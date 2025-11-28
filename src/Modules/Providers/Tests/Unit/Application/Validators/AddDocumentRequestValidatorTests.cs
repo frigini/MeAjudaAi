@@ -111,33 +111,26 @@ public class AddDocumentRequestValidatorTests
             .WithErrorMessage("Document number can only contain letters, numbers, hyphens and dots");
     }
 
-    [Fact]
-    public async Task Validate_WithValidNumberFormats_ShouldNotHaveValidationErrors()
+    [Theory]
+    [InlineData("ABC123")]
+    [InlineData("123-456")]
+    [InlineData("AB.CD.123")]
+    [InlineData("A1B2C3")]
+    [InlineData("123.456.789-00")]
+    public async Task Validate_WithValidNumberFormats_ShouldNotHaveValidationErrors(string number)
     {
         // Arrange
-        var validNumbers = new[]
+        var request = new AddDocumentRequest
         {
-            "ABC123",
-            "123-456",
-            "AB.CD.123",
-            "A1B2C3",
-            "123.456.789-00"
+            Number = number,
+            DocumentType = EDocumentType.CPF
         };
 
-        foreach (var number in validNumbers)
-        {
-            var request = new AddDocumentRequest
-            {
-                Number = number,
-                DocumentType = EDocumentType.CPF
-            };
+        // Act
+        var result = await _validator.TestValidateAsync(request);
 
-            // Act
-            var result = await _validator.TestValidateAsync(request);
-
-            // Assert
-            result.ShouldNotHaveValidationErrorFor(x => x.Number);
-        }
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.Number);
     }
 
     [Fact]

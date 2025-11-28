@@ -297,4 +297,50 @@ public sealed class ActivateProviderCommandHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("Failed to activate provider");
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenUpdateAsyncThrowsException_ShouldReturnFailure()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var provider = new ProviderBuilder()
+            .WithId(providerId)
+            .Build();
+
+        provider.CompleteBasicInfo("admin@test.com");
+
+        var command = new ActivateProviderCommand(providerId, "admin@test.com");
+
+        _providerRepositoryMock
+            .Setup(r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(provider);
+
+        // Setup all document validations to pass
+        _documentsModuleApiMock
+            .Setup(x => x.HasRequiredDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        _documentsModuleApiMock
+            .Setup(x => x.HasVerifiedDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(true));
+
+        _documentsModuleApiMock
+            .Setup(x => x.HasPendingDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(false));
+
+        _documentsModuleApiMock
+            .Setup(x => x.HasRejectedDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<bool>.Success(false));
+
+        _providerRepositoryMock
+            .Setup(r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Be("Failed to activate provider");
+    }
 }
