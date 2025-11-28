@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Domain.Entities;
 
+[Trait("Category", "Unit")]
 public class ProviderTests
 {
     // Cria um mock do provedor de data/hora
