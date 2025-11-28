@@ -332,6 +332,8 @@ public class ProviderMapperTests
         dto.Qualifications.Should().HaveCount(2);
         dto.Qualifications.Should().Contain(q => q.Name == "Certificate 1");
         dto.Qualifications.Should().Contain(q => q.Name == "Certificate 2");
+        dto.Qualifications.Should().Contain(q => q.Name == "Certificate 1" && q.DocumentNumber == "DOC-001");
+        dto.Qualifications.Should().Contain(q => q.Name == "Certificate 2" && q.DocumentNumber == "DOC-002");
     }
 
     [Fact]

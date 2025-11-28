@@ -10,6 +10,13 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
+/// <summary>
+/// Handles requests to initiate document verification.
+/// </summary>
+/// <param name="repository">Document repository for data access.</param>
+/// <param name="backgroundJobService">Service for enqueuing background jobs.</param>
+/// <param name="httpContextAccessor">Accessor for HTTP context.</param>
+/// <param name="logger">Logger instance.</param>
 public class RequestVerificationCommandHandler(
     IDocumentRepository repository,
     IBackgroundJobService backgroundJobService,
@@ -89,7 +96,7 @@ public class RequestVerificationCommandHandler(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while requesting verification for document {DocumentId}", command.DocumentId);
-            return Result.Failure(Error.Internal($"Failed to request verification: {ex.Message}"));
+            return Result.Failure(Error.Internal("Failed to request verification. Please try again later."));
         }
     }
 }

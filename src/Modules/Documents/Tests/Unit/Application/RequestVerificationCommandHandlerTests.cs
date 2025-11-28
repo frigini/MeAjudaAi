@@ -206,7 +206,7 @@ public class RequestVerificationCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("Database error");
+        result.Error.Message.Should().Be("Failed to request verification. Please try again later.");
     }
 
     [Fact]

@@ -12,6 +12,14 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
+/// <summary>
+/// Handles document upload commands by generating SAS URLs and persisting document metadata.
+/// </summary>
+/// <param name="documentRepository">Document repository for data access.</param>
+/// <param name="blobStorageService">Service for blob storage operations.</param>
+/// <param name="backgroundJobService">Service for enqueuing background jobs.</param>
+/// <param name="httpContextAccessor">Accessor for HTTP context.</param>
+/// <param name="logger">Logger instance.</param>
 public class UploadDocumentCommandHandler(
     IDocumentRepository documentRepository,
     IBlobStorageService blobStorageService,
@@ -133,7 +141,7 @@ public class UploadDocumentCommandHandler(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while uploading document for provider {ProviderId}", command.ProviderId);
-            throw new InvalidOperationException($"Failed to upload document: {ex.Message}", ex);
+            throw new InvalidOperationException("Failed to upload document. Please try again later.", ex);
         }
     }
 }
