@@ -191,7 +191,7 @@ public class RequestVerificationCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrows_ShouldPropagateException()
+    public async Task HandleAsync_WhenRepositoryThrows_ShouldReturnFailureResult()
     {
         // Arrange
         var documentId = Guid.NewGuid();
@@ -200,9 +200,13 @@ public class RequestVerificationCommandHandlerTests
 
         var command = new RequestVerificationCommand(documentId);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _handler.HandleAsync(command, CancellationToken.None));
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Message.Should().Contain("Database error");
     }
 
     [Fact]

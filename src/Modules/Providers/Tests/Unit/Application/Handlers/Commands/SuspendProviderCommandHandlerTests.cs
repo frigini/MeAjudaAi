@@ -166,7 +166,8 @@ public sealed class SuspendProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Failed to suspend provider");
+        result.Error.Message.Should().Contain("Failed to suspend provider");
+        result.Error.Message.Should().Contain("Database error");
 
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
