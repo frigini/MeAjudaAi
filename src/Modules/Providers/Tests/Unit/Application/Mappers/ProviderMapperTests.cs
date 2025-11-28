@@ -256,6 +256,7 @@ public class ProviderMapperTests
         qualification.IssuingOrganization.Should().Be("Health Ministry");
         qualification.IssueDate.Should().Be(issueDate);
         qualification.ExpirationDate.Should().Be(expirationDate);
+        qualification.DocumentNumber.Should().Be("CERT-12345");
     }
 
     [Fact]
