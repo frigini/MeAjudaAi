@@ -108,7 +108,7 @@ jobs:
           dotnet test src/Modules/ServiceCatalogs/Tests/MeAjudaAi.Modules.ServiceCatalogs.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/ServiceCatalogs
-          
+
           # Executar testes E2E
           echo "🔍 Executando testes E2E..."
           dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \

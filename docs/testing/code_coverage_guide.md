@@ -262,7 +262,7 @@ Use o script automatizado:
 ```
 
 **Saída exemplo**:
-```
+```text
 📋 COMMAND/QUERY HANDLERS SEM TESTES
 Module    Handler                   Type
 ------    -------                   ----

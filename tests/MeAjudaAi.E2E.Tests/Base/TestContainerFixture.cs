@@ -291,15 +291,22 @@ public class TestContainerFixture : IAsyncLifetime
     private static async Task CleanupContext<TContext>(IServiceProvider services) where TContext : DbContext
     {
         var context = services.GetRequiredService<TContext>();
-        
+
         // Delete all data but keep schema
         foreach (var entityType in context.Model.GetEntityTypes())
         {
             var tableName = entityType.GetTableName();
+            var schema = entityType.GetSchema();
+
             if (!string.IsNullOrEmpty(tableName))
             {
-#pragma warning disable EF1002 // Risk of SQL injection - tableName comes from EF metadata, not user input
-                await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE \"{tableName}\" CASCADE");
+                // Build schema-qualified table name
+                var qualifiedTableName = string.IsNullOrEmpty(schema) || schema == "public"
+                    ? $"\"{tableName}\""
+                    : $"\"{schema}\".\"{tableName}\"";
+
+#pragma warning disable EF1002 // Risk of SQL injection - table/schema names come from EF metadata, not user input
+                await context.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {qualifiedTableName} CASCADE");
 #pragma warning restore EF1002
             }
         }
@@ -308,7 +315,7 @@ public class TestContainerFixture : IAsyncLifetime
     public async ValueTask DisposeAsync()
     {
         ApiClient?.Dispose();
-        
+
         if (_factory != null)
         {
             await _factory.DisposeAsync();
@@ -316,13 +323,13 @@ public class TestContainerFixture : IAsyncLifetime
 
         // Parar containers em paralelo
         var stopTasks = new List<Task>();
-        
+
         if (_postgresContainer != null)
             stopTasks.Add(_postgresContainer.DisposeAsync().AsTask());
-        
+
         if (_redisContainer != null)
             stopTasks.Add(_redisContainer.DisposeAsync().AsTask());
-        
+
         if (_azuriteContainer != null)
             stopTasks.Add(_azuriteContainer.DisposeAsync().AsTask());
 

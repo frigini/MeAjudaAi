@@ -15,7 +15,7 @@
 
 ### Arquitetura Atual (TestContainers)
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                  TestContainerTestBase                       │
 │                    (Base Abstrata)                          │
