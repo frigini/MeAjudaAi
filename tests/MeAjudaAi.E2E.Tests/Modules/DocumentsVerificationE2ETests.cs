@@ -86,7 +86,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         var uploadRequest = new
         {
             ProviderId = providerId,
-            DocumentType = (int)EDocumentType.IdentityDocument,
+            DocumentType = EDocumentType.IdentityDocument,
             FileName = "verification_test.pdf",
             ContentType = "application/pdf",
             FileSizeBytes = 1024L
@@ -95,11 +95,9 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         AuthenticateAsAdmin(); // POST upload requer autorização
         var uploadResponse = await ApiClient.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest, JsonOptions);
 
-        if (!uploadResponse.IsSuccessStatusCode)
-        {
-            var errorContent = await uploadResponse.Content.ReadAsStringAsync();
-            throw new Exception($"Document upload failed with {uploadResponse.StatusCode}: {errorContent}");
-        }
+        var errorContent = await uploadResponse.Content.ReadAsStringAsync();
+        uploadResponse.IsSuccessStatusCode.Should().BeTrue(
+            because: $"Document upload should succeed, but got {uploadResponse.StatusCode}: {errorContent}");
 
         uploadResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
 
