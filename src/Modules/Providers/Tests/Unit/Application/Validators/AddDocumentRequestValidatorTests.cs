@@ -35,7 +35,7 @@ public class AddDocumentRequestValidatorTests
     [InlineData("")]
     [InlineData(null)]
     [InlineData("   ")]
-    public async Task Validate_WithEmptyNumber_ShouldHaveValidationError(string number)
+    public async Task Validate_WithEmptyNumber_ShouldHaveValidationError(string? number)
     {
         // Arrange
         var request = new AddDocumentRequest

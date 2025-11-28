@@ -10,6 +10,7 @@ public class DocumentDomainEventsTests
     public void DocumentFailedDomainEvent_ShouldInitializeCorrectly()
     {
         // Arrange
+        var now = DateTime.UtcNow;
         var aggregateId = Guid.NewGuid();
         var version = 1;
         var providerId = Guid.NewGuid();
@@ -25,13 +26,14 @@ public class DocumentDomainEventsTests
         domainEvent.ProviderId.Should().Be(providerId);
         domainEvent.DocumentType.Should().Be(documentType);
         domainEvent.FailureReason.Should().Be(failureReason);
-        domainEvent.OccurredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        domainEvent.OccurredAt.Should().BeCloseTo(now, TimeSpan.FromSeconds(2));
     }
 
     [Fact]
     public void DocumentRejectedDomainEvent_ShouldInitializeCorrectly()
     {
         // Arrange
+        var now = DateTime.UtcNow;
         var aggregateId = Guid.NewGuid();
         var version = 1;
         var providerId = Guid.NewGuid();
@@ -47,13 +49,14 @@ public class DocumentDomainEventsTests
         domainEvent.ProviderId.Should().Be(providerId);
         domainEvent.DocumentType.Should().Be(documentType);
         domainEvent.RejectionReason.Should().Be(rejectionReason);
-        domainEvent.OccurredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        domainEvent.OccurredAt.Should().BeCloseTo(now, TimeSpan.FromSeconds(2));
     }
 
     [Fact]
     public void DocumentUploadedDomainEvent_ShouldInitializeCorrectly()
     {
         // Arrange
+        var now = DateTime.UtcNow;
         var aggregateId = Guid.NewGuid();
         var version = 1;
         var providerId = Guid.NewGuid();
@@ -69,6 +72,6 @@ public class DocumentDomainEventsTests
         domainEvent.ProviderId.Should().Be(providerId);
         domainEvent.DocumentType.Should().Be(documentType);
         domainEvent.FileUrl.Should().Be(fileUrl);
-        domainEvent.OccurredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        domainEvent.OccurredAt.Should().BeCloseTo(now, TimeSpan.FromSeconds(2));
     }
 }

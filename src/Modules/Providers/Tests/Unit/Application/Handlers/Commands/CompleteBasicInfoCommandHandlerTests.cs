@@ -55,7 +55,7 @@ public sealed class CompleteBasicInfoCommandHandlerTests
     {
         // Arrange
         var providerId = Guid.NewGuid();
-        var command = new CompleteBasicInfoCommand(providerId);
+        var command = new CompleteBasicInfoCommand(providerId, "admin@test.com");
 
         _mockRepository.Setup(r => r.GetByIdAsync(It.Is<Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
@@ -79,7 +79,7 @@ public sealed class CompleteBasicInfoCommandHandlerTests
             .WithId(providerId)
             .Build();
 
-        var command = new CompleteBasicInfoCommand(providerId);
+        var command = new CompleteBasicInfoCommand(providerId, "admin@test.com");
 
         _mockRepository.Setup(r => r.GetByIdAsync(It.Is<Domain.ValueObjects.ProviderId>(p => p.Value == providerId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
