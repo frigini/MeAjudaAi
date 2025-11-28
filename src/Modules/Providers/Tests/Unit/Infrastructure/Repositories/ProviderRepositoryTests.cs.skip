@@ -1,0 +1,397 @@
+using Bogus;
+using FluentAssertions;
+using MeAjudaAi.Modules.Providers.Domain.Entities;
+using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Repositories;
+using MeAjudaAi.Shared.Time;
+using Microsoft.EntityFrameworkCore;
+
+namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Repositories;
+
+/// <summary>
+/// Testes unitários para ProviderRepository.
+/// Verifica operações CRUD e consultas específicas usando InMemory database.
+/// </summary>
+public class ProviderRepositoryTests : IDisposable
+{
+    private readonly ProvidersDbContext _context;
+    private readonly IProviderRepository _repository;
+    private readonly Faker _faker;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public ProviderRepositoryTests()
+    {
+        var options = new DbContextOptionsBuilder<ProvidersDbContext>()
+            .UseInMemoryDatabase(databaseName: $"ProvidersTestDb_{Guid.NewGuid()}")
+            .Options;
+
+        _context = new ProvidersDbContext(options);
+        _repository = new ProviderRepository(_context);
+        _dateTimeProvider = new UtcDateTimeProvider();
+        _faker = new Faker();
+    }
+
+    private Provider CreateTestProvider(
+        string? name = null,
+        string? city = null,
+        string? state = null,
+        EProviderType? type = null,
+        string? document = null)
+    {
+        var provider = Provider.Create(
+            Guid.NewGuid(),
+            name ?? _faker.Company.CompanyName(),
+            new ContactInfo(
+                _faker.Phone.PhoneNumber(),
+                _faker.Internet.Email()
+            ),
+            new Address(
+                _faker.Address.StreetAddress(),
+                _faker.Random.Number(1, 9999).ToString(),
+                null,
+                _faker.Address.City(),
+                city ?? _faker.Address.City(),
+                state ?? _faker.Address.StateAbbr(),
+                _faker.Address.ZipCode()
+            ),
+            type ?? EProviderType.Individual,
+            document ?? _faker.Random.ReplaceNumbers("###########"),
+            _dateTimeProvider
+        );
+
+        return provider;
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_WithExistingProvider_ShouldReturnProvider()
+    {
+        // Arrange
+        var provider = CreateTestProvider();
+        await _context.Providers.AddAsync(provider);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _repository.GetByIdAsync(provider.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(provider.Id);
+        result.Name.Should().Be(provider.Name);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_WithNonExistingProvider_ShouldReturnNull()
+    {
+        // Arrange
+        var nonExistingId = new ProviderId(Guid.NewGuid());
+
+        // Act
+        var result = await _repository.GetByIdAsync(nonExistingId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_WithDeletedProvider_ShouldReturnNull()
+    {
+        // Arrange
+        var provider = CreateTestProvider();
+        await _context.Providers.AddAsync(provider);
+        await _context.SaveChangesAsync();
+
+        provider.MarkAsDeleted();
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _repository.GetByIdAsync(provider.Id);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetByIdsAsync_WithMultipleIds_ShouldReturnMatchingProviders()
+    {
+        // Arrange
+        var provider1 = CreateTestProvider();
+        var provider2 = CreateTestProvider();
+        var provider3 = CreateTestProvider();
+
+        await _context.Providers.AddRangeAsync(provider1, provider2, provider3);
+        await _context.SaveChangesAsync();
+
+        var ids = new List<Guid> { provider1.Id.Value, provider2.Id.Value };
+
+        // Act
+        var result = await _repository.GetByIdsAsync(ids);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().Contain(p => p.Id == provider1.Id);
+        result.Should().Contain(p => p.Id == provider2.Id);
+        result.Should().NotContain(p => p.Id == provider3.Id);
+    }
+
+    [Fact]
+    public async Task GetByIdsAsync_WithEmptyList_ShouldReturnEmptyList()
+    {
+        // Arrange
+        var emptyIds = new List<Guid>();
+
+        // Act
+        var result = await _repository.GetByIdsAsync(emptyIds);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_WithExistingUserId_ShouldReturnProvider()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var provider = Provider.Create(
+            userId,
+            _faker.Company.CompanyName(),
+            new ContactInfo(_faker.Phone.PhoneNumber(), _faker.Internet.Email()),
+            new Address(
+                _faker.Address.StreetAddress(),
+                _faker.Random.Number(1, 9999).ToString(),
+                null,
+                _faker.Address.City(),
+                _faker.Address.City(),
+                _faker.Address.StateAbbr(),
+                _faker.Address.ZipCode()
+            ),
+            EProviderType.Individual,
+            _faker.Random.ReplaceNumbers("###########"),
+            _dateTimeProvider
+        );
+
+        await _context.Providers.AddAsync(provider);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _repository.GetByUserIdAsync(userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.UserId.Should().Be(userId);
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_WithNonExistingUserId_ShouldReturnNull()
+    {
+        // Arrange
+        var nonExistingUserId = Guid.NewGuid();
+
+        // Act
+        var result = await _repository.GetByUserIdAsync(nonExistingUserId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetByDocumentAsync_WithExistingDocument_ShouldReturnProvider()
+    {
+        // Arrange
+        var document = "12345678900";
+        var provider = CreateTestProvider(document: document);
+        await _context.Providers.AddAsync(provider);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _repository.GetByDocumentAsync(document);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Document.Should().Be(document);
+    }
+
+    [Fact]
+    public async Task GetByDocumentAsync_WithNonExistingDocument_ShouldReturnNull()
+    {
+        // Arrange
+        var nonExistingDocument = "99999999999";
+
+        // Act
+        var result = await _repository.GetByDocumentAsync(nonExistingDocument);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetByCityAsync_WithMatchingCity_ShouldReturnProviders()
+    {
+        // Arrange
+        var city = "São Paulo";
+        var provider1 = CreateTestProvider(city: city);
+        var provider2 = CreateTestProvider(city: city);
+        var provider3 = CreateTestProvider(city: "Rio de Janeiro");
+
+        await _context.Providers.AddRangeAsync(provider1, provider2, provider3);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _repository.GetByCityAsync(city);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().Contain(p => p.Id == provider1.Id);
+        result.Should().Contain(p => p.Id == provider2.Id);
+        result.Should().NotContain(p => p.Id == provider3.Id);
+    }
+
+    [Fact]
+    public async Task GetByCityAsync_WithNoMatches_ShouldReturnEmptyList()
+    {
+        // Arrange
+        var city = "Cidade Inexistente";
+
+        // Act
+        var result = await _repository.GetByCityAsync(city);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetByStateAsync_WithMatchingState_ShouldReturnProviders()
+    {
+        // Arrange
+        var state = "SP";
+        var provider1 = CreateTestProvider(state: state);
+        var provider2 = CreateTestProvider(state: state);
+        var provider3 = CreateTestProvider(state: "RJ");
+
+        await _context.Providers.AddRangeAsync(provider1, provider2, provider3);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _repository.GetByStateAsync(state);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().Contain(p => p.Id == provider1.Id);
+        result.Should().Contain(p => p.Id == provider2.Id);
+        result.Should().NotContain(p => p.Id == provider3.Id);
+    }
+
+    [Fact]
+    public async Task GetByTypeAsync_WithMatchingType_ShouldReturnProviders()
+    {
+        // Arrange
+        var provider1 = CreateTestProvider(type: EProviderType.Individual);
+        var provider2 = CreateTestProvider(type: EProviderType.Individual);
+        var provider3 = CreateTestProvider(type: EProviderType.Company);
+
+        await _context.Providers.AddRangeAsync(provider1, provider2, provider3);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _repository.GetByTypeAsync(EProviderType.Individual);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().Contain(p => p.Id == provider1.Id);
+        result.Should().Contain(p => p.Id == provider2.Id);
+        result.Should().NotContain(p => p.Id == provider3.Id);
+    }
+
+    [Fact]
+    public async Task ExistsByUserIdAsync_WithExistingUserId_ShouldReturnTrue()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var provider = Provider.Create(
+            userId,
+            _faker.Company.CompanyName(),
+            new ContactInfo(_faker.Phone.PhoneNumber(), _faker.Internet.Email()),
+            new Address(
+                _faker.Address.StreetAddress(),
+                _faker.Random.Number(1, 9999).ToString(),
+                null,
+                _faker.Address.City(),
+                _faker.Address.City(),
+                _faker.Address.StateAbbr(),
+                _faker.Address.ZipCode()
+            ),
+            EProviderType.Individual,
+            _faker.Random.ReplaceNumbers("###########"),
+            _dateTimeProvider
+        );
+
+        await _context.Providers.AddAsync(provider);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _repository.ExistsByUserIdAsync(userId);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ExistsByUserIdAsync_WithNonExistingUserId_ShouldReturnFalse()
+    {
+        // Arrange
+        var nonExistingUserId = Guid.NewGuid();
+
+        // Act
+        var result = await _repository.ExistsByUserIdAsync(nonExistingUserId);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task AddAsync_WithValidProvider_ShouldAddAndPersist()
+    {
+        // Arrange
+        var provider = CreateTestProvider();
+
+        // Act
+        await _repository.AddAsync(provider);
+
+        // Assert
+        var persisted = await _context.Providers.FindAsync(provider.Id);
+        persisted.Should().NotBeNull();
+        persisted!.Name.Should().Be(provider.Name);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithValidProvider_ShouldPersistChanges()
+    {
+        // Arrange
+        var provider = CreateTestProvider(name: "Original Name");
+        await _context.Providers.AddAsync(provider);
+        await _context.SaveChangesAsync();
+
+        // Modify the provider
+        var newName = "Updated Name";
+        provider.UpdateBasicInfo(
+            newName,
+            provider.ContactInfo,
+            provider.Address
+        );
+
+        // Act
+        await _repository.UpdateAsync(provider);
+
+        // Assert
+        var updated = await _context.Providers.FindAsync(provider.Id);
+        updated.Should().NotBeNull();
+        updated!.Name.Should().Be(newName);
+    }
+
+    public void Dispose()
+    {
+        _context?.Dispose();
+    }
+}
