@@ -55,9 +55,9 @@ public class GetProvidersQueryHandler(
 
             var result = new PagedResult<ProviderDto>(
                 providerDtos,
-                providers.TotalCount,
                 query.Page,
-                query.PageSize);
+                query.PageSize,
+                providers.TotalCount);
 
             logger.LogInformation(
                 "Busca de prestadores concluída - Total: {Total}, Página atual: {Page}/{TotalPages}",
