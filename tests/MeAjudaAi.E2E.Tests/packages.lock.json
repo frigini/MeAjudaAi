@@ -1761,6 +1761,27 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0-rc.2, )"
         }
       },
+      "meajudaai.modules.documents.tests": {
+        "type": "Project",
+        "dependencies": {
+          "AutoFixture": "[4.18.1, )",
+          "AutoFixture.AutoMoq": "[4.18.1, )",
+          "Bogus": "[35.6.4, )",
+          "FluentAssertions": "[8.6.0, )",
+          "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
+          "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Documents.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.Documents.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Shared.Tests": "[1.0.0, )",
+          "Microsoft.AspNetCore.Mvc.Testing": "[10.0.0, )",
+          "Microsoft.EntityFrameworkCore.InMemory": "[10.0.0-rc.2.25502.107, )",
+          "Microsoft.NET.Test.Sdk": "[18.0.1, )",
+          "Moq": "[4.20.72, )",
+          "Respawn": "[6.2.1, )",
+          "Testcontainers.PostgreSql": "[4.7.0, )",
+          "xunit.v3": "[3.1.0, )"
+        }
+      },
       "meajudaai.modules.locations.application": {
         "type": "Project",
         "dependencies": {

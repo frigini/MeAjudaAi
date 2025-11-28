@@ -1,5 +1,7 @@
 using Bogus;
+using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
@@ -163,6 +165,13 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         services.Remove(keycloakDescriptor);
 
                     services.AddScoped<IKeycloakService, MockKeycloakService>();
+
+                    // Substituir IBlobStorageService por MockBlobStorageService para testes
+                    var blobStorageDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IBlobStorageService));
+                    if (blobStorageDescriptor != null)
+                        services.Remove(blobStorageDescriptor);
+
+                    services.AddScoped<IBlobStorageService, MockBlobStorageService>();
 
                     // Remove todas as configurações de autenticação existentes
                     var authDescriptors = services

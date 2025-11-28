@@ -64,7 +64,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         var uploadRequest = new
         {
             ProviderId = providerId,
-            DocumentType = 0, // EDocumentType.IdentityDocument
+            DocumentType = 1, // EDocumentType.IdentityDocument
             FileName = "verification_test.pdf",
             ContentType = "application/pdf",
             FileSizeBytes = 1024L
@@ -94,8 +94,9 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
             var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
             uploadContent.Should().NotBeNullOrEmpty("Response body required for document ID");
             using var uploadResult = System.Text.Json.JsonDocument.Parse(uploadContent);
-            uploadResult.RootElement.TryGetProperty("data", out var dataProperty).Should().BeTrue();
-            dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
+            
+            // Response is UploadDocumentResponse directly, not wrapped in "data"
+            uploadResult.RootElement.TryGetProperty("documentId", out var idProperty).Should().BeTrue();
             documentId = idProperty.GetGuid();
         }
 
@@ -126,21 +127,21 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         var statusContent = await statusResponse.Content.ReadAsStringAsync();
         statusContent.Should().NotBeNullOrEmpty();
 
-        // Parse JSON e verifica o campo status
+        // Parse JSON - DocumentDto é retornado diretamente, não wrapped em "data"
         using var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
 
-        statusResult.RootElement.TryGetProperty("data", out var statusDataProperty)
-            .Should().BeTrue("Response should contain 'data' property");
+        statusResult.RootElement.TryGetProperty("status", out var statusProperty)
+            .Should().BeTrue("Response should contain 'status' property");
 
-        statusDataProperty.TryGetProperty("status", out var statusProperty)
-            .Should().BeTrue("Data property should contain 'status' field");
+        // Status pode ser string ou número dependendo da serialização JSON
+        var statusString = statusProperty.GetString();
+        statusString.Should().NotBeNullOrEmpty("Status should have a value");
 
-        var status = statusProperty.GetString();
-        status.Should().NotBeNullOrEmpty();
-
-        // Document should be in verification state (case-insensitive)
-        status!.ToLowerInvariant().Should().BeOneOf(
-            "pending", "pendingverification", "verifying");
+        // Document should be in uploaded or pending verification status
+        // EDocumentStatus: Uploaded, PendingVerification, Verified, Rejected, Failed
+        statusString!.ToLowerInvariant().Should().BeOneOf(
+            "uploaded", "pendingverification",
+            "Document should be Uploaded or PendingVerification after upload");
     }
 
     [Fact]
