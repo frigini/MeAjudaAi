@@ -94,10 +94,21 @@ jobs:
           dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/Integration
-          # Executar testes de módulos (Users, etc)
+          # Executar testes de módulos
+          echo "🧪 Executando testes de módulos..."
           dotnet test src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/Users
+          dotnet test src/Modules/Documents/Tests/MeAjudaAi.Modules.Documents.Tests.csproj \
+            --configuration Release --no-build --verbosity normal \
+            --collect:"XPlat Code Coverage" --results-directory TestResults/Documents
+          dotnet test src/Modules/Providers/Tests/MeAjudaAi.Modules.Providers.Tests.csproj \
+            --configuration Release --no-build --verbosity normal \
+            --collect:"XPlat Code Coverage" --results-directory TestResults/Providers
+          dotnet test src/Modules/ServiceCatalogs/Tests/MeAjudaAi.Modules.ServiceCatalogs.Tests.csproj \
+            --configuration Release --no-build --verbosity normal \
+            --collect:"XPlat Code Coverage" --results-directory TestResults/ServiceCatalogs
+          
           # Executar testes E2E
           echo "🔍 Executando testes E2E..."
           dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \

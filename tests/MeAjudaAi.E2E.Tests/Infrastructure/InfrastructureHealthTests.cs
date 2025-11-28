@@ -5,16 +5,28 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.E2E.Tests.Infrastructure;
 
 /// <summary>
-/// Testes de saúde da infraestrutura TestContainers
-/// Valida se PostgreSQL, Redis e API estão funcionando corretamente
+/// Testes de saúde da infraestrutura TestContainers.
+/// Valida se PostgreSQL, Redis e API estão funcionando corretamente.
+/// 
+/// MIGRADO PARA IClassFixture: Compartilha containers entre todos os testes desta classe.
+/// Reduz overhead de ~18s (3 testes × 6s) para ~6s (1× setup).
 /// </summary>
-public class InfrastructureHealthTests : TestContainerTestBase
+public class InfrastructureHealthTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+    private readonly HttpClient _apiClient;
+
+    public InfrastructureHealthTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+        _apiClient = fixture.ApiClient;
+    }
+
     [Fact]
     public async Task Api_Should_Respond_To_Health_Check()
     {
         // Act
-        var response = await ApiClient.GetAsync("/health");
+        var response = await _apiClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -23,20 +35,17 @@ public class InfrastructureHealthTests : TestContainerTestBase
     [Fact]
     public async Task Database_Should_Be_Available_And_Migrated()
     {
-        // Act & Assert
-        await WithServiceScopeAsync(async services =>
-        {
-            var dbContext = services.GetRequiredService<UsersDbContext>();
+        // Arrange
+        using var scope = _fixture.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
-            // Verificar se consegue se conectar ao banco
-            var canConnect = await dbContext.Database.CanConnectAsync();
-            canConnect.Should().BeTrue("Database should be reachable");
+        // Act
+        var canConnect = await dbContext.Database.CanConnectAsync();
+        var usersCount = await dbContext.Users.CountAsync();
 
-            // Verificar se a tabela users existe testando uma query simples
-            var usersCount = await dbContext.Users.CountAsync();
-            // Se chegou até aqui sem erro, a tabela existe e está funcionando
-            usersCount.Should().BeGreaterThanOrEqualTo(0);
-        });
+        // Assert
+        canConnect.Should().BeTrue("Database should be reachable");
+        usersCount.Should().BeGreaterThanOrEqualTo(0, "Users table should exist");
     }
 
     [Fact]
@@ -46,9 +55,10 @@ public class InfrastructureHealthTests : TestContainerTestBase
         // A API deve conseguir inicializar com o Redis configurado
 
         // Act
-        var response = await ApiClient.GetAsync("/health");
+        var response = await _apiClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK, "API should start successfully with Redis configured");
     }
 }
+
