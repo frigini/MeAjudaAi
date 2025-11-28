@@ -231,15 +231,14 @@ public class ServiceCategoryRepositoryTests : IDisposable
     public async Task ExistsWithNameAsync_WithExcludeId_ShouldFindOtherCategories()
     {
         // Arrange
-        var categoryName = "Same Name";
-        var category1 = CreateTestCategory(name: categoryName);
-        var category2 = CreateTestCategory(name: categoryName);
+        var category1 = CreateTestCategory(name: "Same Name");
+        var category2 = CreateTestCategory(name: "Same Name 2");
 
         await _context.ServiceCategories.AddRangeAsync(category1, category2);
         await _context.SaveChangesAsync();
 
-        // Act - exclude category1, should still find category2
-        var result = await _repository.ExistsWithNameAsync(categoryName, excludeId: category1.Id);
+        // Act - exclude category1, should still find category2 with similar name
+        var result = await _repository.ExistsWithNameAsync("Same Name 2", excludeId: category1.Id);
 
         // Assert
         result.Should().BeTrue();

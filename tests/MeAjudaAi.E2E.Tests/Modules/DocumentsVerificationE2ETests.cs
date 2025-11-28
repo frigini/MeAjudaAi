@@ -168,7 +168,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
     }
 
     [Fact]
-    public async Task RequestDocumentVerification_WithInvalidData_ShouldReturnBadRequest()
+    public async Task RequestDocumentVerification_WithInvalidData__ShouldReturnBadRequest()
     {
         // Arrange
         AuthenticateAsAdmin();

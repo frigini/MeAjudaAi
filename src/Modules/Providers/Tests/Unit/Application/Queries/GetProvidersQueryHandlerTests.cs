@@ -32,9 +32,9 @@ public class GetProvidersQueryHandlerTests
         // Arrange
         var providers = new List<Provider>
         {
-            ProviderBuilder.Create().WithName("Provider 1"),
-            ProviderBuilder.Create().WithName("Provider 2"),
-            ProviderBuilder.Create().WithName("Provider 3")
+            ProviderBuilder.Create().WithName("Provider A").Build(),
+            ProviderBuilder.Create().WithName("Provider B").Build(),
+            ProviderBuilder.Create().WithName("Provider C").Build()
         };
 
         var pagedProviders = new PagedResult<Provider>(providers, 1, 10, 3);

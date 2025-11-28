@@ -169,7 +169,7 @@ public class SearchableProviderRepositoryTests : IDisposable
         // Assert
         var persisted = await _context.SearchableProviders
             .FirstOrDefaultAsync(p => p.ProviderId == providerId);
-        
+
         persisted.Should().NotBeNull();
         persisted!.ProviderId.Should().Be(providerId);
     }
@@ -215,7 +215,7 @@ public class SearchableProviderRepositoryTests : IDisposable
         // Assert
         var updated = await _context.SearchableProviders
             .FirstOrDefaultAsync(p => p.ProviderId == providerId);
-        
+
         updated.Should().NotBeNull();
         updated!.Name.Should().Be("Updated Name");
     }
@@ -252,7 +252,7 @@ public class SearchableProviderRepositoryTests : IDisposable
         // Assert
         var deleted = await _context.SearchableProviders
             .FirstOrDefaultAsync(p => p.ProviderId == providerId);
-        
+
         deleted.Should().BeNull();
     }
 
@@ -330,7 +330,7 @@ public class SearchableProviderRepositoryTests : IDisposable
         // Assert
         var updated = await _context.SearchableProviders
             .FirstOrDefaultAsync(p => p.ProviderId == providerId);
-        
+
         updated.Should().NotBeNull();
         updated!.Location.Latitude.Should().BeApproximately(newLocation.Latitude, 0.0001);
         updated.Location.Longitude.Should().BeApproximately(newLocation.Longitude, 0.0001);
@@ -356,7 +356,7 @@ public class SearchableProviderRepositoryTests : IDisposable
         // Assert
         var updated = await _context.SearchableProviders
             .FirstOrDefaultAsync(p => p.ProviderId == providerId);
-        
+
         updated.Should().NotBeNull();
         updated!.AverageRating.Should().Be(4.5m);
         updated.TotalReviews.Should().Be(100);
@@ -389,7 +389,7 @@ public class SearchableProviderRepositoryTests : IDisposable
         // Assert
         var activated = await _context.SearchableProviders
             .FirstOrDefaultAsync(p => p.ProviderId == providerId);
-        
+
         activated!.IsActive.Should().BeTrue();
     }
 
