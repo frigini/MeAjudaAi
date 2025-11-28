@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.Modules.Documents.Domain.Enums;
 
 namespace MeAjudaAi.E2E.Tests.Modules;
 
@@ -18,7 +19,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         var delay = 100; // Start with 100ms
         for (var attempt = 0; attempt < maxAttempts; attempt++)
         {
-            var response = await HttpClient.GetAsync($"/api/v1/providers/{providerId}");
+            var response = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
             if (response.IsSuccessStatusCode)
             {
                 return;
@@ -85,7 +86,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         var uploadRequest = new
         {
             ProviderId = providerId,
-            DocumentType = 1, // EDocumentType.IdentityDocument
+            DocumentType = (int)EDocumentType.IdentityDocument,
             FileName = "verification_test.pdf",
             ContentType = "application/pdf",
             FileSizeBytes = 1024L
