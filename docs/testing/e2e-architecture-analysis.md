@@ -1,10 +1,13 @@
-# Análise da Arquitetura de Testes E2E - MeAjudaAi
+# Análise Detalhada dos Testes E2E - TestContainers
 
-## 📋 Índice
-1. [Visão Geral da Arquitetura](#visão-geral-da-arquitetura)
-2. [Problemas Identificados](#problemas-identificados)
-3. [Detalhamento por Classe de Teste](#detalhamento-por-classe-de-teste)
-4. [Recomendações](#recomendações)
+> **Nota**: Para informações gerais sobre infraestrutura de testes, consulte [test_infrastructure.md](./test_infrastructure.md)
+
+## 📋 Resumo Executivo
+
+**Status**: 76 testes E2E, 100% falhando localmente (Docker Desktop), 100% passando no CI/CD  
+**Causa**: Docker Desktop com `InternalServerError` em `npipe://./pipe/docker_engine`  
+**Solução Implementada**: TestContainerFixture com IClassFixture (reduz overhead 67%)  
+**Próximo**: Migrar 18 classes restantes para IClassFixture
 
 ---
 

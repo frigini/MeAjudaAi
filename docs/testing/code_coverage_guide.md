@@ -200,3 +200,102 @@ env:
 - [CodeCoverageSummary Action](https://github.com/irongut/CodeCoverageSummary)
 - [OpenCover Documentation](https://github.com/OpenCover/opencover)
 - [Coverage Best Practices](../development.md#-diretrizes-de-testes)
+
+---
+
+## 🔍 Análise: CI/CD vs Local Coverage
+
+### Discrepância Identificada
+
+**Pipeline (CI/CD)**: 35.11%  
+**Local**: 21%  
+**Diferença**: +14.11pp
+
+### Por Que a Diferença?
+
+#### Pipeline Executa MAIS Testes
+```yaml
+# ci-cd.yml - 8 suítes de testes
+1. MeAjudaAi.Shared.Tests ✅
+2. MeAjudaAi.Architecture.Tests ✅
+3. MeAjudaAi.Integration.Tests ✅
+4. MeAjudaAi.Modules.Users.Tests ✅
+5. MeAjudaAi.Modules.Documents.Tests ✅
+6. MeAjudaAi.Modules.Providers.Tests ✅
+7. MeAjudaAi.Modules.ServiceCatalogs.Tests ✅
+8. MeAjudaAi.E2E.Tests ✅ (76 testes)
+```
+
+#### Local Falha em E2E
+- **Problema**: Docker Desktop com `InternalServerError`
+- **Impacto**: -10-12pp coverage (E2E tests não rodam)
+- **Solução**: Ver [test_infrastructure.md - Bloqueios Conhecidos](./test_infrastructure.md#-implementado-otimização-iclassfixture)
+
+### Como Replicar Coverage da Pipeline Localmente
+
+```powershell
+# 1. Garantir Docker Desktop funcionando
+docker version
+docker ps
+
+# 2. Rodar TODAS as suítes (igual pipeline)
+dotnet test --collect:"XPlat Code Coverage" --results-directory TestResults
+
+# 3. Gerar relatório agregado
+reportgenerator `
+  -reports:"TestResults/**/coverage.cobertura.xml" `
+  -targetdir:"TestResults/Coverage" `
+  -reporttypes:"Html;Cobertura" `
+  -assemblyfilters:"-*.Tests*" `
+  -classfilters:"-*.Migrations*"
+
+# 4. Abrir relatório
+start TestResults/Coverage/index.html
+```
+
+### Identificar Gaps de Coverage
+
+Use o script automatizado:
+
+```powershell
+.\scripts\find-coverage-gaps.ps1
+```
+
+**Saída exemplo**:
+```
+📋 COMMAND/QUERY HANDLERS SEM TESTES
+Module    Handler                   Type
+------    -------                   ----
+Providers GetProvidersQueryHandler  Query
+
+💎 VALUE OBJECTS SEM TESTES
+Module    ValueObject
+------    -----------
+Providers Address
+
+🗄️ REPOSITORIES SEM TESTES
+Module          Repository
+------          ----------
+Documents       DocumentRepository
+
+📊 RESUMO: 8 gaps total (+4.4pp estimado)
+```
+
+### Roadmap para 70% Coverage
+
+**Atual**: 35.11%  
+**Meta Sprint 1**: 55% (+20pp)  
+**Meta Sprint 2**: 70% (+15pp)
+
+**Estratégia Sprint 1** (Quick Wins):
+1. ✅ Adicionar módulos faltantes ao CI/CD (+5-8pp) - FEITO
+2. Adicionar testes para 8 gaps identificados (+4.4pp)
+3. Adicionar testes para Application layer sem coverage (+10pp)
+4. Adicionar testes para Domain Value Objects (+3pp)
+
+**Estratégia Sprint 2** (Deep Coverage):
+1. Testes de Infrastructure (repositories, external services) (+8pp)
+2. Integration tests complexos (módulos comunicando) (+5pp)
+3. Edge cases e cenários de erro (+2pp)
+
+---
