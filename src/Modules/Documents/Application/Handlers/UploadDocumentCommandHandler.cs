@@ -34,78 +34,78 @@ public class UploadDocumentCommandHandler(
             if (httpContext == null)
                 throw new UnauthorizedAccessException("HTTP context not available");
 
-        var user = httpContext.User;
-        if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-            throw new UnauthorizedAccessException("User is not authenticated");
+            var user = httpContext.User;
+            if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
+                throw new UnauthorizedAccessException("User is not authenticated");
 
-        var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
-        if (string.IsNullOrEmpty(userId))
-            throw new UnauthorizedAccessException("User ID not found in token");
+            var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                throw new UnauthorizedAccessException("User ID not found in token");
 
-        // Check if user matches the provider ID (convert userId to Guid)
-        if (!Guid.TryParse(userId, out var userGuid) || userGuid != command.ProviderId)
-        {
-            // Check if user has admin role
-            var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
-            if (!isAdmin)
+            // Check if user matches the provider ID (convert userId to Guid)
+            if (!Guid.TryParse(userId, out var userGuid) || userGuid != command.ProviderId)
             {
-                _logger.LogWarning(
-                    "User {UserId} attempted to upload document for provider {ProviderId} without authorization",
-                    userId, command.ProviderId);
-                throw new UnauthorizedAccessException(
-                    "You are not authorized to upload documents for this provider");
+                // Check if user has admin role
+                var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
+                if (!isAdmin)
+                {
+                    _logger.LogWarning(
+                        "User {UserId} attempted to upload document for provider {ProviderId} without authorization",
+                        userId, command.ProviderId);
+                    throw new UnauthorizedAccessException(
+                        "You are not authorized to upload documents for this provider");
+                }
             }
-        }
 
-        _logger.LogInformation("Gerando URL de upload para documento do provedor {ProviderId}", command.ProviderId);
+            _logger.LogInformation("Gerando URL de upload para documento do provedor {ProviderId}", command.ProviderId);
 
-        // Validação de tipo de documento com enum definido
-        if (!Enum.TryParse<EDocumentType>(command.DocumentType, true, out var documentType) ||
-            !Enum.IsDefined(typeof(EDocumentType), documentType))
-        {
-            throw new ArgumentException($"Tipo de documento inválido: {command.DocumentType}");
-        }
+            // Validação de tipo de documento com enum definido
+            if (!Enum.TryParse<EDocumentType>(command.DocumentType, true, out var documentType) ||
+                !Enum.IsDefined(typeof(EDocumentType), documentType))
+            {
+                throw new ArgumentException($"Tipo de documento inválido: {command.DocumentType}");
+            }
 
-        // Validação de tamanho de arquivo
-        if (command.FileSizeBytes > 10 * 1024 * 1024) // 10MB
-        {
-            throw new ArgumentException("Arquivo muito grande. Máximo: 10MB");
-        }
+            // Validação de tamanho de arquivo
+            if (command.FileSizeBytes > 10 * 1024 * 1024) // 10MB
+            {
+                throw new ArgumentException("Arquivo muito grande. Máximo: 10MB");
+            }
 
-        // Validação null-safe e tolerante a parâmetros de content-type
-        if (string.IsNullOrWhiteSpace(command.ContentType))
-        {
-            throw new ArgumentException("Content-Type é obrigatório");
-        }
+            // Validação null-safe e tolerante a parâmetros de content-type
+            if (string.IsNullOrWhiteSpace(command.ContentType))
+            {
+                throw new ArgumentException("Content-Type é obrigatório");
+            }
 
-        var mediaType = command.ContentType.Split(';')[0].Trim().ToLowerInvariant();
-        // TODO: Consider making file size limit and allowed types configurable via appsettings.json
-        // when different requirements emerge for different deployment environments
-        var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/jpg", "application/pdf" };
-        if (!allowedContentTypes.Contains(mediaType))
-        {
-            throw new ArgumentException($"Tipo de arquivo não permitido: {mediaType}");
-        }
+            var mediaType = command.ContentType.Split(';')[0].Trim().ToLowerInvariant();
+            // TODO: Consider making file size limit and allowed types configurable via appsettings.json
+            // when different requirements emerge for different deployment environments
+            var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/jpg", "application/pdf" };
+            if (!allowedContentTypes.Contains(mediaType))
+            {
+                throw new ArgumentException($"Tipo de arquivo não permitido: {mediaType}");
+            }
 
-        // Gera nome único do blob
-        var extension = Path.GetExtension(command.FileName);
-        var blobName = $"documents/{command.ProviderId}/{Guid.NewGuid()}{extension}";
+            // Gera nome único do blob
+            var extension = Path.GetExtension(command.FileName);
+            var blobName = $"documents/{command.ProviderId}/{Guid.NewGuid()}{extension}";
 
-        // Gera SAS token para upload direto
-        var (uploadUrl, expiresAt) = await _blobStorageService.GenerateUploadUrlAsync(
-            blobName,
-            command.ContentType,
-            cancellationToken);
+            // Gera SAS token para upload direto
+            var (uploadUrl, expiresAt) = await _blobStorageService.GenerateUploadUrlAsync(
+                blobName,
+                command.ContentType,
+                cancellationToken);
 
-        // Cria registro do documento (status: Uploaded)
-        var document = Document.Create(
-            command.ProviderId,
-            documentType,
-            command.FileName,
-            blobName); // Armazena o nome do blob, não a URL completa com SAS
+            // Cria registro do documento (status: Uploaded)
+            var document = Document.Create(
+                command.ProviderId,
+                documentType,
+                command.FileName,
+                blobName); // Armazena o nome do blob, não a URL completa com SAS
 
-        await _documentRepository.AddAsync(document, cancellationToken);
-        await _documentRepository.SaveChangesAsync(cancellationToken);
+            await _documentRepository.AddAsync(document, cancellationToken);
+            await _documentRepository.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Documento {DocumentId} criado para provedor {ProviderId}",
                 document.Id, command.ProviderId);

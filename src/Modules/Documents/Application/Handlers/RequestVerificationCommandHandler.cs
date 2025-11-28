@@ -28,55 +28,55 @@ public class RequestVerificationCommandHandler(
         {
             // Validar se o documento existe
             var document = await _repository.GetByIdAsync(command.DocumentId, cancellationToken);
-        if (document == null)
-        {
-            _logger.LogWarning("Document {DocumentId} not found for verification request", command.DocumentId);
-            return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found"));
-        }
+            if (document == null)
+            {
+                _logger.LogWarning("Document {DocumentId} not found for verification request", command.DocumentId);
+                return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found"));
+            }
 
-        // Resource-level authorization: user must match the ProviderId or have admin permissions
-        var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null)
-            return Result.Failure(Error.Unauthorized("HTTP context not available"));
+            // Resource-level authorization: user must match the ProviderId or have admin permissions
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null)
+                return Result.Failure(Error.Unauthorized("HTTP context not available"));
 
-        var user = httpContext.User;
-        if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
-            return Result.Failure(Error.Unauthorized("User is not authenticated"));
+            var user = httpContext.User;
+            if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
+                return Result.Failure(Error.Unauthorized("User is not authenticated"));
 
-        var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
-        if (string.IsNullOrEmpty(userId))
-            return Result.Failure(Error.Unauthorized("User ID not found in token"));
+            var userId = user.FindFirst("sub")?.Value ?? user.FindFirst("id")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Result.Failure(Error.Unauthorized("User ID not found in token"));
 
-        // Check if user matches the provider ID
-        if (!Guid.TryParse(userId, out var userGuid) || userGuid != document.ProviderId)
-        {
-            // Check if user has admin role
-            var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
-            if (!isAdmin)
+            // Check if user matches the provider ID
+            if (!Guid.TryParse(userId, out var userGuid) || userGuid != document.ProviderId)
+            {
+                // Check if user has admin role
+                var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
+                if (!isAdmin)
+                {
+                    _logger.LogWarning(
+                        "User {UserId} attempted to request verification for document {DocumentId} owned by provider {ProviderId}",
+                        userId, command.DocumentId, document.ProviderId);
+                    return Result.Failure(Error.Unauthorized(
+                        "You are not authorized to request verification for this document"));
+                }
+            }
+
+            // Check if the document is in a valid state for verification request
+            if (document.Status != EDocumentStatus.Uploaded &&
+                document.Status != EDocumentStatus.Failed)
             {
                 _logger.LogWarning(
-                    "User {UserId} attempted to request verification for document {DocumentId} owned by provider {ProviderId}",
-                    userId, command.DocumentId, document.ProviderId);
-                return Result.Failure(Error.Unauthorized(
-                    "You are not authorized to request verification for this document"));
+                    "Document {DocumentId} cannot be marked for verification in status {Status}",
+                    command.DocumentId, document.Status);
+                return Result.Failure(Error.BadRequest(
+                    $"Document is in {document.Status} status and cannot be marked for verification"));
             }
-        }
 
-        // Check if the document is in a valid state for verification request
-        if (document.Status != EDocumentStatus.Uploaded &&
-            document.Status != EDocumentStatus.Failed)
-        {
-            _logger.LogWarning(
-                "Document {DocumentId} cannot be marked for verification in status {Status}",
-                command.DocumentId, document.Status);
-            return Result.Failure(Error.BadRequest(
-                $"Document is in {document.Status} status and cannot be marked for verification"));
-        }
-
-        // Atualizar status do documento para PendingVerification
-        document.MarkAsPendingVerification();
-        await _repository.UpdateAsync(document, cancellationToken);
-        await _repository.SaveChangesAsync(cancellationToken);
+            // Atualizar status do documento para PendingVerification
+            document.MarkAsPendingVerification();
+            await _repository.UpdateAsync(document, cancellationToken);
+            await _repository.SaveChangesAsync(cancellationToken);
 
             // Enfileirar job de verificação
             await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(

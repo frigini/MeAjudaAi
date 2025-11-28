@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
@@ -8,7 +9,6 @@ using MeAjudaAi.Shared.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Runtime.CompilerServices;
 using Testcontainers.PostgreSql;
 using Xunit;
 

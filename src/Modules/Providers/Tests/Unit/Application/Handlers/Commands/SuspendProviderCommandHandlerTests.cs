@@ -36,7 +36,7 @@ public sealed class SuspendProviderCommandHandlerTests
         var provider = new ProviderBuilder()
             .WithId(providerId)
             .Build();
-        
+
         // Provider precisa estar Active para ser suspenso
         provider.CompleteBasicInfo();
         provider.Activate();

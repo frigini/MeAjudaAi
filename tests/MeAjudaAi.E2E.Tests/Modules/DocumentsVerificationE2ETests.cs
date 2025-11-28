@@ -94,7 +94,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
             var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
             uploadContent.Should().NotBeNullOrEmpty("Response body required for document ID");
             using var uploadResult = System.Text.Json.JsonDocument.Parse(uploadContent);
-            
+
             // Response is UploadDocumentResponse directly, not wrapped in "data"
             uploadResult.RootElement.TryGetProperty("documentId", out var idProperty).Should().BeTrue();
             documentId = idProperty.GetGuid();
