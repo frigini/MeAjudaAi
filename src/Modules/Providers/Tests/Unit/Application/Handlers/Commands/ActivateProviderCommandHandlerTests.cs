@@ -25,7 +25,7 @@ public sealed class ActivateProviderCommandHandlerTests
         _providerRepositoryMock = new Mock<IProviderRepository>();
         _documentsModuleApiMock = new Mock<IDocumentsModuleApi>();
         _loggerMock = new Mock<ILogger<ActivateProviderCommandHandler>>();
-        
+
         _handler = new ActivateProviderCommandHandler(
             _providerRepositoryMock.Object,
             _documentsModuleApiMock.Object,
@@ -40,10 +40,10 @@ public sealed class ActivateProviderCommandHandlerTests
         var provider = new ProviderBuilder()
             .WithId(providerId)
             .Build();
-        
+
         // Provider must be in PendingDocumentVerification to activate
         provider.CompleteBasicInfo("admin@test.com");
-        
+
         var command = new ActivateProviderCommand(providerId, "admin@test.com");
 
         _providerRepositoryMock
@@ -54,15 +54,15 @@ public sealed class ActivateProviderCommandHandlerTests
         _documentsModuleApiMock
             .Setup(x => x.HasRequiredDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
-        
+
         _documentsModuleApiMock
             .Setup(x => x.HasVerifiedDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
-        
+
         _documentsModuleApiMock
             .Setup(x => x.HasPendingDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(false));
-        
+
         _documentsModuleApiMock
             .Setup(x => x.HasRejectedDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(false));
@@ -73,7 +73,7 @@ public sealed class ActivateProviderCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         provider.Status.Should().Be(EProviderStatus.Active);
-        
+
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(provider, It.IsAny<CancellationToken>()),
             Times.Once);
@@ -95,7 +95,7 @@ public sealed class ActivateProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("Provider not found");
-        
+
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -109,7 +109,7 @@ public sealed class ActivateProviderCommandHandlerTests
         var provider = new ProviderBuilder()
             .WithId(providerId)
             .Build();
-        
+
         var command = new ActivateProviderCommand(providerId, "admin@test.com");
 
         _providerRepositoryMock
@@ -126,7 +126,7 @@ public sealed class ActivateProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("must have all required documents");
-        
+
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -140,7 +140,7 @@ public sealed class ActivateProviderCommandHandlerTests
         var provider = new ProviderBuilder()
             .WithId(providerId)
             .Build();
-        
+
         var command = new ActivateProviderCommand(providerId, "admin@test.com");
 
         _providerRepositoryMock
@@ -150,7 +150,7 @@ public sealed class ActivateProviderCommandHandlerTests
         _documentsModuleApiMock
             .Setup(x => x.HasRequiredDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
-        
+
         _documentsModuleApiMock
             .Setup(x => x.HasVerifiedDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(false));
@@ -161,7 +161,7 @@ public sealed class ActivateProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("must have verified documents");
-        
+
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -175,7 +175,7 @@ public sealed class ActivateProviderCommandHandlerTests
         var provider = new ProviderBuilder()
             .WithId(providerId)
             .Build();
-        
+
         var command = new ActivateProviderCommand(providerId, "admin@test.com");
 
         _providerRepositoryMock
@@ -185,11 +185,11 @@ public sealed class ActivateProviderCommandHandlerTests
         _documentsModuleApiMock
             .Setup(x => x.HasRequiredDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
-        
+
         _documentsModuleApiMock
             .Setup(x => x.HasVerifiedDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
-        
+
         _documentsModuleApiMock
             .Setup(x => x.HasPendingDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
@@ -200,7 +200,7 @@ public sealed class ActivateProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("pending verification");
-        
+
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -214,7 +214,7 @@ public sealed class ActivateProviderCommandHandlerTests
         var provider = new ProviderBuilder()
             .WithId(providerId)
             .Build();
-        
+
         var command = new ActivateProviderCommand(providerId, "admin@test.com");
 
         _providerRepositoryMock
@@ -224,15 +224,15 @@ public sealed class ActivateProviderCommandHandlerTests
         _documentsModuleApiMock
             .Setup(x => x.HasRequiredDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
-        
+
         _documentsModuleApiMock
             .Setup(x => x.HasVerifiedDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
-        
+
         _documentsModuleApiMock
             .Setup(x => x.HasPendingDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(false));
-        
+
         _documentsModuleApiMock
             .Setup(x => x.HasRejectedDocumentsAsync(providerId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<bool>.Success(true));
@@ -243,7 +243,7 @@ public sealed class ActivateProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("rejected documents");
-        
+
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -257,7 +257,7 @@ public sealed class ActivateProviderCommandHandlerTests
         var provider = new ProviderBuilder()
             .WithId(providerId)
             .Build();
-        
+
         var command = new ActivateProviderCommand(providerId, "admin@test.com");
 
         _providerRepositoryMock
@@ -274,7 +274,7 @@ public sealed class ActivateProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Contain("Failed to validate documents");
-        
+
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);

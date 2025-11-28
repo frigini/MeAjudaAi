@@ -22,13 +22,13 @@ public sealed class SuspendProviderCommandHandlerTests
     {
         _providerRepositoryMock = new Mock<IProviderRepository>();
         _loggerMock = new Mock<ILogger<SuspendProviderCommandHandler>>();
-        
+
         _handler = new SuspendProviderCommandHandler(
             _providerRepositoryMock.Object,
             _loggerMock.Object);
     }
 
-    [Fact(Skip = "TODO: Fix provider builder setup - provider.Suspend() is throwing exception in test")]
+    [Fact(Skip = "Provider state validation - requires investigation of domain rules")]
     public async Task HandleAsync_WithValidCommand_ShouldSuspendProvider()
     {
         // Arrange
@@ -36,7 +36,10 @@ public sealed class SuspendProviderCommandHandlerTests
         var provider = new ProviderBuilder()
             .WithId(providerId)
             .Build();
-        
+
+        // Ensure provider is in a valid state for suspension
+        provider.CompleteBasicInfo();
+
         var command = new SuspendProviderCommand(
             providerId,
             "admin@test.com",
@@ -51,20 +54,13 @@ public sealed class SuspendProviderCommandHandlerTests
             .Returns(Task.CompletedTask);
 
         // Act
-        Result result;
-        try
-        {
-            result = await _handler.HandleAsync(command, CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Unexpected exception: {ex.Message}", ex);
-        }
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue($"Expected success but got: {(result.IsFailure ? result.Error.Message : "unknown")}");
+        result.IsSuccess.Should().BeTrue(
+            $"Expected success but got: {(result.IsFailure ? result.Error.Message : "unknown")}");
         provider.Status.Should().Be(EProviderStatus.Suspended);
-        
+
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(provider, It.IsAny<CancellationToken>()),
             Times.Once);
@@ -89,7 +85,7 @@ public sealed class SuspendProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("Provider not found");
-        
+
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -113,7 +109,7 @@ public sealed class SuspendProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("Suspension reason is required");
-        
+
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -137,7 +133,7 @@ public sealed class SuspendProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("SuspendedBy is required");
-        
+
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Never);

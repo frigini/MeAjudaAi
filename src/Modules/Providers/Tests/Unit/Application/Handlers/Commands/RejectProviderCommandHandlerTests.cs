@@ -21,7 +21,7 @@ public sealed class RejectProviderCommandHandlerTests
     {
         _providerRepositoryMock = new Mock<IProviderRepository>();
         _loggerMock = new Mock<ILogger<RejectProviderCommandHandler>>();
-        
+
         _handler = new RejectProviderCommandHandler(
             _providerRepositoryMock.Object,
             _loggerMock.Object);
@@ -36,7 +36,7 @@ public sealed class RejectProviderCommandHandlerTests
             .WithId(providerId)
             .WithVerificationStatus(EVerificationStatus.Pending)
             .Build();
-        
+
         var command = new RejectProviderCommand(
             providerId,
             "admin@test.com",
@@ -52,7 +52,7 @@ public sealed class RejectProviderCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         provider.Status.Should().Be(EProviderStatus.Rejected);
-        
+
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(provider, It.IsAny<CancellationToken>()),
             Times.Once);
@@ -77,7 +77,7 @@ public sealed class RejectProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("Provider not found");
-        
+
         _providerRepositoryMock.Verify(
             r => r.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -101,7 +101,7 @@ public sealed class RejectProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("Rejection reason is required");
-        
+
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -125,7 +125,7 @@ public sealed class RejectProviderCommandHandlerTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("RejectedBy is required");
-        
+
         _providerRepositoryMock.Verify(
             r => r.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()),
             Times.Never);

@@ -66,11 +66,13 @@ jobs:
           # Check if running in main repository (not a fork)
           if [ "${{ github.repository }}" = "frigini/MeAjudaAi" ] && \
              [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "Running in main repository - using configured secrets or safe defaults"
+            echo "Running in main repository - validating required secrets"
 
-            # Validate critical secrets are available or have safe defaults
+            # Validate critical secrets are available
             if [ -z "${{ secrets.POSTGRES_PASSWORD }}" ]; then
-              echo "WARNING: POSTGRES_PASSWORD secret not configured - using test default"
+              echo "ERROR: POSTGRES_PASSWORD secret not configured in main repository"
+              echo "This secret is required for pull request validation"
+              exit 1
             else
               echo "SUCCESS: POSTGRES_PASSWORD secret configured"
             fi
