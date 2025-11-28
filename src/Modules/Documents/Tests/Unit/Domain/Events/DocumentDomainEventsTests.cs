@@ -25,7 +25,7 @@ public class DocumentDomainEventsTests
         domainEvent.ProviderId.Should().Be(providerId);
         domainEvent.DocumentType.Should().Be(documentType);
         domainEvent.FailureReason.Should().Be(failureReason);
-        domainEvent.OccurredOn.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        domainEvent.OccurredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class DocumentDomainEventsTests
         domainEvent.ProviderId.Should().Be(providerId);
         domainEvent.DocumentType.Should().Be(documentType);
         domainEvent.RejectionReason.Should().Be(rejectionReason);
-        domainEvent.OccurredOn.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        domainEvent.OccurredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]
@@ -69,6 +69,6 @@ public class DocumentDomainEventsTests
         domainEvent.ProviderId.Should().Be(providerId);
         domainEvent.DocumentType.Should().Be(documentType);
         domainEvent.FileUrl.Should().Be(fileUrl);
-        domainEvent.OccurredOn.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        domainEvent.OccurredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 }
