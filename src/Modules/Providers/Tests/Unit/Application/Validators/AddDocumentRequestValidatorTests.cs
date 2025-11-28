@@ -40,7 +40,7 @@ public class AddDocumentRequestValidatorTests
         // Arrange
         var request = new AddDocumentRequest
         {
-            Number = number,
+            Number = number!,
             DocumentType = EDocumentType.CPF
         };
 
@@ -147,6 +147,7 @@ public class AddDocumentRequestValidatorTests
         var result = await _validator.TestValidateAsync(request);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x.DocumentType);
+        result.ShouldHaveValidationErrorFor(x => x.DocumentType)
+            .WithErrorMessage("'Document Type' has a range of values which does not include '999'.");
     }
 }

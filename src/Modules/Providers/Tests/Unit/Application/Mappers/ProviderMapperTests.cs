@@ -148,7 +148,8 @@ public class ProviderMapperTests
             "Advanced training in healthcare",
             "Health Ministry",
             issueDate,
-            expirationDate);
+            expirationDate,
+            "CERT-12345");
 
         // Act
         var dto = qualification.ToDto();
@@ -160,6 +161,7 @@ public class ProviderMapperTests
         dto.IssuingOrganization.Should().Be("Health Ministry");
         dto.IssueDate.Should().Be(issueDate);
         dto.ExpirationDate.Should().Be(expirationDate);
+        dto.DocumentNumber.Should().Be("CERT-12345");
     }
 
     [Fact]
