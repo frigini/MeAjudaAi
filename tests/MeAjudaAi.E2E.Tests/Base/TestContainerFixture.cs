@@ -102,9 +102,9 @@ public class TestContainerFixture : IAsyncLifetime
         AzuriteConnectionString = _azuriteContainer.GetConnectionString();
 
         Console.WriteLine("✅ TestContainers initialized successfully");
-        Console.WriteLine($"📦 PostgreSQL: {PostgresConnectionString}");
-        Console.WriteLine($"📦 Redis: {RedisConnectionString}");
-        Console.WriteLine($"📦 Azurite: {AzuriteConnectionString}");
+        Console.WriteLine($"📦 PostgreSQL: Host={_postgresContainer.Hostname}:{_postgresContainer.GetMappedPublicPort(5432)}, Database=meajudaai_test");
+        Console.WriteLine($"📦 Redis: Host={_redisContainer.Hostname}:{_redisContainer.GetMappedPublicPort(6379)}");
+        Console.WriteLine($"📦 Azurite: Host={_azuriteContainer.Hostname}:{_azuriteContainer.GetMappedPublicPort(10000)}");
     }
 
     private async Task InitializeFactoryAsync()

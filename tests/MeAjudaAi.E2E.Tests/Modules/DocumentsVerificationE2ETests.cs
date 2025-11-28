@@ -133,15 +133,15 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         statusResult.RootElement.TryGetProperty("status", out var statusProperty)
             .Should().BeTrue("Response should contain 'status' property");
 
-        // Status pode ser string ou número dependendo da serialização JSON
+        // Status é esperado como string conforme a enumeração EDocumentStatus
         var statusString = statusProperty.GetString();
         statusString.Should().NotBeNullOrEmpty("Status should have a value");
 
         // Document should be in uploaded or pending verification status
         // EDocumentStatus: Uploaded, PendingVerification, Verified, Rejected, Failed
         statusString!.ToLowerInvariant().Should().BeOneOf(
-            "uploaded", "pendingverification",
-            "Document should be Uploaded or PendingVerification after upload");
+            new[] { "uploaded", "pendingverification" },
+            because: "Document should be Uploaded or PendingVerification after upload");
     }
 
     [Fact]
