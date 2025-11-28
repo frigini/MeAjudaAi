@@ -57,6 +57,9 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         providerLocation.Should().NotBeNullOrEmpty("Provider creation should return Location header");
         var providerId = ExtractIdFromLocation(providerLocation!);
 
+        // Wait for provider to be fully persisted (eventual consistency)
+        await Task.Delay(1000);
+
         // Now upload a document with the valid ProviderId
         var uploadRequest = new
         {
@@ -69,6 +72,12 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
 
         AuthenticateAsAdmin(); // POST upload requer autorização
         var uploadResponse = await ApiClient.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest, JsonOptions);
+
+        if (!uploadResponse.IsSuccessStatusCode)
+        {
+            var errorContent = await uploadResponse.Content.ReadAsStringAsync();
+            throw new Exception($"Document upload failed with {uploadResponse.StatusCode}: {errorContent}");
+        }
 
         uploadResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
 

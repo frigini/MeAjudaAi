@@ -69,6 +69,9 @@ public class CrossModuleCommunicationE2ETests : TestContainerTestBase
 
         var userId = user.GetProperty("id").GetGuid();
 
+        // Small delay to ensure DB consistency (eventual consistency in distributed systems)
+        await Task.Delay(500);
+
         // Act & Assert - Each module would have different use patterns
         switch (moduleName)
         {
