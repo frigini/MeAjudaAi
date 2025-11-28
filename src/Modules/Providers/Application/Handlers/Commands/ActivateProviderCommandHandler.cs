@@ -48,60 +48,12 @@ public sealed class ActivateProviderCommandHandler(
             // Validar que provider tem documentos verificados via Documents module
             logger.LogDebug("Validating documents for provider {ProviderId} via IDocumentsModuleApi", command.ProviderId);
 
-            var hasRequiredDocsResult = await documentsModuleApi.HasRequiredDocumentsAsync(command.ProviderId, cancellationToken);
-            var requiredDocsValidation = hasRequiredDocsResult.Match(
-                hasRequired => hasRequired
-                    ? Result.Success()
-                    : Result.Failure("Provider must have all required documents before activation"),
-                error => Result.Failure($"Failed to validate documents: {error.Message}"));
-
-            if (requiredDocsValidation.IsFailure)
+            var documentValidation = await ValidateDocumentConditionsAsync(command.ProviderId, cancellationToken);
+            if (documentValidation.IsFailure)
             {
                 logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}",
-                    command.ProviderId, requiredDocsValidation.Error);
-                return requiredDocsValidation;
-            }
-
-            var hasVerifiedDocsResult = await documentsModuleApi.HasVerifiedDocumentsAsync(command.ProviderId, cancellationToken);
-            var verifiedDocsValidation = hasVerifiedDocsResult.Match(
-                hasVerified => hasVerified
-                    ? Result.Success()
-                    : Result.Failure("Provider must have verified documents before activation"),
-                error => Result.Failure($"Failed to validate documents: {error.Message}"));
-
-            if (verifiedDocsValidation.IsFailure)
-            {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}",
-                    command.ProviderId, verifiedDocsValidation.Error);
-                return verifiedDocsValidation;
-            }
-
-            var hasPendingDocsResult = await documentsModuleApi.HasPendingDocumentsAsync(command.ProviderId, cancellationToken);
-            var pendingDocsValidation = hasPendingDocsResult.Match(
-                hasPending => hasPending
-                    ? Result.Failure("Provider cannot be activated while documents are pending verification")
-                    : Result.Success(),
-                error => Result.Failure($"Failed to validate documents: {error.Message}"));
-
-            if (pendingDocsValidation.IsFailure)
-            {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}",
-                    command.ProviderId, pendingDocsValidation.Error);
-                return pendingDocsValidation;
-            }
-
-            var hasRejectedDocsResult = await documentsModuleApi.HasRejectedDocumentsAsync(command.ProviderId, cancellationToken);
-            var rejectedDocsValidation = hasRejectedDocsResult.Match(
-                hasRejected => hasRejected
-                    ? Result.Failure("Provider cannot be activated with rejected documents. Please resubmit correct documents.")
-                    : Result.Success(),
-                error => Result.Failure($"Failed to validate documents: {error.Message}"));
-
-            if (rejectedDocsValidation.IsFailure)
-            {
-                logger.LogWarning("Provider {ProviderId} cannot be activated: {Error}",
-                    command.ProviderId, rejectedDocsValidation.Error);
-                return rejectedDocsValidation;
+                    command.ProviderId, documentValidation.Error);
+                return documentValidation;
             }
 
             logger.LogInformation("Provider {ProviderId} passed all document validations", command.ProviderId);
@@ -118,5 +70,57 @@ public sealed class ActivateProviderCommandHandler(
             logger.LogError(ex, "Error activating provider {ProviderId}", command.ProviderId);
             return Result.Failure("Failed to activate provider");
         }
+    }
+
+    /// <summary>
+    /// Valida todas as condições de documentos necessárias para ativação do prestador.
+    /// </summary>
+    /// <param name="providerId">ID do prestador</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Result com sucesso ou falha baseada nas validações</returns>
+    private async Task<Result> ValidateDocumentConditionsAsync(Guid providerId, CancellationToken cancellationToken)
+    {
+        // Valida que provider tem todos os documentos obrigatórios
+        var hasRequiredDocsResult = await documentsModuleApi.HasRequiredDocumentsAsync(providerId, cancellationToken);
+        var requiredDocsValidation = hasRequiredDocsResult.Match(
+            hasRequired => hasRequired
+                ? Result.Success()
+                : Result.Failure("Provider must have all required documents before activation"),
+            error => Result.Failure($"Failed to validate documents: {error.Message}"));
+
+        if (requiredDocsValidation.IsFailure)
+            return requiredDocsValidation;
+
+        // Valida que provider tem documentos verificados
+        var hasVerifiedDocsResult = await documentsModuleApi.HasVerifiedDocumentsAsync(providerId, cancellationToken);
+        var verifiedDocsValidation = hasVerifiedDocsResult.Match(
+            hasVerified => hasVerified
+                ? Result.Success()
+                : Result.Failure("Provider must have verified documents before activation"),
+            error => Result.Failure($"Failed to validate documents: {error.Message}"));
+
+        if (verifiedDocsValidation.IsFailure)
+            return verifiedDocsValidation;
+
+        // Valida que provider não tem documentos pendentes
+        var hasPendingDocsResult = await documentsModuleApi.HasPendingDocumentsAsync(providerId, cancellationToken);
+        var pendingDocsValidation = hasPendingDocsResult.Match(
+            hasPending => hasPending
+                ? Result.Failure("Provider cannot be activated while documents are pending verification")
+                : Result.Success(),
+            error => Result.Failure($"Failed to validate documents: {error.Message}"));
+
+        if (pendingDocsValidation.IsFailure)
+            return pendingDocsValidation;
+
+        // Valida que provider não tem documentos rejeitados
+        var hasRejectedDocsResult = await documentsModuleApi.HasRejectedDocumentsAsync(providerId, cancellationToken);
+        var rejectedDocsValidation = hasRejectedDocsResult.Match(
+            hasRejected => hasRejected
+                ? Result.Failure("Provider cannot be activated with rejected documents. Please resubmit correct documents.")
+                : Result.Success(),
+            error => Result.Failure($"Failed to validate documents: {error.Message}"));
+
+        return rejectedDocsValidation;
     }
 }

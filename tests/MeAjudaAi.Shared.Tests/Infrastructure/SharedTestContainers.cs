@@ -109,8 +109,9 @@ public static class SharedTestContainers
             _azuriteContainer!.StartAsync()
         );
 
-        // Verifica se o container PostgreSQL está realmente pronto
+        // Verifica se os containers estão realmente prontos
         await ValidateContainerHealthAsync();
+        await ValidateAzuriteHealthAsync();
     }
 
     /// <summary>
@@ -142,6 +143,39 @@ public static class SharedTestContainers
         }
 
         throw new InvalidOperationException("PostgreSQL container failed to become ready after maximum retries.");
+    }
+
+    /// <summary>
+    /// Valida se o container Azurite está saudável e pronto para conexões
+    /// </summary>
+    private static async Task ValidateAzuriteHealthAsync()
+    {
+        if (_azuriteContainer == null) return;
+
+        const int maxRetries = 30;
+        const int delayMs = 1000;
+
+        for (int i = 0; i < maxRetries; i++)
+        {
+            try
+            {
+                // Tenta verificar se as portas do Azurite estão mapeadas
+                var blobPort = _azuriteContainer.GetMappedPublicPort(10000);
+                var queuePort = _azuriteContainer.GetMappedPublicPort(10001);
+                var tablePort = _azuriteContainer.GetMappedPublicPort(10002);
+
+                // Se conseguiu obter todas as portas, o container está pronto
+                Console.WriteLine($"Container Azurite ready! Blob: {blobPort}, Queue: {queuePort}, Table: {tablePort}");
+                return;
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Azurite not ready yet (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                await Task.Delay(delayMs);
+            }
+        }
+
+        throw new InvalidOperationException("Azurite container failed to become ready after maximum retries.");
     }
 
     /// <summary>
