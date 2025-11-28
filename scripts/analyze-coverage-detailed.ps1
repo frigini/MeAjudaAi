@@ -107,7 +107,7 @@ foreach ($assembly in $summary.coverage.assemblies) {
                 Coverage = $class.coverage
                 Lines = $class.coverablelines
                 UncoveredLines = $class.coverablelines - $class.coveredlines
-                Impact = ($class.coverablelines - $class.coveredlines) / $summary.summary.coverablelines * 100
+                Impact = if ($summary.summary.coverablelines -eq 0) { 0 } else { ($class.coverablelines - $class.coveredlines) / $summary.summary.coverablelines * 100 }
             }
         }
     }

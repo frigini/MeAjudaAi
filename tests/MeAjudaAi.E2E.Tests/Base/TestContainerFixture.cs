@@ -241,7 +241,7 @@ public class TestContainerFixture : IAsyncLifetime
             });
             options.EnableSensitiveDataLogging(false);
             options.EnableDetailedErrors(false);
-            
+
             // Suprimir warning de pending model changes em testes E2E
             // Migrations são aplicadas em runtime e podem estar ligeiramente desatualizadas
             options.ConfigureWarnings(warnings =>
