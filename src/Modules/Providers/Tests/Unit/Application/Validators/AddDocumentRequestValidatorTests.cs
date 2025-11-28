@@ -150,6 +150,6 @@ public class AddDocumentRequestValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.DocumentType)
-            .WithErrorMessage("'Document Type' has a range of values which does not include '999'.");
+            .WithErrorMessage("DocumentType must be a valid document type. Valid EDocumentType values: None, CPF, CNPJ, RG, CNH, Passport, Other");
     }
 }
