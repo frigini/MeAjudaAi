@@ -693,18 +693,18 @@ jobs:
           cobertura_success="${{ steps.coverage_cobertura.outcome }}"
           fallback_success="${{ steps.coverage_fallback.outcome }}"
 
-          echo "Debug: Primary (OpenCover) outcome: ${primary_success:-'not_run'}"
-          echo "Debug: Cobertura coverage outcome: ${cobertura_success:-'not_run'}"
-          echo "Debug: Fallback coverage outcome: ${fallback_success:-'not_run'}"
+          echo "Debug: Primary (OpenCover) outcome: ${primary_success:-not_run}"
+          echo "Debug: Cobertura coverage outcome: ${cobertura_success:-not_run}"
+          echo "Debug: Fallback coverage outcome: ${fallback_success:-not_run}"
 
           # Get coverage percentages (if available)
           primary_line_rate="${{ steps.coverage_opencover.outputs.line-rate }}"
           cobertura_line_rate="${{ steps.coverage_cobertura.outputs.line-rate }}"
           fallback_line_rate="${{ steps.coverage_fallback.outputs.line-rate }}"
 
-          echo "Debug: Primary line rate: ${primary_line_rate:-'not_available'}"
-          echo "Debug: Cobertura line rate: ${cobertura_line_rate:-'not_available'}"
-          echo "Debug: Fallback line rate: ${fallback_line_rate:-'not_available'}"
+          echo "Debug: Primary line rate: ${primary_line_rate:-not_available}"
+          echo "Debug: Cobertura line rate: ${cobertura_line_rate:-not_available}"
+          echo "Debug: Fallback line rate: ${fallback_line_rate:-not_available}"
 
           # Check if coverage files exist for debugging
           echo "Debug: Checking coverage files..."
