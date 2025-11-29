@@ -229,4 +229,78 @@ public class ProvidersApiTests : ApiTestBase
             }
         }
     }
+
+    [Fact]
+    public async Task GetProviderById_WithInvalidGuid_ShouldReturnNotFound()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var invalidId = Guid.NewGuid();
+
+        // Act
+        var response = await Client.GetAsync($"/api/v1/providers/{invalidId}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "Non-existent provider ID should return 404");
+    }
+
+    [Fact]
+    public async Task ProvidersEndpoint_WithPaginationParameters_ShouldAcceptThem()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=10");
+
+        // Assert
+        response.StatusCode.Should().NotBe(HttpStatusCode.BadRequest,
+            "Valid pagination parameters should be accepted");
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task ProvidersEndpoint_WithFilterParameters_ShouldAcceptThem()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        // Act - test with common filter parameters
+        var response = await Client.GetAsync("/api/v1/providers?city=SaoPaulo&state=SP");
+
+        // Assert
+        response.StatusCode.Should().NotBe(HttpStatusCode.BadRequest,
+            "Valid filter parameters should be accepted");
+    }
+
+    [Fact]
+    public async Task ProvidersEndpoint_UnauthorizedUser_ShouldReturnUnauthorized()
+    {
+        // Arrange - no authentication configured
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/providers");
+
+        // Assert
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task CreateProvider_WithoutAuthentication_ShouldReturnUnauthorized()
+    {
+        // Arrange
+        var createRequest = new { Name = "Test Provider" };
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/providers", createRequest);
+
+        // Assert
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.Forbidden);
+    }
 }
+
