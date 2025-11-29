@@ -218,4 +218,118 @@ public class DocumentsApiTests : ApiTestBase
             code == HttpStatusCode.BadRequest || code == HttpStatusCode.Unauthorized,
             "API should reject invalid request with 400 or 401");
     }
+
+    [Fact]
+    public async Task GetDocumentStatus_ShouldBeAccessible()
+    {
+        // Act
+        var response = await Client.GetAsync($"/api/v1/documents/status/{Guid.NewGuid()}");
+
+        // Assert
+        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
+            "GET method should be supported if endpoint exists");
+        // Endpoint may not exist or require auth - both are valid
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.NotFound,
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task GetProviderDocuments_ShouldBeAccessible()
+    {
+        // Act
+        var providerId = Guid.NewGuid();
+        var response = await Client.GetAsync($"/api/v1/documents/provider/{providerId}");
+
+        // Assert
+        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
+            "GetProviderDocuments endpoint should be mapped");
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task RequestVerification_ShouldBeAccessible()
+    {
+        // Act
+        var documentId = Guid.NewGuid();
+        var response = await Client.PostAsync($"/api/v1/documents/{documentId}/verify", null);
+
+        // Assert
+        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
+            "RequestVerification endpoint should be mapped");
+        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
+            "POST method should be allowed");
+    }
+
+    [Fact]
+    public async Task UploadDocument_WithDifferentDocumentTypes_ShouldAcceptAll()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        AuthConfig.ConfigureUser(providerId.ToString(), "provider", "provider@test.com", "provider");
+
+        var documentTypes = new[]
+        {
+            EDocumentType.IdentityDocument,
+            EDocumentType.ProofOfResidence,
+            EDocumentType.CriminalRecord,
+            EDocumentType.Other
+        };
+
+        foreach (var docType in documentTypes)
+        {
+            var request = new UploadDocumentRequest
+            {
+                ProviderId = providerId,
+                DocumentType = docType,
+                FileName = $"{docType}.pdf",
+                ContentType = "application/pdf",
+                FileSizeBytes = 50000
+            };
+
+            // Act
+            var response = await Client.PostAsJsonAsync("/api/v1/documents/upload", request);
+
+            // Assert
+            response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
+                $"Document type {docType} should be accepted");
+            response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
+                $"POST method should work for {docType}");
+        }
+    }
+
+    [Fact]
+    public async Task UploadDocument_WithDifferentContentTypes_ShouldAcceptCommonFormats()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        AuthConfig.ConfigureUser(providerId.ToString(), "provider", "provider@test.com", "provider");
+
+        var contentTypes = new[] { "application/pdf", "image/jpeg", "image/png" };
+
+        foreach (var contentType in contentTypes)
+        {
+            var request = new UploadDocumentRequest
+            {
+                ProviderId = providerId,
+                DocumentType = EDocumentType.IdentityDocument,
+                FileName = $"document.{contentType.Split('/')[1]}",
+                ContentType = contentType,
+                FileSizeBytes = 50000
+            };
+
+            // Act
+            var response = await Client.PostAsJsonAsync("/api/v1/documents/upload", request);
+
+            // Assert
+            response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
+                $"Content type {contentType} should be accepted");
+        }
+    }
 }
+
