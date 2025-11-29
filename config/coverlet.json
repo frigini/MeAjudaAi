@@ -45,6 +45,17 @@
         "-**/Monitoring/**",
         "-**/HealthChecks/**"
       ],
+      "sourcefiles": [
+        "-**/*OpenApi.Generated*.cs",
+        "-**/System.Runtime.CompilerServices*.cs",
+        "-**/System.Text.RegularExpressions.Generated*.cs",
+        "-**/<RegexGenerator_g>*.cs"
+      ],
+      "attributefilters": [
+        "GeneratedCodeAttribute",
+        "CompilerGeneratedAttribute",
+        "ExcludeFromCodeCoverageAttribute"
+      ],
       "verbosity": "Info",
       "tag": "business-focus",
       "thresholdType": "line,branch,method",
