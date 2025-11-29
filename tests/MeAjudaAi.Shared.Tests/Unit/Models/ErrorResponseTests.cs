@@ -17,7 +17,7 @@ public class ErrorResponseTests
         response.StatusCode.Should().Be(400);
         response.Title.Should().Be("Validation Error");
         response.Detail.Should().NotBeNullOrEmpty();
-        response.ValidationErrors.Should().BeNull();
+        response.ValidationErrors.Should().NotBeNull().And.BeEmpty();
     }
 
     [Fact]
@@ -124,18 +124,18 @@ public class ErrorResponseTests
         response.ValidationErrors.Should().BeEmpty();
     }
 
-    [Fact]
-    public void NotFoundErrorResponse_WithDifferentResourceTypes_ShouldWork()
+    [Theory]
+    [InlineData("Provider")]
+    [InlineData("Document")]
+    [InlineData("Service")]
+    [InlineData("Category")]
+    public void NotFoundErrorResponse_WithDifferentResourceTypes_ShouldIncludeResourceTypeInDetail(string resourceType)
     {
-        // Arrange
-        var resourceTypes = new[] { "Provider", "Document", "Service", "Category" };
+        // Act
+        var response = new NotFoundErrorResponse(resourceType, "123");
 
-        // Act & Assert
-        foreach (var resourceType in resourceTypes)
-        {
-            var response = new NotFoundErrorResponse(resourceType, "123");
-            response.Detail.Should().Contain(resourceType);
-        }
+        // Assert
+        response.Detail.Should().Contain(resourceType);
     }
 }
 

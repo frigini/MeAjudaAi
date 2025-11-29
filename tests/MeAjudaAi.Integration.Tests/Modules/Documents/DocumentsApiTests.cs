@@ -223,7 +223,8 @@ public class DocumentsApiTests : ApiTestBase
     public async Task GetDocumentStatus_ShouldBeAccessible()
     {
         // Act
-        var response = await Client.GetAsync($"/api/v1/documents/status/{Guid.NewGuid()}");
+        var documentId = Guid.NewGuid();
+        var response = await Client.GetAsync($"/api/v1/documents/{documentId}/status");
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
@@ -264,72 +265,69 @@ public class DocumentsApiTests : ApiTestBase
             "RequestVerification endpoint should be mapped");
         response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
             "POST method should be allowed");
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.BadRequest,
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.OK);
     }
 
-    [Fact]
-    public async Task UploadDocument_WithDifferentDocumentTypes_ShouldAcceptAll()
+    [Theory]
+    [InlineData(EDocumentType.IdentityDocument)]
+    [InlineData(EDocumentType.ProofOfResidence)]
+    [InlineData(EDocumentType.CriminalRecord)]
+    [InlineData(EDocumentType.Other)]
+    public async Task UploadDocument_WithDifferentDocumentTypes_ShouldAcceptAll(EDocumentType docType)
     {
         // Arrange
         var providerId = Guid.NewGuid();
         AuthConfig.ConfigureUser(providerId.ToString(), "provider", "provider@test.com", "provider");
 
-        var documentTypes = new[]
+        var request = new UploadDocumentRequest
         {
-            EDocumentType.IdentityDocument,
-            EDocumentType.ProofOfResidence,
-            EDocumentType.CriminalRecord,
-            EDocumentType.Other
+            ProviderId = providerId,
+            DocumentType = docType,
+            FileName = $"{docType}.pdf",
+            ContentType = "application/pdf",
+            FileSizeBytes = 50000
         };
 
-        foreach (var docType in documentTypes)
-        {
-            var request = new UploadDocumentRequest
-            {
-                ProviderId = providerId,
-                DocumentType = docType,
-                FileName = $"{docType}.pdf",
-                ContentType = "application/pdf",
-                FileSizeBytes = 50000
-            };
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/documents/upload", request);
 
-            // Act
-            var response = await Client.PostAsJsonAsync("/api/v1/documents/upload", request);
-
-            // Assert
-            response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
-                $"Document type {docType} should be accepted");
-            response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
-                $"POST method should work for {docType}");
-        }
+        // Assert
+        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
+            $"Document type {docType} should be accepted");
+        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
+            $"POST method should work for {docType}");
     }
 
-    [Fact]
-    public async Task UploadDocument_WithDifferentContentTypes_ShouldAcceptCommonFormats()
+    [Theory]
+    [InlineData("application/pdf", "document.pdf")]
+    [InlineData("image/jpeg", "document.jpeg")]
+    [InlineData("image/png", "document.png")]
+    public async Task UploadDocument_WithDifferentContentTypes_ShouldAcceptCommonFormats(
+        string contentType, string fileName)
     {
         // Arrange
         var providerId = Guid.NewGuid();
         AuthConfig.ConfigureUser(providerId.ToString(), "provider", "provider@test.com", "provider");
 
-        var contentTypes = new[] { "application/pdf", "image/jpeg", "image/png" };
-
-        foreach (var contentType in contentTypes)
+        var request = new UploadDocumentRequest
         {
-            var request = new UploadDocumentRequest
-            {
-                ProviderId = providerId,
-                DocumentType = EDocumentType.IdentityDocument,
-                FileName = $"document.{contentType.Split('/')[1]}",
-                ContentType = contentType,
-                FileSizeBytes = 50000
-            };
+            ProviderId = providerId,
+            DocumentType = EDocumentType.IdentityDocument,
+            FileName = fileName,
+            ContentType = contentType,
+            FileSizeBytes = 50000
+        };
 
-            // Act
-            var response = await Client.PostAsJsonAsync("/api/v1/documents/upload", request);
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/documents/upload", request);
 
-            // Assert
-            response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
-                $"Content type {contentType} should be accepted");
-        }
+        // Assert
+        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
+            $"Content type {contentType} should be accepted");
     }
 }
 

@@ -169,7 +169,7 @@ public class GeoPointTests
         var geoPoint = new GeoPoint(-23.5505, -46.6333);
 
         // Act
-        var (latitude, longitude) = (geoPoint.Latitude, geoPoint.Longitude);
+        var (latitude, longitude) = geoPoint;
 
         // Assert
         latitude.Should().Be(-23.5505);

@@ -1,6 +1,7 @@
 using FluentAssertions;
 using FluentValidation.Results;
 using MeAjudaAi.Shared.Exceptions;
+using ValidationException = MeAjudaAi.Shared.Exceptions.ValidationException;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Exceptions;
 
@@ -148,7 +149,7 @@ public class ExceptionsTests
         };
 
         // Act
-        var exception = new MeAjudaAi.Shared.Exceptions.ValidationException(failures);
+        var exception = new ValidationException(failures);
 
         // Assert
         exception.Errors.Should().BeEquivalentTo(failures);
@@ -164,7 +165,7 @@ public class ExceptionsTests
         };
 
         // Act
-        var exception = new MeAjudaAi.Shared.Exceptions.ValidationException(failures);
+        var exception = new ValidationException(failures);
 
         // Assert
         exception.Message.Should().Be("One or more validation failures have occurred.");
@@ -174,7 +175,7 @@ public class ExceptionsTests
     public void ValidationException_DefaultConstructor_ShouldHaveEmptyErrors()
     {
         // Act
-        var exception = new MeAjudaAi.Shared.Exceptions.ValidationException();
+        var exception = new ValidationException();
 
         // Assert
         exception.Errors.Should().BeEmpty();

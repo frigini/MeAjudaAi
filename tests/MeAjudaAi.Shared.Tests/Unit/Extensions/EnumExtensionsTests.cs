@@ -71,42 +71,14 @@ public class EnumExtensionsTests
         result.Error.Message.Should().Contain("Value1, Value2, Value3");
     }
 
-    [Fact]
-    public void ToEnum_WithNullValue_ShouldReturnFailureResult()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ToEnum_WithNullOrWhiteSpace_ShouldReturnFailureResult(string? value)
     {
-        // Arrange
-        string? value = null;
-
         // Act
-        var result = value!.ToEnum<TestEnum>();
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("cannot be null or empty");
-    }
-
-    [Fact]
-    public void ToEnum_WithEmptyString_ShouldReturnFailureResult()
-    {
-        // Arrange
-        var value = "";
-
-        // Act
-        var result = value.ToEnum<TestEnum>();
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Message.Should().Contain("cannot be null or empty");
-    }
-
-    [Fact]
-    public void ToEnum_WithWhitespace_ShouldReturnFailureResult()
-    {
-        // Arrange
-        var value = "   ";
-
-        // Act
-        var result = value.ToEnum<TestEnum>();
+        var result = EnumExtensions.ToEnum<TestEnum>(value);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -218,7 +190,7 @@ public class EnumExtensionsTests
     }
 
     [Fact]
-    public void GetValidValues_ShouldReturnAllEnumNames()
+    public void GetValidValues_NoFilter_ShouldReturnAllEnumNames()
     {
         // Act
         var result = EnumExtensions.GetValidValues<TestEnum>();
@@ -228,7 +200,7 @@ public class EnumExtensionsTests
     }
 
     [Fact]
-    public void GetValidValuesDescription_ShouldReturnFormattedString()
+    public void GetValidValuesDescription_NoFilter_ShouldReturnFormattedString()
     {
         // Act
         var result = EnumExtensions.GetValidValuesDescription<TestEnum>();

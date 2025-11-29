@@ -31,5 +31,11 @@ public record GeoPoint
         return R * c;
     }
 
+    public void Deconstruct(out double latitude, out double longitude)
+    {
+        latitude = Latitude;
+        longitude = Longitude;
+    }
+
     private static double ToRadians(double degrees) => degrees * Math.PI / 180;
 }

@@ -1,8 +1,7 @@
+using System.Globalization;
 using System.Net;
-using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
-using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.Integration.Tests.Modules.SearchProviders;
 
@@ -24,7 +23,7 @@ public class SearchProvidersApiTests : ApiTestBase
 
         // Act
         var response = await Client.GetAsync(
-            $"{SearchEndpoint}?latitude={latitude}&longitude={longitude}&radiusInKm={radiusInKm}");
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
@@ -43,7 +42,7 @@ public class SearchProvidersApiTests : ApiTestBase
 
         // Act
         var response = await Client.GetAsync(
-            $"{SearchEndpoint}?latitude={latitude}&longitude={longitude}&radiusInKm={radiusInKm}");
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert - test that endpoint exists and accepts parameters
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
@@ -75,7 +74,7 @@ public class SearchProvidersApiTests : ApiTestBase
 
         // Act
         var response = await Client.GetAsync(
-            $"{SearchEndpoint}?latitude={latitude}&longitude={longitude}&radiusInKm={radiusInKm}&page={page}&pageSize={pageSize}");
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&page={page}&pageSize={pageSize}");
 
         // Assert - test that pagination parameters are accepted
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
@@ -92,7 +91,7 @@ public class SearchProvidersApiTests : ApiTestBase
 
         // Act
         var response = await Client.GetAsync(
-            $"{SearchEndpoint}?latitude={latitude}&longitude={longitude}&radiusInKm={radiusInKm}");
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
@@ -109,7 +108,7 @@ public class SearchProvidersApiTests : ApiTestBase
 
         // Act
         var response = await Client.GetAsync(
-            $"{SearchEndpoint}?latitude={latitude}&longitude={longitude}&radiusInKm={radiusInKm}");
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
@@ -127,7 +126,7 @@ public class SearchProvidersApiTests : ApiTestBase
 
         // Act
         var response = await Client.GetAsync(
-            $"{SearchEndpoint}?latitude={latitude}&longitude={longitude}&radiusInKm={radiusInKm}&minRating={minRating}");
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&minRating={minRating.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
@@ -145,7 +144,7 @@ public class SearchProvidersApiTests : ApiTestBase
 
         // Act
         var response = await Client.GetAsync(
-            $"{SearchEndpoint}?latitude={latitude}&longitude={longitude}&radiusInKm={radiusInKm}&subscriptionTiers={subscriptionTier}");
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&subscriptionTiers={subscriptionTier}");
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
@@ -164,7 +163,7 @@ public class SearchProvidersApiTests : ApiTestBase
 
         // Act
         var response = await Client.GetAsync(
-            $"{SearchEndpoint}?latitude={latitude}&longitude={longitude}&radiusInKm={radiusInKm}&minRating={minRating}&subscriptionTiers={subscriptionTier}");
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}&minRating={minRating.ToString(CultureInfo.InvariantCulture)}&subscriptionTiers={subscriptionTier}");
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
@@ -181,7 +180,7 @@ public class SearchProvidersApiTests : ApiTestBase
 
         // Act
         var response = await Client.GetAsync(
-            $"{SearchEndpoint}?latitude={latitude}&longitude={longitude}&radiusInKm={radiusInKm}");
+            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}");
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,

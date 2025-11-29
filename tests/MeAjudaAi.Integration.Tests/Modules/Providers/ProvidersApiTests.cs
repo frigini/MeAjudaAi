@@ -231,14 +231,14 @@ public class ProvidersApiTests : ApiTestBase
     }
 
     [Fact]
-    public async Task GetProviderById_WithInvalidGuid_ShouldReturnNotFound()
+    public async Task GetProviderById_WithNonExistentId_ShouldReturnNotFound()
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
-        var invalidId = Guid.NewGuid();
+        var nonExistentId = Guid.NewGuid();
 
         // Act
-        var response = await Client.GetAsync($"/api/v1/providers/{invalidId}");
+        var response = await Client.GetAsync($"/api/v1/providers/{nonExistentId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,

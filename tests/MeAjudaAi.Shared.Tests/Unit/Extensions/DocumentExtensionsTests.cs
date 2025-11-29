@@ -22,7 +22,7 @@ public class DocumentExtensionsTests
     [InlineData("000.000.000-00")] // All zeros
     [InlineData("111.111.111-11")] // All same digits
     [InlineData("123.456.789-00")] // Invalid check digits
-    [InlineData("12345678900")]     // Invalid length digits
+    [InlineData("12345678900")]     // Invalid check digits
     [InlineData("123")]             // Too short
     [InlineData("")]                // Empty
     [InlineData(null)]              // Null
