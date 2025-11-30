@@ -1,10 +1,10 @@
+using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Filters;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.OpenApi;
 using NSubstitute;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Text.Json;
 using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Filters;

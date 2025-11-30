@@ -9,23 +9,17 @@ namespace MeAjudaAi.AppHost.Tests.Extensions;
 /// Testes unitários para KeycloakExtensions (Aspire/Keycloak setup).
 /// Valida configuração de desenvolvimento, produção e teste.
 /// </summary>
-public sealed class KeycloakExtensionsTests : IDisposable
+[Collection("Sequential")]
+public sealed class KeycloakExtensionsTests
 {
-    private readonly IDistributedApplicationBuilder _builder;
-
-    public KeycloakExtensionsTests()
+    private static IDistributedApplicationBuilder CreateBuilder()
     {
         var options = new DistributedApplicationOptions
         {
             Args = Array.Empty<string>(),
             DisableDashboard = true
         };
-        _builder = DistributedApplication.CreateBuilder(options);
-    }
-
-    public void Dispose()
-    {
-        // Cleanup if needed
+        return DistributedApplication.CreateBuilder(options);
     }
 
     #region MeAjudaAiKeycloakOptions Tests
@@ -146,7 +140,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloak_WithDefaultOptions_ShouldReturnResult()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloak();
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak();
 
         // Assert
         result.Should().NotBeNull();
@@ -159,7 +153,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloak_WithDefaultOptions_ShouldConfigureKeycloakResource()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloak();
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak();
 
         // Assert
         result.Keycloak.Resource.Name.Should().Be("keycloak");
@@ -169,7 +163,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloak_WithCustomOptions_ShouldApplyConfiguration()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloak(opts =>
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak(opts =>
         {
             opts.AdminUsername = "test-admin";
             opts.AdminPassword = "test-pass";
@@ -186,7 +180,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloak_WithNullImportRealm_ShouldNotConfigureImport()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloak(opts =>
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak(opts =>
         {
             opts.ImportRealm = null;
         });
@@ -200,7 +194,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloak_WithEmptyImportRealm_ShouldNotConfigureImport()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloak(opts =>
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak(opts =>
         {
             opts.ImportRealm = string.Empty;
         });
@@ -214,7 +208,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloak_WithExposeHttpEndpointFalse_ShouldNotExposeEndpoint()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloak(opts =>
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak(opts =>
         {
             opts.ExposeHttpEndpoint = false;
         });
@@ -228,7 +222,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloak_MultipleCustomizations_ShouldApplyAll()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloak(opts =>
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak(opts =>
         {
             opts.AdminUsername = "custom";
             opts.DatabaseSchema = "custom_identity";
@@ -257,7 +251,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
         try
         {
             // Act & Assert
-            var act = () => _builder.AddMeAjudaAiKeycloakProduction();
+            var act = () => var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakProduction();
             
             act.Should().Throw<InvalidOperationException>()
                 .WithMessage("*KEYCLOAK_ADMIN_PASSWORD*required*");
@@ -282,7 +276,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
         try
         {
             // Act & Assert
-            var act = () => _builder.AddMeAjudaAiKeycloakProduction();
+            var act = () => var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakProduction();
             
             act.Should().Throw<InvalidOperationException>()
                 .WithMessage("*POSTGRES_PASSWORD*required*");
@@ -310,7 +304,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
         try
         {
             // Act
-            var result = _builder.AddMeAjudaAiKeycloakProduction(opts =>
+            var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakProduction(opts =>
             {
                 opts.Hostname = "keycloak.example.com";
             });
@@ -344,7 +338,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
         try
         {
             // Act
-            var result = _builder.AddMeAjudaAiKeycloakProduction(opts =>
+            var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakProduction(opts =>
             {
                 opts.ExposeHttpEndpoint = true;
             });
@@ -376,7 +370,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
         try
         {
             // Act & Assert
-            var act = () => _builder.AddMeAjudaAiKeycloakProduction(opts =>
+            var act = () => var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakProduction(opts =>
             {
                 opts.ExposeHttpEndpoint = false;
                 opts.Hostname = null;
@@ -407,7 +401,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
         try
         {
             // Act
-            var result = _builder.AddMeAjudaAiKeycloakProduction(opts =>
+            var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakProduction(opts =>
             {
                 opts.DatabaseSchema = "production_identity";
                 opts.Hostname = "keycloak.prod.com";
@@ -438,7 +432,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
         try
         {
             // Act
-            var result = _builder.AddMeAjudaAiKeycloakProduction(opts =>
+            var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakProduction(opts =>
             {
                 opts.ImportRealm = null;
                 opts.Hostname = "keycloak.example.com";
@@ -464,7 +458,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloakTesting_WithDefaultOptions_ShouldReturnResult()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloakTesting();
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakTesting();
 
         // Assert
         result.Should().NotBeNull();
@@ -477,7 +471,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloakTesting_WithDefaultOptions_ShouldUseTestSchema()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloakTesting();
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakTesting();
 
         // Assert
         result.Keycloak.Resource.Name.Should().Be("keycloak-test");
@@ -490,7 +484,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
         MeAjudaAiKeycloakOptions? capturedOptions = null;
 
         // Act
-        var result = _builder.AddMeAjudaAiKeycloakTesting(opts =>
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakTesting(opts =>
         {
             capturedOptions = opts;
         });
@@ -506,7 +500,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloakTesting_WithCustomOptions_ShouldApplyConfiguration()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloakTesting(opts =>
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakTesting(opts =>
         {
             opts.DatabaseSchema = "custom_test_schema";
             opts.AdminPassword = "custom-test-pass";
@@ -521,7 +515,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloakTesting_ShouldExposeHttpEndpoint()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloakTesting();
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakTesting();
 
         // Assert
         result.Should().NotBeNull();
@@ -532,7 +526,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloakTesting_AuthUrl_ShouldUseCorrectPort()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloakTesting();
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakTesting();
 
         // Assert
         result.AuthUrl.Should().MatchRegex(@"http://localhost:\d+");
@@ -542,7 +536,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloakTesting_AdminUrl_ShouldIncludeAdminPath()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloakTesting();
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloakTesting();
 
         // Assert
         result.AdminUrl.Should().Contain("/admin");
@@ -557,7 +551,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void MeAjudaAiKeycloakResult_ShouldHaveRequiredProperties()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloak();
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak();
 
         // Assert
         result.Keycloak.Should().NotBeNull();
@@ -569,7 +563,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void MeAjudaAiKeycloakResult_AdminUrl_ShouldBeBasedOnAuthUrl()
     {
         // Act
-        var result = _builder.AddMeAjudaAiKeycloak();
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak();
 
         // Assert
         result.AdminUrl.Should().StartWith(result.AuthUrl);
@@ -584,7 +578,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void AddMeAjudaAiKeycloak_MultipleCalls_ShouldCreateDifferentResources()
     {
         // Act
-        var result1 = _builder.AddMeAjudaAiKeycloak();
+        var result1 = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak();
         
         var builder2 = DistributedApplication.CreateBuilder(new DistributedApplicationOptions
         {
@@ -613,7 +607,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
         try
         {
             // Act
-            var devResult = _builder.AddMeAjudaAiKeycloak();
+            var devResult = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak();
             
             var prodBuilder = DistributedApplication.CreateBuilder(new DistributedApplicationOptions
             {
@@ -658,7 +652,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
         MeAjudaAiKeycloakOptions? capturedOptions = null;
 
         // Act
-        var result = _builder.AddMeAjudaAiKeycloak(opts =>
+        var result = var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak(opts =>
         {
             callbackInvoked = true;
             capturedOptions = opts;
@@ -675,7 +669,7 @@ public sealed class KeycloakExtensionsTests : IDisposable
     public void KeycloakExtensions_WithNullCallback_ShouldNotThrow()
     {
         // Act
-        var act = () => _builder.AddMeAjudaAiKeycloak(null);
+        var act = () => var builder = CreateBuilder(); builder.AddMeAjudaAiKeycloak(null);
 
         // Assert
         act.Should().NotThrow();

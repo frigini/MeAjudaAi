@@ -332,10 +332,9 @@ Um teste skipped pode ser considerado **resolvido** quando:
 
 ## 📚 Referências
 
-- [E2E Test Failures Analysis](./e2e-test-failures-analysis.md)
-- [Sprint 1 Checklist](./sprint-1-checklist.md)
-- [Architecture Decision Records](./architecture.md)
-- [Testing Strategy](./testing/README.md)
+> **Note**: Este é um documento arquivado do Sprint 1. As referências originais foram reorganizadas ou removidas. Para documentação atualizada, consulte:
+> - [Architecture Decision Records](../../architecture.md)
+> - [Testing Strategy](../../testing/test-infrastructure.md)
 
 ---
 

@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
 using Microsoft.AspNetCore.Builder;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NSubstitute;
-using System.IO.Compression;
 using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Extensions;

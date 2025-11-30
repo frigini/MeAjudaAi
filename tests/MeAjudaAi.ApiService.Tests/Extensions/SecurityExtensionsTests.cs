@@ -718,6 +718,9 @@ public class SecurityExtensionsTests
         var provider = services.BuildServiceProvider();
         var authorizationOptions = provider.GetService<Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Authorization.AuthorizationOptions>>();
         authorizationOptions.Should().NotBeNull();
+        authorizationOptions!.Value.GetPolicy("SelfOrAdmin").Should().NotBeNull();
+        authorizationOptions.Value.GetPolicy("AdminOnly").Should().NotBeNull();
+        authorizationOptions.Value.GetPolicy("SuperAdminOnly").Should().NotBeNull();
     }
 
     #endregion
@@ -764,11 +767,9 @@ public class SecurityExtensionsTests
         var logger = Substitute.For<ILogger<KeycloakConfigurationLogger>>();
         var loggerInstance = new KeycloakConfigurationLogger(keycloakOptions, logger);
 
-        // Act
-        await loggerInstance.StopAsync(CancellationToken.None);
-
-        // Assert - Should complete without exceptions
-        true.Should().BeTrue(); // No exception thrown = success
+        // Act & Assert - Should complete without exceptions
+        var act = () => loggerInstance.StopAsync(CancellationToken.None);
+        await act.Should().NotThrowAsync();
     }
 
     #endregion

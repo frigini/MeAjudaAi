@@ -825,7 +825,13 @@ public sealed class ProviderConfigurationTests : IDisposable
     [Fact]
     public void Configure_ShouldHaveSixIndexes()
     {
-        // Assert - 6 indexes on Provider entity itself
+        // Assert - 6 indexes on Provider entity itself:
+        // 1. UserId (unique)
+        // 2. Name
+        // 3. Type
+        // 4. Status
+        // 5. VerificationStatus
+        // 6. IsDeleted
         _entityType.GetIndexes().Should().HaveCount(6);
     }
 

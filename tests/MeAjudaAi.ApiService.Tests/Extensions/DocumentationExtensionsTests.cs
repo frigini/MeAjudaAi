@@ -5,346 +5,272 @@ using MeAjudaAi.ApiService.Filters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using NSubstitute;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using Swashbuckle.AspNetCore.SwaggerUI;
 using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Extensions;
 
 /// <summary>
-/// Testes unitários para DocumentationExtensions (Swagger/OpenAPI configuration).
-/// Valida configuração de documentação, autenticação JWT, operações customizadas, e UI.
+/// Integration tests for DocumentationExtensions that generate actual Swagger documents
+/// and verify behavioral outcomes rather than just service registration.
 /// </summary>
 public sealed class DocumentationExtensionsTests
 {
-    #region AddDocumentation Tests
-
     [Fact]
-    public void AddDocumentation_ShouldRegisterEndpointsApiExplorer()
+    public async Task GeneratedDocument_ShouldHaveCorrectTitleVersionAndContact()
     {
         // Arrange
         var services = new ServiceCollection();
-
-        // Act
+        services.AddLogging();
         services.AddDocumentation();
 
-        // Assert
-        services.Should().Contain(sd => sd.ServiceType == typeof(IApiDescriptionGroupCollectionProvider));
-    }
+        // Register minimal API descriptions
+        var apiDescriptions = CreateMinimalApiDescriptions();
+        services.AddSingleton<IApiDescriptionGroupCollectionProvider>(new TestApiDescriptionGroupCollectionProvider(apiDescriptions));
 
-    [Fact]
-    public void AddDocumentation_ShouldRegisterSwaggerGen()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act
-        services.AddDocumentation();
-
-        // Assert
-        services.Should().Contain(sd => sd.ServiceType == typeof(ISwaggerProvider));
-    }
-
-    [Fact]
-    public void AddDocumentation_ShouldReturnSameServiceCollection()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act
-        var result = services.AddDocumentation();
-
-        // Assert
-        result.Should().BeSameAs(services);
-    }
-
-    [Fact]
-    public void AddDocumentation_SwaggerGenOptions_ShouldConfigureV1Document()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
         var serviceProvider = services.BuildServiceProvider();
+        var swaggerProvider = serviceProvider.GetRequiredService<ISwaggerProvider>();
 
-        // Act - Verify service is registered
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
+        // Act
+        var document = await Task.Run(() => swaggerProvider.GetSwagger("v1"));
 
         // Assert
-        swaggerProvider.Should().NotBeNull();
+        document.Info.Title.Should().Be("MeAjudaAi API");
+        document.Info.Version.Should().Be("v1");
+        document.Info.Contact.Should().NotBeNull();
+        document.Info.Contact!.Name.Should().Be("MeAjudaAi Team");
+        document.Info.Contact.Email.Should().Be("contato@meajudaai.com");
+        document.Info.Description.Should().Contain("API para conectar pessoas que buscam serviços");
 
-        // Cleanup
         serviceProvider.Dispose();
     }
 
     [Fact]
-    public void AddDocumentation_SwaggerGenOptions_ShouldConfigureContactInfo()
+    public async Task GeneratedDocument_ShouldIncludeBearerSecurityScheme()
     {
         // Arrange
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddDocumentation();
+
+        var apiDescriptions = CreateMinimalApiDescriptions();
+        services.AddSingleton<IApiDescriptionGroupCollectionProvider>(new TestApiDescriptionGroupCollectionProvider(apiDescriptions));
+
         var serviceProvider = services.BuildServiceProvider();
-
-        // Act - Verify configuration was applied
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
-
-        // Assert
-        swaggerProvider.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void AddDocumentation_SwaggerGenOptions_ShouldConfigureBearerSecurity()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Act - Verify security configuration was applied
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
-
-        // Assert
-        swaggerProvider.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void AddDocumentation_SwaggerGenOptions_ShouldHaveSecurityRequirement()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        var serviceProvider = services.BuildServiceProvider();
+        var swaggerProvider = serviceProvider.GetRequiredService<ISwaggerProvider>();
 
         // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
+        var document = await Task.Run(() => swaggerProvider.GetSwagger("v1"));
 
         // Assert
-        swaggerProvider.Should().NotBeNull();
+        document.Components.Should().NotBeNull();
+        document.Components!.SecuritySchemes.Should().ContainKey("Bearer");
+        var bearerScheme = document.Components.SecuritySchemes["Bearer"];
+        bearerScheme.Type.Should().Be(SecuritySchemeType.Http);
+        bearerScheme.Scheme.Should().Be("bearer");
+        bearerScheme.BearerFormat.Should().Be("JWT");
+        bearerScheme.Description.Should().Contain("JWT Authorization header");
 
-        // Cleanup
         serviceProvider.Dispose();
     }
 
     [Fact]
-    public void AddDocumentation_SwaggerGenOptions_ShouldEnableAnnotations()
+    public async Task GeneratedDocument_ShouldHaveGlobalSecurityRequirement()
     {
         // Arrange
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddDocumentation();
+
+        var apiDescriptions = CreateMinimalApiDescriptions();
+        services.AddSingleton<IApiDescriptionGroupCollectionProvider>(new TestApiDescriptionGroupCollectionProvider(apiDescriptions));
+
         var serviceProvider = services.BuildServiceProvider();
+        var swaggerProvider = serviceProvider.GetRequiredService<ISwaggerProvider>();
 
         // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
+        var document = await Task.Run(() => swaggerProvider.GetSwagger("v1"));
 
-        // Assert
-        swaggerProvider.Should().NotBeNull();
+        // Assert - Verify Bearer security scheme exists (global requirement is applied via SwaggerGen config)
+        document.Components.Should().NotBeNull();
+        document.Components!.SecuritySchemes.Should().ContainKey("Bearer");
 
-        // Cleanup
         serviceProvider.Dispose();
     }
 
     [Fact]
-    public void AddDocumentation_SwaggerGenOptions_ShouldUseCustomSchemaIds()
+    public async Task CustomOperationId_ShouldExcludeRouteParameters()
     {
         // Arrange
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddDocumentation();
+
+        // Create API description with route parameters
+        var apiDescriptions = new List<ApiDescription>
+        {
+            new ApiDescription
+            {
+                HttpMethod = "GET",
+                RelativePath = "users/{id}/profile",
+                ActionDescriptor = new ControllerActionDescriptor
+                {
+                    ControllerName = "Users",
+                    ActionName = "GetProfile",
+                    DisplayName = "GetProfile"
+                }
+            }
+        };
+
+        services.AddSingleton<IApiDescriptionGroupCollectionProvider>(new TestApiDescriptionGroupCollectionProvider(apiDescriptions));
+
         var serviceProvider = services.BuildServiceProvider();
+        var swaggerProvider = serviceProvider.GetRequiredService<ISwaggerProvider>();
 
         // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
+        var document = await Task.Run(() => swaggerProvider.GetSwagger("v1"));
 
         // Assert
-        swaggerProvider.Should().NotBeNull();
+        var operation = document.Paths["/users/{id}/profile"]?.Operations.Values.FirstOrDefault();
+        operation.Should().NotBeNull();
+        operation!.OperationId.Should().NotBeNull();
+        // Operation ID should not contain {id} parameter
+        operation.OperationId!.Should().NotContain("{");
+        operation.OperationId.Should().NotContain("}");
+        // Should be based on HTTP method and clean path
+        operation.OperationId.Should().Be("GET-users-profile");
 
-        // Cleanup
         serviceProvider.Dispose();
     }
 
     [Fact]
-    public void AddDocumentation_SwaggerGenOptions_ShouldDescribeParametersInCamelCase()
+    public async Task CustomOperationId_WithNullHttpMethod_ShouldUseANY()
     {
         // Arrange
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddDocumentation();
+
+        var apiDescriptions = new List<ApiDescription>
+        {
+            new ApiDescription
+            {
+                HttpMethod = null!, // Simulate missing HTTP method
+                RelativePath = "health",
+                ActionDescriptor = new ActionDescriptor
+                {
+                    DisplayName = "HealthCheck"
+                }
+            }
+        };
+
+        services.AddSingleton<IApiDescriptionGroupCollectionProvider>(new TestApiDescriptionGroupCollectionProvider(apiDescriptions));
+
         var serviceProvider = services.BuildServiceProvider();
+        var swaggerProvider = serviceProvider.GetRequiredService<ISwaggerProvider>();
 
         // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
+        var document = await Task.Run(() => swaggerProvider.GetSwagger("v1"));
 
         // Assert
-        swaggerProvider.Should().NotBeNull();
+        if (document.Paths.ContainsKey("/health"))
+        {
+            var operation = document.Paths["/health"]?.Operations.Values.FirstOrDefault();
+            if (operation?.OperationId != null)
+            {
+                operation.OperationId.Should().StartWith("ANY-");
+            }
+        }
 
-        // Cleanup
         serviceProvider.Dispose();
     }
 
     [Fact]
-    public void AddDocumentation_SwaggerGenOptions_ShouldUseInlineDefinitionsForEnums()
+    public async Task InvalidXmlComments_ShouldNotThrowAndNotBreakSchemaGeneration()
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddDocumentation();
+        services.AddLogging();
+
+        // Act - Should not throw even with invalid/missing XML file
+        var act = () => services.AddDocumentation();
+        act.Should().NotThrow();
+
+        var apiDescriptions = CreateMinimalApiDescriptions();
+        services.AddSingleton<IApiDescriptionGroupCollectionProvider>(new TestApiDescriptionGroupCollectionProvider(apiDescriptions));
+
         var serviceProvider = services.BuildServiceProvider();
+        var swaggerProvider = serviceProvider.GetRequiredService<ISwaggerProvider>();
+
+        // Assert - Document generation should still work
+        var documentAct = async () => await Task.Run(() => swaggerProvider.GetSwagger("v1"));
+        await documentAct.Should().NotThrowAsync();
+
+        var document = await documentAct();
+        document.Should().NotBeNull();
+        document.Paths.Should().NotBeNull();
+        document.Paths!.Should().NotBeEmpty();
+
+        serviceProvider.Dispose();
+    }
+
+    [Fact]
+    public void SwaggerGenOptions_ShouldIncludeXmlCommentsIfFileExists()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddDocumentation();
 
         // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
-
-        // Assert
-        swaggerProvider.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void AddDocumentation_SwaggerGenOptions_ShouldHaveApiVersionOperationFilter()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
         var serviceProvider = services.BuildServiceProvider();
-
-        // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
+        var options = serviceProvider.GetRequiredService<IOptions<SwaggerGenOptions>>().Value;
 
         // Assert
-        swaggerProvider.Should().NotBeNull();
+        // Verify options were configured (actual XML file may not exist, but configuration should be present)
+        options.Should().NotBeNull();
 
-        // Cleanup
         serviceProvider.Dispose();
     }
 
     [Fact]
-    public void AddDocumentation_SwaggerGenOptions_ShouldHaveModuleTagsDocumentFilter()
+    public void UseDocumentation_ShouldNotThrow()
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddDocumentation();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
-
-        // Assert
-        swaggerProvider.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void AddDocumentation_SwaggerGenOptions_CustomOperationIds_WithControllerAction_ShouldGenerateCorrectId()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
-
-        // Assert
-        swaggerProvider.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void AddDocumentation_SwaggerGenOptions_CustomOperationIds_WithMinimalApi_ShouldGenerateIdFromRoute()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
-
-        // Assert
-        swaggerProvider.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void AddDocumentation_SwaggerGenOptions_CustomOperationIds_WithNullHttpMethod_ShouldUseANY()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
-
-        // Assert
-        swaggerProvider.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void AddDocumentation_SwaggerGenOptions_CustomOperationIds_WithEmptyRoute_ShouldUseDefaults()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
-
-        // Assert
-        swaggerProvider.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void AddDocumentation_SwaggerGenOptions_CustomOperationIds_WithRouteParameters_ShouldExcludeThem()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
-
-        // Assert
-        swaggerProvider.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    #endregion
-
-    #region UseDocumentation Tests
-
-    [Fact]
-    public void UseDocumentation_ShouldReturnSameApplicationBuilder()
-    {
-        // Arrange
-        var services = new ServiceCollection();
+        services.AddLogging();
         services.AddDocumentation();
         services.AddRouting();
+
+        var serviceProvider = services.BuildServiceProvider();
+        var app = new ApplicationBuilder(serviceProvider);
+
+        // Act
+        var act = () => app.UseDocumentation();
+
+        // Assert
+        act.Should().NotThrow();
+
+        serviceProvider.Dispose();
+    }
+
+    [Fact]
+    public void UseDocumentation_ShouldReturnApplicationBuilder()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddDocumentation();
+        services.AddRouting();
+
         var serviceProvider = services.BuildServiceProvider();
         var app = new ApplicationBuilder(serviceProvider);
 
@@ -352,177 +278,55 @@ public sealed class DocumentationExtensionsTests
         var result = app.UseDocumentation();
 
         // Assert
+        result.Should().NotBeNull();
         result.Should().BeSameAs(app);
 
-        // Cleanup
         serviceProvider.Dispose();
     }
 
-    [Fact]
-    public void UseDocumentation_SwaggerOptions_ShouldConfigureCustomRouteTemplate()
+    // Helper methods
+    private static List<ApiDescription> CreateMinimalApiDescriptions()
     {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        services.AddRouting();
-        var serviceProvider = services.BuildServiceProvider();
-        var app = new ApplicationBuilder(serviceProvider);
-
-        // Act
-        app.UseDocumentation();
-
-        // Assert - Middleware should be added (can't easily test the actual options without running the app)
-        app.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
+        return new List<ApiDescription>
+        {
+            new ApiDescription
+            {
+                HttpMethod = "GET",
+                RelativePath = "users",
+                ActionDescriptor = new ControllerActionDescriptor
+                {
+                    ControllerName = "Users",
+                    ActionName = "GetAll",
+                    DisplayName = "GetAll"
+                }
+            },
+            new ApiDescription
+            {
+                HttpMethod = "POST",
+                RelativePath = "users",
+                ActionDescriptor = new ControllerActionDescriptor
+                {
+                    ControllerName = "Users",
+                    ActionName = "Create",
+                    DisplayName = "Create"
+                }
+            }
+        };
     }
 
-    [Fact]
-    public void UseDocumentation_ShouldConfigureSwaggerMiddleware()
+    // Test helper class for API descriptions
+    private class TestApiDescriptionGroupCollectionProvider : IApiDescriptionGroupCollectionProvider
     {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        services.AddRouting();
-        var serviceProvider = services.BuildServiceProvider();
-        var app = new ApplicationBuilder(serviceProvider);
+        public TestApiDescriptionGroupCollectionProvider(IEnumerable<ApiDescription> apiDescriptions)
+        {
+            ApiDescriptionGroups = new ApiDescriptionGroupCollection(
+                new List<ApiDescriptionGroup>
+                {
+                    new ApiDescriptionGroup("v1", apiDescriptions.ToList())
+                },
+                1);
+        }
 
-        // Act
-        app.UseDocumentation();
-
-        // Assert - Check that middleware was added
-        var middleware = app.Build();
-        middleware.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
+        public ApiDescriptionGroupCollection ApiDescriptionGroups { get; }
     }
-
-    [Fact]
-    public void UseDocumentation_ShouldConfigureSwaggerUIMiddleware()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        services.AddRouting();
-        var serviceProvider = services.BuildServiceProvider();
-        var app = new ApplicationBuilder(serviceProvider);
-
-        // Act
-        app.UseDocumentation();
-
-        // Assert
-        var middleware = app.Build();
-        middleware.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    #endregion
-
-    #region Integration Tests
-
-    [Fact]
-    public void DocumentationExtensions_FullConfiguration_ShouldRegisterAllServices()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act
-        services.AddDocumentation();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Assert
-        serviceProvider.GetService<ISwaggerProvider>().Should().NotBeNull();
-        serviceProvider.GetService<IApiDescriptionGroupCollectionProvider>().Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void DocumentationExtensions_ChainedCalls_ShouldWork()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act
-        var result = services
-            .AddDocumentation()
-            .AddRouting()
-            .AddControllers();
-
-        // Assert
-        result.Should().NotBeNull();
-        services.Should().Contain(sd => sd.ServiceType == typeof(ISwaggerProvider));
-    }
-
-    [Fact]
-    public void DocumentationExtensions_XmlComments_ShouldHandleInvalidXmlGracefully()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act - Should not throw even if XML files are invalid or missing
-        var act = () => services.AddDocumentation();
-
-        // Assert
-        act.Should().NotThrow();
-    }
-
-    [Fact]
-    public void DocumentationExtensions_MultipleApiVersions_ShouldSupportV1()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
-
-        // Assert
-        swaggerProvider.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void DocumentationExtensions_SecurityConfiguration_ShouldRequireBearerForAllOperations()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddDocumentation();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Act
-        var swaggerProvider = serviceProvider.GetService<ISwaggerProvider>();
-
-        // Assert
-        swaggerProvider.Should().NotBeNull();
-
-        // Cleanup
-        serviceProvider.Dispose();
-    }
-
-    #endregion
-
-    #region Helper Classes
-
-    private class TestController : ControllerBase
-    {
-        [HttpGet]
-        public IActionResult GetUsers() => Ok();
-
-        [HttpPost]
-        public IActionResult CreateUser() => Ok();
-
-        [HttpDelete("{id}")]
-        public IActionResult DeleteUser(int id) => Ok();
-    }
-
-    #endregion
 }

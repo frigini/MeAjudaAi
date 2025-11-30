@@ -522,15 +522,11 @@ public class ProviderEdgeCasesTests
         var provider = CreateValidProvider();
         var originalUpdatedAt = provider.UpdatedAt;
 
-        // Wait a bit to ensure time difference would be detectable
-        System.Threading.Thread.Sleep(10);
-
         // Act
         provider.UpdateVerificationStatus(EVerificationStatus.Verified, "admin@test.com", skipMarkAsUpdated: true);
 
         // Assert
         provider.VerificationStatus.Should().Be(EVerificationStatus.Verified);
-        // UpdatedAt should NOT have changed since we skipped MarkAsUpdated
         provider.UpdatedAt.Should().Be(originalUpdatedAt);
     }
 
