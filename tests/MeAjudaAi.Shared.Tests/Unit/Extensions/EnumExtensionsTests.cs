@@ -78,7 +78,7 @@ public class EnumExtensionsTests
     public void ToEnum_WithNullOrWhiteSpace_ShouldReturnFailureResult(string? value)
     {
         // Act
-        var result = EnumExtensions.ToEnum<TestEnum>(value);
+        var result = EnumExtensions.ToEnum<TestEnum>(value!);
 
         // Assert
         result.IsSuccess.Should().BeFalse();

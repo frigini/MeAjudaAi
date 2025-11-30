@@ -651,7 +651,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetSystemStats_ThreadSafe_ShouldHandleConcurrentCalls()
+    public async Task SystemStats_UnderConcurrentLoad_ShouldBeThreadSafe()
     {
         // Arrange
         var tasks = new List<Task>();
@@ -666,7 +666,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
             }));
         }
 
-        Task.WaitAll(tasks.ToArray());
+        await Task.WhenAll(tasks.ToArray());
         var finalStats = _service.GetSystemStats();
 
         // Assert
@@ -678,16 +678,12 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     #region OperationTimer Tests
 
     [Fact]
-    public void OperationTimer_OnDispose_ShouldInvokeOnCompleteCallback()
+    public async Task OperationTimer_OnDispose_ShouldInvokeOnCompleteCallback()
     {
-        // Arrange
-        var callbackInvoked = false;
-        TimeSpan? recordedDuration = null;
-
-        // Act
+        // Arrange & Act
         using (var timer = _service.MeasurePermissionResolution("user123", "users"))
         {
-            Thread.Sleep(10);
+            await Task.Delay(10);
         }
 
         // Assert - Duration should be recorded in histogram
