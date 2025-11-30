@@ -253,15 +253,37 @@ public abstract class ApiTestBase : IAsyncLifetime
         ILogger? logger)
     {
         // Garante estado limpo do banco de dados (como nos testes E2E)
-        try
+        // Com retry para evitar race condition "database system is starting up"
+        const int maxRetries = 10;
+        var baseDelay = TimeSpan.FromSeconds(1);
+        
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            await usersContext.Database.EnsureDeletedAsync();
-            logger?.LogInformation("🧹 Banco de dados existente limpo");
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "❌ Falha crítica ao limpar banco existente: {Message}", ex.Message);
-            throw new InvalidOperationException("Não foi possível limpar o banco de dados antes dos testes", ex);
+            try
+            {
+                await usersContext.Database.EnsureDeletedAsync();
+                logger?.LogInformation("🧹 Banco de dados existente limpo (tentativa {Attempt})", attempt);
+                break; // Sucesso, sai do loop
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03") // 57P03 = database starting up
+            {
+                if (attempt == maxRetries)
+                {
+                    logger?.LogError(ex, "❌ PostgreSQL ainda iniciando após {MaxRetries} tentativas", maxRetries);
+                    throw new InvalidOperationException($"PostgreSQL não ficou pronto após {maxRetries} tentativas (30 segundos)", ex);
+                }
+
+                var delay = baseDelay * attempt; // Exponential backoff
+                logger?.LogWarning(
+                    "⚠️ PostgreSQL iniciando... Tentativa {Attempt}/{MaxRetries}. Aguardando {Delay}s",
+                    attempt, maxRetries, delay.TotalSeconds);
+                await Task.Delay(delay);
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "❌ Falha crítica ao limpar banco existente: {Message}", ex.Message);
+                throw new InvalidOperationException("Não foi possível limpar o banco de dados antes dos testes", ex);
+            }
         }
 
         // Aplica migrações em todos os módulos
