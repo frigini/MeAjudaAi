@@ -256,7 +256,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         // Com retry para evitar race condition "database system is starting up"
         const int maxRetries = 10;
         var baseDelay = TimeSpan.FromSeconds(1);
-        
+
         for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
             try
@@ -270,10 +270,11 @@ public abstract class ApiTestBase : IAsyncLifetime
                 if (attempt == maxRetries)
                 {
                     logger?.LogError(ex, "❌ PostgreSQL ainda iniciando após {MaxRetries} tentativas", maxRetries);
-                    throw new InvalidOperationException($"PostgreSQL não ficou pronto após {maxRetries} tentativas (30 segundos)", ex);
+                    var totalWaitTime = maxRetries * (maxRetries + 1) / 2; // Sum: 1+2+3+...+10 = 55 seconds
+                    throw new InvalidOperationException($"PostgreSQL não ficou pronto após {maxRetries} tentativas (~{totalWaitTime} segundos)", ex);
                 }
 
-                var delay = baseDelay * attempt; // Exponential backoff
+                var delay = baseDelay * attempt; // Linear backoff: 1s, 2s, 3s, etc.
                 logger?.LogWarning(
                     "⚠️ PostgreSQL iniciando... Tentativa {Attempt}/{MaxRetries}. Aguardando {Delay}s",
                     attempt, maxRetries, delay.TotalSeconds);

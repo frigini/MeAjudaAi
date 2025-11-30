@@ -21,7 +21,7 @@ Se você é novo no projeto, comece por aqui:
 | **[🛠️ Guia de Desenvolvimento](./development.md)** | Setup completo, convenções, workflows, debugging e testes |
 | **[🚀 Infraestrutura](./infrastructure.md)** | Docker, Aspire, Azure e configuração de ambientes |
 | **[🗺️ Roadmap do Projeto](./roadmap.md)** | Funcionalidades futuras e planejamento |
-| **[🔩 Débito Técnico](./technical_debt.md)** | Itens de débito técnico e melhorias planejadas |
+| **[🔩 Débito Técnico](./technical-debt.md)** | Itens de débito técnico e melhorias planejadas |
 
 ## 📁 Documentação Especializada
 

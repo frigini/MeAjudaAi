@@ -25,7 +25,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         _loggerMock = new Mock<ILogger<PermissionMetricsService>>();
         _service = new PermissionMetricsService(_loggerMock.Object);
-        
+
         _counterValues = new Dictionary<string, long>();
         _histogramValues = new Dictionary<string, double>();
         _gaugeValues = new Dictionary<string, object?>();
@@ -74,7 +74,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         using var timer = _service.MeasurePermissionResolution("user123", "users");
-        
+
         // Assert - Counter should be incremented
         var counterKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_resolutions_total"));
         counterKey.Should().NotBeNullOrEmpty();
@@ -86,7 +86,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         using var timer = _service.MeasurePermissionResolution("user123", null);
-        
+
         // Assert
         var counterKey = _counterValues.Keys.FirstOrDefault(k => k.Contains("module=unknown"));
         counterKey.Should().NotBeNullOrEmpty();
@@ -99,7 +99,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         var timer = _service.MeasurePermissionResolution("user123", "users");
         Thread.Sleep(10); // Small delay to ensure measurable duration
         timer.Dispose();
-        
+
         // Assert - Histogram should have recorded duration
         var histogramKey = _histogramValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_resolution_duration_seconds"));
         histogramKey.Should().NotBeNullOrEmpty();
@@ -111,7 +111,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange - We can't easily force a 1000ms delay in unit test, so we'll verify the timer works
         using var timer = _service.MeasurePermissionResolution("user123", "users");
-        
+
         // Assert - Timer should be created and disposed without error
         timer.Should().NotBeNull();
     }
@@ -123,7 +123,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         using (var timer1 = _service.MeasurePermissionResolution("user1", "users")) { }
         using (var timer2 = _service.MeasurePermissionResolution("user2", "providers")) { }
         using (var timer3 = _service.MeasurePermissionResolution("user3", "users")) { }
-        
+
         // Assert - Should have 3 total resolutions
         var totalResolutions = _counterValues
             .Where(kv => kv.Key.StartsWith("meajudaai_permission_resolutions_total"))
@@ -140,7 +140,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         using var timer = _service.MeasurePermissionCheck("user123", EPermission.UsersRead, granted: true);
-        
+
         // Assert
         var counterKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_checks_total"));
         counterKey.Should().NotBeNullOrEmpty();
@@ -152,7 +152,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         using var timer = _service.MeasurePermissionCheck("user123", EPermission.UsersCreate, granted: false);
-        
+
         // Assert
         var failureKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_authorization_failures_total"));
         failureKey.Should().NotBeNullOrEmpty();
@@ -166,7 +166,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         var timer = _service.MeasurePermissionCheck("user123", EPermission.UsersRead, granted: true);
         Thread.Sleep(5);
         timer.Dispose();
-        
+
         // Assert
         var histogramKey = _histogramValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_authorization_check_duration_seconds"));
         histogramKey.Should().NotBeNullOrEmpty();
@@ -178,9 +178,9 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         using (var timer = _service.MeasurePermissionCheck("user123", EPermission.UsersRead, granted: true)) { }
-        
+
         var stats = _service.GetSystemStats();
-        
+
         // Assert
         stats.TotalPermissionChecks.Should().Be(1);
     }
@@ -192,9 +192,9 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         using (var t1 = _service.MeasurePermissionCheck("user1", EPermission.UsersRead, true)) { }
         using (var t2 = _service.MeasurePermissionCheck("user2", EPermission.UsersCreate, false)) { }
         using (var t3 = _service.MeasurePermissionCheck("user3", EPermission.UsersUpdate, true)) { }
-        
+
         var stats = _service.GetSystemStats();
-        
+
         // Assert
         stats.TotalPermissionChecks.Should().Be(3);
     }
@@ -208,10 +208,10 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var permissions = new[] { EPermission.UsersRead, EPermission.UsersCreate, EPermission.UsersUpdate };
-        
+
         // Act
         using var timer = _service.MeasureMultiplePermissionCheck("user123", permissions, requireAll: true);
-        
+
         // Assert - Should increment by 3 (number of permissions)
         var stats = _service.GetSystemStats();
         stats.TotalPermissionChecks.Should().Be(3);
@@ -222,12 +222,12 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var permissions = new[] { EPermission.UsersRead, EPermission.UsersCreate };
-        
+
         // Act
         using var timer = _service.MeasureMultiplePermissionCheck("user123", permissions, requireAll: true);
-        
+
         // Assert - Counter should be incremented
-        var counterKey = _counterValues.Keys.FirstOrDefault(k => 
+        var counterKey = _counterValues.Keys.FirstOrDefault(k =>
             k.StartsWith("meajudaai_permission_checks_total") && k.Contains("require_all=True"));
         counterKey.Should().NotBeNullOrEmpty();
     }
@@ -237,12 +237,12 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var permissions = new[] { EPermission.ProvidersRead };
-        
+
         // Act
         using var timer = _service.MeasureMultiplePermissionCheck("user456", permissions, requireAll: false);
-        
+
         // Assert
-        var counterKey = _counterValues.Keys.FirstOrDefault(k => 
+        var counterKey = _counterValues.Keys.FirstOrDefault(k =>
             k.StartsWith("meajudaai_permission_checks_total") && k.Contains("require_all=False"));
         counterKey.Should().NotBeNullOrEmpty();
     }
@@ -252,12 +252,12 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var permissions = new[] { EPermission.UsersRead };
-        
+
         // Act
         var timer = _service.MeasureMultiplePermissionCheck("user123", permissions, requireAll: true);
         Thread.Sleep(5);
         timer.Dispose();
-        
+
         // Assert
         var histogramKey = _histogramValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_authorization_check_duration_seconds"));
         histogramKey.Should().NotBeNullOrEmpty();
@@ -268,12 +268,12 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var permissions = Array.Empty<EPermission>();
-        
+
         // Act
         using var timer = _service.MeasureMultiplePermissionCheck("user123", permissions, requireAll: true);
-        
+
         var stats = _service.GetSystemStats();
-        
+
         // Assert
         stats.TotalPermissionChecks.Should().Be(0);
     }
@@ -287,9 +287,9 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         using var timer = _service.MeasureModulePermissionResolution("user123", "users");
-        
+
         // Assert
-        var counterKey = _counterValues.Keys.FirstOrDefault(k => 
+        var counterKey = _counterValues.Keys.FirstOrDefault(k =>
             k.StartsWith("meajudaai_permission_resolutions_total") && k.Contains("module=users"));
         counterKey.Should().NotBeNullOrEmpty();
         _counterValues[counterKey!].Should().Be(1);
@@ -302,7 +302,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         var timer = _service.MeasureModulePermissionResolution("user123", "providers");
         Thread.Sleep(5);
         timer.Dispose();
-        
+
         // Assert
         var histogramKey = _histogramValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_resolution_duration_seconds"));
         histogramKey.Should().NotBeNullOrEmpty();
@@ -316,11 +316,11 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         using (var t1 = _service.MeasureModulePermissionResolution("user1", "users")) { }
         using (var t2 = _service.MeasureModulePermissionResolution("user2", "providers")) { }
         using (var t3 = _service.MeasureModulePermissionResolution("user3", "users")) { }
-        
+
         // Assert - Should have 2 users and 1 providers
         var usersKey = _counterValues.Keys.FirstOrDefault(k => k.Contains("module=users"));
         var providersKey = _counterValues.Keys.FirstOrDefault(k => k.Contains("module=providers"));
-        
+
         usersKey.Should().NotBeNullOrEmpty();
         providersKey.Should().NotBeNullOrEmpty();
         _counterValues[usersKey!].Should().Be(2);
@@ -336,7 +336,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         using var timer = _service.MeasureCacheOperation("get", hit: true);
-        
+
         // Assert
         var hitKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_cache_hits_total"));
         hitKey.Should().NotBeNullOrEmpty();
@@ -348,7 +348,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         using var timer = _service.MeasureCacheOperation("get", hit: false);
-        
+
         // Assert
         var missKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_cache_misses_total"));
         missKey.Should().NotBeNullOrEmpty();
@@ -360,9 +360,9 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         using (var timer = _service.MeasureCacheOperation("get", hit: true)) { }
-        
+
         var stats = _service.GetSystemStats();
-        
+
         // Assert
         stats.TotalCacheHits.Should().Be(1);
     }
@@ -374,7 +374,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         var timer = _service.MeasureCacheOperation("set", hit: false);
         Thread.Sleep(5);
         timer.Dispose();
-        
+
         // Assert
         var histogramKey = _histogramValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_cache_operation_duration_seconds"));
         histogramKey.Should().NotBeNullOrEmpty();
@@ -388,12 +388,12 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         using (var t1 = _service.MeasureCacheOperation("get", hit: true)) { }
         using (var t2 = _service.MeasureCacheOperation("set", hit: false)) { }
         using (var t3 = _service.MeasureCacheOperation("invalidate", hit: false)) { }
-        
+
         // Assert - Each operation should be tracked
         var getKey = _counterValues.Keys.FirstOrDefault(k => k.Contains("operation=get"));
         var setKey = _counterValues.Keys.FirstOrDefault(k => k.Contains("operation=set"));
         var invalidateKey = _counterValues.Keys.FirstOrDefault(k => k.Contains("operation=invalidate"));
-        
+
         getKey.Should().NotBeNullOrEmpty();
         setKey.Should().NotBeNullOrEmpty();
         invalidateKey.Should().NotBeNullOrEmpty();
@@ -408,7 +408,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         _service.RecordAuthorizationFailure("user123", EPermission.UsersDelete, "insufficient_permissions");
-        
+
         // Assert
         var failureKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_authorization_failures_total"));
         failureKey.Should().NotBeNullOrEmpty();
@@ -420,7 +420,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         _service.RecordAuthorizationFailure("user123", EPermission.ProvidersCreate, "role_missing");
-        
+
         // Assert
         var failureKey = _counterValues.Keys.FirstOrDefault(k => k.Contains("permission=providers:create"));
         failureKey.Should().NotBeNullOrEmpty();
@@ -431,7 +431,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         _service.RecordAuthorizationFailure("user123", EPermission.UsersRead, "token_expired");
-        
+
         // Assert
         var failureKey = _counterValues.Keys.FirstOrDefault(k => k.Contains("reason=token_expired"));
         failureKey.Should().NotBeNullOrEmpty();
@@ -442,7 +442,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         _service.RecordAuthorizationFailure("user123", EPermission.UsersDelete, "insufficient_permissions");
-        
+
         // Assert
         _loggerMock.Verify(
             x => x.Log(
@@ -461,7 +461,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         _service.RecordAuthorizationFailure("user1", EPermission.UsersRead, "reason1");
         _service.RecordAuthorizationFailure("user2", EPermission.UsersCreate, "reason2");
         _service.RecordAuthorizationFailure("user3", EPermission.UsersUpdate, "reason3");
-        
+
         // Assert
         var totalFailures = _counterValues
             .Where(kv => kv.Key.StartsWith("meajudaai_authorization_failures_total"))
@@ -478,7 +478,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         _service.RecordCacheInvalidation("user123", "user_updated");
-        
+
         // Assert
         var invalidationKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_cache_invalidations_total"));
         invalidationKey.Should().NotBeNullOrEmpty();
@@ -490,7 +490,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         _service.RecordCacheInvalidation("user123", "role_changed");
-        
+
         // Assert
         var invalidationKey = _counterValues.Keys.FirstOrDefault(k => k.Contains("reason=role_changed"));
         invalidationKey.Should().NotBeNullOrEmpty();
@@ -501,7 +501,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         _service.RecordCacheInvalidation("user123", "permissions_updated");
-        
+
         // Assert
         _loggerMock.Verify(
             x => x.Log(
@@ -519,7 +519,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         // Act
         _service.RecordCacheInvalidation("user1", "reason1");
         _service.RecordCacheInvalidation("user2", "reason2");
-        
+
         // Assert
         var totalInvalidations = _counterValues
             .Where(kv => kv.Key.StartsWith("meajudaai_permission_cache_invalidations_total"))
@@ -536,9 +536,9 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         _service.RecordPerformanceStats("cache_resolver", 150.5, "milliseconds");
-        
+
         // Assert
-        var performanceKey = _histogramValues.Keys.FirstOrDefault(k => 
+        var performanceKey = _histogramValues.Keys.FirstOrDefault(k =>
             k.StartsWith("meajudaai_permission_performance") && k.Contains("component=cache_resolver"));
         performanceKey.Should().NotBeNullOrEmpty();
         _histogramValues[performanceKey!].Should().Be(150.5);
@@ -549,7 +549,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         _service.RecordPerformanceStats("permission_checks", 42);
-        
+
         // Assert
         var performanceKey = _histogramValues.Keys.FirstOrDefault(k => k.Contains("unit=count"));
         performanceKey.Should().NotBeNullOrEmpty();
@@ -561,11 +561,11 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         // Act
         _service.RecordPerformanceStats("component1", 100, "ms");
         _service.RecordPerformanceStats("component2", 200, "ms");
-        
+
         // Assert
         var comp1Key = _histogramValues.Keys.FirstOrDefault(k => k.Contains("component=component1"));
         var comp2Key = _histogramValues.Keys.FirstOrDefault(k => k.Contains("component=component2"));
-        
+
         comp1Key.Should().NotBeNullOrEmpty();
         comp2Key.Should().NotBeNullOrEmpty();
         _histogramValues[comp1Key!].Should().Be(100);
@@ -581,7 +581,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Act
         var stats = _service.GetSystemStats();
-        
+
         // Assert
         stats.TotalPermissionChecks.Should().Be(0);
         stats.TotalCacheHits.Should().Be(0);
@@ -596,9 +596,9 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         // Act
         using (var t1 = _service.MeasurePermissionCheck("user1", EPermission.UsersRead, true)) { }
         using (var t2 = _service.MeasurePermissionCheck("user2", EPermission.UsersCreate, false)) { }
-        
+
         var stats = _service.GetSystemStats();
-        
+
         // Assert
         stats.TotalPermissionChecks.Should().Be(2);
     }
@@ -611,10 +611,10 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         using (var hit1 = _service.MeasureCacheOperation("get", hit: true)) { }
         using (var hit2 = _service.MeasureCacheOperation("get", hit: true)) { }
         using (var miss = _service.MeasureCacheOperation("get", hit: false)) { }
-        
+
         // Act
         var stats = _service.GetSystemStats();
-        
+
         // Assert
         stats.TotalCacheHits.Should().Be(2);
         stats.CacheHitRate.Should().Be(2.0); // 2 hits / 1 check = 2.0 (can be > 1 if multiple cache ops per check)
@@ -625,13 +625,13 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var timer = _service.MeasurePermissionCheck("user1", EPermission.UsersRead, true);
-        
+
         // Act
         var stats = _service.GetSystemStats();
-        
+
         // Assert
         stats.ActiveChecks.Should().Be(1);
-        
+
         // Cleanup
         timer.Dispose();
     }
@@ -641,10 +641,10 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange - Only cache operations, no permission checks
         using (var hit = _service.MeasureCacheOperation("get", hit: true)) { }
-        
+
         // Act
         var stats = _service.GetSystemStats();
-        
+
         // Assert
         stats.TotalPermissionChecks.Should().Be(0);
         stats.CacheHitRate.Should().Be(0.0);
@@ -655,7 +655,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var tasks = new List<Task>();
-        
+
         // Act - Multiple concurrent permission checks and stats reads
         for (int i = 0; i < 10; i++)
         {
@@ -665,10 +665,10 @@ public sealed class PermissionMetricsServiceTests : IDisposable
                 var stats = _service.GetSystemStats();
             }));
         }
-        
+
         Task.WaitAll(tasks.ToArray());
         var finalStats = _service.GetSystemStats();
-        
+
         // Assert
         finalStats.TotalPermissionChecks.Should().Be(10);
     }
@@ -683,13 +683,13 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         // Arrange
         var callbackInvoked = false;
         TimeSpan? recordedDuration = null;
-        
+
         // Act
         using (var timer = _service.MeasurePermissionResolution("user123", "users"))
         {
             Thread.Sleep(10);
         }
-        
+
         // Assert - Duration should be recorded in histogram
         var histogramKey = _histogramValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_resolution_duration_seconds"));
         histogramKey.Should().NotBeNullOrEmpty();
@@ -701,7 +701,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var timer = _service.MeasurePermissionResolution("user123", "users");
-        
+
         // Act & Assert - Should not throw on multiple dispose
         timer.Dispose();
         timer.Dispose();
@@ -716,7 +716,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         {
             // Immediate disposal
         }
-        
+
         // Assert - Should record very small but non-negative duration
         var histogramKey = _histogramValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_resolution_duration_seconds"));
         histogramKey.Should().NotBeNullOrEmpty();
@@ -732,19 +732,19 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var services = new ServiceCollection();
-        
+
         // Act
         services.AddPermissionMetrics();
         var serviceProvider = services.BuildServiceProvider();
-        
+
         // Assert
         var concreteService = serviceProvider.GetService<PermissionMetricsService>();
         var interfaceService = serviceProvider.GetService<IPermissionMetricsService>();
-        
+
         concreteService.Should().NotBeNull();
         interfaceService.Should().NotBeNull();
         concreteService.Should().BeSameAs(interfaceService);
-        
+
         // Cleanup
         serviceProvider.Dispose();
     }
@@ -757,14 +757,14 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         services.AddLogging();
         services.AddPermissionMetrics();
         var serviceProvider = services.BuildServiceProvider();
-        
+
         // Act
         var service1 = serviceProvider.GetService<IPermissionMetricsService>();
         var service2 = serviceProvider.GetService<IPermissionMetricsService>();
-        
+
         // Assert
         service1.Should().BeSameAs(service2);
-        
+
         // Cleanup
         serviceProvider.Dispose();
     }
@@ -779,10 +779,10 @@ public sealed class PermissionMetricsServiceTests : IDisposable
             await Task.Delay(10);
             return expectedResult;
         };
-        
+
         // Act
         var result = await _service.MeasureAsync(operation, "test_operation", "user123");
-        
+
         // Assert
         result.Should().Be(expectedResult);
     }
@@ -796,10 +796,10 @@ public sealed class PermissionMetricsServiceTests : IDisposable
             await Task.Delay(10);
             return "success";
         };
-        
+
         // Act
         await _service.MeasureAsync(operation, "test_module", "user456");
-        
+
         // Assert - Should have incremented resolution counter
         var counterKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_resolutions_total"));
         counterKey.Should().NotBeNullOrEmpty();
@@ -814,7 +814,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
             await Task.Delay(5);
             throw new InvalidOperationException("Test exception");
         };
-        
+
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await _service.MeasureAsync(operation, "failing_operation", "user789"));
@@ -836,7 +836,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var service = new PermissionMetricsService(_loggerMock.Object);
-        
+
         // Act & Assert - Should not throw
         service.Dispose();
     }
@@ -846,7 +846,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var service = new PermissionMetricsService(_loggerMock.Object);
-        
+
         // Act & Assert
         service.Dispose();
         service.Dispose();
@@ -867,24 +867,24 @@ public sealed class PermissionMetricsServiceTests : IDisposable
             using (var check2 = _service.MeasurePermissionCheck("user1", EPermission.UsersCreate, false)) { }
             using (var cacheHit = _service.MeasureCacheOperation("get", hit: true)) { }
         }
-        
+
         _service.RecordAuthorizationFailure("user1", EPermission.UsersCreate, "insufficient_role");
         _service.RecordCacheInvalidation("user1", "user_updated");
         _service.RecordPerformanceStats("total_resolution", 125.5, "ms");
-        
+
         var stats = _service.GetSystemStats();
-        
+
         // Assert
         stats.TotalPermissionChecks.Should().Be(2);
         stats.TotalCacheHits.Should().Be(1);
         stats.CacheHitRate.Should().Be(0.5); // 1 hit / 2 checks
-        
+
         // Verify counters
         var resolutionKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_resolutions_total"));
         var checksKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_checks_total"));
         var hitKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_cache_hits_total"));
         var invalidationKey = _counterValues.Keys.FirstOrDefault(k => k.StartsWith("meajudaai_permission_cache_invalidations_total"));
-        
+
         resolutionKey.Should().NotBeNullOrEmpty();
         checksKey.Should().NotBeNullOrEmpty();
         hitKey.Should().NotBeNullOrEmpty();
@@ -899,26 +899,26 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         {
             var stats1 = _service.GetSystemStats();
             stats1.ActiveChecks.Should().Be(1);
-            
+
             using (var inner1 = _service.MeasurePermissionCheck("user1", EPermission.UsersRead, true))
             {
                 var stats2 = _service.GetSystemStats();
                 stats2.ActiveChecks.Should().Be(2);
-                
+
                 using (var inner2 = _service.MeasurePermissionCheck("user1", EPermission.UsersCreate, true))
                 {
                     var stats3 = _service.GetSystemStats();
                     stats3.ActiveChecks.Should().Be(3);
                 }
-                
+
                 var stats4 = _service.GetSystemStats();
                 stats4.ActiveChecks.Should().Be(2);
             }
-            
+
             var stats5 = _service.GetSystemStats();
             stats5.ActiveChecks.Should().Be(1);
         }
-        
+
         var finalStats = _service.GetSystemStats();
         finalStats.ActiveChecks.Should().Be(0);
     }

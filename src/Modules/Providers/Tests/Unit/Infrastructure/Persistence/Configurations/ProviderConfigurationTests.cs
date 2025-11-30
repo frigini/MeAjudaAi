@@ -844,11 +844,11 @@ public sealed class ProviderConfigurationTests : IDisposable
         // Assert
         businessProfile.Should().NotBeNull();
         businessProfile!.ForeignKey.IsOwnership.Should().BeTrue();
-        
+
         documents.Should().NotBeNull();
         documents!.ForeignKey.IsOwnership.Should().BeTrue();
         documents.IsCollection.Should().BeTrue();
-        
+
         qualifications.Should().NotBeNull();
         qualifications!.ForeignKey.IsOwnership.Should().BeTrue();
         qualifications.IsCollection.Should().BeTrue();
@@ -910,7 +910,7 @@ public sealed class ProviderConfigurationTests : IDisposable
         // Assert
         contactInfo.Should().NotBeNull();
         contactInfo!.ForeignKey.IsOwnership.Should().BeTrue();
-        
+
         primaryAddress.Should().NotBeNull();
         primaryAddress!.ForeignKey.IsOwnership.Should().BeTrue();
     }

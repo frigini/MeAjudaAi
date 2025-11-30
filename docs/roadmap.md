@@ -717,7 +717,7 @@ Para receber notificações quando novas versões estáveis forem lançadas, con
    - **Impacto**: Exemplos automáticos não aparecem no Swagger UI
    - **Solução Temporária**: Comentado em DocumentationExtensions.cs
    - **Próximos Passos**: Investigar API do Swashbuckle 10.x ou usar reflexão
-   - **Documentação**: `docs/technical_debt.md` seção ExampleSchemaFilter
+   - **Documentação**: `docs/technical-debt.md` seção ExampleSchemaFilter
 
 **📅 Cronograma de Atualizações Futuras**:
 

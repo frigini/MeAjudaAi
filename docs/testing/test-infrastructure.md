@@ -284,13 +284,13 @@ public class MeuTeste : TestContainerTestBase
 
 ### 📊 E2E Tests Overview
 
-**Total**: 76 testes E2E em 19 classes
+**Total**: 96 testes E2E em 19 classes
 
 **Categorias**:
-- **Infrastructure** (3 testes): Health checks, database, Redis
-- **Authorization** (4 testes): Permission-based authorization
-- **Integration** (8 testes): Módulos comunicando, API versioning, domain events
-- **Modules** (61 testes): Users (12), Providers (22), Documents (15), ServiceCatalogs (12)
+- **Infrastructure** (6 testes): Health checks, database, Redis
+- **Authorization** (8 testes): Permission-based authorization
+- **Integration** (37 testes): Módulos comunicando, API versioning, domain events
+- **Modules** (45 testes): Users (12), Providers (22), Documents (15), ServiceCatalogs (12)
 
 **Pipeline Status**: ✅ Todos passam na CI/CD (GitHub Actions com Docker nativo)  
 **Local Status**: ❌ Falhando devido a Docker Desktop

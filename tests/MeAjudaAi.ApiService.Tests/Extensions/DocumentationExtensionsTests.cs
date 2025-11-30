@@ -1,3 +1,4 @@
+using System.Reflection;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.ApiService.Filters;
@@ -12,7 +13,6 @@ using NSubstitute;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using System.Reflection;
 using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Extensions;
