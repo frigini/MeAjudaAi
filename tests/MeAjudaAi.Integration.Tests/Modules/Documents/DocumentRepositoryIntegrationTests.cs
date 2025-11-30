@@ -34,9 +34,12 @@ public class DocumentRepositoryIntegrationTests : ApiTestBase
         // Assert
         var retrieved = await repository.GetByIdAsync(document.Id.Value);
         retrieved.Should().NotBeNull();
-        retrieved!.Id.Should().Be(document.Id);
+        retrieved.Id.Should().Be(document.Id);
     }
 
+    /// <summary>
+    /// Retrieves multiple documents by provider ID and verifies all documents for that provider are returned.
+    /// </summary>
     [Fact]
     public async Task GetByProviderIdAsync_WithMultipleDocuments_ShouldReturnAllDocumentsForProvider()
     {
