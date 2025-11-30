@@ -16,6 +16,9 @@ public class DocumentRepositoryIntegrationTests : ApiTestBase
 {
     private readonly Faker _faker = new("pt_BR");
 
+    /// <summary>
+    /// Adds a valid Document via repository and verifies the document is persisted and retrievable by Id.
+    /// </summary>
     [Fact]
     public async Task AddAsync_WithValidDocument_ShouldPersistToDatabase()
     {
@@ -106,10 +109,10 @@ public class DocumentRepositoryIntegrationTests : ApiTestBase
         var repository = scope.ServiceProvider.GetRequiredService<IDocumentRepository>();
         var providerId = Guid.NewGuid();
         var uploadedDocument = CreateValidDocument(providerId);
-        
+
         var pendingDocument = CreateValidDocument(providerId);
         pendingDocument.MarkAsPendingVerification();
-        
+
         var verifiedDocument = CreateValidDocument(providerId);
         verifiedDocument.MarkAsPendingVerification();
         verifiedDocument.MarkAsVerified();
@@ -134,7 +137,7 @@ public class DocumentRepositoryIntegrationTests : ApiTestBase
     private Document CreateValidDocument(Guid? providerId = null, EDocumentType? documentType = null)
     {
         return Document.Create(
-            providerId: providerId ?? Guid.NewGuid(),
+            providerId: providerId ?? Guid.CreateVersion7(),
             documentType: documentType ?? EDocumentType.IdentityDocument,
             fileName: $"{_faker.Random.AlphaNumeric(10)}.pdf",
             fileUrl: $"documents/{Guid.NewGuid()}.pdf");

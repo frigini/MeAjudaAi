@@ -79,7 +79,7 @@ public class ProviderRepositoryIntegrationTests : ApiTestBase
         var city = "São Paulo";
         var provider1 = CreateValidProviderWithAddress(city, "SP");
         var provider2 = CreateValidProviderWithAddress(city, "SP");
-        
+
         await repository.AddAsync(provider1);
         await repository.AddAsync(provider2);
 
@@ -101,7 +101,7 @@ public class ProviderRepositoryIntegrationTests : ApiTestBase
         var state = "SP";
         var provider1 = CreateValidProviderWithAddress("São Paulo", state);
         var provider2 = CreateValidProviderWithAddress("Campinas", state);
-        
+
         await repository.AddAsync(provider1);
         await repository.AddAsync(provider2);
 
@@ -118,7 +118,7 @@ public class ProviderRepositoryIntegrationTests : ApiTestBase
 
     #region Helper Methods
 
-    private Provider CreateValidProvider(Guid? userId = null)
+    private Provider CreateValidProvider(Guid? userId = null, string? city = null, string? state = null)
     {
         var contactInfo = new ContactInfo(
             email: _faker.Internet.Email(),
@@ -129,8 +129,8 @@ public class ProviderRepositoryIntegrationTests : ApiTestBase
             street: _faker.Address.StreetAddress(),
             number: _faker.Random.Number(1, 9999).ToString(),
             neighborhood: _faker.Address.County(),
-            city: _faker.Address.City(),
-            state: _faker.Address.StateAbbr(),
+            city: city ?? _faker.Address.City(),
+            state: state ?? _faker.Address.StateAbbr(),
             zipCode: _faker.Address.ZipCode(),
             country: "Brazil",
             complement: null);
@@ -143,42 +143,14 @@ public class ProviderRepositoryIntegrationTests : ApiTestBase
             description: _faker.Company.CatchPhrase());
 
         return new Provider(
-            userId: userId ?? Guid.NewGuid(),
+            userId: userId ?? Guid.CreateVersion7(),
             name: _faker.Name.FullName(),
             type: EProviderType.Individual,
             businessProfile: businessProfile);
     }
 
     private Provider CreateValidProviderWithAddress(string city, string state)
-    {
-        var contactInfo = new ContactInfo(
-            email: _faker.Internet.Email(),
-            phoneNumber: _faker.Phone.PhoneNumber("(##) #####-####"),
-            website: null);
-
-        var address = new Address(
-            street: _faker.Address.StreetAddress(),
-            number: _faker.Random.Number(1, 9999).ToString(),
-            neighborhood: _faker.Address.County(),
-            city: city,
-            state: state,
-            zipCode: _faker.Address.ZipCode(),
-            country: "Brazil",
-            complement: null);
-
-        var businessProfile = new BusinessProfile(
-            legalName: _faker.Company.CompanyName(),
-            contactInfo: contactInfo,
-            primaryAddress: address,
-            fantasyName: _faker.Company.CompanyName(),
-            description: _faker.Company.CatchPhrase());
-
-        return new Provider(
-            userId: Guid.NewGuid(),
-            name: _faker.Name.FullName(),
-            type: EProviderType.Individual,
-            businessProfile: businessProfile);
-    }
+        => CreateValidProvider(city: city, state: state);
 
     #endregion
 }
