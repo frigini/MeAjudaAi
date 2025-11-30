@@ -538,7 +538,7 @@ public static class ProvidersModuleServiceCollectionExtensions
 - **[Arquitetura Geral](../architecture.md)** - Padrões e estrutura da aplicação
 - **[Guia de Desenvolvimento](../development.md)** - Setup e diretrizes
 - **[Módulo Users](./users.md)** - Integração com gestão de usuários
-- **[Technical Debt](../technical-debt.md)** - Itens pendentes e melhorias
+- **[Débito Técnico](../technical_debt.md)** - Itens pendentes e melhorias
 
 ---
 

@@ -37,9 +37,9 @@ Se você é novo no projeto, comece por aqui:
 
 | Documento | Descrição |
 |-----------|-----------|
-| **[🆔 Correlation ID](./logging/CORRELATION_ID.md)** | Melhores práticas para implementação e uso de Correlation IDs |
-| **[⏱️ Desempenho](./logging/PERFORMANCE.md)** | Estratégias e ferramentas de monitoramento de desempenho |
-| **[📊 Seq Setup](./logging/SEQ_SETUP.md)** | Configuração do Seq para logging estruturado |
+| **[🆔 Correlation ID](./logging/correlation-id.md)** | Melhores práticas para implementação e uso de Correlation IDs |
+| **[⏱️ Desempenho](./logging/performance.md)** | Estratégias e ferramentas de monitoramento de desempenho |
+| **[📊 Seq Setup](./logging/seq-setup.md)** | Configuração do Seq para logging estruturado |
 
 ### **💬 Messaging**
 
@@ -53,11 +53,11 @@ Se você é novo no projeto, comece por aqui:
 
 | Documento | Descrição |
 |-----------|-----------|
-| **[📅 Módulo Bookings](./modules/bookings.md)** | Sistema de agendamentos (planejado) |
+| **📅 Módulo Bookings** | Sistema de agendamentos (planejado - documentação pendente) |
 | **[📄 Módulo Documents](./modules/documents.md)** | Gerenciamento de documentos |
 | **[🔧 Módulo Providers](./modules/providers.md)** | Prestadores de serviços, verificação e documentos |
 | **[🔍 Módulo SearchProviders](./modules/search_providers.md)** | Busca geoespacial de prestadores com PostGIS |
-| **[📋 Módulo Services](./modules/services.md)** | Catálogo de serviços (planejado) |
+| **📋 Módulo Service Catalogs** | Catálogo de serviços - ver [service_catalogs.md](./modules/service_catalogs.md) |
 | **[👥 Módulo Users](./modules/users.md)** | Gestão de usuários, autenticação e perfis |
 
 ### **🧪 Testes**
@@ -66,14 +66,10 @@ Se você é novo no projeto, comece por aqui:
 |-----------|-----------|
 | **[📊 Guia de Cobertura de Código](./testing/code_coverage_guide.md)** | Como visualizar e interpretar a cobertura de código |
 | **[⚙️ Testes de Integração](./testing/integration_tests.md)** | Guia para escrever e manter testes de integração |
-| **[🔒 Exemplos de Testes de Autenticação](./testing/test_auth_examples.md)** | Exemplos práticos do TestAuthenticationHandler |
-
-### **📚 Guias e Relatórios**
-
-| Documento | Descrição |
-|-----------|-----------|
-| **[📝 Guia de Implementação do EditorConfig](./guides/editorconfig_implementation_guide.md)** | Guia de implementação do EditorConfig |
-| **[🔒 Relatório de Melhorias de Segurança](./reports/security_improvements_report.md)** | Relatório de melhorias de segurança |
+| **[🏗️ Infraestrutura de Testes](./testing/test-infrastructure.md)** | Setup e configuração da infraestrutura de testes |
+| **[🔒 Exemplos de Testes de Autenticação](./testing/test-auth-examples.md)** | Exemplos práticos do TestAuthenticationHandler |
+| **[🔍 Análise de Testes Skipped](./testing/skipped-tests-analysis.md)** | Análise e plano de correção de testes skipped |
+| **[🎯 Arquitetura E2E](./testing/e2e-architecture-analysis.md)** | Análise da arquitetura de testes end-to-end |
 
 ## 🤝 Como Contribuir
 

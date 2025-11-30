@@ -794,7 +794,7 @@ Após adicionar um novo módulo:
 - [🏗️ Arquitetura e Padrões](./architecture.md)
 - [🚀 Infraestrutura](./infrastructure.md)  
 - [🔄 CI/CD](./ci_cd.md)
-- [🔐 Autenticação](./authentication.md)
+- [🔐 Autenticação e Autorização](./authentication_and_authorization.md)
 - [🧪 Guia de Testes](#-diretrizes-de-testes)
 - [📖 README Principal](../README.md)
 

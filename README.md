@@ -67,7 +67,9 @@ O projeto foi organizado para facilitar navegação e manutenção:
 
 ### Para Desenvolvedores
 
-**Setup completo (recomendado):**
+Para instruções detalhadas, consulte o [**Guia de Desenvolvimento Completo**](./docs/development.md).
+
+**Setup completo (recomendado):****
 ```bash
 ./run-local.sh setup
 ```

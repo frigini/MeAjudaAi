@@ -80,7 +80,7 @@ Each environment requires specific configuration:
 - Database performance degrades significantly
 
 For detailed rollback procedures and troubleshooting, see:
-📖 **[Hangfire Npgsql Compatibility Guide - Rollback Section](./hangfire-npgsql-compatibility.md#rollback-procedure)**
+📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)**
 
 **Quick Rollback Steps** (see full guide for details):
 
