@@ -64,6 +64,9 @@ public class DocumentRepositoryIntegrationTests : ApiTestBase
         results.Should().AllSatisfy(d => d.ProviderId.Should().Be(providerId));
     }
 
+    /// <summary>
+    /// Updates a document's status to PendingVerification and verifies the changes are persisted.
+    /// </summary>
     [Fact]
     public async Task UpdateAsync_WithModifiedDocument_ShouldPersistChanges()
     {
@@ -87,6 +90,9 @@ public class DocumentRepositoryIntegrationTests : ApiTestBase
         retrieved!.Status.Should().Be(EDocumentStatus.PendingVerification);
     }
 
+    /// <summary>
+    /// Verifies that ExistsAsync returns true for a document that has been persisted to the database.
+    /// </summary>
     [Fact]
     public async Task ExistsAsync_WithExistingDocument_ShouldReturnTrue()
     {
@@ -104,6 +110,9 @@ public class DocumentRepositoryIntegrationTests : ApiTestBase
         exists.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Creates documents with different statuses (Uploaded, PendingVerification, Verified) and verifies all are persisted correctly.
+    /// </summary>
     [Fact]
     public async Task Document_WithDifferentStatuses_ShouldPersistCorrectly()
     {

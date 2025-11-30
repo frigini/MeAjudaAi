@@ -21,24 +21,29 @@ public class ServiceRepositoryIntegrationTests : ApiTestBase
     [Fact]
     public async Task AddAsync_WithValidService_ShouldPersistToDatabase()
     {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IServiceRepository>();
-        var categoryRepository = scope.ServiceProvider.GetRequiredService<IServiceCategoryRepository>();
+        // Arrange & Act
+        Service service;
+        ServiceCategory category;
+        using (var scope = Services.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IServiceRepository>();
+            var categoryRepository = scope.ServiceProvider.GetRequiredService<IServiceCategoryRepository>();
 
-        var category = CreateValidCategory();
-        await categoryRepository.AddAsync(category);
+            category = CreateValidCategory();
+            await categoryRepository.AddAsync(category);
 
-        var service = Service.Create(
-            category.Id,
-            _faker.Commerce.ProductName(),
-            _faker.Lorem.Sentence());
+            service = Service.Create(
+                category.Id,
+                _faker.Commerce.ProductName(),
+                _faker.Lorem.Sentence());
 
-        // Act - AddAsync auto-saves internally
-        await repository.AddAsync(service);
+            await repository.AddAsync(service);
+        }
 
-        // Assert
-        var retrieved = await repository.GetByIdAsync(service.Id);
+        // Assert - using fresh scope to force DB round-trip
+        using var verificationScope = Services.CreateScope();
+        var verificationRepository = verificationScope.ServiceProvider.GetRequiredService<IServiceRepository>();
+        var retrieved = await verificationRepository.GetByIdAsync(service.Id);
         retrieved.Should().NotBeNull();
         retrieved!.Id.Should().Be(service.Id);
         retrieved.Name.Should().Be(service.Name);
@@ -123,8 +128,10 @@ public class ServiceRepositoryIntegrationTests : ApiTestBase
         // Act
         var result = await repository.GetAllAsync();
 
-        // Assert
-        result.Should().HaveCount(initialCount + 2);
+        // Assert - relaxed to handle concurrent test runs
+        result.Should().HaveCountGreaterThanOrEqualTo(initialCount + 2);
+        result.Should().Contain(s => s.Id == service1.Id);
+        result.Should().Contain(s => s.Id == service2.Id);
     }
 
     /// <summary>
