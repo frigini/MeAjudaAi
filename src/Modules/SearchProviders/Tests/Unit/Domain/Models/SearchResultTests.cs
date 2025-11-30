@@ -199,12 +199,12 @@ public class SearchResultTests
     private IReadOnlyList<SearchableProvider> CreateProviders(int count)
     {
         var providers = new List<SearchableProvider>();
-        
+
         for (int i = 0; i < count; i++)
         {
             var providerId = Guid.NewGuid();
             var location = new GeoPoint(-23.5505 + i * 0.1, -46.6333 + i * 0.1);
-            
+
             var provider = SearchableProvider.Create(
                 providerId,
                 _faker.Person.FullName,
@@ -214,7 +214,7 @@ public class SearchResultTests
                 _faker.Address.City(),
                 _faker.Address.StateAbbr()
             );
-            
+
             providers.Add(provider);
         }
 

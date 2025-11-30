@@ -31,6 +31,12 @@ public record GeoPoint
         return R * c;
     }
 
+    /// <summary>
+    /// Deconstrói o ponto geográfico em suas coordenadas componentes.
+    /// Permite usar sintaxe de desconstrução: var (lat, lon) = geoPoint;
+    /// </summary>
+    /// <param name="latitude">Latitude em graus decimais (-90 a 90)</param>
+    /// <param name="longitude">Longitude em graus decimais (-180 a 180)</param>
     public void Deconstruct(out double latitude, out double longitude)
     {
         latitude = Latitude;

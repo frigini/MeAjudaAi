@@ -145,8 +145,8 @@ public class PagedResultTests
     public void Create_WithDifferentType_ShouldWork()
     {
         // Arrange
-        var items = new List<TestDto> 
-        { 
+        var items = new List<TestDto>
+        {
             new("Test1"),
             new("Test2")
         };
