@@ -127,7 +127,7 @@ jobs:
             -targetdir:"TestResults/Coverage" \
             -reporttypes:"Html;Cobertura;JsonSummary" \
             -assemblyfilters:"-*.Tests*" \
-            -classfilters:"-*.Migrations*"
+            -classfilters:"-*.Migrations*;-*OpenApi.Generated*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*"
 
       - name: Upload code coverage
         uses: actions/upload-artifact@v4
