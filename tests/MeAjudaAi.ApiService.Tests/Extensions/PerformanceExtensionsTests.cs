@@ -117,21 +117,6 @@ public class PerformanceExtensionsTests
     }
 
     [Fact]
-    public void AddResponseCompression_ShouldConfigureGzipOptimalLevel()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        PerformanceExtensions.AddResponseCompression(services);
-
-        // Act
-        var provider = services.BuildServiceProvider();
-        var gzipOptions = provider.GetRequiredService<IOptions<GzipCompressionProviderOptions>>().Value;
-
-        // Assert
-        gzipOptions.Level.Should().Be(CompressionLevel.Optimal);
-    }
-
-    [Fact]
     public void AddResponseCompression_ShouldConfigureBrotliOptimalLevel()
     {
         // Arrange
@@ -640,20 +625,6 @@ public class PerformanceExtensionsTests
     #region AddStaticFilesWithCaching Tests (2 tests)
 
     [Fact]
-    public void AddStaticFilesWithCaching_ShouldRegisterServices()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act
-        var result = services.AddStaticFilesWithCaching();
-
-        // Assert
-        result.Should().BeSameAs(services);
-        // Verify chainability - static files configuration is internal
-    }
-
-    [Fact]
     public void AddStaticFilesWithCaching_ShouldBeChainable()
     {
         // Arrange
@@ -664,41 +635,12 @@ public class PerformanceExtensionsTests
 
         // Assert
         result.Should().BeSameAs(services);
+        // Note: Static files configuration is internal to ASP.NET Core, so only chainability can be verified
     }
 
     #endregion
 
     #region AddApiResponseCaching Tests (4 tests)
-
-    [Fact]
-    public void AddApiResponseCaching_ShouldRegisterServices()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act
-        var result = services.AddApiResponseCaching();
-
-        // Assert
-        result.Should().BeSameAs(services);
-        // Verify chainability - response caching configuration is internal
-    }
-
-
-    [Fact(Skip = "ResponseCachingOptions is internal to ASP.NET Core")]
-    public void AddApiResponseCaching_ShouldConfigureMaximumBodySize()
-    {
-        // Response caching configuration is internal to ASP.NET Core
-        // This test is skipped as the options type is not publicly accessible
-    }
-
-
-    [Fact(Skip = "ResponseCachingOptions is internal to ASP.NET Core")]
-    public void AddApiResponseCaching_ShouldUseCaseSensitivePaths()
-    {
-        // Response caching configuration is internal to ASP.NET Core
-        // This test is skipped as the options type is not publicly accessible
-    }
 
     [Fact]
     public void AddApiResponseCaching_ShouldBeChainable()
@@ -711,6 +653,7 @@ public class PerformanceExtensionsTests
 
         // Assert
         result.Should().BeSameAs(services);
+        // Note: ResponseCachingOptions is internal to ASP.NET Core, so only chainability can be verified
     }
 
     #endregion

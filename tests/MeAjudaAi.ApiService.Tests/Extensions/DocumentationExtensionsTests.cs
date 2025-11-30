@@ -34,7 +34,7 @@ public sealed class DocumentationExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddLogging();
-        
+
         // Mock IWebHostEnvironment
         var mockEnv = new Mock<IWebHostEnvironment>();
         mockEnv.Setup(e => e.EnvironmentName).Returns("Testing");
@@ -44,7 +44,7 @@ public sealed class DocumentationExtensionsTests
         mockEnv.Setup(e => e.ContentRootFileProvider).Returns(new NullFileProvider());
         mockEnv.Setup(e => e.WebRootFileProvider).Returns(new NullFileProvider());
         services.AddSingleton(mockEnv.Object);
-        
+
         services.AddDocumentation();
 
         // Register minimal API descriptions
@@ -169,10 +169,6 @@ public sealed class DocumentationExtensionsTests
         var operation = pathItem.Operations.Values.FirstOrDefault();
         operation.Should().NotBeNull();
         operation!.OperationId.Should().NotBeNull();
-        // Operation ID should not contain {id} parameter
-        operation!.OperationId!.Should().NotContain("{");
-        operation!.OperationId!.Should().NotContain("}");
-        // Should be based on HTTP method and clean path
         operation!.OperationId!.Should().Be("GET-users-profile");
 
         serviceProvider.Dispose();
@@ -252,7 +248,7 @@ public sealed class DocumentationExtensionsTests
     }
 
     [Fact]
-    public void SwaggerGenOptions_ShouldIncludeXmlCommentsIfFileExists()
+    public void SwaggerGenOptions_ShouldBeConfigured()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -264,35 +260,15 @@ public sealed class DocumentationExtensionsTests
         var options = serviceProvider.GetRequiredService<IOptions<SwaggerGenOptions>>().Value;
 
         // Assert
-        // Verify options were configured (actual XML file may not exist, but configuration should be present)
         options.Should().NotBeNull();
+        // Note: SwaggerGenOptions doesn't expose a simple way to inspect XML document filters
+        // This test verifies options are configured; actual XML inclusion is verified by document generation tests
 
         serviceProvider.Dispose();
     }
 
     [Fact]
-    public void UseDocumentation_ShouldNotThrow()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddDocumentation();
-        services.AddRouting();
-
-        var serviceProvider = services.BuildServiceProvider();
-        var app = new ApplicationBuilder(serviceProvider);
-
-        // Act
-        var act = () => app.UseDocumentation();
-
-        // Assert
-        act.Should().NotThrow();
-
-        serviceProvider.Dispose();
-    }
-
-    [Fact]
-    public void UseDocumentation_ShouldReturnApplicationBuilder()
+    public void UseDocumentation_ShouldRegisterMiddlewareAndReturnBuilder()
     {
         // Arrange
         var services = new ServiceCollection();

@@ -241,11 +241,11 @@ jobs:
           MODULES=(
             # Domain module tests
             "Users:src/Modules/Users/Tests/:MeAjudaAi.Modules.Users.*"
-            
+
             # System/Shared tests (626+ tests - HIGH PRIORITY)
             "Shared:tests/MeAjudaAi.Shared.Tests/:MeAjudaAi.Shared"
             "ApiService:tests/MeAjudaAi.ApiService.Tests/:MeAjudaAi.ApiService"
-            
+
             # Future domain modules:
             # "Documents:src/Modules/Documents/Tests/:MeAjudaAi.Modules.Documents.*"
             # "Providers:src/Modules/Providers/Tests/:MeAjudaAi.Modules.Providers.*"
