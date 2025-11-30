@@ -732,6 +732,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     {
         // Arrange
         var services = new ServiceCollection();
+        services.AddLogging();
 
         // Act
         services.AddPermissionMetrics();
