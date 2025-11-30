@@ -1347,11 +1347,6 @@
           "Microsoft.Extensions.Primitives": "8.0.0"
         }
       },
-      "Microsoft.AspNetCore.TestHost": {
-        "type": "Transitive",
-        "resolved": "10.0.0",
-        "contentHash": "Q3ia+k+wYM3Iv/Qq5IETOdpz/R0xizs3WNAXz699vEQx5TMVAfG715fBSq9Thzopvx8dYZkxQ/mumTn6AJ/vGQ=="
-      },
       "Microsoft.Azure.Amqp": {
         "type": "Transitive",
         "resolved": "2.7.0",
@@ -3432,6 +3427,12 @@
         "dependencies": {
           "Microsoft.OpenApi": "2.0.0"
         }
+      },
+      "Microsoft.AspNetCore.TestHost": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.0, )",
+        "resolved": "10.0.0",
+        "contentHash": "Q3ia+k+wYM3Iv/Qq5IETOdpz/R0xizs3WNAXz699vEQx5TMVAfG715fBSq9Thzopvx8dYZkxQ/mumTn6AJ/vGQ=="
       },
       "Microsoft.Build": {
         "type": "CentralTransitive",
