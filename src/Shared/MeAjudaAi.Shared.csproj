@@ -79,4 +79,8 @@
     <!-- Removed: System.Text.Json - transitive from Microsoft.AspNetCore.App -->
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="MeAjudaAi.Shared.Tests" />
+  </ItemGroup>
+
 </Project>
