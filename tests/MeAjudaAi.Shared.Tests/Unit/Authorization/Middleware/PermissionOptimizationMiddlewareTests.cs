@@ -94,7 +94,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users";
         _httpContext.Request.Method = "GET";
-        
+
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, "user-123"),
@@ -119,7 +119,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/providers";
         _httpContext.Request.Method = "POST";
-        
+
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, "user-456"),
@@ -152,7 +152,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = path;
         _httpContext.Request.Method = method;
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -177,7 +177,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = path;
         _httpContext.Request.Method = method;
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -196,7 +196,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users/profile";
         _httpContext.Request.Method = "GET";
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -215,7 +215,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users/admin/list";
         _httpContext.Request.Method = "GET";
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -235,7 +235,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users/123";
         _httpContext.Request.Method = "DELETE";
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -259,7 +259,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users/profile";
         _httpContext.Request.Method = "GET";
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -278,7 +278,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users/profile/123";
         _httpContext.Request.Method = "GET";
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -297,7 +297,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/providers";
         _httpContext.Request.Method = "GET";
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -316,7 +316,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users";
         _httpContext.Request.Method = "POST";
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -341,7 +341,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = path;
         _httpContext.Request.Method = "GET";
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -369,7 +369,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = path;
         _httpContext.Request.Method = method;
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -392,7 +392,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = path;
         _httpContext.Request.Method = method;
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -515,7 +515,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users";
         _httpContext.Request.Method = "GET";
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-from-nameidentifier") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -533,7 +533,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users";
         _httpContext.Request.Method = "GET";
-        
+
         var claims = new[] { new Claim("sub", "user-from-sub") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -551,7 +551,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users";
         _httpContext.Request.Method = "GET";
-        
+
         var claims = new[] { new Claim("id", "user-from-id") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -575,7 +575,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users";
         _httpContext.Request.Method = method;
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);
@@ -596,7 +596,7 @@ public class PermissionOptimizationMiddlewareTests
         // Arrange
         _httpContext.Request.Path = "/api/v1/users/123";
         _httpContext.Request.Method = method;
-        
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         _httpContext.User = new ClaimsPrincipal(identity);

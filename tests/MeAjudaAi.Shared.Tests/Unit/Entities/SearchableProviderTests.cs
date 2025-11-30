@@ -532,13 +532,13 @@ public class SearchableProviderTests
 
         // Act & Assert - multiple toggles
         provider.IsActive.Should().BeTrue();
-        
+
         provider.Deactivate();
         provider.IsActive.Should().BeFalse();
-        
+
         provider.Activate();
         provider.IsActive.Should().BeTrue();
-        
+
         provider.Deactivate();
         provider.IsActive.Should().BeFalse();
     }
@@ -598,7 +598,7 @@ public class SearchableProviderTests
         // Arrange
         var location1 = new GeoPoint(-23.5505, -46.6333); // São Paulo
         var location2 = new GeoPoint(-22.9068, -43.1729); // Rio
-        
+
         var provider1 = SearchableProvider.Create(Guid.NewGuid(), "P1", location1);
         var provider2 = SearchableProvider.Create(Guid.NewGuid(), "P2", location2);
 
