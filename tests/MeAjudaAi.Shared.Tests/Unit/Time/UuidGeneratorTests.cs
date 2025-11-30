@@ -86,6 +86,16 @@ public class UuidGeneratorTests
     }
 
     [Fact]
+    public void NewIdString_ShouldBeVersion7()
+    {
+        // Act
+        var id = UuidGenerator.NewIdString();
+
+        // Assert
+        id[14].Should().Be('7');
+    }
+
+    [Fact]
     public void NewIdStringCompact_ShouldReturnNonEmptyString()
     {
         // Act
@@ -125,6 +135,16 @@ public class UuidGeneratorTests
 
         // Assert
         id1.Should().NotBe(id2);
+    }
+
+    [Fact]
+    public void NewIdStringCompact_ShouldBeVersion7()
+    {
+        // Act
+        var id = UuidGenerator.NewIdStringCompact();
+
+        // Assert
+        id[12].Should().Be('7');
     }
 
     [Fact]

@@ -89,7 +89,7 @@ public class GeoPointTests
     }
 
     [Fact]
-    public void DistanceTo_BetweenSaoPauloAndRioDeJaneiro_ShouldReturnApproximately350km()
+    public void DistanceTo_BetweenSaoPauloAndRioDeJaneiro_ShouldReturnApproximately360km()
     {
         // Arrange - coordinates of São Paulo and Rio de Janeiro
         var saoPaulo = new GeoPoint(-23.5505, -46.6333);

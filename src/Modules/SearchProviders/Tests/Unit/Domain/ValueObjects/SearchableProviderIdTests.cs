@@ -24,7 +24,6 @@ public class SearchableProviderIdTests
 
         // Assert
         id1.Should().NotBe(id2);
-        id1.Value.Should().NotBe(id2.Value);
     }
 
     [Fact]

@@ -207,13 +207,16 @@ public class DatabaseExceptionsTests
     }
 
     [Fact]
-    public void PostgreSqlExceptionProcessor_ProcessException_WithNullArgument_ShouldThrowArgumentNullException()
+    public void ProcessException_WithNullArgument_ShouldThrowArgumentNullException()
     {
         // Arrange
         DbUpdateException? nullException = null;
 
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => PostgreSqlExceptionProcessor.ProcessException(nullException!));
+        // Act
+        var act = () => PostgreSqlExceptionProcessor.ProcessException(nullException!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
     }
 
     [Fact]
