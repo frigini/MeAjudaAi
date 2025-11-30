@@ -14,7 +14,6 @@ namespace MeAjudaAi.ApiService.Tests.Extensions;
 
 /// <summary>
 /// Testes abrangentes para PerformanceExtensions.cs (response compression, caching)
-/// Cobertura: 0% → ~95%
 /// </summary>
 public class PerformanceExtensionsTests
 {
@@ -50,7 +49,7 @@ public class PerformanceExtensionsTests
     }
 
     [Fact]
-    public void AddResponseCompression_ShouldIncludeSafeGzipProvider()
+    public void AddResponseCompression_ShouldRegisterSafeCompressionProviders()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -60,12 +59,12 @@ public class PerformanceExtensionsTests
         var provider = services.BuildServiceProvider();
         var options = provider.GetRequiredService<IOptions<ResponseCompressionOptions>>().Value;
 
-        // Assert - Verify we have 2 compression providers registered (Gzip + Brotli)
-        options.Providers.Should().HaveCount(2, "SafeGzipCompressionProvider and SafeBrotliCompressionProvider are registered");
+        // Assert - Verify both gzip and brotli compression providers are registered
+        options.Providers.Should().HaveCount(2, "both gzip and brotli providers should be configured");
     }
 
     [Fact]
-    public void AddResponseCompression_ShouldIncludeSafeBrotliProvider()
+    public void AddResponseCompression_ShouldConfigureGzipCompressionLevel()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -367,7 +366,7 @@ public class PerformanceExtensionsTests
     {
         // Arrange
         var context = CreateHttpContext();
-        context.Request.Cookies = new RequestCookieCollection(new Dictionary<string, string>
+        context.Request.Cookies = new TestRequestCookieCollection(new Dictionary<string, string>
         {
             [cookieName] = "value"
         });
@@ -388,7 +387,7 @@ public class PerformanceExtensionsTests
     {
         // Arrange
         var context = CreateHttpContext();
-        context.Request.Cookies = new RequestCookieCollection(new Dictionary<string, string>
+        context.Request.Cookies = new TestRequestCookieCollection(new Dictionary<string, string>
         {
             [cookieName] = "value"
         });
@@ -518,7 +517,7 @@ public class PerformanceExtensionsTests
     {
         // Arrange
         var context = CreateHttpContext();
-        context.Request.Cookies = new RequestCookieCollection(new Dictionary<string, string>
+        context.Request.Cookies = new TestRequestCookieCollection(new Dictionary<string, string>
         {
             ["AUTH_TOKEN"] = "value"
         });
@@ -727,11 +726,11 @@ public class PerformanceExtensionsTests
         return context;
     }
 
-    private class RequestCookieCollection : IRequestCookieCollection
+    private class TestRequestCookieCollection : IRequestCookieCollection
     {
         private readonly Dictionary<string, string> _cookies;
 
-        public RequestCookieCollection(Dictionary<string, string> cookies)
+        public TestRequestCookieCollection(Dictionary<string, string> cookies)
         {
             _cookies = cookies;
         }

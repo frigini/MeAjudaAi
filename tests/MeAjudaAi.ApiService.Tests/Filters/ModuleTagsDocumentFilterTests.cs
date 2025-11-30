@@ -359,8 +359,14 @@ public class ModuleTagsDocumentFilterTests
         schema.Description.Should().Be("Metadados de paginação para listagens");
     }
 
-    [Fact]
-    public void Apply_PaginationMetadataSchema_ShouldHavePageProperty()
+    [Theory]
+    [InlineData("page")]
+    [InlineData("pageSize")]
+    [InlineData("totalItems")]
+    [InlineData("totalPages")]
+    [InlineData("hasNextPage")]
+    [InlineData("hasPreviousPage")]
+    public void Apply_PaginationMetadataSchema_ShouldHaveRequiredProperty(string propertyName)
     {
         // Arrange
         var swaggerDoc = new OpenApiDocument();
@@ -371,102 +377,8 @@ public class ModuleTagsDocumentFilterTests
 
         // Assert
         var schema = swaggerDoc.Components!.Schemas!["PaginationMetadata"];
-        schema.Properties.Should().ContainKey("page");
-    }
-
-    [Fact]
-    public void Apply_PaginationMetadataSchema_ShouldHavePageSizeProperty()
-    {
-        // Arrange
-        var swaggerDoc = new OpenApiDocument();
-        var context = CreateDocumentFilterContext();
-
-        // Act
-        _filter.Apply(swaggerDoc, context);
-
-        // Assert
-        var schema = swaggerDoc.Components!.Schemas!["PaginationMetadata"];
-        schema.Properties.Should().ContainKey("pageSize");
-    }
-
-    [Fact]
-    public void Apply_PaginationMetadataSchema_ShouldHaveTotalItemsProperty()
-    {
-        // Arrange
-        var swaggerDoc = new OpenApiDocument();
-        var context = CreateDocumentFilterContext();
-
-        // Act
-        _filter.Apply(swaggerDoc, context);
-
-        // Assert
-        var schema = swaggerDoc.Components!.Schemas!["PaginationMetadata"];
-        schema.Properties.Should().ContainKey("totalItems");
-    }
-
-    [Fact]
-    public void Apply_PaginationMetadataSchema_ShouldHaveTotalPagesProperty()
-    {
-        // Arrange
-        var swaggerDoc = new OpenApiDocument();
-        var context = CreateDocumentFilterContext();
-
-        // Act
-        _filter.Apply(swaggerDoc, context);
-
-        // Assert
-        var schema = swaggerDoc.Components!.Schemas!["PaginationMetadata"];
-        schema.Properties.Should().ContainKey("totalPages");
-    }
-
-    [Fact]
-    public void Apply_PaginationMetadataSchema_ShouldHaveHasNextPageProperty()
-    {
-        // Arrange
-        var swaggerDoc = new OpenApiDocument();
-        var context = CreateDocumentFilterContext();
-
-        // Act
-        _filter.Apply(swaggerDoc, context);
-
-        // Assert
-        var schema = swaggerDoc.Components!.Schemas!["PaginationMetadata"];
-        schema.Properties.Should().ContainKey("hasNextPage");
-    }
-
-    [Fact]
-    public void Apply_PaginationMetadataSchema_ShouldHaveHasPreviousPageProperty()
-    {
-        // Arrange
-        var swaggerDoc = new OpenApiDocument();
-        var context = CreateDocumentFilterContext();
-
-        // Act
-        _filter.Apply(swaggerDoc, context);
-
-        // Assert
-        var schema = swaggerDoc.Components!.Schemas!["PaginationMetadata"];
-        schema.Properties.Should().ContainKey("hasPreviousPage");
-    }
-
-    [Fact]
-    public void Apply_PaginationMetadataSchema_ShouldHaveAllPropertiesInRequired()
-    {
-        // Arrange
-        var swaggerDoc = new OpenApiDocument();
-        var context = CreateDocumentFilterContext();
-
-        // Act
-        _filter.Apply(swaggerDoc, context);
-
-        // Assert
-        var schema = swaggerDoc.Components!.Schemas!["PaginationMetadata"];
-        schema.Required.Should().Contain("page");
-        schema.Required.Should().Contain("pageSize");
-        schema.Required.Should().Contain("totalItems");
-        schema.Required.Should().Contain("totalPages");
-        schema.Required.Should().Contain("hasNextPage");
-        schema.Required.Should().Contain("hasPreviousPage");
+        schema.Properties.Should().ContainKey(propertyName);
+        schema.Required.Should().Contain(propertyName);
     }
 
     [Fact]

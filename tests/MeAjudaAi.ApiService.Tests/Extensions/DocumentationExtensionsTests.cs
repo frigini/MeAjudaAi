@@ -99,9 +99,13 @@ public sealed class DocumentationExtensionsTests
         // Act
         var document = await Task.Run(() => swaggerProvider.GetSwagger("v1"));
 
-        // Assert - Verify Bearer security scheme exists (global requirement is applied via SwaggerGen config)
+        // Assert - Verify Bearer security scheme exists
         document.Components.Should().NotBeNull();
         document.Components!.SecuritySchemes.Should().ContainKey("Bearer");
+
+        // Verify global security requirement is applied
+        document.Security.Should().NotBeNull()
+            .And.HaveCountGreaterThan(0, "global security requirements should be configured");
 
         serviceProvider.Dispose();
     }
@@ -139,14 +143,19 @@ public sealed class DocumentationExtensionsTests
         var document = await Task.Run(() => swaggerProvider.GetSwagger("v1"));
 
         // Assert
-        var operation = document.Paths["/users/{id}/profile"]?.Operations.Values.FirstOrDefault();
+        document.Paths.Should().NotBeNull();
+        document.Paths.Should().ContainKey("/users/{id}/profile");
+        var pathItem = document.Paths!["/users/{id}/profile"];
+        pathItem.Should().NotBeNull();
+        pathItem!.Operations.Should().NotBeNull();
+        var operation = pathItem.Operations.Values.FirstOrDefault();
         operation.Should().NotBeNull();
         operation!.OperationId.Should().NotBeNull();
         // Operation ID should not contain {id} parameter
-        operation.OperationId!.Should().NotContain("{");
-        operation.OperationId.Should().NotContain("}");
+        operation!.OperationId!.Should().NotContain("{");
+        operation!.OperationId!.Should().NotContain("}");
         // Should be based on HTTP method and clean path
-        operation.OperationId.Should().Be("GET-users-profile");
+        operation!.OperationId!.Should().Be("GET-users-profile");
 
         serviceProvider.Dispose();
     }
@@ -180,15 +189,15 @@ public sealed class DocumentationExtensionsTests
         // Act
         var document = await Task.Run(() => swaggerProvider.GetSwagger("v1"));
 
-        // Assert
-        if (document.Paths.ContainsKey("/health"))
-        {
-            var operation = document.Paths["/health"]?.Operations.Values.FirstOrDefault();
-            if (operation?.OperationId != null)
-            {
-                operation.OperationId.Should().StartWith("ANY-");
-            }
-        }
+        // Assert - Health endpoint should be prefixed with ANY-
+        document.Paths.Should().ContainKey("/health");
+        var healthPath = document.Paths!["/health"];
+        healthPath.Should().NotBeNull();
+        healthPath!.Operations.Should().NotBeNull();
+        var operation = healthPath.Operations.Values.FirstOrDefault();
+        operation.Should().NotBeNull();
+        operation!.OperationId.Should().NotBeNull();
+        operation!.OperationId!.Should().StartWith("ANY-");
 
         serviceProvider.Dispose();
     }
