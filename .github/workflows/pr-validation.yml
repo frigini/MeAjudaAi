@@ -904,11 +904,11 @@ jobs:
           # Install OSV-Scanner with pinned version for reproducibility
           OSV_VERSION="v1.8.3"
           OSV_URL="https://github.com/google/osv-scanner/releases/download/${OSV_VERSION}"
-          
+
           # Retry logic for network transient failures
           max_retries=3
           retry_count=0
-          
+
           while [ $retry_count -lt $max_retries ]; do
             if curl -sSfL --connect-timeout 10 --max-time 30 \
                 "${OSV_URL}/osv-scanner_linux_amd64" -o osv-scanner; then
@@ -923,7 +923,7 @@ jobs:
               else
                 echo "❌ Download failed after $max_retries attempts"
                 echo "💡 Trying fallback: install via Go toolchain..."
-                
+
                 # Fallback: Install via Go if available
                 if command -v go >/dev/null 2>&1; then
                   go install github.com/google/osv-scanner/cmd/osv-scanner@${OSV_VERSION}
