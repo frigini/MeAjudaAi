@@ -370,10 +370,10 @@ public class SecurityExtensionsTests
             ["Cors:AllowedHeaders:1"] = "Authorization",
             ["Cors:AllowCredentials"] = "true",
             ["Keycloak:BaseUrl"] = "https://keycloak.example.com",
-            ["Keycloak:Realm"] = "production-realm",
-            ["Keycloak:ClientId"] = "api-client",
+            ["Keycloak:Realm"] = "test-realm",
+            ["Keycloak:ClientId"] = "test-client",
             ["Keycloak:RequireHttpsMetadata"] = "true",
-            ["Keycloak:ClockSkewMinutes"] = "2",
+            ["Keycloak:ClockSkew"] = "00:02:00",
             ["HttpsRedirection:Enabled"] = "true",
             ["AllowedHosts"] = "app.com;admin.app.com",
             ["AdvancedRateLimit:Anonymous:RequestsPerMinute"] = "50",
@@ -692,7 +692,7 @@ public class SecurityExtensionsTests
                 ["Keycloak:RequireHttpsMetadata"] = "true",
                 ["Keycloak:ValidateIssuer"] = "true",
                 ["Keycloak:ValidateAudience"] = "true",
-                ["Keycloak:ClockSkewMinutes"] = "5"
+                ["Keycloak:ClockSkew"] = "00:05:00"
             };
             return CreateConfiguration(settings);
         });

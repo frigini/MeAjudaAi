@@ -290,19 +290,17 @@ jobs:
               MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
               mkdir -p "$MODULE_COVERAGE_DIR"
 
-              # Dynamic include filter based on module type
-              if [ -n "$include_pattern" ]; then
-                INCLUDE_FILTER="[${include_pattern}]*"
-              else
-                INCLUDE_FILTER="[MeAjudaAi.*]*"
-              fi
+            # Dynamic include filter based on module type
+            if [ -n "$include_pattern" ]; then
+              INCLUDE_FILTER="[${include_pattern}]"
+            else
+              INCLUDE_FILTER="[MeAjudaAi.*]"
+            fi
 
-              EXCLUDE_FILTER="[*.Tests]*,[*Test*]*,[testhost]*"
+            EXCLUDE_FILTER="[*.Tests*],[*Test*],[testhost]"
 
-              echo "  Include: $INCLUDE_FILTER"
-              echo "  Exclude: $EXCLUDE_FILTER"
-
-              dotnet test "$module_path" \
+            echo "  Include: $INCLUDE_FILTER"
+            echo "  Exclude: $EXCLUDE_FILTER"              dotnet test "$module_path" \
                 --configuration Release \
                 --no-build \
                 --verbosity normal \
