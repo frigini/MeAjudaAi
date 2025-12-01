@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FluentAssertions;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Keycloak;
@@ -8,7 +9,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 
@@ -154,7 +154,7 @@ public class AuthorizationExtensionsTests
         var provider = services.BuildServiceProvider();
         var httpClientFactory = provider.GetService<IHttpClientFactory>();
         httpClientFactory.Should().NotBeNull();
-        
+
         var client = httpClientFactory!.CreateClient(nameof(KeycloakPermissionResolver));
         client.Should().NotBeNull();
         client.Timeout.Should().Be(TimeSpan.FromSeconds(30));

@@ -1,9 +1,9 @@
+using System.Security.Claims;
 using FluentAssertions;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Constants;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Security.Claims;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 
