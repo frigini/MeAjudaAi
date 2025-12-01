@@ -340,7 +340,6 @@ EOF
 
             dotnet test "$module_path" \
                 --configuration Release \
-                --no-build \
                 --verbosity normal \
                 --filter "FullyQualifiedName!~Integration&FullyQualifiedName!~Infrastructure" \
                 --collect:"XPlat Code Coverage" \
@@ -350,11 +349,16 @@ EOF
 
               # Find and rename the coverage file to a predictable name
               if [ -d "$MODULE_COVERAGE_DIR" ]; then
+                echo "🔍 Searching for coverage files in $MODULE_COVERAGE_DIR..."
+                echo "📂 Directory contents:"
+                find "$MODULE_COVERAGE_DIR" -type f -name "*.xml" | head -10
+                
                 # Look for both opencover and cobertura formats (search recursively in GUID subdirs)
                 COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -type f \
                   \( -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" \) \
                   | head -1)
                 if [ -f "$COVERAGE_FILE" ]; then
+                  echo "✅ Found coverage file: $COVERAGE_FILE"
                   # Copy to standardized name based on original format
                   if [[ "$COVERAGE_FILE" == *"cobertura"* ]]; then
                     cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
@@ -365,14 +369,26 @@ EOF
                   fi
                 else
                   echo "⚠️  Coverage file not found for $module_name"
-                  echo "Available files in coverage directory:"
+                  echo "📋 Available XML files:"
                   find "$MODULE_COVERAGE_DIR" -name "*.xml" -type f | head -5
                 fi
+              else
+                echo "❌ Coverage directory not found: $MODULE_COVERAGE_DIR"
               fi
             else
               echo "⚠️  $module_name tests not found at $module_path - skipping"
             fi
           done
+
+          echo ""
+          echo "📊 COVERAGE FILES SUMMARY"
+          echo "========================="
+          echo "Total coverage XML files generated:"
+          find ./coverage -type f \( -name "*.opencover.xml" -o -name "*.cobertura.xml" \) | wc -l
+          echo ""
+          echo "Coverage files by module:"
+          find ./coverage -type f \( -name "*.opencover.xml" -o -name "*.cobertura.xml" \) -printf "%f\n" | sort | head -20
+          echo ""
 
           echo "🧪 Running system tests without coverage collection..."
 
