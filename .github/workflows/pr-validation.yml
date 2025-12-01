@@ -33,6 +33,7 @@ jobs:
       postgres:
         image: postgis/postgis:16-3.4
         env:
+          # Fallback credentials: Only used in fork/local dev; main repo requires secrets (validated at line 66)
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
@@ -73,7 +74,8 @@ jobs:
 
           # Check if running in main repository (not a fork) for pull_request or workflow_dispatch
           if [ "${{ github.repository }}" = "frigini/MeAjudaAi" ] && \
-             ([ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]); then
+             ([ "${{ github.event_name }}" = "pull_request" ] || \
+              [ "${{ github.event_name }}" = "workflow_dispatch" ]); then
             echo "Running in main repository context - strict validation enabled"
 
             # Validate all required database secrets
@@ -294,12 +296,12 @@ jobs:
               else
                 INCLUDE_FILTER="[MeAjudaAi.*]*"
               fi
-              
+
               EXCLUDE_FILTER="[*.Tests]*,[*Test*]*,[testhost]*"
-              
+
               echo "  Include: $INCLUDE_FILTER"
               echo "  Exclude: $EXCLUDE_FILTER"
-              
+
               dotnet test "$module_path" \
                 --configuration Release \
                 --no-build \

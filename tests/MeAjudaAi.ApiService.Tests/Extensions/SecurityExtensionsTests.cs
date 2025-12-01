@@ -198,10 +198,10 @@ public class SecurityExtensionsTests
             .WithMessage("*Keycloak BaseUrl*HTTPS*production*");
     }
 
-    [Fact(Skip = "ValidateSecurityConfiguration aggregates all errors - ClockSkew > 5 minutes is a PRODUCTION-ONLY validation")]
+    [Fact(Skip = "ValidateSecurityConfiguration aggregates all errors - ClockSkew > 30 minutes triggers ValidateKeycloakOptions")]
     public void ValidateSecurityConfiguration_InProduction_WithHighClockSkew_ShouldThrowInvalidOperationException()
     {
-        // Arrange - Complete production config with ONLY high clock skew as issue
+        // Arrange - Complete production config with clock skew exceeding 30 minute limit
         var settings = new Dictionary<string, string?>
         {
             ["Cors:AllowedOrigins:0"] = "https://app.com",
@@ -212,7 +212,7 @@ public class SecurityExtensionsTests
             ["Keycloak:Realm"] = "test-realm",
             ["Keycloak:ClientId"] = "test-client",
             ["Keycloak:RequireHttpsMetadata"] = "true",
-            ["Keycloak:ClockSkewMinutes"] = "10", // ISSUE: > 5 minutes
+            ["Keycloak:ClockSkew"] = "00:35:00", // ISSUE: > 30 minutes limit
             ["HttpsRedirection:Enabled"] = "true",
             ["AllowedHosts"] = "app.com"
         };
@@ -222,7 +222,7 @@ public class SecurityExtensionsTests
         // Act & Assert
         var action = () => SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
         action.Should().Throw<InvalidOperationException>()
-            .WithMessage("*ClockSkew*5 minutes*production*");
+            .WithMessage("*ClockSkew*exceed 30 minutes*");
     }
 
     [Fact]
@@ -654,7 +654,7 @@ public class SecurityExtensionsTests
             .WithMessage("*not a valid URL*");
     }
 
-    [Fact(Skip = "Config binding doesn't convert ClockSkewMinutes→ClockSkew. Use Keycloak:ClockSkew with TimeSpan format (00:35:00) instead")]
+    [Fact]
     public void AddKeycloakAuthentication_WithExcessiveClockSkew_ShouldThrowInvalidOperationException()
     {
         // Arrange
