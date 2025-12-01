@@ -1,6 +1,6 @@
 using FluentAssertions;
 using FluentValidation.Results;
-using MeAjudaAi.Shared.Exceptions;
+using ValidationException = MeAjudaAi.Shared.Exceptions.ValidationException;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Exceptions;
 
@@ -151,6 +151,7 @@ public class ValidationExceptionTests
         var exception = new ValidationException(failures);
 
         // Assert
-        exception.Errors.Should().Contain(null);
+        exception.Errors.Should().HaveCount(1);
+        exception.Errors.First().Should().BeNull();
     }
 }
