@@ -782,164 +782,21 @@ EOF
 
             *This comment is updated automatically on each push to track coverage trends.*
 
+      # Refactored: Extracted to reusable action for better maintainability
+      # See: .github/actions/validate-coverage/README.md for documentation
       - name: Validate Coverage Thresholds
         if: always()
-        # COMPLEXITY NOTE: This 140-line validation step implements multi-stage fallback:
-        # 1. Try step outputs from coverage summary actions (OpenCover → Cobertura → Fallback)
-        # 2. Fall back to direct XML file analysis if step outputs unavailable
-        # 3. Extract percentages from line-rate/sequenceCoverage attributes with regex
-        # 4. Compare against 70% threshold (honoring STRICT_COVERAGE flag)
-        # 
-        # REFACTORING RECOMMENDATION: Consider extracting to .github/actions/validate-coverage/
-        # Benefits:
-        # - Reusable across workflows (e.g., nightly builds, release validation)
-        # - Easier to test and maintain in isolation
-        # - Clearer separation of concerns (validation logic vs workflow orchestration)
-        # - Potential to add unit tests for coverage calculation edge cases
-        # 
-        # Implementation suggestion:
-        # - action.yml with inputs: coverage-file, threshold, strict-mode
-        # - Separate scripts for each stage: output-selection.sh, extraction.sh, validation.sh
-        # - Inline comments explaining when each fallback is triggered
-        run: |
-          echo "🎯 VALIDATING COVERAGE THRESHOLDS"
-          echo "================================="
-
-          # Check step outcomes first
-          primary_success="${{ steps.coverage_opencover.outcome }}"
-          cobertura_success="${{ steps.coverage_cobertura.outcome }}"
-          fallback_success="${{ steps.coverage_fallback.outcome }}"
-
-          echo "Debug: Primary (OpenCover) outcome: ${primary_success:-not_run}"
-          echo "Debug: Cobertura coverage outcome: ${cobertura_success:-not_run}"
-          echo "Debug: Fallback coverage outcome: ${fallback_success:-not_run}"
-
-          # Get coverage percentages (if available)
-          primary_line_rate="${{ steps.coverage_opencover.outputs.line-rate }}"
-          cobertura_line_rate="${{ steps.coverage_cobertura.outputs.line-rate }}"
-          fallback_line_rate="${{ steps.coverage_fallback.outputs.line-rate }}"
-
-          echo "Debug: Primary line rate: ${primary_line_rate:-not_available}"
-          echo "Debug: Cobertura line rate: ${cobertura_line_rate:-not_available}"
-          echo "Debug: Fallback line rate: ${fallback_line_rate:-not_available}"
-
-          # Check if coverage files exist for debugging
-          echo "Debug: Checking coverage files..."
-          find coverage -name "*.xml" -type f 2>/dev/null || echo "No coverage XML files found"
-
-          # Try to use step outputs first, then fall back to direct file analysis
-          coverage_rate=""
-          coverage_source=""
-
-          if [ "$primary_success" = "success" ] && [ -n "$primary_line_rate" ]; then
-            coverage_rate="$primary_line_rate"
-            coverage_source="OpenCover"
-            echo "📊 Using primary (OpenCover) coverage: ${coverage_rate}%"
-          elif [ "$cobertura_success" = "success" ] && [ -n "$cobertura_line_rate" ]; then
-            coverage_rate="$cobertura_line_rate"
-            coverage_source="Cobertura"
-            echo "📊 Using Cobertura coverage: ${coverage_rate}%"
-          elif [ "$fallback_success" = "success" ] && [ -n "$fallback_line_rate" ]; then
-            coverage_rate="$fallback_line_rate"
-            coverage_source="Fallback XML"
-            echo "📊 Using fallback coverage: ${coverage_rate}%"
-          else
-            # Direct file analysis when steps fail but files exist
-            echo "🔍 Step outputs unavailable, analyzing coverage files directly..."
-
-            COVERAGE_FILE=""
-            if find coverage -name "*.opencover.xml" -type f | head -1 >/dev/null 2>&1; then
-              COVERAGE_FILE=$(find coverage -name "*.opencover.xml" -type f | head -1)
-              coverage_source="OpenCover (Direct Analysis)"
-            elif find coverage -name "*.cobertura.xml" -type f | head -1 >/dev/null 2>&1; then
-              COVERAGE_FILE=$(find coverage -name "*.cobertura.xml" -type f | head -1)
-              coverage_source="Cobertura (Direct Analysis)"
-            elif find coverage -name "*.xml" -type f | head -1 >/dev/null 2>&1; then
-              COVERAGE_FILE=$(find coverage -name "*.xml" -type f | head -1)
-              coverage_source="XML (Direct Analysis)"
-            fi
-
-            if [ -n "$COVERAGE_FILE" ] && [ -f "$COVERAGE_FILE" ]; then
-              echo "📁 Analyzing coverage file: $COVERAGE_FILE"
-
-              # Try to extract coverage percentage
-              if command -v grep >/dev/null 2>&1; then
-                # Look for line-rate or sequenceCoverage attributes
-                LINE_RATE=$(grep -o 'line-rate="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
-                if [ -z "$LINE_RATE" ]; then
-                  LINE_RATE=$(grep -o 'sequenceCoverage="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
-                fi
-
-                if [ -n "$LINE_RATE" ]; then
-                  # Convert decimal to percentage if needed (0.xx to xx%)
-                  if [ "$(echo "$LINE_RATE" | cut -d'.' -f1)" = "0" ]; then
-                    coverage_rate=$(echo "$LINE_RATE * 100" | bc -l 2>/dev/null || \
-                                   echo "scale=1; $LINE_RATE * 100" | bc 2>/dev/null || \
-                                   echo "$LINE_RATE")
-                  else
-                    coverage_rate="$LINE_RATE"
-                  fi
-                  echo "📊 Extracted coverage: ${coverage_rate}% via $coverage_source"
-                else
-                  echo "⚠️  Could not extract coverage percentage from file"
-                fi
-              else
-                echo "⚠️  grep not available for file analysis"
-              fi
-            fi
-          fi
-
-          # Validate coverage against threshold
-          if [ -n "$coverage_rate" ]; then
-            # Convert to integer for comparison (remove decimal part)
-            coverage_int=$(echo "$coverage_rate" | cut -d'.' -f1)
-
-            if [ "$coverage_int" -ge 70 ]; then
-              echo "✅ Coverage analysis completed successfully"
-              echo "📊 Coverage thresholds met: ${coverage_rate}% (≥70%) via $coverage_source"
-            else
-              echo "❌ Coverage below minimum threshold: ${coverage_rate}% (required: ≥70%) via $coverage_source"
-              echo "💡 Check the 'Code Coverage Summary' step for detailed information"
-
-              # Only fail in strict mode
-              # NOTE: STRICT_COVERAGE is explicitly set to false (line 25) during development.
-              # The :-true fallback only applies if the variable is somehow unset (shouldn't happen in CI).
-              if [ "${STRICT_COVERAGE:-true}" = "true" ]; then
-                echo "🚫 STRICT MODE: Failing pipeline due to insufficient coverage"
-                exit 1
-              else
-                echo "⚠️  LENIENT MODE: Continuing despite coverage issues"
-              fi
-            fi
-          else
-            # Check if coverage files exist even though we can't extract percentage
-            if find coverage -name "*.xml" -type f | head -1 >/dev/null 2>&1; then
-              echo "⚠️  Coverage files found but percentage extraction failed"
-              echo "🔍 Available coverage files:"
-              find coverage -name "*.xml" -type f | head -5
-
-              # In this case, assume coverage is available and continue
-              echo "✅ Assuming coverage is available (files found but analysis failed)"
-              echo "💡 Manual review recommended for exact coverage percentage"
-            else
-              echo "❌ Coverage analysis failed - no coverage data available"
-              echo "💡 This might be due to:"
-              echo "   - Coverage files not generated properly"
-              echo "   - Coverage generation step failed"
-              echo "   - File path mismatch in coverage summary action"
-
-              # Only fail in strict mode
-              # NOTE: STRICT_COVERAGE is explicitly set to false (line 25) during development.
-              # The :-true fallback only applies if the variable is somehow unset (shouldn't happen in CI).
-              if [ "${STRICT_COVERAGE:-true}" = "true" ]; then
-                echo "🚫 STRICT MODE: Failing pipeline due to coverage analysis failure"
-                echo "💡 To continue despite coverage issues, set STRICT_COVERAGE=false"
-                exit 1
-              else
-                echo "⚠️  LENIENT MODE: Continuing despite coverage analysis issues"
-              fi
-            fi
-          fi
+        uses: ./.github/actions/validate-coverage
+        with:
+          coverage-directory: './coverage'
+          threshold: '70'
+          strict-mode: ${{ env.STRICT_COVERAGE }}
+          opencover-output: ${{ steps.coverage_opencover.outputs.line-rate }}
+          opencover-outcome: ${{ steps.coverage_opencover.outcome }}
+          cobertura-output: ${{ steps.coverage_cobertura.outputs.line-rate }}
+          cobertura-outcome: ${{ steps.coverage_cobertura.outcome }}
+          fallback-output: ${{ steps.coverage_fallback.outputs.line-rate }}
+          fallback-outcome: ${{ steps.coverage_fallback.outcome }}
 
   # Job 2: Security Scan (Consolidated)
   security-scan:
