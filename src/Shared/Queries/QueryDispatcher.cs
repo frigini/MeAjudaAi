@@ -12,6 +12,10 @@ namespace MeAjudaAi.Shared.Queries;
 /// This dispatcher follows the mediator pattern, decoupling query senders from handlers.
 /// It automatically applies all registered <see cref="IPipelineBehavior{TRequest,TResponse}"/>
 /// instances (e.g., validation, logging, caching) around the handler execution.
+/// <para>
+/// <strong>Registration:</strong> Should be registered as a singleton in the DI container
+/// via <c>services.AddSingleton&lt;IQueryDispatcher, QueryDispatcher&gt;()</c>.
+/// </para>
 /// </remarks>
 public class QueryDispatcher(IServiceProvider serviceProvider, ILogger<QueryDispatcher> logger) : IQueryDispatcher
 {

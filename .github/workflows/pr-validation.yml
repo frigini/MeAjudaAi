@@ -311,11 +311,15 @@ jobs:
               INCLUDE_FILTER="[MeAjudaAi.*]*"
             fi
 
+            # NOTE: EXCLUDE_FILTER is currently hardcoded for all modules.
+            # Future enhancement: Consider adding per-module exclusion patterns
+            # as part of the MODULES array definition (e.g., "Module:path/:Include:Exclude")
+            # to support module-specific test category or infrastructure exclusions.
             EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*"
 
             echo "  Include: $INCLUDE_FILTER"
             echo "  Exclude: $EXCLUDE_FILTER"
-            
+
             # Create temporary runsettings file for this module
             cat > "/tmp/${module_name,,}.runsettings" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -882,6 +886,8 @@ EOF
               echo "💡 Check the 'Code Coverage Summary' step for detailed information"
 
               # Only fail in strict mode
+              # NOTE: STRICT_COVERAGE is explicitly set to false (line 25) during development.
+              # The :-true fallback only applies if the variable is somehow unset (shouldn't happen in CI).
               if [ "${STRICT_COVERAGE:-true}" = "true" ]; then
                 echo "🚫 STRICT MODE: Failing pipeline due to insufficient coverage"
                 exit 1
@@ -907,6 +913,8 @@ EOF
               echo "   - File path mismatch in coverage summary action"
 
               # Only fail in strict mode
+              # NOTE: STRICT_COVERAGE is explicitly set to false (line 25) during development.
+              # The :-true fallback only applies if the variable is somehow unset (shouldn't happen in CI).
               if [ "${STRICT_COVERAGE:-true}" = "true" ]; then
                 echo "🚫 STRICT MODE: Failing pipeline due to coverage analysis failure"
                 echo "💡 To continue despite coverage issues, set STRICT_COVERAGE=false"
