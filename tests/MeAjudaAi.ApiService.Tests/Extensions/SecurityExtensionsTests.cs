@@ -435,18 +435,14 @@ public class SecurityExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddLogging(); // Required for options validation
-        services.AddSingleton<IConfiguration>(sp =>
+        var settings = new Dictionary<string, string?>
         {
-            var settings = new Dictionary<string, string?>
-            {
-                ["Cors:AllowedOrigins:0"] = "https://app.com",
-                ["Cors:AllowedMethods:0"] = "GET",
-                ["Cors:AllowedHeaders:0"] = "Content-Type",
-                ["Cors:AllowCredentials"] = "false"
-            };
-            return CreateConfiguration(settings);
-        });
-        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+            ["Cors:AllowedOrigins:0"] = "https://app.com",
+            ["Cors:AllowedMethods:0"] = "GET",
+            ["Cors:AllowedHeaders:0"] = "Content-Type",
+            ["Cors:AllowCredentials"] = "false"
+        };
+        var configuration = CreateConfiguration(settings);
         var environment = CreateMockEnvironment();
 
         // Act
@@ -670,21 +666,17 @@ public class SecurityExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddSingleton<IConfiguration>(sp =>
+        var settings = new Dictionary<string, string?>
         {
-            var settings = new Dictionary<string, string?>
-            {
-                ["Keycloak:BaseUrl"] = "https://keycloak.example.com",
-                ["Keycloak:Realm"] = "test-realm",
-                ["Keycloak:ClientId"] = "test-client",
-                ["Keycloak:RequireHttpsMetadata"] = "true",
-                ["Keycloak:ValidateIssuer"] = "true",
-                ["Keycloak:ValidateAudience"] = "true",
-                ["Keycloak:ClockSkew"] = "00:05:00"
-            };
-            return CreateConfiguration(settings);
-        });
-        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+            ["Keycloak:BaseUrl"] = "https://keycloak.example.com",
+            ["Keycloak:Realm"] = "test-realm",
+            ["Keycloak:ClientId"] = "test-client",
+            ["Keycloak:RequireHttpsMetadata"] = "true",
+            ["Keycloak:ValidateIssuer"] = "true",
+            ["Keycloak:ValidateAudience"] = "true",
+            ["Keycloak:ClockSkew"] = "00:05:00"
+        };
+        var configuration = CreateConfiguration(settings);
         var environment = CreateMockEnvironment();
 
         // Act
