@@ -18,9 +18,10 @@ env:
   # CRITICAL: Set STRICT_COVERAGE: true before merging to main
   # This enforces 70% minimum coverage threshold (lines 785, 810)
   # Current bypass is TEMPORARY for development only
-  # TODO: Create tracking issue for re-enabling before main branch merge
-  # TODO: Add branch protection rule to enforce STRICT_COVERAGE=true on master branch
-  # Timeline: Re-enable after Domain layer reaches 100% coverage (current PR objective)
+  # TODO: Create GitHub issue to track re-enablement when overall coverage ≥ 70%
+  #       Issue should specify Sprint 2 target, link to docs/testing/code-coverage-guide.md#L297-L313,
+  #       and assign owner. Update this comment with issue number when created.
+  # Re-enable when overall coverage reaches 70% (Sprint 2 milestone, tracked in #TBD)
   STRICT_COVERAGE: false
 
 jobs:
@@ -300,7 +301,8 @@ jobs:
             EXCLUDE_FILTER="[*.Tests*],[*Test*],[testhost]"
 
             echo "  Include: $INCLUDE_FILTER"
-            echo "  Exclude: $EXCLUDE_FILTER"              dotnet test "$module_path" \
+            echo "  Exclude: $EXCLUDE_FILTER"
+            dotnet test "$module_path" \
                 --configuration Release \
                 --no-build \
                 --verbosity normal \

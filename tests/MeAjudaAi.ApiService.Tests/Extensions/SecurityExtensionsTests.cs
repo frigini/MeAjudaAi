@@ -198,7 +198,7 @@ public class SecurityExtensionsTests
             .WithMessage("*Keycloak BaseUrl*HTTPS*production*");
     }
 
-    [Fact(Skip = "ValidateSecurityConfiguration aggregates all errors - ClockSkew > 30 minutes triggers ValidateKeycloakOptions")]
+    [Fact]
     public void ValidateSecurityConfiguration_InProduction_WithHighClockSkew_ShouldThrowInvalidOperationException()
     {
         // Arrange - Complete production config with clock skew exceeding 30 minute limit
@@ -458,28 +458,9 @@ public class SecurityExtensionsTests
         corsOptions.Should().NotBeNull();
     }
 
-    [Fact(Skip = "CorsOptions.Validate() blocks wildcard + credentials at options level, before AddCorsPolicy logic")]
-    public void AddCorsPolicy_InDevelopment_WithWildcardAndCredentials_ShouldUseSetIsOriginAllowed()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddLogging(); // Required for options validation
-        var settings = new Dictionary<string, string?>
-        {
-            ["Cors:AllowedOrigins:0"] = "*",
-            ["Cors:AllowedMethods:0"] = "*",
-            ["Cors:AllowedHeaders:0"] = "*",
-            ["Cors:AllowCredentials"] = "true"
-        };
-        var configuration = CreateConfiguration(settings);
-        var environment = CreateMockEnvironment("Development");
 
-        // Act & Assert - Should not throw
-        var action = () => services.AddCorsPolicy(configuration, environment);
-        action.Should().NotThrow();
-    }
 
-    [Fact(Skip = "ValidateSecurityConfiguration validation is aggregated - this validates in AddCorsPolicy which is called separately")]
+    [Fact(Skip = "AddCorsPolicy doesn't validate production restrictions - validation happens in ValidateSecurityConfiguration which aggregates all security checks")]
     public void AddCorsPolicy_InProduction_WithWildcard_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -570,6 +551,37 @@ public class SecurityExtensionsTests
 
         // Act & Assert
         var action = () => SecurityExtensions.AddKeycloakAuthentication(null!, configuration, environment);
+        action.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void AddKeycloakAuthentication_WithNullConfiguration_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var environment = CreateMockEnvironment();
+
+        // Act & Assert
+        var action = () => services.AddKeycloakAuthentication(null!, environment);
+        action.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void AddKeycloakAuthentication_WithNullEnvironment_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var configuration = CreateConfiguration(new Dictionary<string, string?>
+        {
+            ["Keycloak:BaseUrl"] = "https://keycloak.example.com",
+            ["Keycloak:Realm"] = "test-realm",
+            ["Keycloak:ClientId"] = "test-client"
+        });
+
+        // Act & Assert
+        var action = () => services.AddKeycloakAuthentication(configuration, null!);
         action.Should().Throw<ArgumentNullException>();
     }
 
