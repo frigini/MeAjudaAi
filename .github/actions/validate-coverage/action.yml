@@ -161,8 +161,10 @@ runs:
               fi
 
               if [ -n "$LINE_RATE" ]; then
-                # Convert decimal to percentage if needed (0.xx to xx%)
-                if [ "$(echo "$LINE_RATE" | cut -d'.' -f1)" = "0" ]; then
+                # Convert decimal to percentage if needed (0.xx or .xx to xx%)
+                INT_PART=$(echo "$LINE_RATE" | cut -d'.' -f1)
+                # Treat empty (e.g., ".5") or "0" (e.g., "0.83") as decimal format
+                if [ "$INT_PART" = "" ] || [ "$INT_PART" = "0" ]; then
                   # Try bc first, fall back to awk if unavailable
                   if command -v bc >/dev/null 2>&1; then
                     coverage_rate=$(echo "scale=1; $LINE_RATE * 100" | bc 2>/dev/null)
