@@ -15,67 +15,34 @@ permissions:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  # Temporary: Allow lenient coverage for this development PR
-  # TODO: Remove this and improve coverage before merging to main
+  # CRITICAL: Set STRICT_COVERAGE: true before merging to main
+  # This enforces 70% minimum coverage threshold (lines 785, 810)
+  # Current bypass is TEMPORARY for development only
+  # TODO: Enable STRICT_COVERAGE when overall coverage ≥ 70% (Sprint 2 milestone)
+  #       Tracking: https://github.com/frigini/MeAjudaAi/issues/33
+  #       References: docs/testing/code-coverage-guide.md#L297-L313
+  # Re-enable when overall coverage reaches 70% (Sprint 2 milestone)
   STRICT_COVERAGE: false
+  # PostgreSQL configuration (DRY principle - single source of truth)
+  # Fallback credentials: Only used in fork/local dev; main repo requires secrets
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+  POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
 
 jobs:
-  # Check if required secrets are configured
-  check-secrets:
-    name: Validate Required Secrets
-    runs-on: ubuntu-latest
-    outputs:
-      secrets-available: ${{ steps.check.outputs.available }}
-    steps:
-      - name: Check required secrets
-        id: check
-        env:
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-        run: |
-          missing_secrets=""
-
-          # Check each required secret using environment variables
-          if [ -z "$POSTGRES_PASSWORD" ]; then
-            missing_secrets="$missing_secrets POSTGRES_PASSWORD"
-          fi
-          if [ -z "$POSTGRES_USER" ]; then
-            missing_secrets="$missing_secrets POSTGRES_USER"
-          fi
-          if [ -z "$POSTGRES_DB" ]; then
-            missing_secrets="$missing_secrets POSTGRES_DB"
-          fi
-
-          if [ -n "$missing_secrets" ]; then
-            echo "❌ Required secrets are missing:$missing_secrets"
-            echo ""
-            echo "Please configure the following secrets in your repository:"
-            for secret in $missing_secrets; do
-              echo "  - $secret"
-            done
-            echo ""
-            echo "📖 Go to Settings → Secrets and variables → Actions to add them"
-            echo "available=false" >> $GITHUB_OUTPUT
-            exit 1
-          else
-            echo "✅ All required secrets are configured"
-            echo "available=true" >> $GITHUB_OUTPUT
-          fi
-
   # Job 1: Code Quality Checks
   code-quality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
-    needs: check-secrets
 
     services:
       postgres:
         image: postgis/postgis:16-3.4
         env:
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          # Using workflow-level environment variables (defined at top)
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
           POSTGRES_HOST_AUTH_METHOD: md5
         options: >-
           --health-cmd pg_isready
@@ -103,8 +70,56 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Check Database Configuration
-        run: echo "✅ GitHub secrets configured (enforced by check-secrets)"
+      - name: Validate Secrets Configuration
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        run: |
+          echo "Validating secrets configuration..."
+
+          # Check if running in main repository (not a fork) for pull_request or workflow_dispatch
+          if [ "${{ github.repository }}" = "frigini/MeAjudaAi" ] && \
+             ([ "${{ github.event_name }}" = "pull_request" ] || \
+              [ "${{ github.event_name }}" = "workflow_dispatch" ]); then
+            echo "Running in main repository context - strict validation enabled"
+
+            # Validate all required database secrets
+            HAS_ERROR=0
+
+            if [ -z "$POSTGRES_PASSWORD" ]; then
+              echo "ERROR: POSTGRES_PASSWORD secret not configured in main repository"
+              echo "This secret is required for pull request validation"
+              HAS_ERROR=1
+            else
+              echo "SUCCESS: POSTGRES_PASSWORD secret configured"
+            fi
+
+            if [ -z "$POSTGRES_USER" ]; then
+              echo "ERROR: POSTGRES_USER secret not configured in main repository"
+              echo "This secret is required for pull request validation"
+              HAS_ERROR=1
+            else
+              echo "SUCCESS: POSTGRES_USER secret configured"
+            fi
+
+            if [ -z "$POSTGRES_DB" ]; then
+              echo "ERROR: POSTGRES_DB secret not configured in main repository"
+              echo "This secret is required for pull request validation"
+              HAS_ERROR=1
+            else
+              echo "SUCCESS: POSTGRES_DB secret configured"
+            fi
+
+            if [ $HAS_ERROR -eq 1 ]; then
+              echo "Secret validation failed - exiting"
+              exit 1
+            fi
+          else
+            echo "Running in fork or non-PR/dispatch event - lenient mode (using test defaults)"
+          fi
+
+          echo "Database configuration validated"
 
       - name: Check Keycloak Configuration
         env:
@@ -133,8 +148,8 @@ jobs:
 
       - name: Wait for PostgreSQL to be ready
         env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
         run: |
           echo "🔄 Waiting for PostgreSQL to be ready..."
           echo "Debug: POSTGRES_USER=$POSTGRES_USER"
@@ -168,9 +183,9 @@ jobs:
         with:
           postgres-host: localhost
           postgres-port: 5432
-          postgres-db: ${{ secrets.POSTGRES_DB }}
-          postgres-user: ${{ secrets.POSTGRES_USER }}
-          postgres-password: ${{ secrets.POSTGRES_PASSWORD }}
+          postgres-db: ${{ env.POSTGRES_DB }}
+          postgres-user: ${{ env.POSTGRES_USER }}
+          postgres-password: ${{ env.POSTGRES_PASSWORD }}
 
       - name: Run tests with coverage
         env:
@@ -182,15 +197,15 @@ jobs:
           EXTERNAL_POSTGRES_PORT: 5432
           MEAJUDAAI_DB_HOST: localhost
           MEAJUDAAI_DB_PORT: 5432
-          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD }}
-          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER }}
-          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB }}
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
           # Legacy environment variables for compatibility
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          DB_USERNAME: ${{ secrets.POSTGRES_USER }}
-          DB_NAME: ${{ secrets.POSTGRES_DB }}
+          DB_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          DB_USERNAME: ${{ env.POSTGRES_USER }}
+          DB_NAME: ${{ env.POSTGRES_DB }}
           # Keycloak settings
           KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
           # Azure Storage (Azurite emulator)
@@ -251,75 +266,140 @@ jobs:
           echo "🧪 Running unit tests with coverage for all modules..."
 
           # Define modules for coverage testing
-          # FORMAT: "ModuleName:path/to/module/tests/"
-          # TO ADD NEW MODULE: Add line like "Orders:src/Modules/Orders/Tests/"
-          # See docs/adding-new-modules.md for complete instructions
+          # STRATEGY: Comprehensive coverage for Domain, Application, and critical Shared/ApiService layers
+          # - Domain/Application: Core business logic (80-100% target)
+          # - Shared/ApiService: Reusable infrastructure, middlewares, extensions (60-80% target)
+          # - Excluded: Integration tests, E2E tests, Architecture tests (tested separately below)
+          # 
+          # RATIONALE FOR INFRASTRUCTURE EXCLUSION:
+          # Infrastructure tests are excluded from module-based coverage runs (--filter) because:
+          # 1. Infrastructure tests often require real dependencies (databases, message brokers, etc.)
+          # 2. Mixing unit tests (mocked) with infrastructure tests distorts coverage metrics
+          # 3. Infrastructure/Integration tests run separately (lines 345-366) with proper test environment
+          # 4. This separation ensures unit test coverage accurately reflects business logic coverage
+          # 
+          # FORMAT: "ModuleName:path/to/module/tests/:IncludeFilter"
           MODULES=(
-            "Users:src/Modules/Users/Tests/"
-            # Future modules can be added here:
-            # "Orders:src/Modules/Orders/Tests/"
-            # "Payments:src/Modules/Payments/Tests/"
+            # Domain module tests
+            "Users:src/Modules/Users/Tests/:MeAjudaAi.Modules.Users.*"
+            "Providers:src/Modules/Providers/Tests/:MeAjudaAi.Modules.Providers.*"
+            "Documents:src/Modules/Documents/Tests/:MeAjudaAi.Modules.Documents.*"
+            "ServiceCatalogs:src/Modules/ServiceCatalogs/Tests/:MeAjudaAi.Modules.ServiceCatalogs.*"
+            "Locations:src/Modules/Locations/Tests/:MeAjudaAi.Modules.Locations.*"
+            "SearchProviders:src/Modules/SearchProviders/Tests/:MeAjudaAi.Modules.SearchProviders.*"
+
+            # System/Shared tests (626+ tests - HIGH PRIORITY)
+            "Shared:tests/MeAjudaAi.Shared.Tests/:MeAjudaAi.Shared"
+            "ApiService:tests/MeAjudaAi.ApiService.Tests/:MeAjudaAi.ApiService"
           )
 
           # Run unit tests for each module with coverage
           for module_info in "${MODULES[@]}"; do
-            IFS=':' read -r module_name module_path <<< "$module_info"
+            IFS=':' read -r module_name module_path include_pattern <<< "$module_info"
 
             if [ -d "$module_path" ]; then
-              echo "Running $module_name module unit tests with coverage..."
+              echo "Running $module_name tests with coverage..."
 
               # Create specific output directory for this module
               MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
               mkdir -p "$MODULE_COVERAGE_DIR"
 
-              # Run tests with simplified coverage collection - UNIT TESTS ONLY
-              INCLUDE_FILTER="[MeAjudaAi.Modules.${module_name}.*]*"
-              EXCLUDE_FILTER="[*.Tests]*,[*Test*]*,[testhost]*"
-              dotnet test "$module_path" \
+            # Dynamic include filter based on module type
+            if [ -n "$include_pattern" ]; then
+              INCLUDE_FILTER="[${include_pattern}]*"
+            else
+              INCLUDE_FILTER="[MeAjudaAi.*]*"
+            fi
+
+            # Validate filter is not empty or trivial
+            if [ "$INCLUDE_FILTER" = "[]*" ] || [ "$INCLUDE_FILTER" = "[].*" ]; then
+              echo "⚠️  INCLUDE_FILTER is trivial, falling back to [MeAjudaAi.*]*"
+              INCLUDE_FILTER="[MeAjudaAi.*]*"
+            fi
+
+            # NOTE: EXCLUDE_FILTER is currently hardcoded for all modules.
+            # Future enhancement: Consider adding per-module exclusion patterns
+            # as part of the MODULES array definition (e.g., "Module:path/:Include:Exclude")
+            # to support module-specific test category or infrastructure exclusions.
+            EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*"
+
+            echo "  Include: $INCLUDE_FILTER"
+            echo "  Exclude: $EXCLUDE_FILTER"
+
+            # Create temporary runsettings file for this module
+            cat > "/tmp/${module_name,,}.runsettings" <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>opencover</Format>
+          <Include>${INCLUDE_FILTER}</Include>
+          <Exclude>${EXCLUDE_FILTER}</Exclude>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
+EOF
+
+            dotnet test "$module_path" \
                 --configuration Release \
-                --no-build \
                 --verbosity normal \
                 --filter "FullyQualifiedName!~Integration&FullyQualifiedName!~Infrastructure" \
                 --collect:"XPlat Code Coverage" \
                 --results-directory "$MODULE_COVERAGE_DIR" \
                 --logger "trx;LogFileName=${module_name,,}-test-results.trx" \
-                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover \
-                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="$INCLUDE_FILTER" \
-                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="$EXCLUDE_FILTER"
+                --settings "/tmp/${module_name,,}.runsettings"
 
               # Find and rename the coverage file to a predictable name
               if [ -d "$MODULE_COVERAGE_DIR" ]; then
-                # Look for both opencover and cobertura formats
-                COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" \
-                  -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" \
-                  -type f | head -1)
+                echo "🔍 Searching for coverage files in $MODULE_COVERAGE_DIR..."
+                echo "📂 Directory contents:"
+                find "$MODULE_COVERAGE_DIR" -type f -name "*.xml" | head -10
+                
+                # Look for both opencover and cobertura formats (search recursively in GUID subdirs)
+                COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -type f \
+                  \( -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" \) \
+                  -print -quit)
                 if [ -f "$COVERAGE_FILE" ]; then
+                  echo "✅ Found coverage file: $COVERAGE_FILE"
                   # Copy to standardized name based on original format
                   if [[ "$COVERAGE_FILE" == *"cobertura"* ]]; then
                     cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
-                    echo "✅ Cobertura coverage file created: $MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
                   else
                     cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.opencover.xml"
-                    echo "✅ OpenCover coverage file created: $MODULE_COVERAGE_DIR/${module_name,,}.opencover.xml"
                   fi
                 else
-                  echo "⚠️  Coverage file not found for $module_name module"
-                  echo "Available files in coverage directory:"
+                  echo "⚠️  Coverage file not found for $module_name"
+                  echo "📋 Available XML files:"
                   find "$MODULE_COVERAGE_DIR" -name "*.xml" -type f | head -5
                 fi
+              else
+                echo "❌ Coverage directory not found: $MODULE_COVERAGE_DIR"
               fi
             else
-              echo "⚠️  Module $module_name tests not found at $module_path - skipping"
+              echo "⚠️  $module_name tests not found at $module_path - skipping"
             fi
           done
 
+          echo ""
+          echo "📊 COVERAGE FILES SUMMARY"
+          echo "========================="
+          echo "Total coverage XML files generated:"
+          find ./coverage -type f \( -name "*.opencover.xml" -o -name "*.cobertura.xml" \) | wc -l
+          echo ""
+          echo "Coverage files by module:"
+          find ./coverage -type f \( -name "*.opencover.xml" -o -name "*.cobertura.xml" \) -printf "%f\n" | sort | head -20
+          echo ""
+
           echo "🧪 Running system tests without coverage collection..."
 
-          # Define system tests (no coverage)
+          # Define system tests (no coverage) - architectural and integration validation only
           SYSTEM_TESTS=(
             "Architecture:tests/MeAjudaAi.Architecture.Tests/"
             "Integration:tests/MeAjudaAi.Integration.Tests/"
-            "Shared:tests/MeAjudaAi.Shared.Tests/"
             "E2E:tests/MeAjudaAi.E2E.Tests/"
           )
 
@@ -348,9 +428,9 @@ jobs:
           EXTERNAL_POSTGRES_PORT: 5432
           MEAJUDAAI_DB_HOST: localhost
           MEAJUDAAI_DB_PORT: 5432
-          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD }}
-          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER }}
-          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB }}
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__HangfireConnection: ${{ steps.db.outputs.connection-string }}
         run: |
@@ -472,8 +552,9 @@ jobs:
           done
 
           # Find coverage files in nested directories and copy to module directories
-          find ./coverage -name "coverage.opencover.xml" \
-            -o -name "coverage.cobertura.xml" -type f | while read -r file; do
+          find ./coverage -type f \
+            \( -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" \) \
+            | while read -r file; do
             # Get the module directory (should be like ./coverage/users/)
             module_dir=$(echo "$file" | sed 's|coverage/\([^/]*\)/.*|coverage/\1|')
             module_name=$(basename "$module_dir")
@@ -705,143 +786,21 @@ jobs:
 
             *This comment is updated automatically on each push to track coverage trends.*
 
+      # Refactored: Extracted to reusable action for better maintainability
+      # See: .github/actions/validate-coverage/README.md for documentation
       - name: Validate Coverage Thresholds
         if: always()
-        run: |
-          echo "🎯 VALIDATING COVERAGE THRESHOLDS"
-          echo "================================="
-
-          # Check step outcomes first
-          primary_success="${{ steps.coverage_opencover.outcome }}"
-          cobertura_success="${{ steps.coverage_cobertura.outcome }}"
-          fallback_success="${{ steps.coverage_fallback.outcome }}"
-
-          echo "Debug: Primary (OpenCover) outcome: ${primary_success:-'not_run'}"
-          echo "Debug: Cobertura coverage outcome: ${cobertura_success:-'not_run'}"
-          echo "Debug: Fallback coverage outcome: ${fallback_success:-'not_run'}"
-
-          # Get coverage percentages (if available)
-          primary_line_rate="${{ steps.coverage_opencover.outputs.line-rate }}"
-          cobertura_line_rate="${{ steps.coverage_cobertura.outputs.line-rate }}"
-          fallback_line_rate="${{ steps.coverage_fallback.outputs.line-rate }}"
-
-          echo "Debug: Primary line rate: ${primary_line_rate:-'not_available'}"
-          echo "Debug: Cobertura line rate: ${cobertura_line_rate:-'not_available'}"
-          echo "Debug: Fallback line rate: ${fallback_line_rate:-'not_available'}"
-
-          # Check if coverage files exist for debugging
-          echo "Debug: Checking coverage files..."
-          find coverage -name "*.xml" -type f 2>/dev/null || echo "No coverage XML files found"
-
-          # Try to use step outputs first, then fall back to direct file analysis
-          coverage_rate=""
-          coverage_source=""
-
-          if [ "$primary_success" = "success" ] && [ -n "$primary_line_rate" ]; then
-            coverage_rate="$primary_line_rate"
-            coverage_source="OpenCover"
-            echo "📊 Using primary (OpenCover) coverage: ${coverage_rate}%"
-          elif [ "$cobertura_success" = "success" ] && [ -n "$cobertura_line_rate" ]; then
-            coverage_rate="$cobertura_line_rate"
-            coverage_source="Cobertura"
-            echo "📊 Using Cobertura coverage: ${coverage_rate}%"
-          elif [ "$fallback_success" = "success" ] && [ -n "$fallback_line_rate" ]; then
-            coverage_rate="$fallback_line_rate"
-            coverage_source="Fallback XML"
-            echo "📊 Using fallback coverage: ${coverage_rate}%"
-          else
-            # Direct file analysis when steps fail but files exist
-            echo "🔍 Step outputs unavailable, analyzing coverage files directly..."
-
-            COVERAGE_FILE=""
-            if find coverage -name "*.opencover.xml" -type f | head -1 >/dev/null 2>&1; then
-              COVERAGE_FILE=$(find coverage -name "*.opencover.xml" -type f | head -1)
-              coverage_source="OpenCover (Direct Analysis)"
-            elif find coverage -name "*.cobertura.xml" -type f | head -1 >/dev/null 2>&1; then
-              COVERAGE_FILE=$(find coverage -name "*.cobertura.xml" -type f | head -1)
-              coverage_source="Cobertura (Direct Analysis)"
-            elif find coverage -name "*.xml" -type f | head -1 >/dev/null 2>&1; then
-              COVERAGE_FILE=$(find coverage -name "*.xml" -type f | head -1)
-              coverage_source="XML (Direct Analysis)"
-            fi
-
-            if [ -n "$COVERAGE_FILE" ] && [ -f "$COVERAGE_FILE" ]; then
-              echo "📁 Analyzing coverage file: $COVERAGE_FILE"
-
-              # Try to extract coverage percentage
-              if command -v grep >/dev/null 2>&1; then
-                # Look for line-rate or sequenceCoverage attributes
-                LINE_RATE=$(grep -o 'line-rate="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
-                if [ -z "$LINE_RATE" ]; then
-                  LINE_RATE=$(grep -o 'sequenceCoverage="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
-                fi
-
-                if [ -n "$LINE_RATE" ]; then
-                  # Convert decimal to percentage if needed (0.xx to xx%)
-                  if [ "$(echo "$LINE_RATE" | cut -d'.' -f1)" = "0" ]; then
-                    coverage_rate=$(echo "$LINE_RATE * 100" | bc -l 2>/dev/null || \
-                                   echo "scale=1; $LINE_RATE * 100" | bc 2>/dev/null || \
-                                   echo "$LINE_RATE")
-                  else
-                    coverage_rate="$LINE_RATE"
-                  fi
-                  echo "📊 Extracted coverage: ${coverage_rate}% via $coverage_source"
-                else
-                  echo "⚠️  Could not extract coverage percentage from file"
-                fi
-              else
-                echo "⚠️  grep not available for file analysis"
-              fi
-            fi
-          fi
-
-          # Validate coverage against threshold
-          if [ -n "$coverage_rate" ]; then
-            # Convert to integer for comparison (remove decimal part)
-            coverage_int=$(echo "$coverage_rate" | cut -d'.' -f1)
-
-            if [ "$coverage_int" -ge 70 ]; then
-              echo "✅ Coverage analysis completed successfully"
-              echo "📊 Coverage thresholds met: ${coverage_rate}% (≥70%) via $coverage_source"
-            else
-              echo "❌ Coverage below minimum threshold: ${coverage_rate}% (required: ≥70%) via $coverage_source"
-              echo "💡 Check the 'Code Coverage Summary' step for detailed information"
-
-              # Only fail in strict mode
-              if [ "${STRICT_COVERAGE:-true}" = "true" ]; then
-                echo "🚫 STRICT MODE: Failing pipeline due to insufficient coverage"
-                exit 1
-              else
-                echo "⚠️  LENIENT MODE: Continuing despite coverage issues"
-              fi
-            fi
-          else
-            # Check if coverage files exist even though we can't extract percentage
-            if find coverage -name "*.xml" -type f | head -1 >/dev/null 2>&1; then
-              echo "⚠️  Coverage files found but percentage extraction failed"
-              echo "🔍 Available coverage files:"
-              find coverage -name "*.xml" -type f | head -5
-
-              # In this case, assume coverage is available and continue
-              echo "✅ Assuming coverage is available (files found but analysis failed)"
-              echo "💡 Manual review recommended for exact coverage percentage"
-            else
-              echo "❌ Coverage analysis failed - no coverage data available"
-              echo "💡 This might be due to:"
-              echo "   - Coverage files not generated properly"
-              echo "   - Coverage generation step failed"
-              echo "   - File path mismatch in coverage summary action"
-
-              # Only fail in strict mode
-              if [ "${STRICT_COVERAGE:-true}" = "true" ]; then
-                echo "🚫 STRICT MODE: Failing pipeline due to coverage analysis failure"
-                echo "💡 To continue despite coverage issues, set STRICT_COVERAGE=false"
-                exit 1
-              else
-                echo "⚠️  LENIENT MODE: Continuing despite coverage analysis issues"
-              fi
-            fi
-          fi
+        uses: ./.github/actions/validate-coverage
+        with:
+          coverage-directory: './coverage'
+          threshold: '70'
+          strict-mode: ${{ env.STRICT_COVERAGE }}
+          opencover-output: ${{ steps.coverage_opencover.outputs.line-rate }}
+          opencover-outcome: ${{ steps.coverage_opencover.outcome }}
+          cobertura-output: ${{ steps.coverage_cobertura.outputs.line-rate }}
+          cobertura-outcome: ${{ steps.coverage_cobertura.outcome }}
+          fallback-output: ${{ steps.coverage_fallback.outputs.line-rate }}
+          fallback-outcome: ${{ steps.coverage_fallback.outcome }}
 
   # Job 2: Security Scan (Consolidated)
   security-scan:
@@ -874,8 +833,44 @@ jobs:
           # Install OSV-Scanner with pinned version for reproducibility
           OSV_VERSION="v1.8.3"
           OSV_URL="https://github.com/google/osv-scanner/releases/download/${OSV_VERSION}"
-          curl -sSfL "${OSV_URL}/osv-scanner_linux_amd64" -o osv-scanner
-          chmod +x osv-scanner
+
+          # Retry logic for network transient failures
+          max_retries=3
+          retry_count=0
+
+          while [ $retry_count -lt $max_retries ]; do
+            if curl -sSfL --connect-timeout 10 --max-time 30 \
+                "${OSV_URL}/osv-scanner_linux_amd64" -o osv-scanner; then
+              echo "✅ Download successful"
+              chmod +x osv-scanner
+              break
+            else
+              retry_count=$((retry_count + 1))
+              if [ $retry_count -lt $max_retries ]; then
+                echo "⚠️  Download failed (attempt $retry_count/$max_retries), retrying in 5s..."
+                sleep 5
+              else
+                echo "❌ Download failed after $max_retries attempts"
+                echo "💡 Trying fallback: install via Go toolchain..."
+
+                # Fallback: Install via Go if available
+                if command -v go >/dev/null 2>&1; then
+                  echo "ℹ️  Using Go to install OSV-Scanner..."
+                  go install github.com/google/osv-scanner/cmd/osv-scanner@${OSV_VERSION}
+                  # Copy to local dir for consistent usage
+                  cp "$(go env GOPATH)/bin/osv-scanner" ./osv-scanner 2>/dev/null || \
+                    ln -s "$(go env GOPATH)/bin/osv-scanner" ./osv-scanner
+                else
+                  echo "❌ Go toolchain not available, cannot install OSV-Scanner"
+                  echo "⚠️  CRITICAL: Vulnerability scan cannot be performed"
+                  echo "💡 MITIGATION: Ensure runner has Go ≥1.18 installed or provide pre-built OSV-Scanner binary"
+                  echo "💡 SECURITY NOTE: This workflow MUST fail when vulnerability scanning is unavailable."
+                  echo "   To fix: ensure Go is installed on the runner or configure a pre-built OSV-Scanner binary."
+                  exit 1  # Fail the workflow - security scanning is mandatory
+                fi
+              fi
+            fi
+          done
 
           echo "OSV-Scanner version and help:"
           ./osv-scanner --version || echo "Version command failed"
