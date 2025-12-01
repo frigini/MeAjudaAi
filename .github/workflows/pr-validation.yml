@@ -933,6 +933,9 @@ jobs:
                 else
                   echo "❌ Go toolchain not available, cannot install OSV-Scanner"
                   echo "⚠️  Skipping vulnerability scan due to installation failure"
+                  echo "💡 SECURITY NOTE: Vulnerability scan could not be performed."
+                  echo "   To enable scanning, ensure Go is installed on the runner"
+                  echo "   or configure a pre-built OSV-Scanner binary."
                   exit 0  # Don't fail the workflow, just skip
                 fi
               fi
