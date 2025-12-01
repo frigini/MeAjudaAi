@@ -654,7 +654,7 @@ public class SecurityExtensionsTests
             .WithMessage("*not a valid URL*");
     }
 
-    [Fact(Skip = "ValidateKeycloakOptions validates ClockSkew > 30 minutes, not > 5 minutes - 5 minute check is in ValidateSecurityConfiguration (Production only)")]
+    [Fact(Skip = "Config binding doesn't convert ClockSkewMinutes→ClockSkew. Use Keycloak:ClockSkew with TimeSpan format (00:35:00) instead")]
     public void AddKeycloakAuthentication_WithExcessiveClockSkew_ShouldThrowInvalidOperationException()
     {
         // Arrange
@@ -665,7 +665,7 @@ public class SecurityExtensionsTests
             ["Keycloak:BaseUrl"] = "https://keycloak.example.com",
             ["Keycloak:Realm"] = "test-realm",
             ["Keycloak:ClientId"] = "test-client",
-            ["Keycloak:ClockSkewMinutes"] = "35" // > 30 minute limit
+            ["Keycloak:ClockSkew"] = "00:35:00" // 35 minutes in TimeSpan format - > 30 minute limit
         };
         var configuration = CreateConfiguration(settings);
         var environment = CreateMockEnvironment();

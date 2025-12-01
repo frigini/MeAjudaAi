@@ -66,24 +66,49 @@ jobs:
       - name: Validate Secrets Configuration
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         run: |
           echo "Validating secrets configuration..."
 
-          # Check if running in main repository (not a fork)
+          # Check if running in main repository (not a fork) for pull_request or workflow_dispatch
           if [ "${{ github.repository }}" = "frigini/MeAjudaAi" ] && \
-             [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "Running in main repository - validating required secrets"
+             ([ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]); then
+            echo "Running in main repository context - strict validation enabled"
 
-            # Validate critical secrets are available
+            # Validate all required database secrets
+            HAS_ERROR=0
+
             if [ -z "$POSTGRES_PASSWORD" ]; then
               echo "ERROR: POSTGRES_PASSWORD secret not configured in main repository"
               echo "This secret is required for pull request validation"
-              exit 1
+              HAS_ERROR=1
             else
               echo "SUCCESS: POSTGRES_PASSWORD secret configured"
             fi
+
+            if [ -z "$POSTGRES_USER" ]; then
+              echo "ERROR: POSTGRES_USER secret not configured in main repository"
+              echo "This secret is required for pull request validation"
+              HAS_ERROR=1
+            else
+              echo "SUCCESS: POSTGRES_USER secret configured"
+            fi
+
+            if [ -z "$POSTGRES_DB" ]; then
+              echo "ERROR: POSTGRES_DB secret not configured in main repository"
+              echo "This secret is required for pull request validation"
+              HAS_ERROR=1
+            else
+              echo "SUCCESS: POSTGRES_DB secret configured"
+            fi
+
+            if [ $HAS_ERROR -eq 1 ]; then
+              echo "Secret validation failed - exiting"
+              exit 1
+            fi
           else
-            echo "Running in fork or workflow_dispatch - using test defaults"
+            echo "Running in fork or non-PR/dispatch event - lenient mode (using test defaults)"
           fi
 
           echo "Database configuration validated"
