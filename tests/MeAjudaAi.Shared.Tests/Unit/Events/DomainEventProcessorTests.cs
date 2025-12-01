@@ -1,7 +1,7 @@
+using System.Reflection;
 using FluentAssertions;
 using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace MeAjudaAi.Shared.Tests.UnitTests.Events;
 
