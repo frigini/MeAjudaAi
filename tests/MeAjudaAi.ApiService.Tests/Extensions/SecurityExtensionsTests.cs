@@ -458,30 +458,6 @@ public class SecurityExtensionsTests
         corsOptions.Should().NotBeNull();
     }
 
-
-
-    [Fact(Skip = "AddCorsPolicy doesn't validate production restrictions - validation happens in ValidateSecurityConfiguration which aggregates all security checks")]
-    public void AddCorsPolicy_InProduction_WithWildcard_ShouldThrowInvalidOperationException()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddLogging(); // Required for options validation
-        var settings = new Dictionary<string, string?>
-        {
-            ["Cors:AllowedOrigins:0"] = "*",
-            ["Cors:AllowedMethods:0"] = "GET",
-            ["Cors:AllowedHeaders:0"] = "Content-Type",
-            ["Cors:AllowCredentials"] = "false"
-        };
-        var configuration = CreateConfiguration(settings);
-        var environment = CreateMockEnvironment("Production");
-
-        // Act & Assert
-        var action = () => services.AddCorsPolicy(configuration, environment);
-        action.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Wildcard CORS origin*not allowed*production*");
-    }
-
     #endregion
 
     #region AddEnvironmentAuthentication Tests
