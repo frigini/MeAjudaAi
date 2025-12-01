@@ -4,8 +4,29 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Queries;
 
+/// <summary>
+/// Default implementation of <see cref="IQueryDispatcher"/> that resolves query handlers
+/// from the DI container and executes any registered pipeline behaviors.
+/// </summary>
+/// <remarks>
+/// This dispatcher follows the mediator pattern, decoupling query senders from handlers.
+/// It automatically applies all registered <see cref="IPipelineBehavior{TRequest,TResponse}"/>
+/// instances (e.g., validation, logging, caching) around the handler execution.
+/// </remarks>
 public class QueryDispatcher(IServiceProvider serviceProvider, ILogger<QueryDispatcher> logger) : IQueryDispatcher
 {
+    /// <summary>
+    /// Dispatches the specified query to its registered handler, executing all configured
+    /// <see cref="IPipelineBehavior{TRequest,TResponse}"/> instances around it.
+    /// </summary>
+    /// <typeparam name="TQuery">The query type that implements <see cref="IQuery{TResult}"/>.</typeparam>
+    /// <typeparam name="TResult">The query result type.</typeparam>
+    /// <param name="query">The query instance to dispatch.</param>
+    /// <param name="cancellationToken">Cancellation token for the operation.</param>
+    /// <returns>The result produced by the query handler.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when no handler is registered for the specified query type.
+    /// </exception>
     public async Task<TResult> QueryAsync<TQuery, TResult>(TQuery query, CancellationToken cancellationToken = default)
         where TQuery : IQuery<TResult>
     {

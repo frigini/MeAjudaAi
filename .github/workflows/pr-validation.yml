@@ -23,6 +23,11 @@ env:
   #       References: docs/testing/code-coverage-guide.md#L297-L313
   # Re-enable when overall coverage reaches 70% (Sprint 2 milestone)
   STRICT_COVERAGE: false
+  # PostgreSQL configuration (DRY principle - single source of truth)
+  # Fallback credentials: Only used in fork/local dev; main repo requires secrets
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+  POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
 
 jobs:
   # Job 1: Code Quality Checks
@@ -34,10 +39,10 @@ jobs:
       postgres:
         image: postgis/postgis:16-3.4
         env:
-          # Fallback credentials: Only used in fork/local dev; main repo requires secrets (validated at line 66)
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+          # Using workflow-level environment variables (defined at top)
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
           POSTGRES_HOST_AUTH_METHOD: md5
         options: >-
           --health-cmd pg_isready
@@ -143,8 +148,8 @@ jobs:
 
       - name: Wait for PostgreSQL to be ready
         env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
         run: |
           echo "🔄 Waiting for PostgreSQL to be ready..."
           echo "Debug: POSTGRES_USER=$POSTGRES_USER"
@@ -178,9 +183,9 @@ jobs:
         with:
           postgres-host: localhost
           postgres-port: 5432
-          postgres-db: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
-          postgres-user: ${{ secrets.POSTGRES_USER || 'postgres' }}
-          postgres-password: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          postgres-db: ${{ env.POSTGRES_DB }}
+          postgres-user: ${{ env.POSTGRES_USER }}
+          postgres-password: ${{ env.POSTGRES_PASSWORD }}
 
       - name: Run tests with coverage
         env:
@@ -192,15 +197,15 @@ jobs:
           EXTERNAL_POSTGRES_PORT: 5432
           MEAJUDAAI_DB_HOST: localhost
           MEAJUDAAI_DB_PORT: 5432
-          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
-          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
-          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
           # Legacy environment variables for compatibility
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
-          DB_USERNAME: ${{ secrets.POSTGRES_USER || 'postgres' }}
-          DB_NAME: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+          DB_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          DB_USERNAME: ${{ env.POSTGRES_USER }}
+          DB_NAME: ${{ env.POSTGRES_DB }}
           # Keycloak settings
           KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
           # Azure Storage (Azurite emulator)
@@ -264,7 +269,15 @@ jobs:
           # STRATEGY: Comprehensive coverage for Domain, Application, and critical Shared/ApiService layers
           # - Domain/Application: Core business logic (80-100% target)
           # - Shared/ApiService: Reusable infrastructure, middlewares, extensions (60-80% target)
-          # - Excluded: Integration tests, E2E tests, Architecture tests (tested separately)
+          # - Excluded: Integration tests, E2E tests, Architecture tests (tested separately below)
+          # 
+          # RATIONALE FOR INFRASTRUCTURE EXCLUSION:
+          # Infrastructure tests are excluded from module-based coverage runs (--filter) because:
+          # 1. Infrastructure tests often require real dependencies (databases, message brokers, etc.)
+          # 2. Mixing unit tests (mocked) with infrastructure tests distorts coverage metrics
+          # 3. Infrastructure/Integration tests run separately (lines 345-366) with proper test environment
+          # 4. This separation ensures unit test coverage accurately reflects business logic coverage
+          # 
           # FORMAT: "ModuleName:path/to/module/tests/:IncludeFilter"
           MODULES=(
             # Domain module tests
@@ -374,9 +387,9 @@ jobs:
           EXTERNAL_POSTGRES_PORT: 5432
           MEAJUDAAI_DB_HOST: localhost
           MEAJUDAAI_DB_PORT: 5432
-          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
-          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
-          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__HangfireConnection: ${{ steps.db.outputs.connection-string }}
         run: |
@@ -734,9 +747,23 @@ jobs:
 
       - name: Validate Coverage Thresholds
         if: always()
-        # NOTE: This multi-stage fallback logic (step outputs → file analysis → manual XML parsing)
-        # provides robustness for varying coverage formats but adds complexity.
-        # Consider extracting to reusable GitHub Action if similar logic needed in other workflows.
+        # COMPLEXITY NOTE: This 140-line validation step implements multi-stage fallback:
+        # 1. Try step outputs from coverage summary actions (OpenCover → Cobertura → Fallback)
+        # 2. Fall back to direct XML file analysis if step outputs unavailable
+        # 3. Extract percentages from line-rate/sequenceCoverage attributes with regex
+        # 4. Compare against 70% threshold (honoring STRICT_COVERAGE flag)
+        # 
+        # REFACTORING RECOMMENDATION: Consider extracting to .github/actions/validate-coverage/
+        # Benefits:
+        # - Reusable across workflows (e.g., nightly builds, release validation)
+        # - Easier to test and maintain in isolation
+        # - Clearer separation of concerns (validation logic vs workflow orchestration)
+        # - Potential to add unit tests for coverage calculation edge cases
+        # 
+        # Implementation suggestion:
+        # - action.yml with inputs: coverage-file, threshold, strict-mode
+        # - Separate scripts for each stage: output-selection.sh, extraction.sh, validation.sh
+        # - Inline comments explaining when each fallback is triggered
         run: |
           echo "🎯 VALIDATING COVERAGE THRESHOLDS"
           echo "================================="
@@ -932,11 +959,10 @@ jobs:
                     ln -s "$(go env GOPATH)/bin/osv-scanner" ./osv-scanner
                 else
                   echo "❌ Go toolchain not available, cannot install OSV-Scanner"
-                  echo "⚠️  Skipping vulnerability scan due to installation failure"
-                  echo "💡 SECURITY NOTE: Vulnerability scan could not be performed."
-                  echo "   To enable scanning, ensure Go is installed on the runner"
-                  echo "   or configure a pre-built OSV-Scanner binary."
-                  exit 0  # Don't fail the workflow, just skip
+                  echo "⚠️  CRITICAL: Vulnerability scan cannot be performed"
+                  echo "💡 SECURITY NOTE: This workflow MUST fail when vulnerability scanning is unavailable."
+                  echo "   To fix: ensure Go is installed on the runner or configure a pre-built OSV-Scanner binary."
+                  exit 1  # Fail the workflow - security scanning is mandatory
                 fi
               fi
             fi
