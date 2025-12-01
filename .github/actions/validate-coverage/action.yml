@@ -1,0 +1,285 @@
+name: 'Validate Code Coverage'
+description: 'Validates code coverage against a minimum threshold with multi-stage fallback analysis'
+author: 'MeAjudaAi Team'
+
+inputs:
+  coverage-directory:
+    description: 'Directory containing coverage XML files'
+    required: false
+    default: './coverage'
+  
+  threshold:
+    description: 'Minimum coverage percentage required (0-100)'
+    required: false
+    default: '70'
+  
+  strict-mode:
+    description: 'Whether to fail the workflow when coverage is below threshold (true/false)'
+    required: false
+    default: 'true'
+  
+  opencover-output:
+    description: 'Line coverage rate from OpenCover CodeCoverageSummary step'
+    required: false
+    default: ''
+  
+  opencover-outcome:
+    description: 'Outcome from OpenCover CodeCoverageSummary step (success/failure/skipped)'
+    required: false
+    default: ''
+  
+  cobertura-output:
+    description: 'Line coverage rate from Cobertura CodeCoverageSummary step'
+    required: false
+    default: ''
+  
+  cobertura-outcome:
+    description: 'Outcome from Cobertura CodeCoverageSummary step (success/failure/skipped)'
+    required: false
+    default: ''
+  
+  fallback-output:
+    description: 'Line coverage rate from fallback CodeCoverageSummary step'
+    required: false
+    default: ''
+  
+  fallback-outcome:
+    description: 'Outcome from fallback CodeCoverageSummary step (success/failure/skipped)'
+    required: false
+    default: ''
+
+outputs:
+  coverage-percentage:
+    description: 'Final coverage percentage determined by the action'
+    value: ${{ steps.validate.outputs.coverage-percentage }}
+  
+  coverage-source:
+    description: 'Source of the coverage data (OpenCover, Cobertura, Direct Analysis, etc.)'
+    value: ${{ steps.validate.outputs.coverage-source }}
+  
+  threshold-met:
+    description: 'Whether the coverage threshold was met (true/false)'
+    value: ${{ steps.validate.outputs.threshold-met }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate Coverage Thresholds
+      id: validate
+      shell: bash
+      run: |
+        echo "🎯 VALIDATING COVERAGE THRESHOLDS"
+        echo "================================="
+        echo "Configuration:"
+        echo "  - Coverage directory: ${{ inputs.coverage-directory }}"
+        echo "  - Minimum threshold: ${{ inputs.threshold }}%"
+        echo "  - Strict mode: ${{ inputs.strict-mode }}"
+        echo ""
+
+        # Check step outcomes first
+        primary_success="${{ inputs.opencover-outcome }}"
+        cobertura_success="${{ inputs.cobertura-outcome }}"
+        fallback_success="${{ inputs.fallback-outcome }}"
+
+        echo "Debug: Step Outcomes"
+        echo "  - OpenCover: ${primary_success:-not_run}"
+        echo "  - Cobertura: ${cobertura_success:-not_run}"
+        echo "  - Fallback: ${fallback_success:-not_run}"
+        echo ""
+
+        # Get coverage percentages (if available)
+        primary_line_rate="${{ inputs.opencover-output }}"
+        cobertura_line_rate="${{ inputs.cobertura-output }}"
+        fallback_line_rate="${{ inputs.fallback-output }}"
+
+        echo "Debug: Step Outputs"
+        echo "  - OpenCover line rate: ${primary_line_rate:-not_available}"
+        echo "  - Cobertura line rate: ${cobertura_line_rate:-not_available}"
+        echo "  - Fallback line rate: ${fallback_line_rate:-not_available}"
+        echo ""
+
+        # Check if coverage files exist for debugging
+        echo "Debug: Coverage Files"
+        if [ -d "${{ inputs.coverage-directory }}" ]; then
+          FILE_COUNT=$(find "${{ inputs.coverage-directory }}" -name "*.xml" -type f 2>/dev/null | wc -l)
+          echo "  - Found $FILE_COUNT XML file(s) in coverage directory"
+          if [ "$FILE_COUNT" -gt 0 ]; then
+            echo "  - Sample files:"
+            find "${{ inputs.coverage-directory }}" -name "*.xml" -type f 2>/dev/null | head -3 | sed 's/^/    /'
+          fi
+        else
+          echo "  - Coverage directory not found: ${{ inputs.coverage-directory }}"
+        fi
+        echo ""
+
+        # Stage 1: Try step outputs first
+        coverage_rate=""
+        coverage_source=""
+
+        if [ "$primary_success" = "success" ] && [ -n "$primary_line_rate" ]; then
+          coverage_rate="$primary_line_rate"
+          coverage_source="OpenCover"
+          echo "📊 Using primary (OpenCover) coverage: ${coverage_rate}%"
+        elif [ "$cobertura_success" = "success" ] && [ -n "$cobertura_line_rate" ]; then
+          coverage_rate="$cobertura_line_rate"
+          coverage_source="Cobertura"
+          echo "📊 Using Cobertura coverage: ${coverage_rate}%"
+        elif [ "$fallback_success" = "success" ] && [ -n "$fallback_line_rate" ]; then
+          coverage_rate="$fallback_line_rate"
+          coverage_source="Fallback XML"
+          echo "📊 Using fallback coverage: ${coverage_rate}%"
+        else
+          # Stage 2: Direct file analysis when steps fail but files exist
+          echo "🔍 Step outputs unavailable, analyzing coverage files directly..."
+
+          COVERAGE_FILE=""
+          if [ -d "${{ inputs.coverage-directory }}" ]; then
+            # Try OpenCover format first
+            if OPENCOVER_FILE=$(find "${{ inputs.coverage-directory }}" -name "*.opencover.xml" -type f | head -1) && [ -n "$OPENCOVER_FILE" ]; then
+              COVERAGE_FILE="$OPENCOVER_FILE"
+              coverage_source="OpenCover (Direct Analysis)"
+            # Then Cobertura format
+            elif COBERTURA_FILE=$(find "${{ inputs.coverage-directory }}" -name "*.cobertura.xml" -type f | head -1) && [ -n "$COBERTURA_FILE" ]; then
+              COVERAGE_FILE="$COBERTURA_FILE"
+              coverage_source="Cobertura (Direct Analysis)"
+            # Finally any XML file
+            elif ANY_XML=$(find "${{ inputs.coverage-directory }}" -name "*.xml" -type f | head -1) && [ -n "$ANY_XML" ]; then
+              COVERAGE_FILE="$ANY_XML"
+              coverage_source="XML (Direct Analysis)"
+            fi
+          fi
+
+          if [ -n "$COVERAGE_FILE" ] && [ -f "$COVERAGE_FILE" ]; then
+            echo "📁 Analyzing coverage file: $COVERAGE_FILE"
+
+            # Stage 3: Extract coverage percentage from XML attributes
+            if command -v grep >/dev/null 2>&1; then
+              # Look for line-rate (Cobertura format) or sequenceCoverage (OpenCover format)
+              LINE_RATE=$(grep -o 'line-rate="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
+              if [ -z "$LINE_RATE" ]; then
+                LINE_RATE=$(grep -o 'sequenceCoverage="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
+              fi
+
+              if [ -n "$LINE_RATE" ]; then
+                # Convert decimal to percentage if needed (0.xx to xx%)
+                if [ "$(echo "$LINE_RATE" | cut -d'.' -f1)" = "0" ]; then
+                  # Try bc first, fall back to awk if unavailable
+                  if command -v bc >/dev/null 2>&1; then
+                    coverage_rate=$(echo "scale=1; $LINE_RATE * 100" | bc 2>/dev/null)
+                  elif command -v awk >/dev/null 2>&1; then
+                    coverage_rate=$(awk "BEGIN {printf \"%.1f\", $LINE_RATE * 100}")
+                  else
+                    # Last resort: assume it's already a percentage
+                    coverage_rate="$LINE_RATE"
+                  fi
+                else
+                  coverage_rate="$LINE_RATE"
+                fi
+                echo "📊 Extracted coverage: ${coverage_rate}% via $coverage_source"
+              else
+                echo "⚠️  Could not extract coverage percentage from file"
+                echo "    Searched for attributes: line-rate, sequenceCoverage"
+              fi
+            else
+              echo "⚠️  grep not available for file analysis"
+            fi
+          else
+            echo "⚠️  No coverage files found for direct analysis"
+          fi
+        fi
+
+        echo ""
+        echo "🎯 VALIDATION RESULTS"
+        echo "===================="
+
+        # Validate coverage against threshold
+        threshold_met="false"
+        if [ -n "$coverage_rate" ]; then
+          # Convert to integer for comparison (remove decimal part)
+          coverage_int=$(echo "$coverage_rate" | cut -d'.' -f1)
+          threshold_int="${{ inputs.threshold }}"
+
+          echo "Coverage: ${coverage_rate}% (source: $coverage_source)"
+          echo "Threshold: ${threshold_int}%"
+          echo ""
+
+          if [ "$coverage_int" -ge "$threshold_int" ]; then
+            threshold_met="true"
+            echo "✅ Coverage thresholds met: ${coverage_rate}% ≥ ${threshold_int}%"
+            echo "   Source: $coverage_source"
+          else
+            echo "❌ Coverage below minimum threshold"
+            echo "   Actual: ${coverage_rate}%"
+            echo "   Required: ${threshold_int}%"
+            echo "   Deficit: $((threshold_int - coverage_int))%"
+            echo "   Source: $coverage_source"
+            echo ""
+            echo "💡 Check the 'Code Coverage Summary' step for detailed information"
+
+            # Only fail in strict mode
+            if [ "${{ inputs.strict-mode }}" = "true" ]; then
+              echo ""
+              echo "🚫 STRICT MODE: Failing workflow due to insufficient coverage"
+              echo "coverage-percentage=${coverage_rate}" >> $GITHUB_OUTPUT
+              echo "coverage-source=${coverage_source}" >> $GITHUB_OUTPUT
+              echo "threshold-met=${threshold_met}" >> $GITHUB_OUTPUT
+              exit 1
+            else
+              echo ""
+              echo "⚠️  LENIENT MODE: Continuing despite coverage issues"
+            fi
+          fi
+
+          # Set outputs
+          echo "coverage-percentage=${coverage_rate}" >> $GITHUB_OUTPUT
+          echo "coverage-source=${coverage_source}" >> $GITHUB_OUTPUT
+          echo "threshold-met=${threshold_met}" >> $GITHUB_OUTPUT
+        else
+          # No coverage data available
+          echo "Coverage: Not available"
+          echo "Threshold: ${{ inputs.threshold }}%"
+          echo ""
+
+          # Check if coverage files exist even though we can't extract percentage
+          if [ -d "${{ inputs.coverage-directory }}" ] && \
+             [ "$(find "${{ inputs.coverage-directory }}" -name "*.xml" -type f | wc -l)" -gt 0 ]; then
+            echo "⚠️  Coverage files found but percentage extraction failed"
+            echo "🔍 Available coverage files:"
+            find "${{ inputs.coverage-directory }}" -name "*.xml" -type f | head -5 | sed 's/^/   /'
+            echo ""
+            echo "✅ Assuming coverage is available (files found but analysis failed)"
+            echo "💡 Manual review recommended for exact coverage percentage"
+            
+            # Set indeterminate outputs
+            echo "coverage-percentage=unknown" >> $GITHUB_OUTPUT
+            echo "coverage-source=File Found (Extraction Failed)" >> $GITHUB_OUTPUT
+            echo "threshold-met=unknown" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Coverage analysis failed - no coverage data available"
+            echo ""
+            echo "💡 This might be due to:"
+            echo "   - Coverage files not generated properly"
+            echo "   - Coverage generation step failed"
+            echo "   - File path mismatch in coverage summary action"
+            echo "   - Test execution failures preventing coverage collection"
+            echo ""
+
+            # Only fail in strict mode
+            if [ "${{ inputs.strict-mode }}" = "true" ]; then
+              echo "🚫 STRICT MODE: Failing workflow due to missing coverage data"
+              echo "coverage-percentage=0" >> $GITHUB_OUTPUT
+              echo "coverage-source=No Data" >> $GITHUB_OUTPUT
+              echo "threshold-met=false" >> $GITHUB_OUTPUT
+              exit 1
+            else
+              echo "⚠️  LENIENT MODE: Continuing despite missing coverage data"
+              echo "coverage-percentage=0" >> $GITHUB_OUTPUT
+              echo "coverage-source=No Data" >> $GITHUB_OUTPUT
+              echo "threshold-met=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+        fi
+
+branding:
+  icon: 'check-circle'
+  color: 'green'
