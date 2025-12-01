@@ -306,15 +306,34 @@ jobs:
 
             # Dynamic include filter based on module type
             if [ -n "$include_pattern" ]; then
-              INCLUDE_FILTER="[${include_pattern}]"
+              INCLUDE_FILTER="[${include_pattern}]*"
             else
-              INCLUDE_FILTER="[MeAjudaAi.*]"
+              INCLUDE_FILTER="[MeAjudaAi.*]*"
             fi
 
-            EXCLUDE_FILTER="[*.Tests*],[*Test*],[testhost]"
+            EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*"
 
             echo "  Include: $INCLUDE_FILTER"
             echo "  Exclude: $EXCLUDE_FILTER"
+            
+            # Create temporary runsettings file for this module
+            cat > "/tmp/${module_name,,}.runsettings" <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>opencover</Format>
+          <Include>${INCLUDE_FILTER}</Include>
+          <Exclude>${EXCLUDE_FILTER}</Exclude>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
+EOF
+
             dotnet test "$module_path" \
                 --configuration Release \
                 --no-build \
@@ -323,9 +342,7 @@ jobs:
                 --collect:"XPlat Code Coverage" \
                 --results-directory "$MODULE_COVERAGE_DIR" \
                 --logger "trx;LogFileName=${module_name,,}-test-results.trx" \
-                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover \
-                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include="$INCLUDE_FILTER" \
-                -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="$EXCLUDE_FILTER"
+                --settings "/tmp/${module_name,,}.runsettings"
 
               # Find and rename the coverage file to a predictable name
               if [ -d "$MODULE_COVERAGE_DIR" ]; then
