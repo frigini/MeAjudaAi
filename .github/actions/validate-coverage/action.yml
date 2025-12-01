@@ -77,23 +77,23 @@ runs:
         echo ""
 
         # Check step outcomes first
-        primary_success="${{ inputs.opencover-outcome }}"
+        opencover_success="${{ inputs.opencover-outcome }}"
         cobertura_success="${{ inputs.cobertura-outcome }}"
         fallback_success="${{ inputs.fallback-outcome }}"
 
         echo "Debug: Step Outcomes"
-        echo "  - OpenCover: ${primary_success:-not_run}"
+        echo "  - OpenCover: ${opencover_success:-not_run}"
         echo "  - Cobertura: ${cobertura_success:-not_run}"
         echo "  - Fallback: ${fallback_success:-not_run}"
         echo ""
 
         # Get coverage percentages (if available)
-        primary_line_rate="${{ inputs.opencover-output }}"
+        opencover_line_rate="${{ inputs.opencover-output }}"
         cobertura_line_rate="${{ inputs.cobertura-output }}"
         fallback_line_rate="${{ inputs.fallback-output }}"
 
         echo "Debug: Step Outputs"
-        echo "  - OpenCover line rate: ${primary_line_rate:-not_available}"
+        echo "  - OpenCover line rate: ${opencover_line_rate:-not_available}"
         echo "  - Cobertura line rate: ${cobertura_line_rate:-not_available}"
         echo "  - Fallback line rate: ${fallback_line_rate:-not_available}"
         echo ""
@@ -116,10 +116,10 @@ runs:
         coverage_rate=""
         coverage_source=""
 
-        if [ "$primary_success" = "success" ] && [ -n "$primary_line_rate" ]; then
-          coverage_rate="$primary_line_rate"
+        if [ "$opencover_success" = "success" ] && [ -n "$opencover_line_rate" ]; then
+          coverage_rate="$opencover_line_rate"
           coverage_source="OpenCover"
-          echo "📊 Using primary (OpenCover) coverage: ${coverage_rate}%"
+          echo "📊 Using OpenCover coverage: ${coverage_rate}%"
         elif [ "$cobertura_success" = "success" ] && [ -n "$cobertura_line_rate" ]; then
           coverage_rate="$cobertura_line_rate"
           coverage_source="Cobertura"
@@ -222,20 +222,21 @@ runs:
             if [ "${{ inputs.strict-mode }}" = "true" ]; then
               echo ""
               echo "🚫 STRICT MODE: Failing workflow due to insufficient coverage"
-              echo "coverage-percentage=${coverage_rate}" >> $GITHUB_OUTPUT
-              echo "coverage-source=${coverage_source}" >> $GITHUB_OUTPUT
-              echo "threshold-met=${threshold_met}" >> $GITHUB_OUTPUT
-              exit 1
             else
               echo ""
               echo "⚠️  LENIENT MODE: Continuing despite coverage issues"
             fi
           fi
 
-          # Set outputs
+          # Set outputs once after validation logic completes
           echo "coverage-percentage=${coverage_rate}" >> $GITHUB_OUTPUT
           echo "coverage-source=${coverage_source}" >> $GITHUB_OUTPUT
           echo "threshold-met=${threshold_met}" >> $GITHUB_OUTPUT
+          
+          # Exit after outputs are set if in strict mode and threshold not met
+          if [ "${{ inputs.strict-mode }}" = "true" ] && [ "$threshold_met" != "true" ]; then
+            exit 1
+          fi
         else
           # No coverage data available
           echo "Coverage: Not available"

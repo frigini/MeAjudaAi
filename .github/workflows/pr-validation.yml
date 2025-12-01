@@ -19,7 +19,7 @@ env:
   # This enforces 70% minimum coverage threshold (lines 785, 810)
   # Current bypass is TEMPORARY for development only
   # TODO: Enable STRICT_COVERAGE when overall coverage ≥ 70% (Sprint 2 milestone)
-  #       See tracking issue for details: https://github.com/frigini/MeAjudaAi/issues/33
+  #       Tracking: https://github.com/frigini/MeAjudaAi/issues/33
   #       References: docs/testing/code-coverage-guide.md#L297-L313
   # Re-enable when overall coverage reaches 70% (Sprint 2 milestone)
   STRICT_COVERAGE: false
@@ -311,6 +311,12 @@ jobs:
               INCLUDE_FILTER="[MeAjudaAi.*]*"
             fi
 
+            # Validate filter is not empty or trivial
+            if [ "$INCLUDE_FILTER" = "[]*" ] || [ "$INCLUDE_FILTER" = "[].*" ]; then
+              echo "⚠️  INCLUDE_FILTER is trivial, falling back to [MeAjudaAi.*]*"
+              INCLUDE_FILTER="[MeAjudaAi.*]*"
+            fi
+
             # NOTE: EXCLUDE_FILTER is currently hardcoded for all modules.
             # Future enhancement: Consider adding per-module exclusion patterns
             # as part of the MODULES array definition (e.g., "Module:path/:Include:Exclude")
@@ -356,16 +362,14 @@ EOF
                 # Look for both opencover and cobertura formats (search recursively in GUID subdirs)
                 COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -type f \
                   \( -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" \) \
-                  | head -1)
+                  -print -quit)
                 if [ -f "$COVERAGE_FILE" ]; then
                   echo "✅ Found coverage file: $COVERAGE_FILE"
                   # Copy to standardized name based on original format
                   if [[ "$COVERAGE_FILE" == *"cobertura"* ]]; then
                     cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
-                    echo "✅ Cobertura coverage file created: $MODULE_COVERAGE_DIR/${module_name,,}.cobertura.xml"
                   else
                     cp "$COVERAGE_FILE" "$MODULE_COVERAGE_DIR/${module_name,,}.opencover.xml"
-                    echo "✅ OpenCover coverage file created: $MODULE_COVERAGE_DIR/${module_name,,}.opencover.xml"
                   fi
                 else
                   echo "⚠️  Coverage file not found for $module_name"
@@ -851,6 +855,7 @@ EOF
 
                 # Fallback: Install via Go if available
                 if command -v go >/dev/null 2>&1; then
+                  echo "ℹ️  Using Go to install OSV-Scanner..."
                   go install github.com/google/osv-scanner/cmd/osv-scanner@${OSV_VERSION}
                   # Copy to local dir for consistent usage
                   cp "$(go env GOPATH)/bin/osv-scanner" ./osv-scanner 2>/dev/null || \
@@ -858,6 +863,7 @@ EOF
                 else
                   echo "❌ Go toolchain not available, cannot install OSV-Scanner"
                   echo "⚠️  CRITICAL: Vulnerability scan cannot be performed"
+                  echo "💡 MITIGATION: Ensure runner has Go ≥1.18 installed or provide pre-built OSV-Scanner binary"
                   echo "💡 SECURITY NOTE: This workflow MUST fail when vulnerability scanning is unavailable."
                   echo "   To fix: ensure Go is installed on the runner or configure a pre-built OSV-Scanner binary."
                   exit 1  # Fail the workflow - security scanning is mandatory
