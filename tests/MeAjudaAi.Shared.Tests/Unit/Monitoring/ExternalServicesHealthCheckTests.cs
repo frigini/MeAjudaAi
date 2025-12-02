@@ -287,14 +287,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
 
     private IHealthCheck CreateHealthCheck()
     {
-        // Use reflection to create instance of internal class
-        var type = typeof(MeAjudaAiHealthChecks)
-            .GetNestedType("ExternalServicesHealthCheck", System.Reflection.BindingFlags.NonPublic);
-
-        type.Should().NotBeNull("ExternalServicesHealthCheck should be a nested class of MeAjudaAiHealthChecks");
-
-        var instance = Activator.CreateInstance(type!, _httpClient, _configurationMock.Object);
-        return (IHealthCheck)instance!;
+        return new MeAjudaAiHealthChecks.ExternalServicesHealthCheck(_httpClient, _configurationMock.Object);
     }
 
     #endregion

@@ -8,7 +8,7 @@ public partial class MeAjudaAiHealthChecks
     /// <summary>
     /// Health check para verificar disponibilidade de serviços externos
     /// </summary>
-    internal class ExternalServicesHealthCheck(HttpClient httpClient, IConfiguration configuration) : IHealthCheck
+    public class ExternalServicesHealthCheck(HttpClient httpClient, IConfiguration configuration) : IHealthCheck
     {
         public async Task<HealthCheckResult> CheckHealthAsync(
             HealthCheckContext context,
