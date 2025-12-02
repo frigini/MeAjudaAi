@@ -173,17 +173,17 @@ public record CreateUserRequest
     /// Gets or initializes the username.
     /// </summary>
     public string Username { get; init; } = string.Empty;
-    
+
     /// <summary>
     /// Gets or initializes the email address.
     /// </summary>
     public string Email { get; init; } = string.Empty;
-    
+
     /// <summary>
     /// Gets or initializes the first name.
     /// </summary>
     public string FirstName { get; init; } = string.Empty;
-    
+
     /// <summary>
     /// Gets or initializes the last name.
     /// </summary>
@@ -199,7 +199,7 @@ public record CreateUserResponse
     /// Gets or initializes the created user's ID.
     /// </summary>
     public Guid UserId { get; init; }
-    
+
     /// <summary>
     /// Gets or initializes the response message.
     /// </summary>
@@ -215,12 +215,12 @@ public record UpdateUserProfileRequest
     /// Gets or initializes the first name.
     /// </summary>
     public string FirstName { get; init; } = string.Empty;
-    
+
     /// <summary>
     /// Gets or initializes the last name.
     /// </summary>
     public string LastName { get; init; } = string.Empty;
-    
+
     /// <summary>
     /// Gets or initializes the email address.
     /// </summary>

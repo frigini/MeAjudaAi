@@ -79,7 +79,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
     //   3. Feature flag provider (Microsoft.FeatureManagement) initialization issue in CI
     // - SOLUTION: Add explicit feature flag validation in test setup to fail fast if misconfigured
     //   rather than skipping the test. This will surface configuration issues immediately.
-    [Fact(Skip = "CI returns 200 OK instead of 451 - middleware not blocking. Likely feature flag or middleware registration issue in CI environment.")]
+    [Fact]
     public async Task GeographicRestriction_WhenIbgeUnavailableAndCityNotAllowed_ShouldDenyAccess()
     {
         // Arrange - Configure IBGE to fail

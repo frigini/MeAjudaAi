@@ -10,19 +10,17 @@ This directory contains integration tests for the MeAjudaAi API. These tests ver
 
 Default test configuration with **GeographicRestriction enabled**.
 
-- **Purpose**: Test geographic restriction middleware with real API endpoints
-- **Geographic Restriction**: ENABLED (`FeatureManagement.GeographicRestriction: true`)
-- **External APIs**: Points to real external services (ViaCep, IBGE, etc.)
-- **Use Case**: Validate geographic restriction logic with live API calls
+- **Purpose**: Test geographic restriction middleware with real API endpoints (mocked via WireMock)
+- **Geographic Restriction**: ENABLED by default
+- **External APIs**: Points to WireMock server at localhost:5050 (automatic mocking)
+- **Use Case**: Validate geographic restriction logic with mocked API responses
+- **Database**: Uses localhost PostgreSQL with test-only credentials
 
-### `appsettings.Testing.Disabled.json`
-
-Test configuration with **GeographicRestriction disabled**.
-
-- **Purpose**: Test application behavior when geographic restriction is turned off
-- **Geographic Restriction**: DISABLED (`FeatureManagement.GeographicRestriction: false`)
-- **External APIs**: Points to mock/localhost endpoints (to be implemented)
-- **Use Case**: Validate fail-open behavior and graceful degradation
+**Note**: This is the only test configuration file. Geographic restriction can be toggled via test properties:
+```csharp
+protected override bool UseMockGeographicValidation => true; // Default
+protected override bool UseMockGeographicValidation => false; // Use real IBGE validation (via WireMock)
+```
 
 ## Database Credentials
 
@@ -237,16 +235,17 @@ taskkill /PID <process_id> /F
 dotnet test tests/MeAjudaAi.Integration.Tests
 ```
 
-### Run tests with GeographicRestriction enabled
+### Run with real IBGE validation (via WireMock)
 
 ```bash
-ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests
+# Tests use ApiTestBase with UseMockGeographicValidation override
+dotnet test tests/MeAjudaAi.Integration.Tests --filter "FullyQualifiedName~GeographicRestrictionConfig"
 ```
 
-### Run tests with GeographicRestriction disabled
+### Run with verbose logging
 
 ```bash
-ASPNETCORE_ENVIRONMENT=Testing.Disabled dotnet test tests/MeAjudaAi.Integration.Tests
+ASPNETCORE_ENVIRONMENT=Testing dotnet test tests/MeAjudaAi.Integration.Tests --logger "console;verbosity=detailed"
 ```
 
 ## Test Scenarios

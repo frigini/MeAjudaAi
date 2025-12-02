@@ -28,7 +28,7 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 - **Docker** - Containerização
 - **Azure** - Hospedagem em nuvem
 
-## � Estrutura do Projeto
+## 📦 Estrutura do Projeto
 
 O projeto foi organizado para facilitar navegação e manutenção:
 
@@ -63,11 +63,13 @@ O projeto foi organizado para facilitar navegação e manutenção:
 | `config/` | Configurações de ferramentas | Linting, segurança, cobertura |
 | `automation/` | Setup de CI/CD | Scripts de configuração |
 
-## �🚀 Início Rápido
+## 🚀 Início Rápido
 
 ### Para Desenvolvedores
 
-**Setup completo (recomendado):**
+Para instruções detalhadas, consulte o [**Guia de Desenvolvimento Completo**](./docs/development.md).
+
+**Setup completo (recomendado):****
 ```bash
 ./run-local.sh setup
 ```
@@ -173,21 +175,20 @@ MeAjudaAi/
 │   │   └── MeAjudaAi.ServiceDefaults/ # Configurações compartilhadas
 │   ├── Bootstrapper/               # API service bootstrapper
 │   │   └── MeAjudaAi.ApiService/   # Ponto de entrada da API
-│   ├── Modules/                    # Módulos de domínio
-│   │   ├── Users/                  # Módulo de usuários
-│   │   │   ├── API/                # Endpoints e controllers
-│   │   │   ├── Application/        # Use cases e handlers CQRS
-│   │   │   ├── Domain/             # Entidades, value objects, eventos
-│   │   │   ├── Infrastructure/     # Persistência e serviços externos
-│   │   │   └── Tests/              # Testes do módulo
-│   │   └── Providers/              # Módulo de prestadores
-│   │       ├── API/                # Endpoints e controllers
-│   │       ├── Application/        # Use cases e handlers CQRS
-│   │       ├── Domain/             # Entidades, value objects, eventos
-│   │       ├── Infrastructure/     # Persistência e event handlers
-│   │       └── Tests/              # Testes unitários e integração
+│   ├── Modules/                    # Módulos de domínio (Clean Architecture + DDD)
+│   │   ├── Users/                  # Gestão de usuários e autenticação
+│   │   │   ├── API/                # Endpoints (Minimal APIs)
+│   │   │   ├── Application/        # Use cases, CQRS handlers, DTOs
+│   │   │   ├── Domain/             # Entidades, agregados, eventos de domínio
+│   │   │   ├── Infrastructure/     # EF Core, repositórios, event handlers
+│   │   │   └── Tests/              # Testes unitários e de integração
+│   │   ├── Providers/              # Prestadores de serviços e verificação
+│   │   ├── Documents/              # Processamento de documentos com AI
+│   │   ├── ServiceCatalogs/        # Catálogo de serviços e categorias
+│   │   ├── SearchProviders/        # Busca geoespacial de prestadores (PostGIS)
+│   │   └── Locations/              # Integração com API IBGE (CEP, cidades)
 │   └── Shared/                     # Componentes compartilhados
-│       └── MeAjudaAi.Shared/       # Abstrações e utilities
+│       └── MeAjudaAi.Shared/       # Abstrações, contratos, utilidades
 ├── tests/                          # Testes de integração
 ├── infrastructure/                 # Infraestrutura e deployment
 │   ├── compose/                    # Docker Compose
@@ -198,23 +199,47 @@ MeAjudaAi/
 
 ## 🧩 Módulos do Sistema
 
-### 📱 Módulo Users
-- **Domain**: Gestão de usuários, perfis e autenticação
-- **Features**: Registro, login, perfis, papéis (cliente, prestador, admin)
-- **Integração**: Keycloak para autenticação OAuth2/OIDC
+### 👥 Users
+- **Domínio**: Gestão de usuários, perfis e autenticação
+- **Features**: Registro, autenticação, perfis, RBAC (cliente, prestador, admin)
+- **Tecnologias**: Keycloak OAuth2/OIDC, PostgreSQL, Event-Driven
+- **Comunicação**: Module API pattern para validação cross-module
 
-### 🏢 Módulo Providers
-- **Domain**: Gestão de prestadores de serviços e verificação
+### 🏢 Providers
+- **Domínio**: Prestadores de serviços e processo de verificação
 - **Features**: Cadastro, perfis empresariais, documentos, qualificações, status de verificação
-- **Eventos**: Sistema completo de eventos de domínio e integração para comunicação inter-modular
-- **Arquitetura**: Clean Architecture com CQRS, DDD e event-driven design
+- **Eventos**: Domain Events + Integration Events para auditoria e comunicação
+- **Arquitetura**: Clean Architecture, CQRS, DDD, Event Sourcing
 
-### 🔮 Módulos Futuros
-- **Services**: Catálogo de serviços e categorias
+### 📄 Documents
+- **Domínio**: Processamento e validação de documentos
+- **Features**: Upload, OCR com Azure Document Intelligence, validação, armazenamento (Azure Blob)
+- **AI/ML**: Extração automática de dados de documentos (CNH, RG, CPF)
+- **Integração**: Azure Storage, eventos para notificação de processamento
+
+### 📋 ServiceCatalogs
+- **Domínio**: Catálogo de serviços e categorias
+- **Features**: CRUD de serviços/categorias, ativação/desativação, hierarquia de categorias
+- **Testes**: 141 testes (100% passing), cobertura 26% Domain, 50% Infrastructure
+- **Otimização**: Testes paralelos desabilitados para evitar conflitos de chave única
+
+### 🔍 SearchProviders
+- **Domínio**: Busca geoespacial de prestadores
+- **Features**: Busca por coordenadas/raio, filtros (serviços, rating), paginação
+- **Tecnologias**: PostGIS para queries espaciais, PostgreSQL 16 com extensão PostGIS 3.4
+- **Performance**: Índices GiST para consultas geoespaciais otimizadas
+
+### 📍 Locations
+- **Domínio**: Integração com dados geográficos brasileiros
+- **Features**: Consulta de CEP, cidades, estados via API IBGE
+- **Validação**: Middleware de restrição geográfica (ex: disponível apenas RJ)
+- **Caching**: Redis para otimizar consultas frequentes
+
+### 🔮 Roadmap - Próximos Módulos
 - **Bookings**: Agendamentos e reservas
-- **Payments**: Processamento de pagamentos
-- **Reviews**: Avaliações e feedback
-- **Notifications**: Sistema de notificações
+- **Payments**: Processamento de pagamentos (Stripe/PagSeguro)
+- **Reviews**: Avaliações, feedback e rating de prestadores
+- **Notifications**: Sistema de notificações multi-canal (email, SMS, push)
 
 ## ⚡ Melhorias Recentes
 

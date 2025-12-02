@@ -1,0 +1,74 @@
+meta {
+  name: Get Provider Documents
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/documents/provider/{{providerId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+docs {
+  # Get Provider Documents
+  
+  Lista todos os documentos de um prestador específico.
+  
+  ## Autorização
+  - **Política**: SelfOrAdmin
+  - **Requer token**: Sim
+  
+  ## Path Parameters
+  - `providerId` (guid, required): ID do prestador
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "uuid",
+        "documentType": "IdentityDocument",
+        "fileName": "rg.pdf",
+        "status": "Verified",
+        "uploadedAt": "2025-11-25T00:00:00Z",
+        "verifiedAt": "2025-11-25T01:00:00Z"
+      },
+      {
+        "id": "uuid",
+        "documentType": "ProofOfResidence",
+        "fileName": "conta-luz.pdf",
+        "status": "PendingVerification",
+        "uploadedAt": "2025-11-25T02:00:00Z",
+        "verifiedAt": null
+      }
+    ],
+    "message": "Documents retrieved successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Status Counts Helper
+  Use `IDocumentsModuleApi.GetDocumentStatusCountAsync` para obter contadores:
+  - Uploaded count
+  - PendingVerification count
+  - Verified count
+  - Rejected count
+  - Failed count
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **401**: Token inválido
+  - **403**: Sem permissão para acessar documentos deste prestador
+  - **404**: Prestador não encontrado
+}

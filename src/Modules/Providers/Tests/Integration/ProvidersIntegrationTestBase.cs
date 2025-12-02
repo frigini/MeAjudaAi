@@ -164,7 +164,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         try
         {
             // Com banco isolado, podemos usar TRUNCATE com segurança
-            await dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}.providers CASCADE;");
+#pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
+            await dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}.providers CASCADE");
+#pragma warning restore EF1002
         }
         catch (Exception ex)
         {
@@ -172,9 +174,11 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             var logger = GetService<ILogger<ProvidersIntegrationTestBase>>();
             logger.LogWarning(ex, "TRUNCATE failed: {Message}. Using DELETE fallback...", ex.Message);
 
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.qualification;");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.document;");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.providers;");
+#pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.qualification");
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.document");
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.providers");
+#pragma warning restore EF1002
         }
 
         // Verificar se limpeza foi bem-sucedida
@@ -197,7 +201,9 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         try
         {
             // Estratégia 1: TRUNCATE CASCADE
-            await dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}.providers CASCADE;");
+#pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
+            await dbContext.Database.ExecuteSqlRawAsync($"TRUNCATE TABLE {schema}.providers CASCADE");
+#pragma warning restore EF1002
             return;
         }
         catch (Exception ex)
@@ -209,9 +215,11 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
         try
         {
             // Estratégia 2: DELETE em ordem reversa
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.qualification;");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.document;");
-            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.providers;");
+#pragma warning disable EF1002 // Risk of SQL injection - schema comes from test configuration, not user input
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.qualification");
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.document");
+            await dbContext.Database.ExecuteSqlRawAsync($"DELETE FROM {schema}.providers");
+#pragma warning restore EF1002
             return;
         }
         catch (Exception ex)

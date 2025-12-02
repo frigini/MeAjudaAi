@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Domain.ValueObjects;
 
+[Trait("Category", "Unit")]
 public class DocumentTests
 {
     [Theory]

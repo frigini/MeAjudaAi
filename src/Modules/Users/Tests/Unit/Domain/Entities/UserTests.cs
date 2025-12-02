@@ -7,6 +7,7 @@ using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Domain.Entities;
 
+[Trait("Category", "Unit")]
 public class UserTests
 {
     // Cria um provedor de data/hora para testes

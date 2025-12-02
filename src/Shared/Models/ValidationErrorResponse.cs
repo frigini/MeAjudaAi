@@ -19,14 +19,15 @@ public class ValidationErrorResponse : ApiErrorResponse
         StatusCode = 400;
         Title = "Validation Error";
         Detail = ValidationMessages.Generic.InvalidData;
+        ValidationErrors = new Dictionary<string, string[]>();
     }
 
     /// <summary>
     /// Inicializa uma nova instância com erros de validação específicos.
     /// </summary>
     /// <param name="validationErrors">Dicionário de erros por campo</param>
-    public ValidationErrorResponse(Dictionary<string, string[]> validationErrors) : this()
+    public ValidationErrorResponse(Dictionary<string, string[]>? validationErrors) : this()
     {
-        ValidationErrors = validationErrors;
+        ValidationErrors = validationErrors ?? new Dictionary<string, string[]>();
     }
 }

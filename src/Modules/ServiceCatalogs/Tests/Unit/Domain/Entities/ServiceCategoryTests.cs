@@ -5,6 +5,7 @@ using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Domain.Entities;
 
+[Trait("Category", "Unit")]
 public class ServiceCategoryTests
 {
     [Fact]

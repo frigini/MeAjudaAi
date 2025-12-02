@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Domain.ValueObjects;
 
+[Trait("Category", "Unit")]
 public class ServiceIdTests
 {
     [Fact]

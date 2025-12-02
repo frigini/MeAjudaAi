@@ -39,7 +39,7 @@ public sealed class ProviderService
     internal ProviderService(ProviderId providerId, Guid serviceId)
     {
         ProviderId = providerId ?? throw new ArgumentNullException(nameof(providerId));
-        
+
         if (serviceId == Guid.Empty)
             throw new ArgumentException("ServiceId cannot be empty.", nameof(serviceId));
 
