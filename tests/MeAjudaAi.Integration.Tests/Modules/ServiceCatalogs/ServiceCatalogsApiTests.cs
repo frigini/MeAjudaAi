@@ -259,6 +259,50 @@ public class ServiceCatalogsApiTests : ApiTestBase
         }
     }
 
+    [Fact]
+    public async Task ServicesEndpoint_WithPagination_ShouldAcceptParameters()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/service-catalogs/services?page=1&pageSize=5");
+
+        // Assert
+        response.StatusCode.Should().NotBe(HttpStatusCode.BadRequest,
+            "Valid pagination parameters should be accepted");
+    }
+
+    [Fact]
+    public async Task CategoriesEndpoint_WithPagination_ShouldAcceptParameters()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/service-catalogs/categories?page=1&pageSize=5");
+
+        // Assert
+        response.StatusCode.Should().NotBe(HttpStatusCode.BadRequest,
+            "Valid pagination parameters should be accepted");
+    }
+
+    [Fact]
+    public async Task CreateCategory_WithoutAuthentication_ShouldReturnUnauthorized()
+    {
+        // Arrange
+        var createRequest = new { name = "Test Category" };
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/service-catalogs/categories", createRequest);
+
+        // Assert
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.NotFound);
+    }
+
     private static JsonElement GetResponseData(JsonElement response)
     {
         return response.TryGetProperty("data", out var dataElement)
@@ -266,3 +310,4 @@ public class ServiceCatalogsApiTests : ApiTestBase
             : response;
     }
 }
+

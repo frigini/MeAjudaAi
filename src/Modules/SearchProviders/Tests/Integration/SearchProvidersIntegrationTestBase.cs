@@ -13,7 +13,7 @@ using Testcontainers.PostgreSql;
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Integration;
 
 /// <summary>
-/// Classe base para testes de integração do módulo Search.
+/// Classe base para testes de integração do módulo SearchProviders.
 /// Usa Testcontainers PostgreSQL com extensão PostGIS.
 /// </summary>
 public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
@@ -62,11 +62,14 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
                 npgsqlOptions =>
                 {
                     npgsqlOptions.UseNetTopologySuite();
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_searchproviders");
                 });
 
             // Use same naming convention as production
             options.UseSnakeCaseNamingConvention();
+
+            // Suppress pending model changes warning for tests (EnsureCreatedAsync doesn't use migrations)
+            options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
 
         // Registrar PostgresOptions para Dapper
@@ -99,7 +102,8 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
     {
         var dbContext = _serviceProvider!.GetRequiredService<SearchProvidersDbContext>();
 
-        // Criar banco de dados
+        // IMPORTANTE: Usar EnsureCreatedAsync para testes (não migrations)
+        // Migrations tem problema com schema 'search' vs 'search_providers'
         await dbContext.Database.EnsureCreatedAsync();
 
         // Verificar se PostGIS está disponível
@@ -218,11 +222,11 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
 
         try
         {
-            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE search.searchable_providers CASCADE;");
+            await dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE meajudaai_searchproviders.searchable_providers CASCADE;");
         }
         catch
         {
-            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM search.searchable_providers;");
+            await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM meajudaai_searchproviders.searchable_providers;");
         }
 
         var remainingCount = await dbContext.SearchableProviders.CountAsync();

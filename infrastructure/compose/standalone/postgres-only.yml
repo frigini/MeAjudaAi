@@ -12,7 +12,7 @@
 
 services:
   postgres:
-    image: postgres:16
+    image: postgis/postgis:16-3.4
     container_name: meajudaai-postgres-standalone
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-MeAjudaAi}
@@ -31,7 +31,7 @@ services:
 
   # Development-only service with sample data
   postgres-dev:
-    image: postgres:16
+    image: postgis/postgis:16-3.4
     container_name: meajudaai-postgres-dev-standalone
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-MeAjudaAi}

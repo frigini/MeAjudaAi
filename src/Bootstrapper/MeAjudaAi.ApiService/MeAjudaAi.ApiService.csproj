@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="MeAjudaAi.ApiService.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Sinks.Seq" />
@@ -24,6 +28,12 @@
     <ProjectReference Include="..\..\Modules\ServiceCatalogs\API\MeAjudaAi.Modules.ServiceCatalogs.API.csproj" />
     <ProjectReference Include="..\..\Modules\Users\API\MeAjudaAi.Modules.Users.API.csproj" />
     <ProjectReference Include="..\..\Shared\MeAjudaAi.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.Testing.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

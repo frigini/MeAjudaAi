@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura,json,opencover</Format>
+          <Exclude>[*.Tests]*,[*.Testing]*,[testhost]*,[MeAjudaAi.AppHost]*,[MeAjudaAi.ServiceDefaults]*</Exclude>
+          <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
+          <ExcludeByFile>**/Migrations/**/*.cs,**/bin/**,**/obj/**,**/Logging/**/*.cs,**/Jobs/Hangfire*.cs,**/Messaging/RabbitMq/**/*.cs,**/Messaging/ServiceBus/**/*.cs,**/Monitoring/**/*.cs,**/HealthChecks/**/*.cs</ExcludeByFile>
+          <IncludeDirectory>./src/</IncludeDirectory>
+          <SingleHit>false</SingleHit>
+          <UseSourceLink>true</UseSourceLink>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+          <SkipAutoProps>true</SkipAutoProps>
+          <DeterministicReport>false</DeterministicReport>
+          <DoesNotReturnAttribute>DoesNotReturnAttribute</DoesNotReturnAttribute>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+  <RunConfiguration>
+    <MaxCpuCount>0</MaxCpuCount>
+    <ResultsDirectory>.\TestResults\Coverage</ResultsDirectory>
+    <TargetFramework>net10.0</TargetFramework>
+  </RunConfiguration>
+</RunSettings>

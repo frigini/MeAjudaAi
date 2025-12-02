@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Documents.Domain.Events;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Domain;
 
+[Trait("Category", "Unit")]
 public class DocumentTests
 {
     [Fact]

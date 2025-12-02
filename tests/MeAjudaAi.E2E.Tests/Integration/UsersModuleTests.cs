@@ -12,6 +12,9 @@ public class UsersModuleTests : TestContainerTestBase
     [Fact]
     public async Task GetUsers_ShouldReturnOkWithPaginatedResult()
     {
+        // Arrange
+        AuthenticateAsAdmin();
+
         // Act
         var response = await ApiClient.GetAsync("/api/v1/users?pageNumber=1&pageSize=10");
 
@@ -92,7 +95,7 @@ public class UsersModuleTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin(); // GetUserById requer autorização "SelfOrAdmin"
-        var nonExistentId = Guid.NewGuid();
+        var nonExistentId = Guid.CreateVersion7();
 
         // Act
         var response = await ApiClient.GetAsync($"/api/v1/users/{nonExistentId}");
@@ -120,7 +123,7 @@ public class UsersModuleTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin(); // UpdateUserProfile requer autorização (SelfOrAdmin policy)
-        var nonExistentId = Guid.NewGuid();
+        var nonExistentId = Guid.CreateVersion7();
         var updateRequest = new UpdateUserProfileRequest
         {
             FirstName = "Updated",
@@ -140,7 +143,7 @@ public class UsersModuleTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin(); // DELETE requer autorização Admin
-        var nonExistentId = Guid.NewGuid();
+        var nonExistentId = Guid.CreateVersion7();
 
         // Act
         var response = await ApiClient.DeleteAsync($"/api/v1/users/{nonExistentId}");
@@ -162,25 +165,64 @@ public class UsersModuleTests : TestContainerTestBase
 }
 
 /// <summary>
-/// DTOs simples para teste (para evitar dependências complexas)
+/// Request model for creating a new user in E2E tests.
 /// </summary>
 public record CreateUserRequest
 {
+    /// <summary>
+    /// Gets or initializes the username.
+    /// </summary>
     public string Username { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets or initializes the email address.
+    /// </summary>
     public string Email { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets or initializes the first name.
+    /// </summary>
     public string FirstName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets or initializes the last name.
+    /// </summary>
     public string LastName { get; init; } = string.Empty;
 }
 
+/// <summary>
+/// Response model for user creation in E2E tests.
+/// </summary>
 public record CreateUserResponse
 {
+    /// <summary>
+    /// Gets or initializes the created user's ID.
+    /// </summary>
     public Guid UserId { get; init; }
+
+    /// <summary>
+    /// Gets or initializes the response message.
+    /// </summary>
     public string Message { get; init; } = string.Empty;
 }
 
+/// <summary>
+/// Request model for updating a user profile in E2E tests.
+/// </summary>
 public record UpdateUserProfileRequest
 {
+    /// <summary>
+    /// Gets or initializes the first name.
+    /// </summary>
     public string FirstName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets or initializes the last name.
+    /// </summary>
     public string LastName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets or initializes the email address.
+    /// </summary>
     public string Email { get; init; } = string.Empty;
 }

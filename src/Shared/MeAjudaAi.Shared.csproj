@@ -34,6 +34,9 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     
+    <!-- Feature Management -->
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" />
+    
     <!-- Configuration -->
     <!-- Removed: Microsoft.Extensions.Configuration.Abstractions - transitive from Microsoft.AspNetCore.App -->
     <!-- Removed: Microsoft.Extensions.Configuration.Json - transitive from Microsoft.AspNetCore.App -->
@@ -74,6 +77,10 @@
     <!-- System -->
     <!-- Removed: Microsoft.CSharp - transitive from .NET runtime -->
     <!-- Removed: System.Text.Json - transitive from Microsoft.AspNetCore.App -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="MeAjudaAi.Shared.Tests" />
   </ItemGroup>
 
 </Project>

@@ -1,9 +1,13 @@
 using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
+using MeAjudaAi.Modules.Providers.Domain.Repositories;
+using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Contracts.Modules;
+using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
+using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -26,6 +30,8 @@ public sealed class ProvidersModuleApi(
     IQueryHandler<GetProvidersByStateQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByStateHandler,
     IQueryHandler<GetProvidersByTypeQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByTypeHandler,
     IQueryHandler<GetProvidersByVerificationStatusQuery, Result<IReadOnlyList<ProviderDto>>> getProvidersByVerificationStatusHandler,
+    ILocationsModuleApi locationApi,
+    IProviderRepository providerRepository,
     IServiceProvider serviceProvider,
     ILogger<ProvidersModuleApi> logger) : IProvidersModuleApi
 {
@@ -268,6 +274,81 @@ public sealed class ProvidersModuleApi(
                 providerDtos.Select(MapToModuleBasicDto).ToList()),
             onFailure: error => Result<IReadOnlyList<ModuleProviderBasicDto>>.Failure(error)
         );
+    }
+
+    /// <summary>
+    /// Gets provider data prepared for search indexing, including coordinates obtained via geocoding.
+    /// </summary>
+    /// <param name="providerId">The unique identifier of the provider to index.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Provider indexing DTO with geocoded location, or null if provider not found, or failure if geocoding fails.</returns>
+    public async Task<Result<ModuleProviderIndexingDto?>> GetProviderForIndexingAsync(
+        Guid providerId,
+        CancellationToken cancellationToken = default)
+    {
+        logger.LogDebug("Getting provider indexing data for provider {ProviderId}", providerId);
+
+        // 1. Buscar entidade Provider diretamente do repositório (inclui Services)
+        var providerEntity = await providerRepository.GetByIdAsync(new ProviderId(providerId), cancellationToken);
+
+        if (providerEntity == null)
+        {
+            logger.LogDebug("Provider {ProviderId} not found for indexing", providerId);
+            return Result<ModuleProviderIndexingDto?>.Success(null);
+        }
+
+        // 2. Obter coordenadas do endereço primário via ILocationsModuleApi
+        var address = providerEntity.BusinessProfile.PrimaryAddress;
+        var fullAddress = $"{address.Street}, {address.Number}, {address.Neighborhood}, {address.City}/{address.State}, {address.ZipCode}";
+
+        var coordinatesResult = await locationApi.GetCoordinatesFromAddressAsync(fullAddress, cancellationToken);
+
+        if (coordinatesResult.IsFailure)
+        {
+            logger.LogWarning(
+                "Failed to get coordinates for provider {ProviderId} address '{Address}': {Error}",
+                providerId, fullAddress, coordinatesResult.Error.Message);
+
+            // Sem coordenadas não podemos indexar (SearchableProvider exige Location)
+            return Result<ModuleProviderIndexingDto?>.Failure(coordinatesResult.Error);
+        }
+
+        var coordinates = coordinatesResult.Value;
+
+        // 3. Obter ServiceIds do provider (da coleção Services)
+        var serviceIds = providerEntity.GetServiceIds();
+
+        // 4. TODO: Buscar rating e reviews do provider (quando implementarmos Reviews)
+        // Por enquanto, valores padrão
+        decimal averageRating = 0;
+        int totalReviews = 0;
+
+        // 5. TODO: Mapear subscription tier do provider
+        // Por enquanto, Free como padrão
+        var subscriptionTier = ESubscriptionTier.Free;
+
+        // 6. Criar DTO de indexação
+        var indexingDto = new ModuleProviderIndexingDto
+        {
+            ProviderId = providerEntity.Id.Value,
+            Name = providerEntity.Name,
+            Description = providerEntity.BusinessProfile.Description,
+            Latitude = coordinates.Latitude,
+            Longitude = coordinates.Longitude,
+            ServiceIds = serviceIds,
+            AverageRating = averageRating,
+            TotalReviews = totalReviews,
+            SubscriptionTier = subscriptionTier,
+            City = address.City,
+            State = address.State,
+            IsActive = providerEntity.VerificationStatus == EVerificationStatus.Verified && !providerEntity.IsDeleted
+        };
+
+        logger.LogInformation(
+            "Successfully prepared indexing data for provider {ProviderId} at ({Lat}, {Lon})",
+            providerId, coordinates.Latitude, coordinates.Longitude);
+
+        return Result<ModuleProviderIndexingDto?>.Success(indexingDto);
     }
 
     /// <summary>

@@ -6,6 +6,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Configuração do Entity Framework Core para a entidade Provider.
+/// Define mapeamento de tabela, propriedades, value objects e relacionamentos.
+/// </summary>
 public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
 {
     public void Configure(EntityTypeBuilder<Provider> builder)
@@ -172,7 +176,7 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                 .HasDefaultValue(false);
 
             doc.HasKey("ProviderId", "Id");
-            doc.ToTable("document", "providers");
+            doc.ToTable("document", "meajudaai_providers");
             doc.WithOwner().HasForeignKey("ProviderId");
             doc.Property("ProviderId").HasColumnName("provider_id");
             doc.Property("Id").HasColumnName("id");
@@ -206,11 +210,17 @@ public class ProviderConfiguration : IEntityTypeConfiguration<Provider>
                 .HasColumnName("document_number");
 
             qual.HasKey("ProviderId", "Id");
-            qual.ToTable("qualification", "providers");
+            qual.ToTable("qualification", "meajudaai_providers");
             qual.WithOwner().HasForeignKey("ProviderId");
             qual.Property("ProviderId").HasColumnName("provider_id");
             qual.Property("Id").HasColumnName("id");
         });
+
+        // Configuração da coleção de serviços (ProviderServices many-to-many)
+        builder.HasMany(p => p.Services)
+            .WithOne(ps => ps.Provider)
+            .HasForeignKey(ps => ps.ProviderId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Índices
         builder.HasIndex(p => p.UserId)

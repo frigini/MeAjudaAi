@@ -1,19 +1,19 @@
 namespace MeAjudaAi.AppHost.Helpers;
 
 /// <summary>
-/// Helper methods for robust environment detection
+/// Métodos auxiliares para detecção robusta de ambiente
 /// </summary>
 public static class EnvironmentHelpers
 {
     /// <summary>
-    /// Determines if the current application is running in a testing environment
-    /// using robust case-insensitive checks across multiple environment variables
+    /// Determina se a aplicação atual está sendo executada em um ambiente de teste
+    /// usando verificações robustas case-insensitive em múltiplas variáveis de ambiente
     /// </summary>
-    /// <param name="builder">The distributed application builder</param>
-    /// <returns>True if running in testing environment, false otherwise</returns>
+    /// <param name="builder">O distributed application builder</param>
+    /// <returns>True se estiver executando em ambiente de teste, false caso contrário</returns>
     public static bool IsTesting(IDistributedApplicationBuilder builder)
     {
-        // Check builder environment name (case-insensitive)
+        // Verifica o nome do ambiente do builder (case-insensitive)
         var builderEnv = builder.Environment.EnvironmentName;
         if (!string.IsNullOrEmpty(builderEnv) &&
             string.Equals(builderEnv, "Testing", StringComparison.OrdinalIgnoreCase))
@@ -21,7 +21,7 @@ public static class EnvironmentHelpers
             return true;
         }
 
-        // Check DOTNET_ENVIRONMENT first, then fallback to ASPNETCORE_ENVIRONMENT
+        // Verifica DOTNET_ENVIRONMENT primeiro, depois faz fallback para ASPNETCORE_ENVIRONMENT
         var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
         var aspnetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         var envName = !string.IsNullOrEmpty(dotnetEnv) ? dotnetEnv : aspnetEnv;
@@ -32,17 +32,17 @@ public static class EnvironmentHelpers
             return true;
         }
 
-        // Check INTEGRATION_TESTS environment variable with robust boolean parsing
+        // Verifica variável de ambiente INTEGRATION_TESTS com parsing booleano robusto
         var integrationTestsValue = Environment.GetEnvironmentVariable("INTEGRATION_TESTS");
         if (!string.IsNullOrEmpty(integrationTestsValue))
         {
-            // Handle both "true"/"false" and "1"/"0" patterns case-insensitively
+            // Trata tanto padrões "true"/"false" quanto "1"/"0" de forma case-insensitive
             if (bool.TryParse(integrationTestsValue, out var boolResult))
             {
                 return boolResult;
             }
 
-            // Handle "1" as true (common in CI/CD environments)
+            // Trata "1" como true (comum em ambientes CI/CD)
             if (string.Equals(integrationTestsValue, "1", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
@@ -53,10 +53,10 @@ public static class EnvironmentHelpers
     }
 
     /// <summary>
-    /// Gets the effective environment name with fallback priority: DOTNET_ENVIRONMENT -> ASPNETCORE_ENVIRONMENT -> builder environment
+    /// Obtém o nome do ambiente efetivo com prioridade de fallback: DOTNET_ENVIRONMENT -> ASPNETCORE_ENVIRONMENT -> ambiente do builder
     /// </summary>
-    /// <param name="builder">The distributed application builder</param>
-    /// <returns>The effective environment name or empty string if not found</returns>
+    /// <param name="builder">O distributed application builder</param>
+    /// <returns>O nome do ambiente efetivo ou string vazia se não encontrado</returns>
     private static string GetEffectiveEnvName(IDistributedApplicationBuilder builder)
     {
         var dotnetEnv = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
@@ -67,32 +67,32 @@ public static class EnvironmentHelpers
     }
 
     /// <summary>
-    /// Checks if the current environment matches the target environment name (case-insensitive)
+    /// Verifica se o ambiente atual corresponde ao nome do ambiente alvo (case-insensitive)
     /// </summary>
-    /// <param name="builder">The distributed application builder</param>
-    /// <param name="target">The target environment name to check</param>
-    /// <returns>True if the current environment matches the target, false otherwise</returns>
+    /// <param name="builder">O distributed application builder</param>
+    /// <param name="target">O nome do ambiente alvo a verificar</param>
+    /// <returns>True se o ambiente atual corresponder ao alvo, false caso contrário</returns>
     private static bool IsEnv(IDistributedApplicationBuilder builder, string target) =>
         string.Equals(GetEffectiveEnvName(builder), target, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Determines if the current application is running in a development environment
+    /// Determina se a aplicação atual está sendo executada em um ambiente de desenvolvimento
     /// </summary>
-    /// <param name="builder">The distributed application builder</param>
-    /// <returns>True if running in development environment, false otherwise</returns>
+    /// <param name="builder">O distributed application builder</param>
+    /// <returns>True se estiver executando em ambiente de desenvolvimento, false caso contrário</returns>
     public static bool IsDevelopment(IDistributedApplicationBuilder builder) => IsEnv(builder, "Development");
 
     /// <summary>
-    /// Determines if the current application is running in a production environment
+    /// Determina se a aplicação atual está sendo executada em um ambiente de produção
     /// </summary>
-    /// <param name="builder">The distributed application builder</param>
-    /// <returns>True if running in production environment, false otherwise</returns>
+    /// <param name="builder">O distributed application builder</param>
+    /// <returns>True se estiver executando em ambiente de produção, false caso contrário</returns>
     public static bool IsProduction(IDistributedApplicationBuilder builder) => IsEnv(builder, "Production");
 
     /// <summary>
-    /// Gets the current environment name with fallback priority: DOTNET_ENVIRONMENT -> ASPNETCORE_ENVIRONMENT -> builder environment
+    /// Obtém o nome do ambiente atual com prioridade de fallback: DOTNET_ENVIRONMENT -> ASPNETCORE_ENVIRONMENT -> ambiente do builder
     /// </summary>
-    /// <param name="builder">The distributed application builder</param>
-    /// <returns>The environment name or empty string if not found</returns>
+    /// <param name="builder">O distributed application builder</param>
+    /// <returns>O nome do ambiente ou string vazia se não encontrado</returns>
     public static string GetEnvironmentName(IDistributedApplicationBuilder builder) => GetEffectiveEnvName(builder);
 }

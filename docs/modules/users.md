@@ -612,7 +612,7 @@ public class SomeOtherModuleService
 
 ## 🚀 Próximos Passos
 
-**Funcionalidades Futuras**: Consulte o [Roadmap do Projeto](../ROADMAP.md#-módulo-users---próximas-funcionalidades) para ver as funcionalidades planejadas para versões futuras do módulo Users.
+**Funcionalidades Futuras**: Consulte o [Roadmap do Projeto](../roadmap.md) para ver as funcionalidades planejadas para versões futuras do módulo Users.
 
 ### **Melhorias Técnicas em Desenvolvimento**
 - 🔄 **Cache distribuído** para consultas frequentes
@@ -625,7 +625,7 @@ public class SomeOtherModuleService
 ## 📚 Referências
 
 - **[Arquitetura Geral](../architecture.md)** - Padrões e estrutura
-- **[Autenticação](../authentication.md)** - Integração com Keycloak
+- **[Autenticação e Autorização](../authentication_and_authorization.md)** - Integração com Keycloak
 - **[Módulo Providers](./providers.md)** - Integração com prestadores
 - **[Guia de Desenvolvimento](../development.md)** - Setup e diretrizes
 

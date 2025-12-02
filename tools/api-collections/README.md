@@ -50,6 +50,9 @@ src/Shared/API.Collections/Generated/
 ├── MeAjudaAi-Users-Collection.json
 ├── MeAjudaAi-Providers-Collection.json
 ├── MeAjudaAi-Documents-Collection.json
+├── MeAjudaAi-SearchProviders-Collection.json
+├── MeAjudaAi-ServiceCatalogs-Collection.json
+├── MeAjudaAi-Locations-Collection.json
 ├── MeAjudaAi-Complete-Collection.json
 └── environments/
     ├── development.json
@@ -116,11 +119,27 @@ Cada coleção gerada contém:
 
 📁 Providers
   ├── 📄 GET /api/v1/providers
+  ├── 📄 POST /api/v1/providers/{id}/activate
   └── ...
 
 📁 Documents
-  ├── 📄 POST /api/v1/documents/upload
-  ├── 📄 GET /api/v1/documents/status/{id}
+  ├── 📄 POST /api/v1/documents
+  ├── 📄 POST /api/v1/documents/{id}/verify
+  └── ...
+
+📁 SearchProviders
+  ├── 📄 POST /api/v1/search
+  ├── 📄 POST /api/v1/search/radius
+  └── ...
+
+📁 ServiceCatalogs
+  ├── 📄 GET /api/v1/catalogs/categories
+  ├── 📄 POST /api/v1/catalogs/services
+  └── ...
+
+📁 Locations
+  ├── 📄 GET /api/v1/locations/cep/{cep}
+  ├── 📄 POST /api/v1/locations/validate-city
   └── ...
 ```
 

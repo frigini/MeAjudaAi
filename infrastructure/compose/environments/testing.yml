@@ -20,7 +20,7 @@
 services:
   # Test database
   postgres-test:
-    image: postgres:16
+    image: postgis/postgis:16-3.4
     container_name: meajudaai-postgres-test
     environment:
       POSTGRES_DB: ${POSTGRES_TEST_DB:-meajudaai_test}

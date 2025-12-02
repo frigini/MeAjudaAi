@@ -14,7 +14,7 @@ public class ServiceCatalogsDbContext(DbContextOptions<ServiceCatalogsDbContext>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("service_catalogs");
+        modelBuilder.HasDefaultSchema("meajudaai_service_catalogs");
 
         // Apply configurations from assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

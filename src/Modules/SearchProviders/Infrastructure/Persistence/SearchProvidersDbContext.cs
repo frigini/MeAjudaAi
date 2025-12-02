@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 
 /// <summary>
-/// Contexto de banco de dados para o módulo Search.
+/// Contexto de banco de dados para o módulo SearchProviders.
 /// Usa a extensão PostGIS para consultas geoespaciais.
 /// </summary>
 public class SearchProvidersDbContext : BaseDbContext
@@ -29,7 +29,7 @@ public class SearchProvidersDbContext : BaseDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("search");
+        modelBuilder.HasDefaultSchema("meajudaai_searchproviders");
 
         // Enable PostGIS extension for geospatial features
         modelBuilder.HasPostgresExtension("postgis");

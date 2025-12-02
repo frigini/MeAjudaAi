@@ -1,0 +1,76 @@
+meta {
+  name: Verify Document
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/v1/documents/{{documentId}}/verify
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "verifiedBy": "admin",
+    "notes": "Documento verificado com sucesso. Dados conferem."
+  }
+}
+
+docs {
+  # Verify Document
+  
+  Verifica e aprova um documento após análise manual (admin).
+  
+  ## Autorização
+  - **Política**: AdminOnly
+  - **Requer token**: Sim (admin)
+  
+  ## Path Parameters
+  - `documentId` (guid, required): ID do documento
+  
+  ## Body Parameters
+  - `verifiedBy` (string, optional): Nome do admin que verificou
+  - `notes` (string, optional): Observações sobre a verificação
+  
+  ## Efeitos da Verificação
+  - **Status**: PendingVerification → Verified
+  - **VerifiedAt**: Timestamp atual
+  - **Domain Event**: DocumentVerifiedDomainEvent publicado
+  - **Integration Event**: DocumentVerifiedIntegrationEvent (para módulo Providers)
+  
+  ## Impacto no Provider
+  - Aumenta contador de documentos verificados
+  - Pode desbloquear ativação do prestador (se todos docs verificados)
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "status": "Verified",
+      "verifiedAt": "2025-11-25T01:00:00Z",
+      "verifiedBy": "admin"
+    },
+    "message": "Document verified successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **200**: Verificado com sucesso
+  - **400**: Documento já verificado ou status inválido
+  - **401**: Token inválido
+  - **403**: Sem permissão de admin
+  - **404**: Documento não encontrado
+}

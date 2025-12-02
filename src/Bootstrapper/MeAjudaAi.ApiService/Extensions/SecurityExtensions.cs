@@ -14,7 +14,7 @@ namespace MeAjudaAi.ApiService.Extensions;
 /// <summary>
 /// Métodos de extensão para configuração de segurança incluindo autenticação, autorização e CORS.
 /// </summary>
-internal static class SecurityExtensions
+public static class SecurityExtensions
 {
     /// <summary>
     /// Valida todas as configurações relacionadas à segurança para evitar erros em produção.
@@ -437,7 +437,7 @@ internal static class SecurityExtensions
 /// <summary>
 /// Hosted service para logar a configuração do Keycloak durante a inicialização da aplicação
 /// </summary>
-internal sealed class KeycloakConfigurationLogger(
+public sealed class KeycloakConfigurationLogger(
     IOptions<KeycloakOptions> keycloakOptions,
     ILogger<KeycloakConfigurationLogger> logger) : IHostedService
 {
