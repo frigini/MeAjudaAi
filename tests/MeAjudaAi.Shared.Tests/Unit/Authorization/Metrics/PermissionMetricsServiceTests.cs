@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using FluentAssertions;
 using MeAjudaAi.Shared.Authorization;
@@ -17,18 +18,18 @@ public sealed class PermissionMetricsServiceTests : IDisposable
     private readonly Mock<ILogger<PermissionMetricsService>> _loggerMock;
     private readonly PermissionMetricsService _service;
     private readonly MeterListener _meterListener;
-    private readonly Dictionary<string, long> _counterValues;
-    private readonly Dictionary<string, double> _histogramValues;
-    private readonly Dictionary<string, object?> _gaugeValues;
+    private readonly ConcurrentDictionary<string, long> _counterValues;
+    private readonly ConcurrentDictionary<string, double> _histogramValues;
+    private readonly ConcurrentDictionary<string, object?> _gaugeValues;
 
     public PermissionMetricsServiceTests()
     {
         _loggerMock = new Mock<ILogger<PermissionMetricsService>>();
         _service = new PermissionMetricsService(_loggerMock.Object);
 
-        _counterValues = new Dictionary<string, long>();
-        _histogramValues = new Dictionary<string, double>();
-        _gaugeValues = new Dictionary<string, object?>();
+        _counterValues = new ConcurrentDictionary<string, long>();
+        _histogramValues = new ConcurrentDictionary<string, double>();
+        _gaugeValues = new ConcurrentDictionary<string, object?>();
 
         _meterListener = new MeterListener
         {
@@ -44,7 +45,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         _meterListener.SetMeasurementEventCallback<long>((instrument, measurement, tags, state) =>
         {
             var key = $"{instrument.Name}:{string.Join(",", tags.ToArray().Select(t => $"{t.Key}={t.Value}"))}";
-            _counterValues[key] = _counterValues.GetValueOrDefault(key) + measurement;
+            _counterValues.AddOrUpdate(key, measurement, (_, existing) => existing + measurement);
         });
 
         _meterListener.SetMeasurementEventCallback<double>((instrument, measurement, tags, state) =>
@@ -650,7 +651,7 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         stats.CacheHitRate.Should().Be(0.0);
     }
 
-    [Fact(Skip = "Race condition in metrics collector - needs ConcurrentDictionary fix")]
+    [Fact]
     public async Task SystemStats_UnderConcurrentLoad_ShouldBeThreadSafe()
     {
         // Arrange
