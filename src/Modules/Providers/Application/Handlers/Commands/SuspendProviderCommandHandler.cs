@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
@@ -60,9 +61,14 @@ public sealed class SuspendProviderCommandHandler(
             logger.LogInformation("Provider {ProviderId} suspended successfully", command.ProviderId);
             return Result.Success();
         }
+        catch (ProviderDomainException ex)
+        {
+            logger.LogWarning(ex, "Domain validation failed while suspending provider {ProviderId}", command.ProviderId);
+            return Result.Failure(ex.Message);
+        }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error suspending provider {ProviderId}", command.ProviderId);
+            logger.LogError(ex, "Unexpected error suspending provider {ProviderId}", command.ProviderId);
             return Result.Failure("Failed to suspend provider");
         }
     }

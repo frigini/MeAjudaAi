@@ -155,6 +155,7 @@ public static class ProviderMapper
             dto.Description,
             dto.IssuingOrganization,
             dto.IssueDate,
-            dto.ExpirationDate);
+            dto.ExpirationDate,
+            dto.DocumentNumber);
     }
 }

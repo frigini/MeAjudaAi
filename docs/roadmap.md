@@ -7,15 +7,17 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Fase 1.5 🔄 (Sprint 0) | MVP Target: 31/Março/2025  
-**Cobertura de Testes**: 40.51% → Meta 80%+  
+**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ | Sprint 1 🔄 (Dia 1) | MVP Target: 31/Março/2025  
+**Cobertura de Testes**: 28.69% → Meta 75-80% (Sprint 1)  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
 ### Marcos Principais
 - ✅ **Janeiro 2025**: Fase 1 concluída - 6 módulos core implementados
-- 🔄 **Jan 20 - Feb 2**: Sprint 0 - Migration .NET 10 + Aspire 13
-- ⏳ **Fevereiro 2025**: Sprints 1-2 - Integração + Testes + Hardening
-- ⏳ **Fevereiro-Março 2025**: Sprints 3-5 - Frontend Blazor (Web + Mobile)
+- ✅ **Jan 20 - 21 Nov**: Sprint 0 - Migration .NET 10 + Aspire 13 (CONCLUÍDO)
+- 🔄 **22 Nov - 2 Dez**: Sprint 1 - Geographic Restriction + Module Integration + Test Coverage (DIAS 1-6 CONCLUÍDOS, FINALIZANDO)
+- ⏳ **3 Dez - 16 Dez**: Sprint 2 - Test Coverage 80% + API Collections + Tools Update
+- ⏳ **Dezembro 2025**: Sprint 3 - Frontend Blazor (Web)
+- ⏳ **Fevereiro-Março 2025**: Sprints 4-6 - Frontend Blazor (Web + Mobile)
 - 🎯 **31 Março 2025**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2025+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
@@ -27,11 +29,12 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 Todos os 6 módulos core implementados, testados e integrados:
 - Users • Providers • Documents • Search & Discovery • Locations • ServiceCatalogs
 
-**🔄 Fase 1.5: EM ANDAMENTO** (Janeiro-Fevereiro 2025)  
+**🔄 Fase 1.5: EM ANDAMENTO** (Novembro-Dezembro 2025)  
 Fundação técnica para escalabilidade e produção:
-- Migration .NET 10 + Aspire 13 (Sprint 0)
-- Integração de módulos + Restrições geográficas (Sprint 1)
-- Test coverage 80%+ + Health checks + Data seeding (Sprint 2)
+- ✅ Migration .NET 10 + Aspire 13 (Sprint 0 - CONCLUÍDO 21 Nov)
+- 🔄 Geographic Restriction + Module Integration (Sprint 1 - DIAS 1-6 CONCLUÍDOS, EM FINALIZAÇÂO)
+- ⏳ Test Coverage 80% + API Collections + Tools Update (Sprint 2 - Planejado 3-16 Dez)
+- ⏳ Frontend Blazor Admin Portal (Sprint 3 - Planejado)
 
 **⏳ Fase 2: PLANEJADO** (Fevereiro-Março 2025)  
 Frontend Blazor WASM + MAUI Hybrid:
@@ -59,12 +62,13 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 
 | Sprint | Duração | Período | Objetivo | Status |
 |--------|---------|---------|----------|--------|
-| **Sprint 0** | 1-2 semanas | Jan 20 - Feb 2 | Migration .NET 10 + Aspire 13 | 🔄 EM ANDAMENTO |
-| **Sprint 1** | 1 semana | Feb 3 - Feb 9 | Integração de Módulos + Restrição Geográfica | ⏳ Planejado |
-| **Sprint 2** | 1 semana | Feb 10 - Feb 16 | Test Coverage 80% + Hardening | ⏳ Planejado |
-| **Sprint 3** | 2 semanas | Feb 17 - Mar 2 | Blazor Admin Portal (Web) | ⏳ Planejado |
-| **Sprint 4** | 3 semanas | Mar 3 - Mar 23 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
-| **Sprint 5** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
+| **Sprint 0** | 4 semanas | Jan 20 - 21 Nov | Migration .NET 10 + Aspire 13 | ✅ CONCLUÍDO |
+| **Sprint 1** | 10 dias | 22 Nov - 2 Dez | Geographic Restriction + Module Integration | 🔄 DIAS 1-6 CONCLUÍDOS |
+| **Sprint 2** | 2 semanas | 3 Dez - 16 Dez | Test Coverage 80% + API Collections + Tools Update | ⏳ Planejado |
+| **Sprint 3** | 2 semanas | 17 Dez - 31 Dez | Blazor Admin Portal (Web) | ⏳ Planejado |
+| **Sprint 4** | 2 semanas | Feb 17 - Mar 2 | Blazor Admin Portal (Web) | ⏳ Planejado |
+| **Sprint 5** | 3 semanas | Mar 3 - Mar 23 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
+| **Sprint 6** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
 
 **MVP Launch Target**: 31 de Março de 2025 🎯
 
@@ -88,12 +92,13 @@ Estabelecer as capacidades essenciais da plataforma: registro multi-etapas de pr
 6. ✅ **ServiceCatalogs** - Catálogo hierárquico de serviços
 
 **Conquistas:**
-- 40.51% test coverage (296 testes passando)
+- 28.69% test coverage (93/100 E2E passing, 296 unit tests)
+- ⚠️ Coverage caiu após migration (packages.lock.json + generated code)
 - APIs públicas (IModuleApi) implementadas para todos módulos
 - Integration events funcionais entre módulos
 - Health checks configurados
-- CI/CD pipeline completo no Azure DevOps
-- Documentação arquitetural completa
+- CI/CD pipeline completo no GitHub Actions
+- Documentação arquitetural completa + skipped tests tracker
 
 ### 1.1. ✅ Módulo Users (Concluído)
 **Status**: Implementado e em produção
@@ -252,7 +257,7 @@ public interface ISearchModuleApi
 
 ### 1.5. ✅ Módulo Location Management (Concluído)
 
-**Status**: Implementado e testado
+**Status**: Implementado e testado com integração IBGE ativa
 
 **Objetivo**: Abstrair funcionalidades de geolocalização e lookup de CEP brasileiro.
 
@@ -262,6 +267,7 @@ public interface ISearchModuleApi
 - ✅ Fallback chain automático (ViaCEP → BrasilAPI → OpenCEP)
 - ✅ Resiliência HTTP via ServiceDefaults (retry, circuit breaker, timeout)
 - ✅ API pública (ILocationModuleApi) para comunicação inter-módulos
+- ✅ **Integração IBGE API** (Sprint 1 Dia 1): Validação geográfica oficial
 - ✅ Serviço de geocoding (stub para implementação futura)
 - ✅ 52 testes unitários passando (100% coverage em ValueObjects)
 
@@ -283,12 +289,49 @@ public interface ILocationModuleApi : IModuleApi
 **Serviços Implementados**:
 - `CepLookupService`: Implementa chain of responsibility com fallback entre provedores
 - `ViaCepClient`, `BrasilApiCepClient`, `OpenCepClient`: Clients HTTP com resiliência
+- **`IbgeClient`** (Novo): Cliente HTTP para IBGE Localidades API com normalização de nomes
+- **`IbgeService`** (Novo): Validação de municípios com HybridCache (7 dias TTL)
+- **`GeographicValidationService`** (Novo): Adapter pattern para integração com middleware
 - `GeocodingService`: Stub (TODO: integração com Nominatim ou Google Maps API)
+
+**Integração IBGE Implementada** (Sprint 1 Dia 1):
+```csharp
+// IbgeClient: Normalização de nomes (remove acentos, lowercase, hífens)
+public Task<Municipio?> GetMunicipioByNameAsync(string cityName, CancellationToken ct = default);
+public Task<List<Municipio>> GetMunicipiosByUFAsync(string ufSigla, CancellationToken ct = default);
+public Task<bool> ValidateCityInStateAsync(string city, string state, CancellationToken ct = default);
+
+// IbgeService: Business logic com cache (HybridCache, TTL: 7 dias)
+public Task<bool> ValidateCityInAllowedRegionsAsync(
+    string cityName, 
+    string stateSigla, 
+    List<string> allowedCities, 
+    CancellationToken ct = default);
+public Task<Municipio?> GetCityDetailsAsync(string cityName, CancellationToken ct = default);
+
+// GeographicValidationService: Adapter para Shared module
+public Task<bool> ValidateCityAsync(
+    string cityName, 
+    string stateSigla, 
+    List<string> allowedCities, 
+    CancellationToken ct = default);
+```
+
+**Observação**: IBGE integration provides city/state validation for geographic restriction; geocoding (lat/lon lookup) via Nominatim is planned for Sprint 3 (optional improvement).
+
+**Modelos IBGE**:
+- `Regiao`: Norte, Nordeste, Sudeste, Sul, Centro-Oeste
+- `UF`: Unidade da Federação (estado) com região
+- `Mesorregiao`: Mesorregião com UF
+- `Microrregiao`: Microrregião com mesorregião
+- `Municipio`: Município com hierarquia completa + helper methods (GetUF, GetEstadoSigla, GetNomeCompleto)
+
+**API Base IBGE**: `https://servicodados.ibge.gov.br/api/v1/localidades/`
 
 **Próximas Melhorias (Opcional)**:
 - 🔄 Implementar GeocodingService com Nominatim (OpenStreetMap) ou Google Maps API
 - 🔄 Adicionar caching Redis para reduzir chamadas às APIs externas (TTL: 24h para CEP, 7d para geocoding)
-- 🔄 Integração com IBGE para lookup de municípios e estados
+- ✅ ~~Integração com IBGE para lookup de municípios e estados~~ (IMPLEMENTADO)
 
 ---
 
@@ -674,7 +717,7 @@ Para receber notificações quando novas versões estáveis forem lançadas, con
    - **Impacto**: Exemplos automáticos não aparecem no Swagger UI
    - **Solução Temporária**: Comentado em DocumentationExtensions.cs
    - **Próximos Passos**: Investigar API do Swashbuckle 10.x ou usar reflexão
-   - **Documentação**: `docs/technical_debt.md` seção ExampleSchemaFilter
+   - **Documentação**: `docs/technical-debt.md` seção ExampleSchemaFilter
 
 **📅 Cronograma de Atualizações Futuras**:
 
@@ -710,64 +753,151 @@ gantt
 
 ---
 
-### 📅 Sprint 1: Integração de Módulos + Restrição Geográfica (1 semana)
+### 📅 Sprint 1: Geographic Restriction + Module Integration (10 dias)
 
-**Status**: ⏳ PLANEJADO
+**Status**: 🔄 DIAS 1-6 CONCLUÍDOS | FINALIZANDO (22-25 Nov 2025)  
+**Branches**: `feature/geographic-restriction` (merged ✅), `feature/module-integration` (em review), `improve-tests-coverage` (criada)  
+**Documentação**: [docs/testing/skipped-tests-analysis.md](./testing/skipped-tests-analysis.md)
 
-**Pré-Requisitos (decidir no Sprint 0)**:
-- ✅ **Contratos de Módulos**: Finalizar interfaces IModuleApi para cada módulo
-- ✅ **Cache de Cidades**: Implementar caching da lista AllowedCities para evitar impacto de performance no SearchModule
-- ✅ **Background Workers**: Definir arquitetura (threading, retry logic, poison queue handling) para integration events
+**Conquistas**:
+- ✅ Sprint 0 concluído: Migration .NET 10 + Aspire 13 merged (21 Nov)
+- ✅ Middleware de restrição geográfica implementado com IBGE API integration
+- ✅ 4 Module APIs implementados (Documents, ServiceCatalogs, SearchProviders, Locations)
+- ✅ Testes reativados: 28 testes (11 AUTH + 9 IBGE + 2 ServiceCatalogs + 3 IBGE unavailability + 3 duplicates removed)
+- ✅ Skipped tests reduzidos: 20 (26%) → 11 (11.5%) ⬇️ **-14.5%**
+- ✅ Integration events: Providers → SearchProviders indexing
+- ✅ Schema fixes: search_providers standardization
+- ✅ CI/CD fix: Workflow secrets validation removido
 
-**Objetivos**:
-- Implementar regras de negócio reais usando IModuleApi entre módulos
-- Adicionar restrição geográfica (operação apenas em cidades piloto)
-- Melhorar validações e business rules cross-module
+**Objetivos Alcançados**:
+- ✅ Implementar middleware de restrição geográfica (compliance legal)
+- ✅ Implementar 4 Module APIs usando IModuleApi entre módulos
+- ✅ Reativar 28 testes E2E skipped (auth refactor + race condition fixes)
+- ✅ Integração cross-module: Providers ↔ Documents, Providers ↔ SearchProviders
+- ⏳ Aumentar coverage: 35.11% → 80%+ (MOVIDO PARA SPRINT 2)
 
-**Tarefas**:
+**Estrutura (2 Branches + Próxima Sprint)**:
 
-#### 1. Integração Providers ↔ Documents
-- [ ] Providers: Validar `HasVerifiedDocuments` antes de aprovar prestador
-- [ ] Providers: Bloquear ativação se `HasRejectedDocuments` ou `HasPendingDocuments`
+#### Branch 1: `feature/geographic-restriction` (Dias 1-2) ✅ CONCLUÍDO
+- [x] GeographicRestrictionMiddleware (validação cidade/estado) ✅
+- [x] GeographicRestrictionOptions (configuration) ✅
+- [x] Feature toggle (Development: disabled, Production: enabled) ✅
+- [x] Unit tests (29 tests) + Integration tests (8 tests, skipped) ✅
+- [x] **Integração IBGE API** (validação oficial de municípios) ✅
+  - [x] IbgeClient com normalização de nomes (Muriaé → muriae) ✅
+  - [x] IbgeService com HybridCache (7 dias TTL) ✅
+  - [x] GeographicValidationService (adapter pattern) ✅
+  - [x] 2-layer validation (IBGE primary, simple fallback) ✅
+  - [x] 15 unit tests IbgeClient ✅
+  - [x] Configuração de APIs (ViaCep, BrasilApi, OpenCep, IBGE) ✅
+  - [x] Remoção de hardcoded URLs (enforce configuration) ✅
+- [x] **Commit**: feat(locations): Integrate IBGE API for geographic validation (520069a) ✅
+- **Target**: 28.69% → 30% coverage ✅ (CONCLUÍDO: 92/104 testes passando)
+- **Merged**: 25 Nov 2025 ✅
+
+#### Branch 2: `feature/module-integration` (Dias 3-10) ✅ DIAS 3-6 CONCLUÍDOS | 🔄 DIA 7-10 CODE REVIEW
+- [x] **Dia 3**: Refactor ConfigurableTestAuthenticationHandler (reativou 11 AUTH tests) ✅
+- [x] **Dia 3**: Fix race conditions (identificados 2 para Sprint 2) ✅
+- [x] **Dia 4**: IDocumentsModuleApi implementation (7 métodos) ✅
+- [x] **Dia 5**: IServiceCatalogsModuleApi (3 métodos stub) + ISearchModuleApi (2 novos métodos) ✅
+- [x] **Dia 6**: Integration events (Providers → SearchProviders indexing) ✅
+  - [x] DocumentVerifiedIntegrationEvent + handler ✅
+  - [x] ProviderActivatedIntegrationEventHandler ✅
+  - [x] SearchProviders schema fix (search → search_providers) ✅
+  - [x] Clean InitialCreate migration ✅
+- [x] **Dia 7**: Naming standardization (Module APIs) ✅
+  - [x] ILocationModuleApi → ILocationsModuleApi ✅
+  - [x] ISearchModuleApi → ISearchProvidersModuleApi ✅
+  - [x] SearchModuleApi → SearchProvidersModuleApi ✅
+  - [x] ProviderIndexingDto → ModuleProviderIndexingDto ✅
+- [x] **Dia 7**: Test cleanup (remove diagnostics) ✅
+- [ ] **Dia 7-10**: Code review & documentation 🔄
+- **Target**: 30% → 35% coverage, 93/100 → 98/100 E2E tests
+- **Atual**: 2,076 tests (2,065 passing - 99.5%, 11 skipped - 0.5%)
+- **Commits**: 25+ total (583 commits total na branch)
+- **Status**: Aguardando code review antes de merge
+
+**Integrações Implementadas**:
+- ✅ **Providers → Documents**: ActivateProviderCommandHandler valida documentos (4 checks)
+- ✅ **Providers → SearchProviders**: ProviderActivatedIntegrationEventHandler indexa providers
+- ✅ **Documents → Providers**: DocumentVerifiedDomainEventHandler publica integration event
+- ⏳ **Providers → ServiceCatalogs**: API criada, aguarda implementação de gestão de serviços
+- ⏳ **Providers → Locations**: CEP lookup (baixa prioridade)
+
+**Bugs Críticos Corrigidos**:
+- ✅ AUTH Race Condition (ConfigurableTestAuthenticationHandler thread-safety)
+- ✅ IBGE Fail-Closed Bug (GeographicValidationService + IbgeService)
+- ✅ MunicipioNotFoundException criada para fallback correto
+- ✅ SearchProviders schema hardcoded (search → search_providers)
+
+#### 🆕 Coverage Improvement: MOVIDO PARA SPRINT 2 ✅
+- ⏳ Aumentar coverage 35.11% → 80%+ (+200 unit tests)
+- ⏳ E2E test para provider indexing flow
+- ⏳ Criar .bru API collections para 5 módulos restantes
+- ⏳ Atualizar tools/ projects (MigrationTool, etc.)
+- **Justificativa**: Focar em code review de qualidade antes de adicionar novos testes
+- **Planejamento**: Sprint 2 dedicada (3-16 Dez) para coverage + collections + tools update
+
+**Tarefas Detalhadas**:
+
+#### 1. Integração Providers ↔ Documents ✅ CONCLUÍDO
+- [x] Providers: Validar `HasVerifiedDocuments` antes de aprovar prestador ✅
+- [x] Providers: Bloquear ativação se `HasRejectedDocuments` ou `HasPendingDocuments` ✅
 - [ ] Documents: Publicar `DocumentVerified` event para atualizar status de Providers
 - [ ] Integration test: Fluxo completo de verificação de prestador
 
-#### 2. Integração Providers ↔ ServiceCatalogs
+#### 2. Integração Providers ↔ ServiceCatalogs ⏳ API CRIADA
 - [ ] Providers: Adicionar `ProviderServices` linking table (many-to-many)
 - [ ] Providers: Validar services via `IServiceCatalogsModuleApi.ValidateServicesAsync`
 - [ ] Providers: Bloquear serviços inativos ou inexistentes
 - [ ] Admin Portal: Endpoint para associar serviços a prestadores
 
-#### 3. Integração Search ↔ Providers + ServiceCatalogs
-- [ ] Search: Denormalizar `ServiceIds` no `SearchableProvider` read model
-- [ ] Search: Background worker consumindo `ProviderVerified`, `ProviderUpdated` events
-- [ ] Search: Filtrar busca por `ServiceIds` array (query otimizada)
-- [ ] Integration test: Busca retorna apenas prestadores com serviços ativos
+#### 3. Integração SearchProviders ↔ Providers ✅ CONCLUÍDO
+- [x] Search: Métodos IndexProviderAsync e RemoveProviderAsync implementados ✅
+- [x] Search: Background handler consumindo ProviderVerificationStatusUpdated events ✅
+- [ ] Search: Implementar full provider data sync via integration events
+- [ ] Integration test: Busca retorna apenas prestadores verificados
 
-#### 4. Integração Providers ↔ Locations
+#### 4. Integração Providers ↔ Locations ⏳ BAIXA PRIORIDADE
 - [ ] Providers: Usar `ILocationModuleApi.GetAddressFromCepAsync` no registro
 - [ ] Providers: Validar CEP existe antes de salvar endereço
 - [ ] Providers: Auto-populate cidade/estado via Locations
 - [ ] Unit test: Mock de ILocationModuleApi em Providers.Application
 
-#### 5. Restrição Geográfica (MVP Blocker)
-- [ ] Criar `AllowedCities` configuration em appsettings
-- [ ] Providers: Validar cidade permitida no registro (`São Paulo`, `Rio de Janeiro`, `Belo Horizonte`)
-- [ ] Search: Filtrar automaticamente por cidades permitidas
-- [ ] Admin: Endpoint para gerenciar cidades permitidas
-- [ ] Integration test: Rejeitar registro fora de cidades piloto
+#### 5. Restrição Geográfica (MVP Blocker) ✅ CONCLUÍDO
+- [x] Criar `AllowedCities` configuration em appsettings ✅
+- [x] GeographicRestrictionMiddleware implementado com IBGE integration ✅
+- [x] Fail-open fallback para validação simples quando IBGE unavailable ✅
+- [ ] Admin: Endpoint para gerenciar cidades permitidas (Sprint 2)
+- [x] Integration test: 24 testes passando ✅
 
-**Resultado Esperado**:
-- ✅ Módulos totalmente integrados com business rules reais
-- ✅ Operação restrita a cidades piloto (SP, RJ, BH)
-- ✅ Background workers consumindo integration events
-- ✅ Validações cross-module funcionando
+**Resultado Alcançado (Sprint 1)**:
+- ✅ Módulos integrados com business rules reais (Providers ↔ Documents, Providers ↔ SearchProviders)
+- ✅ Operação restrita a cidades piloto configuradas (IBGE API validation)
+- ✅ Background workers consumindo integration events (ProviderActivated, DocumentVerified)
+- ✅ Validações cross-module funcionando (HasVerifiedDocuments, HasRejectedDocuments)
+- ✅ Naming standardization (ILocationsModuleApi, ISearchProvidersModuleApi)
+- ✅ CI/CD fix (secrets validation removido)
+- 🔄 Code review pendente antes de merge
 
 ---
 
-### 📅 Sprint 2: Test Coverage 80% + Hardening (1 semana)
+### 📅 Sprint 2: Test Coverage 80% + API Collections + Tools Update (2 semanas)
 
-**Status**: ⏳ PLANEJADO
+**Status**: ⏳ PLANEJADO (3-16 Dez 2025)  
+**Branch**: `improve-tests-coverage` (criada, ready to work)
+
+**Objetivos**:
+- Aumentar test coverage de 35.11% para 80%+
+- Criar .bru API collections para 5 módulos restantes
+- Atualizar tools/ projects (MigrationTool, etc.)
+- Corrigir testes skipped restantes (9 E2E tests)
+
+**Contexto**:
+- Coverage atual: 35.11% (caiu após migration devido a packages.lock.json + generated code)
+- Skipped tests: 11 (11.5%) - maioria é E2E PostGIS/Azurite
+- Módulos sem .bru files: Providers, Documents, SearchProviders, ServiceCatalogs, Locations
+- Tools projects desatualizados: MigrationTool precisa EF Core 10
 
 **Objetivos**:
 - Aumentar test coverage de 40.51% para 80%+
@@ -953,6 +1083,7 @@ src/
 - Portal administrativo para gestão de plataforma
 - CRUD de prestadores, serviços, moderação
 - Dashboard com métricas básicas
+- **Gestão de Restrições Geográficas** (Sprint 1 dependency)
 
 **Funcionalidades**:
 
@@ -984,7 +1115,206 @@ src/
 - [ ] **Ativar/Desativar**: Toggle switch para cada item
 - [ ] **Preview**: Exibir hierarquia completa do catálogo
 
-#### 6. Moderação de Reviews (Preparação para Fase 3)
+#### 6. 🆕 Gestão de Restrições Geográficas
+> **⚠️ CRITICAL**: Feature implementada no Sprint 1 Dia 1 requer UI administrativa para produção.
+
+**Contexto**: O middleware `GeographicRestrictionMiddleware` suporta configuração dinâmica via `Microsoft.FeatureManagement`, mas atualmente as cidades/estados permitidos são gerenciados via `appsettings.json` (requer redeploy). Esta seção implementa gestão via banco de dados com UI administrativa.
+
+**Decisões de Arquitetura (Sprint 1 Dia 1 - 21 Nov 2025)**:
+
+1. **Localização de Código** ✅ **ATUALIZADO 21 Nov 2025**
+   - ✅ **MOVIDO** `GeographicRestrictionMiddleware` para `ApiService/Middlewares` (específico para API HTTP)
+   - ✅ **MOVIDO** `GeographicRestrictionOptions` para `ApiService/Options` (configuração lida de appsettings da API)
+   - ✅ **MOVIDO** `FeatureFlags.cs` para `Shared/Constants` (constantes globais como AuthConstants, ValidationConstants)
+   - ❌ **DELETADO** `Shared/Configuration/` (pasta vazia após movimentações)
+   - ❌ **DELETADO** `Shared/Middleware/` (pasta vazia, middleware único movido para ApiService)
+   - **Justificativa**: 
+     - GeographicRestriction é feature **exclusiva da API HTTP** (não será usada por Workers/Background Jobs)
+     - Options são lidas de appsettings que só existem em ApiService
+     - FeatureFlags são constantes (similar a `AuthConstants.Claims.*`, `ValidationConstants.MaxLength.*`)
+     - Middlewares genéricos já estão em pastas temáticas (Authorization/Middleware, Logging/, Monitoring/)
+
+2. **Propósito da Feature Toggle** ✅
+   - ✅ **Feature flag ativa/desativa TODA a restrição geográfica** (on/off global)
+   - ✅ **Cidades individuais controladas via banco de dados** (Sprint 3 - tabela `allowed_regions`)
+   - ✅ **Arquitetura proposta**:
+     ```
+     FeatureManagement:GeographicRestriction = true  → Liga TODA validação
+         ↓
+     allowed_regions.is_active = true              → Ativa cidade ESPECÍFICA
+     ```
+   - **MVP (Sprint 1)**: Feature toggle + appsettings (hardcoded cities)
+   - **Sprint 3**: Migration para database-backed + Admin Portal UI
+
+3. **Remoção de Redundância** ✅ **JÁ REMOVIDO**
+   - ❌ **REMOVIDO**: Propriedade `GeographicRestrictionOptions.Enabled` (redundante com feature flag)
+   - ❌ **REMOVIDO**: Verificação `|| !_options.Enabled` do middleware
+   - ✅ **ÚNICA FONTE DE VERDADE**: `FeatureManagement:GeographicRestriction` (feature toggle)
+   - **Justificativa**: Ter duas formas de habilitar/desabilitar causa confusão e potenciais conflitos.
+   - **Benefício**: Menos configurações duplicadas, arquitetura mais clara e segura.
+
+**Organização de Pastas** (21 Nov 2025):
+```
+src/
+  Shared/
+    Constants/
+      FeatureFlags.cs          ← MOVIDO de Configuration/ (constantes globais)
+      AuthConstants.cs         (existente)
+      ValidationConstants.cs   (existente)
+    Authorization/Middleware/  (middlewares de autorização)
+    Logging/                   (LoggingContextMiddleware)
+    Monitoring/                (BusinessMetricsMiddleware)
+    Messaging/Handlers/        (MessageRetryMiddleware)
+  
+  Bootstrapper/MeAjudaAi.ApiService/
+    Middlewares/
+      GeographicRestrictionMiddleware.cs  ← MOVIDO de Shared/Middleware/
+      RateLimitingMiddleware.cs           (específico HTTP)
+      SecurityHeadersMiddleware.cs        (específico HTTP)
+    Options/
+      GeographicRestrictionOptions.cs     ← MOVIDO de Shared/Configuration/
+      RateLimitOptions.cs                 (existente)
+      CorsOptions.cs                      (existente)
+```
+
+**Arquitetura Proposta**:
+```sql
+-- Schema: geographic_restrictions (novo)
+CREATE TABLE geographic_restrictions.allowed_regions (
+    region_id UUID PRIMARY KEY,
+    type VARCHAR(10) NOT NULL, -- 'City' ou 'State'
+    city_name VARCHAR(200),
+    state_code VARCHAR(2) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    added_at TIMESTAMP NOT NULL,
+    added_by_user_id UUID,
+    notes TEXT
+);
+
+CREATE INDEX idx_allowed_regions_state ON geographic_restrictions.allowed_regions(state_code);
+CREATE INDEX idx_allowed_regions_active ON geographic_restrictions.allowed_regions(is_active);
+```
+
+**Funcionalidades Admin Portal**:
+
+- [ ] **Visualização de Restrições Atuais**
+  - [ ] Tabela com cidades/estados permitidos
+  - [ ] Filtros: Tipo (Cidade/Estado), Estado, Status (Ativo/Inativo)
+  - [ ] Ordenação: Alfabética, Data de Adição
+  - [ ] Indicador visual: Badgets para "Cidade" vs "Estado"
+
+- [ ] **Adicionar Cidade/Estado**
+  - [ ] Form com campos:
+    - Tipo: Dropdown (Cidade, Estado)
+    - Estado: Dropdown preenchido via IBGE API (27 UFs)
+    - Cidade: Autocomplete via IBGE API (se tipo=Cidade)
+    - Notas: Campo opcional (ex: "Piloto Beta Q1 2025")
+  - [ ] Validações:
+    - Estado deve ser sigla válida (RJ, SP, MG, etc.)
+    - Cidade deve existir no IBGE (validação server-side)
+    - Não permitir duplicatas (cidade+estado único)
+  - [ ] Preview: "Você está adicionando: Muriaé/MG"
+
+- [ ] **Editar Região**
+  - [ ] Apenas permitir editar "Notas" e "Status"
+  - [ ] Cidade/Estado são imutáveis (delete + re-add se necessário)
+  - [ ] Confirmação antes de desativar região com prestadores ativos
+
+- [ ] **Ativar/Desativar Região**
+  - [ ] Toggle switch inline na tabela
+  - [ ] Confirmação: "Desativar [Cidade/Estado] irá bloquear novos registros. Prestadores existentes não serão afetados."
+  - [ ] Audit log: Registrar quem ativou/desativou e quando
+
+- [ ] **Remover Região**
+  - [ ] Botão de exclusão com confirmação dupla
+  - [ ] Validação: Bloquear remoção se houver prestadores registrados nesta região
+  - [ ] Mensagem: "Não é possível remover [Cidade]. Existem 15 prestadores registrados."
+
+**Integração com Middleware** (Refactor Necessário):
+
+**Abordagem 1: Database-First (Recomendado)**
+```csharp
+// GeographicRestrictionOptions (modificado)
+public class GeographicRestrictionOptions
+{
+    public bool Enabled { get; set; }
+    public string BlockedMessage { get; set; } = "...";
+    
+    // DEPRECATED: Remover após migration para database
+    [Obsolete("Use database-backed AllowedRegionsService instead")]
+    public List<string> AllowedCities { get; set; } = new();
+    [Obsolete("Use database-backed AllowedRegionsService instead")]
+    public List<string> AllowedStates { get; set; } = new();
+}
+
+// Novo serviço
+public interface IAllowedRegionsService
+{
+    Task<List<string>> GetAllowedCitiesAsync(CancellationToken ct = default);
+    Task<List<string>> GetAllowedStatesAsync(CancellationToken ct = default);
+}
+
+// GeographicRestrictionMiddleware (modificado)
+public class GeographicRestrictionMiddleware
+{
+    private readonly IAllowedRegionsService _regionsService;
+    
+    public async Task InvokeAsync(HttpContext context)
+    {
+        // Buscar listas do banco (com cache)
+        var allowedCities = await _regionsService.GetAllowedCitiesAsync(ct);
+        var allowedStates = await _regionsService.GetAllowedStatesAsync(ct);
+        
+        // Lógica de validação permanece igual
+        if (!allowedCities.Contains(userCity) && !allowedStates.Contains(userState))
+        {
+            // Bloquear
+        }
+    }
+}
+```
+
+**Abordagem 2: Hybrid (Fallback para appsettings)**
+- Se banco estiver vazio, usar `appsettings.json`
+- Migração gradual: Admin adiciona regiões no portal, depois remove de appsettings
+
+**Cache Strategy**:
+- Usar `HybridCache` (já implementado no `IbgeService`)
+- TTL: 5 minutos (balanço entre performance e fresh data)
+- Invalidação: Ao adicionar/remover/editar região no admin portal
+
+**Migration Path**:
+1. **Sprint 3 Semana 1**: Criar schema `geographic_restrictions` + tabela
+2. **Sprint 3 Semana 1**: Implementar `AllowedRegionsService` com cache
+3. **Sprint 3 Semana 1**: Refactor middleware para usar serviço (mantém fallback appsettings)
+4. **Sprint 3 Semana 2**: Implementar CRUD endpoints no Admin API
+5. **Sprint 3 Semana 2**: Implementar UI no Blazor Admin Portal
+6. **Sprint 3 Pós-Deploy**: Popular banco com dados iniciais (Muriaé, Itaperuna, Linhares)
+7. **Sprint 4**: Remover valores de appsettings.json (obsoleto)
+
+**Testes Necessários**:
+- [ ] Unit tests: `AllowedRegionsService` (CRUD + cache invalidation)
+- [ ] Integration tests: Middleware com banco populado vs vazio
+- [ ] E2E tests: Admin adiciona cidade → Middleware bloqueia outras cidades
+
+**Documentação**:
+- [ ] Admin User Guide: Como adicionar/remover cidades piloto
+- [ ] Technical Debt: Marcar `AllowedCities` e `AllowedStates` como obsoletos
+
+**⚠️ Breaking Changes**:
+- ~~`GeographicRestrictionOptions.Enabled` será removido~~ ✅ **JÁ REMOVIDO** (Sprint 1 Dia 1)
+  - **Motivo**: Redundante com feature toggle - fonte de verdade única
+  - **Migração**: Usar apenas `FeatureManagement:GeographicRestriction` em appsettings
+- `GeographicRestrictionOptions.AllowedCities/AllowedStates` será deprecado (Sprint 3)
+  - **Migração**: Admin Portal populará tabela `allowed_regions` via UI
+
+**Estimativa**:
+- **Backend (API + Service)**: 2 dias
+- **Frontend (Admin Portal UI)**: 2 dias
+- **Migration + Testes**: 1 dia
+- **Total**: 5 dias (dentro do Sprint 3 de 2 semanas)
+
+#### 7. Moderação de Reviews (Preparação para Fase 3)
 - [ ] **Listagem**: Reviews flagged/reportados
 - [ ] **Ações**: Aprovar, Remover, Banir usuário
 - [ ] Stub para módulo Reviews (a ser implementado na Fase 3)
@@ -1500,6 +1830,27 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 - **Stripe** - Payment processing
 - **Azure Blob Storage** - Document storage
 - **OpenTelemetry + Aspire** - Observability
+
+### 🌐 APIs Externas
+- **IBGE Localidades API** - Validação oficial de municípios brasileiros
+  - Base URL: `https://servicodados.ibge.gov.br/api/v1/localidades/`
+  - Documentação: <https://servicodados.ibge.gov.br/api/docs/localidades>
+  - Uso: Validação geográfica para restrição de cidades piloto
+- **Nominatim (OpenStreetMap)** - Planned for Sprint 3 (optional improvement)
+  - Geocoding (lat/lon lookup) para cidades/endereços
+  - **Note**: Post-MVP feature, not a blocker for initial geographic-restriction release
+- **ViaCep API** - Lookup de CEP brasileiro
+  - Base URL: `https://viacep.com.br/ws/`
+  - Documentação: <https://viacep.com.br/>
+- **BrasilApi CEP** - Lookup de CEP (fallback)
+  - Base URL: `https://brasilapi.com.br/api/cep/v1/`
+  - Documentação: <https://brasilapi.com.br/docs>
+- **OpenCep API** - Lookup de CEP (fallback)
+  - Base URL: `https://opencep.com/v1/`
+  - Documentação: <https://opencep.com/>
+- **Nominatim (OpenStreetMap)** - Geocoding (planejado)
+  - Base URL: `https://nominatim.openstreetmap.org/`
+  - Documentação: <https://nominatim.org/release-docs/latest/>
 
 ---
 

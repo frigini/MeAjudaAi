@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.Modules.Documents.Domain.Enums;
 
 namespace MeAjudaAi.E2E.Tests.Modules;
 
@@ -13,7 +14,35 @@ namespace MeAjudaAi.E2E.Tests.Modules;
 [Trait("Module", "Documents")]
 public class DocumentsVerificationE2ETests : TestContainerTestBase
 {
-    [Fact(Skip = "INFRA: Azurite container not accessible from app container in CI/CD (localhost mismatch). Fix: Configure proper Docker networking or use TestContainers.Azurite. See docs/e2e-test-failures-analysis.md")]
+    private async Task WaitForProviderAsync(Guid providerId, int maxAttempts = 10)
+    {
+        var delay = 100; // Start with 100ms
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                var response = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return;
+                }
+            }
+            catch (Exception) when (attempt < maxAttempts - 1)
+            {
+                // Treat transient network errors as retryable
+            }
+
+            if (attempt < maxAttempts - 1)
+            {
+                await Task.Delay(delay);
+                delay = Math.Min(delay * 2, 2000); // Exponential backoff, max 2s
+            }
+        }
+
+        throw new TimeoutException($"Provider {providerId} was not found after {maxAttempts} attempts");
+    }
+
+    [Fact]
     public async Task RequestDocumentVerification_Should_UpdateStatus()
     {
         // Arrange
@@ -57,11 +86,14 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         providerLocation.Should().NotBeNullOrEmpty("Provider creation should return Location header");
         var providerId = ExtractIdFromLocation(providerLocation!);
 
+        // Wait for provider to be fully persisted (eventual consistency)
+        await WaitForProviderAsync(providerId);
+
         // Now upload a document with the valid ProviderId
         var uploadRequest = new
         {
             ProviderId = providerId,
-            DocumentType = 0, // EDocumentType.IdentityDocument
+            DocumentType = EDocumentType.IdentityDocument,
             FileName = "verification_test.pdf",
             ContentType = "application/pdf",
             FileSizeBytes = 1024L
@@ -69,6 +101,10 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
 
         AuthenticateAsAdmin(); // POST upload requer autorização
         var uploadResponse = await ApiClient.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest, JsonOptions);
+
+        var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
+        uploadResponse.IsSuccessStatusCode.Should().BeTrue(
+            because: $"Document upload should succeed, but got {uploadResponse.StatusCode}: {uploadContent}");
 
         uploadResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
 
@@ -82,11 +118,11 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         }
         else
         {
-            var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
             uploadContent.Should().NotBeNullOrEmpty("Response body required for document ID");
             using var uploadResult = System.Text.Json.JsonDocument.Parse(uploadContent);
-            uploadResult.RootElement.TryGetProperty("data", out var dataProperty).Should().BeTrue();
-            dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
+
+            // Response is UploadDocumentResponse directly, not wrapped in "data"
+            uploadResult.RootElement.TryGetProperty("documentId", out var idProperty).Should().BeTrue();
             documentId = idProperty.GetGuid();
         }
 
@@ -117,21 +153,22 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
         var statusContent = await statusResponse.Content.ReadAsStringAsync();
         statusContent.Should().NotBeNullOrEmpty();
 
-        // Parse JSON e verifica o campo status
+        // Parse JSON - DocumentDto é retornado diretamente, não wrapped em "data"
         using var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
 
-        statusResult.RootElement.TryGetProperty("data", out var statusDataProperty)
-            .Should().BeTrue("Response should contain 'data' property");
+        statusResult.RootElement.TryGetProperty("status", out var statusProperty)
+            .Should().BeTrue("Response should contain 'status' property");
 
-        statusDataProperty.TryGetProperty("status", out var statusProperty)
-            .Should().BeTrue("Data property should contain 'status' field");
+        // Parse status as enum to avoid string drift
+        var statusString = statusProperty.GetString();
+        statusString.Should().NotBeNullOrEmpty("Status should have a value");
 
-        var status = statusProperty.GetString();
-        status.Should().NotBeNullOrEmpty();
+        var statusParsed = Enum.TryParse<EDocumentStatus>(statusString, ignoreCase: true, out var documentStatus);
+        statusParsed.Should().BeTrue($"Status '{statusString}' should be a valid EDocumentStatus");
 
-        // Document should be in verification state (case-insensitive)
-        status!.ToLowerInvariant().Should().BeOneOf(
-            "pending", "pendingverification", "verifying");
+        // Document should be in uploaded or pending verification status
+        documentStatus.Should().BeOneOf(EDocumentStatus.Uploaded, EDocumentStatus.PendingVerification)
+            .And.Subject.Should().NotBe(EDocumentStatus.Verified, "Document should not be verified immediately after upload");
     }
 
     [Fact]
@@ -158,7 +195,7 @@ public class DocumentsVerificationE2ETests : TestContainerTestBase
     }
 
     [Fact]
-    public async Task RequestDocumentVerification_WithInvalidData_Should_Return_BadRequest()
+    public async Task RequestDocumentVerification_WithInvalidData_Should_ReturnBadRequest()
     {
         // Arrange
         AuthenticateAsAdmin();

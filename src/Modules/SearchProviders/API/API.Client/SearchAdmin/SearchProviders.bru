@@ -1,0 +1,55 @@
+meta {
+  name: Search Providers
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/search
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "latitude": -21.1306,
+    "longitude": -42.3667,
+    "radiusInKm": 50,
+    "serviceIds": [],
+    "minRating": 4.0,
+    "subscriptionTiers": ["Gold", "Platinum"],
+    "pageNumber": 1,
+    "pageSize": 20
+  }
+}
+
+docs {
+  # Search Providers
+  
+  Busca prestadores por critérios (localização, serviços, rating, tier).
+  
+  ## Autorização: AllowAnonymous
+  
+  ## Body Parameters
+  - `latitude` (double): Latitude de busca
+  - `longitude` (double): Longitude de busca
+  - `radiusInKm` (double): Raio em km (>0)
+  - `serviceIds` (array, optional): IDs de serviços
+  - `minRating` (decimal, optional): Rating mínimo (0-5)
+  - `subscriptionTiers` (array, optional): Tiers filtrados
+  - `pageNumber` (int): Página (padrão: 1)
+  - `pageSize` (int): Itens por página (padrão: 20, máx: 100)
+  
+  ## Ranking
+  1. Tier (Platinum > Gold > Standard > Free)
+  2. Rating (descendente)
+  3. Distância (crescente)
+  
+  ## Códigos de Status
+  - **200**: Sucesso
+  - **400**: Raio inválido ou parâmetros incorretos
+}

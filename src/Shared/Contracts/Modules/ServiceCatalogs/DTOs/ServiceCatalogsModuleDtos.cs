@@ -38,6 +38,6 @@ public sealed record ModuleServiceListDto(
 /// </summary>
 public sealed record ModuleServiceValidationResultDto(
     bool AllValid,
-    Guid[] InvalidServiceIds,
-    Guid[] InactiveServiceIds
+    IReadOnlyList<Guid> InvalidServiceIds,
+    IReadOnlyList<Guid> InactiveServiceIds
 );

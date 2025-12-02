@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects;
 
+[Trait("Category", "Unit")]
 public class EmailTests
 {
     [Theory]

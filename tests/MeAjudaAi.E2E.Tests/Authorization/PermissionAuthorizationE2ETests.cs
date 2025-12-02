@@ -54,7 +54,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [Fact(Skip = "AUTH: SetAllowUnauthenticated(true) causes inconsistent auth behavior. Test expects success (201/BadRequest) but gets 403 Forbidden. Requires ConfigurableTestAuthenticationHandler refactor (same root cause as other permission tests).")]
+    [Fact]
     public async Task UserWithCreatePermission_CanCreateUser()
     {
         // Arrange - Limpar estado de testes anteriores
@@ -85,7 +85,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
         Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [Fact(Skip = "AUTH: SetAllowUnauthenticated(true) forces Admin access, bypassing permission checks. Test expects Forbidden for user without UsersCreate permission but gets BadRequest (validation). Same root cause as UserWithMultiplePermissions test.")]
+    [Fact]
     public async Task UserWithoutCreatePermission_CannotCreateUser()
     {
         // Arrange - Limpar estado de testes anteriores
@@ -114,7 +114,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [Fact(Skip = "AUTH: SetAllowUnauthenticated(true) forces all requests to be Admin, breaking permission-specific tests. Fix: Remove SetAllowUnauthenticated or change to anonymous (not admin). Requires ConfigurableTestAuthenticationHandler refactor.")]
+    [Fact]
     public async Task UserWithMultiplePermissions_HasAppropriateAccess()
     {
         // Arrange - IMPORTANTE: Limpar estado de testes anteriores

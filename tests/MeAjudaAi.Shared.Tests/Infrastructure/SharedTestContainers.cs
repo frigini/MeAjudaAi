@@ -1,5 +1,6 @@
 using MeAjudaAi.Shared.Tests.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 
 namespace MeAjudaAi.Shared.Tests.Infrastructure;
@@ -12,6 +13,7 @@ namespace MeAjudaAi.Shared.Tests.Infrastructure;
 public static class SharedTestContainers
 {
     private static PostgreSqlContainer? _postgreSqlContainer;
+    private static AzuriteContainer? _azuriteContainer;
     private static TestDatabaseOptions? _databaseOptions;
     private static readonly Lock _lock = new();
     private static bool _isInitialized;
@@ -25,6 +27,18 @@ public static class SharedTestContainers
         {
             EnsureInitialized();
             return _postgreSqlContainer!;
+        }
+    }
+
+    /// <summary>
+    /// Container Azurite (Azure Storage Emulator) compartilhado para testes de upload/blob storage
+    /// </summary>
+    public static AzuriteContainer Azurite
+    {
+        get
+        {
+            EnsureInitialized();
+            return _azuriteContainer!;
         }
     }
 
@@ -61,13 +75,21 @@ public static class SharedTestContainers
 
             _databaseOptions ??= GetDefaultDatabaseOptions();
 
-            // PostgreSQL otimizado para testes com configurações padronizadas
+            // PostgreSQL com PostGIS para suportar queries geoespaciais nos testes
+            // Usando postgis/postgis:16-3.4 (mesma versão do CI/CD para garantir consistência)
             _postgreSqlContainer = new PostgreSqlBuilder()
-                .WithImage("postgres:15-alpine") // Imagem menor e mais rápida
+                .WithImage("postgis/postgis:16-3.4") // Mesma versão do CI/CD
                 .WithDatabase(_databaseOptions.DatabaseName)
                 .WithUsername(_databaseOptions.Username)
                 .WithPassword(_databaseOptions.Password)
                 .WithPortBinding(0, true) // Porta aleatória para evitar conflitos
+                .Build();
+
+            // Azurite (Azure Storage Emulator) para testes de blob storage/documents
+            // Expõe serviços Blob, Queue e Table
+            // Pinned to 3.33.0 for stability - matches production CI/CD environment
+            _azuriteContainer = new AzuriteBuilder()
+                .WithImage("mcr.microsoft.com/azure-storage/azurite:3.33.0")
                 .Build();
 
             _isInitialized = true;
@@ -81,10 +103,15 @@ public static class SharedTestContainers
     {
         EnsureInitialized();
 
-        await _postgreSqlContainer!.StartAsync();
+        // Inicia containers em paralelo para performance
+        await Task.WhenAll(
+            _postgreSqlContainer!.StartAsync(),
+            _azuriteContainer!.StartAsync()
+        );
 
-        // Verifica se o container está realmente pronto
+        // Verifica se os containers estão realmente prontos
         await ValidateContainerHealthAsync();
+        await ValidateAzuriteHealthAsync();
     }
 
     /// <summary>
@@ -119,14 +146,54 @@ public static class SharedTestContainers
     }
 
     /// <summary>
+    /// Valida se o container Azurite está saudável e pronto para conexões
+    /// </summary>
+    private static async Task ValidateAzuriteHealthAsync()
+    {
+        if (_azuriteContainer == null) return;
+
+        const int maxRetries = 30;
+        const int delayMs = 1000;
+
+        for (int i = 0; i < maxRetries; i++)
+        {
+            try
+            {
+                // Tenta verificar se as portas do Azurite estão mapeadas
+                var blobPort = _azuriteContainer.GetMappedPublicPort(10000);
+                var queuePort = _azuriteContainer.GetMappedPublicPort(10001);
+                var tablePort = _azuriteContainer.GetMappedPublicPort(10002);
+
+                // Se conseguiu obter todas as portas, o container está pronto
+                Console.WriteLine($"Container Azurite ready! Blob: {blobPort}, Queue: {queuePort}, Table: {tablePort}");
+                return;
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Azurite not ready yet (attempt {i + 1}/{maxRetries}): {ex.Message}");
+                await Task.Delay(delayMs);
+            }
+        }
+
+        throw new InvalidOperationException("Azurite container failed to become ready after maximum retries.");
+    }
+
+    /// <summary>
     /// Para todos os containers
     /// </summary>
     public static async Task StopAllAsync()
     {
         if (!_isInitialized) return;
 
+        var stopTasks = new List<Task>();
+
         if (_postgreSqlContainer != null)
-            await _postgreSqlContainer.StopAsync();
+            stopTasks.Add(_postgreSqlContainer.StopAsync());
+
+        if (_azuriteContainer != null)
+            stopTasks.Add(_azuriteContainer.StopAsync());
+
+        await Task.WhenAll(stopTasks);
     }
 
     /// <summary>
