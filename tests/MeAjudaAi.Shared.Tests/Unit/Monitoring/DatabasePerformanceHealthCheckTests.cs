@@ -25,7 +25,7 @@ public sealed class DatabasePerformanceHealthCheckTests
     public async Task CheckHealthAsync_WithConfiguredMetrics_ShouldReturnHealthy()
     {
         // Arrange
-        var meterFactory = new TestMeterFactory();
+        using var meterFactory = new TestMeterFactory();
         var metrics = new DatabaseMetrics(meterFactory);
         var healthCheck = new DatabasePerformanceHealthCheck(metrics, _loggerMock.Object);
         var context = new HealthCheckContext();
@@ -45,7 +45,7 @@ public sealed class DatabasePerformanceHealthCheckTests
     public async Task CheckHealthAsync_ShouldIndicateMonitoringIsActive()
     {
         // Arrange
-        var meterFactory = new TestMeterFactory();
+        using var meterFactory = new TestMeterFactory();
         var metrics = new DatabaseMetrics(meterFactory);
         var healthCheck = new DatabasePerformanceHealthCheck(metrics, _loggerMock.Object);
         var context = new HealthCheckContext();
@@ -61,7 +61,7 @@ public sealed class DatabasePerformanceHealthCheckTests
     public async Task CheckHealthAsync_ShouldIncludeCheckWindowConfiguration()
     {
         // Arrange
-        var meterFactory = new TestMeterFactory();
+        using var meterFactory = new TestMeterFactory();
         var metrics = new DatabaseMetrics(meterFactory);
         var healthCheck = new DatabasePerformanceHealthCheck(metrics, _loggerMock.Object);
         var context = new HealthCheckContext();
@@ -77,7 +77,7 @@ public sealed class DatabasePerformanceHealthCheckTests
     public async Task CheckHealthAsync_WithConfiguredMetrics_ShouldIndicateMetricsConfigured()
     {
         // Arrange
-        var meterFactory = new TestMeterFactory();
+        using var meterFactory = new TestMeterFactory();
         var metrics = new DatabaseMetrics(meterFactory);
         var healthCheck = new DatabasePerformanceHealthCheck(metrics, _loggerMock.Object);
         var context = new HealthCheckContext();
@@ -93,11 +93,11 @@ public sealed class DatabasePerformanceHealthCheckTests
     public async Task CheckHealthAsync_WithCancellation_ShouldHandleGracefully()
     {
         // Arrange
-        var meterFactory = new TestMeterFactory();
+        using var meterFactory = new TestMeterFactory();
         var metrics = new DatabaseMetrics(meterFactory);
         var healthCheck = new DatabasePerformanceHealthCheck(metrics, _loggerMock.Object);
         var context = new HealthCheckContext();
-        var cts = new CancellationTokenSource();
+        using var cts = new CancellationTokenSource();
         cts.Cancel();
 
         // Act
@@ -112,7 +112,7 @@ public sealed class DatabasePerformanceHealthCheckTests
     public async Task CheckHealthAsync_MultipleCalls_ShouldReturnConsistentResults()
     {
         // Arrange
-        var meterFactory = new TestMeterFactory();
+        using var meterFactory = new TestMeterFactory();
         var metrics = new DatabaseMetrics(meterFactory);
         var healthCheck = new DatabasePerformanceHealthCheck(metrics, _loggerMock.Object);
         var context = new HealthCheckContext();
@@ -133,7 +133,7 @@ public sealed class DatabasePerformanceHealthCheckTests
     public async Task CheckHealthAsync_ShouldCompleteQuickly()
     {
         // Arrange
-        var meterFactory = new TestMeterFactory();
+        using var meterFactory = new TestMeterFactory();
         var metrics = new DatabaseMetrics(meterFactory);
         var healthCheck = new DatabasePerformanceHealthCheck(metrics, _loggerMock.Object);
         var context = new HealthCheckContext();
@@ -153,7 +153,7 @@ public sealed class DatabasePerformanceHealthCheckTests
     public async Task CheckHealthAsync_ShouldHaveProperDataStructure()
     {
         // Arrange
-        var meterFactory = new TestMeterFactory();
+        using var meterFactory = new TestMeterFactory();
         var metrics = new DatabaseMetrics(meterFactory);
         var healthCheck = new DatabasePerformanceHealthCheck(metrics, _loggerMock.Object);
         var context = new HealthCheckContext();
@@ -172,7 +172,7 @@ public sealed class DatabasePerformanceHealthCheckTests
     public async Task CheckHealthAsync_WithDifferentContexts_ShouldWorkCorrectly()
     {
         // Arrange
-        var meterFactory = new TestMeterFactory();
+        using var meterFactory = new TestMeterFactory();
         var metrics = new DatabaseMetrics(meterFactory);
         var healthCheck = new DatabasePerformanceHealthCheck(metrics, _loggerMock.Object);
         var context1 = new HealthCheckContext();

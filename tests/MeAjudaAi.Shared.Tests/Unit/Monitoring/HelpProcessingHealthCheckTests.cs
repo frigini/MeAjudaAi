@@ -80,7 +80,7 @@ public sealed class HelpProcessingHealthCheckTests
         // Arrange
         var healthCheck = new MeAjudaAiHealthChecks.HelpProcessingHealthCheck();
         var context = new HealthCheckContext();
-        var cts = new CancellationTokenSource();
+        using var cts = new CancellationTokenSource();
         cts.Cancel();
 
         // Act
