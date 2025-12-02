@@ -52,7 +52,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
-        var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Use only 8 chars
+        var uniqueId = ShortId();
         var user = new User(
             new Username($"rb_{uniqueId}"),
             new Email($"rb_{uniqueId}@test.com"),
@@ -197,13 +197,15 @@ public sealed class DbContextTransactionTests : ApiTestBase
         // Second save should detect concurrency conflict (PostgreSQL with row versioning)
         var act = async () => await context2.SaveChangesAsync();
 
-        // Assert - DbUpdateConcurrencyException expected if row versioning is configured
-        // Note: User entity might not have concurrency token configured, so this might not throw
-        // This test documents the behavior - add [Timestamp] or similar to enable concurrency checks
-        await act.Should().NotThrowAsync("User entity doesn't have concurrency token configured yet");
+        // Assert - This test documents current behavior where no concurrency exception is thrown
+        // TODO: Once User entity has [Timestamp] or xmin configured, change to:
+        // await act.Should().ThrowAsync<DbUpdateConcurrencyException>();
+        // Tracking: https://github.com/frigini/MeAjudaAi/issues/TBD (Add concurrency token to User entity)
+        await act.Should().NotThrowAsync("User entity lacks concurrency token - no conflict detection yet");
     }
 
     [Fact(Skip = "Flaky - concurrent scope creation with TestContainers needs investigation")]
+    // TODO: Fix TestContainers isolation - https://github.com/frigini/MeAjudaAi/issues/TBD
     public async Task SaveChangesAsync_UnderConcurrentLoad_ShouldMaintainDataIntegrity()
     {
         // Arrange

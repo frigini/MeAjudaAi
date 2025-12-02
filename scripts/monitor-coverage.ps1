@@ -24,14 +24,19 @@ if ($job) {
         Write-Host ""
         Write-Host "  📄 Últimas 30 linhas do output:" -ForegroundColor White
         Write-Host "  ───────────────────────────────────" -ForegroundColor Gray
-        Receive-Job -Id $job.Id | Select-Object -Last 30
+        Receive-Job -Id $job.Id -Keep | Select-Object -Last 30
         
         # Verificar se relatório foi gerado
-        if (Test-Path "coverage/report/Summary.txt") {
+        $summaryPath = "coverage/report/Summary.txt"
+        if (Test-Path $summaryPath) {
             Write-Host ""
             Write-Host "  📊 RESUMO DE COVERAGE:" -ForegroundColor Green
             Write-Host "  ───────────────────────────────────" -ForegroundColor Gray
-            Get-Content coverage/report/Summary.txt | Select-Object -First 15
+            try {
+                Get-Content $summaryPath -ErrorAction Stop | Select-Object -First 15
+            } catch {
+                Write-Host "  ⚠️ Erro ao ler arquivo de resumo: $_" -ForegroundColor Yellow
+            }
         }
     }
     elseif ($job.State -eq 'Failed') {
@@ -49,13 +54,41 @@ Write-Host "══════════════════════�
 Write-Host ""
 
 # Link para pipeline
-$branch = git rev-parse --abbrev-ref HEAD
-$commit = git rev-parse --short HEAD
-$commitMsg = git log -1 --pretty=%s
+try {
+    $branch = git rev-parse --abbrev-ref HEAD 2>$null
+    if ($LASTEXITCODE -ne 0) { throw }
+} catch {
+    $branch = "unknown-branch"
+    Write-Warning "Git não disponível ou não está em um repositório - usando branch padrão"
+}
+
+try {
+    $commit = git rev-parse --short HEAD 2>$null
+    if ($LASTEXITCODE -ne 0) { throw }
+} catch {
+    $commit = "unknown-commit"
+    Write-Warning "Não foi possível obter commit hash"
+}
+
+try {
+    $commitMsg = git log -1 --pretty=%s 2>$null
+    if ($LASTEXITCODE -ne 0) { throw }
+} catch {
+    $commitMsg = "unknown-message"
+    Write-Warning "Não foi possível obter mensagem do commit"
+}
+
+try {
+    $repoUrl = (git remote get-url origin 2>$null) -replace '\.git$', '' -replace '^git@github\.com:', 'https://github.com/'
+    if ($LASTEXITCODE -ne 0 -or -not $repoUrl) { throw }
+} catch {
+    $repoUrl = "https://github.com/frigini/MeAjudaAi"
+    Write-Warning "Não foi possível obter URL do repositório - usando padrão"
+}
 
 Write-Host "🌐 PIPELINE GITHUB:" -ForegroundColor Yellow
 Write-Host "───────────────────────────────────" -ForegroundColor Gray
-Write-Host "  https://github.com/frigini/MeAjudaAi/actions" -ForegroundColor Cyan
+Write-Host "  $repoUrl/actions" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Branch: $branch" -ForegroundColor White
 Write-Host "  Commit: $commit ($commitMsg)" -ForegroundColor White
