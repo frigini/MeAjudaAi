@@ -49,12 +49,16 @@ Write-Host "══════════════════════�
 Write-Host ""
 
 # Link para pipeline
+$branch = git rev-parse --abbrev-ref HEAD
+$commit = git rev-parse --short HEAD
+$commitMsg = git log -1 --pretty=%s
+
 Write-Host "🌐 PIPELINE GITHUB:" -ForegroundColor Yellow
 Write-Host "───────────────────────────────────" -ForegroundColor Gray
 Write-Host "  https://github.com/frigini/MeAjudaAi/actions" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  Branch: improve-tests-coverage-2" -ForegroundColor White
-Write-Host "  Commit: 1e17b9c (chore: exclude compiler-generated code)" -ForegroundColor White
+Write-Host "  Branch: $branch" -ForegroundColor White
+Write-Host "  Commit: $commit ($commitMsg)" -ForegroundColor White
 Write-Host ""
 
 Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Gray

@@ -13,6 +13,28 @@ namespace MeAjudaAi.Integration.Tests.Database;
 /// Cobre rollback, isolation levels, nested transactions, concurrent access.
 /// Usa TestContainers para garantir comportamento idêntico ao ambiente de produção.
 /// </summary>
+/// <remarks>
+/// SKIPPED TESTS - Known Limitations & Required Improvements:
+/// 
+/// 1. CONCURRENCY TOKEN (Line ~131):
+///    - Issue: User entity lacks concurrency token (RowVersion/Timestamp)
+///    - Fix: Add [Timestamp] byte[] RowVersion property to User entity OR
+///           Use PostgreSQL xmin system column for optimistic concurrency
+///    - Reference: docs/database/concurrency-control.md
+/// 
+/// 2. TESTCONTAINERS CONCURRENCY (Lines ~184, ~233, ~278):
+///    - Issue: Parallel test execution causes DB isolation issues
+///    - Fix: Use unique database/schema per test OR serialize scope creation
+///           OR reset container state between tests
+///    - Reference: docs/testing/testcontainers-isolation.md
+/// 
+/// 3. ISOLATION LEVEL TESTS (Lines ~332, ~373):
+///    - Issue: Transaction boundaries not explicit; timing-dependent behavior
+///    - Fix: Use separate DbContexts with explicit BeginTransactionAsync(IsolationLevel)
+///           Add TaskCompletionSource for deterministic ordering
+///           Ensure commits/rollbacks are properly sequenced
+///    - Reference: docs/database/transaction-isolation.md
+/// </remarks>
 public sealed class DbContextTransactionTests : ApiTestBase
 {
     /// <summary>

@@ -1,3 +1,4 @@
+#pragma warning disable CA2000 // Dispose objects before losing scope - HttpResponseMessage in mocks is disposed by HttpClient
 using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Shared.Monitoring;
@@ -173,7 +174,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
     }
 
     [Fact]
-    public async Task CheckHealthAsync_WithSlowResponse_ShouldIncludeResponseTime()
+    public async Task CheckHealthAsync_WithSlowResponse_ShouldComplete()
     {
         // Arrange
         _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns("https://keycloak.test");
