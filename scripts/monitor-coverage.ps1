@@ -27,7 +27,7 @@ if ($job) {
         Receive-Job -Id $job.Id -Keep | Select-Object -Last 30
         
         # Verificar se relatório foi gerado
-        $summaryPath = "coverage/report/Summary.txt"
+        $summaryPath = Join-Path $PSScriptRoot "..\coverage\report\Summary.txt"
         if (Test-Path $summaryPath) {
             Write-Host ""
             Write-Host "  📊 RESUMO DE COVERAGE:" -ForegroundColor Green
@@ -41,7 +41,7 @@ if ($job) {
     }
     elseif ($job.State -eq 'Failed') {
         Write-Host "  ❌ ERRO!" -ForegroundColor Red
-        Receive-Job -Id $job.Id
+        Receive-Job -Id $job.Id -Keep
     }
 }
 else {
@@ -105,7 +105,7 @@ Write-Host "  Remover job concluído:" -ForegroundColor White
 Write-Host "    Remove-Job -Name CleanCoverage" -ForegroundColor Gray
 Write-Host ""
 Write-Host "  Abrir relatório local:" -ForegroundColor White
-Write-Host "    Start-Process coverage/report/index.html" -ForegroundColor Gray
+Write-Host "    Start-Process (Join-Path \$PSScriptRoot \"..\\coverage\\report\\index.html\")" -ForegroundColor Gray
 Write-Host ""
 Write-Host "  Re-executar este monitor:" -ForegroundColor White
 Write-Host "    .\scripts\monitor-coverage.ps1" -ForegroundColor Gray

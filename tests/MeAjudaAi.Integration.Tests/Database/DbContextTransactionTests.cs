@@ -151,7 +151,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
     #region Concurrency Tests
 
     [Fact(Skip = "Requires concurrency token configuration in User entity")]
-    public async Task SaveChangesAsync_WithConcurrentModifications_ShouldThrowDbUpdateConcurrencyException()
+    public async Task SaveChangesAsync_WithConcurrentModifications_ShouldNotThrowUntilConcurrencyTokenAdded()
     {
         // Arrange - Create and save a user
         var userId = UserId.New();
