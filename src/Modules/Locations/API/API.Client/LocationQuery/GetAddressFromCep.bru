@@ -1,0 +1,35 @@
+meta {
+  name: Get Address From CEP
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/locations/cep/{{cep}}
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Address from CEP
+  
+  Busca endereço completo via CEP brasileiro.
+  
+  ## Fallback Chain
+  1. ViaCEP
+  2. BrasilAPI
+  3. OpenCEP
+  
+  ## Response
+  ```json
+  {
+    "cep": "36880-000",
+    "street": "Rua Example",
+    "neighborhood": "Centro",
+    "city": "Muriaé",
+    "state": "MG"
+  }
+  ```
+  
+  ## Status: 200 OK | 404 Not Found
+}

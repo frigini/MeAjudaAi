@@ -85,7 +85,7 @@ public class ServiceCatalogsDbContextTests : ApiTestBase
         var defaultSchema = dbContext.Model.GetDefaultSchema();
 
         // Assert
-        defaultSchema.Should().Be("service_catalogs", "ServiceCatalogs schema should exist in database");
+        defaultSchema.Should().Be("meajudaai_service_catalogs", "ServiceCatalogs schema should exist in database");
     }
 
     [Fact]

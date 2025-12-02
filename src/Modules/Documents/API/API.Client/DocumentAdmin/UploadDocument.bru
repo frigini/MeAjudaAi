@@ -1,0 +1,76 @@
+meta {
+  name: Upload Document
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/documents
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+body:multipart-form {
+  providerId: {{providerId}}
+  documentType: IdentityDocument
+  file: @file(/path/to/document.pdf)
+}
+
+docs {
+  # Upload Document
+  
+  Faz upload de um documento para verificação do prestador.
+  
+  ## Autorização
+  - **Política**: SelfOrAdmin
+  - **Requer token**: Sim
+  
+  ## Form Parameters
+  - `providerId` (string/guid, required): ID do prestador
+  - `documentType` (string, required): Tipo de documento
+    - IdentityDocument: RG, CNH, Passaporte
+    - ProofOfResidence: Comprovante de residência
+    - ProfessionalLicense: Registro profissional
+    - BusinessLicense: Alvará de funcionamento
+  - `file` (file, required): Arquivo do documento (PDF, JPG, PNG - máx 5MB)
+  
+  ## Status Inicial
+  - **Status**: Uploaded → PendingVerification
+  - **VerifiedAt**: null
+  - **RejectionReason**: null
+  
+  ## Resposta Esperada
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "providerId": "uuid",
+      "documentType": "IdentityDocument",
+      "fileName": "document.pdf",
+      "fileUrl": "blob-storage-url",
+      "status": "Uploaded",
+      "uploadedAt": "2025-11-25T00:00:00Z",
+      "verifiedAt": null,
+      "rejectionReason": null
+    },
+    "message": "Document uploaded successfully",
+    "errors": []
+  }
+  ```
+  
+  ## Códigos de Status
+  - **201**: Upload realizado com sucesso
+  - **400**: Arquivo inválido, tipo não suportado, ou tamanho excedido
+  - **401**: Token inválido
+  - **403**: Sem permissão para upload para este prestador
+  - **500**: Erro no storage (Azurite/Azure Blob)
+}

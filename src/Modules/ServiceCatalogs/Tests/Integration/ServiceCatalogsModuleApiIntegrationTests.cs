@@ -28,7 +28,7 @@ public class ServiceCatalogsModuleApiIntegrationTests : ServiceCatalogsIntegrati
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(category.Id.Value);
-        result.Value.Name.Should().Be("Test Category");
+        result.Value.Name.Should().Be(category.Name);
         result.Value.Description.Should().Be("Test Description");
         result.Value.IsActive.Should().BeTrue();
     }
@@ -96,7 +96,7 @@ public class ServiceCatalogsModuleApiIntegrationTests : ServiceCatalogsIntegrati
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(service.Id.Value);
-        result.Value.Name.Should().Be("Test Service");
+        result.Value.Name.Should().Be(service.Name);
         result.Value.CategoryId.Should().Be(category.Id.Value);
     }
 

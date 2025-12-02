@@ -1,21 +1,21 @@
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using MeAjudaAi.Shared.Contracts.Modules;
-using MeAjudaAi.Shared.Contracts.Modules.Location;
-using MeAjudaAi.Shared.Contracts.Modules.Location.DTOs;
+using MeAjudaAi.Shared.Contracts.Modules.Locations;
+using MeAjudaAi.Shared.Contracts.Modules.Locations.DTOs;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Locations.Application.ModuleApi;
 
 /// <summary>
-/// Implementação da API pública do módulo Location para outros módulos.
+/// Implementação da API pública do módulo Locations para outros módulos.
 /// </summary>
 [ModuleApi(ModuleMetadata.Name, ModuleMetadata.Version)]
 public sealed class LocationsModuleApi(
     ICepLookupService cepLookupService,
     IGeocodingService geocodingService,
-    ILogger<LocationsModuleApi> logger) : ILocationModuleApi
+    ILogger<LocationsModuleApi> logger) : ILocationsModuleApi
 {
     private static class ModuleMetadata
     {

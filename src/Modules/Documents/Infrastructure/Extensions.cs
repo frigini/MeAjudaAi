@@ -1,11 +1,14 @@
 using EFCore.NamingConventions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Domain.Events;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using MeAjudaAi.Modules.Documents.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Jobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +22,7 @@ public static class Extensions
     {
         services.AddPersistence(configuration);
         services.AddServices(configuration);
+        services.AddEventHandlers();
         services.AddJobs();
 
         return services;
@@ -112,6 +116,17 @@ public static class Extensions
     {
         // Document verification job
         services.AddScoped<IDocumentVerificationService, DocumentVerificationJob>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adiciona os Event Handlers do módulo Documents.
+    /// </summary>
+    private static IServiceCollection AddEventHandlers(this IServiceCollection services)
+    {
+        // Domain Event Handlers
+        services.AddScoped<IEventHandler<DocumentVerifiedDomainEvent>, DocumentVerifiedDomainEventHandler>();
 
         return services;
     }

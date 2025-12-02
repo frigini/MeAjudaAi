@@ -1,7 +1,10 @@
 using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
+using MeAjudaAi.Modules.SearchProviders.Infrastructure.Events.Handlers;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Database;
+using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,6 +58,20 @@ public static class Extensions
 
         // Registrar repositórios
         services.AddScoped<ISearchableProviderRepository, SearchableProviderRepository>();
+
+        // Registrar Event Handlers
+        services.AddEventHandlers();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adiciona os Event Handlers do módulo SearchProviders.
+    /// </summary>
+    private static IServiceCollection AddEventHandlers(this IServiceCollection services)
+    {
+        // Integration Event Handlers
+        services.AddScoped<IEventHandler<ProviderActivatedIntegrationEvent>, ProviderActivatedIntegrationEventHandler>();
 
         return services;
     }

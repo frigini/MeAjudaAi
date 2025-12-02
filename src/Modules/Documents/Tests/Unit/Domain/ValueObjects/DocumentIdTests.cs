@@ -3,6 +3,7 @@ using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Domain.ValueObjects;
 
+[Trait("Category", "Unit")]
 public class DocumentIdTests
 {
     [Fact]

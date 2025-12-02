@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.API.Endpoints;
 using MeAjudaAi.Modules.ServiceCatalogs.Application;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure;
+using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +22,9 @@ public static class Extensions
     {
         services.AddApplication();
         services.AddServiceCatalogsInfrastructure(configuration);
+
+        // Register module public API for cross-module communication
+        services.AddScoped<IServiceCatalogsModuleApi, Application.ModuleApi.ServiceCatalogsModuleApi>();
 
         return services;
     }

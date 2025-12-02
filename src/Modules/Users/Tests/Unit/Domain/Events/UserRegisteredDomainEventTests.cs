@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Users.Domain.Events;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Domain.Events;
 
+[Trait("Category", "Unit")]
 public class UserRegisteredDomainEventTests
 {
     [Fact]

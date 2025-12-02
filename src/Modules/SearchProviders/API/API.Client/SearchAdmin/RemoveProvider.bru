@@ -1,0 +1,29 @@
+meta {
+  name: Remove Provider
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/search/providers/{{providerId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Remove Provider from Index
+  
+  Remove prestador do search index (admin).
+  
+  ## Autorização: AdminOnly
+  
+  ## Códigos de Status
+  - **204**: Removido com sucesso
+  - **401**: Token inválido
+  - **403**: Sem permissão
+  - **404**: Provider não encontrado no índice
+}

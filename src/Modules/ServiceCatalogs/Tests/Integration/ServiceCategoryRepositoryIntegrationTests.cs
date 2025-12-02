@@ -29,7 +29,7 @@ public class ServiceCategoryRepositoryIntegrationTests : ServiceCatalogsIntegrat
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(category.Id);
-        result.Name.Should().Be("Test Category");
+        result.Name.Should().Be(category.Name);
         result.Description.Should().Be("Test Description");
         result.DisplayOrder.Should().Be(1);
         result.IsActive.Should().BeTrue();
@@ -52,18 +52,18 @@ public class ServiceCategoryRepositoryIntegrationTests : ServiceCatalogsIntegrat
     public async Task GetAllAsync_WithMultipleCategories_ShouldReturnAllCategories()
     {
         // Arrange
-        await CreateServiceCategoryAsync("Category 1", displayOrder: 1);
-        await CreateServiceCategoryAsync("Category 2", displayOrder: 2);
-        await CreateServiceCategoryAsync("Category 3", displayOrder: 3);
+        var category1 = await CreateServiceCategoryAsync("Category 1", displayOrder: 1);
+        var category2 = await CreateServiceCategoryAsync("Category 2", displayOrder: 2);
+        var category3 = await CreateServiceCategoryAsync("Category 3", displayOrder: 3);
 
         // Act
         var result = await _repository.GetAllAsync();
 
         // Assert
         result.Should().HaveCountGreaterThanOrEqualTo(3);
-        result.Should().Contain(c => c.Name == "Category 1");
-        result.Should().Contain(c => c.Name == "Category 2");
-        result.Should().Contain(c => c.Name == "Category 3");
+        result.Should().Contain(c => c.Name == category1.Name);
+        result.Should().Contain(c => c.Name == category2.Name);
+        result.Should().Contain(c => c.Name == category3.Name);
     }
 
     [Fact]
@@ -88,10 +88,10 @@ public class ServiceCategoryRepositoryIntegrationTests : ServiceCatalogsIntegrat
     public async Task ExistsWithNameAsync_WithExistingName_ShouldReturnTrue()
     {
         // Arrange
-        await CreateServiceCategoryAsync("Unique Category");
+        var category = await CreateServiceCategoryAsync("Unique Category");
 
         // Act
-        var result = await _repository.ExistsWithNameAsync("Unique Category");
+        var result = await _repository.ExistsWithNameAsync(category.Name);
 
         // Assert
         result.Should().BeTrue();

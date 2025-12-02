@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Modules.SearchProviders.Application.ModuleApi;
 using MeAjudaAi.Modules.SearchProviders.Application.Queries;
 using MeAjudaAi.Shared.Contracts;
-using MeAjudaAi.Shared.Contracts.Modules.Search;
+using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +27,7 @@ public static class Extensions
         services.AddValidatorsFromAssembly(typeof(Extensions).Assembly);
 
         // Registrar API do módulo
-        services.AddScoped<ISearchModuleApi, SearchModuleApi>();
+        services.AddScoped<ISearchProvidersModuleApi, SearchProvidersModuleApi>();
 
         return services;
     }

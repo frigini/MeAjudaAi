@@ -9,10 +9,11 @@ namespace MeAjudaAi.E2E.Tests.Integration;
 /// </summary>
 public class ModuleIntegrationTests : TestContainerTestBase
 {
-    [Fact(Skip = "AUTH: SetAllowUnauthenticated(true) causes 403 Forbidden instead of expected 201/409. Same root cause as PermissionAuthorizationE2ETests - requires ConfigurableTestAuthenticationHandler refactor to use UserRole.Anonymous.")]
+    [Fact]
     public async Task CreateUser_ShouldTriggerDomainEvents()
     {
         // Arrange
+        AuthenticateAsAdmin(); // CreateUser requires admin role
         var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Mantém sob 30 caracteres
         var createUserRequest = new
         {

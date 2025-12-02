@@ -1,20 +1,20 @@
-# Search Domain Enums
+# SearchProviders Domain Enums
 
 ## ESubscriptionTier
 
-### Ownership Decision (Current: Search Module)
+### Ownership Decision (Current: SearchProviders Module)
 
-**Location:** `Search.Domain.Enums.ESubscriptionTier`
+**Location:** `SearchProviders.Domain.Enums.ESubscriptionTier`
 
 **Rationale:**
-- ✅ **Current Consumer:** Only the Search module uses this enum for provider ranking
+- ✅ **Current Consumer:** Only the SearchProviders module uses this enum for provider ranking
 - ⚠️ **Future Consideration:** When Payment/Billing module is created, this enum should be:
   1. Moved to `Shared.Contracts` as a shared enum, OR
-  2. Kept in Payment/Billing domain with Search module using it via module API
+  2. Kept in Payment/Billing domain with SearchProviders module using it via module API
 
 **Why Not Move Now:**
 1. No Payment/Billing module exists yet
-2. Only Search module needs it
+2. Only SearchProviders module needs it
 3. YAGNI principle - don't add abstraction until needed
 4. When Payment module is created, we'll have better understanding of cross-module dependencies
 
