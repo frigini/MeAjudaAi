@@ -1,0 +1,40 @@
+meta {
+  name: Create Category
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/catalogs/categories
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Elétrica",
+    "description": "Serviços de instalação e manutenção elétrica",
+    "displayOrder": 1
+  }
+}
+
+docs {
+  # Create Category
+  
+  Cria nova categoria de serviços (admin).
+  
+  ## Body
+  - `name`: Nome único
+  - `description`: Descrição (opcional)
+  - `displayOrder`: Ordem de exibição
+  
+  ## Status: 201 Created
+}

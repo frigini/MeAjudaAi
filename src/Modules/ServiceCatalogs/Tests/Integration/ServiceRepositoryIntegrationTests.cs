@@ -30,7 +30,7 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(service.Id);
-        result.Name.Should().Be("Test Service");
+        result.Name.Should().Be(service.Name);
         result.CategoryId.Should().Be(category.Id);
     }
 
@@ -52,18 +52,18 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
     {
         // Arrange
         var category = await CreateServiceCategoryAsync("Category");
-        await CreateServiceAsync(category.Id, "Service 1", displayOrder: 1);
-        await CreateServiceAsync(category.Id, "Service 2", displayOrder: 2);
-        await CreateServiceAsync(category.Id, "Service 3", displayOrder: 3);
+        var service1 = await CreateServiceAsync(category.Id, "Service 1", displayOrder: 1);
+        var service2 = await CreateServiceAsync(category.Id, "Service 2", displayOrder: 2);
+        var service3 = await CreateServiceAsync(category.Id, "Service 3", displayOrder: 3);
 
         // Act
         var result = await _repository.GetAllAsync();
 
         // Assert
         result.Should().HaveCountGreaterThanOrEqualTo(3);
-        result.Should().Contain(s => s.Name == "Service 1");
-        result.Should().Contain(s => s.Name == "Service 2");
-        result.Should().Contain(s => s.Name == "Service 3");
+        result.Should().Contain(s => s.Name == service1.Name);
+        result.Should().Contain(s => s.Name == service2.Name);
+        result.Should().Contain(s => s.Name == service3.Name);
     }
 
     [Fact]
@@ -111,10 +111,10 @@ public class ServiceRepositoryIntegrationTests : ServiceCatalogsIntegrationTestB
     {
         // Arrange
         var category = await CreateServiceCategoryAsync("Category");
-        await CreateServiceAsync(category.Id, "Unique Service");
+        var service = await CreateServiceAsync(category.Id, "Unique Service");
 
         // Act
-        var result = await _repository.ExistsWithNameAsync("Unique Service");
+        var result = await _repository.ExistsWithNameAsync(service.Name);
 
         // Assert
         result.Should().BeTrue();

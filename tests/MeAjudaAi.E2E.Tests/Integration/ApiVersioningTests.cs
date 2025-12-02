@@ -46,7 +46,7 @@ public class ApiVersioningTests : TestContainerTestBase
     {
         // Arrange - Configure authentication for API access
         AuthenticateAsAdmin();
-        
+
         // Act - Test that versioning works for different module patterns
         var responses = new[]
         {

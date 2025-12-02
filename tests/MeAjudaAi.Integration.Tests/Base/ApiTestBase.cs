@@ -115,9 +115,11 @@ public abstract class ApiTestBase : IAsyncLifetime
                         ["FeatureManagement:PushNotifications"] = "false",
                         ["FeatureManagement:StripePayments"] = "false",
                         ["FeatureManagement:MaintenanceMode"] = "false",
+                        // Geographic restriction: Only specific cities allowed, NOT entire states
+                        // This ensures fallback validation properly blocks non-allowed cities in same state
                         ["GeographicRestriction:AllowedStates:0"] = "MG",
-                        ["GeographicRestriction:AllowedStates:1"] = "RJ",
-                        ["GeographicRestriction:AllowedStates:2"] = "ES",
+                        ["GeographicRestriction:AllowedStates:1"] = "ES",
+                        ["GeographicRestriction:AllowedStates:2"] = "RJ",
                         ["GeographicRestriction:AllowedCities:0"] = "Muriaé",
                         ["GeographicRestriction:AllowedCities:1"] = "Itaperuna",
                         ["GeographicRestriction:AllowedCities:2"] = "Linhares",
@@ -251,15 +253,38 @@ public abstract class ApiTestBase : IAsyncLifetime
         ILogger? logger)
     {
         // Garante estado limpo do banco de dados (como nos testes E2E)
-        try
+        // Com retry para evitar race condition "database system is starting up"
+        const int maxRetries = 10;
+        var baseDelay = TimeSpan.FromSeconds(1);
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            await usersContext.Database.EnsureDeletedAsync();
-            logger?.LogInformation("🧹 Banco de dados existente limpo");
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "❌ Falha crítica ao limpar banco existente: {Message}", ex.Message);
-            throw new InvalidOperationException("Não foi possível limpar o banco de dados antes dos testes", ex);
+            try
+            {
+                await usersContext.Database.EnsureDeletedAsync();
+                logger?.LogInformation("🧹 Banco de dados existente limpo (tentativa {Attempt})", attempt);
+                break; // Sucesso, sai do loop
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03") // 57P03 = database starting up
+            {
+                if (attempt == maxRetries)
+                {
+                    logger?.LogError(ex, "❌ PostgreSQL ainda iniciando após {MaxRetries} tentativas", maxRetries);
+                    var totalWaitTime = maxRetries * (maxRetries + 1) / 2; // Sum: 1+2+3+...+10 = 55 seconds
+                    throw new InvalidOperationException($"PostgreSQL não ficou pronto após {maxRetries} tentativas (~{totalWaitTime} segundos)", ex);
+                }
+
+                var delay = baseDelay * attempt; // Linear backoff: 1s, 2s, 3s, etc.
+                logger?.LogWarning(
+                    "⚠️ PostgreSQL iniciando... Tentativa {Attempt}/{MaxRetries}. Aguardando {Delay}s",
+                    attempt, maxRetries, delay.TotalSeconds);
+                await Task.Delay(delay);
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "❌ Falha crítica ao limpar banco existente: {Message}", ex.Message);
+                throw new InvalidOperationException("Não foi possível limpar o banco de dados antes dos testes", ex);
+            }
         }
 
         // Aplica migrações em todos os módulos

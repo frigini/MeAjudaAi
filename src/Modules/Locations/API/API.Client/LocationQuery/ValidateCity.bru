@@ -1,0 +1,45 @@
+meta {
+  name: Validate City
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/locations/validate-city
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cityName": "Muriaé",
+    "stateSigla": "MG",
+    "allowedCities": ["Muriaé", "Itaperuna", "Linhares"]
+  }
+}
+
+docs {
+  # Validate City
+  
+  Valida se cidade existe no estado via IBGE API.
+  
+  ## Body
+  - `cityName`: Nome da cidade (normalizado)
+  - `stateSigla`: UF (RJ, SP, MG, etc.)
+  - `allowedCities`: Lista de cidades permitidas (opcional)
+  
+  ## Response
+  ```json
+  {
+    "isValid": true,
+    "cityName": "Muriaé",
+    "state": "MG"
+  }
+  ```
+  
+  ## Status: 200 OK
+}

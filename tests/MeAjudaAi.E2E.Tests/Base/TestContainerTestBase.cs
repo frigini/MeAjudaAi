@@ -1,5 +1,7 @@
 using Bogus;
+using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
@@ -15,6 +17,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
@@ -28,6 +31,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 {
     private PostgreSqlContainer _postgresContainer = null!;
     private RedisContainer _redisContainer = null!;
+    private AzuriteContainer _azuriteContainer = null!;
     private WebApplicationFactory<Program> _factory = null!;
 
     protected HttpClient ApiClient { get; private set; } = null!;
@@ -55,9 +59,15 @@ public abstract class TestContainerTestBase : IAsyncLifetime
             .WithCleanUp(true)
             .Build();
 
+        _azuriteContainer = new AzuriteBuilder()
+            .WithImage("mcr.microsoft.com/azure-storage/azurite:latest")
+            .WithCleanUp(true)
+            .Build();
+
         // Iniciar containers
         await _postgresContainer.StartAsync();
         await _redisContainer.StartAsync();
+        await _azuriteContainer.StartAsync();
 
         // Configurar WebApplicationFactory
 #pragma warning disable CA2000 // Dispose é gerenciado por IAsyncLifetime.DisposeAsync
@@ -79,6 +89,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         ["ConnectionStrings:ProvidersDb"] = _postgresContainer.GetConnectionString(),
                         ["ConnectionStrings:DocumentsDb"] = _postgresContainer.GetConnectionString(),
                         ["ConnectionStrings:Redis"] = _redisContainer.GetConnectionString(),
+                        ["Azure:Storage:ConnectionString"] = _azuriteContainer.GetConnectionString(),
                         ["Hangfire:Enabled"] = "false", // Desabilitar Hangfire nos testes E2E
                         ["Logging:LogLevel:Default"] = "Warning",
                         ["Logging:LogLevel:Microsoft"] = "Error",
@@ -155,6 +166,13 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
                     services.AddScoped<IKeycloakService, MockKeycloakService>();
 
+                    // Substituir IBlobStorageService por MockBlobStorageService para testes
+                    var blobStorageDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IBlobStorageService));
+                    if (blobStorageDescriptor != null)
+                        services.Remove(blobStorageDescriptor);
+
+                    services.AddScoped<IBlobStorageService, MockBlobStorageService>();
+
                     // Remove todas as configurações de autenticação existentes
                     var authDescriptors = services
                         .Where(d => d.ServiceType.Namespace?.Contains("Authentication") == true)
@@ -199,6 +217,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
     public virtual async ValueTask DisposeAsync()
     {
+        // Clear authentication context to prevent state pollution between tests
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
+
         ApiClient?.Dispose();
         _factory?.Dispose();
 
@@ -207,6 +228,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
         if (_redisContainer != null)
             await _redisContainer.StopAsync();
+
+        if (_azuriteContainer != null)
+            await _azuriteContainer.StopAsync();
     }
 
     private async Task WaitForApiHealthAsync()
@@ -465,7 +489,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     private class TestContextHeaderHandler : DelegatingHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request, 
+            HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
             // Add test context ID header to isolate authentication between parallel tests
