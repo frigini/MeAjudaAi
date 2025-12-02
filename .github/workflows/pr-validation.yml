@@ -317,11 +317,14 @@ jobs:
               INCLUDE_FILTER="[MeAjudaAi.*]*"
             fi
 
-            # NOTE: EXCLUDE_FILTER is currently hardcoded for all modules.
-            # Future enhancement: Consider adding per-module exclusion patterns
-            # as part of the MODULES array definition (e.g., "Module:path/:Include:Exclude")
-            # to support module-specific test category or infrastructure exclusions.
-            EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*"
+            # NOTE: EXCLUDE_FILTER includes compiler-generated code exclusions
+            # to provide accurate coverage metrics for hand-written code only.
+            # Excluded patterns:
+            #   - Test assemblies: [*.Tests*]*, [*Test*]*, [testhost]*
+            #   - OpenApi generated: [*Microsoft.AspNetCore.OpenApi.Generated*]*
+            #   - Compiler services: [*System.Runtime.CompilerServices*]*
+            #   - Regex generator: [*System.Text.RegularExpressions.Generated*]*
+            EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*"
 
             echo "  Include: $INCLUDE_FILTER"
             echo "  Exclude: $EXCLUDE_FILTER"
