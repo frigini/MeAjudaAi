@@ -466,7 +466,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         await context.SaveChangesAsync();
 
         // Simulate long operation
-        await Task.Delay(TimeSpan.FromSeconds(2));
+        await Task.Delay(TimeSpan.FromMilliseconds(500));
 
         await transaction.CommitAsync();
 

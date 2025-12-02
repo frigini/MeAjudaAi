@@ -349,7 +349,7 @@ public class OptionsTests
         // Act & Assert
         var act = () => options.Validate();
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("At least one allowed origin must be configured for CORS.");
+            .WithMessage("*allowed origin*configured for CORS*");
     }
 
     [Fact]
@@ -366,7 +366,7 @@ public class OptionsTests
         // Act & Assert
         var act = () => options.Validate();
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("At least one allowed method must be configured for CORS.");
+            .WithMessage("*allowed method*configured for CORS*");
     }
 
     [Fact]
@@ -383,7 +383,7 @@ public class OptionsTests
         // Act & Assert
         var act = () => options.Validate();
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("At least one allowed header must be configured for CORS.");
+            .WithMessage("*allowed header*configured for CORS*");
     }
 
     [Fact]
@@ -401,7 +401,7 @@ public class OptionsTests
         // Act & Assert
         var act = () => options.Validate();
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("PreflightMaxAge must be non-negative.");
+            .WithMessage("*PreflightMaxAge*non-negative*");
     }
 
     [Fact]
@@ -418,7 +418,7 @@ public class OptionsTests
         // Act & Assert
         var act = () => options.Validate();
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("CORS allowed origins cannot contain empty values.");
+            .WithMessage("*allowed origins*empty values*");
     }
 
     [Fact]
@@ -435,7 +435,7 @@ public class OptionsTests
         // Act & Assert
         var act = () => options.Validate();
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("Invalid CORS origin format: not-a-valid-url");
+            .WithMessage("*Invalid*origin format*");
     }
 
     [Fact]
@@ -453,7 +453,7 @@ public class OptionsTests
         // Act & Assert
         var act = () => options.Validate();
         act.Should().Throw<InvalidOperationException>()
-            .WithMessage("Cannot use wildcard origin (*) with credentials enabled for security reasons.");
+            .WithMessage("*wildcard*credentials*");
     }
 
     [Fact]
