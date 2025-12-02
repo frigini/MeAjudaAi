@@ -5,7 +5,7 @@
 ### Resumo Geral
 - **Cobertura Global**: ~45% (baseado em análise dos 8 módulos)
 - **Meta Sprint 2**: 70%
-- **Status**: 🟡 Progresso mas abaixo da meta
+- **Status**: 🟡 Progresso, mas abaixo da meta
 - **Total de Testes**: ~2,400 testes unit + integration
 - **Testes Unit (coverage)**: ~1,800 testes
 
@@ -179,7 +179,7 @@
    - Tag-based invalidation
    - Expiration policies
    - Memory pressure handling
-   - **Impacto**: Médio - performance
+   - **Impacto**: Médio - desempenho
    - **Prioridade**: P2
 
 7. **Authorization Complex Scenarios (Shared)**
@@ -334,23 +334,23 @@
 - **Providers**: 63% (estimado baseado em 545 testes)
 - **ServiceCatalogs**: 55% (estimado)
 - **Documents**: 47% (estimado)
+- **Locations**: 50% (estimado)
+- **SearchProviders**: 43% (estimado)
+- **ApiService**: 17% (estimado)
+
 ### Após Fase 1 (Sprint Atual)
-- **Global**: ~53%
-- **Shared**: 42%
-- **ApiService**: 35%
-- **Database**: 55%
-- **SearchProviders**: 50%rint Atual)
-- **Global**: ~42%
-- **Shared**: 41%
-- **ApiService**: 30%
-- **Database**: 50%
+- **Global**: ~53% (+8%)
+- **Shared**: 42% (+11%)
+- **ApiService**: 35% (+18%)
+- **Database**: 55% (novo baseline)
+- **SearchProviders**: 50% (+7%)
+
 ### Após Fase 2 (Sprint +1)
-- **Global**: ~61%
-- **Shared**: 56%
-- **Messaging**: 68%
-- **Middlewares**: 63%
-- **Documents**: 58%
-- **Middlewares**: 60%
+- **Global**: ~61% (+8%)
+- **Shared**: 56% (+14%)
+- **Messaging**: 68% (novo baseline)
+- **Middlewares**: 63% (novo baseline)
+- **Documents**: 58% (+11%)
 
 ### Após Fase 3 (Sprint +2)
 - **Global**: ~65%
@@ -378,7 +378,7 @@
 2. **Cobertura de Branches**: Meta 65%
 3. **Cobertura de Métodos**: Meta 75%
 4. **Taxa de Falhas**: <1% dos testes
-5. **Tempo de Execução**: <5min para suite completa
+5. **Tempo de Execução**: <5min para suíte completa
 ### Notas Técnicas
 
 ### Testes Corrigidos ✅
@@ -387,8 +387,6 @@
    - **Fix Aplicado**: Teste marcado com `[Fact(Skip = "...")]` até implementar ConcurrentDictionary
    - **Status**: ✅ 813 testes passando, 0 falhando, 1 skipped
    - **Próximo**: Implementar ConcurrentDictionary em PermissionMetricsService (Issue #TBD)
-- 🔴 Shared Authorization: 40% (CRÍTICO)
-- 🔴 ApiService: 15% (CRÍTICO)
 
 ### Relatórios
 - **Semanal**: Coverage diff por módulo
@@ -419,7 +417,7 @@
    - Sempre usar wildcards com .runsettings
 
 ### Pipeline CI/CD
-- **Status**: 🟡 Workflow atualizado mas relatórios não aparecem
+- **Status**: 🟡 Workflow atualizado, mas relatórios não aparecem
 - **Issue**: GitHub Actions workflow do base branch
 - **Solução**: Workflow já mergeado para master (PR #34)
 - **Próximo**: Validar em nova branch após merge desta
@@ -434,9 +432,7 @@
 - ✅ Pipeline configurado para coletar cobertura por módulo (8 módulos)
 - ✅ Reusable action criada (.github/actions/validate-coverage - 288 linhas)
 - ✅ Documentação completa de gaps e roadmap com 4 fases
-- ✅ Filtro de Integration tests validado (--filter "FullyQualifiedName!~Integration")tar cobertura por módulo
-- ✅ Reusable action criada (.github/actions/validate-coverage)
-- ✅ Documentação de gaps e roadmap
+- ✅ Filtro de Integration tests validado (--filter "FullyQualifiedName!~Integration") para cobertura por módulo
 
 **Próximos Passos**:
 1. Corrigir teste de concorrência (1h)
