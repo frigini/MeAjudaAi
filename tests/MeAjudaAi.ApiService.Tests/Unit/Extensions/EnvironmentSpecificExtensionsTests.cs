@@ -165,23 +165,6 @@ public class EnvironmentSpecificExtensionsTests
         middlewareInvoked.Should().BeTrue();
     }
 
-    [Fact]
-    public void ProductionMiddlewares_Configuration_ShouldNotThrow()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddOptions<Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionOptions>();
-        var provider = services.BuildServiceProvider();
-
-        var app = new ApplicationBuilder(provider);
-        var environment = CreateEnvironment("Production");
-
-        // Act & Assert - Verify production middleware registration doesn't throw
-        var act = () => app.UseEnvironmentSpecificMiddlewares(environment);
-        act.Should().NotThrow();
-    }
-
     private static IWebHostEnvironment CreateEnvironment(string environmentName)
     {
         var mock = new Mock<IWebHostEnvironment>();

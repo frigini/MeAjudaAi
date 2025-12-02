@@ -33,7 +33,7 @@ public class OptionsTests
 
         // Assert
         options.Should().NotBeNull();
-        options.GetType().Should().Be<RateLimitOptions>();
+        options.Should().BeOfType<RateLimitOptions>();
     }
 
     [Fact]

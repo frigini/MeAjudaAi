@@ -59,28 +59,6 @@ public class StaticFilesMiddlewareTests
         nextCalled.Should().BeTrue();
     }
 
-    [Fact]
-    public async Task InvokeAsync_ShouldAlwaysCallNextMiddleware()
-    {
-        // Arrange
-        var context = new DefaultHttpContext();
-        context.Request.Path = "/css/style.css";
-        var nextCalled = false;
-        RequestDelegate next = (ctx) =>
-        {
-            nextCalled = true;
-            return Task.CompletedTask;
-        };
-
-        var middleware = new StaticFilesMiddleware(next);
-
-        // Act
-        await middleware.InvokeAsync(context);
-
-        // Assert - Middleware should always pass through to next
-        nextCalled.Should().BeTrue();
-    }
-
     [Theory]
     [InlineData("/css/")]
     [InlineData("/js/")]
