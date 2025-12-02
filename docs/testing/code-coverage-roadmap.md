@@ -84,51 +84,51 @@
 - **Status**: ✅ Módulo mais maduro e bem testado
 - **Destaques**: Entities, Value Objects, Commands/Queries handlers bem cobertos
 
-**Providers Module**: ⭐ 
+**Providers Module**: ⭐
 - **Testes Unit**: 545 testes  
 - **Cobertura Medida**: 58-68% (Domain ~70%, Application ~65%, Infrastructure ~45%)
 - **Status**: ✅ Boa cobertura geral
 - **Gaps**: Provider verification workflow, document handling edge cases
 
-**ServiceCatalogs Module**:
+**ServiceCatalogs Module**: 🟡
 - **Testes Unit**: ~150 testes
 - **Cobertura Estimada**: 50-60%
 - **Status**: 🟡 Cobertura mediana
 - **Gaps**: Query handlers, category management workflows
 
-**Documents Module**:
+**Documents Module**: 🟡
 - **Testes Unit**: ~180 testes  
 - **Cobertura Estimada**: 42-52%
 - **Status**: 🟡 Cobertura mediana
 - **Gaps Críticos**: OCR validation, Document Intelligence integration, event handlers
 
-**Locations Module**:
+**Locations Module**: 🟡
 - **Testes Unit**: ~95 testes
 - **Cobertura Estimada**: 45-55%
 - **Status**: 🟡 Cobertura mediana
 - **Gaps**: CEP validation logic, ViaCEP API integration, geocoding
 
-**SearchProviders Module**:
+**SearchProviders Module**: 🔴
 - **Testes Unit**: ~75 testes
 - **Cobertura Estimada**: 38-48%
 - **Status**: 🔴 Abaixo da meta
 - **Gaps Críticos**: PostGIS geospatial queries, radius search, distance calculations
 
-**ApiService Module**:
+**ApiService Module**: 🔴 🔴
 - **Testes Existentes**: Minimal (~20 testes)
 - **Cobertura Estimada**: 12-22%
 - **Status**: 🔴 Cobertura crítica muito baixa
 - **Gaps Críticos**: Health checks (PostgreSQL, Redis, RabbitMQ, Azurite), Aspire configuration, service discovery
 
-**Architecture Tests**:
+**Architecture Tests**: ✅
 - **Testes**: 72 testes (architectural rules)
 - **Cobertura**: N/A (validação de estrutura, não coverage)
 - **Status**: ✅ Bem estabelecido
 
-**Integration Tests**:
+**Integration Tests**: ✅
 - **Testes**: 248 testes (cross-module workflows)
 - **Cobertura**: Não incluída (testes end-to-end)
-- **Status**: ✅ Suite robusta, mas não conta para coverage metrics
+- **Status**: ✅ Suíte robusta, mas não conta para coverage metrics
 
 ---
 
@@ -369,6 +369,71 @@
 - **SearchProviders**: 65%
 - **ApiService**: 45%
 
+### Fase 5 (Pós-Roadmap) - EXCELÊNCIA (85% Recomendado)
+
+**Objetivo**: Elevar de 70% para 85% (padrão indústria)
+**Escopo**: Módulos abaixo de 70% + cenários avançados
+**Estimativa**: 2-3 sprints (12-18 dias de desenvolvimento)
+
+**Trabalho Requerido**:
+
+1. **ApiService** (45% → 70%): +25%
+   - Testes de integração com Aspire (.NET 10)
+   - Health checks avançados (circuit breakers, retries)
+   - Service discovery e configuration providers
+   - Telemetry e distributed tracing
+   - **Esforço**: 5 dias
+
+2. **SearchProviders** (65% → 80%): +15%
+   - PostGIS geospatial queries complexas
+   - Radius search com performance otimizada
+   - Distance calculations e spatial indexes
+   - Edge cases de geocoding
+   - **Esforço**: 3 dias
+
+3. **Locations** (62% → 75%): +13%
+   - ViaCEP API integration com mocks
+   - CEP validation edge cases (rurais, especiais)
+   - Geocoding fallbacks e error handling
+   - **Esforço**: 2 dias
+
+4. **ServiceCatalogs** (65% → 78%): +13%
+   - Query handlers complexos
+   - Category hierarchy workflows
+   - Service catalog filtering e search
+   - **Esforço**: 2 dias
+
+5. **Shared Infrastructure** (68% → 85%): +17%
+   - Caching edge cases (invalidation, concurrency)
+   - Messaging reliability (dead letters, poison messages)
+   - Database transaction scenarios (rollbacks, isolation)
+   - Authorization complex policies
+   - **Esforço**: 4 dias
+
+6. **Cross-Module Integration**:
+   - Workflows end-to-end (Users + Providers + Documents)
+   - Event sourcing scenarios
+   - Distributed transactions
+   - **Esforço**: 2 dias
+
+**Resultado Fase 5**:
+- **Global**: **85%+** ⭐
+- **ApiService**: 70%
+- **SearchProviders**: 80%
+- **Locations**: 75%
+- **ServiceCatalogs**: 78%
+- **Shared**: 85%
+- **Users**: 80%
+- **Providers**: 78%
+- **Documents**: 75%
+
+**Benefícios**:
+- ✅ Conformidade com padrão indústria (80-85%)
+- ✅ Cobertura robusta de edge cases e cenários complexos
+- ✅ Confiança elevada para refatorações
+- ✅ Redução de bugs em produção
+- ✅ Facilita onboarding de novos desenvolvedores
+
 ---
 
 ## Métricas de Acompanhamento
@@ -418,7 +483,7 @@
 
 ### Pipeline CI/CD
 - **Status**: 🟡 Workflow atualizado, mas relatórios não aparecem
-- **Issue**: GitHub Actions workflow do base branch
+- **Issue**: GitHub Actions workflow da branch base
 - **Solução**: Workflow já mergeado para master (PR #34)
 - **Próximo**: Validar em nova branch após merge desta
 
