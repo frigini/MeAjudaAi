@@ -660,9 +660,10 @@ public sealed class PermissionMetricsServiceTests : IDisposable
         // Act - Multiple concurrent permission checks and stats reads
         for (int i = 0; i < 10; i++)
         {
+            int localI = i;
             tasks.Add(Task.Run(() =>
             {
-                using var timer = _service.MeasurePermissionCheck($"user{i}", EPermission.UsersRead, true);
+                using var timer = _service.MeasurePermissionCheck($"user{localI}", EPermission.UsersRead, true);
                 var stats = _service.GetSystemStats();
             }));
         }

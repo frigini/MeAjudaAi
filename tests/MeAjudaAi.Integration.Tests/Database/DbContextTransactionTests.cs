@@ -54,7 +54,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         // Assert - Create new context to verify rollback
         using var verifyScope = Services.CreateScope();
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        
+
         var userAfterRollback = await verifyContext.Users.FindAsync(user.Id);
         userAfterRollback.Should().BeNull("explicit rollback should discard changes");
     }
@@ -84,7 +84,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         // Assert - Create new context to verify commit
         using var verifyScope = Services.CreateScope();
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        
+
         var savedUser = await verifyContext.Users.FindAsync(user.Id);
         savedUser.Should().NotBeNull();
         savedUser!.Username.Value.Should().Contain("commit_");
@@ -109,7 +109,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
             await using var transaction = await context.Database.BeginTransactionAsync();
-            
+
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
@@ -119,7 +119,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         // Verify rollback - Create new context
         using var verifyScope = Services.CreateScope();
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        
+
         var userAfterException = await verifyContext.Users.FindAsync(user.Id);
         userAfterException.Should().BeNull("transaction should auto-rollback on exception");
     }
@@ -146,7 +146,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
                 "Test",
                 $"keycloak-{ShortId()}"
             );
-            
+
             // Use reflection to set UserId for test purposes
             var userIdProperty = typeof(User).GetProperty("Id");
             userIdProperty!.SetValue(user, userId);
@@ -158,7 +158,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         // Act - Simulate two concurrent contexts modifying the same user
         using var scope1 = Services.CreateScope();
         using var scope2 = Services.CreateScope();
-        
+
         var context1 = scope1.ServiceProvider.GetRequiredService<UsersDbContext>();
         var context2 = scope2.ServiceProvider.GetRequiredService<UsersDbContext>();
 
@@ -196,18 +196,18 @@ public sealed class DbContextTransactionTests : ApiTestBase
             {
                 using var scope = Services.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-                
+
                 var user = new User(
-                    new Username($"concurrent_load_{index}_{Guid.NewGuid():N}"),
+                    new Username($"concurrent_{index}_{ShortId()}"),
                     new Email($"concurrent_{index}_{Guid.NewGuid():N}@test.com"),
                     "Concurrent",
                     $"User{index}",
                     $"keycloak-{ShortId()}"
                 );
-                
+
                 context.Users.Add(user);
                 await context.SaveChangesAsync();
-                
+
                 return user.Id;
             }));
         }
@@ -217,7 +217,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         // Assert - All users should be saved with unique IDs
         using var verifyScope = Services.CreateScope();
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        
+
         var savedUsers = await verifyContext.Users
             .Where(u => userIds.Contains(u.Id))
             .ToListAsync();
@@ -238,7 +238,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
         var user1 = new User(
-            new Username($"nested1_{Guid.NewGuid():N}"),
+            new Username($"nested1_{ShortId()}"),
             new Email($"nested1_{Guid.NewGuid():N}@test.com"),
             "Nested",
             "User1",
@@ -246,7 +246,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         );
 
         var user2 = new User(
-            new Username($"nested2_{Guid.NewGuid():N}"),
+            new Username($"nested2_{ShortId()}"),
             new Email($"nested2_{Guid.NewGuid():N}@test.com"),
             "Nested",
             "User2",
@@ -267,7 +267,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         // Assert
         using var verifyScope = Services.CreateScope();
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        
+
         var savedUsers = await verifyContext.Users
             .Where(u => u.Id == user1.Id || u.Id == user2.Id)
             .ToListAsync();
@@ -283,7 +283,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
         var user1 = new User(
-            new Username($"savepoint1_{Guid.NewGuid():N}"),
+            new Username($"savepoint1_{ShortId()}"),
             new Email($"savepoint1_{Guid.NewGuid():N}@test.com"),
             "Savepoint",
             "User1",
@@ -291,7 +291,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         );
 
         var user2 = new User(
-            new Username($"savepoint2_{Guid.NewGuid():N}"),
+            new Username($"savepoint2_{ShortId()}"),
             new Email($"savepoint2_{Guid.NewGuid():N}@test.com"),
             "Savepoint",
             "User2",
@@ -317,7 +317,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         // Assert
         using var verifyScope = Services.CreateScope();
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        
+
         var savedUser1 = await verifyContext.Users.FindAsync(user1.Id);
         var savedUser2 = await verifyContext.Users.FindAsync(user2.Id);
 
@@ -388,7 +388,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         {
             using var scope2 = Services.CreateScope();
             var context2 = scope2.ServiceProvider.GetRequiredService<UsersDbContext>();
-            
+
             var user = new User(
                 new Username($"{usernamePrefix}_phantom"),
                 new Email($"{usernamePrefix}_phantom@test.com"),
@@ -437,7 +437,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
 
         // Act - Transaction with delay
         await using var transaction = await context.Database.BeginTransactionAsync();
-        
+
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
@@ -449,7 +449,7 @@ public sealed class DbContextTransactionTests : ApiTestBase
         // Assert
         using var verifyScope = Services.CreateScope();
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<UsersDbContext>();
-        
+
         var savedUser = await verifyContext.Users.FindAsync(user.Id);
         savedUser.Should().NotBeNull("transaction should not timeout for reasonable delays");
     }

@@ -1,10 +1,10 @@
+using System.Net;
 using FluentAssertions;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
 using Moq.Protected;
-using System.Net;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Monitoring;
 
@@ -150,7 +150,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         // Arrange
         _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns("https://keycloak.test");
 
-        var cts = new CancellationTokenSource();
+        using var cts = new CancellationTokenSource();
         cts.Cancel();
 
         _httpMessageHandlerMock

@@ -53,6 +53,5 @@ Start-Process (Resolve-Path coverage/report/index.html).Path
 Write-Host ""
 Write-Host "✅ CONCLUÍDO!" -ForegroundColor Green
 Write-Host ""
-Write-Host "Compare com o relatório anterior para ver a diferença:" -ForegroundColor Yellow
-Write-Host "  - Anterior (COM generated): ~27.9% line coverage" -ForegroundColor Red
-Write-Host "  - Novo (SEM generated):     ~45-55% line coverage (estimado)" -ForegroundColor Green
+Write-Host "O relatório agora exclui código gerado pelo compilador (OpenApi, CompilerServices, RegexGenerator)." -ForegroundColor Yellow
+Write-Host "Compare com relatórios anteriores para ver a cobertura real do código manual." -ForegroundColor Green

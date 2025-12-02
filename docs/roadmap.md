@@ -1076,6 +1076,42 @@ gantt
 - ⏳ **Phase 2 Target**: 28.2% → 35%+ (ServiceDefaults, Logging, Messaging, Database.Exceptions)
 - ⏳ **Phase 2 Tests**: +60-80 testes (ServiceDefaults 15-20, Logging 10-12, Messaging 20-25, DB 15-20, Middlewares 12-15)
 
+### Phase 2 Task Breakdown & Release Gates
+
+#### Coverage Targets (Progressive)
+- **Minimum (CI Warning Threshold)**: Line 70%, Branch 60%, Method 70%
+- **Recommended**: Line 85%, Branch 75%, Method 85%
+- **Excellent**: Line 90%+, Branch 80%+, Method 90%+
+
+**Note**: Current baseline (28.2%) is below minimum. Phase 2 targets (35%+) are intermediate milestones. Critical paths must reach 70%+ before production deployment.
+
+#### Phase 2 Task Matrix
+
+| Task | Priority | Estimated Tests | Target Coverage | Due Date | Definition of Done | Status |
+|------|----------|-----------------|-----------------|----------|-------------------|--------|
+| ServiceDefaults.HealthChecks | CRITICAL | 15-20 | 35%+ line | 2025-12-09 | All public health checks tested + no reflection | TODO |
+| Shared.Logging | CRITICAL | 10-12 | 30%+ line | 2025-12-10 | Core logging scenarios covered | TODO |
+| Shared.Messaging.RabbitMq | CRITICAL | 20-25 | 40%+ line | 2025-12-12 | Publish/consume/error handling tested | TODO |
+| Shared.Database.Exceptions | HIGH | 15-20 | 50%+ line | 2025-12-13 | All exception types + handlers covered | TODO |
+| Shared.Middlewares | HIGH | 12-15 | 45%+ line | 2025-12-16 | Request/response pipelines tested | TODO |
+
+#### Release Gate Criteria
+
+**Phase 2 Merge to Master** (Required):
+- [ ] Line Coverage: 35%+ overall
+- [ ] Health Checks: 100% for Shared/Monitoring components
+- [ ] Test Suite: 1,467+ tests (current 1,407 + ~60 new)
+- [ ] All Tests Passing: 99%+ (flaky tests <1%)
+- [ ] Code Quality: 0 CRITICAL SonarQube violations, <10 MAJOR violations
+
+**Production Deployment** (Gated - may lag merge by 1-2 days):
+- [ ] Critical Paths: 70%+ for Users, Providers, Documents modules
+- [ ] End-to-End Tests: All key user flows passing
+- [ ] Performance: Health checks <500ms response time
+- [ ] Security: No HIGH/CRITICAL vulnerabilities
+
+**Decision**: Phase 2 can merge to master when all "Required" gates pass. Production deployment requires Critical Paths 70%+ threshold.
+
 **Decisões Estratégicas para Sprint 2 Continuação**:
 1. **Priorizar componentes críticos com 0% coverage**: ServiceDefaults.HealthChecks, Logging, Messaging.RabbitMq
 2. **Investigar duplicação**: ServiceDefaults vs Shared health checks (consolidar arquitetura)

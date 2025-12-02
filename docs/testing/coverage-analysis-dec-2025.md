@@ -453,7 +453,10 @@
 - [ ] Add TestContainers.Redis for caching tests (if needed)
 - [ ] Configure SonarQube for continuous quality monitoring
 - [ ] Automate coverage reports in CI/CD pipeline
-- [ ] Set coverage thresholds: Line 35%, Branch 25%, Method 40%
+- [ ] Set progressive coverage thresholds:
+  - **Minimum (CI warning)**: Line 70%, Branch 60%, Method 70%
+  - **Recommended**: Line 85%, Branch 75%, Method 85%
+  - **Excellent**: Line 90%+, Branch 80%+, Method 90%+
 
 ---
 

@@ -275,12 +275,18 @@ Line coverage: ~45-55% (vs 27.9% anterior)
 ### P: "Vai funcionar no SonarQube/Codecov?"
 **R**: SIM! Eles leem `coverage.cobertura.xml` que já virá limpo.
 
-### P: "E os targets de coverage (80%)?"
-**R**: Ajuste para valores realistas baseados no novo baseline (~45%):
-```json
-"threshold": "50,40,55"  // line, branch, method
-```
+### P: "E os targets de coverage (80%)?"  
+**R**: Ajuste para valores realistas baseados no novo baseline:
 
----
+**Targets Progressivos** (alinhados com padrões da indústria):
+- **Mínimo (CI warning)**: 70% line, 60% branch, 70% method
+- **Recomendado**: 85% line, 75% branch, 85% method  
+- **Excelente**: 90%+ line, 80%+ branch, 90%+ method
+
+**Nota**: Os números iniciais (~45-55%) são intermediários. O projeto deve evoluir para o mínimo de 70% em código crítico.
+
+```json
+"threshold": "70,60,70"  // line, branch, method (minimum)
+```---
 
 **Conclusão**: ✅ Tudo configurado! Pipeline e script local vão gerar coverage REAL excluindo código gerado. Próximo push já mostrará ~45-55% em vez de 27.9%.

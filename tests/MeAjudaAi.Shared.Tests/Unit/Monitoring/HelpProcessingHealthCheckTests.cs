@@ -123,7 +123,7 @@ public sealed class HelpProcessingHealthCheckTests
 
         // Assert
         result.Status.Should().Be(HealthStatus.Healthy);
-        duration.Should().BeLessThan(TimeSpan.FromMilliseconds(100), 
+        duration.Should().BeLessThan(TimeSpan.FromMilliseconds(100),
             "health check should complete very quickly");
     }
 

@@ -1,9 +1,9 @@
+using System.Diagnostics.Metrics;
 using FluentAssertions;
 using MeAjudaAi.Shared.Database;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Diagnostics.Metrics;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Monitoring;
 
@@ -193,14 +193,22 @@ public sealed class DatabasePerformanceHealthCheckTests
     /// </summary>
     private class TestMeterFactory : IMeterFactory
     {
+        private readonly List<Meter> _meters = new();
+
         public Meter Create(MeterOptions options)
         {
-            return new Meter(options);
+            var meter = new Meter(options);
+            _meters.Add(meter);
+            return meter;
         }
 
         public void Dispose()
         {
-            // Nothing to dispose
+            foreach (var meter in _meters)
+            {
+                meter.Dispose();
+            }
+            _meters.Clear();
         }
     }
 }
