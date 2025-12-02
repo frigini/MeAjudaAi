@@ -79,7 +79,7 @@ public class DomainEventTests
 
         // Assert
         domainEvent.Id.Should().NotBe(Guid.Empty);
-        
+
         // UUID v7 tem versão 7 no nibble apropriado
         var bytes = domainEvent.Id.ToByteArray();
         var versionByte = bytes[7];
@@ -145,7 +145,7 @@ public class DomainEventTests
 
         // Assert
         var sortedIds = events.Select(e => e.Id).OrderBy(id => id).ToList();
-        sortedIds.Should().Equal(events.Select(e => e.Id), 
+        sortedIds.Should().Equal(events.Select(e => e.Id),
             "UUID v7 should be sortable by timestamp");
     }
 

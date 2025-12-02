@@ -14,7 +14,7 @@ public class DomainExceptionTests
     private class TestDomainException : DomainException
     {
         public TestDomainException(string message) : base(message) { }
-        public TestDomainException(string message, Exception innerException) 
+        public TestDomainException(string message, Exception innerException)
             : base(message, innerException) { }
     }
 
