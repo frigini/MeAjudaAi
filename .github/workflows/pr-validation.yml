@@ -289,24 +289,24 @@ jobs:
             echo "  Exclude: $EXCLUDE_FILTER"
             echo "  ExcludeByFile: $EXCLUDE_BY_FILE"
 
-            # Create temporary runsettings file for this module
-            cat > "/tmp/${module_name,,}.runsettings" <<'EOF'
-<?xml version="1.0" encoding="utf-8"?>
-<RunSettings>
-  <DataCollectionRunSettings>
-    <DataCollectors>
-      <DataCollector friendlyName="XPlat Code Coverage">
-        <Configuration>
-          <Format>opencover</Format>
-          <Include>${INCLUDE_FILTER}</Include>
-          <Exclude>${EXCLUDE_FILTER}</Exclude>
-          <ExcludeByFile>${EXCLUDE_BY_FILE}</ExcludeByFile>
-        </Configuration>
-      </DataCollector>
-    </DataCollectors>
-  </DataCollectionRunSettings>
-</RunSettings>
-EOF
+            # Create temporary runsettings file for this module (avoid YAML parser issues with XML)
+            RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
+            echo '<?xml version="1.0" encoding="utf-8"?>' > "$RUNSETTINGS_FILE"
+            echo '<RunSettings>' >> "$RUNSETTINGS_FILE"
+            echo '  <DataCollectionRunSettings>' >> "$RUNSETTINGS_FILE"
+            echo '    <DataCollectors>' >> "$RUNSETTINGS_FILE"
+            echo '      <DataCollector friendlyName="XPlat Code Coverage">' >> "$RUNSETTINGS_FILE"
+            echo '        <Configuration>' >> "$RUNSETTINGS_FILE"
+            echo '          <Format>opencover</Format>' >> "$RUNSETTINGS_FILE"
+            echo "          <Include>${INCLUDE_FILTER}</Include>" >> "$RUNSETTINGS_FILE"
+            echo "          <Exclude>${EXCLUDE_FILTER}</Exclude>" >> "$RUNSETTINGS_FILE"
+            echo "          <ExcludeByFile>${EXCLUDE_BY_FILE}</ExcludeByFile>" >> "$RUNSETTINGS_FILE"
+            echo '        </Configuration>' >> "$RUNSETTINGS_FILE"
+            echo '      </DataCollector>' >> "$RUNSETTINGS_FILE"
+            echo '    </DataCollectors>' >> "$RUNSETTINGS_FILE"
+            echo '  </DataCollectionRunSettings>' >> "$RUNSETTINGS_FILE"
+            echo '</RunSettings>' >> "$RUNSETTINGS_FILE"
+
 
             dotnet test "$module_path" \
                 --configuration Release \
