@@ -290,7 +290,7 @@ jobs:
             echo "  ExcludeByFile: $EXCLUDE_BY_FILE"
 
             # Create temporary runsettings file for this module
-            cat > "/tmp/${module_name,,}.runsettings" <<EOF
+            cat > "/tmp/${module_name,,}.runsettings" <<'EOF'
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
   <DataCollectionRunSettings>
