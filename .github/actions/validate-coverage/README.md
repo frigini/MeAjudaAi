@@ -141,7 +141,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Run Tests
         run: dotnet test --collect:"XPlat Code Coverage"
@@ -166,7 +166,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Run Tests
         run: dotnet test --collect:"XPlat Code Coverage"
@@ -191,7 +191,7 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Run Tests
         run: dotnet test --collect:"XPlat Code Coverage"
