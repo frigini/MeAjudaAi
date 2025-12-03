@@ -955,7 +955,7 @@ gantt
 
 **Progresso Phase 1 (Improve-Tests-Coverage-2)**:
 - ✅ **5 Commits**: aabba3d, 5ff84df, 88eaef8, 1ddbf4d, fbf02b9
-- ✅ **50 New Tests**: 32 from earlier tasks + 18 health checks
+- ✅ **~40 New Tests**: Task 2 (10 DbContext) + Task 5 (27 health checks) + Task 1 (incremental fixes)
 - ✅ **Test Success Rate**: 99.0% (1,393/1,407 passing)
 - ✅ **Build Time**: ~25 minutes (full suite with Docker integration tests)
 - ✅ **Health Checks Coverage**:

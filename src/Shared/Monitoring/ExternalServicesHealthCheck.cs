@@ -23,7 +23,7 @@ public partial class MeAjudaAiHealthChecks
                 var keycloakUrl = configuration["Keycloak:BaseUrl"];
                 if (!string.IsNullOrEmpty(keycloakUrl))
                 {
-                    var response = await httpClient.GetAsync($"{keycloakUrl}/realms/meajudaai", cancellationToken);
+                    using var response = await httpClient.GetAsync($"{keycloakUrl}/realms/meajudaai", cancellationToken);
                     results["keycloak"] = new
                     {
                         status = response.IsSuccessStatusCode ? "healthy" : "unhealthy",

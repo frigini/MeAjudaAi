@@ -1,5 +1,4 @@
 using FluentAssertions;
-using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.ApiService.Options;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Options;
@@ -44,7 +43,7 @@ public class OptionsTests
 
         // Assert
         settings.Should().NotBeNull();
-        settings.GetType().Should().Be<GeneralSettings>();
+        settings.Should().BeOfType<GeneralSettings>();
     }
 
     [Fact]
@@ -55,7 +54,7 @@ public class OptionsTests
 
         // Assert
         limits.Should().NotBeNull();
-        limits.GetType().Should().Be<AuthenticatedLimits>();
+        limits.Should().BeOfType<AuthenticatedLimits>();
     }
 
     [Fact]
@@ -66,7 +65,7 @@ public class OptionsTests
 
         // Assert
         limits.Should().NotBeNull();
-        limits.GetType().Should().Be<AnonymousLimits>();
+        limits.Should().BeOfType<AnonymousLimits>();
     }
 
     #region SecurityOptions Tests
