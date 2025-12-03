@@ -72,21 +72,18 @@ jobs:
           postgres-user: ${{ secrets.POSTGRES_USER || 'postgres' }}
           postgres-password: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
 
-      - name: Run tests
+      - name: Run unit tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
-          # Map connection strings to .NET configuration using double underscore
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
-          echo "🧪 Executando todos os testes..."
-          
           # Define exclude patterns for coverage
           EXCLUDE_PATTERNS="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
 
-          # Executar testes unitários e de arquitetura (EXCLUINDO código gerado do compilador)
+          echo "🧪 Running Shared and Architecture tests..."
           dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/Shared \
@@ -102,8 +99,7 @@ jobs:
             --collect:"XPlat Code Coverage" --results-directory TestResults/ApiService \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
           
-          # Executar testes de módulos
-          echo "🧪 Executando testes de módulos..."
+          echo "🧪 Running module tests..."
           dotnet test src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/Users \
@@ -134,16 +130,27 @@ jobs:
             --collect:"XPlat Code Coverage" --results-directory TestResults/SearchProviders \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
 
-          # Executar testes de integração e E2E (SEM coverage - apenas validação funcional)
-          echo "🔗 Executando testes de integração (sem coverage)..."
+      - name: Run integration tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+        run: |
           dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
             --configuration Release --no-build --verbosity normal
 
-          echo "🔍 Executando testes E2E (sem coverage)..."
+      - name: Run E2E tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+        run: |
           dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
             --configuration Release --no-build --verbosity normal
-
-          echo "✅ Todos os testes executados com sucesso"
 
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
