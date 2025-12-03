@@ -96,6 +96,22 @@ updates:
       # Permitir apenas patches na versão 1.x atual
       - dependency-name: "Hangfire.PostgreSql"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      
+      # CRITICAL: Bloquear atualizações parciais do EF Core até Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0 estável
+      # Contexto: Npgsql 10.0.0-rc.2 requer EF Core 10.0.0-rc.2.25502.107 EXATAMENTE
+      # Atualizar apenas EF Core para 10.0.0 estável sem Npgsql causa conflito NU1107
+      # Ação: Quando Npgsql 10.0.0 estável for lançado, remover estas regras e atualizar tudo junto
+      # Monitorar: https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL
+      - dependency-name: "Microsoft.EntityFrameworkCore"
+        versions: ["10.0.0"]
+      - dependency-name: "Microsoft.EntityFrameworkCore.Design"
+        versions: ["10.0.0"]
+      - dependency-name: "Microsoft.EntityFrameworkCore.Relational"
+        versions: ["10.0.0"]
+      - dependency-name: "Microsoft.EntityFrameworkCore.InMemory"
+        versions: ["10.0.0"]
+      - dependency-name: "Microsoft.EntityFrameworkCore.Sqlite"
+        versions: ["10.0.0"]
     
     # Reviewers automáticos
 
