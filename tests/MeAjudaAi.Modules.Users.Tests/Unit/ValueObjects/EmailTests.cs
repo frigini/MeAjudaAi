@@ -102,6 +102,24 @@ public class EmailTests
 
         // Act & Assert
         email1.Should().Be(email2);
+        email1.Equals(email2).Should().BeTrue();
+        (email1 == email2).Should().BeTrue();
+        (email1 != email3).Should().BeTrue();
+        email1.GetHashCode().Should().Be(email2.GetHashCode());
         email1.Should().NotBe(email3);
+    }
+
+    [Fact]
+    public void Email_Equality_WithDifferentCase_ShouldBeEqual()
+    {
+        // Arrange
+        var email1 = new Email("Test@Example.COM");
+        var email2 = new Email("test@example.com");
+
+        // Act & Assert
+        email1.Should().Be(email2);
+        email1.Equals(email2).Should().BeTrue();
+        (email1 == email2).Should().BeTrue();
+        email1.GetHashCode().Should().Be(email2.GetHashCode());
     }
 }

@@ -11,6 +11,9 @@ public sealed class CepTests
     [InlineData("01310-100", "01310100")]
     public void Create_WithValidCep_ShouldReturnCepObject(string validCep, string expectedValue)
     {
+        // Arrange
+        // Input provided via InlineData
+
         // Act
         var cep = Cep.Create(validCep);
 
@@ -22,9 +25,12 @@ public sealed class CepTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    [InlineData("   ")]
+    [InlineData(" ")]
     public void Create_WithNullOrWhitespace_ShouldReturnNull(string? invalidCep)
     {
+        // Arrange
+        // Input provided via InlineData
+
         // Act
         var cep = Cep.Create(invalidCep);
 
@@ -127,6 +133,9 @@ public sealed class CepTests
     [InlineData(" 12345678 ", "12345678")]
     public void Create_WithExtraCharacters_ShouldCleanAndValidate(string cepWithExtras, string expectedValue)
     {
+        // Arrange
+        // Input provided via InlineData
+
         // Act
         var cep = Cep.Create(cepWithExtras);
 
