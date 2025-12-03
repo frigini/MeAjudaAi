@@ -262,21 +262,24 @@ jobs:
               MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
               mkdir -p "$MODULE_COVERAGE_DIR"
 
-            # Dynamic include filter based on module type
+            # CRITICAL: Include ALL assemblies matching the pattern to get full coverage
+            # The Include filter determines which assemblies are instrumented for coverage
+            # Using broad patterns ensures we capture all source code
             if [ -n "$include_pattern" ]; then
               INCLUDE_FILTER="[${include_pattern}]*"
             else
-              INCLUDE_FILTER="[MeAjudaAi.*]*"
+              # Default to all MeAjudaAi assemblies if no specific pattern
+              INCLUDE_FILTER="[MeAjudaAi*]*"
             fi
 
             # Validate filter is not empty or trivial
             if [ "$INCLUDE_FILTER" = "[]*" ] || [ "$INCLUDE_FILTER" = "[].*" ]; then
-              echo "⚠️  INCLUDE_FILTER is trivial, falling back to [MeAjudaAi.*]*"
-              INCLUDE_FILTER="[MeAjudaAi.*]*"
+              echo "⚠️  INCLUDE_FILTER is trivial, falling back to [MeAjudaAi*]*"
+              INCLUDE_FILTER="[MeAjudaAi*]*"
             fi
 
-            # NOTE: EXCLUDE_FILTER includes compiler-generated code exclusions
-            # to provide accurate coverage metrics for hand-written code only.
+            # NOTE: EXCLUDE_FILTER excludes test assemblies and compiler-generated code
+            # This ensures coverage metrics reflect only hand-written production code
             # Excluded patterns:
             #   - Test assemblies: [*.Tests*]*, [*Test*]*, [testhost]*
             #   - OpenApi generated: [*Microsoft.AspNetCore.OpenApi.Generated*]*
@@ -308,10 +311,13 @@ jobs:
             echo '</RunSettings>' >> "$RUNSETTINGS_FILE"
 
 
+            # NOTE: We run ALL tests (no --filter) because:
+            # 1. Tests should exercise all code paths
+            # 2. Include/Exclude filters in .runsettings control COVERAGE (what code is instrumented)
+            # 3. Test filters only control which TESTS run, not what CODE is covered
             dotnet test "$module_path" \
                 --configuration Release \
                 --verbosity normal \
-                --filter "FullyQualifiedName!~Integration&FullyQualifiedName!~Infrastructure" \
                 --collect:"XPlat Code Coverage" \
                 --results-directory "$MODULE_COVERAGE_DIR" \
                 --logger "trx;LogFileName=${module_name,,}-test-results.trx" \
