@@ -107,14 +107,35 @@ NU1107: Version conflict detected for Microsoft.EntityFrameworkCore
 
 ### Monitoring
 
-**Check for Npgsql updates**:
-- NuGet: https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL
-- GitHub: https://github.com/npgsql/efcore.pg/releases
-- RSS Feed: https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL/feed/
+**Automated Notification System** ✅
 
-**Check for Hangfire updates**:
-- NuGet: https://www.nuget.org/packages/Hangfire.PostgreSql
-- GitHub: https://github.com/frankhommers/Hangfire.PostgreSql/releases
+1. **Dependabot watches Npgsql daily** (not blocked)
+   - When 10.0.0 stable releases → PR created automatically
+   - PR title: "chore: Bump the npgsql group with X updates"
+   - **This PR = notification to start upgrade process**
+
+2. **GitHub Actions workflows** (already configured)
+   - `monitor-package-compatibility.yml` - Weekly NuGet checks
+   - `package-watch-notifications.yml` - Daily repo monitoring
+   - Auto-comments on Issues #38, #39, #42 when updates found
+
+3. **Manual monitoring** (backup)
+   - NuGet: https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL
+   - GitHub: https://github.com/npgsql/efcore.pg/releases
+   - RSS Feed: https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL/feed/
+
+**You will know when Npgsql 10.0.0 stable releases**:
+- ✅ Dependabot creates PR (primary notification)
+- ✅ GitHub Actions comment on Issue #42
+- ✅ Weekly monitoring workflow detects change
+
+**What to do when PR appears**:
+1. ⚠️ **DO NOT merge Npgsql PR immediately**
+2. ✅ Use as trigger to follow upgrade checklist (Issue #42)
+3. ✅ Remove Dependabot blocks from `.github/dependabot.yml`
+4. ✅ Update all EF Core packages together
+5. ✅ Run full test suite + Hangfire integration tests
+6. ✅ Close Issue #42
 
 ### Alternative Options (Not Recommended)
 
@@ -140,7 +161,8 @@ NU1107: Version conflict detected for Microsoft.EntityFrameworkCore
 
 ### Related Issues
 
-- **PR #41**: Bump the ef-core group with 1 update (REJECT)
+- **Issue #42**: [MONITOR] Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0 stable (NEW - tracking release)
+- **PR #41**: Bump the ef-core group with 1 update (CLOSED - rejected due to incompatibility)
 - **Issue #38**: Aspire.Npgsql.EntityFrameworkCore.PostgreSQL compatibility
 - **Issue #39**: Hangfire.PostgreSql 2.x awaiting release
 
