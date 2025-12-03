@@ -283,9 +283,11 @@ jobs:
             #   - Compiler services: [*System.Runtime.CompilerServices*]*
             #   - Regex generator: [*System.Text.RegularExpressions.Generated*]*
             EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*"
+            EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
 
             echo "  Include: $INCLUDE_FILTER"
             echo "  Exclude: $EXCLUDE_FILTER"
+            echo "  ExcludeByFile: $EXCLUDE_BY_FILE"
 
             # Create temporary runsettings file for this module
             cat > "/tmp/${module_name,,}.runsettings" <<EOF
@@ -298,6 +300,7 @@ jobs:
           <Format>opencover</Format>
           <Include>${INCLUDE_FILTER}</Include>
           <Exclude>${EXCLUDE_FILTER}</Exclude>
+          <ExcludeByFile>${EXCLUDE_BY_FILE}</ExcludeByFile>
         </Configuration>
       </DataCollector>
     </DataCollectors>
