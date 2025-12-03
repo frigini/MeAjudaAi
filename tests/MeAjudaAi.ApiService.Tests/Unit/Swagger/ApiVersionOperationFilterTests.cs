@@ -136,7 +136,7 @@ public class ApiVersionOperationFilterTests
         var apiDescription = new Microsoft.AspNetCore.Mvc.ApiExplorer.ApiDescription();
         var schemaRepository = new SchemaRepository();
         var document = new OpenApiDocument();
-        
+
         return new OperationFilterContext(
             apiDescription,
             null!,

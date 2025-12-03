@@ -84,52 +84,20 @@ jobs:
           echo "🧪 Executando todos os testes..."
 
           # Executar testes unitários e de arquitetura (EXCLUINDO código gerado do compilador)
-          dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj \
-            --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Shared \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile=\
-"**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
-          dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj \
-            --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Architecture \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile=\
-"**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+          dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Shared -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+          dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Architecture -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
           # Executar testes de integração
-          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
-            --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Integration \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile=\
-"**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Integration -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
           # Executar testes de módulos
           echo "🧪 Executando testes de módulos..."
-          dotnet test src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj \
-            --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Users \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile=\
-"**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
-          dotnet test src/Modules/Documents/Tests/MeAjudaAi.Modules.Documents.Tests.csproj \
-            --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Documents \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile=\
-"**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
-          dotnet test src/Modules/Providers/Tests/MeAjudaAi.Modules.Providers.Tests.csproj \
-            --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Providers \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile=\
-"**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
-          dotnet test src/Modules/ServiceCatalogs/Tests/MeAjudaAi.Modules.ServiceCatalogs.Tests.csproj \
-            --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/ServiceCatalogs \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile=\
-"**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+          dotnet test src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Users -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+          dotnet test src/Modules/Documents/Tests/MeAjudaAi.Modules.Documents.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Documents -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+          dotnet test src/Modules/Providers/Tests/MeAjudaAi.Modules.Providers.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/Providers -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+          dotnet test src/Modules/ServiceCatalogs/Tests/MeAjudaAi.Modules.ServiceCatalogs.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/ServiceCatalogs -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
 
           # Executar testes E2E
           echo "🔍 Executando testes E2E..."
-          dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
-            --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/E2E \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile=\
-"**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+          dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory TestResults/E2E -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
 
           echo "✅ Todos os testes executados com sucesso"
 
