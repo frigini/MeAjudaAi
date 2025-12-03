@@ -2,8 +2,8 @@ name: Monitor Package Compatibility
 
 on:
   schedule:
-    # Executa toda segunda-feira às 10h BRT (após Dependabot rodar)
-    - cron: '0 13 * * 1'  # 10am BRT = 1pm UTC
+    # Executa diariamente às 10h BRT (após Dependabot rodar)
+    - cron: '0 13 * * *'  # 10am BRT = 1pm UTC
   workflow_dispatch:  # Permite execução manual
 
 permissions:
