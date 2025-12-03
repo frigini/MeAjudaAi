@@ -98,10 +98,11 @@ updates:
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
       
       # CRITICAL: Bloquear atualizações parciais do EF Core até Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0 estável
-      # Contexto: Npgsql 10.0.0-rc.2 requer EF Core 10.0.0-rc.2.25502.107 EXATAMENTE
-      # Atualizar apenas EF Core para 10.0.0 estável sem Npgsql causa conflito NU1107
-      # Ação: Quando Npgsql 10.0.0 estável for lançado, remover estas regras e atualizar tudo junto
-      # Issue: Criar Issue #42 para monitorar Npgsql 10.0.0 stable
+      # Contexto: ADO.NET Npgsql 10.0.0 stable já disponível, mas EF Core provider ainda em RC
+      # Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0-rc.2 requer EF Core 10.0.0-rc.2.25502.107 EXATAMENTE
+      # Atualizar apenas EF Core para 10.0.0 estável sem provider causa conflito NU1107
+      # Ação: Quando provider 10.0.0 estável for lançado, remover estas regras e atualizar tudo junto
+      # Ver Issue #42 - Tracking Npgsql.EntityFrameworkCore.PostgreSQL stable release
       # Monitorar: https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL
       - dependency-name: "Microsoft.EntityFrameworkCore"
         versions: ["10.0.0"]

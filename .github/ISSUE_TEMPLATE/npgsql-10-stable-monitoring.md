@@ -68,9 +68,9 @@ Quando Npgsql 10.0.0 stable for lançado:
 
 ### 📌 Referências
 
-- **NuGet**: https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL
-- **GitHub**: https://github.com/npgsql/efcore.pg
-- **Release Notes**: https://www.npgsql.org/doc/release-notes/10.0.html
+- **NuGet**: [Npgsql.EntityFrameworkCore.PostgreSQL](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL)
+- **GitHub**: [npgsql/efcore.pg](https://github.com/npgsql/efcore.pg)
+- **Release Notes**: [10.0 Release Notes](https://www.npgsql.org/doc/release-notes/10.0.html)
 - **Documentação**: `docs/ef-core-10-migration-status.md`
 - **Configuração**: `Directory.Packages.props` (linhas 36-47)
 - **Dependabot**: `.github/dependabot.yml` (linhas 98-118)

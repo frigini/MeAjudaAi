@@ -40,7 +40,7 @@ public sealed class ServiceIdTests
 
         // Assert
         serviceId.Value.Should().NotBeEmpty();
-        // Verify UUID v7 format (version 7, variant 2)
+        // Verify UUID v7 format (version 7)
         var bytes = serviceId.Value.ToByteArray();
         var version = (bytes[7] & 0xF0) >> 4;
         version.Should().Be(7, "ServiceId should use UUID v7");

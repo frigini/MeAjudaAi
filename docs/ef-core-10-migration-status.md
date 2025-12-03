@@ -4,14 +4,14 @@
 
 ### Timeline
 - **November 11, 2025**: EF Core 10.0.0 stable released
-- **December 3, 2025** (TODAY): Npgsql still at 10.0.0-rc.2
-- **Expected Q1 2026**: Npgsql 10.0.0 stable release
+- **December 3, 2025** (TODAY): Npgsql.EntityFrameworkCore.PostgreSQL still at 10.0.0-rc.2
+- **Expected Q1 2026**: Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0 stable release
 
 ### The Problem
 
 Dependabot PR #41 attempted to update `Microsoft.EntityFrameworkCore.Relational` from RC to stable, which caused a version conflict:
 
-```
+```text
 NU1107: Version conflict detected for Microsoft.EntityFrameworkCore
   MeAjudaAi.Shared -> Microsoft.EntityFrameworkCore (>= 10.0.0)
   Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0-rc.2 -> Microsoft.EntityFrameworkCore (= 10.0.0-rc.2.25502.107)
@@ -103,7 +103,7 @@ NU1107: Version conflict detected for Microsoft.EntityFrameworkCore
    dotnet test --filter "Category=HangfireIntegration"
    ```
 
-5. **Update documentation** - Remove "TODO" comments about waiting for Npgsql
+5. **Update documentation** - Eliminate "TODO" comments about waiting for Npgsql
 
 ### Monitoring
 
@@ -120,9 +120,9 @@ NU1107: Version conflict detected for Microsoft.EntityFrameworkCore
    - Auto-comments on Issues #38, #39, #42 when updates found
 
 3. **Manual monitoring** (backup)
-   - NuGet: https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL
-   - GitHub: https://github.com/npgsql/efcore.pg/releases
-   - RSS Feed: https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL/feed/
+   - NuGet: [Npgsql.EntityFrameworkCore.PostgreSQL](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL)
+   - GitHub: [npgsql/efcore.pg releases](https://github.com/npgsql/efcore.pg/releases)
+   - RSS Feed: [Package Feed](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL/feed/)
 
 **You will know when Npgsql 10.0.0 stable releases**:
 - ✅ Dependabot creates PR (primary notification)
