@@ -66,9 +66,8 @@ public sealed class DocumentUploadedDomainEventTests
         var event2 = new DocumentUploadedDomainEvent(aggregateId, version, providerId, documentType, fileUrl);
 
         // Act & Assert
-        event1.AggregateId.Should().Be(event2.AggregateId);
-        event1.ProviderId.Should().Be(event2.ProviderId);
-        event1.DocumentType.Should().Be(event2.DocumentType);
-        event1.FileUrl.Should().Be(event2.FileUrl);
+        event1.Should().Be(event2);
+        event1.Equals(event2).Should().BeTrue();
+        (event1 == event2).Should().BeTrue();
     }
 }

@@ -22,6 +22,19 @@ public class EmailTests
         email.Value.Should().Be(validEmail);
     }
 
+    [Fact]
+    public void Email_WithMixedCase_ShouldNormalizeToLowerCase()
+    {
+        // Arrange
+        var mixedCaseEmail = "Test@Example.COM";
+
+        // Act
+        var email = new Email(mixedCaseEmail);
+
+        // Assert
+        email.Value.Should().Be("test@example.com");
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
