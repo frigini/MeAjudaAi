@@ -1,6 +1,6 @@
 using FluentAssertions;
-using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.ValueObjects;
 
@@ -33,6 +33,22 @@ public class EmailTests
 
         // Assert
         email.Value.Should().Be("test@example.com");
+    }
+
+    [Fact]
+    public void Email_ExceedingMaxLength_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var domain = "@example.com";
+        var tooLongLocalPart = new string('a', ValidationConstants.UserLimits.EmailMaxLength + 1 - domain.Length);
+        var tooLongEmail = tooLongLocalPart + domain;
+
+        // Act
+        var act = () => new Email(tooLongEmail);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*Email não pode ter mais de*");
     }
 
     [Theory]

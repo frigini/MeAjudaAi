@@ -132,4 +132,14 @@ public sealed class ServiceIdTests
         // Act & Assert
         serviceId1.GetHashCode().Should().Be(serviceId2.GetHashCode());
     }
+
+    [Fact]
+    public void Equals_WithNull_ShouldReturnFalse()
+    {
+        // Arrange
+        var serviceId = ServiceId.New();
+
+        // Act & Assert
+        serviceId.Equals(null).Should().BeFalse();
+    }
 }

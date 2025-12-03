@@ -16,6 +16,7 @@ public sealed class ProviderRegisteredDomainEventTests
         var name = "John's Plumbing Services";
         var type = EProviderType.Individual;
         var email = "john@plumbing.com";
+        var before = DateTime.UtcNow;
 
         // Act
         var @event = new ProviderRegisteredDomainEvent(
@@ -27,13 +28,16 @@ public sealed class ProviderRegisteredDomainEventTests
             email);
 
         // Assert
+        var after = DateTime.UtcNow;
+
         @event.AggregateId.Should().Be(aggregateId);
         @event.Version.Should().Be(version);
         @event.UserId.Should().Be(userId);
         @event.Name.Should().Be(name);
         @event.Type.Should().Be(type);
         @event.Email.Should().Be(email);
-        @event.OccurredOn.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        @event.OccurredOn.Should().BeOnOrAfter(before);
+        @event.OccurredOn.Should().BeOnOrBefore(after);
     }
 
     [Theory]
@@ -72,6 +76,7 @@ public sealed class ProviderRegisteredDomainEventTests
         event1.Should().Be(event2);
         event1.Equals(event2).Should().BeTrue();
         (event1 == event2).Should().BeTrue();
+        event1.GetHashCode().Should().Be(event2.GetHashCode());
     }
 
     [Fact]

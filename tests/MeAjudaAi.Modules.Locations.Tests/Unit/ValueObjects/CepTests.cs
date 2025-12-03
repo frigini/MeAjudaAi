@@ -6,17 +6,17 @@ namespace MeAjudaAi.Modules.Locations.Tests.Unit.ValueObjects;
 public sealed class CepTests
 {
     [Theory]
-    [InlineData("12345678")]
-    [InlineData("12345-678")]
-    [InlineData("01310-100")]
-    public void Create_WithValidCep_ShouldReturnCepObject(string validCep)
+    [InlineData("12345678", "12345678")]
+    [InlineData("12345-678", "12345678")]
+    [InlineData("01310-100", "01310100")]
+    public void Create_WithValidCep_ShouldReturnCepObject(string validCep, string expectedValue)
     {
         // Act
         var cep = Cep.Create(validCep);
 
         // Assert
         cep.Should().NotBeNull();
-        cep!.Value.Should().MatchRegex(@"^\d{8}$");
+        cep!.Value.Should().Be(expectedValue);
     }
 
     [Theory]
@@ -122,16 +122,16 @@ public sealed class CepTests
     }
 
     [Theory]
-    [InlineData("12.345-678")]
-    [InlineData("12 345-678")]
-    [InlineData(" 12345678 ")]
-    public void Create_WithExtraCharacters_ShouldCleanAndValidate(string cepWithExtras)
+    [InlineData("12.345-678", "12345678")]
+    [InlineData("12 345-678", "12345678")]
+    [InlineData(" 12345678 ", "12345678")]
+    public void Create_WithExtraCharacters_ShouldCleanAndValidate(string cepWithExtras, string expectedValue)
     {
         // Act
         var cep = Cep.Create(cepWithExtras);
 
         // Assert
         cep.Should().NotBeNull();
-        cep!.Value.Should().MatchRegex(@"^\d{8}$");
+        cep!.Value.Should().Be(expectedValue);
     }
 }

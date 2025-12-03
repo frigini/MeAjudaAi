@@ -57,6 +57,22 @@ public sealed class UserRegisteredDomainEventTests
     }
 
     [Fact]
+    public void Equals_WithDifferentValues_ShouldReturnFalse()
+    {
+        // Arrange
+        var aggregateId = Guid.NewGuid();
+        var version = 1;
+
+        var event1 = new UserRegisteredDomainEvent(aggregateId, version, "user1@example.com", new Username("user1"), "John", "Doe");
+        var event2 = new UserRegisteredDomainEvent(aggregateId, version, "user2@example.com", new Username("user2"), "Jane", "Smith");
+
+        // Act & Assert
+        event1.Should().NotBe(event2);
+        event1.Equals(event2).Should().BeFalse();
+        (event1 != event2).Should().BeTrue();
+    }
+
+    [Fact]
     public void Deconstruct_ShouldExtractAllProperties()
     {
         // Arrange

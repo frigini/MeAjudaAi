@@ -26,6 +26,10 @@ public sealed class SearchableProviderIdTests
 
         // Assert
         providerId.Value.Should().NotBeEmpty();
+        // Verify UUID v7 format (version 7, variant 2)
+        var bytes = providerId.Value.ToByteArray();
+        var version = (bytes[7] & 0xF0) >> 4;
+        version.Should().Be(7, "SearchableProviderId should use UUID v7");
     }
 
     [Fact]
