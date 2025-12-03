@@ -86,7 +86,18 @@ updates:
       # Não atualizar automaticamente para versões major (requer revisão manual)
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-
+      
+      # ⚠️ Pacotes com incompatibilidades conhecidas - Ver Issues para monitoramento
+      
+      # Issue #38: Aguardando versão compatível com EF Core 10.x
+      - dependency-name: "Aspire.Npgsql.EntityFrameworkCore.PostgreSQL"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      
+      # Issue #39: Aguardando Hangfire.PostgreSql 2.x com suporte oficial Npgsql 10.x
+      # Permitir apenas patches na versão 1.x atual
+      - dependency-name: "Hangfire.PostgreSql"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    
     # Reviewers automáticos
 
   # Monitorar GitHub Actions
