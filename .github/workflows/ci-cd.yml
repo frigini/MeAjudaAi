@@ -97,10 +97,9 @@ jobs:
             --collect:"XPlat Code Coverage" --results-directory TestResults/Architecture \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
           
-          # Executar testes de integração
-          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
+          dotnet test tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Integration \
+            --collect:"XPlat Code Coverage" --results-directory TestResults/ApiService \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
           
           # Executar testes de módulos
@@ -124,13 +123,25 @@ jobs:
             --configuration Release --no-build --verbosity normal \
             --collect:"XPlat Code Coverage" --results-directory TestResults/ServiceCatalogs \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
-
-          # Executar testes E2E
-          echo "🔍 Executando testes E2E..."
-          dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
+          
+          dotnet test src/Modules/Locations/Tests/MeAjudaAi.Modules.Locations.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/E2E \
+            --collect:"XPlat Code Coverage" --results-directory TestResults/Locations \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
+          
+          dotnet test src/Modules/SearchProviders/Tests/MeAjudaAi.Modules.SearchProviders.Tests.csproj \
+            --configuration Release --no-build --verbosity normal \
+            --collect:"XPlat Code Coverage" --results-directory TestResults/SearchProviders \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
+
+          # Executar testes de integração e E2E (SEM coverage - apenas validação funcional)
+          echo "🔗 Executando testes de integração (sem coverage)..."
+          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
+            --configuration Release --no-build --verbosity normal
+
+          echo "🔍 Executando testes E2E (sem coverage)..."
+          dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
+            --configuration Release --no-build --verbosity normal
 
           echo "✅ Todos os testes executados com sucesso"
 
