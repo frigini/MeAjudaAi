@@ -257,7 +257,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
     #region Multiple Services Tests
 
     [Fact]
-    public async Task CheckHealthAsync_WithMultipleServices_ShouldCheckAll()
+    public async Task CheckHealthAsync_WithKeycloakConfigured_ShouldIncludeKeycloakCheck()
     {
         // Arrange
         _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns("https://keycloak.test");
