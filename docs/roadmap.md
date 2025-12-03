@@ -657,10 +657,10 @@ Para receber notificações quando novas versões estáveis forem lançadas, con
        check-outdated:
          runs-on: ubuntu-latest
          steps:
-           - uses: actions/checkout@v4
+           - uses: actions/checkout@v6
            
            - name: Setup .NET
-             uses: actions/setup-dotnet@v4
+             uses: actions/setup-dotnet@v5
              with:
                dotnet-version: '10.x'
            
