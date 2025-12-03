@@ -130,14 +130,14 @@ jobs:
             -classfilters:"-*.Migrations*;-*OpenApi.Generated*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*"
 
       - name: Upload code coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: code-coverage
           path: "TestResults/Coverage/**/*"
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: test-results
@@ -247,7 +247,7 @@ jobs:
 
       - name: Upload infrastructure outputs
         if: github.event.inputs.deploy_infrastructure == 'true' || github.event.inputs.deploy_infrastructure == ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: infrastructure-outputs-dev
           path: infrastructure-outputs.json
