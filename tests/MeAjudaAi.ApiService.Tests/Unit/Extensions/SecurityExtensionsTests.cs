@@ -46,6 +46,10 @@ public class SecurityExtensionsTests
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Cors:AllowedOrigins:0"] = "*",
+                ["Cors:AllowedMethods:0"] = "GET",
+                ["Cors:AllowedMethods:1"] = "POST",
+                ["Cors:AllowedHeaders:0"] = "Content-Type",
+                ["Cors:AllowedHeaders:1"] = "Authorization",
                 ["Keycloak:BaseUrl"] = "https://keycloak.test",
                 ["Keycloak:Realm"] = "test",
                 ["Keycloak:ClientId"] = "test-client"
@@ -71,6 +75,10 @@ public class SecurityExtensionsTests
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Cors:AllowedOrigins:0"] = "http://example.com",
+                ["Cors:AllowedMethods:0"] = "GET",
+                ["Cors:AllowedMethods:1"] = "POST",
+                ["Cors:AllowedHeaders:0"] = "Content-Type",
+                ["Cors:AllowedHeaders:1"] = "Authorization",
                 ["Keycloak:BaseUrl"] = "https://keycloak.test",
                 ["Keycloak:Realm"] = "test",
                 ["Keycloak:ClientId"] = "test-client"
@@ -96,6 +104,10 @@ public class SecurityExtensionsTests
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Cors:AllowedOrigins:0"] = "https://example.com",
+                ["Cors:AllowedMethods:0"] = "GET",
+                ["Cors:AllowedMethods:1"] = "POST",
+                ["Cors:AllowedHeaders:0"] = "Content-Type",
+                ["Cors:AllowedHeaders:1"] = "Authorization",
                 ["Keycloak:BaseUrl"] = "http://keycloak.test",
                 ["Keycloak:Realm"] = "test",
                 ["Keycloak:ClientId"] = "test-client"
@@ -122,6 +134,10 @@ public class SecurityExtensionsTests
             {
                 ["AllowedHosts"] = "*",
                 ["Cors:AllowedOrigins:0"] = "https://example.com",
+                ["Cors:AllowedMethods:0"] = "GET",
+                ["Cors:AllowedMethods:1"] = "POST",
+                ["Cors:AllowedHeaders:0"] = "Content-Type",
+                ["Cors:AllowedHeaders:1"] = "Authorization",
                 ["Keycloak:BaseUrl"] = "https://keycloak.test",
                 ["Keycloak:Realm"] = "test",
                 ["Keycloak:ClientId"] = "test-client"
@@ -148,6 +164,12 @@ public class SecurityExtensionsTests
             {
                 ["AllowedHosts"] = "example.com",
                 ["Cors:AllowedOrigins:0"] = "https://example.com",
+                ["Cors:AllowedMethods:0"] = "GET",
+                ["Cors:AllowedMethods:1"] = "POST",
+                ["Cors:AllowedMethods:2"] = "PUT",
+                ["Cors:AllowedMethods:3"] = "DELETE",
+                ["Cors:AllowedHeaders:0"] = "Content-Type",
+                ["Cors:AllowedHeaders:1"] = "Authorization",
                 ["Keycloak:BaseUrl"] = "https://keycloak.test",
                 ["Keycloak:Realm"] = "test",
                 ["Keycloak:ClientId"] = "test-client",
