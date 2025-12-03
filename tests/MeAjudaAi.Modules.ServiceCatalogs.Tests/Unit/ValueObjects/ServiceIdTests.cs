@@ -29,7 +29,7 @@ public sealed class ServiceIdTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("ServiceId cannot be empty");
+            .WithMessage("*ServiceId cannot be empty*");
     }
 
     [Fact]
@@ -131,8 +131,10 @@ public sealed class ServiceIdTests
     public void Equals_WithDifferentValue_ShouldReturnFalse()
     {
         // Arrange
-        var serviceId1 = ServiceId.New();
-        var serviceId2 = ServiceId.New();
+        var guid1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        var guid2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
+        var serviceId1 = new ServiceId(guid1);
+        var serviceId2 = new ServiceId(guid2);
 
         // Act & Assert
         serviceId1.Should().NotBe(serviceId2);

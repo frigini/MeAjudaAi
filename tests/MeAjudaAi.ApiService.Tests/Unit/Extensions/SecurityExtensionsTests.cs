@@ -8,6 +8,10 @@ using NSubstitute;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Extensions;
 
+/// <summary>
+/// Unit tests for <see cref="SecurityExtensions"/> validating security configuration,
+/// CORS policies, authentication, and authorization setup.
+/// </summary>
 public class SecurityExtensionsTests
 {
     [Fact]
