@@ -80,8 +80,10 @@ jobs:
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
-          # Define exclude patterns for coverage
-          EXCLUDE_PATTERNS="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+          # Define exclude patterns for coverage (files and assemblies)
+          # Excludes: Migrations, Database, Contracts, OpenApi generated, compiler services, regex generator
+          EXCLUDE_PATTERNS="**/Migrations/*.cs,**/Database/*.cs,**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+          EXCLUDE_ASSEMBLIES="[*.Tests*]*,[*Test*]*,[testhost]*,[*]*.Migrations.*,[*]*.Database,[*]*.Contracts"
 
           echo "================================"
           echo "🧪 UNIT TESTS WITH COVERAGE"
@@ -177,9 +179,10 @@ jobs:
           TestResults/SearchProviders/**/coverage.cobertura.xml" \
             -targetdir:"TestResults/Coverage" \
             -reporttypes:"Html;Cobertura;JsonSummary" \
-            -assemblyfilters:"-*.Tests*" \
-            -classfilters:"-*.Migrations*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*"
+            -assemblyfilters:"-*.Tests*;-*Test*;-*.Migrations.*;-*.Database;-*.Contracts" \
+            -classfilters:"-*.Migrations.*;-*.Database.*;-*.Contracts.*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*"
           # Note: Only UNIT test coverage is collected (Integration/E2E excluded for deterministic results)
+          # Excluded from coverage: Tests, Migrations, Database, Contracts, Metrics, Health Checks, Jobs config, Program, AppHost
 
       - name: Upload code coverage
         uses: actions/upload-artifact@v5
