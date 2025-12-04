@@ -400,6 +400,23 @@ jobs:
           # Add dotnet tools to PATH
           export PATH="$PATH:$HOME/.dotnet/tools"
           
+          # Pre-flight check: verify all expected coverage files exist
+          echo "🔍 Pre-flight check: Verifying coverage files..."
+          MISSING_FILES=0
+          for module in users providers documents servicecatalogs locations searchproviders shared apiservice; do
+            if ! find "coverage/${module}" -name "*.opencover.xml" -type f | grep -q .; then
+              echo "  ⚠️  Warning: No .opencover.xml files found for ${module}"
+              MISSING_FILES=$((MISSING_FILES + 1))
+            else
+              echo "  ✅ Found coverage file(s) for ${module}"
+            fi
+          done
+          
+          if [ $MISSING_FILES -gt 0 ]; then
+            echo "⚠️  Warning: $MISSING_FILES module(s) missing coverage files"
+            echo "   ReportGenerator will combine only available modules"
+          fi
+          
           # Generate aggregated OpenCover XML for the 8 main modules
           # This creates a single coverage.opencover.xml file with combined results
           echo "🔗 Combining coverage from 8 modules (excluding Integration/E2E tests)..."

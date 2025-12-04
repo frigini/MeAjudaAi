@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Messaging.Messages.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.SearchProviders.Infrastructure;
 
@@ -21,7 +22,8 @@ public static class Extensions
     /// </summary>
     public static IServiceCollection AddSearchProvidersInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
         // Registrar DbContext com suporte PostGIS
         // IMPORTANTE: EF Core usa GetConnectionString("DefaultConnection") enquanto Dapper (via PostgresOptions)
@@ -34,8 +36,8 @@ public static class Extensions
 
         // Em ambiente de teste, permitir inicialização sem connection string
         // (útil para testes unitários que não acessam o banco)
-        var environment = configuration.GetValue<string>("ASPNETCORE_ENVIRONMENT");
-        var isTesting = environment == "Testing" || configuration.GetValue<bool>("INTEGRATION_TESTS");
+        var isTesting = environment.IsEnvironment("Testing") 
+                     || configuration.GetValue<bool>("INTEGRATION_TESTS");
         
         if (string.IsNullOrEmpty(connectionString) && !isTesting)
         {
@@ -51,7 +53,7 @@ public static class Extensions
             {
                 options.UseNpgsql(connectionString, npgsqlOptions =>
                 {
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_searchproviders");
                     npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS/geoespacial
                 });
 
@@ -71,11 +73,9 @@ public static class Extensions
             // Registrar repositórios
             services.AddScoped<ISearchableProviderRepository, SearchableProviderRepository>();
         }
-        else
-        {
-            // Em ambiente de teste sem connection string, registrar mock ou skip
-            // Os testes que precisarem de DbContext devem configurar explicitamente
-        }
+        
+        // Em ambiente de teste sem connection string, registrar mock ou skip
+        // Os testes que precisarem de DbContext devem configurar explicitamente
 
         // Registrar Event Handlers (sempre necessário, independente de connection string)
         services.AddEventHandlers();
