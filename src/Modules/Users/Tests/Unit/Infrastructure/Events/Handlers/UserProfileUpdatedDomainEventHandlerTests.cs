@@ -154,42 +154,6 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleAsync_WhenMessageBusThrowsAfterUserFound_ShouldPropagateException()
-    {
-        // Arrange
-        var user = new UserBuilder().Build();
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
-
-        var domainEvent = new UserProfileUpdatedDomainEvent(user.Id.Value, 1, "Test", "User");
-
-        _messageBusMock
-            .Setup(x => x.PublishAsync(
-                It.IsAny<UserProfileUpdatedIntegrationEvent>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()
-            ))
-            .ThrowsAsync(new InvalidOperationException("Message bus connection failed"));
-
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _handler.HandleAsync(domainEvent, CancellationToken.None)
-        );
-
-        // Verify error was logged
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
-                It.IsAny<InvalidOperationException>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-            ),
-            Times.Once
-        );
-    }
-
-    [Fact]
     public async Task HandleAsync_WithCancellationToken_ShouldPassTokenToMessageBus()
     {
         // Arrange

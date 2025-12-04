@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
+using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Events.Handlers;
@@ -26,7 +27,7 @@ public class UserDeletedDomainEventHandlerTests
     public async Task HandleAsync_WithValidEvent_ShouldPublishIntegrationEvent()
     {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = UuidGenerator.NewId();
         var domainEvent = new UserDeletedDomainEvent(userId, 1);
 
         // Act
@@ -115,7 +116,7 @@ public class UserDeletedDomainEventHandlerTests
     public async Task HandleAsync_WithCancellationToken_ShouldPassTokenToMessageBus()
     {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = UuidGenerator.NewId();
         var domainEvent = new UserDeletedDomainEvent(userId, 1);
         var cancellationToken = new CancellationToken();
 
@@ -137,7 +138,7 @@ public class UserDeletedDomainEventHandlerTests
     public async Task HandleAsync_ShouldLogHandlingMessage()
     {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = UuidGenerator.NewId();
         var domainEvent = new UserDeletedDomainEvent(userId, 1);
 
         // Act
@@ -160,9 +161,9 @@ public class UserDeletedDomainEventHandlerTests
     public async Task HandleAsync_MultipleEvents_ShouldPublishAll()
     {
         // Arrange
-        var userId1 = Guid.NewGuid();
-        var userId2 = Guid.NewGuid();
-        var userId3 = Guid.NewGuid();
+        var userId1 = UuidGenerator.NewId();
+        var userId2 = UuidGenerator.NewId();
+        var userId3 = UuidGenerator.NewId();
 
         var event1 = new UserDeletedDomainEvent(userId1, 1);
         var event2 = new UserDeletedDomainEvent(userId2, 1);
