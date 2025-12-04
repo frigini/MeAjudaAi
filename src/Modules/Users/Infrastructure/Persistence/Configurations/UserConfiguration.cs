@@ -78,7 +78,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnType("timestamp with time zone")
             .IsRequired(false);
 
-        // Concurrency token usando xmin do PostgreSQL
+        // Concurrency token using PostgreSQL xmin system column
         builder.Property(u => u.RowVersion)
             .HasColumnName("xmin")
             .HasColumnType("xid")

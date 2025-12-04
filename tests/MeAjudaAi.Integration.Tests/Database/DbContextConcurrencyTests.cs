@@ -37,6 +37,9 @@ public sealed class DbContextConcurrencyTests : ApiTestBase
             userId = user.Id.Value;
         }
 
+        try
+        {
+
         // Act - Simulate two concurrent contexts modifying the same user
         using var scope1 = Services.CreateScope();
         using var scope2 = Services.CreateScope();
@@ -62,6 +65,19 @@ public sealed class DbContextConcurrencyTests : ApiTestBase
 
         await act.Should().ThrowAsync<DbUpdateConcurrencyException>(
             "PostgreSQL xmin concurrency token should detect conflicting updates");
+        }
+        finally
+        {
+            // Cleanup
+            using var cleanupScope = Services.CreateScope();
+            var cleanupContext = cleanupScope.ServiceProvider.GetRequiredService<UsersDbContext>();
+            var userToDelete = await cleanupContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (userToDelete != null)
+            {
+                cleanupContext.Users.Remove(userToDelete);
+                await cleanupContext.SaveChangesAsync();
+            }
+        }
     }
 
     [Fact]
@@ -70,33 +86,52 @@ public sealed class DbContextConcurrencyTests : ApiTestBase
         // Arrange - Create user
         var username = $"noconflict_{Guid.NewGuid():N}"[..20];
         var email = $"{username}@test.com";
+        Guid userId;
 
-        using var scope1 = Services.CreateScope();
-        var context1 = scope1.ServiceProvider.GetRequiredService<UsersDbContext>();
+        using (var scope1 = Services.CreateScope())
+        {
+            var context1 = scope1.ServiceProvider.GetRequiredService<UsersDbContext>();
 
-        var user = new User(
-            new Username(username),
-            new Email(email),
-            "NoConflict",
-            "Test",
-            $"keycloak-{Guid.NewGuid():N}"
-        );
+            var user = new User(
+                new Username(username),
+                new Email(email),
+                "NoConflict",
+                "Test",
+                $"keycloak-{Guid.NewGuid():N}"
+            );
 
-        context1.Users.Add(user);
-        await context1.SaveChangesAsync();
+            context1.Users.Add(user);
+            await context1.SaveChangesAsync();
+            userId = user.Id.Value;
+        }
 
-        // Act - Modify in fresh context (no conflict)
-        using var scope2 = Services.CreateScope();
-        var context2 = scope2.ServiceProvider.GetRequiredService<UsersDbContext>();
+        try
+        {
+            // Act - Modify in fresh context (no conflict)
+            using var scope2 = Services.CreateScope();
+            var context2 = scope2.ServiceProvider.GetRequiredService<UsersDbContext>();
 
-        var userFromContext2 = (await context2.Users.ToListAsync())
-            .First(u => u.Username.Value == username);
-        userFromContext2.UpdateProfile("Updated", "User");
+            var userFromContext2 = (await context2.Users.ToListAsync())
+                .First(u => u.Username.Value == username);
+            userFromContext2.UpdateProfile("Updated", "User");
 
-        // Assert - Should succeed (no concurrent modification)
-        var act = async () => await context2.SaveChangesAsync();
+            // Assert - Should succeed (no concurrent modification)
+            var act = async () => await context2.SaveChangesAsync();
 
-        await act.Should().NotThrowAsync<DbUpdateConcurrencyException>(
-            "sequential updates with no conflict should succeed");
+            await act.Should().NotThrowAsync<DbUpdateConcurrencyException>(
+                "sequential updates with no conflict should succeed");
+        }
+        finally
+        {
+            // Cleanup
+            using var cleanupScope = Services.CreateScope();
+            var cleanupContext = cleanupScope.ServiceProvider.GetRequiredService<UsersDbContext>();
+            var userToDelete = await cleanupContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (userToDelete != null)
+            {
+                cleanupContext.Users.Remove(userToDelete);
+                await cleanupContext.SaveChangesAsync();
+            }
+        }
     }
 }

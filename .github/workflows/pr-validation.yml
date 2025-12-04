@@ -294,6 +294,15 @@ jobs:
             echo "  Exclude: $EXCLUDE_FILTER"
             echo "  ExcludeByFile: $EXCLUDE_BY_FILE"
 
+            # Helper function to escape XML special characters
+            escape_xml() {
+              echo "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g'
+            }
+
+            INCLUDE_FILTER_ESCAPED=$(escape_xml "$INCLUDE_FILTER")
+            EXCLUDE_FILTER_ESCAPED=$(escape_xml "$EXCLUDE_FILTER")
+            EXCLUDE_BY_FILE_ESCAPED=$(escape_xml "$EXCLUDE_BY_FILE")
+
             # Create temporary runsettings file for this module (avoid YAML parser issues with XML)
             RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
             echo '<?xml version="1.0" encoding="utf-8"?>' > "$RUNSETTINGS_FILE"
@@ -303,9 +312,9 @@ jobs:
             echo '      <DataCollector friendlyName="XPlat Code Coverage">' >> "$RUNSETTINGS_FILE"
             echo '        <Configuration>' >> "$RUNSETTINGS_FILE"
             echo '          <Format>opencover</Format>' >> "$RUNSETTINGS_FILE"
-            echo "          <Include>${INCLUDE_FILTER}</Include>" >> "$RUNSETTINGS_FILE"
-            echo "          <Exclude>${EXCLUDE_FILTER}</Exclude>" >> "$RUNSETTINGS_FILE"
-            echo "          <ExcludeByFile>${EXCLUDE_BY_FILE}</ExcludeByFile>" >> "$RUNSETTINGS_FILE"
+            echo "          <Include>${INCLUDE_FILTER_ESCAPED}</Include>" >> "$RUNSETTINGS_FILE"
+            echo "          <Exclude>${EXCLUDE_FILTER_ESCAPED}</Exclude>" >> "$RUNSETTINGS_FILE"
+            echo "          <ExcludeByFile>${EXCLUDE_BY_FILE_ESCAPED}</ExcludeByFile>" >> "$RUNSETTINGS_FILE"
             echo '        </Configuration>' >> "$RUNSETTINGS_FILE"
             echo '      </DataCollector>' >> "$RUNSETTINGS_FILE"
             echo '    </DataCollectors>' >> "$RUNSETTINGS_FILE"
