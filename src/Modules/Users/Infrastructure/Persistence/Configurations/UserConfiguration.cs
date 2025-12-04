@@ -78,6 +78,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnType("timestamp with time zone")
             .IsRequired(false);
 
+        // Concurrency token usando xmin do PostgreSQL
+        builder.Property(u => u.RowVersion)
+            .HasColumnName("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
+
         // Índices únicos para campos de busca primários
         builder.HasIndex(u => u.Email)
             .HasDatabaseName("ix_users_email")

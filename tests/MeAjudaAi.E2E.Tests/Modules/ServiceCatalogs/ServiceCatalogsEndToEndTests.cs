@@ -10,9 +10,9 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
-/// Testes E2E para o módulo ServiceCatalogs usando TestContainers
-/// NOTE: Basic CRUD tests removed - duplicates ServiceCatalogsIntegrationTests
-/// Focuses on complex scenarios: validation, workflows, and filtering
+/// Testes E2E para o módulo ServiceCatalogs usando TestContainers.
+/// Foca em cenários complexos: validações, workflows e filtros.
+/// CRUD básico coberto por ServiceCatalogsIntegrationTests.
 /// </summary>
 public class ServiceCatalogsEndToEndTests : TestContainerTestBase
 {

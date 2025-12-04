@@ -74,6 +74,15 @@ public sealed class User : AggregateRoot<UserId>
     public DateTime? LastUsernameChangeAt { get; private set; }
 
     /// <summary>
+    /// Token de concorrência otimista para PostgreSQL.
+    /// </summary>
+    /// <remarks>
+    /// Usa a coluna de sistema xmin do PostgreSQL para detectar conflitos de concorrência.
+    /// Será automaticamente incrementado em cada UPDATE.
+    /// </remarks>
+    public uint RowVersion { get; private set; }
+
+    /// <summary>
     /// Construtor privado para uso do Entity Framework.
     /// </summary>
     private User() { }

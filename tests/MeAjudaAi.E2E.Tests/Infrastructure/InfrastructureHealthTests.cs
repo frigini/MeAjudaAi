@@ -6,25 +6,21 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 
 /// <summary>
 /// Testes de saúde da infraestrutura TestContainers.
-/// Valida se PostgreSQL e Redis estão funcionando corretamente.
-/// NOTE: API health check test removed - duplicates HealthCheckTests which is more comprehensive
-/// 
+/// Valida disponibilidade do PostgreSQL.
+/// Redis e demais dependências são cobertos por HealthCheckTests.
+/// </summary>
+/// <remarks>
 /// MIGRADO PARA IClassFixture: Compartilha containers entre todos os testes desta classe.
 /// Reduz overhead de ~18s (3 testes × 6s) para ~6s (1× setup).
-/// </summary>
+/// </remarks>
 public class InfrastructureHealthTests : IClassFixture<TestContainerFixture>
 {
     private readonly TestContainerFixture _fixture;
-    private readonly HttpClient _apiClient;
 
     public InfrastructureHealthTests(TestContainerFixture fixture)
     {
         _fixture = fixture;
-        _apiClient = fixture.ApiClient;
     }
-
-    // NOTE: Api_Should_Respond_To_Health_Check removed - duplicates HealthCheckTests.HealthCheck_ShouldReturnHealthy
-    // HealthCheckTests is more comprehensive (tests /health, /health/live, /health/ready)
 
     [Fact]
     public async Task Database_Should_Be_Available_And_Migrated()
@@ -41,8 +37,5 @@ public class InfrastructureHealthTests : IClassFixture<TestContainerFixture>
         canConnect.Should().BeTrue("Database should be reachable");
         usersCount.Should().BeGreaterThanOrEqualTo(0, "Users table should exist");
     }
-
-    // NOTE: Redis_Should_Be_Available removed - duplicates health endpoint tests in HealthCheckTests
-    // Redis functionality should be tested directly via cache operations, not via /health endpoint
 }
 
