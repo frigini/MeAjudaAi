@@ -230,20 +230,7 @@ public class ProvidersApiTests : ApiTestBase
         }
     }
 
-    [Fact]
-    public async Task GetProviderById_WithNonExistentId_ShouldReturnNotFound()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-        var nonExistentId = Guid.NewGuid();
-
-        // Act
-        var response = await Client.GetAsync($"/api/v1/providers/{nonExistentId}");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
-            "Non-existent provider ID should return 404");
-    }
+    // NOTE: GetProviderById_WithNonExistentId is covered by ProvidersIntegrationTests.cs
 
     [Fact]
     public async Task ProvidersEndpoint_WithPaginationParameters_ShouldAcceptThem()

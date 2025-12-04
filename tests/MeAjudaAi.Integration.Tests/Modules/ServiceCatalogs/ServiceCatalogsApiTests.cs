@@ -102,35 +102,8 @@ public class ServiceCatalogsApiTests : ApiTestBase
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
     }
 
-    [Fact]
-    public async Task GetServiceCategoryById_WithNonExistentId_ShouldReturnNotFound()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-        var randomId = Guid.NewGuid();
-
-        // Act
-        var response = await Client.GetAsync($"/api/v1/service-catalogs/categories/{randomId}");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
-            "API should return 404 when service category ID does not exist");
-    }
-
-    [Fact]
-    public async Task GetServiceById_WithNonExistentId_ShouldReturnNotFound()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-        var randomId = Guid.NewGuid();
-
-        // Act
-        var response = await Client.GetAsync($"/api/v1/service-catalogs/services/{randomId}");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
-            "API should return 404 when service ID does not exist");
-    }
+    // NOTE: GetServiceCategoryById_WithNonExistentId and GetServiceById_WithNonExistentId
+    // are covered by ServiceCatalogsIntegrationTests.cs - removed duplicates
 
     [Fact]
     public async Task CreateServiceCategory_WithValidData_ShouldReturnCreated()
