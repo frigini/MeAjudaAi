@@ -40,7 +40,8 @@ public static class Extensions
 
         // Em ambiente de teste, permitir inicialização sem connection string
         // (útil para testes unitários que não acessam o banco)
-        var isTesting = environment.IsEnvironment("Testing");
+        var isTesting = environment.IsEnvironment("Testing") 
+                     || string.Equals(Environment.GetEnvironmentVariable("INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
         
         if (string.IsNullOrEmpty(connectionString) && !isTesting)
         {
