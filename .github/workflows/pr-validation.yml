@@ -405,7 +405,7 @@ jobs:
           echo "🔗 Combining coverage from 8 modules (excluding Integration/E2E tests)..."
           
           INCLUDE_FILTER="+Users;+Providers;+Documents;+ServiceCatalogs;+Locations;+SearchProviders;+Shared;+ApiService"
-          EXCLUDE_FILTER="[*]*.Migrations.*;[*]*.Contracts;[*]*.Database"
+          EXCLUDE_FILTER="-[*]*.Migrations.*;-[*]*.Contracts;-[*]*.Database"
           
           reportgenerator \
             -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml" \
