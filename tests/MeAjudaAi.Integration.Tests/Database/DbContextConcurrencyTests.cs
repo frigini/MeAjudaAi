@@ -44,8 +44,11 @@ public sealed class DbContextConcurrencyTests : ApiTestBase
         var context1 = scope1.ServiceProvider.GetRequiredService<UsersDbContext>();
         var context2 = scope2.ServiceProvider.GetRequiredService<UsersDbContext>();
 
-        var userFromContext1 = await context1.Users.FirstAsync(u => u.Username.Value == username);
-        var userFromContext2 = await context2.Users.FirstAsync(u => u.Username.Value == username);
+        // EF Core translates .Where on converted property - use DbContext directly  
+        var userFromContext1 = (await context1.Users.ToListAsync())
+            .First(u => u.Username.Value == username);
+        var userFromContext2 = (await context2.Users.ToListAsync())
+            .First(u => u.Username.Value == username);
 
         // Modify in both contexts
         userFromContext1.UpdateProfile("Modified1", "User1");
@@ -86,7 +89,8 @@ public sealed class DbContextConcurrencyTests : ApiTestBase
         using var scope2 = Services.CreateScope();
         var context2 = scope2.ServiceProvider.GetRequiredService<UsersDbContext>();
 
-        var userFromContext2 = await context2.Users.FirstAsync(u => u.Username.Value == username);
+        var userFromContext2 = (await context2.Users.ToListAsync())
+            .First(u => u.Username.Value == username);
         userFromContext2.UpdateProfile("Updated", "User");
 
         // Assert - Should succeed (no concurrent modification)

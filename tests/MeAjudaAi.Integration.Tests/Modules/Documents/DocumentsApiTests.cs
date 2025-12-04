@@ -69,10 +69,7 @@ public class DocumentsApiTests : ApiTestBase
         var response = await Client.PostAsJsonAsync("/api/v1/documents/upload", request);
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.Unauthorized)
-            .And.Subject.Should().NotBe(HttpStatusCode.OK,
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
             "user should not be able to upload documents for a different provider");
     }
 
@@ -138,13 +135,13 @@ public class DocumentsApiTests : ApiTestBase
     }
 
     // NOTE: GetDocumentStatus_ShouldBeAccessible removed - low value smoke test
-    // Endpoint existence is validated by functional tests GetDocumentStatus_WithValidId_ShouldReturnDocument
+    // Coverage: E2E tests validate endpoint accessibility through real workflows
 
     // NOTE: GetProviderDocuments_ShouldBeAccessible removed - low value smoke test
-    // Endpoint existence is validated by functional tests GetProviderDocuments_WithValidProviderId_ShouldReturnDocumentsList
+    // Coverage: E2E tests validate endpoint accessibility through real workflows
 
     // NOTE: RequestVerification_ShouldBeAccessible removed - low value smoke test
-    // Endpoint existence is validated by DocumentsVerificationE2ETests
+    // Coverage: DocumentsVerificationE2ETests validates endpoint through complete workflow
 
     [Theory]
     [InlineData(EDocumentType.IdentityDocument)]
