@@ -7,13 +7,18 @@ namespace MeAjudaAi.Integration.Tests.Modules.SearchProviders;
 
 /// <summary>
 /// Testes de integração para API de busca de provedores.
-/// Valida autenticação e funcionalidades de busca geolocalizada.
+/// Valida mapeamento de endpoints, validação de parâmetros e tratamento de erros.
 /// </summary>
+/// <remarks>
+/// Foca em validações de parâmetros e formato de requisição.
+/// Não testa autenticação/autorização - endpoints de busca são públicos.
+/// </remarks>
 public class SearchProvidersApiTests : ApiTestBase
 {
     private const string SearchEndpoint = "/api/v1/search/providers";
 
     // NOTE: SearchEndpoint_ShouldBeAccessible removed - low value smoke test
+    // Endpoint mapping is validated by all parameter validation tests below
 
     [Fact]
     public async Task Search_WithValidCoordinates_ShouldNotReturnNotFound()

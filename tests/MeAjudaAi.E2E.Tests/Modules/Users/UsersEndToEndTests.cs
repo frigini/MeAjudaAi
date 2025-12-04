@@ -54,24 +54,4 @@ public class UsersEndToEndTests : TestContainerTestBase
             foundUser!.Email.Should().Be(email);
         });
     }
-
-    /// <summary>
-    /// Helper para criar usuários de teste
-    /// </summary>
-    private async Task CreateTestUsersAsync(int count)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            var createUserRequest = new
-            {
-                Username = Faker.Internet.UserName(),
-                Email = Faker.Internet.Email(),
-                FirstName = Faker.Name.FirstName(),
-                LastName = Faker.Name.LastName(),
-                KeycloakId = Guid.NewGuid().ToString()
-            };
-
-            await PostJsonAsync("/api/v1/users", createUserRequest);
-        }
-    }
 }

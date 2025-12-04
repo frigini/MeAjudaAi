@@ -51,11 +51,4 @@ public class UsersApiTests : ApiTestBase
     
     // NOTE: UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors removed
     // - Duplicates UsersIntegrationTests.UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors
-
-    private static JsonElement GetResponseData(JsonElement response)
-    {
-        return response.TryGetProperty("data", out var dataElement)
-            ? dataElement
-            : response;
-    }
 }

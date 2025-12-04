@@ -42,17 +42,7 @@ public class InfrastructureHealthTests : IClassFixture<TestContainerFixture>
         usersCount.Should().BeGreaterThanOrEqualTo(0, "Users table should exist");
     }
 
-    [Fact]
-    public async Task Redis_Should_Be_Available()
-    {
-        // Este teste verifica indiretamente se o Redis está funcionando
-        // A API deve conseguir inicializar com o Redis configurado
-
-        // Act
-        var response = await _apiClient.GetAsync("/health");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK, "API should start successfully with Redis configured");
-    }
+    // NOTE: Redis_Should_Be_Available removed - duplicates health endpoint tests in HealthCheckTests
+    // Redis functionality should be tested directly via cache operations, not via /health endpoint
 }
 

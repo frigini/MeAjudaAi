@@ -16,9 +16,6 @@ namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
 /// </summary>
 public class ServiceCatalogsEndToEndTests : TestContainerTestBase
 {
-    // NOTE: CreateServiceCategory_Should_Return_Success removed - duplicates ServiceCatalogsIntegrationTests
-    // NOTE: GetServiceCategories_Should_Return_All_Categories removed - duplicates ServiceCatalogsIntegrationTests
-
     [Fact]
     public async Task CreateService_Should_Succeed_With_Valid_Category()
     {

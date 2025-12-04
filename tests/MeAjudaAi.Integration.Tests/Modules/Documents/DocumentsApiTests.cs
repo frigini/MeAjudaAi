@@ -69,17 +69,14 @@ public class DocumentsApiTests : ApiTestBase
         var response = await Client.PostAsJsonAsync("/api/v1/documents/upload", request);
 
         // Assert
-        // Note: In integration test environment, authorization exceptions may surface as 500
-        // E2E tests validate proper 403 behavior. This test ensures auth is enforced.
-        response.StatusCode.Should().NotBe(HttpStatusCode.OK,
-            "user should not be able to upload documents for a different provider");
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.Forbidden,
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.InternalServerError);
+            HttpStatusCode.Unauthorized)
+            .And.Subject.Should().NotBe(HttpStatusCode.OK,
+            "user should not be able to upload documents for a different provider");
     }
 
-    [Fact]
+    [Fact(Skip = "TODO: Integration environment HttpContext.User claims issue - covered by E2E tests")]
     public async Task GetDocumentStatus_WithValidId_ShouldReturnDocument()
     {
         // Arrange
@@ -95,14 +92,7 @@ public class DocumentsApiTests : ApiTestBase
         };
 
         var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest);
-        // TODO: Investigate why upload returns 500 in integration test environment
-        // This appears to be the same HttpContext.User claims issue affecting other tests
-        if (uploadResponse.StatusCode != HttpStatusCode.OK)
-        {
-            // Temporarily skip to unblock other test development
-            // E2E tests cover this scenario successfully
-            return;
-        }
+        uploadResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var uploadResult = await ReadJsonAsync<UploadDocumentResponse>(uploadResponse.Content);
 
@@ -132,7 +122,7 @@ public class DocumentsApiTests : ApiTestBase
             "API should return 404 when document ID does not exist");
     }
 
-    [Fact]
+    [Fact(Skip = "TODO: Integration environment HttpContext.User claims issue - covered by E2E tests")]
     public async Task GetProviderDocuments_WithValidProviderId_ShouldReturnDocumentsList()
     {
         // Arrange
@@ -149,13 +139,7 @@ public class DocumentsApiTests : ApiTestBase
             FileSizeBytes = 1024
         };
         var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest);
-        // TODO: Integration test environment issue - upload returns 500
-        // Likely related to HttpContext.User claims setup or blob storage mocking
-        // E2E tests cover this scenario successfully
-        if (uploadResponse.StatusCode != HttpStatusCode.OK)
-        {
-            return;
-        }
+        uploadResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Act
         var response = await Client.GetAsync($"/api/v1/documents/provider/{providerId}");
@@ -238,10 +222,11 @@ public class DocumentsApiTests : ApiTestBase
         var response = await Client.PostAsJsonAsync("/api/v1/documents/upload", request);
 
         // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
             $"Document type {docType} should be accepted");
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
-            $"POST method should work for {docType}");
+        var result = await ReadJsonAsync<UploadDocumentResponse>(response.Content);
+        result.Should().NotBeNull();
+        result!.DocumentId.Should().NotBeEmpty();
     }
 
     [Theory]
@@ -268,8 +253,10 @@ public class DocumentsApiTests : ApiTestBase
         var response = await Client.PostAsJsonAsync("/api/v1/documents/upload", request);
 
         // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
             $"Content type {contentType} should be accepted");
+        var result = await ReadJsonAsync<UploadDocumentResponse>(response.Content);
+        result.Should().NotBeNull();
     }
 }
 
