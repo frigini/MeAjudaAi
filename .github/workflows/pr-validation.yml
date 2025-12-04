@@ -506,7 +506,9 @@ jobs:
           # We read OpenCover input files and generate Cobertura output
           echo "🔗 Combining coverage from Unit + Integration + E2E tests..."
           
-          INCLUDE_FILTER="+Users;+Providers;+Documents;+ServiceCatalogs;+Locations;+SearchProviders;+Shared;+ApiService"
+          # Assembly filters must match actual assembly names with full namespace prefix
+          # Use wildcards to match all assemblies (Domain, Application, Infrastructure, API, Tests)
+          INCLUDE_FILTER="+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*"
           EXCLUDE_FILTER="-[*]*.Migrations.*;-[*]*.Contracts;-[*]*.Database"
           
           reportgenerator \
