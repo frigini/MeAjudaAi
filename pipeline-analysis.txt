@@ -1,0 +1,127 @@
+
+  Code Quality Checks	Wait for PostgreSQL to be ready	2025-12-04T16:56:55.9419769Z if ! pg_isready -h localhost -p 5432 -U "$POSTGRES_USER"; then
+> Code Quality Checks	Wait for PostgreSQL to be ready	2025-12-04T16:56:55.9420664Z   echo "Γ¥î PostgreSQL failed to become ready within 180 seconds"
+  Code Quality Checks	Wait for PostgreSQL to be ready	2025-12-04T16:56:55.9421166Z   echo "Debug: Checking PostgreSQL logs..."
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:56.0821914Z        -c "SELECT 1;" || {
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:56:56.0822201Z   echo "Γ¥î Database connection failed ΓÇö aborting workflow"
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:56.0822622Z   echo "≡ƒÆí Ensure PostgreSQL service is running and secrets are configured:"
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:56.0880252Z echo "Coverage files by module:"
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:56:56.0880719Z find ./coverage -type f \( -name "*.opencover.xml" -o -name "*.cobertura.xml" \) -printf "%f\n" | sort | head -20
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:56.0881177Z echo ""
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:56.0884837Z     COVERAGE=$(grep -o 'sequenceCoverage="[^"]*"' "coverage/${module}/${module}.opencover.xml" 2>/dev/null | head -1 | cut -d'"' -f2 || echo "N/A")
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:56:56.0885423Z     echo "     Size: ${FILE_SIZE} bytes, Coverage: ${COVERAGE}%"
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:56.0885715Z   else
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3167015Z          Loading prune package data from PrunePackageData folder
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3168340Z          Failed to load prune package data from PrunePackageData folder, loading from targeting packs instead
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3180541Z          Looking for targeting packs in /usr/share/dotnet/packs/Microsoft.NETCore.App.Ref
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3227285Z     10>AddPrunePackageReferences:
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3229959Z          Failed to load prune package data from PrunePackageData folder, loading from targeting packs instead
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3251999Z      1>Project "/home/runner/work/MeAjudaAi/MeAjudaAi/src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj" (1) is building "/home/runner/work/MeAjudaAi/MeAjudaAi/src/Modules/Users/Application/MeAjudaAi.Modules.Users.Application.csproj" (9:6) on node 4 (_GenerateProjectRestoreGraph target(s)).
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3258038Z          Loading prune package data from PrunePackageData folder
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3260045Z          Failed to load prune package data from PrunePackageData folder, loading from targeting packs instead
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3276385Z          Looking for targeting packs in /usr/share/dotnet/packs/Microsoft.NETCore.App.Ref
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3296990Z          Loading prune package data from PrunePackageData folder
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3298043Z          Failed to load prune package data from PrunePackageData folder, loading from targeting packs instead
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3304710Z     10>AddPrunePackageReferences:
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3875602Z          Loading prune package data from PrunePackageData folder
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3889198Z          Failed to load prune package data from PrunePackageData folder, loading from targeting packs instead
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.3890264Z          Looking for targeting packs in /usr/share/dotnet/packs/Microsoft.NETCore.App.Ref
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.4016260Z          Loading prune package data from PrunePackageData folder
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.4017387Z          Failed to load prune package data from PrunePackageData folder, loading from targeting packs instead
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.4019198Z          Looking for targeting packs in /usr/share/dotnet/packs/Microsoft.AspNetCore.App.Ref
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.4153103Z          Loading prune package data from PrunePackageData folder
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.4157839Z          Failed to load prune package data from PrunePackageData folder, loading from targeting packs instead
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.4158916Z          Looking for targeting packs in /usr/share/dotnet/packs/Microsoft.NETCore.App.Ref
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.4164336Z          Loading prune package data from PrunePackageData folder
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.4165248Z          Failed to load prune package data from PrunePackageData folder, loading from targeting packs instead
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:56:58.4166292Z          Looking for targeting packs in /usr/share/dotnet/packs/Microsoft.AspNetCore.App.Ref
+  Code Quality Checks	Run Unit Tests	2025-12-04T16:57:11.8138508Z [xUnit.net 00:00:01.12]   Starting:    MeAjudaAi.Modules.Users.Tests
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0812781Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers.RequestMapperExtensionsTests.ToEmailQuery_WithNullEmail_ShouldMapToEmptyStringQuery [47 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0815476Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Events.UserUsernameChangedEventTests.Constructor_WithValidParameters_ShouldCreateEvent [47 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0817810Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumbers_WithDifferentValues_ShouldNotBeEqual [46 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0819936Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Events.UserUsernameChangedEventTests.Constructor_WithMinimumLengthUsernames_ShouldWork [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0822632Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Events.UserUsernameChangedEventTests.Constructor_WithDifferentUsernames_ShouldMaintainDistinctValues [2 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0824909Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Events.UserUsernameChangedEventTests.Constructor_WithMaximumLengthUsernames_ShouldWork [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0827190Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Events.UserUsernameChangedEventTests.Constructor_WithValidUsernameFormats_ShouldPreserveFormatting [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0829882Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumber_WithInvalidCountryCode_ShouldThrowArgumentException(invalidCountryCode: "   ") [5 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0835198Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumber_WithInvalidCountryCode_ShouldThrowArgumentException(invalidCountryCode: "") [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0838590Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Events.UserUsernameChangedEventTests.DomainEvent_ShouldHaveCorrectEventType [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0844599Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumber_WithInvalidCountryCode_ShouldThrowArgumentException(invalidCountryCode: null) [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0846807Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Events.UserUsernameChangedEventTests.Constructor_WithSameUsernames_ShouldStillCreateEvent [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0848899Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.ToString_ShouldReturnFormattedPhoneNumber [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0850670Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumber_WithWhitespaceInValue_ShouldTrimValue [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0852696Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumber_WithInvalidValue_ShouldThrowArgumentException(invalidValue: "   ") [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0854907Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumber_WithInvalidValue_ShouldThrowArgumentException(invalidValue: "") [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0857098Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumber_WithInvalidValue_ShouldThrowArgumentException(invalidValue: null) [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0859617Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumber_WithValidValueAndCountryCode_ShouldCreateSuccessfully [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0861519Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumber_ComparedWithNull_ShouldNotBeEqual [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0863308Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumber_WithOnlyValue_ShouldUseDefaultCountryCode [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0865172Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumbers_WithSameValueAndCountryCode_ShouldBeEqual [1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0867078Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumbers_WithDifferentCountryCodes_ShouldNotBeEqual [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0869187Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects.PhoneNumberTests.PhoneNumber_ComparedWithDifferentType_ShouldNotBeEqual [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0871205Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.Constructor_WithMessage_ShouldCreateExceptionWithMessage [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0873360Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.Constructor_WithVariousMessages_ShouldPreserveMessage(message: "  ") [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0875103Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.Constructor_WithVariousMessages_ShouldPreserveMessage(message: "Simple message") [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0877851Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.Constructor_WithVariousMessages_ShouldPreserveMessage(message: "") [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0879563Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.Constructor_WithMessageAndInnerException_ShouldCreateExceptionWithBoth [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0881400Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Services.Models.AuthenticationResultTests.Equality_WithSameValues_ShouldBeEqual [3 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0883345Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.FactoryMethods_ShouldInheritFromDomainException [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0885602Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Services.Models.AuthenticationResultTests.Constructor_WithVariousTokenValues_ShouldAcceptAllStringValues(token: "valid_token") [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0887278Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Services.Models.AuthenticationResultTests.Constructor_WithVariousTokenValues_ShouldAcceptAllStringValues(token: "") [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0889621Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.ForValidationError_WithComplexObject_ShouldHandleComplexValues [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0890892Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Services.Models.AuthenticationResultTests.Constructor_WithVariousTokenValues_ShouldAcceptAllStringValues(token: " ") [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0892116Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.FactoryMethods_WithEmptyStrings_ShouldCreateValidExceptions [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0894007Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.ForValidationError_WithNullValue_ShouldHandleNullGracefully [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0895548Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.ForInvalidFormat_WithNullValue_ShouldHandleNullGracefully [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0896593Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.Constructor_ShouldBeSerializable [1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0897916Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.ForInvalidFormat_WithValidParameters_ShouldCreateFormattedMessage [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0971569Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.ForValidationError_WithValidParameters_ShouldCreateFormattedMessage [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0973001Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Exceptions.UserDomainExceptionTests.ForInvalidOperation_WithValidParameters_ShouldCreateFormattedMessage [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0974172Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Services.Models.AuthenticationResultTests.Constructor_WithAllParameters_ShouldCreateInstance [10 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0975317Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Services.Models.AuthenticationResultTests.Constructor_WithEmptyRoles_ShouldAcceptEmptyEnumerable [2 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0976473Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Services.Models.AuthenticationResultTests.Constructor_WithMultipleRoles_ShouldPreserveAllRoles [1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0977876Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Services.Models.AuthenticationResultTests.Constructor_WithPartialParameters_ShouldCreateInstanceWithProvidedValues [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0979067Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Services.Models.AuthenticationResultTests.Equality_WithDifferentValues_ShouldNotBeEqual [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.0980205Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Services.Models.AuthenticationResultTests.Constructor_WithPastExpirationDate_ShouldAllowPastDates [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.1072495Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Domain.Services.Models.AuthenticationResultTests.Constructor_WithDefaultValues_ShouldCreateInstanceWithNulls [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.1075993Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers.RequestMapperExtensionsTests.ToCommand_WithValidCreateUserRequest_ShouldMapToCreateUserCommand [49 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.1077149Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers.RequestMapperExtensionsTests.ToCommand_WithNullRoles_ShouldMapToEmptyArray [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.1078501Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers.RequestMapperExtensionsTests.ToUsersQuery_WithValidGetUsersRequest_ShouldMapCorrectly [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.1079674Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers.RequestMapperExtensionsTests.ToQuery_WithUserId_ShouldMapToGetUserByIdQuery [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.1080840Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers.RequestMapperExtensionsTests.ToEmailQuery_WithValidEmail_ShouldMapToGetUserByEmailQuery [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.1082028Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers.RequestMapperExtensionsTests.ToCommand_WithWhitespaceStrings_ShouldMapCorrectly [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.1083375Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers.RequestMapperExtensionsTests.ToDeleteCommand_WithUserId_ShouldMapToDeleteUserCommand [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.2042570Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers.RequestMapperExtensionsTests.ToUsersQuery_WithNullSearchTerm_ShouldMapCorrectly [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.2044609Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers.RequestMapperExtensionsTests.ToCommand_WithEmptyStrings_ShouldMapCorrectly [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.2046690Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.API.Mappers.RequestMapperExtensionsTests.ToCommand_WithUpdateUserProfileRequest_ShouldMapToUpdateCommand [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.2049299Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserConfigurationTests.UserConfiguration_ShouldHaveParameterlessConstructor [1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.2051685Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.GetByUsernameAsync_WithNonExistentUsername_ShouldReturnNull [193 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.2053931Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.ExistsAsync_WithExistingUser_ShouldReturnTrue [3 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.2056056Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.GetPagedAsync_WithEmptyDatabase_ShouldReturnEmptyResults [3 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.2058464Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.GetByIdAsync_WithNonExistentUser_ShouldReturnNull [2 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.3799931Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.UserRepository_ShouldImplementIUserRepository [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.3802788Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands.CreateUserCommandHandlerTests.Handle_WhenDomainServiceFails_ShouldReturnFailureResult [311 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.3805450Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands.CreateUserCommandHandlerTests.Handle_WhenRepositoryThrowsException_ShouldReturnFailureResult [6 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.3815640Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.GetByUsernameAsync_WithExistingUsername_ShouldReturnUser [133 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.3818463Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands.CreateUserCommandHandlerTests.Handle_WithExistingEmail_ShouldReturnFailureResult [116 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.3828996Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.DeleteAsync_WithExistingUser_ShouldCallRepositoryMethod [7 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.3831434Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands.CreateUserCommandHandlerTests.Handle_WithExistingUsername_ShouldReturnFailureResult [20 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.3834118Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.GetByEmailAsync_WithExistingEmail_ShouldReturnUser [18 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4104338Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.ExistsAsync_WithNonExistentUser_ShouldReturnFalse [4 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4107180Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands.ChangeUserUsernameCommandHandlerTests.HandleAsync_SameUserWithSameUsername_ShouldChangeUsernameSuccessfully [359 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4120316Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands.ChangeUserUsernameCommandHandlerTests.HandleAsync_CancellationRequested_ShouldRespectCancellation [2 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4122741Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.GetPagedWithSearchAsync_WithSearchTerm_ShouldReturnFilteredResults [21 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4124939Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands.ChangeUserUsernameCommandHandlerTests.HandleAsync_UsernameAlreadyTaken_ShouldReturnFailure [15 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4127433Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands.CreateUserCommandHandlerTests.Handle_WithValidCommand_ShouldReturnSuccessResult [29 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4129703Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands.ChangeUserUsernameCommandHandlerTests.HandleAsync_UpdateRepositoryThrowsException_ShouldReturnFailure [11 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4512491Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.AddAsync_WithValidUser_ShouldCallRepositoryMethod [15 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4514727Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.GetByIdAsync_WithExistingUser_ShouldReturnUser [24 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4516944Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries.GetUserByEmailQueryHandlerTests.HandleAsync_ValidQuery_ShouldReturnUserSuccessfully [32 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4519602Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands.ChangeUserUsernameCommandHandlerTests.HandleAsync_BypassRateLimit_ShouldChangeUsernameSuccessfully [29 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4522120Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries.GetUserByEmailQueryHandlerTests.HandleAsync_EmptyOrNullEmail_ShouldReturnFailure(invalidEmail: " ") [1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4524577Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries.GetUserByEmailQueryHandlerTests.HandleAsync_EmptyOrNullEmail_ShouldReturnFailure(invalidEmail: "") [< 1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4526988Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands.ChangeUserUsernameCommandHandlerTests.HandleAsync_UserNotFound_ShouldReturnFailure [6 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4540909Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries.GetUserByEmailQueryHandlerTests.HandleAsync_RepositoryThrowsException_ShouldReturnFailure [3 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4624953Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Application.Queries.GetUserByEmailQueryHandlerTests.HandleAsync_LongEmail_ShouldReturnFailure [1 ms]
+> Code Quality Checks	Run Unit Tests	2025-12-04T16:57:12.4641554Z   Passed MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence.UserRepositoryTests.GetByKeycloakIdAsync_WithExistingKeycloakId_ShouldReturnUser [9 ms]
+

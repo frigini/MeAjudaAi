@@ -5,12 +5,9 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>opencover</Format>
-          <!-- Include only production assemblies -->
-          <Include>[MeAjudaAi.*]*</Include>
-          <!-- Exclude test assemblies and generated code -->
-          <Exclude>[*.Tests*]*,[*Test*]*,[testhost]*,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*</Exclude>
-          <!-- Exclude generated files by path -->
+          <Exclude>[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*,[xunit*]*</Exclude>
           <ExcludeByFile>**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs</ExcludeByFile>
+          <ExcludeByAttribute>Obsolete,GeneratedCode,CompilerGenerated</ExcludeByAttribute>
         </Configuration>
       </DataCollector>
     </DataCollectors>
