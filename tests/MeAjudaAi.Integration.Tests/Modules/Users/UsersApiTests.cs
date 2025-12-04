@@ -9,32 +9,16 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 
 /// <summary>
 /// Testes de integração para a API do módulo Users.
-/// Valida endpoints, autenticação, autorização e respostas da API.
+/// Valida formato de resposta e estrutura da API.
 /// </summary>
 /// <remarks>
-/// Verifica se as funcionalidades principais estão funcionando:
-/// - Endpoints estão acessíveis
-/// - Respostas estão no formato correto
-/// - Autorização está funcionando
-/// - Dados são persistidos corretamente
+/// Foca em validações de formato de resposta que não são cobertas por testes de negócio.
+/// Testes de endpoints, autenticação e CRUD são cobertos por UsersIntegrationTests.cs
 /// </remarks>
 public class UsersApiTests : ApiTestBase
 {
-    [Fact]
-    public async Task UsersEndpoint_ShouldBeAccessible()
-    {
-        // Act
-        var response = await Client.GetAsync("/api/v1/users");
-
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed);
-        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.OK);
-    }
+    // NOTE: UsersEndpoint_ShouldBeAccessible removed - low value smoke test
+    // Endpoint existence is validated by all other tests
 
     [Fact]
     public async Task UsersEndpoint_WithAuthentication_ShouldReturnValidResponse()
@@ -64,34 +48,9 @@ public class UsersApiTests : ApiTestBase
 
     // NOTE: GetUserById_WithNonExistentId, GetUserByEmail_WithNonExistentEmail, and CreateUser tests
     // are covered by UsersIntegrationTests.cs - removed duplicates to reduce test overhead
-
-    [Fact]
-    public async Task UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-
-        var endpoints = new[]
-        {
-            "/api/v1/users"
-        };
-
-        // Act & Assert
-        foreach (var endpoint in endpoints)
-        {
-            var response = await Client.GetAsync(endpoint);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync();
-                // Log endpoint failure for debugging
-                Console.WriteLine($"Endpoint {endpoint} returned {response.StatusCode}. Body: {body}");
-            }
-
-            response.StatusCode.Should().Be(HttpStatusCode.OK,
-                $"Authenticated admin requests to {endpoint} should succeed.");
-        }
-    }
+    
+    // NOTE: UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors removed
+    // - Duplicates UsersIntegrationTests.UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors
 
     private static JsonElement GetResponseData(JsonElement response)
     {

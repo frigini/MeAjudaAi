@@ -7,30 +7,13 @@ namespace MeAjudaAi.Integration.Tests.Modules.SearchProviders;
 
 /// <summary>
 /// Testes de integração para API de busca de provedores.
-/// Valida endpoints, autenticação e funcionalidades de busca geolocalizada.
+/// Valida autenticação e funcionalidades de busca geolocalizada.
 /// </summary>
 public class SearchProvidersApiTests : ApiTestBase
 {
     private const string SearchEndpoint = "/api/v1/search/providers";
 
-    [Fact]
-    public async Task SearchEndpoint_ShouldBeAccessible()
-    {
-        // Arrange - coordinates for São Paulo center
-        var latitude = -23.5505;
-        var longitude = -46.6333;
-        var radiusInKm = 10.0;
-
-        // Act
-        var response = await Client.GetAsync(
-            $"{SearchEndpoint}?latitude={latitude.ToString(CultureInfo.InvariantCulture)}&longitude={longitude.ToString(CultureInfo.InvariantCulture)}&radiusInKm={radiusInKm.ToString(CultureInfo.InvariantCulture)}");
-
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
-            "Search endpoint should be mapped");
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
-            "GET method should be allowed");
-    }
+    // NOTE: SearchEndpoint_ShouldBeAccessible removed - low value smoke test
 
     [Fact]
     public async Task Search_WithValidCoordinates_ShouldNotReturnNotFound()

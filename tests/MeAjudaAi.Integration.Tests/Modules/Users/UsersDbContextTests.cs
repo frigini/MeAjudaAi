@@ -24,31 +24,6 @@ public class UserDbContextTests : ApiTestBase
         canConnect.Should().BeTrue();
     }
 
-    [Fact]
-    public async Task CanSaveAndRetrieveUser_ShouldWork()
-    {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-
-        var user = new User(
-            new Username("testuser"),
-            new Email("test@example.com"),
-            "Test",
-            "User",
-            "keycloak-id-123"
-        );
-
-        // Act
-        context.Users.Add(user);
-        var result = await context.SaveChangesAsync();
-
-        // Assert
-        result.Should().Be(1);
-
-        var savedUser = await context.Users.FindAsync(user.Id);
-        savedUser.Should().NotBeNull();
-        savedUser!.Username.Value.Should().Be("testuser");
-        savedUser.Email.Value.Should().Be("test@example.com");
-    }
+    // NOTE: CanSaveAndRetrieveUser removed - duplicates UserRepositoryIntegrationTests.AddAsync_ShouldPersistUser
+    // DbContext tests should focus on schema/configuration, not CRUD operations
 }

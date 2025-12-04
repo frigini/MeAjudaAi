@@ -12,29 +12,14 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 
 /// <summary>
 /// Testes de integração para a API do módulo Providers.
-/// Valida endpoints, autenticação, autorização e respostas da API.
+/// Valida formato de resposta e estrutura da API.
 /// </summary>
 /// <remarks>
-/// Verifica se as funcionalidades principais estão funcionando:
-/// - Endpoints estão acessíveis
-/// - Respostas estão no formato correto
-/// - Autorização está funcionando
-/// - Dados são persistidos corretamente
+/// Testes de endpoints, autenticação e CRUD são cobertos por ProvidersIntegrationTests.cs
 /// </remarks>
 public class ProvidersApiTests : ApiTestBase
 {
-    [Fact]
-    public async Task ProvidersEndpoint_ShouldBeAccessible()
-    {
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers");
-
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed);
-        // Endpoint existe se retornar algo diferente de 404 (Not Found) ou 405 (Method Not Allowed)
-        // Pode ser 401 (Unauthorized), 403 (Forbidden), 200 (OK), etc.
-    }
+    // NOTE: ProvidersEndpoint_ShouldBeAccessible removed - low value smoke test
 
     [Fact]
     public async Task ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse()

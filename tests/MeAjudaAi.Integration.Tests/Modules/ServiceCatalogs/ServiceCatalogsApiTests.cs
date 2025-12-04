@@ -8,43 +8,15 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
 /// Testes de integração para a API do módulo ServiceCatalogs.
-/// Valida endpoints, autenticação, autorização e respostas da API.
+/// Valida formato de resposta e estrutura da API.
 /// </summary>
+/// <remarks>
+/// Testes de endpoints, autenticação e CRUD são cobertos por ServiceCatalogsIntegrationTests.cs
+/// </remarks>
 public class ServiceCatalogsApiTests : ApiTestBase
 {
-    [Fact]
-    public async Task ServiceCategoriesEndpoint_ShouldBeAccessible()
-    {
-        // Act
-        var response = await Client.GetAsync("/api/v1/service-catalogs/categories");
-
-        // Assert - Endpoint should exist (not 404) and not crash (not 500)
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound, "Endpoint should be registered");
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed, "GET should be allowed");
-        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError, "Endpoint should not crash");
-
-        // May return Unauthorized (401) or Forbidden (403) if auth is required, or OK (200)
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.OK);
-    }
-
-    [Fact]
-    public async Task ServicesEndpoint_ShouldBeAccessible()
-    {
-        // Act
-        var response = await Client.GetAsync("/api/v1/service-catalogs/services");
-
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed);
-        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.OK);
-    }
+    // NOTE: ServiceCategoriesEndpoint_ShouldBeAccessible and ServicesEndpoint_ShouldBeAccessible removed
+    // - Low value smoke tests; endpoint existence validated by all other tests
 
     [Fact]
     public async Task ServiceCategoriesEndpoint_WithAuthentication_ShouldReturnValidResponse()

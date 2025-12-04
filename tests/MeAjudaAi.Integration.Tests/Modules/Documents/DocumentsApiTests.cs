@@ -16,21 +16,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 /// </summary>
 public class DocumentsApiTests : ApiTestBase
 {
-    [Fact]
-    public async Task DocumentsUploadEndpoint_ShouldBeAccessible()
-    {
-        // Act
-        var response = await Client.PostAsync("/api/v1/documents/upload", null);
-
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed);
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.BadRequest, // Expected for null body
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.OK);
-    }
+    // NOTE: DocumentsUploadEndpoint_ShouldBeAccessible removed - low value smoke test
 
     [Fact]
     public async Task UploadDocument_WithValidRequest_ShouldReturnUploadUrl()
