@@ -1121,8 +1121,21 @@ gantt
 6. **📚 Documentation Hosting**: Implementar GitHub Pages + MkDocs Material para hospedar documentação do projeto
    - **Decisão**: 4 Dez 2025 - Adotado MkDocs Material com GitHub Pages (gratuito, versionado, zero retrabalho)
    - **Benefícios**: Site navegável, search global, mobile-friendly, dark mode, deploy automático
-   - **Escopo**: ~50 arquivos .md existentes em `docs/` (zero modificação necessária)
+   - **Escopo**: ~50 arquivos .md existentes em `docs/` (curadoria necessária)
    - **Implementação**: Sprint 2 ou Sprint 3 (após conclusão do trabalho de cobertura)
+   - **Processo de Migração** (iterativo, revisão documento a documento):
+     1. **Auditoria inicial**: Listar todos os .md e categorizar por relevância (atual/defasado/duplicado)
+     2. **Consolidação**: Identificar e mesclar conteúdo duplicado (ex: ci-cd.md vs ci-cd/workflows-overview.md)
+     3. **Limpeza**: Remover informações obsoletas (versões antigas, decisões superadas)
+     4. **Reorganização**: Estruturar hierarquia lógica (Getting Started → Architecture → Testing → CI/CD → API)
+     5. **Validação**: Revisar links internos, atualizar referências cruzadas
+     6. **Navegação**: Configurar `mkdocs.yml` com estrutura final aprovada
+     7. **Deploy**: Habilitar GitHub Pages e testar site completo
+   - **Critérios de Qualidade**:
+     - Zero duplicação de conteúdo
+     - Informações datadas removidas ou movidas para `docs/archive/`
+     - Navegação intuitiva (max 3 níveis de profundidade)
+     - Todos links internos funcionando
    - **Arquivos novos**: `mkdocs.yml` (config), `.github/workflows/deploy-docs.yml` (workflow), `docs/requirements.txt` (dependencies)
    - **URL Final**: `https://frigini.github.io/MeAjudaAi/`
    - **Referência**: Documentação detalhada em `docs/ci-cd/workflows-overview.md` (seção "GitHub Pages + MkDocs")
