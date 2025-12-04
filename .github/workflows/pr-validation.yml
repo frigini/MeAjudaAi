@@ -313,23 +313,23 @@ jobs:
               exclude_by_file=$(escape_xml "$exclude_by_file")
               exclude_by_attr=$(escape_xml "$exclude_by_attr")
               
-              cat > "$file" <<EOF
-<?xml version="1.0" encoding="utf-8"?>
-<RunSettings>
-  <DataCollectionRunSettings>
-    <DataCollectors>
-      <DataCollector friendlyName="XPlat Code Coverage">
-        <Configuration>
-          <Format>opencover</Format>
-          <Exclude>${exclude_filter}</Exclude>
-          <ExcludeByFile>${exclude_by_file}</ExcludeByFile>
-          <ExcludeByAttribute>${exclude_by_attr}</ExcludeByAttribute>
-        </Configuration>
-      </DataCollector>
-    </DataCollectors>
-  </DataCollectionRunSettings>
-</RunSettings>
-EOF
+              {
+                echo '<?xml version="1.0" encoding="utf-8"?>'
+                echo '<RunSettings>'
+                echo '  <DataCollectionRunSettings>'
+                echo '    <DataCollectors>'
+                echo '      <DataCollector friendlyName="XPlat Code Coverage">'
+                echo '        <Configuration>'
+                echo '          <Format>opencover</Format>'
+                echo "          <Exclude>${exclude_filter}</Exclude>"
+                echo "          <ExcludeByFile>${exclude_by_file}</ExcludeByFile>"
+                echo "          <ExcludeByAttribute>${exclude_by_attr}</ExcludeByAttribute>"
+                echo '        </Configuration>'
+                echo '      </DataCollector>'
+                echo '    </DataCollectors>'
+                echo '  </DataCollectionRunSettings>'
+                echo '</RunSettings>'
+              } > "$file"
             }
 
             INCLUDE_FILTER_ESCAPED=$(escape_xml "$INCLUDE_FILTER")
@@ -475,23 +475,23 @@ EOF
             exclude_by_file=$(escape_xml "$exclude_by_file")
             exclude_by_attr=$(escape_xml "$exclude_by_attr")
             
-            cat > "$file" <<EOF
-<?xml version="1.0" encoding="utf-8"?>
-<RunSettings>
-  <DataCollectionRunSettings>
-    <DataCollectors>
-      <DataCollector friendlyName="XPlat Code Coverage">
-        <Configuration>
-          <Format>opencover</Format>
-          <Exclude>${exclude_filter}</Exclude>
-          <ExcludeByFile>${exclude_by_file}</ExcludeByFile>
-          <ExcludeByAttribute>${exclude_by_attr}</ExcludeByAttribute>
-        </Configuration>
-      </DataCollector>
-    </DataCollectors>
-  </DataCollectionRunSettings>
-</RunSettings>
-EOF
+            {
+                echo '<?xml version="1.0" encoding="utf-8"?>'
+                echo '<RunSettings>'
+                echo '  <DataCollectionRunSettings>'
+                echo '    <DataCollectors>'
+                echo '      <DataCollector friendlyName="XPlat Code Coverage">'
+                echo '        <Configuration>'
+                echo '          <Format>opencover</Format>'
+                echo "          <Exclude>`${exclude_filter}</Exclude>"
+                echo "          <ExcludeByFile>`${exclude_by_file}</ExcludeByFile>"
+                echo "          <ExcludeByAttribute>`${exclude_by_attr}</ExcludeByAttribute>"
+                echo '        </Configuration>'
+                echo '      </DataCollector>'
+                echo '    </DataCollectors>'
+                echo '  </DataCollectionRunSettings>'
+                echo '</RunSettings>'
+              } > "$file"
           }
 
           if [ -d "tests/MeAjudaAi.Integration.Tests/" ]; then
@@ -549,23 +549,23 @@ EOF
             exclude_by_file=$(escape_xml "$exclude_by_file")
             exclude_by_attr=$(escape_xml "$exclude_by_attr")
             
-            cat > "$file" <<EOF
-<?xml version="1.0" encoding="utf-8"?>
-<RunSettings>
-  <DataCollectionRunSettings>
-    <DataCollectors>
-      <DataCollector friendlyName="XPlat Code Coverage">
-        <Configuration>
-          <Format>opencover</Format>
-          <Exclude>${exclude_filter}</Exclude>
-          <ExcludeByFile>${exclude_by_file}</ExcludeByFile>
-          <ExcludeByAttribute>${exclude_by_attr}</ExcludeByAttribute>
-        </Configuration>
-      </DataCollector>
-    </DataCollectors>
-  </DataCollectionRunSettings>
-</RunSettings>
-EOF
+            {
+                echo '<?xml version="1.0" encoding="utf-8"?>'
+                echo '<RunSettings>'
+                echo '  <DataCollectionRunSettings>'
+                echo '    <DataCollectors>'
+                echo '      <DataCollector friendlyName="XPlat Code Coverage">'
+                echo '        <Configuration>'
+                echo '          <Format>opencover</Format>'
+                echo "          <Exclude>`${exclude_filter}</Exclude>"
+                echo "          <ExcludeByFile>`${exclude_by_file}</ExcludeByFile>"
+                echo "          <ExcludeByAttribute>`${exclude_by_attr}</ExcludeByAttribute>"
+                echo '        </Configuration>'
+                echo '      </DataCollector>'
+                echo '    </DataCollectors>'
+                echo '  </DataCollectionRunSettings>'
+                echo '</RunSettings>'
+              } > "$file"
           }
 
           if [ -d "tests/MeAjudaAi.E2E.Tests/" ]; then
