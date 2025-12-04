@@ -20,6 +20,10 @@ public static class Extensions
     /// <summary>
     /// Registra serviços da camada de Infrastructure do SearchProviders.
     /// </summary>
+    /// <param name="services">A coleção de serviços.</param>
+    /// <param name="configuration">A configuração para ler strings de conexão e configurações.</param>
+    /// <param name="environment">O ambiente de hospedagem para determinar comportamento em Testing.</param>
+    /// <returns>A coleção de serviços para encadeamento.</returns>
     public static IServiceCollection AddSearchProvidersInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -36,8 +40,7 @@ public static class Extensions
 
         // Em ambiente de teste, permitir inicialização sem connection string
         // (útil para testes unitários que não acessam o banco)
-        var isTesting = environment.IsEnvironment("Testing") 
-                     || configuration.GetValue<bool>("INTEGRATION_TESTS");
+        var isTesting = environment.IsEnvironment("Testing");
         
         if (string.IsNullOrEmpty(connectionString) && !isTesting)
         {
