@@ -162,7 +162,7 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
         await _context.SaveChangesAsync();
 
         var domainEvent = new UserProfileUpdatedDomainEvent(user.Id.Value, 1, "Test", "User");
-        var cancellationToken = new CancellationToken();
+        var cancellationToken = CancellationToken.None;
 
         // Act
         await _handler.HandleAsync(domainEvent, cancellationToken);

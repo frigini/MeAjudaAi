@@ -307,6 +307,7 @@ jobs:
               local exclude_filter="$2"
               local exclude_by_file="$3"
               local exclude_by_attr="$4"
+              local include_filter="${5:-}"  # Optional parameter
               
               # Escape XML special characters
               exclude_filter=$(escape_xml "$exclude_filter")
@@ -321,6 +322,10 @@ jobs:
                 echo '      <DataCollector friendlyName="XPlat Code Coverage">'
                 echo '        <Configuration>'
                 echo '          <Format>opencover</Format>'
+                if [ -n "$include_filter" ]; then
+                  include_filter=$(escape_xml "$include_filter")
+                  echo "          <Include>${include_filter}</Include>"
+                fi
                 echo "          <Exclude>${exclude_filter}</Exclude>"
                 echo "          <ExcludeByFile>${exclude_by_file}</ExcludeByFile>"
                 echo "          <ExcludeByAttribute>${exclude_by_attr}</ExcludeByAttribute>"
@@ -341,23 +346,10 @@ jobs:
             echo "  EXCLUDE_FILTER_ESCAPED: $EXCLUDE_FILTER_ESCAPED"
             echo "  EXCLUDE_BY_FILE_ESCAPED: $EXCLUDE_BY_FILE_ESCAPED"
 
-            # Create temporary runsettings file for this module (avoid YAML parser issues with XML)
+            # Create temporary runsettings file for this module with proper XML escaping
             RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
-            echo '<?xml version="1.0" encoding="utf-8"?>' > "$RUNSETTINGS_FILE"
-            echo '<RunSettings>' >> "$RUNSETTINGS_FILE"
-            echo '  <DataCollectionRunSettings>' >> "$RUNSETTINGS_FILE"
-            echo '    <DataCollectors>' >> "$RUNSETTINGS_FILE"
-            echo '      <DataCollector friendlyName="XPlat Code Coverage">' >> "$RUNSETTINGS_FILE"
-            echo '        <Configuration>' >> "$RUNSETTINGS_FILE"
-            echo '          <Format>opencover</Format>' >> "$RUNSETTINGS_FILE"
-            echo "          <Include>${INCLUDE_FILTER_ESCAPED}</Include>" >> "$RUNSETTINGS_FILE"
-            echo "          <Exclude>${EXCLUDE_FILTER_ESCAPED}</Exclude>" >> "$RUNSETTINGS_FILE"
-            echo "          <ExcludeByFile>${EXCLUDE_BY_FILE_ESCAPED}</ExcludeByFile>" >> "$RUNSETTINGS_FILE"
-            echo '        </Configuration>' >> "$RUNSETTINGS_FILE"
-            echo '      </DataCollector>' >> "$RUNSETTINGS_FILE"
-            echo '    </DataCollectors>' >> "$RUNSETTINGS_FILE"
-            echo '  </DataCollectionRunSettings>' >> "$RUNSETTINGS_FILE"
-            echo '</RunSettings>' >> "$RUNSETTINGS_FILE"
+            EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
+            generate_runsettings "$RUNSETTINGS_FILE" "$EXCLUDE_FILTER" "$EXCLUDE_BY_FILE" "$EXCLUDE_BY_ATTRIBUTE" "$INCLUDE_FILTER"
 
 
             # NOTE: We run ALL tests (no --filter) because:

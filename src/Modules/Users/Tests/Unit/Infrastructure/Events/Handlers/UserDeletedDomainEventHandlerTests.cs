@@ -60,7 +60,7 @@ public class UserDeletedDomainEventHandlerTests
     public async Task HandleAsync_WhenMessageBusThrows_ShouldPropagateException()
     {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = UuidGenerator.NewId();
         var domainEvent = new UserDeletedDomainEvent(userId, 1);
 
         _messageBusMock
@@ -118,7 +118,7 @@ public class UserDeletedDomainEventHandlerTests
         // Arrange
         var userId = UuidGenerator.NewId();
         var domainEvent = new UserDeletedDomainEvent(userId, 1);
-        var cancellationToken = new CancellationToken();
+        var cancellationToken = CancellationToken.None;
 
         // Act
         await _handler.HandleAsync(domainEvent, cancellationToken);
