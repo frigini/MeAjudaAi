@@ -136,9 +136,11 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
             .ThrowsAsync(new InvalidOperationException("Message bus unavailable"));
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _handler.HandleAsync(domainEvent, CancellationToken.None)
         );
+
+        Assert.Equal("Message bus unavailable", ex.Message);
 
         // Verify error was logged
         _loggerMock.Verify(
@@ -162,17 +164,18 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
         await _context.SaveChangesAsync();
 
         var domainEvent = new UserProfileUpdatedDomainEvent(user.Id.Value, 1, "Test", "User");
-        var cancellationToken = CancellationToken.None;
+        using var cts = new CancellationTokenSource();
+        var token = cts.Token;
 
         // Act
-        await _handler.HandleAsync(domainEvent, cancellationToken);
+        await _handler.HandleAsync(domainEvent, token);
 
         // Assert
         _messageBusMock.Verify(
             x => x.PublishAsync(
                 It.IsAny<UserProfileUpdatedIntegrationEvent>(),
                 It.IsAny<string>(),
-                cancellationToken
+                It.Is<CancellationToken>(ct => ct == token)
             ),
             Times.Once
         );

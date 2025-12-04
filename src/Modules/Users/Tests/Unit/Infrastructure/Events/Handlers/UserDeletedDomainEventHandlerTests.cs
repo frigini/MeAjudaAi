@@ -118,17 +118,18 @@ public class UserDeletedDomainEventHandlerTests
         // Arrange
         var userId = UuidGenerator.NewId();
         var domainEvent = new UserDeletedDomainEvent(userId, 1);
-        var cancellationToken = CancellationToken.None;
+        using var cts = new CancellationTokenSource();
+        var token = cts.Token;
 
         // Act
-        await _handler.HandleAsync(domainEvent, cancellationToken);
+        await _handler.HandleAsync(domainEvent, token);
 
         // Assert
         _messageBusMock.Verify(
             x => x.PublishAsync(
                 It.IsAny<UserDeletedIntegrationEvent>(),
                 It.IsAny<string>(),
-                cancellationToken
+                It.Is<CancellationToken>(ct => ct == token)
             ),
             Times.Once
         );

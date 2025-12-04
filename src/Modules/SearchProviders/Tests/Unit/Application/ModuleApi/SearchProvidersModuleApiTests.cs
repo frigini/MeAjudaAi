@@ -222,7 +222,11 @@ public class SearchProvidersModuleApiTests
         capturedQuery.RadiusInKm.Should().Be(10.0);
         capturedQuery.ServiceIds.Should().BeEquivalentTo(serviceIds);
         capturedQuery.MinRating.Should().Be(4.0m);
-        capturedQuery.SubscriptionTiers.Should().HaveCount(2);
+        capturedQuery.SubscriptionTiers.Should().BeEquivalentTo(new[]
+        {
+            Domain.ValueObjects.ESubscriptionTier.Gold,
+            Domain.ValueObjects.ESubscriptionTier.Platinum
+        });
         capturedQuery.Page.Should().Be(2);
         capturedQuery.PageSize.Should().Be(10);
     }
@@ -425,13 +429,18 @@ public class SearchProvidersModuleApiTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        _repositoryMock.Verify(x => x.AddAsync(
-            It.Is<SearchableProvider>(p => !p.IsActive),
-            It.IsAny<CancellationToken>()), Times.Once);
+        _repositoryMock.Verify(
+            x => x.AddAsync(
+                It.Is<SearchableProvider>(p => !p.IsActive),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        _repositoryMock.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task IndexProviderAsync_WhenExceptionThrown_ShouldReturnFailure()
+    public async Task RemoveProviderAsync_WithExistingProvider_ShouldMarkAsDeleted()
     {
         // Arrange
         var providerId = Guid.NewGuid();
