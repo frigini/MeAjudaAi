@@ -432,7 +432,9 @@ jobs:
             
             # Create runsettings with same exclusions as unit tests
             INTEGRATION_RUNSETTINGS="/tmp/integration.runsettings"
+            # Exclude compiler-generated files AND test assembly files from coverage
             EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+            EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
             
             echo '<?xml version="1.0" encoding="utf-8"?>' > "$INTEGRATION_RUNSETTINGS"
             echo '<RunSettings>' >> "$INTEGRATION_RUNSETTINGS"
@@ -441,7 +443,9 @@ jobs:
             echo '      <DataCollector friendlyName="XPlat Code Coverage">' >> "$INTEGRATION_RUNSETTINGS"
             echo '        <Configuration>' >> "$INTEGRATION_RUNSETTINGS"
             echo '          <Format>opencover</Format>' >> "$INTEGRATION_RUNSETTINGS"
+            echo "          <Exclude>[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*</Exclude>" >> "$INTEGRATION_RUNSETTINGS"
             echo "          <ExcludeByFile>${EXCLUDE_BY_FILE}</ExcludeByFile>" >> "$INTEGRATION_RUNSETTINGS"
+            echo "          <ExcludeByAttribute>${EXCLUDE_BY_ATTRIBUTE}</ExcludeByAttribute>" >> "$INTEGRATION_RUNSETTINGS"
             echo '        </Configuration>' >> "$INTEGRATION_RUNSETTINGS"
             echo '      </DataCollector>' >> "$INTEGRATION_RUNSETTINGS"
             echo '    </DataCollectors>' >> "$INTEGRATION_RUNSETTINGS"
@@ -479,7 +483,9 @@ jobs:
             
             # Create runsettings with same exclusions as unit tests
             E2E_RUNSETTINGS="/tmp/e2e.runsettings"
+            # Exclude compiler-generated files AND test assembly files from coverage
             EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+            EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
             
             echo '<?xml version="1.0" encoding="utf-8"?>' > "$E2E_RUNSETTINGS"
             echo '<RunSettings>' >> "$E2E_RUNSETTINGS"
@@ -488,7 +494,9 @@ jobs:
             echo '      <DataCollector friendlyName="XPlat Code Coverage">' >> "$E2E_RUNSETTINGS"
             echo '        <Configuration>' >> "$E2E_RUNSETTINGS"
             echo '          <Format>opencover</Format>' >> "$E2E_RUNSETTINGS"
+            echo "          <Exclude>[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*</Exclude>" >> "$E2E_RUNSETTINGS"
             echo "          <ExcludeByFile>${EXCLUDE_BY_FILE}</ExcludeByFile>" >> "$E2E_RUNSETTINGS"
+            echo "          <ExcludeByAttribute>${EXCLUDE_BY_ATTRIBUTE}</ExcludeByAttribute>" >> "$E2E_RUNSETTINGS"
             echo '        </Configuration>' >> "$E2E_RUNSETTINGS"
             echo '      </DataCollector>' >> "$E2E_RUNSETTINGS"
             echo '    </DataCollectors>' >> "$E2E_RUNSETTINGS"
@@ -554,7 +562,9 @@ jobs:
           # Assembly filters must match actual assembly names with full namespace prefix
           # Use wildcards to match all assemblies (Domain, Application, Infrastructure, API, Tests)
           INCLUDE_FILTER="+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*"
-          EXCLUDE_FILTER="-[*]*.Migrations.*;-[*]*.Contracts;-[*]*.Database"
+          # CRITICAL: Exclude .Tests assemblies to prevent inflated coverage metrics
+          # Also exclude Migrations, Contracts, Database, and test-related assemblies
+          EXCLUDE_FILTER="-[*.Tests]*;-[*.Tests.*]*;-[*Test*]*;-[testhost]*;-[xunit*]*;-[*]*.Migrations.*;-[*]*.Contracts;-[*]*.Database"
           
           reportgenerator \
             -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml" \
@@ -824,13 +834,13 @@ jobs:
                 fi
 
                 if [ -n "$LINE_RATE" ]; then
-                  # Convert decimal to percentage if needed
+                  # Convert decimal to percentage if needed and truncate to 2 decimal places
                   if [ "$(echo "$LINE_RATE" | cut -d'.' -f1)" = "0" ]; then
-                    PERCENTAGE=$(echo "$LINE_RATE * 100" | bc -l 2>/dev/null || \
-                                echo "scale=1; $LINE_RATE * 100" | bc 2>/dev/null || \
+                    PERCENTAGE=$(echo "$LINE_RATE * 100" | bc -l 2>/dev/null | awk '{printf "%.2f", $1}' || \
+                                echo "scale=2; $LINE_RATE * 100" | bc 2>/dev/null || \
                                 echo "Unknown")
                   else
-                    PERCENTAGE="$LINE_RATE"
+                    PERCENTAGE=$(echo "$LINE_RATE" | awk '{printf "%.2f", $1}')
                   fi
                   SUMMARY="**Coverage**: ${PERCENTAGE}% (extracted from $SOURCE)"
                   BADGE="![Coverage](https://img.shields.io/badge/coverage-${PERCENTAGE}%25-brightgreen)"
