@@ -30,36 +30,54 @@ public static class Extensions
         // se comuniquem com databases/schemas diferentes entre ambientes (dev/test/prod, Aspire, etc.).
         var connectionString = configuration.GetConnectionString("DefaultConnection")
                               ?? configuration.GetConnectionString("Search")
-                              ?? configuration.GetConnectionString("meajudaai-db")
-                              ?? throw new InvalidOperationException(
-                                  "Database connection string not found. Tried: 'DefaultConnection', 'Search', 'meajudaai-db'. " +
-                                  "Please configure one of these connection strings in appsettings.json or environment variables.");
+                              ?? configuration.GetConnectionString("meajudaai-db");
 
-        services.AddDbContext<SearchProvidersDbContext>((serviceProvider, options) =>
+        // Em ambiente de teste, permitir inicialização sem connection string
+        // (útil para testes unitários que não acessam o banco)
+        var environment = configuration.GetValue<string>("ASPNETCORE_ENVIRONMENT");
+        var isTesting = environment == "Testing" || configuration.GetValue<bool>("INTEGRATION_TESTS");
+        
+        if (string.IsNullOrEmpty(connectionString) && !isTesting)
         {
-            options.UseNpgsql(connectionString, npgsqlOptions =>
+            throw new InvalidOperationException(
+                "Database connection string not found. Tried: 'DefaultConnection', 'Search', 'meajudaai-db'. " +
+                "Please configure one of these connection strings in appsettings.json or environment variables.");
+        }
+
+        // Só registrar DbContext se houver connection string
+        if (!string.IsNullOrEmpty(connectionString))
+        {
+            services.AddDbContext<SearchProvidersDbContext>((serviceProvider, options) =>
             {
-                npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
-                npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS/geoespacial
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
+                    npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS/geoespacial
+                });
+
+                options.UseSnakeCaseNamingConvention();
+
+                // Habilitar erros detalhados em desenvolvimento
+                if (configuration.GetValue<bool>("DetailedErrors"))
+                {
+                    options.EnableDetailedErrors();
+                    options.EnableSensitiveDataLogging();
+                }
             });
 
-            options.UseSnakeCaseNamingConvention();
+            // Registrar Dapper para queries espaciais otimizadas
+            services.AddDapper();
 
-            // Habilitar erros detalhados em desenvolvimento
-            if (configuration.GetValue<bool>("DetailedErrors"))
-            {
-                options.EnableDetailedErrors();
-                options.EnableSensitiveDataLogging();
-            }
-        });
+            // Registrar repositórios
+            services.AddScoped<ISearchableProviderRepository, SearchableProviderRepository>();
+        }
+        else
+        {
+            // Em ambiente de teste sem connection string, registrar mock ou skip
+            // Os testes que precisarem de DbContext devem configurar explicitamente
+        }
 
-        // Registrar Dapper para queries espaciais otimizadas
-        services.AddDapper();
-
-        // Registrar repositórios
-        services.AddScoped<ISearchableProviderRepository, SearchableProviderRepository>();
-
-        // Registrar Event Handlers
+        // Registrar Event Handlers (sempre necessário, independente de connection string)
         services.AddEventHandlers();
 
         return services;

@@ -145,7 +145,7 @@ jobs:
           postgres-user: ${{ env.POSTGRES_USER }}
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
 
-      - name: Run tests with coverage
+      - name: Run Unit Tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           # Pre-built connection string (optional, takes precedence if available)
@@ -423,6 +423,9 @@ jobs:
             echo "❌ Failed to generate aggregated coverage report"
           fi
 
+      - name: Run Architecture Tests
+        if: always()
+        run: |
           echo "🧪 Running Architecture tests (no database required)..."
 
           # Only run Architecture tests in PR validation (fast, no database dependency)
@@ -440,9 +443,62 @@ jobs:
             echo "⚠️  Architecture tests not found - skipping"
           fi
 
-          echo "✅ All PR validation tests completed"
+      - name: Run Integration Tests
+        if: always()
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          INTEGRATION_TESTS: true
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+        run: |
+          echo "🔗 Running Integration tests..."
+
+          if [ -d "tests/MeAjudaAi.Integration.Tests/" ]; then
+            echo "================================"
+            echo "🔗 INTEGRATION TESTS"
+            echo "================================"
+            dotnet test "tests/MeAjudaAi.Integration.Tests/" \
+              --configuration Release \
+              --no-build \
+              --verbosity normal \
+              --logger "trx;LogFileName=integration-test-results.trx" \
+              --collect:"XPlat Code Coverage" \
+              --results-directory ./coverage/integration
+          else
+            echo "⚠️  Integration tests not found - skipping"
+          fi
+
+      - name: Run E2E Tests
+        if: always()
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          INTEGRATION_TESTS: true
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+        run: |
+          echo "🌐 Running E2E tests..."
+
+          if [ -d "tests/MeAjudaAi.E2E.Tests/" ]; then
+            echo "================================"
+            echo "🌐 E2E TESTS"
+            echo "================================"
+            dotnet test "tests/MeAjudaAi.E2E.Tests/" \
+              --configuration Release \
+              --no-build \
+              --verbosity normal \
+              --logger "trx;LogFileName=e2e-test-results.trx" \
+              --collect:"XPlat Code Coverage" \
+              --results-directory ./coverage/e2e
+          else
+            echo "⚠️  E2E tests not found - skipping"
+          fi
+
           echo ""
-          echo "ℹ️  Integration and E2E tests run in full CI/CD pipeline (main branch)"
+          echo "✅ All test categories completed"
 
       - name: Validate namespace reorganization
         run: |
