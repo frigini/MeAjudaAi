@@ -389,65 +389,12 @@ jobs:
           done
           echo ""
 
-      - name: Generate Aggregated Coverage Report
-        if: always()
-        run: |
-          echo "📊 Generating aggregated coverage report for PR validation..."
-          
-          # Install ReportGenerator
-          dotnet tool install --global dotnet-reportgenerator-globaltool || dotnet tool update --global dotnet-reportgenerator-globaltool
-          
-          # Add dotnet tools to PATH
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          
-          # Pre-flight check: verify all expected coverage files exist
-          echo "🔍 Pre-flight check: Verifying coverage files..."
-          MISSING_FILES=0
-          for module in users providers documents servicecatalogs locations searchproviders shared apiservice; do
-            if ! find "coverage/${module}" -name "*.opencover.xml" -type f | grep -q .; then
-              echo "  ⚠️  Warning: No .opencover.xml files found for ${module}"
-              MISSING_FILES=$((MISSING_FILES + 1))
-            else
-              echo "  ✅ Found coverage file(s) for ${module}"
-            fi
-          done
-          
-          if [ $MISSING_FILES -gt 0 ]; then
-            echo "⚠️  Warning: $MISSING_FILES module(s) missing coverage files"
-            echo "   ReportGenerator will combine only available modules"
-          fi
-          
-          # Generate aggregated Cobertura XML for the 8 main modules
-          # Note: OpenCover output format requires Pro license, but Cobertura is free
-          # We read OpenCover input files and generate Cobertura output
-          echo "🔗 Combining coverage from 8 modules (excluding Integration/E2E tests)..."
-          
-          INCLUDE_FILTER="+Users;+Providers;+Documents;+ServiceCatalogs;+Locations;+SearchProviders;+Shared;+ApiService"
-          EXCLUDE_FILTER="-[*]*.Migrations.*;-[*]*.Contracts;-[*]*.Database"
-          
-          reportgenerator \
-            -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml" \
-            -targetdir:"coverage/aggregate" \
-            -reporttypes:"Cobertura" \
-            -assemblyfilters:"$INCLUDE_FILTER" \
-            -classfilters:"$EXCLUDE_FILTER"
-          
-          if [ -f "coverage/aggregate/Cobertura.xml" ]; then
-            echo "✅ Aggregated coverage report generated: coverage/aggregate/Cobertura.xml"
-            # Show summary stats from Cobertura XML
-            COVERAGE=$(grep -o 'line-rate="[^"]*"' coverage/aggregate/Cobertura.xml | head -1 | cut -d'"' -f2 | awk '{printf "%.2f", $1 * 100}' || echo "N/A")
-            echo "📈 Combined Line Coverage: ${COVERAGE}%"
-          else
-            echo "❌ Failed to generate aggregated coverage report"
-          fi
-
       - name: Run Architecture Tests
         if: always()
         run: |
           echo "🧪 Running Architecture tests (no database required)..."
 
           # Only run Architecture tests in PR validation (fast, no database dependency)
-          # Integration and E2E tests run in full CI/CD pipeline
           if [ -d "tests/MeAjudaAi.Architecture.Tests/" ]; then
             echo "================================"
             echo "📐 ARCHITECTURE TESTS"
@@ -517,6 +464,66 @@ jobs:
 
           echo ""
           echo "✅ All test categories completed"
+
+      - name: Generate Aggregated Coverage Report
+        if: always()
+        run: |
+          echo "📊 Generating aggregated coverage report from ALL tests..."
+          
+          # Install ReportGenerator
+          dotnet tool install --global dotnet-reportgenerator-globaltool || dotnet tool update --global dotnet-reportgenerator-globaltool
+          
+          # Add dotnet tools to PATH
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          
+          # Pre-flight check: verify all expected coverage files exist
+          echo "🔍 Pre-flight check: Verifying coverage files..."
+          MISSING_FILES=0
+          for module in users providers documents servicecatalogs locations searchproviders shared apiservice; do
+            if ! find "coverage/${module}" -name "*.opencover.xml" -type f | grep -q .; then
+              echo "  ⚠️  Warning: No .opencover.xml files found for ${module}"
+              MISSING_FILES=$((MISSING_FILES + 1))
+            else
+              echo "  ✅ Found coverage file(s) for ${module}"
+            fi
+          done
+          
+          # Check for Integration/E2E coverage
+          if find "coverage/integration" -name "*.xml" -type f | grep -q .; then
+            echo "  ✅ Found Integration test coverage"
+          fi
+          if find "coverage/e2e" -name "*.xml" -type f | grep -q .; then
+            echo "  ✅ Found E2E test coverage"
+          fi
+          
+          if [ $MISSING_FILES -gt 0 ]; then
+            echo "⚠️  Warning: $MISSING_FILES module(s) missing coverage files"
+            echo "   ReportGenerator will combine only available modules"
+          fi
+          
+          # Generate aggregated Cobertura XML combining Unit + Integration + E2E coverage
+          # Note: OpenCover output format requires Pro license, but Cobertura is free
+          # We read OpenCover input files and generate Cobertura output
+          echo "🔗 Combining coverage from Unit + Integration + E2E tests..."
+          
+          INCLUDE_FILTER="+Users;+Providers;+Documents;+ServiceCatalogs;+Locations;+SearchProviders;+Shared;+ApiService"
+          EXCLUDE_FILTER="-[*]*.Migrations.*;-[*]*.Contracts;-[*]*.Database"
+          
+          reportgenerator \
+            -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml" \
+            -targetdir:"coverage/aggregate" \
+            -reporttypes:"Cobertura" \
+            -assemblyfilters:"$INCLUDE_FILTER" \
+            -classfilters:"$EXCLUDE_FILTER"
+          
+          if [ -f "coverage/aggregate/Cobertura.xml" ]; then
+            echo "✅ Aggregated coverage report generated: coverage/aggregate/Cobertura.xml"
+            # Show summary stats from Cobertura XML
+            COVERAGE=$(grep -o 'line-rate="[^"]*"' coverage/aggregate/Cobertura.xml | head -1 | cut -d'"' -f2 | awk '{printf "%.2f", $1 * 100}' || echo "N/A")
+            echo "📈 Combined Line Coverage (Unit + Integration + E2E): ${COVERAGE}%"
+          else
+            echo "❌ Failed to generate aggregated coverage report"
+          fi
 
       - name: Validate namespace reorganization
         run: |
