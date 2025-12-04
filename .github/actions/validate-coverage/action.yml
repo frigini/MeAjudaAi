@@ -155,9 +155,9 @@ runs:
             # Stage 3: Extract coverage percentage from XML attributes
             if command -v grep >/dev/null 2>&1; then
               # Look for line-rate (Cobertura format) or sequenceCoverage (OpenCover format)
-              LINE_RATE=$(grep -o 'line-rate="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
+              LINE_RATE=$(grep -o 'line-rate="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2 || true)
               if [ -z "$LINE_RATE" ]; then
-                LINE_RATE=$(grep -o 'sequenceCoverage="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
+                LINE_RATE=$(grep -o 'sequenceCoverage="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2 || true)
               fi
 
               if [ -n "$LINE_RATE" ]; then
