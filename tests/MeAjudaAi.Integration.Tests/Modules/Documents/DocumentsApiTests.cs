@@ -76,36 +76,9 @@ public class DocumentsApiTests : ApiTestBase
             "user should not be able to upload documents for a different provider");
     }
 
-    [Fact(Skip = "TODO: Integration environment HttpContext.User claims issue - covered by E2E tests")]
-    public async Task GetDocumentStatus_WithValidId_ShouldReturnDocument()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        AuthConfig.ConfigureUser(providerId.ToString(), "provider", "provider@test.com", "provider");
-        var uploadRequest = new UploadDocumentRequest
-        {
-            ProviderId = providerId,
-            DocumentType = EDocumentType.ProofOfResidence,
-            FileName = "test-document.pdf",
-            ContentType = "application/pdf",
-            FileSizeBytes = 51200
-        };
-
-        var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest);
-        uploadResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var uploadResult = await ReadJsonAsync<UploadDocumentResponse>(uploadResponse.Content);
-
-        // Act
-        var response = await Client.GetAsync($"/api/v1/documents/{uploadResult!.DocumentId}/status");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var document = await ReadJsonAsync<DocumentDto>(response.Content);
-        document.Should().NotBeNull();
-        document!.Id.Should().Be(uploadResult.DocumentId);
-        document.Status.Should().Be(EDocumentStatus.Uploaded);
-    }
+    // NOTE: GetDocumentStatus_WithValidId test removed
+    // Reason: HttpContext.User claims not properly populated in Integration test environment
+    // Coverage: E2E tests verify this scenario with real authentication flow
 
     [Fact]
     public async Task GetDocumentStatus_WithNonExistentId_ShouldReturnNotFound()
@@ -122,34 +95,9 @@ public class DocumentsApiTests : ApiTestBase
             "API should return 404 when document ID does not exist");
     }
 
-    [Fact(Skip = "TODO: Integration environment HttpContext.User claims issue - covered by E2E tests")]
-    public async Task GetProviderDocuments_WithValidProviderId_ShouldReturnDocumentsList()
-    {
-        // Arrange
-        var providerId = Guid.NewGuid();
-        AuthConfig.ConfigureUser(providerId.ToString(), "provider", "provider@test.com", "provider");
-
-        // Create a document first
-        var uploadRequest = new UploadDocumentRequest
-        {
-            ProviderId = providerId,
-            DocumentType = EDocumentType.IdentityDocument,
-            FileName = "test.pdf",
-            ContentType = "application/pdf",
-            FileSizeBytes = 1024
-        };
-        var uploadResponse = await Client.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest);
-        uploadResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        // Act
-        var response = await Client.GetAsync($"/api/v1/documents/provider/{providerId}");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var documents = await ReadJsonAsync<List<DocumentDto>>(response.Content);
-        documents.Should().NotBeNull();
-        documents.Should().HaveCountGreaterThanOrEqualTo(1, "at least one document should be returned after upload");
-    }
+    // NOTE: GetProviderDocuments_WithValidProviderId test removed
+    // Reason: HttpContext.User claims not properly populated in Integration test environment
+    // Coverage: E2E tests verify this scenario with real authentication flow
 
     [Fact]
     public async Task DocumentsEndpoints_WithoutAuthentication_ShouldReturnUnauthorized()
