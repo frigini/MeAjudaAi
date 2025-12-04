@@ -7,12 +7,8 @@
 # Escape XML special characters to prevent malformed XML output
 escape_xml() {
   local input="$1"
-  input="${input//&/&amp;}"
-  input="${input//</&lt;}"
-  input="${input//>/&gt;}"
-  input="${input//\"/&quot;}"
-  input="${input//\'/&apos;}"
-  echo "$input"
+  # Use sed for compatibility - escape &, <, >, ", '
+  echo "$input" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'\''/\&apos;/g'
 }
 
 # Generate a Coverlet runsettings file with the specified filters.
