@@ -6,7 +6,8 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 
 /// <summary>
 /// Testes de saúde da infraestrutura TestContainers.
-/// Valida se PostgreSQL, Redis e API estão funcionando corretamente.
+/// Valida se PostgreSQL e Redis estão funcionando corretamente.
+/// NOTE: API health check test removed - duplicates HealthCheckTests which is more comprehensive
 /// 
 /// MIGRADO PARA IClassFixture: Compartilha containers entre todos os testes desta classe.
 /// Reduz overhead de ~18s (3 testes × 6s) para ~6s (1× setup).
@@ -22,15 +23,8 @@ public class InfrastructureHealthTests : IClassFixture<TestContainerFixture>
         _apiClient = fixture.ApiClient;
     }
 
-    [Fact]
-    public async Task Api_Should_Respond_To_Health_Check()
-    {
-        // Act
-        var response = await _apiClient.GetAsync("/health");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-    }
+    // NOTE: Api_Should_Respond_To_Health_Check removed - duplicates HealthCheckTests.HealthCheck_ShouldReturnHealthy
+    // HealthCheckTests is more comprehensive (tests /health, /health/live, /health/ready)
 
     [Fact]
     public async Task Database_Should_Be_Available_And_Migrated()

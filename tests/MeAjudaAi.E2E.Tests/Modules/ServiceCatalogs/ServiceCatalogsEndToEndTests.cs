@@ -11,54 +11,13 @@ namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
 /// Testes E2E para o módulo ServiceCatalogs usando TestContainers
+/// NOTE: Basic CRUD tests removed - duplicates ServiceCatalogsIntegrationTests
+/// Focuses on complex scenarios: validation, workflows, and filtering
 /// </summary>
 public class ServiceCatalogsEndToEndTests : TestContainerTestBase
 {
-    [Fact]
-    public async Task CreateServiceCategory_Should_Return_Success()
-    {
-        // Arrange
-        AuthenticateAsAdmin();
-
-        var createCategoryRequest = new
-        {
-            Name = Faker.Commerce.Department(),
-            Description = Faker.Lorem.Sentence(),
-            DisplayOrder = Faker.Random.Int(1, 100)
-        };
-
-        // Act
-        var response = await PostJsonAsync("/api/v1/service-catalogs/categories", createCategoryRequest);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var locationHeader = response.Headers.Location?.ToString();
-        locationHeader.Should().NotBeNull();
-        locationHeader.Should().Contain("/api/v1/service-catalogs/categories");
-    }
-
-    [Fact]
-    public async Task GetServiceCategories_Should_Return_All_Categories()
-    {
-        // Arrange
-        AuthenticateAsAdmin();
-        await CreateTestServiceCategoriesAsync(3);
-
-        // Act
-        var response = await ApiClient.GetAsync("/api/v1/service-catalogs/categories");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var content = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        result.TryGetProperty("data", out var data).Should().BeTrue();
-
-        var categories = data.Deserialize<ServiceCategoryDto[]>(JsonOptions);
-        categories.Should().NotBeNull();
-        categories!.Length.Should().BeGreaterThanOrEqualTo(3, "should have at least the 3 created categories");
-    }
+    // NOTE: CreateServiceCategory_Should_Return_Success removed - duplicates ServiceCatalogsIntegrationTests
+    // NOTE: GetServiceCategories_Should_Return_All_Categories removed - duplicates ServiceCatalogsIntegrationTests
 
     [Fact]
     public async Task CreateService_Should_Succeed_With_Valid_Category()

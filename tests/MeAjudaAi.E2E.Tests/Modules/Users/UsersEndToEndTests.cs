@@ -10,57 +10,13 @@ namespace MeAjudaAi.E2E.Tests.Modules.Users;
 /// <summary>
 /// Testes E2E para o módulo de usuários usando TestContainers
 /// Demonstra como usar a TestContainerTestBase
+/// NOTE: Basic CRUD tests removed - duplicates UsersIntegrationTests
+/// Focuses on database persistence and complex scenarios
 /// </summary>
 public class UsersEndToEndTests : TestContainerTestBase
 {
-    [Fact]
-    public async Task CreateUser_Should_Return_Success()
-    {
-        // Arrange
-        AuthenticateAsAdmin(); // Autentica como admin para criar usuário
-
-        var createUserRequest = new
-        {
-            Username = Faker.Internet.UserName(),
-            Email = Faker.Internet.Email(),
-            FirstName = Faker.Name.FirstName(),
-            LastName = Faker.Name.LastName(),
-            KeycloakId = Guid.NewGuid().ToString()
-        };
-
-        // Act
-        var response = await PostJsonAsync("/api/v1/users", createUserRequest);
-
-        // Assert
-        if (response.StatusCode != HttpStatusCode.Created)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            throw new InvalidOperationException($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
-        }
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var locationHeader = response.Headers.Location?.ToString();
-        locationHeader.Should().NotBeNull();
-        locationHeader.Should().Contain("/api/v1/users");
-    }
-
-    [Fact]
-    public async Task GetUsers_Should_Return_Paginated_Results()
-    {
-        // Arrange - Criar alguns usuários primeiro
-        AuthenticateAsAdmin(); // Autentica como admin para listar usuários
-        await CreateTestUsersAsync(3);
-
-        // Act
-        var response = await ApiClient.GetAsync("/api/v1/users?pageNumber=1&pageSize=10");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var content = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<object>(content, JsonOptions);
-        result.Should().NotBeNull();
-    }
+    // NOTE: CreateUser_Should_Return_Success removed - duplicates UsersIntegrationTests.CreateUser_WithValidData_ShouldReturnCreated
+    // NOTE: GetUsers_Should_Return_Paginated_Results removed - duplicates UsersIntegrationTests.GetUsers_ShouldReturnOkWithPaginatedResult
 
     [Fact]
     public async Task Database_Should_Persist_Users_Correctly()
