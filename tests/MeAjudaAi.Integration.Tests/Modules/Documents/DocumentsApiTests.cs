@@ -205,58 +205,14 @@ public class DocumentsApiTests : ApiTestBase
             "API should reject invalid request with 400 or 401");
     }
 
-    [Fact]
-    public async Task GetDocumentStatus_ShouldBeAccessible()
-    {
-        // Act
-        var documentId = Guid.NewGuid();
-        var response = await Client.GetAsync($"/api/v1/documents/{documentId}/status");
+    // NOTE: GetDocumentStatus_ShouldBeAccessible removed - low value smoke test
+    // Endpoint existence is validated by functional tests GetDocumentStatus_WithValidId_ShouldReturnDocument
 
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
-            "GET method should be supported if endpoint exists");
-        // Endpoint may not exist or require auth - both are valid
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.NotFound,
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.OK);
-    }
+    // NOTE: GetProviderDocuments_ShouldBeAccessible removed - low value smoke test
+    // Endpoint existence is validated by functional tests GetProviderDocuments_WithValidProviderId_ShouldReturnDocumentsList
 
-    [Fact]
-    public async Task GetProviderDocuments_ShouldBeAccessible()
-    {
-        // Act
-        var providerId = Guid.NewGuid();
-        var response = await Client.GetAsync($"/api/v1/documents/provider/{providerId}");
-
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
-            "GetProviderDocuments endpoint should be mapped");
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.OK);
-    }
-
-    [Fact]
-    public async Task RequestVerification_ShouldBeAccessible()
-    {
-        // Act
-        var documentId = Guid.NewGuid();
-        var response = await Client.PostAsync($"/api/v1/documents/{documentId}/verify", null);
-
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound,
-            "RequestVerification endpoint should be mapped");
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed,
-            "POST method should be allowed");
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.OK);
-    }
+    // NOTE: RequestVerification_ShouldBeAccessible removed - low value smoke test
+    // Endpoint existence is validated by DocumentsVerificationE2ETests
 
     [Theory]
     [InlineData(EDocumentType.IdentityDocument)]

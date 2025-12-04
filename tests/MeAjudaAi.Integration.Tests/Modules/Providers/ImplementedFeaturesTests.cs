@@ -78,18 +78,7 @@ public class ImplementedFeaturesTests : ApiTestBase
         }
     }
 
-    [Fact]
-    public async Task ProvidersEndpoint_ShouldSupportPagination()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-
-        // Act
-        var response = await Client.GetAsync("/api/v1/providers?page=1&pageSize=5");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK, "Pagination parameters should be accepted under admin");
-    }
+    // NOTE: ProvidersEndpoint_ShouldSupportPagination removed - duplicates ProvidersApiTests.ProvidersEndpoint_ShouldSupportPagination
 
     [Fact]
     public async Task ProvidersEndpoint_ShouldSupportFilters()
@@ -104,113 +93,8 @@ public class ImplementedFeaturesTests : ApiTestBase
         response.StatusCode.Should().Be(HttpStatusCode.OK, "Filter parameters should be accepted under admin");
     }
 
-    [Fact]
-    public async Task GetProviderById_Endpoint_ShouldExist()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-        var testId = Guid.NewGuid();
-
-        // Act
-        var response = await Client.GetAsync($"/api/v1/providers/{testId}");
-
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed, "GET by ID should exist");
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.OK);
-    }
-
-    [Fact]
-    public async Task CreateProvider_Endpoint_ShouldExist()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-        var providerData = new
-        {
-            userId = Guid.NewGuid(),
-            name = "Test Provider",
-            type = 1, // Individual
-            businessProfile = new
-            {
-                legalName = "Test Provider Ltd",
-                contactInfo = new
-                {
-                    email = "test@provider.com",
-                    phoneNumber = "+55 11 99999-9999"
-                },
-                primaryAddress = new
-                {
-                    street = "Test Street",
-                    number = "123",
-                    neighborhood = "Test Neighborhood",
-                    city = "Test City",
-                    state = "TS",
-                    zipCode = "12345-678",
-                    country = "Brasil"
-                }
-            }
-        };
-
-        // Act
-        var response = await Client.PostAsJsonAsync("/api/v1/providers", providerData);
-
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed, "POST should be allowed");
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
-        if (response.IsSuccessStatusCode)
-        {
-            response.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
-            // Optionally:
-            // response.Headers.Location.Should().NotBeNull("Location header should point to the created resource");
-        }
-    }
-
-    [Fact]
-    public async Task ProvidersModule_ShouldBeProperlyRegistered()
-    {
-        // Arrange
-        using var scope = Services.CreateScope();
-
-        // Act & Assert - verify key services are registered
-        var dbContext = scope.ServiceProvider.GetService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>();
-        dbContext.Should().NotBeNull("ProvidersDbContext should be registered");
-
-        var repository = scope.ServiceProvider.GetService<MeAjudaAi.Modules.Providers.Domain.Repositories.IProviderRepository>();
-        repository.Should().NotBeNull("IProviderRepository should be registered");
-
-        var queryService = scope.ServiceProvider.GetService<MeAjudaAi.Modules.Providers.Application.Services.Interfaces.IProviderQueryService>();
-        queryService.Should().NotBeNull("IProviderQueryService should be registered");
-    }
-
-    [Fact]
-    public async Task HealthCheck_ShouldIncludeProvidersDatabase()
-    {
-        // Act
-        var response = await Client.GetAsync("/health");
-
-        // Assert
-        if (response.IsSuccessStatusCode)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-
-            // Parse as JSON to ensure it's well-formed
-            var healthResponse = JsonSerializer.Deserialize<JsonElement>(content);
-
-            // Assert top-level status exists and is not unhealthy
-            healthResponse.TryGetProperty("status", out var statusElement).Should().BeTrue("Health response should have status property");
-            var status = statusElement.GetString();
-            status.Should().NotBe("Unhealthy", "Health status should not be Unhealthy");
-
-            // Verify database health check entry exists (providers no longer has specific health check)
-            if (healthResponse.TryGetProperty("entries", out var entries))
-            {
-                var hasDatabaseEntry = entries.EnumerateObject()
-                    .Any(e => e.Name.Contains("database", StringComparison.OrdinalIgnoreCase));
-                hasDatabaseEntry.Should().BeTrue("Health check should include database entry");
-            }
-            else
-            {
-                content.Should().Contain("database", "Health check should include database reference");
-            }
-        }
-    }
+    // NOTE: GetProviderById_Endpoint_ShouldExist removed - duplicates ProvidersApiTests.GetProviderById_Endpoint_ShouldExist
+    // NOTE: CreateProvider_Endpoint_ShouldExist removed - duplicates ProvidersApiTests.CreateProvider_Endpoint_ShouldExist
+    // NOTE: ProvidersModule_ShouldBeProperlyRegistered removed - duplicates ProvidersApiTests.ProvidersModule_ShouldBeProperlyRegistered
+    // NOTE: HealthCheck_ShouldIncludeProvidersDatabase removed - duplicates ProvidersApiTests.HealthCheck_ShouldIncludeProvidersDatabase
 }
