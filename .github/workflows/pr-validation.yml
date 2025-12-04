@@ -397,6 +397,9 @@ jobs:
           # Install ReportGenerator
           dotnet tool install --global dotnet-reportgenerator-globaltool || dotnet tool update --global dotnet-reportgenerator-globaltool
           
+          # Add dotnet tools to PATH
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          
           # Generate aggregated OpenCover XML for the 8 main modules
           # This creates a single coverage.opencover.xml file with combined results
           echo "🔗 Combining coverage from 8 modules (excluding Integration/E2E tests)..."
@@ -404,7 +407,7 @@ jobs:
           INCLUDE_FILTER="+Users;+Providers;+Documents;+ServiceCatalogs;+Locations;+SearchProviders;+Shared;+ApiService"
           EXCLUDE_FILTER="[*]*.Migrations.*;[*]*.Contracts;[*]*.Database"
           
-          dotnet reportgenerator \
+          reportgenerator \
             -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml" \
             -targetdir:"coverage/aggregate" \
             -reporttypes:"OpenCover" \
