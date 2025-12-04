@@ -256,7 +256,9 @@ jobs:
             IFS=':' read -r module_name module_path include_pattern <<< "$module_info"
 
             if [ -d "$module_path" ]; then
-              echo "Running $module_name tests with coverage..."
+              echo "================================"
+              echo "🧪 UNIT TESTS - $module_name (WITH COVERAGE)"
+              echo "================================"
 
               # Create specific output directory for this module
               MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
@@ -378,7 +380,15 @@ jobs:
             IFS=':' read -r test_name test_path <<< "$test_info"
 
             if [ -d "$test_path" ]; then
-              echo "Running $test_name tests (no coverage)..."
+              echo "================================"
+              if [ "$test_name" = "Integration" ]; then
+                echo "🔗 INTEGRATION TESTS (NO COVERAGE)"
+              elif [ "$test_name" = "E2E" ]; then
+                echo "🌐 E2E TESTS (NO COVERAGE)"
+              else
+                echo "📐 $test_name TESTS (NO COVERAGE)"
+              fi
+              echo "================================"
               dotnet test "$test_path" \
                 --configuration Release \
                 --no-build \
