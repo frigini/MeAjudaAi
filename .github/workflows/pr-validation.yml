@@ -299,6 +299,37 @@ jobs:
               echo "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g'
             }
 
+            # Reusable function to generate runsettings with XML escaping
+            generate_runsettings() {
+              local file="$1"
+              local exclude_filter="$2"
+              local exclude_by_file="$3"
+              local exclude_by_attr="$4"
+              
+              # Escape XML special characters
+              exclude_filter=$(escape_xml "$exclude_filter")
+              exclude_by_file=$(escape_xml "$exclude_by_file")
+              exclude_by_attr=$(escape_xml "$exclude_by_attr")
+              
+              cat > "$file" <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>opencover</Format>
+          <Exclude>${exclude_filter}</Exclude>
+          <ExcludeByFile>${exclude_by_file}</ExcludeByFile>
+          <ExcludeByAttribute>${exclude_by_attr}</ExcludeByAttribute>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
+EOF
+            }
+
             INCLUDE_FILTER_ESCAPED=$(escape_xml "$INCLUDE_FILTER")
             EXCLUDE_FILTER_ESCAPED=$(escape_xml "$EXCLUDE_FILTER")
             EXCLUDE_BY_FILE_ESCAPED=$(escape_xml "$EXCLUDE_BY_FILE")
@@ -435,22 +466,9 @@ jobs:
             # Exclude compiler-generated files AND test assembly files from coverage
             EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
             EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
+            EXCLUDE_FILTER="[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*"
             
-            echo '<?xml version="1.0" encoding="utf-8"?>' > "$INTEGRATION_RUNSETTINGS"
-            echo '<RunSettings>' >> "$INTEGRATION_RUNSETTINGS"
-            echo '  <DataCollectionRunSettings>' >> "$INTEGRATION_RUNSETTINGS"
-            echo '    <DataCollectors>' >> "$INTEGRATION_RUNSETTINGS"
-            echo '      <DataCollector friendlyName="XPlat Code Coverage">' >> "$INTEGRATION_RUNSETTINGS"
-            echo '        <Configuration>' >> "$INTEGRATION_RUNSETTINGS"
-            echo '          <Format>opencover</Format>' >> "$INTEGRATION_RUNSETTINGS"
-            echo "          <Exclude>[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*</Exclude>" >> "$INTEGRATION_RUNSETTINGS"
-            echo "          <ExcludeByFile>${EXCLUDE_BY_FILE}</ExcludeByFile>" >> "$INTEGRATION_RUNSETTINGS"
-            echo "          <ExcludeByAttribute>${EXCLUDE_BY_ATTRIBUTE}</ExcludeByAttribute>" >> "$INTEGRATION_RUNSETTINGS"
-            echo '        </Configuration>' >> "$INTEGRATION_RUNSETTINGS"
-            echo '      </DataCollector>' >> "$INTEGRATION_RUNSETTINGS"
-            echo '    </DataCollectors>' >> "$INTEGRATION_RUNSETTINGS"
-            echo '  </DataCollectionRunSettings>' >> "$INTEGRATION_RUNSETTINGS"
-            echo '</RunSettings>' >> "$INTEGRATION_RUNSETTINGS"
+            generate_runsettings "$INTEGRATION_RUNSETTINGS" "$EXCLUDE_FILTER" "$EXCLUDE_BY_FILE" "$EXCLUDE_BY_ATTRIBUTE"
             
             dotnet test "tests/MeAjudaAi.Integration.Tests/" \
               --configuration Release \
@@ -486,22 +504,9 @@ jobs:
             # Exclude compiler-generated files AND test assembly files from coverage
             EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
             EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
+            EXCLUDE_FILTER="[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*"
             
-            echo '<?xml version="1.0" encoding="utf-8"?>' > "$E2E_RUNSETTINGS"
-            echo '<RunSettings>' >> "$E2E_RUNSETTINGS"
-            echo '  <DataCollectionRunSettings>' >> "$E2E_RUNSETTINGS"
-            echo '    <DataCollectors>' >> "$E2E_RUNSETTINGS"
-            echo '      <DataCollector friendlyName="XPlat Code Coverage">' >> "$E2E_RUNSETTINGS"
-            echo '        <Configuration>' >> "$E2E_RUNSETTINGS"
-            echo '          <Format>opencover</Format>' >> "$E2E_RUNSETTINGS"
-            echo "          <Exclude>[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*</Exclude>" >> "$E2E_RUNSETTINGS"
-            echo "          <ExcludeByFile>${EXCLUDE_BY_FILE}</ExcludeByFile>" >> "$E2E_RUNSETTINGS"
-            echo "          <ExcludeByAttribute>${EXCLUDE_BY_ATTRIBUTE}</ExcludeByAttribute>" >> "$E2E_RUNSETTINGS"
-            echo '        </Configuration>' >> "$E2E_RUNSETTINGS"
-            echo '      </DataCollector>' >> "$E2E_RUNSETTINGS"
-            echo '    </DataCollectors>' >> "$E2E_RUNSETTINGS"
-            echo '  </DataCollectionRunSettings>' >> "$E2E_RUNSETTINGS"
-            echo '</RunSettings>' >> "$E2E_RUNSETTINGS"
+            generate_runsettings "$E2E_RUNSETTINGS" "$EXCLUDE_FILTER" "$EXCLUDE_BY_FILE" "$EXCLUDE_BY_ATTRIBUTE"
             
             dotnet test "tests/MeAjudaAi.E2E.Tests/" \
               --configuration Release \
@@ -914,8 +919,8 @@ jobs:
           coverage-directory: './coverage'
           threshold: '70'
           strict-mode: ${{ env.STRICT_COVERAGE }}
-          opencover-output: ${{ steps.coverage_opencover.outputs.line-rate }}
-          opencover-outcome: ${{ steps.coverage_opencover.outcome }}
+          opencover-output: ${{ steps.coverage_opencover_individual.outputs.line-rate }}
+          opencover-outcome: ${{ steps.coverage_opencover_individual.outcome }}
           cobertura-output: ${{ steps.coverage_cobertura.outputs.line-rate }}
           cobertura-outcome: ${{ steps.coverage_cobertura.outcome }}
           fallback-output: ${{ steps.coverage_fallback.outputs.line-rate }}
