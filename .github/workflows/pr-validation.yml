@@ -417,8 +417,9 @@ jobs:
             echo "   ReportGenerator will combine only available modules"
           fi
           
-          # Generate aggregated OpenCover XML for the 8 main modules
-          # This creates a single coverage.opencover.xml file with combined results
+          # Generate aggregated Cobertura XML for the 8 main modules
+          # Note: OpenCover output format requires Pro license, but Cobertura is free
+          # We read OpenCover input files and generate Cobertura output
           echo "🔗 Combining coverage from 8 modules (excluding Integration/E2E tests)..."
           
           INCLUDE_FILTER="+Users;+Providers;+Documents;+ServiceCatalogs;+Locations;+SearchProviders;+Shared;+ApiService"
@@ -427,14 +428,14 @@ jobs:
           reportgenerator \
             -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml" \
             -targetdir:"coverage/aggregate" \
-            -reporttypes:"OpenCover" \
+            -reporttypes:"Cobertura" \
             -assemblyfilters:"$INCLUDE_FILTER" \
             -classfilters:"$EXCLUDE_FILTER"
           
-          if [ -f "coverage/aggregate/OpenCover.xml" ]; then
-            echo "✅ Aggregated coverage report generated: coverage/aggregate/OpenCover.xml"
-            # Show summary stats
-            COVERAGE=$(grep -o 'sequenceCoverage="[^"]*"' coverage/aggregate/OpenCover.xml | head -1 | grep -o '[0-9.]*' || echo "N/A")
+          if [ -f "coverage/aggregate/Cobertura.xml" ]; then
+            echo "✅ Aggregated coverage report generated: coverage/aggregate/Cobertura.xml"
+            # Show summary stats from Cobertura XML
+            COVERAGE=$(grep -o 'line-rate="[^"]*"' coverage/aggregate/Cobertura.xml | head -1 | cut -d'"' -f2 | awk '{printf "%.2f", $1 * 100}' || echo "N/A")
             echo "📈 Combined Line Coverage: ${COVERAGE}%"
           else
             echo "❌ Failed to generate aggregated coverage report"
@@ -600,11 +601,11 @@ jobs:
           find ./coverage -name "*.xml" -type f 2>/dev/null || echo "No XML coverage files found"
 
       - name: Code Coverage Summary
-        id: coverage_opencover
+        id: coverage_cobertura_aggregate
         continue-on-error: true
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: 'coverage/aggregate/OpenCover.xml'
+          filename: 'coverage/aggregate/Cobertura.xml'
           badge: true
           fail_below_min: false
           format: markdown
@@ -616,7 +617,7 @@ jobs:
 
       - name: Alternative Coverage Summary (Individual modules - OpenCover)
         id: coverage_opencover_individual
-        if: ${{ always() && steps.coverage_opencover.outcome != 'success' }}
+        if: ${{ always() && steps.coverage_cobertura_aggregate.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: 'coverage/users/*.opencover.xml,coverage/providers/*.opencover.xml,coverage/documents/*.opencover.xml,coverage/servicecatalogs/*.opencover.xml,coverage/locations/*.opencover.xml,coverage/searchproviders/*.opencover.xml,coverage/shared/*.opencover.xml,coverage/apiservice/*.opencover.xml'
@@ -632,7 +633,7 @@ jobs:
 
       - name: Alternative Coverage Summary (Cobertura format)
         id: coverage_cobertura
-        if: ${{ always() && steps.coverage_opencover.outcome != 'success' && steps.coverage_opencover_individual.outcome != 'success' }}
+        if: ${{ always() && steps.coverage_cobertura_aggregate.outcome != 'success' && steps.coverage_opencover_individual.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: 'coverage/users/*.cobertura.xml,coverage/providers/*.cobertura.xml,coverage/documents/*.cobertura.xml,coverage/servicecatalogs/*.cobertura.xml,coverage/locations/*.cobertura.xml,coverage/searchproviders/*.cobertura.xml,coverage/shared/*.cobertura.xml,coverage/apiservice/*.cobertura.xml'
@@ -650,7 +651,7 @@ jobs:
         id: coverage_fallback
         if: >-
           ${{ always() &&
-              steps.coverage_opencover.outcome != 'success' &&
+              steps.coverage_cobertura_aggregate.outcome != 'success' &&
               steps.coverage_opencover_individual.outcome != 'success' &&
               steps.coverage_cobertura.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
@@ -709,12 +710,12 @@ jobs:
           echo "🎯 Selecting coverage outputs from available steps..."
 
           # First try to use step outputs if available (priority order)
-          if [ "${{ steps.coverage_opencover.outcome }}" = "success" ] &&
-             [ -n "${{ steps.coverage_opencover.outputs.summary }}" ]; then
-            SUMMARY="${{ steps.coverage_opencover.outputs.summary }}"
-            BADGE="${{ steps.coverage_opencover.outputs.badge }}"
-            SOURCE="OpenCover (Aggregated)"
-            echo "✅ Using aggregated OpenCover coverage outputs"
+          if [ "${{ steps.coverage_cobertura_aggregate.outcome }}" = "success" ] &&
+             [ -n "${{ steps.coverage_cobertura_aggregate.outputs.summary }}" ]; then
+            SUMMARY="${{ steps.coverage_cobertura_aggregate.outputs.summary }}"
+            BADGE="${{ steps.coverage_cobertura_aggregate.outputs.badge }}"
+            SOURCE="Cobertura (Aggregated)"
+            echo "✅ Using aggregated Cobertura coverage outputs"
           elif [ "${{ steps.coverage_opencover_individual.outcome }}" = "success" ] &&
                [ -n "${{ steps.coverage_opencover_individual.outputs.summary }}" ]; then
             SUMMARY="${{ steps.coverage_opencover_individual.outputs.summary }}"
@@ -725,19 +726,23 @@ jobs:
                [ -n "${{ steps.coverage_cobertura.outputs.summary }}" ]; then
             SUMMARY="${{ steps.coverage_cobertura.outputs.summary }}"
             BADGE="${{ steps.coverage_cobertura.outputs.badge }}"
-            SOURCE="Cobertura"
-            echo "✅ Using Cobertura coverage outputs"
+            SOURCE="Cobertura (Individual)"
+            echo "✅ Using individual Cobertura coverage outputs"
           elif [ "${{ steps.coverage_fallback.outcome }}" = "success" ] &&
                [ -n "${{ steps.coverage_fallback.outputs.summary }}" ]; then
             SUMMARY="${{ steps.coverage_fallback.outputs.summary }}"
             BADGE="${{ steps.coverage_fallback.outputs.badge }}"
             SOURCE="Fallback XML"
-            echo "Using Fallback coverage outputs"
+            echo "✅ Using Fallback coverage outputs"
           else
             # Fallback: Check if coverage files exist and generate basic summary
-            echo "Step outputs not available, checking for coverage files..."
+            echo "⚠️  Step outputs not available, checking for coverage files..."
 
-            if find coverage -name "*.opencover.xml" -type f | head -1 >/dev/null 2>&1; then
+            if [ -f "coverage/aggregate/Cobertura.xml" ]; then
+              COVERAGE_FILE="coverage/aggregate/Cobertura.xml"
+              SOURCE="Cobertura (Aggregated Direct)"
+              echo "✅ Found aggregated Cobertura file: $COVERAGE_FILE"
+            elif find coverage -name "*.opencover.xml" -type f | head -1 >/dev/null 2>&1; then
               COVERAGE_FILE=$(find coverage -name "*.opencover.xml" -type f | head -1)
               SOURCE="OpenCover (Direct)"
               echo "Found OpenCover file: $COVERAGE_FILE"
