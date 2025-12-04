@@ -423,40 +423,26 @@ jobs:
             echo "❌ Failed to generate aggregated coverage report"
           fi
 
-          echo "🧪 Running system tests without coverage collection..."
+          echo "🧪 Running Architecture tests (no database required)..."
 
-          # Define system tests (no coverage) - architectural and integration validation only
-          SYSTEM_TESTS=(
-            "Architecture:tests/MeAjudaAi.Architecture.Tests/"
-            "Integration:tests/MeAjudaAi.Integration.Tests/"
-            "E2E:tests/MeAjudaAi.E2E.Tests/"
-          )
+          # Only run Architecture tests in PR validation (fast, no database dependency)
+          # Integration and E2E tests run in full CI/CD pipeline
+          if [ -d "tests/MeAjudaAi.Architecture.Tests/" ]; then
+            echo "================================"
+            echo "📐 ARCHITECTURE TESTS"
+            echo "================================"
+            dotnet test "tests/MeAjudaAi.Architecture.Tests/" \
+              --configuration Release \
+              --no-build \
+              --verbosity normal \
+              --logger "trx;LogFileName=architecture-test-results.trx"
+          else
+            echo "⚠️  Architecture tests not found - skipping"
+          fi
 
-          # Run system tests without coverage
-          for test_info in "${SYSTEM_TESTS[@]}"; do
-            IFS=':' read -r test_name test_path <<< "$test_info"
-
-            if [ -d "$test_path" ]; then
-              echo "================================"
-              if [ "$test_name" = "Integration" ]; then
-                echo "🔗 INTEGRATION TESTS (NO COVERAGE)"
-              elif [ "$test_name" = "E2E" ]; then
-                echo "🌐 E2E TESTS (NO COVERAGE)"
-              else
-                echo "📐 $test_name TESTS (NO COVERAGE)"
-              fi
-              echo "================================"
-              dotnet test "$test_path" \
-                --configuration Release \
-                --no-build \
-                --verbosity normal \
-                --logger "trx;LogFileName=${test_name,,}-test-results.trx"
-            else
-              echo "⚠️  $test_name tests not found at $test_path - skipping"
-            fi
-          done
-
-          echo "✅ Todos os testes executados com sucesso"
+          echo "✅ All PR validation tests completed"
+          echo ""
+          echo "ℹ️  Integration and E2E tests run in full CI/CD pipeline (main branch)"
 
       - name: Validate namespace reorganization
         run: |
