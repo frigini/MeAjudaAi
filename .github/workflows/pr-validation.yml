@@ -303,6 +303,11 @@ jobs:
             EXCLUDE_FILTER_ESCAPED=$(escape_xml "$EXCLUDE_FILTER")
             EXCLUDE_BY_FILE_ESCAPED=$(escape_xml "$EXCLUDE_BY_FILE")
 
+            echo "🔍 DEBUG: XML-escaped filter values..."
+            echo "  INCLUDE_FILTER_ESCAPED: $INCLUDE_FILTER_ESCAPED"
+            echo "  EXCLUDE_FILTER_ESCAPED: $EXCLUDE_FILTER_ESCAPED"
+            echo "  EXCLUDE_BY_FILE_ESCAPED: $EXCLUDE_BY_FILE_ESCAPED"
+
             # Create temporary runsettings file for this module (avoid YAML parser issues with XML)
             RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
             echo '<?xml version="1.0" encoding="utf-8"?>' > "$RUNSETTINGS_FILE"
@@ -424,13 +429,33 @@ jobs:
             echo "================================"
             echo "🔗 INTEGRATION TESTS"
             echo "================================"
+            
+            # Create runsettings with same exclusions as unit tests
+            INTEGRATION_RUNSETTINGS="/tmp/integration.runsettings"
+            EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+            
+            echo '<?xml version="1.0" encoding="utf-8"?>' > "$INTEGRATION_RUNSETTINGS"
+            echo '<RunSettings>' >> "$INTEGRATION_RUNSETTINGS"
+            echo '  <DataCollectionRunSettings>' >> "$INTEGRATION_RUNSETTINGS"
+            echo '    <DataCollectors>' >> "$INTEGRATION_RUNSETTINGS"
+            echo '      <DataCollector friendlyName="XPlat Code Coverage">' >> "$INTEGRATION_RUNSETTINGS"
+            echo '        <Configuration>' >> "$INTEGRATION_RUNSETTINGS"
+            echo '          <Format>opencover</Format>' >> "$INTEGRATION_RUNSETTINGS"
+            echo "          <ExcludeByFile>${EXCLUDE_BY_FILE}</ExcludeByFile>" >> "$INTEGRATION_RUNSETTINGS"
+            echo '        </Configuration>' >> "$INTEGRATION_RUNSETTINGS"
+            echo '      </DataCollector>' >> "$INTEGRATION_RUNSETTINGS"
+            echo '    </DataCollectors>' >> "$INTEGRATION_RUNSETTINGS"
+            echo '  </DataCollectionRunSettings>' >> "$INTEGRATION_RUNSETTINGS"
+            echo '</RunSettings>' >> "$INTEGRATION_RUNSETTINGS"
+            
             dotnet test "tests/MeAjudaAi.Integration.Tests/" \
               --configuration Release \
               --no-build \
               --verbosity normal \
               --logger "trx;LogFileName=integration-test-results.trx" \
               --collect:"XPlat Code Coverage" \
-              --results-directory ./coverage/integration
+              --results-directory ./coverage/integration \
+              --settings "$INTEGRATION_RUNSETTINGS"
           else
             echo "⚠️  Integration tests not found - skipping"
           fi
@@ -451,13 +476,33 @@ jobs:
             echo "================================"
             echo "🌐 E2E TESTS"
             echo "================================"
+            
+            # Create runsettings with same exclusions as unit tests
+            E2E_RUNSETTINGS="/tmp/e2e.runsettings"
+            EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+            
+            echo '<?xml version="1.0" encoding="utf-8"?>' > "$E2E_RUNSETTINGS"
+            echo '<RunSettings>' >> "$E2E_RUNSETTINGS"
+            echo '  <DataCollectionRunSettings>' >> "$E2E_RUNSETTINGS"
+            echo '    <DataCollectors>' >> "$E2E_RUNSETTINGS"
+            echo '      <DataCollector friendlyName="XPlat Code Coverage">' >> "$E2E_RUNSETTINGS"
+            echo '        <Configuration>' >> "$E2E_RUNSETTINGS"
+            echo '          <Format>opencover</Format>' >> "$E2E_RUNSETTINGS"
+            echo "          <ExcludeByFile>${EXCLUDE_BY_FILE}</ExcludeByFile>" >> "$E2E_RUNSETTINGS"
+            echo '        </Configuration>' >> "$E2E_RUNSETTINGS"
+            echo '      </DataCollector>' >> "$E2E_RUNSETTINGS"
+            echo '    </DataCollectors>' >> "$E2E_RUNSETTINGS"
+            echo '  </DataCollectionRunSettings>' >> "$E2E_RUNSETTINGS"
+            echo '</RunSettings>' >> "$E2E_RUNSETTINGS"
+            
             dotnet test "tests/MeAjudaAi.E2E.Tests/" \
               --configuration Release \
               --no-build \
               --verbosity normal \
               --logger "trx;LogFileName=e2e-test-results.trx" \
               --collect:"XPlat Code Coverage" \
-              --results-directory ./coverage/e2e
+              --results-directory ./coverage/e2e \
+              --settings "$E2E_RUNSETTINGS"
           else
             echo "⚠️  E2E tests not found - skipping"
           fi

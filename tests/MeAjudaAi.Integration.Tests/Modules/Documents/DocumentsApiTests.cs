@@ -17,6 +17,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 public class DocumentsApiTests : ApiTestBase
 {
     // NOTE: DocumentsUploadEndpoint_ShouldBeAccessible removed - low value smoke test
+    // Coverage: E2E tests (MeAjudaAi.E2E.Tests) validate the complete upload flow with real authentication
 
     [Fact]
     public async Task UploadDocument_WithValidRequest_ShouldReturnUploadUrl()
@@ -205,6 +206,7 @@ public class DocumentsApiTests : ApiTestBase
             $"Content type {contentType} should be accepted");
         var result = await ReadJsonAsync<UploadDocumentResponse>(response.Content);
         result.Should().NotBeNull();
+        result!.DocumentId.Should().NotBeEmpty();
     }
 }
 
