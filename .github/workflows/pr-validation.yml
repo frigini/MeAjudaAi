@@ -296,46 +296,8 @@ jobs:
             echo "  Exclude: $EXCLUDE_FILTER"
             echo "  ExcludeByFile: $EXCLUDE_BY_FILE"
 
-            # Helper function to escape XML special characters
-            escape_xml() {
-              echo "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g'
-            }
-
-            # Reusable function to generate runsettings with XML escaping
-            generate_runsettings() {
-              local file="$1"
-              local exclude_filter="$2"
-              local exclude_by_file="$3"
-              local exclude_by_attr="$4"
-              local include_filter="${5:-}"  # Optional parameter
-              
-              # Escape XML special characters
-              exclude_filter=$(escape_xml "$exclude_filter")
-              exclude_by_file=$(escape_xml "$exclude_by_file")
-              exclude_by_attr=$(escape_xml "$exclude_by_attr")
-              
-              {
-                echo '<?xml version="1.0" encoding="utf-8"?>'
-                echo '<RunSettings>'
-                echo '  <DataCollectionRunSettings>'
-                echo '    <DataCollectors>'
-                echo '      <DataCollector friendlyName="XPlat Code Coverage">'
-                echo '        <Configuration>'
-                echo '          <Format>opencover</Format>'
-                if [ -n "$include_filter" ]; then
-                  include_filter=$(escape_xml "$include_filter")
-                  echo "          <Include>${include_filter}</Include>"
-                fi
-                echo "          <Exclude>${exclude_filter}</Exclude>"
-                echo "          <ExcludeByFile>${exclude_by_file}</ExcludeByFile>"
-                echo "          <ExcludeByAttribute>${exclude_by_attr}</ExcludeByAttribute>"
-                echo '        </Configuration>'
-                echo '      </DataCollector>'
-                echo '    </DataCollectors>'
-                echo '  </DataCollectionRunSettings>'
-                echo '</RunSettings>'
-              } > "$file"
-            }
+            # Source shared utility functions
+            source ./.github/scripts/generate-runsettings.sh
 
             INCLUDE_FILTER_ESCAPED=$(escape_xml "$INCLUDE_FILTER")
             EXCLUDE_FILTER_ESCAPED=$(escape_xml "$EXCLUDE_FILTER")
@@ -450,41 +412,8 @@ jobs:
         run: |
           echo "🔗 Running Integration tests..."
 
-          # Helper function to escape XML special characters
-          escape_xml() {
-            echo "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g'
-          }
-
-          # Reusable function to generate runsettings with XML escaping
-          generate_runsettings() {
-            local file="$1"
-            local exclude_filter="$2"
-            local exclude_by_file="$3"
-            local exclude_by_attr="$4"
-            
-            # Escape XML special characters
-            exclude_filter=$(escape_xml "$exclude_filter")
-            exclude_by_file=$(escape_xml "$exclude_by_file")
-            exclude_by_attr=$(escape_xml "$exclude_by_attr")
-            
-            {
-                echo '<?xml version="1.0" encoding="utf-8"?>'
-                echo '<RunSettings>'
-                echo '  <DataCollectionRunSettings>'
-                echo '    <DataCollectors>'
-                echo '      <DataCollector friendlyName="XPlat Code Coverage">'
-                echo '        <Configuration>'
-                echo '          <Format>opencover</Format>'
-                echo "          <Exclude>`${exclude_filter}</Exclude>"
-                echo "          <ExcludeByFile>`${exclude_by_file}</ExcludeByFile>"
-                echo "          <ExcludeByAttribute>`${exclude_by_attr}</ExcludeByAttribute>"
-                echo '        </Configuration>'
-                echo '      </DataCollector>'
-                echo '    </DataCollectors>'
-                echo '  </DataCollectionRunSettings>'
-                echo '</RunSettings>'
-              } > "$file"
-          }
+          # Source shared utility functions
+          source ./.github/scripts/generate-runsettings.sh
 
           if [ -d "tests/MeAjudaAi.Integration.Tests/" ]; then
             echo "================================"
@@ -524,41 +453,8 @@ jobs:
         run: |
           echo "🌐 Running E2E tests..."
 
-          # Helper function to escape XML special characters
-          escape_xml() {
-            echo "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g'
-          }
-
-          # Reusable function to generate runsettings with XML escaping
-          generate_runsettings() {
-            local file="$1"
-            local exclude_filter="$2"
-            local exclude_by_file="$3"
-            local exclude_by_attr="$4"
-            
-            # Escape XML special characters
-            exclude_filter=$(escape_xml "$exclude_filter")
-            exclude_by_file=$(escape_xml "$exclude_by_file")
-            exclude_by_attr=$(escape_xml "$exclude_by_attr")
-            
-            {
-                echo '<?xml version="1.0" encoding="utf-8"?>'
-                echo '<RunSettings>'
-                echo '  <DataCollectionRunSettings>'
-                echo '    <DataCollectors>'
-                echo '      <DataCollector friendlyName="XPlat Code Coverage">'
-                echo '        <Configuration>'
-                echo '          <Format>opencover</Format>'
-                echo "          <Exclude>`${exclude_filter}</Exclude>"
-                echo "          <ExcludeByFile>`${exclude_by_file}</ExcludeByFile>"
-                echo "          <ExcludeByAttribute>`${exclude_by_attr}</ExcludeByAttribute>"
-                echo '        </Configuration>'
-                echo '      </DataCollector>'
-                echo '    </DataCollectors>'
-                echo '  </DataCollectionRunSettings>'
-                echo '</RunSettings>'
-              } > "$file"
-          }
+          # Source shared utility functions
+          source ./.github/scripts/generate-runsettings.sh
 
           if [ -d "tests/MeAjudaAi.E2E.Tests/" ]; then
             echo "================================"
