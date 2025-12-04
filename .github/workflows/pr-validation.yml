@@ -313,7 +313,7 @@ jobs:
               exclude_by_file=$(escape_xml "$exclude_by_file")
               exclude_by_attr=$(escape_xml "$exclude_by_attr")
               
-              cat > "$file" <<EOF
+              cat > "$file" <<'EOF'
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
   <DataCollectionRunSettings>
@@ -321,15 +321,19 @@ jobs:
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>opencover</Format>
-          <Exclude>${exclude_filter}</Exclude>
-          <ExcludeByFile>${exclude_by_file}</ExcludeByFile>
-          <ExcludeByAttribute>${exclude_by_attr}</ExcludeByAttribute>
+          <Exclude>EXCLUDE_FILTER_PLACEHOLDER</Exclude>
+          <ExcludeByFile>EXCLUDE_BY_FILE_PLACEHOLDER</ExcludeByFile>
+          <ExcludeByAttribute>EXCLUDE_BY_ATTR_PLACEHOLDER</ExcludeByAttribute>
         </Configuration>
       </DataCollector>
     </DataCollectors>
   </DataCollectionRunSettings>
 </RunSettings>
 EOF
+              # Replace placeholders with actual values
+              sed -i "s|EXCLUDE_FILTER_PLACEHOLDER|${exclude_filter}|g" "$file"
+              sed -i "s|EXCLUDE_BY_FILE_PLACEHOLDER|${exclude_by_file}|g" "$file"
+              sed -i "s|EXCLUDE_BY_ATTR_PLACEHOLDER|${exclude_by_attr}|g" "$file"
             }
 
             INCLUDE_FILTER_ESCAPED=$(escape_xml "$INCLUDE_FILTER")
