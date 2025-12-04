@@ -1118,6 +1118,14 @@ gantt
 3. **TestContainers para infraestrutura**: RabbitMQ, PostgreSQL, Redis (integration tests)
 4. **Documentar flaky tests**: 6 DbContext concurrency tests já documentados, padrão estabelecido
 5. **Target realista**: 35% (+6.8pp) em vez de 80% original - base sólida para builds futuros
+6. **📚 Documentation Hosting**: Implementar GitHub Pages + MkDocs Material para hospedar documentação do projeto
+   - **Decisão**: 4 Dez 2025 - Adotado MkDocs Material com GitHub Pages (gratuito, versionado, zero retrabalho)
+   - **Benefícios**: Site navegável, search global, mobile-friendly, dark mode, deploy automático
+   - **Escopo**: ~50 arquivos .md existentes em `docs/` (zero modificação necessária)
+   - **Implementação**: Sprint 2 ou Sprint 3 (após conclusão do trabalho de cobertura)
+   - **Arquivos novos**: `mkdocs.yml` (config), `.github/workflows/deploy-docs.yml` (workflow), `docs/requirements.txt` (dependencies)
+   - **URL Final**: `https://frigini.github.io/MeAjudaAi/`
+   - **Referência**: Documentação detalhada em `docs/ci-cd/workflows-overview.md` (seção "GitHub Pages + MkDocs")
 
 ---
 
