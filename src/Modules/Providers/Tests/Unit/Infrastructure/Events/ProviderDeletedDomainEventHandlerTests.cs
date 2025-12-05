@@ -39,7 +39,7 @@ public class ProviderDeletedDomainEventHandlerTests
         // Arrange
         var providerId = new ProviderId(Guid.NewGuid());
         var userId = Guid.NewGuid();
-        var provider = ProviderEntity.Create(
+        var provider = MeAjudaAi.Modules.Providers.Domain.Entities.Provider.Create(
             providerId,
             userId,
             "Provider Test",
@@ -98,7 +98,7 @@ public class ProviderDeletedDomainEventHandlerTests
         // Arrange - System deletion (null deletedBy)
         var providerId = new ProviderId(Guid.NewGuid());
         var userId = Guid.NewGuid();
-        var provider = ProviderEntity.Create(
+        var provider = MeAjudaAi.Modules.Providers.Domain.Entities.Provider.Create(
             providerId,
             userId,
             "Provider Test",

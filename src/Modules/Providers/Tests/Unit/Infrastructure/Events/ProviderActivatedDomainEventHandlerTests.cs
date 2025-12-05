@@ -83,6 +83,15 @@ public class ProviderActivatedDomainEventHandlerTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
+        // Configure mock to throw when called with a cancelled token
+        _messageBusMock
+            .Setup(m => m.PublishAsync(It.IsAny<object>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Returns<object, string?, CancellationToken>((evt, topic, token) =>
+            {
+                token.ThrowIfCancellationRequested();
+                return Task.CompletedTask;
+            });
+
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(
             async () => await _handler.HandleAsync(domainEvent, cts.Token));

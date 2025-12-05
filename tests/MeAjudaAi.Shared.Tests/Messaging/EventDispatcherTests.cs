@@ -205,7 +205,7 @@ public class EventDispatcherTests
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error handling event")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

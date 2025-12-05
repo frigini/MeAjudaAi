@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -35,8 +36,8 @@ public class LoggingContextMiddlewareTests
         await _middleware.InvokeAsync(_context);
 
         // Assert
-        _context.Response.Headers.Should().ContainKey("X-Correlation-ID");
-        _context.Response.Headers["X-Correlation-ID"].ToString().Should().NotBeNullOrEmpty();
+        _context.Response.Headers.Should().ContainKey(AuthConstants.Headers.CorrelationId);
+        _context.Response.Headers[AuthConstants.Headers.CorrelationId].ToString().Should().NotBeNullOrEmpty();
     }
 
     [Fact]
@@ -44,14 +45,14 @@ public class LoggingContextMiddlewareTests
     {
         // Arrange
         var correlationId = Guid.NewGuid().ToString();
-        _context.Request.Headers["X-Correlation-ID"] = correlationId;
+        _context.Request.Headers[AuthConstants.Headers.CorrelationId] = correlationId;
         _nextMock.Setup(next => next(_context)).Returns(Task.CompletedTask);
 
         // Act
         await _middleware.InvokeAsync(_context);
 
         // Assert
-        _context.Response.Headers["X-Correlation-ID"].ToString().Should().Be(correlationId);
+        _context.Response.Headers[AuthConstants.Headers.CorrelationId].ToString().Should().Be(correlationId);
     }
 
     [Fact]
@@ -88,17 +89,11 @@ public class LoggingContextMiddlewareTests
         _nextMock.Setup(next => next(_context)).ThrowsAsync(new Exception("Error"));
 
         // Act
-        try
-        {
-            await _middleware.InvokeAsync(_context);
-        }
-        catch
-        {
-            // Expected
-        }
+        Func<Task> act = () => _middleware.InvokeAsync(_context);
 
         // Assert
-        _context.Response.Headers.Should().ContainKey("X-Correlation-ID");
+        await act.Should().ThrowAsync<Exception>();
+        _context.Response.Headers.Should().ContainKey(AuthConstants.Headers.CorrelationId);
     }
 }
 
