@@ -284,12 +284,13 @@ jobs:
             # This ensures coverage metrics reflect only hand-written production code
             # Excluded patterns:
             #   - Test assemblies: [*.Tests*]*, [*Test*]*, [testhost]*
-            #   - Migrations: [*]*.Migrations, [*]*.Migrations.*, [*]*.Database (EF Core generated code)
+            #   - Migrations: [*]*.Infrastructure.Migrations.* (all classes in any .Infrastructure.Migrations namespace)
+            #   - Database: [*]*.Database (database-related generated code)
             #   - Contracts: [*]*.Contracts (DTOs, no logic to test)
             #   - OpenApi generated: [*Microsoft.AspNetCore.OpenApi.Generated*]*
             #   - Compiler services: [*System.Runtime.CompilerServices*]*
             #   - Regex generator: [*System.Text.RegularExpressions.Generated*]*
-            EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*,[*]*.Migrations,[*]*.Migrations.*,[*]*.Database,[*]*.Contracts,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*"
+            EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*,[*]*.Infrastructure.Migrations.*,[*]*.Database,[*]*.Contracts,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*"
             EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs,**/Migrations/**/*.cs,**/Database/*.cs"
 
             echo "  Include: $INCLUDE_FILTER"
