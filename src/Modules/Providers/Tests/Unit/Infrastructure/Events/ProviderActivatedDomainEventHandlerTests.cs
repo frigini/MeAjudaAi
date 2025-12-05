@@ -2,11 +2,15 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events;
 
+/// <summary>
+/// Unit tests for <see cref="ProviderActivatedDomainEventHandler"/>.
+/// </summary>
 public class ProviderActivatedDomainEventHandlerTests
 {
     private readonly Mock<IMessageBus> _messageBusMock;
@@ -25,9 +29,9 @@ public class ProviderActivatedDomainEventHandlerTests
     {
         // Arrange
         var domainEvent = new ProviderActivatedDomainEvent(
-            Guid.NewGuid(),
+            UuidGenerator.NewId(),
             1,
-            Guid.NewGuid(),
+            UuidGenerator.NewId(),
             "Provider Test",
             "admin@test.com"
         );
@@ -49,9 +53,9 @@ public class ProviderActivatedDomainEventHandlerTests
     {
         // Arrange - System activation (null activatedBy)
         var domainEvent = new ProviderActivatedDomainEvent(
-            Guid.NewGuid(),
+            UuidGenerator.NewId(),
             1,
-            Guid.NewGuid(),
+            UuidGenerator.NewId(),
             "Provider Test",
             null
         );
@@ -73,9 +77,9 @@ public class ProviderActivatedDomainEventHandlerTests
     {
         // Arrange
         var domainEvent = new ProviderActivatedDomainEvent(
-            Guid.NewGuid(),
+            UuidGenerator.NewId(),
             1,
-            Guid.NewGuid(),
+            UuidGenerator.NewId(),
             "Provider Test",
             "admin@test.com"
         );
