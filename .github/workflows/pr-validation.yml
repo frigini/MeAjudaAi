@@ -556,7 +556,9 @@ jobs:
             -targetdir:"coverage/aggregate" \
             -reporttypes:"Cobertura" \
             -assemblyfilters:"$INCLUDE_FILTER" \
-            -classfilters:"$EXCLUDE_FILTER"
+            -classfilters:"$EXCLUDE_FILTER" \
+            -filefilters:"-*Migrations*" \
+            -settings:"coverage.runsettings"
           
           if [ -f "coverage/aggregate/Cobertura.xml" ]; then
             echo "✅ Aggregated coverage report generated: coverage/aggregate/Cobertura.xml"
