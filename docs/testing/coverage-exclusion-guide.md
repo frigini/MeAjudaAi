@@ -286,7 +286,13 @@ Line coverage: ~45-55% (vs 27.9% anterior)
 **Nota**: Os números iniciais (~45-55%) são intermediários. O projeto deve evoluir para o mínimo de 70% em código crítico.
 
 ```json
-"threshold": "70,60,70"  // line, branch, method (minimum)
-```---
+{
+  "threshold": "70,60,70"
+}
+```
+
+*Nota: Formato threshold: "line,branch,method" (percentuais mínimos)*
+
+---
 
 **Conclusão**: ✅ Tudo configurado! Pipeline e script local vão gerar coverage REAL excluindo código gerado. Próximo push já mostrará ~45-55% em vez de 27.9%.

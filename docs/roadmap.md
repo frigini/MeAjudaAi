@@ -916,7 +916,10 @@ gantt
 - Baseline: 45% (antes das branches - incluía código de teste)
 - **Atual: 27.9%** (14,504/51,841 lines) - **MEDIÇÃO REAL excluindo código gerado**
   - **Com código gerado**: 28.2% (14,695/52,054 lines) - diferença de -0.3%
-  - **Código gerado excluído**: 213 linhas (OpenApi.Generated, Runtime.CompilerServices, RegexGenerator)
+  - **Código gerado excluído**: 213 linhas via ExcludeByFile patterns:
+    - `**/*OpenApi*.generated.cs`
+    - `**/System.Runtime.CompilerServices*.cs`
+    - `**/*RegexGenerator.g.cs`
   - **Análise Correta**: 27.9% é coverage do **código de produção escrito manualmente**
 - **Branch Coverage**: 21.7% (2,264/10,422 branches) - sem código gerado
 - **Method Coverage**: 40.9% (2,168/5,294 métodos) - sem código gerado
@@ -955,7 +958,7 @@ gantt
 
 **Progresso Phase 1 (Improve-Tests-Coverage-2)**:
 - ✅ **5 Commits**: aabba3d, 5ff84df, 88eaef8, 1ddbf4d, fbf02b9
-- ✅ **~40 New Tests**: Task 2 (10 DbContext) + Task 5 (27 health checks) + Task 1 (incremental fixes)
+- ✅ **40 New Tests**: Task 2 (10 DbContext) + Task 5 (27 health checks) + Task 1 (+3 fixes)
 - ✅ **Test Success Rate**: 99.0% (1,393/1,407 passing)
 - ✅ **Build Time**: ~25 minutes (full suite with Docker integration tests)
 - ✅ **Health Checks Coverage**:
@@ -1026,7 +1029,7 @@ gantt
 - ✅ Focar em componentes críticos (Health Checks - 4/7 implementados)
 - ✅ Documentar testes flaky (6 TestContainers scope issues documented)
 - ✅ **NO REFLECTION** - todas classes public para manutenibilidade
-- ✅ 50 novos testes criados (5 commits, 1,393/1,407 passing)
+- ✅ 40 novos testes criados (5 commits, 1,393/1,407 passing)
 - ✅ Coverage report consolidado gerado (HTML + Text)
 
 **Objetivos Fase 2 (Dias 8-14) - ⏳ PLANEJADO**:

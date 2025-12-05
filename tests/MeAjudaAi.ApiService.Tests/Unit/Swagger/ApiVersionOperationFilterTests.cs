@@ -1,6 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.ApiService.Filters;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Swagger;
@@ -20,7 +20,7 @@ public class ApiVersionOperationFilterTests
         // Arrange
         var operation = new OpenApiOperation
         {
-            Parameters = new List<IOpenApiParameter>
+            Parameters = new List<OpenApiParameter>
             {
                 new OpenApiParameter { Name = "version", In = ParameterLocation.Path },
                 new OpenApiParameter { Name = "id", In = ParameterLocation.Path }
@@ -43,7 +43,7 @@ public class ApiVersionOperationFilterTests
         // Arrange
         var operation = new OpenApiOperation
         {
-            Parameters = new List<IOpenApiParameter>
+            Parameters = new List<OpenApiParameter>
             {
                 new OpenApiParameter { Name = "id", In = ParameterLocation.Path },
                 new OpenApiParameter { Name = "query", In = ParameterLocation.Query }
@@ -76,7 +76,7 @@ public class ApiVersionOperationFilterTests
     public void Apply_WithEmptyParameters_ShouldNotThrow()
     {
         // Arrange
-        var operation = new OpenApiOperation { Parameters = new List<IOpenApiParameter>() };
+        var operation = new OpenApiOperation { Parameters = new List<OpenApiParameter>() };
         var context = CreateOperationFilterContext();
 
         // Act & Assert
@@ -91,7 +91,7 @@ public class ApiVersionOperationFilterTests
         // Arrange
         var operation = new OpenApiOperation
         {
-            Parameters = new List<IOpenApiParameter>
+            Parameters = new List<OpenApiParameter>
             {
                 new OpenApiParameter { Name = "version", In = ParameterLocation.Path },
                 new OpenApiParameter { Name = "id", In = ParameterLocation.Path },
@@ -115,7 +115,7 @@ public class ApiVersionOperationFilterTests
         // Arrange
         var operation = new OpenApiOperation
         {
-            Parameters = new List<IOpenApiParameter>
+            Parameters = new List<OpenApiParameter>
             {
                 new OpenApiParameter { Name = "Version", In = ParameterLocation.Path },
                 new OpenApiParameter { Name = "version", In = ParameterLocation.Path },
@@ -138,13 +138,11 @@ public class ApiVersionOperationFilterTests
         var methodInfo = typeof(ApiVersionOperationFilterTests).GetMethod(nameof(CreateOperationFilterContext));
         var apiDescription = new Microsoft.AspNetCore.Mvc.ApiExplorer.ApiDescription();
         var schemaRepository = new SchemaRepository();
-        var document = new OpenApiDocument();
 
         return new OperationFilterContext(
             apiDescription,
             null!,
             schemaRepository,
-            document,
             methodInfo!
         );
     }
