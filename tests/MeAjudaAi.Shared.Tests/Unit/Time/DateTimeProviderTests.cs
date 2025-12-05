@@ -36,10 +36,10 @@ public class DateTimeProviderTests
     {
         // Act
         var first = _sut.CurrentDate();
-        Thread.Sleep(10); // Small delay to ensure time passes
         var second = _sut.CurrentDate();
 
         // Assert
+        // Time might be equal if calls are fast enough, but should never go backwards
         second.Should().BeOnOrAfter(first);
     }
 

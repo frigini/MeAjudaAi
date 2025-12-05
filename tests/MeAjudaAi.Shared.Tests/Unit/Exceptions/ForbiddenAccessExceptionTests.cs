@@ -58,16 +58,17 @@ public class ForbiddenAccessExceptionTests
     }
 
     [Fact]
-    public void Constructor_WithNullMessage_ShouldHandleGracefully()
+    public void Constructor_WithNullMessage_ShouldUseBaseExceptionMessage()
     {
-        // Arrange
-        string? nullMessage = null;
-
         // Act
-        var exception = new ForbiddenAccessException(nullMessage!);
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type - testing null handling
+        var exception = new ForbiddenAccessException(null);
+#pragma warning restore CS8625
 
         // Assert
-        exception.Message.Should().NotBeNull();
+        // When null is passed to base Exception constructor, it uses a default message
+        exception.Message.Should().NotBeNullOrEmpty();
+        exception.Message.Should().StartWith("Exception of type");
     }
 
     #endregion
@@ -97,7 +98,9 @@ public class ForbiddenAccessExceptionTests
         var message = "Access denied";
 
         // Act
-        var exception = new ForbiddenAccessException(message, null!);
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type - testing null handling
+        var exception = new ForbiddenAccessException(message, null);
+#pragma warning restore CS8625
 
         // Assert
         exception.Message.Should().Be(message);

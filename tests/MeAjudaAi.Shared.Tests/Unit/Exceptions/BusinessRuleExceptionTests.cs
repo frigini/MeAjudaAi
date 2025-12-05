@@ -83,7 +83,8 @@ public class BusinessRuleExceptionTests
 
         // Assert
         var property = typeof(BusinessRuleException).GetProperty(nameof(BusinessRuleException.RuleName));
-        property!.CanWrite.Should().BeFalse();
+        property.Should().NotBeNull();
+        property!.SetMethod.Should().BeNull(); // No public setter
     }
 
     [Fact]
@@ -142,7 +143,9 @@ public class BusinessRuleExceptionTests
         var message = "Rule violation";
 
         // Act
-        var exception = new BusinessRuleException(nullRuleName!, message);
+#pragma warning disable CS8604 // Possible null reference argument - testing null handling
+        var exception = new BusinessRuleException(nullRuleName, message);
+#pragma warning restore CS8604
 
         // Assert
         exception.RuleName.Should().BeNull();

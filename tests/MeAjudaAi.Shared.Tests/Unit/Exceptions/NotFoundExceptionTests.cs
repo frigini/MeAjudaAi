@@ -129,12 +129,15 @@ public class NotFoundExceptionTests
         exception.EntityName.Should().NotBeNull();
         exception.EntityId.Should().NotBeNull();
         
-        // Properties should only have getters
+        // Properties should only have getters (no public setters)
         var entityNameProperty = typeof(NotFoundException).GetProperty(nameof(NotFoundException.EntityName));
         var entityIdProperty = typeof(NotFoundException).GetProperty(nameof(NotFoundException.EntityId));
         
-        entityNameProperty!.CanWrite.Should().BeFalse();
-        entityIdProperty!.CanWrite.Should().BeFalse();
+        entityNameProperty.Should().NotBeNull();
+        entityIdProperty.Should().NotBeNull();
+        
+        entityNameProperty!.SetMethod.Should().BeNull();
+        entityIdProperty!.SetMethod.Should().BeNull();
     }
 
     #endregion

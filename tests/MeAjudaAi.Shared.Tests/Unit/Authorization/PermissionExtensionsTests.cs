@@ -311,7 +311,7 @@ public class PermissionExtensionsTests
     #region IsAdminPermission Tests
 
     [Fact]
-    public void IsAdminPermission_WithSystemAdminPermission_ShouldReturnTrue()
+    public void IsAdminPermission_WithSystemAdminPermission_ShouldReturnFalse()
     {
         // Arrange
         var permission = EPermission.SystemAdmin;
@@ -320,7 +320,8 @@ public class PermissionExtensionsTests
         var result = permission.IsAdminPermission();
 
         // Assert
-        result.Should().BeFalse(); // system:admin não tem módulo "admin"
+        // system:admin doesn't have "admin" module
+        result.Should().BeFalse();
     }
 
     [Fact]

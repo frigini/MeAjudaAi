@@ -224,8 +224,8 @@ public class SearchProvidersModuleApiTests
         capturedQuery.MinRating.Should().Be(4.0m);
         capturedQuery.SubscriptionTiers.Should().BeEquivalentTo(new[]
         {
-            Domain.ValueObjects.ESubscriptionTier.Gold,
-            Domain.ValueObjects.ESubscriptionTier.Platinum
+            ESubscriptionTier.Gold,
+            ESubscriptionTier.Platinum
         });
         capturedQuery.Page.Should().Be(2);
         capturedQuery.PageSize.Should().Be(10);
@@ -440,7 +440,7 @@ public class SearchProvidersModuleApiTests
     }
 
     [Fact]
-    public async Task RemoveProviderAsync_WithExistingProvider_ShouldMarkAsDeleted()
+    public async Task IndexProviderAsync_WhenGetProviderThrows_ShouldReturnFailure()
     {
         // Arrange
         var providerId = Guid.NewGuid();

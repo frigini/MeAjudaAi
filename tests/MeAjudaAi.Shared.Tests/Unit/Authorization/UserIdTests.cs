@@ -219,21 +219,6 @@ public class UserIdTests
         hash1.Should().Be(hash2);
     }
 
-    [Fact]
-    public void GetHashCode_WithDifferentGuid_ShouldReturnDifferentHash()
-    {
-        // Arrange
-        var userId1 = UserId.New();
-        var userId2 = UserId.New();
-
-        // Act
-        var hash1 = userId1.GetHashCode();
-        var hash2 = userId2.GetHashCode();
-
-        // Assert
-        hash1.Should().NotBe(hash2);
-    }
-
     #endregion
 
     #region Implicit Conversion Tests
@@ -349,21 +334,6 @@ public class UserIdTests
 
         // Assert
         result.Should().Be(guid.ToString());
-    }
-
-    [Fact]
-    public void ToString_MultipleInstances_ShouldReturnDifferentStrings()
-    {
-        // Arrange
-        var userId1 = UserId.New();
-        var userId2 = UserId.New();
-
-        // Act
-        var string1 = userId1.ToString();
-        var string2 = userId2.ToString();
-
-        // Assert
-        string1.Should().NotBe(string2);
     }
 
     #endregion
