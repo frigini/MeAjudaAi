@@ -11,8 +11,15 @@ public class DateTimeProviderTests
     {
         // Use reflection to create internal DateTimeProvider instance
         var assembly = typeof(IDateTimeProvider).Assembly;
-        var type = assembly.GetType("MeAjudaAi.Shared.Time.DateTimeProvider")!;
-        _sut = (IDateTimeProvider)Activator.CreateInstance(type)!;
+        var type = assembly.GetType("MeAjudaAi.Shared.Time.DateTimeProvider")
+                   ?? throw new InvalidOperationException(
+                       "DateTimeProvider type not found in MeAjudaAi.Shared.Time. " +
+                       "Ensure the type exists and matches the expected namespace.");
+
+        _sut = (IDateTimeProvider)(Activator.CreateInstance(type)
+                   ?? throw new InvalidOperationException(
+                       "Failed to create DateTimeProvider instance. " +
+                       "Ensure the type has a parameterless constructor."));
     }
 
     [Fact]

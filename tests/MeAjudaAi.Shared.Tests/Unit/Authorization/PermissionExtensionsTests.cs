@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
@@ -309,6 +308,19 @@ public class PermissionExtensionsTests
     #endregion
 
     #region IsAdminPermission Tests
+
+    [Fact]
+    public void IsAdminPermission_WithAdminModulePermission_ShouldReturnTrue()
+    {
+        // Arrange
+        var permission = EPermission.AdminSystem;
+
+        // Act
+        var result = permission.IsAdminPermission();
+
+        // Assert
+        result.Should().BeTrue();
+    }
 
     [Fact]
     public void IsAdminPermission_WithSystemAdminPermission_ShouldReturnFalse()

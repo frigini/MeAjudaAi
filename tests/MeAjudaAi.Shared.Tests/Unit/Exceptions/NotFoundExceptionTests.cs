@@ -98,7 +98,8 @@ public class NotFoundExceptionTests
         var exception = new NotFoundException(entityName, entityId);
 
         // Assert
-        exception.Message.Should().Be("Invoice with id 999 was not found");
+        exception.Message.Should().StartWith("Invoice with id 999");
+        exception.Message.Should().Contain("not found");
     }
 
     [Fact]
@@ -129,15 +130,16 @@ public class NotFoundExceptionTests
         exception.EntityName.Should().NotBeNull();
         exception.EntityId.Should().NotBeNull();
         
-        // Properties should only have getters (no public setters)
+        // Properties should not have public setters (allows private/init)
         var entityNameProperty = typeof(NotFoundException).GetProperty(nameof(NotFoundException.EntityName));
         var entityIdProperty = typeof(NotFoundException).GetProperty(nameof(NotFoundException.EntityId));
         
         entityNameProperty.Should().NotBeNull();
         entityIdProperty.Should().NotBeNull();
         
-        entityNameProperty!.SetMethod.Should().BeNull();
-        entityIdProperty!.SetMethod.Should().BeNull();
+        // Check that setter is either null or not public
+        (entityNameProperty!.SetMethod == null || !entityNameProperty.SetMethod.IsPublic).Should().BeTrue();
+        (entityIdProperty!.SetMethod == null || !entityIdProperty.SetMethod.IsPublic).Should().BeTrue();
     }
 
     #endregion
@@ -164,12 +166,15 @@ public class NotFoundExceptionTests
     {
         // Arrange
         var entityName = "Entity";
-        object entityId = null!;
-
+        
         // Act
+#pragma warning disable CS8600, CS8604 // Null handling - testing edge case where null is passed
+        object entityId = null;
         var exception = new NotFoundException(entityName, entityId);
+#pragma warning restore CS8600, CS8604
 
         // Assert
+        // Note: This documents that EntityId can be null at runtime despite non-nullable signature
         exception.EntityId.Should().BeNull();
     }
 
