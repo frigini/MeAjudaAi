@@ -19,7 +19,8 @@ foreach ($match in $matches) {
     try {
         $coverage = [decimal]$match.Groups[2].Value
     } catch {
-        Write-Warning "Failed to parse coverage for $className: $($match.Groups[2].Value)"
+        $matchValue = $match.Groups[2].Value
+        Write-Warning "Failed to parse coverage for $className`: $matchValue"
         continue
     }
     
