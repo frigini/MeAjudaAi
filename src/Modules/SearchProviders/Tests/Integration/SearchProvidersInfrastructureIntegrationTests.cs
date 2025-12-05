@@ -212,7 +212,7 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
         result.Providers.Should().BeEmpty();
     }
 
-    [Fact]
+    [Fact(Skip = "Rating not denormalized to SearchableProvider - filter not implemented")]
     public async Task SearchAsync_WithMinRatingFilter_ShouldFilterCorrectly()
     {
         // Arrange
@@ -245,9 +245,9 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
             skip: 0,
             take: 10);
 
-        // Assert - Rating is not stored on SearchableProvider, so filter won't work as expected
-        // The test demonstrates the limitation - rating would need to be denormalized to SearchableProvider
-        result.Providers.Should().HaveCountGreaterThanOrEqualTo(0);
+        // Assert - This test is skipped because rating filtering requires denormalization
+        // When implemented, should verify only providers with rating >= 4.0 are returned
+        result.Providers.Should().OnlyContain(p => true); // Placeholder for future implementation
     }
 
     [Fact]
@@ -381,8 +381,6 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
     {
         // Arrange
         await CleanupDatabase();
-        using var scope = CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ISearchableProviderRepository>();
 
         for (int i = 0; i < 10; i++)
         {

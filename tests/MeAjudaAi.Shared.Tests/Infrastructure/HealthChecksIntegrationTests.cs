@@ -198,8 +198,8 @@ public class HealthChecksIntegrationTests
         // Assert
         results.Should().HaveCount(20);
         
-        // At least some should be healthy
-        results.Count(r => r.Status == HealthStatus.Healthy).Should().BeGreaterThan(0);
+        // No results should be unhealthy (validates stability without being environment-dependent)
+        results.Count(r => r.Status == HealthStatus.Unhealthy).Should().Be(0);
     }
 
     #endregion

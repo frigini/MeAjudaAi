@@ -261,14 +261,17 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
 
         // Assert - Verify services per category
         var electricalServices = await _moduleApi.GetServicesByCategoryAsync(electricalCategory.Id.Value);
+        electricalServices.IsSuccess.Should().BeTrue();
         electricalServices.Value.Should().HaveCountGreaterThanOrEqualTo(2);
         electricalServices.Value.Should().Contain(s => s.Id == electricalService1.Id.Value);
         electricalServices.Value.Should().Contain(s => s.Id == electricalService2.Id.Value);
 
         var plumbingServices = await _moduleApi.GetServicesByCategoryAsync(plumbingCategory.Id.Value);
+        plumbingServices.IsSuccess.Should().BeTrue();
         plumbingServices.Value.Should().HaveCountGreaterThanOrEqualTo(2);
 
         var carpentryServices = await _moduleApi.GetServicesByCategoryAsync(carpentryCategory.Id.Value);
+        carpentryServices.IsSuccess.Should().BeTrue();
         carpentryServices.Value.Should().HaveCountGreaterThanOrEqualTo(1);
     }
 
