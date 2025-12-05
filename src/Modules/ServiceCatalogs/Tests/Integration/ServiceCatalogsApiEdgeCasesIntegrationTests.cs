@@ -254,6 +254,7 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
 
         // Assert - Verify categories exist (may have more from other tests)
         var allCategories = await _moduleApi.GetAllServiceCategoriesAsync();
+        allCategories.IsSuccess.Should().BeTrue();
         allCategories.Value.Should().HaveCountGreaterThanOrEqualTo(3);
         allCategories.Value.Should().Contain(c => c.Id == electricalCategory.Id.Value);
         allCategories.Value.Should().Contain(c => c.Id == plumbingCategory.Id.Value);
