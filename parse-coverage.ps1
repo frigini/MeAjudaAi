@@ -40,17 +40,24 @@ if ($coverageData.Count -eq 0) {
     exit 1
 }
 
-# Extract total coverage from summary row
-$totalPattern = '<tr[^>]*>\s*<td[^>]*>\s*<strong>Total</strong>.*?<td[^>]*class="right"[^>]*><strong>(\d+\.?\d*)%</strong></td>'
-$totalMatch = [regex]::Match($html, $totalPattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
-if ($totalMatch.Success) {
-    $totalCoverage = [decimal]$totalMatch.Groups[1].Value
+# Extract total line coverage from summary card
+$lineCoveragePattern = '<th>Line coverage:</th>\s*<td[^>]*>(\d+\.?\d*)%</td>'
+$lineCoverageMatch = [regex]::Match($html, $lineCoveragePattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+if ($lineCoverageMatch.Success) {
+    $totalCoverage = [decimal]$lineCoverageMatch.Groups[1].Value
     $totalCoverageStr = $totalCoverage.ToString("F2")
 } else {
-    # Fallback: calculate simple average from class data
-    $avgCoverage = ($coverageData | Measure-Object -Property Coverage -Average).Average
-    $totalCoverageStr = $avgCoverage.ToString("F2")
-    Write-Verbose "Total coverage not found in HTML; calculated average: $totalCoverageStr%"
+    Write-Warning "Could not find line coverage in HTML report"
+    # Fallback: try to extract from large card display
+    $cardPattern = '<div[^>]*class="large[^"]*">(\d+)%</div>'
+    $cardMatch = [regex]::Match($html, $cardPattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    if ($cardMatch.Success) {
+        $totalCoverage = [decimal]$cardMatch.Groups[1].Value
+        $totalCoverageStr = $totalCoverage.ToString("F2")
+    } else {
+        Write-Error "Unable to extract total coverage from HTML report"
+        exit 1
+    }
 }
 
 # Sort by coverage and show results

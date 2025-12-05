@@ -5,6 +5,9 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Swagger;
 
+/// <summary>
+/// Unit tests for <see cref="ApiVersionOperationFilter"/> to verify API versioning behavior in Swagger documentation.
+/// </summary>
 [Trait("Category", "Unit")]
 [Trait("Layer", "ApiService")]
 public class ApiVersionOperationFilterTests

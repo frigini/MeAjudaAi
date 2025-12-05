@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Integration;
 
+/// <summary>
+/// Integration tests for Documents infrastructure components including persistence, repositories, and blob storage.
+/// </summary>
 [Trait("Category", "Integration")]
 public class DocumentsInfrastructureIntegrationTests : IDisposable
 {
@@ -340,7 +343,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     }
 
     [Fact]
-    public async Task DbContext_ConcurrentSaves_ShouldNotConflict()
+    public async Task DbContext_MultipleSaves_ShouldPersistBoth()
     {
         // Arrange
         var doc1 = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "doc1.pdf", "path1");

@@ -6,6 +6,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Configuração do Entity Framework Core para a entidade User.
+/// Define mapeamento de tabela, propriedades, value objects e usa PostgreSQL xmin para controle de concorrência.
+/// </summary>
+/// <remarks>
+/// Utiliza a coluna de sistema xmin do PostgreSQL como token de concorrência otimista,
+/// eliminando a necessidade de uma coluna RowVersion adicional.
+/// </remarks>
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)

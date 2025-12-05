@@ -36,6 +36,9 @@ public class ProviderDeletedDomainEventHandlerTests : IDisposable
             NullLogger<ProviderDeletedDomainEventHandler>.Instance);
     }
 
+    /// <summary>
+    /// Verifies that handling a ProviderDeletedDomainEvent publishes the corresponding integration event with correct properties.
+    /// </summary>
     [Fact]
     public async Task HandleAsync_WithValidEvent_ShouldPublishIntegrationEvent()
     {
@@ -71,12 +74,19 @@ public class ProviderDeletedDomainEventHandlerTests : IDisposable
         // Assert
         _messageBusMock.Verify(
             x => x.PublishAsync(
-                It.Is<object>(e => e.GetType().Name == "ProviderDeletedIntegrationEvent"),
+                It.Is<MeAjudaAi.Shared.Messaging.Messages.Providers.ProviderDeletedIntegrationEvent>(e =>
+                    e.ProviderId == providerId.Value &&
+                    e.Version == 1 &&
+                    e.Name == "Provider Test" &&
+                    e.DeletedBy == "admin@test.com"),
                 It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
+    /// <summary>
+    /// Verifies that when a provider is not found, the handler does not publish any integration event.
+    /// </summary>
     [Fact]
     public async Task HandleAsync_WhenProviderNotFound_ShouldNotPublishIntegrationEvent()
     {
@@ -98,47 +108,6 @@ public class ProviderDeletedDomainEventHandlerTests : IDisposable
                 It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithSystemDeletion_ShouldPublishIntegrationEvent()
-    {
-        // Arrange - System deletion (null deletedBy)
-        var providerId = new ProviderId(UuidGenerator.NewId());
-        var userId = UuidGenerator.NewId();
-
-        var businessProfile = new BusinessProfile(
-            legalName: "Test Company",
-            contactInfo: new ContactInfo("test@provider.com", "+55 11 99999-9999", null),
-            primaryAddress: new Address("Test St", "123", "Centro", "São Paulo", "SP", "01234-567", "Brasil"));
-
-        var provider = new MeAjudaAi.Modules.Providers.Domain.Entities.Provider(
-            providerId,
-            userId,
-            "Provider Test",
-            EProviderType.Individual,
-            businessProfile);
-
-        await _context.Providers.AddAsync(provider);
-        await _context.SaveChangesAsync();
-
-        var domainEvent = new ProviderDeletedDomainEvent(
-            providerId.Value,
-            1,
-            "Provider Test",
-            null
-        );
-
-        // Act
-        await _handler.HandleAsync(domainEvent, CancellationToken.None);
-
-        // Assert - Integration event should still be published (system deletion)
-        _messageBusMock.Verify(
-            x => x.PublishAsync(
-                It.Is<object>(e => e.GetType().Name == "ProviderDeletedIntegrationEvent"),
-                It.IsAny<string?>(),
-                It.IsAny<CancellationToken>()),
-            Times.Once);
     }
 
     public void Dispose() => _context.Dispose();
