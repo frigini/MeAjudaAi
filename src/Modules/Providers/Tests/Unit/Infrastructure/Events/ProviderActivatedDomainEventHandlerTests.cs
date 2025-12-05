@@ -1,0 +1,90 @@
+using FluentAssertions;
+using MeAjudaAi.Modules.Providers.Domain.Events;
+using MeAjudaAi.Modules.Providers.Infrastructure.Events.Handlers;
+using MeAjudaAi.Shared.Messaging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+
+namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Events;
+
+public class ProviderActivatedDomainEventHandlerTests
+{
+    private readonly Mock<IMessageBus> _messageBusMock;
+    private readonly ProviderActivatedDomainEventHandler _handler;
+
+    public ProviderActivatedDomainEventHandlerTests()
+    {
+        _messageBusMock = new Mock<IMessageBus>();
+        _handler = new ProviderActivatedDomainEventHandler(
+            _messageBusMock.Object,
+            NullLogger<ProviderActivatedDomainEventHandler>.Instance);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithValidEvent_ShouldPublishIntegrationEvent()
+    {
+        // Arrange
+        var domainEvent = new ProviderActivatedDomainEvent(
+            Guid.NewGuid(),
+            1,
+            Guid.NewGuid(),
+            "Provider Test",
+            "admin@test.com"
+        );
+
+        // Act
+        await _handler.HandleAsync(domainEvent, CancellationToken.None);
+
+        // Assert
+        _messageBusMock.Verify(
+            x => x.PublishAsync(
+                It.IsAny<object>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithSystemActivation_ShouldPublishIntegrationEvent()
+    {
+        // Arrange - System activation (null activatedBy)
+        var domainEvent = new ProviderActivatedDomainEvent(
+            Guid.NewGuid(),
+            1,
+            Guid.NewGuid(),
+            "Provider Test",
+            null
+        );
+
+        // Act
+        await _handler.HandleAsync(domainEvent, CancellationToken.None);
+
+        // Assert
+        _messageBusMock.Verify(
+            x => x.PublishAsync(
+                It.IsAny<object>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenCancelled_ShouldNotPublishEvent()
+    {
+        // Arrange
+        var domainEvent = new ProviderActivatedDomainEvent(
+            Guid.NewGuid(),
+            1,
+            Guid.NewGuid(),
+            "Provider Test",
+            "admin@test.com"
+        );
+        
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            async () => await _handler.HandleAsync(domainEvent, cts.Token));
+    }
+}
