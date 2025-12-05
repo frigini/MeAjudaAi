@@ -312,7 +312,12 @@ jobs:
             # Create temporary runsettings file for this module with proper XML escaping
             RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
             EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
-            generate_runsettings "$RUNSETTINGS_FILE" "$EXCLUDE_FILTER" "$EXCLUDE_BY_FILE" "$EXCLUDE_BY_ATTRIBUTE" "$INCLUDE_FILTER"
+            generate_runsettings \
+              "$RUNSETTINGS_FILE" \
+              "$EXCLUDE_FILTER" \
+              "$EXCLUDE_BY_FILE" \
+              "$EXCLUDE_BY_ATTRIBUTE" \
+              "$INCLUDE_FILTER"
 
 
             # NOTE: We run ALL tests (no --filter) because:
@@ -427,8 +432,14 @@ jobs:
             EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
             EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
             EXCLUDE_FILTER="[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*"
+            INCLUDE_FILTER="[MeAjudaAi*]*"  # Instrument all MeAjudaAi assemblies
             
-            generate_runsettings "$INTEGRATION_RUNSETTINGS" "$EXCLUDE_FILTER" "$EXCLUDE_BY_FILE" "$EXCLUDE_BY_ATTRIBUTE"
+            generate_runsettings \
+              "$INTEGRATION_RUNSETTINGS" \
+              "$EXCLUDE_FILTER" \
+              "$EXCLUDE_BY_FILE" \
+              "$EXCLUDE_BY_ATTRIBUTE" \
+              "$INCLUDE_FILTER"
             
             dotnet test "tests/MeAjudaAi.Integration.Tests/" \
               --configuration Release \
@@ -468,8 +479,14 @@ jobs:
             EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
             EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
             EXCLUDE_FILTER="[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*"
+            INCLUDE_FILTER="[MeAjudaAi*]*"  # Instrument all MeAjudaAi assemblies
             
-            generate_runsettings "$E2E_RUNSETTINGS" "$EXCLUDE_FILTER" "$EXCLUDE_BY_FILE" "$EXCLUDE_BY_ATTRIBUTE"
+            generate_runsettings \
+              "$E2E_RUNSETTINGS" \
+              "$EXCLUDE_FILTER" \
+              "$EXCLUDE_BY_FILE" \
+              "$EXCLUDE_BY_ATTRIBUTE" \
+              "$INCLUDE_FILTER"
             
             dotnet test "tests/MeAjudaAi.E2E.Tests/" \
               --configuration Release \
