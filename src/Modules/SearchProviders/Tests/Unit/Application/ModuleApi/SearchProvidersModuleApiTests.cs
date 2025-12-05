@@ -224,8 +224,8 @@ public class SearchProvidersModuleApiTests
         capturedQuery.MinRating.Should().Be(4.0m);
         capturedQuery.SubscriptionTiers.Should().BeEquivalentTo(new[]
         {
-            ESubscriptionTier.Gold,
-            ESubscriptionTier.Platinum
+            DomainEnums.ESubscriptionTier.Gold,
+            DomainEnums.ESubscriptionTier.Platinum
         });
         capturedQuery.Page.Should().Be(2);
         capturedQuery.PageSize.Should().Be(10);
