@@ -819,14 +819,9 @@ jobs:
                 fi
 
                 if [ -n "$LINE_RATE" ]; then
-                  # Convert decimal to percentage if needed and truncate to 2 decimal places
-                  if [ "$(echo "$LINE_RATE" | cut -d'.' -f1)" = "0" ]; then
-                    PERCENTAGE=$(echo "$LINE_RATE * 100" | bc -l 2>/dev/null | awk '{printf "%.2f", $1}' || \
-                                echo "scale=2; $LINE_RATE * 100" | bc 2>/dev/null || \
-                                echo "Unknown")
-                  else
-                    PERCENTAGE=$(echo "$LINE_RATE" | awk '{printf "%.2f", $1}')
-                  fi
+                  # Convert decimal to percentage if needed (auto-detect format)
+                  # If value <= 1.0, assume decimal (0.75 -> 75.00), else assume already percentage (75.5 -> 75.50)
+                  PERCENTAGE=$(echo "$LINE_RATE" | awk '{if ($1 <= 1.0) printf "%.2f", $1 * 100; else printf "%.2f", $1}')
                   SUMMARY="**Coverage**: ${PERCENTAGE}% (extracted from $SOURCE)"
                   BADGE="![Coverage](https://img.shields.io/badge/coverage-${PERCENTAGE}%25-brightgreen)"
                 else
