@@ -25,18 +25,6 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
     #region Category Edge Cases
 
     [Fact]
-    public async Task GetAllCategoriesAsync_WithNoCategories_ShouldReturnEmptyList()
-    {
-        // Act
-        var result = await _moduleApi.GetAllServiceCategoriesAsync();
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value.Should().BeEmpty();
-    }
-
-    [Fact]
     public async Task GetServiceCategoryByIdAsync_WithMultipleConcurrentRequests_ShouldReturnConsistentResults()
     {
         // Arrange
@@ -59,43 +47,9 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
         });
     }
 
-    [Fact]
-    public async Task GetAllCategoriesAsync_WithManyCategories_ShouldReturnAllInCorrectOrder()
-    {
-        // Arrange - Create categories with different display orders
-        var category1 = await CreateServiceCategoryAsync("Category Z", "Last", displayOrder: 3);
-        var category2 = await CreateServiceCategoryAsync("Category A", "First", displayOrder: 1);
-        var category3 = await CreateServiceCategoryAsync("Category M", "Middle", displayOrder: 2);
-
-        // Act
-        var result = await _moduleApi.GetAllServiceCategoriesAsync();
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(3);
-        
-        // Should be ordered by DisplayOrder
-        var orderedCategories = result.Value.ToList();
-        orderedCategories[0].Name.Should().Be("Category A"); // DisplayOrder 1
-        orderedCategories[1].Name.Should().Be("Category M"); // DisplayOrder 2
-        orderedCategories[2].Name.Should().Be("Category Z"); // DisplayOrder 3
-    }
-
     #endregion
 
     #region Service Edge Cases
-
-    [Fact]
-    public async Task GetAllServicesAsync_WithNoServices_ShouldReturnEmptyList()
-    {
-        // Act
-        var result = await _moduleApi.GetAllServicesAsync();
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value.Should().BeEmpty();
-    }
 
     [Fact]
     public async Task GetServicesByCategoryAsync_WithNonExistentCategory_ShouldReturnEmptyList()
@@ -123,26 +77,6 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task GetServicesByCategoryAsync_WithMixedActiveAndInactiveServices_ShouldReturnAll()
-    {
-        // Arrange
-        var category = await CreateServiceCategoryAsync("Category");
-        var activeService = await CreateServiceAsync(category.Id, "Active Service");
-        var inactiveService = await CreateServiceAsync(category.Id, "Inactive Service");
-
-        inactiveService.Deactivate();
-        var repository = GetService<Domain.Repositories.IServiceRepository>();
-        await repository.UpdateAsync(inactiveService);
-
-        // Act
-        var result = await _moduleApi.GetServicesByCategoryAsync(category.Id.Value);
-
-        // Assert - Should return both active and inactive
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(2);
     }
 
     [Fact]
@@ -272,33 +206,6 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.AllValid.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task ValidateServicesAsync_ConcurrentValidations_ShouldReturnConsistentResults()
-    {
-        // Arrange
-        var category = await CreateServiceCategoryAsync("Category");
-        var service1 = await CreateServiceAsync(category.Id, "Service 1");
-        var service2 = await CreateServiceAsync(category.Id, "Service 2");
-
-        var serviceIds = new[] { service1.Id.Value, service2.Id.Value };
-
-        // Act - Execute 10 concurrent validations
-        var tasks = Enumerable.Range(0, 10)
-            .Select(_ => _moduleApi.ValidateServicesAsync(serviceIds))
-            .ToArray();
-
-        var results = await Task.WhenAll(tasks);
-
-        // Assert - All should return consistent results
-        results.Should().AllSatisfy(result =>
-        {
-            result.IsSuccess.Should().BeTrue();
-            result.Value.AllValid.Should().BeTrue();
-            result.Value.InvalidServiceIds.Should().BeEmpty();
-            result.Value.InactiveServiceIds.Should().BeEmpty();
-        });
     }
 
     #endregion

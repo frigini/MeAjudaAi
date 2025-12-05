@@ -14,6 +14,7 @@
         "-MeAjudaAi.ServiceDefaults"
       ],
       "classfilters": [
+        "-*.Migrations",
         "-*.Migrations*",
         "-*MigrationBuilder*",
         "-*DbContextModelSnapshot*",
@@ -36,6 +37,7 @@
       ],
       "filefilters": [
         "-**/Migrations/**",
+        "-**/Migrations/*.cs",
         "-**/bin/**",
         "-**/obj/**",
         "-**/Logging/**",

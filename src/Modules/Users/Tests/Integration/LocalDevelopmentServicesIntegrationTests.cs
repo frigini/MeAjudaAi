@@ -183,7 +183,7 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be("Invalid credentials");
+        result.Error.Message.Should().Be("Invalid credentials");
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
 
         // Act
         var result1 = await _authenticationDomainService.AuthenticateAsync(username, password);
-        await Task.Delay(100); // Ensure different timestamps
+        await Task.Delay(1100); // Ensure different timestamps (needs >1s for Unix timestamp to change)
         var result2 = await _authenticationDomainService.AuthenticateAsync(username, password);
 
         // Assert
@@ -270,7 +270,7 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Should().Be("Invalid token");
+        result.Error.Message.Should().Be("Invalid token");
     }
 
     [Fact]
