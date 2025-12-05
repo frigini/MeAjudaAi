@@ -211,10 +211,10 @@ public class EventDispatcherTests
             Times.Once);
     }
 
-    private class TestEvent : IEvent
+    public class TestEvent : IEvent
     {
         public string EventType => "TestEvent";
-        public Guid EventId { get; } = Guid.NewGuid();
-        public DateTime OccurredOn { get; } = DateTime.UtcNow;
+        public Guid Id { get; } = Guid.NewGuid();
+        public DateTime OccurredAt { get; } = DateTime.UtcNow;
     }
 }
