@@ -46,9 +46,9 @@ public static class EndpointExtensions
         {
             var pagedResponse = new PagedResponse<IEnumerable<T>>(
                 result.Value,
+                totalCount,
                 currentPage,
-                pageSize,
-                totalCount);
+                pageSize);
 
             return TypedResults.Ok(pagedResponse);
         }
