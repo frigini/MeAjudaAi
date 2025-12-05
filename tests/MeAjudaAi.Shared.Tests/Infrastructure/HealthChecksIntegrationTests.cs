@@ -112,7 +112,7 @@ public class HealthChecksIntegrationTests
     #region Health Check Context Tests
 
     [Fact]
-    public async Task HealthCheck_WithCancellationToken_ShouldRespectCancellation()
+    public async Task HealthCheck_WithCancelledToken_ShouldNotThrow()
     {
         // Arrange
         var healthCheck = new MeAjudaAiHealthChecks.PerformanceHealthCheck();
@@ -122,7 +122,7 @@ public class HealthChecksIntegrationTests
         cts.Cancel();
 
         // Act & Assert
-        // Some health checks might not support cancellation, so we just verify it doesn't throw
+        // Current implementation doesn't observe cancellation token, but should not throw
         var act = async () => await healthCheck.CheckHealthAsync(context, cts.Token);
         await act.Should().NotThrowAsync();
     }
