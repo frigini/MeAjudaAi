@@ -48,7 +48,7 @@ public class UsersApiTests : ApiTestBase
 
     // NOTE: GetUserById_WithNonExistentId, GetUserByEmail_WithNonExistentEmail, and CreateUser tests
     // are covered by UsersIntegrationTests.cs - removed duplicates to reduce test overhead
-    
+
     // NOTE: UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors removed
     // - Duplicates UsersIntegrationTests.UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors
 }

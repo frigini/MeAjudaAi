@@ -40,31 +40,31 @@ public sealed class DbContextConcurrencyTests : ApiTestBase
         try
         {
 
-        // Act - Simulate two concurrent contexts modifying the same user
-        using var scope1 = Services.CreateScope();
-        using var scope2 = Services.CreateScope();
+            // Act - Simulate two concurrent contexts modifying the same user
+            using var scope1 = Services.CreateScope();
+            using var scope2 = Services.CreateScope();
 
-        var context1 = scope1.ServiceProvider.GetRequiredService<UsersDbContext>();
-        var context2 = scope2.ServiceProvider.GetRequiredService<UsersDbContext>();
+            var context1 = scope1.ServiceProvider.GetRequiredService<UsersDbContext>();
+            var context2 = scope2.ServiceProvider.GetRequiredService<UsersDbContext>();
 
-        // EF Core translates .Where on converted property - use DbContext directly  
-        var userFromContext1 = (await context1.Users.ToListAsync())
-            .First(u => u.Username.Value == username);
-        var userFromContext2 = (await context2.Users.ToListAsync())
-            .First(u => u.Username.Value == username);
+            // EF Core translates .Where on converted property - use DbContext directly  
+            var userFromContext1 = (await context1.Users.ToListAsync())
+                .First(u => u.Username.Value == username);
+            var userFromContext2 = (await context2.Users.ToListAsync())
+                .First(u => u.Username.Value == username);
 
-        // Modify in both contexts
-        userFromContext1.UpdateProfile("Modified1", "User1");
-        userFromContext2.UpdateProfile("Modified2", "User2");
+            // Modify in both contexts
+            userFromContext1.UpdateProfile("Modified1", "User1");
+            userFromContext2.UpdateProfile("Modified2", "User2");
 
-        // First save succeeds
-        await context1.SaveChangesAsync();
+            // First save succeeds
+            await context1.SaveChangesAsync();
 
-        // Assert - Second save should detect concurrency conflict
-        var act = async () => await context2.SaveChangesAsync();
+            // Assert - Second save should detect concurrency conflict
+            var act = async () => await context2.SaveChangesAsync();
 
-        await act.Should().ThrowAsync<DbUpdateConcurrencyException>(
-            "PostgreSQL xmin concurrency token should detect conflicting updates");
+            await act.Should().ThrowAsync<DbUpdateConcurrencyException>(
+                "PostgreSQL xmin concurrency token should detect conflicting updates");
         }
         finally
         {

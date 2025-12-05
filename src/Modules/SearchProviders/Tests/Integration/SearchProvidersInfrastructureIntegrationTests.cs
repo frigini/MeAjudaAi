@@ -98,17 +98,17 @@ public class SearchProvidersInfrastructureIntegrationTests : SearchProvidersInte
 
         // Act - Get page 1 (skip 0, take 10)
         var page1 = await repository.SearchAsync(searchLocation, 50, null, null, null, 0, 10);
-        
+
         // Act - Get page 2 (skip 10, take 10)
         var page2 = await repository.SearchAsync(searchLocation, 50, null, null, null, 10, 10);
 
         // Assert
         page1.Providers.Should().HaveCount(10);
         page1.TotalCount.Should().Be(15);
-        
+
         page2.Providers.Should().HaveCount(5); // Only 5 remaining
         page2.TotalCount.Should().Be(15);
-        
+
         // Ensure no overlap between pages
         var page1Ids = page1.Providers.Select(p => p.Id).ToHashSet();
         var page2Ids = page2.Providers.Select(p => p.Id).ToHashSet();

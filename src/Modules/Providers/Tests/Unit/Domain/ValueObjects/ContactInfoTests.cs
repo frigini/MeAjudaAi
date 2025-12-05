@@ -155,7 +155,7 @@ public class ContactInfoTests
         // Arrange
         var email = "test@example.com";
         var phone = "+55 11 98765-4321";
-        
+
         var contact1 = new ContactInfo(email, phone);
         var contact2 = new ContactInfo(email, phone);
 

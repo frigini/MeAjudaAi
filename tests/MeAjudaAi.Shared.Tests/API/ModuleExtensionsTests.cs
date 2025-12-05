@@ -48,7 +48,7 @@ public class DocumentsModuleExtensionsTests
         _services.AddDocumentsModule(_configuration);
 
         // Assert
-        _services.Should().Contain(s => s.ServiceType.Namespace != null && 
+        _services.Should().Contain(s => s.ServiceType.Namespace != null &&
                                         s.ServiceType.Namespace.Contains("Documents"));
     }
 
@@ -80,11 +80,11 @@ public class DocumentsModuleExtensionsTests
         serviceCollection.AddDocumentsModule(_configuration);
         serviceCollection.AddLogging();
         serviceCollection.AddRouting();
-        
+
         var envMock = new Mock<IWebHostEnvironment>();
         envMock.Setup(e => e.EnvironmentName).Returns("Testing");
         serviceCollection.AddSingleton(envMock.Object);
-        
+
         var serviceProvider = serviceCollection.BuildServiceProvider();
         var appBuilder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Testing" });
         foreach (var service in serviceCollection)
@@ -109,11 +109,11 @@ public class DocumentsModuleExtensionsTests
         serviceCollection.AddDocumentsModule(_configuration);
         serviceCollection.AddLogging();
         serviceCollection.AddRouting();
-        
+
         var envMock = new Mock<IWebHostEnvironment>();
         envMock.Setup(e => e.EnvironmentName).Returns("Testing");
         serviceCollection.AddSingleton(envMock.Object);
-        
+
         var appBuilder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Testing" });
         foreach (var service in serviceCollection)
         {
@@ -164,7 +164,7 @@ public class ProvidersModuleExtensionsTests
         MeAjudaAi.Modules.Providers.API.Extensions.AddProvidersModule(_services, _configuration);
 
         // Assert
-        _services.Should().Contain(s => s.ServiceType.Namespace != null && 
+        _services.Should().Contain(s => s.ServiceType.Namespace != null &&
                                         s.ServiceType.Namespace.Contains("Providers"));
     }
 
@@ -186,11 +186,11 @@ public class ProvidersModuleExtensionsTests
         MeAjudaAi.Modules.Providers.API.Extensions.AddProvidersModule(serviceCollection, _configuration);
         serviceCollection.AddLogging();
         serviceCollection.AddRouting();
-        
+
         var envMock = new Mock<IWebHostEnvironment>();
         envMock.Setup(e => e.EnvironmentName).Returns("Testing");
         serviceCollection.AddSingleton(envMock.Object);
-        
+
         var appBuilder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Testing" });
         foreach (var service in serviceCollection)
         {
@@ -241,7 +241,7 @@ public class ServiceCatalogsModuleExtensionsTests
         MeAjudaAi.Modules.ServiceCatalogs.API.Extensions.AddServiceCatalogsModule(_services, _configuration);
 
         // Assert
-        _services.Should().Contain(s => s.ServiceType.Namespace != null && 
+        _services.Should().Contain(s => s.ServiceType.Namespace != null &&
                                         s.ServiceType.Namespace.Contains("ServiceCatalogs"));
     }
 
@@ -263,11 +263,11 @@ public class ServiceCatalogsModuleExtensionsTests
         MeAjudaAi.Modules.ServiceCatalogs.API.Extensions.AddServiceCatalogsModule(serviceCollection, _configuration);
         serviceCollection.AddLogging();
         serviceCollection.AddRouting();
-        
+
         var envMock = new Mock<IWebHostEnvironment>();
         envMock.Setup(e => e.EnvironmentName).Returns("Testing");
         serviceCollection.AddSingleton(envMock.Object);
-        
+
         var appBuilder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Testing" });
         foreach (var service in serviceCollection)
         {
@@ -318,7 +318,7 @@ public class UsersModuleExtensionsTests
         MeAjudaAi.Modules.Users.API.Extensions.AddUsersModule(_services, _configuration);
 
         // Assert
-        _services.Should().Contain(s => s.ServiceType.Namespace != null && 
+        _services.Should().Contain(s => s.ServiceType.Namespace != null &&
                                         s.ServiceType.Namespace.Contains("Users"));
     }
 
@@ -340,11 +340,11 @@ public class UsersModuleExtensionsTests
         MeAjudaAi.Modules.Users.API.Extensions.AddUsersModule(serviceCollection, _configuration);
         serviceCollection.AddLogging();
         serviceCollection.AddRouting();
-        
+
         var envMock = new Mock<IWebHostEnvironment>();
         envMock.Setup(e => e.EnvironmentName).Returns("Testing");
         serviceCollection.AddSingleton(envMock.Object);
-        
+
         var appBuilder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Testing" });
         foreach (var service in serviceCollection)
         {

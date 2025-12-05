@@ -273,7 +273,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
         {
             var blobName = $"{providerId}/{docType}-{Guid.NewGuid()}.pdf";
             await _blobStorageService.GenerateUploadUrlAsync(blobName, "application/pdf");
-            
+
             var document = Document.Create(providerId, docType, $"{docType}.pdf", blobName);
             await _repository.AddAsync(document);
             documentIds.Add(document.Id);
@@ -315,11 +315,11 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     {
         // Arrange
         var uploaded = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "uploaded.pdf", "path1");
-        
+
         var verified = Document.Create(Guid.NewGuid(), EDocumentType.ProofOfResidence, "verified.pdf", "path2");
         verified.MarkAsPendingVerification();
         verified.MarkAsVerified("{\"data\":\"test\"}");
-        
+
         var rejected = Document.Create(Guid.NewGuid(), EDocumentType.CriminalRecord, "rejected.pdf", "path3");
         rejected.MarkAsPendingVerification();
         rejected.MarkAsRejected("Invalid");

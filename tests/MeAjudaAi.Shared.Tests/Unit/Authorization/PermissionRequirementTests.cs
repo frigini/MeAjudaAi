@@ -171,7 +171,7 @@ public class PermissionRequirementTests
         // Act & Assert
         // Permission property should only have a getter, not a setter
         requirement.Permission.Should().Be(permission);
-        
+
         // This test verifies immutability by ensuring the requirement can't be changed
         var originalPermission = requirement.Permission;
         // No way to modify it - would be a compile error

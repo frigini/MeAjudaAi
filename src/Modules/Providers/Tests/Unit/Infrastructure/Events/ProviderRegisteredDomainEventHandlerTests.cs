@@ -24,12 +24,12 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
     public ProviderRegisteredDomainEventHandlerTests()
     {
         _messageBusMock = new Mock<IMessageBus>();
-        
+
         var options = new DbContextOptionsBuilder<ProvidersDbContext>()
             .UseInMemoryDatabase(databaseName: $"TestDb_{UuidGenerator.NewId()}")
             .Options;
         _context = new ProvidersDbContext(options);
-        
+
         _handler = new ProviderRegisteredDomainEventHandler(
             _messageBusMock.Object,
             _context,
@@ -42,19 +42,19 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
         // Arrange
         var providerId = new ProviderId(UuidGenerator.NewId());
         var userId = UuidGenerator.NewId();
-        
+
         var businessProfile = new BusinessProfile(
             legalName: "Test Company",
             contactInfo: new ContactInfo("test@provider.com", "+55 11 99999-9999", "https://www.test.com"),
             primaryAddress: new Address("Test St", "123", "Centro", "São Paulo", "SP", "01234-567", "Brasil"));
-        
+
         var provider = new MeAjudaAi.Modules.Providers.Domain.Entities.Provider(
             providerId,
             userId,
             "Provider Test",
             EProviderType.Individual,
             businessProfile);
-        
+
         await _context.Providers.AddAsync(provider);
         await _context.SaveChangesAsync();
 
@@ -117,7 +117,7 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
             EProviderType.Individual,
             "test@provider.com"
         );
-        
+
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -126,7 +126,7 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
-        
+
         // Verify PublishAsync was not successfully invoked
         _messageBusMock.Verify(
             x => x.PublishAsync(

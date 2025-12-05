@@ -60,7 +60,7 @@ public class UsersPermissionsTests
         // Act & Assert
         // Arrays are mutable in C#, but the field itself is readonly
         permissions.Should().NotBeNull();
-        
+
         // Verify the field is static readonly via reflection
         var field = typeof(UsersPermissions).GetField(nameof(UsersPermissions.BasicUser));
         field.Should().NotBeNull();

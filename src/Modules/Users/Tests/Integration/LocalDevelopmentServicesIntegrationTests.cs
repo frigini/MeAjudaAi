@@ -300,7 +300,7 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
 
         // Act - Authenticate
         var authResult = await _authenticationDomainService.AuthenticateAsync(username, password);
-        
+
         // Act - Validate the token
         var validateResult = await _authenticationDomainService.ValidateTokenAsync(
             authResult.Value!.AccessToken);

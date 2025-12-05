@@ -44,7 +44,7 @@ public class CorrelationIdEnricherTests
         var property = logEvent.Properties["CorrelationId"];
         var scalarValue = property.Should().BeOfType<ScalarValue>().Subject;
         var value = scalarValue.Value.Should().BeOfType<string>().Subject;
-        
+
         Guid.TryParse(value, out _).Should().BeTrue("correlation ID should be a valid GUID");
     }
 

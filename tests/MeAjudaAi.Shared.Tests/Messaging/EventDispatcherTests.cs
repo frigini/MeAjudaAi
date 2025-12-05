@@ -25,7 +25,7 @@ public class EventDispatcherTests
         // Arrange
         var handler1 = new Mock<IEventHandler<TestEvent>>();
         var handler2 = new Mock<IEventHandler<TestEvent>>();
-        
+
         var services = new ServiceCollection();
         services.AddSingleton(_mockLogger.Object);
         services.AddSingleton(handler1.Object);
@@ -63,7 +63,7 @@ public class EventDispatcherTests
         // Arrange
         var handler1 = new Mock<IEventHandler<TestEvent>>();
         var handler2 = new Mock<IEventHandler<TestEvent>>();
-        
+
         handler1.Setup(x => x.HandleAsync(It.IsAny<TestEvent>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Handler 1 failed"));
 
@@ -89,7 +89,7 @@ public class EventDispatcherTests
         // Arrange
         var handler = new Mock<IEventHandler<TestEvent>>();
         var exception = new InvalidOperationException("Test exception");
-        
+
         handler.Setup(x => x.HandleAsync(It.IsAny<TestEvent>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
@@ -120,7 +120,7 @@ public class EventDispatcherTests
     {
         // Arrange
         var handler = new Mock<IEventHandler<TestEvent>>();
-        
+
         var services = new ServiceCollection();
         services.AddSingleton(_mockLogger.Object);
         services.AddSingleton(handler.Object);
@@ -156,7 +156,7 @@ public class EventDispatcherTests
         // Arrange
         using var cts = new CancellationTokenSource();
         var handler = new Mock<IEventHandler<TestEvent>>();
-        
+
         var services = new ServiceCollection();
         services.AddSingleton(_mockLogger.Object);
         services.AddSingleton(handler.Object);
@@ -178,7 +178,7 @@ public class EventDispatcherTests
         // Arrange
         var handler = new Mock<IEventHandler<TestEvent>>();
         var callCount = 0;
-        
+
         handler.Setup(x => x.HandleAsync(It.IsAny<TestEvent>(), It.IsAny<CancellationToken>()))
             .Returns(() =>
             {

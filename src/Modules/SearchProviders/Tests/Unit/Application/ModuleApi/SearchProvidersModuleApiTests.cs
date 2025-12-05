@@ -7,13 +7,13 @@ using MeAjudaAi.Modules.SearchProviders.Domain.Repositories;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
-using DomainEnums = MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.Logging;
+using DomainEnums = MeAjudaAi.Modules.SearchProviders.Domain.Enums;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Application.ModuleApi;
 

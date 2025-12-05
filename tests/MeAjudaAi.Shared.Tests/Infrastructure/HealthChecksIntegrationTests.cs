@@ -118,7 +118,7 @@ public class HealthChecksIntegrationTests
         var healthCheck = new MeAjudaAiHealthChecks.PerformanceHealthCheck();
         using var cts = new CancellationTokenSource();
         var context = new HealthCheckContext();
-        
+
         cts.Cancel();
 
         // Act & Assert
@@ -197,7 +197,7 @@ public class HealthChecksIntegrationTests
 
         // Assert
         results.Should().HaveCount(20);
-        
+
         // No results should be unhealthy (validates stability without being environment-dependent)
         results.Count(r => r.Status == HealthStatus.Unhealthy).Should().Be(0);
     }

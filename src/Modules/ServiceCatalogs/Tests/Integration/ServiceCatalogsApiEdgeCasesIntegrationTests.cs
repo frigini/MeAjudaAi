@@ -119,7 +119,7 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
 
         service1.Deactivate();
         service2.Deactivate();
-        
+
         var repository = GetService<Domain.Repositories.IServiceRepository>();
         await repository.UpdateAsync(service1);
         await repository.UpdateAsync(service2);
@@ -246,10 +246,10 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
         // Act - Create services in different categories
         var electricalService1 = await CreateServiceAsync(electricalCategory.Id, "Wiring");
         var electricalService2 = await CreateServiceAsync(electricalCategory.Id, "Lighting");
-        
+
         var plumbingService1 = await CreateServiceAsync(plumbingCategory.Id, "Pipe Repair");
         var plumbingService2 = await CreateServiceAsync(plumbingCategory.Id, "Drain Cleaning");
-        
+
         var carpentryService = await CreateServiceAsync(carpentryCategory.Id, "Furniture Assembly");
 
         // Assert - Verify categories exist (may have more from other tests)

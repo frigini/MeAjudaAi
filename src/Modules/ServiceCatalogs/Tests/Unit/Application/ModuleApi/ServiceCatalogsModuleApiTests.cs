@@ -309,7 +309,7 @@ public class ServiceCatalogsModuleApiTests
     {
         // Arrange
         var service = new ServiceBuilder().WithName("Service").Build();
-        
+
         // Force Category to null using reflection or by not setting it
         _serviceRepositoryMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
@@ -642,7 +642,7 @@ public class ServiceCatalogsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.AllValid.Should().BeTrue();
-        
+
         // Verify repository was called only once per unique ID
         _serviceRepositoryMock.Verify(
             x => x.GetByIdsAsync(

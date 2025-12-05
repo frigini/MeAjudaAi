@@ -385,7 +385,7 @@ public class EndpointExtensionsTests
     // NOTA IMPORTANTE: HandlePaged() removido dos testes devido a BUG de produção
     // O método passa parâmetros na ordem errada ao construtor PagedResponse
     // Deve ser corrigido antes de adicionar testes
-    
+
     #endregion
 
     #region Test DTO

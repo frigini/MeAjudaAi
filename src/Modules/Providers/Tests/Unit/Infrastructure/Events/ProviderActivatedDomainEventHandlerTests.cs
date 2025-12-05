@@ -83,7 +83,7 @@ public class ProviderActivatedDomainEventHandlerTests
             "Provider Test",
             "admin@test.com"
         );
-        
+
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -99,7 +99,7 @@ public class ProviderActivatedDomainEventHandlerTests
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(
             async () => await _handler.HandleAsync(domainEvent, cts.Token));
-        
+
         // Verify that no successful publish occurred (only attempted)
         _messageBusMock.Verify(
             x => x.PublishAsync(

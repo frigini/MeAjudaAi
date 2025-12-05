@@ -129,14 +129,14 @@ public class NotFoundExceptionTests
         // Assert
         exception.EntityName.Should().NotBeNull();
         exception.EntityId.Should().NotBeNull();
-        
+
         // Properties should not have public setters (allows private/init)
         var entityNameProperty = typeof(NotFoundException).GetProperty(nameof(NotFoundException.EntityName));
         var entityIdProperty = typeof(NotFoundException).GetProperty(nameof(NotFoundException.EntityId));
-        
+
         entityNameProperty.Should().NotBeNull();
         entityIdProperty.Should().NotBeNull();
-        
+
         // Check that setter is either null or not public
         (entityNameProperty!.SetMethod == null || !entityNameProperty.SetMethod.IsPublic).Should().BeTrue();
         (entityIdProperty!.SetMethod == null || !entityIdProperty.SetMethod.IsPublic).Should().BeTrue();
@@ -166,7 +166,7 @@ public class NotFoundExceptionTests
     {
         // Arrange
         var entityName = "Entity";
-        
+
         // Act
 #pragma warning disable CS8600, CS8604 // Null handling - testing edge case where null is passed
         object entityId = null;

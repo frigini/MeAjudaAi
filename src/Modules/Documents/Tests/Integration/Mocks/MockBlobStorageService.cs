@@ -13,10 +13,10 @@ public class MockBlobStorageService : IBlobStorageService
     {
         var uploadUrl = $"https://mock-storage.blob.core.windows.net/documents/{blobName}?sas=mock-upload-token";
         var expiresAt = DateTime.UtcNow.AddHours(1);
-        
+
         // Simulate storage
         _storedBlobs[blobName] = true;
-        
+
         return Task.FromResult((uploadUrl, expiresAt));
     }
 
@@ -26,7 +26,7 @@ public class MockBlobStorageService : IBlobStorageService
     {
         var downloadUrl = $"https://mock-storage.blob.core.windows.net/documents/{blobName}?sas=mock-download-token";
         var expiresAt = DateTime.UtcNow.AddHours(1);
-        
+
         return Task.FromResult((downloadUrl, expiresAt));
     }
 

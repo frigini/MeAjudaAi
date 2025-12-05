@@ -24,12 +24,12 @@ public class ProviderDeletedDomainEventHandlerTests : IDisposable
     public ProviderDeletedDomainEventHandlerTests()
     {
         _messageBusMock = new Mock<IMessageBus>();
-        
+
         var options = new DbContextOptionsBuilder<ProvidersDbContext>()
             .UseInMemoryDatabase(databaseName: $"TestDb_{UuidGenerator.NewId()}")
             .Options;
         _context = new ProvidersDbContext(options);
-        
+
         _handler = new ProviderDeletedDomainEventHandler(
             _messageBusMock.Object,
             _context,
@@ -42,19 +42,19 @@ public class ProviderDeletedDomainEventHandlerTests : IDisposable
         // Arrange
         var providerId = new ProviderId(UuidGenerator.NewId());
         var userId = UuidGenerator.NewId();
-        
+
         var businessProfile = new BusinessProfile(
             legalName: "Test Company",
             contactInfo: new ContactInfo("test@provider.com", "+55 11 99999-9999", "https://www.test.com"),
             primaryAddress: new Address("Test St", "123", "Centro", "São Paulo", "SP", "01234-567", "Brasil"));
-        
+
         var provider = new MeAjudaAi.Modules.Providers.Domain.Entities.Provider(
             providerId,
             userId,
             "Provider Test",
             EProviderType.Individual,
             businessProfile);
-        
+
         await _context.Providers.AddAsync(provider);
         await _context.SaveChangesAsync();
 
@@ -106,19 +106,19 @@ public class ProviderDeletedDomainEventHandlerTests : IDisposable
         // Arrange - System deletion (null deletedBy)
         var providerId = new ProviderId(UuidGenerator.NewId());
         var userId = UuidGenerator.NewId();
-        
+
         var businessProfile = new BusinessProfile(
             legalName: "Test Company",
             contactInfo: new ContactInfo("test@provider.com", "+55 11 99999-9999", null),
             primaryAddress: new Address("Test St", "123", "Centro", "São Paulo", "SP", "01234-567", "Brasil"));
-        
+
         var provider = new MeAjudaAi.Modules.Providers.Domain.Entities.Provider(
             providerId,
             userId,
             "Provider Test",
             EProviderType.Individual,
             businessProfile);
-        
+
         await _context.Providers.AddAsync(provider);
         await _context.SaveChangesAsync();
 
@@ -140,6 +140,6 @@ public class ProviderDeletedDomainEventHandlerTests : IDisposable
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
-    
+
     public void Dispose() => _context.Dispose();
 }

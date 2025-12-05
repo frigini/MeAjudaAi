@@ -1,10 +1,10 @@
+using System.Text.Json;
 using FluentAssertions;
 using FluentValidation.Results;
 using MeAjudaAi.Shared.Database.Exceptions;
 using MeAjudaAi.Shared.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Text.Json;
 using ValidationEx = MeAjudaAi.Shared.Exceptions.ValidationException;
 
 namespace MeAjudaAi.Shared.Tests.Exceptions;
@@ -147,7 +147,7 @@ public class GlobalExceptionHandlerTests
         using var reader = new StreamReader(_httpContext.Response.Body);
         var responseBody = await reader.ReadToEndAsync();
         var problemDetails = JsonSerializer.Deserialize<JsonElement>(responseBody);
-        
+
         problemDetails.GetProperty("title").GetString().Should().Be("Validation Error");
         problemDetails.TryGetProperty("errors", out var errorsElement).Should().BeTrue();
     }
@@ -167,7 +167,7 @@ public class GlobalExceptionHandlerTests
         using var reader = new StreamReader(_httpContext.Response.Body);
         var responseBody = await reader.ReadToEndAsync();
         var problemDetails = JsonSerializer.Deserialize<JsonElement>(responseBody);
-        
+
         problemDetails.GetProperty("title").GetString().Should().Be("Resource Not Found");
         problemDetails.GetProperty("detail").GetString().Should().NotBeNullOrEmpty();
     }

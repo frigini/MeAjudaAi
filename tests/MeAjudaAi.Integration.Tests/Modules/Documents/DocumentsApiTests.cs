@@ -72,7 +72,7 @@ public class DocumentsApiTests : ApiTestBase
         // Assert
         // In integration test environment, auth handler may return 401 instead of 403
         // Both are acceptable: 401 = not authenticated properly, 403 = authenticated but forbidden
-        response.StatusCode.Should().Match(code => 
+        response.StatusCode.Should().Match(code =>
             code == HttpStatusCode.Unauthorized || code == HttpStatusCode.Forbidden,
             "user should not be able to upload documents for a different provider");
     }

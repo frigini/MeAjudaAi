@@ -79,7 +79,7 @@ public class PostgreSqlExceptionProcessorTests
     {
         // Arrange
         var innerException = new Exception("Inner");
-        
+
         // Act
         var exception = new UniqueConstraintException("unique_email", "email", innerException);
 
@@ -94,7 +94,7 @@ public class PostgreSqlExceptionProcessorTests
     {
         // Arrange
         var innerException = new Exception("Inner");
-        
+
         // Act
         var exception = new NotNullConstraintException("name", innerException, isColumnName: true);
 
@@ -108,7 +108,7 @@ public class PostgreSqlExceptionProcessorTests
     {
         // Arrange
         var innerException = new Exception("Inner");
-        
+
         // Act
         var exception = new ForeignKeyConstraintException("fk_provider", "providers", innerException);
 
