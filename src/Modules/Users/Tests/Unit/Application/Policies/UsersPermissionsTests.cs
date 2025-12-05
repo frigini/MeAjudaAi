@@ -152,33 +152,25 @@ public class UsersPermissionsTests
         UsersPermissions.SystemAdmin.Should().OnlyHaveUniqueItems();
     }
 
-    [Fact]
-    public void SystemAdmin_ShouldIncludeDeletePermission()
+    [Theory]
+    [InlineData(nameof(UsersPermissions.BasicUser), false)]
+    [InlineData(nameof(UsersPermissions.UserAdmin), false)]
+    [InlineData(nameof(UsersPermissions.SystemAdmin), true)]
+    public void DeletePermission_ShouldOnlyBeInSystemAdmin(string groupName, bool shouldContainDelete)
     {
-        // Arrange & Act
-        var permissions = UsersPermissions.SystemAdmin;
+        // Arrange
+        var permissions = groupName switch
+        {
+            nameof(UsersPermissions.BasicUser) => UsersPermissions.BasicUser,
+            nameof(UsersPermissions.UserAdmin) => UsersPermissions.UserAdmin,
+            nameof(UsersPermissions.SystemAdmin) => UsersPermissions.SystemAdmin,
+            _ => throw new ArgumentException($"Unknown group: {groupName}")
+        };
 
         // Assert
-        permissions.Should().Contain(EPermission.UsersDelete);
-    }
-
-    [Fact]
-    public void BasicUser_ShouldNotIncludeDeletePermission()
-    {
-        // Arrange & Act
-        var permissions = UsersPermissions.BasicUser;
-
-        // Assert
-        permissions.Should().NotContain(EPermission.UsersDelete);
-    }
-
-    [Fact]
-    public void UserAdmin_ShouldNotIncludeDeletePermission()
-    {
-        // Arrange & Act
-        var permissions = UsersPermissions.UserAdmin;
-
-        // Assert
-        permissions.Should().NotContain(EPermission.UsersDelete);
+        if (shouldContainDelete)
+            permissions.Should().Contain(EPermission.UsersDelete);
+        else
+            permissions.Should().NotContain(EPermission.UsersDelete);
     }
 }
