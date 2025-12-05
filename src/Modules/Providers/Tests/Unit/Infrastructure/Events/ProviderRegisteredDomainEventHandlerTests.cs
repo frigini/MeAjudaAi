@@ -73,7 +73,7 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
         // Assert
         _messageBusMock.Verify(
             x => x.PublishAsync(
-                It.IsAny<object>(),
+                It.Is<object>(e => e.GetType().Name == "ProviderRegisteredIntegrationEvent"),
                 It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -105,7 +105,7 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleAsync_WhenCancelled_ShouldRespectCancellation()
+    public async Task HandleAsync_WhenCancelled_ShouldPropagateCancellation()
     {
         // Arrange
         var providerId = new ProviderId(UuidGenerator.NewId());
@@ -126,6 +126,14 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
+        
+        // Verify PublishAsync was not successfully invoked
+        _messageBusMock.Verify(
+            x => x.PublishAsync(
+                It.IsAny<object>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     public void Dispose()

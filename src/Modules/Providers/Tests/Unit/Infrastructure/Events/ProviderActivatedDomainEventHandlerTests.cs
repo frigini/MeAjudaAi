@@ -73,7 +73,7 @@ public class ProviderActivatedDomainEventHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenCancelled_ShouldNotPublishEvent()
+    public async Task HandleAsync_WhenCancelled_ShouldPropagateCancellation()
     {
         // Arrange
         var domainEvent = new ProviderActivatedDomainEvent(
@@ -99,5 +99,13 @@ public class ProviderActivatedDomainEventHandlerTests
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(
             async () => await _handler.HandleAsync(domainEvent, cts.Token));
+        
+        // Verify that no successful publish occurred (only attempted)
+        _messageBusMock.Verify(
+            x => x.PublishAsync(
+                It.IsAny<object>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()),
+            Times.AtMostOnce);
     }
 }

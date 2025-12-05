@@ -71,7 +71,7 @@ public class ProviderDeletedDomainEventHandlerTests : IDisposable
         // Assert
         _messageBusMock.Verify(
             x => x.PublishAsync(
-                It.IsAny<object>(),
+                It.Is<object>(e => e.GetType().Name == "ProviderDeletedIntegrationEvent"),
                 It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -132,10 +132,10 @@ public class ProviderDeletedDomainEventHandlerTests : IDisposable
         // Act
         await _handler.HandleAsync(domainEvent, CancellationToken.None);
 
-        // Assert
+        // Assert - Integration event should still be published (system deletion)
         _messageBusMock.Verify(
             x => x.PublishAsync(
-                It.IsAny<object>(),
+                It.Is<object>(e => e.GetType().Name == "ProviderDeletedIntegrationEvent"),
                 It.IsAny<string?>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
