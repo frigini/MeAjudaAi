@@ -52,6 +52,10 @@
     
     <!-- Performance e Fixtures para Otimização -->
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+    
+    <!-- EF Core - Explicit reference to resolve version conflict with Npgsql -->
+    <!-- Version is centrally managed in Directory.Packages.props -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
 
