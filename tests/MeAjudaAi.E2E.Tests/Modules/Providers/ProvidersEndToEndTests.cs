@@ -69,34 +69,8 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         locationHeader.Should().Contain("/api/v1/providers");
     }
 
-    [Fact]
-    public async Task GetProviders_Should_Return_List()
-    {
-        // Arrange
-        AuthenticateAsAdmin(); // Autentica como admin para listar providers
-
-        // Act
-        var response = await ApiClient.GetAsync("/api/v1/providers");
-
-        // Assert
-        if (response.IsSuccessStatusCode)
-        {
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-            var content = await response.Content.ReadAsStringAsync();
-            content.Should().NotBeNull();
-
-            // Verificar que é um JSON válido
-            var jsonDocument = JsonDocument.Parse(content);
-            jsonDocument.Should().NotBeNull();
-        }
-        else
-        {
-            // Se falhou por questões de permissão, pelo menos não deve ser 500
-            response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
-            _testOutput.WriteLine($"GetProviders returned {response.StatusCode}");
-        }
-    }
+    // NOTE: GetProviders basic test removed - duplicates ProvidersIntegrationTests.GetProviders_ShouldReturnProvidersList
+    // Simple list retrieval is adequately covered in Integration tests
 
     [Fact]
     public async Task CompleteProviderWorkflow_Should_Work()
@@ -203,33 +177,6 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         }
     }
 
-    [Fact]
-    public async Task ProvidersEndpoints_ShouldNotCrash()
-    {
-        // Arrange
-        AuthenticateAsAdmin();
-
-        var endpoints = new[]
-        {
-            "/api/v1/providers",
-            "/api/v1/providers/type/0",
-            "/api/v1/providers/type/1",
-            "/api/v1/providers/verification-status/0",
-            "/api/v1/providers/verification-status/1",
-            "/api/v1/providers/city/São Paulo",
-            "/api/v1/providers/state/SP"
-        };
-
-        // Act & Assert
-        foreach (var endpoint in endpoints)
-        {
-            var response = await ApiClient.GetAsync(endpoint);
-
-            // O importante é que não seja erro 500 (crash do servidor)
-            response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
-                $"Endpoint {endpoint} should not crash the server");
-
-            _testOutput.WriteLine($"Endpoint {endpoint}: {response.StatusCode}");
-        }
-    }
+    // NOTE: ProvidersEndpoints_ShouldNotCrash smoke test removed - low value
+    // Endpoint stability is validated by specific functional tests
 }

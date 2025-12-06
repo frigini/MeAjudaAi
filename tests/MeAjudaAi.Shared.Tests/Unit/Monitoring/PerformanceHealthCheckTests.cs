@@ -178,14 +178,7 @@ public class PerformanceHealthCheckTests
 
     private static IHealthCheck CreatePerformanceHealthCheck()
     {
-        // Use reflection to create instance of internal class
-        var type = typeof(MeAjudaAiHealthChecks)
-            .GetNestedType("PerformanceHealthCheck", System.Reflection.BindingFlags.NonPublic);
-
-        type.Should().NotBeNull("PerformanceHealthCheck should be a nested class of MeAjudaAiHealthChecks");
-
-        var instance = Activator.CreateInstance(type!);
-        return (IHealthCheck)instance!;
+        return new MeAjudaAiHealthChecks.PerformanceHealthCheck();
     }
 
     #endregion

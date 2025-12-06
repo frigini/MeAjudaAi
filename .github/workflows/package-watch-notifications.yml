@@ -22,10 +22,10 @@ jobs:
             --method GET \
             /repos/dotnet/aspire/commits \
             --field per_page=20 \
-            -q '.[] | select(.commit.message | test("ef.*core.*10|efcore.*10|entityframework.*10"; "i")) | 
+            -q '.[] | select(.commit.message | test("ef.*core.*10|efcore.*10|entityframework.*10"; "i")) |
             {sha: .sha[0:7], message: .commit.message, url: .html_url, date: .commit.author.date}' \
             2>/dev/null || echo "")
-          
+
           if [ -n "$COMMITS" ]; then
             echo "found=true" >> $GITHUB_OUTPUT
             echo "commits<<EOF" >> $GITHUB_OUTPUT
@@ -36,30 +36,30 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ github.token }}
-      
+
       - name: Notify Issue #38 of activity
         if: steps.search-aspire.outputs.found == 'true'
         uses: actions/github-script@v7
         with:
           script: |
             const commits = `${{ steps.search-aspire.outputs.commits }}`;
-            
+
             const comment = `## 👀 Atividade Detectada no Repositório Aspire
-            
+
             Encontrei commits recentes mencionando **EF Core 10**:
-            
+
             \`\`\`json
             ${commits}
             \`\`\`
-            
+
             **Ação Recomendada**: Revisar commits e verificar se há menção ao pacote \`Aspire.Npgsql.EntityFrameworkCore.PostgreSQL\`.
-            
+
             🔗 **Ver todos commits**: https://github.com/dotnet/aspire/commits/main
-            
+
             ---
             *Auto-watch by [package-watch-notifications](https://github.com/${{ github.repository }}/actions/workflows/package-watch-notifications.yml)*
             `;
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -80,7 +80,7 @@ jobs:
             '/search/issues?q=repo:frankhommers/Hangfire.PostgreSql+npgsql+10+OR+version+2+in:title,body&sort=updated&per_page=5' \
             -q '.items[] | {number: .number, title: .title, state: .state, url: .html_url, updated: .updated_at}' \
             2>/dev/null || echo "")
-          
+
           if [ -n "$ITEMS" ]; then
             echo "found=true" >> $GITHUB_OUTPUT
             echo "items<<EOF" >> $GITHUB_OUTPUT
@@ -91,37 +91,37 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ github.token }}
-      
+
       - name: Notify Issue #39 of activity
         if: steps.search-hangfire.outputs.found == 'true'
         uses: actions/github-script@v7
         with:
           script: |
             const items = `${{ steps.search-hangfire.outputs.items }}`;
-            
+
             const comment = `## 🔔 Atividade Detectada - Hangfire.PostgreSql
-            
+
             Encontrei discussões recentes sobre **v2.x** ou **Npgsql 10**:
-            
+
             \`\`\`json
             ${items}
             \`\`\`
-            
+
             **Ação Recomendada**: Revisar discussões para atualizações sobre timeline do v2.x.
-            
+
             🔗 **Repositório**: https://github.com/frankhommers/Hangfire.PostgreSql/issues
-            
+
             ---
             *Auto-watch by [package-watch-notifications](https://github.com/${{ github.repository }}/actions/workflows/package-watch-notifications.yml)*
             `;
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: 39,
               body: comment
             });
-  
+
   check-documentation-updates:
     name: Remind to update documentation
     runs-on: ubuntu-latest
@@ -133,36 +133,36 @@ jobs:
           script: |
             const issues = [38, 39];
             const staleDays = 14; // 2 semanas
-            
+
             for (const issueNumber of issues) {
               const issue = await github.rest.issues.get({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber
               });
-              
+
               const updatedAt = new Date(issue.data.updated_at);
               const now = new Date();
               const daysSinceUpdate = Math.floor((now - updatedAt) / (1000 * 60 * 60 * 24));
-              
+
               if (daysSinceUpdate >= staleDays) {
                 const comment = `## ⏰ Lembrete: Issue sem atualização há ${daysSinceUpdate} dias
-                
+
                 Esta issue não recebe atualizações há **${daysSinceUpdate} dias**.
-                
+
                 ### Ações Sugeridas:
-                
-                - [ ] Verificar manualmente NuGet: ${issue.data.title.includes('Aspire') ? 
-                  'https://www.nuget.org/packages/Aspire.Npgsql.EntityFrameworkCore.PostgreSQL' : 
+
+                - [ ] Verificar manualmente NuGet: ${issue.data.title.includes('Aspire') ?
+                  'https://www.nuget.org/packages/Aspire.Npgsql.EntityFrameworkCore.PostgreSQL' :
                   'https://www.nuget.org/packages/Hangfire.PostgreSql'}
                 - [ ] Verificar repositório GitHub
                 - [ ] Atualizar status na issue
                 - [ ] Considerar workaround alternativo se necessário
-                
+
                 ---
                 *Auto-reminder by [package-watch-notifications](https://github.com/${{ github.repository }}/actions/workflows/package-watch-notifications.yml)*
                 `;
-                
+
                 await github.rest.issues.createComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,

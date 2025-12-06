@@ -145,7 +145,7 @@ jobs:
           postgres-user: ${{ env.POSTGRES_USER }}
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
 
-      - name: Run tests with coverage
+      - name: Run Unit Tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           # Pre-built connection string (optional, takes precedence if available)
@@ -228,14 +228,14 @@ jobs:
           # - Domain/Application: Core business logic (80-100% target)
           # - Shared/ApiService: Reusable infrastructure, middlewares, extensions (60-80% target)
           # - Excluded: Integration tests, E2E tests, Architecture tests (tested separately below)
-          # 
+          #
           # RATIONALE FOR INFRASTRUCTURE EXCLUSION:
           # Infrastructure tests are excluded from module-based coverage runs (--filter) because:
           # 1. Infrastructure tests often require real dependencies (databases, message brokers, etc.)
           # 2. Mixing unit tests (mocked) with infrastructure tests distorts coverage metrics
           # 3. Infrastructure/Integration tests run separately (lines 345-366) with proper test environment
           # 4. This separation ensures unit test coverage accurately reflects business logic coverage
-          # 
+          #
           # FORMAT: "ModuleName:path/to/module/tests/:IncludeFilter"
           MODULES=(
             # Domain module tests
@@ -256,62 +256,77 @@ jobs:
             IFS=':' read -r module_name module_path include_pattern <<< "$module_info"
 
             if [ -d "$module_path" ]; then
-              echo "Running $module_name tests with coverage..."
+              echo "================================"
+              echo "🧪 UNIT TESTS - $module_name (WITH COVERAGE)"
+              echo "================================"
 
               # Create specific output directory for this module
               MODULE_COVERAGE_DIR="./coverage/${module_name,,}"
               mkdir -p "$MODULE_COVERAGE_DIR"
 
-            # Dynamic include filter based on module type
+            # CRITICAL: Include ALL assemblies matching the pattern to get full coverage
+            # The Include filter determines which assemblies are instrumented for coverage
+            # Using broad patterns ensures we capture all source code
             if [ -n "$include_pattern" ]; then
               INCLUDE_FILTER="[${include_pattern}]*"
             else
-              INCLUDE_FILTER="[MeAjudaAi.*]*"
+              # Default to all MeAjudaAi assemblies if no specific pattern
+              INCLUDE_FILTER="[MeAjudaAi*]*"
             fi
 
             # Validate filter is not empty or trivial
             if [ "$INCLUDE_FILTER" = "[]*" ] || [ "$INCLUDE_FILTER" = "[].*" ]; then
-              echo "⚠️  INCLUDE_FILTER is trivial, falling back to [MeAjudaAi.*]*"
-              INCLUDE_FILTER="[MeAjudaAi.*]*"
+              echo "⚠️  INCLUDE_FILTER is trivial, falling back to [MeAjudaAi*]*"
+              INCLUDE_FILTER="[MeAjudaAi*]*"
             fi
 
-            # NOTE: EXCLUDE_FILTER includes compiler-generated code exclusions
-            # to provide accurate coverage metrics for hand-written code only.
+            # NOTE: EXCLUDE_FILTER excludes test assemblies, migrations, and compiler-generated code
+            # This ensures coverage metrics reflect only hand-written production code
             # Excluded patterns:
             #   - Test assemblies: [*.Tests*]*, [*Test*]*, [testhost]*
+            #   - Migrations: [*]*Migrations* (any class/namespace containing "Migrations")
+            #   - Database: [*]*.Database (database-related generated code)
+            #   - Contracts: [*]*.Contracts (DTOs, no logic to test)
             #   - OpenApi generated: [*Microsoft.AspNetCore.OpenApi.Generated*]*
             #   - Compiler services: [*System.Runtime.CompilerServices*]*
             #   - Regex generator: [*System.Text.RegularExpressions.Generated*]*
-            EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*"
-            EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+            EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*,[*]*Migrations*,[*]*.Database,[*]*.Contracts,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*"
+            EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs,**/Migrations/**/*.cs,**/Database/*.cs"
 
             echo "  Include: $INCLUDE_FILTER"
             echo "  Exclude: $EXCLUDE_FILTER"
             echo "  ExcludeByFile: $EXCLUDE_BY_FILE"
 
-            # Create temporary runsettings file for this module
-            cat > "/tmp/${module_name,,}.runsettings" <<EOF
-<?xml version="1.0" encoding="utf-8"?>
-<RunSettings>
-  <DataCollectionRunSettings>
-    <DataCollectors>
-      <DataCollector friendlyName="XPlat Code Coverage">
-        <Configuration>
-          <Format>opencover</Format>
-          <Include>${INCLUDE_FILTER}</Include>
-          <Exclude>${EXCLUDE_FILTER}</Exclude>
-          <ExcludeByFile>${EXCLUDE_BY_FILE}</ExcludeByFile>
-        </Configuration>
-      </DataCollector>
-    </DataCollectors>
-  </DataCollectionRunSettings>
-</RunSettings>
-EOF
+            # Source shared utility functions
+            source ./.github/scripts/generate-runsettings.sh
 
+            INCLUDE_FILTER_ESCAPED=$(escape_xml "$INCLUDE_FILTER")
+            EXCLUDE_FILTER_ESCAPED=$(escape_xml "$EXCLUDE_FILTER")
+            EXCLUDE_BY_FILE_ESCAPED=$(escape_xml "$EXCLUDE_BY_FILE")
+
+            echo "🔍 DEBUG: XML-escaped filter values..."
+            echo "  INCLUDE_FILTER_ESCAPED: $INCLUDE_FILTER_ESCAPED"
+            echo "  EXCLUDE_FILTER_ESCAPED: $EXCLUDE_FILTER_ESCAPED"
+            echo "  EXCLUDE_BY_FILE_ESCAPED: $EXCLUDE_BY_FILE_ESCAPED"
+
+            # Create temporary runsettings file for this module with proper XML escaping
+            RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
+            EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
+            generate_runsettings \
+              "$RUNSETTINGS_FILE" \
+              "$EXCLUDE_FILTER" \
+              "$EXCLUDE_BY_FILE" \
+              "$EXCLUDE_BY_ATTRIBUTE" \
+              "$INCLUDE_FILTER"
+
+
+            # NOTE: We run ALL tests (no --filter) because:
+            # 1. Tests should exercise all code paths
+            # 2. Include/Exclude filters in .runsettings control COVERAGE (what code is instrumented)
+            # 3. Test filters only control which TESTS run, not what CODE is covered
             dotnet test "$module_path" \
                 --configuration Release \
                 --verbosity normal \
-                --filter "FullyQualifiedName!~Integration&FullyQualifiedName!~Infrastructure" \
                 --collect:"XPlat Code Coverage" \
                 --results-directory "$MODULE_COVERAGE_DIR" \
                 --logger "trx;LogFileName=${module_name,,}-test-results.trx" \
@@ -322,7 +337,7 @@ EOF
                 echo "🔍 Searching for coverage files in $MODULE_COVERAGE_DIR..."
                 echo "📂 Directory contents:"
                 find "$MODULE_COVERAGE_DIR" -type f -name "*.xml" | head -10
-                
+
                 # Look for both opencover and cobertura formats (search recursively in GUID subdirs)
                 COVERAGE_FILE=$(find "$MODULE_COVERAGE_DIR" -type f \
                   \( -name "coverage.opencover.xml" -o -name "coverage.cobertura.xml" \) \
@@ -357,104 +372,201 @@ EOF
           echo "Coverage files by module:"
           find ./coverage -type f \( -name "*.opencover.xml" -o -name "*.cobertura.xml" \) -printf "%f\n" | sort | head -20
           echo ""
-
-          echo "🧪 Running system tests without coverage collection..."
-
-          # Define system tests (no coverage) - architectural and integration validation only
-          SYSTEM_TESTS=(
-            "Architecture:tests/MeAjudaAi.Architecture.Tests/"
-            "Integration:tests/MeAjudaAi.Integration.Tests/"
-            "E2E:tests/MeAjudaAi.E2E.Tests/"
-          )
-
-          # Run system tests without coverage
-          for test_info in "${SYSTEM_TESTS[@]}"; do
-            IFS=':' read -r test_name test_path <<< "$test_info"
-
-            if [ -d "$test_path" ]; then
-              echo "Running $test_name tests (no coverage)..."
-              dotnet test "$test_path" \
-                --configuration Release \
-                --no-build \
-                --verbosity normal \
-                --logger "trx;LogFileName=${test_name,,}-test-results.trx"
+          
+          echo "🔍 DEBUG: Verifying coverage files for CodeCoverageSummary..."
+          for module in users providers documents servicecatalogs locations searchproviders shared apiservice; do
+            if [ -f "coverage/${module}/${module}.opencover.xml" ]; then
+              echo "  ✅ coverage/${module}/${module}.opencover.xml exists"
+              # Show file size and first sequenceCoverage value as sanity check
+              FILE_SIZE=$(stat -c%s "coverage/${module}/${module}.opencover.xml" 2>/dev/null || echo "unknown")
+              COVERAGE=$(grep -o 'sequenceCoverage="[^"]*"' "coverage/${module}/${module}.opencover.xml" 2>/dev/null | head -1 | cut -d'"' -f2 || echo "N/A")
+              echo "     Size: ${FILE_SIZE} bytes, Coverage: ${COVERAGE}%"
             else
-              echo "⚠️  $test_name tests not found at $test_path - skipping"
+              echo "  ❌ coverage/${module}/${module}.opencover.xml NOT FOUND"
             fi
           done
+          echo ""
 
-          echo "✅ Todos os testes executados com sucesso"
+      - name: Run Architecture Tests
+        if: always()
+        run: |
+          echo "🧪 Running Architecture tests (no database required)..."
 
-      - name: CRITICAL - Hangfire Npgsql 10.x Compatibility Tests
+          # Only run Architecture tests in PR validation (fast, no database dependency)
+          if [ -d "tests/MeAjudaAi.Architecture.Tests/" ]; then
+            echo "================================"
+            echo "📐 ARCHITECTURE TESTS"
+            echo "================================"
+            dotnet test "tests/MeAjudaAi.Architecture.Tests/" \
+              --configuration Release \
+              --no-build \
+              --verbosity normal \
+              --logger "trx;LogFileName=architecture-test-results.trx"
+          else
+            echo "⚠️  Architecture tests not found - skipping"
+          fi
+
+      - name: Run Integration Tests
+        if: always()
         env:
           ASPNETCORE_ENVIRONMENT: Testing
-          EXTERNAL_POSTGRES_HOST: localhost
-          EXTERNAL_POSTGRES_PORT: 5432
-          MEAJUDAAI_DB_HOST: localhost
-          MEAJUDAAI_DB_PORT: 5432
-          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
-          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
-          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
+          INTEGRATION_TESTS: true
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
-          ConnectionStrings__HangfireConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
-          set -euo pipefail
-          echo "🚨 CRITICAL: Running Hangfire + Npgsql 10.x compatibility tests"
-          echo "=========================================================================="
-          echo "CONTEXT:"
-          echo "  - Hangfire.PostgreSql 1.20.12 compiled against Npgsql 6.x"
-          echo "  - Npgsql 10.x introduces BREAKING CHANGES"
-          echo "  - These tests VALIDATE runtime compatibility"
-          echo "  - DEPLOYMENT IS BLOCKED if these tests fail"
-          echo "=========================================================================="
-          echo ""
+          echo "🔗 Running Integration tests..."
 
-          # Run ONLY Hangfire integration tests with explicit filter
-          TEST_EXIT_CODE=0
-          dotnet test tests/MeAjudaAi.Integration.Tests/ \
-            --configuration Release \
-            --no-build \
-            --verbosity normal \
-            --filter "Category=HangfireIntegration" \
-            --logger "console;verbosity=detailed" \
-            --logger "trx;LogFileName=hangfire-integration-test-results.trx" \
-            || TEST_EXIT_CODE=$?
+          # Source shared utility functions
+          source ./.github/scripts/generate-runsettings.sh
 
-          echo ""
-          if [ $TEST_EXIT_CODE -eq 0 ]; then
-            echo "✅ HANGFIRE COMPATIBILITY VALIDATED"
-            echo "   - All Hangfire integration tests passed"
-            echo "   - Hangfire.PostgreSql 1.20.12 is compatible with Npgsql 10.x"
-            echo "   - Safe to deploy to production"
+          if [ -d "tests/MeAjudaAi.Integration.Tests/" ]; then
+            echo "================================"
+            echo "🔗 INTEGRATION TESTS"
+            echo "================================"
+            
+            # Create runsettings with same exclusions as unit tests
+            INTEGRATION_RUNSETTINGS="/tmp/integration.runsettings"
+            # Exclude compiler-generated files AND test assembly files from coverage
+            EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+            EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
+            EXCLUDE_FILTER="[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*"
+            INCLUDE_FILTER="[MeAjudaAi*]*"  # Instrument all MeAjudaAi assemblies
+            
+            generate_runsettings \
+              "$INTEGRATION_RUNSETTINGS" \
+              "$EXCLUDE_FILTER" \
+              "$EXCLUDE_BY_FILE" \
+              "$EXCLUDE_BY_ATTRIBUTE" \
+              "$INCLUDE_FILTER"
+            
+            dotnet test "tests/MeAjudaAi.Integration.Tests/" \
+              --configuration Release \
+              --no-build \
+              --verbosity normal \
+              --logger "trx;LogFileName=integration-test-results.trx" \
+              --collect:"XPlat Code Coverage" \
+              --results-directory ./coverage/integration \
+              --settings "$INTEGRATION_RUNSETTINGS"
           else
-            echo "❌ HANGFIRE COMPATIBILITY TEST FAILED"
-            echo "=========================================================================="
-            echo "CRITICAL FAILURE: Hangfire.PostgreSql 1.20.12 is NOT compatible with Npgsql 10.x"
-            echo ""
-            echo "REQUIRED ACTIONS:"
-            echo "  1. DO NOT MERGE this PR"
-            echo "  2. DO NOT DEPLOY to production"
-            echo "  3. Review test failures in the logs above"
-            echo "  4. Choose one mitigation option:"
-            echo ""
-            echo "MITIGATION OPTIONS:"
-            echo "  A. DOWNGRADE (Recommended for immediate fix):"
-            echo "     - Downgrade to EF Core 9.x + Npgsql 8.x"
-            echo "     - Update Directory.Packages.props:"
-            echo "       <PackageVersion Include=\"Npgsql.EntityFrameworkCore.PostgreSQL\" Version=\"9.0.0\" />"
-            echo "       <PackageVersion Include=\"Npgsql\" Version=\"8.0.5\" />"
-            echo ""
-            echo "  B. WAIT FOR UPDATE:"
-            echo "     - Monitor: https://github.com/frankhommers/Hangfire.PostgreSql"
-            echo "     - Wait for Hangfire.PostgreSql 2.x with Npgsql 10 support"
-            echo ""
-            echo "  C. ALTERNATIVE BACKEND:"
-            echo "     - Switch to Hangfire.Pro.Redis (requires license)"
-            echo "     - Or use Hangfire.InMemory for testing only"
-            echo ""
-            echo "📖 See: docs/deployment_environments.md for rollback procedures"
-            echo "=========================================================================="
-            exit $TEST_EXIT_CODE
+            echo "⚠️  Integration tests not found - skipping"
+          fi
+
+      - name: Run E2E Tests
+        if: always()
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          INTEGRATION_TESTS: true
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+        run: |
+          echo "🌐 Running E2E tests..."
+
+          # Source shared utility functions
+          source ./.github/scripts/generate-runsettings.sh
+
+          if [ -d "tests/MeAjudaAi.E2E.Tests/" ]; then
+            echo "================================"
+            echo "🌐 E2E TESTS"
+            echo "================================"
+            
+            # Create runsettings with same exclusions as unit tests
+            E2E_RUNSETTINGS="/tmp/e2e.runsettings"
+            # Exclude compiler-generated files AND test assembly files from coverage
+            EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+            EXCLUDE_BY_ATTRIBUTE="Obsolete,GeneratedCode,CompilerGenerated"
+            EXCLUDE_FILTER="[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*"
+            INCLUDE_FILTER="[MeAjudaAi*]*"  # Instrument all MeAjudaAi assemblies
+            
+            generate_runsettings \
+              "$E2E_RUNSETTINGS" \
+              "$EXCLUDE_FILTER" \
+              "$EXCLUDE_BY_FILE" \
+              "$EXCLUDE_BY_ATTRIBUTE" \
+              "$INCLUDE_FILTER"
+            
+            dotnet test "tests/MeAjudaAi.E2E.Tests/" \
+              --configuration Release \
+              --no-build \
+              --verbosity normal \
+              --logger "trx;LogFileName=e2e-test-results.trx" \
+              --collect:"XPlat Code Coverage" \
+              --results-directory ./coverage/e2e \
+              --settings "$E2E_RUNSETTINGS"
+          else
+            echo "⚠️  E2E tests not found - skipping"
+          fi
+
+          echo ""
+          echo "✅ All test categories completed"
+
+      - name: Generate Aggregated Coverage Report
+        if: always()
+        run: |
+          echo "📊 Generating aggregated coverage report from ALL tests..."
+          
+          # Install ReportGenerator
+          dotnet tool install --global dotnet-reportgenerator-globaltool || dotnet tool update --global dotnet-reportgenerator-globaltool
+          
+          # Add dotnet tools to PATH
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          
+          # Pre-flight check: verify all expected coverage files exist
+          echo "🔍 Pre-flight check: Verifying coverage files..."
+          MISSING_FILES=0
+          for module in users providers documents servicecatalogs locations searchproviders shared apiservice; do
+            if ! find "coverage/${module}" -name "*.opencover.xml" -type f | grep -q .; then
+              echo "  ⚠️  Warning: No .opencover.xml files found for ${module}"
+              MISSING_FILES=$((MISSING_FILES + 1))
+            else
+              echo "  ✅ Found coverage file(s) for ${module}"
+            fi
+          done
+          
+          # Check for Integration/E2E coverage
+          if find "coverage/integration" -name "*.xml" -type f | grep -q .; then
+            echo "  ✅ Found Integration test coverage"
+          fi
+          if find "coverage/e2e" -name "*.xml" -type f | grep -q .; then
+            echo "  ✅ Found E2E test coverage"
+          fi
+          
+          if [ $MISSING_FILES -gt 0 ]; then
+            echo "⚠️  Warning: $MISSING_FILES module(s) missing coverage files"
+            echo "   ReportGenerator will combine only available modules"
+          fi
+          
+          # Generate aggregated Cobertura XML combining Unit + Integration + E2E coverage
+          # Note: OpenCover output format requires Pro license, but Cobertura is free
+          # We read OpenCover input files and generate Cobertura output
+          echo "🔗 Combining coverage from Unit + Integration + E2E tests..."
+          
+          # Assembly filters must match actual assembly names with full namespace prefix
+          # Use wildcards to match all assemblies (Domain, Application, Infrastructure, API, Tests)
+          INCLUDE_FILTER="+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*"
+          # CRITICAL: Exclude .Tests assemblies to prevent inflated coverage metrics
+          # Also exclude Migrations, Contracts, Database, and test-related assemblies
+          EXCLUDE_FILTER="-[*.Tests]*;-[*.Tests.*]*;-[*Test*]*;-[testhost]*;-[xunit*]*;-[*]*.Migrations.*;-[*]*.Contracts;-[*]*.Database"
+          
+          reportgenerator \
+            -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml" \
+            -targetdir:"coverage/aggregate" \
+            -reporttypes:"Cobertura" \
+            -assemblyfilters:"$INCLUDE_FILTER" \
+            -classfilters:"$EXCLUDE_FILTER" \
+            -filefilters:"-*Migrations*" \
+            -settings:"coverage.runsettings"
+          
+          if [ -f "coverage/aggregate/Cobertura.xml" ]; then
+            echo "✅ Aggregated coverage report generated: coverage/aggregate/Cobertura.xml"
+            # Show summary stats from Cobertura XML
+            COVERAGE=$(grep -o 'line-rate="[^"]*"' coverage/aggregate/Cobertura.xml | head -1 | cut -d'"' -f2 | awk '{printf "%.2f", $1 * 100}' || echo "N/A")
+            echo "📈 Combined Line Coverage (Unit + Integration + E2E): ${COVERAGE}%"
+          else
+            echo "❌ Failed to generate aggregated coverage report"
           fi
 
       - name: Validate namespace reorganization
@@ -474,6 +586,8 @@ EOF
         with:
           name: coverage-reports
           path: coverage/**
+          retention-days: 7
+          compression-level: 6
           if-no-files-found: ignore
 
       - name: Upload Test Results
@@ -482,6 +596,8 @@ EOF
         with:
           name: test-results
           path: "**/*.trx"
+          retention-days: 7
+          compression-level: 6
           if-no-files-found: ignore
 
       - name: List Coverage Files (Debug)
@@ -540,11 +656,11 @@ EOF
           find ./coverage -name "*.xml" -type f 2>/dev/null || echo "No XML coverage files found"
 
       - name: Code Coverage Summary
-        id: coverage_opencover
+        id: coverage_cobertura_aggregate
         continue-on-error: true
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: 'coverage/**/*.opencover.xml'
+          filename: 'coverage/aggregate/Cobertura.xml'
           badge: true
           fail_below_min: false
           format: markdown
@@ -554,12 +670,28 @@ EOF
           output: both
           thresholds: '70 85'
 
-      - name: Alternative Coverage Summary (Cobertura format)
-        id: coverage_cobertura
-        if: ${{ always() && steps.coverage_opencover.outcome != 'success' }}
+      - name: Alternative Coverage Summary (Individual modules - OpenCover)
+        id: coverage_opencover_individual
+        if: ${{ always() && steps.coverage_cobertura_aggregate.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: 'coverage/**/*.cobertura.xml'
+          filename: 'coverage/users/*.opencover.xml,coverage/providers/*.opencover.xml,coverage/documents/*.opencover.xml,coverage/servicecatalogs/*.opencover.xml,coverage/locations/*.opencover.xml,coverage/searchproviders/*.opencover.xml,coverage/shared/*.opencover.xml,coverage/apiservice/*.opencover.xml'
+          badge: true
+          fail_below_min: false
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: false
+          indicators: true
+          output: both
+          thresholds: '70 85'
+        continue-on-error: true
+
+      - name: Alternative Coverage Summary (Cobertura format)
+        id: coverage_cobertura
+        if: ${{ always() && steps.coverage_cobertura_aggregate.outcome != 'success' && steps.coverage_opencover_individual.outcome != 'success' }}
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: 'coverage/users/*.cobertura.xml,coverage/providers/*.cobertura.xml,coverage/documents/*.cobertura.xml,coverage/servicecatalogs/*.cobertura.xml,coverage/locations/*.cobertura.xml,coverage/searchproviders/*.cobertura.xml,coverage/shared/*.cobertura.xml,coverage/apiservice/*.cobertura.xml'
           badge: true
           fail_below_min: false
           format: markdown
@@ -574,7 +706,8 @@ EOF
         id: coverage_fallback
         if: >-
           ${{ always() &&
-              steps.coverage_opencover.outcome != 'success' &&
+              steps.coverage_cobertura_aggregate.outcome != 'success' &&
+              steps.coverage_opencover_individual.outcome != 'success' &&
               steps.coverage_cobertura.outcome != 'success' }}
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
@@ -595,13 +728,16 @@ EOF
           echo "📊 CODE COVERAGE SUMMARY"
           echo "========================"
           echo ""
-          # Look for coverage files and extract basic statistics
-          for coverage_file in $(find ./coverage -name "*.opencover.xml" -o -name "*.xml" | head -5); do
+          
+          # Only analyze coverage from the 8 main modules (exclude Integration/E2E tests)
+          MODULES=("users" "providers" "documents" "servicecatalogs" "locations" "searchproviders" "shared" "apiservice")
+          
+          for module in "${MODULES[@]}"; do
+            coverage_file="./coverage/${module}/${module}.opencover.xml"
             if [ -f "$coverage_file" ]; then
-              echo "📄 Coverage file: $coverage_file"
-              # Extract line coverage using grep/awk if available
+              echo "📄 Module: ${module^}"
+              # Extract coverage statistics from OpenCover XML
               if command -v awk >/dev/null 2>&1; then
-                # Try to extract coverage statistics from OpenCover XML
                 COVERAGE_LINE_ATTR='sequenceCoverage="[^"]*"'
                 COVERAGE_BRANCH_ATTR='branchCoverage="[^"]*"'
                 lines_covered=$(grep -o "$COVERAGE_LINE_ATTR" "$coverage_file" 2>/dev/null | \
@@ -628,30 +764,40 @@ EOF
         run: |
           echo "🎯 Selecting coverage outputs from available steps..."
 
-          # First try to use step outputs if available
-          if [ "${{ steps.coverage_opencover.outcome }}" = "success" ] &&
-             [ -n "${{ steps.coverage_opencover.outputs.summary }}" ]; then
-            SUMMARY="${{ steps.coverage_opencover.outputs.summary }}"
-            BADGE="${{ steps.coverage_opencover.outputs.badge }}"
-            SOURCE="OpenCover"
-            echo "Using OpenCover coverage outputs"
+          # First try to use step outputs if available (priority order)
+          if [ "${{ steps.coverage_cobertura_aggregate.outcome }}" = "success" ] &&
+             [ -n "${{ steps.coverage_cobertura_aggregate.outputs.summary }}" ]; then
+            SUMMARY="${{ steps.coverage_cobertura_aggregate.outputs.summary }}"
+            BADGE="${{ steps.coverage_cobertura_aggregate.outputs.badge }}"
+            SOURCE="Cobertura (Aggregated)"
+            echo "✅ Using aggregated Cobertura coverage outputs"
+          elif [ "${{ steps.coverage_opencover_individual.outcome }}" = "success" ] &&
+               [ -n "${{ steps.coverage_opencover_individual.outputs.summary }}" ]; then
+            SUMMARY="${{ steps.coverage_opencover_individual.outputs.summary }}"
+            BADGE="${{ steps.coverage_opencover_individual.outputs.badge }}"
+            SOURCE="OpenCover (Individual)"
+            echo "✅ Using individual OpenCover coverage outputs"
           elif [ "${{ steps.coverage_cobertura.outcome }}" = "success" ] &&
                [ -n "${{ steps.coverage_cobertura.outputs.summary }}" ]; then
             SUMMARY="${{ steps.coverage_cobertura.outputs.summary }}"
             BADGE="${{ steps.coverage_cobertura.outputs.badge }}"
-            SOURCE="Cobertura"
-            echo "Using Cobertura coverage outputs"
+            SOURCE="Cobertura (Individual)"
+            echo "✅ Using individual Cobertura coverage outputs"
           elif [ "${{ steps.coverage_fallback.outcome }}" = "success" ] &&
                [ -n "${{ steps.coverage_fallback.outputs.summary }}" ]; then
             SUMMARY="${{ steps.coverage_fallback.outputs.summary }}"
             BADGE="${{ steps.coverage_fallback.outputs.badge }}"
             SOURCE="Fallback XML"
-            echo "Using Fallback coverage outputs"
+            echo "✅ Using Fallback coverage outputs"
           else
             # Fallback: Check if coverage files exist and generate basic summary
-            echo "Step outputs not available, checking for coverage files..."
+            echo "⚠️  Step outputs not available, checking for coverage files..."
 
-            if find coverage -name "*.opencover.xml" -type f | head -1 >/dev/null 2>&1; then
+            if [ -f "coverage/aggregate/Cobertura.xml" ]; then
+              COVERAGE_FILE="coverage/aggregate/Cobertura.xml"
+              SOURCE="Cobertura (Aggregated Direct)"
+              echo "✅ Found aggregated Cobertura file: $COVERAGE_FILE"
+            elif find coverage -name "*.opencover.xml" -type f | head -1 >/dev/null 2>&1; then
               COVERAGE_FILE=$(find coverage -name "*.opencover.xml" -type f | head -1)
               SOURCE="OpenCover (Direct)"
               echo "Found OpenCover file: $COVERAGE_FILE"
@@ -679,14 +825,9 @@ EOF
                 fi
 
                 if [ -n "$LINE_RATE" ]; then
-                  # Convert decimal to percentage if needed
-                  if [ "$(echo "$LINE_RATE" | cut -d'.' -f1)" = "0" ]; then
-                    PERCENTAGE=$(echo "$LINE_RATE * 100" | bc -l 2>/dev/null || \
-                                echo "scale=1; $LINE_RATE * 100" | bc 2>/dev/null || \
-                                echo "Unknown")
-                  else
-                    PERCENTAGE="$LINE_RATE"
-                  fi
+                  # Convert decimal to percentage if needed (auto-detect format)
+                  # If value <= 1.0, assume decimal (0.75 -> 75.00), else assume already percentage (75.5 -> 75.50)
+                  PERCENTAGE=$(echo "$LINE_RATE" | awk '{if ($1 <= 1.0) printf "%.2f", $1 * 100; else printf "%.2f", $1}')
                   SUMMARY="**Coverage**: ${PERCENTAGE}% (extracted from $SOURCE)"
                   BADGE="![Coverage](https://img.shields.io/badge/coverage-${PERCENTAGE}%25-brightgreen)"
                 else
@@ -759,8 +900,8 @@ EOF
           coverage-directory: './coverage'
           threshold: '70'
           strict-mode: ${{ env.STRICT_COVERAGE }}
-          opencover-output: ${{ steps.coverage_opencover.outputs.line-rate }}
-          opencover-outcome: ${{ steps.coverage_opencover.outcome }}
+          opencover-output: ${{ steps.coverage_opencover_individual.outputs.line-rate }}
+          opencover-outcome: ${{ steps.coverage_opencover_individual.outcome }}
           cobertura-output: ${{ steps.coverage_cobertura.outputs.line-rate }}
           cobertura-outcome: ${{ steps.coverage_cobertura.outcome }}
           fallback-output: ${{ steps.coverage_fallback.outputs.line-rate }}

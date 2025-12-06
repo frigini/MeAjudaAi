@@ -8,8 +8,16 @@ public partial class MeAjudaAiHealthChecks
     /// <summary>
     /// Health check para verificar disponibilidade de serviços externos
     /// </summary>
-    internal class ExternalServicesHealthCheck(HttpClient httpClient, IConfiguration configuration) : IHealthCheck
+    /// <param name="httpClient">Cliente HTTP para realizar requisições aos serviços externos</param>
+    /// <param name="configuration">Configuração da aplicação contendo endpoints e configurações dos serviços</param>
+    public class ExternalServicesHealthCheck(HttpClient httpClient, IConfiguration configuration) : IHealthCheck
     {
+        /// <summary>
+        /// Verifica a disponibilidade dos serviços externos configurados
+        /// </summary>
+        /// <param name="context">Contexto da verificação de saúde</param>
+        /// <param name="cancellationToken">Token de cancelamento</param>
+        /// <returns>Resultado da verificação de saúde</returns>
         public async Task<HealthCheckResult> CheckHealthAsync(
             HealthCheckContext context,
             CancellationToken cancellationToken = default)
@@ -23,7 +31,7 @@ public partial class MeAjudaAiHealthChecks
                 var keycloakUrl = configuration["Keycloak:BaseUrl"];
                 if (!string.IsNullOrEmpty(keycloakUrl))
                 {
-                    var response = await httpClient.GetAsync($"{keycloakUrl}/realms/meajudaai", cancellationToken);
+                    using var response = await httpClient.GetAsync($"{keycloakUrl}/realms/meajudaai", cancellationToken);
                     results["keycloak"] = new
                     {
                         status = response.IsSuccessStatusCode ? "healthy" : "unhealthy",

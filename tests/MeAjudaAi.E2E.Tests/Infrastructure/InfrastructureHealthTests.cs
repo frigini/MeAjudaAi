@@ -6,30 +6,20 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 
 /// <summary>
 /// Testes de saúde da infraestrutura TestContainers.
-/// Valida se PostgreSQL, Redis e API estão funcionando corretamente.
-/// 
+/// Valida disponibilidade do PostgreSQL.
+/// Redis e demais dependências são cobertos por HealthCheckTests.
+/// </summary>
+/// <remarks>
 /// MIGRADO PARA IClassFixture: Compartilha containers entre todos os testes desta classe.
 /// Reduz overhead de ~18s (3 testes × 6s) para ~6s (1× setup).
-/// </summary>
+/// </remarks>
 public class InfrastructureHealthTests : IClassFixture<TestContainerFixture>
 {
     private readonly TestContainerFixture _fixture;
-    private readonly HttpClient _apiClient;
 
     public InfrastructureHealthTests(TestContainerFixture fixture)
     {
         _fixture = fixture;
-        _apiClient = fixture.ApiClient;
-    }
-
-    [Fact]
-    public async Task Api_Should_Respond_To_Health_Check()
-    {
-        // Act
-        var response = await _apiClient.GetAsync("/health");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -46,19 +36,6 @@ public class InfrastructureHealthTests : IClassFixture<TestContainerFixture>
         // Assert
         canConnect.Should().BeTrue("Database should be reachable");
         usersCount.Should().BeGreaterThanOrEqualTo(0, "Users table should exist");
-    }
-
-    [Fact]
-    public async Task Redis_Should_Be_Available()
-    {
-        // Este teste verifica indiretamente se o Redis está funcionando
-        // A API deve conseguir inicializar com o Redis configurado
-
-        // Act
-        var response = await _apiClient.GetAsync("/health");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK, "API should start successfully with Redis configured");
     }
 }
 

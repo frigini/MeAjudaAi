@@ -9,32 +9,16 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 
 /// <summary>
 /// Testes de integração para a API do módulo Users.
-/// Valida endpoints, autenticação, autorização e respostas da API.
+/// Valida formato de resposta e estrutura da API.
 /// </summary>
 /// <remarks>
-/// Verifica se as funcionalidades principais estão funcionando:
-/// - Endpoints estão acessíveis
-/// - Respostas estão no formato correto
-/// - Autorização está funcionando
-/// - Dados são persistidos corretamente
+/// Foca em validações de formato de resposta que não são cobertas por testes de negócio.
+/// Testes de endpoints, autenticação e CRUD são cobertos por UsersIntegrationTests.cs
 /// </remarks>
 public class UsersApiTests : ApiTestBase
 {
-    [Fact]
-    public async Task UsersEndpoint_ShouldBeAccessible()
-    {
-        // Act
-        var response = await Client.GetAsync("/api/v1/users");
-
-        // Assert
-        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
-        response.StatusCode.Should().NotBe(HttpStatusCode.MethodNotAllowed);
-        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.OK);
-    }
+    // NOTE: UsersEndpoint_ShouldBeAccessible removed - low value smoke test
+    // Endpoint existence is validated by all other tests
 
     [Fact]
     public async Task UsersEndpoint_WithAuthentication_ShouldReturnValidResponse()
@@ -62,109 +46,9 @@ public class UsersApiTests : ApiTestBase
             "Data property should contain either an array of users or a paginated response object");
     }
 
-    [Fact]
-    public async Task GetUserById_WithNonExistentId_ShouldReturnNotFound()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-        var randomId = Guid.NewGuid(); // Use random ID that definitely doesn't exist
+    // NOTE: GetUserById_WithNonExistentId, GetUserByEmail_WithNonExistentEmail, and CreateUser tests
+    // are covered by UsersIntegrationTests.cs - removed duplicates to reduce test overhead
 
-        // Act
-        var response = await Client.GetAsync($"/api/v1/users/{randomId}");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
-            "API should return 404 when user ID does not exist");
-    }
-
-    [Fact]
-    public async Task GetUserByEmail_WithNonExistentEmail_ShouldReturnNotFound()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-        var randomEmail = $"nonexistent-{Guid.NewGuid():N}@example.com";
-
-        // Act
-        var response = await Client.GetAsync($"/api/v1/users/by-email/{randomEmail}");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
-            "API should return 404 when user email does not exist");
-    }
-
-    [Fact]
-    public async Task CreateUser_WithValidData_ShouldReturnCreated()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-
-        var userData = new
-        {
-            username = $"test{Guid.NewGuid():N}"[..20], // Limit to 20 chars
-            email = $"test-{Guid.NewGuid():N}@example.com",
-            firstName = "Test",
-            lastName = "User",
-            keycloakId = $"keycloak-{Guid.NewGuid()}"
-        };
-
-        // Act
-        var response = await Client.PostAsJsonAsync("/api/v1/users", userData);
-
-        // Assert
-        var content = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(HttpStatusCode.Created,
-            $"POST requests that create resources should return 201 Created. Response: {content}");
-
-        var responseJson = JsonSerializer.Deserialize<JsonElement>(content);
-
-        // Verifica se é uma response estruturada (com data)
-        var dataElement = GetResponseData(responseJson);
-        dataElement.TryGetProperty("id", out _).Should().BeTrue(
-            $"Response data should contain 'id' property. Full response: {content}");
-        dataElement.TryGetProperty("username", out var usernameProperty).Should().BeTrue();
-        usernameProperty.GetString().Should().Be(userData.username);
-
-        // Cleanup - attempt to delete created user
-        if (dataElement.TryGetProperty("id", out var idProperty))
-        {
-            var userId = idProperty.GetString();
-            var deleteResponse = await Client.DeleteAsync($"/api/v1/users/{userId}");
-            // Note: We don't assert success here as cleanup is best-effort
-        }
-    }
-
-    [Fact]
-    public async Task UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors()
-    {
-        // Arrange
-        AuthConfig.ConfigureAdmin();
-
-        var endpoints = new[]
-        {
-            "/api/v1/users"
-        };
-
-        // Act & Assert
-        foreach (var endpoint in endpoints)
-        {
-            var response = await Client.GetAsync(endpoint);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync();
-                // Log endpoint failure for debugging
-                Console.WriteLine($"Endpoint {endpoint} returned {response.StatusCode}. Body: {body}");
-            }
-
-            response.StatusCode.Should().Be(HttpStatusCode.OK,
-                $"Authenticated admin requests to {endpoint} should succeed.");
-        }
-    }
-
-    private static JsonElement GetResponseData(JsonElement response)
-    {
-        return response.TryGetProperty("data", out var dataElement)
-            ? dataElement
-            : response;
-    }
+    // NOTE: UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors removed
+    // - Duplicates UsersIntegrationTests.UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors
 }

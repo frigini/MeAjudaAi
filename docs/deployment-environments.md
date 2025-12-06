@@ -79,10 +79,10 @@ Each environment requires specific configuration:
 - Dashboard unavailable or shows data corruption
 - Database performance degrades significantly
 
-For detailed rollback procedures and troubleshooting, see:
-📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)**
+For detailed rollback procedures and troubleshooting:
+📖 **Hangfire Npgsql Compatibility** (integration tests removed - monitoring via health checks)
 
-**Quick Rollback Steps** (see full guide for details):
+**Quick Rollback Steps**:
 
 1. **Stop Application** (~5 min)
    ```bash
@@ -113,7 +113,7 @@ For detailed rollback procedures and troubleshooting, see:
 ### Critical Monitoring
 
 For comprehensive Hangfire + background jobs monitoring, see:
-📖 **[Hangfire Npgsql Compatibility Guide - Monitoring Section](./hangfire-npgsql-compatibility.md#production-monitoring)**
+📖 **Hangfire Npgsql Compatibility - Monitoring** (integration tests removed - monitoring via health checks)
 
 **Key Metrics** (see guide for queries and alert configuration):
 1. **Job Failure Rate**: Alert if >5% → Investigate and consider rollback
