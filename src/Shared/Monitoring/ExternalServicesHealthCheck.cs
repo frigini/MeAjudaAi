@@ -10,6 +10,12 @@ public partial class MeAjudaAiHealthChecks
     /// </summary>
     public class ExternalServicesHealthCheck(HttpClient httpClient, IConfiguration configuration) : IHealthCheck
     {
+        /// <summary>
+        /// Verifica a disponibilidade dos serviços externos configurados
+        /// </summary>
+        /// <param name="context">Contexto da verificação de saúde</param>
+        /// <param name="cancellationToken">Token de cancelamento</param>
+        /// <returns>Resultado da verificação de saúde</returns>
         public async Task<HealthCheckResult> CheckHealthAsync(
             HealthCheckContext context,
             CancellationToken cancellationToken = default)

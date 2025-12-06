@@ -24,7 +24,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     public DocumentsInfrastructureIntegrationTests()
     {
         var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseInMemoryDatabase($"DocumentsTestDb_{Guid.NewGuid()}")
+            .UseInMemoryDatabase($"DocumentsTestDb_{Guid.CreateVersion7()}")
             .Options;
 
         _dbContext = new DocumentsDbContext(options);
@@ -46,7 +46,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     {
         // Arrange
         var document = Document.Create(
-            Guid.NewGuid(),
+            Guid.CreateVersion7(),
             EDocumentType.IdentityDocument,
             "test-document.pdf",
             "test-blob-path.pdf"
@@ -69,10 +69,10 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     public async Task Repository_GetByProviderId_ShouldReturnAllDocuments()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
+        var providerId = Guid.CreateVersion7();
         var doc1 = Document.Create(providerId, EDocumentType.IdentityDocument, "doc1.pdf", "path1.pdf");
         var doc2 = Document.Create(providerId, EDocumentType.ProofOfResidence, "doc2.pdf", "path2.pdf");
-        var doc3 = Document.Create(Guid.NewGuid(), EDocumentType.CriminalRecord, "doc3.pdf", "path3.pdf");
+        var doc3 = Document.Create(Guid.CreateVersion7(), EDocumentType.CriminalRecord, "doc3.pdf", "path3.pdf");
 
         await _repository.AddAsync(doc1);
         await _repository.AddAsync(doc2);
@@ -93,7 +93,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     public async Task Repository_UpdateDocument_ShouldPersistChanges()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "path.pdf");
+        var document = Document.Create(Guid.CreateVersion7(), EDocumentType.IdentityDocument, "test.pdf", "path.pdf");
         await _repository.AddAsync(document);
         await _dbContext.SaveChangesAsync();
 
@@ -221,8 +221,8 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     public async Task CompleteWorkflow_UploadToVerification_ShouldWork()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
-        var blobName = $"{providerId}/identity-{Guid.NewGuid()}.pdf";
+        var providerId = Guid.CreateVersion7();
+        var blobName = $"{providerId}/identity-{Guid.CreateVersion7()}.pdf";
 
         // Act 1: Generate upload URL
         var (uploadUrl, _) = await _blobStorageService.GenerateUploadUrlAsync(blobName, "application/pdf");
@@ -262,7 +262,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     public async Task MultipleDocuments_ForSameProvider_ShouldBeManageable()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
+        var providerId = Guid.CreateVersion7();
         var documentTypes = new[]
         {
             EDocumentType.IdentityDocument,
@@ -274,7 +274,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
         var documentIds = new List<Guid>();
         foreach (var docType in documentTypes)
         {
-            var blobName = $"{providerId}/{docType}-{Guid.NewGuid()}.pdf";
+            var blobName = $"{providerId}/{docType}-{Guid.CreateVersion7()}.pdf";
             await _blobStorageService.GenerateUploadUrlAsync(blobName, "application/pdf");
 
             var document = Document.Create(providerId, docType, $"{docType}.pdf", blobName);
@@ -296,7 +296,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     public async Task DocumentVerificationFlow_WithRejection_ShouldWork()
     {
         // Arrange
-        var document = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", "path.pdf");
+        var document = Document.Create(Guid.CreateVersion7(), EDocumentType.IdentityDocument, "test.pdf", "path.pdf");
         await _repository.AddAsync(document);
         await _dbContext.SaveChangesAsync();
 
@@ -317,13 +317,13 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     public async Task Repository_QueryByStatus_ShouldFilterCorrectly()
     {
         // Arrange
-        var uploaded = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "uploaded.pdf", "path1");
+        var uploaded = Document.Create(Guid.CreateVersion7(), EDocumentType.IdentityDocument, "uploaded.pdf", "path1");
 
-        var verified = Document.Create(Guid.NewGuid(), EDocumentType.ProofOfResidence, "verified.pdf", "path2");
+        var verified = Document.Create(Guid.CreateVersion7(), EDocumentType.ProofOfResidence, "verified.pdf", "path2");
         verified.MarkAsPendingVerification();
         verified.MarkAsVerified("{\"data\":\"test\"}");
 
-        var rejected = Document.Create(Guid.NewGuid(), EDocumentType.CriminalRecord, "rejected.pdf", "path3");
+        var rejected = Document.Create(Guid.CreateVersion7(), EDocumentType.CriminalRecord, "rejected.pdf", "path3");
         rejected.MarkAsPendingVerification();
         rejected.MarkAsRejected("Invalid");
 
@@ -346,8 +346,8 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     public async Task DbContext_MultipleSaves_ShouldPersistBoth()
     {
         // Arrange
-        var doc1 = Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "doc1.pdf", "path1");
-        var doc2 = Document.Create(Guid.NewGuid(), EDocumentType.ProofOfResidence, "doc2.pdf", "path2");
+        var doc1 = Document.Create(Guid.CreateVersion7(), EDocumentType.IdentityDocument, "doc1.pdf", "path1");
+        var doc2 = Document.Create(Guid.CreateVersion7(), EDocumentType.ProofOfResidence, "doc2.pdf", "path2");
 
         // Act
         await _repository.AddAsync(doc1);
