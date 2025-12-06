@@ -12,6 +12,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Events.Handlers;
 
+/// <summary>
+/// Testes para o handler de eventos de domínio de registro de usuário
+/// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Layer", "Infrastructure")]
@@ -226,7 +229,9 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
             "Test",
             "User"
         );
-        var cancellationToken = new CancellationToken();
+
+        using var cts = new CancellationTokenSource();
+        var cancellationToken = cts.Token;
 
         // Act
         await _handler.HandleAsync(domainEvent, cancellationToken);

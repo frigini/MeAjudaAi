@@ -8,6 +8,8 @@ public partial class MeAjudaAiHealthChecks
     /// <summary>
     /// Health check para verificar disponibilidade de serviços externos
     /// </summary>
+    /// <param name="httpClient">Cliente HTTP para realizar requisições aos serviços externos</param>
+    /// <param name="configuration">Configuração da aplicação contendo endpoints e configurações dos serviços</param>
     public class ExternalServicesHealthCheck(HttpClient httpClient, IConfiguration configuration) : IHealthCheck
     {
         /// <summary>

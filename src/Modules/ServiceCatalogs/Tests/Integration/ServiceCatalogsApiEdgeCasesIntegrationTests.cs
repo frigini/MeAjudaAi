@@ -107,6 +107,7 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
         result.Value.InvalidServiceIds.Should().Contain(invalidId1);
         result.Value.InvalidServiceIds.Should().Contain(invalidId2);
         result.Value.InvalidServiceIds.Should().Contain(invalidId3);
+        result.Value.InactiveServiceIds.Should().BeEmpty();
     }
 
     [Fact]
@@ -163,8 +164,10 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
         result.Value.AllValid.Should().BeFalse();
         result.Value.InvalidServiceIds.Should().HaveCount(1);
         result.Value.InvalidServiceIds.Should().Contain(invalidServiceId);
+        result.Value.InvalidServiceIds.Should().NotContain(activeService.Id.Value);
         result.Value.InactiveServiceIds.Should().HaveCount(1);
         result.Value.InactiveServiceIds.Should().Contain(inactiveService.Id.Value);
+        result.Value.InactiveServiceIds.Should().NotContain(activeService.Id.Value);
     }
 
     [Fact]
@@ -185,6 +188,8 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.AllValid.Should().BeTrue();
+        result.Value.InvalidServiceIds.Should().BeEmpty();
+        result.Value.InactiveServiceIds.Should().BeEmpty();
     }
 
     #endregion

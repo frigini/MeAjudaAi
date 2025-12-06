@@ -10,6 +10,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Events.Handlers;
 
+/// <summary>
+/// Testes para o handler de eventos de domínio de atualização de perfil de usuário
+/// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
 [Trait("Layer", "Infrastructure")]
