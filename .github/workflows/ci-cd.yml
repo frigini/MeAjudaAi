@@ -190,6 +190,9 @@ jobs:
         with:
           name: code-coverage
           path: "TestResults/Coverage/**/*"
+          retention-days: 7
+          compression-level: 6
+          if-no-files-found: warn
 
       - name: Upload test results
         uses: actions/upload-artifact@v5
@@ -197,6 +200,9 @@ jobs:
         with:
           name: test-results
           path: "**/TestResults/**/*"
+          retention-days: 7
+          compression-level: 6
+          if-no-files-found: warn
 
   # Job 2: Markdown Link Validation
   markdown-link-check:
@@ -306,6 +312,9 @@ jobs:
         with:
           name: infrastructure-outputs-dev
           path: infrastructure-outputs.json
+          retention-days: 30
+          compression-level: 6
+          if-no-files-found: error
 
       - name: Cleanup after test (if requested)
         if: github.event.inputs.cleanup_after_test == 'true'

@@ -586,6 +586,8 @@ jobs:
         with:
           name: coverage-reports
           path: coverage/**
+          retention-days: 7
+          compression-level: 6
           if-no-files-found: ignore
 
       - name: Upload Test Results
@@ -594,6 +596,8 @@ jobs:
         with:
           name: test-results
           path: "**/*.trx"
+          retention-days: 7
+          compression-level: 6
           if-no-files-found: ignore
 
       - name: List Coverage Files (Debug)
