@@ -80,7 +80,7 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
     public async Task ValidateServicesAsync_WithEmptyList_ShouldReturnAllValid()
     {
         // Act
-        var result = await _moduleApi.ValidateServicesAsync(Array.Empty<Guid>());
+        var result = await _moduleApi.ValidateServicesAsync([]);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
