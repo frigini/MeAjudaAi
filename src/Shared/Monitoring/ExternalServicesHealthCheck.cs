@@ -31,11 +31,14 @@ public partial class MeAjudaAiHealthChecks
                 var keycloakUrl = configuration["Keycloak:BaseUrl"];
                 if (!string.IsNullOrEmpty(keycloakUrl))
                 {
+                    var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                     using var response = await httpClient.GetAsync($"{keycloakUrl}/realms/meajudaai", cancellationToken);
+                    stopwatch.Stop();
+
                     results["keycloak"] = new
                     {
                         status = response.IsSuccessStatusCode ? "healthy" : "unhealthy",
-                        response_time_ms = 0 // Could measure actual response time
+                        response_time_ms = stopwatch.ElapsedMilliseconds
                     };
 
                     if (!response.IsSuccessStatusCode)

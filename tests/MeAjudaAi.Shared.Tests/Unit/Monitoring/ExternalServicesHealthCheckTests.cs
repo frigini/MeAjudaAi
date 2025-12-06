@@ -66,6 +66,13 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         result.Data.Should().ContainKey("timestamp");
         result.Data.Should().ContainKey("overall_status");
         result.Data["overall_status"].Should().Be("healthy");
+
+        // Verify response time is measured
+        var keycloakData = result.Data["keycloak"];
+        keycloakData.Should().NotBeNull();
+        var keycloakDict = keycloakData.GetType().GetProperty("response_time_ms")?.GetValue(keycloakData);
+        keycloakDict.Should().NotBeNull();
+        ((long)keycloakDict!).Should().BeGreaterThanOrEqualTo(0);
     }
 
     [Fact]
