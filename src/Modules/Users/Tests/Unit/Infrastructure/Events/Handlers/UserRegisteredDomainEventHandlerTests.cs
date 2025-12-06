@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Messages.Users;
+using MeAjudaAi.Shared.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -94,7 +95,7 @@ public class UserRegisteredDomainEventHandlerTests : IDisposable
     public async Task HandleAsync_WithNonExistentUser_ShouldLogWarningAndNotPublish()
     {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = UuidGenerator.NewId();
         var domainEvent = new UserRegisteredDomainEvent(
             userId,
             1,

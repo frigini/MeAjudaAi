@@ -19,7 +19,7 @@ public class ServiceCategoryUpdatedDomainEventTests
         domainEvent.CategoryId.Should().Be(categoryId);
         domainEvent.AggregateId.Should().Be(categoryId.Value);
         domainEvent.Version.Should().Be(1);
-        domainEvent.EventType.Should().Be("ServiceCategoryUpdatedDomainEvent");
+        domainEvent.EventType.Should().Be(nameof(ServiceCategoryUpdatedDomainEvent));
         domainEvent.Id.Should().NotBeEmpty();
         domainEvent.OccurredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }

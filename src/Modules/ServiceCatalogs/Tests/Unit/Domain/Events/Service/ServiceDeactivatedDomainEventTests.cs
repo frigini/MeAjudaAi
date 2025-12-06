@@ -19,7 +19,7 @@ public class ServiceDeactivatedDomainEventTests
         domainEvent.ServiceId.Should().Be(serviceId);
         domainEvent.AggregateId.Should().Be(serviceId.Value);
         domainEvent.Version.Should().Be(1);
-        domainEvent.EventType.Should().Be("ServiceDeactivatedDomainEvent");
+        domainEvent.EventType.Should().Be(nameof(ServiceDeactivatedDomainEvent));
         domainEvent.Id.Should().NotBeEmpty();
         domainEvent.OccurredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }

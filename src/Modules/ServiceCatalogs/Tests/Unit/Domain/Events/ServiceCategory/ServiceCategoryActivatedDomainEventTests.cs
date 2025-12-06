@@ -19,7 +19,7 @@ public class ServiceCategoryActivatedDomainEventTests
         domainEvent.CategoryId.Should().Be(categoryId);
         domainEvent.AggregateId.Should().Be(categoryId.Value);
         domainEvent.Version.Should().Be(1);
-        domainEvent.EventType.Should().Be("ServiceCategoryActivatedDomainEvent");
+        domainEvent.EventType.Should().Be(nameof(ServiceCategoryActivatedDomainEvent));
         domainEvent.Id.Should().NotBeEmpty();
         domainEvent.OccurredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }

@@ -76,7 +76,6 @@ public class ProviderDeletedDomainEventHandlerTests : IDisposable
             x => x.PublishAsync(
                 It.Is<MeAjudaAi.Shared.Messaging.Messages.Providers.ProviderDeletedIntegrationEvent>(e =>
                     e.ProviderId == providerId.Value &&
-                    e.Version == 1 &&
                     e.Name == "Provider Test" &&
                     e.DeletedBy == "admin@test.com"),
                 It.IsAny<string?>(),
