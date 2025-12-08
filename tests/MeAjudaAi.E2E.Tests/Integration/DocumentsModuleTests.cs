@@ -20,7 +20,7 @@ public class DocumentsModuleTests : TestContainerTestBase
     public async Task UploadDocument_WithValidData_ShouldReturnOkWithUploadResponse()
     {
         // Arrange
-        AuthenticateAsUser(userId: Guid.NewGuid().ToString());
+        AuthenticateAsAdmin(); // Admin can upload for any provider
 
         var request = new UploadDocumentRequest
         {
@@ -48,7 +48,7 @@ public class DocumentsModuleTests : TestContainerTestBase
     public async Task UploadDocument_WithProofOfResidence_ShouldCreateCorrectDocumentType()
     {
         // Arrange
-        AuthenticateAsUser(userId: Guid.NewGuid().ToString());
+        AuthenticateAsAdmin(); // Admin can upload for any provider
 
         var request = new UploadDocumentRequest
         {
@@ -74,7 +74,7 @@ public class DocumentsModuleTests : TestContainerTestBase
     public async Task UploadDocument_WithCriminalRecord_ShouldCreateSuccessfully()
     {
         // Arrange
-        AuthenticateAsUser(userId: Guid.NewGuid().ToString());
+        AuthenticateAsAdmin(); // Admin can upload for any provider
 
         var request = new UploadDocumentRequest
         {
@@ -99,7 +99,7 @@ public class DocumentsModuleTests : TestContainerTestBase
     public async Task UploadDocument_WithOtherDocumentType_ShouldCreateSuccessfully()
     {
         // Arrange
-        AuthenticateAsUser(userId: Guid.NewGuid().ToString());
+        AuthenticateAsAdmin(); // Admin can upload for any provider
 
         var request = new UploadDocumentRequest
         {
@@ -265,9 +265,8 @@ public class DocumentsModuleTests : TestContainerTestBase
     public async Task UploadDocument_CompleteWorkflow_ShouldCreateAndQueryDocument()
     {
         // Arrange
-        var userId = Guid.NewGuid().ToString();
+        AuthenticateAsAdmin(); // Admin can upload for any provider
         var providerId = Guid.NewGuid();
-        AuthenticateAsUser(userId: userId);
 
         var uploadRequest = new UploadDocumentRequest
         {
@@ -298,9 +297,8 @@ public class DocumentsModuleTests : TestContainerTestBase
     public async Task GetProviderDocuments_AfterMultipleUploads_ShouldReturnMultipleDocuments()
     {
         // Arrange
-        var userId = Guid.NewGuid().ToString();
+        AuthenticateAsAdmin(); // Admin can upload for any provider
         var providerId = Guid.NewGuid();
-        AuthenticateAsUser(userId: userId);
 
         // Act: Upload multiple documents for the same provider
         var uploadTasks = new[]
