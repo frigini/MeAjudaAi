@@ -16,12 +16,12 @@ permissions:
 env:
   DOTNET_VERSION: '10.0.x'
   # CRITICAL: Set STRICT_COVERAGE: true before merging to main
-  # This enforces 70% minimum coverage threshold (lines 785, 810)
+  # This enforces 80% minimum coverage threshold (lines 785, 810)
   # Current bypass is TEMPORARY for development only
-  # TODO: Enable STRICT_COVERAGE when overall coverage ≥ 70% (Sprint 2 milestone)
+  # TODO: Enable STRICT_COVERAGE when overall coverage ≥ 90% (Sprint 2 milestone)
   #       Tracking: https://github.com/frigini/MeAjudaAi/issues/33
   #       References: docs/testing/code-coverage-guide.md#L297-L313
-  # Re-enable when overall coverage reaches 70% (Sprint 2 milestone)
+  # Re-enable when overall coverage reaches 90% (Sprint 2 milestone)
   STRICT_COVERAGE: false
   # PostgreSQL configuration (DRY principle - single source of truth)
   # Fallback credentials: Only used in fork/local dev; main repo requires secrets
@@ -682,7 +682,7 @@ jobs:
           hide_complexity: false
           indicators: true
           output: both
-          thresholds: '70 85'
+          thresholds: '80 90'
         continue-on-error: true
 
       - name: Alternative Coverage Summary (Cobertura format)
@@ -698,7 +698,7 @@ jobs:
           hide_complexity: false
           indicators: true
           output: both
-          thresholds: '70 85'
+          thresholds: '80 90'
         continue-on-error: true
 
       - name: Fallback Coverage Summary (any XML)
@@ -718,7 +718,7 @@ jobs:
           hide_complexity: false
           indicators: true
           output: both
-          thresholds: '70 85'
+          thresholds: '80 90'
         continue-on-error: true
 
       - name: Display Coverage Percentages
@@ -755,42 +755,13 @@ jobs:
           done
 
           echo "💡 For detailed coverage report, check the 'Code Coverage Summary' step above"
-          echo "🎯 Minimum thresholds: 70% (warning) / 85% (good)"
+          echo "🎯 Minimum thresholds: 80% (warning) / 90% (good)"
 
       - name: Select Coverage Outputs
         id: select_coverage_outputs
         if: always()
         run: |
-          echo "🎯 Selecting coverage outputs from available steps..."
-
-          # First try to use step outputs if available (priority order)
-          if [ "${{ steps.coverage_cobertura_aggregate.outcome }}" = "success" ] &&
-             [ -n "${{ steps.coverage_cobertura_aggregate.outputs.summary }}" ]; then
-            SUMMARY="${{ steps.coverage_cobertura_aggregate.outputs.summary }}"
-            BADGE="${{ steps.coverage_cobertura_aggregate.outputs.badge }}"
-            SOURCE="Cobertura (Aggregated)"
-            echo "✅ Using aggregated Cobertura coverage outputs"
-          elif [ "${{ steps.coverage_opencover_individual.outcome }}" = "success" ] &&
-               [ -n "${{ steps.coverage_opencover_individual.outputs.summary }}" ]; then
-            SUMMARY="${{ steps.coverage_opencover_individual.outputs.summary }}"
-            BADGE="${{ steps.coverage_opencover_individual.outputs.badge }}"
-            SOURCE="OpenCover (Individual)"
-            echo "✅ Using individual OpenCover coverage outputs"
-          elif [ "${{ steps.coverage_cobertura.outcome }}" = "success" ] &&
-               [ -n "${{ steps.coverage_cobertura.outputs.summary }}" ]; then
-            SUMMARY="${{ steps.coverage_cobertura.outputs.summary }}"
-            BADGE="${{ steps.coverage_cobertura.outputs.badge }}"
-            SOURCE="Cobertura (Individual)"
-            echo "✅ Using individual Cobertura coverage outputs"
-          elif [ "${{ steps.coverage_fallback.outcome }}" = "success" ] &&
-               [ -n "${{ steps.coverage_fallback.outputs.summary }}" ]; then
-            SUMMARY="${{ steps.coverage_fallback.outputs.summary }}"
-            BADGE="${{ steps.coverage_fallback.outputs.badge }}"
-            SOURCE="Fallback XML"
-            echo "✅ Using Fallback coverage outputs"
-          else
-            # Fallback: Check if coverage files exist and generate basic summary
-            echo "⚠️  Step outputs not available, checking for coverage files..."
+          echo "🔍 Detecting coverage files..."
 
             if [ -f "coverage/aggregate/Cobertura.xml" ]; then
               COVERAGE_FILE="coverage/aggregate/Cobertura.xml"
@@ -870,7 +841,7 @@ jobs:
 
             ### 📈 Coverage Details
             - **Coverage badges**: ${{ steps.select_coverage_outputs.outputs.badge }}
-            - **Minimum threshold**: 70% (warning) / 85% (good)
+            - **Minimum threshold**: 80% (warning) / 90% (good)
             - **Report format**: Auto-detected from OpenCover/Cobertura XML files
             - **Coverage source**: ${{ steps.select_coverage_outputs.outputs.source }}
 
@@ -880,9 +851,9 @@ jobs:
             - **Complexity**: Code complexity metrics for maintainability
 
             ### 🎯 Quality Gates
-            - ✅ **Pass**: Coverage ≥ 85%
-            - ⚠️ **Warning**: Coverage 70-84%
-            - ❌ **Fail**: Coverage < 70%
+            - ✅ **Pass**: Coverage ≥ 90%
+            - ⚠️ **Warning**: Coverage 80-89%
+            - ❌ **Fail**: Coverage < 80%
 
             ### 📁 Artifacts
             - **Coverage reports**: Available in workflow artifacts
@@ -897,7 +868,7 @@ jobs:
         uses: ./.github/actions/validate-coverage
         with:
           coverage-directory: './coverage'
-          threshold: '70'
+          threshold: '90'
           strict-mode: ${{ env.STRICT_COVERAGE }}
           opencover-outcome: ${{ steps.coverage_opencover_individual.outcome }}
           cobertura-outcome: ${{ steps.coverage_cobertura.outcome }}

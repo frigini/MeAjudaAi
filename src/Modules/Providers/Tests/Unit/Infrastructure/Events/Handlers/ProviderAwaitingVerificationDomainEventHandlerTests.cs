@@ -75,7 +75,7 @@ public class ProviderAwaitingVerificationDomainEventHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<Exception>().WithMessage("Message bus error");
-        
+
         _mockLogger.Verify(
             x => x.Log(
                 LogLevel.Error,

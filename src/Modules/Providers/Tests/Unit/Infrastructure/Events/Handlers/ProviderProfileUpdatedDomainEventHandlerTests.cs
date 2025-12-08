@@ -111,7 +111,7 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<Exception>().WithMessage("Message bus error");
-        
+
         _mockLogger.Verify(
             x => x.Log(
                 LogLevel.Error,
