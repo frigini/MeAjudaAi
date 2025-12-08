@@ -75,5 +75,14 @@ public class ProviderAwaitingVerificationDomainEventHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<Exception>().WithMessage("Message bus error");
+        
+        _mockLogger.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error handling") || v.ToString()!.Contains("Error publishing")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 }
