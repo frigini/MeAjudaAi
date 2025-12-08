@@ -124,6 +124,10 @@ dotnet_diagnostic.CA2000.severity = none  # Dispose pode ser relaxado em testes
 dotnet_diagnostic.CA5394.severity = suggestion  # Random pode ser usado em dados de teste
 dotnet_diagnostic.CA2100.severity = suggestion  # SQL dinâmico pode ser usado em testes
 
+# Nullable warnings em testes (intencionalmente testando cenários null)
+dotnet_diagnostic.CS8604.severity = none  # Possible null reference argument - OK em testes de validação
+dotnet_diagnostic.CS8625.severity = none  # Cannot convert null literal to non-nullable reference - OK em testes
+
 # Test-specific warnings (noise in test context)
 dotnet_diagnostic.CA1707.severity = none  # Remove underscores from member names (common in test methods)
 dotnet_diagnostic.CA1303.severity = none  # Use resource tables instead of literal strings (console logging in tests)
