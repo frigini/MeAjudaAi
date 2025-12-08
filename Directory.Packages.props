@@ -146,7 +146,7 @@
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.0.1" />
     <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="10.0.1" />
     <!-- Validation -->
-    <PackageVersion Include="FluentValidation" Version="12.0.0" />
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
     <!-- Azure -->
     <PackageVersion Include="Azure.AI.DocumentIntelligence" Version="1.0.0" />
