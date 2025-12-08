@@ -150,7 +150,7 @@
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
     <!-- Azure -->
     <PackageVersion Include="Azure.AI.DocumentIntelligence" Version="1.0.0" />
-    <PackageVersion Include="Azure.Storage.Blobs" Version="12.24.0" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.26.0" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
     <!-- Messaging -->
     <PackageVersion Include="RabbitMQ.Client" Version="7.1.2" />
