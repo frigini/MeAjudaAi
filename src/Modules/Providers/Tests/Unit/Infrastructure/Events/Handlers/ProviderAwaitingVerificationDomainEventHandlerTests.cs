@@ -27,8 +27,15 @@ public class ProviderAwaitingVerificationDomainEventHandlerTests
     public async Task HandleAsync_ShouldPublishIntegrationEvent()
     {
         // Arrange
-        var providerId = ProviderId.New();
-        var domainEvent = new ProviderAwaitingVerificationDomainEvent(providerId);
+        var providerId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var domainEvent = new ProviderAwaitingVerificationDomainEvent(
+            providerId,
+            1, // Version
+            userId,
+            "Test Provider",
+            null // UpdatedBy
+        );
 
         // Act
         await _handler.HandleAsync(domainEvent, CancellationToken.None);
@@ -46,8 +53,15 @@ public class ProviderAwaitingVerificationDomainEventHandlerTests
     public async Task HandleAsync_WhenMessageBusFails_ShouldLogError()
     {
         // Arrange
-        var providerId = ProviderId.New();
-        var domainEvent = new ProviderAwaitingVerificationDomainEvent(providerId);
+        var providerId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var domainEvent = new ProviderAwaitingVerificationDomainEvent(
+            providerId,
+            1, // Version
+            userId,
+            "Test Provider",
+            null // UpdatedBy
+        );
 
         _mockMessageBus
             .Setup(x => x.PublishAsync(

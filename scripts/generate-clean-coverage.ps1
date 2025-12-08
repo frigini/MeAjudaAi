@@ -12,7 +12,7 @@ if (Test-Path coverage) {
 
 # Rodar testes com exclusões configuradas
 Write-Host "2. Rodando testes com Coverlet (pode demorar ~25 minutos)..." -ForegroundColor Yellow
-Write-Host "   Excluindo: *.generated.cs, OpenApi, CompilerServices, RegexGenerator" -ForegroundColor Gray
+Write-Host "   Excluindo padrões: **/*OpenApi*.generated.cs, **/*System.Runtime.CompilerServices*.cs, **/*RegexGenerator.g.cs" -ForegroundColor Gray
 Write-Host ""
 
 dotnet test `

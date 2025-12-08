@@ -899,11 +899,11 @@ jobs:
           coverage-directory: './coverage'
           threshold: '70'
           strict-mode: ${{ env.STRICT_COVERAGE }}
-          opencover-output: ${{ steps.coverage_opencover_individual.outputs.line-rate }}
+          opencover-output: ${{ steps.coverage_opencover_individual.outputs['line-rate'] }}
           opencover-outcome: ${{ steps.coverage_opencover_individual.outcome }}
-          cobertura-output: ${{ steps.coverage_cobertura.outputs.line-rate }}
+          cobertura-output: ${{ steps.coverage_cobertura.outputs['line-rate'] }}
           cobertura-outcome: ${{ steps.coverage_cobertura.outcome }}
-          fallback-output: ${{ steps.coverage_fallback.outputs.line-rate }}
+          fallback-output: ${{ steps.coverage_fallback.outputs['line-rate'] }}
           fallback-outcome: ${{ steps.coverage_fallback.outcome }}
 
   # Job 2: Security Scan (Consolidated)
