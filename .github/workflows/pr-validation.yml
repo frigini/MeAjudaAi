@@ -251,6 +251,17 @@ jobs:
             "ApiService:tests/MeAjudaAi.ApiService.Tests/:MeAjudaAi.ApiService"
           )
 
+          # Source shared utility functions once before module loop
+          RUNSETTINGS_SCRIPT="./.github/scripts/generate-runsettings.sh"
+          if [ ! -f "$RUNSETTINGS_SCRIPT" ] || [ ! -r "$RUNSETTINGS_SCRIPT" ]; then
+            echo "❌ ERROR: Required script not found or not readable: $RUNSETTINGS_SCRIPT"
+            exit 1
+          fi
+          if ! source "$RUNSETTINGS_SCRIPT"; then
+            echo "❌ ERROR: Failed to source $RUNSETTINGS_SCRIPT (exit code: $?)"
+            exit 1
+          fi
+
           # Run unit tests for each module with coverage
           for module_info in "${MODULES[@]}"; do
             IFS=':' read -r module_name module_path include_pattern <<< "$module_info"
@@ -296,17 +307,6 @@ jobs:
             echo "  Include: $INCLUDE_FILTER"
             echo "  Exclude: $EXCLUDE_FILTER"
             echo "  ExcludeByFile: $EXCLUDE_BY_FILE"
-
-            # Source shared utility functions with existence check
-            RUNSETTINGS_SCRIPT="./.github/scripts/generate-runsettings.sh"
-            if [ ! -f "$RUNSETTINGS_SCRIPT" ] || [ ! -r "$RUNSETTINGS_SCRIPT" ]; then
-              echo "❌ ERROR: Required script not found or not readable: $RUNSETTINGS_SCRIPT"
-              exit 1
-            fi
-            if ! source "$RUNSETTINGS_SCRIPT"; then
-              echo "❌ ERROR: Failed to source $RUNSETTINGS_SCRIPT (exit code: $?)"
-              exit 1
-            fi
 
             # Create temporary runsettings file for this module with proper XML escaping
             RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
