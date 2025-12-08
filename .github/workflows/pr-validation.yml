@@ -297,17 +297,16 @@ jobs:
             echo "  Exclude: $EXCLUDE_FILTER"
             echo "  ExcludeByFile: $EXCLUDE_BY_FILE"
 
-            # Source shared utility functions
-            source ./.github/scripts/generate-runsettings.sh
-
-            INCLUDE_FILTER_ESCAPED=$(escape_xml "$INCLUDE_FILTER")
-            EXCLUDE_FILTER_ESCAPED=$(escape_xml "$EXCLUDE_FILTER")
-            EXCLUDE_BY_FILE_ESCAPED=$(escape_xml "$EXCLUDE_BY_FILE")
-
-            echo "🔍 DEBUG: XML-escaped filter values..."
-            echo "  INCLUDE_FILTER_ESCAPED: $INCLUDE_FILTER_ESCAPED"
-            echo "  EXCLUDE_FILTER_ESCAPED: $EXCLUDE_FILTER_ESCAPED"
-            echo "  EXCLUDE_BY_FILE_ESCAPED: $EXCLUDE_BY_FILE_ESCAPED"
+            # Source shared utility functions with existence check
+            RUNSETTINGS_SCRIPT="./.github/scripts/generate-runsettings.sh"
+            if [ ! -f "$RUNSETTINGS_SCRIPT" ] || [ ! -r "$RUNSETTINGS_SCRIPT" ]; then
+              echo "❌ ERROR: Required script not found or not readable: $RUNSETTINGS_SCRIPT"
+              exit 1
+            fi
+            if ! source "$RUNSETTINGS_SCRIPT"; then
+              echo "❌ ERROR: Failed to source $RUNSETTINGS_SCRIPT (exit code: $?)"
+              exit 1
+            fi
 
             # Create temporary runsettings file for this module with proper XML escaping
             RUNSETTINGS_FILE="/tmp/${module_name,,}.runsettings"
@@ -418,8 +417,16 @@ jobs:
         run: |
           echo "🔗 Running Integration tests..."
 
-          # Source shared utility functions
-          source ./.github/scripts/generate-runsettings.sh
+          # Source shared utility functions with existence check
+          RUNSETTINGS_SCRIPT="./.github/scripts/generate-runsettings.sh"
+          if [ ! -f "$RUNSETTINGS_SCRIPT" ] || [ ! -r "$RUNSETTINGS_SCRIPT" ]; then
+            echo "❌ ERROR: Required script not found or not readable: $RUNSETTINGS_SCRIPT"
+            exit 1
+          fi
+          if ! source "$RUNSETTINGS_SCRIPT"; then
+            echo "❌ ERROR: Failed to source $RUNSETTINGS_SCRIPT (exit code: $?)"
+            exit 1
+          fi
 
           if [ -d "tests/MeAjudaAi.Integration.Tests/" ]; then
             echo "================================"
@@ -465,8 +472,16 @@ jobs:
         run: |
           echo "🌐 Running E2E tests..."
 
-          # Source shared utility functions
-          source ./.github/scripts/generate-runsettings.sh
+          # Source shared utility functions with existence check
+          RUNSETTINGS_SCRIPT="./.github/scripts/generate-runsettings.sh"
+          if [ ! -f "$RUNSETTINGS_SCRIPT" ] || [ ! -r "$RUNSETTINGS_SCRIPT" ]; then
+            echo "❌ ERROR: Required script not found or not readable: $RUNSETTINGS_SCRIPT"
+            exit 1
+          fi
+          if ! source "$RUNSETTINGS_SCRIPT"; then
+            echo "❌ ERROR: Failed to source $RUNSETTINGS_SCRIPT (exit code: $?)"
+            exit 1
+          fi
 
           if [ -d "tests/MeAjudaAi.E2E.Tests/" ]; then
             echo "================================"
@@ -544,11 +559,11 @@ jobs:
           # We read OpenCover input files and generate Cobertura output
           echo "🔗 Combining coverage from Unit + Integration + E2E tests..."
           
-          # Assembly filters must match actual assembly names with full namespace prefix
-          # Use wildcards to match all assemblies (Domain, Application, Infrastructure, API, Tests)
+          # ReportGenerator filter syntax: semicolon-separated, +/- prefix, no brackets
+          # Include main assemblies (use wildcards for all module components)
           INCLUDE_FILTER="+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*"
-          # CRITICAL: Exclude .Tests assemblies, Migrations, infrastructure classes (Keycloak, Monitoring, NoOp, RabbitMq, ServiceBus, Hangfire, Jobs, Options, Design-time factories)
-          EXCLUDE_FILTER="-[*.Tests]*;-[*.Tests.*]*;-[*Test*]*;-[testhost]*;-[xunit*]*;-[*]*.Migrations.*;-[*]*.Contracts;-[*]*.Database;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
+          # CRITICAL: Exclude .Tests assemblies, Migrations, infrastructure classes
+          EXCLUDE_FILTER="-*.Tests;-*.Tests.*;-*Test*;-testhost;-xunit*;-*.Migrations.*;-*.Contracts;-*.Database;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
           
           reportgenerator \
             -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml" \
@@ -556,8 +571,7 @@ jobs:
             -reporttypes:"Cobertura" \
             -assemblyfilters:"$INCLUDE_FILTER" \
             -classfilters:"$EXCLUDE_FILTER" \
-            -filefilters:"-*Migrations*" \
-            -settings:"coverage.runsettings"
+            -filefilters:"-*Migrations*"
           
           if [ -f "coverage/aggregate/Cobertura.xml" ]; then
             echo "✅ Aggregated coverage report generated: coverage/aggregate/Cobertura.xml"
@@ -763,60 +777,60 @@ jobs:
         run: |
           echo "🔍 Detecting coverage files..."
 
-            if [ -f "coverage/aggregate/Cobertura.xml" ]; then
-              COVERAGE_FILE="coverage/aggregate/Cobertura.xml"
-              SOURCE="Cobertura (Aggregated Direct)"
-              echo "✅ Found aggregated Cobertura file: $COVERAGE_FILE"
-            elif find coverage -name "*.opencover.xml" -type f | head -1 >/dev/null 2>&1; then
-              COVERAGE_FILE=$(find coverage -name "*.opencover.xml" -type f | head -1)
-              SOURCE="OpenCover (Direct)"
-              echo "Found OpenCover file: $COVERAGE_FILE"
-            elif find coverage -name "*.cobertura.xml" -type f | head -1 >/dev/null 2>&1; then
-              COVERAGE_FILE=$(find coverage -name "*.cobertura.xml" -type f | head -1)
-              SOURCE="Cobertura (Direct)"
-              echo "Found Cobertura file: $COVERAGE_FILE"
-            elif find coverage -name "*.xml" -type f | head -1 >/dev/null 2>&1; then
-              COVERAGE_FILE=$(find coverage -name "*.xml" -type f | head -1)
-              SOURCE="XML (Direct)"
-              echo "Found XML file: $COVERAGE_FILE"
-            else
-              COVERAGE_FILE=""
-              SOURCE="None"
-              echo "No coverage files found"
-            fi
+          if [ -f "coverage/aggregate/Cobertura.xml" ]; then
+            COVERAGE_FILE="coverage/aggregate/Cobertura.xml"
+            SOURCE="Cobertura (Aggregated Direct)"
+            echo "✅ Found aggregated Cobertura file: $COVERAGE_FILE"
+          elif find coverage -name "*.opencover.xml" -type f | head -1 >/dev/null 2>&1; then
+            COVERAGE_FILE=$(find coverage -name "*.opencover.xml" -type f | head -1)
+            SOURCE="OpenCover (Direct)"
+            echo "Found OpenCover file: $COVERAGE_FILE"
+          elif find coverage -name "*.cobertura.xml" -type f | head -1 >/dev/null 2>&1; then
+            COVERAGE_FILE=$(find coverage -name "*.cobertura.xml" -type f | head -1)
+            SOURCE="Cobertura (Direct)"
+            echo "Found Cobertura file: $COVERAGE_FILE"
+          elif find coverage -name "*.xml" -type f | head -1 >/dev/null 2>&1; then
+            COVERAGE_FILE=$(find coverage -name "*.xml" -type f | head -1)
+            SOURCE="XML (Direct)"
+            echo "Found XML file: $COVERAGE_FILE"
+          else
+            COVERAGE_FILE=""
+            SOURCE="None"
+            echo "No coverage files found"
+          fi
 
-            if [ -n "$COVERAGE_FILE" ]; then
-              # Try to extract basic coverage percentage from XML
-              if command -v grep >/dev/null 2>&1; then
-                # Look for line-rate or sequenceCoverage attributes
-                LINE_RATE=$(grep -o 'line-rate="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
-                if [ -z "$LINE_RATE" ]; then
-                  LINE_RATE=$(grep -o 'sequenceCoverage="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
-                fi
+          if [ -n "$COVERAGE_FILE" ]; then
+            # Try to extract basic coverage percentage from XML
+            if command -v grep >/dev/null 2>&1; then
+              # Look for line-rate or sequenceCoverage attributes
+              LINE_RATE=$(grep -o 'line-rate="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
+              if [ -z "$LINE_RATE" ]; then
+                LINE_RATE=$(grep -o 'sequenceCoverage="[^"]*"' "$COVERAGE_FILE" 2>/dev/null | head -1 | cut -d'"' -f2)
+              fi
 
-                if [ -n "$LINE_RATE" ]; then
-                  # Convert decimal to percentage if needed (auto-detect format)
-                  # If value <= 1.0, assume decimal (0.75 -> 75.00), else assume already percentage (75.5 -> 75.50)
-                  PERCENTAGE=$(echo "$LINE_RATE" | awk '{if ($1 <= 1.0) printf "%.2f", $1 * 100; else printf "%.2f", $1}')
-                  SUMMARY="**Coverage**: ${PERCENTAGE}% (extracted from $SOURCE)"
-                  BADGE="![Coverage](https://img.shields.io/badge/coverage-${PERCENTAGE}%25-brightgreen)"
-                else
-                  SUMMARY="**Coverage**: Available (file found, percentage not extracted)"
-                  BADGE="![Coverage](https://img.shields.io/badge/coverage-available-blue)"
-                fi
+              if [ -n "$LINE_RATE" ]; then
+                # Convert decimal to percentage if needed (auto-detect format)
+                # If value <= 1.0, assume decimal (0.75 -> 75.00), else assume already percentage (75.5 -> 75.50)
+                PERCENTAGE=$(echo "$LINE_RATE" | awk '{if ($1 <= 1.0) printf "%.2f", $1 * 100; else printf "%.2f", $1}')
+                SUMMARY="**Coverage**: ${PERCENTAGE}% (extracted from $SOURCE)"
+                BADGE="![Coverage](https://img.shields.io/badge/coverage-${PERCENTAGE}%25-brightgreen)"
               else
-                SUMMARY="**Coverage**: Files found but could not extract percentage"
-                BADGE="![Coverage](https://img.shields.io/badge/coverage-found-blue)"
+                SUMMARY="**Coverage**: Available (file found, percentage not extracted)"
+                BADGE="![Coverage](https://img.shields.io/badge/coverage-available-blue)"
               fi
             else
-              SUMMARY="Coverage data not available"
-              BADGE=""
+              SUMMARY="**Coverage**: Files found but could not extract percentage"
+              BADGE="![Coverage](https://img.shields.io/badge/coverage-found-blue)"
             fi
+          else
+            SUMMARY="Coverage data not available"
+            BADGE=""
           fi
 
           # Export outputs
           echo "source=$SOURCE" >> $GITHUB_OUTPUT
           echo "badge=$BADGE" >> $GITHUB_OUTPUT
+          echo "summary=$SUMMARY" >> $GITHUB_OUTPUT
 
           # Export multiline summary using heredoc
           {

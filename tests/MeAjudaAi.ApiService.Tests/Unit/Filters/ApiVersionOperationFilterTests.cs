@@ -1,6 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.ApiService.Filters;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using Moq;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Xunit;
@@ -22,7 +22,7 @@ public class ApiVersionOperationFilterTests
         // Arrange
         var operation = new OpenApiOperation
         {
-            Parameters = new List<IOpenApiParameter>
+            Parameters = new List<OpenApiParameter>
             {
                 new OpenApiParameter { Name = "version", In = ParameterLocation.Path },
                 new OpenApiParameter { Name = "id", In = ParameterLocation.Path }
@@ -46,7 +46,7 @@ public class ApiVersionOperationFilterTests
         // Arrange
         var operation = new OpenApiOperation
         {
-            Parameters = new List<IOpenApiParameter>
+            Parameters = new List<OpenApiParameter>
             {
                 new OpenApiParameter { Name = "id", In = ParameterLocation.Path },
                 new OpenApiParameter { Name = "userId", In = ParameterLocation.Query }
@@ -88,7 +88,7 @@ public class ApiVersionOperationFilterTests
         // Arrange
         var operation = new OpenApiOperation
         {
-            Parameters = new List<IOpenApiParameter>()
+            Parameters = new List<OpenApiParameter>()
         };
 
         var context = CreateMockContext();
@@ -106,7 +106,7 @@ public class ApiVersionOperationFilterTests
         // Arrange
         var operation = new OpenApiOperation
         {
-            Parameters = new List<IOpenApiParameter>
+            Parameters = new List<OpenApiParameter>
             {
                 new OpenApiParameter { Name = "version", In = ParameterLocation.Path },
                 new OpenApiParameter { Name = "id", In = ParameterLocation.Path },
