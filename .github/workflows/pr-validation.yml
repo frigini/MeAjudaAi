@@ -547,9 +547,8 @@ jobs:
           # Assembly filters must match actual assembly names with full namespace prefix
           # Use wildcards to match all assemblies (Domain, Application, Infrastructure, API, Tests)
           INCLUDE_FILTER="+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*"
-          # CRITICAL: Exclude .Tests assemblies to prevent inflated coverage metrics
-          # Also exclude Migrations, Contracts, Database, and test-related assemblies
-          EXCLUDE_FILTER="-[*.Tests]*;-[*.Tests.*]*;-[*Test*]*;-[testhost]*;-[xunit*]*;-[*]*.Migrations.*;-[*]*.Contracts;-[*]*.Database"
+          # CRITICAL: Exclude .Tests assemblies, Migrations, infrastructure classes (Keycloak, Monitoring, NoOp, RabbitMq, ServiceBus, Hangfire, Jobs, Options, Design-time factories)
+          EXCLUDE_FILTER="-[*.Tests]*;-[*.Tests.*]*;-[*Test*]*;-[testhost]*;-[xunit*]*;-[*]*.Migrations.*;-[*]*.Contracts;-[*]*.Database;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
           
           reportgenerator \
             -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml" \

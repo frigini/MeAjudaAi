@@ -3,7 +3,7 @@ using FluentAssertions;
 using MeAjudaAi.Shared.Events;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Shared.Tests.UnitTests.Events;
+namespace MeAjudaAi.Shared.Tests.Unit.Events;
 
 public class DomainEventProcessorTests : IDisposable
 {

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace MeAjudaAi.Shared.Tests.UnitTests.Messaging;
+namespace MeAjudaAi.Shared.Tests.Unit.Messaging;
 
 public class EventTypeRegistryTests
 {

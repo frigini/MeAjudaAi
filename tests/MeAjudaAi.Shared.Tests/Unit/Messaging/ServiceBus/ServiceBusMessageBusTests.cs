@@ -8,7 +8,7 @@ using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace MeAjudaAi.Shared.Tests.UnitTests.Messaging.ServiceBus;
+namespace MeAjudaAi.Shared.Tests.Unit.Messaging.ServiceBus;
 
 public class ServiceBusMessageBusTests : IDisposable
 {

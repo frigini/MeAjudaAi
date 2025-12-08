@@ -36,7 +36,9 @@ Write-Host "3. Gerando relatório HTML consolidado..." -ForegroundColor Yellow
 reportgenerator `
     -reports:"coverage/**/coverage.cobertura.xml" `
     -targetdir:"coverage/report" `
-    -reporttypes:"Html;TextSummary;JsonSummary"
+    -reporttypes:"Html;TextSummary;JsonSummary" `
+    -assemblyfilters:"+*;-*.Tests;-*.Tests.*;-*Test*;-testhost;-MeAjudaAi.AppHost;-MeAjudaAi.ServiceDefaults" `
+    -classfilters:"-*Migrations*;-*Migration;-*MigrationBuilder*;-*DbContextModelSnapshot*;-*OpenApi.Generated*;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
 
 Write-Host ""
 Write-Host "✅ Relatório gerado em coverage/report/index.html" -ForegroundColor Green

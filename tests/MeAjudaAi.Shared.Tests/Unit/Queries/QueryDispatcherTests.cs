@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace MeAjudaAi.Shared.Tests.UnitTests.Queries;
+namespace MeAjudaAi.Shared.Tests.Unit.Queries;
 
 public class QueryDispatcherTests : IDisposable
 {

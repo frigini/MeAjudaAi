@@ -7,7 +7,7 @@ using Moq;
 using FVValidationFailure = FluentValidation.Results.ValidationFailure;
 using FVValidationResult = FluentValidation.Results.ValidationResult;
 
-namespace MeAjudaAi.Shared.Tests.UnitTests.Behaviors;
+namespace MeAjudaAi.Shared.Tests.Unit.Behaviors;
 
 public class ValidationBehaviorTests
 {
