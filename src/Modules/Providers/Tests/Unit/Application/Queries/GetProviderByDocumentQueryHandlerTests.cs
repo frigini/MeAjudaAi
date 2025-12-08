@@ -99,6 +99,16 @@ public class GetProviderByDocumentQueryHandlerTests
         _providerRepositoryMock.Verify(
             r => r.GetByDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
+
+        // Assert: Warning should be logged for invalid document
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Invalid document provided")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 
     [Fact]
@@ -168,10 +178,11 @@ public class GetProviderByDocumentQueryHandlerTests
         // Arrange
         var document = "12345678901";
         var query = new GetProviderByDocumentQuery(document);
+        var exception = new InvalidOperationException("Database connection failed");
 
         _providerRepositoryMock
             .Setup(r => r.GetByDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
+            .ThrowsAsync(exception);
 
         // Act
         var result = await _handler.HandleAsync(query, CancellationToken.None);
@@ -183,6 +194,16 @@ public class GetProviderByDocumentQueryHandlerTests
 
         _providerRepositoryMock.Verify(
             r => r.GetByDocumentAsync(document, It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        // Assert: Error should be logged with exception details
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error occurred while searching for provider by document")),
+                exception,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 
@@ -223,8 +244,8 @@ public class GetProviderByDocumentQueryHandlerTests
 
     private static Provider CreateValidProvider(string document)
     {
-        var providerId = new ProviderId(Guid.NewGuid());
-        var userId = Guid.NewGuid();
+        var providerId = new ProviderId(Guid.CreateVersion7());
+        var userId = Guid.CreateVersion7();
         var address = new Address("Rua Teste", "123", "Centro", "São Paulo", "SP", "01234-567", "Brasil");
         var contactInfo = new ContactInfo("test@test.com", "11999999999");
         var businessProfile = new BusinessProfile("Test Provider LTDA", contactInfo, address, document);

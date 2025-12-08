@@ -16,8 +16,14 @@ public class DocumentsModuleTests : TestContainerTestBase
 {
     private const string DocumentsApiBaseUrl = "/api/v1/documents";
 
-    [Fact]
-    public async Task UploadDocument_WithValidData_ShouldReturnOkWithUploadResponse()
+    [Theory]
+    [InlineData(EDocumentType.IdentityDocument, 512000)]
+    [InlineData(EDocumentType.ProofOfResidence, 307200)]
+    [InlineData(EDocumentType.CriminalRecord, 204800)]
+    [InlineData(EDocumentType.Other, 102400)]
+    public async Task UploadDocument_WithValidDocumentType_ShouldReturnOkWithUploadResponse(
+        EDocumentType documentType,
+        int fileSizeBytes)
     {
         // Arrange
         AuthenticateAsAdmin(); // Admin can upload for any provider
@@ -25,10 +31,10 @@ public class DocumentsModuleTests : TestContainerTestBase
         var request = new UploadDocumentRequest
         {
             ProviderId = Guid.NewGuid(),
-            DocumentType = EDocumentType.IdentityDocument,
-            FileName = "identity-card.pdf",
+            DocumentType = documentType,
+            FileName = $"{documentType}.pdf",
             ContentType = "application/pdf",
-            FileSizeBytes = 1024 * 500 // 500KB
+            FileSizeBytes = fileSizeBytes
         };
 
         // Act
@@ -42,79 +48,6 @@ public class DocumentsModuleTests : TestContainerTestBase
         uploadResponse!.DocumentId.Should().NotBeEmpty();
         uploadResponse.UploadUrl.Should().NotBeNullOrWhiteSpace();
         uploadResponse.ExpiresAt.Should().BeAfter(DateTime.UtcNow);
-    }
-
-    [Fact]
-    public async Task UploadDocument_WithProofOfResidence_ShouldCreateCorrectDocumentType()
-    {
-        // Arrange
-        AuthenticateAsAdmin(); // Admin can upload for any provider
-
-        var request = new UploadDocumentRequest
-        {
-            ProviderId = Guid.NewGuid(),
-            DocumentType = EDocumentType.ProofOfResidence,
-            FileName = "proof-residence.pdf",
-            ContentType = "application/pdf",
-            FileSizeBytes = 1024 * 300
-        };
-
-        // Act
-        var response = await ApiClient.PostAsJsonAsync($"{DocumentsApiBaseUrl}/upload", request, JsonOptions);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var uploadResponse = await response.Content.ReadFromJsonAsync<UploadDocumentResponse>(JsonOptions);
-        uploadResponse.Should().NotBeNull();
-        uploadResponse!.DocumentId.Should().NotBeEmpty();
-    }
-
-    [Fact]
-    public async Task UploadDocument_WithCriminalRecord_ShouldCreateSuccessfully()
-    {
-        // Arrange
-        AuthenticateAsAdmin(); // Admin can upload for any provider
-
-        var request = new UploadDocumentRequest
-        {
-            ProviderId = Guid.NewGuid(),
-            DocumentType = EDocumentType.CriminalRecord,
-            FileName = "criminal-record.pdf",
-            ContentType = "application/pdf",
-            FileSizeBytes = 1024 * 200
-        };
-
-        // Act
-        var response = await ApiClient.PostAsJsonAsync($"{DocumentsApiBaseUrl}/upload", request, JsonOptions);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var uploadResponse = await response.Content.ReadFromJsonAsync<UploadDocumentResponse>(JsonOptions);
-        uploadResponse.Should().NotBeNull();
-    }
-
-    [Fact]
-    public async Task UploadDocument_WithOtherDocumentType_ShouldCreateSuccessfully()
-    {
-        // Arrange
-        AuthenticateAsAdmin(); // Admin can upload for any provider
-
-        var request = new UploadDocumentRequest
-        {
-            ProviderId = Guid.NewGuid(),
-            DocumentType = EDocumentType.Other,
-            FileName = "other-document.pdf",
-            ContentType = "application/pdf",
-            FileSizeBytes = 1024 * 100
-        };
-
-        // Act
-        var response = await ApiClient.PostAsJsonAsync($"{DocumentsApiBaseUrl}/upload", request, JsonOptions);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
@@ -285,12 +218,16 @@ public class DocumentsModuleTests : TestContainerTestBase
         upload.Should().NotBeNull();
         var documentId = upload!.DocumentId;
 
-        // Act 2: Query document status (should exist but return null for now - handler logic)
+        // Act 2: Query document status
         var statusResponse = await ApiClient.GetAsync($"{DocumentsApiBaseUrl}/{documentId}/status");
 
-        // Assert: Document query executed successfully
-        // Note: Actual response depends on handler implementation and database state
-        statusResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
+        // Assert: Created document must be retrievable
+        statusResponse.StatusCode.Should().Be(HttpStatusCode.OK, "uploaded document should be queryable immediately");
+
+        var documentDto = await statusResponse.Content.ReadFromJsonAsync<DocumentDto>(JsonOptions);
+        documentDto.Should().NotBeNull();
+        documentDto!.Id.Should().Be(documentId);
+        documentDto.ProviderId.Should().Be(providerId);
     }
 
     [Fact]
@@ -325,6 +262,11 @@ public class DocumentsModuleTests : TestContainerTestBase
 
         // Assert: Query executed successfully
         providerDocsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var documents = await providerDocsResponse.Content.ReadFromJsonAsync<List<DocumentDto>>(JsonOptions);
+        documents.Should().NotBeNull();
+        documents.Should().HaveCount(3, "three documents were uploaded for this provider");
+        documents.Should().OnlyContain(d => d.ProviderId == providerId);
     }
 }
 
@@ -350,18 +292,57 @@ public record UploadDocumentResponse
 }
 
 /// <summary>
-/// DTO for document information.
+/// DTO for document information returned by document query endpoints.
 /// </summary>
 public record DocumentDto
 {
+    /// <summary>
+    /// Unique identifier of the document.
+    /// </summary>
     public Guid Id { get; init; }
+
+    /// <summary>
+    /// Identifier of the provider who uploaded the document.
+    /// </summary>
     public Guid ProviderId { get; init; }
+
+    /// <summary>
+    /// Type of the document (e.g., IdentityDocument, ProofOfResidence, CriminalRecord).
+    /// </summary>
     public EDocumentType DocumentType { get; init; }
+
+    /// <summary>
+    /// Blob storage identifier (blob name/key) for accessing the document file.
+    /// </summary>
     public string FileUrl { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Original filename provided during upload.
+    /// </summary>
     public string FileName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Current verification status of the document.
+    /// </summary>
     public EDocumentStatus Status { get; init; }
+
+    /// <summary>
+    /// UTC timestamp when the document was uploaded.
+    /// </summary>
     public DateTime UploadedAt { get; init; }
+
+    /// <summary>
+    /// UTC timestamp when the document was verified (null if not yet verified).
+    /// </summary>
     public DateTime? VerifiedAt { get; init; }
+
+    /// <summary>
+    /// Reason for rejection if Status is Rejected or Failed; otherwise null.
+    /// </summary>
     public string? RejectionReason { get; init; }
+
+    /// <summary>
+    /// OCR-extracted data in JSON format if verification included OCR; otherwise null.
+    /// </summary>
     public string? OcrData { get; init; }
 }
