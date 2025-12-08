@@ -160,7 +160,7 @@
     <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.0" />
     <!-- Background Jobs -->
     <PackageVersion Include="Hangfire.Core" Version="1.8.21" />
-    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.21" />
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.22" />
     <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.12" />
     <!-- Dependency Injection -->
     <PackageVersion Include="Scrutor" Version="6.1.0" />
