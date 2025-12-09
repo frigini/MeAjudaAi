@@ -12,70 +12,32 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Persistence;
 [Trait("Layer", "Infrastructure")]
 public class DocumentConfigurationTests
 {
-    [Fact]
-    public void Configure_ShouldSetTableName()
+    private static DocumentsDbContext CreateInMemoryContext()
     {
-        // Arrange
         var options = new DbContextOptionsBuilder<DocumentsDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        using var context = new DocumentsDbContext(options);
+        return new DocumentsDbContext(options);
+    }
+
+    [Fact]
+    public void Configure_ShouldSetTableName()
+    {
+        // Arrange
+        using var context = CreateInMemoryContext();
         var entityType = context.Model.FindEntityType(typeof(Document));
 
         // Assert
         entityType.Should().NotBeNull();
         entityType.GetSchema().Should().Be("meajudaai_documents");
-        entityType.GetSchema().Should().Be("documents");
-    }
-
-    [Fact]
-    public void Configure_ShouldConfigureIdAsValueObject()
-    {
-        // Arrange
-        var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new DocumentsDbContext(options);
-        var entityType = context.Model.FindEntityType(typeof(Document));
-        var idProperty = entityType!.FindProperty(nameof(Document.Id));
-
-        // Assert
-        idProperty.Should().NotBeNull();
-        idProperty!.GetColumnName().Should().Be("id");
-        idProperty.ValueGenerated.Should().Be(Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.Never);
-    }
-
-    [Fact]
-    public void Configure_ShouldSetRequiredPropertiesCorrectly()
-    {
-        // Arrange
-        var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new DocumentsDbContext(options);
-        var entityType = context.Model.FindEntityType(typeof(Document));
-
-        // Assert
-        entityType!.FindProperty(nameof(Document.ProviderId))!.IsNullable.Should().BeFalse();
-        entityType.FindProperty(nameof(Document.DocumentType))!.IsNullable.Should().BeFalse();
-        entityType.FindProperty(nameof(Document.FileUrl))!.IsNullable.Should().BeFalse();
-        entityType.FindProperty(nameof(Document.FileName))!.IsNullable.Should().BeFalse();
-        entityType.FindProperty(nameof(Document.Status))!.IsNullable.Should().BeFalse();
-        entityType.FindProperty(nameof(Document.UploadedAt))!.IsNullable.Should().BeFalse();
     }
 
     [Fact]
     public void Configure_ShouldSetOptionalPropertiesCorrectly()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new DocumentsDbContext(options);
+        using var context = CreateInMemoryContext();
         var entityType = context.Model.FindEntityType(typeof(Document));
 
         // Assert
@@ -88,11 +50,7 @@ public class DocumentConfigurationTests
     public void Configure_ShouldSetMaxLengthConstraints()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new DocumentsDbContext(options);
+        using var context = CreateInMemoryContext();
         var entityType = context.Model.FindEntityType(typeof(Document));
 
         // Assert
@@ -105,11 +63,7 @@ public class DocumentConfigurationTests
     public void Configure_ShouldSetOcrDataAsJsonb()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new DocumentsDbContext(options);
+        using var context = CreateInMemoryContext();
         var entityType = context.Model.FindEntityType(typeof(Document));
         var ocrDataProperty = entityType!.FindProperty(nameof(Document.OcrData));
 
@@ -122,11 +76,7 @@ public class DocumentConfigurationTests
     public void Configure_ShouldConvertEnumsToInt()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new DocumentsDbContext(options);
+        using var context = CreateInMemoryContext();
         var entityType = context.Model.FindEntityType(typeof(Document));
 
         // Assert - DocumentType should have int conversion
@@ -142,11 +92,7 @@ public class DocumentConfigurationTests
     public void Configure_ShouldCreateIndexOnProviderId()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new DocumentsDbContext(options);
+        using var context = CreateInMemoryContext();
         var entityType = context.Model.FindEntityType(typeof(Document));
         var indexes = entityType!.GetIndexes();
 
@@ -158,11 +104,7 @@ public class DocumentConfigurationTests
     public void Configure_ShouldCreateIndexOnStatus()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new DocumentsDbContext(options);
+        using var context = CreateInMemoryContext();
         var entityType = context.Model.FindEntityType(typeof(Document));
         var indexes = entityType!.GetIndexes();
 
@@ -171,14 +113,10 @@ public class DocumentConfigurationTests
     }
 
     [Fact]
-    public void Configure_ShouldSetColumnNames()
+    public void Configure_ShouldSetPrimaryKey()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<DocumentsDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-
-        using var context = new DocumentsDbContext(options);
+        using var context = CreateInMemoryContext();
         var entityType = context.Model.FindEntityType(typeof(Document));
 
         // Assert

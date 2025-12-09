@@ -25,6 +25,30 @@ public class DocumentVerifiedDomainEventHandlerTests
         _handler = new DocumentVerifiedDomainEventHandler(_messageBusMock.Object, _loggerMock.Object);
     }
 
+    private void VerifyLogMessage(LogLevel level, string expectedMessage, Times times)
+    {
+        _loggerMock.Verify(
+            x => x.Log(
+                level,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(expectedMessage)),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            times);
+    }
+
+    private void VerifyLogMessageWithException(LogLevel level, string expectedMessage, Exception expectedException, Times times)
+    {
+        _loggerMock.Verify(
+            x => x.Log(
+                level,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(expectedMessage)),
+                expectedException,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            times);
+    }
+
     [Fact]
     public async Task HandleAsync_WithValidEvent_ShouldPublishIntegrationEvent()
     {
@@ -75,23 +99,8 @@ public class DocumentVerifiedDomainEventHandlerTests
         await _handler.HandleAsync(domainEvent);
 
         // Assert
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Handling DocumentVerifiedDomainEvent for document {documentId}")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Successfully published DocumentVerified integration event for document {documentId}")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        VerifyLogMessage(LogLevel.Information, $"Handling DocumentVerifiedDomainEvent for document {documentId}", Times.Once);
+        VerifyLogMessage(LogLevel.Information, $"Successfully published DocumentVerified integration event for document {documentId}", Times.Once);
     }
 
     [Fact]
@@ -113,14 +122,7 @@ public class DocumentVerifiedDomainEventHandlerTests
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Message bus error");
 
-        _loggerMock.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Error handling DocumentVerifiedDomainEvent for document {documentId}")),
-                exception,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
+        VerifyLogMessageWithException(LogLevel.Error, $"Error handling DocumentVerifiedDomainEvent for document {documentId}", exception, Times.Once);
     }
 
     [Fact]
@@ -153,7 +155,7 @@ public class DocumentVerifiedDomainEventHandlerTests
     public async Task HandleAsync_ShouldSetVerifiedAtToCurrentUtcTime()
     {
         // Arrange
-        var now = DateTime.UtcNow;
+        var before = DateTime.UtcNow;
         var domainEvent = new DocumentVerifiedDomainEvent(Guid.NewGuid(), 1, Guid.NewGuid(), EDocumentType.IdentityDocument, true);
 
         DocumentVerifiedIntegrationEvent? capturedEvent = null;
@@ -164,9 +166,10 @@ public class DocumentVerifiedDomainEventHandlerTests
 
         // Act
         await _handler.HandleAsync(domainEvent);
+        var after = DateTime.UtcNow;
 
         // Assert
         capturedEvent.Should().NotBeNull();
-        capturedEvent!.VerifiedAt.Should().BeCloseTo(now, TimeSpan.FromSeconds(2));
+        capturedEvent!.VerifiedAt.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
     }
 }
