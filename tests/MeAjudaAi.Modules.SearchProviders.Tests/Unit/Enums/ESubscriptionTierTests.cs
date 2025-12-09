@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.SearchProviders.Domain.Enums;
+using Xunit;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Enums;
 

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using Xunit;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.ValueObjects;
 

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
+using Xunit;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.ValueObjects;
 
@@ -122,7 +123,7 @@ public sealed class SearchableProviderIdTests
         var providerId = new SearchableProviderId(guid);
 
         // Act
-        var (value) = providerId;
+        var value = providerId.Value;
 
         // Assert
         value.Should().Be(guid);
