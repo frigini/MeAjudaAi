@@ -102,6 +102,7 @@ public class DocumentDomainEventsTests
     public void DocumentVerifiedDomainEvent_WithoutOcrData_ShouldInitializeCorrectly()
     {
         // Arrange
+        var now = DateTime.UtcNow;
         var aggregateId = Guid.NewGuid();
         var version = 2;
         var providerId = Guid.NewGuid();
@@ -111,7 +112,11 @@ public class DocumentDomainEventsTests
         var domainEvent = new DocumentVerifiedDomainEvent(aggregateId, version, providerId, documentType, false);
 
         // Assert
+        domainEvent.AggregateId.Should().Be(aggregateId);
+        domainEvent.Version.Should().Be(version);
+        domainEvent.ProviderId.Should().Be(providerId);
         domainEvent.HasOcrData.Should().BeFalse();
         domainEvent.DocumentType.Should().Be(documentType);
+        domainEvent.OccurredAt.Should().BeCloseTo(now, TimeSpan.FromSeconds(2));
     }
 }

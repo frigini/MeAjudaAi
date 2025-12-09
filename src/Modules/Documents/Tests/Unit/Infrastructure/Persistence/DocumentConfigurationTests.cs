@@ -25,7 +25,7 @@ public class DocumentConfigurationTests
 
         // Assert
         entityType.Should().NotBeNull();
-        entityType!.GetTableName().Should().Be("documents");
+        entityType.GetSchema().Should().Be("meajudaai_documents");
         entityType.GetSchema().Should().Be("documents");
     }
 
