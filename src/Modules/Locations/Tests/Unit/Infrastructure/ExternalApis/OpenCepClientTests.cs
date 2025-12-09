@@ -85,7 +85,7 @@ public sealed class OpenCepClientTests : IDisposable
         _mockHandler.SetException(new HttpRequestException("Network error"));
 
         // Act
-        var result = await _client.GetAddressAsync(cep, CancellationToken.None);
+        var result = await _client.GetAddressAsync(cep!, CancellationToken.None);
 
         // Assert
         result.Should().BeNull();

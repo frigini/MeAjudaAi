@@ -28,7 +28,7 @@ public sealed partial class Cep : ValueObject
             return null;
         }
 
-        var cleanedValue = value.Replace("-", "").Replace(".", "").Trim();
+        var cleanedValue = value.Replace("-", "").Replace(".", "").Replace(" ", "").Trim();
 
         if (!CepRegex.IsMatch(cleanedValue))
         {

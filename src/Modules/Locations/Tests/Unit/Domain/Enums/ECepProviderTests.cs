@@ -2,7 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Enums;
 using Xunit;
 
-namespace MeAjudaAi.Modules.Locations.Tests.Unit.Enums;
+namespace MeAjudaAi.Modules.Locations.Tests.Unit.Domain.Enums;
 
 public sealed class ECepProviderTests
 {

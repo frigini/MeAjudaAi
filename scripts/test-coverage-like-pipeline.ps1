@@ -81,11 +81,35 @@ if (Test-Path "coverage/report-pipeline/Summary.txt") {
     Write-Host "`n🎯 Line Coverage (igual pipeline): $lineCoverage" -ForegroundColor Cyan
     Write-Host "🎯 Meta: 90%" -ForegroundColor Yellow
     
-    # Abrir relatório HTML
+    # Abrir relatório HTML (cross-platform)
     $htmlReport = "coverage/report-pipeline/summary.html"
     if (Test-Path $htmlReport) {
         Write-Host "`n🌐 Abrindo relatório HTML..." -ForegroundColor Cyan
-        Start-Process $htmlReport
+        $fullPath = Resolve-Path $htmlReport
+        
+        try {
+            if ($IsWindows -or (-not (Test-Path variable:IsWindows))) {
+                Start-Process $fullPath
+            }
+            elseif ($IsMacOS) {
+                & open $fullPath
+            }
+            elseif ($IsLinux) {
+                if (Get-Command xdg-open -ErrorAction SilentlyContinue) {
+                    & xdg-open $fullPath
+                }
+                elseif (Get-Command sensible-browser -ErrorAction SilentlyContinue) {
+                    & sensible-browser $fullPath
+                }
+                else {
+                    Write-Host "⚠️ Não foi possível abrir automaticamente. Relatório em: $fullPath" -ForegroundColor Yellow
+                }
+            }
+        }
+        catch {
+            Write-Host "⚠️ Erro ao abrir relatório: $_" -ForegroundColor Yellow
+            Write-Host "📄 Relatório disponível em: $fullPath" -ForegroundColor Cyan
+        }
     }
 } else {
     Write-Host "`n❌ Falha ao gerar relatório agregado" -ForegroundColor Red

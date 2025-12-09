@@ -2,7 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.ValueObjects;
 using Xunit;
 
-namespace MeAjudaAi.Modules.Locations.Tests.Unit.ValueObjects;
+namespace MeAjudaAi.Modules.Locations.Tests.Unit.Domain.ValueObjects;
 
 public sealed class CepTests
 {
@@ -43,7 +43,8 @@ public sealed class CepTests
     [InlineData("1234567")]     // 7 dígitos
     [InlineData("123456789")]   // 9 dígitos
     [InlineData("abcdefgh")]    // letras
-    [InlineData("1234-5678")]   // formato inválido
+    [InlineData("1234-abc")]    // letras após limpeza
+    [InlineData("ab-cd-ef-gh")] // todas letras
     public void Create_WithInvalidFormat_ShouldReturnNull(string invalidCep)
     {
         // Act
