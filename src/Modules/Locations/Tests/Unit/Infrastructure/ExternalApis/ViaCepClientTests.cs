@@ -30,7 +30,6 @@ public sealed class ViaCepClientTests : IDisposable
     public void Dispose()
     {
         _httpClient?.Dispose();
-        _mockHandler?.Dispose();
     }
 
     [Fact]
@@ -129,7 +128,7 @@ public sealed class ViaCepClientTests : IDisposable
     public async Task GetAddressAsync_WhenResponseIsNull_ShouldReturnNull()
     {
         // Arrange
-        var cep = Cep.Create("01001000");
+        var cep = Cep.Create("01001000")!;
         _mockHandler.SetResponse(HttpStatusCode.OK, "null");
 
         // Act
@@ -143,7 +142,7 @@ public sealed class ViaCepClientTests : IDisposable
     public async Task GetAddressAsync_ShouldUseCorrectUrl()
     {
         // Arrange
-        var cep = Cep.Create("01001000");
+        var cep = Cep.Create("01001000")!;
         var viaCepResponse = new ViaCepResponse
         {
             Cep = "01001-000",

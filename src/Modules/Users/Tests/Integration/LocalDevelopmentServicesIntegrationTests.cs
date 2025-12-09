@@ -77,7 +77,7 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
         result1.IsSuccess.Should().BeTrue();
         result2.IsSuccess.Should().BeTrue();
         result1.Value!.KeycloakId.Should().NotBe(result2.Value!.KeycloakId);
-        
+
         // Verify both use UUID v7 format
         var guid1 = Guid.Parse(result1.Value.KeycloakId.Replace("mock_keycloak_", ""));
         var guid2 = Guid.Parse(result2.Value.KeycloakId.Replace("mock_keycloak_", ""));

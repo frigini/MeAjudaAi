@@ -95,7 +95,7 @@ public sealed class OpenCepClientTests : IDisposable
     public async Task GetAddressAsync_WhenResponseIsNull_ShouldReturnNull()
     {
         // Arrange
-        var cep = Cep.Create("01001000");
+        var cep = Cep.Create("01001000")!;
         _mockHandler.SetResponse(HttpStatusCode.OK, "null");
 
         // Act
@@ -109,7 +109,7 @@ public sealed class OpenCepClientTests : IDisposable
     public async Task GetAddressAsync_ShouldUseCorrectUrl()
     {
         // Arrange
-        var cep = Cep.Create("01001000");
+        var cep = Cep.Create("01001000")!;
         var openCepResponse = new OpenCepResponse
         {
             Cep = "01001-000",

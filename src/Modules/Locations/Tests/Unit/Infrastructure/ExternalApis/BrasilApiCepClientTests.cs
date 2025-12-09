@@ -60,6 +60,7 @@ public sealed class BrasilApiCepClientTests : IDisposable
         result.Neighborhood.Should().Be("Sé");
         result.City.Should().Be("São Paulo");
         result.State.Should().Be("SP");
+        result.Cep.Should().Be(cep);
     }
 
     [Fact]
