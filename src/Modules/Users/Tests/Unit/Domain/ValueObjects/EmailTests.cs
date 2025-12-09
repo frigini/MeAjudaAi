@@ -88,8 +88,8 @@ public class EmailTests
         // Act
         var result = email.ToString();
 
-        // Assert
-        result.Should().Be(emailValue);
+        // Assert - Records generate ToString() in format: TypeName { Property = Value }
+        result.Should().Be($"Email {{ Value = {emailValue} }}");
     }
 
     [Fact]

@@ -109,7 +109,7 @@ public class RateLimitingMiddlewareTests
         // Assert
         context.Response.StatusCode.Should().Be(429);
         context.Response.Headers.Should().ContainKey("Retry-After");
-        
+
         var responseBody = await ReadResponseBody(context);
         responseBody.Should().Contain("RateLimitExceeded");
     }
@@ -290,7 +290,7 @@ public class RateLimitingMiddlewareTests
         // Assert
         context.Response.StatusCode.Should().Be(429);
         context.Response.Headers.Should().ContainKey("Retry-After");
-        
+
         var retryAfter = context.Response.Headers["Retry-After"].ToString();
         int.TryParse(retryAfter, out var seconds).Should().BeTrue();
         seconds.Should().BeGreaterThan(0).And.BeLessThanOrEqualTo(60);
@@ -334,7 +334,7 @@ public class RateLimitingMiddlewareTests
     private RateLimitingMiddleware CreateMiddleware()
     {
         return new RateLimitingMiddleware(
-            next: (context) => 
+            next: (context) =>
             {
                 _nextCalled = true;
                 return Task.CompletedTask;
