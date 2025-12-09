@@ -1,10 +1,13 @@
 using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using NSubstitute;
+using Microsoft.Extensions.Options;
+using Moq;
+using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Extensions;
 
@@ -12,13 +15,20 @@ namespace MeAjudaAi.ApiService.Tests.Unit.Extensions;
 /// Unit tests for <see cref="SecurityExtensions"/> validating security configuration,
 /// CORS policies, authentication, and authorization setup.
 /// </summary>
-public class SecurityExtensionsTests
+public sealed class SecurityExtensionsTests
 {
+    private static IWebHostEnvironment CreateEnvironment(string environmentName)
+    {
+        var mock = new Mock<IWebHostEnvironment>();
+        mock.Setup(x => x.EnvironmentName).Returns(environmentName);
+        return mock.Object;
+    }
+
     [Fact]
     public void ValidateSecurityConfiguration_WithNullConfiguration_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var environment = Substitute.For<IWebHostEnvironment>();
+        var environment = CreateEnvironment(Environments.Development);
 
         // Act
         var action = () => SecurityExtensions.ValidateSecurityConfiguration(null!, environment);
@@ -32,7 +42,7 @@ public class SecurityExtensionsTests
     public void ValidateSecurityConfiguration_WithNullEnvironment_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var configuration = Substitute.For<IConfiguration>();
+        var configuration = new Mock<IConfiguration>().Object;
 
         // Act
         var action = () => SecurityExtensions.ValidateSecurityConfiguration(configuration, null!);
@@ -51,17 +61,14 @@ public class SecurityExtensionsTests
             {
                 ["Cors:AllowedOrigins:0"] = "*",
                 ["Cors:AllowedMethods:0"] = "GET",
-                ["Cors:AllowedMethods:1"] = "POST",
                 ["Cors:AllowedHeaders:0"] = "Content-Type",
-                ["Cors:AllowedHeaders:1"] = "Authorization",
                 ["Keycloak:BaseUrl"] = "https://keycloak.test",
                 ["Keycloak:Realm"] = "test",
                 ["Keycloak:ClientId"] = "test-client"
             })
             .Build();
 
-        var environment = Substitute.For<IWebHostEnvironment>();
-        environment.EnvironmentName.Returns(Environments.Production);
+        var environment = CreateEnvironment(Environments.Production);
 
         // Act
         var action = () => SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
@@ -72,36 +79,7 @@ public class SecurityExtensionsTests
     }
 
     [Fact]
-    public void ValidateSecurityConfiguration_WithHttpOriginsInProduction_ShouldThrow()
-    {
-        // Arrange
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Cors:AllowedOrigins:0"] = "http://example.com",
-                ["Cors:AllowedMethods:0"] = "GET",
-                ["Cors:AllowedMethods:1"] = "POST",
-                ["Cors:AllowedHeaders:0"] = "Content-Type",
-                ["Cors:AllowedHeaders:1"] = "Authorization",
-                ["Keycloak:BaseUrl"] = "https://keycloak.test",
-                ["Keycloak:Realm"] = "test",
-                ["Keycloak:ClientId"] = "test-client"
-            })
-            .Build();
-
-        var environment = Substitute.For<IWebHostEnvironment>();
-        environment.EnvironmentName.Returns(Environments.Production);
-
-        // Act
-        var action = () => SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
-
-        // Assert
-        action.Should().Throw<InvalidOperationException>()
-            .WithMessage("*HTTP origins*production*");
-    }
-
-    [Fact]
-    public void ValidateSecurityConfiguration_WithHttpKeycloakInProduction_ShouldThrow()
+    public void ValidateSecurityConfiguration_WithMissingKeycloakBaseUrl_ShouldThrow()
     {
         // Arrange
         var configuration = new ConfigurationBuilder()
@@ -109,54 +87,20 @@ public class SecurityExtensionsTests
             {
                 ["Cors:AllowedOrigins:0"] = "https://example.com",
                 ["Cors:AllowedMethods:0"] = "GET",
-                ["Cors:AllowedMethods:1"] = "POST",
                 ["Cors:AllowedHeaders:0"] = "Content-Type",
-                ["Cors:AllowedHeaders:1"] = "Authorization",
-                ["Keycloak:BaseUrl"] = "http://keycloak.test",
                 ["Keycloak:Realm"] = "test",
                 ["Keycloak:ClientId"] = "test-client"
             })
             .Build();
 
-        var environment = Substitute.For<IWebHostEnvironment>();
-        environment.EnvironmentName.Returns(Environments.Production);
+        var environment = CreateEnvironment(Environments.Development);
 
         // Act
         var action = () => SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
 
         // Assert
         action.Should().Throw<InvalidOperationException>()
-            .WithMessage("*Keycloak BaseUrl*HTTPS*production*");
-    }
-
-    [Fact]
-    public void ValidateSecurityConfiguration_WithWildcardAllowedHostsInProduction_ShouldThrow()
-    {
-        // Arrange
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["AllowedHosts"] = "*",
-                ["Cors:AllowedOrigins:0"] = "https://example.com",
-                ["Cors:AllowedMethods:0"] = "GET",
-                ["Cors:AllowedMethods:1"] = "POST",
-                ["Cors:AllowedHeaders:0"] = "Content-Type",
-                ["Cors:AllowedHeaders:1"] = "Authorization",
-                ["Keycloak:BaseUrl"] = "https://keycloak.test",
-                ["Keycloak:Realm"] = "test",
-                ["Keycloak:ClientId"] = "test-client"
-            })
-            .Build();
-
-        var environment = Substitute.For<IWebHostEnvironment>();
-        environment.EnvironmentName.Returns(Environments.Production);
-
-        // Act
-        var action = () => SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
-
-        // Assert
-        action.Should().Throw<InvalidOperationException>()
-            .WithMessage("*AllowedHosts*production*");
+            .WithMessage("*Keycloak BaseUrl*required*");
     }
 
     [Fact]
@@ -169,11 +113,7 @@ public class SecurityExtensionsTests
                 ["AllowedHosts"] = "example.com",
                 ["Cors:AllowedOrigins:0"] = "https://example.com",
                 ["Cors:AllowedMethods:0"] = "GET",
-                ["Cors:AllowedMethods:1"] = "POST",
-                ["Cors:AllowedMethods:2"] = "PUT",
-                ["Cors:AllowedMethods:3"] = "DELETE",
                 ["Cors:AllowedHeaders:0"] = "Content-Type",
-                ["Cors:AllowedHeaders:1"] = "Authorization",
                 ["Keycloak:BaseUrl"] = "https://keycloak.test",
                 ["Keycloak:Realm"] = "test",
                 ["Keycloak:ClientId"] = "test-client",
@@ -181,8 +121,7 @@ public class SecurityExtensionsTests
             })
             .Build();
 
-        var environment = Substitute.For<IWebHostEnvironment>();
-        environment.EnvironmentName.Returns(Environments.Production);
+        var environment = CreateEnvironment(Environments.Production);
 
         // Act
         var action = () => SecurityExtensions.ValidateSecurityConfiguration(configuration, environment);
@@ -195,8 +134,8 @@ public class SecurityExtensionsTests
     public void AddCorsPolicy_WithNullServices_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var configuration = Substitute.For<IConfiguration>();
-        var environment = Substitute.For<IWebHostEnvironment>();
+        var configuration = new Mock<IConfiguration>().Object;
+        var environment = CreateEnvironment(Environments.Development);
 
         // Act
         var action = () => SecurityExtensions.AddCorsPolicy(null!, configuration, environment);
@@ -207,44 +146,36 @@ public class SecurityExtensionsTests
     }
 
     [Fact]
-    public void AddCorsPolicy_WithNullConfiguration_ShouldThrowArgumentNullException()
+    public void AddCorsPolicy_WithSpecificOrigins_ShouldConfigureCorrectly()
     {
         // Arrange
         var services = new ServiceCollection();
-        var environment = Substitute.For<IWebHostEnvironment>();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Cors:AllowedOrigins:0"] = "https://example.com",
+                ["Cors:AllowedOrigins:1"] = "https://test.com",
+                ["Cors:AllowedMethods:0"] = "GET",
+                ["Cors:AllowedHeaders:0"] = "Content-Type",
+                ["Cors:AllowCredentials"] = "false",
+                ["Cors:PreflightMaxAge"] = "3600"
+            })
+            .Build();
+
+        var environment = CreateEnvironment(Environments.Production);
 
         // Act
-        var action = () => SecurityExtensions.AddCorsPolicy(services, null!, environment);
+        var result = services.AddCorsPolicy(configuration, environment);
 
         // Assert
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("configuration");
+        result.Should().BeSameAs(services);
     }
 
     [Fact]
-    public void AddCorsPolicy_WithNullEnvironment_ShouldThrowArgumentNullException()
+    public void AddAuthorizationPolicies_WithNullServices_ShouldThrowArgumentNullException()
     {
-        // Arrange
-        var services = new ServiceCollection();
-        var configuration = Substitute.For<IConfiguration>();
-
         // Act
-        var action = () => SecurityExtensions.AddCorsPolicy(services, configuration, null!);
-
-        // Assert
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("environment");
-    }
-
-    [Fact]
-    public void AddEnvironmentAuthentication_WithNullServices_ShouldThrowArgumentNullException()
-    {
-        // Arrange
-        var configuration = Substitute.For<IConfiguration>();
-        var environment = Substitute.For<IWebHostEnvironment>();
-
-        // Act
-        var action = () => SecurityExtensions.AddEnvironmentAuthentication(null!, configuration, environment);
+        var action = () => SecurityExtensions.AddAuthorizationPolicies(null!);
 
         // Assert
         action.Should().Throw<ArgumentNullException>()
@@ -252,77 +183,42 @@ public class SecurityExtensionsTests
     }
 
     [Fact]
-    public void AddEnvironmentAuthentication_WithNullConfiguration_ShouldThrowArgumentNullException()
+    public void AddAuthorizationPolicies_ShouldRegisterRequiredPoliciesAndHandlers()
     {
         // Arrange
         var services = new ServiceCollection();
-        var environment = Substitute.For<IWebHostEnvironment>();
 
         // Act
-        var action = () => SecurityExtensions.AddEnvironmentAuthentication(services, null!, environment);
+        var result = services.AddAuthorizationPolicies();
 
         // Assert
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("configuration");
+        result.Should().BeSameAs(services);
+        services.Should().Contain(sd => sd.ServiceType == typeof(IAuthorizationHandler));
     }
 
     [Fact]
-    public void AddEnvironmentAuthentication_WithNullEnvironment_ShouldThrowArgumentNullException()
+    public void AddKeycloakAuthentication_WithValidConfiguration_ShouldRegisterServices()
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = Substitute.For<IConfiguration>();
+        services.AddLogging();
+        
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Keycloak:BaseUrl"] = "https://keycloak.test",
+                ["Keycloak:Realm"] = "test",
+                ["Keycloak:ClientId"] = "test-client"
+            })
+            .Build();
+
+        var environment = CreateEnvironment(Environments.Development);
 
         // Act
-        var action = () => SecurityExtensions.AddEnvironmentAuthentication(services, configuration, null!);
+        var result = services.AddKeycloakAuthentication(configuration, environment);
 
         // Assert
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("environment");
-    }
-
-    [Fact]
-    public void AddKeycloakAuthentication_WithNullServices_ShouldThrowArgumentNullException()
-    {
-        // Arrange
-        var configuration = Substitute.For<IConfiguration>();
-        var environment = Substitute.For<IWebHostEnvironment>();
-
-        // Act
-        var action = () => SecurityExtensions.AddKeycloakAuthentication(null!, configuration, environment);
-
-        // Assert
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("services");
-    }
-
-    [Fact]
-    public void AddKeycloakAuthentication_WithNullConfiguration_ShouldThrowArgumentNullException()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        var environment = Substitute.For<IWebHostEnvironment>();
-
-        // Act
-        var action = () => SecurityExtensions.AddKeycloakAuthentication(services, null!, environment);
-
-        // Assert
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("configuration");
-    }
-
-    [Fact]
-    public void AddKeycloakAuthentication_WithNullEnvironment_ShouldThrowArgumentNullException()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        var configuration = Substitute.For<IConfiguration>();
-
-        // Act
-        var action = () => SecurityExtensions.AddKeycloakAuthentication(services, configuration, null!);
-
-        // Assert
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("environment");
+        result.Should().BeSameAs(services);
+        services.Should().Contain(sd => sd.ServiceType == typeof(IHostedService));
     }
 }

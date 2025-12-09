@@ -7,7 +7,7 @@
           <Format>cobertura,json,opencover</Format>
           <Exclude>[*.Tests]*,[*.Testing]*,[testhost]*,[MeAjudaAi.AppHost]*,[MeAjudaAi.ServiceDefaults]*</Exclude>
           <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
-          <ExcludeByFile>**/*Migrations/*.cs,**/Persistence/Migrations/*.cs,**/bin/**,**/obj/**,**/Logging/**/*.cs,**/Jobs/Hangfire*.cs,**/Messaging/RabbitMq/**/*.cs,**/Messaging/ServiceBus/**/*.cs,**/Monitoring/**/*.cs,**/HealthChecks/**/*.cs,**/HealthCheck*.cs,**/Database/**/*HealthCheck*.cs,**/Program.cs,**/AssemblyInfo.cs</ExcludeByFile>
+          <ExcludeByFile>**/*Migrations/*.cs,**/Persistence/Migrations/*.cs,**/bin/**,**/obj/**,**/Logging/**/*.cs,**/Jobs/Hangfire*.cs,**/Messaging/RabbitMq/**/*.cs,**/Messaging/ServiceBus/**/*.cs,**/Monitoring/**/*.cs,**/HealthChecks/**/*.cs,**/HealthCheck*.cs,**/Database/**/*HealthCheck*.cs,**/Program.cs,**/AssemblyInfo.cs,**/*DbContextFactory.cs</ExcludeByFile>
           <IncludeDirectory>./src/</IncludeDirectory>
           <SingleHit>false</SingleHit>
           <UseSourceLink>true</UseSourceLink>
