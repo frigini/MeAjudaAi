@@ -115,7 +115,7 @@ public class RateLimitingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_WhenApproachingLimit_ShouldLogWarning()
+    public async Task InvokeAsync_WhenApproachingLimit_ShouldLogInformation()
     {
         // Arrange
         var options = CreateDefaultOptions();

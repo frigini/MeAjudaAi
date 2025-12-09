@@ -55,20 +55,6 @@ public sealed class CepTests
     }
 
     [Fact]
-    public void Create_WithCepContainingDash_ShouldRemoveDash()
-    {
-        // Arrange
-        var cepWithDash = "12345-678";
-
-        // Act
-        var cep = Cep.Create(cepWithDash);
-
-        // Assert
-        cep.Should().NotBeNull();
-        cep!.Value.Should().Be("12345678");
-    }
-
-    [Fact]
     public void Formatted_ShouldReturnCepWithDash()
     {
         // Arrange

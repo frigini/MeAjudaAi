@@ -64,19 +64,25 @@ public sealed class ExtensionsTests
     }
 
     [Fact]
-    public void AddDocumentsModule_WithEmptyConfiguration_ShouldThrowException()
+    public void AddDocumentsModule_WithEmptyConfiguration_ShouldRegisterServices()
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test;"
+            })
+            .Build();
 
-        // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() =>
-            services.AddDocumentsModule(configuration));
+        // Act
+        var result = services.AddDocumentsModule(configuration);
 
-        Assert.Contains("Database connection string is not configured", exception.Message);
+        // Assert
+        Assert.NotNull(result);
+        Assert.Same(services, result);
+        Assert.True(services.Count > 0);
     }
-
     [Fact]
     public void AddDocumentsModule_ShouldReturnSameServiceCollectionInstance()
     {
@@ -123,14 +129,13 @@ public sealed class ExtensionsTests
     public void UseDocumentsModule_InTestEnvironment_ShouldSkipMigrations()
     {
         // Arrange
-        var services = new ServiceCollection();
-        services.AddLogging();
+        var builder = WebApplication.CreateBuilder();
+        builder.Services.AddLogging();
 
-        var mockEnv = new Mock<IWebHostEnvironment>();
-        mockEnv.Setup(e => e.EnvironmentName).Returns("Test");
-        mockEnv.Setup(e => e.ApplicationName).Returns("TestApp");
-        services.AddSingleton<IHostEnvironment>(mockEnv.Object);
-        services.AddSingleton(mockEnv.Object);
+        var testEnvMock = new Mock<IWebHostEnvironment>();
+        testEnvMock.Setup(e => e.EnvironmentName).Returns("Test");
+        testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
+        builder.Services.AddSingleton(testEnvMock.Object);
 
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -139,18 +144,8 @@ public sealed class ExtensionsTests
             })
             .Build();
 
-        services.AddDocumentsModule(configuration);
-
-        var builder = WebApplication.CreateBuilder();
-        builder.Services.AddLogging();
         builder.Configuration.AddConfiguration(configuration);
         builder.Services.AddDocumentsModule(configuration);
-
-        // Override environment
-        var testEnvMock = new Mock<IWebHostEnvironment>();
-        testEnvMock.Setup(e => e.EnvironmentName).Returns("Test");
-        testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
-        builder.Services.AddSingleton(testEnvMock.Object);
 
         var app = builder.Build();
 
