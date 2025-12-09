@@ -65,7 +65,7 @@ public class DocumentExtensionsTests
         string? cpf = null;
 
         // Act
-        var result = cpf.IsValidCpf();
+        var result = cpf!.IsValidCpf();
 
         // Assert
         result.Should().BeFalse();
@@ -161,7 +161,7 @@ public class DocumentExtensionsTests
         string? cnpj = null;
 
         // Act
-        var result = cnpj.IsValidCnpj();
+        var result = cnpj!.IsValidCnpj();
 
         // Assert
         result.Should().BeFalse();

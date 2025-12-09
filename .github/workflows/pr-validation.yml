@@ -330,7 +330,7 @@ jobs:
                 --results-directory "$MODULE_COVERAGE_DIR" \
                 --logger "trx;LogFileName=${module_name,,}-test-results.trx" \
                 --settings "/tmp/${module_name,,}.runsettings"
-            
+
               TEST_EXIT_CODE=$?
               if [ $TEST_EXIT_CODE -ne 0 ]; then
                 echo "❌ Tests failed for $module_name with exit code $TEST_EXIT_CODE"

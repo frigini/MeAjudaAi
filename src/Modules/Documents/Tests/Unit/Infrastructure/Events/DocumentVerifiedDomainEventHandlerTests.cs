@@ -172,4 +172,25 @@ public class DocumentVerifiedDomainEventHandlerTests
         capturedEvent.Should().NotBeNull();
         capturedEvent!.VerifiedAt.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
     }
+
+    [Fact]
+    public async Task HandleAsync_ShouldPropagateCancellationToken()
+    {
+        // Arrange
+        var domainEvent = new DocumentVerifiedDomainEvent(Guid.NewGuid(), 1, Guid.NewGuid(), EDocumentType.IdentityDocument, true);
+        var cts = new CancellationTokenSource();
+        var token = cts.Token;
+
+        CancellationToken capturedToken = default;
+        _messageBusMock
+            .Setup(x => x.PublishAsync(It.IsAny<DocumentVerifiedIntegrationEvent>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<DocumentVerifiedIntegrationEvent, string, CancellationToken>((_, _, ct) => capturedToken = ct)
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _handler.HandleAsync(domainEvent, token);
+
+        // Assert
+        capturedToken.Should().Be(token);
+    }
 }

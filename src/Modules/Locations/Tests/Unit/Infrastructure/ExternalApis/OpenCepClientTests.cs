@@ -36,7 +36,7 @@ public sealed class OpenCepClientTests : IDisposable
     public async Task GetAddressAsync_WithValidCep_ShouldReturnAddress()
     {
         // Arrange
-        var cep = Cep.Create("01001000");
+        var cep = Cep.Create("01001000")!;
         var openCepResponse = new OpenCepResponse
         {
             Cep = "01001-000",
@@ -63,10 +63,10 @@ public sealed class OpenCepClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAddressAsync_WhenApiReturnsError_ShouldReturnNull()
+    public async Task GetAddressAsync_WhenApiReturnsInvalidJson_ShouldReturnNull()
     {
         // Arrange
-        var cep = Cep.Create("01001000");
+        var cep = Cep.Create("01001000")!;;
         _mockHandler.SetResponse(HttpStatusCode.InternalServerError, "");
 
         // Act

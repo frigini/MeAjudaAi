@@ -36,7 +36,7 @@ public sealed class BrasilApiCepClientTests : IDisposable
     public async Task GetAddressAsync_WithValidCep_ShouldReturnAddress()
     {
         // Arrange
-        var cep = Cep.Create("01001000");
+        var cep = Cep.Create("01001000")!;
         var brasilApiResponse = new BrasilApiCepResponse
         {
             Cep = "01001000",
@@ -62,10 +62,10 @@ public sealed class BrasilApiCepClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAddressAsync_WhenApiReturnsError_ShouldReturnNull()
+    public async Task GetAddressAsync_WhenApiReturnsInvalidJson_ShouldReturnNull()
     {
         // Arrange
-        var cep = Cep.Create("01001000");
+        var cep = Cep.Create("01001000")!;;
         _mockHandler.SetResponse(HttpStatusCode.InternalServerError, "");
 
         // Act
@@ -79,7 +79,7 @@ public sealed class BrasilApiCepClientTests : IDisposable
     public async Task GetAddressAsync_WhenApiReturnsNotFound_ShouldReturnNull()
     {
         // Arrange
-        var cep = Cep.Create("99999999");
+        var cep = Cep.Create("99999999")!;
         _mockHandler.SetResponse(HttpStatusCode.NotFound, "");
 
         // Act
@@ -90,10 +90,10 @@ public sealed class BrasilApiCepClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAddressAsync_WhenApiThrowsException_ShouldReturnNull()
+    public async Task GetAddressAsync_WhenHttpClientThrowsException_ShouldReturnNull()
     {
         // Arrange
-        var cep = Cep.Create("01001000");
+        var cep = Cep.Create("01001000")!;
         _mockHandler.SetException(new HttpRequestException("Network error"));
 
         // Act
