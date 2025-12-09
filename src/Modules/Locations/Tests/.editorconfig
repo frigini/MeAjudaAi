@@ -1,0 +1,5 @@
+root = false
+
+[*.cs]
+# Suprimir CA2000 em testes - HttpClient e outras instâncias IDisposable são limpas pelo GC
+dotnet_diagnostic.CA2000.severity = none

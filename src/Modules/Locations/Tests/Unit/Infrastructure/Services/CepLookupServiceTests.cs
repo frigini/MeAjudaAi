@@ -53,7 +53,7 @@ public sealed class CepLookupServiceTests
         var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object);
         var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object);
         var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object);
-        
+
         var service = new CepLookupService(
             viaClient,
             brasilClient,
@@ -97,7 +97,7 @@ public sealed class CepLookupServiceTests
         var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object);
         var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object);
         var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object);
-        
+
         var service = new CepLookupService(
             viaClient,
             brasilClient,
@@ -141,7 +141,7 @@ public sealed class CepLookupServiceTests
         var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object);
         var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object);
         var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object);
-        
+
         var service = new CepLookupService(
             viaClient,
             brasilClient,
@@ -185,7 +185,7 @@ public sealed class CepLookupServiceTests
         var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object);
         var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object);
         var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object);
-        
+
         var service = new CepLookupService(
             viaClient,
             brasilClient,

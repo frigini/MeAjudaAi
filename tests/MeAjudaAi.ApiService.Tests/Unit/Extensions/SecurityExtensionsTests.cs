@@ -202,7 +202,7 @@ public sealed class SecurityExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddLogging();
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {

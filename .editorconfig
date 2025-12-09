@@ -114,7 +114,7 @@ dotnet_diagnostic.CA2955.severity = none  # Use comparison to default(T) instead
 # =====================================
 # REGRAS ESPECÍFICAS PARA TESTES
 # =====================================
-[**/*Test*.cs,**/Tests/**/*.cs,**/tests/**/*.cs,**/MeAjudaAi.*.Tests/**/*.cs]
+[**/*Test*.cs,**/Tests/**/*.cs,**/tests/**/*.cs,**/MeAjudaAi.*.Tests/**/*.cs,**/Modules/**/Tests/**/*.cs]
 
 # Relaxar regras críticas APENAS em testes
 dotnet_diagnostic.CA2007.severity = none  # ConfigureAwait não necessário em testes
