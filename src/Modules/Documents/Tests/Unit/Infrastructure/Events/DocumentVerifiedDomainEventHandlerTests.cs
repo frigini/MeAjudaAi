@@ -99,8 +99,8 @@ public class DocumentVerifiedDomainEventHandlerTests
         await _handler.HandleAsync(domainEvent);
 
         // Assert
-        VerifyLogMessage(LogLevel.Information, $"Handling DocumentVerifiedDomainEvent for document {documentId}", Times.Once);
-        VerifyLogMessage(LogLevel.Information, $"Successfully published DocumentVerified integration event for document {documentId}", Times.Once);
+        VerifyLogMessage(LogLevel.Information, $"Handling DocumentVerifiedDomainEvent for document {documentId}", Times.Once());
+        VerifyLogMessage(LogLevel.Information, $"Successfully published DocumentVerified integration event for document {documentId}", Times.Once());
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class DocumentVerifiedDomainEventHandlerTests
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Message bus error");
 
-        VerifyLogMessageWithException(LogLevel.Error, $"Error handling DocumentVerifiedDomainEvent for document {documentId}", exception, Times.Once);
+        VerifyLogMessageWithException(LogLevel.Error, $"Error handling DocumentVerifiedDomainEvent for document {documentId}", exception, Times.Once());
     }
 
     [Fact]
