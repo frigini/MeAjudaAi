@@ -232,14 +232,14 @@ public class UsersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
-        
+
         // Verify ModuleUserBasicDto properties for first user
         var basicDto1 = result.Value.First(u => u.Id == userId1);
         basicDto1.Id.Should().Be(userId1);
         basicDto1.Username.Should().Be("user1");
         basicDto1.Email.Should().Be("user1@test.com");
         basicDto1.IsActive.Should().BeTrue();
-        
+
         // Verify ModuleUserBasicDto properties for second user
         var basicDto2 = result.Value.First(u => u.Id == userId2);
         basicDto2.Id.Should().Be(userId2);

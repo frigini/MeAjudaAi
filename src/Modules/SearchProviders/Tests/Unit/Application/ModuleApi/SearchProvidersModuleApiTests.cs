@@ -184,13 +184,13 @@ public class SearchProvidersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        
+
         // Verify ModulePagedSearchResultDto properties
         result.Value!.TotalCount.Should().Be(1);
         result.Value.PageNumber.Should().Be(1);
         result.Value.PageSize.Should().Be(20);
         result.Value.Items.Should().HaveCount(1);
-        
+
         // Verify ModuleSearchableProviderDto properties
         var provider = result.Value.Items[0];
         provider.ProviderId.Should().Be(providerId);
@@ -203,7 +203,7 @@ public class SearchProvidersModuleApiTests
         provider.DistanceInKm.Should().Be(1.5);
         provider.City.Should().Be("São Paulo");
         provider.State.Should().Be("SP");
-        
+
         // Verify ModuleLocationDto properties
         provider.Location.Should().NotBeNull();
         provider.Location!.Latitude.Should().Be(-23.5);
