@@ -47,11 +47,6 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Install Aspire workload
-        run: |
-          # Install with specific options for .NET 9 and preview packages
-          dotnet workload install aspire --skip-sign-check --source https://api.nuget.org/v3/index.json
-
       - name: Restore dependencies
         run: dotnet restore MeAjudaAi.sln --force-evaluate --locked-mode
 
@@ -137,11 +132,6 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Install Aspire workload
-        run: |
-          # Install with specific options for .NET 9 and preview packages
-          dotnet workload install aspire --skip-sign-check --source https://api.nuget.org/v3/index.json
-
       - name: Restore dependencies
         run: dotnet restore MeAjudaAi.sln --force-evaluate --locked-mode
 
@@ -176,11 +166,6 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Install Aspire workload
-        run: |
-          # Install with specific options for .NET 9 and preview packages
-          dotnet workload install aspire --skip-sign-check --source https://api.nuget.org/v3/index.json
 
       - name: Restore dependencies
         run: dotnet restore MeAjudaAi.sln --force-evaluate --locked-mode
