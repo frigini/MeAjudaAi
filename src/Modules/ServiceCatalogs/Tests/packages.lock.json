@@ -23,9 +23,9 @@
       },
       "Bogus": {
         "type": "Direct",
-        "requested": "[35.6.4, )",
-        "resolved": "35.6.4",
-        "contentHash": "9ruy4agpXZ2L3B29IypUZJh61/lq+7Tbs03KyS0Uxrkx7c20JuWB1vMtZ0xBqwnekZGphjBhX7MkhM1nb5BA5g=="
+        "requested": "[35.6.5, )",
+        "resolved": "35.6.5",
+        "contentHash": "2FGZn+aAVHjmCgClgmGkTDBVZk0zkLvAKGaxEf5JL6b3i9JbHTE4wnuY4vHCuzlCmJdU6VZjgDfHwmYkQF8VAA=="
       },
       "coverlet.collector": {
         "type": "Direct",
@@ -783,19 +783,19 @@
       },
       "Npgsql": {
         "type": "Transitive",
-        "resolved": "10.0.0-rc.1",
-        "contentHash": "kORndN04os9mv9l1MtEBoXydufX2TINDR5wgcmh7vsn+0x7AwfrCgOKana3Sz/WlRQ9KsaWHWPnFQ7ZKF+ck7Q==",
+        "resolved": "10.0.0",
+        "contentHash": "xZAYhPOU2rUIFpV48xsqhCx9vXs6Y+0jX2LCoSEfDFYMw9jtAOUk3iQsCnDLrFIv9NT3JGMihn7nnuZsPKqJmA==",
         "dependencies": {
-          "Microsoft.Extensions.Logging.Abstractions": "10.0.0-rc.1.25451.107"
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.0"
         }
       },
       "Npgsql.DependencyInjection": {
         "type": "Transitive",
-        "resolved": "9.0.4",
-        "contentHash": "HJBUl3PWSzwL8l7TlSRbYyLPgxqQ9HwxmdrqgAKmRuNvewT0ET8XJvuLaeYNbc3pR8oyE93vsdRxEuHeScqVTw==",
+        "resolved": "10.0.0",
+        "contentHash": "htuxMDQ7nHgadPxoO6XXVvSgYcVierLrhzOoamyUchvC4oHnYdD05zZ0dYsq80DN0vco9t/Vp+ZxYvnfJxbhIg==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
-          "Npgsql": "9.0.4"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0",
+          "Npgsql": "10.0.0"
         }
       },
       "Npgsql.NetTopologySuite": {
@@ -810,11 +810,11 @@
       },
       "Npgsql.OpenTelemetry": {
         "type": "Transitive",
-        "resolved": "9.0.4",
-        "contentHash": "iw7NReMsDEHbew0kCRehDhh4CeFfEqMlL/1YjOAcJcQY/If0yp3kYg59ihpFUS7bHD77KHCpslBRyFpFGJTsuQ==",
+        "resolved": "10.0.0",
+        "contentHash": "eftmCZWng874x4iSfQyfF+PpnfA6hloHGQ3EzELVhRyPOEHcMygxSXhx4KI8HKu/Qg8uK1MF5tcwOVhwL7duJw==",
         "dependencies": {
-          "Npgsql": "9.0.4",
-          "OpenTelemetry.API": "1.7.0"
+          "Npgsql": "10.0.0",
+          "OpenTelemetry.API": "1.14.0"
         }
       },
       "OpenTelemetry": {
@@ -1410,7 +1410,7 @@
       "meajudaai.servicedefaults": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Npgsql": "[13.0.0, )",
+          "Aspire.Npgsql": "[13.0.2, )",
           "Azure.Monitor.OpenTelemetry.AspNetCore": "[1.4.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.Extensions.Http.Resilience": "[10.0.0, )",
@@ -1464,7 +1464,7 @@
         "dependencies": {
           "AutoFixture": "[4.18.1, )",
           "AutoFixture.AutoMoq": "[4.18.1, )",
-          "Bogus": "[35.6.4, )",
+          "Bogus": "[35.6.5, )",
           "Dapper": "[2.1.66, )",
           "FluentAssertions": "[8.8.0, )",
           "MeAjudaAi.ApiService": "[1.0.0, )",
@@ -1511,9 +1511,9 @@
       },
       "Aspire.Npgsql": {
         "type": "CentralTransitive",
-        "requested": "[13.0.0, )",
-        "resolved": "13.0.0",
-        "contentHash": "EJ3FV4PjVd5gPGZ3Eu/W7sZfNZeQ7vY1nVg8qY/c0Hhg+Yv+PP69Bfl6RzxxcDlyzX5y+gccA1NlBfeFau7tLg==",
+        "requested": "[13.0.2, )",
+        "resolved": "13.0.2",
+        "contentHash": "OTzRUIxmKGqUhY1idVUvMI64BefeOL/+4dL1G+XBUyKqG4CZCO1A1sIdFuTp368GYvyC+VjJ+LL1/g5f1tXArQ==",
         "dependencies": {
           "AspNetCore.HealthChecks.NpgSql": "9.0.0",
           "Microsoft.Extensions.Configuration.Abstractions": "10.0.0",
@@ -1524,8 +1524,8 @@
           "Microsoft.Extensions.Logging.Abstractions": "10.0.0",
           "Microsoft.Extensions.Options": "10.0.0",
           "Microsoft.Extensions.Primitives": "10.0.0",
-          "Npgsql.DependencyInjection": "9.0.4",
-          "Npgsql.OpenTelemetry": "9.0.4",
+          "Npgsql.DependencyInjection": "10.0.0",
+          "Npgsql.OpenTelemetry": "10.0.0",
           "OpenTelemetry.Extensions.Hosting": "1.9.0"
         }
       },
