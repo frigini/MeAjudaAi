@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Enums;
+using Xunit;
 
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Enums;
 

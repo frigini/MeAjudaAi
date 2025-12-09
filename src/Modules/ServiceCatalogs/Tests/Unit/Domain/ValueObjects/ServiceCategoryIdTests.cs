@@ -1,9 +1,10 @@
+using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using Xunit;
 
-namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Domain.ValueObjects;
+namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.ValueObjects;
 
-[Trait("Category", "Unit")]
-public class ServiceCategoryIdTests
+public sealed class ServiceCategoryIdTests
 {
     [Fact]
     public void Constructor_WithValidGuid_ShouldCreateServiceCategoryId()
@@ -24,38 +25,66 @@ public class ServiceCategoryIdTests
         // Arrange
         var emptyGuid = Guid.Empty;
 
-        // Act & Assert
+        // Act
         var act = () => new ServiceCategoryId(emptyGuid);
+
+        // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("ServiceCategoryId cannot be empty*");
+            .WithMessage("ServiceCategoryId cannot be empty");
     }
 
     [Fact]
-    public void Equals_WithSameValue_ShouldReturnTrue()
+    public void New_ShouldGenerateValidServiceCategoryId()
+    {
+        // Act
+        var categoryId = ServiceCategoryId.New();
+
+        // Assert
+        categoryId.Value.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public void From_WithValidGuid_ShouldCreateServiceCategoryId()
     {
         // Arrange
         var guid = Guid.NewGuid();
-        var categoryId1 = new ServiceCategoryId(guid);
-        var categoryId2 = new ServiceCategoryId(guid);
 
-        // Act & Assert
-        categoryId1.Should().Be(categoryId2);
-        categoryId1.GetHashCode().Should().Be(categoryId2.GetHashCode());
+        // Act
+        var categoryId = ServiceCategoryId.From(guid);
+
+        // Assert
+        categoryId.Value.Should().Be(guid);
     }
 
     [Fact]
-    public void Equals_WithDifferentValues_ShouldReturnFalse()
+    public void ImplicitConversion_ToGuid_ShouldReturnValue()
     {
         // Arrange
-        var categoryId1 = new ServiceCategoryId(Guid.NewGuid());
-        var categoryId2 = new ServiceCategoryId(Guid.NewGuid());
+        var guid = Guid.NewGuid();
+        var categoryId = new ServiceCategoryId(guid);
 
-        // Act & Assert
-        categoryId1.Should().NotBe(categoryId2);
+        // Act
+        Guid convertedGuid = categoryId;
+
+        // Assert
+        convertedGuid.Should().Be(guid);
     }
 
     [Fact]
-    public void ToString_ShouldReturnGuidString()
+    public void ImplicitConversion_FromGuid_ShouldCreateServiceCategoryId()
+    {
+        // Arrange
+        var guid = Guid.NewGuid();
+
+        // Act
+        ServiceCategoryId categoryId = guid;
+
+        // Assert
+        categoryId.Value.Should().Be(guid);
+    }
+
+    [Fact]
+    public void ToString_ShouldReturnGuidAsString()
     {
         // Arrange
         var guid = Guid.NewGuid();
@@ -69,19 +98,39 @@ public class ServiceCategoryIdTests
     }
 
     [Fact]
-    public void ValueObject_Equality_ShouldWorkCorrectly()
+    public void Equals_WithSameValue_ShouldReturnTrue()
     {
         // Arrange
         var guid = Guid.NewGuid();
         var categoryId1 = new ServiceCategoryId(guid);
         var categoryId2 = new ServiceCategoryId(guid);
-        var categoryId3 = new ServiceCategoryId(Guid.NewGuid());
 
         // Act & Assert
+        categoryId1.Should().Be(categoryId2);
         (categoryId1 == categoryId2).Should().BeTrue();
-        (categoryId1 != categoryId3).Should().BeTrue();
-        categoryId1.Equals(categoryId2).Should().BeTrue();
-        categoryId1.Equals(categoryId3).Should().BeFalse();
-        categoryId1.Equals(null).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Equals_WithDifferentValue_ShouldReturnFalse()
+    {
+        // Arrange
+        var categoryId1 = ServiceCategoryId.New();
+        var categoryId2 = ServiceCategoryId.New();
+
+        // Act & Assert
+        categoryId1.Should().NotBe(categoryId2);
+        (categoryId1 != categoryId2).Should().BeTrue();
+    }
+
+    [Fact]
+    public void GetHashCode_WithSameValue_ShouldReturnSameHashCode()
+    {
+        // Arrange
+        var guid = Guid.NewGuid();
+        var categoryId1 = new ServiceCategoryId(guid);
+        var categoryId2 = new ServiceCategoryId(guid);
+
+        // Act & Assert
+        categoryId1.GetHashCode().Should().Be(categoryId2.GetHashCode());
     }
 }

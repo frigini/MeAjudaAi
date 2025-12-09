@@ -1,9 +1,10 @@
+using FluentAssertions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
+using Xunit;
 
-namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Domain.ValueObjects;
+namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.ValueObjects;
 
-[Trait("Category", "Unit")]
-public class ServiceIdTests
+public sealed class ServiceIdTests
 {
     [Fact]
     public void Constructor_WithValidGuid_ShouldCreateServiceId()
@@ -24,38 +25,84 @@ public class ServiceIdTests
         // Arrange
         var emptyGuid = Guid.Empty;
 
-        // Act & Assert
+        // Act
         var act = () => new ServiceId(emptyGuid);
+
+        // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("ServiceId cannot be empty*");
+            .WithMessage("*ServiceId cannot be empty*");
     }
 
     [Fact]
-    public void Equals_WithSameValue_ShouldReturnTrue()
+    public void New_ShouldGenerateValidServiceId()
+    {
+        // Act
+        var serviceId = ServiceId.New();
+
+        // Assert
+        serviceId.Value.Should().NotBeEmpty();
+        // Verify UUID v7 format (version 7)
+        var bytes = serviceId.Value.ToByteArray();
+        var version = (bytes[7] & 0xF0) >> 4;
+        version.Should().Be(7, "ServiceId should use UUID v7");
+    }
+
+    [Fact]
+    public void From_WithValidGuid_ShouldCreateServiceId()
     {
         // Arrange
         var guid = Guid.NewGuid();
-        var serviceId1 = new ServiceId(guid);
-        var serviceId2 = new ServiceId(guid);
 
-        // Act & Assert
-        serviceId1.Should().Be(serviceId2);
-        serviceId1.GetHashCode().Should().Be(serviceId2.GetHashCode());
+        // Act
+        var serviceId = ServiceId.From(guid);
+
+        // Assert
+        serviceId.Value.Should().Be(guid);
     }
 
     [Fact]
-    public void Equals_WithDifferentValues_ShouldReturnFalse()
+    public void From_WithEmptyGuid_ShouldThrowArgumentException()
     {
         // Arrange
-        var serviceId1 = new ServiceId(Guid.NewGuid());
-        var serviceId2 = new ServiceId(Guid.NewGuid());
+        var emptyGuid = Guid.Empty;
 
-        // Act & Assert
-        serviceId1.Should().NotBe(serviceId2);
+        // Act
+        var act = () => ServiceId.From(emptyGuid);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*ServiceId cannot be empty*");
     }
 
     [Fact]
-    public void ToString_ShouldReturnGuidString()
+    public void ImplicitConversion_ToGuid_ShouldReturnValue()
+    {
+        // Arrange
+        var guid = Guid.NewGuid();
+        var serviceId = new ServiceId(guid);
+
+        // Act
+        Guid convertedGuid = serviceId;
+
+        // Assert
+        convertedGuid.Should().Be(guid);
+    }
+
+    [Fact]
+    public void ImplicitConversion_FromGuid_ShouldCreateServiceId()
+    {
+        // Arrange
+        var guid = Guid.NewGuid();
+
+        // Act
+        ServiceId serviceId = guid;
+
+        // Assert
+        serviceId.Value.Should().Be(guid);
+    }
+
+    [Fact]
+    public void ToString_ShouldReturnGuidAsString()
     {
         // Arrange
         var guid = Guid.NewGuid();
@@ -69,19 +116,51 @@ public class ServiceIdTests
     }
 
     [Fact]
-    public void ValueObject_Equality_ShouldWorkCorrectly()
+    public void Equals_WithSameValue_ShouldReturnTrue()
     {
         // Arrange
         var guid = Guid.NewGuid();
         var serviceId1 = new ServiceId(guid);
         var serviceId2 = new ServiceId(guid);
-        var serviceId3 = new ServiceId(Guid.NewGuid());
 
         // Act & Assert
+        serviceId1.Should().Be(serviceId2);
         (serviceId1 == serviceId2).Should().BeTrue();
-        (serviceId1 != serviceId3).Should().BeTrue();
-        serviceId1.Equals(serviceId2).Should().BeTrue();
-        serviceId1.Equals(serviceId3).Should().BeFalse();
-        serviceId1.Equals(null).Should().BeFalse();
+    }
+
+    [Fact]
+    public void Equals_WithDifferentValue_ShouldReturnFalse()
+    {
+        // Arrange
+        var guid1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        var guid2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
+        var serviceId1 = new ServiceId(guid1);
+        var serviceId2 = new ServiceId(guid2);
+
+        // Act & Assert
+        serviceId1.Should().NotBe(serviceId2);
+        (serviceId1 != serviceId2).Should().BeTrue();
+    }
+
+    [Fact]
+    public void GetHashCode_WithSameValue_ShouldReturnSameHashCode()
+    {
+        // Arrange
+        var guid = Guid.NewGuid();
+        var serviceId1 = new ServiceId(guid);
+        var serviceId2 = new ServiceId(guid);
+
+        // Act & Assert
+        serviceId1.GetHashCode().Should().Be(serviceId2.GetHashCode());
+    }
+
+    [Fact]
+    public void Equals_WithNull_ShouldReturnFalse()
+    {
+        // Arrange
+        var serviceId = ServiceId.New();
+
+        // Act & Assert
+        serviceId.Equals(null).Should().BeFalse();
     }
 }

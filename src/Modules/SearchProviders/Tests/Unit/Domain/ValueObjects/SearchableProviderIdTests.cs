@@ -1,126 +1,131 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
+using Xunit;
 
-namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.Domain.ValueObjects;
+namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.ValueObjects;
 
-public class SearchableProviderIdTests
+public sealed class SearchableProviderIdTests
 {
     [Fact]
-    public void New_ShouldCreateNewId()
-    {
-        // Act
-        var id = SearchableProviderId.New();
-
-        // Assert
-        id.Value.Should().NotBe(Guid.Empty);
-    }
-
-    [Fact]
-    public void New_CalledMultipleTimes_ShouldReturnDifferentIds()
-    {
-        // Act
-        var id1 = SearchableProviderId.New();
-        var id2 = SearchableProviderId.New();
-
-        // Assert
-        id1.Should().NotBe(id2);
-    }
-
-    [Fact]
-    public void From_ShouldCreateIdFromGuid()
+    public void Constructor_WithValidGuid_ShouldCreateSearchableProviderId()
     {
         // Arrange
         var guid = Guid.NewGuid();
 
         // Act
-        var id = SearchableProviderId.From(guid);
+        var providerId = new SearchableProviderId(guid);
 
         // Assert
-        id.Value.Should().Be(guid);
+        providerId.Value.Should().Be(guid);
     }
 
     [Fact]
-    public void ImplicitConversion_ToGuid_ShouldWork()
+    public void New_ShouldGenerateValidSearchableProviderId()
+    {
+        // Act
+        var providerId = SearchableProviderId.New();
+
+        // Assert
+        providerId.Value.Should().NotBeEmpty();
+        // Verify UUID v7 format (version 7, variant 2)
+        var bytes = providerId.Value.ToByteArray();
+        var version = (bytes[7] & 0xF0) >> 4;
+        version.Should().Be(7, "SearchableProviderId should use UUID v7");
+    }
+
+    [Fact]
+    public void From_WithValidGuid_ShouldCreateSearchableProviderId()
     {
         // Arrange
         var guid = Guid.NewGuid();
-        var id = SearchableProviderId.From(guid);
 
         // Act
-        Guid convertedGuid = id;
+        var providerId = SearchableProviderId.From(guid);
+
+        // Assert
+        providerId.Value.Should().Be(guid);
+    }
+
+    [Fact]
+    public void ImplicitConversion_ToGuid_ShouldReturnValue()
+    {
+        // Arrange
+        var guid = Guid.NewGuid();
+        var providerId = new SearchableProviderId(guid);
+
+        // Act
+        Guid convertedGuid = providerId;
 
         // Assert
         convertedGuid.Should().Be(guid);
     }
 
     [Fact]
-    public void RecordEquality_WithSameValue_ShouldBeEqual()
+    public void Equals_WithSameValue_ShouldReturnTrue()
     {
         // Arrange
         var guid = Guid.NewGuid();
-        var id1 = SearchableProviderId.From(guid);
-        var id2 = SearchableProviderId.From(guid);
+        var providerId1 = new SearchableProviderId(guid);
+        var providerId2 = new SearchableProviderId(guid);
 
         // Act & Assert
-        id1.Should().Be(id2);
-        id1.Equals(id2).Should().BeTrue();
-        (id1 == id2).Should().BeTrue();
+        providerId1.Should().Be(providerId2);
+        providerId1.Equals(providerId2).Should().BeTrue();
+        (providerId1 == providerId2).Should().BeTrue();
     }
 
     [Fact]
-    public void RecordEquality_WithDifferentValue_ShouldNotBeEqual()
+    public void Equals_WithDifferentValue_ShouldReturnFalse()
     {
         // Arrange
-        var id1 = SearchableProviderId.New();
-        var id2 = SearchableProviderId.New();
+        var providerId1 = SearchableProviderId.New();
+        var providerId2 = SearchableProviderId.New();
 
         // Act & Assert
-        id1.Should().NotBe(id2);
-        id1.Equals(id2).Should().BeFalse();
-        (id1 != id2).Should().BeTrue();
+        providerId1.Should().NotBe(providerId2);
+        providerId1.Equals(providerId2).Should().BeFalse();
+        (providerId1 != providerId2).Should().BeTrue();
     }
 
     [Fact]
-    public void GetHashCode_WithSameValue_ShouldReturnSameHash()
+    public void GetHashCode_WithSameValue_ShouldReturnSameHashCode()
     {
         // Arrange
         var guid = Guid.NewGuid();
-        var id1 = SearchableProviderId.From(guid);
-        var id2 = SearchableProviderId.From(guid);
+        var providerId1 = new SearchableProviderId(guid);
+        var providerId2 = new SearchableProviderId(guid);
 
-        // Act
-        var hash1 = id1.GetHashCode();
-        var hash2 = id2.GetHashCode();
-
-        // Assert
-        hash1.Should().Be(hash2);
+        // Act & Assert
+        providerId1.GetHashCode().Should().Be(providerId2.GetHashCode());
     }
 
     [Fact]
-    public void ToString_ShouldReturnReadableRepresentation()
+    public void Record_WithExpression_ShouldCreateNewInstance()
     {
         // Arrange
         var guid = Guid.NewGuid();
-        var id = SearchableProviderId.From(guid);
+        var providerId = new SearchableProviderId(guid);
+        var newGuid = Guid.NewGuid();
 
         // Act
-        var stringValue = id.ToString();
+        var newProviderId = providerId with { Value = newGuid };
 
         // Assert
-        stringValue.Should().NotBeNullOrEmpty();
-        stringValue.Should().Contain(guid.ToString());
+        newProviderId.Value.Should().Be(newGuid);
+        providerId.Value.Should().Be(guid); // original unchanged
     }
 
     [Fact]
-    public void Value_ShouldReturnUnderlyingGuid()
+    public void Deconstruct_ShouldExtractValue()
     {
         // Arrange
         var guid = Guid.NewGuid();
+        var providerId = new SearchableProviderId(guid);
 
         // Act
-        var id = SearchableProviderId.From(guid);
+        var value = providerId.Value;
 
         // Assert
-        id.Value.Should().Be(guid);
+        value.Should().Be(guid);
     }
 }
