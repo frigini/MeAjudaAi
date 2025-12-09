@@ -199,8 +199,9 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
         var username = "testuser";
         var password = "testpassword";
 
-        // Act - No delay needed; mock service uses millisecond precision ensuring uniqueness
+        // Act - Small delay ensures different millisecond timestamps
         var result1 = await _authenticationDomainService.AuthenticateAsync(username, password);
+        await Task.Delay(2); // Minimal delay to ensure different millisecond timestamp
         var result2 = await _authenticationDomainService.AuthenticateAsync(username, password);
 
         // Assert
@@ -318,6 +319,26 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
         validateResult.IsSuccess.Should().BeTrue();
         validateResult.Value!.UserId.Should().Be(authResult.Value.UserId);
         validateResult.Value.Roles.Should().Equal(authResult.Value.Roles);
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    /// <summary>
+    /// Validates if a GUID is UUID v7 format.
+    /// UUID v7 uses timestamp-based ordering with high bits representing milliseconds since epoch.
+    /// Version field (bits 48-51) should be 0111 (7 in decimal).
+    /// </summary>
+    private static bool IsUuidVersion7(Guid guid)
+    {
+        var bytes = guid.ToByteArray();
+        // UUID v7: version is in bits 48-51 (byte 7, high nibble)
+        // Byte layout (big-endian): time_hi_and_version is at bytes 6-7
+        // In .NET GUID byte array (mixed endianness), need to check byte 7
+        var versionByte = bytes[7];
+        var version = (versionByte & 0xF0) >> 4;
+        return version == 7;
     }
 
     #endregion
