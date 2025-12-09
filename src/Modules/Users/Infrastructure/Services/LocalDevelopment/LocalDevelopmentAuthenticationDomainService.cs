@@ -25,7 +25,7 @@ internal class LocalDevelopmentAuthenticationDomainService : IAuthenticationDoma
         if ((usernameOrEmail == "testuser" || usernameOrEmail == "test@example.com") && password == "testpassword")
         {
             var deterministicUserId = GenerateDeterministicGuid(usernameOrEmail);
-            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
             var result = new AuthenticationResult(
                 UserId: deterministicUserId,

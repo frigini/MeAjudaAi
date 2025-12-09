@@ -30,6 +30,7 @@ public sealed class BrasilApiCepClientTests : IDisposable
     public void Dispose()
     {
         _httpClient?.Dispose();
+        _mockHandler?.Dispose();
     }
 
     [Fact]
@@ -107,7 +108,7 @@ public sealed class BrasilApiCepClientTests : IDisposable
     public async Task GetAddressAsync_WhenResponseIsNull_ShouldReturnNull()
     {
         // Arrange
-        var cep = Cep.Create("01001000");
+        var cep = Cep.Create("01001000")!;
         _mockHandler.SetResponse(HttpStatusCode.OK, "null");
 
         // Act
@@ -121,7 +122,7 @@ public sealed class BrasilApiCepClientTests : IDisposable
     public async Task GetAddressAsync_ShouldUseCorrectUrl()
     {
         // Arrange
-        var cep = Cep.Create("01001000");
+        var cep = Cep.Create("01001000")!;
         var brasilApiResponse = new BrasilApiCepResponse
         {
             Cep = "01001000",
@@ -142,7 +143,7 @@ public sealed class BrasilApiCepClientTests : IDisposable
         _mockHandler.LastRequestUri.Should().Contain("api/cep/v2/01001000");
     }
 
-    private sealed class MockHttpMessageHandler : HttpMessageHandler
+    private sealed class MockHttpMessageHandler : HttpMessageHandler, IDisposable
     {
         private HttpResponseMessage? _responseMessage;
         private Exception? _exception;
@@ -177,6 +178,16 @@ public sealed class BrasilApiCepClientTests : IDisposable
             }
 
             return Task.FromResult(_responseMessage ?? new HttpResponseMessage(HttpStatusCode.InternalServerError));
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _responseMessage?.Dispose();
+                _responseMessage = null;
+            }
+            base.Dispose(disposing);
         }
     }
 }

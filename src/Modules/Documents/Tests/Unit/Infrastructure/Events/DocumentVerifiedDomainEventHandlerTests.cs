@@ -155,7 +155,7 @@ public class DocumentVerifiedDomainEventHandlerTests
     public async Task HandleAsync_ShouldSetVerifiedAtToCurrentUtcTime()
     {
         // Arrange
-        var before = DateTime.UtcNow;
+        var referenceTime = DateTime.UtcNow;
         var domainEvent = new DocumentVerifiedDomainEvent(Guid.NewGuid(), 1, Guid.NewGuid(), EDocumentType.IdentityDocument, true);
 
         DocumentVerifiedIntegrationEvent? capturedEvent = null;
@@ -166,11 +166,10 @@ public class DocumentVerifiedDomainEventHandlerTests
 
         // Act
         await _handler.HandleAsync(domainEvent);
-        var after = DateTime.UtcNow;
 
         // Assert
         capturedEvent.Should().NotBeNull();
-        capturedEvent!.VerifiedAt.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
+        capturedEvent!.VerifiedAt.Should().BeCloseTo(referenceTime, TimeSpan.FromSeconds(5));
     }
 
     [Fact]

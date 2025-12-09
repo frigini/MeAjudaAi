@@ -30,6 +30,7 @@ public sealed class ViaCepClientTests : IDisposable
     public void Dispose()
     {
         _httpClient?.Dispose();
+        _mockHandler?.Dispose();
     }
 
     [Fact]
@@ -165,7 +166,7 @@ public sealed class ViaCepClientTests : IDisposable
     }
 
     // Mock HttpMessageHandler
-    private sealed class MockHttpMessageHandler : HttpMessageHandler
+    private sealed class MockHttpMessageHandler : HttpMessageHandler, IDisposable
     {
         private HttpResponseMessage? _responseMessage;
         private Exception? _exception;
@@ -200,6 +201,16 @@ public sealed class ViaCepClientTests : IDisposable
             }
 
             return Task.FromResult(_responseMessage ?? new HttpResponseMessage(HttpStatusCode.InternalServerError));
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _responseMessage?.Dispose();
+                _responseMessage = null;
+            }
+            base.Dispose(disposing);
         }
     }
 }

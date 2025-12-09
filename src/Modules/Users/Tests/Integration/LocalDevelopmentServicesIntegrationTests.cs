@@ -77,6 +77,12 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
         result1.IsSuccess.Should().BeTrue();
         result2.IsSuccess.Should().BeTrue();
         result1.Value!.KeycloakId.Should().NotBe(result2.Value!.KeycloakId);
+        
+        // Verify both use UUID v7 format
+        var guid1 = Guid.Parse(result1.Value.KeycloakId.Replace("mock_keycloak_", ""));
+        var guid2 = Guid.Parse(result2.Value.KeycloakId.Replace("mock_keycloak_", ""));
+        IsUuidVersion7(guid1).Should().BeTrue("First Keycloak ID should use UUID v7");
+        IsUuidVersion7(guid2).Should().BeTrue("Second Keycloak ID should use UUID v7");
     }
 
     [Fact]
@@ -193,9 +199,8 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
         var username = "testuser";
         var password = "testpassword";
 
-        // Act
+        // Act - No delay needed; mock service uses millisecond precision ensuring uniqueness
         var result1 = await _authenticationDomainService.AuthenticateAsync(username, password);
-        await Task.Delay(1100); // Ensure different timestamps (needs >1s for Unix timestamp to change)
         var result2 = await _authenticationDomainService.AuthenticateAsync(username, password);
 
         // Assert

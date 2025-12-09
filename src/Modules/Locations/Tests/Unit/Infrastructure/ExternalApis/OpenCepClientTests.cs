@@ -30,6 +30,7 @@ public sealed class OpenCepClientTests : IDisposable
     public void Dispose()
     {
         _httpClient?.Dispose();
+        _mockHandler?.Dispose();
     }
 
     [Fact]
@@ -129,7 +130,7 @@ public sealed class OpenCepClientTests : IDisposable
         _mockHandler.LastRequestUri.Should().Contain("v1/01001000");
     }
 
-    private sealed class MockHttpMessageHandler : HttpMessageHandler
+    private sealed class MockHttpMessageHandler : HttpMessageHandler, IDisposable
     {
         private HttpResponseMessage? _responseMessage;
         private Exception? _exception;
@@ -164,6 +165,16 @@ public sealed class OpenCepClientTests : IDisposable
             }
 
             return Task.FromResult(_responseMessage ?? new HttpResponseMessage(HttpStatusCode.InternalServerError));
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _responseMessage?.Dispose();
+                _responseMessage = null;
+            }
+            base.Dispose(disposing);
         }
     }
 }
