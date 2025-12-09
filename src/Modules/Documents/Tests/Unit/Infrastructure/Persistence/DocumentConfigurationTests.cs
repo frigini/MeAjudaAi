@@ -79,13 +79,15 @@ public class DocumentConfigurationTests
         using var context = CreateInMemoryContext();
         var entityType = context.Model.FindEntityType(typeof(Document));
 
-        // Assert - DocumentType should have int conversion
+        // Assert - DocumentType should be configured as enum
         var documentTypeProperty = entityType!.FindProperty(nameof(Document.DocumentType));
-        documentTypeProperty!.GetValueConverter().Should().NotBeNull();
+        documentTypeProperty.Should().NotBeNull();
+        documentTypeProperty!.ClrType.Should().Be(typeof(EDocumentType));
 
-        // Assert - Status should have int conversion
+        // Assert - Status should be configured as enum
         var statusProperty = entityType.FindProperty(nameof(Document.Status));
-        statusProperty!.GetValueConverter().Should().NotBeNull();
+        statusProperty.Should().NotBeNull();
+        statusProperty!.ClrType.Should().Be(typeof(EDocumentStatus));
     }
 
     [Fact]
