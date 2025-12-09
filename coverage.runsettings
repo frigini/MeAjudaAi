@@ -5,9 +5,10 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>opencover</Format>
-          <Exclude>[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*,[xunit*]*</Exclude>
-          <ExcludeByFile>**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs</ExcludeByFile>
+          <ExcludeByFile>**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs</ExcludeByFile>
           <ExcludeByAttribute>Obsolete,GeneratedCode,CompilerGenerated</ExcludeByAttribute>
+          <Exclude>[*.Tests]*,[*.Tests.*]*,[*Test*]*,[testhost]*</Exclude>
+          <Include>[MeAjudaAi*]*</Include>
         </Configuration>
       </DataCollector>
     </DataCollectors>
