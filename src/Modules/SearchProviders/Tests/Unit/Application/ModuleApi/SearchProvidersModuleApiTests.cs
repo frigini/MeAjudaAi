@@ -147,18 +147,20 @@ public class SearchProvidersModuleApiTests
     public async Task SearchProvidersAsync_WithValidParameters_ShouldReturnResults()
     {
         // Arrange
+        var serviceId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
         var providers = new List<SearchableProviderDto>
         {
             new()
             {
-                ProviderId = Guid.NewGuid(),
+                ProviderId = providerId,
                 Name = "Provider 1",
                 Description = "Test provider",
                 Location = new LocationDto { Latitude = -23.5, Longitude = -46.6 },
                 AverageRating = 4.5m,
                 TotalReviews = 10,
                 SubscriptionTier = DomainEnums.ESubscriptionTier.Gold,
-                ServiceIds = new[] { Guid.NewGuid() },
+                ServiceIds = new[] { serviceId },
                 DistanceInKm = 1.5,
                 City = "São Paulo",
                 State = "SP"
@@ -182,9 +184,30 @@ public class SearchProvidersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Items.Should().HaveCount(1);
-        result.Value.Items[0].Name.Should().Be("Provider 1");
-        result.Value.TotalCount.Should().Be(1);
+        
+        // Verify ModulePagedSearchResultDto properties
+        result.Value!.TotalCount.Should().Be(1);
+        result.Value.PageNumber.Should().Be(1);
+        result.Value.PageSize.Should().Be(20);
+        result.Value.Items.Should().HaveCount(1);
+        
+        // Verify ModuleSearchableProviderDto properties
+        var provider = result.Value.Items[0];
+        provider.ProviderId.Should().Be(providerId);
+        provider.Name.Should().Be("Provider 1");
+        provider.Description.Should().Be("Test provider");
+        provider.AverageRating.Should().Be(4.5m);
+        provider.TotalReviews.Should().Be(10);
+        provider.SubscriptionTier.Should().Be(ESubscriptionTier.Gold);
+        provider.ServiceIds.Should().ContainSingle().And.Contain(serviceId);
+        provider.DistanceInKm.Should().Be(1.5);
+        provider.City.Should().Be("São Paulo");
+        provider.State.Should().Be("SP");
+        
+        // Verify ModuleLocationDto properties
+        provider.Location.Should().NotBeNull();
+        provider.Location!.Latitude.Should().Be(-23.5);
+        provider.Location.Longitude.Should().Be(-46.6);
     }
 
     [Fact]

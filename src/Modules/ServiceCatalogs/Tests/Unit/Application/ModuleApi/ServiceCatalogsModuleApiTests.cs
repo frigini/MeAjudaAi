@@ -186,11 +186,19 @@ public class ServiceCatalogsModuleApiTests
     public async Task GetAllServiceCategoriesAsync_WithActiveOnly_ShouldReturnActiveCategories()
     {
         // Arrange
-        var categories = new List<ServiceCategory>
-        {
-            new ServiceCategoryBuilder().WithName("Category 1").Build(),
-            new ServiceCategoryBuilder().WithName("Category 2").Build()
-        };
+        var category1 = new ServiceCategoryBuilder()
+                .WithName("Category 1")
+                .WithDescription("Description 1")
+                .WithDisplayOrder(1)
+                .Build();
+        
+        var category2 = new ServiceCategoryBuilder()
+                .WithName("Category 2")
+                .WithDescription("Description 2")
+                .WithDisplayOrder(2)
+                .Build();
+        
+        var categories = new List<ServiceCategory> { category1, category2 };
 
         _categoryRepositoryMock
             .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
@@ -202,7 +210,22 @@ public class ServiceCatalogsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
-        result.Value.Select(c => c.Name).Should().Contain(new[] { "Category 1", "Category 2" });
+        
+        // Verify ModuleServiceCategoryDto properties for first category
+        var dto1 = result.Value.First(c => c.Name == "Category 1");
+        dto1.Id.Should().Be(category1.Id.Value);
+        dto1.Name.Should().Be("Category 1");
+        dto1.Description.Should().Be("Description 1");
+        dto1.DisplayOrder.Should().Be(1);
+        dto1.IsActive.Should().BeTrue(); // Default value from builder
+        
+        // Verify ModuleServiceCategoryDto properties for second category
+        var dto2 = result.Value.First(c => c.Name == "Category 2");
+        dto2.Id.Should().Be(category2.Id.Value);
+        dto2.Name.Should().Be("Category 2");
+        dto2.Description.Should().Be("Description 2");
+        dto2.DisplayOrder.Should().Be(2);
+        dto2.IsActive.Should().BeTrue(); // Default value from builder
     }
 
     [Fact]
@@ -331,11 +354,19 @@ public class ServiceCatalogsModuleApiTests
     public async Task GetAllServicesAsync_WithActiveOnly_ShouldReturnActiveServices()
     {
         // Arrange
-        var services = new List<Service>
-        {
-            new ServiceBuilder().WithName("Service 1").Build(),
-            new ServiceBuilder().WithName("Service 2").Build()
-        };
+        var categoryId = Guid.NewGuid();
+        
+        var service1 = new ServiceBuilder()
+                .WithName("Service 1")
+                .WithCategoryId(categoryId)
+                .Build();
+        
+        var service2 = new ServiceBuilder()
+                .WithName("Service 2")
+                .WithCategoryId(categoryId)
+                .Build();
+        
+        var services = new List<Service> { service1, service2 };
 
         _serviceRepositoryMock
             .Setup(x => x.GetAllAsync(true, It.IsAny<CancellationToken>()))
@@ -347,7 +378,20 @@ public class ServiceCatalogsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
-        result.Value.Select(s => s.Name).Should().Contain(new[] { "Service 1", "Service 2" });
+        
+        // Verify ModuleServiceListDto properties for first service
+        var dto1 = result.Value.First(s => s.Name == "Service 1");
+        dto1.Id.Should().Be(service1.Id.Value);
+        dto1.CategoryId.Should().Be(categoryId);
+        dto1.Name.Should().Be("Service 1");
+        dto1.IsActive.Should().BeTrue(); // Default value from builder
+        
+        // Verify ModuleServiceListDto properties for second service
+        var dto2 = result.Value.First(s => s.Name == "Service 2");
+        dto2.Id.Should().Be(service2.Id.Value);
+        dto2.CategoryId.Should().Be(categoryId);
+        dto2.Name.Should().Be("Service 2");
+        dto2.IsActive.Should().BeTrue(); // Default value from builder
     }
 
     [Fact]
@@ -376,11 +420,20 @@ public class ServiceCatalogsModuleApiTests
         // Arrange
         var category = new ServiceCategoryBuilder().WithName("Test Category").Build();
         var categoryId = category.Id.Value;
-        var services = new List<Service>
-        {
-            new ServiceBuilder().WithName("Service 1").WithCategoryId(categoryId).Build(),
-            new ServiceBuilder().WithName("Service 2").WithCategoryId(categoryId).Build()
-        };
+        
+        var service1 = new ServiceBuilder()
+                .WithName("Service 1")
+                .WithDescription("Description 1")
+                .WithCategoryId(categoryId)
+                .Build();
+        
+        var service2 = new ServiceBuilder()
+                .WithName("Service 2")
+                .WithDescription("Description 2")
+                .WithCategoryId(categoryId)
+                .Build();
+        
+        var services = new List<Service> { service1, service2 };
 
         // Set Category navigation property
         foreach (var service in services)
@@ -399,7 +452,24 @@ public class ServiceCatalogsModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
-        result.Value.Should().AllSatisfy(s => s.CategoryId.Should().Be(categoryId));
+        
+        // Verify ModuleServiceDto properties for first service
+        var dto1 = result.Value.First(s => s.Name == "Service 1");
+        dto1.Id.Should().Be(service1.Id.Value);
+        dto1.CategoryId.Should().Be(categoryId);
+        dto1.CategoryName.Should().Be("Test Category");
+        dto1.Name.Should().Be("Service 1");
+        dto1.Description.Should().Be("Description 1");
+        dto1.IsActive.Should().BeTrue(); // Default value from builder
+        
+        // Verify ModuleServiceDto properties for second service
+        var dto2 = result.Value.First(s => s.Name == "Service 2");
+        dto2.Id.Should().Be(service2.Id.Value);
+        dto2.CategoryId.Should().Be(categoryId);
+        dto2.CategoryName.Should().Be("Test Category");
+        dto2.Name.Should().Be("Service 2");
+        dto2.Description.Should().Be("Description 2");
+        dto2.IsActive.Should().BeTrue(); // Default value from builder
     }
 
     [Fact]

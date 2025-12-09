@@ -232,8 +232,20 @@ public class UsersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
-        result.Value.Should().Contain(u => u.Id == userId1 && u.Username == "user1");
-        result.Value.Should().Contain(u => u.Id == userId2 && u.Username == "user2");
+        
+        // Verify ModuleUserBasicDto properties for first user
+        var basicDto1 = result.Value.First(u => u.Id == userId1);
+        basicDto1.Id.Should().Be(userId1);
+        basicDto1.Username.Should().Be("user1");
+        basicDto1.Email.Should().Be("user1@test.com");
+        basicDto1.IsActive.Should().BeTrue();
+        
+        // Verify ModuleUserBasicDto properties for second user
+        var basicDto2 = result.Value.First(u => u.Id == userId2);
+        basicDto2.Id.Should().Be(userId2);
+        basicDto2.Username.Should().Be("user2");
+        basicDto2.Email.Should().Be("user2@test.com");
+        basicDto2.IsActive.Should().BeTrue();
 
         // Verificar que o batch handler foi chamado uma única vez
         _getUsersByIdsHandler.Verify(x => x.HandleAsync(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
