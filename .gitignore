@@ -137,3 +137,6 @@ postgres_data/
 legacy-analysis-report.*
 *-analysis-report.html
 *-analysis-report.json
+
+# Archived scripts
+.archive/
