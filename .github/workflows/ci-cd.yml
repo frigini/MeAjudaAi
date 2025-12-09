@@ -80,6 +80,8 @@ jobs:
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
+          set -e  # Exit immediately if any command fails
+          
           # Define exclude patterns for coverage (files and assemblies)
           # Excludes: Migrations, Database, Contracts, OpenApi generated, compiler services, regex generator
           EXCLUDE_PATTERNS="**/Migrations/*.cs,**/Database/*.cs,**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
@@ -144,6 +146,8 @@ jobs:
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
+          set -e  # Exit immediately if any command fails
+          
           echo "================================"
           echo "🔗 INTEGRATION TESTS (NO COVERAGE)"
           echo "================================"
@@ -156,6 +160,8 @@ jobs:
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
+          set -e  # Exit immediately if any command fails
+          
           echo "================================"
           echo "🌐 E2E TESTS (NO COVERAGE)"
           echo "================================"

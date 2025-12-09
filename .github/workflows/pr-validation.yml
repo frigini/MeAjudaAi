@@ -330,6 +330,12 @@ jobs:
                 --results-directory "$MODULE_COVERAGE_DIR" \
                 --logger "trx;LogFileName=${module_name,,}-test-results.trx" \
                 --settings "/tmp/${module_name,,}.runsettings"
+            
+              TEST_EXIT_CODE=$?
+              if [ $TEST_EXIT_CODE -ne 0 ]; then
+                echo "❌ Tests failed for $module_name with exit code $TEST_EXIT_CODE"
+                exit $TEST_EXIT_CODE
+              fi
 
               # Find and rename the coverage file to a predictable name
               if [ -d "$MODULE_COVERAGE_DIR" ]; then
@@ -401,12 +407,17 @@ jobs:
               --no-build \
               --verbosity normal \
               --logger "trx;LogFileName=architecture-test-results.trx"
+            
+            TEST_EXIT_CODE=$?
+            if [ $TEST_EXIT_CODE -ne 0 ]; then
+              echo "❌ Architecture tests failed with exit code $TEST_EXIT_CODE"
+              exit $TEST_EXIT_CODE
+            fi
           else
             echo "⚠️  Architecture tests not found - skipping"
           fi
 
       - name: Run Integration Tests
-        if: always()
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
@@ -456,12 +467,17 @@ jobs:
               --collect:"XPlat Code Coverage" \
               --results-directory ./coverage/integration \
               --settings "$INTEGRATION_RUNSETTINGS"
+            
+            TEST_EXIT_CODE=$?
+            if [ $TEST_EXIT_CODE -ne 0 ]; then
+              echo "❌ Integration tests failed with exit code $TEST_EXIT_CODE"
+              exit $TEST_EXIT_CODE
+            fi
           else
             echo "⚠️  Integration tests not found - skipping"
           fi
 
       - name: Run E2E Tests
-        if: always()
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
@@ -511,6 +527,12 @@ jobs:
               --collect:"XPlat Code Coverage" \
               --results-directory ./coverage/e2e \
               --settings "$E2E_RUNSETTINGS"
+            
+            TEST_EXIT_CODE=$?
+            if [ $TEST_EXIT_CODE -ne 0 ]; then
+              echo "❌ E2E tests failed with exit code $TEST_EXIT_CODE"
+              exit $TEST_EXIT_CODE
+            fi
           else
             echo "⚠️  E2E tests not found - skipping"
           fi
