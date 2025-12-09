@@ -202,15 +202,13 @@ public class AzureDocumentIntelligenceServiceTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        // Act & Assert
-        // Service passes the cancellation token to Azure SDK
-        // In unit test, the mock doesn't simulate cancellation behavior
-        // This test verifies the service accepts and uses the token without error
-        var exception = await Record.ExceptionAsync(async () =>
-            await _service.AnalyzeDocumentAsync(blobUrl, documentType, cts.Token));
+        // Act
+        var exception = await Record.ExceptionAsync(() =>
+            _service.AnalyzeDocumentAsync(blobUrl, documentType, cts.Token));
 
-        // No assertion on specific exception - Azure SDK mock behavior varies
-        // Real cancellation testing requires integration tests
-        Assert.True(true, "Service accepts cancellation token");
+        // Assert
+        // The service should handle a pre-canceled token without surfacing exceptions here.
+        // Real cancellation testing requires integration tests with actual Azure SDK behavior.
+        exception.Should().BeNull("the service should not throw synchronously when a canceled token is provided");
     }
 }
