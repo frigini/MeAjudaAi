@@ -27,6 +27,21 @@ public sealed class CepLookupServiceTests
         _openLoggerMock = new Mock<ILogger<OpenCepClient>>();
     }
 
+    private CepLookupService CreateService()
+    {
+        var httpClient = new HttpClient();
+        var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object);
+        var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object);
+        var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object);
+
+        return new CepLookupService(
+            viaClient,
+            brasilClient,
+            openClient,
+            _cacheMock.Object,
+            _loggerMock.Object);
+    }
+
     [Fact]
     public async Task LookupAsync_WhenCacheHit_ShouldReturnCachedAddress()
     {
@@ -49,17 +64,7 @@ public sealed class CepLookupServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(cachedAddress);
 
-        var httpClient = new HttpClient();
-        var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object);
-        var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object);
-        var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object);
-
-        var service = new CepLookupService(
-            viaClient,
-            brasilClient,
-            openClient,
-            _cacheMock.Object,
-            _loggerMock.Object);
+        var service = CreateService();
 
         // Act
         var result = await service.LookupAsync(cep);
@@ -93,17 +98,7 @@ public sealed class CepLookupServiceTests
                 (key, _, _, _, _, _) => capturedKey = key)
             .ReturnsAsync(address);
 
-        var httpClient = new HttpClient();
-        var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object);
-        var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object);
-        var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object);
-
-        var service = new CepLookupService(
-            viaClient,
-            brasilClient,
-            openClient,
-            _cacheMock.Object,
-            _loggerMock.Object);
+        var service = CreateService();
 
         // Act
         await service.LookupAsync(cep);
@@ -137,17 +132,7 @@ public sealed class CepLookupServiceTests
                 (_, _, expiration, _, _, _) => capturedExpiration = expiration)
             .ReturnsAsync(address);
 
-        var httpClient = new HttpClient();
-        var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object);
-        var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object);
-        var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object);
-
-        var service = new CepLookupService(
-            viaClient,
-            brasilClient,
-            openClient,
-            _cacheMock.Object,
-            _loggerMock.Object);
+        var service = CreateService();
 
         // Act
         await service.LookupAsync(cep);
@@ -181,17 +166,7 @@ public sealed class CepLookupServiceTests
                 (_, _, _, _, tags, _) => capturedTags = tags)
             .ReturnsAsync(address);
 
-        var httpClient = new HttpClient();
-        var viaClient = new ViaCepClient(httpClient, _viaLoggerMock.Object);
-        var brasilClient = new BrasilApiCepClient(httpClient, _brasilLoggerMock.Object);
-        var openClient = new OpenCepClient(httpClient, _openLoggerMock.Object);
-
-        var service = new CepLookupService(
-            viaClient,
-            brasilClient,
-            openClient,
-            _cacheMock.Object,
-            _loggerMock.Object);
+        var service = CreateService();
 
         // Act
         await service.LookupAsync(cep);

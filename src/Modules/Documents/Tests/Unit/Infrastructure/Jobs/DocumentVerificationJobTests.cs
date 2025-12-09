@@ -286,8 +286,9 @@ public sealed class DocumentVerificationJobTests
 
     [Theory]
     [InlineData(EDocumentStatus.Uploaded)]
+    [InlineData(EDocumentStatus.PendingVerification)]
     [InlineData(EDocumentStatus.Failed)]
-    public async Task ProcessDocumentAsync_ShouldMarkAsPendingVerification(EDocumentStatus initialStatus)
+    public async Task ProcessDocumentAsync_ShouldMarkAsVerified_WhenOcrSucceedsWithHighConfidence(EDocumentStatus initialStatus)
     {
         // Arrange
         var documentId = Guid.NewGuid();
