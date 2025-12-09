@@ -178,7 +178,7 @@ public class DocumentVerifiedDomainEventHandlerTests
     {
         // Arrange
         var domainEvent = new DocumentVerifiedDomainEvent(Guid.NewGuid(), 1, Guid.NewGuid(), EDocumentType.IdentityDocument, true);
-        var cts = new CancellationTokenSource();
+        using var cts = new CancellationTokenSource();
         var token = cts.Token;
 
         CancellationToken capturedToken = default;

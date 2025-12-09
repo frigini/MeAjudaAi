@@ -281,6 +281,7 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
         var password = "testpassword";
         var authResult = await _authenticationDomainService.AuthenticateAsync(username, password);
         authResult.IsSuccess.Should().BeTrue();
+        authResult.Value.Should().NotBeNull();
 
         // Act
         var validateResult = await _authenticationDomainService.ValidateTokenAsync(
@@ -301,6 +302,7 @@ public class LocalDevelopmentServicesIntegrationTests : UsersIntegrationTestBase
         // Act - Authenticate
         var authResult = await _authenticationDomainService.AuthenticateAsync(username, password);
         authResult.IsSuccess.Should().BeTrue();
+        authResult.Value.Should().NotBeNull();
 
         // Act - Validate the token
         var validateResult = await _authenticationDomainService.ValidateTokenAsync(

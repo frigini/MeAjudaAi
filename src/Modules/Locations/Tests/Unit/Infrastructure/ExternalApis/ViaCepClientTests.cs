@@ -83,10 +83,10 @@ public sealed class ViaCepClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAddressAsync_WhenApiReturnsInvalidJson_ShouldReturnNull()
+    public async Task GetAddressAsync_WhenApiReturnsInternalServerError_ShouldReturnNull()
     {
         // Arrange
-        var cep = Cep.Create("01001000")!;;
+        var cep = Cep.Create("01001000")!;
         _mockHandler.SetResponse(HttpStatusCode.InternalServerError, "");
 
         // Act
@@ -97,10 +97,10 @@ public sealed class ViaCepClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAddressAsync_WhenApiReturnsNotFound_ShouldReturnNull()
+    public async Task GetAddressAsync_WhenApiReturns404NotFound_ShouldReturnNull()
     {
         // Arrange
-        var cep = Cep.Create("00000000");
+        var cep = Cep.Create("00000000")!;
         _mockHandler.SetResponse(HttpStatusCode.NotFound, "");
 
         // Act
@@ -173,6 +173,7 @@ public sealed class ViaCepClientTests : IDisposable
 
         public void SetResponse(HttpStatusCode statusCode, string content)
         {
+            _responseMessage?.Dispose();
             _responseMessage = new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json")
@@ -182,6 +183,7 @@ public sealed class ViaCepClientTests : IDisposable
 
         public void SetException(Exception exception)
         {
+            _responseMessage?.Dispose();
             _exception = exception;
             _responseMessage = null;
         }

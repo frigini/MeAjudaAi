@@ -63,10 +63,10 @@ public sealed class OpenCepClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAddressAsync_WhenApiReturnsInvalidJson_ShouldReturnNull()
+    public async Task GetAddressAsync_WhenApiReturnsInternalServerError_ShouldReturnNull()
     {
         // Arrange
-        var cep = Cep.Create("01001000")!;;
+        var cep = Cep.Create("01001000")!;
         _mockHandler.SetResponse(HttpStatusCode.InternalServerError, "");
 
         // Act
@@ -137,6 +137,7 @@ public sealed class OpenCepClientTests : IDisposable
 
         public void SetResponse(HttpStatusCode statusCode, string content)
         {
+            _responseMessage?.Dispose();
             _responseMessage = new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json")
@@ -146,6 +147,7 @@ public sealed class OpenCepClientTests : IDisposable
 
         public void SetException(Exception exception)
         {
+            _responseMessage?.Dispose();
             _exception = exception;
             _responseMessage = null;
         }
