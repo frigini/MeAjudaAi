@@ -381,7 +381,7 @@ public class UsersModuleApiTests
         // Arrange
         _serviceProvider
             .Setup(sp => sp.GetService(typeof(HealthCheckService)))
-            .Returns(null);
+            .Returns((HealthCheckService?)null);
 
         // Act
         var result = await _sut.IsAvailableAsync();
