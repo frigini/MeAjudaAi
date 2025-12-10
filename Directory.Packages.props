@@ -188,12 +188,8 @@
     <PackageVersion Include="Testcontainers.Redis" Version="4.7.0" />
     <PackageVersion Include="Respawn" Version="6.2.1" />
     <!-- Aspire - 13.0.0 stable + preview (Keycloak/Testing) -->
-    <!-- TEMPORARY: Aspire.Npgsql.EntityFrameworkCore.PostgreSQL omitted due to EF Core 10.x incompatibility -->
-    <!--   Current: 9.5.2 requires EF Core 8.x, conflicts with our EF Core 10.0.0-rc.2 -->
-    <!--   TODO: Re-add when Aspire releases version supporting EF Core 10.x -->
-    <!--   Monitor: https://www.nuget.org/packages/Aspire.Npgsql.EntityFrameworkCore.PostgreSQL -->
-    <!--   To restore: <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.x.x" /> -->
     <!-- Aspire.Hosting.AppHost removido - incluído implicitamente pelo Aspire.AppHost.Sdk 13.0 -->
+    <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Azure.ServiceBus" Version="13.0.2" />
