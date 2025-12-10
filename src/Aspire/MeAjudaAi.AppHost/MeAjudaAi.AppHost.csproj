@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>6a599a9f-ccdf-4f96-b355-3aeec60dd18b</UserSecretsId>
+    <!-- Disable locked mode due to platform-specific Aspire.Dashboard.Sdk dependencies -->
+    <RestoreLockedMode>false</RestoreLockedMode>
   </PropertyGroup>
 
   <ItemGroup>

@@ -99,7 +99,7 @@ jobs:
           sudo apt-get install -y postgresql-client
 
       - name: 🔧 Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate
+        run: dotnet restore MeAjudaAi.sln
 
       - name: Build solution
         run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
@@ -298,11 +298,13 @@ jobs:
             #   - Migrations: [*]*Migrations* (any class/namespace containing "Migrations")
             #   - Database: [*]*.Database (database-related generated code)
             #   - Contracts: [*]*.Contracts (DTOs, no logic to test)
+            #   - DbContextFactory: [*]*DbContextFactory* (EF Core design-time factories)
+            #   - Program: [*]*.Program (application entry points)
             #   - OpenApi generated: [*Microsoft.AspNetCore.OpenApi.Generated*]*
             #   - Compiler services: [*System.Runtime.CompilerServices*]*
             #   - Regex generator: [*System.Text.RegularExpressions.Generated*]*
-            EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*,[*]*Migrations*,[*]*.Database,[*]*.Contracts,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*"
-            EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs,**/Migrations/**/*.cs,**/Database/*.cs"
+            EXCLUDE_FILTER="[*.Tests*]*,[*Test*]*,[testhost]*,[*]*Migrations*,[*]*.Database,[*]*.Contracts,[*]*DbContextFactory*,[*]*.Program,[*Microsoft.AspNetCore.OpenApi.Generated*]*,[*System.Runtime.CompilerServices*]*,[*System.Text.RegularExpressions.Generated*]*"
+            EXCLUDE_BY_FILE="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs,**/Migrations/*.cs,**/Migrations/**/*.cs,**/Database/*.cs,**/*DbContextFactory.cs,**/Program.cs"
 
             echo "  Include: $INCLUDE_FILTER"
             echo "  Exclude: $EXCLUDE_FILTER"
@@ -584,8 +586,8 @@ jobs:
           # ReportGenerator filter syntax: semicolon-separated, +/- prefix, no brackets
           # Include main assemblies (use wildcards for all module components)
           INCLUDE_FILTER="+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*"
-          # CRITICAL: Exclude .Tests assemblies, Migrations, infrastructure classes
-          EXCLUDE_FILTER="-*.Tests;-*.Tests.*;-*Test*;-testhost;-xunit*;-*.Migrations.*;-*.Contracts;-*.Database;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
+          # CRITICAL: Exclude .Tests assemblies, Migrations, infrastructure classes, Program.cs, DbContextFactory
+          EXCLUDE_FILTER="-*.Tests;-*.Tests.*;-*Test*;-testhost;-xunit*;-*.Migrations.*;-*.Contracts;-*.Database;-*DbContextFactory;-*.Program;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
           
           reportgenerator \
             -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml" \
@@ -927,7 +929,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate
+        run: dotnet restore MeAjudaAi.sln
 
       - name: Run Security Audit
         run: dotnet list package --vulnerable --include-transitive

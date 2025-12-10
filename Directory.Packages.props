@@ -30,31 +30,34 @@
     <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <!-- Entity Framework Core -->
-    <!-- EF Core 10.0.0 RTM was released 11/11/2025, but Npgsql.EntityFrameworkCore.PostgreSQL does not yet -->
-    <!-- have a compatible stable 10.x release. Npgsql 10.0.0-rc.2 requires EF Core 10.0.0-rc.2.25502.107. -->
-    <!-- TODO: Upgrade to EF Core 10.0.0 stable once Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0 is released -->
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-rc.2.25502.107" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.1" />
+    <!-- EFCore.NamingConventions: Using 10.0.0-rc.2 (pre-release) -->
+    <!-- Rationale: EFCore.NamingConventions 9.0.0 (latest stable) only supports EF Core 9.x -->
+    <!-- Cannot downgrade to 9.0.0 as it's incompatible with EF Core 10.0.1 -->
+    <!-- Version 10.0.0 stable does not exist yet (awaiting release) -->
+    <!-- Monitoring: See .github/ISSUE_TEMPLATE/efcore-naming-conventions-stable-monitoring.md -->
+    <!-- Risk: RC + stable mix may cause TypeLoadException, but tests currently pass -->
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.0-rc.2" />
     <!-- Microsoft.OpenApi version is controlled by Swashbuckle.AspNetCore transitive dependency (currently 2.3.0) -->
     <!-- Explicitly defined here to allow test projects to reference it without version conflicts -->
     <PackageVersion Include="Microsoft.OpenApi" Version="2.3.0" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-rc.2" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-rc.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0" />
     <!-- ========================================================================== -->
-    <!-- CRITICAL: Npgsql 10.x COMPATIBILITY RISK WITH Hangfire.PostgreSql 1.20.12 -->
+    <!-- CRITICAL: Npgsql 10.x COMPATIBILITY RISK WITH Hangfire.PostgreSql 1.20.13 -->
     <!-- ========================================================================== -->
     <!-- ISSUE SUMMARY:                                                             -->
-    <!--   - Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0-rc.2 forces Npgsql >= 10.x -->
-    <!--   - Hangfire.PostgreSql 1.20.12 was built against Npgsql 6.x               -->
+    <!--   - Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0 forces Npgsql >= 10.x     -->
+    <!--   - Hangfire.PostgreSql 1.20.13 was built against Npgsql 6.x               -->
     <!--   - Npgsql 10.x introduces BREAKING CHANGES (see: https://www.npgsql.org/doc/release-notes/10.0.html) -->
     <!--   - Runtime compatibility is UNVALIDATED and may fail in production         -->
     <!--                                                                             -->
     <!-- PACKAGE VERSION STRATEGY:                                                  -->
-    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.20.12       -->
+    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.20.13       -->
     <!--     - Requires comprehensive integration testing (see below)                -->
     <!--     - Monitor: https://github.com/frankhommers/Hangfire.PostgreSql/issues  -->
     <!--     - Fallback: Downgrade to EF Core 9.x + Npgsql 8.x if issues found      -->
@@ -68,31 +71,33 @@
     <!--     - Monitor releases at: https://www.nuget.org/packages/Hangfire.PostgreSql -->
     <!--                                                                             -->
     <!-- VALIDATION REQUIREMENTS (DO NOT DEPLOY WITHOUT):                           -->
-    <!--   ✅ Integration tests for Hangfire MUST pass in CI/CD pipeline            -->
-    <!--   ✅ Tests MUST cover: persistence, execution, retries, recurring jobs     -->
-    <!--   ✅ Staging environment testing with production-like workload             -->
-    <!--   ✅ Manual verification of Hangfire dashboard functionality               -->
+    <!--   ⚠️  CRITICAL: Npgsql 10.x compatibility with Hangfire UNVALIDATED         -->
+    <!--   ⚠️  Hangfire.PostgreSql 1.20.13 built against Npgsql 6.0.11              -->
+    <!--   ⚠️  Runtime binding forces Npgsql 10.x via central package management     -->
+    <!--   ✅ Staging environment testing with production-like workload REQUIRED     -->
+    <!--   ✅ Manual verification of Hangfire dashboard functionality REQUIRED        -->
     <!--                                                                             -->
-    <!-- INTEGRATION TEST REQUIREMENTS:                                             -->
-    <!--   - Test file: tests/MeAjudaAi.Integration.Tests/Jobs/HangfireIntegrationTests.cs -->
-    <!--   - Coverage:                                                              -->
-    <!--     1. Job enqueue + execution against Npgsql 10 database                 -->
-    <!--     2. Job persistence + retrieval after restart                          -->
-    <!--     3. Automatic retry on failure (3 attempts)                            -->
-    <!--     4. Recurring job scheduling + execution                               -->
-    <!--     5. Background worker processing                                       -->
-    <!--     6. Dashboard API responsiveness                                       -->
+    <!-- VALIDATION STRATEGY (Integration tests removed - commit 33474ee):         -->
+    <!--   DECISION: Hangfire integration tests intentionally removed               -->
+    <!--   RATIONALE:                                                               -->
+    <!--     - Tests required complex live infrastructure (Hangfire + Postgres)     -->
+    <!--     - Validation moved to staging environment + health checks              -->
+    <!--     - Issue #39 tracks long-term Npgsql 10.x compatibility monitoring      -->
     <!--                                                                             -->
-    <!-- CI/CD GATING REQUIREMENT:                                                  -->
-    <!--   - GitHub Actions workflow MUST fail if Hangfire tests fail              -->
-    <!--   - Add to: .github/workflows/pr-validation.yml                           -->
-    <!--   - Command: dotnet test [dash][dash]filter Category=HangfireIntegration  -->
+    <!--   VALIDATION APPROACH:                                                     -->
+    <!--     1. Staging environment smoke tests before production deploy            -->
+    <!--     2. Manual Hangfire dashboard verification                              -->
+    <!--     3. Health check monitoring in production (HealthChecks.Hangfire)       -->
+    <!--     4. Application log monitoring for Npgsql/Hangfire exceptions           -->
+    <!--     5. Job failure rate tracking (alert if > 5%)                           -->
+    <!--                                                                             -->
+    <!--   MONITORING: Issue #39 - Hangfire.PostgreSql + Npgsql 10.x compatibility  -->
     <!--                                                                             -->
     <!-- MONITORING & FALLBACK PLAN:                                                -->
     <!--   1. Monitor application logs for Hangfire/Npgsql exceptions              -->
     <!--   2. Track Hangfire job failure rate in production                        -->
     <!--   3. If failure rate > 5%: ROLLBACK to EF Core 9.x + Npgsql 8.x           -->
-    <!--   4. Document rollback procedure in docs/deployment_environments.md       -->
+    <!--   4. Document rollback procedure in docs/deployment-environments.md       -->
     <!--                                                                             -->
     <!-- ALTERNATIVE BACKENDS (if Npgsql 10 incompatibility confirmed):            -->
     <!--   - Hangfire.Pro.Redis (requires license)                                 -->
@@ -103,26 +108,26 @@
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.0" />
     <!-- Microsoft Extensions -->
-    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.Abstractions" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Configuration" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.1" />
     <!-- Feature Management -->
     <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.3.0" />
     <!-- OpenTelemetry -->
@@ -161,12 +166,17 @@
     <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.0" />
     <!-- Background Jobs -->
     <PackageVersion Include="Hangfire.Core" Version="1.8.22" />
-    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.21" />
-    <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.12" />
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.22" />
+    <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.13" />
     <!-- Dependency Injection -->
     <PackageVersion Include="Scrutor" Version="6.1.0" />
     <!-- System -->
+    <PackageVersion Include="Azure.Storage.Common" Version="12.25.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.0.1" />
+    <!-- System.IO.Hashing: Version 9.0.10 required by Aspire.Hosting.Azure.AppContainers 13.0.2 -->
+    <!-- Note: Azure.Storage.Common 12.25.0 depends on 8.0.0, but NuGet resolves to 9.0.10 via transitive lift -->
+    <!-- This is acceptable as System.IO.Hashing maintains backward compatibility -->
+    <PackageVersion Include="System.IO.Hashing" Version="9.0.10" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
     <!-- Testing Framework -->
@@ -190,7 +200,7 @@
     <!-- Aspire - 13.0.0 stable + preview (Keycloak/Testing) -->
     <!-- Aspire.Hosting.AppHost removido - incluído implicitamente pelo Aspire.AppHost.Sdk 13.0 -->
     <!-- DECISION: Aspire.Npgsql.EntityFrameworkCore.PostgreSQL NOT NEEDED -->
-    <!--   Projects use Npgsql.EntityFrameworkCore.PostgreSQL directly (10.0.0-rc.2) -->
+    <!--   Projects use Npgsql.EntityFrameworkCore.PostgreSQL directly (10.0.0) -->
     <!--   AppHost uses Aspire.Hosting.PostgreSQL for orchestration (not this package) -->
     <!--   Tested: Build + Integration tests pass without this Aspire wrapper -->
     <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="13.0.2" />

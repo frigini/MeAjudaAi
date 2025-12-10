@@ -21,6 +21,9 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
     private readonly ProvidersDbContext _context;
     private readonly ProviderRegisteredDomainEventHandler _handler;
 
+    /// <summary>
+    /// Initializes the message bus mock, in-memory ProvidersDbContext, and the ProviderRegisteredDomainEventHandler under test with NullLogger.
+    /// </summary>
     public ProviderRegisteredDomainEventHandlerTests()
     {
         _messageBusMock = new Mock<IMessageBus>();

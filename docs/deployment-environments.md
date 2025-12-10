@@ -33,11 +33,12 @@ This document describes the different deployment environments available for the 
 **BEFORE deploying to ANY environment**, ensure ALL critical compatibility validations pass.
 
 For detailed Hangfire + Npgsql 10.x compatibility validation procedures, see the dedicated guide:
-📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)**
+📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)** _integration tests removed — validation via staging + health checks_
 
 **Quick Checklist** (see full guide for details):
-- [ ] All Hangfire integration tests pass (`dotnet test --filter Category=HangfireIntegration`)
-- [ ] Manual validation in staging complete
+- [ ] ⚠️ **CRITICAL**: Staging smoke tests with Hangfire job execution (Npgsql 10.x UNVALIDATED)
+- [ ] Manual Hangfire dashboard verification in staging
+- [ ] Health check monitoring configured (HealthChecks.Hangfire)
 - [ ] Monitoring configured (alerts, dashboards)
 - [ ] Rollback procedure tested
 - [ ] Team trained and stakeholders notified
@@ -80,7 +81,7 @@ Each environment requires specific configuration:
 - Database performance degrades significantly
 
 For detailed rollback procedures and troubleshooting:
-📖 **Hangfire Npgsql Compatibility** (integration tests removed - monitoring via health checks)
+📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)** _integration tests removed — monitor via health checks_
 
 **Quick Rollback Steps**:
 
@@ -113,7 +114,7 @@ For detailed rollback procedures and troubleshooting:
 ### Critical Monitoring
 
 For comprehensive Hangfire + background jobs monitoring, see:
-📖 **Hangfire Npgsql Compatibility - Monitoring** (integration tests removed - monitoring via health checks)
+📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)** _integration tests removed — monitor via health checks_
 
 **Key Metrics** (see guide for queries and alert configuration):
 1. **Job Failure Rate**: Alert if >5% → Investigate and consider rollback
