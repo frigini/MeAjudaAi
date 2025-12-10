@@ -68,10 +68,11 @@
     <!--     - Monitor releases at: https://www.nuget.org/packages/Hangfire.PostgreSql -->
     <!--                                                                             -->
     <!-- VALIDATION REQUIREMENTS (DO NOT DEPLOY WITHOUT):                           -->
-    <!--   ✅ Integration tests for Hangfire MUST pass in CI/CD pipeline            -->
-    <!--   ✅ Tests MUST cover: persistence, execution, retries, recurring jobs     -->
-    <!--   ✅ Staging environment testing with production-like workload             -->
-    <!--   ✅ Manual verification of Hangfire dashboard functionality               -->
+    <!--   ⚠️  CRITICAL: Npgsql 10.x compatibility with Hangfire UNVALIDATED         -->
+    <!--   ⚠️  Hangfire.PostgreSql 1.20.13 built against Npgsql 6.0.11              -->
+    <!--   ⚠️  Runtime binding forces Npgsql 10.x via central package management     -->
+    <!--   ✅ Staging environment testing with production-like workload REQUIRED     -->
+    <!--   ✅ Manual verification of Hangfire dashboard functionality REQUIRED        -->
     <!--                                                                             -->
     <!-- VALIDATION STRATEGY (Integration tests removed - commit 33474ee):         -->
     <!--   DECISION: Hangfire integration tests intentionally removed               -->
