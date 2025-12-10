@@ -1,0 +1,99 @@
+---
+name: Fix Aspire Lockfiles (Linux)
+
+# This workflow regenerates Aspire platform-specific lockfiles on Linux
+# to ensure cross-platform compatibility with CI/CD pipelines.
+# 
+# Why this is needed:
+# - Aspire.Dashboard.Sdk has platform-specific runtime dependencies (linux-x64, win-x64)
+# - Lockfiles generated on Windows don't include linux-x64 dependencies
+# - This causes NU1004 errors when restoring in locked mode on Linux CI
+#
+# Manual trigger only - run when NU1004 errors occur in CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to fix (defaults to current branch)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate-lockfiles:
+    name: Regenerate Aspire Lockfiles on Linux
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 🔧 Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      
+      - name: 📋 Display current platform info
+        run: |
+          echo "🖥️  Running on: $(uname -s) $(uname -m)"
+          echo "📦 .NET SDK: $(dotnet --version)"
+          echo "📂 Working directory: $(pwd)"
+          echo "🌿 Branch: ${{ inputs.branch || github.ref_name }}"
+      
+      - name: 🔄 Regenerate Aspire lockfiles
+        run: |
+          chmod +x build/regenerate-aspire-lockfiles.ps1
+          pwsh build/regenerate-aspire-lockfiles.ps1 -Force
+      
+      - name: 🧪 Validate lockfiles with locked mode
+        run: dotnet restore MeAjudaAi.sln --locked-mode
+      
+      - name: 📊 Show changes
+        run: |
+          echo "📝 Modified lockfiles:"
+          git status --porcelain | grep packages.lock.json || echo "   No changes detected"
+          
+          if git diff --quiet **/*.lock.json; then
+            echo "ℹ️  No lockfile changes - nothing to commit"
+          else
+            echo ""
+            echo "📊 Diff summary:"
+            git diff --stat **/*.lock.json
+          fi
+      
+      - name: 💾 Commit and push changes
+        run: |
+          if git diff --quiet **/*.lock.json; then
+            echo "✅ No changes to commit - lockfiles already up-to-date"
+            exit 0
+          fi
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add src/Aspire/MeAjudaAi.AppHost/packages.lock.json
+          git add tests/MeAjudaAi.Integration.Tests/packages.lock.json
+          git add tests/MeAjudaAi.E2E.Tests/packages.lock.json
+          
+          git commit -m "chore: regenerate Aspire lockfiles for Linux compatibility
+
+          - Regenerated packages.lock.json for AppHost, Integration.Tests, E2E.Tests
+          - Ensures cross-platform compatibility with ubuntu-latest CI runners
+          - Fixes NU1004 errors caused by missing Aspire.Dashboard.Sdk.linux-x64
+          
+          Generated on: ubuntu-latest
+          Branch: ${{ inputs.branch || github.ref_name }}
+          Workflow: ${{ github.workflow }}
+          Run: ${{ github.run_number }}"
+          
+          git push origin ${{ inputs.branch || github.ref_name }}
+          
+          echo "✅ Changes committed and pushed successfully!"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
