@@ -45,16 +45,16 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-rc.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-rc.2" />
     <!-- ========================================================================== -->
-    <!-- CRITICAL: Npgsql 10.x COMPATIBILITY RISK WITH Hangfire.PostgreSql 1.20.12 -->
+    <!-- CRITICAL: Npgsql 10.x COMPATIBILITY RISK WITH Hangfire.PostgreSql 1.20.13 -->
     <!-- ========================================================================== -->
     <!-- ISSUE SUMMARY:                                                             -->
     <!--   - Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0-rc.2 forces Npgsql >= 10.x -->
-    <!--   - Hangfire.PostgreSql 1.20.12 was built against Npgsql 6.x               -->
+    <!--   - Hangfire.PostgreSql 1.20.13 was built against Npgsql 6.x               -->
     <!--   - Npgsql 10.x introduces BREAKING CHANGES (see: https://www.npgsql.org/doc/release-notes/10.0.html) -->
     <!--   - Runtime compatibility is UNVALIDATED and may fail in production         -->
     <!--                                                                             -->
     <!-- PACKAGE VERSION STRATEGY:                                                  -->
-    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.20.12       -->
+    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.20.13       -->
     <!--     - Requires comprehensive integration testing (see below)                -->
     <!--     - Monitor: https://github.com/frankhommers/Hangfire.PostgreSql/issues  -->
     <!--     - Fallback: Downgrade to EF Core 9.x + Npgsql 8.x if issues found      -->
@@ -94,7 +94,7 @@
     <!--   1. Monitor application logs for Hangfire/Npgsql exceptions              -->
     <!--   2. Track Hangfire job failure rate in production                        -->
     <!--   3. If failure rate > 5%: ROLLBACK to EF Core 9.x + Npgsql 8.x           -->
-    <!--   4. Document rollback procedure in docs/deployment_environments.md       -->
+    <!--   4. Document rollback procedure in docs/deployment-environments.md       -->
     <!--                                                                             -->
     <!-- ALTERNATIVE BACKENDS (if Npgsql 10 incompatibility confirmed):            -->
     <!--   - Hangfire.Pro.Redis (requires license)                                 -->
