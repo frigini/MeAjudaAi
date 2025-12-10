@@ -456,8 +456,8 @@
           "Microsoft.AspNetCore.OpenApi": "[10.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.0-rc.2.25502.107, )",
           "Microsoft.EntityFrameworkCore.Design": "[10.0.0-rc.2.25502.107, )",
-          "Microsoft.Extensions.Caching.Hybrid": "[10.0.0, )",
-          "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.0, )",
+          "Microsoft.Extensions.Caching.Hybrid": "[10.1.0, )",
+          "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.1, )",
           "Microsoft.FeatureManagement.AspNetCore": "[4.3.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0-rc.2, )",
           "RabbitMQ.Client": "[7.2.0, )",
@@ -644,15 +644,15 @@
       },
       "Microsoft.Extensions.Caching.Hybrid": {
         "type": "CentralTransitive",
-        "requested": "[10.0.0, )",
-        "resolved": "10.0.0",
-        "contentHash": "xvhmF2dlwC3e8KKSuWOjJkjQdKG80991CUqjDnqzV1Od0CgMqbDw49kGJ9RiGrp3nbLTYCSb3c+KYo6TcENYRw=="
+        "requested": "[10.1.0, )",
+        "resolved": "10.1.0",
+        "contentHash": "mcqlFN2TidtsD/ZUs+m5Xbj9oyNFtlHrawSp57DS8Pq6/Gf316sdSLdoo8i4LfQX5MFPQRdTMKddAQtfZ1uXxQ=="
       },
       "Microsoft.Extensions.Caching.StackExchangeRedis": {
         "type": "CentralTransitive",
-        "requested": "[10.0.0, )",
-        "resolved": "10.0.0",
-        "contentHash": "LTduPLaoP8T8I/SEKTEks7a7ZCnqlGmX6/7Y4k/nFlbKFsv8oLxhLQ44ktF9ve0lAmEGkLuuvRhunG/LQuhP7Q==",
+        "requested": "[10.0.1, )",
+        "resolved": "10.0.1",
+        "contentHash": "M7+349/EtaszydCxz/vtj4fUgbwE6NfDAfh98+oeWHPdBthgWKDCdnFV92p9UtyFN8Ln0e0w1ZzJvvbNzpMtaQ==",
         "dependencies": {
           "StackExchange.Redis": "2.7.27"
         }
