@@ -49,7 +49,7 @@ jobs:
 
       - name: Update Issue #38 with findings
         if: steps.check-nuget.outputs.found == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const issueNumber = 38;
@@ -105,7 +105,7 @@ jobs:
 
       - name: No new version - update status
         if: steps.check-nuget.outputs.found == 'false' && github.event_name == 'workflow_dispatch'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const issueNumber = 38;
@@ -185,7 +185,7 @@ jobs:
 
       - name: Update Issue #39 - v2.x Found
         if: steps.check-hangfire.outputs.found == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const issueNumber = 39;
@@ -247,7 +247,7 @@ jobs:
 
       - name: Update Issue #39 - Status Check
         if: steps.check-hangfire.outputs.found == 'false' && steps.check-github.outputs.related_issues == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const issueNumber = 39;

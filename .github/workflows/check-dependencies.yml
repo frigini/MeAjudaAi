@@ -56,7 +56,7 @@ jobs:
 
       - name: Create Issue if outdated packages found
         if: steps.check.outputs.outdated_found == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
