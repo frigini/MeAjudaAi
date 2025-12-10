@@ -39,7 +39,7 @@ jobs:
 
       - name: Notify Issue #38 of activity
         if: steps.search-aspire.outputs.found == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const commits = `${{ steps.search-aspire.outputs.commits }}`;
@@ -94,7 +94,7 @@ jobs:
 
       - name: Notify Issue #39 of activity
         if: steps.search-hangfire.outputs.found == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const items = `${{ steps.search-hangfire.outputs.items }}`;
@@ -128,7 +128,7 @@ jobs:
     if: github.event_name == 'schedule'
     steps:
       - name: Check if issues are stale
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const issues = [38, 39];
