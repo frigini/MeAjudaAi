@@ -196,6 +196,42 @@ public class UsersModuleApiTests
         result.Value.Should().BeNull();
     }
 
+    [Fact]
+    public async Task GetUserByEmailAsync_WithNullEmail_ShouldReturnFailure()
+    {
+        // Arrange
+        string? email = null;
+
+        _getUserByEmailHandler
+            .Setup(h => h.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Failure(Error.Validation("Email cannot be null or empty")));
+
+        // Act
+        var result = await _sut.GetUserByEmailAsync(email!);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Value.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetUserByEmailAsync_WithEmptyEmail_ShouldReturnFailure()
+    {
+        // Arrange
+        var email = string.Empty;
+
+        _getUserByEmailHandler
+            .Setup(h => h.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Failure(Error.Validation("Email cannot be null or empty")));
+
+        // Act
+        var result = await _sut.GetUserByEmailAsync(email);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Value.Should().BeNull();
+    }
+
     #endregion
 
     #region GetUserByUsernameAsync
@@ -498,11 +534,13 @@ public class UsersModuleApiTests
 
     #region Helper Methods
 
+    private const int TestUsernameLength = 10;
+
     private static UserDto CreateUserDto(Guid id, string? email = null)
     {
         return new UserDto(
             Id: id,
-            Username: $"user_{id:N}".Substring(0, 10),
+            Username: $"user_{id:N}".Substring(0, TestUsernameLength),
             Email: email ?? $"user_{id:N}@example.com",
             FirstName: "Test",
             LastName: "User",

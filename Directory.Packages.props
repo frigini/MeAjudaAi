@@ -35,6 +35,12 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.1" />
+    <!-- EFCore.NamingConventions: Using 10.0.0-rc.2 (pre-release) -->
+    <!-- Rationale: EFCore.NamingConventions 9.0.0 (latest stable) only supports EF Core 9.x -->
+    <!-- Cannot downgrade to 9.0.0 as it's incompatible with EF Core 10.0.1 -->
+    <!-- Version 10.0.0 stable does not exist yet (awaiting release) -->
+    <!-- Monitoring: See .github/ISSUE_TEMPLATE/efcore-naming-conventions-stable-monitoring.md -->
+    <!-- Risk: RC + stable mix may cause TypeLoadException, but tests currently pass -->
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.0-rc.2" />
     <!-- Microsoft.OpenApi version is controlled by Swashbuckle.AspNetCore transitive dependency (currently 2.3.0) -->
     <!-- Explicitly defined here to allow test projects to reference it without version conflicts -->
@@ -167,6 +173,9 @@
     <!-- System -->
     <PackageVersion Include="Azure.Storage.Common" Version="12.25.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.0.1" />
+    <!-- System.IO.Hashing: Version 9.0.10 required by Aspire.Hosting.Azure.AppContainers 13.0.2 -->
+    <!-- Note: Azure.Storage.Common 12.25.0 depends on 8.0.0, but NuGet resolves to 9.0.10 via transitive lift -->
+    <!-- This is acceptable as System.IO.Hashing maintains backward compatibility -->
     <PackageVersion Include="System.IO.Hashing" Version="9.0.10" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
