@@ -72,50 +72,101 @@ jobs:
           postgres-user: ${{ secrets.POSTGRES_USER || 'postgres' }}
           postgres-password: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
 
-      - name: Run tests
+      - name: Run unit tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
-          # Map connection strings to .NET configuration using double underscore
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
-          echo "🧪 Executando todos os testes..."
+          set -e  # Exit immediately if any command fails
+          
+          # Define exclude patterns for coverage (files and assemblies)
+          # Excludes: Migrations, Database, Contracts, OpenApi generated, compiler services, regex generator
+          EXCLUDE_PATTERNS="**/Migrations/*.cs,**/Database/*.cs,**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+          EXCLUDE_ASSEMBLIES="[*.Tests*]*,[*Test*]*,[testhost]*,[*]*.Migrations.*,[*]*.Database,[*]*.Contracts"
 
-          # Executar testes unitários e de arquitetura
+          echo "================================"
+          echo "🧪 UNIT TESTS WITH COVERAGE"
+          echo "================================"
+
+          echo "▶️ Running Shared and Architecture tests..."
           dotnet test tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Shared
+            --collect:"XPlat Code Coverage" --results-directory TestResults/Shared \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
+
           dotnet test tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Architecture
-          # Executar testes de integração
-          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
+            --collect:"XPlat Code Coverage" --results-directory TestResults/Architecture \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
+
+          dotnet test tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Integration
-          # Executar testes de módulos
-          echo "🧪 Executando testes de módulos..."
+            --collect:"XPlat Code Coverage" --results-directory TestResults/ApiService \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
+
+          echo "🧪 Running module tests..."
           dotnet test src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Users
+            --collect:"XPlat Code Coverage" --results-directory TestResults/Users \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
+
           dotnet test src/Modules/Documents/Tests/MeAjudaAi.Modules.Documents.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Documents
+            --collect:"XPlat Code Coverage" --results-directory TestResults/Documents \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
+
           dotnet test src/Modules/Providers/Tests/MeAjudaAi.Modules.Providers.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/Providers
+            --collect:"XPlat Code Coverage" --results-directory TestResults/Providers \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
+
           dotnet test src/Modules/ServiceCatalogs/Tests/MeAjudaAi.Modules.ServiceCatalogs.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/ServiceCatalogs
+            --collect:"XPlat Code Coverage" --results-directory TestResults/ServiceCatalogs \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
 
-          # Executar testes E2E
-          echo "🔍 Executando testes E2E..."
-          dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
+          dotnet test src/Modules/Locations/Tests/MeAjudaAi.Modules.Locations.Tests.csproj \
             --configuration Release --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" --results-directory TestResults/E2E
+            --collect:"XPlat Code Coverage" --results-directory TestResults/Locations \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
 
-          echo "✅ Todos os testes executados com sucesso"
+          dotnet test src/Modules/SearchProviders/Tests/MeAjudaAi.Modules.SearchProviders.Tests.csproj \
+            --configuration Release --no-build --verbosity normal \
+            --collect:"XPlat Code Coverage" --results-directory TestResults/SearchProviders \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="$EXCLUDE_PATTERNS"
+
+      - name: Run integration tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+        run: |
+          set -e  # Exit immediately if any command fails
+          
+          echo "================================"
+          echo "🔗 INTEGRATION TESTS (NO COVERAGE)"
+          echo "================================"
+          dotnet test tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj \
+            --configuration Release --no-build --verbosity normal
+
+      - name: Run E2E tests
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
+          ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
+        run: |
+          set -e  # Exit immediately if any command fails
+          
+          echo "================================"
+          echo "🌐 E2E TESTS (NO COVERAGE)"
+          echo "================================"
+          dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
+            --configuration Release --no-build --verbosity normal
 
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
@@ -123,11 +174,21 @@ jobs:
       - name: Generate Code Coverage Report
         run: |
           reportgenerator \
-            -reports:"TestResults/**/coverage.cobertura.xml" \
+            -reports:"TestResults/Shared/**/coverage.cobertura.xml;\
+          TestResults/Architecture/**/coverage.cobertura.xml;\
+          TestResults/ApiService/**/coverage.cobertura.xml;\
+          TestResults/Users/**/coverage.cobertura.xml;\
+          TestResults/Documents/**/coverage.cobertura.xml;\
+          TestResults/Providers/**/coverage.cobertura.xml;\
+          TestResults/ServiceCatalogs/**/coverage.cobertura.xml;\
+          TestResults/Locations/**/coverage.cobertura.xml;\
+          TestResults/SearchProviders/**/coverage.cobertura.xml" \
             -targetdir:"TestResults/Coverage" \
             -reporttypes:"Html;Cobertura;JsonSummary" \
-            -assemblyfilters:"-*.Tests*" \
-            -classfilters:"-*.Migrations*;-*OpenApi.Generated*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*"
+            -assemblyfilters:"-*.Tests*;-*Test*;-*.Migrations.*;-*.Database;-*.Contracts" \
+            -classfilters:"-*.Migrations.*;-*.Database.*;-*.Contracts.*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
+          # Note: Only UNIT test coverage is collected (Integration/E2E excluded for deterministic results)
+          # Excluded from coverage: Tests, Migrations, Database, Contracts, Metrics, Health Checks, Jobs, Program, AppHost, Keycloak, Monitoring, NoOp, RabbitMq, ServiceBus, Hangfire, Options, Design-time factories
 
       - name: Upload code coverage
         uses: actions/upload-artifact@v5
@@ -135,6 +196,9 @@ jobs:
         with:
           name: code-coverage
           path: "TestResults/Coverage/**/*"
+          retention-days: 7
+          compression-level: 6
+          if-no-files-found: warn
 
       - name: Upload test results
         uses: actions/upload-artifact@v5
@@ -142,6 +206,9 @@ jobs:
         with:
           name: test-results
           path: "**/TestResults/**/*"
+          retention-days: 7
+          compression-level: 6
+          if-no-files-found: warn
 
   # Job 2: Markdown Link Validation
   markdown-link-check:
@@ -251,6 +318,9 @@ jobs:
         with:
           name: infrastructure-outputs-dev
           path: infrastructure-outputs.json
+          retention-days: 30
+          compression-level: 6
+          if-no-files-found: error
 
       - name: Cleanup after test (if requested)
         if: github.event.inputs.cleanup_after_test == 'true'

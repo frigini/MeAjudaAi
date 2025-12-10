@@ -32,7 +32,7 @@ public partial class Program
             builder.Services.AddUsersModule(builder.Configuration);
             builder.Services.AddProvidersModule(builder.Configuration);
             builder.Services.AddDocumentsModule(builder.Configuration);
-            builder.Services.AddSearchProvidersModule(builder.Configuration);
+            builder.Services.AddSearchProvidersModule(builder.Configuration, builder.Environment);
             builder.Services.AddLocationModule(builder.Configuration);
             builder.Services.AddServiceCatalogsModule(builder.Configuration);
 

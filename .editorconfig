@@ -114,15 +114,18 @@ dotnet_diagnostic.CA2955.severity = none  # Use comparison to default(T) instead
 # =====================================
 # REGRAS ESPECÍFICAS PARA TESTES
 # =====================================
-[**/*Test*.cs,**/Tests/**/*.cs,**/tests/**/*.cs,**/MeAjudaAi.*.Tests/**/*.cs]
+[**/*Test*.cs,**/Tests/**/*.cs,**/tests/**/*.cs,**/MeAjudaAi.*.Tests/**/*.cs,**/Modules/**/Tests/**/*.cs]
 
 # Relaxar regras críticas APENAS em testes
 dotnet_diagnostic.CA2007.severity = none  # ConfigureAwait não necessário em testes
 dotnet_diagnostic.CA1031.severity = none  # Catch genérico OK em testes
 dotnet_diagnostic.CA1062.severity = none  # Validação de null menos crítica em testes
-dotnet_diagnostic.CA2000.severity = none  # Dispose pode ser relaxado em testes
 dotnet_diagnostic.CA5394.severity = suggestion  # Random pode ser usado em dados de teste
 dotnet_diagnostic.CA2100.severity = suggestion  # SQL dinâmico pode ser usado em testes
+
+# Nullable warnings em testes (intencionalmente testando cenários null)
+dotnet_diagnostic.CS8604.severity = none  # Possible null reference argument - OK em testes de validação
+dotnet_diagnostic.CS8625.severity = none  # Cannot convert null literal to non-nullable reference - OK em testes
 
 # Test-specific warnings (noise in test context)
 dotnet_diagnostic.CA1707.severity = none  # Remove underscores from member names (common in test methods)
@@ -158,7 +161,7 @@ dotnet_diagnostic.xUnit1012.severity = none  # Null should not be used for type 
 dotnet_diagnostic.xUnit1051.severity = none  # Use TestContext.Current.CancellationToken (755+ warnings, intentionally disabled)
 
 # Code analysis suppressions for test code
-dotnet_diagnostic.CA2000.severity = none  # Dispose objects before losing scope (false positives with StringContent in tests)
+dotnet_diagnostic.CA2000.severity = none  # Dispose objects before losing scope (false positives in test code like StringContent)
 
 # =====================================
 # IDE STYLE RULES (TODOS OS ARQUIVOS)

@@ -1,0 +1,8 @@
+root = false
+
+[*.cs]
+# Suprimir CA2000 em testes - HttpClient e outras instâncias IDisposable são limpas pelo GC
+dotnet_diagnostic.CA2000.severity = none
+
+# Suprimir CS8604 em testes - Null reference arguments são intencionais para testar validação
+dotnet_diagnostic.CS8604.severity = none

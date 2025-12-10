@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging.Strategy;
 
-namespace MeAjudaAi.Shared.Tests.UnitTests.Messaging.Strategy
+namespace MeAjudaAi.Shared.Tests.Unit.Messaging.Strategy
 {
     public class TopicStrategySelectorTests
     {

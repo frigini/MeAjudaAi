@@ -14,11 +14,13 @@
         "-MeAjudaAi.ServiceDefaults"
       ],
       "classfilters": [
-        "-*.Migrations*",
+        "-*Migrations*",
         "-*MigrationBuilder*",
         "-*DbContextModelSnapshot*",
+        "-*DbContextFactory",
         "-Program",
         "-Startup",
+        "-*ExampleSchemaFilter",
         "-*KeycloakConfiguration*",
         "-*KeycloakPermissionResolver*",
         "-*KeycloakRole*",

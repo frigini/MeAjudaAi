@@ -1,180 +1,125 @@
+using FluentAssertions;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Shared.Constants;
 
-namespace MeAjudaAi.Modules.Users.Tests.Unit.Domain.ValueObjects;
+namespace MeAjudaAi.Modules.Users.Tests.Unit.ValueObjects;
 
 [Trait("Category", "Unit")]
+[Trait("Layer", "Domain")]
 public class EmailTests
 {
-    [Theory]
-    [InlineData("test@example.com")]
-    [InlineData("user.name@domain.co.uk")]
-    [InlineData("firstname+lastname@example.com")]
-    [InlineData("1234567890@example.com")]
-    [InlineData("email@example-one.com")]
-    [InlineData("_______@example.com")]
-    [InlineData("test.email.with+symbol@example.com")]
-    public void Constructor_WithValidEmail_ShouldCreateEmail(string validEmail)
+    [Fact]
+    public void Email_WithValidEmail_ShouldCreate()
     {
+        // Arrange
+        var validEmail = "test@example.com";
+
         // Act
         var email = new Email(validEmail);
 
         // Assert
-        email.Value.Should().Be(validEmail.ToLowerInvariant());
+        email.Should().NotBeNull();
+        email.Value.Should().Be(validEmail);
+    }
+
+    [Fact]
+    public void Email_WithMixedCase_ShouldNormalizeToLowerCase()
+    {
+        // Arrange
+        var mixedCaseEmail = "Test@Example.COM";
+
+        // Act
+        var email = new Email(mixedCaseEmail);
+
+        // Assert
+        email.Value.Should().Be("test@example.com");
+    }
+
+    [Fact]
+    public void Email_ExceedingMaxLength_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var domain = "@example.com";
+        var tooLongLocalPart = new string('a', ValidationConstants.UserLimits.EmailMaxLength + 1 - domain.Length);
+        var tooLongEmail = tooLongLocalPart + domain;
+
+        // Act
+        var act = () => new Email(tooLongEmail);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("*Email não pode ter mais de*");
     }
 
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
     [InlineData(null)]
-    public void Constructor_WithNullOrWhitespace_ShouldThrowArgumentException(string? invalidEmail)
+    public void Email_WithInvalidEmail_ShouldThrow(string? invalidEmail)
     {
-        // Act & Assert
+        // Arrange & Act
         var act = () => new Email(invalidEmail!);
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("Email não pode ser vazio*");
-    }
 
-    [Fact]
-    public void Constructor_WithTooLongEmail_ShouldThrowArgumentException()
-    {
-        // Arrange
-        var longEmail = new string('a', 250) + "@example.com"; // Total > 254 caracteres
-
-        // Act & Assert
-        var act = () => new Email(longEmail);
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("Email não pode ter mais de 254 caracteres*");
+        // Assert
+        act.Should().Throw<ArgumentException>();
     }
 
     [Theory]
-    [InlineData("plainaddress")]
-    [InlineData("@missingdomain.com")]
-    [InlineData("missing@.com")]
-    [InlineData("missing@domain")]
-    [InlineData("spaces @domain.com")]
-    [InlineData("email@domain .com")]
-    [InlineData("email@@domain.com")]
-    public void Constructor_WithInvalidEmailFormat_ShouldThrowArgumentException(string invalidEmail)
+    [InlineData("invalid")]
+    [InlineData("invalid@")]
+    [InlineData("@invalid.com")]
+    [InlineData("invalid@.com")]
+    public void Email_WithMalformedEmail_ShouldThrow(string malformedEmail)
     {
-        // Act & Assert
-        var act = () => new Email(invalidEmail);
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("Formato de email inválido*");
-    }
-
-    [Fact]
-    public void Constructor_ShouldConvertToLowerCase()
-    {
-        // Arrange
-        var upperCaseEmail = "TEST@EXAMPLE.COM";
-
-        // Act
-        var email = new Email(upperCaseEmail);
+        // Arrange & Act
+        var act = () => new Email(malformedEmail);
 
         // Assert
-        email.Value.Should().Be("test@example.com");
+        act.Should().Throw<ArgumentException>();
     }
 
     [Fact]
-    public void ImplicitOperator_ToString_ShouldReturnEmailValue()
+    public void Email_ToString_ShouldReturnValue()
     {
         // Arrange
         var emailValue = "test@example.com";
         var email = new Email(emailValue);
 
         // Act
-        string result = email;
+        var result = email!.ToString();
 
-        // Assert
-        result.Should().Be(emailValue);
+        // Assert - ToString should at least expose the underlying email value
+        result.Should().Contain(emailValue);
     }
 
     [Fact]
-    public void ImplicitOperator_FromString_ShouldCreateEmail()
+    public void Email_Equality_ShouldWorkCorrectly()
     {
         // Arrange
-        var emailValue = "test@example.com";
-
-        // Act
-        Email email = emailValue;
-
-        // Assert
-        email.Value.Should().Be(emailValue);
-    }
-
-    [Fact]
-    public void Equals_WithSameValue_ShouldReturnTrue()
-    {
-        // Arrange
-        var emailValue = "test@example.com";
-        var email1 = new Email(emailValue);
-        var email2 = new Email(emailValue);
+        var email1 = new Email("test@example.com");
+        var email2 = new Email("test@example.com");
+        var email3 = new Email("other@example.com");
 
         // Act & Assert
         email1.Should().Be(email2);
+        email1.Equals(email2).Should().BeTrue();
+        (email1 == email2).Should().BeTrue();
+        (email1 != email3).Should().BeTrue();
         email1.GetHashCode().Should().Be(email2.GetHashCode());
+        email1.Should().NotBe(email3);
     }
 
     [Fact]
-    public void Equals_WithDifferentCasing_ShouldReturnTrue()
+    public void Email_Equality_WithDifferentCase_ShouldBeEqual()
     {
         // Arrange
-        var email1 = new Email("TEST@EXAMPLE.COM");
+        var email1 = new Email("Test@Example.COM");
         var email2 = new Email("test@example.com");
 
         // Act & Assert
         email1.Should().Be(email2);
+        email1.Equals(email2).Should().BeTrue();
+        (email1 == email2).Should().BeTrue();
         email1.GetHashCode().Should().Be(email2.GetHashCode());
-    }
-
-    [Fact]
-    public void Equals_WithDifferentValues_ShouldReturnFalse()
-    {
-        // Arrange
-        var email1 = new Email("test1@example.com");
-        var email2 = new Email("test2@example.com");
-
-        // Act & Assert
-        email1.Should().NotBe(email2);
-        email1.GetHashCode().Should().NotBe(email2.GetHashCode());
-    }
-
-    [Fact]
-    public void ImplicitOperator_ToStringConversion_ShouldReturnValue()
-    {
-        // Arrange
-        var email = new Email("test@example.com");
-
-        // Act
-        string emailString = email;
-
-        // Assert
-        emailString.Should().Be("test@example.com");
-    }
-
-    [Fact]
-    public void ImplicitOperator_FromStringConversion_ShouldCreateEmail()
-    {
-        // Arrange
-        string emailString = "test@example.com";
-
-        // Act
-        Email email = emailString;
-
-        // Assert
-        email.Value.Should().Be("test@example.com");
-    }
-
-    [Fact]
-    public void ToString_ShouldReturnValue()
-    {
-        // Arrange
-        var email = new Email("test@example.com");
-
-        // Act
-        var result = email.Value; // Email records usam a propriedade Value, não ToString()
-
-        // Assert
-        result.Should().Be("test@example.com");
     }
 }

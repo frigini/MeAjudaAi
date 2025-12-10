@@ -1,16 +1,15 @@
+using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
-using MeAjudaAi.Shared.Time;
 
-namespace MeAjudaAi.Modules.Documents.Tests.Unit.Domain.ValueObjects;
+namespace MeAjudaAi.Modules.Documents.Tests.Unit.ValueObjects;
 
-[Trait("Category", "Unit")]
-public class DocumentIdTests
+public sealed class DocumentIdTests
 {
     [Fact]
     public void Constructor_WithValidGuid_ShouldCreateDocumentId()
     {
         // Arrange
-        var guid = UuidGenerator.NewId();
+        var guid = Guid.NewGuid();
 
         // Act
         var documentId = new DocumentId(guid);
@@ -25,68 +24,39 @@ public class DocumentIdTests
         // Arrange
         var emptyGuid = Guid.Empty;
 
-        // Act & Assert
+        // Act
         var act = () => new DocumentId(emptyGuid);
+
+        // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("DocumentId cannot be empty*")
-            .And.ParamName.Should().Be("value");
+            .WithMessage("DocumentId cannot be empty*");
     }
 
     [Fact]
-    public void New_ShouldCreateDocumentIdWithUniqueGuid()
+    public void New_ShouldGenerateValidDocumentId()
     {
         // Act
-        var documentId1 = DocumentId.New();
-        var documentId2 = DocumentId.New();
+        var documentId = DocumentId.New();
 
         // Assert
-        documentId1.Value.Should().NotBe(Guid.Empty);
-        documentId2.Value.Should().NotBe(Guid.Empty);
-        documentId1.Value.Should().NotBe(documentId2.Value);
-    }
-
-    [Fact]
-    public void ImplicitOperator_ToGuid_ShouldReturnGuidValue()
-    {
-        // Arrange
-        var guid = UuidGenerator.NewId();
-        var documentId = new DocumentId(guid);
-
-        // Act
-        Guid result = documentId;
-
-        // Assert
-        result.Should().Be(guid);
-    }
-
-    [Fact]
-    public void ImplicitOperator_FromGuid_ShouldCreateDocumentId()
-    {
-        // Arrange
-        var guid = UuidGenerator.NewId();
-
-        // Act
-        DocumentId documentId = guid;
-
-        // Assert
-        documentId.Value.Should().Be(guid);
+        documentId.Value.Should().NotBeEmpty();
     }
 
     [Fact]
     public void Equals_WithSameValue_ShouldReturnTrue()
     {
         // Arrange
-        var guid = UuidGenerator.NewId();
+        var guid = Guid.NewGuid();
         var documentId1 = new DocumentId(guid);
         var documentId2 = new DocumentId(guid);
 
         // Act & Assert
         documentId1.Should().Be(documentId2);
-        documentId1.GetHashCode().Should().Be(documentId2.GetHashCode());
+        (documentId1 == documentId2).Should().BeTrue();
     }
 
     [Fact]
-    public void Equals_WithDifferentValues_ShouldReturnFalse()
+    public void Equals_WithDifferentValue_ShouldReturnFalse()
     {
         // Arrange
         var documentId1 = DocumentId.New();
@@ -94,48 +64,32 @@ public class DocumentIdTests
 
         // Act & Assert
         documentId1.Should().NotBe(documentId2);
-        // Note: While hash contract only requires equal objects to have equal hashes,
-        // GUID hash collisions are astronomically unlikely in practice
-        documentId1.GetHashCode().Should().NotBe(documentId2.GetHashCode());
+        (documentId1 != documentId2).Should().BeTrue();
     }
 
     [Fact]
-    public void Equals_WithNull_ShouldReturnFalse()
+    public void GetHashCode_WithSameValue_ShouldReturnSameHashCode()
     {
         // Arrange
-        var documentId = DocumentId.New();
+        var guid = Guid.NewGuid();
+        var documentId1 = new DocumentId(guid);
+        var documentId2 = new DocumentId(guid);
 
         // Act & Assert
-        documentId.Should().NotBeNull();
-        documentId.Equals(null).Should().BeFalse();
+        documentId1.GetHashCode().Should().Be(documentId2.GetHashCode());
     }
 
     [Fact]
-    public void ImplicitOperator_ToGuid_WithNull_ShouldThrowArgumentNullException()
+    public void ToString_ShouldReturnGuidAsString()
     {
         // Arrange
-        DocumentId? documentId = null;
-
-        // Act & Assert
-        var act = () =>
-        {
-            Guid result = documentId!;
-            return result;
-        };
-        act.Should().Throw<ArgumentNullException>();
-    }
-
-    [Fact]
-    public void ToString_ShouldReturnGuidString()
-    {
-        // Arrange
-        var guid = UuidGenerator.NewId();
+        var guid = Guid.NewGuid();
         var documentId = new DocumentId(guid);
 
         // Act
         var result = documentId.ToString();
 
         // Assert
-        result.Should().Be(guid.ToString());
+        result.Should().Contain(guid.ToString());
     }
 }

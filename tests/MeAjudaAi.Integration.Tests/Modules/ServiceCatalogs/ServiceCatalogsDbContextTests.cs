@@ -22,41 +22,9 @@ public class ServiceCatalogsDbContextTests : ApiTestBase
         dbContext.Should().NotBeNull("ServiceCatalogsDbContext should be registered in DI");
     }
 
-    [Fact]
-    public async Task ServiceCategories_Table_ShouldExist()
-    {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-
-        // Act
-        var canConnect = await dbContext.Database.CanConnectAsync();
-
-        // Assert
-        canConnect.Should().BeTrue("Database should be accessible");
-
-        // Check if we can query the table (will throw if table doesn't exist)
-        var count = await dbContext.ServiceCategories.CountAsync();
-        count.Should().BeGreaterThanOrEqualTo(0, "ServiceCategories table should exist");
-    }
-
-    [Fact]
-    public async Task Services_Table_ShouldExist()
-    {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-
-        // Act
-        var canConnect = await dbContext.Database.CanConnectAsync();
-
-        // Assert
-        canConnect.Should().BeTrue("Database should be accessible");
-
-        // Check if we can query the table
-        var count = await dbContext.Services.CountAsync();
-        count.Should().BeGreaterThanOrEqualTo(0, "Services table should exist");
-    }
+    // NOTE: ServiceCategories_Table_ShouldExist removed - trivial smoke test (just CountAsync >= 0)
+    // NOTE: Services_Table_ShouldExist removed - trivial smoke test (just CountAsync >= 0)
+    // Table existence validated by Database_ShouldAllowBasicOperations and foreign key tests
 
     [Fact]
     public void Services_ShouldHaveForeignKeyToServiceCategories()
@@ -74,19 +42,7 @@ public class ServiceCatalogsDbContextTests : ApiTestBase
         foreignKeys.Should().NotBeEmpty("Services table should have foreign key constraint to ServiceCategories");
     }
 
-    [Fact]
-    public void CatalogsSchema_ShouldExist()
-    {
-        // Arrange
-        using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
-
-        // Act
-        var defaultSchema = dbContext.Model.GetDefaultSchema();
-
-        // Assert
-        defaultSchema.Should().Be("meajudaai_service_catalogs", "ServiceCatalogs schema should exist in database");
-    }
+    // NOTE: CatalogsSchema_ShouldExist removed - trivial test, schema validated by all other tests
 
     [Fact]
     public async Task Database_ShouldAllowBasicOperations()

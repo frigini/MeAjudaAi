@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using FunctionalUnit = MeAjudaAi.Shared.Functional.Unit;
 
-namespace MeAjudaAi.Shared.Tests.UnitTests.Commands;
+namespace MeAjudaAi.Shared.Tests.Unit.Commands;
 
 public class CommandDispatcherTests : IDisposable
 {

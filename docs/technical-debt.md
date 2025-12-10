@@ -23,7 +23,7 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 1. ✅ Documentação detalhada de estratégia de versões em `Directory.Packages.props`
 2. ✅ Testes de integração abrangentes criados (`tests/MeAjudaAi.Integration.Tests/Jobs/HangfireIntegrationTests.cs`)
 3. ✅ CI/CD gating configurado (`.github/workflows/pr-validation.yml`)
-4. ✅ Guia de compatibilidade documentado (`docs/hangfire-npgsql-compatibility.md`)
+4. ✅ Guia de compatibilidade (removido - Hangfire integration tests deleted)
 5. ✅ Procedimentos de rollback documentados
 6. ✅ Plano de monitoramento de produção definido
 
@@ -69,7 +69,7 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 - [ ] Stakeholders notificados sobre o risco e plano de mitigação
 
 **Documentação**:
-- Guia completo: `docs/hangfire-npgsql-compatibility.md`
+- Guia completo: (removido - Hangfire integration tests deleted)
 - Testes: `tests/MeAjudaAi.Integration.Tests/Jobs/HangfireIntegrationTests.cs`
 - CI/CD: `.github/workflows/pr-validation.yml` (step "CRITICAL - Hangfire Npgsql 10.x Compatibility Tests")
 - Configuração: `Directory.Packages.props` (linhas 45-103)

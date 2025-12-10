@@ -4,71 +4,18 @@ using MeAjudaAi.E2E.Tests.Base;
 namespace MeAjudaAi.E2E.Tests.Integration;
 
 /// <summary>
-/// Testes de integração para endpoints do módulo Users
+/// Testes de integração E2E para endpoints do módulo Users
+/// Foca em cenários end-to-end complexos não cobertos por Integration tests
 /// </summary>
+/// <remarks>
+/// NOTE: Testes simples como GetUserById_WithNonExistentId, GetUserByEmail_WithNonExistentEmail,
+/// CreateUser_WithValidData e GetUsers básico foram removidos pois duplicam UsersIntegrationTests.cs
+/// E2E tests devem focar em workflows complexos e cenários de integração entre módulos.
+/// </remarks>
 public class UsersModuleTests : TestContainerTestBase
 {
-
-    [Fact]
-    public async Task GetUsers_ShouldReturnOkWithPaginatedResult()
-    {
-        // Arrange
-        AuthenticateAsAdmin();
-
-        // Act
-        var response = await ApiClient.GetAsync("/api/v1/users?pageNumber=1&pageSize=10");
-
-        // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.NotFound // Aceitável se ainda não existem usuários
-        );
-
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            content.Should().NotBeNullOrEmpty();
-
-            // Verifica se é JSON válido
-            var jsonDocument = System.Text.Json.JsonDocument.Parse(content);
-            jsonDocument.Should().NotBeNull();
-        }
-    }
-
-    [Fact]
-    public async Task CreateUser_WithValidData_ShouldReturnCreatedOrConflict()
-    {
-        // Arrange
-        AuthenticateAsAdmin(); // CreateUser requer role admin
-
-        var createUserRequest = new CreateUserRequest
-        {
-            Username = $"testuser_{Guid.NewGuid():N}",
-            Email = $"test_{Guid.NewGuid():N}@example.com",
-            FirstName = "Test",
-            LastName = "User"
-        };
-
-        // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, JsonOptions);
-
-        // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Created,      // Sucesso
-            HttpStatusCode.Conflict,     // Usuário já existe
-            HttpStatusCode.BadRequest    // Erro de validação
-        );
-
-        if (response.StatusCode == HttpStatusCode.Created)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            content.Should().NotBeNullOrEmpty();
-
-            var createdUser = System.Text.Json.JsonSerializer.Deserialize<CreateUserResponse>(content, JsonOptions);
-            createdUser.Should().NotBeNull();
-            createdUser!.UserId.Should().NotBeEmpty();
-        }
-    }
+    // NOTE: GetUsers_ShouldReturnOkWithPaginatedResult removed - duplicates UsersIntegrationTests.GetUsers_ShouldReturnUsersList
+    // NOTE: CreateUser_WithValidData_ShouldReturnCreatedOrConflict removed - duplicates UsersIntegrationTests.CreateUser_WithValidData_ShouldReturnCreated
 
     [Fact]
     public async Task CreateUser_WithInvalidData_ShouldReturnBadRequest()
@@ -90,33 +37,8 @@ public class UsersModuleTests : TestContainerTestBase
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    [Fact]
-    public async Task GetUserById_WithNonExistentId_ShouldReturnNotFound()
-    {
-        // Arrange
-        AuthenticateAsAdmin(); // GetUserById requer autorização "SelfOrAdmin"
-        var nonExistentId = Guid.CreateVersion7();
-
-        // Act
-        var response = await ApiClient.GetAsync($"/api/v1/users/{nonExistentId}");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task GetUserByEmail_WithNonExistentEmail_ShouldReturnNotFound()
-    {
-        // Arrange
-        AuthenticateAsAdmin(); // GetUserByEmail requer autorização "AdminOnly"
-        var nonExistentEmail = $"nonexistent_{Guid.NewGuid():N}@example.com";
-
-        // Act
-        var response = await ApiClient.GetAsync($"/api/v1/users/by-email/{nonExistentEmail}");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-    }
+    // NOTE: GetUserById_WithNonExistentId_ShouldReturnNotFound removed - duplicates UsersIntegrationTests
+    // NOTE: GetUserByEmail_WithNonExistentEmail_ShouldReturnNotFound removed - duplicates UsersIntegrationTests
 
     [Fact]
     public async Task UpdateUser_WithNonExistentId_ShouldReturnNotFound()

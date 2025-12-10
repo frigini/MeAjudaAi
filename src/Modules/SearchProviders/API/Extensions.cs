@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.SearchProviders.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace MeAjudaAi.Modules.SearchProviders.API;
 
@@ -17,10 +18,12 @@ public static class ModuleExtensions
     /// </summary>
     /// <param name="services">A coleção de serviços.</param>
     /// <param name="configuration">A configuração para ler strings de conexão e configurações.</param>
+    /// <param name="environment">O ambiente de hospedagem para determinar comportamento em Testing.</param>
     /// <returns>A coleção de serviços para encadeamento.</returns>
     public static IServiceCollection AddSearchProvidersModule(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
         // Domain layer não tem dependências externas para registrar
 
@@ -28,7 +31,7 @@ public static class ModuleExtensions
         services.AddSearchProvidersApplication();
 
         // Infrastructure layer (requer configuration para conexão do BD)
-        services.AddSearchProvidersInfrastructure(configuration);
+        services.AddSearchProvidersInfrastructure(configuration, environment);
 
         // API layer - sem serviços adicionais para registrar
 

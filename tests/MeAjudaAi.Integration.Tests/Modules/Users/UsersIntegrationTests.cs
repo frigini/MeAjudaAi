@@ -3,7 +3,11 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
+using MeAjudaAi.Modules.Users.Domain.Entities;
+using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Tests.Auth;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
 
@@ -261,6 +265,45 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBase
         if (!deleteResponse.IsSuccessStatusCode)
         {
             testOutput.WriteLine($"Cleanup failed: Could not delete user {userId}. Status: {deleteResponse.StatusCode}");
+        }
+    }
+
+    [Fact]
+    public async Task Database_Should_Persist_Users_Correctly()
+    {
+        // Arrange
+        var username = new Username($"dbtest_{Guid.NewGuid():N}"[..20]);
+        var email = new Email($"dbtest_{Guid.NewGuid():N}@test.com");
+
+        // Act - Create user directly in database
+        using (var scope = Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+
+            var user = new User(
+                username: username,
+                email: email,
+                firstName: "Database",
+                lastName: "Test",
+                keycloakId: $"keycloak-{Guid.NewGuid():N}"
+            );
+
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+        }
+
+        // Assert - Verify user was persisted
+        using (var scope = Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+
+            var foundUser = await context.Users
+                .FirstOrDefaultAsync(u => u.Username == username);
+
+            foundUser.Should().NotBeNull("user should be persisted to database");
+            foundUser!.Email.Should().Be(email);
+            foundUser.FirstName.Should().Be("Database");
+            foundUser.LastName.Should().Be("Test");
         }
     }
 }
