@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.SearchProviders.Domain.ValueObjects;
+using MeAjudaAi.Shared.Time;
 using Xunit;
 
 namespace MeAjudaAi.Modules.SearchProviders.Tests.Unit.ValueObjects;
@@ -120,7 +121,7 @@ public sealed class SearchableProviderIdTests
     {
         // Arrange
         var guid = UuidGenerator.NewId();
-        var providerId = SearchableProviderId.Create(guid)!;
+        var providerId = SearchableProviderId.From(guid);
 
         // Act
         providerId.Deconstruct(out Guid value);

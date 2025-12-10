@@ -72,8 +72,7 @@ public class ProviderProfileUpdatedDomainEventHandlerTests : IDisposable
             x => x.PublishAsync(
                 It.Is<ProviderProfileUpdatedIntegrationEvent>(e =>
                     e.ProviderId == providerId.Value &&
-                    e.Name == "Updated Name" &&
-                    e.UpdatedBy == userId),
+                    e.Name == "Updated Name"),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);

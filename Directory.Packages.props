@@ -73,20 +73,21 @@
     <!--   ✅ Staging environment testing with production-like workload             -->
     <!--   ✅ Manual verification of Hangfire dashboard functionality               -->
     <!--                                                                             -->
-    <!-- INTEGRATION TEST REQUIREMENTS:                                             -->
-    <!--   - Test file: tests/MeAjudaAi.Integration.Tests/Jobs/HangfireIntegrationTests.cs -->
-    <!--   - Coverage:                                                              -->
-    <!--     1. Job enqueue + execution against Npgsql 10 database                 -->
-    <!--     2. Job persistence + retrieval after restart                          -->
-    <!--     3. Automatic retry on failure (3 attempts)                            -->
-    <!--     4. Recurring job scheduling + execution                               -->
-    <!--     5. Background worker processing                                       -->
-    <!--     6. Dashboard API responsiveness                                       -->
+    <!-- VALIDATION STRATEGY (Integration tests removed - commit 33474ee):         -->
+    <!--   DECISION: Hangfire integration tests intentionally removed               -->
+    <!--   RATIONALE:                                                               -->
+    <!--     - Tests required complex live infrastructure (Hangfire + Postgres)     -->
+    <!--     - Validation moved to staging environment + health checks              -->
+    <!--     - Issue #39 tracks long-term Npgsql 10.x compatibility monitoring      -->
     <!--                                                                             -->
-    <!-- CI/CD GATING REQUIREMENT:                                                  -->
-    <!--   - GitHub Actions workflow MUST fail if Hangfire tests fail              -->
-    <!--   - Add to: .github/workflows/pr-validation.yml                           -->
-    <!--   - Command: dotnet test [dash][dash]filter Category=HangfireIntegration  -->
+    <!--   VALIDATION APPROACH:                                                     -->
+    <!--     1. Staging environment smoke tests before production deploy            -->
+    <!--     2. Manual Hangfire dashboard verification                              -->
+    <!--     3. Health check monitoring in production (HealthChecks.Hangfire)       -->
+    <!--     4. Application log monitoring for Npgsql/Hangfire exceptions           -->
+    <!--     5. Job failure rate tracking (alert if > 5%)                           -->
+    <!--                                                                             -->
+    <!--   MONITORING: Issue #39 - Hangfire.PostgreSql + Npgsql 10.x compatibility  -->
     <!--                                                                             -->
     <!-- MONITORING & FALLBACK PLAN:                                                -->
     <!--   1. Monitor application logs for Hangfire/Npgsql exceptions              -->
@@ -161,12 +162,14 @@
     <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.0" />
     <!-- Background Jobs -->
     <PackageVersion Include="Hangfire.Core" Version="1.8.22" />
-    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.21" />
-    <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.12" />
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.22" />
+    <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.13" />
     <!-- Dependency Injection -->
     <PackageVersion Include="Scrutor" Version="6.1.0" />
     <!-- System -->
+    <PackageVersion Include="Azure.Storage.Common" Version="12.25.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.0.1" />
+    <PackageVersion Include="System.IO.Hashing" Version="9.0.10" />
     <PackageVersion Include="System.Text.Json" Version="10.0.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
     <!-- Testing Framework -->
