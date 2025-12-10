@@ -18,9 +18,9 @@ assignees: ''
 
 ## 🔗 Links de Monitoramento
 
-- **NuGet**: https://www.nuget.org/packages/EFCore.NamingConventions
-- **GitHub**: https://github.com/efcore/EFCore.NamingConventions
-- **Releases**: https://github.com/efcore/EFCore.NamingConventions/releases
+- **NuGet**: [EFCore.NamingConventions no NuGet](https://www.nuget.org/packages/EFCore.NamingConventions)
+- **GitHub**: [efcore/EFCore.NamingConventions](https://github.com/efcore/EFCore.NamingConventions)
+- **Releases**: [Histórico de releases](https://github.com/efcore/EFCore.NamingConventions/releases)
 
 ## ⚠️ Situação Atual
 

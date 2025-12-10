@@ -342,7 +342,7 @@ public class UsersModuleApiTests
     #region IsAvailableAsync
 
     [Fact]
-    public async Task IsAvailableAsync_WhenHealthy_ShouldReturnTrue()
+    public async Task IsAvailableAsync_WhenNoHealthCheckServiceAndBasicOperationsSucceed_ShouldReturnTrue()
     {
         // Arrange
         _serviceProvider
@@ -362,7 +362,33 @@ public class UsersModuleApiTests
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenUnhealthy_ShouldReturnFalse()
+    public async Task IsAvailableAsync_WhenHealthCheckServiceReturnsHealthy_ShouldReturnTrue()
+    {
+        // Arrange
+        var healthCheckService = new Mock<HealthCheckService>();
+        healthCheckService
+            .Setup(h => h.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HealthReport(new Dictionary<string, HealthReportEntry>(), HealthStatus.Healthy, TimeSpan.Zero));
+
+        _serviceProvider
+            .Setup(sp => sp.GetService(typeof(HealthCheckService)))
+            .Returns(healthCheckService.Object);
+
+        // Mock getUserByIdHandler for CanExecuteBasicOperationsAsync
+        _getUserByIdHandler
+            .Setup(h => h.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Success(null!));
+
+        // Act
+        var result = await _sut.IsAvailableAsync();
+
+        // Assert
+        result.Should().BeTrue();
+        healthCheckService.Verify(h => h.CheckHealthAsync(It.IsAny<Func<HealthCheckRegistration, bool>>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task IsAvailableAsync_WhenHealthCheckServiceReturnsUnhealthy_ShouldReturnFalse()
     {
         // Arrange
         var healthCheckService = new Mock<HealthCheckService>();
@@ -382,7 +408,7 @@ public class UsersModuleApiTests
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenHealthCheckServiceNotFound_ShouldReturnFalse()
+    public async Task IsAvailableAsync_WhenNoHealthCheckServiceAndBasicOperationsFail_ShouldReturnFalse()
     {
         // Arrange
         _serviceProvider
@@ -397,7 +423,7 @@ public class UsersModuleApiTests
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenExceptionOccurs_ShouldReturnFalse()
+    public async Task IsAvailableAsync_WhenHealthCheckServiceThrowsException_ShouldReturnFalse()
     {
         // Arrange
         var healthCheckService = new Mock<HealthCheckService>();
