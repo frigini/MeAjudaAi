@@ -98,7 +98,7 @@ public class UsersModuleApiTests
     }
 
     [Fact]
-    public async Task GetUserByIdAsync_WithNonExistentUser_ShouldReturnFailure()
+    public async Task GetUserByIdAsync_WithNonExistentUser_ShouldReturnNull()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -111,7 +111,7 @@ public class UsersModuleApiTests
         var result = await _sut.GetUserByIdAsync(userId);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
+        result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeNull();
     }
 
@@ -347,6 +347,11 @@ public class UsersModuleApiTests
         _serviceProvider
             .Setup(sp => sp.GetService(typeof(HealthCheckService)))
             .Returns(healthCheckService.Object);
+
+        // Mock getUserByIdHandler for CanExecuteBasicOperationsAsync
+        _getUserByIdHandler
+            .Setup(h => h.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User not found")));
 
         // Act
         var result = await _sut.IsAvailableAsync();
