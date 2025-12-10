@@ -185,8 +185,8 @@ public class UsersModuleApiTests
         var email = "nonexistent@example.com";
 
         _getUserByEmailHandler
-            .Setup(h => h.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Success(null!));
+            .Setup(h => h.Handle(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User.NotFound", "User not found")));
 
         // Act
         var result = await _sut.GetUserByEmailAsync(email);
@@ -215,7 +215,9 @@ public class UsersModuleApiTests
         };
 
         _getUsersByIdsHandler
-            .Setup(h => h.HandleAsync(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()))
+            .Setup(h => h.Handle(
+                It.Is<GetUsersByIdsQuery>(q => q.UserIds.SequenceEqual(userIds)),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IReadOnlyList<UserDto>>.Success(userDtos));
 
         // Act
@@ -238,7 +240,7 @@ public class UsersModuleApiTests
         var userIds = new List<Guid>();
 
         _getUsersByIdsHandler
-            .Setup(h => h.HandleAsync(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()))
+            .Setup(h => h.Handle(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IReadOnlyList<UserDto>>.Success(new List<UserDto>()));
 
         // Act
@@ -247,6 +249,14 @@ public class UsersModuleApiTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
+        _getUsersByIdsHandler.Verify(
+            h => h.Handle(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()),
+            Times.Never,
+            "Handler should not be called for empty input");
+        _getUsersByIdsHandler.Verify(
+            h => h.Handle(It.IsAny<GetUsersByIdsQuery>(), It.IsAny<CancellationToken>()),
+            Times.Never,
+            "Handler should not be called for empty input");
     }
 
     #endregion

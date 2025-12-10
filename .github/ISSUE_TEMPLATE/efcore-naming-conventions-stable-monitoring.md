@@ -138,5 +138,5 @@ nuget list EFCore.NamingConventions -PreRelease
 
 ---
 
-**Última verificação**: 2025-12-10  
+**Última verificação**: YYYY-MM-DD (atualizar ao revisar)  
 **Próxima verificação**: Automática via Dependabot (diária)
