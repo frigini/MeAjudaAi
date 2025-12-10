@@ -174,15 +174,7 @@ jobs:
       - name: Generate Code Coverage Report
         run: |
           reportgenerator \
-            -reports:"TestResults/Shared/**/coverage.cobertura.xml;\
-          TestResults/Architecture/**/coverage.cobertura.xml;\
-          TestResults/ApiService/**/coverage.cobertura.xml;\
-          TestResults/Users/**/coverage.cobertura.xml;\
-          TestResults/Documents/**/coverage.cobertura.xml;\
-          TestResults/Providers/**/coverage.cobertura.xml;\
-          TestResults/ServiceCatalogs/**/coverage.cobertura.xml;\
-          TestResults/Locations/**/coverage.cobertura.xml;\
-          TestResults/SearchProviders/**/coverage.cobertura.xml" \
+            -reports:"TestResults/Shared/**/coverage.cobertura.xml;TestResults/Architecture/**/coverage.cobertura.xml;TestResults/ApiService/**/coverage.cobertura.xml;TestResults/Users/**/coverage.cobertura.xml;TestResults/Documents/**/coverage.cobertura.xml;TestResults/Providers/**/coverage.cobertura.xml;TestResults/ServiceCatalogs/**/coverage.cobertura.xml;TestResults/Locations/**/coverage.cobertura.xml;TestResults/SearchProviders/**/coverage.cobertura.xml" \
             -targetdir:"TestResults/Coverage" \
             -reporttypes:"Html;Cobertura;JsonSummary" \
             -assemblyfilters:"-*.Tests*;-*Test*;-*.Migrations.*;-*.Database;-*.Contracts" \

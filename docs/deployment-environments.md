@@ -80,7 +80,7 @@ Each environment requires specific configuration:
 - Database performance degrades significantly
 
 For detailed rollback procedures and troubleshooting:
-📖 **Hangfire Npgsql Compatibility** (integration tests removed - monitoring via health checks)
+📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)** _integration tests removed — monitor via health checks_
 
 **Quick Rollback Steps**:
 
@@ -113,7 +113,7 @@ For detailed rollback procedures and troubleshooting:
 ### Critical Monitoring
 
 For comprehensive Hangfire + background jobs monitoring, see:
-📖 **Hangfire Npgsql Compatibility - Monitoring** (integration tests removed - monitoring via health checks)
+📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)** _integration tests removed — monitor via health checks_
 
 **Key Metrics** (see guide for queries and alert configuration):
 1. **Job Failure Rate**: Alert if >5% → Investigate and consider rollback

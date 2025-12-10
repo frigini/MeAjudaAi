@@ -60,11 +60,13 @@ public sealed class CepTests
         // Arrange
         var cep = Cep.Create("12345678");
 
+        // Assert - null check first
+        cep.Should().NotBeNull();
+
         // Act
         var formatted = cep!.Formatted;
 
         // Assert
-        cep.Should().NotBeNull();
         formatted.Should().Be("12345-678");
     }
 

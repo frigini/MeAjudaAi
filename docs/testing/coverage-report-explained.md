@@ -250,9 +250,14 @@ File: `config/coverlet.json` ✅
 }
 ```
 
-**Usage**:
+**Usage** (via MSBuild properties):
 ```bash
-dotnet test --settings config/coverlet.json
+dotnet test /p:CollectCoverage=true /p:CoverletOutput=./coverage/
+```
+
+Alternatively, use a `.runsettings` file:
+```bash
+dotnet test --settings config/coverage.runsettings
 ```
 
 ### Step 3: Update CI/CD Pipeline

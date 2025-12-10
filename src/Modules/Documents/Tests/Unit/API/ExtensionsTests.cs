@@ -64,7 +64,7 @@ public sealed class ExtensionsTests
     }
 
     [Fact]
-    public void AddDocumentsModule_WithEmptyConfiguration_ShouldRegisterServices()
+    public void AddDocumentsModule_WithValidConfiguration_ShouldRegisterServices()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -83,6 +83,7 @@ public sealed class ExtensionsTests
         Assert.Same(services, result);
         Assert.True(services.Count > 0);
     }
+
     [Fact]
     public void AddDocumentsModule_ShouldReturnSameServiceCollectionInstance()
     {

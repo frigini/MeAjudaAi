@@ -119,11 +119,11 @@ public sealed class SearchableProviderIdTests
     public void Deconstruct_ShouldExtractValue()
     {
         // Arrange
-        var guid = Guid.NewGuid();
-        var providerId = new SearchableProviderId(guid);
+        var guid = UuidGenerator.NewId();
+        var providerId = SearchableProviderId.Create(guid)!;
 
         // Act
-        var value = providerId.Value;
+        providerId.Deconstruct(out Guid value);
 
         // Assert
         value.Should().Be(guid);

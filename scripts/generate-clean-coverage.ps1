@@ -19,7 +19,7 @@ dotnet test `
     --configuration Debug `
     --collect:"XPlat Code Coverage" `
     --results-directory:"coverage" `
-    -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*OpenApi*.generated.cs,**/System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
+    -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByFile="**/*OpenApi*.generated.cs,**/*System.Runtime.CompilerServices*.cs,**/*RegexGenerator.g.cs"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Erro ao rodar testes!" -ForegroundColor Red
