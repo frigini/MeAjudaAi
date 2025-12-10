@@ -446,13 +446,11 @@ public class UsersModuleApiTests
 
     #region Helper Methods
 
-    private const int TestUsernameLength = 10;
-
     private static UserDto CreateUserDto(Guid id, string? email = null)
     {
         return new UserDto(
             Id: id,
-            Username: $"user_{id:N}".Substring(0, TestUsernameLength),
+            Username: $"user_{id:N}",
             Email: email ?? $"user_{id:N}@example.com",
             FirstName: "Test",
             LastName: "User",

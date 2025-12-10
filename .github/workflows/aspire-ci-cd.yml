@@ -48,7 +48,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate --locked-mode
+        run: dotnet restore MeAjudaAi.sln --force-evaluate
 
       - name: Build solution
         run: dotnet build MeAjudaAi.sln --no-restore --configuration Release --verbosity minimal
@@ -133,7 +133,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate --locked-mode
+        run: dotnet restore MeAjudaAi.sln --force-evaluate
 
       - name: Validate Aspire AppHost
         run: |
@@ -168,7 +168,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate --locked-mode
+        run: dotnet restore MeAjudaAi.sln --force-evaluate
 
       - name: Check code formatting
         run: |
@@ -214,7 +214,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate --locked-mode
+        run: dotnet restore MeAjudaAi.sln --force-evaluate
 
       - name: Validate ${{ matrix.service.name }} builds for containerization
         run: |
