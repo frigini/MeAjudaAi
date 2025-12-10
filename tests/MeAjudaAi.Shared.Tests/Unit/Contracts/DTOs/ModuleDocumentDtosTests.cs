@@ -156,7 +156,7 @@ public class ModuleDocumentDtosTests
         var dto = new ModuleDocumentStatusDto
         {
             DocumentId = Guid.NewGuid(),
-            Status = "processing",
+            Status = "Pending",
             UpdatedAt = DateTime.UtcNow
         };
 
@@ -178,7 +178,7 @@ public class ModuleDocumentDtosTests
         var dto = new ModuleDocumentStatusDto
         {
             DocumentId = Guid.NewGuid(),
-            Status = "completed",
+            Status = "Uploaded",
             UpdatedAt = DateTime.UtcNow
         };
 
