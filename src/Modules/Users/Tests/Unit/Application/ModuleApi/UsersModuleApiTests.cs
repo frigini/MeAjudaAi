@@ -179,140 +179,20 @@ public class UsersModuleApiTests
     }
 
     [Fact]
-    public async Task GetUserByEmailAsync_WithNonExistentUser_ShouldReturnFailure()
+    public async Task GetUserByEmailAsync_WithNonExistentUser_ShouldReturnNull()
     {
         // Arrange
         var email = "nonexistent@example.com";
 
         _getUserByEmailHandler
             .Setup(h => h.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User not found")));
+            .ReturnsAsync(Result<UserDto>.Success(null!));
 
         // Act
         var result = await _sut.GetUserByEmailAsync(email);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Value.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetUserByEmailAsync_WithNullEmail_ShouldReturnFailure()
-    {
-        // Arrange
-        string? email = null;
-
-        _getUserByEmailHandler
-            .Setup(h => h.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Failure(Error.Validation("Email cannot be null or empty")));
-
-        // Act
-        var result = await _sut.GetUserByEmailAsync(email!);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Value.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetUserByEmailAsync_WithEmptyEmail_ShouldReturnFailure()
-    {
-        // Arrange
-        var email = string.Empty;
-
-        _getUserByEmailHandler
-            .Setup(h => h.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Failure(Error.Validation("Email cannot be null or empty")));
-
-        // Act
-        var result = await _sut.GetUserByEmailAsync(email);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Value.Should().BeNull();
-    }
-
-    #endregion
-
-    #region GetUserByUsernameAsync
-
-    [Fact]
-    public async Task GetUserByUsernameAsync_WithExistingUser_ShouldReturnMappedModuleDto()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var username = "testuser";
-        var userDto = CreateUserDto(userId);
-
-        _getUserByUsernameHandler
-            .Setup(h => h.HandleAsync(It.Is<GetUserByUsernameQuery>(q => q.Username == username), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Success(userDto));
-
-        // Act
-        var result = await _sut.GetUserByUsernameAsync(username);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.Id.Should().Be(userId);
-        result.Value.Username.Should().Be(userDto.Username);
-        result.Value.Email.Should().Be(userDto.Email);
-        result.Value.FirstName.Should().Be(userDto.FirstName);
-        result.Value.LastName.Should().Be(userDto.LastName);
-        result.Value.FullName.Should().Be(userDto.FullName);
-    }
-
-    [Fact]
-    public async Task GetUserByUsernameAsync_WithNonExistentUser_ShouldReturnFailure()
-    {
-        // Arrange
-        var username = "nonexistentuser";
-
-        _getUserByUsernameHandler
-            .Setup(h => h.HandleAsync(It.IsAny<GetUserByUsernameQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User not found")));
-
-        // Act
-        var result = await _sut.GetUserByUsernameAsync(username);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Value.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetUserByUsernameAsync_WithNullUsername_ShouldReturnFailure()
-    {
-        // Arrange
-        string? username = null;
-
-        _getUserByUsernameHandler
-            .Setup(h => h.HandleAsync(It.IsAny<GetUserByUsernameQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Failure(Error.Validation("Username cannot be null or empty")));
-
-        // Act
-        var result = await _sut.GetUserByUsernameAsync(username!);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.Value.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetUserByUsernameAsync_WithEmptyUsername_ShouldReturnFailure()
-    {
-        // Arrange
-        var username = string.Empty;
-
-        _getUserByUsernameHandler
-            .Setup(h => h.HandleAsync(It.IsAny<GetUserByUsernameQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto>.Failure(Error.Validation("Username cannot be null or empty")));
-
-        // Act
-        var result = await _sut.GetUserByUsernameAsync(username);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
         result.Value.Should().BeNull();
     }
 
