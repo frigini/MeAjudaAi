@@ -189,7 +189,10 @@
     <PackageVersion Include="Respawn" Version="6.2.1" />
     <!-- Aspire - 13.0.0 stable + preview (Keycloak/Testing) -->
     <!-- Aspire.Hosting.AppHost removido - incluído implicitamente pelo Aspire.AppHost.Sdk 13.0 -->
-    <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.0.2" />
+    <!-- DECISION: Aspire.Npgsql.EntityFrameworkCore.PostgreSQL NOT NEEDED -->
+    <!--   Projects use Npgsql.EntityFrameworkCore.PostgreSQL directly (10.0.0-rc.2) -->
+    <!--   AppHost uses Aspire.Hosting.PostgreSQL for orchestration (not this package) -->
+    <!--   Tested: Build + Integration tests pass without this Aspire wrapper -->
     <PackageVersion Include="Aspire.Hosting.Azure.AppContainers" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Azure.ServiceBus" Version="13.0.2" />
