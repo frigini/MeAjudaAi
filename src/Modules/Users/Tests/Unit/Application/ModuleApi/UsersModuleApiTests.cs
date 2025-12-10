@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Users.Application.DTOs;
+using MeAjudaAi.Modules.Users.Application.ModuleApi;
 using MeAjudaAi.Modules.Users.Application.Queries;
-using MeAjudaAi.Modules.Users.Application.Services;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,8 +20,9 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.ModuleApi;
 [Trait("Component", "ModuleApi")]
 public class UsersModuleApiTests
 {
-    private readonly Mock<IQueryHandler<GetUserByIdQuery, Result<UserDto?>>> _getUserByIdHandler;
-    private readonly Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto?>>> _getUserByEmailHandler;
+    private readonly Mock<IQueryHandler<GetUserByIdQuery, Result<UserDto>>> _getUserByIdHandler;
+    private readonly Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>> _getUserByEmailHandler;
+    private readonly Mock<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>> _getUserByUsernameHandler;
     private readonly Mock<IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>>> _getUsersByIdsHandler;
     private readonly Mock<IServiceProvider> _serviceProvider;
     private readonly Mock<ILogger<UsersModuleApi>> _logger;
@@ -29,8 +30,9 @@ public class UsersModuleApiTests
 
     public UsersModuleApiTests()
     {
-        _getUserByIdHandler = new Mock<IQueryHandler<GetUserByIdQuery, Result<UserDto?>>>();
-        _getUserByEmailHandler = new Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto?>>>();
+        _getUserByIdHandler = new Mock<IQueryHandler<GetUserByIdQuery, Result<UserDto>>>();
+        _getUserByEmailHandler = new Mock<IQueryHandler<GetUserByEmailQuery, Result<UserDto>>>();
+        _getUserByUsernameHandler = new Mock<IQueryHandler<GetUserByUsernameQuery, Result<UserDto>>>();
         _getUsersByIdsHandler = new Mock<IQueryHandler<GetUsersByIdsQuery, Result<IReadOnlyList<UserDto>>>>();
         _serviceProvider = new Mock<IServiceProvider>();
         _logger = new Mock<ILogger<UsersModuleApi>>();
@@ -38,6 +40,7 @@ public class UsersModuleApiTests
         _sut = new UsersModuleApi(
             _getUserByIdHandler.Object,
             _getUserByEmailHandler.Object,
+            _getUserByUsernameHandler.Object,
             _getUsersByIdsHandler.Object,
             _serviceProvider.Object,
             _logger.Object);
@@ -78,7 +81,7 @@ public class UsersModuleApiTests
 
         _getUserByIdHandler
             .Setup(h => h.HandleAsync(It.Is<GetUserByIdQuery>(q => q.UserId == userId), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto?>.Success(userDto));
+            .ReturnsAsync(Result<UserDto>.Success(userDto));
 
         // Act
         var result = await _sut.GetUserByIdAsync(userId);
@@ -95,20 +98,20 @@ public class UsersModuleApiTests
     }
 
     [Fact]
-    public async Task GetUserByIdAsync_WithNonExistentUser_ShouldReturnSuccessWithNull()
+    public async Task GetUserByIdAsync_WithNonExistentUser_ShouldReturnFailure()
     {
         // Arrange
         var userId = Guid.NewGuid();
 
         _getUserByIdHandler
             .Setup(h => h.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto?>.Success(null));
+            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User not found")));
 
         // Act
         var result = await _sut.GetUserByIdAsync(userId);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
         result.Value.Should().BeNull();
     }
 
@@ -117,11 +120,11 @@ public class UsersModuleApiTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var error = Error.Failure("Database.Error", "Database connection failed");
+        var error = Error.Internal("Database error");
 
         _getUserByIdHandler
             .Setup(h => h.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto?>.Failure(error));
+            .ReturnsAsync(Result<UserDto>.Failure(error));
 
         // Act
         var result = await _sut.GetUserByIdAsync(userId);
@@ -163,7 +166,7 @@ public class UsersModuleApiTests
 
         _getUserByEmailHandler
             .Setup(h => h.HandleAsync(It.Is<GetUserByEmailQuery>(q => q.Email == email), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto?>.Success(userDto));
+            .ReturnsAsync(Result<UserDto>.Success(userDto));
 
         // Act
         var result = await _sut.GetUserByEmailAsync(email);
@@ -176,20 +179,20 @@ public class UsersModuleApiTests
     }
 
     [Fact]
-    public async Task GetUserByEmailAsync_WithNonExistentUser_ShouldReturnSuccessWithNull()
+    public async Task GetUserByEmailAsync_WithNonExistentUser_ShouldReturnFailure()
     {
         // Arrange
         var email = "nonexistent@example.com";
 
         _getUserByEmailHandler
             .Setup(h => h.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto?>.Success(null));
+            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User not found")));
 
         // Act
         var result = await _sut.GetUserByEmailAsync(email);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
         result.Value.Should().BeNull();
     }
 
@@ -259,7 +262,7 @@ public class UsersModuleApiTests
 
         _getUserByIdHandler
             .Setup(h => h.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto?>.Success(userDto));
+            .ReturnsAsync(Result<UserDto>.Success(userDto));
 
         // Act
         var result = await _sut.UserExistsAsync(userId);
@@ -277,7 +280,7 @@ public class UsersModuleApiTests
 
         _getUserByIdHandler
             .Setup(h => h.HandleAsync(It.IsAny<GetUserByIdQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto?>.Success(null));
+            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User not found")));
 
         // Act
         var result = await _sut.UserExistsAsync(userId);
@@ -300,7 +303,7 @@ public class UsersModuleApiTests
 
         _getUserByEmailHandler
             .Setup(h => h.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto?>.Success(userDto));
+            .ReturnsAsync(Result<UserDto>.Success(userDto));
 
         // Act
         var result = await _sut.EmailExistsAsync(email);
@@ -318,7 +321,7 @@ public class UsersModuleApiTests
 
         _getUserByEmailHandler
             .Setup(h => h.HandleAsync(It.IsAny<GetUserByEmailQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<UserDto?>.Success(null));
+            .ReturnsAsync(Result<UserDto>.Failure(Error.NotFound("User not found")));
 
         // Act
         var result = await _sut.EmailExistsAsync(email);
@@ -420,7 +423,7 @@ public class UsersModuleApiTests
             FirstName: "Test",
             LastName: "User",
             FullName: "Test User",
-            IsActive: true,
+            KeycloakId: Guid.NewGuid().ToString(),
             CreatedAt: DateTime.UtcNow,
             UpdatedAt: null);
     }
