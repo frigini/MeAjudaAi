@@ -55,7 +55,7 @@ public class ModuleDocumentDtosTests
             FileUrl = "https://storage.example.com/documento.pdf",
             Status = "Rejected",
             UploadedAt = DateTime.UtcNow,
-            VerifiedAt = DateTime.UtcNow.AddHours(1),
+            VerifiedAt = null,
             RejectionReason = "Documento ilegível",
             OcrData = null
         };
@@ -68,7 +68,7 @@ public class ModuleDocumentDtosTests
         deserialized.Should().NotBeNull();
         deserialized!.Status.Should().Be("Rejected");
         deserialized.RejectionReason.Should().Be("Documento ilegível");
-        deserialized.VerifiedAt.Should().NotBeNull();
+        deserialized.VerifiedAt.Should().BeNull();
     }
 
     [Fact]
@@ -194,10 +194,10 @@ public class ModuleDocumentDtosTests
     }
 
     [Theory]
-    [InlineData("pending")]
-    [InlineData("processing")]
-    [InlineData("completed")]
-    [InlineData("failed")]
+    [InlineData("Uploaded")]
+    [InlineData("Pending")]
+    [InlineData("Verified")]
+    [InlineData("Rejected")]
     public void ModuleDocumentStatusDto_ShouldSupportValidStatuses(string status)
     {
         // Arrange & Act
@@ -265,7 +265,7 @@ public class ModuleDocumentDtosTests
     }
 
     [Fact]
-    public void DocumentStatusCountDto_ShouldCalculateTotalCorrectly()
+    public void DocumentStatusCountDto_ManuallySetValues_ShouldBeConsistent()
     {
         // Arrange
         var dto = new DocumentStatusCountDto
@@ -277,7 +277,7 @@ public class ModuleDocumentDtosTests
             Uploading = 10
         };
 
-        // Assert - Total should match sum of individual counts
+        // Assert - Verify manually set values are consistent
         (dto.Pending + dto.Verified + dto.Rejected + dto.Uploading).Should().Be(dto.Total);
     }
 

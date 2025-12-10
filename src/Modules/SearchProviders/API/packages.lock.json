@@ -452,7 +452,7 @@
           "FluentValidation.DependencyInjectionExtensions": "[12.1.1, )",
           "Hangfire.AspNetCore": "[1.8.22, )",
           "Hangfire.Core": "[1.8.22, )",
-          "Hangfire.PostgreSql": "[1.20.13, )",
+          "Hangfire.PostgreSql": "[1.20.12, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.0-rc.2.25502.107, )",
           "Microsoft.EntityFrameworkCore.Design": "[10.0.0-rc.2.25502.107, )",
@@ -547,9 +547,9 @@
       },
       "Hangfire.PostgreSql": {
         "type": "CentralTransitive",
-        "requested": "[1.20.13, )",
-        "resolved": "1.20.13",
-        "contentHash": "+JxVOTQINm/gTNstGYgiJQzjP81lGM86COvaSomSyYbbjDExAcqwc5xflsykMVfBKxMP6C/bH0wWgrlhPS0SMQ==",
+        "requested": "[1.20.12, )",
+        "resolved": "1.20.12",
+        "contentHash": "KvozigeVgbYSinFmaj5qQWRaBG7ey/S73UP6VLIOPcP1UrZO0/6hSw4jN53TKpWP2UsiMuYONRmQbFDxGAi4ug==",
         "dependencies": {
           "Dapper": "2.0.123",
           "Hangfire.Core": "1.8.0",

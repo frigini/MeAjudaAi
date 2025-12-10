@@ -45,16 +45,16 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-rc.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-rc.2" />
     <!-- ========================================================================== -->
-    <!-- CRITICAL: Npgsql 10.x COMPATIBILITY RISK WITH Hangfire.PostgreSql 1.20.13 -->
+    <!-- CRITICAL: Npgsql 10.x COMPATIBILITY RISK WITH Hangfire.PostgreSql 1.20.12 -->
     <!-- ========================================================================== -->
     <!-- ISSUE SUMMARY:                                                             -->
     <!--   - Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0-rc.2 forces Npgsql >= 10.x -->
-    <!--   - Hangfire.PostgreSql 1.20.13 was built against Npgsql 6.x               -->
+    <!--   - Hangfire.PostgreSql 1.20.12 was built against Npgsql 6.x               -->
     <!--   - Npgsql 10.x introduces BREAKING CHANGES (see: https://www.npgsql.org/doc/release-notes/10.0.html) -->
     <!--   - Runtime compatibility is UNVALIDATED and may fail in production         -->
     <!--                                                                             -->
     <!-- PACKAGE VERSION STRATEGY:                                                  -->
-    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.20.13       -->
+    <!--   OPTION 1 (CURRENT): Keep Npgsql 10.x + Hangfire.PostgreSql 1.20.12       -->
     <!--     - Requires comprehensive integration testing (see below)                -->
     <!--     - Monitor: https://github.com/frankhommers/Hangfire.PostgreSql/issues  -->
     <!--     - Fallback: Downgrade to EF Core 9.x + Npgsql 8.x if issues found      -->
@@ -69,7 +69,7 @@
     <!--                                                                             -->
     <!-- VALIDATION REQUIREMENTS (DO NOT DEPLOY WITHOUT):                           -->
     <!--   ⚠️  CRITICAL: Npgsql 10.x compatibility with Hangfire UNVALIDATED         -->
-    <!--   ⚠️  Hangfire.PostgreSql 1.20.13 built against Npgsql 6.0.11              -->
+    <!--   ⚠️  Hangfire.PostgreSql 1.20.12 built against Npgsql 6.0.11              -->
     <!--   ⚠️  Runtime binding forces Npgsql 10.x via central package management     -->
     <!--   ✅ Staging environment testing with production-like workload REQUIRED     -->
     <!--   ✅ Manual verification of Hangfire dashboard functionality REQUIRED        -->
@@ -164,7 +164,7 @@
     <!-- Background Jobs -->
     <PackageVersion Include="Hangfire.Core" Version="1.8.22" />
     <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.22" />
-    <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.13" />
+    <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.12" />
     <!-- Dependency Injection -->
     <PackageVersion Include="Scrutor" Version="6.1.0" />
     <!-- System -->
