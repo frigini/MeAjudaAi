@@ -556,13 +556,13 @@
           "Rebus.RabbitMq": "[10.1.0, )",
           "Rebus.ServiceProvider": "[10.7.0, )",
           "Scrutor": "[6.1.0, )",
-          "Serilog": "[4.2.0, )",
+          "Serilog": "[4.3.0, )",
           "Serilog.AspNetCore": "[9.0.0, )",
           "Serilog.Enrichers.Environment": "[3.0.1, )",
           "Serilog.Enrichers.Process": "[3.0.0, )",
           "Serilog.Enrichers.Thread": "[4.0.0, )",
           "Serilog.Settings.Configuration": "[9.0.0, )",
-          "Serilog.Sinks.Console": "[6.0.0, )",
+          "Serilog.Sinks.Console": "[6.1.1, )",
           "Serilog.Sinks.Seq": "[9.0.0, )"
         }
       },
@@ -977,9 +977,9 @@
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.2.0, )",
-        "resolved": "4.2.0",
-        "contentHash": "gmoWVOvKgbME8TYR+gwMf7osROiWAURterc6Rt2dQyX7wtjZYpqFiA/pY6ztjGQKKV62GGCyOcmtP1UKMHgSmA=="
+        "requested": "[4.3.0, )",
+        "resolved": "4.3.0",
+        "contentHash": "+cDryFR0GRhsGOnZSKwaDzRRl4MupvJ42FhCE4zhQRVanX0Jpg6WuCBk59OVhVDPmab1bB+nRykAnykYELA9qQ=="
       },
       "Serilog.AspNetCore": {
         "type": "CentralTransitive",
@@ -1036,9 +1036,9 @@
       },
       "Serilog.Sinks.Console": {
         "type": "CentralTransitive",
-        "requested": "[6.0.0, )",
-        "resolved": "6.0.0",
-        "contentHash": "fQGWqVMClCP2yEyTXPIinSr5c+CBGUvBybPxjAGcf7ctDhadFhrQw03Mv8rJ07/wR5PDfFjewf2LimvXCDzpbA==",
+        "requested": "[6.1.1, )",
+        "resolved": "6.1.1",
+        "contentHash": "8jbqgjUyZlfCuSTaJk6lOca465OndqOz3KZP6Cryt/IqZYybyBu7GP0fE/AXBzrrQB3EBmQntBFAvMVz1COvAA==",
         "dependencies": {
           "Serilog": "4.0.0"
         }
