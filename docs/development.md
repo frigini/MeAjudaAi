@@ -796,7 +796,7 @@ Após adicionar um novo módulo:
 - [🔄 CI/CD](./ci-cd.md)
 - [🔐 Autenticação e Autorização](./authentication-and-authorization.md)
 - [🧪 Guia de Testes](#-diretrizes-de-testes)
-- [📖 README Principal](../README.md)
+- [📖 Documentação](./README.md)
 
 ### **Documentação Externa**
 - [.NET 10 Documentation](https://docs.microsoft.com/dotnet/)

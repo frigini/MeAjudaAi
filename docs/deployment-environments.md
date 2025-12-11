@@ -32,8 +32,8 @@ This document describes the different deployment environments available for the 
 
 **BEFORE deploying to ANY environment**, ensure ALL critical compatibility validations pass.
 
-For detailed Hangfire + Npgsql 10.x compatibility validation procedures, see the dedicated guide:
-📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)** _integration tests removed — validation via staging + health checks_
+For detailed Hangfire + Npgsql 10.x compatibility validation procedures:
+📖 _Hangfire Npgsql Compatibility Guide_ - integration tests removed — validation via staging + health checks_
 
 **Quick Checklist** (see full guide for details):
 - [ ] ⚠️ **CRITICAL**: Staging smoke tests with Hangfire job execution (Npgsql 10.x UNVALIDATED)
@@ -80,8 +80,7 @@ Each environment requires specific configuration:
 - Dashboard unavailable or shows data corruption
 - Database performance degrades significantly
 
-For detailed rollback procedures and troubleshooting:
-📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)** _integration tests removed — monitor via health checks_
+For detailed rollback procedures and troubleshooting, see Hangfire health checks documentation.
 
 **Quick Rollback Steps**:
 
@@ -113,10 +112,9 @@ For detailed rollback procedures and troubleshooting:
 
 ### Critical Monitoring
 
-For comprehensive Hangfire + background jobs monitoring, see:
-📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)** _integration tests removed — monitor via health checks_
+For comprehensive Hangfire + background jobs monitoring, monitor via health checks and application logs.
 
-**Key Metrics** (see guide for queries and alert configuration):
+**Key Metrics**:
 1. **Job Failure Rate**: Alert if >5% → Investigate and consider rollback
 2. **Npgsql Connection Errors**: Monitor application logs
 3. **Dashboard Health**: Check `/hangfire` endpoint every 5 minutes
@@ -139,6 +137,6 @@ For comprehensive Hangfire + background jobs monitoring, see:
 
 ## Related Documentation
 
-- [CI/CD Setup](../CI-CD-Setup.md)
-- [Infrastructure Documentation](../../infrastructure/Infrastructure.md)
-- [Development Guidelines](../development.md)
+- [CI/CD Setup](./ci-cd.md)
+- [Infrastructure Documentation](./infrastructure.md)
+- [Development Guidelines](./development.md)

@@ -488,7 +488,7 @@ POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
 - **PR Validation**: [pr-validation-workflow.md](./pr-validation-workflow.md) (documentação detalhada)
 - **CI/CD Overview**: [../ci-cd.md](../ci-cd.md)
 - **Code Coverage**: [../testing/code-coverage-guide.md](../testing/code-coverage-guide.md)
-- **Architecture Tests**: [../testing/architecture-tests.md](../testing/architecture-tests.md)
+- **Architecture Tests**: (pending implementation)
 
 ---
 

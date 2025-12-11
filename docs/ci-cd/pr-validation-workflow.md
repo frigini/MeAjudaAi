@@ -523,7 +523,7 @@ O workflow **falha** (bloqueia merge) se:
 
 - [Code Coverage Guide](../testing/code-coverage-guide.md)
 - [Integration Tests](../testing/integration-tests.md)
-- [Architecture Tests](../testing/architecture-tests.md)
+- Architecture tests (pending implementation)
 - [CI/CD Overview](../ci-cd.md)
 
 ### Ferramentas e Actions
