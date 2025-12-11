@@ -582,7 +582,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
     modelBuilder.HasDefaultSchema("[module_name]");
     // EF Core criará o schema automaticamente
 }
-```csharp
+```
+
 ## ⚡ Script Rápido de Criação de Módulo
 
 Criar este script PowerShell para configuração rápida de módulos:

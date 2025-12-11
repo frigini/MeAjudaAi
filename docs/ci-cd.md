@@ -865,7 +865,6 @@ azd provision --environment production
 ---
 
 ## 📋 Índice de Workflows
-
 | Workflow | Propósito | Trigger | Tempo Médio |
 |----------|-----------|---------|-------------|
 | PR Validation | Validação de qualidade em PRs | PRs para master/develop | ~25-30 min |
