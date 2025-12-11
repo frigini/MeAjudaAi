@@ -236,7 +236,8 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
         }
     }
 }
-```powershell
+```
+
 ## 🔧 Scripts de Utilitários
 
 ### Setup Completo
@@ -250,7 +251,8 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
 
 # Setup com deploy Azure
 ./setup-cicd.ps1
-```text
+```
+
 ### Backup e Restore
 
 ```bash

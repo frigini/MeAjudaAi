@@ -949,6 +949,7 @@ on:
 - Cleanup opcional após deploy
 
 ### Diferenças vs PR Validation
+
 | Aspecto | PR Validation | CI/CD |
 |---------|---------------|-------|
 | **Foco** | Validação de qualidade | Build + Deploy |
@@ -1210,7 +1211,8 @@ on:
 4. ✅ **Auto-approve**: Workflow aprova automaticamente
 
 ### Fluxo
-```
+
+```text
 Dependabot cria PR (patch update)
     ↓
 Workflow verifica metadata
@@ -1238,7 +1240,7 @@ gh pr merge --auto --squash "$PR_URL"
 
 ## 🔄 Cronograma Diário dos Workflows
 
-```
+```text
 06:00 BRT (09:00 UTC) - Check Dependencies
     ↓ [1 hora]
 08:00 BRT (11:00 UTC) - Package Watch Notifications
@@ -1276,6 +1278,7 @@ gh pr merge --auto --squash "$PR_URL"
 ## 🔐 Secrets Necessários
 
 ### Obrigatórios
+
 | Secret | Uso | Workflows |
 |--------|-----|-----------|
 | `POSTGRES_PASSWORD` | Banco de teste | PR Validation, CI/CD, Aspire CI/CD |
@@ -1283,6 +1286,7 @@ gh pr merge --auto --squash "$PR_URL"
 | `POSTGRES_DB` | Nome do banco | PR Validation, CI/CD, Aspire CI/CD |
 
 ### Opcionais
+
 | Secret | Uso | Workflows |
 |--------|-----|-----------|
 | `KEYCLOAK_ADMIN_PASSWORD` | Testes de autenticação | PR Validation |

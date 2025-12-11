@@ -86,7 +86,7 @@ Log.Logger = new LoggerConfiguration()
 
 Os logs seguem o padrão configurado, facilitando leitura e parsing:
 
-```text
+```json
 [14:30:25 INF] User created successfully f7b3c4d2-8e91-4a6b-9c5d-1e2f3a4b5c6d MeAjudaAi.Users.Application
 [14:30:25 INF] Email notification sent f7b3c4d2-8e91-4a6b-9c5d-1e2f3a4b5c6d MeAjudaAi.Notifications
 ```
@@ -124,8 +124,10 @@ public class CorrelationIdHttpClientHandler : DelegatingHandler
         return await base.SendAsync(request, cancellationToken);
     }
 }
-```sql
+```
+
 ### **Message Bus Integration**
+
 ```csharp
 public class DomainEventWithCorrelation
 {
@@ -133,7 +135,8 @@ public class DomainEventWithCorrelation
     public IDomainEvent Event { get; set; }
     public DateTime Timestamp { get; set; }
 }
-```csharp
+```
+
 ## 🔍 Rastreamento
 
 ### **Queries no SEQ**
@@ -148,7 +151,8 @@ CorrelationId = "f7b3c4d2-8e91-4a6b-9c5d-1e2f3a4b5c6d" and @Level = "Error"
 CorrelationId = "f7b3c4d2-8e91-4a6b-9c5d-1e2f3a4b5c6d" 
 | where @Message like "%completed%"
 | project @Timestamp, Duration
-```text
+```
+
 ## 📊 Métricas e Monitoring
 
 ### **Correlation ID Metrics**
@@ -169,7 +173,8 @@ public class CorrelationMetrics
             new("correlation_id", correlationId));
     }
 }
-```text
+```
+
 ### **Dashboard Queries**
 - **Average Request Duration**: Tempo médio por correlation ID
 - **Error Rate**: Percentual de correlation IDs com erro
@@ -205,7 +210,8 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseCorrelationId();
 app.UseAuthentication();
 app.UseAuthorization();
-```csharp
+```
+
 ### **Logs Sem Correlation**
 ```csharp
 // Verificar se LogContext está sendo usado
@@ -253,7 +259,8 @@ public class DatabasePerformanceMetrics
         _queryDuration.Record(durationMs, new("operation", operation));
     }
 }
-```csharp
+```
+
 ## 🔍 Instrumentação
 
 ### **Custom Metrics**
@@ -269,7 +276,8 @@ builder.Services.AddHealthChecks()
     .AddRedis(connectionString)
     .AddRabbitMQ(rabbitMqConnection)
     .AddKeycloak();
-```csharp
+```
+
 ## 📈 Dashboards e Alertas
 
 ### **Grafana Dashboards**

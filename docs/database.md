@@ -387,7 +387,7 @@ Esta solução **aproveita completamente** sua infraestrutura existente! 🚀
 
 ## �📁 Structure Overview
 
-```csharp
+```text
 infrastructure/database/
 ├── modules/
 │   ├── users/                    ✅ IMPLEMENTED
@@ -403,7 +403,8 @@ infrastructure/database/
 │   └── cross-module-views.sql
 ├── create-module.ps1             # Script para criar novos módulos
 └── README.md                     # Esta documentação
-```text
+```
+
 ## 🛠️ Adding New Modules
 
 ### Step 1: Create Module Folder Structure
