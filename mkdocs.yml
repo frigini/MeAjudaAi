@@ -109,18 +109,9 @@ nav:
       - Visão Geral: architecture.md
       - Autenticação e Autorização: authentication-and-authorization.md
       - Infraestrutura: infrastructure.md
-      - Banco de Dados:
-          - Boundaries do Banco: database/database-boundaries.md
-          - Organização de Scripts: database/scripts-organization.md
-          - DbContext Factory: database/db-context-factory.md
-      - Mensageria:
-          - Estratégia de Message Bus: messaging/message-bus-strategy.md
-          - Mocks de Mensageria: messaging/messaging-mocks.md
-          - Dead Letter Queue: messaging/dead-letter-queue.md
-      - Logging:
-          - Correlation ID: logging/correlation-id.md
-          - Performance: logging/PERFORMANCE.md
-          - Configuração Seq: logging/seq-setup.md
+      - Banco de Dados: database.md
+      - Mensageria: messaging.md
+      - Logging: logging.md
   - Módulos:
       - Usuários: modules/users.md
       - Prestadores: modules/providers.md
@@ -128,24 +119,14 @@ nav:
       - Busca de Prestadores: modules/search-providers.md
       - Catálogo de Serviços: modules/service-catalogs.md
       - Localizações: modules/locations.md
-  - CI/CD:
-      - Visão Geral: ci-cd.md
-      - Workflows: ci-cd/workflows-overview.md
-      - Validação de PRs: ci-cd/pr-validation-workflow.md
+  - CI/CD: ci-cd.md
   - Testes:
       - Testes Unitários vs Integração: testing/unit-vs-integration-tests.md
       - Testes de Integração: testing/integration-tests.md
       - Infraestrutura de Testes: testing/test-infrastructure.md
       - Exemplos de Auth em Testes: testing/test-auth-examples.md
       - Arquitetura E2E: testing/e2e-architecture-analysis.md
-      - Cobertura:
-          - Guia de Cobertura: testing/code-coverage-guide.md
-          - Roadmap de Cobertura: testing/code-coverage-roadmap.md
-          - Análise de Cobertura Dez 2025: testing/coverage-analysis-dec-2025.md
-          - Guia de Exclusões: testing/coverage-exclusion-guide.md
-          - Relatório Explicado: testing/coverage-report-explained.md
-          - Análise de Gaps: testing/coverage-gap-analysis.md
-          - Análise de Testes Pulados: testing/skipped-tests-analysis.md
+      - Cobertura de Código: testing/coverage.md
   - Referência:
       - Roadmap: roadmap.md
       - API Reference: api-reference.md
