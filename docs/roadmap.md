@@ -782,7 +782,7 @@ gantt
 
 **Status**: 🔄 DIAS 1-6 CONCLUÍDOS | FINALIZANDO (22-25 Nov 2025)  
 **Branches**: `feature/geographic-restriction` (merged ✅), `feature/module-integration` (em review), `improve-tests-coverage` (criada)  
-**Documentação**: [docs/testing/skipped-tests-analysis.md](./testing/skipped-tests-analysis.md)
+**Documentação**: Análise integrada em [testing/coverage.md](./testing/coverage.md)
 
 **Conquistas**:
 - ✅ Sprint 0 concluído: Migration .NET 10 + Aspire 13 merged (21 Nov)

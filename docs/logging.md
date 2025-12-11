@@ -182,8 +182,8 @@ using (LogContext.PushProperty("CorrelationId", correlationId))
 ## 🔗 Links Relacionados
 
 - [Performance Monitoring](#performance-monitoring)
-- [SEQ Setup](./seq-setup.md)
-- [SEQ Configuration](./seq-setup.md)
+- [SEQ Setup](#seq-setup)
+- [SEQ Configuration](#seq-setup)
 ---
 
 ## Performance Monitoring
@@ -284,8 +284,8 @@ logger.LogInformation("Query executed: {Operation} in {Duration}ms",
 
 ## 🔗 Links Relacionados
 
-- [Correlation ID Best Practices](./correlation-id.md)
-- [SEQ Configuration](./seq-setup.md)
+- [Correlation ID Best Practices](#correlation-id-best-practices)
+- [SEQ Configuration](#seq-setup)
 ---
 
 ## Seq Setup

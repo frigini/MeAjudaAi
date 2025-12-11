@@ -881,7 +881,7 @@ azd provision --environment production
 ## 1. PR Validation
 
 **Arquivo**: `.github/workflows/pr-validation.yml`  
-**Documentação Completa**: [pr-validation-workflow.md](./pr-validation-workflow.md)
+**Documentação Completa**: [PR Validation Workflow](#pr-validation-workflow)
 
 ### Propósito
 Workflow **crítico** que garante qualidade de código antes do merge. É o **gatekeeper** do projeto.
@@ -1344,9 +1344,9 @@ POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
 
 ## 📚 Documentação Relacionada
 
-- **PR Validation**: [pr-validation-workflow.md](./pr-validation-workflow.md) (documentação detalhada)
-- **CI/CD Overview**: [../ci-cd.md](../ci-cd.md)
-- **Code Coverage**: [../testing/code-coverage-guide.md](../testing/code-coverage-guide.md)
+- **PR Validation**: [PR Validation Workflow](#pr-validation-workflow) (documentação detalhada)
+- **CI/CD Overview**: [CI/CD](./ci-cd.md)
+- **Code Coverage**: [testing/coverage.md](./testing/coverage.md)
 - **Architecture Tests**: (pending implementation)
 
 ---
@@ -1895,10 +1895,10 @@ O workflow **falha** (bloqueia merge) se:
 
 ### Documentação Relacionada
 
-- [Code Coverage Guide](../testing/code-coverage-guide.md)
-- [Integration Tests](../testing/integration-tests.md)
+- [Code Coverage Guide](./testing/coverage.md)
+- [Integration Tests](./testing/integration-tests.md)
 - Architecture tests (pending implementation)
-- [CI/CD Overview](../ci-cd.md)
+- [CI/CD Overview](#ci-cd---continuous-integration--deployment)
 
 ### Ferramentas e Actions
 
@@ -1945,4 +1945,4 @@ Porém, o workflow completo (com artifacts, comentários no PR) só funciona no 
 
 **Última Atualização**: 4 de Dezembro de 2025  
 **Mantenedor**: @frigini  
-**Questões**: Abra uma issue ou consulte [CI/CD Troubleshooting](../ci-cd.md#troubleshooting)
+**Questões**: Abra uma issue ou consulte [CI/CD Troubleshooting](#troubleshooting)

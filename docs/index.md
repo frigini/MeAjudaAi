@@ -1,62 +1,62 @@
 # MeAjudaAi
 
-Platform connecting customers with service providers for home services and professional assistance.
+Plataforma conectando clientes com prestadores de serviços para serviços domésticos e assistência profissional.
 
-## Quick Links
+## Links Rápidos
 
-- [Getting Started](development.md) - Setup your development environment
-- [Architecture](architecture.md) - System design and components
-- [API Reference](api-reference.md) - REST API endpoints documentation
-- [Configuration](configuration.md) - Environment and deployment settings
-- [Testing](testing/unit-vs-integration-tests.md) - Testing strategy and guides
-- [CI/CD](ci-cd.md) - Continuous integration and deployment
-- [Roadmap](roadmap.md) - Project planning and milestones
+- [Primeiros Passos](development.md) - Configure seu ambiente de desenvolvimento
+- [Arquitetura](architecture.md) - Design e componentes do sistema
+- [Referência da API](api-reference.md) - Documentação dos endpoints REST
+- [Configuração](configuration.md) - Configurações de ambiente e deploy
+- [Testes](testing/unit-vs-integration-tests.md) - Estratégias e guias de testes
+- [CI/CD](ci-cd.md) - Integração e deploy contínuos
+- [Roadmap](roadmap.md) - Planejamento e marcos do projeto
 
-## Project Status
+## Status do Projeto
 
-- **.NET Version**: 10.0 LTS
-- **Aspire Version**: 13.0.2 GA
-- **Test Coverage**: 90.56%
-- **Current Sprint**: Sprint 3 (started 10 Dec 2025)
+- **Versão .NET**: 10.0 LTS
+- **Versão Aspire**: 13.0.2 GA
+- **Cobertura de Testes**: 90.56%
+- **Sprint Atual**: Sprint 3 (iniciada em 10 Dez 2025)
 
-## Key Features
+## Principais Funcionalidades
 
-- Multi-tenant architecture
-- Role-based access control (Customer, Provider, Admin)
-- Document processing with Azure Document Intelligence
-- Search and geolocation services
-- Message-driven architecture with RabbitMQ
-- Distributed caching with Redis
-- Comprehensive observability with OpenTelemetry
+- Arquitetura multi-tenant
+- Controle de acesso baseado em roles (Cliente, Prestador, Admin)
+- Processamento de documentos com Azure Document Intelligence
+- Serviços de busca e geolocalização
+- Arquitetura orientada a mensagens com RabbitMQ
+- Cache distribuído com Redis
+- Observabilidade abrangente com OpenTelemetry
 
-## Development Stack
+## Stack de Desenvolvimento
 
-- **.NET 10.0** - Application framework
-- **ASP.NET Core** - Web APIs
-- **Entity Framework Core** - Data access
-- **PostgreSQL** - Primary database
+- **.NET 10.0** - Framework da aplicação
+- **ASP.NET Core** - APIs Web
+- **Entity Framework Core** - Acesso a dados
+- **PostgreSQL** - Banco de dados principal
 - **RabbitMQ** - Message broker
-- **Redis** - Distributed cache
-- **Keycloak** - Identity provider
-- **Azure Services** - Cloud infrastructure
-- **.NET Aspire** - Cloud-native orchestration
+- **Redis** - Cache distribuído
+- **Keycloak** - Provedor de identidade
+- **Azure Services** - Infraestrutura em nuvem
+- **.NET Aspire** - Orquestração cloud-native
 
-## Documentation Structure
+## Estrutura da Documentação
 
-- **Getting Started** - Development setup and configuration
-- **Architecture** - System design, patterns, and infrastructure
-- **Modules** - Domain-specific documentation
-- **CI/CD** - Build, test, and deployment automation
-- **Testing** - Test strategies and coverage reports
-- **Reference** - Roadmap, technical debt, and security
+- **Primeiros Passos** - Configuração e setup de desenvolvimento
+- **Arquitetura** - Design do sistema, padrões e infraestrutura
+- **Módulos** - Documentação específica de domínio
+- **CI/CD** - Automação de build, testes e deploy
+- **Testes** - Estratégias de testes e relatórios de cobertura
+- **Referência** - Roadmap, débito técnico e segurança
 
-## Contributing
+## Contribuindo
 
-1. Fork the repository
-2. Create a feature branch
-3. Follow the [development guide](development.md)
-4. Submit a pull request
+1. Faça um fork do repositório
+2. Crie uma branch de feature
+3. Siga o [guia de desenvolvimento](development.md)
+4. Envie um pull request
 
-## License
+## Licença
 
-See [LICENSE](https://github.com/frigini/MeAjudaAi/blob/master/LICENSE) file for details.
+Veja o arquivo [LICENSE](https://github.com/frigini/MeAjudaAi/blob/master/LICENSE) para detalhes.

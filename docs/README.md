@@ -37,9 +37,9 @@ Se você é novo no projeto, comece por aqui:
 
 | Documento | Descrição |
 |-----------|-----------|
-| **[🆔 Correlation ID](./logging/correlation-id.md)** | Melhores práticas para implementação e uso de Correlation IDs |
-| **[⏱️ Desempenho](./logging/performance.md)** | Estratégias e ferramentas de monitoramento de desempenho |
-| **[📊 Seq Setup](./logging/seq-setup.md)** | Configuração do Seq para logging estruturado |
+| **[🆔 Correlation ID](./logging.md#correlation-id-best-practices)** | Melhores práticas para implementação e uso de Correlation IDs |
+| **[⏱️ Desempenho](./logging.md#performance-monitoring)** | Estratégias e ferramentas de monitoramento de desempenho |
+| **[📊 Seq Setup](./logging.md#seq-setup)** | Configuração do Seq para logging estruturado |
 
 ### **💬 Messaging**
 
@@ -64,11 +64,11 @@ Se você é novo no projeto, comece por aqui:
 
 | Documento | Descrição |
 |-----------|-----------|
-| **[📊 Guia de Cobertura de Código](./testing/code_coverage_guide.md)** | Como visualizar e interpretar a cobertura de código |
-| **[⚙️ Testes de Integração](./testing/integration_tests.md)** | Guia para escrever e manter testes de integração |
-| **[🏗️ Infraestrutura de Testes](./testing/test-infrastructure.md)** | Setup e configuração da infraestrutura de testes |
+| **[📊 Guia de Cobertura de Código](./testing/coverage.md)** | Como visualizar e interpretar a cobertura de código |
+| **[⚙️ Testes de Integração](./testing/integration-tests.md)** | Guia para escrever e manter testes de integração |
+| **[🏭 Infraestrutura de Testes](./testing/test-infrastructure.md)** | Setup e configuração da infraestrutura de testes |
 | **[🔒 Exemplos de Testes de Autenticação](./testing/test-auth-examples.md)** | Exemplos práticos do TestAuthenticationHandler |
-| **[🔍 Análise de Testes Skipped](./testing/skipped-tests-analysis.md)** | Análise e plano de correção de testes skipped |
+| **[🔍 Análise de Testes Skipped](./testing/coverage.md#testes-skipped)** | Análise e plano de correção de testes skipped |
 | **[🎯 Arquitetura E2E](./testing/e2e-architecture-analysis.md)** | Análise da arquitetura de testes end-to-end |
 
 ## 🤝 Como Contribuir

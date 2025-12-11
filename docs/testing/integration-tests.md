@@ -5,7 +5,7 @@ This document provides comprehensive guidance for writing and maintaining integr
 
 > **📚 Related Documentation**:
 > - [Test Infrastructure (TestContainers)](./test-infrastructure.md) - Infraestrutura de containers para testes
-> - [Code Coverage Guide](./code-coverage-guide.md) - Guia de cobertura de código
+> - [Code Coverage Guide](./coverage.md) - Guia de cobertura de código
 > - [Test Authentication Examples](./test-auth-examples.md) - Exemplos de autenticação em testes
 
 ## Integration Testing Strategy
