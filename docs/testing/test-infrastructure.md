@@ -30,7 +30,7 @@ Classe base que fornece:
 ### Requisitos
 
 - Docker Desktop instalado e rodando
-- .NET 9.0 SDK
+- .NET 10.0 SDK
 - Pacotes NuGet:
   - `Testcontainers.PostgreSql`
   - `Testcontainers.Redis`

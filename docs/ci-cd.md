@@ -1,95 +1,95 @@
-# CI/CD Configuration & Security Guide - MeAjudaAi
+# Guia de Configuração de CI/CD e Segurança - MeAjudaAi
 
 Este documento detalha a configuração, estratégias de CI/CD e correções de segurança para o projeto MeAjudaAi.
 
-## 🔒 Security Scanning Fixes
+## 🔒 Correções de Segurança
 
-### Issues Fixed
+### Problemas Corrigidos
 
-#### 1. Gitleaks License Requirement
-**Problem**: Gitleaks v2 now requires a license for organization repositories, causing CI/CD pipeline failures.
+#### 1. Requisito de Licença do Gitleaks
+**Problema**: Gitleaks v2 agora requer uma licença para repositórios de organizações, causando falhas no pipeline de CI/CD.
 
-**Solution**: 
-- Added conditional execution for Gitleaks based on license availability
-- Added TruffleHog as a backup secret scanner that always runs
-- Both scanners fail the workflow when secrets are detected (strict enforcement)
+**Solução**: 
+- Adicionada execução condicional para Gitleaks baseada na disponibilidade de licença
+- Adicionado TruffleHog como scanner de segredos alternativo que sempre executa
+- Ambos os scanners falham o workflow quando segredos são detectados (aplicação rigorosa)
 
-#### 2. Lychee Link Checker Regex Error
-**Problem**: Invalid regex patterns in `.lycheeignore` file causing parse errors.
+#### 2. Erro de Regex do Lychee Link Checker
+**Problema**: Padrões regex inválidos no arquivo `.lycheeignore` causando erros de parse.
 
-**Solution**: 
-- Fixed glob patterns by changing `*/bin/*` to `**/bin/**`
-- Updated all patterns to use proper glob syntax
+**Solução**: 
+- Corrigidos padrões glob alterando `*/bin/*` para `**/bin/**`
+- Atualizados todos os padrões para usar sintaxe glob adequada
 
-#### 3. Gitleaks Allowlist Security Blind Spot
-**Problem**: The configuration was excluding `appsettings.Development.json` files from secret scanning.
+#### 3. Ponto Cego de Segurança na Allowlist do Gitleaks
+**Problema**: A configuração estava excluindo arquivos `appsettings.Development.json` da varredura de segredos.
 
-**Solution**: 
-- Removed `appsettings.Development.json` from the gitleaks allowlist
-- Kept only template/example files in the allowlist
-- Enhanced security coverage for development configuration files
+**Solução**: 
+- Removido `appsettings.Development.json` da allowlist do gitleaks
+- Mantidos apenas arquivos de template/exemplo na allowlist
+- Aprimorada cobertura de segurança para arquivos de configuração de desenvolvimento
 
-#### 4. Secret Scanner Workflow Enforcement
-**Problem**: Security scanners had `continue-on-error: true` allowing PRs to pass even when secrets were detected.
+#### 4. Aplicação do Workflow do Scanner de Segredos
+**Problema**: Os scanners de segurança tinham `continue-on-error: true` permitindo que PRs passassem mesmo quando segredos eram detectados.
 
-**Solution**: 
-- Removed `continue-on-error: true` from both Gitleaks and TruffleHog steps
-- Updated TruffleHog base branch to dynamic `${{ github.event.pull_request.base.ref }}`
-- **Critical**: PR validation now blocks merges when secrets are detected
+**Solução**: 
+- Removido `continue-on-error: true` de ambos os passos Gitleaks e TruffleHog
+- Atualizado branch base do TruffleHog para dinâmico `${{ github.event.pull_request.base.ref }}`
+- **Crítico**: Validação de PR agora bloqueia merges quando segredos são detectados
 
-### Current Security Scanning Setup
+### Configuração Atual de Varredura de Segurança
 
-The CI/CD pipeline now includes:
+O pipeline de CI/CD agora inclui:
 
-1. **Gitleaks** (conditional execution with strict failure mode)
-   - Scans for secrets in git history
-   - Only runs when GITLEAKS_LICENSE secret is available
-   - **FAILS the workflow if secrets are detected**
-   - Blocks PR merges when secrets are found
+1. **Gitleaks** (execução condicional com modo de falha rigoroso)
+   - Varre segredos no histórico git
+   - Executa apenas quando o secret GITLEAKS_LICENSE está disponível
+   - **FALHA o workflow se segredos são detectados**
+   - Bloqueia merges de PR quando segredos são encontrados
 
-2. **TruffleHog** (complementary scanner)
-   - Free open-source secret scanner
-   - Runs regardless of Gitleaks license status
-   - Focuses on verified secrets only
-   - **FAILS the workflow if secrets are detected**
+2. **TruffleHog** (scanner complementar)
+   - Scanner de segredos open-source gratuito
+   - Executa independentemente do status da licença Gitleaks
+   - Foca apenas em segredos verificados
+   - **FALHA o workflow se segredos são detectados**
 
 3. **Lychee Link Checker**
-   - Validates Markdown links
-   - Uses proper glob patterns for exclusions
-   - Caches results for performance
+   - Valida links Markdown
+   - Usa padrões glob adequados para exclusões
+   - Cacheia resultados para performance
 
-### Optional: Adding Gitleaks License
+### Opcional: Adicionando Licença do Gitleaks
 
-If you want to use the full Gitleaks functionality:
+Se você deseja usar a funcionalidade completa do Gitleaks:
 
-1. Purchase a license from [gitleaks.io](https://gitleaks.io)
-2. Add the license as a GitHub repository secret named `GITLEAKS_LICENSE`
-3. The workflow will automatically use the licensed version when available
+1. Adquira uma licença em [gitleaks.io](https://gitleaks.io)
+2. Adicione a licença como um secret do repositório GitHub chamado `GITLEAKS_LICENSE`
+3. O workflow automaticamente usará a versão licenciada quando disponível
 
-### Setting up GITLEAKS_LICENSE Secret
+### Configurando o Secret GITLEAKS_LICENSE
 
-1. Go to your repository Settings
-2. Navigate to Secrets and variables → Actions
-3. Click "New repository secret"
-4. Name: `GITLEAKS_LICENSE`
-5. Value: Your purchased license key
-6. Click "Add secret"
+1. Vá para as Configurações do seu repositório
+2. Navegue para Secrets and variables → Actions
+3. Clique em "New repository secret"
+4. Nome: `GITLEAKS_LICENSE`
+5. Valor: Sua chave de licença adquirida
+6. Clique em "Add secret"
 
-### Monitoring Security Scans
+### Monitorando Varreduras de Segurança
 
-Both security scanners will:
-- Run on every pull request
-- Generate detailed reports in workflow logs
-- **FAIL the workflow if secrets are detected** 
-- **BLOCK PR merges when security issues are found**
-- Provide summaries in the GitHub Actions interface
+Ambos os scanners de segurança irão:
+- Executar em cada pull request
+- Gerar relatórios detalhados nos logs do workflow
+- **FALHAR o workflow se segredos são detectados** 
+- **BLOQUEAR merges de PR quando problemas de segurança são encontrados**
+- Fornecer resumos na interface do GitHub Actions
 
-To view results:
-1. Go to the Actions tab in your repository
-2. Click on the specific workflow run
-3. Check the "Secret Detection" job for security scan results
-4. **Red X indicates secrets were found and PR is blocked**
-5. **Green checkmark indicates no secrets detected**
+Para visualizar resultados:
+1. Vá para a aba Actions no seu repositório
+2. Clique na execução específica do workflow
+3. Verifique o job "Secret Detection" para resultados da varredura de segurança
+4. **X vermelho indica que segredos foram encontrados e PR está bloqueado**
+5. **Marca verde indica que nenhum segredo foi detectado**
 
 ## 🚀 Estratégia de CI/CD
 
@@ -760,57 +760,57 @@ Write-Host "✅ Configuração de CI/CD (apenas setup) concluída!" -ForegroundC
 [![CI/CD Pipeline](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/frigini/MeAjudaAi/actions/workflows/ci-cd.yml)
 ```
 
-## 🛡️ Security Best Practices
+## 🛡️ Melhores Práticas de Segurança
 
-### Configuration Files Security
+### Segurança dos Arquivos de Configuração
 
 #### .gitleaks.toml
-The gitleaks configuration file defines:
-- Rules for secret detection
-- Allowlisted files/patterns (only templates/examples)
-- Custom detection rules
+O arquivo de configuração do gitleaks define:
+- Regras para detecção de segredos
+- Arquivos/padrões permitidos (apenas templates/exemplos)
+- Regras de detecção personalizadas
 
-**Critical**: Only template files (`appsettings.template.json`, `appsettings.example.json`) are excluded from scanning.
+**Crítico**: Apenas arquivos de template (`appsettings.template.json`, `appsettings.example.json`) são excluídos da varredura.
 
 #### lychee.toml
-The lychee configuration file defines:
-- Link checking scope (currently file:// links only)
-- Timeout and concurrency settings
-- Status codes to accept as valid
+O arquivo de configuração do lychee define:
+- Escopo de verificação de links (atualmente apenas links file://)
+- Configurações de timeout e concorrência
+- Códigos de status a aceitar como válidos
 
 #### .lycheeignore
-Patterns to exclude from link checking:
-- Build artifacts (`**/bin/**`, `**/obj/**`)
-- Dependencies (`**/node_modules/**`)
-- Version control (`**/.git/**`)
-- Test outputs (`**/TestResults/**`)
-- Localhost and development URLs
+Padrões a excluir da verificação de links:
+- Artefatos de build (`**/bin/**`, `**/obj/**`)
+- Dependências (`**/node_modules/**`)
+- Controle de versão (`**/.git/**`)
+- Saídas de teste (`**/TestResults/**`)
+- URLs localhost e de desenvolvimento
 
-### Security Monitoring Guidelines
+### Diretrizes de Monitoramento de Segurança
 
-1. **Regular Updates**: Keep security scanning tools updated
-2. **License Management**: Monitor Gitleaks license expiration if using paid version
-3. **False Positives**: Update `.gitleaks.toml` to handle legitimate false positives
-4. **Link Maintenance**: Update `.lycheeignore` for new patterns that should be excluded
-5. **Secret Rotation**: Regularly rotate secrets detected in allowlisted files
+1. **Atualizações Regulares**: Mantenha as ferramentas de varredura de segurança atualizadas
+2. **Gerenciamento de Licença**: Monitore a expiração da licença Gitleaks se usar versão paga
+3. **Falsos Positivos**: Atualize `.gitleaks.toml` para lidar com falsos positivos legítimos
+4. **Manutenção de Links**: Atualize `.lycheeignore` para novos padrões que devem ser excluídos
+5. **Rotação de Segredos**: Rotacione regularmente segredos detectados em arquivos permitidos
 
-### Security Troubleshooting
+### Solução de Problemas de Segurança
 
-#### Common Security Issues
+#### Problemas Comuns de Segurança
 
-1. **License errors**: Use TruffleHog output if Gitleaks fails
-2. **Regex errors**: Ensure `.lycheeignore` uses valid glob patterns (`**` for recursive matching)
-3. **Link timeouts**: Adjust timeout settings in `lychee.toml`
-4. **False secret detection**: Review and update `.gitleaks.toml` allowlist carefully
+1. **Erros de licença**: Use a saída do TruffleHog se o Gitleaks falhar
+2. **Erros de regex**: Certifique-se de que `.lycheeignore` usa padrões glob válidos (`**` para correspondência recursiva)
+3. **Timeouts de links**: Ajuste as configurações de timeout em `lychee.toml`
+4. **Detecção falsa de segredos**: Revise e atualize a allowlist do `.gitleaks.toml` cuidadosamente
 
-#### Support Resources
+#### Recursos de Suporte
 
-For issues with:
-- **Gitleaks**: Check [gitleaks documentation](https://github.com/gitleaks/gitleaks)
-- **TruffleHog**: Check [TruffleHog documentation](https://github.com/trufflesecurity/trufflehog)
-- **Lychee**: Check [lychee documentation](https://github.com/lycheeverse/lychee)
+Para problemas com:
+- **Gitleaks**: Consulte a [documentação do gitleaks](https://github.com/gitleaks/gitleaks)
+- **TruffleHog**: Consulte a [documentação do TruffleHog](https://github.com/trufflesecurity/trufflehog)
+- **Lychee**: Consulte a [documentação do lychee](https://github.com/lycheeverse/lychee)
 
-## 🚨 Troubleshooting
+## 🚨 Solução de Problemas
 
 ### Problemas Comuns de CI/CD
 
@@ -1719,7 +1719,7 @@ ConnectionStrings__DefaultConnection=${{ steps.db.outputs.connection-string }}
 
 **Exemplo de Comentário**:
 ```markdown
-## Code Coverage Summary
+## Resumo de Cobertura de Código
 
 | Assembly | Line | Branch | Method |
 |----------|------|--------|--------|
@@ -1727,7 +1727,7 @@ ConnectionStrings__DefaultConnection=${{ steps.db.outputs.connection-string }}
 | ServiceCatalogs.API | 45.3% | 38.7% | 51.2% |
 | **TOTAL** | **57.29%** | **45.12%** | **62.45%** |
 
-⚠️ Coverage below 70% threshold (STRICT_COVERAGE=false)
+⚠️ Cobertura abaixo do limite de 70% (STRICT_COVERAGE=false)
 ```
 
 **Thresholds**:

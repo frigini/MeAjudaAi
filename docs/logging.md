@@ -18,7 +18,10 @@ O **Correlation ID** é um identificador único que acompanha uma requisição a
 
 ### 🛠️ Implementação
 
-### **Geração Automática**
+#### **Geração Automática**
+
+O Correlation ID é gerado automaticamente através de um middleware personalizado:
+
 ```csharp
 public class CorrelationIdMiddleware
 {
@@ -41,11 +44,20 @@ public class CorrelationIdMiddleware
         }
     }
 }
-```csharp
-### **Configuração no Program.cs**
+```
+
+**Como funciona:**
+- Verifica se a requisição já possui um `X-Correlation-ID`
+- Se não existir, gera um novo GUID
+- Armazena no HttpContext para acesso posterior
+- Adiciona ao header da resposta
+- Injeta no LogContext do Serilog
+
+#### **Configuração no Program.cs**
+
 ```csharp
 app.UseMiddleware<CorrelationIdMiddleware>();
-```text
+```
 ## 📝 Estrutura de Logs
 
 ### **Template Serilog**

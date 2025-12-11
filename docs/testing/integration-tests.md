@@ -1,38 +1,38 @@
-# Integration Tests Guide
+# Guia de Testes de Integração
 
-## Overview
-This document provides comprehensive guidance for writing and maintaining integration tests in the MeAjudaAi platform.
+## Visão Geral
+Este documento fornece orientação abrangente para escrever e manter testes de integração na plataforma MeAjudaAi.
 
-> **📚 Related Documentation**:
-> - [Test Infrastructure (TestContainers)](./test-infrastructure.md) - Infraestrutura de containers para testes
-> - [Code Coverage Guide](./coverage.md) - Guia de cobertura de código
-> - [Test Authentication Examples](./test-auth-examples.md) - Exemplos de autenticação em testes
+> **📚 Documentação Relacionada**:
+> - [Infraestrutura de Testes (TestContainers)](./test-infrastructure.md) - Infraestrutura de containers para testes
+> - [Guia de Cobertura de Código](./coverage.md) - Guia de cobertura de código
+> - [Exemplos de Autenticação em Testes](./test-auth-examples.md) - Exemplos de autenticação em testes
 
-## Integration Testing Strategy
+## Estratégia de Testes de Integração
 
-The project implements a **two-level integration testing architecture** to balance test coverage, performance, and isolation:
+O projeto implementa uma **arquitetura de testes de integração em dois níveis** para equilibrar cobertura de testes, desempenho e isolamento:
 
-### 1. Component-Level Integration Tests (Module-Scoped)
-**Location**: `src/Modules/{Module}/Tests/Integration/`
+### 1. Testes de Integração em Nível de Componente (Escopo de Módulo)
+**Localização**: `src/Modules/{Module}/Tests/Integration/`
 
-These tests validate **individual infrastructure components** within a module using real dependencies:
+Estes testes validam **componentes de infraestrutura individuais** dentro de um módulo usando dependências reais:
 
-- **Scope**: Single module components (Repositories, Services, Queries)
-- **Infrastructure**: Isolated TestContainers per test class
-- **Base Classes**: `DatabaseTestBase`, `{Module}IntegrationTestBase`
-- **Speed**: Faster (only necessary components loaded)
-- **Purpose**: Validate data persistence, repository logic, and infrastructure services
-- **Isolation**: Each module manages its own test infrastructure
+- **Escopo**: Componentes de módulo único (Repositories, Services, Queries)
+- **Infraestrutura**: TestContainers isolados por classe de teste
+- **Classes Base**: `DatabaseTestBase`, `{Module}IntegrationTestBase`
+- **Velocidade**: Mais rápido (apenas componentes necessários carregados)
+- **Propósito**: Validar persistência de dados, lógica de repositório e serviços de infraestrutura
+- **Isolamento**: Cada módulo gerencia sua própria infraestrutura de teste
 
-**Example Use Cases**:
-- Testing `UserRepository.GetByIdAsync()` with a real PostgreSQL database
-- Validating complex queries return correct data
-- Testing database migrations and schema compatibility
-- Verifying repository transaction handling
+**Casos de Uso de Exemplo**:
+- Testar `UserRepository.GetByIdAsync()` com um banco de dados PostgreSQL real
+- Validar que consultas complexas retornam dados corretos
+- Testar migrações de banco de dados e compatibilidade de schema
+- Verificar tratamento de transações de repositório
 
-**Example Structure**:
+**Estrutura de Exemplo**:
 ```csharp
-// Location: src/Modules/Users/Tests/Integration/UserRepositoryIntegrationTests.cs
+// Localização: src/Modules/Users/Tests/Integration/UserRepositoryIntegrationTests.cs
 public class UserRepositoryTests : DatabaseTestBase
 {
     private UserRepository _repository;
@@ -41,131 +41,131 @@ public class UserRepositoryTests : DatabaseTestBase
     [Fact]
     public async Task AddAsync_WithValidUser_ShouldPersistUser()
     {
-        // Uses real PostgreSQL via TestContainers
-        // Tests only repository + database interaction
+        // Usa PostgreSQL real via TestContainers
+        // Testa apenas interação repositório + banco de dados
     }
 }
 ```
 
-### 2. End-to-End Integration Tests (Centralized)
-**Location**: `tests/MeAjudaAi.Integration.Tests/Modules/{Module}/`
+### 2. Testes de Integração End-to-End (Centralizado)
+**Localização**: `tests/MeAjudaAi.Integration.Tests/Modules/{Module}/`
 
-These tests validate **complete application flows** with all modules integrated:
+Estes testes validam **fluxos completos de aplicação** com todos os módulos integrados:
 
-- **Scope**: Full application (HTTP endpoints, DI container, all modules)
-- **Infrastructure**: Complete application via `WebApplicationFactory`
-- **Base Classes**: `ApiTestBase`, `SharedIntegrationTestFixture`
-- **Speed**: Slower (entire application stack)
-- **Purpose**: Validate end-to-end workflows, API contracts, cross-module communication
-- **Isolation**: Shared test infrastructure for all E2E tests
+- **Escopo**: Aplicação completa (endpoints HTTP, container DI, todos os módulos)
+- **Infraestrutura**: Aplicação completa via `WebApplicationFactory`
+- **Classes Base**: `ApiTestBase`, `SharedIntegrationTestFixture`
+- **Velocidade**: Mais lento (pilha completa de aplicação)
+- **Propósito**: Validar workflows end-to-end, contratos de API, comunicação entre módulos
+- **Isolamento**: Infraestrutura de teste compartilhada para todos os testes E2E
 
-**Example Use Cases**:
-- Testing `POST /api/v1/users` creates user and returns correct HTTP response
-- Validating authentication and authorization flows
-- Testing cross-module communication (e.g., creating a provider validates user exists)
-- Verifying complete business workflows
+**Casos de Uso de Exemplo**:
+- Testar que `POST /api/v1/users` cria usuário e retorna resposta HTTP correta
+- Validar fluxos de autenticação e autorização
+- Testar comunicação entre módulos (ex: criar um provider valida que o usuário existe)
+- Verificar workflows de negócio completos
 
-**Example Structure**:
+**Estrutura de Exemplo**:
 ```csharp
-// Location: tests/MeAjudaAi.Integration.Tests/Modules/Users/UsersApiTests.cs
+// Localização: tests/MeAjudaAi.Integration.Tests/Modules/Users/UsersApiTests.cs
 public class UsersApiTests : ApiTestBase
 {
     [Fact]
     public async Task RegisterUser_ValidData_ShouldReturnCreated()
     {
-        // Tests complete HTTP request/response
-        // All modules loaded and integrated
+        // Testa requisição/resposta HTTP completa
+        // Todos os módulos carregados e integrados
         var response = await Client.PostAsJsonAsync("/api/users/register", request);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 }
 ```
 
-### Decision Matrix: Which Level to Use?
+### Matriz de Decisão: Qual Nível Usar?
 
-| Test Scenario | Component-Level | End-to-End |
+| Cenário de Teste | Nível de Componente | End-to-End |
 |--------------|----------------|------------|
-| Repository CRUD operations | ✅ | ❌ |
-| Complex database queries | ✅ | ❌ |
-| Database migrations | ✅ | ❌ |
-| Service business logic | ✅ | ❌ |
-| HTTP endpoints | ❌ | ✅ |
-| Authentication flows | ❌ | ✅ |
-| Cross-module communication | ❌ | ✅ |
-| Complete workflows | ❌ | ✅ |
-| Resource lifecycle (CRUD+) | ❌ | ✅ |
-| Business rule validation | ❌ | ✅ |
+| Operações CRUD de repositório | ✅ | ❌ |
+| Consultas complexas de banco de dados | ✅ | ❌ |
+| Migrações de banco de dados | ✅ | ❌ |
+| Lógica de negócio de serviço | ✅ | ❌ |
+| Endpoints HTTP | ❌ | ✅ |
+| Fluxos de autenticação | ❌ | ✅ |
+| Comunicação entre módulos | ❌ | ✅ |
+| Workflows completos | ❌ | ✅ |
+| Ciclo de vida de recurso (CRUD+) | ❌ | ✅ |
+| Validação de regras de negócio | ❌ | ✅ |
 
-### Module Comparison
+### Comparação de Módulos
 
-**Modules with Component-Level Tests**:
-- ✅ Users (4 test files)
-- ✅ Providers (3 test files)
-- ✅ Search (2 test files)
+**Módulos com Testes em Nível de Componente**:
+- ✅ Users (4 arquivos de teste)
+- ✅ Providers (3 arquivos de teste)
+- ✅ Search (2 arquivos de teste)
 
-**Modules with Only E2E Tests**:
-- ✅ Documents (simpler infrastructure, no complex repositories)
-- ✅ Locations (service-level integration tests with mocked HTTP clients for external APIs - CEP lookup and geocoding)
+**Módulos com Apenas Testes E2E**:
+- ✅ Documents (infraestrutura mais simples, sem repositórios complexos)
+- ✅ Locations (testes de integração em nível de serviço com clientes HTTP mockados para APIs externas - consulta de CEP e geocodificação)
 
-**Note on Locations Module**: While Locations has no E2E tests (no HTTP endpoints), it has module-level integration tests in `tests/MeAjudaAi.Integration.Tests/Modules/Locations/` that:
-- Use dependency injection to wire up real services
-- Mock external HTTP APIs (ViaCep, BrasilApi, OpenCep, Nominatim)
-- Test caching behavior with HybridCache
-- Live in the centralized integration test project (not module-specific tests)
+**Nota sobre o Módulo Locations**: Embora Locations não tenha testes E2E (sem endpoints HTTP), ele possui testes de integração em nível de módulo em `tests/MeAjudaAi.Integration.Tests/Modules/Locations/` que:
+- Usam injeção de dependência para conectar serviços reais
+- Mockam APIs HTTP externas (ViaCep, BrasilApi, OpenCep, Nominatim)
+- Testam comportamento de cache com HybridCache
+- Residem no projeto de teste de integração centralizado (não testes específicos de módulo)
 
-### Test Categories
-1. **API Integration Tests** - Testing complete HTTP request/response cycles (E2E)
-2. **Database Integration Tests** - Testing data persistence and retrieval (Component)
-3. **Service Integration Tests** - Testing interaction between multiple services (Both levels)
-4. **Lifecycle Tests** - Testing complete resource lifecycle (Create → Read → Update → Delete + validations)
-5. **Advanced Feature Tests** - Testing complex business rules and domain-specific operations
+### Categorias de Teste
+1. **Testes de Integração de API** - Testando ciclos completos de requisição/resposta HTTP (E2E)
+2. **Testes de Integração de Banco de Dados** - Testando persistência e recuperação de dados (Componente)
+3. **Testes de Integração de Serviço** - Testando interação entre múltiplos serviços (Ambos os níveis)
+4. **Testes de Ciclo de Vida** - Testando ciclo de vida completo de recurso (Create → Read → Update → Delete + validações)
+5. **Testes de Recursos Avançados** - Testando regras de negócio complexas e operações específicas de domínio
 
-### E2E Test Organization by Scenario
+### Organização de Testes E2E por Cenário
 
-E2E tests are organized by **test scenario** rather than simply by module, improving maintainability and discoverability:
+Testes E2E são organizados por **cenário de teste** em vez de simplesmente por módulo, melhorando a manutenibilidade e descoberta:
 
-**Pattern 1: Module Integration Tests** (`{Module}ModuleTests.cs`)
-- Focus: Basic module functionality and integration
-- Scope: Core CRUD operations and happy paths
-- Example: `UsersModuleTests.cs`, `ProvidersModuleTests.cs`
+**Padrão 1: Testes de Integração de Módulo** (`{Module}ModuleTests.cs`)
+- Foco: Funcionalidade básica do módulo e integração
+- Escopo: Operações CRUD principais e caminhos felizes
+- Exemplo: `UsersModuleTests.cs`, `ProvidersModuleTests.cs`
 
-**Pattern 2: Lifecycle Tests** (`{Module}LifecycleE2ETests.cs`)
-- Focus: Complete resource lifecycle validation
-- Scope: Create → Update → Delete + state transitions
-- Example: `ProvidersLifecycleE2ETests.cs`, `UsersLifecycleE2ETests.cs`
-- Coverage: PUT/PATCH/DELETE endpoints with business rule validation
+**Padrão 2: Testes de Ciclo de Vida** (`{Module}LifecycleE2ETests.cs`)
+- Foco: Validação completa do ciclo de vida de recursos
+- Escopo: Create → Update → Delete + transições de estado
+- Exemplo: `ProvidersLifecycleE2ETests.cs`, `UsersLifecycleE2ETests.cs`
+- Cobertura: Endpoints PUT/PATCH/DELETE com validação de regras de negócio
 
-**Pattern 3: Feature-Specific Tests** (`{Module}{Feature}E2ETests.cs`)
-- Focus: Specific domain features or sub-resources
-- Scope: Complex workflows and related operations
-- Examples:
-  - `ProvidersDocumentsE2ETests.cs` - Document upload/deletion
-  - `DocumentsVerificationE2ETests.cs` - Document verification workflow
-  - `ServiceCatalogsAdvancedE2ETests.cs` - Advanced catalog operations
+**Padrão 3: Testes Específicos de Recurso** (`{Module}{Feature}E2ETests.cs`)
+- Foco: Recursos de domínio específicos ou sub-recursos
+- Escopo: Workflows complexos e operações relacionadas
+- Exemplos:
+  - `ProvidersDocumentsE2ETests.cs` - Upload/exclusão de documentos
+  - `DocumentsVerificationE2ETests.cs` - Workflow de verificação de documentos
+  - `ServiceCatalogsAdvancedE2ETests.cs` - Operações avançadas de catálogo
 
-**Pattern 4: Cross-Cutting Tests** (`{Concern}E2ETests.cs`)
-- Focus: Cross-module concerns
-- Scope: Authorization, authentication, infrastructure
-- Example: `PermissionAuthorizationE2ETests.cs`
+**Padrão 4: Testes Transversais** (`{Concern}E2ETests.cs`)
+- Foco: Preocupações entre módulos
+- Escopo: Autorização, autenticação, infraestrutura
+- Exemplo: `PermissionAuthorizationE2ETests.cs`
 
-**Benefits of this organization:**
-- 🎯 **Clear Intent**: Test purpose is obvious from filename
-- 📁 **Easy Navigation**: Find tests by scenario (Ctrl+P → "lifecycle")
-- 🐛 **Isolated Failures**: Failures grouped by feature domain
-- 📊 **Coverage Tracking**: Track endpoint coverage by category
-- 🔄 **Better Maintenance**: Smaller, focused test files
+**Benefícios desta organização:**
+- 🎯 **Intenção Clara**: Propósito do teste é óbvio pelo nome do arquivo
+- 📁 **Navegação Fácil**: Encontre testes por cenário (Ctrl+P → "lifecycle")
+- 🐛 **Falhas Isoladas**: Falhas agrupadas por domínio de recurso
+- 📊 **Rastreamento de Cobertura**: Rastreie cobertura de endpoints por categoria
+- 🔄 **Melhor Manutenção**: Arquivos de teste menores e focados
 
-### Test Environment Setup
-Integration tests use TestContainers for isolated, reproducible test environments:
+### Configuração de Ambiente de Teste
+Testes de integração usam TestContainers para ambientes de teste isolados e reproduzíveis:
 
-- **PostgreSQL Containers** - Isolated database instances
-- **Redis Containers** - Caching layer testing
-- **Message Bus Testing** - Service communication validation
+- **Containers PostgreSQL** - Instâncias de banco de dados isoladas
+- **Containers Redis** - Teste de camada de cache
+- **Teste de Message Bus** - Validação de comunicação entre serviços
 
-## Test Base Classes
+## Classes Base de Teste
 
 ### SharedApiTestBase
-The `SharedApiTestBase` class provides common functionality for API integration tests:
+A classe `SharedApiTestBase` fornece funcionalidade comum para testes de integração de API:
 
 ```csharp
 public abstract class SharedApiTestBase : IAsyncLifetime
@@ -173,40 +173,40 @@ public abstract class SharedApiTestBase : IAsyncLifetime
     protected HttpClient Client { get; private set; }
     protected TestContainerDatabase Database { get; private set; }
     
-    // Setup and teardown methods
+    // Métodos de configuração e limpeza
 }
 ```
 
-### Key Features
-- Automatic test container lifecycle management
-- Configured test authentication
-- Database schema initialization
-- HTTP client configuration
+### Recursos Principais
+- Gerenciamento automático do ciclo de vida de containers de teste
+- Autenticação de teste configurada
+- Inicialização de schema de banco de dados
+- Configuração de cliente HTTP
 
-## Authentication in Tests
+## Autenticação em Testes
 
-### Test Authentication Handler
-Integration tests use the `ConfigurableTestAuthenticationHandler` for:
+### Manipulador de Autenticação de Teste
+Testes de integração usam o `ConfigurableTestAuthenticationHandler` para:
 
-- **Predictable Authentication** - Consistent test user setup
-- **Role-Based Testing** - Testing different user permissions
-- **Unauthenticated Scenarios** - Testing public endpoints
+- **Autenticação Previsível** - Configuração consistente de usuário de teste
+- **Teste Baseado em Papel** - Testando diferentes permissões de usuário
+- **Cenários Não Autenticados** - Testando endpoints públicos
 
-### Configuration
+### Configuração
 ```csharp
 services.AddAuthentication("Test")
     .AddScheme<AuthenticationSchemeOptions, ConfigurableTestAuthenticationHandler>(
         "Test", options => { });
 ```
 
-## Database Testing
+## Testes de Banco de Dados
 
-### Test Database Management
-- Each test class gets an isolated PostgreSQL container
-- Database schema is automatically applied
-- Test data is cleaned up between tests
+### Gerenciamento de Banco de Dados de Teste
+- Cada classe de teste recebe um container PostgreSQL isolado
+- Schema de banco de dados é aplicado automaticamente
+- Dados de teste são limpos entre os testes
 
-### Entity Framework Integration
+### Integração com Entity Framework
 ```csharp
 protected async Task<T> ExecuteDbContextAsync<T>(Func<AppDbContext, Task<T>> action)
 {
@@ -215,14 +215,14 @@ protected async Task<T> ExecuteDbContextAsync<T>(Func<AppDbContext, Task<T>> act
 }
 ```
 
-## Writing Integration Tests
+## Escrevendo Testes de Integração
 
-### Test Structure
-1. **Arrange** - Set up test data and configuration
-2. **Act** - Execute the operation being tested
-3. **Assert** - Verify the expected outcomes
+### Estrutura de Teste
+1. **Arrange** - Configurar dados de teste e configuração
+2. **Act** - Executar a operação sendo testada
+3. **Assert** - Verificar os resultados esperados
 
-### Example Test
+### Exemplo de Teste
 ```csharp
 [Fact]
 public async Task CreateUser_ValidData_ReturnsCreatedUser()
@@ -244,42 +244,42 @@ public async Task CreateUser_ValidData_ReturnsCreatedUser()
 }
 ```
 
-## Best Practices
+## Melhores Práticas
 
-### Test Organization
-- Group related tests in the same test class
-- Use descriptive test names
-- Follow AAA pattern (Arrange, Act, Assert)
+### Organização de Testes
+- Agrupe testes relacionados na mesma classe de teste
+- Use nomes de teste descritivos
+- Siga o padrão AAA (Arrange, Act, Assert)
 
-### Performance Considerations
-- Minimize database operations
-- Reuse test containers when possible
-- Use async/await properly
+### Considerações de Desempenho
+- Minimize operações de banco de dados
+- Reutilize containers de teste quando possível
+- Use async/await adequadamente
 
-### Test Data Management
-- Use test data builders for complex objects
-- Clean up test data after each test
-- Avoid dependencies between tests
+### Gerenciamento de Dados de Teste
+- Use builders de dados de teste para objetos complexos
+- Limpe dados de teste após cada teste
+- Evite dependências entre testes
 
-## Troubleshooting
+## Solução de Problemas
 
-### Common Issues
-1. **Container Startup Failures** - Check Docker availability
-2. **Database Connection Issues** - Verify connection strings
-3. **Authentication Problems** - Check test authentication configuration
+### Problemas Comuns
+1. **Falhas de Inicialização de Container** - Verifique disponibilidade do Docker
+2. **Problemas de Conexão com Banco de Dados** - Verifique strings de conexão
+3. **Problemas de Autenticação** - Verifique configuração de autenticação de teste
 
-### Debugging Tests
-- Enable detailed logging for test runs
-- Use test output helpers for debugging
-- Check container logs for infrastructure issues
+### Depurando Testes
+- Habilite logging detalhado para execuções de teste
+- Use helpers de saída de teste para depuração
+- Verifique logs de container para problemas de infraestrutura
 
-## Endpoint Coverage Metrics
+## Métricas de Cobertura de Endpoints
 
-### Current Coverage Status
+### Status Atual de Cobertura
 
 O projeto mantém **100% de cobertura de endpoints E2E** através de 103 testes:
 
-| Module | Endpoints | Tests | Coverage |
+| Módulo | Endpoints | Testes | Cobertura |
 |--------|-----------|-------|----------|
 | **Providers** | 14 | 14 | 100% |
 | **ServiceCatalogs** | 17 | 17 | 100% |
@@ -287,65 +287,65 @@ O projeto mantém **100% de cobertura de endpoints E2E** através de 103 testes:
 | **Users** | 6 | 6 | 100% |
 | **TOTAL** | **41** | **41** | **100%** |
 
-### Test Distribution by Category
+### Distribuição de Testes por Categoria
 
-- **Module Integration**: 36 tests (basic module functionality)
-- **Lifecycle Tests**: 18 tests (complete CRUD workflows)
-- **Authorization**: 8 tests (permission validation)
-- **Cross-Module**: 7 tests (inter-module communication)
-- **Infrastructure**: 34 tests (health checks, configuration)
+- **Integração de Módulo**: 36 testes (funcionalidade básica de módulo)
+- **Testes de Ciclo de Vida**: 18 testes (workflows CRUD completos)
+- **Autorização**: 8 testes (validação de permissões)
+- **Entre Módulos**: 7 testes (comunicação inter-módulos)
+- **Infraestrutura**: 34 testes (verificações de saúde, configuração)
 
-### Coverage by Test Type
+### Cobertura por Tipo de Teste
 
-**Providers Module (14 endpoints)**:
-- Basic CRUD: `ProvidersModuleTests.cs` (6 tests)
-- Lifecycle: `ProvidersLifecycleE2ETests.cs` (6 tests)
-- Documents: `ProvidersDocumentsE2ETests.cs` (2 tests)
+**Módulo Providers (14 endpoints)**:
+- CRUD Básico: `ProvidersModuleTests.cs` (6 testes)
+- Ciclo de Vida: `ProvidersLifecycleE2ETests.cs` (6 testes)
+- Documentos: `ProvidersDocumentsE2ETests.cs` (2 testes)
 
-**ServiceCatalogs Module (17 endpoints)**:
-- Integration: `ServiceCatalogsModuleIntegrationTests.cs` (12 tests)
-- Advanced: `ServiceCatalogsAdvancedE2ETests.cs` (5 tests)
+**Módulo ServiceCatalogs (17 endpoints)**:
+- Integração: `ServiceCatalogsModuleIntegrationTests.cs` (12 testes)
+- Avançado: `ServiceCatalogsAdvancedE2ETests.cs` (5 testes)
 
-**Documents Module (4 endpoints)**:
-- Basic: `DocumentsModuleTests.cs` (1 test)
-- Verification: `DocumentsVerificationE2ETests.cs` (3 tests)
+**Módulo Documents (4 endpoints)**:
+- Básico: `DocumentsModuleTests.cs` (1 teste)
+- Verificação: `DocumentsVerificationE2ETests.cs` (3 testes)
 
-**Users Module (6 endpoints)**:
-- Integration: `UsersModuleTests.cs` (2 tests)
-- Lifecycle: `UsersLifecycleE2ETests.cs` (6 tests) - comprehensive DELETE coverage
+**Módulo Users (6 endpoints)**:
+- Integração: `UsersModuleTests.cs` (2 testes)
+- Ciclo de Vida: `UsersLifecycleE2ETests.cs` (6 testes) - cobertura abrangente de DELETE
 
-### Coverage Evolution
+### Evolução da Cobertura
 
 ```text
-Before (78% coverage):
+Antes (78% de cobertura):
 ├─ Providers: 8/14 (57%)
 ├─ ServiceCatalogs: 15/17 (88%)
 ├─ Documents: 3/4 (75%)
 └─ Users: 6/6 (100%)
 
-After (100% coverage):
+Depois (100% de cobertura):
 ├─ Providers: 14/14 (100%) ✅ +6 endpoints
 ├─ ServiceCatalogs: 17/17 (100%) ✅ +2 endpoints
 ├─ Documents: 4/4 (100%) ✅ +1 endpoint
-└─ Users: 6/6 (100%) ✅ Enhanced DELETE coverage
+└─ Users: 6/6 (100%) ✅ Cobertura DELETE aprimorada
 ```
 
-## CI/CD Integration
+## Integração CI/CD
 
-### Automated Test Execution
-Integration tests run as part of the CI/CD pipeline:
+### Execução Automatizada de Testes
+Testes de integração são executados como parte do pipeline CI/CD:
 
-- **Pull Request Validation** - All tests must pass (103/103)
-- **Parallel Execution** - Tests run in parallel for performance
-- **Coverage Reporting** - Integration test coverage is tracked
-- **Endpoint Coverage** - 100% endpoint coverage maintained
+- **Validação de Pull Request** - Todos os testes devem passar (103/103)
+- **Execução Paralela** - Testes executam em paralelo para desempenho
+- **Relatório de Cobertura** - Cobertura de testes de integração é rastreada
+- **Cobertura de Endpoints** - 100% de cobertura de endpoints mantida
 
-### Environment Configuration
-- Tests use environment-specific configuration
-- Secrets and sensitive data are managed securely
-- Test isolation is maintained across parallel runs
+### Configuração de Ambiente
+- Testes usam configuração específica de ambiente
+- Segredos e dados sensíveis são gerenciados com segurança
+- Isolamento de teste é mantido através de execuções paralelas
 
-## Related Documentation
+## Documentação Relacionada
 
-- [Development Guidelines](../development.md)
-- [CI/CD Setup](../ci-cd.md)
+- [Diretrizes de Desenvolvimento](../development.md)
+- [Configuração CI/CD](../ci-cd.md)

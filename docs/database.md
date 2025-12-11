@@ -1,80 +1,80 @@
-# 🗄️ Database Boundaries Strategy - MeAjudaAi Platform
+# 🗄️ Estratégia de Limites de Banco de Dados - Plataforma MeAjudaAi
 
-Following [Milan Jovanović's approach](https://www.milanjovanovic.tech/blog/how-to-keep-your-data-boundaries-intact-in-a-modular-monolith) for maintaining data boundaries in Modular Monoliths.
+Seguindo a [abordagem de Milan Jovanović](https://www.milanjovanovic.tech/blog/how-to-keep-your-data-boundaries-intact-in-a-modular-monolith) para manter os limites de dados em Monólitos Modulares.
 
-## 🎯 Core Principles
+## 🎯 Princípios Fundamentais
 
-### Enforced Boundaries at Database Level
-- ✅ **One schema per module** with dedicated database role
-- ✅ **Role-based permissions** restrict access to module's own schema only
-- ✅ **One DbContext per module** with default schema configuration
-- ✅ **Separate connection strings** using module-specific credentials
-- ✅ **Cross-module access** only through explicit views or APIs
+### Limites Forçados no Nível do Banco de Dados
+- ✅ **Um schema por módulo** com função de banco de dados dedicada
+- ✅ **Permissões baseadas em funções** restringem o acesso apenas ao schema do próprio módulo
+- ✅ **Um DbContext por módulo** com configuração de schema padrão
+- ✅ **Strings de conexão separadas** usando credenciais específicas do módulo
+- ✅ **Acesso entre módulos** apenas através de views explícitas ou APIs
 
-## 📁 File Structure
+## 📁 Estrutura de Arquivos
 
 ```text
 infrastructure/database/
-├── 📂 shared/                          # Base platform scripts
-│   ├── 00-create-base-roles.sql        # Shared roles
-│   └── 01-create-base-schemas.sql      # Shared schemas
+├── 📂 shared/                          # Scripts base da plataforma
+│   ├── 00-create-base-roles.sql        # Funções compartilhadas
+│   └── 01-create-base-schemas.sql      # Schemas compartilhados
 │
-├── 📂 modules/                         # Module-specific scripts
-│   ├── 📂 users/                       # Users Module (IMPLEMENTED)
-│   │   ├── 00-create-roles.sql         # Module roles
-│   │   ├── 01-create-schemas.sql       # Module schemas
-│   │   └── 02-grant-permissions.sql    # Module permissions
+├── 📂 modules/                         # Scripts específicos de módulos
+│   ├── 📂 users/                       # Módulo de Usuários (IMPLEMENTADO)
+│   │   ├── 00-create-roles.sql         # Funções do módulo
+│   │   ├── 01-create-schemas.sql       # Schemas do módulo
+│   │   └── 02-grant-permissions.sql    # Permissões do módulo
 │   │
-│   ├── 📂 providers/                   # Providers Module (FUTURE)
+│   ├── 📂 providers/                   # Módulo de Provedores (FUTURO)
 │   │   ├── 00-create-roles.sql
 │   │   ├── 01-create-schemas.sql
 │   │   └── 02-grant-permissions.sql
 │   │
-│   └── 📂 services/                    # Services Module (FUTURE)
+│   └── 📂 services/                    # Módulo de Serviços (FUTURO)
 │       ├── 00-create-roles.sql
 │       ├── 01-create-schemas.sql
 │       └── 02-grant-permissions.sql
 │
-├── 📂 views/                          # Cross-cutting queries
-│   └── cross-module-views.sql         # Controlled cross-module access
+├── 📂 views/                          # Consultas transversais
+│   └── cross-module-views.sql         # Acesso controlado entre módulos
 │
-├── 📂 orchestrator/                   # Coordination and control
-│   └── module-registry.sql            # Registry of installed modules
+├── 📂 orchestrator/                   # Coordenação e controle
+│   └── module-registry.sql            # Registro de módulos instalados
 │
-└── README.md                          # Documentation
+└── README.md                          # Documentação
 ```csharp
-## 🏗️ Schema Organization
+## 🏗️ Organização de Schemas
 
-### Database Schema Structure
+### Estrutura de Schemas do Banco de Dados
 ```sql
 -- Database: meajudaai
-├── users (schema)         - User management data
-├── providers (schema)     - Service provider data  
-├── services (schema)      - Service catalog data
-├── bookings (schema)      - Appointments and reservations
-├── notifications (schema) - Messaging system
-└── public (schema)        - Cross-cutting views and shared data
+├── users (schema)         - Dados de gerenciamento de usuários
+├── providers (schema)     - Dados de provedores de serviço
+├── services (schema)      - Dados de catálogo de serviços
+├── bookings (schema)      - Agendamentos e reservas
+├── notifications (schema) - Sistema de mensagens
+└── public (schema)        - Views transversais e dados compartilhados
 ```text
-## 🔐 Database Roles
+## 🔐 Funções do Banco de Dados
 
-| Role | Schema | Purpose |
-|------|--------|---------|
-| `users_role` | `users` | User profiles, authentication data |
-| `providers_role` | `providers` | Service provider information |
-| `services_role` | `services` | Service catalog and pricing |
-| `bookings_role` | `bookings` | Appointments and reservations |
-| `notifications_role` | `notifications` | Messaging and alerts |
-| `meajudaai_app_role` | `public` | Cross-module access via views |
+| Função | Schema | Propósito |
+|--------|--------|-----------|  
+| `users_role` | `users` | Perfis de usuário, dados de autenticação |
+| `providers_role` | `providers` | Informações de provedores de serviço |
+| `services_role` | `services` | Catálogo de serviços e precificação |
+| `bookings_role` | `bookings` | Agendamentos e reservas |
+| `notifications_role` | `notifications` | Sistema de mensagens e alertas |
+| `meajudaai_app_role` | `public` | Acesso entre módulos via views |
 
-## 🔧 Current Implementation
+## 🔧 Implementação Atual
 
-### Users Module (Active)
+### Módulo de Usuários (Ativo)
 - **Schema**: `users`
-- **Role**: `users_role` 
+- **Função**: `users_role` 
 - **Search Path**: `users, public`
-- **Permissions**: Full CRUD on users schema, limited access to public for EF migrations
+- **Permissões**: CRUD completo no schema users, acesso limitado ao public para migrations do EF
 
-### Connection String Configuration
+### Configuração de String de Conexão
 ```json
 {
   "ConnectionStrings": {
@@ -84,57 +84,57 @@ infrastructure/database/
   }
 }
 ```csharp
-### DbContext Configuration
+### Configuração do DbContext
 ```csharp
 public class UsersDbContext : DbContext
 {
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Set default schema for all entities
+        // Define schema padrão para todas as entidades
         modelBuilder.HasDefaultSchema("users");
         base.OnModelCreating(modelBuilder);
     }
 }
 
-// Registration with schema-specific migrations
+// Registro com migrations específicas do schema
 builder.Services.AddDbContext<UsersDbContext>(options =>
     options.UseNpgsql(connectionString, 
         o => o.MigrationsHistoryTable("__EFMigrationsHistory", "users")));
 ```yaml
-## 🚀 Benefits of This Strategy
+## 🚀 Benefícios desta Estratégia
 
-### Enforceable Boundaries
-- Each module operates in its own security context
-- Cross-module data access must be explicit (views or APIs)
-- Dependencies become visible and maintainable
-- Easy to spot boundary violations
+### Limites Forçados
+- Cada módulo opera em seu próprio contexto de segurança
+- Acesso a dados entre módulos deve ser explícito (views ou APIs)
+- Dependências tornam-se visíveis e mantíveis
+- Fácil identificar violações de limites
 
-### Future Microservice Extraction
-- Clean boundaries make module extraction straightforward
-- Database can be split along existing schema lines
-- Minimal refactoring required for service separation
+### Extração Futura de Microsserviços
+- Limites limpos facilitam a extração de módulos
+- Banco de dados pode ser dividido ao longo das linhas de schema existentes
+- Refatoração mínima necessária para separação de serviços
 
-### Key Advantages
-1. **🔒 Database-Level Isolation**: Prevents accidental cross-module access
-2. **🎯 Clear Ownership**: Each module owns its schema and data
-3. **📈 Independent Scaling**: Modules can be extracted to separate databases later
-4. **🛡️ Security**: Role-based access control at database level
-5. **🔄 Migration Safety**: Separate migration history per module
+### Principais Vantagens
+1. **🔒 Isolamento em Nível de Banco de Dados**: Previne acesso acidental entre módulos
+2. **🎯 Propriedade Clara**: Cada módulo possui seu schema e dados
+3. **📈 Escalabilidade Independente**: Módulos podem ser extraídos para bancos de dados separados posteriormente
+4. **🛡️ Segurança**: Controle de acesso baseado em funções no nível do banco de dados
+5. **🔄 Segurança de Migration**: Histórico de migration separado por módulo
 
-## 🚀 Adding New Modules
+## 🚀 Adicionando Novos Módulos
 
-### Step 1: Copy Module Template
+### Passo 1: Copiar Template de Módulo
 ```bash
-# Copy template for new module
+# Copiar template para novo módulo
 cp -r infrastructure/database/modules/users infrastructure/database/modules/providers
 ```
-### Step 2: Update SQL Scripts
-Replace `users` with new module name in:
+### Passo 2: Atualizar Scripts SQL
+Substituir `users` pelo nome do novo módulo em:
 - `00-create-roles.sql`
 - `01-create-schemas.sql` 
 - `02-grant-permissions.sql`
 
-### Step 3: Create DbContext
+### Passo 3: Criar DbContext
 ```csharp
 public class ProvidersDbContext : DbContext
 {
@@ -189,16 +189,16 @@ JOIN services.services s ON s.id = b.service_id;
 
 GRANT SELECT ON public.user_bookings_summary TO meajudaai_app_role;
 ```yaml
-### Option 2: Module APIs (Recommended)
+### Opção 2: APIs de Módulo (Recomendada)
 ```csharp
-// Each module exposes a clean API
+// Cada módulo expõe uma API limpa
 public interface IUsersModuleApi
 {
     Task<UserSummaryDto?> GetUserSummaryAsync(Guid userId);
     Task<bool> UserExistsAsync(Guid userId);
 }
 
-// Implementation uses internal DbContext
+// Implementação usa DbContext interno
 public class UsersModuleApi : IUsersModuleApi
 {
     private readonly UsersDbContext _context;
@@ -212,25 +212,25 @@ public class UsersModuleApi : IUsersModuleApi
     }
 }
 
-// Usage in other modules
+// Uso em outros módulos
 public class BookingService
 {
     private readonly IUsersModuleApi _usersApi;
     
     public async Task<BookingDto> CreateBookingAsync(CreateBookingRequest request)
     {
-        // Validate user exists via API
+        // Validar se usuário existe via API
         var userExists = await _usersApi.UserExistsAsync(request.UserId);
         if (!userExists)
             throw new UserNotFoundException();
             
-        // Create booking...
+        // Criar agendamento...
     }
 }
 ```csharp
-### Option 3: Event-Driven Read Models (Future)
+### Opção 3: Read Models Orientados a Eventos (Futuro)
 ```csharp
-// Users module publishes events
+// Módulo Users publica eventos
 public class UserRegisteredEvent
 {
     public Guid UserId { get; set; }
@@ -238,12 +238,12 @@ public class UserRegisteredEvent
     public DateTime RegisteredAt { get; set; }
 }
 
-// Other modules subscribe and build read models
+// Outros módulos se inscrevem e constroem read models
 public class NotificationEventHandler : INotificationHandler<UserRegisteredEvent>
 {
     public async Task Handle(UserRegisteredEvent notification, CancellationToken cancellationToken)
     {
-        // Build notification-specific read model
+        // Construir read model específico de notificações
         await _notificationContext.UserNotificationPreferences.AddAsync(
             new UserNotificationPreference 
             { 
@@ -253,63 +253,63 @@ public class NotificationEventHandler : INotificationHandler<UserRegisteredEvent
     }
 }
 ```text
-## ⚡ Development Setup
+## ⚡ Configuração de Desenvolvimento
 
-### Local Development
-1. **Aspire**: Automatically creates database and runs initialization scripts
-2. **Docker**: PostgreSQL container with volume mounts for schema scripts
-3. **Migrations**: Each module maintains separate migration history
+### Desenvolvimento Local
+1. **Aspire**: Cria automaticamente o banco de dados e executa scripts de inicialização
+2. **Docker**: Container PostgreSQL com montagem de volumes para scripts de schema
+3. **Migrations**: Cada módulo mantém histórico de migration separado
 
-### Production Considerations
-- Use Azure PostgreSQL with separate schemas
-- Consider read replicas for cross-module views
-- Monitor cross-schema queries for performance
-- Plan for eventual database splitting if modules need to scale independently
+### Considerações de Produção
+- Usar Azure PostgreSQL com schemas separados
+- Considerar réplicas de leitura para views entre módulos
+- Monitorar consultas entre schemas para desempenho
+- Planejar eventual divisão de banco de dados se os módulos precisarem escalar independentemente
 
-## ✅ Compliance Checklist
+## ✅ Checklist de Conformidade
 
-- [x] Each module has its own schema
-- [x] Each module has its own database role
-- [x] Role permissions restricted to module schema only
-- [x] DbContext configured with default schema
-- [x] Migrations history table in module schema
-- [x] Connection strings use module-specific credentials
-- [x] Search path set to module schema
-- [x] Cross-module access controlled via views/APIs
-- [ ] Additional modules follow the same pattern
-- [ ] Cross-cutting views created as needed
+- [x] Cada módulo tem seu próprio schema
+- [x] Cada módulo tem sua própria função de banco de dados
+- [x] Permissões de funções restritas apenas ao schema do módulo
+- [x] DbContext configurado com schema padrão
+- [x] Tabela de histórico de migrations no schema do módulo
+- [x] Strings de conexão usam credenciais específicas do módulo
+- [x] Search path configurado para o schema do módulo
+- [x] Acesso entre módulos controlado via views/APIs
+- [ ] Módulos adicionais seguem o mesmo padrão
+- [ ] Views transversais criadas conforme necessário
 
-## 🎓 References
+## 🎓 Referências
 
-Based on Milan Jovanović's excellent articles:
+Baseado nos excelentes artigos de Milan Jovanović:
 - [How to Keep Your Data Boundaries Intact in a Modular Monolith](https://www.milanjovanovic.tech/blog/how-to-keep-your-data-boundaries-intact-in-a-modular-monolith)
 - [Modular Monolith Data Isolation](https://www.milanjovanovic.tech/blog/modular-monolith-data-isolation)
 - [Internal vs Public APIs in Modular Monoliths](https://www.milanjovanovic.tech/blog/internal-vs-public-apis-in-modular-monoliths)
 
 ---
 
-## 🔒 Schema Isolation for Users Module
+## 🔒 Isolamento de Schema para Módulo de Usuários
 
-The `SchemaPermissionsManager` implements **security isolation for the Users module** using the existing SQL scripts in `infrastructure/database/schemas/`.
+O `SchemaPermissionsManager` implementa **isolamento de segurança para o módulo Users** usando os scripts SQL existentes em `infrastructure/database/schemas/`.
 
-### 🎯 Objectives
+### 🎯 Objetivos
 
-- **Data Isolation**: The Users module only accesses the `users` schema.
-- **Security**: The `users_role` cannot access other data.
-- **Reusability**: Uses existing infrastructure scripts.
-- **Flexibility**: Can be enabled/disabled by configuration.
+- **Isolamento de Dados**: O módulo Users só acessa o schema `users`.
+- **Segurança**: O `users_role` não pode acessar outros dados.
+- **Reusabilidade**: Usa scripts de infraestrutura existentes.
+- **Flexibilidade**: Pode ser habilitado/desabilitado por configuração.
 
-### 🚀 How to Use
+### 🚀 Como Usar
 
-#### 1. Development (Current Default)
+#### 1. Desenvolvimento (Padrão Atual)
 ```csharp
-// Program.cs - current mode (without isolation)
+// Program.cs - modo atual (sem isolamento)
 services.AddUsersModule(configuration);
 ```
 
-#### 2. Production (With Isolation)
+#### 2. Produção (Com Isolamento)
 ```csharp
-// Program.cs - secure mode
+// Program.cs - modo seguro
 if (app.Environment.IsProduction())
 {
     await services.AddUsersModuleWithSchemaIsolationAsync(configuration);
@@ -320,7 +320,7 @@ else
 }
 ```
 
-#### 3. Configuration (appsettings.Production.json)
+#### 3. Configuração (appsettings.Production.json)
 ```json
 {
   "Database": {
@@ -336,48 +336,48 @@ else
 }
 ```
 
-### 🔧 Existing Scripts Used
+### 🔧 Scripts Existentes Utilizados
 
-- **00-create-roles-users-only.sql**: Creates `users_role` and `meajudaai_app_role`.
-- **02-grant-permissions-users-only.sql**: Grants specific permissions for the Users module.
+- **00-create-roles-users-only.sql**: Cria `users_role` e `meajudaai_app_role`.
+- **02-grant-permissions-users-only.sql**: Concede permissões específicas para o módulo Users.
 
-> **📝 Note on Schemas**: The `users` schema is created automatically by Entity Framework Core through the `HasDefaultSchema("users")` configuration. There is no need for specific schema creation scripts.
+> **📝 Nota sobre Schemas**: O schema `users` é criado automaticamente pelo Entity Framework Core através da configuração `HasDefaultSchema("users")`. Não há necessidade de scripts específicos de criação de schema.
 
-### ⚡ Benefits
+### ⚡ Benefícios
 
-- ✅ **Reuses existing infrastructure**: Uses already tested scripts.
-- ✅ **Zero manual configuration**: Automatic setup when needed.
-- ✅ **Flexible**: Can be enabled only in production.
-- ✅ **Secure**: Real isolation for the Users module.
-- ✅ **Consistent**: Aligned with the current project structure.
-- ✅ **Simplified**: EF Core manages schema creation automatically.
+- ✅ **Reutiliza infraestrutura existente**: Usa scripts já testados.
+- ✅ **Zero configuração manual**: Configuração automática quando necessário.
+- ✅ **Flexível**: Pode ser habilitado apenas em produção.
+- ✅ **Seguro**: Isolamento real para o módulo Users.
+- ✅ **Consistente**: Alinhado com a estrutura atual do projeto.
+- ✅ **Simplificado**: EF Core gerencia a criação de schema automaticamente.
 
-### 📊 Usage Scenarios
+### 📊 Cenários de Uso
 
-| Environment | Configuration | Behavior |
+| Ambiente | Configuração | Comportamento |
 |---|---|---|
-| **Development** | `EnableSchemaIsolation: false` | Uses default admin user |
-| **Test** | `EnableSchemaIsolation: false` | TestContainers with a single user |
-| **Staging** | `EnableSchemaIsolation: true` | Dedicated `users_role` user |
-| **Production** | `EnableSchemaIsolation: true` | Maximum security for Users |
+| **Desenvolvimento** | `EnableSchemaIsolation: false` | Usa usuário admin padrão |
+| **Teste** | `EnableSchemaIsolation: false` | TestContainers com um único usuário |
+| **Staging** | `EnableSchemaIsolation: true` | Usuário `users_role` dedicado |
+| **Produção** | `EnableSchemaIsolation: true` | Máxima segurança para Users |
 
-### 🛡️ Security Structure
+### 🛡️ Estrutura de Segurança
 
-- **users_role**: Exclusive access to the `users` schema.
-- **meajudaai_app_role**: Cross-cutting access for general operations.
-- **Isolation**: The `users` schema is isolated from other data.
-- **Search path**: `users,public` - prioritizes module data.
+- **users_role**: Acesso exclusivo ao schema `users`.
+- **meajudaai_app_role**: Acesso transversal para operações gerais.
+- **Isolamento**: O schema `users` está isolado de outros dados.
+- **Search path**: `users,public` - prioriza dados do módulo.
 
-This solution **fully leverages** your existing infrastructure! 🚀
-# Database Scripts Organization
+Esta solução **aproveita completamente** sua infraestrutura existente! 🚀
+# Organização de Scripts de Banco de Dados
 
-## � Security Notice
+## 🔒 Aviso de Segurança
 
-**Important**: Never hardcode passwords in SQL scripts or documentation. All database passwords must be:
-- Retrieved from environment variables
-- Stored in secure configuration providers (Azure Key Vault, AWS Secrets Manager, etc.)
-- Generated using cryptographically secure random generators
-- Rotated regularly according to security policies
+**Importante**: Nunca codifique senhas diretamente em scripts SQL ou documentação. Todas as senhas de banco de dados devem ser:
+- Recuperadas de variáveis de ambiente
+- Armazenadas em provedores de configuração seguros (Azure Key Vault, AWS Secrets Manager, etc.)
+- Geradas usando geradores aleatórios criptograficamente seguros
+- Rotacionadas regularmente de acordo com políticas de segurança
 
 ## �📁 Structure Overview
 
@@ -447,53 +447,53 @@ GRANT USAGE ON SCHEMA public TO [module_name]_role;
 ```text
 ### Step 3: Update SchemaPermissionsManager
 
-Add new methods for each module:
+Adicionar novos métodos para cada módulo:
 
 ```csharp
 public async Task EnsureProvidersModulePermissionsAsync(string adminConnectionString,
     string providersRolePassword, string appRolePassword)
 {
-    // Implementation similar to EnsureUsersModulePermissionsAsync
+    // Implementação similar a EnsureUsersModulePermissionsAsync
 }
 ```csharp
-> ⚠️ **SECURITY WARNING**: Never hardcode passwords in method signatures or source code!
+> ⚠️ **AVISO DE SEGURANÇA**: Nunca codifique senhas diretamente em assinaturas de métodos ou código-fonte!
 
-**Secure Password Retrieval Pattern:**
+**Padrão de Recuperação Segura de Senhas:**
 
 ```csharp
-// ✅ SECURE: Retrieve passwords from configuration/secrets
+// ✅ SEGURO: Recuperar senhas de configuração/segredos
 public async Task ConfigureProvidersModule(IConfiguration configuration)
 {
     var adminConnectionString = configuration.GetConnectionString("AdminPostgres");
     
-    // Option 1: Environment variables
+    // Opção 1: Variáveis de ambiente
     var providersPassword = Environment.GetEnvironmentVariable("PROVIDERS_ROLE_PASSWORD");
     var appPassword = Environment.GetEnvironmentVariable("APP_ROLE_PASSWORD");
     
-    // Option 2: Configuration with secret providers (Azure Key Vault, etc.)
+    // Opção 2: Configuração com provedores de segredos (Azure Key Vault, etc.)
     var providersPassword = configuration["Database:Roles:ProvidersPassword"];
     var appPassword = configuration["Database:Roles:AppPassword"];
     
-    // Option 3: Dedicated secrets service
+    // Opção 3: Serviço de segredos dedicado
     var secretsService = serviceProvider.GetRequiredService<ISecretsService>();
     var providersPassword = await secretsService.GetSecretAsync("db-providers-password");
     var appPassword = await secretsService.GetSecretAsync("db-app-password");
     
     if (string.IsNullOrEmpty(providersPassword) || string.IsNullOrEmpty(appPassword))
     {
-        throw new InvalidOperationException("Database role passwords must be configured via secrets provider");
+        throw new InvalidOperationException("Senhas de funções do banco de dados devem ser configuradas via provedor de segredos");
     }
     
     await schemaManager.EnsureProvidersModulePermissionsAsync(
         adminConnectionString, providersPassword, appPassword);
 }
 ```text
-### Step 4: Update Module Registration
+### Passo 4: Atualizar Registro do Módulo
 
-In each module's `Extensions.cs`:
+No `Extensions.cs` de cada módulo:
 
 ```csharp
-// Option 1: Using IServiceScopeFactory (recommended for extension methods)
+// Opção 1: Usando IServiceScopeFactory (recomendado para métodos de extensão)
 public static IServiceCollection AddProvidersModuleWithSchemaIsolation(
     this IServiceCollection services, IConfiguration configuration)
 {
@@ -501,7 +501,7 @@ public static IServiceCollection AddProvidersModuleWithSchemaIsolation(
     
     if (enableSchemaIsolation)
     {
-        // Register a factory method that will be executed when needed
+        // Registrar um método factory que será executado quando necessário
         services.AddSingleton<Func<Task>>(provider =>
         {
             return async () =>
@@ -517,7 +517,7 @@ public static IServiceCollection AddProvidersModuleWithSchemaIsolation(
     return services;
 }
 
-// Option 2: Using IHostedService (recommended for startup initialization)
+// Opção 2: Usando IHostedService (recomendado para inicialização na startup)
 public class DatabaseSchemaInitializationService : IHostedService
 {
     private readonly IServiceScopeFactory _scopeFactory;
@@ -545,31 +545,31 @@ public class DatabaseSchemaInitializationService : IHostedService
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
 
-// Register the hosted service in Program.cs or Startup.cs:
+// Registrar o hosted service no Program.cs ou Startup.cs:
 // services.AddHostedService<DatabaseSchemaInitializationService>();
 ```csharp
-## 🔧 Naming Conventions
+## 🔧 Convenções de Nomenclatura
 
-### Database Objects:
-- **Schema**: `[module_name]` (e.g., `users`, `providers`, `services`)
-- **Role**: `[module_name]_role` (e.g., `users_role`, `providers_role`)
-- **Password**: Retrieved from secure configuration (environment variables, Key Vault, or secrets manager)
+### Objetos de Banco de Dados:
+- **Schema**: `[module_name]` (ex: `users`, `providers`, `services`)
+- **Função**: `[module_name]_role` (ex: `users_role`, `providers_role`)
+- **Senha**: Recuperada de configuração segura (variáveis de ambiente, Key Vault ou gerenciador de segredos)
 
-### File Names:
-- **Roles**: `00-roles.sql`
-- **Permissions**: `01-permissions.sql`
+### Nomes de Arquivos:
+- **Funções**: `00-roles.sql`
+- **Permissões**: `01-permissions.sql`
 
-### DbContext Configuration:
+### Configuração do DbContext:
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.HasDefaultSchema("[module_name]");
-    // EF Core will create the schema automatically
+    // EF Core criará o schema automaticamente
 }
 ```csharp
-## ⚡ Quick Module Creation Script
+## ⚡ Script Rápido de Criação de Módulo
 
-Create this PowerShell script for quick module setup:
+Criar este script PowerShell para configuração rápida de módulos:
 
 ```powershell
 # create-module.ps1
@@ -581,77 +581,79 @@ param(
 $ModulePath = "infrastructure/database/modules/$ModuleName"
 New-Item -ItemType Directory -Path $ModulePath -Force
 
-# Create 00-roles.sql
+# Criar 00-roles.sql
 $RolesContent = @"
 -- $ModuleName Module - Database Roles
--- Create dedicated role for $ModuleName module
--- Note: Replace `$env:DB_ROLE_PASSWORD with actual environment variable or secure password retrieval
+-- Criar função dedicada para o módulo $ModuleName
+-- Nota: Substitua `$env:DB_ROLE_PASSWORD pela variável de ambiente real ou recuperação segura de senha
 CREATE ROLE ${ModuleName}_role LOGIN PASSWORD '`$env:DB_ROLE_PASSWORD';
 
--- Grant $ModuleName role to app role for cross-module access
+-- Conceder função $ModuleName à função app para acesso entre módulos
 GRANT ${ModuleName}_role TO meajudaai_app_role;
 "@
 
 $RolesContent | Out-File -FilePath "$ModulePath/00-roles.sql" -Encoding UTF8
 
-# Create 01-permissions.sql
+# Criar 01-permissions.sql
 $PermissionsContent = @"
 -- $ModuleName Module - Permissions
--- Grant permissions for $ModuleName module
+-- Conceder permissões para o módulo $ModuleName
 GRANT USAGE ON SCHEMA $ModuleName TO ${ModuleName}_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA $ModuleName TO ${ModuleName}_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA $ModuleName TO ${ModuleName}_role;
 
--- Set default privileges for future tables and sequences
+-- Definir privilégios padrão para futuras tabelas e sequences
 ALTER DEFAULT PRIVILEGES IN SCHEMA $ModuleName GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${ModuleName}_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA $ModuleName GRANT USAGE, SELECT ON SEQUENCES TO ${ModuleName}_role;
 
--- Set default search path
+-- Definir search path padrão
 ALTER ROLE ${ModuleName}_role SET search_path = $ModuleName, public;
 
--- Grant cross-schema permissions to app role
+-- Conceder permissões entre schemas à função app
 GRANT USAGE ON SCHEMA $ModuleName TO meajudaai_app_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA $ModuleName TO meajudaai_app_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA $ModuleName TO meajudaai_app_role;
 
--- Set default privileges for app role
+-- Definir privilégios padrão para função app
 ALTER DEFAULT PRIVILEGES IN SCHEMA $ModuleName GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA $ModuleName GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
 
--- Grant permissions on public schema
+-- Conceder permissões no schema public
 GRANT USAGE ON SCHEMA public TO ${ModuleName}_role;
 "@
 
 $PermissionsContent | Out-File -FilePath "$ModulePath/01-permissions.sql" -Encoding UTF8
 
-Write-Host "✅ Module '$ModuleName' database scripts created successfully!" -ForegroundColor Green
-Write-Host "📁 Location: $ModulePath" -ForegroundColor Cyan
-```sql
-## 📝 Usage Example
+Write-Host "✅ Scripts de banco de dados do módulo '$ModuleName' criados com sucesso!" -ForegroundColor Green
+Write-Host "📁 Localização: $ModulePath" -ForegroundColor Cyan
+```
+
+## 📝 Exemplo de Uso
 
 ```bash
-# Create new providers module
+# Criar novo módulo providers
 ./create-module.ps1 -ModuleName "providers"
 
-# Create new services module  
+# Criar novo módulo services  
 ./create-module.ps1 -ModuleName "services"
-```text
-## 🔒 Security Best Practices
+```
 
-1. **Schema Isolation**: Each module has its own schema and role
-2. **Principle of Least Privilege**: Roles only have necessary permissions
-3. **Cross-Module Access**: Controlled through `meajudaai_app_role`
-4. **Password Management**: Use secure passwords in production
-5. **Search Path**: Always include module schema first, then public
+## 🔒 Melhores Práticas de Segurança
 
-## 🔄 Integration with SchemaPermissionsManager
+1. **Isolamento de Schema**: Cada módulo tem seu próprio schema e função
+2. **Princípio do Menor Privilégio**: Funções têm apenas as permissões necessárias
+3. **Acesso Entre Módulos**: Controlado através de `meajudaai_app_role`
+4. **Gerenciamento de Senhas**: Usar senhas seguras em produção
+5. **Search Path**: Sempre incluir schema do módulo primeiro, depois public
 
-The `SchemaPermissionsManager` automatically handles:
-- ✅ Role creation and password management
-- ✅ Schema permissions setup
-- ✅ Cross-module access configuration
-- ✅ Default privileges for future objects
-- ✅ Search path optimization
+## 🔄 Integração com SchemaPermissionsManager
+
+O `SchemaPermissionsManager` automaticamente gerencia:
+- ✅ Criação de funções e gerenciamento de senhas
+- ✅ Configuração de permissões de schema
+- ✅ Configuração de acesso entre módulos
+- ✅ Privilégios padrão para objetos futuros
+- ✅ Otimização de search path
 # DbContext Factory Pattern - Documentação
 
 ## Visão Geral

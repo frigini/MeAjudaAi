@@ -303,7 +303,7 @@ azd show
 ## 📋 Checklist de Deploy
 
 ### Desenvolvimento
-- [ ] .NET 9 SDK instalado
+- [ ] .NET 10 SDK instalado
 - [ ] Docker Desktop executando
 - [ ] Ports 5432, 6379, 8080, 15672 livres
 - [ ] Aspire Dashboard acessível

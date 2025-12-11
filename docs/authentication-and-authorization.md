@@ -1,59 +1,59 @@
-# Authentication and Authorization System
+# Sistema de Autenticação e Autorização
 
-This document covers the complete authentication and authorization system of MeAjudaAi, including integration with Keycloak and the type-safe permission system.
+Este documento cobre o sistema completo de autenticação e autorização do MeAjudaAi, incluindo integração com Keycloak e o sistema de permissões type-safe.
 
 ## 📋 Visão Geral
 
-MeAjudaAi uses a robust authentication and authorization system with the following features:
+MeAjudaAi utiliza um sistema robusto de autenticação e autorização com as seguintes características:
 
-- **Authentication**: Integration with Keycloak using JWT tokens
-- **Authorization**: Type-safe system based on enums (`EPermission`)
-- **Modular Architecture**: Each module can implement its own permission rules
-- **Intelligent Cache**: HybridCache for performance optimization
-- **Extensibility**: Support for multiple permission providers
+- **Autenticação**: Integração com Keycloak usando tokens JWT
+- **Autorização**: Sistema type-safe baseado em enums (`EPermission`)
+- **Arquitetura Modular**: Cada módulo pode implementar suas próprias regras de permissão
+- **Cache Inteligente**: HybridCache para otimização de desempenho
+- **Extensibilidade**: Suporte para múltiplos provedores de permissões
 
 ## 🏗️ Arquitetura do Sistema
 
-### Main Components
+### Componentes Principais
 
 ```text
-Authentication & Authorization System
-├── Authentication (Keycloak + JWT)
-│   ├── JWT Token Validation
-│   ├── Claims Transformation
-│   └── User Identity Management
+Sistema de Autenticação & Autorização
+├── Autenticação (Keycloak + JWT)
+│   ├── Validação de Token JWT
+│   ├── Transformação de Claims
+│   └── Gerenciamento de Identidade do Usuário
 │
-└── Authorization (Type-Safe Permissions)
-    ├── EPermission Enum (Type-Safe)
-    ├── Permission Service (Caching + Resolution)
-    ├── Module Permission Resolvers
-    └── Authorization Handlers
+└── Autorização (Permissões Type-Safe)
+    ├── Enum EPermission (Type-Safe)
+    ├── Serviço de Permissões (Cache + Resolução)
+    ├── Resolvedores de Permissão de Módulo
+    └── Handlers de Autorização
 ```
 
-### Authorization Flow
+### Fluxo de Autorização
 
 ```mermaid
 graph TD
-    A[Request] --> B[JWT Validation]
-    B --> C[Claims Transformation]
-    C --> D[Permission Resolution]
-    D --> E[Permission Cache]
-    E --> F{Permission Check}
-    F -->|Allow| G[Endpoint Execution]
-    F -->|Deny| H[403 Forbidden]
+    A[Requisição] --> B[Validação JWT]
+    B --> C[Transformação de Claims]
+    C --> D[Resolução de Permissões]
+    D --> E[Cache de Permissões]
+    E --> F{Verificação de Permissão}
+    F -->|Permitir| G[Execução do Endpoint]
+    F -->|Negar| H[403 Forbidden]
     
-    D --> I[Module Resolvers]
-    I --> J[Keycloak Roles]
-    J --> K[Permission Mapping]
+    D --> I[Resolvedores de Módulo]
+    I --> J[Roles do Keycloak]
+    J --> K[Mapeamento de Permissões]
 ```
 
-## 🔐 Type-Safe Permission System
+## 🔐 Sistema de Permissões Type-Safe
 
-The system is based on a type-safe enum (`EPermission`), modular architecture, and server-side resolution.
+O sistema é baseado em um enum type-safe (`EPermission`), arquitetura modular e resolução server-side.
 
-### 1. EPermission Enum
+### 1. Enum EPermission
 
-A unified system of type-safe permissions:
+Um sistema unificado de permissões type-safe:
 
 ```csharp
 public enum EPermission
@@ -101,7 +101,7 @@ public enum EPermission
 
 ### 2. IPermissionService
 
-Main interface for permission resolution:
+Interface principal para resolução de permissões:
 
 ```csharp
 public interface IPermissionService
@@ -116,7 +116,7 @@ public interface IPermissionService
 
 ### 3. IModulePermissionResolver
 
-Interface for modular permission resolution:
+Interface para resolução modular de permissões:
 
 ```csharp
 public interface IModulePermissionResolver
@@ -127,31 +127,31 @@ public interface IModulePermissionResolver
 }
 ```
 
-## 🚀 Implementation
+## 🚀 Implementação
 
 ### 1. Configuração Básica
 
 ```csharp
-// Program.cs in ApiService
+// Program.cs no ApiService
 using MeAjudaAi.Shared.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure the complete authorization system
+// Configura o sistema completo de autorização
 builder.Services.AddPermissionBasedAuthorization(builder.Configuration);
 
-// Register specific module resolvers
+// Registra resolvedores de módulos específicos
 builder.Services.AddModulePermissionResolver<UsersPermissionResolver>();
 
 var app = builder.Build();
 
-// Apply authorization middleware
+// Aplica middleware de autorização
 app.UsePermissionBasedAuthorization();
 
 app.Run();
 ```
 
-### 2. Module Resolver Implementation
+### 2. Implementação de Resolvedor de Módulo
 
 ```csharp
 // Modules/Users/Application/Authorization/UsersPermissionResolver.cs
@@ -172,7 +172,7 @@ public class UsersPermissionResolver : IModulePermissionResolver
     {
         try
         {
-            // Fetch user roles (simplified example)
+            // Busca roles do usuário (exemplo simplificado)
             var userRoles = await GetUserRolesAsync(userId, cancellationToken);
             
             var permissions = new HashSet<EPermission>();
@@ -202,7 +202,7 @@ public class UsersPermissionResolver : IModulePermissionResolver
     
     private async Task<IReadOnlyList<string>> GetUserRolesAsync(string userId, CancellationToken cancellationToken)
     {
-        // Simulates fetching roles (replace with actual logic)
+        // Simula busca de roles (substituir com lógica real)
         await Task.Delay(10, cancellationToken);
         
         if (userId.Contains("admin", StringComparison.OrdinalIgnoreCase))
@@ -237,7 +237,7 @@ public class UsersPermissionResolver : IModulePermissionResolver
 }
 ```
 
-### 3. Usage in Endpoints
+### 3. Uso em Endpoints
 
 ```csharp
 // Modules/Users/API/Endpoints/UsersEndpoints.cs
@@ -247,22 +247,22 @@ public static class UsersEndpoints
     {
         var group = app.MapGroup("/api/users").WithTags("Users");
         
-        // GET /api/users - Requires read permission
+        // GET /api/users - Requer permissão de leitura
         group.MapGet("/", GetUsers)
              .RequirePermission(EPermission.UsersRead)
              .WithName("GetUsers")
-             .WithSummary("Lists all users");
+             .WithSummary("Lista todos os usuários");
         
-        // POST /api/users - Requires create permission
+        // POST /api/users - Requer permissão de criação
         group.MapPost("/", CreateUser)
              .RequirePermission(EPermission.UsersCreate)
              .WithName("CreateUser")
-             .WithSummary("Creates a new user");
+             .WithSummary("Cria um novo usuário");
     }
 }
 ```
 
-## 🔍 Keycloak Integration
+## 🔍 Integração com Keycloak
 
 ### Visão Geral
 
@@ -280,7 +280,7 @@ Defina a variável de ambiente `Authorization:UseKeycloak` no seu `appsettings.j
 }
 ```
 
-**Production Configuration (Keycloak):**
+**Configuração de Produção (Keycloak):**
 
 ```json
 {
@@ -298,37 +298,37 @@ Defina a variável de ambiente `Authorization:UseKeycloak` no seu `appsettings.j
 }
 ```
 
-### Role Mapping
+### Mapeamento de Roles
 
-| Role | Permissions |
-|------|-------------|
+| Role | Permissões |
+|------|------------|
 | `meajudaai-system-admin` | `UsersRead`, `UsersUpdate`, `UsersDelete`, `AdminUsers` |
 | `meajudaai-user-admin` | `UsersRead`, `UsersUpdate`, `UsersList` |
 | `meajudaai-user` | `UsersRead`, `UsersProfile` |
 
-## 🚀 Performance and Caching
+## 🚀 Performance e Cache
 
-The system implements intelligent caching in multiple layers:
+O sistema implementa cache inteligente em múltiplas camadas:
 
 ```csharp
-// Cache per user (30 minutes)
+// Cache por usuário (30 minutos)
 var permissions = await permissionService.GetUserPermissionsAsync(userId);
 
-// Cache per module (15 minutes)
+// Cache por módulo (15 minutos)
 var modulePermissions = await permissionService.GetUserPermissionsByModuleAsync(userId, "Users");
 
-// Selective invalidation
+// Invalidação seletiva
 await permissionService.InvalidateUserPermissionsCacheAsync(userId);
 ```
 
 ## 🧪 Testes
 
-### Test Authentication Handler
+### Handler de Autenticação para Testes
 
-For tests, use the dedicated authentication handler:
+Para testes, use o handler de autenticação dedicado:
 
 ```csharp
-// In integration tests
+// Em testes de integração
 services.AddTestAuthentication(options =>
 {
     options.DefaultUserId = "test-user";
@@ -340,21 +340,21 @@ services.AddTestAuthentication(options =>
 });
 ```
 
-## 🛠️ Troubleshooting
+## 🛠️ Solução de Problemas
 
-### Common Issues
+### Problemas Comuns
 
-1. **403 Forbidden unexpected**
-   - Check if the user has the necessary permission
-   - Confirm that the cache is not outdated
-   - Validate the role mapping in Keycloak
+1. **403 Forbidden inesperado**
+   - Verifique se o usuário possui a permissão necessária
+   - Confirme que o cache não está desatualizado
+   - Valide o mapeamento de roles no Keycloak
 
-2. **Slow performance**
-   - Monitor cache hit ratio metrics
-   - Check if modular resolvers are optimized
-   - Consider adjusting cache TTL
+2. **Performance lenta**
+   - Monitore as métricas de taxa de acerto do cache
+   - Verifique se os resolvedores modulares estão otimizados
+   - Considere ajustar o TTL do cache
 
-3. **Invalid JWT tokens**
-   - Confirm Keycloak configuration
-   - Check if the realm is correct
-   - Validate certificates and keys
+3. **Tokens JWT inválidos**
+   - Confirme a configuração do Keycloak
+   - Verifique se o realm está correto
+   - Valide certificados e chaves
