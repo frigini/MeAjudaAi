@@ -881,7 +881,7 @@ azd provision --environment production
 ## 1. PR Validation
 
 **Arquivo**: `.github/workflows/pr-validation.yml`  
-**Documentação Completa**: [PR Validation Workflow](#pr-validation-workflow)
+**Documentação Completa**: [PR Validation Workflow](#1-pr-validation)
 
 ### Propósito
 Workflow **crítico** que garante qualidade de código antes do merge. É o **gatekeeper** do projeto.
@@ -1344,7 +1344,7 @@ POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
 
 ## 📚 Documentação Relacionada
 
-- **PR Validation**: [PR Validation Workflow](#pr-validation-workflow) (documentação detalhada)
+- **PR Validation**: [PR Validation Workflow](#1-pr-validation) (documentação detalhada)
 - **CI/CD Overview**: [CI/CD](./ci-cd.md)
 - **Code Coverage**: [testing/coverage.md](./testing/coverage.md)
 - **Architecture Tests**: (pending implementation)
@@ -1898,7 +1898,7 @@ O workflow **falha** (bloqueia merge) se:
 - [Code Coverage Guide](./testing/coverage.md)
 - [Integration Tests](./testing/integration-tests.md)
 - Architecture tests (pending implementation)
-- [CI/CD Overview](#ci-cd---continuous-integration--deployment)
+- [CI/CD Overview](#cicd-configuration-security-guide-meajudaai)
 
 ### Ferramentas e Actions
 

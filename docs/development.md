@@ -22,7 +22,7 @@ O projeto possui arquivos de configuração organizados na raiz e na pasta `conf
 - `coverlet.json` - Exclusões de cobertura
 - `lychee.toml` - Validação de links na documentação
 
-## �🚀 Setup Inicial do Ambiente
+## 🚀 Setup Inicial do Ambiente
 
 ### **Pré-requisitos**
 

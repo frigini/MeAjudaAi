@@ -1,6 +1,6 @@
 # Deployment Environments
 
-## Overview
+## Visão Geral
 This document describes the different deployment environments available for the MeAjudaAi platform and their configurations.
 
 ## Environment Types
@@ -135,7 +135,7 @@ For comprehensive Hangfire + background jobs monitoring, monitor via health chec
 - Infrastructure state backups
 - Disaster recovery procedures
 
-## Related Documentation
+## Documentação Relacionada
 
 - [CI/CD Setup](./ci-cd.md)
 - [Infrastructure Documentation](./infrastructure.md)

@@ -563,9 +563,9 @@ docker compose -f environments/testing.yml up -d
 
 ### Links Úteis
 
-- 📚 [Documentação Técnica](docs/README.md)
+- 📚 [Documentação Técnica](https://frigini.github.io/MeAjudaAi/)
 - 🏗️ [Guia de Infraestrutura](infrastructure/README.md)
-- 🔄 [Setup de CI/CD Detalhado](docs/ci_cd.md)
+- 🔄 [Setup de CI/CD Detalhado](docs/ci-cd.md)
 - 🐛 [Issues e Bugs](https://github.com/frigini/MeAjudaAi/issues)
 
 ## 🤝 Contributing

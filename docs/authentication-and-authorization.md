@@ -2,7 +2,7 @@
 
 This document covers the complete authentication and authorization system of MeAjudaAi, including integration with Keycloak and the type-safe permission system.
 
-## 📋 Overview
+## 📋 Visão Geral
 
 MeAjudaAi uses a robust authentication and authorization system with the following features:
 
@@ -12,7 +12,7 @@ MeAjudaAi uses a robust authentication and authorization system with the followi
 - **Intelligent Cache**: HybridCache for performance optimization
 - **Extensibility**: Support for multiple permission providers
 
-## 🏗️ System Architecture
+## 🏗️ Arquitetura do Sistema
 
 ### Main Components
 
@@ -129,7 +129,7 @@ public interface IModulePermissionResolver
 
 ## 🚀 Implementation
 
-### 1. Basic Configuration
+### 1. Configuração Básica
 
 ```csharp
 // Program.cs in ApiService
@@ -264,18 +264,18 @@ public static class UsersEndpoints
 
 ## 🔍 Keycloak Integration
 
-### Overview
+### Visão Geral
 
-The `UsersPermissionResolver` supports both a mock implementation (for development/tests) and integration with Keycloak (for production) through an environment variable configuration.
+O `UsersPermissionResolver` suporta tanto uma implementação mock (para desenvolvimento/testes) quanto integração com Keycloak (para produção) através de configuração por variável de ambiente.
 
-### Configuration
+### Configuração
 
-Set the environment variable `Authorization:UseKeycloak` in your `appsettings.json`:
+Defina a variável de ambiente `Authorization:UseKeycloak` no seu `appsettings.json`:
 
 ```json
 {
   "Authorization": {
-    "UseKeycloak": false  // true to use Keycloak, false for mock
+    "UseKeycloak": false  // true para usar Keycloak, false para mock
   }
 }
 ```
@@ -321,7 +321,7 @@ var modulePermissions = await permissionService.GetUserPermissionsByModuleAsync(
 await permissionService.InvalidateUserPermissionsCacheAsync(userId);
 ```
 
-## 🧪 Testing
+## 🧪 Testes
 
 ### Test Authentication Handler
 
