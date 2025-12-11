@@ -189,10 +189,10 @@
           "Microsoft.Extensions.Primitives": "8.0.0"
         }
       },
-      "Aspire.Dashboard.Sdk.linux-x64": {
+      "Aspire.Dashboard.Sdk.win-x64": {
         "type": "Transitive",
         "resolved": "13.0.0",
-        "contentHash": "BkeIEarHw5Wbr/GjTW6XEKNY6vvWsE9LzPpz3ljxvc/tTYfmslXllRm2L+h0qaEBHZ8rbKRkkhsqdXgfYeYmTA=="
+        "contentHash": "eJPOJBv1rMhJoKllqWzqnO18uSYNY0Ja7u5D25XrHE9XSI2w5OGgFWJLs4gru7F/OeAdE26v8radfCQ3RVlakg=="
       },
       "Aspire.Hosting": {
         "type": "Transitive",
@@ -373,10 +373,10 @@
           "System.IO.Hashing": "9.0.10"
         }
       },
-      "Aspire.Hosting.Orchestration.linux-x64": {
+      "Aspire.Hosting.Orchestration.win-x64": {
         "type": "Transitive",
         "resolved": "13.0.0",
-        "contentHash": "1/cHvfaRFiM4Gof+3GCQEFSeAD8mYmxl7KB2U4xuGtm+DzY5JaH+ce9XPr7YUXDi91NOYJTHfm8ZL8L77bZfKQ=="
+        "contentHash": "nWzmMDjYJhgT7LwNmDx1Ri4qNQT15wbcujW3CuyvBW/e0y20tyLUZG0/4N81Wzp53VjPFHetAGSNCS8jXQGy9Q=="
       },
       "AspNetCore.HealthChecks.NpgSql": {
         "type": "Transitive",
@@ -2615,13 +2615,13 @@
       "meajudaai.apphost": {
         "type": "Project",
         "dependencies": {
-          "Aspire.Dashboard.Sdk.linux-x64": "[13.0.0, )",
+          "Aspire.Dashboard.Sdk.win-x64": "[13.0.0, )",
           "Aspire.Hosting.AppHost": "[13.0.0, )",
           "Aspire.Hosting.Azure.AppContainers": "[13.0.2, )",
           "Aspire.Hosting.Azure.PostgreSQL": "[13.0.2, )",
           "Aspire.Hosting.Azure.ServiceBus": "[13.0.2, )",
           "Aspire.Hosting.Keycloak": "[13.0.0-preview.1.25560.3, )",
-          "Aspire.Hosting.Orchestration.linux-x64": "[13.0.0, )",
+          "Aspire.Hosting.Orchestration.win-x64": "[13.0.0, )",
           "Aspire.Hosting.PostgreSQL": "[13.0.2, )",
           "Aspire.Hosting.RabbitMQ": "[13.0.2, )",
           "Aspire.Hosting.Redis": "[13.0.2, )",
