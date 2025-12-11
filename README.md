@@ -38,9 +38,18 @@ O projeto foi organizado para facilitar navegação e manutenção:
 ├── 📁 automation/       # Scripts de automação CI/CD
 ├── 📁 build/           # Scripts de build e Makefile
 ├── 📁 config/          # Configurações de ferramentas
-├── 📁 docs/            # Documentação técnica e guias
-│   ├── guides/        # Guias de implementação
-│   └── reports/       # Relatórios de análise
+│   ├── .editorconfig  # Estilo de código
+│   ├── .yamllint.yml  # Lint de YAML
+│   ├── coverage.runsettings  # Configuração de coverage
+│   └── coverlet.json  # Exclusões de cobertura
+├── 📁 docs/            # Documentação técnica (MkDocs)
+│   ├── api-reference.md    # Referência da API REST
+│   ├── architecture.md     # Arquitetura do sistema
+│   ├── database.md        # Estratégia de banco de dados
+│   ├── logging.md         # Logging e observabilidade
+│   ├── messaging.md       # Message bus e eventos
+│   ├── modules/          # Documentação por módulo
+│   └── testing/          # Guias de testes
 ├── 📁 infrastructure/  # IaC e configurações de infraestrutura
 ├── 📁 scripts/         # Scripts de desenvolvimento
 ├── 📁 src/             # Código fonte da aplicação

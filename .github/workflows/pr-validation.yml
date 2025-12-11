@@ -1118,7 +1118,7 @@ jobs:
       - name: Validate workflow files only
         run: |
           echo "🔍 Validating critical YAML files..."
-          if ! python3 -m yamllint -c .yamllint.yml .github/workflows/; then
+          if ! python3 -m yamllint -c config/.yamllint.yml .github/workflows/; then
             echo "❌ YAML validation failed"
             echo "ℹ️  Check yamllint output above for details"
             exit 1

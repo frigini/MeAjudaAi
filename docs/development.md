@@ -2,7 +2,27 @@
 
 Este guia fornece instruções práticas e diretrizes abrangentes para desenvolvedores trabalhando no projeto MeAjudaAi.
 
-## 🚀 Setup Inicial do Ambiente
+## � Arquivos de Configuração
+
+O projeto possui arquivos de configuração organizados na raiz e na pasta `config/`:
+
+**Na raiz (requeridos pelo .NET/MSBuild):**
+- `Directory.Build.props` - Propriedades globais do MSBuild
+- `Directory.Packages.props` - Gerenciamento centralizado de pacotes NuGet
+- `nuget.config` - Configuração de fontes NuGet
+- `global.json` - Pinning de versão do .NET SDK
+- `.globalconfig` - Configuração de analyzers Roslyn
+- `.gitignore`, `.gitattributes` - Configuração Git
+- `mkdocs.yml` - Configuração da documentação
+
+**Em `config/` (ferramentas de desenvolvimento):**
+- `.editorconfig` - Estilo de código e formatação
+- `.yamllint.yml` - Linting de arquivos YAML
+- `coverage.runsettings` - Configuração de cobertura de código
+- `coverlet.json` - Exclusões de cobertura
+- `lychee.toml` - Validação de links na documentação
+
+## �🚀 Setup Inicial do Ambiente
 
 ### **Pré-requisitos**
 

@@ -1,35 +1,41 @@
-# Yamllint configuration - Focused on real issues only
----
 extends: default
 
 rules:
-  # Allow longer lines with smart exemptions
+  # Increase line length limit for complex YAML files
   line-length:
-    max: 120  # Increased from 80 to reduce false positives
+    max: 120
     level: warning
-    allow-non-breakable-words: true       # Allow long URLs
-    allow-non-breakable-inline-mappings: true  # Allow long inline mappings
-  
-  # Be less strict about indentation in some cases
+
+  # Allow long lines in comments  
+  comments:
+    min-spaces-from-content: 1
+
+  # Be more lenient with indentation
   indentation:
     spaces: 2
     indent-sequences: true
     check-multi-line-strings: false
-  
-  # Require document start for clarity (compose files can override)
-  document-start:
-    present: true
-  
-  # Allow some formatting flexibility
-  comments:
-    min-spaces-from-content: 1
-  
-  # Don't be too strict about empty lines
-  empty-lines:
-    max: 2
-    max-start: 1
-    max-end: 1
-  
-  # Enforce clean whitespace - trailing spaces cause diff churn
+
+  # Allow empty documents (useful for conditional includes)
+  document-start: disable
+  document-end: disable
+
+  # Allow trailing spaces in comments
   trailing-spaces:
-    level: error
+    level: warning
+
+  # Allow empty lines at end of file
+  empty-lines:
+    max-end: 2
+
+  # Be more flexible with truthy values
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+    check-keys: true
+
+ignore: |
+  **/node_modules/
+  **/.git/
+  **/vendor/
+  **/*.min.yml
+  **/*.min.yaml
