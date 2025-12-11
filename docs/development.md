@@ -795,8 +795,7 @@ Após adicionar um novo módulo:
 - [🚀 Infraestrutura](./infrastructure.md)  
 - [🔄 CI/CD](./ci-cd.md)
 - [🔐 Autenticação e Autorização](./authentication-and-authorization.md)
-- [🧪 Guia de Testes](#-diretrizes-de-testes)
-- [📖 Documentação](./README.md)
+- [🧪 Guia de Testes](./testing/unit-vs-integration-tests.md)
 
 ### **Documentação Externa**
 - [.NET 10 Documentation](https://docs.microsoft.com/dotnet/)

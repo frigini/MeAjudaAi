@@ -6,6 +6,7 @@ Platform connecting customers with service providers for home services and profe
 
 - [Getting Started](development.md) - Setup your development environment
 - [Architecture](architecture.md) - System design and components
+- [API Reference](api-reference.md) - REST API endpoints documentation
 - [Configuration](configuration.md) - Environment and deployment settings
 - [Testing](testing/unit-vs-integration-tests.md) - Testing strategy and guides
 - [CI/CD](ci-cd.md) - Continuous integration and deployment

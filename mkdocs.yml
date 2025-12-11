@@ -49,6 +49,7 @@ plugins:
       enable_creation_date: true
       type: timeago
       fallback_to_build_date: true
+      enabled: !ENV [ENABLED_GIT_REVISION_DATE, true]
 
 markdown_extensions:
   - abbr
@@ -147,5 +148,6 @@ nav:
           - Análise de Testes Pulados: testing/skipped-tests-analysis.md
   - Referência:
       - Roadmap: roadmap.md
+      - API Reference: api-reference.md
       - Débito Técnico: technical-debt.md
       - Vulnerabilidades de Segurança: security-vulnerabilities.md
