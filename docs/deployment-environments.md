@@ -32,10 +32,9 @@ Este documento descreve os diferentes ambientes de deploy disponíveis para a pl
 
 **ANTES de fazer deploy em QUALQUER ambiente**, garanta que TODAS as validações críticas de compatibilidade passem.
 
-Para procedimentos detalhados de validação de compatibilidade Hangfire + Npgsql 10.x:
-📖 _Guia de Compatibilidade Hangfire Npgsql_ - testes de integração removidos — validação via staging + health checks_
+Para procedimentos detalhados de validação de compatibilidade Hangfire + Npgsql 10.x, consulte a documentação de infraestrutura e execute testes em staging.
 
-**Checklist Rápido** (veja guia completo para detalhes):
+**Checklist Rápido**:
 - [ ] ⚠️ **CRÍTICO**: Smoke tests em staging com execução de jobs Hangfire (Npgsql 10.x NÃO VALIDADO)
 - [ ] Verificação manual do dashboard Hangfire em staging
 - [ ] Monitoramento de health check configurado (HealthChecks.Hangfire)

@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-A API MeAjudaAi segue os padrões REST e está documentada usando OpenAPI 3.0. Todos os endpoints requerem autenticação via JWT (exceto endpoints públicos de health check).
+A API MeAjudaAi segue os padrões REST e está documentada usando OpenAPI 3.0. Todos os endpoints requerem autenticação via JWT, exceto endpoints públicos específicos listados abaixo (health checks, login em `POST /api/v1/auth/login`, e registro de usuário em `POST /api/v1/users`).
 
 ## Especificação OpenAPI
 

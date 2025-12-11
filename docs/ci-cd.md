@@ -162,7 +162,7 @@ variables:
   - name: BuildConfiguration
     value: 'Release'
   - name: DotNetVersion
-    value: '9.x'
+    value: '10.x'
 
 stages:
   - stage: Build
@@ -375,7 +375,7 @@ variables:
   - name: ApplicationName
     value: "MeAjudaAi"
   - name: DotNetVersion
-    value: "9.x"
+    value: "10.x"
   
   # Quality Gates
   - name: CodeCoverageThreshold
@@ -418,7 +418,7 @@ on:
     branches: [main]
 
 env:
-  DOTNET_VERSION: '9.x'
+  DOTNET_VERSION: '10.x'
   AZURE_WEBAPP_NAME: 'meajudaai-api'
   REGISTRY: ghcr.io
   IMAGE_NAME: meajudaai/api
@@ -575,7 +575,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9.x'
+          dotnet-version: '10.x'
       
       - name: Restore dependencies
         run: dotnet restore

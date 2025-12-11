@@ -277,7 +277,7 @@ public async Task CreateUser_ValidData_ReturnsCreatedUser()
 
 ### Status Atual de Cobertura
 
-O projeto mantém **100% de cobertura de endpoints E2E** através de 103 testes:
+O projeto mantém **100% de cobertura de endpoints E2E** com 41 testes de endpoint, num total de 103 testes E2E (incluindo infraestrutura, autorização e lifecycle):
 
 | Módulo | Endpoints | Testes | Cobertura |
 |--------|-----------|-------|----------|

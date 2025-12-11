@@ -19,7 +19,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - 🔄 **10 Dez - 24 Dez**: Sprint 3 - GitHub Pages Documentation (EM ANDAMENTO - branch criada)
 - ⏳ **Dezembro 2025-Janeiro 2026**: Sprints 4-5 - Frontend Blazor (Web)
 - ⏳ **Fevereiro-Março 2026**: Sprints 6-7 - Frontend Blazor (Web + Mobile)
-- 🎯 **31 Março 2026**: MVP Launch (Admin Portal + Customer App)
+- 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
 ---
@@ -37,7 +37,7 @@ Fundação técnica para escalabilidade e produção:
 - ✅ Test Coverage 90.56% (Sprint 2 - CONCLUÍDO 10 Dez - META 35% SUPERADA EM 55.56pp!)
 - 🔄 GitHub Pages Documentation Migration (Sprint 3 - EM ANDAMENTO desde 10 Dez)
 
-**⏳ Fase 2: PLANEJADO** (Fevereiro-Março 2025)  
+**⏳ Fase 2: PLANEJADO** (Fevereiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
 - Admin Portal (Sprint 3)
 - Customer App (Sprint 4)
@@ -70,9 +70,9 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 4** | 2 semanas | Jan 2026 | Blazor Admin Portal (Web) - Parte 1 | ⏳ Planejado |
 | **Sprint 5** | 2 semanas | Fev 2026 | Blazor Admin Portal (Web) - Parte 2 | ⏳ Planejado |
 | **Sprint 6** | 3 semanas | Mar 2026 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
-| **Sprint 6** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
+| **Sprint 7** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
 
-**MVP Launch Target**: 31 de Março de 2025 🎯
+**MVP Launch Target**: 31 de Março de 2026 🎯
 
 **Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Abril 2025+)
 

@@ -42,11 +42,13 @@ infrastructure/database/
 │   └── module-registry.sql            # Registro de módulos instalados
 │
 └── README.md                          # Documentação
-```csharp
+```
+
 ## 🏗️ Organização de Schemas
 
 ### Estrutura de Schemas do Banco de Dados
-```sql
+
+```text
 -- Database: meajudaai
 ├── users (schema)         - Dados de gerenciamento de usuários
 ├── providers (schema)     - Dados de provedores de serviço
@@ -54,7 +56,8 @@ infrastructure/database/
 ├── bookings (schema)      - Agendamentos e reservas
 ├── notifications (schema) - Sistema de mensagens
 └── public (schema)        - Views transversais e dados compartilhados
-```text
+```
+
 ## 🔐 Funções do Banco de Dados
 
 | Função | Schema | Propósito |
@@ -83,8 +86,10 @@ infrastructure/database/
     "DefaultConnection": "Host=localhost;Database=meajudaai;Username=meajudaai_app_role;Password=${APP_ROLE_PASSWORD}"
   }
 }
-```csharp
+```
+
 ### Configuração do DbContext
+
 ```csharp
 public class UsersDbContext : DbContext
 {
@@ -100,7 +105,8 @@ public class UsersDbContext : DbContext
 builder.Services.AddDbContext<UsersDbContext>(options =>
     options.UseNpgsql(connectionString, 
         o => o.MigrationsHistoryTable("__EFMigrationsHistory", "users")));
-```yaml
+```
+
 ## 🚀 Benefícios desta Estratégia
 
 ### Limites Forçados

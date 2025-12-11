@@ -60,7 +60,7 @@ Após o merge para `master`, a documentação será publicada automaticamente em
 - **Testes** - Estratégias, guias e relatórios de cobertura
 - **Referência da API** - Endpoints REST documentados
 
-## �📦 Estrutura do Projeto
+## 📦 Estrutura do Projeto
 
 O projeto foi organizado para facilitar navegação e manutenção:
 
@@ -110,7 +110,7 @@ O projeto foi organizado para facilitar navegação e manutenção:
 
 Para instruções detalhadas, consulte o [**Guia de Desenvolvimento Completo**](./docs/development.md).
 
-**Setup completo (recomendado):****
+**Setup completo (recomendado):**
 ```bash
 ./run-local.sh setup
 ```
@@ -461,7 +461,7 @@ azd provision
 - [**Guia de Infraestrutura**](docs/infrastructure.md) - Setup e deploy
 - [**Arquitetura e Padrões**](docs/architecture.md) - Decisões arquiteturais
 - [**Guia de Desenvolvimento**](docs/development_guide.md) - Convenções e práticas
-- [**CI/CD**](docs/ci_cd.md) - Pipeline de integração contínua
+- [**CI/CD**](docs/ci-cd.md) - Pipeline de integração contínua
 - [**Diretrizes de Desenvolvimento**](docs/development-guidelines.md) - Padrões e boas práticas
 
 ## 🤝 Contribuição
@@ -485,7 +485,9 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 ⭐ Se este projeto te ajudou, considere dar uma estrela!
 
-# Apply migrations for specific module
+### Aplicar migrations (módulo específico)
+
+```bash
 dotnet ef database update --context UsersDbContext
 ```
 
