@@ -141,7 +141,7 @@ X-RateLimit-Reset: 1701234567
 
 Endpoints de listagem suportam paginação via query parameters:
 
-```
+```http
 GET /api/v1/users?page=1&pageSize=20&sortBy=createdAt&sortOrder=desc
 ```
 
@@ -162,7 +162,7 @@ Resposta:
 
 Suporte a filtros via query string:
 
-```
+```http
 GET /api/v1/providers?city=São Paulo&serviceType=Encanador&rating>=4.0
 ```
 
@@ -218,7 +218,7 @@ Formato padrão de erro:
 Acesse `http://localhost:5001/swagger` para:
 
 - ✅ Explorar todos os endpoints interativamente
-- ✅ Testar requisições diretamente no browser
+- ✅ Testar requisições diretamente no navegador
 - ✅ Ver schemas de request/response
 - ✅ Autenticar e testar com JWT
 - ✅ Download da especificação OpenAPI

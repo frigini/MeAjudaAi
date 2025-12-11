@@ -369,6 +369,6 @@ reportgenerator `
 ## 📚 Referências
 
 - Relatório de Coverage Atual: `coverage-github/report/index.html` (gerado via CI/CD)
-- [Pipeline CI/CD](`.github/workflows/ci-cd.yml`)
-- [Configuração Coverlet](`config/coverlet.json`)
-- [Script de Coverage Local](`scripts/test-coverage-like-pipeline.ps1`)
+- Pipeline CI/CD: `.github/workflows/ci-cd.yml`
+- Configuração Coverlet: `config/coverlet.json`
+- Script de Coverage Local: `scripts/test-coverage-like-pipeline.ps1`
