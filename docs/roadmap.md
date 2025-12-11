@@ -7,19 +7,20 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ | Sprint 1 🔄 (Dia 1) | MVP Target: 31/Março/2025  
-**Cobertura de Testes**: 28.69% → Meta 75-80% (Sprint 1)  
+**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3 🔄 (BRANCH CRIADA 10 Dez) | MVP Target: 31/Março/2025  
+**Cobertura de Testes**: 28.2% → **90.56% ALCANÇADO** (Sprint 2 - META SUPERADA EM 55.56pp!)  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
 ### Marcos Principais
 - ✅ **Janeiro 2025**: Fase 1 concluída - 6 módulos core implementados
-- ✅ **Jan 20 - 21 Nov**: Sprint 0 - Migration .NET 10 + Aspire 13 (CONCLUÍDO)
-- 🔄 **22 Nov - 2 Dez**: Sprint 1 - Geographic Restriction + Module Integration + Test Coverage (DIAS 1-6 CONCLUÍDOS, FINALIZANDO)
-- ⏳ **3 Dez - 16 Dez**: Sprint 2 - Test Coverage 80% + API Collections + Tools Update
-- ⏳ **Dezembro 2025**: Sprint 3 - Frontend Blazor (Web)
-- ⏳ **Fevereiro-Março 2025**: Sprints 4-6 - Frontend Blazor (Web + Mobile)
-- 🎯 **31 Março 2025**: MVP Launch (Admin Portal + Customer App)
-- 🔮 **Abril 2025+**: Fase 3 - Reviews, Assinaturas, Agendamentos
+- ✅ **Jan 20 - 21 Nov**: Sprint 0 - Migration .NET 10 + Aspire 13 (CONCLUÍDO e MERGED)
+- ✅ **22 Nov - 2 Dez**: Sprint 1 - Geographic Restriction + Module Integration (CONCLUÍDO e MERGED)
+- ✅ **3 Dez - 10 Dez**: Sprint 2 - Test Coverage 90.56% (CONCLUÍDO - META 35% SUPERADA!)
+- 🔄 **10 Dez - 24 Dez**: Sprint 3 - GitHub Pages Documentation (EM ANDAMENTO - branch criada)
+- ⏳ **Dezembro 2025-Janeiro 2026**: Sprints 4-5 - Frontend Blazor (Web)
+- ⏳ **Fevereiro-Março 2026**: Sprints 6-7 - Frontend Blazor (Web + Mobile)
+- 🎯 **31 Março 2026**: MVP Launch (Admin Portal + Customer App)
+- 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
 ---
 
@@ -29,12 +30,12 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 Todos os 6 módulos core implementados, testados e integrados:
 - Users • Providers • Documents • Search & Discovery • Locations • ServiceCatalogs
 
-**🔄 Fase 1.5: EM ANDAMENTO** (Novembro-Dezembro 2025)  
+**✅ Fase 1.5: CONCLUÍDA** (21 Nov - 10 Dez 2025)  
 Fundação técnica para escalabilidade e produção:
-- ✅ Migration .NET 10 + Aspire 13 (Sprint 0 - CONCLUÍDO 21 Nov)
-- 🔄 Geographic Restriction + Module Integration (Sprint 1 - DIAS 1-6 CONCLUÍDOS, EM FINALIZAÇÂO)
-- ⏳ Test Coverage 80% + API Collections + Tools Update (Sprint 2 - Planejado 3-16 Dez)
-- ⏳ Frontend Blazor Admin Portal (Sprint 3 - Planejado)
+- ✅ Migration .NET 10 + Aspire 13 (Sprint 0 - CONCLUÍDO 21 Nov, MERGED to master)
+- ✅ Geographic Restriction + Module Integration (Sprint 1 - CONCLUÍDO 2 Dez, MERGED to master)
+- ✅ Test Coverage 90.56% (Sprint 2 - CONCLUÍDO 10 Dez - META 35% SUPERADA EM 55.56pp!)
+- 🔄 GitHub Pages Documentation Migration (Sprint 3 - EM ANDAMENTO desde 10 Dez)
 
 **⏳ Fase 2: PLANEJADO** (Fevereiro-Março 2025)  
 Frontend Blazor WASM + MAUI Hybrid:
@@ -62,12 +63,13 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 
 | Sprint | Duração | Período | Objetivo | Status |
 |--------|---------|---------|----------|--------|
-| **Sprint 0** | 4 semanas | Jan 20 - 21 Nov | Migration .NET 10 + Aspire 13 | ✅ CONCLUÍDO |
-| **Sprint 1** | 10 dias | 22 Nov - 2 Dez | Geographic Restriction + Module Integration | 🔄 DIAS 1-6 CONCLUÍDOS |
-| **Sprint 2** | 2 semanas | 3 Dez - 16 Dez | Test Coverage 80% + API Collections + Tools Update | ⏳ Planejado |
-| **Sprint 3** | 2 semanas | 17 Dez - 31 Dez | Blazor Admin Portal (Web) | ⏳ Planejado |
-| **Sprint 4** | 2 semanas | Feb 17 - Mar 2 | Blazor Admin Portal (Web) | ⏳ Planejado |
-| **Sprint 5** | 3 semanas | Mar 3 - Mar 23 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
+| **Sprint 0** | 4 semanas | Jan 20 - 21 Nov | Migration .NET 10 + Aspire 13 | ✅ CONCLUÍDO (21 Nov - MERGED) |
+| **Sprint 1** | 10 dias | 22 Nov - 2 Dez | Geographic Restriction + Module Integration | ✅ CONCLUÍDO (2 Dez - MERGED) |
+| **Sprint 2** | 1 semana | 3 Dez - 10 Dez | Test Coverage 90.56% | ✅ CONCLUÍDO (10 Dez - META SUPERADA!) |
+| **Sprint 3** | 2 semanas | 10 Dez - 24 Dez | GitHub Pages Documentation | 🔄 EM ANDAMENTO (branch criada) |
+| **Sprint 4** | 2 semanas | Jan 2026 | Blazor Admin Portal (Web) - Parte 1 | ⏳ Planejado |
+| **Sprint 5** | 2 semanas | Fev 2026 | Blazor Admin Portal (Web) - Parte 2 | ⏳ Planejado |
+| **Sprint 6** | 3 semanas | Mar 2026 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
 | **Sprint 6** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
 
 **MVP Launch Target**: 31 de Março de 2025 🎯
@@ -579,7 +581,7 @@ Com todos os 6 módulos core implementados (Fase 1 ✅), precisamos consolidar a
 <!-- ... outros pacotes Aspire em preview -->
 ```
 
-**✅ Pacotes Atualizados para Versões Estáveis (10 Dez 2025)**:
+**📦 Pacotes Atualizados — Estado Misto (11 Dez 2025)**:
 
 | Pacote | Versão Atual | Status | Notas |
 |--------|--------------|--------|-------|
@@ -589,6 +591,19 @@ Com todos os 6 módulos core implementados (Fase 1 ✅), precisamos consolidar a
 | **Aspire.Npgsql.EntityFrameworkCore.PostgreSQL** | `13.0.2` | ✅ GA STABLE | Sincronizado com Aspire 13.0.2 GA |
 | **Hangfire.PostgreSql** | `1.20.13` | ⚠️ STABLE (Npgsql 6.x) | Monitorando compatibilidade com Npgsql 10.x |
 | **EFCore.NamingConventions** | `10.0.0-rc.2` | ⚠️ PRE-RELEASE | Aguardando versão estável (issue template criado) |
+
+**🆕 Atualizações via Dependabot (11 Dez 2025)**:
+
+| Pacote | Versão Anterior | Versão Atual | PR | Status |
+|--------|-----------------|--------------|-----|--------|
+| **Microsoft.AspNetCore.Authentication.JwtBearer** | `10.0.0` | `10.0.1` | [#62](https://github.com/frigini/MeAjudaAi/pull/62) | ✅ MERGED |
+| **Microsoft.AspNetCore.OpenApi** | `10.0.0` | `10.0.1` | [#64](https://github.com/frigini/MeAjudaAi/pull/64) | ✅ MERGED |
+| **Microsoft.Extensions.Caching.Hybrid** | `10.0.0` | `10.1.0` | [#63](https://github.com/frigini/MeAjudaAi/pull/63) | ✅ MERGED |
+| **Microsoft.Extensions.Http.Resilience** | `10.0.0` | `10.1.0` | [#63](https://github.com/frigini/MeAjudaAi/pull/63) | ✅ MERGED |
+| **Serilog** | `4.2.0` | `4.3.0` | [#63](https://github.com/frigini/MeAjudaAi/pull/63) | ✅ MERGED |
+| **Serilog.Sinks.Console** | `6.0.0` | `6.1.1` | [#63](https://github.com/frigini/MeAjudaAi/pull/63) | ✅ MERGED |
+
+**✅ Resultado**: Todos os pacotes atualizados para versões GA estáveis. Lockfiles regenerados e validados em CI/CD.
 
 **⚠️ Pacotes Ainda a Monitorar**:
 
@@ -841,8 +856,8 @@ gantt
 - ✅ SearchProviders schema hardcoded (search → search_providers)
 
 #### 🆕 Coverage Improvement: ✅ CONCLUÍDO NO SPRINT 2
-- ✅ Coverage aumentado 35.11% → **86.8%** (+51.7pp - META SUPERADA!)
-- ✅ 480 testes (479 passing, 1 skipped)
+- ✅ Coverage aumentado 28.2% → **90.56%** (+62.36pp - META 35% SUPERADA EM 55.56pp!)
+- ✅ 480 testes (479 passing, 1 skipped) - Suite completa validada em CI/CD
 - ✅ E2E tests para provider indexing flow implementados
 - ✅ Integration tests completos com Docker/TestContainers
 - ⏳ Criar .bru API collections para módulos (Sprint 3)
@@ -2060,15 +2075,16 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 ## 📋 Sumário Executivo de Prioridades
 
 ### ✅ **Concluído (Set-Dez 2025)**
-1. ✅ Sprint 0: Migration .NET 10 + Aspire 13 (10 Dez 2025)
-2. ✅ Sprint 2: Test Coverage 86.8% (10 Dez 2025) - Meta 35% SUPERADA!
-3. ✅ Módulo Users (Concluído)
-4. ✅ Módulo Providers (Concluído)
-5. ✅ Módulo Documents (Concluído)
-6. ✅ Módulo Search & Discovery (Concluído)
-7. ✅ Módulo Locations - CEP lookup e geocoding (Concluído)
-8. ✅ Módulo ServiceCatalogs - Catálogo admin-managed (Concluído)
-9. ✅ CI/CD - GitHub Actions workflows (.NET 10 + Aspire 13)
+1. ✅ Sprint 0: Migration .NET 10 + Aspire 13 (21 Nov 2025 - MERGED to master)
+2. ✅ Sprint 1: Geographic Restriction + Module Integration (2 Dez 2025 - MERGED to master)
+3. ✅ Sprint 2: Test Coverage 90.56% (10 Dez 2025) - Meta 35% SUPERADA em 55.56pp!
+4. ✅ Módulo Users (Concluído)
+5. ✅ Módulo Providers (Concluído)
+6. ✅ Módulo Documents (Concluído)
+7. ✅ Módulo Search & Discovery (Concluído)
+8. ✅ Módulo Locations - CEP lookup e geocoding (Concluído)
+9. ✅ Módulo ServiceCatalogs - Catálogo admin-managed (Concluído)
+10. ✅ CI/CD - GitHub Actions workflows (.NET 10 + Aspire 13)
 
 ### 🔄 **Alta Prioridade (Próximos 3 meses - Q1 2026)**
 1. 🚀 **Sprint 3: GitHub Pages Documentation** (Em Andamento - branch criada)
@@ -2076,11 +2092,9 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
    - Consolidação e limpeza de documentação
    - Deploy automático via GitHub Actions
    - Estimativa: 1-2 semanas
-2. 📋 Sprint 1 (Finalizações): Module Integration completions
-   - Finalizar integrações cross-module pendentes
-   - Admin endpoints para geographic restrictions
-3. 📋 Admin Portal - Gestão básica (web interface)
-4. 📋 Customer Profile - Gestão de perfil (web interface)
+2. 📋 Admin Portal - Gestão básica (web interface)
+3. 📋 Customer Profile - Gestão de perfil (web interface)
+4. 📋 API Collections - Bruno .bru files para todos os módulos
 
 ### 🎯 **Média Prioridade (6-12 meses - Fase 2)**
 1. ⭐ Módulo Reviews & Ratings
@@ -2122,9 +2136,11 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
   - Base URL: `https://servicodados.ibge.gov.br/api/v1/localidades/`
   - Documentação: <https://servicodados.ibge.gov.br/api/docs/localidades>
   - Uso: Validação geográfica para restrição de cidades piloto
-- **Nominatim (OpenStreetMap)** - Planned for Sprint 3 (optional improvement)
-  - Geocoding (lat/lon lookup) para cidades/endereços
-  - **Note**: Post-MVP feature, not a blocker for initial geographic-restriction release
+- **Nominatim (OpenStreetMap)** - Geocoding (planejado para Sprint 4 - optional improvement)
+  - Base URL: `https://nominatim.openstreetmap.org/`
+  - Documentação: <https://nominatim.org/release-docs/latest/>
+  - Uso: Geocoding (lat/lon lookup) para cidades/endereços
+  - **Note**: Post-MVP feature, não é blocker para geographic-restriction inicial
 - **ViaCep API** - Lookup de CEP brasileiro
   - Base URL: `https://viacep.com.br/ws/`
   - Documentação: <https://viacep.com.br/>
@@ -2134,11 +2150,8 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 - **OpenCep API** - Lookup de CEP (fallback)
   - Base URL: `https://opencep.com/v1/`
   - Documentação: <https://opencep.com/>
-- **Nominatim (OpenStreetMap)** - Geocoding (planejado)
-  - Base URL: `https://nominatim.openstreetmap.org/`
-  - Documentação: <https://nominatim.org/release-docs/latest/>
 
 ---
 
-*📅 Última atualização: 2 de Dezembro de 2025*  
+*📅 Última atualização: 11 de Dezembro de 2025*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*
