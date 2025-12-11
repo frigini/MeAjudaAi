@@ -59,4 +59,4 @@ Platform connecting customers with service providers for home services and profe
 
 ## License
 
-See [LICENSE](../LICENSE) file for details.
+See [LICENSE](https://github.com/frigini/MeAjudaAi/blob/master/LICENSE) file for details.

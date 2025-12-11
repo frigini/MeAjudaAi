@@ -2,7 +2,7 @@
 
 Este guia fornece instruções práticas e diretrizes abrangentes para desenvolvedores trabalhando no projeto MeAjudaAi.
 
-## � Arquivos de Configuração
+## 📂 Arquivos de Configuração
 
 O projeto possui arquivos de configuração organizados na raiz e na pasta `config/`:
 

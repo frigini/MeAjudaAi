@@ -241,7 +241,7 @@ Acesse `http://localhost:5001/swagger` para:
 
 ```bash
 # Rodar aplicação localmente
-dotnet run --project src/MeAjudaAi.AppHost
+dotnet run --project src/Aspire/MeAjudaAi.AppHost
 
 # Baixar spec atualizada
 curl http://localhost:5001/swagger/v1/swagger.json -o api/api-spec.json

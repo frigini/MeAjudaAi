@@ -1,12 +1,22 @@
-# Correlation ID Best Practices - MeAjudaAi
+# Logging - MeAjudaAi
 
-Este documento descreve as melhores práticas para implementação e uso de Correlation IDs no MeAjudaAi.
+Este documento consolida as práticas de logging, observabilidade e rastreamento no projeto MeAjudaAi.
 
-## 🎯 O que é Correlation ID
+## 📋 Conteúdo
+
+1. [Correlation ID](#correlation-id) - Rastreamento de requisições
+2. [Performance Monitoring](#performance-monitoring) - Métricas e otimização
+3. [Seq Setup](#seq-setup) - Configuração do Seq
+
+---
+
+## Correlation ID
+
+### 🎯 O que é Correlation ID
 
 O **Correlation ID** é um identificador único que acompanha uma requisição através de todos os serviços e componentes, permitindo rastrear e correlacionar logs de uma operação completa.
 
-## 🛠️ Implementação
+### 🛠️ Implementação
 
 ### **Geração Automática**
 ```csharp
@@ -171,10 +181,14 @@ using (LogContext.PushProperty("CorrelationId", correlationId))
 ```text
 ## 🔗 Links Relacionados
 
-- [Performance Monitoring](./PERFORMANCE.md)
+- [Performance Monitoring](#performance-monitoring)
 - [SEQ Setup](./seq-setup.md)
 - [SEQ Configuration](./seq-setup.md)
-# Performance Monitoring - MeAjudaAi
+---
+
+## Performance Monitoring
+
+Este documento descreve métricas e otimizações de performance no MeAjudaAi.
 
 Este documento descreve as estratégias e ferramentas de monitoramento de performance no MeAjudaAi.
 
@@ -272,7 +286,11 @@ logger.LogInformation("Query executed: {Operation} in {Duration}ms",
 
 - [Correlation ID Best Practices](./correlation-id.md)
 - [SEQ Configuration](./seq-setup.md)
-# 📊 Seq - Logging Estruturado com Serilog
+---
+
+## Seq Setup
+
+### 📊 Logging Estruturado com Serilog
 
 ## 🚀 Setup Rápido para Desenvolvimento
 
