@@ -28,7 +28,39 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 - **Docker** - Containerização
 - **Azure** - Hospedagem em nuvem
 
-## 📦 Estrutura do Projeto
+## � Documentação
+
+A documentação completa do projeto está disponível em **MkDocs Material** com suporte completo em português.
+
+### Visualização Local
+
+Para visualizar a documentação localmente:
+
+```bash
+# Instalar MkDocs Material (apenas uma vez)
+pip install mkdocs-material mkdocs-git-revision-date-localized-plugin
+
+# Iniciar servidor de desenvolvimento
+mkdocs serve
+
+# Acessar: http://127.0.0.1:8000/MeAjudaAi/
+```
+
+### GitHub Pages
+
+Após o merge para `master`, a documentação será publicada automaticamente em:
+**https://frigini.github.io/MeAjudaAi/**
+
+### Estrutura da Documentação
+
+- **Primeiros Passos** - Setup de desenvolvimento e configuração
+- **Arquitetura** - Design do sistema, padrões e infraestrutura
+- **Módulos** - Documentação específica de cada módulo de domínio
+- **CI/CD** - Pipelines, workflows e automação
+- **Testes** - Estratégias, guias e relatórios de cobertura
+- **Referência da API** - Endpoints REST documentados
+
+## �📦 Estrutura do Projeto
 
 O projeto foi organizado para facilitar navegação e manutenção:
 
