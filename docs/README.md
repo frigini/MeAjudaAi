@@ -15,8 +15,8 @@ Se você é novo no projeto, comece por aqui:
 | Documento | Descrição |
 |-----------|-----------|
 | **[🏗️ Arquitetura](./architecture.md)** | Clean Architecture, DDD, CQRS e padrões |
-| **[🔐 Autenticação e Autorização](./authentication_and_authorization.md)** | Keycloak, JWT e sistema de permissões type-safe |
-| **[🔄 CI/CD & Security](./ci_cd.md)** | Pipelines, deploy, automação e security scanning |
+| **[🔐 Autenticação e Autorização](./authentication-and-authorization.md)** | Keycloak, JWT e sistema de permissões type-safe |
+| **[🔄 CI/CD & Security](./ci-cd.md)** | Pipelines, deploy, automação e security scanning |
 | **[⚙️ Configuração](./configuration.md)** | Gestão de constantes e configuração por ambiente |
 | **[🛠️ Guia de Desenvolvimento](./development.md)** | Setup completo, convenções, workflows, debugging e testes |
 | **[🚀 Infraestrutura](./infrastructure.md)** | Docker, Aspire, Azure e configuração de ambientes |

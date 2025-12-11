@@ -1,0 +1,151 @@
+site_name: MeAjudaAi Documentation
+site_description: Platform connecting customers with service providers
+site_author: MeAjudaAi Team
+site_url: https://frigini.github.io/MeAjudaAi
+
+repo_name: frigini/MeAjudaAi
+repo_url: https://github.com/frigini/MeAjudaAi
+edit_uri: edit/master/docs/
+
+theme:
+  name: material
+  language: pt-BR
+  palette:
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search:
+      lang: 
+        - pt
+        - en
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+      fallback_to_build_date: true
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/frigini/MeAjudaAi
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
+  version:
+    provider: mike
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Development Setup: development.md
+      - Configuration: configuration.md
+      - Deployment Environments: deployment-environments.md
+  - Architecture:
+      - Overview: architecture.md
+      - Authentication & Authorization: authentication-and-authorization.md
+      - Infrastructure: infrastructure.md
+      - Database:
+          - Database Boundaries: database/database-boundaries.md
+          - Scripts Organization: database/scripts-organization.md
+          - DbContext Factory: database/db-context-factory.md
+      - Messaging:
+          - Message Bus Strategy: messaging/message-bus-strategy.md
+          - Messaging Mocks: messaging/messaging-mocks.md
+          - Dead Letter Queue: messaging/dead-letter-queue.md
+      - Logging:
+          - Correlation ID: logging/correlation-id.md
+          - Performance: logging/PERFORMANCE.md
+          - Seq Setup: logging/seq-setup.md
+  - Modules:
+      - Users: modules/users.md
+      - Providers: modules/providers.md
+      - Documents: modules/documents.md
+      - Search Providers: modules/search-providers.md
+      - Service Catalogs: modules/service-catalogs.md
+      - Locations: modules/locations.md
+  - CI/CD:
+      - Overview: ci-cd.md
+      - Workflows Overview: ci-cd/workflows-overview.md
+      - PR Validation Workflow: ci-cd/pr-validation-workflow.md
+  - Testing:
+      - Unit vs Integration Tests: testing/unit-vs-integration-tests.md
+      - Integration Tests: testing/integration-tests.md
+      - Test Infrastructure: testing/test-infrastructure.md
+      - Test Auth Examples: testing/test-auth-examples.md
+      - E2E Architecture: testing/e2e-architecture-analysis.md
+      - Coverage:
+          - Coverage Guide: testing/code-coverage-guide.md
+          - Coverage Roadmap: testing/code-coverage-roadmap.md
+          - Coverage Analysis Dec 2025: testing/coverage-analysis-dec-2025.md
+          - Coverage Exclusion Guide: testing/coverage-exclusion-guide.md
+          - Coverage Report Explained: testing/coverage-report-explained.md
+          - Coverage Gap Analysis: testing/coverage-gap-analysis.md
+          - Skipped Tests Analysis: testing/skipped-tests-analysis.md
+  - Reference:
+      - Roadmap: roadmap.md
+      - Technical Debt: technical-debt.md
+      - Security Vulnerabilities: security-vulnerabilities.md

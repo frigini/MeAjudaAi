@@ -4,9 +4,9 @@
 This document provides comprehensive guidance for writing and maintaining integration tests in the MeAjudaAi platform.
 
 > **📚 Related Documentation**:
-> - [Test Infrastructure (TestContainers)](./test_infrastructure.md) - Infraestrutura de containers para testes
-> - [Code Coverage Guide](./code_coverage_guide.md) - Guia de cobertura de código
-> - [Test Authentication Examples](./test_auth_examples.md) - Exemplos de autenticação em testes
+> - [Test Infrastructure (TestContainers)](./test-infrastructure.md) - Infraestrutura de containers para testes
+> - [Code Coverage Guide](./code-coverage-guide.md) - Guia de cobertura de código
+> - [Test Authentication Examples](./test-auth-examples.md) - Exemplos de autenticação em testes
 
 ## Integration Testing Strategy
 
@@ -348,4 +348,4 @@ Integration tests run as part of the CI/CD pipeline:
 ## Related Documentation
 
 - [Development Guidelines](../development.md)
-- [CI/CD Setup](../ci_cd.md)
+- [CI/CD Setup](../ci-cd.md)

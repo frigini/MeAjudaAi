@@ -171,6 +171,6 @@ using (LogContext.PushProperty("CorrelationId", correlationId))
 ```text
 ## 🔗 Links Relacionados
 
-- [Performance Monitoring](./performance.md)
+- [Performance Monitoring](./PERFORMANCE.md)
 - [SEQ Setup](./seq-setup.md)
 - [SEQ Configuration](./seq-setup.md)

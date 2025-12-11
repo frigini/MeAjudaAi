@@ -1,6 +1,6 @@
 # Análise Detalhada dos Testes E2E - TestContainers
 
-> **Nota**: Para informações gerais sobre infraestrutura de testes, consulte [test_infrastructure.md](./test_infrastructure.md)
+> **Nota**: Para informações gerais sobre infraestrutura de testes, consulte [test-infrastructure.md](./test-infrastructure.md)
 
 ## 📋 Resumo Executivo
 
