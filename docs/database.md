@@ -168,6 +168,8 @@ dotnet ef migrations add AddUserProfile --context UsersDbContext --output-dir In
 
 # Generate migration for Providers module (future)
 dotnet ef migrations add InitialProviders --context ProvidersDbContext --output-dir Infrastructure/Persistence/Migrations
+```
+
 ```yaml
 ### Apply Migrations
 ```bash
@@ -194,6 +196,8 @@ JOIN bookings.bookings b ON b.user_id = u.id
 JOIN services.services s ON s.id = b.service_id;
 
 GRANT SELECT ON public.user_bookings_summary TO meajudaai_app_role;
+```
+
 ```yaml
 ### Opção 2: APIs de Módulo (Recomendada)
 ```csharp
@@ -233,7 +237,8 @@ public class BookingService
         // Criar agendamento...
     }
 }
-```csharp
+```
+
 ### Opção 3: Read Models Orientados a Eventos (Futuro)
 ```csharp
 // Módulo Users publica eventos
@@ -258,7 +263,8 @@ public class NotificationEventHandler : INotificationHandler<UserRegisteredEvent
             });
     }
 }
-```text
+```
+
 ## ⚡ Configuração de Desenvolvimento
 
 ### Desenvolvimento Local
@@ -412,6 +418,8 @@ infrastructure/database/
 ```bash
 # For new module (example: providers)
 mkdir infrastructure/database/modules/providers
+```
+
 ```yaml
 ### Step 2: Create Scripts Using Templates
 
@@ -424,7 +432,8 @@ CREATE ROLE [module_name]_role LOGIN PASSWORD '$PASSWORD';
 
 -- Grant [module_name] role to app role for cross-module access
 GRANT [module_name]_role TO meajudaai_app_role;
-```csharp
+```
+
 #### `01-permissions.sql` Template:
 ```sql
 -- [MODULE_NAME] Module - Permissions

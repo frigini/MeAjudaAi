@@ -1401,7 +1401,7 @@ O workflow de PR Validation é o **gatekeeper** do projeto - garante que todo c�
 
 ```yaml
 env:
-  DOTNET_VERSION: '10.0.x'              # .NET 10 (migração de .NET 9)
+  DOTNET_VERSION: '10.0.x'              # .NET 10 (migração de .NET 10)
   STRICT_COVERAGE: false                # Meta: true quando coverage >= 70%
   POSTGRES_PASSWORD: <secret/fallback>  # Senha do banco de dados
   POSTGRES_USER: <secret/fallback>      # Usuário PostgreSQL
