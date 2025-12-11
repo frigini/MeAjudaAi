@@ -284,7 +284,7 @@ logger.LogInformation("Query executed: {Operation} in {Duration}ms",
 
 ## 🔗 Links Relacionados
 
-- [Correlation ID Best Practices](#correlation-id-best-practices)
+- [Correlation ID](#correlation-id)
 - [SEQ Configuration](#seq-setup)
 ---
 
