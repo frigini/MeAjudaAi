@@ -170,8 +170,8 @@ dotnet ef migrations add AddUserProfile --context UsersDbContext --output-dir In
 dotnet ef migrations add InitialProviders --context ProvidersDbContext --output-dir Infrastructure/Persistence/Migrations
 ```
 
-```yaml
 ### Apply Migrations
+
 ```bash
 # Apply all migrations for Users module
 dotnet ef database update --context UsersDbContext
@@ -198,8 +198,8 @@ JOIN services.services s ON s.id = b.service_id;
 GRANT SELECT ON public.user_bookings_summary TO meajudaai_app_role;
 ```
 
-```yaml
 ### Opção 2: APIs de Módulo (Recomendada)
+
 ```csharp
 // Cada módulo expõe uma API limpa
 public interface IUsersModuleApi
@@ -420,7 +420,6 @@ infrastructure/database/
 mkdir infrastructure/database/modules/providers
 ```
 
-```yaml
 ### Step 2: Create Scripts Using Templates
 
 #### `00-roles.sql` Template:
@@ -460,7 +459,8 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA [module_name] GRANT USAGE, SELECT ON SEQUENCE
 
 -- Grant permissions on public schema
 GRANT USAGE ON SCHEMA public TO [module_name]_role;
-```text
+```
+
 ### Step 3: Update SchemaPermissionsManager
 
 Adicionar novos métodos para cada módulo:
