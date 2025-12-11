@@ -2637,7 +2637,7 @@
           "MeAjudaAi.Modules.Documents.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Documents.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.AspNetCore.OpenApi": "[10.0.0, )"
+          "Microsoft.AspNetCore.OpenApi": "[10.0.1, )"
         }
       },
       "meajudaai.modules.documents.application": {
@@ -2750,7 +2750,7 @@
           "MeAjudaAi.Modules.SearchProviders.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
-          "Microsoft.AspNetCore.OpenApi": "[10.0.0, )"
+          "Microsoft.AspNetCore.OpenApi": "[10.0.1, )"
         }
       },
       "meajudaai.modules.searchproviders.application": {
@@ -2900,7 +2900,7 @@
           "Hangfire.AspNetCore": "[1.8.22, )",
           "Hangfire.Core": "[1.8.22, )",
           "Hangfire.PostgreSql": "[1.20.13, )",
-          "Microsoft.AspNetCore.OpenApi": "[10.0.0, )",
+          "Microsoft.AspNetCore.OpenApi": "[10.0.1, )",
           "Microsoft.EntityFrameworkCore": "[10.0.1, )",
           "Microsoft.EntityFrameworkCore.Design": "[10.0.1, )",
           "Microsoft.Extensions.Caching.Hybrid": "[10.0.0, )",
@@ -3437,9 +3437,9 @@
       },
       "Microsoft.AspNetCore.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[10.0.0, )",
-        "resolved": "10.0.0",
-        "contentHash": "0aqIF1t+sA2T62LIeMtXGSiaV7keGQaJnvwwmu+htQdjCaKYARfXAeqp4nHH9y2etpilyZ/tnQzZg4Ilmo/c4Q==",
+        "requested": "[10.0.1, )",
+        "resolved": "10.0.1",
+        "contentHash": "gMY53EggRIFawhue66GanHcm1Tcd0+QzzMwnMl60LrEoJhGgzA9qAbLx6t/ON3hX4flc2NcEbTK1Z5GCLYHcwA==",
         "dependencies": {
           "Microsoft.OpenApi": "2.0.0"
         }
