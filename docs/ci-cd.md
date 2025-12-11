@@ -868,7 +868,7 @@ azd provision --environment production
 
 | Workflow | Propósito | Trigger | Tempo Médio |
 |----------|-----------|---------|-------------|
-| [PR Validation](#1-pr-validation) | Validação de qualidade em PRs | PRs para master/develop | ~25-30 min |
+| PR Validation | Validação de qualidade em PRs | PRs para master/develop | ~25-30 min |
 | [CI/CD Pipeline](#2-cicd-pipeline) | Build, test e deploy contínuo | Push para master/develop | ~30-40 min |
 | [Aspire CI/CD](#3-aspire-cicd) | Pipeline específico do Aspire | Push/PR em `src/Aspire/**` | ~15-20 min |
 | [Check Dependencies](#4-check-dependencies) | Monitora pacotes desatualizados | Diário (09:00 UTC) | ~2-3 min |
@@ -880,8 +880,7 @@ azd provision --environment production
 
 ## 1. PR Validation
 
-**Arquivo**: `.github/workflows/pr-validation.yml`  
-**Documentação Completa**: [PR Validation Workflow](#1-pr-validation)
+**Arquivo**: `.github/workflows/pr-validation.yml`
 
 ### Propósito
 Workflow **crítico** que garante qualidade de código antes do merge. É o **gatekeeper** do projeto.
@@ -1344,7 +1343,6 @@ POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
 
 ## 📚 Documentação Relacionada
 
-- **PR Validation**: [PR Validation Workflow](#1-pr-validation) (documentação detalhada)
 - **CI/CD Overview**: [CI/CD](./ci-cd.md)
 - **Code Coverage**: [testing/coverage.md](./testing/coverage.md)
 - **Architecture Tests**: (pending implementation)
@@ -1898,7 +1896,6 @@ O workflow **falha** (bloqueia merge) se:
 - [Code Coverage Guide](./testing/coverage.md)
 - [Integration Tests](./testing/integration-tests.md)
 - Architecture tests (pending implementation)
-- [CI/CD Overview](#cicd-configuration-security-guide-meajudaai)
 
 ### Ferramentas e Actions
 
@@ -1945,4 +1942,4 @@ Porém, o workflow completo (com artifacts, comentários no PR) só funciona no 
 
 **Última Atualização**: 4 de Dezembro de 2025  
 **Mantenedor**: @frigini  
-**Questões**: Abra uma issue ou consulte [CI/CD Troubleshooting](#troubleshooting)
+**Questões**: Abra uma issue no repositório

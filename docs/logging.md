@@ -5,7 +5,7 @@ Este documento consolida as práticas de logging, observabilidade e rastreamento
 ## 📋 Conteúdo
 
 1. [Correlation ID](#correlation-id) - Rastreamento de requisições
-2. [Performance Monitoring](#performance-monitoring) - Métricas e otimização
+2. Performance Monitoring - Métricas e otimização
 3. [Seq Setup](#seq-setup) - Configuração do Seq
 
 ---
@@ -58,9 +58,13 @@ public class CorrelationIdMiddleware
 ```csharp
 app.UseMiddleware<CorrelationIdMiddleware>();
 ```
+
 ## 📝 Estrutura de Logs
 
-### **Template Serilog**
+### Configuração do Template Serilog
+
+O Serilog permite configurar um template customizado para definir o formato dos logs:
+
 ```csharp
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
@@ -68,12 +72,31 @@ Log.Logger = new LoggerConfiguration()
         "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} " +
         "{CorrelationId} {SourceContext}{NewLine}{Exception}")
     .CreateLogger();
-```sql
-### **Exemplo de Log**
-```json
+```
+
+**Componentes do Template:**
+- `{Timestamp:HH:mm:ss}` - Horário do log (formato 24h)
+- `{Level:u3}` - Nível do log (INF, WRN, ERR, etc.)
+- `{Message:lj}` - Mensagem do log (JSON literal)
+- `{CorrelationId}` - ID de correlação da requisição
+- `{SourceContext}` - Namespace/classe que gerou o log
+- `{Exception}` - Stack trace de exceções (quando aplicável)
+
+### Exemplo de Saída
+
+Os logs seguem o padrão configurado, facilitando leitura e parsing:
+
+```text
 [14:30:25 INF] User created successfully f7b3c4d2-8e91-4a6b-9c5d-1e2f3a4b5c6d MeAjudaAi.Users.Application
 [14:30:25 INF] Email notification sent f7b3c4d2-8e91-4a6b-9c5d-1e2f3a4b5c6d MeAjudaAi.Notifications
-```text
+```
+
+**Benefícios do formato:**
+- Fácil identificação visual por timestamp e nível
+- Correlation ID permite rastrear toda a operação
+- Source context identifica a origem do log
+- Estrutura consistente para parsing automatizado
+
 ## 🔄 Propagação Entre Serviços
 
 ### **HTTP Client Configuration**
@@ -190,17 +213,16 @@ using (LogContext.PushProperty("CorrelationId", correlationId))
 {
     logger.LogInformation("This log will have correlation ID");
 }
-```text
+```
+
 ## 🔗 Links Relacionados
 
-- [Performance Monitoring](#performance-monitoring)
 - [SEQ Setup](#seq-setup)
 - [SEQ Configuration](#seq-setup)
+
 ---
 
 ## Performance Monitoring
-
-Este documento descreve métricas e otimizações de performance no MeAjudaAi.
 
 Este documento descreve as estratégias e ferramentas de monitoramento de performance no MeAjudaAi.
 
