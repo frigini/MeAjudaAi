@@ -40,7 +40,15 @@ Fundação técnica para escalabilidade e produção:
 
 **🔄 Sprint 3 Parte 2: EM ANDAMENTO** (11 Dez - 24 Dez 2025)  
 Admin Endpoints & Tools:
-- 🔄 Admin: Endpoint para gerenciar cidades permitidas (EM ANDAMENTO desde 11 Dez)
+- 🔄 Admin: Endpoints CRUD para gerenciar cidades permitidas (EM PROGRESSO - 11 Dez)
+  - ✅ Banco de dados: LocationsDbContext + migrations
+  - ✅ Domínio: AllowedCity entity + IAllowedCityRepository
+  - ✅ Handlers: CRUD completo (5 handlers)
+  - ✅ Endpoints: GET/POST/PUT/DELETE configurados
+  - ✅ Exception Handling: Domain exceptions + IExceptionHandler (404/400 corretos)
+  - ✅ Testes: 4 integration tests (21s) + 15 unit tests passando
+  - ✅ Quality: 0 warnings no módulo Locations (15 removidos)
+  - ⏳ Validação: E2E tests pending (expected ~9min)
 - ⏳ Tools: Coleções Bruno API para todos módulos
 - ⏳ Scripts: Consolidação e documentação de scripts PowerShell
 
@@ -1298,11 +1306,21 @@ gantt
 - [ ] Unit test: Mock de ILocationsModuleApi em Providers.Application
 
 **3. Geographic Restrictions Admin**:
-- [ ] Admin API: Endpoint GET para listar cidades permitidas
-- [ ] Admin API: Endpoint POST para adicionar cidade permitida
-- [ ] Admin API: Endpoint DELETE para remover cidade permitida
-- [ ] Integration tests: CRUD completo de geographic restrictions
-- [ ] Documentação: API endpoints no GitHub Pages
+- ✅ **Database**: LocationsDbContext + AllowedCity entity (migration 20251212002108_InitialAllowedCities)
+- ✅ **Repository**: IAllowedCityRepository implementado com queries otimizadas
+- ✅ **Handlers**: CreateAllowedCityHandler, UpdateAllowedCityHandler, DeleteAllowedCityHandler, GetAllowedCityByIdHandler, GetAllAllowedCitiesHandler
+- ✅ **Domain Exceptions**: NotFoundException, AllowedCityNotFoundException, BadRequestException, DuplicateAllowedCityException
+- ✅ **Exception Handling**: LocationsExceptionHandler (IExceptionHandler) mapeando exceções para status HTTP corretos (404, 400)
+- ✅ **Endpoints**: 
+  - GET /api/v1/locations/admin/allowed-cities (listar todas)
+  - GET /api/v1/locations/admin/allowed-cities/{id} (buscar por ID)
+  - POST /api/v1/locations/admin/allowed-cities (criar nova)
+  - PUT /api/v1/locations/admin/allowed-cities/{id} (atualizar)
+  - DELETE /api/v1/locations/admin/allowed-cities/{id} (deletar)
+- ✅ **Testes de Integração**: AllowedCityExceptionHandlingTests (4 testes, 21s - 25x mais rápido que E2E)
+- ✅ **Code Quality**: 0 warnings no módulo Locations (corrigidos 15 warnings)
+- ⏳ **E2E Tests**: Pending validation (expected ~9min runtime)
+- ⏳ **Documentação**: API endpoints no GitHub Pages
 
 **4. ServiceCatalogs Admin UI Integration**:
 - [ ] Admin Portal: Endpoint para associar serviços a prestadores
