@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.E2E.Tests.Integration;
 
