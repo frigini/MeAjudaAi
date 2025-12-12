@@ -64,6 +64,9 @@ internal static class Program
             options.Password = testDbPassword;
         });
 
+        // Aplicar migrations automaticamente (Testing também)
+        postgresql.MainDatabase.WithMigrations();
+
         var redis = builder.AddRedis("redis");
 
         _ = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
@@ -106,6 +109,9 @@ internal static class Program
             options.Password = dbPassword;
             options.IncludePgAdmin = includePgAdmin;
         });
+
+        // Aplicar migrations automaticamente
+        postgresql.MainDatabase.WithMigrations();
 
         var redis = builder.AddRedis("redis");
 
