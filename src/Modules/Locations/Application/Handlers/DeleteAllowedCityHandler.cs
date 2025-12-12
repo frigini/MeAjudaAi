@@ -10,7 +10,7 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// </summary>
 public sealed class DeleteAllowedCityHandler(IAllowedCityRepository repository) : ICommandHandler<DeleteAllowedCityCommand>
 {
-    public async Task HandleAsync(DeleteAllowedCityCommand command, CancellationToken cancellationToken)
+    public async Task HandleAsync(DeleteAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
         // Buscar entidade existente
         var city = await repository.GetByIdAsync(command.Id, cancellationToken)

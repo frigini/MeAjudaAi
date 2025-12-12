@@ -33,7 +33,7 @@ public class CachingBehavior<TRequest, TResponse>(
 
         // Tenta buscar no cache primeiro
         var cachedResult = await cacheService.GetAsync<TResponse>(cacheKey, cancellationToken);
-        if (cachedResult != null)
+        if (!object.Equals(cachedResult, default(TResponse)))
         {
             logger.LogDebug("Cache hit for key: {CacheKey}", cacheKey);
             return cachedResult;
@@ -45,7 +45,7 @@ public class CachingBehavior<TRequest, TResponse>(
         var result = await next();
 
         // Armazena no cache se o resultado não for nulo
-        if (result != null)
+        if (!object.Equals(result, default(TResponse)))
         {
             var options = new HybridCacheEntryOptions
             {

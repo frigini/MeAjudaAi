@@ -85,7 +85,7 @@ public static class SerilogConfigurator
     /// <summary>
     /// Configura Application Insights para produção (futuro)
     /// </summary>
-    private static void ConfigureApplicationInsights(LoggerConfiguration config, IConfiguration configuration)
+    private static void ConfigureApplicationInsights(IConfiguration configuration)
     {
         var connectionString = configuration["ApplicationInsights:ConnectionString"];
         if (!string.IsNullOrEmpty(connectionString))

@@ -14,7 +14,7 @@ public sealed class UpdateAllowedCityHandler(
     IAllowedCityRepository repository,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<UpdateAllowedCityCommand>
 {
-    public async Task HandleAsync(UpdateAllowedCityCommand command, CancellationToken cancellationToken)
+    public async Task HandleAsync(UpdateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
         // Buscar entidade existente
         var city = await repository.GetByIdAsync(command.Id, cancellationToken)

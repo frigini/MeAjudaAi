@@ -101,7 +101,7 @@ public static class Extensions
             var baseUrl = configuration["Locations:ExternalApis:IBGE:BaseUrl"]
                 ?? "https://servicodados.ibge.gov.br/api/v1/localidades/"; // Fallback para testes
 
-            if (!baseUrl.EndsWith("/"))
+            if (!baseUrl.EndsWith('/'))
             {
                 baseUrl += "/";
             }
@@ -122,7 +122,7 @@ public static class Extensions
 
         // Registrar Command e Query Handlers automaticamente
         var applicationAssembly = typeof(Application.Handlers.CreateAllowedCityHandler).Assembly;
-        
+
         // Registrar todos os ICommandHandler<T> e ICommandHandler<T, TResult>
         var commandHandlerTypes = applicationAssembly.GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract)

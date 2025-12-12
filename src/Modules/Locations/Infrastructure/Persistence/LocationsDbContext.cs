@@ -44,7 +44,7 @@ public class LocationsDbContext : BaseDbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
-        
+
         // Suppress pending model changes warning in test environment
         // This is needed because test environments may have slightly different configurations
         var isTestEnvironment = Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true";

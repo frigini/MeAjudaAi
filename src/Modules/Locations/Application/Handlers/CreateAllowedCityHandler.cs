@@ -15,7 +15,7 @@ public sealed class CreateAllowedCityHandler(
     IAllowedCityRepository repository,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<CreateAllowedCityCommand, Guid>
 {
-    public async Task<Guid> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken)
+    public async Task<Guid> HandleAsync(CreateAllowedCityCommand command, CancellationToken cancellationToken = default)
     {
         // Validar se já existe cidade com mesmo nome e estado
         var exists = await repository.ExistsAsync(command.CityName, command.StateSigla, cancellationToken);

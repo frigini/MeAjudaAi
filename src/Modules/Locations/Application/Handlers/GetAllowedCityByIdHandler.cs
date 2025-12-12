@@ -11,7 +11,7 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 public sealed class GetAllowedCityByIdHandler(IAllowedCityRepository repository)
     : IQueryHandler<GetAllowedCityByIdQuery, AllowedCityDto?>
 {
-    public async Task<AllowedCityDto?> HandleAsync(GetAllowedCityByIdQuery query, CancellationToken cancellationToken)
+    public async Task<AllowedCityDto?> HandleAsync(GetAllowedCityByIdQuery query, CancellationToken cancellationToken = default)
     {
         var city = await repository.GetByIdAsync(query.Id, cancellationToken);
 

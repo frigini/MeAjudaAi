@@ -289,7 +289,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         // Para SearchProvidersDbContext, só aplicar migrações (o banco já existe, só precisamos do schema search + PostGIS)
         var searchContext = scope.ServiceProvider.GetRequiredService<SearchProvidersDbContext>();
         await searchContext.Database.MigrateAsync();
-        
+
         // Para LocationsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema locations)
         var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
         await locationsContext.Database.MigrateAsync();

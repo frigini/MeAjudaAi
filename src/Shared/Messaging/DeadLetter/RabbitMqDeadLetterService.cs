@@ -399,7 +399,7 @@ public sealed class RabbitMqDeadLetterService(
         return deadLetterQueues;
     }
 
-    private async Task NotifyAdministratorsAsync(FailedMessageInfo failedMessageInfo, CancellationToken cancellationToken)
+    private async Task NotifyAdministratorsAsync(FailedMessageInfo failedMessageInfo)
     {
         try
         {

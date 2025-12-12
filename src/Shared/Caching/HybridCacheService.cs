@@ -26,7 +26,7 @@ public class HybridCacheService(
                 cancellationToken: cancellationToken);
 
             // Se o factory não foi chamado, foi um hit
-            if (!isHit && result != null && !result.Equals(default(T)))
+            if (!isHit && !object.Equals(result, default(T)) && !result.Equals(default(T)))
             {
                 isHit = true;
             }

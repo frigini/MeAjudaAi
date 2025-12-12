@@ -38,19 +38,17 @@ public sealed class IbgeService(
 
         // Validar se o estado bate (se fornecido)
         var ufSigla = municipio.GetEstadoSigla();
-        if (!string.IsNullOrEmpty(stateSigla))
+        if (!string.IsNullOrEmpty(stateSigla) && !string.Equals(ufSigla, stateSigla, StringComparison.OrdinalIgnoreCase))
         {
-            if (!string.Equals(ufSigla, stateSigla, StringComparison.OrdinalIgnoreCase))
-            {
-                logger.LogWarning(
-                    "Município {CityName} encontrado, mas estado não corresponde. Esperado: {ExpectedState}, Encontrado: {FoundState}",
-                    cityName, stateSigla, ufSigla);
-                return false;
-            }
+            logger.LogWarning(
+                "Município {CityName} encontrado, mas estado não corresponde. Esperado: {ExpectedState}, Encontrado: {FoundState}",
+                cityName, stateSigla, ufSigla);
+            return false;
         }
 
         // Validar se a cidade está na lista de permitidas (usando banco de dados)
-        var isAllowed = await allowedCityRepository.IsCityAllowedAsync(municipio.Nome, ufSigla, cancellationToken);
+        // ufSigla never null because GetEstadoSigla returns non-nullable string
+        var isAllowed = await allowedCityRepository.IsCityAllowedAsync(municipio.Nome, ufSigla ?? string.Empty, cancellationToken);
 
         if (isAllowed)
         {

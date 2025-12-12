@@ -35,7 +35,7 @@ internal class MetricsCollectorService(
         logger.LogInformation("Metrics collector service stopped");
     }
 
-    private async Task CollectMetrics(CancellationToken cancellationToken)
+    private async Task CollectMetrics()
     {
         using var scope = serviceProvider.CreateScope();
 
@@ -58,7 +58,7 @@ internal class MetricsCollectorService(
         }
     }
 
-    private async Task<long> GetActiveUsersCount(IServiceScope scope)
+    private async Task<long> GetActiveUsersCount()
     {
         try
         {
@@ -78,7 +78,7 @@ internal class MetricsCollectorService(
         }
     }
 
-    private async Task<long> GetPendingHelpRequestsCount(IServiceScope scope)
+    private async Task<long> GetPendingHelpRequestsCount()
     {
         try
         {

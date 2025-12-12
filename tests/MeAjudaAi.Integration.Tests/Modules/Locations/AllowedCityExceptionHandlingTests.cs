@@ -36,7 +36,7 @@ public class AllowedCityExceptionHandlingTests : ApiTestBase
         // Arrange
         using var scope = Services.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IAllowedCityRepository>();
-        
+
         var cityName = _faker.Address.City();
         var state = "SP";
         var createdBy = _faker.Internet.Email();

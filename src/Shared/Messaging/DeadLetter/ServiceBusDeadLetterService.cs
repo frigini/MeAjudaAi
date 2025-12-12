@@ -242,7 +242,7 @@ public sealed class ServiceBusDeadLetterService(
         return $"{sourceQueue}{_options.ServiceBus.DeadLetterQueueSuffix}";
     }
 
-    private async Task NotifyAdministratorsAsync(FailedMessageInfo failedMessageInfo, CancellationToken cancellationToken)
+    private async Task NotifyAdministratorsAsync(FailedMessageInfo failedMessageInfo)
     {
         try
         {

@@ -68,7 +68,7 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "São Paulo";
         const string stateSigla = "SP";
-        
+
 
         var municipio = CreateMunicipio(3550308, "São Paulo", "SP");
 
@@ -88,7 +88,7 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "muriaé"; // lowercase
         const string stateSigla = "mg"; // lowercase
-         // uppercase
+                                        // uppercase
 
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG"); // title case
 
@@ -108,7 +108,7 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "CidadeInexistente";
         const string stateSigla = "XX";
-        
+
 
         SetupCacheGetOrCreate(cityName, null); // Município não existe
 
@@ -127,7 +127,7 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "Muriaé";
         const string stateSigla = "RJ"; // Errado: Muriaé é MG
-        
+
 
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
@@ -147,7 +147,7 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "Muriaé";
         string? stateSigla = null; // Sem validação de estado
-        
+
 
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
@@ -167,7 +167,7 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "Muriaé";
         const string stateSigla = "MG";
-        
+
 
         SetupCacheGetOrCreateWithException(cityName, new HttpRequestException("IBGE API unreachable"));
 

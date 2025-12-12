@@ -11,7 +11,7 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 public sealed class GetAllAllowedCitiesHandler(IAllowedCityRepository repository)
     : IQueryHandler<GetAllAllowedCitiesQuery, IReadOnlyList<AllowedCityDto>>
 {
-    public async Task<IReadOnlyList<AllowedCityDto>> HandleAsync(GetAllAllowedCitiesQuery query, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<AllowedCityDto>> HandleAsync(GetAllAllowedCitiesQuery query, CancellationToken cancellationToken = default)
     {
         var cities = query.OnlyActive
             ? await repository.GetAllActiveAsync(cancellationToken)

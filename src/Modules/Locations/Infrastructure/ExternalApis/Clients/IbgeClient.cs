@@ -85,7 +85,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             logger.LogError(ex, "HTTP error querying IBGE for municipality {CityName}", cityName);
             throw;
         }
-        catch (TaskCanceledException ex)
+        catch (TaskCanceledException ex) when (ex != null)
         {
             // Re-throw timeout exceptions to enable middleware fallback
             logger.LogError(ex, "Timeout querying IBGE for municipality {CityName}", cityName);
@@ -133,11 +133,11 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
     /// <summary>
     /// Valida se uma cidade existe na UF especificada.
     /// </summary>
-    public async Task<bool> ValidateCityInStateAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
+    public async Task<bool> ValidateCityInStateAsync(string city, string state, CancellationToken cancellationToken = default)
     {
         try
         {
-            var municipio = await GetMunicipioByNameAsync(cityName, cancellationToken);
+            var municipio = await GetMunicipioByNameAsync(city, cancellationToken);
 
             if (municipio is null)
             {

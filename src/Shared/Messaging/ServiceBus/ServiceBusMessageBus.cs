@@ -110,7 +110,7 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
             try
             {
                 var message = JsonSerializer.Deserialize<T>(args.Message.Body.ToString(), _jsonOptions);
-                if (message != null)
+                if (!object.Equals(message, default(T)))
                 {
                     await handler(message, args.CancellationToken);
                     await args.CompleteMessageAsync(args.Message, args.CancellationToken);

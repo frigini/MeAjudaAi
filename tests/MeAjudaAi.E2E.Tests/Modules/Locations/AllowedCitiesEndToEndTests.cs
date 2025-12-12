@@ -18,7 +18,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         var request = new
         {
             CityName = "Belo Horizonte",
@@ -32,20 +32,20 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        
+
         result.TryGetProperty("data", out var dataElement).Should().BeTrue();
         var cityId = Guid.Parse(dataElement.GetString()!);
         cityId.Should().NotBeEmpty();
-        
+
         // Verify database persistence
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
-            
+
             city.Should().NotBeNull();
             city!.CityName.Should().Be("Belo Horizonte");
             city.StateSigla.Should().Be("MG");
@@ -60,7 +60,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         // Create first city
         await WithServiceScopeAsync(async services =>
         {
@@ -82,7 +82,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("já cadastrada");
     }
@@ -92,7 +92,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange - authenticate as regular user
         AuthenticateAsUser();
-        
+
         var request = new
         {
             CityName = "Curitiba",
@@ -111,7 +111,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         var invalidRequest = new
         {
             CityName = "", // Empty city name
@@ -130,15 +130,15 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         // Create active and inactive cities
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            
+
             var activeCity = new AllowedCity("Rio de Janeiro", "RJ", "system", 3304557, true);
             var inactiveCity = new AllowedCity("Niterói", "RJ", "system", 3303302, false);
-            
+
             dbContext.AllowedCities.AddRange(activeCity, inactiveCity);
             await dbContext.SaveChangesAsync();
         });
@@ -148,15 +148,15 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        
+
         result.TryGetProperty("data", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
-        
+
         cities.Should().NotBeEmpty();
-        
+
         // Verify all cities are active
         foreach (var city in cities)
         {
@@ -170,21 +170,21 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         // Create active and inactive cities
         var activeCityId = Guid.Empty;
         var inactiveCityId = Guid.Empty;
-        
+
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            
+
             var activeCity = new AllowedCity("Salvador", "BA", "system", 2927408, true);
             var inactiveCity = new AllowedCity("Feira de Santana", "BA", "system", 2910800, false);
-            
+
             dbContext.AllowedCities.AddRange(activeCity, inactiveCity);
             await dbContext.SaveChangesAsync();
-            
+
             activeCityId = activeCity.Id;
             inactiveCityId = inactiveCity.Id;
         });
@@ -194,18 +194,18 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        
+
         result.TryGetProperty("data", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
-        
+
         // Verify both active and inactive cities are present
         var cityIds = cities
             .Select(city => city.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString()!) : Guid.Empty)
             .ToList();
-            
+
         cityIds.Should().Contain(activeCityId);
         cityIds.Should().Contain(inactiveCityId);
     }
@@ -215,12 +215,12 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         // Create cities in different states
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
-            
+
             var cities = new[]
             {
                 new AllowedCity("Uberlândia", "MG", "system"),
@@ -228,7 +228,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
                 new AllowedCity("Brasília", "DF", "system"),
                 new AllowedCity("Goiânia", "GO", "system")
             };
-            
+
             dbContext.AllowedCities.AddRange(cities);
             await dbContext.SaveChangesAsync();
         });
@@ -238,15 +238,15 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        
+
         result.TryGetProperty("data", out var dataElement).Should().BeTrue();
         var cities = dataElement.EnumerateArray().ToList();
-        
+
         cities.Should().NotBeEmpty();
-        
+
         // Verify ordering: first by StateSigla, then by CityName
         var orderedStates = new List<string>();
         foreach (var city in cities)
@@ -256,7 +256,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
                 orderedStates.Add(state.GetString()!);
             }
         }
-        
+
         orderedStates.Should().BeInAscendingOrder();
     }
 
@@ -265,7 +265,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         Guid cityId = Guid.Empty;
         await WithServiceScopeAsync(async services =>
         {
@@ -281,18 +281,18 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
-        
+
         result.TryGetProperty("data", out var dataElement).Should().BeTrue();
-        
+
         dataElement.TryGetProperty("id", out var idElement).Should().BeTrue();
         Guid.Parse(idElement.GetString()!).Should().Be(cityId);
-        
+
         dataElement.TryGetProperty("cityName", out var cityNameElement).Should().BeTrue();
         cityNameElement.GetString().Should().Be("Recife");
-        
+
         dataElement.TryGetProperty("stateSigla", out var stateElement).Should().BeTrue();
         stateElement.GetString().Should().Be("PE");
     }
@@ -316,7 +316,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         Guid cityId = Guid.Empty;
         await WithServiceScopeAsync(async services =>
         {
@@ -340,13 +340,13 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         // Verify database changes
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var updatedCity = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
-            
+
             updatedCity.Should().NotBeNull();
             updatedCity!.CityName.Should().Be("Porto Alegre Atualizado");
             updatedCity.IsActive.Should().BeFalse();
@@ -360,7 +360,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         var nonExistentId = Guid.NewGuid();
         var updateRequest = new
         {
@@ -380,19 +380,19 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         Guid city1Id = Guid.Empty;
         Guid city2Id = Guid.Empty;
-        
+
         await WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city1 = new AllowedCity("Manaus", "AM", "system");
             var city2 = new AllowedCity("Belém", "PA", "system");
-            
+
             dbContext.AllowedCities.AddRange(city1, city2);
             await dbContext.SaveChangesAsync();
-            
+
             city1Id = city1.Id;
             city2Id = city2.Id;
         });
@@ -408,7 +408,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("já cadastrada");
     }
@@ -418,7 +418,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         Guid cityId = Guid.Empty;
         await WithServiceScopeAsync(async services =>
         {
@@ -434,7 +434,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        
+
         // Verify city was removed
         await WithServiceScopeAsync(async services =>
         {
@@ -463,7 +463,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        
+
         // Step 1: Create city
         var createRequest = new
         {
@@ -471,10 +471,10 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
             StateSigla = "ES",
             IbgeCode = 3205309
         };
-        
+
         var createResponse = await PostJsonAsync("/api/v1/admin/allowed-cities", createRequest);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         var createContent = await createResponse.Content.ReadAsStringAsync();
         var createResult = JsonSerializer.Deserialize<JsonElement>(createContent, JsonOptions);
         createResult.TryGetProperty("data", out var cityIdElement).Should().BeTrue();
@@ -492,7 +492,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
             IbgeCode = 3205309,
             IsActive = false
         };
-        
+
         var updateResponse = await PutJsonAsync($"/api/v1/admin/allowed-cities/{cityId}", updateRequest);
         updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -501,7 +501,7 @@ public class AllowedCitiesEndToEndTests : TestContainerTestBase
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
             var city = await dbContext.AllowedCities.FirstOrDefaultAsync(c => c.Id == cityId);
-            
+
             city.Should().NotBeNull();
             city!.CityName.Should().Be("Vitória Atualizada");
             city.IsActive.Should().BeFalse();
