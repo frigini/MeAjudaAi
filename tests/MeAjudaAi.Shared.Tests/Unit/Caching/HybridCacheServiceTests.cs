@@ -51,7 +51,7 @@ public class HybridCacheServiceTests : IDisposable
         var key = "non-existent-key";
 
         // Act
-        var result = await _cacheService.GetAsync<string>(key);
+        var (result, isCached) = await _cacheService.GetAsync<string>(key);
 
         // Assert
         result.Should().BeNull();
@@ -67,7 +67,7 @@ public class HybridCacheServiceTests : IDisposable
 
         // Act
         await _cacheService.SetAsync(key, value, expiration);
-        var result = await _cacheService.GetAsync<string>(key);
+        var (result, isCached) = await _cacheService.GetAsync<string>(key);
 
         // Assert
         result.Should().Be(value);
@@ -87,7 +87,7 @@ public class HybridCacheServiceTests : IDisposable
 
         // Act
         await _cacheService.SetAsync(key, value, null, customOptions);
-        var result = await _cacheService.GetAsync<string>(key);
+        var (result, isCached) = await _cacheService.GetAsync<string>(key);
 
         // Assert
         result.Should().Be(value);
@@ -103,7 +103,7 @@ public class HybridCacheServiceTests : IDisposable
 
         // Act
         await _cacheService.SetAsync(key, value, tags: tags);
-        var result = await _cacheService.GetAsync<string>(key);
+        var (result, isCached) = await _cacheService.GetAsync<string>(key);
 
         // Assert
         result.Should().Be(value);
@@ -118,14 +118,14 @@ public class HybridCacheServiceTests : IDisposable
 
         // Primeiro armazena o valor
         await _cacheService.SetAsync(key, value);
-        var beforeRemove = await _cacheService.GetAsync<string>(key);
+        var (beforeRemove, _) = await _cacheService.GetAsync<string>(key);
         beforeRemove.Should().Be(value);
 
         // Act
         await _cacheService.RemoveAsync(key);
 
         // Assert
-        var afterRemove = await _cacheService.GetAsync<string>(key);
+        var (afterRemove, isCached) = await _cacheService.GetAsync<string>(key);
         afterRemove.Should().BeNull();
     }
 
@@ -144,8 +144,8 @@ public class HybridCacheServiceTests : IDisposable
         await _cacheService.SetAsync(key2, value2, tags: [tag]);
 
         // Verifica se os valores est�o em cache
-        var beforeRemove1 = await _cacheService.GetAsync<string>(key1);
-        var beforeRemove2 = await _cacheService.GetAsync<string>(key2);
+        var (beforeRemove1, _) = await _cacheService.GetAsync<string>(key1);
+        var (beforeRemove2, __) = await _cacheService.GetAsync<string>(key2);
         beforeRemove1.Should().Be(value1);
         beforeRemove2.Should().Be(value2);
 
@@ -153,8 +153,8 @@ public class HybridCacheServiceTests : IDisposable
         await _cacheService.RemoveByPatternAsync(tag);
 
         // Assert
-        var afterRemove1 = await _cacheService.GetAsync<string>(key1);
-        var afterRemove2 = await _cacheService.GetAsync<string>(key2);
+        var (afterRemove1, isCached1) = await _cacheService.GetAsync<string>(key1);
+        var (afterRemove2, isCached2) = await _cacheService.GetAsync<string>(key2);
         afterRemove1.Should().BeNull();
         afterRemove2.Should().BeNull();
     }
@@ -181,7 +181,7 @@ public class HybridCacheServiceTests : IDisposable
         factoryCalled.Should().BeTrue();
 
         // Verifica se o valor foi armazenado em cache
-        var cachedResult = await _cacheService.GetAsync<string>(key);
+        var (cachedResult, isCached) = await _cacheService.GetAsync<string>(key);
         cachedResult.Should().Be(factoryValue);
     }
 
@@ -233,7 +233,7 @@ public class HybridCacheServiceTests : IDisposable
         result.Should().Be(factoryValue);
 
         // Verifica se o valor foi armazenado em cache
-        var cachedResult = await _cacheService.GetAsync<string>(key);
+        var (cachedResult, isCached) = await _cacheService.GetAsync<string>(key);
         cachedResult.Should().Be(factoryValue);
     }
 
@@ -246,7 +246,7 @@ public class HybridCacheServiceTests : IDisposable
 
         // Act
         await _cacheService.SetAsync(key, complexValue);
-        var result = await _cacheService.GetAsync<TestModel>(key);
+        var (result, isCached) = await _cacheService.GetAsync<TestModel>(key);
 
         // Assert
         result.Should().NotBeNull();
@@ -263,7 +263,7 @@ public class HybridCacheServiceTests : IDisposable
 
         // Act & Assert
         await _cacheService.SetAsync(key, nullValue);
-        var result = await _cacheService.GetAsync<string>(key);
+        var (result, isCached) = await _cacheService.GetAsync<string>(key);
         result.Should().BeNull();
     }
 
@@ -305,3 +305,4 @@ public class HybridCacheServiceTests : IDisposable
         public string Name { get; set; } = string.Empty;
     }
 }
+

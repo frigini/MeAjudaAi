@@ -9,7 +9,7 @@ public class HybridCacheService(
     ILogger<HybridCacheService> logger,
     CacheMetrics metrics) : ICacheService
 {
-    public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
+    public async Task<(T? value, bool isCached)> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
         var factoryCalled = false;
@@ -26,21 +26,20 @@ public class HybridCacheService(
                 cancellationToken: cancellationToken);
 
             // Se o factory foi chamado, foi um miss; caso contrário, hit
-            // Esta abordagem é segura mesmo quando T é nullable ou quando default(T) é um valor válido no cache
-            var isHit = !factoryCalled;
+            var isCached = !factoryCalled;
 
             stopwatch.Stop();
-            metrics.RecordOperation(key, "get", isHit, stopwatch.Elapsed.TotalSeconds);
+            metrics.RecordOperation(key, "get", isCached, stopwatch.Elapsed.TotalSeconds);
 
-            // Retornar o resultado; se factory foi chamado, será default(T)
-            return factoryCalled ? default : result;
+            // Retornar tupla: (valor, estava_em_cache)
+            return isCached ? (result, true) : (default, false);
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
             metrics.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "get", "error");
             logger.LogWarning(ex, "Failed to get value from cache for key {Key}", key);
-            return default;
+            return (default, false);
         }
     }
 

@@ -32,12 +32,11 @@ public class CachingBehavior<TRequest, TResponse>(
         logger.LogDebug("Checking cache for key: {CacheKey}", cacheKey);
 
         // Tenta buscar no cache primeiro
-        var cachedResult = await cacheService.GetAsync<TResponse>(cacheKey, cancellationToken);
-        // Only validate null for reference types; value types are always valid if returned from cache
-        if (cachedResult is not null || typeof(TResponse).IsValueType)
+        var (cachedResult, isCached) = await cacheService.GetAsync<TResponse>(cacheKey, cancellationToken);
+        if (isCached)
         {
             logger.LogDebug("Cache hit for key: {CacheKey}", cacheKey);
-            return cachedResult!;
+            return cachedResult;
         }
 
         logger.LogDebug("Cache miss for key: {CacheKey}. Executing query.", cacheKey);
@@ -45,18 +44,24 @@ public class CachingBehavior<TRequest, TResponse>(
         // Executa a query
         var result = await next();
 
-        // Always cache the result (including default values for value types)
-        // This ensures legitimate results like 0, false, etc. are cached
-        var options = new HybridCacheEntryOptions
+        // Only cache non-null results to avoid caching failures/misses
+        if (result is not null)
         {
-            Expiration = cacheExpiration,
-            LocalCacheExpiration = TimeSpan.FromMinutes(5) // Cache local por 5 minutos
-        };
+            var options = new HybridCacheEntryOptions
+            {
+                Expiration = cacheExpiration,
+                LocalCacheExpiration = TimeSpan.FromMinutes(5) // Cache local por 5 minutos
+            };
 
-        await cacheService.SetAsync(cacheKey, result, cacheExpiration, options, cacheTags, cancellationToken);
+            await cacheService.SetAsync(cacheKey, result, cacheExpiration, options, cacheTags, cancellationToken);
 
-        logger.LogDebug("Cached result for key: {CacheKey} with expiration: {Expiration}",
-            cacheKey, cacheExpiration);
+            logger.LogDebug("Cached result for key: {CacheKey} with expiration: {Expiration}",
+                cacheKey, cacheExpiration);
+        }
+        else
+        {
+            logger.LogDebug("Skipping cache for null result with key: {CacheKey}", cacheKey);
+        }
 
         return result;
     }

@@ -73,6 +73,9 @@ public sealed class IbgeServiceTests
         var municipio = CreateMunicipio(3550308, "São Paulo", "SP");
 
         SetupCacheGetOrCreate(cityName, municipio);
+        _allowedCityRepositoryMock
+            .Setup(x => x.IsCityAllowedAsync("São Paulo", "SP", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
 
         // Act
         var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla);
@@ -80,6 +83,7 @@ public sealed class IbgeServiceTests
         // Assert
         result.Should().BeFalse();
         _cacheServiceMock.Verify();
+        _allowedCityRepositoryMock.Verify();
     }
 
     [Fact]
@@ -92,6 +96,9 @@ public sealed class IbgeServiceTests
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
         SetupCacheGetOrCreate(cityName, municipio);
+        _allowedCityRepositoryMock
+            .Setup(x => x.IsCityAllowedAsync("Muriaé", "MG", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
         var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla);
@@ -99,6 +106,7 @@ public sealed class IbgeServiceTests
         // Assert
         result.Should().BeTrue();
         _cacheServiceMock.Verify();
+        _allowedCityRepositoryMock.Verify();
     }
 
     [Fact]
@@ -151,6 +159,9 @@ public sealed class IbgeServiceTests
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
         SetupCacheGetOrCreate(cityName, municipio);
+        _allowedCityRepositoryMock
+            .Setup(x => x.IsCityAllowedAsync("Muriaé", "MG", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
         var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla);
@@ -158,6 +169,7 @@ public sealed class IbgeServiceTests
         // Assert
         result.Should().BeTrue();
         _cacheServiceMock.Verify();
+        _allowedCityRepositoryMock.Verify();
     }
 
     [Fact]

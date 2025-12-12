@@ -11,11 +11,14 @@ public class TestCacheService : ICacheService
 {
     private readonly ConcurrentDictionary<string, object> _cache = new();
 
-    public Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
+    public Task<(T? value, bool isCached)> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
-        return _cache.TryGetValue(key, out var value) && value is T typedValue
-             ? Task.FromResult<T?>(typedValue)
-             : Task.FromResult<T?>(default);
+        if (_cache.TryGetValue(key, out var value) && value is T typedValue)
+        {
+            return Task.FromResult<(T?, bool)>((typedValue, true));
+        }
+
+        return Task.FromResult<(T?, bool)>((default, false));
     }
 
     public async Task<T> GetOrCreateAsync<T>(
