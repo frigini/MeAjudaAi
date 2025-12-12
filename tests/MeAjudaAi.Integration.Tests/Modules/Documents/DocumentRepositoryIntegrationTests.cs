@@ -149,7 +149,7 @@ public class DocumentRepositoryIntegrationTests : ApiTestBase
     private Document CreateValidDocument(Guid? providerId = null, EDocumentType? documentType = null)
     {
         return Document.Create(
-            providerId: providerId ?? Guid.CreateVersion7(),
+            providerId: providerId ?? UuidGenerator.NewId(),
             documentType: documentType ?? EDocumentType.IdentityDocument,
             fileName: $"{_faker.Random.AlphaNumeric(10)}.pdf",
             fileUrl: $"documents/{Guid.NewGuid()}.pdf");

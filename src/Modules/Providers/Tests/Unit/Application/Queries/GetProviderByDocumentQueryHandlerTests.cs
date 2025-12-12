@@ -244,8 +244,8 @@ public class GetProviderByDocumentQueryHandlerTests
 
     private static Provider CreateValidProvider(string document)
     {
-        var providerId = new ProviderId(Guid.CreateVersion7());
-        var userId = Guid.CreateVersion7();
+        var providerId = new ProviderId(UuidGenerator.NewId());
+        var userId = UuidGenerator.NewId();
         var address = new Address("Rua Teste", "123", "Centro", "São Paulo", "SP", "01234-567", "Brasil");
         var contactInfo = new ContactInfo("test@test.com", "11999999999");
         var businessProfile = new BusinessProfile("Test Provider LTDA", contactInfo, address, document);

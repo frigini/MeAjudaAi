@@ -143,7 +143,7 @@ public class ProviderRepositoryIntegrationTests : ApiTestBase
             description: _faker.Company.CatchPhrase());
 
         return new Provider(
-            userId: userId ?? Guid.CreateVersion7(),
+            userId: userId ?? UuidGenerator.NewId(),
             name: _faker.Name.FullName(),
             type: EProviderType.Individual,
             businessProfile: businessProfile);

@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 
@@ -26,8 +27,8 @@ internal class LocalDevelopmentUserDomainService : IUserDomainService
         CancellationToken cancellationToken = default)
     {
         // Para ambientes sem Keycloak, criar usuário mock com ID simulado
-        // Using Guid.CreateVersion7() for better time-based ordering and performance
-        var user = new User(username, email, firstName, lastName, $"mock_keycloak_{Guid.CreateVersion7()}");
+        // Using UuidGenerator.NewId() for better time-based ordering and performance
+        var user = new User(username, email, firstName, lastName, $"mock_keycloak_{UuidGenerator.NewId()}");
         return Task.FromResult(Result<User>.Success(user));
     }
 

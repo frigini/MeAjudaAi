@@ -8,6 +8,7 @@ using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Time;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
@@ -50,7 +51,7 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
         );
 
         return SearchableProvider.Create(
-            providerId ?? Guid.CreateVersion7(),
+            providerId ?? UuidGenerator.NewId(),
             name ?? _faker.Company.CompanyName(),
             location,
             tier ?? ESubscriptionTier.Free,
@@ -81,7 +82,7 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
     public async Task GetByIdAsync_WithNonExistingId_ShouldReturnNull()
     {
         // Arrange
-        var nonExistingId = new SearchableProviderId(Guid.CreateVersion7());
+        var nonExistingId = new SearchableProviderId(UuidGenerator.NewId());
 
         // Act
         var result = await _repository.GetByIdAsync(nonExistingId);
@@ -94,7 +95,7 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
     public async Task GetByProviderIdAsync_WithExistingProviderId_ShouldReturnProvider()
     {
         // Arrange
-        var providerId = Guid.CreateVersion7();
+        var providerId = UuidGenerator.NewId();
         var provider = CreateTestProvider(providerId: providerId);
         await _context.SearchableProviders.AddAsync(provider);
         await _context.SaveChangesAsync();
@@ -111,7 +112,7 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
     public async Task GetByProviderIdAsync_WithNonExistingProviderId_ShouldReturnNull()
     {
         // Arrange
-        var nonExistingProviderId = Guid.CreateVersion7();
+        var nonExistingProviderId = UuidGenerator.NewId();
 
         // Act
         var result = await _repository.GetByProviderIdAsync(nonExistingProviderId);
@@ -124,8 +125,8 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
     public async Task GetByProviderIdAsync_WithMultipleProviders_ShouldReturnCorrectOne()
     {
         // Arrange
-        var providerId1 = Guid.CreateVersion7();
-        var providerId2 = Guid.CreateVersion7();
+        var providerId1 = UuidGenerator.NewId();
+        var providerId2 = UuidGenerator.NewId();
         var provider1 = CreateTestProvider(providerId: providerId1);
         var provider2 = CreateTestProvider(providerId: providerId2);
 
@@ -159,7 +160,7 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
     public async Task AddAsync_WithValidProvider_ShouldPersistAfterSaveChanges()
     {
         // Arrange
-        var providerId = Guid.CreateVersion7();
+        var providerId = UuidGenerator.NewId();
         var provider = CreateTestProvider(providerId: providerId);
 
         // Act
@@ -200,7 +201,7 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
     public async Task UpdateAsync_WithValidProvider_ShouldPersistChanges()
     {
         // Arrange
-        var providerId = Guid.CreateVersion7();
+        var providerId = UuidGenerator.NewId();
         var provider = CreateTestProvider(providerId: providerId, name: "Original Name");
         await _context.SearchableProviders.AddAsync(provider);
         await _context.SaveChangesAsync();
@@ -240,7 +241,7 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
     public async Task DeleteAsync_WithValidProvider_ShouldRemoveFromDatabase()
     {
         // Arrange
-        var providerId = Guid.CreateVersion7();
+        var providerId = UuidGenerator.NewId();
         var provider = CreateTestProvider(providerId: providerId);
         await _context.SearchableProviders.AddAsync(provider);
         await _context.SaveChangesAsync();
@@ -308,7 +309,7 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
     public async Task UpdateLocation_ShouldPersistNewCoordinates()
     {
         // Arrange
-        var providerId = Guid.CreateVersion7();
+        var providerId = UuidGenerator.NewId();
         var originalLocation = new GeoPoint(-23.5505, -46.6333); // São Paulo
         var provider = CreateTestProvider(
             providerId: providerId,
@@ -340,7 +341,7 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
     public async Task UpdateRating_ShouldPersistNewValues()
     {
         // Arrange
-        var providerId = Guid.CreateVersion7();
+        var providerId = UuidGenerator.NewId();
         var provider = CreateTestProvider(providerId: providerId);
 
         await _context.SearchableProviders.AddAsync(provider);
@@ -366,7 +367,7 @@ public class SearchableProviderRepositoryTests : IDisposable, IAsyncDisposable
     public async Task Activate_Deactivate_ShouldToggleStatus()
     {
         // Arrange
-        var providerId = Guid.CreateVersion7();
+        var providerId = UuidGenerator.NewId();
         var provider = CreateTestProvider(providerId: providerId);
 
         await _context.SearchableProviders.AddAsync(provider);

@@ -159,7 +159,7 @@ public class UserRepositoryIntegrationTests : ApiTestBase
         var email = new Email(_faker.Internet.Email());
         var firstName = _faker.Name.FirstName();
         var lastName = _faker.Name.LastName();
-        var keycloakId = Guid.CreateVersion7().ToString();
+        var keycloakId = UuidGenerator.NewId().ToString();
 
         return new User(username, email, firstName, lastName, keycloakId);
     }
