@@ -469,9 +469,23 @@
         "resolved": "9.0.0",
         "contentHash": "U9msthvnH2Fsw7xwAvIhNHOdnIjOQTwOc8Vd0oGOsiRcGMGoBFlUD6qtYawRUoQdKH9ysxesZ9juFElt1Jw/7A=="
       },
+      "meajudaai.modules.locations.application": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.Locations.Domain": "[1.0.0, )",
+          "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.locations.domain": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
       "meajudaai.modules.providers.application": {
         "type": "Project",
         "dependencies": {
+          "MeAjudaAi.Modules.Locations.Application": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.Domain": "[1.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.Application": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"

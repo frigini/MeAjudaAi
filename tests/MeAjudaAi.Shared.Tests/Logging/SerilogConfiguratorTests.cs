@@ -25,17 +25,17 @@ public class SerilogConfiguratorTests
     }
 
     [Fact]
-    public void ConfigureSerilog_ShouldReturnLoggerConfiguration()
+    public void ConfigureSerilog_ShouldConfigureLoggerConfiguration()
     {
         // Arrange
         _environmentMock.Setup(e => e.EnvironmentName).Returns("Development");
+        var loggerConfig = new LoggerConfiguration();
 
         // Act
-        var result = SerilogConfigurator.ConfigureSerilog(_configuration, _environmentMock.Object);
+        SerilogConfigurator.ConfigureSerilog(loggerConfig, _configuration, _environmentMock.Object);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Should().BeOfType<LoggerConfiguration>();
+        loggerConfig.Should().NotBeNull();
     }
 
     [Fact]
@@ -43,12 +43,13 @@ public class SerilogConfiguratorTests
     {
         // Arrange
         _environmentMock.Setup(e => e.EnvironmentName).Returns("Development");
+        var loggerConfig = new LoggerConfiguration();
 
         // Act
-        var result = SerilogConfigurator.ConfigureSerilog(_configuration, _environmentMock.Object);
+        SerilogConfigurator.ConfigureSerilog(loggerConfig, _configuration, _environmentMock.Object);
 
         // Assert
-        result.Should().NotBeNull();
+        loggerConfig.Should().NotBeNull();
         _environmentMock.Verify(e => e.EnvironmentName, Times.AtLeastOnce);
     }
 
@@ -57,12 +58,13 @@ public class SerilogConfiguratorTests
     {
         // Arrange
         _environmentMock.Setup(e => e.EnvironmentName).Returns("Production");
+        var loggerConfig = new LoggerConfiguration();
 
         // Act
-        var result = SerilogConfigurator.ConfigureSerilog(_configuration, _environmentMock.Object);
+        SerilogConfigurator.ConfigureSerilog(loggerConfig, _configuration, _environmentMock.Object);
 
         // Assert
-        result.Should().NotBeNull();
+        loggerConfig.Should().NotBeNull();
         _environmentMock.Verify(e => e.EnvironmentName, Times.AtLeastOnce);
     }
 
@@ -77,12 +79,13 @@ public class SerilogConfiguratorTests
             })
             .Build();
         _environmentMock.Setup(e => e.EnvironmentName).Returns("Production");
+        var loggerConfig = new LoggerConfiguration();
 
         // Act
-        var result = SerilogConfigurator.ConfigureSerilog(configWithAppInsights, _environmentMock.Object);
+        SerilogConfigurator.ConfigureSerilog(loggerConfig, configWithAppInsights, _environmentMock.Object);
 
         // Assert
-        result.Should().NotBeNull();
+        loggerConfig.Should().NotBeNull();
     }
 
     [Fact]
@@ -90,12 +93,13 @@ public class SerilogConfiguratorTests
     {
         // Arrange
         _environmentMock.Setup(e => e.EnvironmentName).Returns("Development");
+        var loggerConfig = new LoggerConfiguration();
 
         // Act
-        var result = SerilogConfigurator.ConfigureSerilog(_configuration, _environmentMock.Object);
+        SerilogConfigurator.ConfigureSerilog(loggerConfig, _configuration, _environmentMock.Object);
 
         // Assert
-        result.Should().NotBeNull();
+        loggerConfig.Should().NotBeNull();
         // Properties like Application, Environment, MachineName, ProcessId, Version are added
     }
 

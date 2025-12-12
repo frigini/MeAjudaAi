@@ -87,7 +87,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         }
     }
 
-    private async Task ExecuteSeedAsync(CancellationToken cancellationToken)
+    private async Task ExecuteSeedAsync()
     {
         try
         {
