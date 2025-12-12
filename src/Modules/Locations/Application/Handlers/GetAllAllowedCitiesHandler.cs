@@ -1,19 +1,19 @@
 using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Repositories;
-using MediatR;
+using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 
 /// <summary>
-/// Handler para buscar todas as cidades permitidas
+/// Handler responsável por processar a query de listagem de cidades permitidas.
 /// </summary>
-internal sealed class GetAllAllowedCitiesHandler(
-    IAllowedCityRepository repository) : IRequestHandler<GetAllAllowedCitiesQuery, IReadOnlyList<AllowedCityDto>>
+internal sealed class GetAllAllowedCitiesHandler(IAllowedCityRepository repository)
+    : IQueryHandler<GetAllAllowedCitiesQuery, IReadOnlyList<AllowedCityDto>>
 {
-    public async Task<IReadOnlyList<AllowedCityDto>> Handle(GetAllAllowedCitiesQuery request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<AllowedCityDto>> HandleAsync(GetAllAllowedCitiesQuery query, CancellationToken cancellationToken)
     {
-        var cities = request.OnlyActive
+        var cities = query.OnlyActive
             ? await repository.GetAllActiveAsync(cancellationToken)
             : await repository.GetAllAsync(cancellationToken);
 
@@ -26,7 +26,7 @@ internal sealed class GetAllAllowedCitiesHandler(
             c.CreatedAt,
             c.UpdatedAt,
             c.CreatedBy,
-            c.UpdatedBy))
-            .ToList();
+            c.UpdatedBy
+        )).ToList();
     }
 }

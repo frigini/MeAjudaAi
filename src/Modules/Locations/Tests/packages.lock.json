@@ -614,7 +614,8 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Modules.Locations.Domain": "[1.0.0, )",
-          "MeAjudaAi.Shared": "[1.0.0, )"
+          "MeAjudaAi.Shared": "[1.0.0, )",
+          "MediatR": "(, )"
         }
       },
       "meajudaai.modules.locations.domain": {

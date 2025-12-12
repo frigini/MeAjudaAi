@@ -1,9 +1,12 @@
 using MeAjudaAi.Modules.Locations.Application.DTOs;
-using MediatR;
+using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Locations.Application.Queries;
 
 /// <summary>
-/// Query para buscar todas as cidades permitidas
+/// Query para obter todas as cidades permitidas.
 /// </summary>
-public sealed record GetAllAllowedCitiesQuery(bool OnlyActive = false) : IRequest<IReadOnlyList<AllowedCityDto>>;
+public sealed record GetAllAllowedCitiesQuery : Query<IReadOnlyList<AllowedCityDto>>
+{
+    public bool OnlyActive { get; init; } = true;
+}

@@ -1,8 +1,11 @@
-using MediatR;
+using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Locations.Application.Commands;
 
 /// <summary>
-/// Command para deletar cidade permitida
+/// Comando para deletar uma cidade permitida.
 /// </summary>
-public sealed record DeleteAllowedCityCommand(Guid Id) : IRequest<Unit>;
+public sealed record DeleteAllowedCityCommand : Command
+{
+    public Guid Id { get; init; }
+}

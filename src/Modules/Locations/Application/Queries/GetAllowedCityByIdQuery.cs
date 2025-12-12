@@ -1,9 +1,12 @@
 using MeAjudaAi.Modules.Locations.Application.DTOs;
-using MediatR;
+using MeAjudaAi.Shared.Queries;
 
 namespace MeAjudaAi.Modules.Locations.Application.Queries;
 
 /// <summary>
-/// Query para buscar cidade permitida por ID
+/// Query para obter uma cidade permitida por ID.
 /// </summary>
-public sealed record GetAllowedCityByIdQuery(Guid Id) : IRequest<AllowedCityDto?>;
+public sealed record GetAllowedCityByIdQuery : Query<AllowedCityDto?>
+{
+    public Guid Id { get; init; }
+}

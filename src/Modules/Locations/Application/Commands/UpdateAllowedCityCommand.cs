@@ -1,13 +1,15 @@
-using MediatR;
+using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Locations.Application.Commands;
 
 /// <summary>
-/// Command para atualizar cidade permitida existente
+/// Comando para atualizar uma cidade permitida existente.
 /// </summary>
-public sealed record UpdateAllowedCityCommand(
-    Guid Id,
-    string CityName,
-    string StateSigla,
-    int? IbgeCode,
-    bool IsActive) : IRequest<Unit>;
+public sealed record UpdateAllowedCityCommand : Command
+{
+    public Guid Id { get; init; }
+    public string CityName { get; init; } = string.Empty;
+    public string StateSigla { get; init; } = string.Empty;
+    public int? IbgeCode { get; init; }
+    public bool IsActive { get; init; }
+}

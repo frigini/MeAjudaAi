@@ -1,4 +1,4 @@
-using MediatR;
+using MeAjudaAi.Shared.Commands;
 
 namespace MeAjudaAi.Modules.Locations.Application.Commands;
 
@@ -9,4 +9,4 @@ public sealed record CreateAllowedCityCommand(
     string CityName,
     string StateSigla,
     int? IbgeCode,
-    bool IsActive = true) : IRequest<Guid>;
+    bool IsActive = true) : Command<Guid>;
