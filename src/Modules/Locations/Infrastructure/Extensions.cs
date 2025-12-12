@@ -1,11 +1,16 @@
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
 using MeAjudaAi.Modules.Locations.Application.Services;
+using MeAjudaAi.Modules.Locations.Domain.Repositories;
+using MeAjudaAi.Modules.Locations.Infrastructure.API.Endpoints;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
+using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Locations.Infrastructure.Repositories;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +26,33 @@ public static class Extensions
     /// </summary>
     public static IServiceCollection AddLocationModule(this IServiceCollection services, IConfiguration configuration)
     {
+        // Registrar DbContext para Locations module
+        services.AddDbContext<LocationsDbContext>((serviceProvider, options) =>
+        {
+            var connectionString = configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("DefaultConnection não configurada");
+
+            options.UseNpgsql(connectionString,
+                npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "locations");
+                    npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Locations.Infrastructure");
+                });
+
+            options.EnableDetailedErrors();
+            options.EnableSensitiveDataLogging(configuration.GetValue<bool>("Logging:EnableSensitiveDataLogging"));
+        });
+
+        // Registrar Func<LocationsDbContext> para uso em migrations (design-time)
+        services.AddScoped<Func<LocationsDbContext>>(provider => () =>
+        {
+            var context = provider.GetRequiredService<LocationsDbContext>();
+            return context;
+        });
+
+        // Registrar repositórios
+        services.AddScoped<IAllowedCityRepository, AllowedCityRepository>();
+
         // Registrar HTTP clients para APIs de CEP
         // ServiceDefaults já configura resiliência (retry, circuit breaker, timeout)
         services.AddHttpClient<ViaCepClient>(client =>
@@ -86,13 +118,18 @@ public static class Extensions
     }
 
     /// <summary>
-    /// Configura o middleware do módulo Location.
-    /// Location module exposes only internal services, no endpoints or middleware.
-    /// This method exists for consistency with other modules.
+    /// Configura os endpoints do módulo Location.
+    /// Registra endpoints administrativos para gerenciamento de cidades permitidas.
     /// </summary>
     public static WebApplication UseLocationModule(this WebApplication app)
     {
-        // No middleware or endpoints to configure
+        // Registrar endpoints administrativos (Admin only)
+        CreateAllowedCityEndpoint.Map(app);
+        GetAllAllowedCitiesEndpoint.Map(app);
+        GetAllowedCityByIdEndpoint.Map(app);
+        UpdateAllowedCityEndpoint.Map(app);
+        DeleteAllowedCityEndpoint.Map(app);
+
         return app;
     }
 }
