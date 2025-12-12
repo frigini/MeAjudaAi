@@ -1130,6 +1130,7 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Modules.Providers.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.ServiceCatalogs.Application": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
         }
       },

@@ -1,0 +1,64 @@
+meta {
+  name: Remove Service from Provider
+  type: http
+  seq: 15
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/providers/{{providerId}}/services/{{serviceId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Remove Service from Provider
+  
+  Remove um serviço do catálogo de um provider.
+  
+  ## Autorização
+  - **Permissão**: SelfOrAdmin
+  - **Requer token**: Sim
+  
+  ## Path Parameters
+  - **providerId**: ID do provider (UUID)
+  - **serviceId**: ID do serviço do catálogo (UUID)
+  
+  ## Validações
+  - O provider deve existir
+  - O provider deve oferecer o serviço
+  - O provider não pode estar deletado
+  
+  ## Response
+  - **204 No Content**: Serviço removido com sucesso
+  - **400 Bad Request**: Serviço não é oferecido pelo provider
+  - **404 Not Found**: Provider não encontrado
+  
+  ## Eventos de Domínio
+  - **ProviderServiceRemovedDomainEvent**: Emitido após remoção bem-sucedida
+}
+
+vars:delete-response {
+  res: res.status
+}
+
+assert {
+  res.status: eq 204
+}
+
+tests {
+  test("Status code is 204", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+  
+  test("Service removed successfully", function() {
+    console.log("Service removed from provider: " + bru.getEnvVar("providerId"));
+  });
+}
