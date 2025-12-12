@@ -39,7 +39,7 @@ public class DeleteAllowedCityHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenCityNotFound_ShouldThrowInvalidOperationException()
+    public async Task HandleAsync_WhenCityNotFound_ShouldThrowAllowedCityNotFoundException()
     {
         // Arrange
         var command = new DeleteAllowedCityCommand { Id = Guid.NewGuid() };

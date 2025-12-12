@@ -57,7 +57,7 @@ public class UpdateAllowedCityHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenCityNotFound_ShouldThrowInvalidOperationException()
+    public async Task HandleAsync_WhenCityNotFound_ShouldThrowAllowedCityNotFoundException()
     {
         // Arrange
         var command = new UpdateAllowedCityCommand
@@ -82,7 +82,7 @@ public class UpdateAllowedCityHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenDuplicateCityExists_ShouldThrowInvalidOperationException()
+    public async Task HandleAsync_WhenDuplicateCityExists_ShouldThrowDuplicateAllowedCityException()
     {
         // Arrange
         var cityId = Guid.NewGuid();

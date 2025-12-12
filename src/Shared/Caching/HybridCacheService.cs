@@ -26,12 +26,14 @@ public class HybridCacheService(
                 cancellationToken: cancellationToken);
 
             // Se o factory foi chamado, foi um miss; caso contrário, hit
+            // Esta abordagem é segura mesmo quando T é nullable ou quando default(T) é um valor válido no cache
             var isHit = !factoryCalled;
 
             stopwatch.Stop();
             metrics.RecordOperation(key, "get", isHit, stopwatch.Elapsed.TotalSeconds);
 
-            return result!;
+            // Retornar o resultado; se factory foi chamado, será default(T)
+            return factoryCalled ? default : result;
         }
         catch (Exception ex)
         {

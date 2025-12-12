@@ -44,7 +44,7 @@ public class CreateAllowedCityHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenCityAlreadyExists_ShouldThrowInvalidOperationException()
+    public async Task HandleAsync_WhenCityAlreadyExists_ShouldThrowDuplicateAllowedCityException()
     {
         // Arrange
         var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, true);

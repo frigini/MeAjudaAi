@@ -86,10 +86,10 @@ public sealed class IbgeServiceTests
     public async Task ValidateCityInAllowedRegionsAsync_CaseInsensitiveMatching_ReturnsTrue()
     {
         // Arrange
-        const string cityName = "muriaé"; // lowercase
-        const string stateSigla = "mg"; // lowercase
+        const string cityName = "muriaé";
+        const string stateSigla = "mg";
 
-        var municipio = CreateMunicipio(3129707, "Muriaé", "MG"); // title case
+        var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
         SetupCacheGetOrCreate(cityName, municipio);
 
