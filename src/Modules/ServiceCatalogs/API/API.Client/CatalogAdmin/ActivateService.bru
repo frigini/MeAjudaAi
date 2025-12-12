@@ -1,0 +1,26 @@
+meta {
+  name: Activate Service
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/api/v1/catalogs/services/{{serviceId}}/activate
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Activate Service
+  
+  Ativa serviço desativado.
+  
+  ## Parâmetros
+  - `serviceId`: GUID do serviço
+  
+  ## Status: 204 No Content | 404 Not Found
+}

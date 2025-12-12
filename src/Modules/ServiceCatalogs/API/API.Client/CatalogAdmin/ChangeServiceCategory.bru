@@ -1,0 +1,39 @@
+meta {
+  name: Change Service Category
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/api/v1/catalogs/services/{{serviceId}}/change-category
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "newCategoryId": "{{newCategoryId}}"
+  }
+}
+
+docs {
+  # Change Service Category
+  
+  Move serviço para outra categoria.
+  
+  ## Parâmetros
+  - `serviceId`: GUID do serviço
+  
+  ## Body
+  - `newCategoryId`: GUID da nova categoria
+  
+  ## Status: 204 No Content | 404 Not Found
+}

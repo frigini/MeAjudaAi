@@ -1,0 +1,30 @@
+meta {
+  name: Get Services By Category
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/v1/catalogs/services/category/{{categoryId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Services By Category
+  
+  Retorna todos os serviços de uma categoria específica.
+  
+  ## Parâmetros
+  - `categoryId`: GUID da categoria
+  
+  ## Status: 200 OK
+}
