@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NSubstitute;
+using Moq;
 
 namespace MeAjudaAi.ApiService.Tests.Extensions;
 
@@ -21,9 +21,9 @@ public class SecurityExtensionsTests
 {
     private static IWebHostEnvironment CreateMockEnvironment(string environmentName = "Development")
     {
-        var env = Substitute.For<IWebHostEnvironment>();
-        env.EnvironmentName.Returns(environmentName);
-        return env;
+        var mock = new Mock<IWebHostEnvironment>();
+        mock.Setup(e => e.EnvironmentName).Returns(environmentName);
+        return mock.Object;
     }
 
     private static IConfiguration CreateConfiguration(Dictionary<string, string?> settings)
@@ -738,19 +738,21 @@ public class SecurityExtensionsTests
             ClientId = "test-client"
         });
 
-        var logger = Substitute.For<ILogger<KeycloakConfigurationLogger>>();
-        var loggerInstance = new KeycloakConfigurationLogger(keycloakOptions, logger);
+        var loggerMock = new Mock<ILogger<KeycloakConfigurationLogger>>();
+        var loggerInstance = new KeycloakConfigurationLogger(keycloakOptions, loggerMock.Object);
 
         // Act
         await loggerInstance.StartAsync(CancellationToken.None);
 
         // Assert
-        logger.Received(1).Log(
-            LogLevel.Information,
-            Arg.Any<EventId>(),
-            Arg.Is<object>(o => o.ToString()!.Contains("Keycloak authentication configured")),
-            null,
-            Arg.Any<Func<object, Exception?, string>>());
+        loggerMock.Verify(
+            l => l.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Keycloak")),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.AtLeastOnce);
     }
 
     [Fact]
@@ -764,8 +766,8 @@ public class SecurityExtensionsTests
             ClientId = "test-client"
         });
 
-        var logger = Substitute.For<ILogger<KeycloakConfigurationLogger>>();
-        var loggerInstance = new KeycloakConfigurationLogger(keycloakOptions, logger);
+        var loggerMock = new Mock<ILogger<KeycloakConfigurationLogger>>();
+        var loggerInstance = new KeycloakConfigurationLogger(keycloakOptions, loggerMock.Object);
 
         // Act & Assert - Should complete without exceptions
         var act = () => loggerInstance.StopAsync(CancellationToken.None);

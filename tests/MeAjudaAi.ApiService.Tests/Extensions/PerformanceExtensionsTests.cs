@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using NSubstitute;
+using Moq;
 using Xunit;
 
 namespace MeAjudaAi.ApiService.Tests.Extensions;

@@ -3,7 +3,7 @@ using FluentAssertions;
 using MeAjudaAi.ApiService.Filters;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.OpenApi;
-using NSubstitute;
+using Moq;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Xunit;
 
