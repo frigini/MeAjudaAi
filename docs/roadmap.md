@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3 🔄 (BRANCH CRIADA 10 Dez) | MVP Target: 31/Março/2025  
+**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3-P1 ✅ (11 Dez) | Sprint 3-P2 🔄 (BRANCH CRIADA 11 Dez) | MVP Target: 31/Março/2026  
 **Cobertura de Testes**: 28.2% → **90.56% ALCANÇADO** (Sprint 2 - META SUPERADA EM 55.56pp!)  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
@@ -16,7 +16,8 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **Jan 20 - 21 Nov**: Sprint 0 - Migration .NET 10 + Aspire 13 (CONCLUÍDO e MERGED)
 - ✅ **22 Nov - 2 Dez**: Sprint 1 - Geographic Restriction + Module Integration (CONCLUÍDO e MERGED)
 - ✅ **3 Dez - 10 Dez**: Sprint 2 - Test Coverage 90.56% (CONCLUÍDO - META 35% SUPERADA!)
-- 🔄 **10 Dez - 24 Dez**: Sprint 3 - GitHub Pages Documentation (EM ANDAMENTO - branch criada)
+- ✅ **10 Dez - 11 Dez**: Sprint 3 Parte 1 - GitHub Pages Migration (CONCLUÍDO - DEPLOYED!)
+- 🔄 **11 Dez - 24 Dez**: Sprint 3 Parte 2 - Admin Endpoints (EM ANDAMENTO - branch criada)
 - ⏳ **Dezembro 2025-Janeiro 2026**: Sprints 4-5 - Frontend Blazor (Web)
 - ⏳ **Fevereiro-Março 2026**: Sprints 6-7 - Frontend Blazor (Web + Mobile)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
@@ -35,7 +36,13 @@ Fundação técnica para escalabilidade e produção:
 - ✅ Migration .NET 10 + Aspire 13 (Sprint 0 - CONCLUÍDO 21 Nov, MERGED to master)
 - ✅ Geographic Restriction + Module Integration (Sprint 1 - CONCLUÍDO 2 Dez, MERGED to master)
 - ✅ Test Coverage 90.56% (Sprint 2 - CONCLUÍDO 10 Dez - META 35% SUPERADA EM 55.56pp!)
-- 🔄 GitHub Pages Documentation Migration (Sprint 3 - EM ANDAMENTO desde 10 Dez)
+- ✅ GitHub Pages Documentation Migration (Sprint 3 Parte 1 - CONCLUÍDO 11 Dez - DEPLOYED!)
+
+**🔄 Sprint 3 Parte 2: EM ANDAMENTO** (11 Dez - 24 Dez 2025)  
+Admin Endpoints & Tools:
+- 🔄 Admin: Endpoint para gerenciar cidades permitidas (EM ANDAMENTO desde 11 Dez)
+- ⏳ Tools: Coleções Bruno API para todos módulos
+- ⏳ Scripts: Consolidação e documentação de scripts PowerShell
 
 **⏳ Fase 2: PLANEJADO** (Fevereiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
@@ -66,7 +73,8 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 0** | 4 semanas | Jan 20 - 21 Nov | Migration .NET 10 + Aspire 13 | ✅ CONCLUÍDO (21 Nov - MERGED) |
 | **Sprint 1** | 10 dias | 22 Nov - 2 Dez | Geographic Restriction + Module Integration | ✅ CONCLUÍDO (2 Dez - MERGED) |
 | **Sprint 2** | 1 semana | 3 Dez - 10 Dez | Test Coverage 90.56% | ✅ CONCLUÍDO (10 Dez - META SUPERADA!) |
-| **Sprint 3** | 2 semanas | 10 Dez - 24 Dez | GitHub Pages Documentation | 🔄 EM ANDAMENTO (branch criada) |
+| **Sprint 3-P1** | 1 dia | 10 Dez - 11 Dez | GitHub Pages Documentation | ✅ CONCLUÍDO (11 Dez - DEPLOYED!) |
+| **Sprint 3-P2** | 2 semanas | 11 Dez - 24 Dez | Admin Endpoints & Tools | 🔄 EM ANDAMENTO (branch criada) |
 | **Sprint 4** | 2 semanas | Jan 2026 | Blazor Admin Portal (Web) - Parte 1 | ⏳ Planejado |
 | **Sprint 5** | 2 semanas | Fev 2026 | Blazor Admin Portal (Web) - Parte 2 | ⏳ Planejado |
 | **Sprint 6** | 3 semanas | Mar 2026 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
@@ -1182,17 +1190,17 @@ gantt
 
 | Semana | Período | Tarefa Principal | Entregável | Gate de Qualidade |
 |--------|---------|------------------|------------|-------------------|
-| **1** | 11-17 Dez | **Parte 1**: Docs Audit + MkDocs | `mkdocs.yml` live, 0 links quebrados | ✅ GitHub Pages deployment |
-| **2** | 18-24 Dez | **Parte 2**: Tools & API Collections | 6 arquivos `.bru` + validação de scripts | ✅ CI/CD validation passing |
-| **3** | 25-30 Dez | **Parte 3**: Integrations + Testing | Todas APIs de módulos testadas | ✅ Build ≥99% passing |
+| **1** | 10-11 Dez | **Parte 1**: Docs Audit + MkDocs | `mkdocs.yml` live, 0 links quebrados | ✅ GitHub Pages deployment |
+| **2** | 11-17 Dez | **Parte 2**: Admin Endpoints | Endpoint de cidades permitidas | 🔄 CRUD validation passing |
+| **3** | 18-24 Dez | **Parte 2**: Tools & API Collections | 6 arquivos `.bru` + validação de scripts | ⏳ CI/CD validation passing |
 
 **Estado Atual** (11 Dez 2025):
-- ✅ **Audit completo**: 43 arquivos .md inventariados e categorizados
-- ✅ **Arquivos obsoletos**: 2 movidos para `docs/archive/`
-- ✅ **mkdocs.yml**: Criado com navegação hierárquica
-- ✅ **GitHub Actions**: Workflow `.github/workflows/docs.yml` configurado
-- ✅ **Build local**: Validado com 0 erros críticos
-- 🔄 **Próximo**: Validação final de links e deploy para GitHub Pages
+- ✅ **Sprint 3 Parte 1 CONCLUÍDA**: GitHub Pages deployed em https://frigini.github.io/MeAjudaAi/
+- ✅ **Audit completo**: 43 arquivos .md consolidados
+- ✅ **mkdocs.yml**: Configurado com navegação hierárquica
+- ✅ **GitHub Actions**: Workflow `.github/workflows/docs.yml` funcionando
+- ✅ **Build & Deploy**: Validado e publicado
+- 🔄 **Próximo**: Admin endpoints para gerenciar cidades permitidas
 
 **Objetivo Geral**: Realizar uma revisão total e organização do projeto (documentação, scripts, código, integrações pendentes) antes de avançar para novos módulos/features.
 
