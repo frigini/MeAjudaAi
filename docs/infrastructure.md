@@ -15,7 +15,7 @@ Este documento fornece um guia completo para configurar, executar e fazer deploy
 
 ## 📁 Estrutura da Infraestrutura
 
-```csharp
+```text
 infrastructure/
 ├── compose/                    # Docker Compose (alternativo)
 │   ├── base/                   # Definições de serviços base
@@ -28,7 +28,8 @@ infrastructure/
 ├── main.bicep                  # Template de infraestrutura Azure
 ├── servicebus.bicep            # Configuração Azure Service Bus
 └── deploy.sh                   # Script de deployment Azure
-```yaml
+```
+
 ## 🚀 Configuração para Desenvolvimento
 
 ### .NET Aspire (Recomendado)
@@ -36,7 +37,8 @@ infrastructure/
 ```bash
 cd src/Aspire/MeAjudaAi.AppHost
 dotnet run
-```bash
+```
+
 **Fornece:**
 - PostgreSQL com setup automático de schemas
 - Keycloak com importação automática de realm
@@ -64,7 +66,8 @@ docker compose -f environments/development.yml up -d
 docker compose -f standalone/keycloak-only.yml up -d
 docker compose -f standalone/postgres-only.yml up -d
 docker compose -f standalone/messaging-only.yml up -d
-```yaml
+```
+
 #### Composições Disponíveis
 
 **Development** (`environments/development.yml`)
@@ -111,22 +114,27 @@ azd show
 
 # Limpar recursos (cuidado!)
 azd down
-```yaml
+```
+
 ### Configuração de Ambientes
 
 #### Desenvolvimento Local
+
 ```bash
 # Variáveis de ambiente para desenvolvimento
 export ASPNETCORE_ENVIRONMENT=Development
 export ConnectionStrings__DefaultConnection="Host=localhost;Database=meajudaai_dev;Username=postgres;Password=dev123"
 export Keycloak__Authority="http://localhost:8080/realms/meajudaai"
-```bash
+```
+
 #### Produção Azure
+
 ```bash
 # Configuração automática via azd
 # Secrets gerenciados pelo Key Vault
 # Connection strings injetadas via Container Apps
-```csharp
+```
+
 ## 🗄️ Configuração de Banco de Dados
 
 ### Estratégia de Schemas
@@ -192,7 +200,8 @@ O arquivo `infrastructure/keycloak/realms/meajudaai-realm.json` contém:
   "standardFlowEnabled": true,
   "directAccessGrantsEnabled": true
 }
-```yaml
+```
+
 ## 📨 Sistema de Messaging
 
 ### Estratégia por Ambiente
@@ -201,12 +210,15 @@ O arquivo `infrastructure/keycloak/realms/meajudaai-realm.json` contém:
 ```csharp
 // Configuração automática via Aspire
 builder.AddRabbitMQ("messaging");
-```bash
+```
+
 #### Produção: Azure Service Bus
+
 ```csharp
 // Configuração automática via azd
 builder.AddAzureServiceBus("messaging");
-```yaml
+```
+
 ### Factory Pattern
 
 ```csharp
@@ -224,7 +236,8 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
         }
     }
 }
-```powershell
+```
+
 ## 🔧 Scripts de Utilitários
 
 ### Setup Completo
@@ -238,7 +251,8 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
 
 # Setup com deploy Azure
 ./setup-cicd.ps1
-```text
+```
+
 ### Backup e Restore
 
 ```bash
@@ -303,7 +317,7 @@ azd show
 ## 📋 Checklist de Deploy
 
 ### Desenvolvimento
-- [ ] .NET 9 SDK instalado
+- [ ] .NET 10 SDK instalado
 - [ ] Docker Desktop executando
 - [ ] Ports 5432, 6379, 8080, 15672 livres
 - [ ] Aspire Dashboard acessível

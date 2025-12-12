@@ -1,91 +1,91 @@
-# NuGet Package Vulnerabilities
+# Vulnerabilidades em Pacotes NuGet
 
-This document tracks known security vulnerabilities in transitive NuGet package dependencies.
+Este documento rastreia vulnerabilidades de segurança conhecidas em dependências transitivas de pacotes NuGet.
 
-## Current Status
+## Status Atual
 
-**Last Updated:** 2025-11-20  
-**.NET Version:** 10.0 (Preview/RC)  
-**Active Suppressions:** None ✅
+**Última Atualização:** 2025-11-20  
+**Versão .NET:** 10.0 (Preview/RC)  
+**Supressões Ativas:** Nenhuma ✅
 
-All detected vulnerabilities are:
-- **Transitive dependencies** (not directly referenced)
-- **Build-time only** (MSBuild packages, test JWT libraries)  
-- **No runtime exposure** in production environments
+Todas as vulnerabilidades detectadas são:
+- **Dependências transitivas** (não referenciadas diretamente)
+- **Apenas em build-time** (pacotes MSBuild, bibliotecas JWT de teste)  
+- **Sem exposição em runtime** em ambientes de produção
 
-These vulnerabilities are monitored but do not require active suppression as they pose no runtime security risk.
+Estas vulnerabilidades são monitoradas mas não requerem supressão ativa, pois não representam risco de segurança em runtime.
 
 ---
 
-## Known Vulnerabilities (Informational Only)
+## Vulnerabilidades Conhecidas (Apenas Informativo)
 
 ### 1. Microsoft.Build.Tasks.Core & Microsoft.Build.Utilities.Core
 
-**Package**: `Microsoft.Build.Tasks.Core`, `Microsoft.Build.Utilities.Core`  
-**Current Version**: 17.14.8  
-**Severity**: High  
+**Pacote**: `Microsoft.Build.Tasks.Core`, `Microsoft.Build.Utilities.Core`  
+**Versão Atual**: 17.14.8  
+**Severidade**: Alta  
 **Advisory**: [GHSA-w3q9-fxm7-j8fq](https://github.com/advisories/GHSA-w3q9-fxm7-j8fq)  
 **CVE**: CVE-2024-43485
 
-**Description**: Denial of Service vulnerability in MSBuild's task execution.
+**Descrição**: Vulnerabilidade de Denial of Service na execução de tasks do MSBuild.
 
-**Impact Assessment**:
-- This is a transitive dependency pulled in by build-time tools
-- The vulnerability affects build-time execution, not runtime
-- Projects do not execute untrusted MSBuild tasks in production
-- Risk is limited to developer machines and CI/CD environments with controlled access
+**Avaliação de Impacto**:
+- Esta é uma dependência transitiva incluída por ferramentas de build
+- A vulnerabilidade afeta execução em build-time, não em runtime
+- Projetos não executam tasks MSBuild não confiáveis em produção
+- Risco limitado a máquinas de desenvolvedores e ambientes CI/CD com acesso controlado
 
-**Mitigation Status**: ⏳ **Pending**
-- **Action**: Monitor for updated versions in .NET 10 RC/RTM releases
-- **Timeline**: Expected fix in .NET 10 RTM (target: Q2 2025)
-- **Workaround**: All build environments are trusted and access-controlled
+**Status de Mitigação**: ⏳ **Pendente**
+- **Ação**: Monitorar versões atualizadas nos releases .NET 10 RC/RTM
+- **Cronograma**: Correção esperada no .NET 10 RTM (meta: Q2 2025)
+- **Workaround**: Todos os ambientes de build são confiáveis e com acesso controlado
 
-**Justification for Temporary Acceptance**:
-- Build-time only vulnerability
-- No production runtime impact
-- Controlled CI/CD and development environments
-- Will be resolved automatically when .NET 10 SDK updates
+**Justificativa para Aceitação Temporária**:
+- Vulnerabilidade apenas em build-time
+- Sem impacto em runtime de produção
+- Ambientes CI/CD e desenvolvimento controlados
+- Será resolvida automaticamente quando o .NET 10 SDK for atualizado
 
 ---
 
 ### 2. Microsoft.IdentityModel.JsonWebTokens & System.IdentityModel.Tokens.Jwt
 
-**Package**: `Microsoft.IdentityModel.JsonWebTokens`, `System.IdentityModel.Tokens.Jwt`  
-**Current Version**: 6.8.0  
-**Severity**: Moderate  
+**Pacote**: `Microsoft.IdentityModel.JsonWebTokens`, `System.IdentityModel.Tokens.Jwt`  
+**Versão Atual**: 6.8.0  
+**Severidade**: Moderada  
 **Advisory**: [GHSA-59j7-ghrg-fj52](https://github.com/advisories/GHSA-59j7-ghrg-fj52)  
 **CVE**: CVE-2024-21319
 
-**Description**: Denial of Service vulnerability in JWT token validation.
+**Descrição**: Vulnerabilidade de Denial of Service na validação de tokens JWT.
 
-**Impact Assessment**:
-- Affects only test projects (not production code)
-- Projects using this: `MeAjudaAi.Providers.Tests`, `MeAjudaAi.Shared.Tests`, `MeAjudaAi.Documents.Tests`, `MeAjudaAi.SearchProviders.Tests`, `MeAjudaAi.ServiceCatalogs.Tests`
-- Test JWT tokens are locally generated and controlled
-- No external JWT processing in test scenarios
+**Avaliação de Impacto**:
+- Afeta apenas projetos de teste (não código de produção)
+- Projetos usando isto: `MeAjudaAi.Providers.Tests`, `MeAjudaAi.Shared.Tests`, `MeAjudaAi.Documents.Tests`, `MeAjudaAi.SearchProviders.Tests`, `MeAjudaAi.ServiceCatalogs.Tests`
+- Tokens JWT de teste são gerados e controlados localmente
+- Sem processamento de JWT externo em cenários de teste
 
-**Mitigation Status**: ⏳ **Pending**
-- **Action**: Upgrade to `System.IdentityModel.Tokens.Jwt >= 8.0.0` when compatible test framework version is available
-- **Timeline**: Monitor for updated test infrastructure packages
-- **Current Blocker**: Test authentication framework depends on older version
+**Status de Mitigação**: ⏳ **Pendente**
+- **Ação**: Atualizar para `System.IdentityModel.Tokens.Jwt >= 8.0.0` quando versão compatível do framework de teste estiver disponível
+- **Cronograma**: Monitorar pacotes atualizados de infraestrutura de teste
+- **Bloqueio Atual**: Framework de autenticação de testes depende de versão antiga
 
-**Justification for Temporary Acceptance**:
-- Test-only dependency
-- No production impact
-- Controlled test environment
-- Tokens are generated locally, not from external sources
+**Justificativa para Aceitação Temporária**:
+- Dependência apenas de testes
+- Sem impacto em produção
+- Ambiente de teste controlado
+- Tokens são gerados localmente, não de fontes externas
 
 ---
 
-## Monitoring
+## Monitoramento
 
-- **Weekly**: Check for package updates via `dotnet list package --outdated --include-transitive`
-- **Weekly**: Re-run vulnerability scan via `dotnet list package --vulnerable --include-transitive`
-- **Before each release**: Full security audit
-- **Subscribe to**: GitHub Security Advisories for .NET repositories
+- **Semanalmente**: Verificar atualizações de pacotes via `dotnet list package --outdated --include-transitive`
+- **Semanalmente**: Re-executar scan de vulnerabilidades via `dotnet list package --vulnerable --include-transitive`
+- **Antes de cada release**: Auditoria completa de segurança
+- **Assinar**: GitHub Security Advisories para repositórios .NET
 
-## References
+## Referências
 
-- [NuGet Audit Documentation](https://learn.microsoft.com/nuget/concepts/auditing-packages)
+- [Documentação NuGet Audit](https://learn.microsoft.com/nuget/concepts/auditing-packages)
 - [GitHub Security Advisories](https://github.com/advisories)
-- [.NET Security Announcements](https://github.com/dotnet/announcements/labels/security)
+- [Anúncios de Segurança .NET](https://github.com/dotnet/announcements/labels/security)

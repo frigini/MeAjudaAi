@@ -370,7 +370,7 @@ public sealed record ProviderDeletedDomainEvent(
 
 ## ⚡ CQRS (Command Query Responsibility Segregation)
 
-### **Estrutura de Commands**
+### Estrutura de Commands
 
 ```csharp
 /// <summary>
@@ -425,9 +425,9 @@ public sealed class RegisterUserCommandHandler
         return RegisterUserResult.Success(user.Id);
     }
 }
-`yaml
+```
 
-### **Estrutura de Queries**
+### Estrutura de Queries
 
 ```csharp
 /// <summary>
@@ -450,9 +450,9 @@ public sealed class GetUserByIdQueryHandler
         return await _repository.GetUserByIdAsync(query.UserId, cancellationToken);
     }
 }
-`csharp
+```
 
-### **DTOs e Mapeamento**
+### DTOs e Mapeamento
 
 ```csharp
 /// <summary>
@@ -492,7 +492,7 @@ public static class UserMapper
         );
     }
 }
-`sql
+```
 
 ## 🔌 Dependency Injection e Modularização
 
@@ -1605,4 +1605,4 @@ Especificação OpenAPI inclui:
 ```text
 ---
 
-📖 **Próximos Passos**: Este documento serve como base para o desenvolvimento. Consulte também a [documentação de infraestrutura](./infrastructure.md) e [guia de CI/CD](./ci_cd.md) para informações complementares.
+📖 **Próximos Passos**: Este documento serve como base para o desenvolvimento. Consulte também a [documentação de infraestrutura](./infrastructure.md) e [guia de CI/CD](./ci-cd.md) para informações complementares.

@@ -2,6 +2,26 @@
 
 Este guia fornece instruções práticas e diretrizes abrangentes para desenvolvedores trabalhando no projeto MeAjudaAi.
 
+## 📂 Arquivos de Configuração
+
+O projeto possui arquivos de configuração organizados na raiz e na pasta `config/`:
+
+**Na raiz (requeridos pelo .NET/MSBuild):**
+- `Directory.Build.props` - Propriedades globais do MSBuild
+- `Directory.Packages.props` - Gerenciamento centralizado de pacotes NuGet
+- `nuget.config` - Configuração de fontes NuGet
+- `global.json` - Pinning de versão do .NET SDK
+- `.globalconfig` - Configuração de analyzers Roslyn
+- `.gitignore`, `.gitattributes` - Configuração Git
+- `mkdocs.yml` - Configuração da documentação
+
+**Em `config/` (ferramentas de desenvolvimento):**
+- `.editorconfig` - Estilo de código e formatação
+- `.yamllint.yml` - Linting de arquivos YAML
+- `coverage.runsettings` - Configuração de cobertura de código
+- `coverlet.json` - Exclusões de cobertura
+- `lychee.toml` - Validação de links na documentação
+
 ## 🚀 Setup Inicial do Ambiente
 
 ### **Pré-requisitos**
@@ -793,10 +813,9 @@ Após adicionar um novo módulo:
 ### **Documentação Interna**
 - [🏗️ Arquitetura e Padrões](./architecture.md)
 - [🚀 Infraestrutura](./infrastructure.md)  
-- [🔄 CI/CD](./ci_cd.md)
-- [🔐 Autenticação e Autorização](./authentication_and_authorization.md)
-- [🧪 Guia de Testes](#-diretrizes-de-testes)
-- [📖 README Principal](../README.md)
+- [🔄 CI/CD](./ci-cd.md)
+- [🔐 Autenticação e Autorização](./authentication-and-authorization.md)
+- [🧪 Guia de Testes](./testing/unit-vs-integration-tests.md)
 
 ### **Documentação Externa**
 - [.NET 10 Documentation](https://docs.microsoft.com/dotnet/)

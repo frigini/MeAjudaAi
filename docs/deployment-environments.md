@@ -1,144 +1,141 @@
-# Deployment Environments
+# Ambientes de Deploy
 
-## Overview
-This document describes the different deployment environments available for the MeAjudaAi platform and their configurations.
+## Visão Geral
+Este documento descreve os diferentes ambientes de deploy disponíveis para a plataforma MeAjudaAi e suas configurações.
 
-## Environment Types
+## Tipos de Ambientes
 
-### Development Environment
-- **Purpose**: Local development and testing
-- **Configuration**: Simplified setup with local databases
-- **Access**: Developer machines only
-- **Database**: Local PostgreSQL container
-- **Authentication**: Simplified for development
+### Ambiente de Desenvolvimento
+- **Propósito**: Desenvolvimento local e testes
+- **Configuração**: Setup simplificado com bancos de dados locais
+- **Acesso**: Apenas máquinas de desenvolvedores
+- **Banco de Dados**: Container PostgreSQL local
+- **Autenticação**: Simplificada para desenvolvimento
 
-### Staging Environment
-- **Purpose**: Pre-production testing and validation
-- **Configuration**: Production-like setup with test data
-- **Access**: Development team and stakeholders
-- **Database**: Dedicated staging database
-- **Authentication**: Full authentication system
+### Ambiente de Staging
+- **Propósito**: Testes e validação pré-produção
+- **Configuração**: Setup similar à produção com dados de teste
+- **Acesso**: Time de desenvolvimento e stakeholders
+- **Banco de Dados**: Banco de dados dedicado para staging
+- **Autenticação**: Sistema de autenticação completo
 
-### Production Environment
-- **Purpose**: Live application serving real users
-- **Configuration**: Fully secured and optimized
-- **Access**: End users and authorized administrators
-- **Database**: Production PostgreSQL with backups
-- **Authentication**: Complete authentication with external providers
+### Ambiente de Produção
+- **Propósito**: Aplicação live servindo usuários reais
+- **Configuração**: Totalmente segura e otimizada
+- **Acesso**: Usuários finais e administradores autorizados
+- **Banco de Dados**: PostgreSQL de produção com backups
+- **Autenticação**: Autenticação completa com provedores externos
 
-## Deployment Process
+## Processo de Deploy
 
-### ⚠️ CRITICAL: Pre-Deployment Validation
+### ⚠️ CRÍTICO: Validação Pré-Deploy
 
-**BEFORE deploying to ANY environment**, ensure ALL critical compatibility validations pass.
+**ANTES de fazer deploy em QUALQUER ambiente**, garanta que TODAS as validações críticas de compatibilidade passem.
 
-For detailed Hangfire + Npgsql 10.x compatibility validation procedures, see the dedicated guide:
-📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)** _integration tests removed — validation via staging + health checks_
+Para procedimentos detalhados de validação de compatibilidade Hangfire + Npgsql 10.x, consulte a documentação de infraestrutura e execute testes em staging.
 
-**Quick Checklist** (see full guide for details):
-- [ ] ⚠️ **CRITICAL**: Staging smoke tests with Hangfire job execution (Npgsql 10.x UNVALIDATED)
-- [ ] Manual Hangfire dashboard verification in staging
-- [ ] Health check monitoring configured (HealthChecks.Hangfire)
-- [ ] Monitoring configured (alerts, dashboards)
-- [ ] Rollback procedure tested
-- [ ] Team trained and stakeholders notified
+**Checklist Rápido**:
+- [ ] ⚠️ **CRÍTICO**: Smoke tests em staging com execução de jobs Hangfire (Npgsql 10.x NÃO VALIDADO)
+- [ ] Verificação manual do dashboard Hangfire em staging
+- [ ] Monitoramento de health check configurado (HealthChecks.Hangfire)
+- [ ] Monitoramento configurado (alertas, dashboards)
+- [ ] Procedimento de rollback testado
+- [ ] Time treinado e stakeholders notificados
 
 ---
 
-### Infrastructure Setup
-The deployment process uses Bicep templates for infrastructure as code:
+### Setup de Infraestrutura
+O processo de deploy usa templates Bicep para infraestrutura como código:
 
-1. **Azure Resources**: Defined in `infrastructure/main.bicep`
-2. **Service Bus**: Configured in `infrastructure/servicebus.bicep`
-3. **Docker Compose**: Environment-specific configurations
+1. **Recursos Azure**: Definidos em `infrastructure/main.bicep`
+2. **Service Bus**: Configurado em `infrastructure/servicebus.bicep`
+3. **Docker Compose**: Configurações específicas por ambiente
 
-### CI/CD Pipeline
-Automated deployment through GitHub Actions:
+### Pipeline CI/CD
+Deploy automatizado via GitHub Actions:
 
-1. **Build**: Compile and test the application
-2. **Security Scan**: Vulnerability and secret detection
-3. **Deploy**: Push to appropriate environment
-4. **Validation**: Health checks and smoke tests
+1. **Build**: Compilar e testar a aplicação
+2. **Scan de Segurança**: Detecção de vulnerabilidades e secrets
+3. **Deploy**: Push para o ambiente apropriado
+4. **Validação**: Health checks e smoke tests
 
-### Environment Variables
-Each environment requires specific configuration:
+### Variáveis de Ambiente
+Cada ambiente requer configuração específica:
 
-- **Database connections**
-- **Authentication providers**
-- **Service endpoints**
-- **Logging levels**
+- **Conexões de banco de dados**
+- **Provedores de autenticação**
+- **Endpoints de serviços**
+- **Níveis de logging**
 - **Feature flags**
 
-## Rollback Procedures
+## Procedimentos de Rollback
 
-### Hangfire + Npgsql Rollback (CRITICAL)
+### Rollback Hangfire + Npgsql (CRÍTICO)
 
-**Trigger Conditions** (execute rollback if ANY occur):
-- Hangfire job failure rate exceeds 5% for >1 hour
-- Critical background jobs fail repeatedly
-- Npgsql connection errors spike in logs
-- Dashboard unavailable or shows data corruption
-- Database performance degrades significantly
+**Condições de Gatilho** (execute rollback se QUALQUER ocorrer):
+- Taxa de falha de jobs Hangfire excede 5% por >1 hora
+- Jobs críticos de background falham repetidamente
+- Erros de conexão Npgsql aumentam nos logs
+- Dashboard indisponível ou mostra corrupção de dados
+- Performance do banco de dados degrada significativamente
 
-For detailed rollback procedures and troubleshooting:
-📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)** _integration tests removed — monitor via health checks_
+Para procedimentos detalhados de rollback e troubleshooting, veja documentação de health checks do Hangfire.
 
-**Quick Rollback Steps**:
+**Passos Rápidos de Rollback**:
 
-1. **Stop Application** (~5 min)
+1. **Parar Aplicação** (~5 min)
    ```bash
    az webapp stop --name $APP_NAME --resource-group $RESOURCE_GROUP
    ```
 
-2. **Database Backup** (~10 min, if needed)
+2. **Backup de Banco** (~10 min, se necessário)
    ```bash
    pg_dump -h $DB_HOST -U $DB_USER --schema=hangfire -Fc > hangfire_backup.dump
    ```
 
-3. **Downgrade Packages** (~15 min)
-   - Revert to EF Core 9.x + Npgsql 8.x in `Directory.Packages.props`
+3. **Downgrade de Pacotes** (~15 min)
+   - Reverter para EF Core 9.x + Npgsql 8.x em `Directory.Packages.props`
 
 4. **Rebuild & Redeploy** (~30 min)
    ```bash
-   dotnet test --filter Category=HangfireIntegration  # Validate
+   dotnet test --filter Category=HangfireIntegration  # Validar
    ```
 
-5. **Verify Health** (~30 min)
-   - Check Hangfire dashboard: `$API_ENDPOINT/hangfire`
-   - Monitor job processing and logs
+5. **Verificar Saúde** (~30 min)
+   - Verificar dashboard Hangfire: `$API_ENDPOINT/hangfire`
+   - Monitorar processamento de jobs e logs
 
-**Full Rollback Procedure**: See the dedicated compatibility guide for environment-agnostic commands and detailed troubleshooting.
+**Procedimento Completo de Rollback**: Veja o guia de compatibilidade dedicado para comandos agnósticos de ambiente e troubleshooting detalhado.
 
-## Monitoring and Maintenance
+## Monitoramento e Manutenção
 
-### Critical Monitoring
+### Monitoramento Crítico
 
-For comprehensive Hangfire + background jobs monitoring, see:
-📖 **[Hangfire Npgsql Compatibility Guide](./hangfire-npgsql-compatibility.md)** _integration tests removed — monitor via health checks_
+Para monitoramento abrangente de Hangfire + jobs de background, monitore via health checks e logs da aplicação.
 
-**Key Metrics** (see guide for queries and alert configuration):
-1. **Job Failure Rate**: Alert if >5% → Investigate and consider rollback
-2. **Npgsql Connection Errors**: Monitor application logs
-3. **Dashboard Health**: Check `/hangfire` endpoint every 5 minutes
-4. **Job Processing Time**: Alert if >50% increase from baseline
+**Métricas Chave**:
+1. **Taxa de Falha de Jobs**: Alerta se >5% → Investigar e considerar rollback
+2. **Erros de Conexão Npgsql**: Monitorar logs da aplicação
+3. **Saúde do Dashboard**: Verificar endpoint `/hangfire` a cada 5 minutos
+4. **Tempo de Processamento de Jobs**: Alerta se aumento >50% da baseline
 
 ### Health Checks
-- Application health endpoints
-- Database connectivity
-- External service availability
+- Endpoints de saúde da aplicação
+- Conectividade do banco de dados
+- Disponibilidade de serviços externos
 
 ### Logging
-- Structured logging with Serilog
-- Application insights integration
-- Error tracking and alerting
+- Logging estruturado com Serilog
+- Integração com Application Insights
+- Rastreamento e alertas de erros
 
-### Backup and Recovery
-- Regular database backups
-- Infrastructure state backups
-- Disaster recovery procedures
+### Backup e Recuperação
+- Backups regulares de banco de dados
+- Backups de estado de infraestrutura
+- Procedimentos de recuperação de desastres
 
-## Related Documentation
+## Documentação Relacionada
 
-- [CI/CD Setup](../CI-CD-Setup.md)
-- [Infrastructure Documentation](../../infrastructure/Infrastructure.md)
-- [Development Guidelines](../development.md)
+- [Setup de CI/CD](./ci-cd.md)
+- [Documentação de Infraestrutura](./infrastructure.md)
+- [Diretrizes de Desenvolvimento](./development.md)

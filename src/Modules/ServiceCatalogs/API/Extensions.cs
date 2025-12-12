@@ -84,14 +84,14 @@ public static class Extensions
                 catch (Exception fallbackEx)
                 {
                     logger?.LogError(fallbackEx, "Falha crítica ao inicializar o banco do módulo ServiceCatalogs.");
-                    throw; // Fail fast even in Development if EnsureCreated fails
+                    throw new InvalidOperationException("Falha crítica ao inicializar o banco de dados do módulo ServiceCatalogs após tentativa de fallback.", fallbackEx);
                 }
             }
             else
             {
                 // Fail fast in non-development environments
                 logger?.LogError(ex, "Falha crítica ao aplicar migrações do módulo ServiceCatalogs em ambiente de produção.");
-                throw;
+                throw new InvalidOperationException("Falha ao aplicar migrações do módulo ServiceCatalogs em ambiente de produção. Verifique a conexão com o banco de dados.", ex);
             }
         }
     }

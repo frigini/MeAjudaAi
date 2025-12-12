@@ -28,6 +28,38 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 - **Docker** - Containerização
 - **Azure** - Hospedagem em nuvem
 
+## � Documentação
+
+A documentação completa do projeto está disponível em **MkDocs Material** com suporte completo em português.
+
+### Visualização Local
+
+Para visualizar a documentação localmente:
+
+```bash
+# Instalar MkDocs Material (apenas uma vez)
+pip install mkdocs-material mkdocs-git-revision-date-localized-plugin
+
+# Iniciar servidor de desenvolvimento
+mkdocs serve
+
+# Acessar: http://127.0.0.1:8000/MeAjudaAi/
+```
+
+### GitHub Pages
+
+Após o merge para `master`, a documentação será publicada automaticamente em:
+**https://frigini.github.io/MeAjudaAi/**
+
+### Estrutura da Documentação
+
+- **Primeiros Passos** - Setup de desenvolvimento e configuração
+- **Arquitetura** - Design do sistema, padrões e infraestrutura
+- **Módulos** - Documentação específica de cada módulo de domínio
+- **CI/CD** - Pipelines, workflows e automação
+- **Testes** - Estratégias, guias e relatórios de cobertura
+- **Referência da API** - Endpoints REST documentados
+
 ## 📦 Estrutura do Projeto
 
 O projeto foi organizado para facilitar navegação e manutenção:
@@ -38,9 +70,18 @@ O projeto foi organizado para facilitar navegação e manutenção:
 ├── 📁 automation/       # Scripts de automação CI/CD
 ├── 📁 build/           # Scripts de build e Makefile
 ├── 📁 config/          # Configurações de ferramentas
-├── 📁 docs/            # Documentação técnica e guias
-│   ├── guides/        # Guias de implementação
-│   └── reports/       # Relatórios de análise
+│   ├── .editorconfig  # Estilo de código
+│   ├── .yamllint.yml  # Lint de YAML
+│   ├── coverage.runsettings  # Configuração de coverage
+│   └── coverlet.json  # Exclusões de cobertura
+├── 📁 docs/            # Documentação técnica (MkDocs)
+│   ├── api-reference.md    # Referência da API REST
+│   ├── architecture.md     # Arquitetura do sistema
+│   ├── database.md        # Estratégia de banco de dados
+│   ├── logging.md         # Logging e observabilidade
+│   ├── messaging.md       # Message bus e eventos
+│   ├── modules/          # Documentação por módulo
+│   └── testing/          # Guias de testes
 ├── 📁 infrastructure/  # IaC e configurações de infraestrutura
 ├── 📁 scripts/         # Scripts de desenvolvimento
 ├── 📁 src/             # Código fonte da aplicação
@@ -69,7 +110,7 @@ O projeto foi organizado para facilitar navegação e manutenção:
 
 Para instruções detalhadas, consulte o [**Guia de Desenvolvimento Completo**](./docs/development.md).
 
-**Setup completo (recomendado):****
+**Setup completo (recomendado):**
 ```bash
 ./run-local.sh setup
 ```
@@ -420,7 +461,7 @@ azd provision
 - [**Guia de Infraestrutura**](docs/infrastructure.md) - Setup e deploy
 - [**Arquitetura e Padrões**](docs/architecture.md) - Decisões arquiteturais
 - [**Guia de Desenvolvimento**](docs/development_guide.md) - Convenções e práticas
-- [**CI/CD**](docs/ci_cd.md) - Pipeline de integração contínua
+- [**CI/CD**](docs/ci-cd.md) - Pipeline de integração contínua
 - [**Diretrizes de Desenvolvimento**](docs/development-guidelines.md) - Padrões e boas práticas
 
 ## 🤝 Contribuição
@@ -444,7 +485,9 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 ⭐ Se este projeto te ajudou, considere dar uma estrela!
 
-# Apply migrations for specific module
+### Aplicar migrations (módulo específico)
+
+```bash
 dotnet ef database update --context UsersDbContext
 ```
 
@@ -522,9 +565,9 @@ docker compose -f environments/testing.yml up -d
 
 ### Links Úteis
 
-- 📚 [Documentação Técnica](docs/README.md)
+- 📚 [Documentação Técnica](https://frigini.github.io/MeAjudaAi/)
 - 🏗️ [Guia de Infraestrutura](infrastructure/README.md)
-- 🔄 [Setup de CI/CD Detalhado](docs/ci_cd.md)
+- 🔄 [Setup de CI/CD Detalhado](docs/ci-cd.md)
 - 🐛 [Issues e Bugs](https://github.com/frigini/MeAjudaAi/issues)
 
 ## 🤝 Contributing

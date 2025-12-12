@@ -1,6 +1,6 @@
 # Unit vs Integration Tests - Best Practices
 
-## Overview
+## Visão Geral
 
 Este documento define as melhores práticas para testes unitários e de integração no projeto MeAjudaAi.
 

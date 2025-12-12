@@ -625,7 +625,7 @@ public class SomeOtherModuleService
 ## 📚 Referências
 
 - **[Arquitetura Geral](../architecture.md)** - Padrões e estrutura
-- **[Autenticação e Autorização](../authentication_and_authorization.md)** - Integração com Keycloak
+- **[Autenticação e Autorização](../authentication-and-authorization.md)** - Integração com Keycloak
 - **[Módulo Providers](./providers.md)** - Integração com prestadores
 - **[Guia de Desenvolvimento](../development.md)** - Setup e diretrizes
 

@@ -140,3 +140,6 @@ legacy-analysis-report.*
 
 # Archived scripts
 .archive/
+
+# MkDocs build output
+site/

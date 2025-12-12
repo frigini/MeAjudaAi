@@ -1,0 +1,134 @@
+site_name: Documentação MeAjudaAi
+site_description: Plataforma conectando clientes com prestadores de serviços
+site_author: Equipe MeAjudaAi
+site_url: https://frigini.github.io/MeAjudaAi
+
+repo_name: frigini/MeAjudaAi
+repo_url: https://github.com/frigini/MeAjudaAi
+edit_uri: edit/master/docs/
+
+theme:
+  name: material
+  language: pt-BR
+  palette:
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search:
+      lang: 
+        - pt
+        - en
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+      fallback_to_build_date: true
+      enabled: !ENV [ENABLED_GIT_REVISION_DATE, true]
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/frigini/MeAjudaAi
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
+  version:
+    provider: mike
+
+nav:
+  - Início: index.md
+  - Primeiros Passos:
+      - Configuração de Desenvolvimento: development.md
+      - Configuração: configuration.md
+      - Ambientes de Deploy: deployment-environments.md
+  - Arquitetura:
+      - Visão Geral: architecture.md
+      - Autenticação e Autorização: authentication-and-authorization.md
+      - Infraestrutura: infrastructure.md
+      - Banco de Dados: database.md
+      - Mensageria: messaging.md
+      - Logging: logging.md
+  - Módulos:
+      - Usuários: modules/users.md
+      - Prestadores: modules/providers.md
+      - Documentos: modules/documents.md
+      - Busca de Prestadores: modules/search-providers.md
+      - Catálogo de Serviços: modules/service-catalogs.md
+      - Localizações: modules/locations.md
+  - CI/CD: ci-cd.md
+  - Testes:
+      - Testes Unitários vs Integração: testing/unit-vs-integration-tests.md
+      - Testes de Integração: testing/integration-tests.md
+      - Infraestrutura de Testes: testing/test-infrastructure.md
+      - Exemplos de Auth em Testes: testing/test-auth-examples.md
+      - Arquitetura E2E: testing/e2e-architecture-analysis.md
+      - Cobertura de Código: testing/coverage.md
+  - Referência:
+      - Roadmap: roadmap.md
+      - API Reference: api-reference.md
+      - Débito Técnico: technical-debt.md
+      - Vulnerabilidades de Segurança: security-vulnerabilities.md
