@@ -33,10 +33,11 @@ public class CachingBehavior<TRequest, TResponse>(
 
         // Tenta buscar no cache primeiro
         var cachedResult = await cacheService.GetAsync<TResponse>(cacheKey, cancellationToken);
-        if (!object.Equals(cachedResult, default(TResponse)))
+        // Only validate null for reference types; value types are always valid if returned from cache
+        if (cachedResult is not null || typeof(TResponse).IsValueType)
         {
             logger.LogDebug("Cache hit for key: {CacheKey}", cacheKey);
-            return cachedResult;
+            return cachedResult!;
         }
 
         logger.LogDebug("Cache miss for key: {CacheKey}. Executing query.", cacheKey);
@@ -44,20 +45,18 @@ public class CachingBehavior<TRequest, TResponse>(
         // Executa a query
         var result = await next();
 
-        // Armazena no cache se o resultado não for nulo
-        if (!object.Equals(result, default(TResponse)))
+        // Always cache the result (including default values for value types)
+        // This ensures legitimate results like 0, false, etc. are cached
+        var options = new HybridCacheEntryOptions
         {
-            var options = new HybridCacheEntryOptions
-            {
-                Expiration = cacheExpiration,
-                LocalCacheExpiration = TimeSpan.FromMinutes(5) // Cache local por 5 minutos
-            };
+            Expiration = cacheExpiration,
+            LocalCacheExpiration = TimeSpan.FromMinutes(5) // Cache local por 5 minutos
+        };
 
-            await cacheService.SetAsync(cacheKey, result, cacheExpiration, options, cacheTags, cancellationToken);
+        await cacheService.SetAsync(cacheKey, result, cacheExpiration, options, cacheTags, cancellationToken);
 
-            logger.LogDebug("Cached result for key: {CacheKey} with expiration: {Expiration}",
-                cacheKey, cacheExpiration);
-        }
+        logger.LogDebug("Cached result for key: {CacheKey} with expiration: {Expiration}",
+            cacheKey, cacheExpiration);
 
         return result;
     }

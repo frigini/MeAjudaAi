@@ -23,7 +23,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
     public async Task SeedIfEmptyAsync(CancellationToken cancellationToken = default)
     {
         var hasData = await HasDataAsync(cancellationToken);
-        
+
         if (hasData)
         {
             _logger.LogInformation("🔍 Banco de dados já possui dados, pulando seed");
@@ -51,12 +51,12 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 var categoriesTable = serviceCatalogsContext.Model
                     .GetEntityTypes()
                     .FirstOrDefault(e => e.ClrType.Name == "Category");
-                
+
                 if (categoriesTable != null)
                 {
                     var count = await serviceCatalogsContext.Database
                         .ExecuteSqlRawAsync("SELECT COUNT(*) FROM service_catalogs.categories", cancellationToken);
-                    
+
                     return count > 0;
                 }
             }
@@ -68,12 +68,12 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 var allowedCitiesTable = locationsContext.Model
                     .GetEntityTypes()
                     .FirstOrDefault(e => e.ClrType.Name == "AllowedCity");
-                
+
                 if (allowedCitiesTable != null)
                 {
                     var count = await locationsContext.Database
                         .ExecuteSqlRawAsync("SELECT COUNT(*) FROM locations.allowed_cities", cancellationToken);
-                    
+
                     return count > 0;
                 }
             }
@@ -93,7 +93,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         {
             await SeedServiceCatalogsAsync(cancellationToken);
             await SeedLocationsAsync(cancellationToken);
-            
+
             _logger.LogInformation("✅ Seed de dados concluído com sucesso!");
         }
         catch (Exception ex)
@@ -103,7 +103,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         }
     }
 
-    private async Task SeedServiceCatalogsAsync(CancellationToken cancellationToken)
+    private async Task SeedServiceCatalogsAsync()
     {
         _logger.LogInformation("📦 Seeding ServiceCatalogs...");
 
@@ -144,36 +144,36 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
         var services = new[]
         {
-            new 
-            { 
-                Id = UuidGenerator.NewId(), 
+            new
+            {
+                Id = UuidGenerator.NewId(),
                 Name = "Atendimento Psicológico Gratuito",
                 Description = "Atendimento psicológico individual ou em grupo",
                 CategoryId = healthCategoryId,
                 Criteria = "Renda familiar até 3 salários mínimos",
                 Documents = "{\"RG\",\"CPF\",\"Comprovante de residência\",\"Comprovante de renda\"}"
             },
-            new 
-            { 
-                Id = UuidGenerator.NewId(), 
+            new
+            {
+                Id = UuidGenerator.NewId(),
                 Name = "Curso de Informática Básica",
                 Description = "Curso gratuito de informática e inclusão digital",
                 CategoryId = educationCategoryId,
                 Criteria = "Jovens de 14 a 29 anos",
                 Documents = "{\"RG\",\"CPF\",\"Comprovante de escolaridade\"}"
             },
-            new 
-            { 
-                Id = UuidGenerator.NewId(), 
+            new
+            {
+                Id = UuidGenerator.NewId(),
                 Name = "Cesta Básica",
                 Description = "Distribuição mensal de cestas básicas",
                 CategoryId = foodCategoryId,
                 Criteria = "Famílias em situação de vulnerabilidade",
                 Documents = "{\"Cadastro único\",\"Comprovante de residência\"}"
             },
-            new 
-            { 
-                Id = UuidGenerator.NewId(), 
+            new
+            {
+                Id = UuidGenerator.NewId(),
                 Name = "Orientação Jurídica Gratuita",
                 Description = "Atendimento jurídico para questões civis e trabalhistas",
                 CategoryId = legalCategoryId,
@@ -194,7 +194,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         _logger.LogInformation("✅ ServiceCatalogs: {Count} serviços inseridos", services.Length);
     }
 
-    private async Task SeedLocationsAsync(CancellationToken cancellationToken)
+    private async Task SeedLocationsAsync()
     {
         _logger.LogInformation("📍 Seeding Locations (AllowedCities)...");
 
@@ -237,7 +237,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         {
             var contextTypeName = $"MeAjudaAi.Modules.{moduleName}.Infrastructure.Persistence.{moduleName}DbContext";
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            
+
             foreach (var assembly in assemblies)
             {
                 var contextType = assembly.GetType(contextTypeName);

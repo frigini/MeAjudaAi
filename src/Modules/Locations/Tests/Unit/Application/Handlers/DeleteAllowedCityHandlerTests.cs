@@ -2,6 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
+using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using Moq;
 using Xunit;
@@ -50,7 +51,7 @@ public class DeleteAllowedCityHandlerTests
         var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
+        await act.Should().ThrowAsync<AllowedCityNotFoundException>()
             .WithMessage("*não encontrada*");
     }
 

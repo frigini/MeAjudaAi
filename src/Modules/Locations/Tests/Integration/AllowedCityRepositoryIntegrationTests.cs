@@ -272,9 +272,13 @@ public class AllowedCityRepositoryIntegrationTests : DatabaseTestBase
 
         // Assert
         result.Should().HaveCount(3);
-        result[0].CityName.Should().Be("Bom Jesus do Itabapoana");
-        result[1].CityName.Should().Be("Itaperuna");
-        result[2].CityName.Should().Be("Muriaé");
+        // Repository orders by StateSigla first, then CityName
+        result[0].StateSigla.Should().Be("MG");
+        result[0].CityName.Should().Be("Muriaé");
+        result[1].StateSigla.Should().Be("RJ");
+        result[1].CityName.Should().Be("Bom Jesus do Itabapoana");
+        result[2].StateSigla.Should().Be("RJ");
+        result[2].CityName.Should().Be("Itaperuna");
     }
 
     [Fact]

@@ -110,9 +110,10 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
             try
             {
                 var message = JsonSerializer.Deserialize<T>(args.Message.Body.ToString(), _jsonOptions);
-                if (!object.Equals(message, default(T)))
+                // Only validate nullability for reference types; value types are always valid post-deserialization
+                if (message is not null || typeof(T).IsValueType)
                 {
-                    await handler(message, args.CancellationToken);
+                    await handler(message!, args.CancellationToken);
                     await args.CompleteMessageAsync(args.Message, args.CancellationToken);
 
                     _logger.LogDebug("Message {MessageType} processed successfully in {ElapsedMs}ms",

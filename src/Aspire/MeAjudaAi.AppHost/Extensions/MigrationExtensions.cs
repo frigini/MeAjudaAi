@@ -3,6 +3,7 @@ using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.AppHost.Extensions;
@@ -73,22 +74,51 @@ internal class MigrationHostedService : IHostedService
 
     private string? GetConnectionString()
     {
-        // Tenta obter de variáveis de ambiente (padrão Aspire)
-        var host = Environment.GetEnvironmentVariable("POSTGRES_HOST") 
-                   ?? Environment.GetEnvironmentVariable("DB_HOST") 
-                   ?? "localhost";
-        var port = Environment.GetEnvironmentVariable("POSTGRES_PORT") 
-                   ?? Environment.GetEnvironmentVariable("DB_PORT") 
-                   ?? "5432";
-        var database = Environment.GetEnvironmentVariable("POSTGRES_DB") 
-                       ?? Environment.GetEnvironmentVariable("MAIN_DATABASE") 
-                       ?? "meajudaai";
-        var username = Environment.GetEnvironmentVariable("POSTGRES_USER") 
-                       ?? Environment.GetEnvironmentVariable("DB_USERNAME") 
-                       ?? "postgres";
-        var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") 
-                       ?? Environment.GetEnvironmentVariable("DB_PASSWORD") 
-                       ?? "test123";
+        // Obter de variáveis de ambiente (padrão Aspire)
+        var host = Environment.GetEnvironmentVariable("POSTGRES_HOST")
+                   ?? Environment.GetEnvironmentVariable("DB_HOST");
+        var port = Environment.GetEnvironmentVariable("POSTGRES_PORT")
+                   ?? Environment.GetEnvironmentVariable("DB_PORT");
+        var database = Environment.GetEnvironmentVariable("POSTGRES_DB")
+                       ?? Environment.GetEnvironmentVariable("MAIN_DATABASE");
+        var username = Environment.GetEnvironmentVariable("POSTGRES_USER")
+                       ?? Environment.GetEnvironmentVariable("DB_USERNAME");
+        var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")
+                       ?? Environment.GetEnvironmentVariable("DB_PASSWORD");
+
+        // Para ambiente de desenvolvimento local apenas, permitir valores padrão
+        // NUNCA use valores padrão em produção - configure variáveis de ambiente adequadamente
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+        var isDevelopment = environment.Equals("Development", StringComparison.OrdinalIgnoreCase);
+
+        if (isDevelopment)
+        {
+            // Valores padrão APENAS para desenvolvimento local
+            // TODO: Considerar usar .env file ou user secrets para valores de dev
+            host ??= "localhost";
+            port ??= "5432";
+            database ??= "meajudaai";
+            username ??= "postgres";
+            password ??= "test123"; // Somente dev local - NUNCA em produção!
+
+            _logger.LogWarning(
+                "Using default connection values for Development environment. " +
+                "Configure environment variables for production deployments.");
+        }
+        else
+        {
+            // Em ambientes não-dev, EXIGIR configuração explícita
+            if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(port) ||
+                string.IsNullOrEmpty(database) || string.IsNullOrEmpty(username) ||
+                string.IsNullOrEmpty(password))
+            {
+                _logger.LogError(
+                    "Missing required database connection configuration. " +
+                    "Set POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD " +
+                    "environment variables.");
+                return null; // Falhar startup para evitar conexão insegura
+            }
+        }
 
         return $"Host={host};Port={port};Database={database};Username={username};Password={password}";
     }

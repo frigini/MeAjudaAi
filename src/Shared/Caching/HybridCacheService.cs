@@ -12,7 +12,7 @@ public class HybridCacheService(
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
-        var isHit = false;
+        var factoryCalled = false;
 
         try
         {
@@ -20,21 +20,18 @@ public class HybridCacheService(
                 key,
                 factory: _ =>
                 {
-                    isHit = false; // Factory chamado = cache miss
+                    factoryCalled = true; // Factory chamado = cache miss
                     return new ValueTask<T>(default(T)!);
                 },
                 cancellationToken: cancellationToken);
 
-            // Se o factory não foi chamado, foi um hit
-            if (!isHit && !object.Equals(result, default(T)) && !result.Equals(default(T)))
-            {
-                isHit = true;
-            }
+            // Se o factory foi chamado, foi um miss; caso contrário, hit
+            var isHit = !factoryCalled;
 
             stopwatch.Stop();
             metrics.RecordOperation(key, "get", isHit, stopwatch.Elapsed.TotalSeconds);
 
-            return result;
+            return result!;
         }
         catch (Exception ex)
         {

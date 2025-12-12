@@ -218,9 +218,13 @@ Write-Host "🎉 Seed Concluído!" -ForegroundColor Green
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "📊 Dados inseridos:" -ForegroundColor Cyan
-Write-Host "   • Categorias: $($categories.Count)" -ForegroundColor White
-Write-Host "   • Serviços: $($services.Count)" -ForegroundColor White
-Write-Host "   • Cidades: $($allowedCities.Count)" -ForegroundColor White
+# Computar contagens seguras para evitar referência a variáveis indefinidas
+$categoryCount = if ($categories) { $categories.Count } else { 0 }
+$serviceCount = if ($services) { $services.Count } else { 0 }
+$cityCount = if ($allowedCities) { $allowedCities.Count } else { 0 }
+Write-Host "   • Categorias: $categoryCount" -ForegroundColor White
+Write-Host "   • Serviços: $serviceCount" -ForegroundColor White
+Write-Host "   • Cidades: $cityCount" -ForegroundColor White
 Write-Host ""
 Write-Host "💡 Próximos passos:" -ForegroundColor Cyan
 Write-Host "   1. Cadastrar providers usando Bruno collections" -ForegroundColor White

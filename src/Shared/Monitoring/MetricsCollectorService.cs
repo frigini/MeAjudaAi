@@ -22,7 +22,7 @@ internal class MetricsCollectorService(
         {
             try
             {
-                await CollectMetrics();
+                await CollectMetrics(stoppingToken);
             }
             catch (Exception ex)
             {
@@ -35,18 +35,16 @@ internal class MetricsCollectorService(
         logger.LogInformation("Metrics collector service stopped");
     }
 
-    private async Task CollectMetrics()
+    private async Task CollectMetrics(CancellationToken cancellationToken)
     {
-        using var scope = serviceProvider.CreateScope();
-
         try
         {
             // Coletar métricas de usuários ativos
-            var activeUsers = await GetActiveUsersCount();
+            var activeUsers = await GetActiveUsersCount(cancellationToken);
             businessMetrics.UpdateActiveUsers(activeUsers);
 
             // Coletar métricas de solicitações pendentes
-            var pendingRequests = await GetPendingHelpRequestsCount();
+            var pendingRequests = await GetPendingHelpRequestsCount(cancellationToken);
             businessMetrics.UpdatePendingHelpRequests(pendingRequests);
 
             logger.LogDebug("Metrics collected: {ActiveUsers} active users, {PendingRequests} pending requests",
@@ -58,15 +56,16 @@ internal class MetricsCollectorService(
         }
     }
 
-    private async Task<long> GetActiveUsersCount()
+    private async Task<long> GetActiveUsersCount(CancellationToken cancellationToken)
     {
         try
         {
             // Aqui você implementaria a lógica real para contar usuários ativos
             // Por exemplo, usuários que fizeram login nas últimas 24 horas
+            // TODO: Quando implementar, usar IServiceScope para resolver DbContext/repositories
 
             // Placeholder - implementar com o serviço real de usuários
-            await Task.Delay(1, CancellationToken.None); // Simular operação async
+            await Task.Delay(1, cancellationToken); // Simular operação async
 
             // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
             return 125; // Valor simulado fixo
@@ -78,14 +77,15 @@ internal class MetricsCollectorService(
         }
     }
 
-    private async Task<long> GetPendingHelpRequestsCount()
+    private async Task<long> GetPendingHelpRequestsCount(CancellationToken cancellationToken)
     {
         try
         {
             // Aqui você implementaria a lógica real para contar solicitações pendentes
+            // TODO: Quando implementar, usar IServiceScope para resolver DbContext/repositories
 
             // Placeholder - implementar com o serviço real de help requests
-            await Task.Delay(1, CancellationToken.None); // Simular operação async
+            await Task.Delay(1, cancellationToken); // Simular operação async
 
             // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
             return 25; // Valor simulado fixo

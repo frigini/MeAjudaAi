@@ -37,19 +37,25 @@ public sealed class AllowedCityRepository(LocationsDbContext context) : IAllowed
 
     public async Task<AllowedCity?> GetByCityAndStateAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
     {
+        var normalizedCity = cityName?.Trim() ?? string.Empty;
+        var normalizedState = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
+
         return await context.AllowedCities
             .FirstOrDefaultAsync(x =>
-                x.CityName == cityName.Trim() &&
-                x.StateSigla == stateSigla.Trim().ToUpperInvariant(),
+                x.CityName == normalizedCity &&
+                x.StateSigla == normalizedState,
                 cancellationToken);
     }
 
     public async Task<bool> IsCityAllowedAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
     {
+        var normalizedCity = cityName?.Trim() ?? string.Empty;
+        var normalizedState = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
+
         return await context.AllowedCities
             .AnyAsync(x =>
-                x.CityName == cityName.Trim() &&
-                x.StateSigla == stateSigla.Trim().ToUpperInvariant() &&
+                x.CityName == normalizedCity &&
+                x.StateSigla == normalizedState &&
                 x.IsActive,
                 cancellationToken);
     }
@@ -74,10 +80,13 @@ public sealed class AllowedCityRepository(LocationsDbContext context) : IAllowed
 
     public async Task<bool> ExistsAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
     {
+        var normalizedCity = cityName?.Trim() ?? string.Empty;
+        var normalizedState = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
+
         return await context.AllowedCities
             .AnyAsync(x =>
-                x.CityName == cityName.Trim() &&
-                x.StateSigla == stateSigla.Trim().ToUpperInvariant(),
+                x.CityName == normalizedCity &&
+                x.StateSigla == normalizedState,
                 cancellationToken);
     }
 }

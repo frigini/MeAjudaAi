@@ -23,7 +23,7 @@ public static class SeedingExtensions
     {
         using var scope = host.Services.CreateScope();
         var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-        
+
         if (!environment.IsDevelopment())
         {
             return;

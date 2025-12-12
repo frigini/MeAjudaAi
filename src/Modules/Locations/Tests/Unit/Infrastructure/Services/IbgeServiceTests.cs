@@ -88,7 +88,6 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "muriaé"; // lowercase
         const string stateSigla = "mg"; // lowercase
-                                        // uppercase
 
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG"); // title case
 

@@ -43,7 +43,7 @@ public partial class Program
             var app = builder.Build();
 
             await ConfigureMiddlewareAsync(app);
-            
+
             // Seed dados de desenvolvimento se necessário
             await app.SeedDevelopmentDataIfNeededAsync();
 

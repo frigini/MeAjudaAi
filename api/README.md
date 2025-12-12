@@ -69,9 +69,9 @@ O `api-spec.json` é **automaticamente atualizado** via GitHub Actions sempre qu
 6. 🚀 Faz deploy para GitHub Pages com ReDoc
 
 #### 📚 URLs Publicadas
-- 📖 **ReDoc (interativo)**: https://frigini.github.io/MeAjudaAi/api/
-- 📄 **OpenAPI JSON**: https://frigini.github.io/MeAjudaAi/api/api-spec.json
-- 🔄 **Atualização**: Automática a cada push na branch main
+- 📖 **ReDoc (interativo)**: [ReDoc Interface](https://frigini.github.io/MeAjudaAi/api/)
+- 📄 **OpenAPI JSON**: [OpenAPI Specification](https://frigini.github.io/MeAjudaAi/api/api-spec.json)
+- 🔄 **Atualização**: Automática a cada push na branch `main`
 
 ## Features
 

@@ -74,7 +74,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 
 ---
 
-## 📅 Cronograma de Sprints (Janeiro-Março 2025)
+## 📅 Cronograma de Sprints (Novembro 2025-Março 2026)
 
 | Sprint | Duração | Período | Objetivo | Status |
 |--------|---------|---------|----------|--------|
@@ -90,7 +90,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 
 **MVP Launch Target**: 31 de Março de 2026 🎯
 
-**Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Abril 2025+)
+**Post-MVP (Fase 3+)**: Reviews, Assinaturas, Agendamentos (Abril 2026+)
 
 ---
 
@@ -1204,7 +1204,7 @@ gantt
 | **4** | 25-30 Dez | **Parte 4**: Code Quality & Standardization | Moq, UuidGenerator, .slnx, OpenAPI | ⏳ Build + tests 100% passing |
 
 **Estado Atual** (12 Dez 2025):
-- ✅ **Sprint 3 Parte 1 CONCLUÍDA**: GitHub Pages deployed em https://frigini.github.io/MeAjudaAi/
+- ✅ **Sprint 3 Parte 1 CONCLUÍDA**: GitHub Pages deployed em [GitHub Pages](https://frigini.github.io/MeAjudaAi/)
 - ✅ **Audit completo**: 43 arquivos .md consolidados
 - ✅ **mkdocs.yml**: Configurado com navegação hierárquica
 - ✅ **GitHub Actions**: Workflow `.github/workflows/docs.yml` funcionando
