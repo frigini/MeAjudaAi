@@ -85,7 +85,7 @@ public sealed class AllowedCityRepository(LocationsDbContext context) : IAllowed
 
         return await context.AllowedCities
             .AnyAsync(x =>
-                x.CityName == normalizedCity &&
+                EF.Functions.ILike(x.CityName, normalizedCity) &&
                 x.StateSigla == normalizedState,
                 cancellationToken);
     }

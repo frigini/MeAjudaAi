@@ -110,19 +110,11 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
             try
             {
                 var message = JsonSerializer.Deserialize<T>(args.Message.Body.ToString(), _jsonOptions);
-                // Only validate nullability for reference types; value types are always valid post-deserialization
+                // For reference types: validate not null; for value types (including Nullable<T>): pass through
                 if (message is not null || typeof(T).IsValueType)
                 {
-                    // Explicit null-check for reference types to avoid null-forgiving operator
-                    if (message is not null)
-                    {
-                        await handler(message, args.CancellationToken);
-                    }
-                    else if (typeof(T).IsValueType)
-                    {
-                        // For value types, default value is safe
-                        await handler(message!, args.CancellationToken);
-                    }
+                    // Call handler with actual deserialized value (null for Nullable<T> value types is valid)
+                    await handler(message!, args.CancellationToken);
                     await args.CompleteMessageAsync(args.Message, args.CancellationToken);
 
                     _logger.LogDebug("Message {MessageType} processed successfully in {ElapsedMs}ms",

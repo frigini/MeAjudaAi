@@ -9,7 +9,6 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// </summary>
 internal class MetricsCollectorService(
     BusinessMetrics businessMetrics,
-    IServiceProvider serviceProvider,
     ILogger<MetricsCollectorService> logger) : BackgroundService
 {
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // Coleta a cada minuto
@@ -23,6 +22,7 @@ internal class MetricsCollectorService(
             try
             {
                 await CollectMetrics(stoppingToken);
+                await Task.Delay(_interval, stoppingToken);
             }
             catch (OperationCanceledException)
             {
@@ -34,8 +34,6 @@ internal class MetricsCollectorService(
             {
                 logger.LogError(ex, "Error collecting metrics");
             }
-
-            await Task.Delay(_interval, stoppingToken);
         }
 
         logger.LogInformation("Metrics collector service stopped");

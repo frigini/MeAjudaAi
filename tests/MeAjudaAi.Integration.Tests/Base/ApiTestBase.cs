@@ -258,6 +258,39 @@ public abstract class ApiTestBase : IAsyncLifetime
 
         // Aplica migrações exatamente como nos testes E2E
         await ApplyMigrationsAsync(usersContext, providersContext, documentsContext, catalogsContext, locationsContext, logger);
+
+        // Seed test data for allowed cities (required for GeographicRestriction tests)
+        await SeedTestDataAsync(locationsContext, logger);
+    }
+
+    private static async Task SeedTestDataAsync(LocationsDbContext locationsContext, ILogger? logger)
+    {
+        // Seed allowed cities for GeographicRestriction tests
+        // These match the cities configured in test configuration (lines 122-124)
+        var testCities = new[]
+        {
+            new { IbgeCode = 3143906, CityName = "Muriaé", State = "MG" },
+            new { IbgeCode = 3302504, CityName = "Itaperuna", State = "RJ" },
+            new { IbgeCode = 3203205, CityName = "Linhares", State = "ES" }
+        };
+
+        foreach (var city in testCities)
+        {
+            try
+            {
+                await locationsContext.Database.ExecuteSqlRawAsync(
+                    @"INSERT INTO locations.allowed_cities (""Id"", ""IbgeCode"", ""CityName"", ""StateSigla"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"", ""CreatedBy"", ""UpdatedBy"") 
+                      VALUES (gen_random_uuid(), {0}, {1}, {2}, true, {3}, {4}, 'system', NULL)",
+                    city.IbgeCode, city.CityName, city.State, DateTime.UtcNow, DateTime.UtcNow);
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "23505") // 23505 = unique violation
+            {
+                // Ignore duplicate key errors - city already exists
+                logger?.LogDebug("City {City}/{State} already exists, skipping", city.CityName, city.State);
+            }
+        }
+
+        logger?.LogInformation("✅ Seeded {Count} test cities into allowed_cities table", testCities.Length);
     }
 
     private static async Task ApplyMigrationsAsync(

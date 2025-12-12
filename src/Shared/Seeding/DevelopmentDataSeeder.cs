@@ -149,7 +149,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             return;
         }
 
-        // Categories com IDs estáveis
+        // Categories com IDs estáveis - usar RETURNING id para capturar IDs reais
         var categories = new[]
         {
             new { Id = HealthCategoryId, Name = "Saúde", Description = "Serviços relacionados à saúde e bem-estar" },
@@ -160,19 +160,27 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             new { Id = FoodCategoryId, Name = "Alimentação", Description = "Programas de segurança alimentar" }
         };
 
+        // Build idMap to capture actual IDs from upsert
+        var idMap = new Dictionary<string, Guid>();
         foreach (var cat in categories)
         {
-            await context.Database.ExecuteSqlRawAsync(
+            var result = await context.Database.SqlQueryRaw<Guid>(
                 @"INSERT INTO service_catalogs.categories (id, name, description, created_at, updated_at) 
                   VALUES ({0}, {1}, {2}, {3}, {4})
-                  ON CONFLICT (name) DO UPDATE SET description = {2}, updated_at = {4}",
-                [cat.Id, cat.Name, cat.Description, DateTime.UtcNow, DateTime.UtcNow],
-                cancellationToken);
+                  ON CONFLICT (name) DO UPDATE SET description = {2}, updated_at = {4}
+                  RETURNING id",
+                cat.Id, cat.Name, cat.Description, DateTime.UtcNow, DateTime.UtcNow)
+                .ToListAsync(cancellationToken);
+            
+            if (result.Count > 0)
+            {
+                idMap[cat.Name] = result[0];
+            }
         }
 
         _logger.LogInformation("✅ ServiceCatalogs: {Count} categorias inseridas/atualizadas", categories.Length);
 
-        // Services usando IDs estáveis das categorias
+        // Services usando IDs reais das categorias do idMap
         var services = new[]
         {
             new
@@ -239,6 +247,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
         var cities = new[]
         {
+            new { Id = UuidGenerator.NewId(), IbgeCode = "3143906", CityName = "Muriaé", State = "MG" },
             new { Id = UuidGenerator.NewId(), IbgeCode = "3550308", CityName = "São Paulo", State = "SP" },
             new { Id = UuidGenerator.NewId(), IbgeCode = "3304557", CityName = "Rio de Janeiro", State = "RJ" },
             new { Id = UuidGenerator.NewId(), IbgeCode = "3106200", CityName = "Belo Horizonte", State = "MG" },
