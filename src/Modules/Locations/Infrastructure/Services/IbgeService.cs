@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
+using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -15,15 +16,15 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Services;
 public sealed class IbgeService(
     IIbgeClient ibgeClient,
     ICacheService cacheService,
+    IAllowedCityRepository allowedCityRepository,
     ILogger<IbgeService> logger) : IIbgeService
 {
     public async Task<bool> ValidateCityInAllowedRegionsAsync(
         string cityName,
         string? stateSigla,
-        IReadOnlyCollection<string> allowedCities,
         CancellationToken cancellationToken = default)
     {
-        logger.LogDebug("Validando cidade {CityName} (UF: {State}) contra lista de cidades permitidas", cityName, stateSigla ?? "N/A");
+        logger.LogDebug("Validando cidade {CityName} (UF: {State}) contra lista de cidades permitidas no banco de dados", cityName, stateSigla ?? "N/A");
 
         // Buscar detalhes do município na API IBGE (com cache)
         // Exceções são propagadas para GeographicValidationService -> Middleware (fail-open com fallback)
@@ -36,9 +37,9 @@ public sealed class IbgeService(
         }
 
         // Validar se o estado bate (se fornecido)
+        var ufSigla = municipio.GetEstadoSigla();
         if (!string.IsNullOrEmpty(stateSigla))
         {
-            var ufSigla = municipio.GetEstadoSigla();
             if (!string.Equals(ufSigla, stateSigla, StringComparison.OrdinalIgnoreCase))
             {
                 logger.LogWarning(
@@ -48,9 +49,8 @@ public sealed class IbgeService(
             }
         }
 
-        // Validar se a cidade está na lista de permitidas (case-insensitive)
-        var isAllowed = allowedCities.Any(allowedCity =>
-            string.Equals(allowedCity, municipio.Nome, StringComparison.OrdinalIgnoreCase));
+        // Validar se a cidade está na lista de permitidas (usando banco de dados)
+        var isAllowed = await allowedCityRepository.IsCityAllowedAsync(municipio.Nome, ufSigla, cancellationToken);
 
         if (isAllowed)
         {
