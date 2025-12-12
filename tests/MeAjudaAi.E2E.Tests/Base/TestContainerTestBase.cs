@@ -2,6 +2,7 @@ using Bogus;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
+using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
@@ -288,6 +289,10 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         // Para SearchProvidersDbContext, só aplicar migrações (o banco já existe, só precisamos do schema search + PostGIS)
         var searchContext = scope.ServiceProvider.GetRequiredService<SearchProvidersDbContext>();
         await searchContext.Database.MigrateAsync();
+        
+        // Para LocationsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema locations)
+        var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
+        await locationsContext.Database.MigrateAsync();
     }
 
     // Helper methods usando serialização compartilhada
