@@ -171,7 +171,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                   RETURNING id",
                 cat.Id, cat.Name, cat.Description, DateTime.UtcNow, DateTime.UtcNow)
                 .ToListAsync(cancellationToken);
-            
+
             if (result.Count > 0)
             {
                 idMap[cat.Name] = result[0];
@@ -188,7 +188,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 Id = UuidGenerator.NewId(),
                 Name = "Atendimento Psicológico Gratuito",
                 Description = "Atendimento psicológico individual ou em grupo",
-                CategoryId = HealthCategoryId,
+                CategoryId = idMap.GetValueOrDefault("Saúde", HealthCategoryId),
                 Criteria = "Renda familiar até 3 salários mínimos",
                 Documents = "{\"RG\",\"CPF\",\"Comprovante de residência\",\"Comprovante de renda\"}"
             },
@@ -197,7 +197,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 Id = UuidGenerator.NewId(),
                 Name = "Curso de Informática Básica",
                 Description = "Curso gratuito de informática e inclusão digital",
-                CategoryId = EducationCategoryId,
+                CategoryId = idMap.GetValueOrDefault("Educação", EducationCategoryId),
                 Criteria = "Jovens de 14 a 29 anos",
                 Documents = "{\"RG\",\"CPF\",\"Comprovante de escolaridade\"}"
             },
@@ -206,7 +206,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 Id = UuidGenerator.NewId(),
                 Name = "Cesta Básica",
                 Description = "Distribuição mensal de cestas básicas",
-                CategoryId = FoodCategoryId,
+                CategoryId = idMap.GetValueOrDefault("Alimentação", FoodCategoryId),
                 Criteria = "Famílias em situação de vulnerabilidade",
                 Documents = "{\"Cadastro único\",\"Comprovante de residência\"}"
             },
@@ -215,7 +215,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 Id = UuidGenerator.NewId(),
                 Name = "Orientação Jurídica Gratuita",
                 Description = "Atendimento jurídico para questões civis e trabalhistas",
-                CategoryId = LegalCategoryId,
+                CategoryId = idMap.GetValueOrDefault("Jurídico", LegalCategoryId),
                 Criteria = "Renda familiar até 2 salários mínimos",
                 Documents = "{\"RG\",\"CPF\",\"Documentos relacionados ao caso\"}"
             }

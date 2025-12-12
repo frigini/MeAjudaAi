@@ -160,7 +160,36 @@ source ./scripts/optimize.sh        # Mantém variáveis no shell
 
 ---
 
-### 🛠️ **utils.sh** - Utilidades Compartilhadas
+### � **generate-clean-coverage.ps1** - Relatório de Coverage Limpo
+Script para gerar relatório de cobertura excluindo código gerado automaticamente pelo compilador.
+
+```powershell
+# Windows (PowerShell)
+.\scripts\generate-clean-coverage.ps1
+
+# Unix/Linux/macOS (PowerShell Core)
+./scripts/generate-clean-coverage.ps1
+```
+
+**Funcionalidades:**
+- 🎯 **Exclusão de código gerado**: Remove `*OpenApi*.generated.cs`, `*RegexGenerator.g.cs`, etc.
+- 📊 **Relatório HTML**: Gera visualização interativa em `coverage/report/index.html`
+- 📈 **Métricas precisas**: Cobertura real do código escrito manualmente
+- 🔧 **Filtros avançados**: Exclui migrations, monitoring, message bus, Hangfire
+- 📋 **Sumário no console**: Exibe resumo de cobertura após geração
+
+**Arquivos gerados:**
+- `coverage/report/index.html` - Relatório visual principal
+- `coverage/report/Summary.txt` - Sumário textual
+- `coverage/report/Summary.json` - Dados estruturados
+
+**⏱️ Tempo estimado:** ~25 minutos para execução completa (testes + relatório)
+
+**💡 Uso típico:** Execute após mudanças significativas para validar cobertura real sem ruído de código gerado.
+
+---
+
+### �🛠️ **utils.sh** - Utilidades Compartilhadas
 Biblioteca de funções compartilhadas entre scripts.
 
 ```bash
