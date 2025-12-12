@@ -405,4 +405,62 @@ Ferramenta customizada que descobre automaticamente todos os DbContexts.
 
 ---
 
+### 🌱 **seed-dev-data.ps1 / seed-dev-data.sh** - Seeding de Dados
+
+Popula o banco de dados com dados iniciais para desenvolvimento e testes.
+
+**Windows (PowerShell 7+):**
+```powershell
+# Seed padrão (Development)
+.\scripts\seed-dev-data.ps1
+
+# Especificar ambiente
+.\scripts\seed-dev-data.ps1 -Environment Staging
+
+# Customizar URL da API
+.\scripts\seed-dev-data.ps1 -ApiBaseUrl "https://api-staging.meajudaai.com"
+```
+
+**Linux/macOS (Bash):**
+```bash
+# Dar permissão de execução (primeira vez)
+chmod +x scripts/seed-dev-data.sh
+
+# Seed padrão (Development)
+./scripts/seed-dev-data.sh
+
+# Especificar ambiente
+./scripts/seed-dev-data.sh Staging
+
+# Customizar via variáveis de ambiente
+export API_BASE_URL="https://api-staging.meajudaai.com"
+export KEYCLOAK_URL="https://auth-staging.meajudaai.com"
+./scripts/seed-dev-data.sh
+```
+
+**O que é criado:**
+- ✅ **6 Categorias** (Saúde, Educação, Assistência Social, Jurídico, Habitação, Alimentação)
+- ✅ **4 Serviços básicos** de exemplo
+- ✅ **10 Cidades permitidas** (SP, RJ, BH, Curitiba, POA, Brasília, Salvador, Fortaleza, Recife, Manaus)
+
+**Pré-requisitos:**
+```bash
+# 1. API rodando
+cd src/Bootstrapper/MeAjudaAi.ApiService && dotnet run
+
+# 2. Keycloak rodando  
+docker-compose up -d keycloak
+
+# 3. PostgreSQL rodando
+docker-compose up -d postgres
+```
+
+**Características:**
+- ✅ **Idempotente**: Pode ser executado múltiplas vezes (detecta duplicatas)
+- ✅ **Validação**: Verifica se API e Keycloak estão acessíveis
+- ✅ **Autenticação**: Obtém token automaticamente
+- ✅ **Feedback**: Output colorido e informativo
+
+---
+
 **💡 Dica:** Use `./scripts/[script].sh --help` para ver todas as opções disponíveis de cada script!
