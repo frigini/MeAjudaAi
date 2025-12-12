@@ -4,6 +4,7 @@ using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
+using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
@@ -134,6 +135,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                     RemoveDbContextRegistrations<ProvidersDbContext>(services);
                     RemoveDbContextRegistrations<DocumentsDbContext>(services);
                     RemoveDbContextRegistrations<ServiceCatalogsDbContext>(services);
+                    RemoveDbContextRegistrations<LocationsDbContext>(services);
 
                     // Reconfigure CEP provider HttpClients to use WireMock
                     ReconfigureCepProviderClients(services);
@@ -183,6 +185,18 @@ public abstract class ApiTestBase : IAsyncLifetime
                             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "service_catalogs");
                         });
                         options.UseSnakeCaseNamingConvention();
+                        options.EnableSensitiveDataLogging();
+                        options.ConfigureWarnings(warnings =>
+                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                    });
+
+                    services.AddDbContext<LocationsDbContext>(options =>
+                    {
+                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Locations.Infrastructure");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "locations");
+                        });
                         options.EnableSensitiveDataLogging();
                         options.ConfigureWarnings(warnings =>
                             warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
@@ -239,10 +253,11 @@ public abstract class ApiTestBase : IAsyncLifetime
         var providersContext = scope.ServiceProvider.GetRequiredService<ProvidersDbContext>();
         var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
         var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
+        var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
         var logger = scope.ServiceProvider.GetService<ILogger<ApiTestBase>>();
 
         // Aplica migrações exatamente como nos testes E2E
-        await ApplyMigrationsAsync(usersContext, providersContext, documentsContext, catalogsContext, logger);
+        await ApplyMigrationsAsync(usersContext, providersContext, documentsContext, catalogsContext, locationsContext, logger);
     }
 
     private static async Task ApplyMigrationsAsync(
@@ -250,6 +265,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         ProvidersDbContext providersContext,
         DocumentsDbContext documentsContext,
         ServiceCatalogsDbContext catalogsContext,
+        LocationsDbContext locationsContext,
         ILogger? logger)
     {
         // Garante estado limpo do banco de dados (como nos testes E2E)
@@ -292,12 +308,14 @@ public abstract class ApiTestBase : IAsyncLifetime
         await ApplyMigrationForContextAsync(providersContext, "Providers", logger, "ProvidersDbContext (banco já existe, só precisa do schema providers)");
         await ApplyMigrationForContextAsync(documentsContext, "Documents", logger, "DocumentsDbContext (banco já existe, só precisa do schema documents)");
         await ApplyMigrationForContextAsync(catalogsContext, "ServiceCatalogs", logger, "ServiceCatalogsDbContext (banco já existe, só precisa do schema service_catalogs)");
+        await ApplyMigrationForContextAsync(locationsContext, "Locations", logger, "LocationsDbContext (banco já existe, só precisa do schema locations)");
 
         // Verifica se as tabelas existem
         await VerifyContextAsync(usersContext, "Users", () => usersContext.Users.CountAsync(), logger);
         await VerifyContextAsync(providersContext, "Providers", () => providersContext.Providers.CountAsync(), logger);
         await VerifyContextAsync(documentsContext, "Documents", () => documentsContext.Documents.CountAsync(), logger);
         await VerifyContextAsync(catalogsContext, "ServiceCatalogs", () => catalogsContext.ServiceCategories.CountAsync(), logger);
+        await VerifyContextAsync(locationsContext, "Locations", () => locationsContext.AllowedCities.CountAsync(), logger);
     }
 
     public async ValueTask DisposeAsync()

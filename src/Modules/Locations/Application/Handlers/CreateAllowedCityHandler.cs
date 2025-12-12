@@ -1,5 +1,6 @@
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
+using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +21,7 @@ public sealed class CreateAllowedCityHandler(
         var exists = await repository.ExistsAsync(command.CityName, command.StateSigla, cancellationToken);
         if (exists)
         {
-            throw new InvalidOperationException($"Cidade '{command.CityName}-{command.StateSigla}' já cadastrada");
+            throw new DuplicateAllowedCityException(command.CityName, command.StateSigla);
         }
 
         // Obter usuário atual (Admin)

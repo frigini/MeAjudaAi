@@ -76,6 +76,9 @@ public static class ServiceCollectionExtensions
         // Adiciona serviços de autorização
         services.AddAuthorizationPolicies();
 
+        // Adiciona suporte a ProblemDetails para respostas de erro padronizadas
+        services.AddProblemDetails();
+
         // Otimizações de performance
         services.AddResponseCompression();
         services.AddStaticFilesWithCaching();
@@ -91,6 +94,9 @@ public static class ServiceCollectionExtensions
         this IApplicationBuilder app,
         IWebHostEnvironment environment)
     {
+        // Exception handling DEVE estar no início do pipeline
+        app.UseExceptionHandler();
+
         // Middlewares de performance devem estar no início do pipeline
         app.UseResponseCompression();
         app.UseResponseCaching();

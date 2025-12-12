@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using MeAjudaAi.Shared.Commands;
 
@@ -13,7 +14,7 @@ public sealed class DeleteAllowedCityHandler(IAllowedCityRepository repository) 
     {
         // Buscar entidade existente
         var city = await repository.GetByIdAsync(command.Id, cancellationToken)
-            ?? throw new InvalidOperationException($"Cidade com ID '{command.Id}' não encontrada");
+            ?? throw new AllowedCityNotFoundException(command.Id);
 
         // Deletar
         await repository.DeleteAsync(city, cancellationToken);

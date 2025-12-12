@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using MeAjudaAi.Modules.Locations.Infrastructure.API.Endpoints;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
+using MeAjudaAi.Modules.Locations.Infrastructure.Filters;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Repositories;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
@@ -54,6 +55,9 @@ public static class Extensions
 
         // Registrar repositórios
         services.AddScoped<IAllowedCityRepository, AllowedCityRepository>();
+
+        // Registrar ExceptionHandler para exceções de domínio
+        services.AddExceptionHandler<LocationsExceptionHandler>();
 
         // Registrar HTTP clients para APIs de CEP
         // ServiceDefaults já configura resiliência (retry, circuit breaker, timeout)
