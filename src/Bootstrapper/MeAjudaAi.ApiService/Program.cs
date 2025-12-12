@@ -9,6 +9,7 @@ using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Logging;
+using MeAjudaAi.Shared.Seeding;
 using Serilog;
 using Serilog.Context;
 
@@ -42,6 +43,9 @@ public partial class Program
             var app = builder.Build();
 
             await ConfigureMiddlewareAsync(app);
+            
+            // Seed dados de desenvolvimento se necessário
+            await app.SeedDevelopmentDataIfNeededAsync();
 
             LogStartupComplete(app);
 

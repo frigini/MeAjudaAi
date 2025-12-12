@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Monitoring;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Seeding;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Time;
 using Microsoft.AspNetCore.Builder;
@@ -66,6 +67,9 @@ public static class ServiceCollectionExtensions
         services.AddCommands();
         services.AddQueries();
         services.AddEvents();
+
+        // Adicionar seeding de dados de desenvolvimento
+        services.AddDevelopmentSeeding();
 
         // Registra NoOpBackgroundJobService como implementação padrão
         // Módulos que precisam de Hangfire devem registrar HangfireBackgroundJobService explicitamente
