@@ -91,8 +91,8 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
     {
         try
         {
-            await SeedServiceCatalogsAsync(cancellationToken);
-            await SeedLocationsAsync(cancellationToken);
+            await SeedServiceCatalogsAsync();
+            await SeedLocationsAsync();
 
             _logger.LogInformation("✅ Seed de dados concluído com sucesso!");
         }
