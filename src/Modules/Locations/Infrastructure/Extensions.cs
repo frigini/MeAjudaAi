@@ -7,8 +7,10 @@ using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Repositories;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
+using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -113,6 +115,37 @@ public static class Extensions
 
         // Registrar Module API
         services.AddScoped<ILocationsModuleApi, LocationsModuleApi>();
+
+        // Registrar Command e Query Handlers automaticamente
+        var applicationAssembly = typeof(Application.Handlers.CreateAllowedCityHandler).Assembly;
+        
+        // Registrar todos os ICommandHandler<T> e ICommandHandler<T, TResult>
+        var commandHandlerTypes = applicationAssembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract)
+            .SelectMany(t => t.GetInterfaces()
+                .Where(i => i.IsGenericType &&
+                           (i.GetGenericTypeDefinition() == typeof(ICommandHandler<>) ||
+                            i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>)))
+                .Select(i => new { Interface = i, Implementation = t }))
+            .ToList();
+
+        foreach (var handler in commandHandlerTypes)
+        {
+            services.AddScoped(handler.Interface, handler.Implementation);
+        }
+
+        // Registrar todos os IQueryHandler<T, TResult>
+        var queryHandlerTypes = applicationAssembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract)
+            .SelectMany(t => t.GetInterfaces()
+                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))
+                .Select(i => new { Interface = i, Implementation = t }))
+            .ToList();
+
+        foreach (var handler in queryHandlerTypes)
+        {
+            services.AddScoped(handler.Interface, handler.Implementation);
+        }
 
         return services;
     }

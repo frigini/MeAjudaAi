@@ -24,9 +24,9 @@ public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
             .RequireAdmin();
 
     private static async Task<IResult> GetAllAsync(
-        bool onlyActive,
-        IQueryDispatcher queryDispatcher,
-        CancellationToken cancellationToken)
+        bool onlyActive = false,
+        IQueryDispatcher queryDispatcher = default!,
+        CancellationToken cancellationToken = default)
     {
         var query = new GetAllAllowedCitiesQuery { OnlyActive = onlyActive };
 
