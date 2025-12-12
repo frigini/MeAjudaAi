@@ -106,7 +106,7 @@ public static class DocumentationExtensions
                 // Último recurso: usar segmentos da rota
                 var segments = (apiDesc.RelativePath ?? "unknown")
                     .Split('/')
-                    .Where(s => !string.IsNullOrWhiteSpace(s) && !s.StartsWith("{"))
+                    .Where(s => !string.IsNullOrWhiteSpace(s) && !s.StartsWith('{'))
                     .ToArray();
 
                 var ctrl = segments.FirstOrDefault() ?? "Api";

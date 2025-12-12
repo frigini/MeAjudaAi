@@ -43,20 +43,6 @@ public class ExampleSchemaFilter : ISchemaFilter
         AddDetailedDescription(schema, context.Type);
         */
     }
-
-    private static double GetDecimalExample(string propertyName)
-    {
-        /*
-        return propertyName switch
-        {
-            var name when name.Contains("price") || name.Contains("preco") => 99.99,
-            var name when name.Contains("rate") || name.Contains("taxa") => 4.5,
-            var name when name.Contains("percentage") || name.Contains("porcentagem") => 15.0,
-            _ => 1.0
-        };
-        */
-        return 1.0;
-    }
 }
 
 #pragma warning restore IDE0051, IDE0060

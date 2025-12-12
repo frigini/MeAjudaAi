@@ -75,7 +75,7 @@ public static class SerilogConfigurator
                 .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning);
 
             // Configurar Application Insights se disponível
-            ConfigureApplicationInsights(config, configuration);
+            ConfigureApplicationInsights(configuration);
         }
 
         // Configurar correlation ID enricher

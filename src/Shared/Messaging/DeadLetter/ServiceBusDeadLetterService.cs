@@ -52,7 +52,7 @@ public sealed class ServiceBusDeadLetterService(
 
             if (_options.EnableAdminNotifications)
             {
-                await NotifyAdministratorsAsync(failedMessageInfo, cancellationToken);
+                await NotifyAdministratorsAsync(failedMessageInfo);
             }
         }
         catch (Exception ex)

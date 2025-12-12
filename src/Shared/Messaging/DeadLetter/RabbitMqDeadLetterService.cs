@@ -70,7 +70,7 @@ public sealed class RabbitMqDeadLetterService(
 
             if (_deadLetterOptions.EnableAdminNotifications)
             {
-                await NotifyAdministratorsAsync(failedMessageInfo, cancellationToken);
+                await NotifyAdministratorsAsync(failedMessageInfo);
             }
         }
         catch (Exception ex)

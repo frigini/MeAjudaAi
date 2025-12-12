@@ -180,10 +180,7 @@ internal static class Program
 
         var keycloak = builder.AddMeAjudaAiKeycloakProduction();
 
-        // TODO: Verificar se AddAzureContainerAppEnvironment está disponível na versão atual do Aspire
-        // builder.AddAzureContainerAppEnvironment("cae");
-
-        var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
+        builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
             .WithReference(postgresql.MainDatabase, "DefaultConnection")
             .WithReference(redis)
             .WaitFor(postgresql.MainDatabase)

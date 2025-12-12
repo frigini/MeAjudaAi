@@ -25,16 +25,19 @@ public partial class Program
             // Configurações via ServiceDefaults e Shared (sem duplicar Serilog)
             builder.AddServiceDefaults();
             builder.Services.AddHttpContextAccessor();
-            builder.Services.AddSharedServices(builder.Configuration);
-            builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
-            // Registrar módulos
+            // Registrar módulos ANTES de AddSharedServices
+            // (exception handlers específicos devem ser registrados antes do global)
             builder.Services.AddUsersModule(builder.Configuration);
             builder.Services.AddProvidersModule(builder.Configuration);
             builder.Services.AddDocumentsModule(builder.Configuration);
             builder.Services.AddSearchProvidersModule(builder.Configuration, builder.Environment);
             builder.Services.AddLocationModule(builder.Configuration);
             builder.Services.AddServiceCatalogsModule(builder.Configuration);
+
+            // Shared services por último (GlobalExceptionHandler atua como fallback)
+            builder.Services.AddSharedServices(builder.Configuration);
+            builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
             var app = builder.Build();
 

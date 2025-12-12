@@ -22,7 +22,7 @@ internal class MetricsCollectorService(
         {
             try
             {
-                await CollectMetrics(stoppingToken);
+                await CollectMetrics();
             }
             catch (Exception ex)
             {
@@ -42,11 +42,11 @@ internal class MetricsCollectorService(
         try
         {
             // Coletar métricas de usuários ativos
-            var activeUsers = await GetActiveUsersCount(scope);
+            var activeUsers = await GetActiveUsersCount();
             businessMetrics.UpdateActiveUsers(activeUsers);
 
             // Coletar métricas de solicitações pendentes
-            var pendingRequests = await GetPendingHelpRequestsCount(scope);
+            var pendingRequests = await GetPendingHelpRequestsCount();
             businessMetrics.UpdatePendingHelpRequests(pendingRequests);
 
             logger.LogDebug("Metrics collected: {ActiveUsers} active users, {PendingRequests} pending requests",

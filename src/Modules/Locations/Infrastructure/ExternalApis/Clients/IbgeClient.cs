@@ -145,11 +145,11 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             }
 
             var ufSigla = municipio.GetEstadoSigla();
-            return string.Equals(ufSigla, stateSigla, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(ufSigla, state, StringComparison.OrdinalIgnoreCase);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao validar cidade {CityName} na UF {UF}", cityName, stateSigla);
+            logger.LogError(ex, "Erro ao validar cidade {CityName} na UF {UF}", city, state);
             return false;
         }
     }
