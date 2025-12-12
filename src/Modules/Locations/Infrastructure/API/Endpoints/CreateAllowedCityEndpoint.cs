@@ -1,10 +1,8 @@
 using MeAjudaAi.Modules.Locations.Application.Commands;
-using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -36,11 +34,9 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             request.IbgeCode,
             request.IsActive);
 
-        var result = await commandDispatcher.DispatchAsync(command, cancellationToken);
+        var cityId = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Guid>(command, cancellationToken);
 
-        return result.Match(
-            success => Results.Created($"/api/v1/admin/allowed-cities/{success}", Response.Success(success)),
-            errors => HandleErrors(errors));
+        return Results.Created($"/api/v1/admin/allowed-cities/{cityId}", new Response<Guid>(cityId, 201));
     }
 }
 
@@ -50,5 +46,5 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
 public sealed record CreateAllowedCityRequest(
     string CityName,
     string StateSigla,
-    int? IbgeCode = null,
+    int? IbgeCode,
     bool IsActive = true);

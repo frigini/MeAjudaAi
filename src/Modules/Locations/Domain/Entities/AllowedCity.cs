@@ -61,6 +61,11 @@ public sealed class AllowedCity
         int? ibgeCode = null,
         bool isActive = true)
     {
+        // Trim first
+        cityName = cityName?.Trim() ?? string.Empty;
+        stateSigla = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
+        createdBy = createdBy?.Trim() ?? string.Empty;
+
         if (string.IsNullOrWhiteSpace(cityName))
             throw new ArgumentException("Nome da cidade não pode ser vazio", nameof(cityName));
 
@@ -74,8 +79,8 @@ public sealed class AllowedCity
             throw new ArgumentException("CreatedBy não pode ser vazio", nameof(createdBy));
 
         Id = Guid.NewGuid();
-        CityName = cityName.Trim();
-        StateSigla = stateSigla.Trim().ToUpperInvariant();
+        CityName = cityName;
+        StateSigla = stateSigla;
         IbgeCode = ibgeCode;
         IsActive = isActive;
         CreatedAt = DateTime.UtcNow;
@@ -84,6 +89,11 @@ public sealed class AllowedCity
 
     public void Update(string cityName, string stateSigla, int? ibgeCode, bool isActive, string updatedBy)
     {
+        // Trim first
+        cityName = cityName?.Trim() ?? string.Empty;
+        stateSigla = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
+        updatedBy = updatedBy?.Trim() ?? string.Empty;
+
         if (string.IsNullOrWhiteSpace(cityName))
             throw new ArgumentException("Nome da cidade não pode ser vazio", nameof(cityName));
 
@@ -96,8 +106,8 @@ public sealed class AllowedCity
         if (string.IsNullOrWhiteSpace(updatedBy))
             throw new ArgumentException("UpdatedBy não pode ser vazio", nameof(updatedBy));
 
-        CityName = cityName.Trim();
-        StateSigla = stateSigla.Trim().ToUpperInvariant();
+        CityName = cityName;
+        StateSigla = stateSigla;
         IbgeCode = ibgeCode;
         IsActive = isActive;
         UpdatedAt = DateTime.UtcNow;

@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// <summary>
 /// Handler responsável por processar a query de listagem de cidades permitidas.
 /// </summary>
-internal sealed class GetAllAllowedCitiesHandler(IAllowedCityRepository repository)
+public sealed class GetAllAllowedCitiesHandler(IAllowedCityRepository repository)
     : IQueryHandler<GetAllAllowedCitiesQuery, IReadOnlyList<AllowedCityDto>>
 {
     public async Task<IReadOnlyList<AllowedCityDto>> HandleAsync(GetAllAllowedCitiesQuery query, CancellationToken cancellationToken)

@@ -15,12 +15,22 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Moq" />
+    
+    <!-- Test Data Generation -->
+    <PackageReference Include="Bogus" />
+    <PackageReference Include="AutoFixture" />
+    <PackageReference Include="AutoFixture.AutoMoq" />
+    
+    <!-- Database Testing -->
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Respawn" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\MeAjudaAi.Modules.Locations.Domain.csproj" />
     <ProjectReference Include="..\Application\MeAjudaAi.Modules.Locations.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\MeAjudaAi.Modules.Locations.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\tests\MeAjudaAi.Shared.Tests\MeAjudaAi.Shared.Tests.csproj" />
   </ItemGroup>
 
 </Project>

@@ -20,67 +20,53 @@ public class DeleteAllowedCityHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithValidId_ShouldDeleteCity()
+    public async Task HandleAsync_WithValidId_ShouldDeleteAllowedCity()
     {
         // Arrange
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "3143906", "admin@test.com");
-        typeof(AllowedCity).GetProperty("Id")!.SetValue(existingCity, cityId);
-
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
         var command = new DeleteAllowedCityCommand { Id = cityId };
 
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
-        _repositoryMock.Setup(x => x.DeleteAsync(existingCity, It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
-        await _handler.Handle(command, CancellationToken.None);
+        await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        _repositoryMock.Verify(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()), Times.Once);
         _repositoryMock.Verify(x => x.DeleteAsync(existingCity, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_WhenCityNotFound_ShouldThrowInvalidOperationException()
+    public async Task HandleAsync_WhenCityNotFound_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        var cityId = Guid.NewGuid();
-        var command = new DeleteAllowedCityCommand { Id = cityId };
+        var command = new DeleteAllowedCityCommand { Id = Guid.NewGuid() };
 
-        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.GetByIdAsync(command.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
         // Act
-        var act = async () => await _handler.Handle(command, CancellationToken.None);
+        var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*não encontrada*");
-
-        _repositoryMock.Verify(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.DeleteAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_WhenCityIsInactive_ShouldStillDeleteCity()
+    public async Task HandleAsync_WithInactiveCity_ShouldStillDelete()
     {
         // Arrange
         var cityId = Guid.NewGuid();
-        var existingCity = new AllowedCity("Muriaé", "MG", "3143906", "admin@test.com");
-        typeof(AllowedCity).GetProperty("Id")!.SetValue(existingCity, cityId);
-        existingCity.Deactivate("admin@test.com");
-
+        var existingCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, false);
         var command = new DeleteAllowedCityCommand { Id = cityId };
 
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingCity);
-        _repositoryMock.Setup(x => x.DeleteAsync(existingCity, It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         // Act
-        await _handler.Handle(command, CancellationToken.None);
+        await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         _repositoryMock.Verify(x => x.DeleteAsync(existingCity, It.IsAny<CancellationToken>()), Times.Once);

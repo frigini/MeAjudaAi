@@ -1,9 +1,9 @@
+using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Shared.Authorization;
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -24,16 +24,14 @@ public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
             .RequireAdmin();
 
     private static async Task<IResult> GetAllAsync(
-        ICommandDispatcher commandDispatcher,
-        bool onlyActive = false,
-        CancellationToken cancellationToken = default)
+        bool onlyActive,
+        IQueryDispatcher queryDispatcher,
+        CancellationToken cancellationToken)
     {
-        var query = new GetAllAllowedCitiesQuery(onlyActive);
+        var query = new GetAllAllowedCitiesQuery { OnlyActive = onlyActive };
 
-        var result = await commandDispatcher.DispatchAsync(query, cancellationToken);
+        var result = await queryDispatcher.QueryAsync<GetAllAllowedCitiesQuery, IReadOnlyList<AllowedCityDto>>(query, cancellationToken);
 
-        return result.Match(
-            success => Results.Ok(Response.Success(success)),
-            errors => HandleErrors(errors));
+        return Results.Ok(new Response<IReadOnlyList<AllowedCityDto>>(result));
     }
 }

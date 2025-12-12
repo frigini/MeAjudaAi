@@ -7,7 +7,7 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// <summary>
 /// Handler responsável por processar o comando de exclusão de cidade permitida.
 /// </summary>
-internal sealed class DeleteAllowedCityHandler(IAllowedCityRepository repository) : ICommandHandler<DeleteAllowedCityCommand>
+public sealed class DeleteAllowedCityHandler(IAllowedCityRepository repository) : ICommandHandler<DeleteAllowedCityCommand>
 {
     public async Task HandleAsync(DeleteAllowedCityCommand command, CancellationToken cancellationToken)
     {

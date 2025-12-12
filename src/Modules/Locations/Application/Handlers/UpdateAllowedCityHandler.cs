@@ -9,7 +9,7 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// <summary>
 /// Handler responsável por processar o comando de atualização de cidade permitida.
 /// </summary>
-internal sealed class UpdateAllowedCityHandler(
+public sealed class UpdateAllowedCityHandler(
     IAllowedCityRepository repository,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<UpdateAllowedCityCommand>
 {
@@ -36,5 +36,8 @@ internal sealed class UpdateAllowedCityHandler(
             command.IbgeCode,
             command.IsActive,
             currentUser);
+
+        // Persistir alterações
+        await repository.UpdateAsync(city, cancellationToken);
     }
 }

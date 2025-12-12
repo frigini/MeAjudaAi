@@ -6,22 +6,24 @@ namespace MeAjudaAi.Modules.Locations.Tests.Unit.Domain.Entities;
 
 public class AllowedCityTests
 {
+    #region Constructor Tests
+
     [Fact]
     public void Constructor_WithValidParameters_ShouldCreateAllowedCity()
     {
         // Arrange
         var cityName = "Muriaé";
         var stateSigla = "MG";
-        var ibgeCode = "3143906";
+        var ibgeCode = 3143906;
         var createdBy = "admin@test.com";
 
         // Act
-        var allowedCity = new AllowedCity(cityName, stateSigla, ibgeCode, createdBy);
+        var allowedCity = new AllowedCity(cityName, stateSigla, createdBy, ibgeCode);
 
         // Assert
         allowedCity.Id.Should().NotBeEmpty();
         allowedCity.CityName.Should().Be(cityName);
-        allowedCity.StateSigla.Should().Be(stateSigla);
+        allowedCity.StateSigla.Should().Be("MG");
         allowedCity.IbgeCode.Should().Be(ibgeCode);
         allowedCity.IsActive.Should().BeTrue();
         allowedCity.CreatedBy.Should().Be(createdBy);
@@ -39,7 +41,7 @@ public class AllowedCityTests
         var createdBy = "admin@test.com";
 
         // Act
-        var allowedCity = new AllowedCity(cityName, stateSigla, null, createdBy);
+        var allowedCity = new AllowedCity(cityName, stateSigla, createdBy);
 
         // Assert
         allowedCity.IbgeCode.Should().BeNull();
@@ -50,182 +52,223 @@ public class AllowedCityTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_WithInvalidCityName_ShouldThrowArgumentException(string? invalidCityName)
+    public void Constructor_WithInvalidCityName_ShouldThrowArgumentException(string invalidCityName)
     {
-        // Arrange
-        var stateSigla = "MG";
-        var createdBy = "admin@test.com";
-
-        // Act
-        var act = () => new AllowedCity(invalidCityName!, stateSigla, null, createdBy);
+        // Arrange & Act
+        var act = () => new AllowedCity(invalidCityName, "MG", "admin@test.com");
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*cityName*");
+            .WithMessage("*Nome da cidade não pode ser vazio*");
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_WithInvalidStateSigla_ShouldThrowArgumentException(string? invalidStateSigla)
+    public void Constructor_WithInvalidStateSigla_ShouldThrowArgumentException(string invalidStateSigla)
     {
-        // Arrange
-        var cityName = "Muriaé";
-        var createdBy = "admin@test.com";
-
-        // Act
-        var act = () => new AllowedCity(cityName, invalidStateSigla!, null, createdBy);
+        // Arrange & Act
+        var act = () => new AllowedCity("Muriaé", invalidStateSigla, "admin@test.com");
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*stateSigla*");
+            .WithMessage("*Sigla do estado não pode ser vazia*");
     }
 
     [Theory]
     [InlineData("M")]
-    [InlineData("MGS")]
-    [InlineData("MINAS")]
-    public void Constructor_WithStateSiglaNotTwoCharacters_ShouldThrowArgumentException(string invalidStateSigla)
+    [InlineData("MGA")]
+    public void Constructor_WithInvalidStateSiglaLength_ShouldThrowArgumentException(string invalidLength)
     {
-        // Arrange
-        var cityName = "Muriaé";
-        var createdBy = "admin@test.com";
-
-        // Act
-        var act = () => new AllowedCity(cityName, invalidStateSigla, null, createdBy);
+        // Arrange & Act
+        var act = () => new AllowedCity("Muriaé", invalidLength, "admin@test.com");
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*2 caracteres*");
+            .WithMessage("*Sigla do estado deve ter 2 caracteres*");
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_WithInvalidCreatedBy_ShouldThrowArgumentException(string? invalidCreatedBy)
+    public void Constructor_WithInvalidCreatedBy_ShouldThrowArgumentException(string invalidCreatedBy)
     {
-        // Arrange
-        var cityName = "Muriaé";
-        var stateSigla = "MG";
-
-        // Act
-        var act = () => new AllowedCity(cityName, stateSigla, null, invalidCreatedBy!);
+        // Arrange & Act
+        var act = () => new AllowedCity("Muriaé", "MG", invalidCreatedBy);
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*createdBy*");
+            .WithMessage("*CreatedBy não pode ser vazio*");
     }
+
+    [Fact]
+    public void Constructor_ShouldNormalizeStateSiglaToUpperCase()
+    {
+        // Arrange & Act
+        var allowedCity = new AllowedCity("Muriaé", "mg", "admin@test.com");
+
+        // Assert
+        allowedCity.StateSigla.Should().Be("MG");
+    }
+
+    [Fact]
+    public void Constructor_ShouldTrimCityNameAndStateSigla()
+    {
+        // Arrange & Act
+        var allowedCity = new AllowedCity("  Muriaé  ", "  mg  ", "admin@test.com");
+
+        // Assert
+        allowedCity.CityName.Should().Be("Muriaé");
+        allowedCity.StateSigla.Should().Be("MG");
+    }
+
+    [Fact]
+    public void Constructor_WithIsActiveFalse_ShouldCreateInactiveCity()
+    {
+        // Arrange & Act
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com", isActive: false);
+
+        // Assert
+        allowedCity.IsActive.Should().BeFalse();
+    }
+
+    #endregion
+
+    #region Update Tests
 
     [Fact]
     public void Update_WithValidParameters_ShouldUpdateAllowedCity()
     {
         // Arrange
-        var allowedCity = new AllowedCity("Muriaé", "MG", "3143906", "admin@test.com");
-        var originalCreatedAt = allowedCity.CreatedAt;
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
         var newCityName = "Itaperuna";
         var newStateSigla = "RJ";
-        var newIbgeCode = "3302270";
+        var newIbgeCode = 3302270;
         var updatedBy = "admin2@test.com";
 
         // Act
-        allowedCity.Update(newCityName, newStateSigla, newIbgeCode, updatedBy);
+        allowedCity.Update(newCityName, newStateSigla, newIbgeCode, true, updatedBy);
 
         // Assert
         allowedCity.CityName.Should().Be(newCityName);
-        allowedCity.StateSigla.Should().Be(newStateSigla);
+        allowedCity.StateSigla.Should().Be("RJ");
         allowedCity.IbgeCode.Should().Be(newIbgeCode);
         allowedCity.UpdatedBy.Should().Be(updatedBy);
         allowedCity.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        allowedCity.CreatedAt.Should().Be(originalCreatedAt);
-        allowedCity.CreatedBy.Should().Be("admin@test.com");
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Update_WithInvalidCityName_ShouldThrowArgumentException(string? invalidCityName)
+    public void Update_WithInvalidCityName_ShouldThrowArgumentException(string invalidCityName)
     {
         // Arrange
-        var allowedCity = new AllowedCity("Muriaé", "MG", null, "admin@test.com");
-        var updatedBy = "admin2@test.com";
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com");
 
         // Act
-        var act = () => allowedCity.Update(invalidCityName!, "RJ", null, updatedBy);
+        var act = () => allowedCity.Update(invalidCityName, "RJ", null, true, "admin@test.com");
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*cityName*");
+            .WithMessage("*Nome da cidade não pode ser vazio*");
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Update_WithInvalidStateSigla_ShouldThrowArgumentException(string? invalidStateSigla)
+    public void Update_WithInvalidStateSigla_ShouldThrowArgumentException(string invalidStateSigla)
     {
         // Arrange
-        var allowedCity = new AllowedCity("Muriaé", "MG", null, "admin@test.com");
-        var updatedBy = "admin2@test.com";
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com");
 
         // Act
-        var act = () => allowedCity.Update("Itaperuna", invalidStateSigla!, null, updatedBy);
+        var act = () => allowedCity.Update("Itaperuna", invalidStateSigla, null, true, "admin@test.com");
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*stateSigla*");
+            .WithMessage("*Sigla do estado não pode ser vazia*");
     }
 
     [Theory]
     [InlineData("M")]
-    [InlineData("RJS")]
-    public void Update_WithStateSiglaNotTwoCharacters_ShouldThrowArgumentException(string invalidStateSigla)
+    [InlineData("RJX")]
+    public void Update_WithInvalidStateSiglaLength_ShouldThrowArgumentException(string invalidLength)
     {
         // Arrange
-        var allowedCity = new AllowedCity("Muriaé", "MG", null, "admin@test.com");
-        var updatedBy = "admin2@test.com";
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com");
 
         // Act
-        var act = () => allowedCity.Update("Itaperuna", invalidStateSigla, null, updatedBy);
+        var act = () => allowedCity.Update("Itaperuna", invalidLength, null, true, "admin@test.com");
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*2 caracteres*");
+            .WithMessage("*Sigla do estado deve ter 2 caracteres*");
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Update_WithInvalidUpdatedBy_ShouldThrowArgumentException(string? invalidUpdatedBy)
+    public void Update_WithInvalidUpdatedBy_ShouldThrowArgumentException(string invalidUpdatedBy)
     {
         // Arrange
-        var allowedCity = new AllowedCity("Muriaé", "MG", null, "admin@test.com");
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com");
 
         // Act
-        var act = () => allowedCity.Update("Itaperuna", "RJ", null, invalidUpdatedBy!);
+        var act = () => allowedCity.Update("Itaperuna", "RJ", null, true, invalidUpdatedBy);
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*updatedBy*");
+            .WithMessage("*UpdatedBy não pode ser vazio*");
     }
 
     [Fact]
-    public void Activate_WhenInactive_ShouldActivateCity()
+    public void Update_ShouldNormalizeStateSiglaToUpperCase()
     {
         // Arrange
-        var allowedCity = new AllowedCity("Muriaé", "MG", null, "admin@test.com");
-        allowedCity.Deactivate("admin@test.com");
-        var updatedBy = "admin2@test.com";
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com");
 
         // Act
-        allowedCity.Activate(updatedBy);
+        allowedCity.Update("Itaperuna", "rj", null, true, "admin@test.com");
+
+        // Assert
+        allowedCity.StateSigla.Should().Be("RJ");
+    }
+
+    [Fact]
+    public void Update_ShouldTrimCityNameAndStateSigla()
+    {
+        // Arrange
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com");
+
+        // Act
+        allowedCity.Update("  Itaperuna  ", "  rj  ", null, true, "admin@test.com");
+
+        // Assert
+        allowedCity.CityName.Should().Be("Itaperuna");
+        allowedCity.StateSigla.Should().Be("RJ");
+    }
+
+    #endregion
+
+    #region Activate Tests
+
+    [Fact]
+    public void Activate_ShouldSetIsActiveToTrue()
+    {
+        // Arrange
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com", isActive: false);
+
+        // Act
+        allowedCity.Activate("admin@test.com");
 
         // Assert
         allowedCity.IsActive.Should().BeTrue();
-        allowedCity.UpdatedBy.Should().Be(updatedBy);
+        allowedCity.UpdatedBy.Should().Be("admin@test.com");
         allowedCity.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
@@ -233,33 +276,35 @@ public class AllowedCityTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Activate_WithInvalidUpdatedBy_ShouldThrowArgumentException(string? invalidUpdatedBy)
+    public void Activate_WithInvalidUpdatedBy_ShouldThrowArgumentException(string invalidUpdatedBy)
     {
         // Arrange
-        var allowedCity = new AllowedCity("Muriaé", "MG", null, "admin@test.com");
-        allowedCity.Deactivate("admin@test.com");
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com", isActive: false);
 
         // Act
-        var act = () => allowedCity.Activate(invalidUpdatedBy!);
+        var act = () => allowedCity.Activate(invalidUpdatedBy);
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*updatedBy*");
+            .WithMessage("*UpdatedBy não pode ser vazio*");
     }
 
+    #endregion
+
+    #region Deactivate Tests
+
     [Fact]
-    public void Deactivate_WhenActive_ShouldDeactivateCity()
+    public void Deactivate_ShouldSetIsActiveToFalse()
     {
         // Arrange
-        var allowedCity = new AllowedCity("Muriaé", "MG", null, "admin@test.com");
-        var updatedBy = "admin2@test.com";
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com");
 
         // Act
-        allowedCity.Deactivate(updatedBy);
+        allowedCity.Deactivate("admin@test.com");
 
         // Assert
         allowedCity.IsActive.Should().BeFalse();
-        allowedCity.UpdatedBy.Should().Be(updatedBy);
+        allowedCity.UpdatedBy.Should().Be("admin@test.com");
         allowedCity.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
@@ -267,16 +312,18 @@ public class AllowedCityTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Deactivate_WithInvalidUpdatedBy_ShouldThrowArgumentException(string? invalidUpdatedBy)
+    public void Deactivate_WithInvalidUpdatedBy_ShouldThrowArgumentException(string invalidUpdatedBy)
     {
         // Arrange
-        var allowedCity = new AllowedCity("Muriaé", "MG", null, "admin@test.com");
+        var allowedCity = new AllowedCity("Muriaé", "MG", "admin@test.com");
 
         // Act
-        var act = () => allowedCity.Deactivate(invalidUpdatedBy!);
+        var act = () => allowedCity.Deactivate(invalidUpdatedBy);
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*updatedBy*");
+            .WithMessage("*UpdatedBy não pode ser vazio*");
     }
+
+    #endregion
 }

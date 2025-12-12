@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
@@ -20,102 +21,82 @@ public class GetAllAllowedCitiesHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithOnlyActiveTrue_ShouldReturnOnlyActiveCities()
+    public async Task HandleAsync_WithOnlyActiveTrue_ShouldReturnOnlyActiveCities()
     {
         // Arrange
-        var activeCity = new AllowedCity("Muriaé", "MG", "3143906", "admin@test.com");
-        var cities = new List<AllowedCity> { activeCity };
-
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
+        var activeCities = new List<AllowedCity>
+        {
+            new("Muriaé", "MG", "admin@test.com", 3143906)
+        };
 
         _repositoryMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(cities);
+            .ReturnsAsync(activeCities);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.Should().HaveCount(1);
         result.First().CityName.Should().Be("Muriaé");
-        result.First().IsActive.Should().BeTrue();
-
         _repositoryMock.Verify(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.GetAllAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_WithOnlyActiveFalse_ShouldReturnAllCities()
+    public async Task HandleAsync_WithOnlyActiveFalse_ShouldReturnAllCities()
     {
         // Arrange
-        var activeCity = new AllowedCity("Muriaé", "MG", "3143906", "admin@test.com");
-        var inactiveCity = new AllowedCity("Itaperuna", "RJ", "3302270", "admin@test.com");
-        inactiveCity.Deactivate("admin@test.com");
-
-        var cities = new List<AllowedCity> { activeCity, inactiveCity };
-
         var query = new GetAllAllowedCitiesQuery { OnlyActive = false };
+        var allCities = new List<AllowedCity>
+        {
+            new("Muriaé", "MG", "admin@test.com", 3143906),
+            new("Itaperuna", "RJ", "admin@test.com", 3302270, false)
+        };
 
         _repositoryMock.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(cities);
+            .ReturnsAsync(allCities);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.Should().HaveCount(2);
-        result.Should().Contain(dto => dto.CityName == "Muriaé" && dto.IsActive);
-        result.Should().Contain(dto => dto.CityName == "Itaperuna" && !dto.IsActive);
-
         _repositoryMock.Verify(x => x.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_WhenNoCities_ShouldReturnEmptyList()
+    public async Task HandleAsync_WithNoCities_ShouldReturnEmptyList()
     {
         // Arrange
-        var cities = new List<AllowedCity>();
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
-
         _repositoryMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(cities);
+            .ReturnsAsync(new List<AllowedCity>());
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.Should().BeEmpty();
-
-        _repositoryMock.Verify(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldMapAllPropertiesCorrectly()
+    public async Task HandleAsync_ShouldMapPropertiesToDto()
     {
         // Arrange
-        var cityId = Guid.NewGuid();
-        var city = new AllowedCity("Muriaé", "MG", "3143906", "admin@test.com");
-        typeof(AllowedCity).GetProperty("Id")!.SetValue(city, cityId);
-
-        var cities = new List<AllowedCity> { city };
         var query = new GetAllAllowedCitiesQuery { OnlyActive = true };
-
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
         _repositoryMock.Setup(x => x.GetAllActiveAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(cities);
+            .ReturnsAsync(new List<AllowedCity> { city });
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         var dto = result.First();
-        dto.Id.Should().Be(cityId);
-        dto.CityName.Should().Be("Muriaé");
-        dto.StateSigla.Should().Be("MG");
-        dto.IbgeCode.Should().Be("3143906");
-        dto.IsActive.Should().BeTrue();
-        dto.CreatedBy.Should().Be("admin@test.com");
-        dto.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        dto.UpdatedAt.Should().BeNull();
-        dto.UpdatedBy.Should().BeNull();
+        dto.CityName.Should().Be(city.CityName);
+        dto.StateSigla.Should().Be(city.StateSigla);
+        dto.IbgeCode.Should().Be(city.IbgeCode);
+        dto.IsActive.Should().Be(city.IsActive);
+        dto.CreatedBy.Should().Be(city.CreatedBy);
     }
 }

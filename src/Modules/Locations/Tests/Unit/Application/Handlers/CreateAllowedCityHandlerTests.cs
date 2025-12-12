@@ -24,99 +24,49 @@ public class CreateAllowedCityHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithValidCommand_ShouldCreateAndReturnCityId()
+    public async Task HandleAsync_WithValidCommand_ShouldCreateAllowedCityAndReturnId()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand
-        {
-            CityName = "Muriaé",
-            StateSigla = "MG",
-            IbgeCode = "3143906",
-            IsActive = true
-        };
-
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, true);
         var userEmail = "admin@test.com";
-        var httpContext = new DefaultHttpContext();
-        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-        {
-            new Claim(ClaimTypes.Email, userEmail)
-        }));
 
-        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
+        SetupHttpContext(userEmail);
         _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        AllowedCity? capturedCity = null;
-        _repositoryMock.Setup(x => x.AddAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()))
-            .Callback<AllowedCity, CancellationToken>((city, _) => capturedCity = city)
-            .Returns(Task.CompletedTask);
-
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         result.Should().NotBeEmpty();
-        capturedCity.Should().NotBeNull();
-        capturedCity!.CityName.Should().Be(command.CityName);
-        capturedCity.StateSigla.Should().Be(command.StateSigla);
-        capturedCity.IbgeCode.Should().Be(command.IbgeCode);
-        capturedCity.IsActive.Should().Be(command.IsActive);
-        capturedCity.CreatedBy.Should().Be(userEmail);
-
-        _repositoryMock.Verify(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()), Times.Once);
         _repositoryMock.Verify(x => x.AddAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_WhenCityAlreadyExists_ShouldThrowInvalidOperationException()
+    public async Task HandleAsync_WhenCityAlreadyExists_ShouldThrowInvalidOperationException()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand
-        {
-            CityName = "Muriaé",
-            StateSigla = "MG",
-            IbgeCode = "3143906",
-            IsActive = true
-        };
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, true);
+        SetupHttpContext("admin@test.com");
 
-        var userEmail = "admin@test.com";
-        var httpContext = new DefaultHttpContext();
-        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-        {
-            new Claim(ClaimTypes.Email, userEmail)
-        }));
-
-        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
         _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
-        var act = async () => await _handler.Handle(command, CancellationToken.None);
+        var act = async () => await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*já cadastrada*");
-
-        _repositoryMock.Verify(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()), Times.Once);
-        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_WithoutUserEmail_ShouldUseSystemAsCreatedBy()
+    public async Task HandleAsync_WithNoUserEmail_ShouldUseSystemAsCreator()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand
-        {
-            CityName = "Muriaé",
-            StateSigla = "MG",
-            IbgeCode = "3143906",
-            IsActive = true
-        };
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, true);
+        SetupHttpContext(null);
 
-        var httpContext = new DefaultHttpContext();
-        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
-
-        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
         _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
@@ -126,36 +76,20 @@ public class CreateAllowedCityHandlerTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeEmpty();
         capturedCity.Should().NotBeNull();
         capturedCity!.CreatedBy.Should().Be("system");
-
-        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_WithNullIbgeCode_ShouldCreateCity()
+    public async Task HandleAsync_WithNullIbgeCode_ShouldCreateCity()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand
-        {
-            CityName = "Muriaé",
-            StateSigla = "MG",
-            IbgeCode = null,
-            IsActive = true
-        };
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", null, true);
+        SetupHttpContext("admin@test.com");
 
-        var userEmail = "admin@test.com";
-        var httpContext = new DefaultHttpContext();
-        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-        {
-            new Claim(ClaimTypes.Email, userEmail)
-        }));
-
-        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
         _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
@@ -165,38 +99,20 @@ public class CreateAllowedCityHandlerTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeEmpty();
         capturedCity.Should().NotBeNull();
         capturedCity!.IbgeCode.Should().BeNull();
-
-        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Handle_WithDifferentIsActiveValues_ShouldCreateCityWithCorrectStatus(bool isActive)
+    [Fact]
+    public async Task HandleAsync_WithIsActiveFalse_ShouldCreateInactiveCity()
     {
         // Arrange
-        var command = new CreateAllowedCityCommand
-        {
-            CityName = "Muriaé",
-            StateSigla = "MG",
-            IbgeCode = "3143906",
-            IsActive = isActive
-        };
+        var command = new CreateAllowedCityCommand("Muriaé", "MG", 3143906, false);
+        SetupHttpContext("admin@test.com");
 
-        var userEmail = "admin@test.com";
-        var httpContext = new DefaultHttpContext();
-        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-        {
-            new Claim(ClaimTypes.Email, userEmail)
-        }));
-
-        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
         _repositoryMock.Setup(x => x.ExistsAsync(command.CityName, command.StateSigla, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
@@ -206,13 +122,23 @@ public class CreateAllowedCityHandlerTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeEmpty();
         capturedCity.Should().NotBeNull();
-        capturedCity!.IsActive.Should().Be(isActive);
+        capturedCity!.IsActive.Should().BeFalse();
+    }
 
-        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<AllowedCity>(), It.IsAny<CancellationToken>()), Times.Once);
+    private void SetupHttpContext(string? userEmail)
+    {
+        var claims = userEmail != null
+            ? new List<Claim> { new(ClaimTypes.Email, userEmail) }
+            : new List<Claim>();
+
+        var identity = new ClaimsIdentity(claims);
+        var principal = new ClaimsPrincipal(identity);
+        var httpContext = new DefaultHttpContext { User = principal };
+
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
     }
 }

@@ -10,7 +10,7 @@ namespace MeAjudaAi.Modules.Locations.Application.Handlers;
 /// <summary>
 /// Handler responsável por processar o comando de criação de cidade permitida.
 /// </summary>
-internal sealed class CreateAllowedCityHandler(
+public sealed class CreateAllowedCityHandler(
     IAllowedCityRepository repository,
     IHttpContextAccessor httpContextAccessor) : ICommandHandler<CreateAllowedCityCommand, Guid>
 {

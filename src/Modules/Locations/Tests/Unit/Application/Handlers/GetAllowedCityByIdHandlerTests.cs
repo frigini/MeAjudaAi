@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Handlers;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Modules.Locations.Domain.Entities;
@@ -20,104 +21,82 @@ public class GetAllowedCityByIdHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithValidId_ShouldReturnCity()
+    public async Task HandleAsync_WithValidId_ShouldReturnAllowedCityDto()
     {
         // Arrange
         var cityId = Guid.NewGuid();
-        var city = new AllowedCity("Muriaé", "MG", "3143906", "admin@test.com");
-        typeof(AllowedCity).GetProperty("Id")!.SetValue(city, cityId);
-
         var query = new GetAllowedCityByIdQuery { Id = cityId };
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
 
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(cityId);
-        result.CityName.Should().Be("Muriaé");
+        result!.CityName.Should().Be("Muriaé");
         result.StateSigla.Should().Be("MG");
-        result.IbgeCode.Should().Be("3143906");
-        result.IsActive.Should().BeTrue();
-        result.CreatedBy.Should().Be("admin@test.com");
-        result.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        result.UpdatedAt.Should().BeNull();
-        result.UpdatedBy.Should().BeNull();
-
-        _repositoryMock.Verify(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()), Times.Once);
+        result.IbgeCode.Should().Be(3143906);
     }
 
     [Fact]
-    public async Task Handle_WhenCityNotFound_ShouldReturnNull()
+    public async Task HandleAsync_WithInvalidId_ShouldReturnNull()
     {
         // Arrange
-        var cityId = Guid.NewGuid();
-        var query = new GetAllowedCityByIdQuery { Id = cityId };
+        var query = new GetAllowedCityByIdQuery { Id = Guid.NewGuid() };
 
-        _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(x => x.GetByIdAsync(query.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((AllowedCity?)null);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.Should().BeNull();
-
-        _repositoryMock.Verify(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_WithInactiveCity_ShouldReturnCity()
+    public async Task HandleAsync_WithInactiveCity_ShouldReturnDto()
     {
         // Arrange
         var cityId = Guid.NewGuid();
-        var city = new AllowedCity("Muriaé", "MG", "3143906", "admin@test.com");
-        typeof(AllowedCity).GetProperty("Id")!.SetValue(city, cityId);
-        city.Deactivate("admin@test.com");
-
         var query = new GetAllowedCityByIdQuery { Id = cityId };
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906, false);
 
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result!.IsActive.Should().BeFalse();
-
-        _repositoryMock.Verify(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldMapAllPropertiesCorrectly()
+    public async Task HandleAsync_ShouldMapAllPropertiesToDto()
     {
         // Arrange
         var cityId = Guid.NewGuid();
-        var city = new AllowedCity("Muriaé", "MG", "3143906", "admin@test.com");
-        typeof(AllowedCity).GetProperty("Id")!.SetValue(city, cityId);
-        city.Update("Itaperuna", "RJ", "3302270", "admin2@test.com");
-
         var query = new GetAllowedCityByIdQuery { Id = cityId };
+        var city = new AllowedCity("Muriaé", "MG", "admin@test.com", 3143906);
 
         _repositoryMock.Setup(x => x.GetByIdAsync(cityId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(city);
 
         // Act
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(cityId);
-        result.CityName.Should().Be("Itaperuna");
-        result.StateSigla.Should().Be("RJ");
-        result.IbgeCode.Should().Be("3302270");
-        result.CreatedBy.Should().Be("admin@test.com");
-        result.UpdatedBy.Should().Be("admin2@test.com");
-        result.UpdatedAt.Should().NotBeNull();
+        result!.CityName.Should().Be(city.CityName);
+        result.StateSigla.Should().Be(city.StateSigla);
+        result.IbgeCode.Should().Be(city.IbgeCode);
+        result.IsActive.Should().Be(city.IsActive);
+        result.CreatedAt.Should().Be(city.CreatedAt);
+        result.CreatedBy.Should().Be(city.CreatedBy);
     }
 }

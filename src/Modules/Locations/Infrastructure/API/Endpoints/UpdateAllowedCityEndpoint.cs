@@ -3,7 +3,6 @@ using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Functional;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -20,7 +19,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
             .WithName("UpdateAllowedCity")
             .WithSummary("Update allowed city")
             .WithDescription("Updates an existing allowed city")
-            .Produces<Response<Unit>>(StatusCodes.Status200OK)
+            .Produces<Response<string>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
             .RequireAdmin();
@@ -31,18 +30,18 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
-        var command = new UpdateAllowedCityCommand(
-            id,
-            request.CityName,
-            request.StateSigla,
-            request.IbgeCode,
-            request.IsActive);
+        var command = new UpdateAllowedCityCommand
+        {
+            Id = id,
+            CityName = request.CityName,
+            StateSigla = request.StateSigla,
+            IbgeCode = request.IbgeCode,
+            IsActive = request.IsActive
+        };
 
-        var result = await commandDispatcher.DispatchAsync(command, cancellationToken);
+        await commandDispatcher.SendAsync(command, cancellationToken);
 
-        return result.Match(
-            success => Results.Ok(Response.Success(success)),
-            errors => HandleErrors(errors));
+        return Results.Ok(new Response<string>("Cidade permitida atualizada com sucesso"));
     }
 }
 

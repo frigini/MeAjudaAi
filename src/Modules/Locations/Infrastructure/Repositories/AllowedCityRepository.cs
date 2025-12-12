@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Repositories;
 /// <summary>
 /// Repository implementation for AllowedCity entity
 /// </summary>
-internal sealed class AllowedCityRepository(LocationsDbContext context) : IAllowedCityRepository
+public sealed class AllowedCityRepository(LocationsDbContext context) : IAllowedCityRepository
 {
     public async Task<IReadOnlyList<AllowedCity>> GetAllActiveAsync(CancellationToken cancellationToken = default)
     {

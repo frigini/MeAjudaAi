@@ -1,9 +1,9 @@
+using MeAjudaAi.Modules.Locations.Application.DTOs;
 using MeAjudaAi.Modules.Locations.Application.Queries;
 using MeAjudaAi.Shared.Authorization;
-using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
-using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -19,24 +19,22 @@ public class GetAllowedCityByIdEndpoint : BaseEndpoint, IEndpoint
         => app.MapGet("/api/v1/admin/allowed-cities/{id:guid}", GetByIdAsync)
             .WithName("GetAllowedCityById")
             .WithSummary("Get allowed city by ID")
-            .WithDescription("Retrieves an allowed city by its unique identifier")
+            .WithDescription("Retrieves a specific allowed city by its ID")
             .Produces<Response<AllowedCityDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .RequireAdmin();
 
     private static async Task<IResult> GetByIdAsync(
         Guid id,
-        ICommandDispatcher commandDispatcher,
+        IQueryDispatcher queryDispatcher,
         CancellationToken cancellationToken)
     {
-        var query = new GetAllowedCityByIdQuery(id);
+        var query = new GetAllowedCityByIdQuery { Id = id };
 
-        var result = await commandDispatcher.DispatchAsync(query, cancellationToken);
+        var result = await queryDispatcher.QueryAsync<GetAllowedCityByIdQuery, AllowedCityDto?>(query, cancellationToken);
 
-        return result.Match(
-            success => success is null
-                ? Results.NotFound(Response.Error($"Cidade permitida com ID '{id}' não encontrada"))
-                : Results.Ok(Response.Success(success)),
-            errors => HandleErrors(errors));
+        return result is not null
+            ? Results.Ok(new Response<AllowedCityDto>(result))
+            : Results.NotFound(new Response<AllowedCityDto>(default, 404, "Cidade permitida não encontrada"));
     }
 }
