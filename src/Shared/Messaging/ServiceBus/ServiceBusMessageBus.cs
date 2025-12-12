@@ -113,7 +113,16 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
                 // Only validate nullability for reference types; value types are always valid post-deserialization
                 if (message is not null || typeof(T).IsValueType)
                 {
-                    await handler(message!, args.CancellationToken);
+                    // Explicit null-check for reference types to avoid null-forgiving operator
+                    if (message is not null)
+                    {
+                        await handler(message, args.CancellationToken);
+                    }
+                    else if (typeof(T).IsValueType)
+                    {
+                        // For value types, default value is safe
+                        await handler(message!, args.CancellationToken);
+                    }
                     await args.CompleteMessageAsync(args.Message, args.CancellationToken);
 
                     _logger.LogDebug("Message {MessageType} processed successfully in {ElapsedMs}ms",

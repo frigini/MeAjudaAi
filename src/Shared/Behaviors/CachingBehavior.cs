@@ -36,7 +36,7 @@ public class CachingBehavior<TRequest, TResponse>(
         if (isCached)
         {
             logger.LogDebug("Cache hit for key: {CacheKey}", cacheKey);
-            return cachedResult;
+            return cachedResult!; // Non-null assertion: isCached=true guarantees value was retrieved from cache
         }
 
         logger.LogDebug("Cache miss for key: {CacheKey}. Executing query.", cacheKey);

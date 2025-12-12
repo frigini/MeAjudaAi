@@ -24,6 +24,12 @@ internal class MetricsCollectorService(
             {
                 await CollectMetrics(stoppingToken);
             }
+            catch (OperationCanceledException)
+            {
+                // Expected when service is stopping
+                logger.LogInformation("Metrics collection cancelled");
+                break;
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error collecting metrics");
