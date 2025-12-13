@@ -25,7 +25,8 @@ public static class SerilogConfigurator
         IWebHostEnvironment environment)
     {
         // 📄 Ler configurações básicas do appsettings.json
-        loggerConfig.ReadFrom.Configuration(configuration)
+        loggerConfig
+            .ReadFrom.Configuration(configuration)
 
             // 🏗️ Adicionar enrichers via código
             .Enrich.FromLogContext()
