@@ -186,7 +186,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                     "SELECT id FROM service_catalogs.categories WHERE name = {0}",
                     cat.Name)
                     .FirstOrDefaultAsync(cancellationToken);
-                
+
                 if (existingId != Guid.Empty)
                 {
                     idMap[cat.Name] = existingId;
