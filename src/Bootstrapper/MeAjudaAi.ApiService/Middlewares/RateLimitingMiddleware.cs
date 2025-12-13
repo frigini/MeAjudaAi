@@ -97,10 +97,10 @@ public class RateLimitingMiddleware(
 
         // 1. Check for endpoint-specific limits first
         var matchingLimit = rateLimitOptions.EndpointLimits
-            .Where(endpointLimit => IsPathMatch(requestPath, endpointLimit.Value.Pattern))
             .FirstOrDefault(endpointLimit =>
-                (isAuthenticated && endpointLimit.Value.ApplyToAuthenticated) ||
-                (!isAuthenticated && endpointLimit.Value.ApplyToAnonymous));
+                IsPathMatch(requestPath, endpointLimit.Value.Pattern) &&
+                ((isAuthenticated && endpointLimit.Value.ApplyToAuthenticated) ||
+                 (!isAuthenticated && endpointLimit.Value.ApplyToAnonymous)));
 
         if (matchingLimit.Value != null)
         {

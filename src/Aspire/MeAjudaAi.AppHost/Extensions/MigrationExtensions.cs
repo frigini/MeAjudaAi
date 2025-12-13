@@ -3,6 +3,7 @@ using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -19,7 +20,8 @@ public static class MigrationExtensions
     public static IResourceBuilder<T> WithMigrations<T>(
         this IResourceBuilder<T> builder) where T : IResourceWithConnectionString
     {
-        builder.ApplicationBuilder.Services.AddHostedService<MigrationHostedService>();
+        builder.ApplicationBuilder.Services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IHostedService, MigrationHostedService>());
         return builder;
     }
 }
@@ -130,10 +132,10 @@ internal class MigrationHostedService : IHostedService
     private List<Type> DiscoverDbContextTypes()
     {
         var dbContextTypes = new List<Type>();
-        
+
         // Primeiro, tentar carregar assemblies dos módulos dinamicamente
         LoadModuleAssemblies();
-        
+
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => a.FullName?.Contains("MeAjudaAi.Modules") == true)
             .ToList();
@@ -154,7 +156,7 @@ internal class MigrationHostedService : IHostedService
                     .ToList();
 
                 dbContextTypes.AddRange(types);
-                
+
                 if (types.Count > 0)
                 {
                     _logger.LogDebug("✅ Descobertos {Count} DbContext(s) em {Assembly}", types.Count, assembly.GetName().Name);
@@ -185,7 +187,7 @@ internal class MigrationHostedService : IHostedService
                 try
                 {
                     var assemblyName = AssemblyName.GetAssemblyName(dllPath);
-                    
+
                     // Verificar se já está carregado
                     if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName == assemblyName.FullName))
                     {
@@ -215,24 +217,35 @@ internal class MigrationHostedService : IHostedService
 
         try
         {
-            // Criar DbContextOptionsBuilder dinamicamente
+            // Criar DbContextOptionsBuilder dinâmicamente mantendo tipo genérico
             var optionsBuilderType = typeof(DbContextOptionsBuilder<>).MakeGenericType(contextType);
-            var optionsBuilder = Activator.CreateInstance(optionsBuilderType) as DbContextOptionsBuilder;
+            var optionsBuilderInstance = Activator.CreateInstance(optionsBuilderType);
 
-            if (optionsBuilder == null)
+            if (optionsBuilderInstance == null)
             {
                 throw new InvalidOperationException($"Não foi possível criar DbContextOptionsBuilder para {contextType.Name}");
             }
 
-            // Configurar PostgreSQL
-            optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
-            {
-                npgsqlOptions.MigrationsAssembly(contextType.Assembly.FullName);
-                npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
-            });
+            // Configurar PostgreSQL - usar dynamic para simplificar reflexão
+            dynamic optionsBuilderDynamic = optionsBuilderInstance;
+
+            // Chamar UseNpgsql com connection string
+            Microsoft.EntityFrameworkCore.NpgsqlDbContextOptionsBuilderExtensions.UseNpgsql(
+                optionsBuilderDynamic,
+                connectionString,
+                (Action<Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.NpgsqlDbContextOptionsBuilder>)(npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsAssembly(contextType.Assembly.FullName);
+                    npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
+                })
+            );
+
+            // Obter Options com tipo correto via reflection
+            var optionsProperty = optionsBuilderType.GetProperty("Options");
+            var options = optionsProperty!.GetValue(optionsBuilderInstance);
 
             // Criar instância do DbContext
-            var context = Activator.CreateInstance(contextType, optionsBuilder.Options) as DbContext;
+            var context = Activator.CreateInstance(contextType, options) as DbContext;
 
             if (context == null)
             {

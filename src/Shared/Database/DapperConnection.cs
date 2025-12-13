@@ -7,6 +7,15 @@ namespace MeAjudaAi.Shared.Database;
 public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics metrics) : IDapperConnection
 {
     private readonly string _connectionString = GetConnectionString(postgresOptions);
+    private const int SqlPreviewMaxLength = 100;
+
+    private static string GetSqlPreview(string? sql)
+    {
+        if (string.IsNullOrEmpty(sql)) return string.Empty;
+        var oneLine = sql.ReplaceLineEndings(" ");
+        if (oneLine.Length <= SqlPreviewMaxLength) return oneLine;
+        return oneLine.Substring(0, SqlPreviewMaxLength) + "...";
+    }
 
     private static string GetConnectionString(PostgresOptions? postgresOptions)
     {
@@ -46,8 +55,9 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             metrics.RecordConnectionError("dapper_query_multiple", ex);
+            var sqlPreview = GetSqlPreview(sql);
             throw new InvalidOperationException(
-                $"Failed to execute Dapper query (type: multiple). SQL: {sql?.Substring(0, Math.Min(sql.Length, 100))}...",
+                $"Failed to execute Dapper query (type: multiple). SQL: {sqlPreview}",
                 ex);
         }
     }
@@ -77,8 +87,9 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             metrics.RecordConnectionError("dapper_query_single", ex);
+            var sqlPreview = GetSqlPreview(sql);
             throw new InvalidOperationException(
-                $"Failed to execute Dapper query (type: single). SQL: {sql?.Substring(0, Math.Min(sql.Length, 100))}...",
+                $"Failed to execute Dapper query (type: single). SQL: {sqlPreview}",
                 ex);
         }
     }
@@ -108,8 +119,9 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             metrics.RecordConnectionError("dapper_execute", ex);
+            var sqlPreview = GetSqlPreview(sql);
             throw new InvalidOperationException(
-                $"Failed to execute Dapper command (type: execute). SQL: {sql?.Substring(0, Math.Min(sql.Length, 100))}...",
+                $"Failed to execute Dapper command (type: execute). SQL: {sqlPreview}",
                 ex);
         }
     }

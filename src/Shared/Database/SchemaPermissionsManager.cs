@@ -104,7 +104,7 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
         DO $$
         BEGIN
             IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'users_role') THEN
-                CREATE ROLE users_role LOGIN PASSWORD '{usersPassword}';
+                CREATE ROLE users_role LOGIN PASSWORD '{usersPassword.Replace("'", "''")}'; 
             END IF;
         END
         $$;
@@ -113,7 +113,7 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
         DO $$
         BEGIN
             IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'meajudaai_app_role') THEN
-                CREATE ROLE meajudaai_app_role LOGIN PASSWORD '{appPassword}';
+                CREATE ROLE meajudaai_app_role LOGIN PASSWORD '{appPassword.Replace("'", "''")}'; 
             END IF;
         END
         $$;

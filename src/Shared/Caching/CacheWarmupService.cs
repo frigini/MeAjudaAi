@@ -37,7 +37,7 @@ internal class CacheWarmupService : ICacheWarmupService
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
-        _warmupStrategies = [];
+        _warmupStrategies = new();
 
         // Registrar estratégias de warmup por módulo
         RegisterWarmupStrategies();
@@ -58,8 +58,15 @@ internal class CacheWarmupService : ICacheWarmupService
             stopwatch.Stop();
             _logger.LogInformation("Cache warmup completed successfully in {Duration}ms", stopwatch.ElapsedMilliseconds);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            stopwatch.Stop();
+            _logger.LogInformation("Cache warmup canceled after {Duration}ms", stopwatch.ElapsedMilliseconds);
+            throw;
+        }
         catch (Exception ex)
         {
+            stopwatch.Stop();
             _logger.LogError(ex, "Cache warmup failed after {Duration}ms", stopwatch.ElapsedMilliseconds);
             throw new InvalidOperationException(
                 $"Failed to warmup cache for all modules ({_warmupStrategies.Count} strategies) after {stopwatch.ElapsedMilliseconds}ms",
@@ -86,8 +93,15 @@ internal class CacheWarmupService : ICacheWarmupService
             _logger.LogInformation("Cache warmup for module {ModuleName} completed in {Duration}ms",
                 moduleName, stopwatch.ElapsedMilliseconds);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            stopwatch.Stop();
+            _logger.LogInformation("Cache warmup for module {ModuleName} canceled after {Duration}ms", moduleName, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
         catch (Exception ex)
         {
+            stopwatch.Stop();
             _logger.LogError(ex, "Cache warmup failed for module {ModuleName} after {Duration}ms",
                 moduleName, stopwatch.ElapsedMilliseconds);
             throw new InvalidOperationException(
@@ -137,6 +151,10 @@ internal class CacheWarmupService : ICacheWarmupService
 
             _logger.LogDebug("User system configurations warmed up");
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to warmup user system configurations");
@@ -151,6 +169,10 @@ internal class CacheWarmupService : ICacheWarmupService
         try
         {
             await warmupStrategy(_serviceProvider, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {

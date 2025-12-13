@@ -103,10 +103,16 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
             var response = await blobClient.ExistsAsync(cancellationToken);
             return response.Value;
         }
+        catch (RequestFailedException ex) when (ex.Status == 404)
+        {
+            return false;
+        }
         catch (RequestFailedException ex)
         {
-            _logger.LogError(ex, "Erro ao verificar existência do blob {BlobName}", blobName);
-            return false;
+            _logger.LogError(ex, "Erro ao verificar existência do blob {BlobName} (Status: {Status})", blobName, ex.Status);
+            throw new InvalidOperationException(
+                $"Failed to check existence of blob '{blobName}' (Status: {ex.Status})",
+                ex);
         }
     }
 
