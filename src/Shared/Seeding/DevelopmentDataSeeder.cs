@@ -74,10 +74,16 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                     {
                         var anyMethod = typeof(EntityFrameworkQueryableExtensions)
                             .GetMethods()
-                            .First(m => m.Name == "AnyAsync" && m.GetParameters().Length == 2)
-                            .MakeGenericMethod(categoryType.ClrType);
+                            .FirstOrDefault(m => m.Name == "AnyAsync" && m.GetParameters().Length == 2);
 
-                        var hasCategories = await (Task<bool>)anyMethod.Invoke(null, [dbSet, cancellationToken])!;
+                        if (anyMethod == null)
+                        {
+                            _logger.LogWarning("⚠️ AnyAsync method not found via reflection for ServiceCatalogs");
+                            return false;
+                        }
+
+                        var genericMethod = anyMethod.MakeGenericMethod(categoryType.ClrType);
+                        var hasCategories = await (Task<bool>)genericMethod.Invoke(null, [dbSet, cancellationToken])!;
                         if (hasCategories)
                             return true;
                     }
@@ -105,10 +111,16 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                     {
                         var anyMethod = typeof(EntityFrameworkQueryableExtensions)
                             .GetMethods()
-                            .First(m => m.Name == "AnyAsync" && m.GetParameters().Length == 2)
-                            .MakeGenericMethod(allowedCityType.ClrType);
+                            .FirstOrDefault(m => m.Name == "AnyAsync" && m.GetParameters().Length == 2);
 
-                        var hasCities = await (Task<bool>)anyMethod.Invoke(null, [dbSet, cancellationToken])!;
+                        if (anyMethod == null)
+                        {
+                            _logger.LogWarning("⚠️ AnyAsync method not found via reflection for Locations");
+                            return false;
+                        }
+
+                        var genericMethod = anyMethod.MakeGenericMethod(allowedCityType.ClrType);
+                        var hasCities = await (Task<bool>)genericMethod.Invoke(null, [dbSet, cancellationToken])!;
                         if (hasCities)
                             return true;
                     }
@@ -119,7 +131,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "⚠️ Erro ao verificar dados existentes, assumindo banco vazio");
+            _logger.LogWarning(ex, "⚠️ Erro ao verificar dados existentes ({ExceptionType}), assumindo banco vazio", ex.GetType().Name);
             return false;
         }
     }
@@ -251,7 +263,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 cancellationToken);
         }
 
-        _logger.LogInformation("✅ ServiceCatalogs: {Count} serviços inseridos", services.Length);
+        _logger.LogInformation("✅ ServiceCatalogs: {Count} serviços processados (novos inseridos, existentes ignorados)", services.Length);
     }
 
     private async Task SeedLocationsAsync(CancellationToken cancellationToken)
@@ -293,6 +305,11 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         _logger.LogInformation("✅ Locations: {Count} cidades inseridas", cities.Length);
     }
 
+    /// <summary>
+    /// Retrieves a DbContext for the specified module using reflection.
+    /// Naming convention: MeAjudaAi.Modules.{moduleName}.Infrastructure.Persistence.{moduleName}DbContext
+    /// Example: "Users" → MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext
+    /// </summary>
     private DbContext? GetDbContext(string moduleName)
     {
         try

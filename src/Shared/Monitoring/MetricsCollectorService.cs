@@ -64,6 +64,10 @@ internal class MetricsCollectorService(
             logger.LogDebug("Metrics collected: {ActiveUsers} active users, {PendingRequests} pending requests",
                 activeUsers, pendingRequests);
         }
+        catch (OperationCanceledException)
+        {
+            throw; // Propagate cancellation to ExecuteAsync
+        }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to collect some metrics");

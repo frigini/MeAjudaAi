@@ -37,18 +37,15 @@ public class CachingBehavior<TRequest, TResponse>(
         {
             logger.LogDebug("Cache hit for key: {CacheKey}", cacheKey);
 
-            // Defensive check: cached value should not be null when isCached is true
-            if (cachedResult is null && default(TResponse) is not null)
+            // Policy: we don't cache null results; a null "hit" indicates corruption/out-of-band write.
+            if (cachedResult is null)
             {
-                logger.LogError(
-                    "Cached value for {CacheKey} was null but nulls are not permitted for type {Type}",
-                    cacheKey,
-                    typeof(TResponse).Name);
-                throw new InvalidOperationException(
-                    $"Cached value for key '{cacheKey}' was null but nulls are not permitted for non-nullable type '{typeof(TResponse).Name}'");
+                logger.LogWarning("Cache hit but null value for key: {CacheKey}. Re-executing query.", cacheKey);
             }
-
-            return cachedResult!;
+            else
+            {
+                return cachedResult;
+            }
         }
 
         logger.LogDebug("Cache miss for key: {CacheKey}. Executing query.", cacheKey);
