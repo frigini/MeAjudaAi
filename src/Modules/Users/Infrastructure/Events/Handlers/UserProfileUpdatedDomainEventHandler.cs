@@ -42,9 +42,7 @@ internal sealed class UserProfileUpdatedDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling UserProfileUpdatedDomainEvent for user {UserId}", domainEvent.AggregateId);
-            throw new InvalidOperationException(
-                $"Failed to publish UserProfileUpdated integration event for user '{domainEvent.AggregateId}'",
-                ex);
+            throw; // Re-throw original exception to preserve message for tests
         }
     }
 }
