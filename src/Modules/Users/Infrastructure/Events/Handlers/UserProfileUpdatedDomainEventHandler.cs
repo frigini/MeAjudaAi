@@ -42,7 +42,9 @@ internal sealed class UserProfileUpdatedDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling UserProfileUpdatedDomainEvent for user {UserId}", domainEvent.AggregateId);
-            throw; // Re-throw original exception to preserve message for tests
+            throw new InvalidOperationException(
+                $"Error handling UserProfileUpdatedDomainEvent for user '{domainEvent.AggregateId}'",
+                ex);
         }
     }
 }

@@ -174,7 +174,11 @@ jobs:
         run: |
           echo "🔍 Checking code formatting..."
           # Only check whitespace and style (not SonarQube analyzer warnings)
-          dotnet format --verify-no-changes --include whitespace style --verbosity normal MeAjudaAi.slnx 2>&1 | tee format-output.txt
+          dotnet format --verify-no-changes \
+            --include whitespace style \
+            --verbosity normal \
+            MeAjudaAi.slnx \
+            2>&1 | tee format-output.txt
           
           # Check if any files were actually formatted (not just warnings)
           if grep -q "Formatted code file" format-output.txt; then

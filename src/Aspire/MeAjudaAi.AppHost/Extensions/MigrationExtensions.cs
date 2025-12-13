@@ -47,11 +47,25 @@ internal class MigrationHostedService : IHostedService
 
         try
         {
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            var isDevelopment = environment.Equals("Development", StringComparison.OrdinalIgnoreCase);
+
             var connectionString = GetConnectionString();
             if (string.IsNullOrEmpty(connectionString))
             {
-                _logger.LogWarning("⚠️ Connection string não encontrada, pulando migrations");
-                return;
+                if (isDevelopment)
+                {
+                    _logger.LogWarning("⚠️ Connection string not found in Development, skipping migrations");
+                    return;
+                }
+                else
+                {
+                    _logger.LogError("❌ Connection string is required for migrations in {Environment} environment. " +
+                        "Configure POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD.", environment);
+                    throw new InvalidOperationException(
+                        $"Missing database connection configuration for {environment} environment. " +
+                        "Migrations cannot proceed without valid connection string.");
+                }
             }
 
             dbContextTypes = DiscoverDbContextTypes();
@@ -226,27 +240,57 @@ internal class MigrationHostedService : IHostedService
             // Configurar PostgreSQL - usar dynamic para simplificar reflexão
             dynamic optionsBuilderDynamic = optionsBuilderInstance;
 
+            // Safe assembly name: FullName can be null for some assemblies
+            var assemblyName = contextType.Assembly.FullName
+                ?? contextType.Assembly.GetName().Name
+                ?? contextType.Assembly.ToString();
+
             // Chamar UseNpgsql com connection string
             Microsoft.EntityFrameworkCore.NpgsqlDbContextOptionsBuilderExtensions.UseNpgsql(
                 optionsBuilderDynamic,
                 connectionString,
                 (Action<Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.NpgsqlDbContextOptionsBuilder>)(npgsqlOptions =>
                 {
-                    npgsqlOptions.MigrationsAssembly(contextType.Assembly.FullName);
+                    npgsqlOptions.MigrationsAssembly(assemblyName);
                     npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
                 })
             );
 
             // Obter Options com tipo correto via reflection
             var optionsProperty = optionsBuilderType.GetProperty("Options");
-            var options = optionsProperty!.GetValue(optionsBuilderInstance);
+            if (optionsProperty == null)
+            {
+                throw new InvalidOperationException(
+                    $"Could not find 'Options' property on DbContextOptionsBuilder<{contextType.Name}>. " +
+                    "This indicates a version mismatch or reflection issue.");
+            }
+
+            var options = optionsProperty.GetValue(optionsBuilderInstance);
+            if (options == null)
+            {
+                throw new InvalidOperationException(
+                    $"DbContextOptions for {contextType.Name} is null after configuration. " +
+                    "Ensure UseNpgsql was called successfully.");
+            }
+
+            // Verify constructor exists before attempting instantiation
+            var constructor = contextType.GetConstructor(new[] { options.GetType() });
+            if (constructor == null)
+            {
+                throw new InvalidOperationException(
+                    $"No suitable constructor found for {contextType.Name} that accepts {options.GetType().Name}. " +
+                    "Ensure the DbContext has a constructor that accepts DbContextOptions.");
+            }
 
             // Criar instância do DbContext
-            var context = Activator.CreateInstance(contextType, options) as DbContext;
+            var contextInstance = Activator.CreateInstance(contextType, options);
+            var context = contextInstance as DbContext;
 
             if (context == null)
             {
-                throw new InvalidOperationException($"Não foi possível criar instância de {contextType.Name}");
+                throw new InvalidOperationException(
+                    $"Failed to cast created instance to DbContext for type {contextType.Name}. " +
+                    $"Created instance type: {contextInstance?.GetType().Name ?? "null"}");
             }
 
             using (context)

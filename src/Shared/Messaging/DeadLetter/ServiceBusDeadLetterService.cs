@@ -188,6 +188,13 @@ public sealed class ServiceBusDeadLetterService(
                 logger.LogInformation("Dead letter message {MessageId} purged from queue {Queue}",
                     messageId, deadLetterQueueName);
             }
+            else if (message != null)
+            {
+                // Abandon non-matching message to return it to queue immediately
+                await receiver.AbandonMessageAsync(message, cancellationToken: cancellationToken);
+                logger.LogDebug("Message {ActualId} did not match target {ExpectedId}, abandoned back to queue",
+                    message.MessageId, messageId);
+            }
         }
         catch (Exception ex)
         {

@@ -47,9 +47,10 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             metrics.RecordConnectionError("dapper_query_multiple", ex);
-            // Log SQL only in controlled manner (non-production or debug level)
-            logger.LogError(ex, "Dapper query failed (type: multiple). SQL preview: {SqlPreview}",
+            // Log SQL preview only in debug/development contexts to avoid exposing schema in production
+            logger.LogDebug("Dapper query failed (type: multiple). SQL preview: {SqlPreview}",
                 sql?.Length > 100 ? sql.Substring(0, 100) + "..." : sql);
+            logger.LogError(ex, "Failed to execute Dapper query (type: multiple)");
             throw new InvalidOperationException("Failed to execute Dapper query (type: multiple)", ex);
         }
     }
@@ -79,9 +80,10 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             metrics.RecordConnectionError("dapper_query_single", ex);
-            // Log SQL only in controlled manner (non-production or debug level)
-            logger.LogError(ex, "Dapper query failed (type: single). SQL preview: {SqlPreview}",
+            // Log SQL preview only in debug/development contexts to avoid exposing schema in production
+            logger.LogDebug("Dapper query failed (type: single). SQL preview: {SqlPreview}",
                 sql?.Length > 100 ? sql.Substring(0, 100) + "..." : sql);
+            logger.LogError(ex, "Failed to execute Dapper query (type: single)");
             throw new InvalidOperationException("Failed to execute Dapper query (type: single)", ex);
         }
     }
@@ -111,9 +113,10 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             metrics.RecordConnectionError("dapper_execute", ex);
-            // Log SQL only in controlled manner (non-production or debug level)
-            logger.LogError(ex, "Dapper command failed (type: execute). SQL preview: {SqlPreview}",
+            // Log SQL preview only in debug/development contexts to avoid exposing schema in production
+            logger.LogDebug("Dapper command failed (type: execute). SQL preview: {SqlPreview}",
                 sql?.Length > 100 ? sql.Substring(0, 100) + "..." : sql);
+            logger.LogError(ex, "Failed to execute Dapper command (type: execute)");
             throw new InvalidOperationException("Failed to execute Dapper command (type: execute)", ex);
         }
     }
