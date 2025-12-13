@@ -28,9 +28,15 @@ public sealed class RabbitMqDeadLetterService(
         int attemptCount,
         CancellationToken cancellationToken = default) where TMessage : class
     {
+        string? messageId = null;
+        string? messageType = null;
+        int capturedAttemptCount = attemptCount;
+
         try
         {
             var failedMessageInfo = CreateFailedMessageInfo(message, exception, handlerType, sourceQueue, attemptCount);
+            messageId = failedMessageInfo.MessageId;
+            messageType = failedMessageInfo.MessageType;
             var deadLetterQueueName = GetDeadLetterQueueName(sourceQueue);
 
             await EnsureConnectionAsync();
@@ -75,10 +81,9 @@ public sealed class RabbitMqDeadLetterService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to send message to dead letter queue. Original exception: {OriginalException}", exception.Message);
-            throw new InvalidOperationException(
-                $"Failed to send message '{failedMessageInfo.MessageId}' of type '{failedMessageInfo.MessageType}' to RabbitMQ dead letter exchange after {failedMessageInfo.AttemptCount} attempts",
-                ex);
+            logger.LogError(ex, "Failed to send message to RabbitMQ dead letter queue. MessageId: {MessageId}, Type: {MessageType}, Attempts: {Attempts}",
+                messageId ?? "unknown", messageType ?? typeof(TMessage).Name, capturedAttemptCount);
+            throw;
         }
     }
 

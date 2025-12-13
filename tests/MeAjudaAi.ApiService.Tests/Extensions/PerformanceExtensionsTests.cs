@@ -561,7 +561,7 @@ public class PerformanceExtensionsTests
         context.Request.Headers["Authorization"] = "Bearer token";
 
         // Act
-        var result = provider.ShouldCompressResponse(context);
+        var result = SafeGzipCompressionProvider.ShouldCompressResponse(context);
 
         // Assert
         result.Should().BeFalse(); // Should use IsSafeForCompression logic
@@ -614,7 +614,7 @@ public class PerformanceExtensionsTests
         context.Request.Headers["Authorization"] = "Bearer token";
 
         // Act
-        var result = provider.ShouldCompressResponse(context);
+        var result = SafeBrotliCompressionProvider.ShouldCompressResponse(context);
 
         // Assert
         result.Should().BeFalse(); // Should use IsSafeForCompression logic

@@ -44,6 +44,8 @@ internal class MigrationHostedService : IHostedService
     {
         _logger.LogInformation("🔄 Iniciando migrations de todos os módulos...");
 
+        List<Type> dbContextTypes = new();
+
         try
         {
             var connectionString = GetConnectionString();
@@ -53,7 +55,7 @@ internal class MigrationHostedService : IHostedService
                 return;
             }
 
-            var dbContextTypes = DiscoverDbContextTypes();
+            dbContextTypes = DiscoverDbContextTypes();
             _logger.LogInformation("📋 Encontrados {Count} DbContexts para migração", dbContextTypes.Count);
 
             foreach (var contextType in dbContextTypes)
@@ -65,9 +67,9 @@ internal class MigrationHostedService : IHostedService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Erro ao aplicar migrations");
+            _logger.LogError(ex, "❌ Erro ao aplicar migrations para {DbContextCount} módulo(s)", dbContextTypes.Count);
             throw new InvalidOperationException(
-                $"Failed to apply database migrations for {_dbContextTypes.Count} module(s)",
+                $"Failed to apply database migrations for {dbContextTypes.Count} module(s)",
                 ex);
         }
     }
@@ -128,9 +130,19 @@ internal class MigrationHostedService : IHostedService
     private List<Type> DiscoverDbContextTypes()
     {
         var dbContextTypes = new List<Type>();
+        
+        // Primeiro, tentar carregar assemblies dos módulos dinamicamente
+        LoadModuleAssemblies();
+        
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => a.FullName?.Contains("MeAjudaAi.Modules") == true)
             .ToList();
+
+        if (assemblies.Count == 0)
+        {
+            _logger.LogWarning("⚠️ Nenhum assembly de módulo foi encontrado. Migrations não serão aplicadas automaticamente.");
+            return dbContextTypes;
+        }
 
         foreach (var assembly in assemblies)
         {
@@ -142,6 +154,11 @@ internal class MigrationHostedService : IHostedService
                     .ToList();
 
                 dbContextTypes.AddRange(types);
+                
+                if (types.Count > 0)
+                {
+                    _logger.LogDebug("✅ Descobertos {Count} DbContext(s) em {Assembly}", types.Count, assembly.GetName().Name);
+                }
             }
             catch (Exception ex)
             {
@@ -150,6 +167,45 @@ internal class MigrationHostedService : IHostedService
         }
 
         return dbContextTypes;
+    }
+
+    private void LoadModuleAssemblies()
+    {
+        try
+        {
+            var baseDirectory = AppContext.BaseDirectory;
+            var modulePattern = "MeAjudaAi.Modules.*.Infrastructure.dll";
+            var moduleDlls = Directory.GetFiles(baseDirectory, modulePattern, SearchOption.AllDirectories);
+
+            _logger.LogDebug("🔍 Procurando por assemblies de módulos em: {BaseDirectory}", baseDirectory);
+            _logger.LogDebug("📦 Encontrados {Count} DLLs de infraestrutura de módulos", moduleDlls.Length);
+
+            foreach (var dllPath in moduleDlls)
+            {
+                try
+                {
+                    var assemblyName = AssemblyName.GetAssemblyName(dllPath);
+                    
+                    // Verificar se já está carregado
+                    if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName == assemblyName.FullName))
+                    {
+                        _logger.LogDebug("⏭️  Assembly já carregado: {AssemblyName}", assemblyName.Name);
+                        continue;
+                    }
+
+                    Assembly.LoadFrom(dllPath);
+                    _logger.LogDebug("✅ Assembly carregado: {AssemblyName}", assemblyName.Name);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "⚠️ Não foi possível carregar assembly: {DllPath}", Path.GetFileName(dllPath));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "⚠️ Erro ao tentar carregar assemblies de módulos dinamicamente");
+        }
     }
 
     private async Task MigrateDbContextAsync(Type contextType, string connectionString, CancellationToken cancellationToken)

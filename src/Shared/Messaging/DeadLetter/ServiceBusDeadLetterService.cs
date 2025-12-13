@@ -22,11 +22,18 @@ public sealed class ServiceBusDeadLetterService(
         int attemptCount,
         CancellationToken cancellationToken = default) where TMessage : class
     {
+        string? messageId = null;
+        string? messageType = null;
+        string? deadLetterQueueName = null;
+        int capturedAttemptCount = attemptCount;
+
         try
         {
             var failedMessageInfo = CreateFailedMessageInfo(message, exception, handlerType, sourceQueue, attemptCount);
+            messageId = failedMessageInfo.MessageId;
+            messageType = failedMessageInfo.MessageType;
 
-            var deadLetterQueueName = GetDeadLetterQueueName(sourceQueue);
+            deadLetterQueueName = GetDeadLetterQueueName(sourceQueue);
             var sender = client.CreateSender(deadLetterQueueName);
 
             var serviceBusMessage = new Azure.Messaging.ServiceBus.ServiceBusMessage(failedMessageInfo.ToJson())
@@ -57,10 +64,9 @@ public sealed class ServiceBusDeadLetterService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to send message to dead letter queue. Original exception: {OriginalException}", exception.Message);
-            throw new InvalidOperationException(
-                $"Failed to send message '{failedMessageInfo.MessageId}' of type '{failedMessageInfo.MessageType}' to dead letter queue '{deadLetterQueueName}' after {failedMessageInfo.AttemptCount} attempts",
-                ex);
+            logger.LogError(ex, "Failed to send message to dead letter queue. MessageId: {MessageId}, Type: {MessageType}, Queue: {Queue}, Attempts: {Attempts}", 
+                messageId ?? "unknown", messageType ?? typeof(TMessage).Name, deadLetterQueueName ?? "unknown", capturedAttemptCount);
+            throw;
         }
     }
 
