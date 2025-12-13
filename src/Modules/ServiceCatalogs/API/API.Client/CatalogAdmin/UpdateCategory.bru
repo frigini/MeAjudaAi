@@ -1,0 +1,43 @@
+meta {
+  name: Update Category
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/v1/catalogs/categories/{{categoryId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Elétrica Residencial",
+    "description": "Serviços de instalação e manutenção elétrica residencial",
+    "displayOrder": 1
+  }
+}
+
+docs {
+  # Update Category
+  
+  Atualiza categoria existente (admin).
+  
+  ## Parâmetros
+  - `categoryId`: GUID da categoria
+  
+  ## Body
+  - `name`: Nome único
+  - `description`: Descrição (opcional)
+  - `displayOrder`: Ordem de exibição
+  
+  ## Status: 200 OK | 404 Not Found
+}

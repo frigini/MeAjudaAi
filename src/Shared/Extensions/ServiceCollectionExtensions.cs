@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Monitoring;
 using MeAjudaAi.Shared.Queries;
+using MeAjudaAi.Shared.Seeding;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Time;
 using Microsoft.AspNetCore.Builder;
@@ -67,6 +68,9 @@ public static class ServiceCollectionExtensions
         services.AddQueries();
         services.AddEvents();
 
+        // Adicionar seeding de dados de desenvolvimento
+        services.AddDevelopmentSeeding();
+
         // Registra NoOpBackgroundJobService como implementação padrão
         // Módulos que precisam de Hangfire devem registrar HangfireBackgroundJobService explicitamente
         services.AddSingleton<IBackgroundJobService, NoOpBackgroundJobService>();
@@ -89,7 +93,11 @@ public static class ServiceCollectionExtensions
         app.UseErrorHandling();
         // Nota: UseAdvancedMonitoring requer registro de BusinessMetrics durante a configuração de serviços.
         // O caminho assíncrono atualmente não registra esses serviços da mesma forma que o caminho síncrono.
-        // TODO: Alinhar registro de middleware entre caminhos síncrono/assíncrono ou aplicar monitoramento condicionalmente.
+        // TODO(#249): Align middleware registration between UseSharedServices() and UseSharedServicesAsync().
+        // Issue: Async path skips BusinessMetrics registration causing UseAdvancedMonitoring to fail.
+        // Solution: Extract shared middleware registration to ConfigureSharedMiddleware() method,
+        // call from both paths, or conditionally apply monitoring based on IServiceCollection checks.
+        // Impact: Development environments using async path lack business metrics dashboards.
 
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
                          Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??
@@ -116,34 +124,6 @@ public static class ServiceCollectionExtensions
                 if (isMessagingEnabled)
                 {
                     await webApp.EnsureMessagingInfrastructureAsync();
-                }
-
-                // Cache warmup em background para não bloquear startup
-                var isCacheWarmupEnabled = configuration.GetValue<bool>("Cache:WarmupEnabled", true);
-                if (isCacheWarmupEnabled)
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            using var scope = webApp.Services.CreateScope();
-                            var warmupService = scope.ServiceProvider.GetService<ICacheWarmupService>();
-                            if (warmupService != null)
-                            {
-                                await warmupService.WarmupAsync();
-                            }
-                            else
-                            {
-                                var logger = webApp.Services.GetService<ILogger<ICacheWarmupService>>();
-                                logger?.LogDebug("ICacheWarmupService não registrado - esperado em ambientes de teste");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            var logger = webApp.Services.GetRequiredService<ILogger<ICacheWarmupService>>();
-                            logger.LogWarning(ex, "Falha ao aquecer o cache durante a inicialização - pode ser esperado em testes");
-                        }
-                    });
                 }
             }
         }

@@ -1,0 +1,26 @@
+meta {
+  name: Delete Service
+  type: http
+  seq: 11
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/catalogs/services/{{serviceId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Delete Service
+  
+  Remove serviço (soft delete).
+  
+  ## Parâmetros
+  - `serviceId`: GUID do serviço
+  
+  ## Status: 204 No Content | 404 Not Found
+}

@@ -203,14 +203,6 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         var message = new TestMessage { Id = "integration-test" };
         var callCount = 0;
 
-        Task TestHandler(TestMessage msg, CancellationToken ct)
-        {
-            callCount++;
-            if (callCount < 2)
-                throw new TimeoutException("Temporary failure for testing");
-            return Task.CompletedTask;
-        }
-
         // Act
         var result = true; // Simula sucesso para o teste
 

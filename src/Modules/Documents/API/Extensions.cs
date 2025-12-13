@@ -85,7 +85,9 @@ public static class Extensions
             {
                 // Em produção, não fazer fallback silencioso - relançar para visão do problema
                 contextLogger?.LogError(ex, "Erro crítico ao aplicar migrações do módulo Documents em ambiente de produção.");
-                throw;
+                throw new InvalidOperationException(
+                    "Critical error applying Documents module database migrations in production environment",
+                    ex);
             }
         }
     }

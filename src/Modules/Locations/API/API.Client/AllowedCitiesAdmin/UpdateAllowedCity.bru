@@ -1,0 +1,90 @@
+meta {
+  name: Update Allowed City
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/v1/locations/admin/allowed-cities/{{allowedCityId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cityName": "Muriaé",
+    "stateSigla": "MG",
+    "ibgeCode": "3143906",
+    "isActive": true
+  }
+}
+
+vars:pre-request {
+  allowedCityId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+}
+
+docs {
+  # Update Allowed City
+  
+  Atualiza uma cidade permitida existente.
+  
+  **Autorização**: Requer role `Admin`
+  
+  ## Path Parameters
+  
+  - `id` (guid): ID da cidade permitida a ser atualizada
+  
+  ## Request Body
+  
+  ```json
+  {
+    "cityName": "string (required, max 100 chars)",
+    "stateSigla": "string (required, 2 chars uppercase)",
+    "ibgeCode": "string (optional, 7 digits)",
+    "isActive": "boolean (optional, default true)"
+  }
+  ```
+  
+  ### Validações
+  
+  - `cityName`: Obrigatório, máximo 100 caracteres
+  - `stateSigla`: Obrigatório, exatamente 2 caracteres maiúsculos
+  - `ibgeCode`: Opcional, 7 dígitos se fornecido
+  - `isActive`: Opcional, default `true`
+  - Novo nome/estado não pode duplicar outra cidade existente
+  
+  ## Resposta Sucesso (204 No Content)
+  
+  Sem corpo de resposta.
+  
+  ## Possíveis Erros
+  
+  - `400 Bad Request`: Validação falhou ou cidade duplicada
+    ```json
+    {
+      "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+      "title": "Bad Request",
+      "status": 400,
+      "detail": "Cidade 'Muriaé-MG' já cadastrada"
+    }
+    ```
+  - `401 Unauthorized`: Token inválido ou expirado
+  - `403 Forbidden`: Usuário não possui role Admin
+  - `404 Not Found`: Cidade permitida não encontrada
+    ```json
+    {
+      "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
+      "title": "Not Found",
+      "status": 404,
+      "detail": "Cidade permitida com ID '3fa85f64-5717-4562-b3fc-2c963f66afa6' não encontrada"
+    }
+    ```
+}

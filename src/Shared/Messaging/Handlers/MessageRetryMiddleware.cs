@@ -55,8 +55,6 @@ public sealed class MessageRetryMiddleware<TMessage>(
             }
             catch (Exception ex)
             {
-                lastException = ex;
-
                 logger.LogWarning(ex,
                     "Failed to process message of type {MessageType} on attempt {AttemptCount}: {ErrorMessage}",
                     typeof(TMessage).Name, attemptCount, ex.Message);

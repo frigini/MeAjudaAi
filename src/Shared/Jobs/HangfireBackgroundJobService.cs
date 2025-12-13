@@ -53,7 +53,9 @@ public class HangfireBackgroundJobService : IBackgroundJobService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao enfileirar job para {JobType}", typeof(T).Name);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to enqueue background job of type '{typeof(T).Name}' in Hangfire queue",
+                ex);
         }
     }
 
@@ -82,7 +84,9 @@ public class HangfireBackgroundJobService : IBackgroundJobService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao enfileirar job");
-            throw;
+            throw new InvalidOperationException(
+                "Failed to enqueue background job expression in Hangfire queue",
+                ex);
         }
     }
 
@@ -104,10 +108,10 @@ public class HangfireBackgroundJobService : IBackgroundJobService
                     // Fallback para Windows ID
                     timeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
                 }
-                catch (TimeZoneNotFoundException)
+                catch (TimeZoneNotFoundException ex)
                 {
                     // Fallback final para UTC
-                    _logger.LogWarning("Timezone America/Sao_Paulo não encontrado, usando UTC");
+                    _logger.LogWarning(ex, "Timezone America/Sao_Paulo e fallback não encontrados, usando UTC");
                     timeZone = TimeZoneInfo.Utc;
                 }
             }
@@ -131,7 +135,9 @@ public class HangfireBackgroundJobService : IBackgroundJobService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao configurar job recorrente {JobId}", jobId);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to schedule recurring Hangfire job '{jobId}' with cron expression '{cronExpression}'",
+                ex);
         }
     }
 

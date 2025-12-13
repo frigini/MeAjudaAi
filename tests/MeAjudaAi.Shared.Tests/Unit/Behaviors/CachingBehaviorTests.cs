@@ -49,7 +49,7 @@ public class CachingBehaviorTests
         var next = new Mock<RequestHandlerDelegate<Result<string>>>();
         var cachedResult = Result<string>.Success("cached-result");
         _mockCacheService.Setup(x => x.GetAsync<Result<string>>("test_cache_key", It.IsAny<CancellationToken>()))
-                         .ReturnsAsync(cachedResult);
+                         .ReturnsAsync((cachedResult, true));
 
         // Act
         var result = await _behavior.Handle(query, next.Object, CancellationToken.None);
@@ -70,7 +70,7 @@ public class CachingBehaviorTests
         var queryResult = Result<string>.Success("query-result");
 
         _mockCacheService.Setup(x => x.GetAsync<Result<string>>("test_cache_key", It.IsAny<CancellationToken>()))
-                         .ReturnsAsync((Result<string>?)null);
+                         .ReturnsAsync(((Result<string>?)null, false));
         next.Setup(x => x()).ReturnsAsync(queryResult);
 
         // Act
@@ -98,7 +98,7 @@ public class CachingBehaviorTests
         var behavior = new CachingBehavior<TestCacheableQuery, Result<string>?>(_mockCacheService.Object, new Mock<ILogger<CachingBehavior<TestCacheableQuery, Result<string>?>>>().Object);
 
         _mockCacheService.Setup(x => x.GetAsync<Result<string>?>("test_cache_key", It.IsAny<CancellationToken>()))
-                         .ReturnsAsync((Result<string>?)null);
+                         .ReturnsAsync(((Result<string>?)null, false));
         next.Setup(x => x()).ReturnsAsync((Result<string>?)null);
 
         // Act
@@ -119,7 +119,7 @@ public class CachingBehaviorTests
         var queryResult = Result<string>.Success("query-result");
 
         _mockCacheService.Setup(x => x.GetAsync<Result<string>>("test_cache_key", It.IsAny<CancellationToken>()))
-                         .ReturnsAsync((Result<string>?)null);
+                         .ReturnsAsync(((Result<string>?)null, false));
         next.Setup(x => x()).ReturnsAsync(queryResult);
 
         // Act

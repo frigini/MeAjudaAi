@@ -50,15 +50,6 @@
           "Castle.Core": "5.1.1"
         }
       },
-      "NSubstitute": {
-        "type": "Direct",
-        "requested": "[5.3.0, )",
-        "resolved": "5.3.0",
-        "contentHash": "lJ47Cps5Qzr86N99lcwd+OUvQma7+fBgr8+Mn+aOC0WrlqMNkdivaYD9IvnZ5Mqo6Ky3LS7ZI+tUq1/s9ERd0Q==",
-        "dependencies": {
-          "Castle.Core": "5.1.1"
-        }
-      },
       "Swashbuckle.AspNetCore.SwaggerGen": {
         "type": "Direct",
         "requested": "[10.0.1, )",
@@ -1139,6 +1130,7 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Modules.Providers.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.ServiceCatalogs.Application": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
         }
       },

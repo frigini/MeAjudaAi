@@ -58,7 +58,9 @@ internal sealed class UserRegisteredDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling UserRegisteredDomainEvent for user {UserId}", domainEvent.AggregateId);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to publish UserRegistered integration event for user '{domainEvent.AggregateId}'",
+                ex);
         }
     }
 }

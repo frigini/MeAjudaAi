@@ -1,0 +1,26 @@
+meta {
+  name: Activate Category
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/v1/catalogs/categories/{{categoryId}}/activate
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Activate Category
+  
+  Ativa categoria desativada.
+  
+  ## Parâmetros
+  - `categoryId`: GUID da categoria
+  
+  ## Status: 204 No Content | 404 Not Found
+}

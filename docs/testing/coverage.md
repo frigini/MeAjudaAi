@@ -210,8 +210,12 @@ env:
 ```text
 ## 📚 Links Úteis
 
-- [CodeCoverageSummary Action](https://github.com/irongut/CodeCoverageSummary)
-- [OpenCover Documentation](https://github.com/OpenCover/opencover)
+> ⚠️ **Ferramentas Descontinuadas**: As ferramentas abaixo foram arquivadas/não são mais mantidas pelos autores. Mantidas aqui apenas como referência histórica.
+> - **CodeCoverageSummary Action**: Sem atualizações desde 2022
+> - **OpenCover**: Repositório arquivado em novembro de 2021
+
+- [CodeCoverageSummary Action](https://github.com/irongut/CodeCoverageSummary) (descontinuado)
+- [OpenCover Documentation](https://github.com/OpenCover/opencover) (arquivado)
 - [Coverage Best Practices](../development.md#diretrizes-de-testes)
 
 ---
@@ -676,13 +680,13 @@ dotnet test \
 - ✅ ServiceCatalogs.Tests
 - ✅ E2E.Tests
 
-### 2. **Script Local** (scripts/generate-clean-coverage.ps1) ✅
+### 2. **Script Local** (dotnet test --collect) ✅
 
-Criado script para rodar localmente com as mesmas exclusões da pipeline.
+Criado comando para rodar localmente com as mesmas exclusões da pipeline.
 
 **Uso**:
 ```powershell
-.\scripts\generate-clean-coverage.ps1
+dotnet test --collect:"XPlat Code Coverage" --settings config/coverage.runsettings
 ```
 
 ---
@@ -746,11 +750,11 @@ dotnet test -- ExcludeByFile="**/*.generated.cs"
 
 ## 🚀 Como Testar Localmente
 
-### Opção 1: Script Automatizado (Recomendado)
+### Opção 1: Comando dotnet test (Recomendado)
 
 ```powershell
 # Roda testes + gera relatório limpo (~25 minutos)
-.\scripts\generate-clean-coverage.ps1
+dotnet test --collect:"XPlat Code Coverage" --settings config/coverage.runsettings
 ```
 
 **Resultado**:
@@ -876,7 +880,7 @@ Line coverage: ~45-55% (vs 27.9% anterior)
 ## 📁 Arquivos Modificados
 
 1. ✅ `.github/workflows/ci-cd.yml` - Pipeline atualizada
-2. ✅ `scripts/generate-clean-coverage.ps1` - Script local
+2. ✅ `dotnet test --collect:"XPlat Code Coverage"` - Comando local
 3. ✅ `docs/testing/coverage-report-explained.md` - Documentação completa
 4. ✅ `docs/testing/coverage-analysis-dec-2025.md` - Análise detalhada
 
@@ -899,7 +903,7 @@ Line coverage: ~45-55% (vs 27.9% anterior)
 ## ❓ FAQ
 
 ### P: "Preciso rodar novamente localmente?"
-**R**: Opcional. A pipeline já está configurada. Se quiser ver os números agora: `.\scripts\generate-clean-coverage.ps1`
+**R**: Opcional. A pipeline já está configurada. Se quiser ver os números agora: `dotnet test --collect:"XPlat Code Coverage" --settings config/coverage.runsettings`
 
 ### P: "E se eu quiser incluir código gerado?"
 **R**: Remova o parâmetro `ExcludeByFile` dos comandos `dotnet test`. Mas não recomendado - distorce métricas.
@@ -999,15 +1003,8 @@ Para aumentar a cobertura de **89.1% para 90%**, precisamos cobrir aproximadamen
 
 ---
 
-#### ExampleSchemaFilter.cs (3.8%) 🔴
-**Impacto**: BAIXO - Documentação OpenAPI
-
-**Status**: Código comentado/desabilitado (NotImplementedException)
-
-**Linhas Não Cobertas**:
-- Todo o método `Apply` (linha 21+)
-- Métodos privados comentados
-- Migração pendente para Swashbuckle 10.x
+#### ~~ExampleSchemaFilter.cs~~ ✅ REMOVIDO (13 Dez 2025)
+**Razão**: Código problemático removido permanentemente do projeto
 
 **Solução**:
 - **Opção 1**: Implementar migração para Swashbuckle 10.x e testar
@@ -1285,7 +1282,7 @@ cat coverage-github/report/Summary.txt | Select-Object -First 100
 ### Gerar coverage local:
 ```bash
 # Rodar pipeline localmente
-./scripts/test-coverage-like-pipeline.ps1
+dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
 
 # Gerar relatório HTML
 reportgenerator `
@@ -1301,4 +1298,4 @@ reportgenerator `
 - Relatório de Coverage Atual: `coverage-github/report/index.html` (gerado via CI/CD)
 - Pipeline CI/CD: `.github/workflows/ci-cd.yml`
 - Configuração Coverlet: `config/coverlet.json`
-- Script de Coverage Local: `scripts/test-coverage-like-pipeline.ps1`
+- Coverage local: `dotnet test --collect:"XPlat Code Coverage"`

@@ -36,7 +36,6 @@ internal static class Extensions
 
         // Registra serviços de cache
         services.AddSingleton<ICacheService, HybridCacheService>();
-        services.AddSingleton<ICacheWarmupService, CacheWarmupService>();
 
         return services;
     }

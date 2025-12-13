@@ -1,0 +1,30 @@
+meta {
+  name: Get Category By ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/catalogs/categories/{{categoryId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Category By ID
+  
+  Retorna categoria específica por ID.
+  
+  ## Parâmetros
+  - `categoryId`: GUID da categoria
+  
+  ## Status: 200 OK | 404 Not Found
+}

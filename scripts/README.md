@@ -1,408 +1,123 @@
-# 🛠️ MeAjudaAi Scripts - Guia de Uso
+# 🛠️ Scripts - MeAjudaAi
 
-Este diretório contém todos os scripts essenciais para desenvolvimento, teste e deploy da aplicação MeAjudaAi. Os scripts foram consolidados e padronizados para maior simplicidade e eficiência.
-
-## 📋 **Scripts Disponíveis**
-
-### 🚀 **dev.sh** - Desenvolvimento Local
-Script principal para desenvolvimento local da aplicação.
-
-```bash
-# Menu interativo
-./scripts/dev.sh
-
-# Execução direta
-./scripts/dev.sh --simple          # Modo simples (sem Azure)
-./scripts/dev.sh --test-only        # Apenas testes
-./scripts/dev.sh --build-only       # Apenas build
-./scripts/dev.sh --verbose          # Modo verboso
-```
-
-**Funcionalidades:**
-- ✅ Verificação automática de dependências
-- 🔨 Build e compilação da solução
-- 🧪 Execução de testes
-- 🐳 Configuração Docker automática
-- ☁️ Integração com Azure (opcional)
-- 📱 Menu interativo para facilitar uso
+Scripts PowerShell essenciais para desenvolvimento e operações da aplicação.
 
 ---
 
-### 🧪 **test.sh** - Execução de Testes
-Script otimizado para execução abrangente de testes.
+## 📋 Scripts Disponíveis
 
-```bash
-# Todos os testes
-./scripts/test.sh
+### 🗄️ Banco de Dados e Migrations
 
-# Testes específicos
-./scripts/test.sh --unit            # Apenas unitários
-./scripts/test.sh --integration     # Apenas integração
-./scripts/test.sh --e2e             # Apenas E2E
-
-# Com otimizações
-./scripts/test.sh --fast            # Modo otimizado (70% mais rápido)
-./scripts/test.sh --coverage        # Com relatório de cobertura
-./scripts/test.sh --parallel        # Execução paralela
-```
-
-**Funcionalidades:**
-- 🎯 Filtros por tipo de teste (unitário, integração, E2E)
-- ⚡ Modo otimizado com 70% de melhoria de performance
-- 📊 Relatórios de cobertura com HTML
-- 🔄 Execução paralela
-- 📝 Logs detalhados com diferentes níveis
-
----
-
-### 🌐 **deploy.sh** - Deploy Azure
-Script para deploy automatizado da infraestrutura Azure.
-
-```bash
-# Deploy básico
-./scripts/deploy.sh dev brazilsouth
-
-# Deploy com opções
-./scripts/deploy.sh prod brazilsouth --verbose
-./scripts/deploy.sh production eastus --what-if    # Simular mudanças
-./scripts/deploy.sh dev brazilsouth --dry-run   # Simulação completa
-```
-
-**Funcionalidades:**
-- 🌍 Suporte a múltiplos ambientes (dev, prod)
-- ✅ Validação de templates Bicep
-- 🔍 Análise what-if antes do deploy
-- 📋 Relatórios detalhados de outputs
-- 🔒 Gestão segura de secrets e connection strings
-
----
-
-### ⚙️ **setup.sh** - Configuração Inicial
-Script para onboarding de novos desenvolvedores.
-
-```bash
-# Setup completo
-./scripts/setup.sh
-
-# Setup customizado
-./scripts/setup.sh --dev-only       # Apenas ferramentas de dev
-./scripts/setup.sh --no-docker      # Sem Docker
-./scripts/setup.sh --no-azure       # Sem Azure CLI
-./scripts/setup.sh --force          # Forçar reinstalação
-```
-
-**Funcionalidades:**
-- 🔍 Verificação automática de dependências
-- 📦 Instalação guiada de ferramentas
-- 🎯 Configuração do ambiente de projeto
-- 📚 Instruções específicas por SO
-- ✅ Validação de configuração
-
----
-
-### 📋 **export-openapi.ps1** - Gerador OpenAPI
-Script para gerar especificação OpenAPI para clientes REST.
-
-```bash
-# Gerar especificação padrão (api-spec.json no diretório api)
-./scripts/export-openapi.ps1
-
-# Especificar arquivo de saída (sempre relativo à raiz do projeto)
-./scripts/export-openapi.ps1 -OutputPath "minha-api.json"
-./scripts/export-openapi.ps1 -OutputPath "docs/api-spec.json"
-
-# Ajuda
-./scripts/export-openapi.ps1 -Help
-```
-
-**Funcionalidades:**
-- 🚀 **Funciona offline** (não precisa rodar aplicação)
-- 📋 **Health checks incluídos** (health, ready, live)
-- 🎯 **Compatível com todos os clientes** (APIDog, Postman, Insomnia, Bruno, Thunder Client)
-- 🔒 **Arquivos não versionados** (incluídos no .gitignore)
-- ✨ **Schemas com exemplos** realistas para desenvolvimento
-
-**Uso típico:**
-```bash
-# Gerar no diretório api e importar no cliente de API preferido
-./scripts/export-openapi.ps1 -OutputPath "api/api-spec.json"
-# → Arquivo criado em: C:\Code\MeAjudaAi\api\api-spec.json
-# → Importar arquivo em APIDog/Postman/Insomnia
-```
-
-**📁 Local de saída:** Arquivos sempre são criados na **raiz do projeto**, não na pasta `scripts`.
-
----
-
-### ⚡ **optimize.sh** - Otimizações de Performance
-Script para aplicar otimizações de performance em testes.
-
-```bash
-# Aplicar otimizações
-./scripts/optimize.sh
-
-# Aplicar e testar
-./scripts/optimize.sh --test        # Aplica e executa teste de performance
-
-# Usar no shell atual
-source ./scripts/optimize.sh        # Mantém variáveis no shell
-
-# Restaurar configurações
-./scripts/optimize.sh --reset       # Remove otimizações
-```
-
-**Funcionalidades:**
-- 🚀 70% de melhoria na performance dos testes
-- 🐳 Otimizações específicas para Docker/TestContainers
-- ⚙️ Configurações otimizadas do .NET Runtime
-- 🐘 Configurações de PostgreSQL para testes
-- 🔄 Sistema de backup/restore de configurações
-
----
-
-### 🛠️ **utils.sh** - Utilidades Compartilhadas
-Biblioteca de funções compartilhadas entre scripts.
-
-```bash
-# Carregar no script
-source ./scripts/utils.sh
-
-# Usar funções
-print_info "Mensagem informativa"
-check_essential_dependencies
-docker_cleanup
-```
-
-**Funcionalidades:**
-- 📝 Sistema de logging padronizado
-- ✅ Validações e verificações comuns
-- 🖥️ Detecção automática de SO
-- 🐳 Helpers para Docker
-- ⚙️ Helpers para .NET
-- ⏱️ Medição de performance
-
----
-
-## 🎯 **Fluxo de Uso Recomendado**
-
-### **Para Novos Desenvolvedores:**
-```bash
-1. ./scripts/setup.sh              # Configurar ambiente
-2. ./scripts/dev.sh                # Executar aplicação
-3. ./scripts/test.sh               # Validar com testes
-```
-
-### **Desenvolvimento Diário:**
-```bash
-./scripts/dev.sh --simple         # Desenvolvimento local rápido
-./scripts/test.sh --fast          # Testes otimizados
-```
-
-### **Deploy para Produção:**
-```bash
-./scripts/test.sh                 # Validar todos os testes
-./scripts/deploy.sh prod brazilsouth --what-if  # Simular deploy
-./scripts/deploy.sh prod brazilsouth            # Deploy real
-```
-
-### **Otimização de Performance:**
-```bash
-./scripts/optimize.sh --test      # Aplicar e testar otimizações
-./scripts/test.sh --fast          # Usar testes otimizados
-```
-
----
-
-## 🔧 **Configurações Globais**
-
-### **Variáveis de Ambiente:**
-```bash
-# Nível de log (1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=VERBOSE)
-export MEAJUDAAI_LOG_LEVEL=3
-
-# Desabilitar auto-inicialização do utils
-export MEAJUDAAI_UTILS_AUTO_INIT=false
-
-# Configurações de otimização
-export MEAJUDAAI_FAST_MODE=true
-```
-
-### **Arquivo de Configuração:**
-Crie `.meajudaai.config` na raiz do projeto para configurações persistentes:
-
-```bash
-DEFAULT_ENVIRONMENT=dev
-DEFAULT_LOCATION=brazilsouth
-ENABLE_OPTIMIZATIONS=true
-SKIP_DOCKER_CHECK=false
-```
-
----
-
-## 📊 **Comparação: Antes vs Depois**
-
-| Aspecto | Antes (12+ scripts) | Depois (6 scripts) | Melhoria |
-|---------|---------------------|-------------------|----------|
-| **Scripts totais** | 12+ | 6 | 50% redução |
-| **Documentação** | Inconsistente | Padronizada | 100% melhoria |
-| **Duplicação** | Muita | Zero | Eliminada |
-| **Onboarding** | ~30 min | ~5 min | 83% redução |
-| **Performance testes** | ~25s | ~8s | 70% melhoria |
-| **Manutenção** | Complexa | Simples | 80% redução |
-
----
-
-## 🚨 **Migração dos Scripts Antigos**
-
-Os scripts antigos foram movidos para `scripts/deprecated/` para compatibilidade temporária:
-
-```bash
-# Scripts deprecados (usar novos equivalentes)
-scripts/deprecated/run-local.sh          → scripts/dev.sh
-scripts/deprecated/test.sh               → scripts/test.sh  
-scripts/deprecated/infrastructure/deploy.sh → scripts/deploy.sh
-scripts/deprecated/optimize-tests.sh     → scripts/optimize.sh
-```
-
-**⚠️ Atenção:** Os scripts em `deprecated/` serão removidos em versões futuras. Migre para os novos scripts.
-
----
-
-## 🆘 **Resolução de Problemas**
-
-### **Script não executa:**
-```bash
-# Dar permissão de execução
-chmod +x scripts/*.sh
-
-# Verificar se está na raiz do projeto
-pwd  # Deve mostrar o diretório MeAjudaAi
-```
-
-### **Dependências não encontradas:**
-```bash
-# Executar setup
-./scripts/setup.sh --verbose
-
-# Verificar dependências manualmente
-./scripts/dev.sh --help
-```
-
-### **Performance lenta nos testes:**
-```bash
-# Aplicar otimizações
-./scripts/optimize.sh --test
-
-# Usar modo rápido
-./scripts/test.sh --fast
-```
-
-### **Problemas com Docker:**
-```bash
-# Verificar status
-docker info
-
-# Limpar containers
-source ./scripts/utils.sh
-docker_cleanup
-```
-
----
-
-## 📚 **Recursos Adicionais**
-
-- **Documentação do projeto:** [README.md](../README.md)
-- **Documentação da infraestrutura:** [infrastructure/README.md](../infrastructure/README.md)
-- **Guia de CI/CD:** [docs/CI-CD-Setup.md](../docs/CI-CD-Setup.md)
-- **Análise de scripts:** [docs/Scripts-Analysis.md](../docs/Scripts-Analysis.md)
-
----
-
-## 🤝 **Contribuição**
-
-Para adicionar novos scripts ou modificar existentes:
-
-1. **Seguir padrão de documentação** (ver cabeçalho dos scripts existentes)
-2. **Usar funções do utils.sh** sempre que possível
-3. **Adicionar testes** para scripts críticos
-4. **Atualizar este README** com as mudanças
-
----
-
-## 🔧 Ferramentas de Migração de Banco de Dados
-
-### ef-migrate.ps1 - **Recomendado**
-
-Gerencia migrações usando comandos `dotnet ef` diretamente.
-
-**Windows (PowerShell):**
+#### `ef-migrate.ps1` - Entity Framework Migrations
+**Uso:**
 ```powershell
-# Aplicar todas as migrações para todos os módulos
+# Aplicar migrações em todos os módulos
 .\scripts\ef-migrate.ps1
 
-# Aplicar migrações para um módulo específico
+# Aplicar em módulo específico
 .\scripts\ef-migrate.ps1 -Module Providers
+
+# Adicionar nova migração
+.\scripts\ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewField"
 
 # Ver status das migrações
 .\scripts\ef-migrate.ps1 -Command status
-
-# Adicionar nova migração
-.\scripts\ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewUserField"
 ```
 
-**Unix/Linux/macOS (PowerShell Core):**
-```bash
-# Aplicar todas as migrações para todos os módulos
-./scripts/ef-migrate.ps1
+**Funcionalidades:**
+- Aplica migrações usando `dotnet ef`
+- Suporta múltiplos módulos (Users, Providers)
+- Comandos: migrate, add, remove, status
+- Configuração via variáveis de ambiente
 
-# Aplicar migrações para um módulo específico
-./scripts/ef-migrate.ps1 -Module Providers
+---
 
-# Ver status das migrações
-./scripts/ef-migrate.ps1 -Command status
-
-# Adicionar nova migração
-./scripts/ef-migrate.ps1 -Command add -Module Users -MigrationName "AddNewUserField"
-```
-
-**📋 Requisitos:**
-- PowerShell 7+ (para Unix/Linux/macOS: instale via `snap install powershell --classic` ou similar)
-- Variáveis de ambiente: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-
-### migrate-all.ps1 - **Avançado**
-
-Ferramenta customizada que descobre automaticamente todos os DbContexts.
-
-**Windows (PowerShell):**
+#### `migrate-all.ps1` - Migrations para Todos os Módulos
+**Uso:**
 ```powershell
-# Aplicar migrações
+# Aplicar todas as migrações
 .\scripts\migrate-all.ps1
 
-# Ver status detalhado
+# Ver status
 .\scripts\migrate-all.ps1 -Command status
 
 # Resetar bancos (CUIDADO!)
 .\scripts\migrate-all.ps1 -Command reset
 ```
 
-**Unix/Linux/macOS (PowerShell Core):**
-```bash
-# Aplicar migrações
-./scripts/migrate-all.ps1
-
-# Ver status detalhado
-./scripts/migrate-all.ps1 -Command status
-
-# Resetar bancos (CUIDADO!)
-./scripts/migrate-all.ps1 -Command reset
-```
-
-**Módulos Suportados:**
-- Users (`meajudaai_users`)
-- Providers (`meajudaai_providers`)
-- Services (`meajudaai_services`)
-- Orders (`meajudaai_orders`)
+**Funcionalidades:**
+- Descobre automaticamente todos os DbContexts
+- Executa migrações em sequência
+- Comandos: migrate, create, reset, status
 
 ---
 
-**💡 Dica:** Use `./scripts/[script].sh --help` para ver todas as opções disponíveis de cada script!
+### 📄 API e Documentação
+
+#### `export-openapi.ps1` - Export OpenAPI Specification
+**Uso:**
+```powershell
+# Export para arquivo padrão
+.\scripts\export-openapi.ps1
+
+# Export para arquivo específico
+.\scripts\export-openapi.ps1 -OutputPath "api/frontend-api.json"
+```
+
+**Funcionalidades:**
+- Exporta especificação OpenAPI da API
+- Formato JSON compatível com ferramentas
+- Usado para gerar cliente HTTP/Bruno Collections
+
+---
+
+### 🌱 Seed de Dados
+
+#### `seed-dev-data.ps1` - Seed Dados de Desenvolvimento
+**Uso:**
+```powershell
+# Quando executar API diretamente (dotnet run) - usa default http://localhost:5000
+.\scripts\seed-dev-data.ps1
+
+# Quando usar Aspire orchestration - override para portas Aspire
+.\scripts\seed-dev-data.ps1 -ApiBaseUrl "https://localhost:7524"
+# ou
+.\scripts\seed-dev-data.ps1 -ApiBaseUrl "http://localhost:5545"
+
+# Seed para Staging
+.\scripts\seed-dev-data.ps1 -Environment Staging
+```
+
+**Funcionalidades:**
+- Popula categorias de serviços
+- Cria serviços básicos
+- Adiciona cidades permitidas
+- Cria usuários de teste
+- Gera providers de exemplo
+
+**Configuração:**
+- Variável `API_BASE_URL`:
+  - **Default `http://localhost:5000`** - use quando executar API diretamente via `dotnet run`
+  - **Override com `-ApiBaseUrl`** - necessário quando usar Aspire orchestration (portas dinâmicas como `https://localhost:7524` ou `http://localhost:5545`)
+- Suporta ambientes: Development, Staging
+
+---
+
+## 📍 Outros Scripts no Projeto
+
+### Infrastructure Scripts
+Localizados em `infrastructure/` - documentados em [infrastructure/SCRIPTS.md](../infrastructure/SCRIPTS.md)
+
+### Automation Scripts
+Localizados em `automation/` - documentados em [automation/README.md](../automation/README.md)
+
+### Build Scripts
+Localizados em `build/` - documentados em [build/README.md](../build/README.md)
+
+---
+
+## 📊 Resumo
+
+- **Total de scripts:** 4 PowerShell essenciais
+- **Foco:** Migrations, seed de dados, export de API
+- **Filosofia:** Apenas scripts com utilidade clara e automação

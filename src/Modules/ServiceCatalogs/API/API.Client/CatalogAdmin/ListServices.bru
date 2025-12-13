@@ -1,0 +1,27 @@
+meta {
+  name: List All Services
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/v1/catalogs/services
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # List All Services
+  
+  Lista todos os serviços cadastrados.
+  
+  ## Status: 200 OK
+}

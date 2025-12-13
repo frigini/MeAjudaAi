@@ -45,7 +45,7 @@ class PostmanCollectionGenerator {
       const environments = this.generateEnvironments();
       
       console.log('💾 Salvando arquivos...');
-      await this.saveFiles(collection, environments);
+      await this.saveFiles(collection, environments, swaggerSpec);
       
       console.log('✅ Collections geradas com sucesso!');
       console.log(`📁 Arquivos salvos em: ${this.config.outputDir}`);
@@ -429,7 +429,7 @@ class PostmanCollectionGenerator {
     });
   }
 
-  async saveFiles(collection, environments) {
+  async saveFiles(collection, environments, swaggerSpec) {
     const outputDir = path.resolve(__dirname, this.config.outputDir);
     
     // Criar diretório se não existir
@@ -440,6 +440,11 @@ class PostmanCollectionGenerator {
     // Salvar collection
     const collectionPath = path.join(outputDir, 'MeAjudaAi-API-Collection.json');
     fs.writeFileSync(collectionPath, JSON.stringify(collection, null, 2));
+
+    // Salvar OpenAPI spec para api/api-spec.json
+    const apiSpecPath = path.resolve(__dirname, '../../api/api-spec.json');
+    fs.writeFileSync(apiSpecPath, JSON.stringify(swaggerSpec, null, 2));
+    console.log(`📄 OpenAPI spec salvo em: api/api-spec.json`);
 
     // Salvar environments
     for (const [name, env] of Object.entries(environments)) {

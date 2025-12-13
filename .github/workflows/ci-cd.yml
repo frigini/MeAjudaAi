@@ -57,10 +57,10 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: 🔧 Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate
+        run: dotnet restore MeAjudaAi.slnx --force-evaluate
 
       - name: Build solution
-        run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
+        run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
       - name: Setup PostgreSQL connection
         id: db

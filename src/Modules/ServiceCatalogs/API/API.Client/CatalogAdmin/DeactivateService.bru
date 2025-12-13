@@ -1,0 +1,26 @@
+meta {
+  name: Deactivate Service
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/api/v1/catalogs/services/{{serviceId}}/deactivate
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Deactivate Service
+  
+  Desativa serviço ativo.
+  
+  ## Parâmetros
+  - `serviceId`: GUID do serviço
+  
+  ## Status: 204 No Content | 404 Not Found
+}

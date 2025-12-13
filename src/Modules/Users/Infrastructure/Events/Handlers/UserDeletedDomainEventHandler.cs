@@ -29,7 +29,9 @@ internal sealed class UserDeletedDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling UserDeletedDomainEvent for user {UserId}", domainEvent.AggregateId);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to publish UserDeleted integration event for user '{domainEvent.AggregateId}'",
+                ex);
         }
     }
 }

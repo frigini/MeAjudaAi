@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
 using MeAjudaAi.Modules.Locations.Domain.ExternalModels.IBGE;
+using MeAjudaAi.Modules.Locations.Domain.Repositories;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Caching;
@@ -12,13 +13,14 @@ using Xunit;
 namespace MeAjudaAi.Modules.Locations.Tests.Unit.Infrastructure.Services;
 
 /// <summary>
-/// Unit tests para IbgeService com mock de IIbgeClient e ICacheService.
+/// Unit tests para IbgeService com mock de IIbgeClient, ICacheService e IAllowedCityRepository.
 /// Testa validação de cidades, cache behavior e error handling.
 /// </summary>
 public sealed class IbgeServiceTests
 {
     private readonly Mock<IIbgeClient> _ibgeClientMock;
     private readonly Mock<ICacheService> _cacheServiceMock;
+    private readonly Mock<IAllowedCityRepository> _allowedCityRepositoryMock;
     private readonly Mock<ILogger<IbgeService>> _loggerMock;
     private readonly IbgeService _sut;
 
@@ -26,8 +28,13 @@ public sealed class IbgeServiceTests
     {
         _ibgeClientMock = new Mock<IIbgeClient>(MockBehavior.Strict);
         _cacheServiceMock = new Mock<ICacheService>(MockBehavior.Strict);
+        _allowedCityRepositoryMock = new Mock<IAllowedCityRepository>(MockBehavior.Strict);
         _loggerMock = new Mock<ILogger<IbgeService>>();
-        _sut = new IbgeService(_ibgeClientMock.Object, _cacheServiceMock.Object, _loggerMock.Object);
+        _sut = new IbgeService(
+            _ibgeClientMock.Object,
+            _cacheServiceMock.Object,
+            _allowedCityRepositoryMock.Object,
+            _loggerMock.Object);
     }
 
     #region ValidateCityInAllowedRegionsAsync Tests
@@ -38,18 +45,21 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "Muriaé";
         const string stateSigla = "MG";
-        var allowedCities = new[] { "Muriaé", "Itaperuna", "Linhares" };
 
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
         SetupCacheGetOrCreate(cityName, municipio);
+        _allowedCityRepositoryMock
+            .Setup(x => x.IsCityAllowedAsync("Muriaé", "MG", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
-        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities);
+        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla);
 
         // Assert
         result.Should().BeTrue();
         _cacheServiceMock.Verify();
+        _allowedCityRepositoryMock.Verify();
     }
 
     [Fact]
@@ -58,38 +68,45 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "São Paulo";
         const string stateSigla = "SP";
-        var allowedCities = new[] { "Muriaé", "Itaperuna", "Linhares" };
+
 
         var municipio = CreateMunicipio(3550308, "São Paulo", "SP");
 
         SetupCacheGetOrCreate(cityName, municipio);
+        _allowedCityRepositoryMock
+            .Setup(x => x.IsCityAllowedAsync("São Paulo", "SP", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
 
         // Act
-        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities);
+        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla);
 
         // Assert
         result.Should().BeFalse();
         _cacheServiceMock.Verify();
+        _allowedCityRepositoryMock.Verify();
     }
 
     [Fact]
     public async Task ValidateCityInAllowedRegionsAsync_CaseInsensitiveMatching_ReturnsTrue()
     {
         // Arrange
-        const string cityName = "muriaé"; // lowercase
-        const string stateSigla = "mg"; // lowercase
-        var allowedCities = new[] { "MURIAÉ", "ITAPERUNA" }; // uppercase
+        const string cityName = "muriaé";
+        const string stateSigla = "mg";
 
-        var municipio = CreateMunicipio(3129707, "Muriaé", "MG"); // title case
+        var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
         SetupCacheGetOrCreate(cityName, municipio);
+        _allowedCityRepositoryMock
+            .Setup(x => x.IsCityAllowedAsync("Muriaé", "MG", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
-        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities);
+        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla);
 
         // Assert
         result.Should().BeTrue();
         _cacheServiceMock.Verify();
+        _allowedCityRepositoryMock.Verify();
     }
 
     [Fact]
@@ -98,13 +115,13 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "CidadeInexistente";
         const string stateSigla = "XX";
-        var allowedCities = new[] { "Muriaé" };
+
 
         SetupCacheGetOrCreate(cityName, null); // Município não existe
 
         // Act & Assert - Lança MunicipioNotFoundException para que middleware faça fallback
         var exception = await Assert.ThrowsAsync<MunicipioNotFoundException>(
-            () => _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities));
+            () => _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla));
 
         exception.CityName.Should().Be(cityName);
         exception.StateSigla.Should().Be(stateSigla);
@@ -117,14 +134,14 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "Muriaé";
         const string stateSigla = "RJ"; // Errado: Muriaé é MG
-        var allowedCities = new[] { "Muriaé" };
+
 
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
         SetupCacheGetOrCreate(cityName, municipio);
 
         // Act
-        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities);
+        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla);
 
         // Assert
         result.Should().BeFalse();
@@ -137,18 +154,22 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "Muriaé";
         string? stateSigla = null; // Sem validação de estado
-        var allowedCities = new[] { "Muriaé" };
+
 
         var municipio = CreateMunicipio(3129707, "Muriaé", "MG");
 
         SetupCacheGetOrCreate(cityName, municipio);
+        _allowedCityRepositoryMock
+            .Setup(x => x.IsCityAllowedAsync("Muriaé", "MG", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         // Act
-        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities);
+        var result = await _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla);
 
         // Assert
         result.Should().BeTrue();
         _cacheServiceMock.Verify();
+        _allowedCityRepositoryMock.Verify();
     }
 
     [Fact]
@@ -157,13 +178,13 @@ public sealed class IbgeServiceTests
         // Arrange
         const string cityName = "Muriaé";
         const string stateSigla = "MG";
-        var allowedCities = new[] { "Muriaé" };
+
 
         SetupCacheGetOrCreateWithException(cityName, new HttpRequestException("IBGE API unreachable"));
 
         // Act & Assert - Propaga exceção para middleware fazer fallback
         await Assert.ThrowsAsync<HttpRequestException>(
-            () => _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities));
+            () => _sut.ValidateCityInAllowedRegionsAsync(cityName, stateSigla));
 
         _cacheServiceMock.Verify();
     }
@@ -451,3 +472,4 @@ public sealed class IbgeServiceTests
 
     #endregion
 }
+

@@ -19,10 +19,13 @@ public static class SerilogConfigurator
     /// - Configurações básicas do appsettings.json
     /// - Enrichers e lógica específica por ambiente via código
     /// </summary>
-    public static LoggerConfiguration ConfigureSerilog(IConfiguration configuration, IWebHostEnvironment environment)
+    public static void ConfigureSerilog(
+        LoggerConfiguration loggerConfig,
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
-        var loggerConfig = new LoggerConfiguration()
-            // 📄 Ler configurações básicas do appsettings.json
+        // 📄 Ler configurações básicas do appsettings.json
+        loggerConfig
             .ReadFrom.Configuration(configuration)
 
             // 🏗️ Adicionar enrichers via código
@@ -46,8 +49,6 @@ public static class SerilogConfigurator
 
         // 🎯 Aplicar configurações específicas por ambiente
         ApplyEnvironmentSpecificConfiguration(loggerConfig, configuration, environment);
-
-        return loggerConfig;
     }
 
     /// <summary>
@@ -75,7 +76,7 @@ public static class SerilogConfigurator
                 .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning);
 
             // Configurar Application Insights se disponível
-            ConfigureApplicationInsights(config, configuration);
+            ConfigureApplicationInsights(configuration);
         }
 
         // Configurar correlation ID enricher
@@ -85,7 +86,7 @@ public static class SerilogConfigurator
     /// <summary>
     /// Configura Application Insights para produção (futuro)
     /// </summary>
-    private static void ConfigureApplicationInsights(LoggerConfiguration config, IConfiguration configuration)
+    private static void ConfigureApplicationInsights(IConfiguration configuration)
     {
         var connectionString = configuration["ApplicationInsights:ConnectionString"];
         if (!string.IsNullOrEmpty(connectionString))
@@ -115,35 +116,10 @@ public static class LoggingConfigurationExtensions
         // Usar services.AddSerilog() que registra DiagnosticContext automaticamente
         services.AddSerilog((serviceProvider, loggerConfig) =>
         {
-            // Aplicar a configuração do SerilogConfigurator
-            var configuredLogger = SerilogConfigurator.ConfigureSerilog(configuration, environment);
+            // Aplicar a configuração do SerilogConfigurator (modifica loggerConfig diretamente)
+            SerilogConfigurator.ConfigureSerilog(loggerConfig, configuration, environment);
 
-            loggerConfig.ReadFrom.Configuration(configuration)
-                .Enrich.FromLogContext()
-                .Enrich.WithProperty("Application", "MeAjudaAi")
-                .Enrich.WithProperty("Environment", environment.EnvironmentName)
-                .Enrich.WithProperty("MachineName", Environment.MachineName)
-                .Enrich.WithProperty("ProcessId", Environment.ProcessId)
-                .Enrich.WithProperty("Version", SerilogConfigurator.GetApplicationVersion());
-
-            // Aplicar configurações específicas do ambiente
-            if (environment.IsDevelopment())
-            {
-                loggerConfig
-                    .MinimumLevel.Debug()
-                    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Information)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", Serilog.Events.LogEventLevel.Information);
-            }
-            else
-            {
-                loggerConfig
-                    .MinimumLevel.Information()
-                    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
-                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", Serilog.Events.LogEventLevel.Warning)
-                    .MinimumLevel.Override("System.Net.Http.HttpClient", Serilog.Events.LogEventLevel.Warning);
-            }
-
-            // Console sink
+            // Sinks configurados aqui (Console + File)
             loggerConfig.WriteTo.Console(outputTemplate:
                 "[{Timestamp:HH:mm:ss} {Level:u3}] {CorrelationId} {Message:lj} {Properties:j}{NewLine}{Exception}");
 
@@ -171,11 +147,14 @@ public static class LoggingConfigurationExtensions
             app.UseSerilogRequestLogging(options =>
             {
                 options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-                options.GetLevel = (httpContext, elapsed, ex) => ex != null
-                    ? LogEventLevel.Error
-                    : httpContext.Response.StatusCode > 499
-                        ? LogEventLevel.Error
-                        : LogEventLevel.Information;
+                options.GetLevel = (httpContext, elapsed, ex) =>
+                {
+                    if (ex != null)
+                        return LogEventLevel.Error;
+                    if (httpContext.Response.StatusCode > 499)
+                        return LogEventLevel.Error;
+                    return LogEventLevel.Information;
+                };
 
                 options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
                 {

@@ -10,7 +10,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
-using NSubstitute;
+using Moq;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using System.Net;

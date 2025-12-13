@@ -63,7 +63,7 @@ public static class HangfireExtensions
             dashboardPath = "/hangfire";
             logger?.LogWarning("Dashboard path was empty, using default: {DashboardPath}", dashboardPath);
         }
-        if (!dashboardPath.StartsWith("/"))
+        if (!dashboardPath.StartsWith('/'))
         {
             dashboardPath = $"/{dashboardPath}";
             logger?.LogWarning("Dashboard path adjusted to start with '/': {DashboardPath}", dashboardPath);

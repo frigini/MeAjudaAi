@@ -95,6 +95,16 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                     ["ruleName"] = businessException.RuleName
                 }),
 
+            ArgumentException argumentException => (
+                StatusCodes.Status500InternalServerError,
+                "Internal Server Error",
+                "An unexpected error occurred while processing your request",
+                null,
+                new Dictionary<string, object?>
+                {
+                    ["parameterName"] = argumentException.ParamName
+                }),
+
             DomainException domainException => (
                 StatusCodes.Status400BadRequest,
                 "Domain Rule Violation",

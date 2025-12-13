@@ -132,10 +132,9 @@ public class GeographicRestrictionMiddleware(
             return (city, state);
         }
 
-        // TODO Sprint 2: Implementar GeoIP lookup baseado em IP
-        // Opção 1: GeoIP (MaxMind, IP2Location)
-        // var ip = context.Connection.RemoteIpAddress;
-        // return await _geoIpService.GetLocationFromIpAsync(ip);
+        // TODO: Implementar GeoIP lookup baseado em IP para detectar localização automaticamente.
+        //       Opções: MaxMind GeoIP2, IP2Location, ou IPGeolocation API.
+        //       Injetar IGeoIpService via construtor e usar: await _geoIpService.GetLocationFromIpAsync(context.Connection.RemoteIpAddress, cancellationToken);
 
         return (null, null);
     }

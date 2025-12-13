@@ -146,7 +146,7 @@ internal sealed class GetUsersQueryHandler(
     /// <summary>
     /// Cria o resultado paginado com metadados.
     /// </summary>
-    private PagedResult<UserDto> CreatePagedResult(
+    private static PagedResult<UserDto> CreatePagedResult(
         IReadOnlyList<UserDto> userDtos,
         GetUsersQuery query,
         int totalCount)

@@ -150,13 +150,15 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            _logger.LogWarning("User {MaskedUserId} not found in Keycloak", MaskUserId(userId));
+            _logger.LogWarning(ex, "User {MaskedUserId} not found in Keycloak", MaskUserId(userId));
             return Array.Empty<string>();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving roles from Keycloak for user {MaskedUserId}", MaskUserId(userId));
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to retrieve user roles from Keycloak for user ID: {MaskUserId(userId)}",
+                ex);
         }
     }
 
@@ -262,7 +264,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            _logger.LogDebug("User {MaskedUserId} not found by ID, trying username search", MaskUserId(userId));
+            _logger.LogDebug(ex, "User {MaskedUserId} not found by ID, trying username search", MaskUserId(userId));
         }
 
         // Fallback: busca por username

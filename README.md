@@ -28,7 +28,7 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 - **Docker** - Containerização
 - **Azure** - Hospedagem em nuvem
 
-## � Documentação
+## 📚 Documentação
 
 A documentação completa do projeto está disponível em **MkDocs Material** com suporte completo em português.
 
@@ -110,35 +110,30 @@ O projeto foi organizado para facilitar navegação e manutenção:
 
 Para instruções detalhadas, consulte o [**Guia de Desenvolvimento Completo**](./docs/development.md).
 
-**Setup completo (recomendado):**
-```bash
-./run-local.sh setup
+**Setup via .NET Aspire:**
+```powershell
+# Execute o AppHost do Aspire
+cd src/Aspire/MeAjudaAi.AppHost
+dotnet run
 ```
 
-**Execução rápida:**
-```bash
-./run-local.sh run
-```
-
-**Modo interativo:**
-```bash
-./run-local.sh
+**Ou via Docker Compose:**
+```powershell
+cd infrastructure/compose
+docker compose -f environments/development.yml up -d
 ```
 
 ### Para Testes
 
-```bash
+```powershell
 # Todos os testes
-./test.sh all
-
-# Apenas unitários
-./test.sh unit
+dotnet test
 
 # Com relatório de cobertura
-./test.sh coverage
+dotnet test --collect:"XPlat Code Coverage"
 ```
 
-📖 **[Guia Completo de Desenvolvimento](docs/development_guide.md)**
+📖 **[Guia Completo de Desenvolvimento](docs/development.md)**
 
 ### Pré-requisitos
 
@@ -196,6 +191,8 @@ docker compose -f environments/development.yml up -d
 > - **Aspire Dashboard**: `src/Aspire/MeAjudaAi.AppHost/Properties/launchSettings.json`
 > - **API Service**: `src/Bootstrapper/MeAjudaAi.ApiService/Properties/launchSettings.json`
 > - **Infraestrutura**: `infrastructure/compose/environments/development.yml`
+
+> ⚠️ **Somente desenvolvimento**: credenciais/portas abaixo são valores locais de exemplo. Não reutilize em produção.
 
 | Serviço | URL | Credenciais |
 |---------|-----|-------------|
@@ -460,7 +457,7 @@ azd provision
 
 - [**Guia de Infraestrutura**](docs/infrastructure.md) - Setup e deploy
 - [**Arquitetura e Padrões**](docs/architecture.md) - Decisões arquiteturais
-- [**Guia de Desenvolvimento**](docs/development_guide.md) - Convenções e práticas
+- [**Guia de Desenvolvimento**](docs/development.md) - Convenções e práticas
 - [**CI/CD**](docs/ci-cd.md) - Pipeline de integração contínua
 - [**Diretrizes de Desenvolvimento**](docs/development-guidelines.md) - Padrões e boas práticas
 

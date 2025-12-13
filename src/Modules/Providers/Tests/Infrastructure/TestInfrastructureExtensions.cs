@@ -83,10 +83,14 @@ internal class TestCacheService : MeAjudaAi.Shared.Caching.ICacheService
 {
     private readonly Dictionary<string, object> _cache = new();
 
-    public Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
+    public Task<(T? value, bool isCached)> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
-        _cache.TryGetValue(key, out var value);
-        return Task.FromResult((T?)value);
+        if (_cache.TryGetValue(key, out var value) && value is T typedValue)
+        {
+            return Task.FromResult<(T?, bool)>((typedValue, true));
+        }
+
+        return Task.FromResult<(T?, bool)>((default, false));
     }
 
     public Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, Microsoft.Extensions.Caching.Hybrid.HybridCacheEntryOptions? options = null, IReadOnlyCollection<string>? tags = null, CancellationToken cancellationToken = default)

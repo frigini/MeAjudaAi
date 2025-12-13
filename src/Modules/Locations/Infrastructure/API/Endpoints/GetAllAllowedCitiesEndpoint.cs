@@ -1,0 +1,37 @@
+using MeAjudaAi.Modules.Locations.Application.DTOs;
+using MeAjudaAi.Modules.Locations.Application.Queries;
+using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Contracts;
+using MeAjudaAi.Shared.Endpoints;
+using MeAjudaAi.Shared.Queries;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+
+namespace MeAjudaAi.Modules.Locations.Infrastructure.API.Endpoints;
+
+/// <summary>
+/// Endpoint para listar todas as cidades permitidas (Admin only)
+/// </summary>
+public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
+{
+    public static void Map(IEndpointRouteBuilder app)
+        => app.MapGet("/api/v1/admin/allowed-cities", GetAllAsync)
+            .WithName("GetAllAllowedCities")
+            .WithSummary("Get all allowed cities")
+            .WithDescription("Retrieves all allowed cities (optionally only active ones)")
+            .Produces<Response<IReadOnlyList<AllowedCityDto>>>(StatusCodes.Status200OK)
+            .RequireAdmin();
+
+    private static async Task<IResult> GetAllAsync(
+        bool onlyActive = false,
+        IQueryDispatcher queryDispatcher = default!,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetAllAllowedCitiesQuery { OnlyActive = onlyActive };
+
+        var result = await queryDispatcher.QueryAsync<GetAllAllowedCitiesQuery, IReadOnlyList<AllowedCityDto>>(query, cancellationToken);
+
+        return Results.Ok(new Response<IReadOnlyList<AllowedCityDto>>(result));
+    }
+}

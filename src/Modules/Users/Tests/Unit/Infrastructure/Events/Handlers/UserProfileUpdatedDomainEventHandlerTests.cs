@@ -144,7 +144,10 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
             _handler.HandleAsync(domainEvent, CancellationToken.None)
         );
 
-        Assert.Equal("Message bus unavailable", ex.Message);
+        // Handler now wraps exceptions for consistency
+        Assert.StartsWith("Error handling UserProfileUpdatedDomainEvent for user", ex.Message);
+        Assert.NotNull(ex.InnerException);
+        Assert.Equal("Message bus unavailable", ex.InnerException.Message);
 
         // Verify error was logged
         _loggerMock.Verify(

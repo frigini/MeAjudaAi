@@ -1,0 +1,65 @@
+meta {
+  name: Delete Allowed City
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/locations/admin/allowed-cities/{{allowedCityId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+vars:pre-request {
+  allowedCityId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+}
+
+docs {
+  # Delete Allowed City
+  
+  Remove uma cidade permitida (soft delete).
+  
+  **Autorização**: Requer role `Admin`
+  
+  ## Path Parameters
+  
+  - `allowedCityId` (guid): ID da cidade permitida a ser removida
+  
+  ## Comportamento
+  
+  - Realiza **soft delete** (marca como deletada, não remove fisicamente)
+  - Cidade deletada não aparece mais nas listagens (exceto se filtro incluir deletadas)
+  - Operação é irreversível via API (requer acesso direto ao banco para restaurar)
+  
+  ## Resposta Sucesso (204 No Content)
+  
+  Sem corpo de resposta.
+  
+  ## Possíveis Erros
+  
+  - `401 Unauthorized`: Token inválido ou expirado
+  - `403 Forbidden`: Usuário não possui role Admin
+  - `404 Not Found`: Cidade permitida não encontrada
+    ```json
+    {
+      "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
+      "title": "Not Found",
+      "status": 404,
+      "detail": "Cidade permitida com allowedCityId '3fa85f64-5717-4562-b3fc-2c963f66afa6' não encontrada"
+    }
+    ```
+  
+  ## Notas de Segurança
+  
+  - Esta operação requer role `Admin`
+  - Logs de auditoria registram qual usuário realizou a exclusão
+  - Para restaurar uma cidade deletada, contate o DBA
+}

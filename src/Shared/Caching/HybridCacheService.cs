@@ -9,10 +9,10 @@ public class HybridCacheService(
     ILogger<HybridCacheService> logger,
     CacheMetrics metrics) : ICacheService
 {
-    public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
+    public async Task<(T? value, bool isCached)> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
-        var isHit = false;
+        var factoryCalled = false;
 
         try
         {
@@ -20,28 +20,26 @@ public class HybridCacheService(
                 key,
                 factory: _ =>
                 {
-                    isHit = false; // Factory chamado = cache miss
+                    factoryCalled = true; // Factory chamado = cache miss
                     return new ValueTask<T>(default(T)!);
                 },
                 cancellationToken: cancellationToken);
 
-            // Se o factory não foi chamado, foi um hit
-            if (!isHit && result != null && !result.Equals(default(T)))
-            {
-                isHit = true;
-            }
+            // Se o factory foi chamado, foi um miss; caso contrário, hit
+            var isCached = !factoryCalled;
 
             stopwatch.Stop();
-            metrics.RecordOperation(key, "get", isHit, stopwatch.Elapsed.TotalSeconds);
+            metrics.RecordOperation(key, "get", isCached, stopwatch.Elapsed.TotalSeconds);
 
-            return result;
+            // Retornar tupla: (valor, estava_em_cache)
+            return isCached ? (result, true) : (default, false);
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
             metrics.RecordOperationDuration(stopwatch.Elapsed.TotalSeconds, "get", "error");
             logger.LogWarning(ex, "Failed to get value from cache for key {Key}", key);
-            return default;
+            return (default, false);
         }
     }
 
@@ -88,10 +86,12 @@ public class HybridCacheService(
     {
         try
         {
-            // TODO: HybridCache only supports tag-based removal, not pattern matching.
-            // This currently delegates to RemoveByTagAsync, which may not provide
-            // the expected wildcard pattern matching behavior defined in the interface.
-            // Consider implementing proper pattern matching or using a different caching provider.
+            // TODO(#250): HybridCache only supports tag-based removal, not wildcard pattern matching.
+            // Current behavior: Treats pattern as exact tag match (not glob/regex).
+            // Options: (1) Implement GetKeys() equivalent + filter by pattern (performance cost),
+            // (2) Switch to IDistributedCache for pattern support (lose L1/L2 benefits),
+            // (3) Deprecate RemoveByPatternAsync and migrate consumers to tag-based approach.
+            // Recommendation: Option 3 - tag-based removal aligns with HybridCache design.
             await hybridCache.RemoveByTagAsync(pattern, cancellationToken);
         }
         catch (Exception ex)

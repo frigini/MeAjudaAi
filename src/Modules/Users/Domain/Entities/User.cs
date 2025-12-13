@@ -80,7 +80,7 @@ public sealed class User : AggregateRoot<UserId>
     /// Usa a coluna de sistema xmin do PostgreSQL para detectar conflitos de concorrência.
     /// Será automaticamente incrementado em cada UPDATE.
     /// </remarks>
-    public uint RowVersion { get; private set; }
+    public uint RowVersion { get; }
 
     /// <summary>
     /// Construtor privado para uso do Entity Framework.

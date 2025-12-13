@@ -1,0 +1,26 @@
+meta {
+  name: Deactivate Category
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/v1/catalogs/categories/{{categoryId}}/deactivate
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Deactivate Category
+  
+  Desativa categoria ativa. Serviços associados também serão desativados.
+  
+  ## Parâmetros
+  - `categoryId`: GUID da categoria
+  
+  ## Status: 204 No Content | 404 Not Found
+}

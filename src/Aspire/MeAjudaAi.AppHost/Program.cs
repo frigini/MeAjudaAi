@@ -64,6 +64,9 @@ internal static class Program
             options.Password = testDbPassword;
         });
 
+        // Aplicar migrations automaticamente (Testing também)
+        postgresql.MainDatabase.WithMigrations();
+
         var redis = builder.AddRedis("redis");
 
         _ = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
@@ -106,6 +109,9 @@ internal static class Program
             options.Password = dbPassword;
             options.IncludePgAdmin = includePgAdmin;
         });
+
+        // Aplicar migrations automaticamente
+        postgresql.MainDatabase.WithMigrations();
 
         var redis = builder.AddRedis("redis");
 
@@ -180,10 +186,7 @@ internal static class Program
 
         var keycloak = builder.AddMeAjudaAiKeycloakProduction();
 
-        // TODO: Verificar se AddAzureContainerAppEnvironment está disponível na versão atual do Aspire
-        // builder.AddAzureContainerAppEnvironment("cae");
-
-        var apiService = builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
+        builder.AddProject<Projects.MeAjudaAi_ApiService>("apiservice")
             .WithReference(postgresql.MainDatabase, "DefaultConnection")
             .WithReference(redis)
             .WaitFor(postgresql.MainDatabase)

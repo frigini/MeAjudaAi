@@ -1,0 +1,30 @@
+meta {
+  name: Get Service By ID
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/v1/catalogs/services/{{serviceId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  # Get Service By ID
+  
+  Retorna serviço específico por ID.
+  
+  ## Parâmetros
+  - `serviceId`: GUID do serviço
+  
+  ## Status: 200 OK | 404 Not Found
+}

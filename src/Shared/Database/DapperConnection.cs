@@ -1,10 +1,12 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Dapper;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace MeAjudaAi.Shared.Database;
 
-public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics metrics) : IDapperConnection
+public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics metrics, ILogger<DapperConnection> logger) : IDapperConnection
 {
     private readonly string _connectionString = GetConnectionString(postgresOptions);
 
@@ -45,8 +47,7 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         catch (Exception ex)
         {
             stopwatch.Stop();
-            metrics.RecordConnectionError("dapper_query_multiple", ex);
-            throw;
+            throw HandleDapperError(ex, "query_multiple", sql);
         }
     }
 
@@ -74,8 +75,7 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         catch (Exception ex)
         {
             stopwatch.Stop();
-            metrics.RecordConnectionError("dapper_query_single", ex);
-            throw;
+            throw HandleDapperError(ex, "query_single", sql);
         }
     }
 
@@ -103,8 +103,17 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         catch (Exception ex)
         {
             stopwatch.Stop();
-            metrics.RecordConnectionError("dapper_execute", ex);
-            throw;
+            throw HandleDapperError(ex, "execute", sql);
         }
+    }
+
+    private InvalidOperationException HandleDapperError(Exception ex, string operationType, string sql)
+    {
+        metrics.RecordConnectionError($"dapper_{operationType}", ex);
+        // Log SQL preview only in debug/development contexts to avoid exposing schema in production
+        logger.LogDebug("Dapper operation failed (type: {OperationType}). SQL preview: {SqlPreview}",
+            operationType, sql?.Length > 100 ? sql.Substring(0, 100) + "..." : sql);
+        logger.LogError(ex, "Failed to execute Dapper operation (type: {OperationType})", operationType);
+        return new InvalidOperationException($"Failed to execute Dapper operation (type: {operationType})", ex);
     }
 }

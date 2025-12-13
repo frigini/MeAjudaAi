@@ -28,7 +28,7 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     private readonly Histogram<double> _authorizationCheckDuration;
     private readonly Histogram<double> _performanceHistogram;
 
-    // Gauges (via ObservableGauge)
+    // Observable gauges
     private readonly ObservableGauge<int> _activePermissionChecks;
     private readonly ObservableGauge<double> _cacheHitRate;
 

@@ -1,0 +1,56 @@
+meta {
+  name: Get All Allowed Cities
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/locations/admin/allowed-cities?onlyActive=true
+  body: none
+  auth: bearer
+}
+
+params:query {
+  onlyActive: true
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+docs {
+  # Get All Allowed Cities
+  
+  Lista todas as cidades permitidas para restrição geográfica.
+  
+  **Autorização**: Requer role `Admin`
+  
+  ## Query Parameters
+  
+  - `onlyActive` (boolean, opcional): Se `true`, retorna apenas cidades ativas. Default: `false`
+  
+  ## Resposta Sucesso (200 OK)
+  
+  ```json
+  [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "cityName": "Muriaé",
+      "stateSigla": "MG",
+      "ibgeCode": "3143906",
+      "isActive": true,
+      "createdAt": "2025-12-11T00:00:00Z",
+      "createdBy": "admin@meajudaai.com"
+    }
+  ]
+  ```
+  
+  ## Possíveis Erros
+  
+  - `401 Unauthorized`: Token inválido ou expirado
+  - `403 Forbidden`: Usuário não possui role Admin
+}

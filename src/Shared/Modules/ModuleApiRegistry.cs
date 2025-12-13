@@ -34,7 +34,6 @@ public static class ModuleApiRegistry
 
         foreach (var moduleType in moduleTypes)
         {
-            var moduleAttribute = moduleType.GetCustomAttribute<ModuleApiAttribute>()!;
             var interfaces = moduleType.GetInterfaces()
                 .Where(i => i != typeof(IModuleApi) && typeof(IModuleApi).IsAssignableFrom(i));
 
