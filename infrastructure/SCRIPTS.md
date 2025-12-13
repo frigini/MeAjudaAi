@@ -103,30 +103,6 @@ KEYCLOAK_ADMIN_PASSWORD=admin
 
 ## 🐳 Docker Compose Scripts
 
-### **`compose/environments/setup-secrets.sh`**
-**Propósito**: Configurar Docker secrets para ambientes locais  
-**Quando Usar**: Primeira vez usando docker-compose ou ao regenerar secrets
-
-**Uso**:
-```bash
-# Setup ambiente development
-./infrastructure/compose/environments/setup-secrets.sh development
-
-# Setup ambiente staging
-./infrastructure/compose/environments/setup-secrets.sh staging
-```
-
-**Secrets Criados**:
-- `postgres_password`
-- `keycloak_admin_password`
-- `redis_password`
-- `rabbitmq_password`
-- `app_connection_string`
-
-**Localização**: `.secrets/{environment}/`
-
----
-
 ### **`compose/environments/verify-resources.sh`**
 **Propósito**: Health check de todos os recursos Docker  
 **Quando Usar**: Troubleshooting ou validação pós-deploy
@@ -167,16 +143,11 @@ KEYCLOAK_ADMIN_PASSWORD=admin
 
 ## 🧪 Testing Scripts
 
-### **`test-database-init.sh`** / **`test-database-init.ps1`**
+### **`test-database-init.ps1`**
 **Propósito**: Validar que todos os scripts de init executam sem erros  
 **Quando Usar**: Após modificar scripts de database ou adicionar novo módulo
 
-**Bash (Linux/macOS)**:
-```bash
-./infrastructure/test-database-init.sh
-```
-
-**PowerShell (Windows)**:
+**Uso:**
 ```powershell
 .\infrastructure\test-database-init.ps1
 ```
@@ -205,14 +176,31 @@ KEYCLOAK_ADMIN_PASSWORD=admin
 
 ## 🚀 Deployment
 
-### **Azure Deployment**
-Para deploy em Azure, use:
+### **Azure Deployment via Bicep**
+Para deploy em Azure, use diretamente o Azure CLI:
+
 ```bash
-# Deploy completo (Bicep)
-./scripts/deploy.sh production brazilsouth
+# Login no Azure
+az login
+
+# Deploy do resource group e recursos
+az deployment group create \
+  --resource-group meajudaai-prod \
+  --template-file infrastructure/main.bicep \
+  --parameters location=brazilsouth
 ```
 
-Ver [../scripts/README.md](../scripts/README.md#-deployrsh---deploy-azure) para detalhes.
+### **Deploy via .NET Aspire (Recomendado)**
+
+Para ambientes de produção, o deploy é feito via .NET Aspire para Azure App Service:
+
+```bash
+# Deploy via Aspire
+cd src/Aspire/MeAjudaAi.AppHost
+dotnet run -- deploy
+```
+
+Ver [documentação do Aspire](https://learn.microsoft.com/en-us/dotnet/aspire/deployment/azure/aca-deployment) para detalhes.
 
 ---
 
@@ -220,24 +208,24 @@ Ver [../scripts/README.md](../scripts/README.md#-deployrsh---deploy-azure) para 
 
 ```
 infrastructure/
-├── README.md (este arquivo)
+├── README.md
+├── SCRIPTS.md (este arquivo)
 ├── main.bicep (template Bicep principal)
 ├── servicebus.bicep (Azure Service Bus)
 ├── database/
 │   ├── 01-init-meajudaai.sh (init PostgreSQL)
 │   └── create-module.ps1 (template novo módulo)
 ├── keycloak/
+│   ├── realms/ (configurações Keycloak)
 │   └── scripts/
 │       ├── keycloak-init-dev.sh
 │       └── keycloak-init-prod.sh
 ├── compose/
-│   ├── base/ (docker-compose base)
-│   ├── environments/
-│   │   ├── setup-secrets.sh
+│   ├── base/ (postgres, keycloak, redis, rabbitmq)
+│   ├── environments/ (development, testing)
 │   │   └── verify-resources.sh
-│   └── standalone/ (compose standalone)
+│   └── standalone/ (postgres-only, keycloak-only)
 ├── rabbitmq/ (configs RabbitMQ)
-├── test-database-init.sh
 └── test-database-init.ps1
 ```
 
