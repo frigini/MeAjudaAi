@@ -78,7 +78,8 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                             .MakeGenericMethod(categoryType.ClrType);
 
                         var hasCategories = await (Task<bool>)anyMethod.Invoke(null, [dbSet, cancellationToken])!;
-                        return hasCategories;
+                        if (hasCategories)
+                            return true;
                     }
                 }
             }
@@ -108,7 +109,8 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                             .MakeGenericMethod(allowedCityType.ClrType);
 
                         var hasCities = await (Task<bool>)anyMethod.Invoke(null, [dbSet, cancellationToken])!;
-                        return hasCities;
+                        if (hasCities)
+                            return true;
                     }
                 }
             }

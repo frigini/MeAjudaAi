@@ -76,13 +76,19 @@ internal class MetricsCollectorService(
         {
             // Aqui você implementaria a lógica real para contar usuários ativos
             // Por exemplo, usuários que fizeram login nas últimas 24 horas
-            // TODO: Quando implementar, usar IServiceScope para resolver DbContext/repositories
+            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui
+            //       Exemplo: using var scope = serviceScopeFactory.CreateScope();
+            //                var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
 
             // Placeholder - implementar com o serviço real de usuários
             await Task.Delay(1, cancellationToken); // Simular operação async
 
             // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
             return 125; // Valor simulado fixo
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Propagate cancellation
         }
         catch (Exception ex)
         {
@@ -96,13 +102,19 @@ internal class MetricsCollectorService(
         try
         {
             // Aqui você implementaria a lógica real para contar solicitações pendentes
-            // TODO: Quando implementar, usar IServiceScope para resolver DbContext/repositories
+            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui
+            //       Exemplo: using var scope = serviceScopeFactory.CreateScope();
+            //                var requestsRepo = scope.ServiceProvider.GetRequiredService<IHelpRequestRepository>();
 
             // Placeholder - implementar com o serviço real de help requests
             await Task.Delay(1, cancellationToken); // Simular operação async
 
             // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
             return 25; // Valor simulado fixo
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Propagate cancellation
         }
         catch (Exception ex)
         {

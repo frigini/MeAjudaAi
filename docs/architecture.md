@@ -64,6 +64,656 @@ src/
     └── MeAjudaAi.ServiceDefaults/ # Configurações padrão
 ```
 
+---
+
+## 🎨 Design Patterns Implementados
+
+Este projeto implementa diversos padrões de design consolidados para garantir manutenibilidade, testabilidade e escalabilidade.
+
+### 1. **Repository Pattern**
+
+**Propósito**: Abstrair acesso a dados, permitindo testes unitários e troca de implementação.
+
+**Implementação Real**:
+
+```csharp
+// Interface do repositório (Domain Layer)
+public interface IAllowedCityRepository
+{
+    Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<AllowedCity?> GetByCityAndStateAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default);
+    Task<bool> IsCityAllowedAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default);
+    Task AddAsync(AllowedCity allowedCity, CancellationToken cancellationToken = default);
+    Task UpdateAsync(AllowedCity allowedCity, CancellationToken cancellationToken = default);
+    Task DeleteAsync(AllowedCity allowedCity, CancellationToken cancellationToken = default);
+}
+
+// Implementação EF Core (Infrastructure Layer)
+internal sealed class AllowedCityRepository(LocationsDbContext context) : IAllowedCityRepository
+{
+    public async Task<AllowedCity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await context.AllowedCities
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    public async Task<bool> IsCityAllowedAsync(string cityName, string stateSigla, CancellationToken cancellationToken = default)
+    {
+        var normalizedCity = cityName?.Trim() ?? string.Empty;
+        var normalizedState = stateSigla?.Trim().ToUpperInvariant() ?? string.Empty;
+
+        return await context.AllowedCities
+            .AnyAsync(x =>
+                EF.Functions.ILike(x.CityName, normalizedCity) &&
+                x.StateSigla == normalizedState &&
+                x.IsActive,
+                cancellationToken);
+    }
+}
+```
+
+**Benefícios**:
+- ✅ Testes unitários sem banco de dados (mocks)
+- ✅ Encapsulamento de queries complexas
+- ✅ Possibilidade de cache transparente
+
+---
+
+### 2. **CQRS (Command Query Responsibility Segregation)**
+
+**Propósito**: Separar operações de leitura (queries) das de escrita (commands).
+
+**Implementação Real - Command**:
+
+```csharp
+// Command (Application Layer)
+public sealed record CreateAllowedCityCommand(
+    string CityName,
+    string StateSigla,
+    string? IbgeCode = null
+) : ICommand<Result<Guid>>;
+
+// Handler (Application Layer)
+internal sealed class CreateAllowedCityCommandHandler(
+    IAllowedCityRepository repository,
+    IUnitOfWork unitOfWork,
+    ILogger<CreateAllowedCityCommandHandler> logger)
+    : ICommandHandler<CreateAllowedCityCommand, Result<Guid>>
+{
+    public async Task<Result<Guid>> HandleAsync(
+        CreateAllowedCityCommand command,
+        CancellationToken cancellationToken)
+    {
+        // 1. Validar duplicação
+        if (await repository.ExistsAsync(command.CityName, command.StateSigla, cancellationToken))
+        {
+            return Result<Guid>.Failure(LocationsErrors.CityAlreadyExists(command.CityName, command.StateSigla));
+        }
+
+        // 2. Criar entidade de domínio
+        var allowedCity = AllowedCity.Create(
+            command.CityName,
+            command.StateSigla,
+            command.IbgeCode
+        );
+
+        // 3. Persistir
+        await repository.AddAsync(allowedCity, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
+
+        logger.LogInformation("Cidade permitida criada: {CityName}/{State}", command.CityName, command.StateSigla);
+
+        return Result<Guid>.Success(allowedCity.Id);
+    }
+}
+```
+
+**Implementação Real - Query**:
+
+```csharp
+// Query (Application Layer)
+public sealed record GetServiceCategoryByIdQuery(Guid CategoryId) : IQuery<Result<ServiceCategoryDto?>>;
+
+// Handler (Application Layer)
+internal sealed class GetServiceCategoryByIdQueryHandler(
+    IServiceCategoryRepository repository)
+    : IQueryHandler<GetServiceCategoryByIdQuery, Result<ServiceCategoryDto?>>
+{
+    public async Task<Result<ServiceCategoryDto?>> HandleAsync(
+        GetServiceCategoryByIdQuery query,
+        CancellationToken cancellationToken)
+    {
+        var category = await repository.GetByIdAsync(query.CategoryId, cancellationToken);
+        
+        if (category is null)
+        {
+            return Result<ServiceCategoryDto?>.Success(null);
+        }
+
+        var dto = ServiceCategoryMapper.ToDto(category);
+        return Result<ServiceCategoryDto?>.Success(dto);
+    }
+}
+```
+
+**Benefícios**:
+- ✅ Separação clara de responsabilidades
+- ✅ Otimização independente de leitura vs escrita
+- ✅ Testabilidade individual de cada operação
+- ✅ Escalabilidade (queries podem usar read replicas)
+
+---
+
+### 3. **Domain Events**
+
+**Propósito**: Comunicação desacoplada entre agregados e módulos.
+
+**Implementação Real**:
+
+```csharp
+// Evento de Domínio
+public sealed record ProviderRegisteredDomainEvent(
+    Guid ProviderId,
+    Guid UserId,
+    string Name,
+    EProviderType Type
+) : IDomainEvent
+{
+    public DateTime OccurredAt { get; init; } = DateTime.UtcNow;
+}
+
+// Handler do Evento (Infrastructure Layer)
+internal sealed class ProviderRegisteredDomainEventHandler(
+    IMessageBus messageBus,
+    ILogger<ProviderRegisteredDomainEventHandler> logger)
+    : IDomainEventHandler<ProviderRegisteredDomainEvent>
+{
+    public async Task Handle(ProviderRegisteredDomainEvent notification, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Publicar evento de integração para outros módulos
+            var integrationEvent = new ProviderRegisteredIntegrationEvent(
+                notification.ProviderId,
+                notification.UserId,
+                notification.Name,
+                notification.Type.ToString()
+            );
+
+            await messageBus.PublishAsync(integrationEvent, cancellationToken);
+            
+            logger.LogInformation(
+                "Evento de integração publicado para Provider {ProviderId}",
+                notification.ProviderId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erro ao processar evento ProviderRegisteredDomainEvent");
+            throw;
+        }
+    }
+}
+
+// Uso no Agregado
+public class Provider : AggregateRoot<Guid>
+{
+    public static Provider Create(Guid userId, string name, EProviderType type, /* ... */)
+    {
+        var provider = new Provider
+        {
+            Id = UuidGenerator.NewId(),
+            UserId = userId,
+            Name = name,
+            Type = type,
+            // ...
+        };
+
+        // Adicionar evento de domínio
+        provider.AddDomainEvent(new ProviderRegisteredDomainEvent(
+            provider.Id,
+            userId,
+            name,
+            type
+        ));
+
+        return provider;
+    }
+}
+```
+
+**Benefícios**:
+- ✅ Desacoplamento entre agregados
+- ✅ Auditoria automática de mudanças
+- ✅ Integração assíncrona entre módulos
+- ✅ Extensibilidade (novos handlers sem alterar código existente)
+
+---
+
+### 4. **Unit of Work Pattern**
+
+**Propósito**: Coordenar mudanças em múltiplos repositórios com transações.
+
+**Implementação Real**:
+
+```csharp
+// Interface (Shared Layer)
+public interface IUnitOfWork
+{
+    Task<int> CommitAsync(CancellationToken cancellationToken = default);
+    Task RollbackAsync(CancellationToken cancellationToken = default);
+}
+
+// Implementação EF Core (Infrastructure Layer)
+internal sealed class UnitOfWork(DbContext context) : IUnitOfWork
+{
+    public async Task<int> CommitAsync(CancellationToken cancellationToken = default)
+    {
+        // EF Core já gerencia transação implicitamente
+        return await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RollbackAsync(CancellationToken cancellationToken = default)
+    {
+        await context.Database.RollbackTransactionAsync(cancellationToken);
+    }
+}
+
+// Uso em Handler
+internal sealed class UpdateProviderProfileCommandHandler(
+    IProviderRepository providerRepository,
+    IDocumentsModuleApi documentsApi,
+    IUnitOfWork unitOfWork)
+{
+    public async Task<Result> HandleAsync(UpdateProviderProfileCommand command, CancellationToken ct)
+    {
+        // 1. Buscar provider
+        var provider = await providerRepository.GetByIdAsync(command.ProviderId, ct);
+        
+        // 2. Atualizar aggregate
+        provider.UpdateProfile(/* ... */);
+        
+        // 3. Atualizar no repositório
+        await providerRepository.UpdateAsync(provider, ct);
+        
+        // 4. Commit atômico (transação)
+        await unitOfWork.CommitAsync(ct);
+        
+        return Result.Success();
+    }
+}
+```
+
+**Benefícios**:
+- ✅ Transações atômicas
+- ✅ Coordenação de múltiplas mudanças
+- ✅ Rollback automático em caso de erro
+
+---
+
+### 5. **Factory Pattern**
+
+**Propósito**: Encapsular lógica de criação de objetos complexos.
+
+**Implementação Real**:
+
+```csharp
+// UuidGenerator Factory (Shared/Time)
+public static class UuidGenerator
+{
+    public static Guid NewId()
+    {
+        return Guid.CreateVersion7(); // UUID v7 com timestamp ordenável
+    }
+}
+
+// SerilogConfigurator Factory (Shared/Logging)
+public static class SerilogConfigurator
+{
+    public static ILogger CreateLogger(IConfiguration configuration, string environmentName)
+    {
+        var loggerConfig = new LoggerConfiguration()
+            .ReadFrom.Configuration(configuration)
+            .Enrich.WithProperty("Application", "MeAjudaAi")
+            .Enrich.WithProperty("Environment", environmentName)
+            .Enrich.WithMachineName()
+            .Enrich.WithThreadId();
+
+        if (environmentName == "Development")
+        {
+            loggerConfig.WriteTo.Console();
+        }
+
+        loggerConfig.WriteTo.File(
+            "logs/app-.log",
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 7
+        );
+
+        return loggerConfig.CreateLogger();
+    }
+}
+```
+
+**Benefícios**:
+- ✅ Encapsulamento de lógica de criação
+- ✅ Configuração centralizada
+- ✅ Fácil substituição de implementação
+
+---
+
+### 6. **Strategy Pattern**
+
+**Propósito**: Selecionar algoritmo/implementação em runtime.
+
+**Implementação Real** (MessageBus):
+
+```csharp
+// Interface comum (Shared/Messaging)
+public interface IMessageBus
+{
+    Task PublishAsync<T>(T message, CancellationToken cancellationToken = default);
+    Task SubscribeAsync<T>(Func<T, CancellationToken, Task> handler, CancellationToken cancellationToken = default);
+}
+
+// Estratégia 1: RabbitMQ
+public class RabbitMqMessageBus : IMessageBus
+{
+    public async Task PublishAsync<T>(T message, CancellationToken ct)
+    {
+        // Implementação RabbitMQ
+    }
+}
+
+// Estratégia 2: Azure Service Bus
+public class ServiceBusMessageBus : IMessageBus
+{
+    public async Task PublishAsync<T>(T message, CancellationToken ct)
+    {
+        // Implementação Azure Service Bus
+    }
+}
+
+// Seleção em runtime (Program.cs)
+var messageBusProvider = builder.Configuration["MessageBus:Provider"];
+
+if (messageBusProvider == "ServiceBus")
+{
+    builder.Services.AddSingleton<IMessageBus, ServiceBusMessageBus>();
+}
+else
+{
+    builder.Services.AddSingleton<IMessageBus, RabbitMqMessageBus>();
+}
+```
+
+**Benefícios**:
+- ✅ Troca de implementação sem alterar código cliente
+- ✅ Suporte a múltiplos providers (RabbitMQ, Azure, Kafka)
+- ✅ Testabilidade (mocks)
+
+---
+
+### 7. **Decorator Pattern** (via Pipeline Behaviors)
+
+**Propósito**: Adicionar comportamentos cross-cutting (logging, validação, cache) transparentemente.
+
+**Implementação Real**:
+
+```csharp
+// Behavior para Caching (Shared/Behaviors)
+public class CachingBehavior<TRequest, TResponse>(
+    ICacheService cacheService,
+    ILogger<CachingBehavior<TRequest, TResponse>> logger)
+    : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
+{
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
+    {
+        // Só aplica cache se query implementa ICacheableQuery
+        if (request is not ICacheableQuery cacheableQuery)
+        {
+            return await next();
+        }
+
+        var cacheKey = cacheableQuery.GetCacheKey();
+        var cacheExpiration = cacheableQuery.GetCacheExpiration();
+
+        // Tentar buscar no cache
+        var (cachedResult, isCached) = await cacheService.GetAsync<TResponse>(cacheKey, cancellationToken);
+        if (isCached)
+        {
+            logger.LogDebug("Cache hit for key: {CacheKey}", cacheKey);
+            return cachedResult;
+        }
+
+        // Executar query e cachear resultado
+        var result = await next();
+        
+        if (result is not null)
+        {
+            await cacheService.SetAsync(cacheKey, result, cacheExpiration, cancellationToken);
+        }
+
+        return result;
+    }
+}
+
+// Registro (Application Layer Extensions)
+services.AddScoped(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
+services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+```
+
+**Benefícios**:
+- ✅ Concerns cross-cutting sem poluir handlers
+- ✅ Ordem de execução configurável
+- ✅ Adição/remoção de behaviors sem alterar código
+
+---
+
+### 8. **Options Pattern**
+
+**Propósito**: Configuração fortemente tipada via injeção de dependência.
+
+**Implementação Real**:
+
+```csharp
+// Opções fortemente tipadas (Shared/Messaging)
+public sealed class MessageBusOptions
+{
+    public const string SectionName = "MessageBus";
+    
+    public string Provider { get; set; } = "RabbitMQ"; // ou "ServiceBus"
+    public string ConnectionString { get; set; } = string.Empty;
+    public int RetryCount { get; set; } = 3;
+    public int RetryDelaySeconds { get; set; } = 5;
+}
+
+// Registro no Program.cs
+builder.Services.Configure<MessageBusOptions>(
+    builder.Configuration.GetSection(MessageBusOptions.SectionName));
+
+// Uso via injeção
+public class RabbitMqMessageBus(
+    IOptions<MessageBusOptions> options,
+    ILogger<RabbitMqMessageBus> logger)
+{
+    private readonly MessageBusOptions _options = options.Value;
+
+    public async Task PublishAsync<T>(T message, CancellationToken ct)
+    {
+        // Usa _options.ConnectionString, _options.RetryCount, etc.
+    }
+}
+```
+
+**Benefícios**:
+- ✅ Configuração fortemente tipada (compile-time safety)
+- ✅ Validação via Data Annotations
+- ✅ Hot reload de configurações (IOptionsSnapshot)
+
+---
+
+### 9. **Middleware Pipeline Pattern**
+
+**Propósito**: Processar requisições HTTP em cadeia com responsabilidades isoladas.
+
+**Implementação Real**:
+
+```csharp
+// Middleware customizado (ApiService/Middlewares)
+public class GeographicRestrictionMiddleware(
+    RequestDelegate next,
+    ILocationsModuleApi locationsApi,
+    ILogger<GeographicRestrictionMiddleware> logger)
+{
+    public async Task InvokeAsync(HttpContext context)
+    {
+        // 1. Verificar se endpoint requer restrição geográfica
+        var endpoint = context.GetEndpoint();
+        var restrictionAttribute = endpoint?.Metadata
+            .GetMetadata<RequireGeographicRestrictionAttribute>();
+
+        if (restrictionAttribute is null)
+        {
+            await next(context);
+            return;
+        }
+
+        // 2. Extrair cidade/estado da requisição
+        var city = context.Request.Headers["X-City"].ToString();
+        var state = context.Request.Headers["X-State"].ToString();
+
+        if (string.IsNullOrEmpty(city) || string.IsNullOrEmpty(state))
+        {
+            context.Response.StatusCode = 400;
+            await context.Response.WriteAsJsonAsync(new { error = "City and State required" });
+            return;
+        }
+
+        // 3. Validar via LocationsModuleApi
+        var isAllowed = await locationsApi.IsCityAllowedAsync(city, state);
+        
+        if (!isAllowed.IsSuccess || !isAllowed.Value)
+        {
+            context.Response.StatusCode = 403;
+            await context.Response.WriteAsJsonAsync(new { error = "City not allowed" });
+            return;
+        }
+
+        // 4. Continuar pipeline
+        await next(context);
+    }
+}
+
+// Registro no pipeline (Program.cs)
+app.UseMiddleware<GeographicRestrictionMiddleware>();
+```
+
+**Benefícios**:
+- ✅ Separação de concerns (logging, auth, validação)
+- ✅ Ordem de execução clara
+- ✅ Reutilização entre endpoints
+
+---
+
+## 🚫 Anti-Patterns Evitados
+
+### ❌ **Anemic Domain Model**
+**Evitado**: Entidades ricas com comportamento encapsulado.
+
+```csharp
+// ❌ ANTI-PATTERN: Anemic Domain
+public class Provider
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string Status { get; set; } // string sem validação
+}
+
+// ✅ PATTERN CORRETO: Rich Domain Model
+public class Provider : AggregateRoot<Guid>
+{
+    public string Name { get; private set; }
+    public EProviderStatus Status { get; private set; }
+    
+    public void Activate(string adminEmail)
+    {
+        if (Status != EProviderStatus.PendingApproval)
+            throw new InvalidOperationException("Provider must be pending approval");
+            
+        Status = EProviderStatus.Active;
+        AddDomainEvent(new ProviderActivatedDomainEvent(Id, adminEmail));
+    }
+}
+```
+
+### ❌ **Repository Anti-Patterns**
+**Evitado**: Repositórios genéricos com métodos desnecessários.
+
+```csharp
+// ❌ ANTI-PATTERN: Generic Repository com métodos inutilizados
+public interface IRepository<T>
+{
+    Task<T> GetByIdAsync(Guid id);
+    Task<IEnumerable<T>> GetAllAsync(); // Perigoso: pode retornar milhões de registros
+    Task AddAsync(T entity);
+    Task UpdateAsync(T entity);
+    Task DeleteAsync(T entity);
+}
+
+// ✅ PATTERN CORRETO: Repositórios específicos por agregado
+public interface IProviderRepository
+{
+    Task<Provider?> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<Provider?> GetByUserIdAsync(Guid userId, CancellationToken ct);
+    Task<IReadOnlyList<Provider>> GetByCityAsync(string city, int pageSize, int page, CancellationToken ct);
+    // Apenas métodos realmente necessários
+}
+```
+
+### ❌ **Service Locator**
+**Evitado**: Dependency Injection explícita via construtor.
+
+```csharp
+// ❌ ANTI-PATTERN: Service Locator
+public class ProviderService
+{
+    public void RegisterProvider(RegisterProviderDto dto)
+    {
+        var repository = ServiceLocator.GetService<IProviderRepository>();
+        var logger = ServiceLocator.GetService<ILogger>();
+        // Dependências ocultas, difícil de testar
+    }
+}
+
+// ✅ PATTERN CORRETO: Constructor Injection
+public class RegisterProviderCommandHandler(
+    IProviderRepository repository,
+    IUnitOfWork unitOfWork,
+    ILogger<RegisterProviderCommandHandler> logger)
+{
+    // Dependências explícitas e testáveis
+}
+```
+
+---
+
+## 📚 Referências e Boas Práticas
+
+- **Clean Architecture**: Uncle Bob (Robert C. Martin)
+- **Domain-Driven Design**: Eric Evans, Vaughn Vernon
+- **CQRS**: Greg Young, Udi Dahan
+- **Modular Monolith**: Milan Jovanovic, Kamil Grzybek
+- **Repository Pattern**: Martin Fowler
+- **.NET Design Patterns**: Microsoft Docs
+
+---
+
 ## 🎯 Domain-Driven Design (DDD)
 
 ### **Bounded Contexts**
