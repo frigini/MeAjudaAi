@@ -104,6 +104,21 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
+      - name: Check code formatting
+        run: |
+          echo "🔍 Checking code formatting..."
+          dotnet format --verify-no-changes --verbosity normal MeAjudaAi.slnx 2>&1 | tee format-output.txt
+          
+          # Check if any files were actually formatted (not just warnings)
+          if grep -q "Formatted code file" format-output.txt; then
+            echo "⚠️ Code formatting issues found."
+            echo "Run 'dotnet format' locally to fix."
+            grep "Formatted code file" format-output.txt
+            exit 1
+          else
+            echo "✅ No formatting changes needed"
+          fi
+
       - name: Wait for PostgreSQL to be ready
         env:
           PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
