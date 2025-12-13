@@ -147,7 +147,6 @@ public sealed class PermissionService(
         }
 
         // Clear all user permission caches
-        var userCacheKey = string.Format(UserPermissionsCacheKey, userId);
         await cacheService.RemoveByTagAsync($"user:{userId}", cancellationToken);
 
         logger.LogInformation("Invalidated permission cache for user {UserId}", userId);

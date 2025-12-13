@@ -48,7 +48,9 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
         catch (RequestFailedException ex)
         {
             _logger.LogError(ex, "Erro ao gerar SAS token de upload para blob {BlobName}", blobName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to generate Azure Blob Storage SAS upload token for blob '{blobName}' (Status: {ex.Status})",
+                ex);
         }
     }
 
@@ -87,7 +89,9 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
         catch (RequestFailedException ex)
         {
             _logger.LogError(ex, "Erro ao gerar SAS token de download para blob {BlobName}", blobName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to generate Azure Blob Storage SAS download token for blob '{blobName}' (Status: {ex.Status})",
+                ex);
         }
     }
 
@@ -117,7 +121,9 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
         catch (RequestFailedException ex)
         {
             _logger.LogError(ex, "Erro ao deletar blob {BlobName}", blobName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to delete blob '{blobName}' from Azure Blob Storage (Status: {ex.Status})",
+                ex);
         }
     }
 }

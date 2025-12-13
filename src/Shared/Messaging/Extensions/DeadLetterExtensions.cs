@@ -132,7 +132,9 @@ public static class DeadLetterExtensions
         {
             var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IDeadLetterService>>();
             logger.LogError(ex, "Failed to validate Dead Letter Queue configuration");
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to validate Dead Letter Queue configuration (service type: {deadLetterService?.GetType().Name})",
+                ex);
         }
     }
 
@@ -168,7 +170,9 @@ public static class DeadLetterExtensions
         {
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<IHostEnvironment>>();
             logger.LogError(ex, "Failed to ensure Dead Letter Queue infrastructure");
-            throw;
+            throw new InvalidOperationException(
+                "Failed to ensure Dead Letter Queue infrastructure (queues, exchanges, and bindings)",
+                ex);
         }
     }
 

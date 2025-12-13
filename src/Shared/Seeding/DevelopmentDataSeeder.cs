@@ -136,7 +136,9 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         catch (Exception ex)
         {
             _logger.LogError(ex, "❌ Erro durante seed de dados");
-            throw;
+            throw new InvalidOperationException(
+                "Failed to seed development data (ServiceCatalogs, Users, Providers, Documents, Locations)",
+                ex);
         }
     }
 

@@ -24,7 +24,9 @@ internal class ServiceBusInitializationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to initialize Service Bus infrastructure");
-            throw;
+            throw new InvalidOperationException(
+                "Failed to initialize Azure Service Bus infrastructure (topics, subscriptions, and admin client)",
+                ex);
         }
     }
 

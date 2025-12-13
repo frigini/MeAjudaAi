@@ -34,7 +34,9 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
         catch (Exception ex)
         {
             logger.LogError(ex, "❌ Erro ao configurar permissões para módulo Users");
-            throw;
+            throw new InvalidOperationException(
+                "Failed to configure database schema permissions for Users module (roles: users_role, app_role)",
+                ex);
         }
     }
 

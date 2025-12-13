@@ -46,7 +46,9 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             metrics.RecordConnectionError("dapper_query_multiple", ex);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to execute Dapper query (type: multiple). SQL: {sql?.Substring(0, Math.Min(sql.Length, 100))}...",
+                ex);
         }
     }
 
@@ -75,7 +77,9 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             metrics.RecordConnectionError("dapper_query_single", ex);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to execute Dapper query (type: single). SQL: {sql?.Substring(0, Math.Min(sql.Length, 100))}...",
+                ex);
         }
     }
 
@@ -104,7 +108,9 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             metrics.RecordConnectionError("dapper_execute", ex);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to execute Dapper command (type: execute). SQL: {sql?.Substring(0, Math.Min(sql.Length, 100))}...",
+                ex);
         }
     }
 }

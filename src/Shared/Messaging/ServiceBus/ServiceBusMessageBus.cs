@@ -54,7 +54,9 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
         {
             _logger.LogError(ex, "Failed to send message {MessageType} to queue {QueueName}",
                 typeof(T).Name, queueName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to send message of type '{typeof(T).Name}' to Service Bus queue '{queueName}'",
+                ex);
         }
     }
 
@@ -77,7 +79,9 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
         {
             _logger.LogError(ex, "Failed to publish event {EventType} to topic {TopicName}",
                 typeof(T).Name, topicName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to publish event of type '{typeof(T).Name}' to Service Bus topic '{topicName}'",
+                ex);
         }
     }
 

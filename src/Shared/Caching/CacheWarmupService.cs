@@ -61,7 +61,9 @@ internal class CacheWarmupService : ICacheWarmupService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Cache warmup failed after {Duration}ms", stopwatch.ElapsedMilliseconds);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to warmup cache for all modules ({_warmupStrategies.Count} strategies) after {stopwatch.ElapsedMilliseconds}ms",
+                ex);
         }
     }
 
@@ -88,7 +90,9 @@ internal class CacheWarmupService : ICacheWarmupService
         {
             _logger.LogError(ex, "Cache warmup failed for module {ModuleName} after {Duration}ms",
                 moduleName, stopwatch.ElapsedMilliseconds);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to warmup cache for module '{moduleName}' after {stopwatch.ElapsedMilliseconds}ms",
+                ex);
         }
     }
 
@@ -96,10 +100,6 @@ internal class CacheWarmupService : ICacheWarmupService
     {
         // Estratégia para o módulo Users
         _warmupStrategies["Users"] = WarmupUsersModule;
-
-        // Futuras estratégias para outros módulos podem ser adicionadas aqui
-        // _warmupStrategies["Help"] = WarmupHelpModule;
-        // _warmupStrategies["Notifications"] = WarmupNotificationsModule;
     }
 
     private async Task WarmupUsersModule(IServiceProvider serviceProvider, CancellationToken cancellationToken)

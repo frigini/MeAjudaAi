@@ -72,21 +72,13 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
             if (path?.Operations == null)
                 continue;
 
-            foreach (var operation in path.Operations.Values)
-            {
-                // Guard against null operation or Tags collection
-                if (operation?.Tags == null)
-                    continue;
+            var pathTags = path.Operations.Values
+                .Where(operation => operation?.Tags != null)
+                .SelectMany(operation => operation.Tags)
+                .Where(tag => !string.IsNullOrEmpty(tag?.Name))
+                .Select(tag => tag.Name);
 
-                foreach (var tag in operation.Tags)
-                {
-                    // Skip tags with null or empty Name
-                    if (!string.IsNullOrEmpty(tag?.Name))
-                    {
-                        tags.Add(tag.Name);
-                    }
-                }
-            }
+            tags.UnionWith(pathTags);
         }
 
         return tags;
@@ -94,20 +86,10 @@ public class ModuleTagsDocumentFilter : IDocumentFilter
 
     private static void AddServerInformation(OpenApiDocument swaggerDoc)
     {
-        // TODO(#TechDebt): Investigate OpenApiServer initialization issue in .NET 10 / Swashbuckle 10
-        // Temporarily disabled to fix UriFormatException. Track restoration in backlog.
-        // Related: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/2816
-        // swaggerDoc.Servers =
-        // [
-        //     new OpenApiServer
-        //     {
-        //         Url = "http://localhost:5000",
-        //         Description = "Desenvolvimento Local"
-        //     },
-        //     new OpenApiServer
-        //     {
-        //         Url = "https://api.meajudaai.com",
-        //         Description = "Produção"
+        // TODO: Investigate OpenApiServer initialization issue in .NET 10 / Swashbuckle 10.
+        //       Temporarily disabled to fix UriFormatException. Track restoration in backlog.
+        //       Related: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/2816
+        //       When fixed, add servers configuration for local development and production URLs.
         //     }
         // ];
     }

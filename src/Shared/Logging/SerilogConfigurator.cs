@@ -146,11 +146,14 @@ public static class LoggingConfigurationExtensions
             app.UseSerilogRequestLogging(options =>
             {
                 options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-                options.GetLevel = (httpContext, elapsed, ex) => ex != null
-                    ? LogEventLevel.Error
-                    : httpContext.Response.StatusCode > 499
-                        ? LogEventLevel.Error
-                        : LogEventLevel.Information;
+                options.GetLevel = (httpContext, elapsed, ex) =>
+                {
+                    if (ex != null)
+                        return LogEventLevel.Error;
+                    if (httpContext.Response.StatusCode > 499)
+                        return LogEventLevel.Error;
+                    return LogEventLevel.Information;
+                };
 
                 options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
                 {

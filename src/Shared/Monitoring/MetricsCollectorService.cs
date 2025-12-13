@@ -23,10 +23,10 @@ internal class MetricsCollectorService(
             {
                 await CollectMetrics(stoppingToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
                 // Expected when service is stopping
-                logger.LogInformation("Metrics collection cancelled");
+                logger.LogInformation(ex, "Metrics collection cancelled");
                 break;
             }
             catch (Exception ex)
@@ -38,10 +38,10 @@ internal class MetricsCollectorService(
             {
                 await Task.Delay(_interval, stoppingToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
                 // Expected when service is stopping during delay
-                logger.LogInformation("Metrics collection cancelled during delay");
+                logger.LogInformation(ex, "Metrics collection cancelled during delay");
                 break;
             }
         }
@@ -74,11 +74,11 @@ internal class MetricsCollectorService(
     {
         try
         {
-            // Aqui você implementaria a lógica real para contar usuários ativos
-            // Por exemplo, usuários que fizeram login nas últimas 24 horas
-            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui
+            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui para
+            //       acessar UsersDbContext e contar usuários que fizeram login nas últimas 24 horas.
             //       Exemplo: using var scope = serviceScopeFactory.CreateScope();
             //                var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+            //                return await usersContext.Users.Where(u => u.LastLogin > DateTime.UtcNow.AddHours(-24)).CountAsync();
 
             // Placeholder - implementar com o serviço real de usuários
             await Task.Delay(1, cancellationToken); // Simular operação async
@@ -101,10 +101,11 @@ internal class MetricsCollectorService(
     {
         try
         {
-            // Aqui você implementaria a lógica real para contar solicitações pendentes
-            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui
+            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui para
+            //       acessar HelpRequestRepository e contar solicitações com status Pending.
             //       Exemplo: using var scope = serviceScopeFactory.CreateScope();
             //                var requestsRepo = scope.ServiceProvider.GetRequiredService<IHelpRequestRepository>();
+            //                return await requestsRepo.CountByStatusAsync(HelpRequestStatus.Pending, cancellationToken);
 
             // Placeholder - implementar com o serviço real de help requests
             await Task.Delay(1, cancellationToken); // Simular operação async

@@ -70,7 +70,9 @@ internal class ServiceBusTopicManager(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to create topic: {TopicName}", topicName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to create Service Bus topic '{topicName}' with partitioning enabled",
+                ex);
         }
     }
 
@@ -113,7 +115,9 @@ internal class ServiceBusTopicManager(
         {
             logger.LogError(ex, "Failed to create subscription: {SubscriptionName} on topic: {TopicName}",
                 subscriptionName, topicName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to create Service Bus subscription '{subscriptionName}' on topic '{topicName}'",
+                ex);
         }
     }
 }

@@ -83,19 +83,25 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
         {
             // Re-throw HTTP exceptions (500, timeout, etc) to enable middleware fallback
             logger.LogError(ex, "HTTP error querying IBGE for municipality {CityName}", cityName);
-            throw;
+            throw new InvalidOperationException(
+                $"HTTP error querying IBGE API for municipality '{cityName}' (Status: {ex.StatusCode})",
+                ex);
         }
         catch (TaskCanceledException ex) when (ex != null)
         {
             // Re-throw timeout exceptions to enable middleware fallback
             logger.LogError(ex, "Timeout querying IBGE for municipality {CityName}", cityName);
-            throw;
+            throw new TimeoutException(
+                $"IBGE API request timed out while querying municipality '{cityName}'",
+                ex);
         }
         catch (Exception ex)
         {
             // For other exceptions (JSON parsing, etc), re-throw to enable fallback
             logger.LogError(ex, "Unexpected error querying IBGE for municipality {CityName}", cityName);
-            throw;
+            throw new InvalidOperationException(
+                $"Unexpected error querying IBGE API for municipality '{cityName}' (may be JSON parsing or network issue)",
+                ex);
         }
     }
 

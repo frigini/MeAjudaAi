@@ -66,7 +66,9 @@ internal class MigrationHostedService : IHostedService
         catch (Exception ex)
         {
             _logger.LogError(ex, "❌ Erro ao aplicar migrations");
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to apply database migrations for {_dbContextTypes.Count} module(s)",
+                ex);
         }
     }
 
@@ -206,7 +208,9 @@ internal class MigrationHostedService : IHostedService
         catch (Exception ex)
         {
             _logger.LogError(ex, "❌ Erro ao aplicar migrations para {Module}", moduleName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to apply database migrations for module '{moduleName}' (DbContext: {contextType.Name})",
+                ex);
         }
     }
 

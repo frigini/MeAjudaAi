@@ -39,7 +39,7 @@ public sealed class ServiceCatalogsModuleApi(
             logger.LogDebug("Checking ServiceCatalogs module availability");
 
             // Simple database connectivity test
-            var categories = await categoryRepository.GetAllAsync(activeOnly: true, cancellationToken);
+            _ = await categoryRepository.GetAllAsync(activeOnly: true, cancellationToken);
 
             logger.LogDebug("ServiceCatalogs module is available and healthy");
             return true;

@@ -48,7 +48,9 @@ public sealed class ProviderDeletedDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling ProviderDeletedDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to publish ProviderDeleted integration event for provider '{domainEvent.AggregateId}'",
+                ex);
         }
     }
 }
