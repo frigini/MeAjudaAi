@@ -110,35 +110,30 @@ O projeto foi organizado para facilitar navegação e manutenção:
 
 Para instruções detalhadas, consulte o [**Guia de Desenvolvimento Completo**](./docs/development.md).
 
-**Setup completo (recomendado):**
-```bash
-./run-local.sh setup
+**Setup via .NET Aspire:**
+```powershell
+# Execute o AppHost do Aspire
+cd src/Aspire/MeAjudaAi.AppHost
+dotnet run
 ```
 
-**Execução rápida:**
-```bash
-./run-local.sh run
-```
-
-**Modo interativo:**
-```bash
-./run-local.sh
+**Ou via Docker Compose:**
+```powershell
+cd infrastructure/compose
+docker compose -f environments/development.yml up -d
 ```
 
 ### Para Testes
 
-```bash
+```powershell
 # Todos os testes
-./test.sh all
-
-# Apenas unitários
-./test.sh unit
+dotnet test
 
 # Com relatório de cobertura
-./test.sh coverage
+dotnet test --collect:"XPlat Code Coverage"
 ```
 
-📖 **[Guia Completo de Desenvolvimento](docs/development_guide.md)**
+📖 **[Guia Completo de Desenvolvimento](docs/development.md)**
 
 ### Pré-requisitos
 

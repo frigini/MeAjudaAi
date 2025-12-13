@@ -676,7 +676,7 @@ dotnet test \
 - ✅ ServiceCatalogs.Tests
 - ✅ E2E.Tests
 
-### 2. **Script Local** (scripts/generate-clean-coverage.ps1) ✅
+### 2. **Script Local** (dotnet test --collect) ✅
 
 Criado script para rodar localmente com as mesmas exclusões da pipeline.
 
@@ -876,7 +876,7 @@ Line coverage: ~45-55% (vs 27.9% anterior)
 ## 📁 Arquivos Modificados
 
 1. ✅ `.github/workflows/ci-cd.yml` - Pipeline atualizada
-2. ✅ `scripts/generate-clean-coverage.ps1` - Script local
+2. ✅ `dotnet test --collect:"XPlat Code Coverage"` - Comando local
 3. ✅ `docs/testing/coverage-report-explained.md` - Documentação completa
 4. ✅ `docs/testing/coverage-analysis-dec-2025.md` - Análise detalhada
 
@@ -1285,7 +1285,7 @@ cat coverage-github/report/Summary.txt | Select-Object -First 100
 ### Gerar coverage local:
 ```bash
 # Rodar pipeline localmente
-./scripts/test-coverage-like-pipeline.ps1
+dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
 
 # Gerar relatório HTML
 reportgenerator `
@@ -1301,4 +1301,4 @@ reportgenerator `
 - Relatório de Coverage Atual: `coverage-github/report/index.html` (gerado via CI/CD)
 - Pipeline CI/CD: `.github/workflows/ci-cd.yml`
 - Configuração Coverlet: `config/coverlet.json`
-- Script de Coverage Local: `scripts/test-coverage-like-pipeline.ps1`
+- Coverage local: `dotnet test --collect:"XPlat Code Coverage"`
