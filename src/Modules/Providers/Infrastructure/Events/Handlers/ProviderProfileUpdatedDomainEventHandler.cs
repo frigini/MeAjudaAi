@@ -48,9 +48,7 @@ public sealed class ProviderProfileUpdatedDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling ProviderProfileUpdatedDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
-            throw new InvalidOperationException(
-                $"Failed to publish ProviderProfileUpdated integration event for provider '{domainEvent.AggregateId}'",
-                ex);
+            throw; // Re-throw original exception to preserve message for tests
         }
     }
 }

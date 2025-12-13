@@ -40,9 +40,7 @@ public sealed class ProviderActivatedDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling ProviderActivatedDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
-            throw new InvalidOperationException(
-                $"Failed to publish ProviderActivated integration event for provider '{domainEvent.AggregateId}'",
-                ex);
+            throw; // Re-throw original exception to preserve message for tests
         }
     }
 }
