@@ -493,3 +493,51 @@ docker-compose up -d postgres
 ---
 
 **💡 Dica:** Use `./scripts/[script].sh --help` para ver todas as opções disponíveis de cada script!
+
+---
+
+## 📍 **Outros Scripts no Projeto**
+
+Além dos scripts principais em `/scripts/`, o projeto contém scripts especializados em outras pastas:
+
+### **Infrastructure Scripts** (`/infrastructure/`)
+Scripts de configuração de banco de dados, Keycloak, Docker Compose e Azure.
+- 📖 **Documentação Completa**: [infrastructure/SCRIPTS.md](../infrastructure/SCRIPTS.md)
+- 🗄️ Database init & migrations
+- 🔐 Keycloak setup (dev/prod)
+- 🐳 Docker Compose helpers
+- 🧪 Testing scripts
+
+### **CI/CD Automation** (`/automation/`)
+Scripts de setup de pipelines GitHub Actions.
+- 📖 **Documentação Completa**: [automation/README.md](../automation/README.md)
+- ⚙️ `setup-cicd.ps1` - CI/CD completo
+- ⚙️ `setup-ci-only.ps1` - Apenas CI
+
+### **Build Tools** (`/build/`)
+Scripts de build e migrations (alguns deprecados).
+- 📖 **Documentação Completa**: [build/README.md](../build/README.md)
+- ⚠️ Scripts de migração obsoletos movidos para `deprecated/`
+- ✅ `dotnet-install.sh` - Instalação .NET (usado em CI/CD)
+- ✅ `Makefile` - Build commands unificados
+
+### **GitHub Workflows** (`/.github/scripts/`)
+Scripts auxiliares usados pelos workflows CI/CD.
+- `generate-runsettings.sh` - Gera configuração de coverage para pipeline
+
+### **Tools** (`/tools/`)
+Ferramentas auxiliares (avaliar necessidade):
+- `api-collections/generate-all-collections.sh` - Geração de collections (avaliar se obsoleto com Bruno)
+
+---
+
+## 📊 **Inventário Completo de Scripts**
+
+Para auditoria completa de TODOS os scripts do projeto (.sh e .ps1), incluindo análise de redundâncias e recomendações de consolidação:
+
+📋 **[docs/scripts-inventory.md](../docs/scripts-inventory.md)** - Inventário detalhado com plano de ação
+
+**Resumo**:
+- ✅ **22 scripts ativos** documentados
+- ⚠️ **4 scripts deprecados** (movidos para `deprecated/`)
+- 🔍 **6 scripts** em avaliação (possível redundância)
