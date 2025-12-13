@@ -32,14 +32,11 @@ public static class MigrationExtensions
 internal class MigrationHostedService : IHostedService
 {
     private readonly ILogger<MigrationHostedService> _logger;
-    private readonly IServiceProvider _serviceProvider;
 
     public MigrationHostedService(
-        ILogger<MigrationHostedService> logger,
-        IServiceProvider serviceProvider)
+        ILogger<MigrationHostedService> logger)
     {
         _logger = logger;
-        _serviceProvider = serviceProvider;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -126,7 +123,7 @@ internal class MigrationHostedService : IHostedService
             }
         }
 
-        return $"Host={host};Port={port};Database={database};Username={username};Password={password}";
+        return $"Host={host};Port={port};Database={database};Username={username};Password={password};Timeout=30;Command Timeout=60";
     }
 
     private List<Type> DiscoverDbContextTypes()
@@ -195,7 +192,7 @@ internal class MigrationHostedService : IHostedService
                         continue;
                     }
 
-                    Assembly.LoadFrom(dllPath);
+                    System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(dllPath);
                     _logger.LogDebug("✅ Assembly carregado: {AssemblyName}", assemblyName.Name);
                 }
                 catch (Exception ex)

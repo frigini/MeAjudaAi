@@ -416,7 +416,7 @@ public sealed class RabbitMqDeadLetterService(
         return deadLetterQueues;
     }
 
-    private async Task NotifyAdministratorsAsync(FailedMessageInfo failedMessageInfo)
+    private Task NotifyAdministratorsAsync(FailedMessageInfo failedMessageInfo)
     {
         try
         {
@@ -429,12 +429,13 @@ public sealed class RabbitMqDeadLetterService(
                 "Admin notification: Message {MessageId} of type {MessageType} failed {AttemptCount} times and was sent to DLQ",
                 failedMessageInfo.MessageId, failedMessageInfo.MessageType, failedMessageInfo.AttemptCount);
 
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to notify administrators about dead letter message {MessageId}",
                 failedMessageInfo.MessageId);
+            return Task.CompletedTask;
         }
     }
 

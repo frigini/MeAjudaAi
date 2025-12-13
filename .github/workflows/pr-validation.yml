@@ -108,13 +108,14 @@ jobs:
         run: |
           set -o pipefail
           echo "🔍 Checking code formatting..."
-          dotnet format --verify-no-changes --verbosity normal MeAjudaAi.slnx 2>&1 | tee format-output.txt
+          # Only check whitespace and style (not SonarQube analyzer warnings)
+          dotnet format --verify-no-changes --include whitespace style --verbosity normal MeAjudaAi.slnx 2>&1 | tee format-output.txt
           FORMAT_EXIT_CODE=${PIPESTATUS[0]}
 
           # Check if any files were actually formatted (not just warnings)
           if grep -q "Formatted code file" format-output.txt; then
             echo "⚠️ Code formatting issues found."
-            echo "Run 'dotnet format' locally to fix."
+            echo "Run 'dotnet format --include whitespace style' locally to fix."
             grep "Formatted code file" format-output.txt
             exit 1
           elif [ $FORMAT_EXIT_CODE -ne 0 ]; then

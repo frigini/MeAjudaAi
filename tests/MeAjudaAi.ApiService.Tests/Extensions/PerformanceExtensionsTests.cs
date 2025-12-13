@@ -41,8 +41,8 @@ public class PerformanceExtensionsTests
         PerformanceExtensions.AddResponseCompression(services);
 
         // Act
-        var provider = services.BuildServiceProvider();
-        var options = provider.GetRequiredService<IOptions<ResponseCompressionOptions>>().Value;
+        var options = services.BuildServiceProvider()
+            .GetRequiredService<IOptions<ResponseCompressionOptions>>().Value;
 
         // Assert
         options.EnableForHttps.Should().BeTrue();
@@ -56,8 +56,8 @@ public class PerformanceExtensionsTests
         PerformanceExtensions.AddResponseCompression(services);
 
         // Act - Build provider to trigger options configuration
-        var provider = services.BuildServiceProvider();
-        var options = provider.GetRequiredService<IOptions<ResponseCompressionOptions>>().Value;
+        var options = services.BuildServiceProvider()
+            .GetRequiredService<IOptions<ResponseCompressionOptions>>().Value;
 
         // Assert - Verify both gzip and brotli compression providers are registered
         options.Providers.Should().HaveCount(2, "both gzip and brotli providers should be configured");
@@ -71,8 +71,8 @@ public class PerformanceExtensionsTests
         PerformanceExtensions.AddResponseCompression(services);
 
         // Act - Build provider to trigger options configuration
-        var provider = services.BuildServiceProvider();
-        var options = provider.GetRequiredService<IOptions<GzipCompressionProviderOptions>>().Value;
+        var options = services.BuildServiceProvider()
+            .GetRequiredService<IOptions<GzipCompressionProviderOptions>>().Value;
 
         // Assert - Verify Gzip compression level is set to Optimal
         options.Level.Should().Be(CompressionLevel.Optimal);
@@ -86,8 +86,8 @@ public class PerformanceExtensionsTests
         PerformanceExtensions.AddResponseCompression(services);
 
         // Act
-        var provider = services.BuildServiceProvider();
-        var options = provider.GetRequiredService<IOptions<ResponseCompressionOptions>>().Value;
+        var options = services.BuildServiceProvider()
+            .GetRequiredService<IOptions<ResponseCompressionOptions>>().Value;
 
         // Assert
         options.MimeTypes.Should().Contain("application/json");
@@ -101,8 +101,8 @@ public class PerformanceExtensionsTests
         PerformanceExtensions.AddResponseCompression(services);
 
         // Act
-        var provider = services.BuildServiceProvider();
-        var options = provider.GetRequiredService<IOptions<ResponseCompressionOptions>>().Value;
+        var options = services.BuildServiceProvider()
+            .GetRequiredService<IOptions<ResponseCompressionOptions>>().Value;
 
         // Assert
         options.MimeTypes.Should().Contain(new[]
@@ -556,7 +556,6 @@ public class PerformanceExtensionsTests
     public void SafeGzipProvider_ShouldCompressResponse_ShouldUseSafetyCheck()
     {
         // Arrange
-        var provider = new SafeGzipCompressionProvider();
         var context = CreateHttpContext();
         context.Request.Headers["Authorization"] = "Bearer token";
 
@@ -609,7 +608,6 @@ public class PerformanceExtensionsTests
     public void SafeBrotliProvider_ShouldCompressResponse_ShouldUseSafetyCheck()
     {
         // Arrange
-        var provider = new SafeBrotliCompressionProvider();
         var context = CreateHttpContext();
         context.Request.Headers["Authorization"] = "Bearer token";
 
