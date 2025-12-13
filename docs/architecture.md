@@ -2163,16 +2163,12 @@ src/Shared/API.Collections/Generated/
 #### **Filtros Personalizados**
 
 ```csharp
-// Tags organizadas por módulos
-options.DocumentFilter<ModuleTagsDocumentFilter>();
-
 // Versionamento de API
 options.OperationFilter<ApiVersionOperationFilter>();
 ```
 
 #### **Melhorias Implementadas**
 
-- **🏷️ Tags Organizadas**: Agrupamento lógico por módulos
 - **🔒 Segurança JWT**: Configuração automática de Bearer tokens
 - **📊 Schemas Reutilizáveis**: Componentes comuns (paginação, erros)
 - **🌍 Multi-ambiente**: URLs para dev/staging/production

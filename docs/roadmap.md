@@ -1427,11 +1427,10 @@ gantt
 **Tarefas Detalhadas**:
 
 **1. Substituir NSubstitute por Moq** ⚠️ CRÍTICO:
-- [ ] **Análise**: 4 arquivos usando NSubstitute detectados
+- [ ] **Análise**: 3 arquivos usando NSubstitute detectados
   - `tests/MeAjudaAi.ServiceDefaults.Tests/ExtensionsTests.cs`
   - `tests/MeAjudaAi.ApiService.Tests/Extensions/SecurityExtensionsTests.cs`
   - `tests/MeAjudaAi.ApiService.Tests/Extensions/PerformanceExtensionsTests.cs`
-  - `tests/MeAjudaAi.ApiService.Tests/Filters/ModuleTagsDocumentFilterTests.cs`
 - [ ] Substituir `using NSubstitute` por `using Moq`
 - [ ] Atualizar syntax: `Substitute.For<T>()` → `new Mock<T>()`
 - [ ] Remover PackageReference NSubstitute dos .csproj:

@@ -116,7 +116,6 @@ public static class DocumentationExtensions
 
             // Filtros essenciais
             options.OperationFilter<ApiVersionOperationFilter>();
-            options.DocumentFilter<ModuleTagsDocumentFilter>();
         });
 
         return services;

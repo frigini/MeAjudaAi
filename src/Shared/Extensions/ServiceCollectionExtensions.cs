@@ -125,34 +125,6 @@ public static class ServiceCollectionExtensions
                 {
                     await webApp.EnsureMessagingInfrastructureAsync();
                 }
-
-                // Cache warmup em background para não bloquear startup
-                var isCacheWarmupEnabled = configuration.GetValue<bool>("Cache:WarmupEnabled", true);
-                if (isCacheWarmupEnabled)
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            using var scope = webApp.Services.CreateScope();
-                            var warmupService = scope.ServiceProvider.GetService<ICacheWarmupService>();
-                            if (warmupService != null)
-                            {
-                                await warmupService.WarmupAsync();
-                            }
-                            else
-                            {
-                                var logger = webApp.Services.GetService<ILogger<ICacheWarmupService>>();
-                                logger?.LogDebug("ICacheWarmupService não registrado - esperado em ambientes de teste");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            var logger = webApp.Services.GetRequiredService<ILogger<ICacheWarmupService>>();
-                            logger.LogWarning(ex, "Falha ao aquecer o cache durante a inicialização - pode ser esperado em testes");
-                        }
-                    });
-                }
             }
         }
 
