@@ -111,12 +111,19 @@ internal class MigrationHostedService : IHostedService
         if (isDevelopment)
         {
             // Valores padrão APENAS para desenvolvimento local
-            // TODO: Considerar usar .env file ou user secrets para valores de dev
+            // Use .env file ou user secrets para senha
             host ??= "localhost";
             port ??= "5432";
             database ??= "meajudaai";
             username ??= "postgres";
-            password ??= "test123"; // Somente dev local - NUNCA em produção!
+            // Senha é obrigatória mesmo em dev - use variável de ambiente
+            if (string.IsNullOrEmpty(password))
+            {
+                _logger.LogWarning(
+                    "POSTGRES_PASSWORD not set for Development environment. " +
+                    "Set the environment variable or use user secrets.");
+                return null;
+            }
 
             _logger.LogWarning(
                 "Using default connection values for Development environment. " +

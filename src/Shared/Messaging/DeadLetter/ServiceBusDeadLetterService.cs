@@ -66,7 +66,9 @@ public sealed class ServiceBusDeadLetterService(
         {
             logger.LogError(ex, "Failed to send message to dead letter queue. MessageId: {MessageId}, Type: {MessageType}, Queue: {Queue}, Attempts: {Attempts}",
                 messageId ?? "unknown", messageType ?? typeof(TMessage).Name, deadLetterQueueName ?? "unknown", capturedAttemptCount);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to send message '{messageId ?? "unknown"}' of type '{messageType ?? typeof(TMessage).Name}' to dead letter queue '{deadLetterQueueName ?? "unknown"}' after {capturedAttemptCount} attempts",
+                ex);
         }
     }
 
