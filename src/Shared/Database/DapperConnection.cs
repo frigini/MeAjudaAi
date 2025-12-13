@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -46,7 +47,7 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         catch (Exception ex)
         {
             stopwatch.Stop();
-            HandleDapperError(ex, "query_multiple", sql);
+            throw HandleDapperError(ex, "query_multiple", sql);
         }
     }
 
@@ -74,7 +75,7 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         catch (Exception ex)
         {
             stopwatch.Stop();
-            HandleDapperError(ex, "query_single", sql);
+            throw HandleDapperError(ex, "query_single", sql);
         }
     }
 
@@ -102,17 +103,17 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         catch (Exception ex)
         {
             stopwatch.Stop();
-            HandleDapperError(ex, "execute", sql);
+            throw HandleDapperError(ex, "execute", sql);
         }
     }
 
-    private void HandleDapperError(Exception ex, string operationType, string sql)
+    private InvalidOperationException HandleDapperError(Exception ex, string operationType, string sql)
     {
         metrics.RecordConnectionError($"dapper_{operationType}", ex);
         // Log SQL preview only in debug/development contexts to avoid exposing schema in production
         logger.LogDebug("Dapper operation failed (type: {OperationType}). SQL preview: {SqlPreview}",
             operationType, sql?.Length > 100 ? sql.Substring(0, 100) + "..." : sql);
         logger.LogError(ex, "Failed to execute Dapper operation (type: {OperationType})", operationType);
-        throw new InvalidOperationException($"Failed to execute Dapper operation (type: {operationType})", ex);
+        return new InvalidOperationException($"Failed to execute Dapper operation (type: {operationType})", ex);
     }
 }
