@@ -36,8 +36,8 @@ public class CachingBehavior<TRequest, TResponse>(
         if (isCached)
         {
             logger.LogDebug("Cache hit for key: {CacheKey}", cacheKey);
-            // Return cached value as-is; null may be intentionally cached or TResponse may be nullable
-            return cachedResult!;
+            // Return cached value as-is (null is valid for reference types and Nullable<T>)
+            return cachedResult;
         }
 
         logger.LogDebug("Cache miss for key: {CacheKey}. Executing query.", cacheKey);

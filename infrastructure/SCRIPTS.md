@@ -206,7 +206,7 @@ Ver [documentação do Aspire](https://learn.microsoft.com/en-us/dotnet/aspire/d
 
 ## 📁 Estrutura de Diretórios
 
-```
+```text
 infrastructure/
 ├── README.md
 ├── SCRIPTS.md (este arquivo)

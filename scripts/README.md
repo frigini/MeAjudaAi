@@ -76,8 +76,13 @@ Scripts PowerShell essenciais para desenvolvimento e operações da aplicação.
 #### `seed-dev-data.ps1` - Seed Dados de Desenvolvimento
 **Uso:**
 ```powershell
-# Seed padrão
+# Quando executar API diretamente (dotnet run) - usa default http://localhost:5000
 .\scripts\seed-dev-data.ps1
+
+# Quando usar Aspire orchestration - override para portas Aspire
+.\scripts\seed-dev-data.ps1 -ApiBaseUrl "https://localhost:7524"
+# ou
+.\scripts\seed-dev-data.ps1 -ApiBaseUrl "http://localhost:5545"
 
 # Seed para Staging
 .\scripts\seed-dev-data.ps1 -Environment Staging
@@ -91,7 +96,9 @@ Scripts PowerShell essenciais para desenvolvimento e operações da aplicação.
 - Gera providers de exemplo
 
 **Configuração:**
-- Variável `API_BASE_URL` (padrão: http://localhost:5000)
+- Variável `API_BASE_URL`:
+  - **Default `http://localhost:5000`** - use quando executar API diretamente via `dotnet run`
+  - **Override com `-ApiBaseUrl`** - necessário quando usar Aspire orchestration (portas dinâmicas como `https://localhost:7524` ou `http://localhost:5545`)
 - Suporta ambientes: Development, Staging
 
 ---

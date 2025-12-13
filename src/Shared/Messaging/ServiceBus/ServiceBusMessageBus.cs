@@ -113,8 +113,8 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
                 // For reference types: validate not null; for value types (including Nullable<T>): pass through
                 if (message is not null || typeof(T).IsValueType)
                 {
-                    // Call handler with actual deserialized value (null for Nullable<T> value types is valid)
-                    await handler(message!, args.CancellationToken);
+                    // Call handler with actual deserialized value (null is valid for Nullable<T>)
+                    await handler(message, args.CancellationToken);
                     await args.CompleteMessageAsync(args.Message, args.CancellationToken);
 
                     _logger.LogDebug("Message {MessageType} processed successfully in {ElapsedMs}ms",

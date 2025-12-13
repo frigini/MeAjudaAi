@@ -28,7 +28,7 @@ O **MeAjudaAi** é uma plataforma moderna de marketplace de serviços que implem
 - **Docker** - Containerização
 - **Azure** - Hospedagem em nuvem
 
-## � Documentação
+## 📚 Documentação
 
 A documentação completa do projeto está disponível em **MkDocs Material** com suporte completo em português.
 
@@ -191,6 +191,8 @@ docker compose -f environments/development.yml up -d
 > - **Aspire Dashboard**: `src/Aspire/MeAjudaAi.AppHost/Properties/launchSettings.json`
 > - **API Service**: `src/Bootstrapper/MeAjudaAi.ApiService/Properties/launchSettings.json`
 > - **Infraestrutura**: `infrastructure/compose/environments/development.yml`
+
+> ⚠️ **Somente desenvolvimento**: credenciais/portas abaixo são valores locais de exemplo. Não reutilize em produção.
 
 | Serviço | URL | Credenciais |
 |---------|-----|-------------|
@@ -455,7 +457,7 @@ azd provision
 
 - [**Guia de Infraestrutura**](docs/infrastructure.md) - Setup e deploy
 - [**Arquitetura e Padrões**](docs/architecture.md) - Decisões arquiteturais
-- [**Guia de Desenvolvimento**](docs/development_guide.md) - Convenções e práticas
+- [**Guia de Desenvolvimento**](docs/development.md) - Convenções e práticas
 - [**CI/CD**](docs/ci-cd.md) - Pipeline de integração contínua
 - [**Diretrizes de Desenvolvimento**](docs/development-guidelines.md) - Padrões e boas práticas
 

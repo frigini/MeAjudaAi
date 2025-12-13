@@ -210,8 +210,12 @@ env:
 ```text
 ## 📚 Links Úteis
 
-- [CodeCoverageSummary Action](https://github.com/irongut/CodeCoverageSummary)
-- [OpenCover Documentation](https://github.com/OpenCover/opencover)
+> ⚠️ **Ferramentas Descontinuadas**: As ferramentas abaixo foram arquivadas/não são mais mantidas pelos autores. Mantidas aqui apenas como referência histórica.
+> - **CodeCoverageSummary Action**: Sem atualizações desde 2022
+> - **OpenCover**: Repositório arquivado em novembro de 2021
+
+- [CodeCoverageSummary Action](https://github.com/irongut/CodeCoverageSummary) (descontinuado)
+- [OpenCover Documentation](https://github.com/OpenCover/opencover) (arquivado)
 - [Coverage Best Practices](../development.md#diretrizes-de-testes)
 
 ---
@@ -678,11 +682,11 @@ dotnet test \
 
 ### 2. **Script Local** (dotnet test --collect) ✅
 
-Criado script para rodar localmente com as mesmas exclusões da pipeline.
+Criado comando para rodar localmente com as mesmas exclusões da pipeline.
 
 **Uso**:
 ```powershell
-.\scripts\generate-clean-coverage.ps1
+dotnet test --collect:"XPlat Code Coverage" --settings config/coverage.runsettings
 ```
 
 ---
@@ -746,11 +750,11 @@ dotnet test -- ExcludeByFile="**/*.generated.cs"
 
 ## 🚀 Como Testar Localmente
 
-### Opção 1: Script Automatizado (Recomendado)
+### Opção 1: Comando dotnet test (Recomendado)
 
 ```powershell
 # Roda testes + gera relatório limpo (~25 minutos)
-.\scripts\generate-clean-coverage.ps1
+dotnet test --collect:"XPlat Code Coverage" --settings config/coverage.runsettings
 ```
 
 **Resultado**:
@@ -899,7 +903,7 @@ Line coverage: ~45-55% (vs 27.9% anterior)
 ## ❓ FAQ
 
 ### P: "Preciso rodar novamente localmente?"
-**R**: Opcional. A pipeline já está configurada. Se quiser ver os números agora: `.\scripts\generate-clean-coverage.ps1`
+**R**: Opcional. A pipeline já está configurada. Se quiser ver os números agora: `dotnet test --collect:"XPlat Code Coverage" --settings config/coverage.runsettings`
 
 ### P: "E se eu quiser incluir código gerado?"
 **R**: Remova o parâmetro `ExcludeByFile` dos comandos `dotnet test`. Mas não recomendado - distorce métricas.

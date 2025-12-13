@@ -1,6 +1,6 @@
 # 📊 Inventário de Scripts - MeAjudaAi
 
-**Última atualização:** 13 de dezembro de 2025  
+**Última atualização:** 2025-12-13  
 **Status:** Simplificado - apenas scripts essenciais
 
 ---
@@ -9,7 +9,7 @@
 
 - **Total de scripts ativos:** 4 PowerShell  
 - **Scripts removidos:** 20 (Bash redundantes + PowerShell coverage)
-- **Documentação:** 100%
+- **Documentação:** 100% (todos os 4 scripts ativos documentados em scripts/README.md)
 - **Filosofia:** Manter apenas scripts com utilidade clara e automação
 
 ---
@@ -35,25 +35,25 @@
 
 | Script | Motivo da Remoção | Data |
 |--------|------------------|------|
-| `dev.sh` | Redundante - uso PowerShell/dotnet diretamente | 13/12/2025 |
-| `test.sh` | Redundante - uso `dotnet test` diretamente | 13/12/2025 |
-| `deploy.sh` | Não utilizado - deploy via Azure/GitHub Actions | 13/12/2025 |
-| `optimize.sh` | Over-engineering - configurações via runsettings | 13/12/2025 |
-| `setup.sh` | Não utilizado - setup via Aspire/Docker Compose | 13/12/2025 |
-| `utils.sh` | 586 linhas não utilizadas | 13/12/2025 |
-| `seed-dev-data.sh` | Duplicado - mantido apenas .ps1 | 13/12/2025 |
+| `dev.sh` | Redundante - uso PowerShell/dotnet diretamente | 2025-12-13 |
+| `test.sh` | Redundante - uso `dotnet test` diretamente | 2025-12-13 |
+| `deploy.sh` | Não utilizado - deploy via Azure/GitHub Actions | 2025-12-13 |
+| `optimize.sh` | Over-engineering - configurações via runsettings | 2025-12-13 |
+| `setup.sh` | Não utilizado - setup via Aspire/Docker Compose | 2025-12-13 |
+| `utils.sh` | 586 linhas não utilizadas | 2025-12-13 |
+| `seed-dev-data.sh` | Duplicado - mantido apenas .ps1 | 2025-12-13 |
 
 ### PowerShell Coverage - Redundantes (7)
 
 | Script | Motivo da Remoção | Data |
 |--------|------------------|------|
-| `aggregate-coverage-local.ps1` | Redundante com `dotnet test --collect` | 13/12/2025 |
-| `test-coverage-like-pipeline.ps1` | Redundante - uso config/coverage.runsettings | 13/12/2025 |
-| `generate-clean-coverage.ps1` | Over-engineering - filtros via coverlet.json | 13/12/2025 |
-| `analyze-coverage-detailed.ps1` | Não utilizado - análise via ReportGenerator | 13/12/2025 |
-| `find-coverage-gaps.ps1` | Não utilizado - gaps visíveis no report HTML | 13/12/2025 |
-| `monitor-coverage.ps1` | Não utilizado - histórico via GitHub Actions | 13/12/2025 |
-| `track-coverage-progress.ps1` | Não utilizado - tracking via badges/CI | 13/12/2025 |
+| `aggregate-coverage-local.ps1` | Redundante com `dotnet test --collect` | 2025-12-13 |
+| `test-coverage-like-pipeline.ps1` | Redundante - uso config/coverage.runsettings | 2025-12-13 |
+| `generate-clean-coverage.ps1` | Over-engineering - filtros via coverlet.json | 2025-12-13 |
+| `analyze-coverage-detailed.ps1` | Não utilizado - análise via ReportGenerator | 2025-12-13 |
+| `find-coverage-gaps.ps1` | Não utilizado - gaps visíveis no report HTML | 2025-12-13 |
+| `monitor-coverage.ps1` | Não utilizado - histórico via GitHub Actions | 2025-12-13 |
+| `track-coverage-progress.ps1` | Não utilizado - tracking via badges/CI | 2025-12-13 |
 
 ---
 

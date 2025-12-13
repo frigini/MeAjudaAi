@@ -164,10 +164,13 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         var idMap = new Dictionary<string, Guid>();
         foreach (var cat in categories)
         {
+            // PostgreSQL ON CONFLICT ... RETURNING always returns the id (whether inserted or updated)
             var result = await context.Database.SqlQueryRaw<Guid>(
                 @"INSERT INTO service_catalogs.categories (id, name, description, created_at, updated_at) 
                   VALUES ({0}, {1}, {2}, {3}, {4})
-                  ON CONFLICT (name) DO UPDATE SET description = {2}, updated_at = {4}
+                  ON CONFLICT (name) DO UPDATE 
+                    SET description = EXCLUDED.description, 
+                        updated_at = EXCLUDED.updated_at
                   RETURNING id",
                 cat.Id, cat.Name, cat.Description, DateTime.UtcNow, DateTime.UtcNow)
                 .ToListAsync(cancellationToken);
@@ -175,6 +178,19 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             if (result.Count > 0)
             {
                 idMap[cat.Name] = result[0];
+            }
+            else
+            {
+                // Fallback: query existing category by name if RETURNING failed
+                var existingId = await context.Database.SqlQueryRaw<Guid>(
+                    "SELECT id FROM service_catalogs.categories WHERE name = {0}",
+                    cat.Name)
+                    .FirstOrDefaultAsync(cancellationToken);
+                
+                if (existingId != Guid.Empty)
+                {
+                    idMap[cat.Name] = existingId;
+                }
             }
         }
 

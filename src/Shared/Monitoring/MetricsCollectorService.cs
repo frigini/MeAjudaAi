@@ -22,7 +22,6 @@ internal class MetricsCollectorService(
             try
             {
                 await CollectMetrics(stoppingToken);
-                await Task.Delay(_interval, stoppingToken);
             }
             catch (OperationCanceledException)
             {
@@ -33,6 +32,17 @@ internal class MetricsCollectorService(
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error collecting metrics");
+            }
+
+            try
+            {
+                await Task.Delay(_interval, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when service is stopping during delay
+                logger.LogInformation("Metrics collection cancelled during delay");
+                break;
             }
         }
 
