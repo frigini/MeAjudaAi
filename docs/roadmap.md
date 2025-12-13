@@ -755,12 +755,11 @@ Para receber notificações quando novas versões estáveis forem lançadas, con
      - Alternativas: Hangfire.Pro.Redis (pago), Hangfire.SqlServer (outro DB)
    - **Prazo**: Validar localmente ANTES de deploy para produção
 
-2. **Swashbuckle.AspNetCore 10.0.1**
-   - **Status**: ExampleSchemaFilter desabilitado (IOpenApiSchema read-only)
-   - **Impacto**: Exemplos automáticos não aparecem no Swagger UI
-   - **Solução Temporária**: Comentado em DocumentationExtensions.cs
-   - **Próximos Passos**: Investigar API do Swashbuckle 10.x ou usar reflexão
-   - **Documentação**: `docs/technical-debt.md` seção ExampleSchemaFilter
+2. **~~Swashbuckle.AspNetCore 10.0.1 - ExampleSchemaFilter~~** ✅ RESOLVIDO (13 Dez 2025)
+   - **Status**: ExampleSchemaFilter **removido permanentemente**
+   - **Razão**: Código problemático, difícil de testar, não essencial
+   - **Alternativa**: Usar XML documentation comments para exemplos quando necessário
+   - **Commit**: [Adicionar hash após commit]
 
 **📅 Cronograma de Atualizações Futuras**:
 

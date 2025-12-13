@@ -114,11 +114,6 @@ public static class DocumentationExtensions
                 return $"{ctrl}_{act}_{method}";
             });
 
-            // TODO: Reativar após migração para Swashbuckle 10.x completar.
-            //       ExampleSchemaFilter precisa ser adaptado para IOpenApiSchema (read-only Example property).
-            //       Usar reflexão para acessar propriedade Example na implementação concreta.
-            //       Rastrear em: https://github.com/frigini/MeAjudaAi/issues/TBD
-
             // Filtros essenciais
             options.OperationFilter<ApiVersionOperationFilter>();
             options.DocumentFilter<ModuleTagsDocumentFilter>();

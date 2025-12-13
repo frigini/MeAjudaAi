@@ -1003,15 +1003,8 @@ Para aumentar a cobertura de **89.1% para 90%**, precisamos cobrir aproximadamen
 
 ---
 
-#### ExampleSchemaFilter.cs (3.8%) 🔴
-**Impacto**: BAIXO - Documentação OpenAPI
-
-**Status**: Código comentado/desabilitado (NotImplementedException)
-
-**Linhas Não Cobertas**:
-- Todo o método `Apply` (linha 21+)
-- Métodos privados comentados
-- Migração pendente para Swashbuckle 10.x
+#### ~~ExampleSchemaFilter.cs~~ ✅ REMOVIDO (13 Dez 2025)
+**Razão**: Código problemático removido permanentemente do projeto
 
 **Solução**:
 - **Opção 1**: Implementar migração para Swashbuckle 10.x e testar

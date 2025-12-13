@@ -2162,20 +2162,16 @@ src/Shared/API.Collections/Generated/
 
 #### **Filtros Personalizados**
 
-```
-// Exemplos automáticos baseados em convenções
-options.SchemaFilter<ExampleSchemaFilter>();
-
+```csharp
 // Tags organizadas por módulos
 options.DocumentFilter<ModuleTagsDocumentFilter>();
 
 // Versionamento de API
 options.OperationFilter<ApiVersionOperationFilter>();
-`sql
+```
 
 #### **Melhorias Implementadas**
 
-- **📝 Exemplos Inteligentes**: Baseados em nomes de propriedades e tipos
 - **🏷️ Tags Organizadas**: Agrupamento lógico por módulos
 - **🔒 Segurança JWT**: Configuração automática de Bearer tokens
 - **📊 Schemas Reutilizáveis**: Componentes comuns (paginação, erros)
