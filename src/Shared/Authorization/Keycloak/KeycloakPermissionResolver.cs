@@ -90,7 +90,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
             // Busca roles do cache ou Keycloak
             var userRoles = await _cache.GetOrCreateAsync(
                 cacheKey,
-                async _ => await GetUserRolesFromKeycloakAsync(userId, cancellationToken),
+                async ValueTask<IReadOnlyList<string>> (ct) => await GetUserRolesFromKeycloakAsync(userId, ct),
                 cacheOptions,
                 cancellationToken: cancellationToken);
 
@@ -112,8 +112,9 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         }
         catch (Exception ex)
         {
-            _logger.LogError("Failed to resolve permissions from Keycloak for user {MaskedUserId} ({ExceptionType})",
-                MaskUserId(userId), ex.GetType().Name);
+            var statusCode = ex is HttpRequestException hre ? hre.StatusCode?.ToString() : null;
+            _logger.LogError("Failed to resolve permissions from Keycloak for user {MaskedUserId} ({ExceptionType}, Status: {StatusCode})",
+                MaskUserId(userId), ex.GetType().Name, statusCode ?? "N/A");
             return Array.Empty<EPermission>();
         }
     }
@@ -170,18 +171,24 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     {
         var cacheKey = "keycloak_admin_token";
         const int safetyMarginSeconds = 30;
-        const int defaultExpiresInSeconds = 300;
+        const int minimumExpirationSeconds = 10;
+
+        // Busca token para determinar expiração real
+        var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
+        var expiresInSeconds = tokenResponse.ExpiresIn > 0 ? tokenResponse.ExpiresIn : 300;
+        var safeCacheSeconds = Math.Max(expiresInSeconds - safetyMarginSeconds, minimumExpirationSeconds);
 
         return await _cache.GetOrCreateAsync(
             cacheKey,
             async ValueTask<string> (ct) =>
             {
-                var tokenResponse = await RequestAdminTokenAsync(ct);
-                return tokenResponse.AccessToken;
+                // Em caso de cache miss, busca um novo token
+                var freshToken = await RequestAdminTokenAsync(ct);
+                return freshToken.AccessToken;
             },
             new HybridCacheEntryOptions
             {
-                Expiration = TimeSpan.FromSeconds(defaultExpiresInSeconds - safetyMarginSeconds),
+                Expiration = TimeSpan.FromSeconds(safeCacheSeconds),
                 LocalCacheExpiration = TimeSpan.FromSeconds(120)
             },
             cancellationToken: cancellationToken);
@@ -374,6 +381,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     /// </summary>
     private static string HashForCacheKey(string input)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(input);
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
         return Convert.ToHexString(bytes);
     }
