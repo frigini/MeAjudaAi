@@ -74,7 +74,9 @@ public class ProviderAwaitingVerificationDomainEventHandlerTests
         var act = async () => await _handler.HandleAsync(domainEvent, CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<Exception>().WithMessage("Message bus error");
+        var ex = await act.Should().ThrowAsync<InvalidOperationException>();
+        ex.Which.InnerException.Should().BeOfType<Exception>();
+        ex.Which.InnerException!.Message.Should().Be("Message bus error");
 
         _mockLogger.Verify(
             x => x.Log(

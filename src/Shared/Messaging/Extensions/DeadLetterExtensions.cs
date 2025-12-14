@@ -134,7 +134,8 @@ public static class DeadLetterExtensions
             var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IDeadLetterService>>();
             logger.LogError(ex, "Failed to validate Dead Letter Queue configuration. Service: {ServiceType}",
                 deadLetterService?.GetType().Name ?? "unknown");
-            throw;
+            throw new InvalidOperationException(
+                $"Dead Letter Queue validation failed for {deadLetterService?.GetType().Name ?? "unknown"}", ex);
         }
     }
 

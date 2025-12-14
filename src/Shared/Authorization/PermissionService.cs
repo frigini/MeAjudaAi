@@ -109,7 +109,7 @@ public sealed class PermissionService(
         return result;
     }
 
-    public async Task<IReadOnlyList<EPermission>> GetUserPermissionsByModuleAsync(string userId, string moduleName, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<EPermission>> GetUserPermissionsByModuleAsync(string userId, string module, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(userId))
         {
@@ -117,20 +117,20 @@ public sealed class PermissionService(
             return Array.Empty<EPermission>();
         }
 
-        if (string.IsNullOrWhiteSpace(moduleName))
+        if (string.IsNullOrWhiteSpace(module))
         {
             logger.LogWarning("GetUserPermissionsByModuleAsync called with empty module name");
             return Array.Empty<EPermission>();
         }
 
-        using var timer = metrics.MeasureModulePermissionResolution(userId, moduleName);
+        using var timer = metrics.MeasureModulePermissionResolution(userId, module);
 
-        var cacheKey = string.Format(UserModulePermissionsCacheKey, userId, moduleName);
-        var tags = new[] { "permissions", $"user:{userId}", $"module:{moduleName}" };
+        var cacheKey = string.Format(UserModulePermissionsCacheKey, userId, module);
+        var tags = new[] { "permissions", $"user:{userId}", $"module:{module}" };
 
         var result = await cacheService.GetOrCreateAsync(
             cacheKey,
-            async _ => await ResolveUserModulePermissionsAsync(userId, moduleName, cancellationToken),
+            async _ => await ResolveUserModulePermissionsAsync(userId, module, cancellationToken),
             CacheExpiration,
             CacheOptions,
             tags,

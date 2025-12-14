@@ -134,7 +134,6 @@ public class GeographicRestrictionMiddleware(
 
         // TODO: Implementar GeoIP lookup baseado em IP para detectar localização automaticamente.
         //       Opções: MaxMind GeoIP2, IP2Location, ou IPGeolocation API.
-        //       Injetar IGeoIpService via construtor e usar: await _geoIpService.GetLocationFromIpAsync(context.Connection.RemoteIpAddress, cancellationToken);
 
         return (null, null);
     }

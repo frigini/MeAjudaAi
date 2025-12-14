@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MeAjudaAi.ApiService;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

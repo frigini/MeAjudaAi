@@ -51,7 +51,7 @@ public sealed class LocationsModuleApi(
         catch (OperationCanceledException ex)
         {
             logger.LogDebug(ex, "Location module availability check was cancelled");
-            throw;
+            throw new InvalidOperationException("Location module availability check was cancelled", ex);
         }
         catch (Exception ex)
         {

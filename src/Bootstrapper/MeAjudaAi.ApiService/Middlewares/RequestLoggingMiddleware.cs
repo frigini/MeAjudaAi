@@ -55,7 +55,9 @@ public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggi
                 context.Request.Path,
                 ex.Message
             );
-            throw;
+            throw new InvalidOperationException(
+                $"Request {context.Request.Method} {context.Request.Path} failed",
+                ex);
         }
         finally
         {

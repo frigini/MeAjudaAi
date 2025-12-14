@@ -40,7 +40,9 @@ public sealed class ProviderAwaitingVerificationDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling ProviderAwaitingVerificationDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
-            throw; // Re-throw original exception to preserve message for tests
+            throw new InvalidOperationException(
+                $"Failed to handle ProviderAwaitingVerificationDomainEvent for provider {domainEvent.AggregateId}",
+                ex);
         }
     }
 }

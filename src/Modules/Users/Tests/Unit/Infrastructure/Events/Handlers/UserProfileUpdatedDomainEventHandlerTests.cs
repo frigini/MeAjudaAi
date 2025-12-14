@@ -147,15 +147,16 @@ public class UserProfileUpdatedDomainEventHandlerTests : IDisposable
         // Handler now wraps exceptions for consistency
         Assert.StartsWith("Error handling UserProfileUpdatedDomainEvent for user", ex.Message);
         Assert.NotNull(ex.InnerException);
+        Assert.IsType<InvalidOperationException>(ex.InnerException);
         Assert.Equal("Message bus unavailable", ex.InnerException.Message);
 
-        // Verify error was logged
+        // Verify error was logged with wrapper exception
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((v, t) => true),
-                It.IsAny<InvalidOperationException>(),
+                It.IsNotNull<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()
             ),
             Times.Once

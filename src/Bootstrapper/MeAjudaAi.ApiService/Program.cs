@@ -13,6 +13,8 @@ using MeAjudaAi.Shared.Seeding;
 using Serilog;
 using Serilog.Context;
 
+namespace MeAjudaAi.ApiService;
+
 public partial class Program
 {
     public static async Task Main(string[] args)

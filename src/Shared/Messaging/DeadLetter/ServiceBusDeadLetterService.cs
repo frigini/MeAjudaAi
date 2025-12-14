@@ -221,9 +221,6 @@ public sealed class ServiceBusDeadLetterService(
             // TODO(#future): Implement real statistics collection using Azure Service Bus Management Client.
             // See: https://learn.microsoft.com/en-us/dotnet/api/azure.messaging.servicebus.administration
             // Required: ServiceBusAdministrationClient + GetQueueRuntimePropertiesAsync for message counts.
-            // Example: var properties = await adminClient.GetQueueRuntimePropertiesAsync(queueName);
-            // Properties: properties.ActiveMessageCount, properties.DeadLetterMessageCount
-            // For now, returns basic implementation to prevent breaking consumers.
 
         }
         catch (Exception ex)

@@ -83,7 +83,9 @@ public sealed class RabbitMqDeadLetterService(
         {
             logger.LogError(ex, "Failed to send message to RabbitMQ dead letter queue. MessageId: {MessageId}, Type: {MessageType}, Attempts: {Attempts}",
                 messageId ?? "unknown", messageType ?? typeof(TMessage).Name, capturedAttemptCount);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to send message '{messageId ?? "unknown"}' of type '{messageType ?? typeof(TMessage).Name}' to RabbitMQ dead letter queue after {capturedAttemptCount} attempts",
+                ex);
         }
     }
 

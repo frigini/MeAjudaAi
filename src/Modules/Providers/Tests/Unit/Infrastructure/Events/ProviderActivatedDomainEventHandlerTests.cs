@@ -97,8 +97,10 @@ public class ProviderActivatedDomainEventHandlerTests
             });
 
         // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await _handler.HandleAsync(domainEvent, cts.Token));
+
+        ex.InnerException.Should().BeOfType<OperationCanceledException>();
 
         // Verify that no successful publish occurred (only attempted)
         _messageBusMock.Verify(

@@ -80,9 +80,6 @@ internal class MetricsCollectorService(
         {
             // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui para
             //       acessar UsersDbContext e contar usuários que fizeram login nas últimas 24 horas.
-            //       Exemplo: using var scope = serviceScopeFactory.CreateScope();
-            //                var usersContext = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-            //                return await usersContext.Users.Where(u => u.LastLogin > DateTime.UtcNow.AddHours(-24)).CountAsync();
 
             // Placeholder - implementar com o serviço real de usuários
             await Task.Delay(1, cancellationToken); // Simular operação async
@@ -107,9 +104,6 @@ internal class MetricsCollectorService(
         {
             // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui para
             //       acessar HelpRequestRepository e contar solicitações com status Pending.
-            //       Exemplo: using var scope = serviceScopeFactory.CreateScope();
-            //                var requestsRepo = scope.ServiceProvider.GetRequiredService<IHelpRequestRepository>();
-            //                return await requestsRepo.CountByStatusAsync(HelpRequestStatus.Pending, cancellationToken);
 
             // Placeholder - implementar com o serviço real de help requests
             await Task.Delay(1, cancellationToken); // Simular operação async

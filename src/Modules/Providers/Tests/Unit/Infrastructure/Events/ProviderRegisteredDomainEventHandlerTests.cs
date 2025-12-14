@@ -128,7 +128,8 @@ public class ProviderRegisteredDomainEventHandlerTests : IDisposable
         var act = async () => await _handler.HandleAsync(domainEvent, cts.Token);
 
         // Assert
-        await act.Should().ThrowAsync<OperationCanceledException>();
+        var ex = await act.Should().ThrowAsync<InvalidOperationException>();
+        ex.Which.InnerException.Should().BeOfType<OperationCanceledException>();
 
         // Verify PublishAsync was not successfully invoked
         _messageBusMock.Verify(

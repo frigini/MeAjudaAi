@@ -1,4 +1,5 @@
 using DotNet.Testcontainers.Builders;
+using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;

@@ -118,7 +118,8 @@ public class ServiceBusMessageBus : IMessageBus, IAsyncDisposable
                 if (message is not null || typeof(T).IsValueType)
                 {
                     // Call handler with actual deserialized value (null is valid for Nullable<T>)
-                    await handler(message, args.CancellationToken);
+                    // message is validated above - null-forgiving is safe here
+                    await handler(message!, args.CancellationToken);
                     await args.CompleteMessageAsync(args.Message, args.CancellationToken);
 
                     _logger.LogDebug("Message {MessageType} processed successfully in {ElapsedMs}ms",

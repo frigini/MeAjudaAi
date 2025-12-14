@@ -28,10 +28,6 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
     private readonly Histogram<double> _authorizationCheckDuration;
     private readonly Histogram<double> _performanceHistogram;
 
-    // Observable gauges
-    private readonly ObservableGauge<int> _activePermissionChecks;
-    private readonly ObservableGauge<double> _cacheHitRate;
-
     // State tracking
     private long _totalPermissionChecks;
     private long _totalCacheHits;
@@ -88,13 +84,13 @@ public sealed class PermissionMetricsService : IPermissionMetricsService
             "meajudaai_permission_performance",
             description: "Performance metrics for permission components");
 
-        // Initialize observable gauges
-        _activePermissionChecks = _meter.CreateObservableGauge<int>(
+        // Initialize observable gauges directly (no need to store reference)
+        _meter.CreateObservableGauge<int>(
             "meajudaai_active_permission_checks",
             () => _currentActiveChecks,
             description: "Number of currently active permission checks");
 
-        _cacheHitRate = _meter.CreateObservableGauge<double>(
+        _meter.CreateObservableGauge<double>(
             "meajudaai_permission_cache_hit_rate",
             () => CalculateCacheHitRate(),
             description: "Permission cache hit rate (0-1)");

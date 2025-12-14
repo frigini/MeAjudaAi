@@ -166,9 +166,9 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
 
         return new PagedResult<Provider>(
             providers,
-            totalCount,
             page,
-            pageSize);
+            pageSize,
+            totalCount);
     }
 
     /// <summary>

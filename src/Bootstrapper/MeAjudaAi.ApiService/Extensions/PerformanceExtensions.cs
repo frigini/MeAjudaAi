@@ -140,14 +140,12 @@ public static class PerformanceExtensions
         }
 
         // Verifica cookies sendo definidos na resposta
-        if (response.Headers.TryGetValue("Set-Cookie", out var setCookies))
-        {
-            if (setCookies.Any(setCookie =>
+        if (response.Headers.TryGetValue("Set-Cookie", out var setCookies) &&
+            setCookies.Any(setCookie =>
                 setCookie != null && sensitiveCookieNames.Any(name =>
                     setCookie.Contains(name, StringComparison.OrdinalIgnoreCase))))
-            {
-                return true;
-            }
+        {
+            return true;
         }
 
         return false;

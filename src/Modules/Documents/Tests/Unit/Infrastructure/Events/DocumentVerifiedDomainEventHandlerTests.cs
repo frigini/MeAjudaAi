@@ -119,8 +119,10 @@ public class DocumentVerifiedDomainEventHandlerTests
         var act = async () => await _handler.HandleAsync(domainEvent);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Message bus error");
+        var ex = await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"Failed to handle DocumentVerifiedDomainEvent for document {documentId}");
+        ex.Which.InnerException.Should().BeOfType<InvalidOperationException>();
+        ex.Which.InnerException!.Message.Should().Be("Message bus error");
 
         VerifyLogMessageWithException(LogLevel.Error, $"Error handling DocumentVerifiedDomainEvent for document {documentId}", exception, Times.Once());
     }

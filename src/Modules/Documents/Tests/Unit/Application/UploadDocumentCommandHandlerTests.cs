@@ -221,10 +221,11 @@ public class UploadDocumentCommandHandlerTests
             11 * 1024 * 1024); // 11MB, excede o limite de 10MB
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
-        exception.Message.Should().Contain("10MB");
+        exception.InnerException.Should().BeOfType<ArgumentException>();
+        exception.InnerException!.Message.Should().Contain("10MB");
     }
 
     [Theory]
@@ -245,10 +246,11 @@ public class UploadDocumentCommandHandlerTests
             102400);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
-        exception.Message.Should().Contain("não permitido");
+        exception.InnerException.Should().BeOfType<ArgumentException>();
+        exception.InnerException!.Message.Should().Contain("não permitido");
     }
 
     [Fact]
@@ -306,8 +308,10 @@ public class UploadDocumentCommandHandlerTests
             102400);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.InnerException.Should().BeOfType<ArgumentException>();
     }
 
     [Fact]
@@ -326,10 +330,11 @@ public class UploadDocumentCommandHandlerTests
             102400);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
-        exception.Message.Should().Contain("not authorized");
+        exception.InnerException.Should().BeOfType<UnauthorizedAccessException>();
+        exception.InnerException!.Message.Should().Contain("not authorized");
 
         // Verify warning was logged
         _mockLogger.Verify(

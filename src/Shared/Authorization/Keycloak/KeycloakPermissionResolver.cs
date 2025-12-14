@@ -317,11 +317,11 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     /// <summary>
     /// Mapeia roles do Keycloak para permissões do sistema.
     /// </summary>
-    public IEnumerable<EPermission> MapKeycloakRoleToPermissions(string roleName)
+    public IEnumerable<EPermission> MapKeycloakRoleToPermissions(string keycloakRole)
     {
-        ArgumentNullException.ThrowIfNull(roleName);
+        ArgumentNullException.ThrowIfNull(keycloakRole);
 
-        return roleName.ToLowerInvariant() switch
+        return keycloakRole.ToLowerInvariant() switch
         {
             // Roles de sistema
             "meajudaai-system-admin" => new[]

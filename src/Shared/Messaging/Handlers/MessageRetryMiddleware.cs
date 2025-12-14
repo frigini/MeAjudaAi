@@ -27,7 +27,6 @@ public sealed class MessageRetryMiddleware<TMessage>(
         CancellationToken cancellationToken = default)
     {
         var attemptCount = 0;
-        Exception? lastException;
 
         while (true)
         {

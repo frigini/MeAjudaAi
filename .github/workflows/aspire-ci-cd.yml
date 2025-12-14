@@ -180,7 +180,7 @@ jobs:
             --verbosity normal \
             MeAjudaAi.slnx \
             2>&1 | tee format-output.txt
-          FORMAT_EXIT_CODE=$?
+          FORMAT_EXIT_CODE=${PIPESTATUS[0]}
           
           # Check if any files were actually formatted (not just warnings)
           if grep -q "Formatted code file" format-output.txt; then
