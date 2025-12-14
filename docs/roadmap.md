@@ -57,8 +57,12 @@ Admin Endpoints & Tools - TODAS AS PARTES FINALIZADAS:
 
 **🔄 Sprint 4: EM ANDAMENTO** (14 Dez - 20 Dez 2025)  
 Health Checks Robustos + Data Seeding para MVP:
-- 🔄 Health Checks: PostgreSQL, Keycloak, Redis, módulos individuais
-- 🔄 Health Dashboard: UI no /health endpoint com AspNetCore.HealthChecks.UI
+- ✅ Health Checks: DatabasePerformanceHealthCheck (latência <100ms healthy, <500ms degraded)
+- ✅ Health Checks: ExternalServicesHealthCheck (Keycloak + IBGE API)
+- ✅ Health Checks: HelpProcessingHealthCheck (sistema de ajuda operacional)
+- ✅ Health Dashboard: UI no /health-ui com AspNetCore.HealthChecks.UI 9.0.0
+- ✅ Health Configuration: appsettings.json com 10s evaluation interval
+- ✅ Health Packages: AspNetCore.HealthChecks.UI, .UI.Client, .UI.InMemory.Storage, .Npgsql 9.0.0, .Redis
 - 🔄 Data Seeding: ServiceCategories/Services padrão, cidades permitidas, providers demo
 - 🔄 Seeding Scripts: SQL inicial + EF Core Data Seeding configurável
 - 🔄 Environment-aware: Seeding apenas em Development
