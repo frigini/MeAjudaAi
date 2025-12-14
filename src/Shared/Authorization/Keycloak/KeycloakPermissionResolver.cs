@@ -264,7 +264,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            _logger.LogDebug(ex, "User {MaskedUserId} not found by ID, trying username search", MaskUserId(userId));
+            _logger.LogDebug("User {MaskedUserId} not found by ID (HTTP {StatusCode}), trying username search", MaskUserId(userId), ex.StatusCode);
         }
 
         // Fallback: busca por username

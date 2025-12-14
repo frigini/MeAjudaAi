@@ -158,7 +158,12 @@ dotnet_diagnostic.CA2215.severity = none  # Dispose methods should call base.Dis
 
 # xUnit specific suppressions (globally disabled to reduce noise during .NET 10 migration)
 dotnet_diagnostic.xUnit1012.severity = none  # Null should not be used for type parameter (common in test data)
-dotnet_diagnostic.xUnit1051.severity = none  # Use TestContext.Current.CancellationToken (755+ warnings, intentionally disabled)
+# xUnit1051: Use TestContext.Current.CancellationToken - Suppressed due to:
+#   - 755+ violations across test suite (introduced in xUnit v3 migration)
+#   - Planned refactoring in dedicated sprint to update async tests systematically
+#   - Current test harness relies on default cancellation tokens for integration test stability
+#   - Re-enable after test infrastructure modernization (tracked in technical debt)
+dotnet_diagnostic.xUnit1051.severity = none
 
 # Code analysis suppressions for test code
 dotnet_diagnostic.CA2000.severity = none  # Dispose objects before losing scope (false positives in test code like StringContent)

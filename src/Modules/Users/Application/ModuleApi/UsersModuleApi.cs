@@ -74,7 +74,7 @@ public sealed class UsersModuleApi(
         catch (OperationCanceledException ex)
         {
             logger.LogDebug(ex, "Users module availability check was cancelled");
-            throw new InvalidOperationException("Users module availability check was cancelled", ex);
+            throw;
         }
         catch (Exception ex)
         {
