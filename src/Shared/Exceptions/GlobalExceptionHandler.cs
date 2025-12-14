@@ -96,9 +96,9 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 }),
 
             ArgumentException argumentException => (
-                StatusCodes.Status500InternalServerError,
-                "Internal Server Error",
-                "An unexpected error occurred while processing your request",
+                StatusCodes.Status400BadRequest,
+                "Bad Request",
+                argumentException.Message,
                 null,
                 new Dictionary<string, object?>
                 {

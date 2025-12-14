@@ -48,6 +48,15 @@ internal class MigrationHostedService : IHostedService
         try
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            
+            // Skip migrations in test environments - they're managed by test infrastructure
+            if (environment.Equals("Testing", StringComparison.OrdinalIgnoreCase) || 
+                environment.Equals("Test", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInformation("⏭️ Skipping migrations in {Environment} environment", environment);
+                return;
+            }
+            
             var isDevelopment = environment.Equals("Development", StringComparison.OrdinalIgnoreCase);
 
             var connectionString = GetConnectionString();

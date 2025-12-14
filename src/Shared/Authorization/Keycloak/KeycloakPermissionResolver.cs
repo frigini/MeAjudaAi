@@ -169,7 +169,6 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     {
         var cacheKey = "keycloak_admin_token";
         const int safetyMarginSeconds = 30;
-        const int minimumTtlSeconds = 10;
         const int defaultExpiresInSeconds = 300;
 
         return await _cache.GetOrCreateAsync(
