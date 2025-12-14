@@ -81,7 +81,7 @@ public class AzureBlobStorageServiceTests
     }
 
     [Fact]
-    public async Task GenerateUploadUrlAsync_WhenRequestFails_ShouldThrowRequestFailedException()
+    public async Task GenerateUploadUrlAsync_WhenRequestFails_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var blobName = "test-document.pdf";
