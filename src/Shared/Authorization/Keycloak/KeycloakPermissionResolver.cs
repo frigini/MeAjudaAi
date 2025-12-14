@@ -172,13 +172,11 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         const int safetyMarginSeconds = 30;
         const int defaultExpiresInSeconds = 300;
 
+        async Task<string> GetAccessTokenAsync(CancellationToken ct) => (await RequestAdminTokenAsync(ct)).AccessToken;
+
         return await _cache.GetOrCreateAsync(
             cacheKey,
-            async (ct) =>
-            {
-                var tokenResponse = await RequestAdminTokenAsync(ct);
-                return tokenResponse.AccessToken;
-            },
+            (ct) => new ValueTask<string>(GetAccessTokenAsync(ct)),
             new HybridCacheEntryOptions
             {
                 Expiration = TimeSpan.FromSeconds(defaultExpiresInSeconds - safetyMarginSeconds),
