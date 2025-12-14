@@ -169,25 +169,25 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     {
         var cacheKey = "keycloak_admin_token";
         const int safetyMarginSeconds = 30;
+        const int minimumTtlSeconds = 10;
         const int defaultExpiresInSeconds = 300;
+
+        // Fetch token and calculate expiration dynamically
+        var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
+        
+        var expiresInSeconds = tokenResponse.ExpiresIn > 0 ? tokenResponse.ExpiresIn : defaultExpiresInSeconds;
+        var safeCacheSeconds = Math.Max(expiresInSeconds - safetyMarginSeconds, minimumTtlSeconds);
 
         return await _cache.GetOrCreateAsync(
             cacheKey,
-            async _ =>
-            {
-                var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
-                return tokenResponse.AccessToken;
-            },
+            _ => Task.FromResult(tokenResponse.AccessToken),
             new HybridCacheEntryOptions
             {
-                // Use reasonable default; token expiry is typically consistent
-                Expiration = TimeSpan.FromSeconds(defaultExpiresInSeconds - safetyMarginSeconds),
-                LocalCacheExpiration = TimeSpan.FromSeconds(120)
+                Expiration = TimeSpan.FromSeconds(safeCacheSeconds),
+                LocalCacheExpiration = TimeSpan.FromSeconds(Math.Min(safeCacheSeconds / 2, 120))
             },
             cancellationToken: cancellationToken);
     }
-
-    // Removed CreateTokenCacheOptionsAsync - no longer needed
 
     private async Task<TokenResponse> RequestAdminTokenAsync(CancellationToken cancellationToken)
     {
@@ -266,7 +266,10 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to find user {MaskedUserId} by username in Keycloak", MaskUserId(userId));
+            _logger.LogWarning(
+                "Failed to find user {MaskedUserId} by username in Keycloak ({ExceptionType})",
+                MaskUserId(userId),
+                ex.GetType().Name);
             return null;
         }
     }
