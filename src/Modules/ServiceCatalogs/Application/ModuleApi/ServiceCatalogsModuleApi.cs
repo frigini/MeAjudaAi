@@ -39,14 +39,14 @@ public sealed class ServiceCatalogsModuleApi(
             logger.LogDebug("Checking ServiceCatalogs module availability");
 
             // Simple database connectivity test
-            var categories = await categoryRepository.GetAllAsync(activeOnly: true, cancellationToken);
+            _ = await categoryRepository.GetAllAsync(activeOnly: true, cancellationToken);
 
             logger.LogDebug("ServiceCatalogs module is available and healthy");
             return true;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            logger.LogDebug("ServiceCatalogs module availability check was cancelled");
+            logger.LogDebug(ex, "ServiceCatalogs module availability check was cancelled");
             throw;
         }
         catch (Exception ex)

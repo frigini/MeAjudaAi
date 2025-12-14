@@ -19,15 +19,59 @@ Complete OpenAPI specification containing:
 
 ## Generation
 
-The API specification is automatically generated using the export script:
+⚠️ **IMPORTANTE**: O arquivo `api-spec.json` deve ser atualizado sempre que houver mudanças nos endpoints da API.
+
+### Quando Atualizar
+Atualize o arquivo após:
+- ✅ Adicionar novos endpoints
+- ✅ Modificar schemas de request/response
+- ✅ Alterar rotas ou métodos HTTP
+- ✅ Modificar validações ou DTOs
+- ✅ Atualizar documentação XML dos endpoints
+
+### Como Atualizar
 
 ```bash
-# Generate current API specification
-./scripts/export-openapi.ps1
+# Windows: Gerar OpenAPI spec + Postman Collections
+cd tools/api-collections
+.\generate-all-collections.bat
 
-# Generate to custom location
-./scripts/export-openapi.ps1 -OutputPath "api/my-api-spec.json"
+# Linux/macOS: Gerar OpenAPI spec + Postman Collections
+cd tools/api-collections
+./generate-all-collections.sh
+
+# Apenas OpenAPI (sem Collections)
+cd tools/api-collections
+npm install
+node generate-postman-collections.js
+
+# Após gerar, commitar as mudanças
+git add api/api-spec.json
+git commit -m "docs: atualizar especificação OpenAPI"
 ```
+
+### Automação (GitHub Pages)
+
+#### 🤖 Geração Automática
+O `api-spec.json` é **automaticamente atualizado** via GitHub Actions sempre que houver mudanças em:
+- Controllers, endpoints, DTOs
+- Requests, Responses, schemas  
+- Qualquer arquivo em `src/**/API/`
+
+**Workflow**: `.github/workflows/update-api-docs.yml`
+
+#### 🔄 Processo Automatizado
+1. ✅ Detecta mudanças em endpoints (via `paths` no workflow)
+2. 🔨 Builda a aplicação (Release mode)
+3. 📄 Gera `api-spec.json` via Swashbuckle CLI
+4. ✅ Valida JSON e conta endpoints
+5. 💾 Commita automaticamente (com `[skip ci]`)
+6. 🚀 Faz deploy para GitHub Pages com ReDoc
+
+#### 📚 URLs Publicadas
+- 📖 **ReDoc (interativo)**: [ReDoc Interface](https://frigini.github.io/MeAjudaAi/api/)
+- 📄 **OpenAPI JSON**: [OpenAPI Specification](https://frigini.github.io/MeAjudaAi/api/api-spec.json)
+- 🔄 **Atualização**: Automática a cada push na branch `main`
 
 ## Features
 

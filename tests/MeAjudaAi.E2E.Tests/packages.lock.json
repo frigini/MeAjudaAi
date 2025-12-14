@@ -1720,7 +1720,9 @@
           "Aspire.Hosting.RabbitMQ": "[13.0.2, )",
           "Aspire.Hosting.Redis": "[13.0.2, )",
           "Aspire.Hosting.Seq": "[13.0.2, )",
-          "FluentValidation.DependencyInjectionExtensions": "[12.1.1, )"
+          "FluentValidation.DependencyInjectionExtensions": "[12.1.1, )",
+          "Microsoft.EntityFrameworkCore": "[10.0.1, )",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )"
         }
       },
       "meajudaai.modules.documents.api": {
@@ -1818,6 +1820,7 @@
         "type": "Project",
         "dependencies": {
           "MeAjudaAi.Modules.Providers.Domain": "[1.0.0, )",
+          "MeAjudaAi.Modules.ServiceCatalogs.Application": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )"
         }
       },

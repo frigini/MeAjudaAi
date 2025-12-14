@@ -57,7 +57,9 @@ public sealed class DocumentVerifiedDomainEventHandler(
                 ex,
                 "Error handling DocumentVerifiedDomainEvent for document {DocumentId}",
                 domainEvent.AggregateId);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to handle DocumentVerifiedDomainEvent for document {domainEvent.AggregateId}",
+                ex);
         }
     }
 }

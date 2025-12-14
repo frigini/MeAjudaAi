@@ -131,12 +131,12 @@ public class UploadDocumentCommandHandler(
         catch (UnauthorizedAccessException ex)
         {
             _logger.LogWarning(ex, "Authorization failed while uploading document for provider {ProviderId}", command.ProviderId);
-            throw; // Re-throw para middleware tratar com 401/403
+            throw;
         }
         catch (ArgumentException ex)
         {
             _logger.LogWarning(ex, "Validation failed while uploading document: {Message}", ex.Message);
-            throw; // Re-throw para middleware tratar com 400
+            throw;
         }
         catch (Exception ex)
         {

@@ -4,7 +4,7 @@ using MeAjudaAi.Shared.Functional;
 namespace MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
 
 /// <summary>
-/// Public API for the Search & Discovery module.
+/// Public API for the Search and Discovery module.
 /// </summary>
 public interface ISearchProvidersModuleApi : IModuleApi
 {

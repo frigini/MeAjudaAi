@@ -442,6 +442,19 @@
           "MeAjudaAi.Shared": "[1.0.0, )"
         }
       },
+      "meajudaai.modules.servicecatalogs.application": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Modules.ServiceCatalogs.Domain": "[1.0.0, )",
+          "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
+      "meajudaai.modules.servicecatalogs.domain": {
+        "type": "Project",
+        "dependencies": {
+          "MeAjudaAi.Shared": "[1.0.0, )"
+        }
+      },
       "meajudaai.shared": {
         "type": "Project",
         "dependencies": {

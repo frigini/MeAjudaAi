@@ -1,0 +1,47 @@
+meta {
+  name: Update Service
+  type: http
+  seq: 10
+}
+
+put {
+  url: {{baseUrl}}/api/v1/catalogs/services/{{serviceId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Instalação de Tomadas",
+    "description": "Instalação de tomadas elétricas residenciais",
+    "categoryId": "{{categoryId}}",
+    "eligibilityCriteria": "Sem critérios específicos",
+    "requiredDocuments": ["RG", "CPF"]
+  }
+}
+
+docs {
+  # Update Service
+  
+  Atualiza serviço existente (admin).
+  
+  ## Parâmetros
+  - `serviceId`: GUID do serviço
+  
+  ## Body
+  - `name`: Nome do serviço
+  - `description`: Descrição (opcional)
+  - `categoryId`: ID da categoria
+  - `eligibilityCriteria`: Critérios de elegibilidade (opcional)
+  - `requiredDocuments`: Array de documentos necessários (opcional)
+  
+  ## Status: 200 OK | 404 Not Found
+}

@@ -170,9 +170,6 @@ docker compose -f compose/environments/development.yml up -d
 source compose/environments/.env.development  # Load all required secrets
 docker compose -f compose/environments/development.yml up -d
 
-# Production (with .env file)
-docker compose -f compose/environments/production.yml up -d
-
 # Testing (uses defaults or custom .env.testing)
 docker compose -f compose/environments/testing.yml up -d
 
@@ -183,6 +180,14 @@ docker compose -f compose/standalone/postgres-only.yml up -d
 export KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 32)
 docker compose -f compose/standalone/keycloak-only.yml up -d
 ```
+
+**⚠️ Production Deployment:**
+Para ambientes de produção, use **.NET Aspire** para Azure App Service:
+```bash
+cd src/Aspire/MeAjudaAi.AppHost
+dotnet run -- deploy
+```
+Ver [documentação do Aspire](https://learn.microsoft.com/en-us/dotnet/aspire/deployment/azure/aca-deployment) para detalhes.
 
 ### Standalone Services
 

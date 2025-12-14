@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -244,8 +245,8 @@ public class GetProviderByDocumentQueryHandlerTests
 
     private static Provider CreateValidProvider(string document)
     {
-        var providerId = new ProviderId(Guid.CreateVersion7());
-        var userId = Guid.CreateVersion7();
+        var providerId = new ProviderId(UuidGenerator.NewId());
+        var userId = UuidGenerator.NewId();
         var address = new Address("Rua Teste", "123", "Centro", "São Paulo", "SP", "01234-567", "Brasil");
         var contactInfo = new ContactInfo("test@test.com", "11999999999");
         var businessProfile = new BusinessProfile("Test Provider LTDA", contactInfo, address, document);

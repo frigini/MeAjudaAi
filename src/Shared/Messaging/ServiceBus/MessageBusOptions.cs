@@ -18,7 +18,12 @@ public sealed class MessageBusOptions
         type => type.Name.ToLowerInvariant();
 
     public Func<Type, string> TopicNamingConvention { get; set; } =
-        type => $"{type.Namespace?.Split('.').Last()?.ToLowerInvariant()}.events";
+        type =>
+        {
+            var namespaceParts = type.Namespace?.Split('.') ?? Array.Empty<string>();
+            var lastPart = namespaceParts.Length > 0 ? namespaceParts[namespaceParts.Length - 1] : "events";
+            return $"{lastPart.ToLowerInvariant()}.events";
+        };
 
     public Func<Type, string> SubscriptionNamingConvention { get; set; } =
         type => Environment.MachineName.ToLowerInvariant();

@@ -4,6 +4,7 @@ using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
+using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Users;
@@ -159,7 +160,7 @@ public class UserRepositoryIntegrationTests : ApiTestBase
         var email = new Email(_faker.Internet.Email());
         var firstName = _faker.Name.FirstName();
         var lastName = _faker.Name.LastName();
-        var keycloakId = Guid.CreateVersion7().ToString();
+        var keycloakId = UuidGenerator.NewId().ToString();
 
         return new User(username, email, firstName, lastName, keycloakId);
     }

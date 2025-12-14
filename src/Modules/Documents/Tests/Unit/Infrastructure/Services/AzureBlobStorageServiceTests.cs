@@ -81,7 +81,7 @@ public class AzureBlobStorageServiceTests
     }
 
     [Fact]
-    public async Task GenerateUploadUrlAsync_WhenRequestFails_ShouldThrowRequestFailedException()
+    public async Task GenerateUploadUrlAsync_WhenRequestFails_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var blobName = "test-document.pdf";
@@ -99,7 +99,8 @@ public class AzureBlobStorageServiceTests
         var act = () => _service.GenerateUploadUrlAsync(blobName, contentType);
 
         // Assert
-        await act.Should().ThrowAsync<RequestFailedException>();
+        var exception = await act.Should().ThrowAsync<InvalidOperationException>();
+        exception.And.InnerException.Should().BeOfType<RequestFailedException>();
     }
 
     [Fact]
@@ -182,7 +183,7 @@ public class AzureBlobStorageServiceTests
     }
 
     [Fact]
-    public async Task ExistsAsync_WhenRequestFails_ShouldReturnFalse()
+    public async Task ExistsAsync_WhenRequestFails_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var blobName = "test-document.pdf";
@@ -192,10 +193,11 @@ public class AzureBlobStorageServiceTests
             .ThrowsAsync(new RequestFailedException("Azure error"));
 
         // Act
-        var result = await _service.ExistsAsync(blobName);
+        var act = () => _service.ExistsAsync(blobName);
 
         // Assert
-        result.Should().BeFalse();
+        var exception = await act.Should().ThrowAsync<InvalidOperationException>();
+        exception.And.InnerException.Should().BeOfType<RequestFailedException>();
     }
 
     [Fact]
@@ -225,7 +227,7 @@ public class AzureBlobStorageServiceTests
     }
 
     [Fact]
-    public async Task DeleteAsync_WhenRequestFails_ShouldThrowRequestFailedException()
+    public async Task DeleteAsync_WhenRequestFails_ShouldThrowInvalidOperationException()
     {
         // Arrange
         var blobName = "document-to-delete.pdf";
@@ -241,7 +243,8 @@ public class AzureBlobStorageServiceTests
         var act = () => _service.DeleteAsync(blobName);
 
         // Assert
-        await act.Should().ThrowAsync<RequestFailedException>();
+        var exception = await act.Should().ThrowAsync<InvalidOperationException>();
+        exception.And.InnerException.Should().BeOfType<RequestFailedException>();
     }
 
     [Fact]

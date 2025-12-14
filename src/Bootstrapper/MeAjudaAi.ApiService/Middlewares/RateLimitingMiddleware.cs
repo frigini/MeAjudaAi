@@ -96,21 +96,19 @@ public class RateLimitingMiddleware(
         var requestPath = context.Request.Path.Value ?? string.Empty;
 
         // 1. Check for endpoint-specific limits first
-        foreach (var endpointLimit in rateLimitOptions.EndpointLimits)
+        var matchingLimit = rateLimitOptions.EndpointLimits
+            .FirstOrDefault(endpointLimit =>
+                IsPathMatch(requestPath, endpointLimit.Value.Pattern) &&
+                ((isAuthenticated && endpointLimit.Value.ApplyToAuthenticated) ||
+                 (!isAuthenticated && endpointLimit.Value.ApplyToAnonymous)));
+
+        if (matchingLimit.Value != null)
         {
-            if (IsPathMatch(requestPath, endpointLimit.Value.Pattern))
-            {
-                // Check if this endpoint limit applies to the current user type
-                if ((isAuthenticated && endpointLimit.Value.ApplyToAuthenticated) ||
-                    (!isAuthenticated && endpointLimit.Value.ApplyToAnonymous))
-                {
-                    return ScaleToWindow(
-                        endpointLimit.Value.RequestsPerMinute,
-                        endpointLimit.Value.RequestsPerHour,
-                        0,
-                        window);
-                }
-            }
+            return ScaleToWindow(
+                matchingLimit.Value.RequestsPerMinute,
+                matchingLimit.Value.RequestsPerHour,
+                0,
+                window);
         }
 
         // 2. Check for role-specific limits (only for authenticated users)

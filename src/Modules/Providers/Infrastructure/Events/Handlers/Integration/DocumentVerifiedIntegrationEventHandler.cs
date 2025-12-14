@@ -69,7 +69,9 @@ public sealed class DocumentVerifiedIntegrationEventHandler(
                 "Error handling DocumentVerifiedIntegrationEvent for provider {ProviderId}, document {DocumentId}",
                 integrationEvent.ProviderId,
                 integrationEvent.DocumentId);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to process DocumentVerified integration event for provider '{integrationEvent.ProviderId}', document '{integrationEvent.DocumentId}'",
+                ex);
         }
     }
 }

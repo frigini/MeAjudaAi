@@ -21,7 +21,7 @@ public class GlobalExceptionHandlerTests
     }
 
     [Fact]
-    public async Task TryHandleAsync_WithArgumentException_ShouldReturnInternalServerError()
+    public async Task TryHandleAsync_WithArgumentException_ShouldReturnBadRequest()
     {
         // Arrange
         var context = new DefaultHttpContext();
@@ -33,11 +33,11 @@ public class GlobalExceptionHandlerTests
 
         // Assert
         result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(500);
+        context.Response.StatusCode.Should().Be(400);
     }
 
     [Fact]
-    public async Task TryHandleAsync_WithArgumentNullException_ShouldReturnInternalServerError()
+    public async Task TryHandleAsync_WithArgumentNullException_ShouldReturnBadRequest()
     {
         // Arrange
         var context = new DefaultHttpContext();
@@ -49,7 +49,7 @@ public class GlobalExceptionHandlerTests
 
         // Assert
         result.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(500);
+        context.Response.StatusCode.Should().Be(400);
     }
 
     [Fact]

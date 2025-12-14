@@ -27,9 +27,6 @@ public static class Extensions
 
         builder.AddFeatureManagement();
 
-        // Service discovery not available for .NET 10 yet
-        // builder.Services.AddServiceDiscovery();
-
         builder.ConfigureHttpClients();
 
         return builder;
@@ -81,8 +78,6 @@ public static class Extensions
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
             http.AddStandardResilienceHandler();
-            // Service discovery not available for .NET 10 yet
-            // http.AddServiceDiscovery();
             http.ConfigureHttpClient(client =>
             {
                 client.Timeout = TimeSpan.FromSeconds(30);

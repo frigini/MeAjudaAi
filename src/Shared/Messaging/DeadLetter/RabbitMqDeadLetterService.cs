@@ -28,9 +28,15 @@ public sealed class RabbitMqDeadLetterService(
         int attemptCount,
         CancellationToken cancellationToken = default) where TMessage : class
     {
+        string? messageId = null;
+        string? messageType = null;
+        int capturedAttemptCount = attemptCount;
+
         try
         {
             var failedMessageInfo = CreateFailedMessageInfo(message, exception, handlerType, sourceQueue, attemptCount);
+            messageId = failedMessageInfo.MessageId;
+            messageType = failedMessageInfo.MessageType;
             var deadLetterQueueName = GetDeadLetterQueueName(sourceQueue);
 
             await EnsureConnectionAsync();
@@ -70,13 +76,16 @@ public sealed class RabbitMqDeadLetterService(
 
             if (_deadLetterOptions.EnableAdminNotifications)
             {
-                await NotifyAdministratorsAsync(failedMessageInfo, cancellationToken);
+                await NotifyAdministratorsAsync(failedMessageInfo);
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to send message to dead letter queue. Original exception: {OriginalException}", exception.Message);
-            throw;
+            logger.LogError(ex, "Failed to send message to RabbitMQ dead letter queue. MessageId: {MessageId}, Type: {MessageType}, Attempts: {Attempts}",
+                messageId ?? "unknown", messageType ?? typeof(TMessage).Name, capturedAttemptCount);
+            throw new InvalidOperationException(
+                $"Failed to send message '{messageId ?? "unknown"}' of type '{messageType ?? typeof(TMessage).Name}' to RabbitMQ dead letter queue after {capturedAttemptCount} attempts",
+                ex);
         }
     }
 
@@ -159,7 +168,9 @@ public sealed class RabbitMqDeadLetterService(
         {
             logger.LogError(ex, "Failed to reprocess dead letter message {MessageId} from queue {Queue}",
                 messageId, deadLetterQueueName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to reprocess dead letter message '{messageId}' from RabbitMQ queue '{deadLetterQueueName}'",
+                ex);
         }
     }
 
@@ -196,7 +207,9 @@ public sealed class RabbitMqDeadLetterService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to list dead letter messages from queue {Queue}", deadLetterQueueName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to list dead letter messages from RabbitMQ queue '{deadLetterQueueName}'",
+                ex);
         }
 
         return messages;
@@ -233,7 +246,9 @@ public sealed class RabbitMqDeadLetterService(
         {
             logger.LogError(ex, "Failed to purge dead letter message {MessageId} from queue {Queue}",
                 messageId, deadLetterQueueName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to purge dead letter message '{messageId}' from RabbitMQ queue '{deadLetterQueueName}'",
+                ex);
         }
     }
 
@@ -265,7 +280,9 @@ public sealed class RabbitMqDeadLetterService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get dead letter statistics");
-            throw;
+            throw new InvalidOperationException(
+                "Failed to retrieve RabbitMQ dead letter queue statistics (message counts, queue names)",
+                ex);
         }
 
         return statistics;
@@ -304,7 +321,9 @@ public sealed class RabbitMqDeadLetterService(
             catch (Exception ex)
             {
                 logger.LogError(ex, "Failed to create RabbitMQ connection for dead letter service");
-                throw;
+                throw new InvalidOperationException(
+                    $"Failed to create RabbitMQ connection for dead letter service (host: {rabbitMqOptions.Host}:{rabbitMqOptions.Port})",
+                    ex);
             }
         }
         finally
@@ -399,21 +418,26 @@ public sealed class RabbitMqDeadLetterService(
         return deadLetterQueues;
     }
 
-    private async Task NotifyAdministratorsAsync(FailedMessageInfo failedMessageInfo, CancellationToken cancellationToken)
+    private Task NotifyAdministratorsAsync(FailedMessageInfo failedMessageInfo)
     {
         try
         {
-            // TODO: Implementar notificação para administradores
+            // TODO(#247): Implement administrator notifications for RabbitMQ dead letter queue threshold.
+            // Strategy: Use IEmailService + RabbitMQ Management API for queue metrics.
+            // Threshold: Configure via DeadLetterOptions.MaxMessagesBeforeAlert (default: 100).
+            // Can query queue message count using RabbitMQ HTTP API: GET /api/queues/{vhost}/{queue}
+            // Could integrate: Email, Slack webhook, Microsoft Teams, or monitoring alerts.
             logger.LogWarning(
                 "Admin notification: Message {MessageId} of type {MessageType} failed {AttemptCount} times and was sent to DLQ",
                 failedMessageInfo.MessageId, failedMessageInfo.MessageType, failedMessageInfo.AttemptCount);
 
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to notify administrators about dead letter message {MessageId}",
                 failedMessageInfo.MessageId);
+            return Task.CompletedTask;
         }
     }
 

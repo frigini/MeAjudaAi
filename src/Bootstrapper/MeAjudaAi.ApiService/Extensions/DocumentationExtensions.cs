@@ -106,7 +106,7 @@ public static class DocumentationExtensions
                 // Último recurso: usar segmentos da rota
                 var segments = (apiDesc.RelativePath ?? "unknown")
                     .Split('/')
-                    .Where(s => !string.IsNullOrWhiteSpace(s) && !s.StartsWith("{"))
+                    .Where(s => !string.IsNullOrWhiteSpace(s) && !s.StartsWith('{'))
                     .ToArray();
 
                 var ctrl = segments.FirstOrDefault() ?? "Api";
@@ -114,14 +114,8 @@ public static class DocumentationExtensions
                 return $"{ctrl}_{act}_{method}";
             });
 
-            // TODO: Reativar após migração para Swashbuckle 10.x completar
-            // ExampleSchemaFilter precisa ser adaptado para IOpenApiSchema (read-only Example property)
-            // Exemplos automáticos baseados em annotations
-            // options.SchemaFilter<ExampleSchemaFilter>();
-
             // Filtros essenciais
             options.OperationFilter<ApiVersionOperationFilter>();
-            options.DocumentFilter<ModuleTagsDocumentFilter>();
         });
 
         return services;

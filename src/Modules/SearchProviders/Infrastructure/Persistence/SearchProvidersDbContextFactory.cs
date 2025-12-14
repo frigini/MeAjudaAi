@@ -34,7 +34,7 @@ public class SearchProvidersDbContextFactory : IDesignTimeDbContextFactory<Searc
     /// <summary>
     /// Implementação no-op de IDomainEventProcessor para cenários de tempo de design.
     /// </summary>
-    private class NoOpDomainEventProcessor : IDomainEventProcessor
+    private sealed class NoOpDomainEventProcessor : IDomainEventProcessor
     {
         public Task ProcessDomainEventsAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken = default)
         {

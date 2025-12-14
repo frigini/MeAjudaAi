@@ -9,7 +9,6 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// </summary>
 internal class MetricsCollectorService(
     BusinessMetrics businessMetrics,
-    IServiceProvider serviceProvider,
     ILogger<MetricsCollectorService> logger) : BackgroundService
 {
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // Coleta a cada minuto
@@ -24,12 +23,27 @@ internal class MetricsCollectorService(
             {
                 await CollectMetrics(stoppingToken);
             }
+            catch (OperationCanceledException ex)
+            {
+                // Expected when service is stopping
+                logger.LogInformation(ex, "Metrics collection cancelled");
+                break;
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error collecting metrics");
             }
 
-            await Task.Delay(_interval, stoppingToken);
+            try
+            {
+                await Task.Delay(_interval, stoppingToken);
+            }
+            catch (OperationCanceledException ex)
+            {
+                // Expected when service is stopping during delay
+                logger.LogInformation(ex, "Metrics collection cancelled during delay");
+                break;
+            }
         }
 
         logger.LogInformation("Metrics collector service stopped");
@@ -37,20 +51,22 @@ internal class MetricsCollectorService(
 
     private async Task CollectMetrics(CancellationToken cancellationToken)
     {
-        using var scope = serviceProvider.CreateScope();
-
         try
         {
             // Coletar métricas de usuários ativos
-            var activeUsers = await GetActiveUsersCount(scope);
+            var activeUsers = await GetActiveUsersCount(cancellationToken);
             businessMetrics.UpdateActiveUsers(activeUsers);
 
             // Coletar métricas de solicitações pendentes
-            var pendingRequests = await GetPendingHelpRequestsCount(scope);
+            var pendingRequests = await GetPendingHelpRequestsCount(cancellationToken);
             businessMetrics.UpdatePendingHelpRequests(pendingRequests);
 
             logger.LogDebug("Metrics collected: {ActiveUsers} active users, {PendingRequests} pending requests",
                 activeUsers, pendingRequests);
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Propagate cancellation to ExecuteAsync
         }
         catch (Exception ex)
         {
@@ -58,18 +74,22 @@ internal class MetricsCollectorService(
         }
     }
 
-    private async Task<long> GetActiveUsersCount(IServiceScope scope)
+    private async Task<long> GetActiveUsersCount(CancellationToken cancellationToken)
     {
         try
         {
-            // Aqui você implementaria a lógica real para contar usuários ativos
-            // Por exemplo, usuários que fizeram login nas últimas 24 horas
+            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui para
+            //       acessar UsersDbContext e contar usuários que fizeram login nas últimas 24 horas.
 
             // Placeholder - implementar com o serviço real de usuários
-            await Task.Delay(1, CancellationToken.None); // Simular operação async
+            await Task.Delay(1, cancellationToken); // Simular operação async
 
             // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
             return 125; // Valor simulado fixo
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Propagate cancellation
         }
         catch (Exception ex)
         {
@@ -78,17 +98,22 @@ internal class MetricsCollectorService(
         }
     }
 
-    private async Task<long> GetPendingHelpRequestsCount(IServiceScope scope)
+    private async Task<long> GetPendingHelpRequestsCount(CancellationToken cancellationToken)
     {
         try
         {
-            // Aqui você implementaria a lógica real para contar solicitações pendentes
+            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui para
+            //       acessar HelpRequestRepository e contar solicitações com status Pending.
 
             // Placeholder - implementar com o serviço real de help requests
-            await Task.Delay(1, CancellationToken.None); // Simular operação async
+            await Task.Delay(1, cancellationToken); // Simular operação async
 
             // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
             return 25; // Valor simulado fixo
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Propagate cancellation
         }
         catch (Exception ex)
         {

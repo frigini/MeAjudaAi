@@ -8,7 +8,7 @@ public interface ICommand : IRequest<Unit>
     Guid CorrelationId { get; }
 }
 
-public interface ICommand<TResult> : IRequest<TResult>
+public interface ICommand<out TResult> : IRequest<TResult>
 {
     Guid CorrelationId { get; }
 }

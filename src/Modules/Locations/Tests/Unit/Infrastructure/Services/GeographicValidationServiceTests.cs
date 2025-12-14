@@ -33,7 +33,6 @@ public sealed class GeographicValidationServiceTests
             .Setup(x => x.ValidateCityInAllowedRegionsAsync(
                 cityName,
                 stateSigla,
-                allowedCities,
                 cancellationToken))
             .ReturnsAsync(true);
 
@@ -43,7 +42,7 @@ public sealed class GeographicValidationServiceTests
         // Assert
         result.Should().BeTrue();
         _mockIbgeService.Verify(
-            x => x.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities, cancellationToken),
+            x => x.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, cancellationToken),
             Times.Once);
     }
 
@@ -60,7 +59,6 @@ public sealed class GeographicValidationServiceTests
             .Setup(x => x.ValidateCityInAllowedRegionsAsync(
                 cityName,
                 stateSigla,
-                allowedCities,
                 cancellationToken))
             .ReturnsAsync(false);
 
@@ -70,7 +68,7 @@ public sealed class GeographicValidationServiceTests
         // Assert
         result.Should().BeFalse();
         _mockIbgeService.Verify(
-            x => x.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, allowedCities, cancellationToken),
+            x => x.ValidateCityInAllowedRegionsAsync(cityName, stateSigla, cancellationToken),
             Times.Once);
     }
 
@@ -87,7 +85,6 @@ public sealed class GeographicValidationServiceTests
             .Setup(x => x.ValidateCityInAllowedRegionsAsync(
                 cityName,
                 stateSigla,
-                allowedCities,
                 cancellationToken))
             .ReturnsAsync(true);
 
@@ -97,7 +94,7 @@ public sealed class GeographicValidationServiceTests
         // Assert
         result.Should().BeTrue();
         _mockIbgeService.Verify(
-            x => x.ValidateCityInAllowedRegionsAsync(cityName, null, allowedCities, cancellationToken),
+            x => x.ValidateCityInAllowedRegionsAsync(cityName, null, cancellationToken),
             Times.Once);
     }
 
@@ -115,7 +112,6 @@ public sealed class GeographicValidationServiceTests
             .Setup(x => x.ValidateCityInAllowedRegionsAsync(
                 cityName,
                 stateSigla,
-                allowedCities,
                 cancellationToken))
             .ThrowsAsync(exception);
 

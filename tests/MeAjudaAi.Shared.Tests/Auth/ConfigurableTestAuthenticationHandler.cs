@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Encodings.Web;
+using MeAjudaAi.Shared.Time;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -144,7 +145,7 @@ public class ConfigurableTestAuthenticationHandler(
     {
         if (_currentTestContextId.Value == null)
         {
-            _currentTestContextId.Value = Guid.CreateVersion7().ToString();
+            _currentTestContextId.Value = UuidGenerator.NewId().ToString();
         }
         return _currentTestContextId.Value;
     }

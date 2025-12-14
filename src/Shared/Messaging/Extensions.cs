@@ -142,7 +142,11 @@ internal static class MessagingExtensions
         // Adicionar sistema de Dead Letter Queue
         MeAjudaAi.Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(services, configuration);
 
-        // TODO: Reabilitar após configurar Rebus v3
+        // TODO(#248): Re-enable after Rebus v3 migration completes.
+        // Blockers: (1) Rebus.ServiceProvider v10+ required for .NET 10 compatibility,
+        // (2) Breaking changes in IHandleMessages<T> interface signatures,
+        // (3) RebusConfigurer fluent API changes require ConfigureRebus() refactor.
+        // Timeline: Planned for Sprint 5 after stabilizing current MassTransit/RabbitMQ integration.
         // Rebus configuration temporariamente desabilitada
 
         return services;

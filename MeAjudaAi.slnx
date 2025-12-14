@@ -1,0 +1,123 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/infrastructure/">
+    <File Path="infrastructure/main.bicep" />
+    <File Path="infrastructure/servicebus.bicep" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Aspire/">
+    <Project Path="src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj" />
+    <Project Path="src/Aspire/MeAjudaAi.ServiceDefaults/MeAjudaAi.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/src/Bootstrapper/">
+    <Project Path="src/Bootstrapper/MeAjudaAi.ApiService/MeAjudaAi.ApiService.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Documents/" />
+  <Folder Name="/src/Modules/Documents/API/">
+    <Project Path="src/Modules/Documents/API/MeAjudaAi.Modules.Documents.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Documents/Application/">
+    <Project Path="src/Modules/Documents/Application/MeAjudaAi.Modules.Documents.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Documents/Domain/">
+    <Project Path="src/Modules/Documents/Domain/MeAjudaAi.Modules.Documents.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Documents/Infrastructure/">
+    <Project Path="src/Modules/Documents/Infrastructure/MeAjudaAi.Modules.Documents.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Documents/Tests/">
+    <Project Path="src/Modules/Documents/Tests/MeAjudaAi.Modules.Documents.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Locations/" />
+  <Folder Name="/src/Modules/Locations/Application/">
+    <Project Path="src/Modules/Locations/Application/MeAjudaAi.Modules.Locations.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Locations/Domain/">
+    <Project Path="src/Modules/Locations/Domain/MeAjudaAi.Modules.Locations.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Locations/Infrastructure/">
+    <Project Path="src/Modules/Locations/Infrastructure/MeAjudaAi.Modules.Locations.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Locations/Tests/">
+    <Project Path="src/Modules/Locations/Tests/MeAjudaAi.Modules.Locations.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Providers/" />
+  <Folder Name="/src/Modules/Providers/API/">
+    <Project Path="src/Modules/Providers/API/MeAjudaAi.Modules.Providers.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Providers/Application/">
+    <Project Path="src/Modules/Providers/Application/MeAjudaAi.Modules.Providers.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Providers/Domain/">
+    <Project Path="src/Modules/Providers/Domain/MeAjudaAi.Modules.Providers.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Providers/Infrastructure/">
+    <Project Path="src/Modules/Providers/Infrastructure/MeAjudaAi.Modules.Providers.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Providers/Tests/">
+    <Project Path="src/Modules/Providers/Tests/MeAjudaAi.Modules.Providers.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/SearchProviders/" />
+  <Folder Name="/src/Modules/SearchProviders/API/">
+    <Project Path="src/Modules/SearchProviders/API/MeAjudaAi.Modules.SearchProviders.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/SearchProviders/Application/">
+    <Project Path="src/Modules/SearchProviders/Application/MeAjudaAi.Modules.SearchProviders.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/SearchProviders/Domain/">
+    <Project Path="src/Modules/SearchProviders/Domain/MeAjudaAi.Modules.SearchProviders.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/SearchProviders/Infrastructure/">
+    <Project Path="src/Modules/SearchProviders/Infrastructure/MeAjudaAi.Modules.SearchProviders.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/SearchProviders/Tests/">
+    <Project Path="src/Modules/SearchProviders/Tests/MeAjudaAi.Modules.SearchProviders.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/ServiceCatalogs/" />
+  <Folder Name="/src/Modules/ServiceCatalogs/API/">
+    <Project Path="src/Modules/ServiceCatalogs/API/MeAjudaAi.Modules.ServiceCatalogs.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/ServiceCatalogs/Application/">
+    <Project Path="src/Modules/ServiceCatalogs/Application/MeAjudaAi.Modules.ServiceCatalogs.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/ServiceCatalogs/Domain/">
+    <Project Path="src/Modules/ServiceCatalogs/Domain/MeAjudaAi.Modules.ServiceCatalogs.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/ServiceCatalogs/Infrastructure/">
+    <Project Path="src/Modules/ServiceCatalogs/Infrastructure/MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/ServiceCatalogs/Tests/">
+    <Project Path="src/Modules/ServiceCatalogs/Tests/MeAjudaAi.Modules.ServiceCatalogs.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Users/" />
+  <Folder Name="/src/Modules/Users/API/">
+    <Project Path="src/Modules/Users/API/MeAjudaAi.Modules.Users.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Users/Application/">
+    <Project Path="src/Modules/Users/Application/MeAjudaAi.Modules.Users.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Users/Domain/">
+    <Project Path="src/Modules/Users/Domain/MeAjudaAi.Modules.Users.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Users/Infrastructure/">
+    <Project Path="src/Modules/Users/Infrastructure/MeAjudaAi.Modules.Users.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Users/Tests/">
+    <Project Path="src/Modules/Users/Tests/MeAjudaAi.Modules.Users.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/MeAjudaAi.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MeAjudaAi.ApiService.Tests/MeAjudaAi.ApiService.Tests.csproj" />
+    <Project Path="tests/MeAjudaAi.Architecture.Tests/MeAjudaAi.Architecture.Tests.csproj" />
+    <Project Path="tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj" />
+    <Project Path="tests/MeAjudaAi.Integration.Tests/MeAjudaAi.Integration.Tests.csproj" />
+    <Project Path="tests/MeAjudaAi.Shared.Tests/MeAjudaAi.Shared.Tests.csproj" />
+  </Folder>
+</Solution>

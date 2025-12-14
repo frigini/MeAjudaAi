@@ -39,7 +39,7 @@ public sealed class LocationsModuleApi(
             var testCep = Cep.Create(HealthCheckCep); // Av. Paulista, São Paulo
             if (testCep is not null)
             {
-                var result = await cepLookupService.LookupAsync(testCep, cancellationToken);
+                _ = await cepLookupService.LookupAsync(testCep, cancellationToken);
                 // Se conseguiu fazer a requisição (mesmo que retorne null), o módulo está disponível
                 logger.LogDebug("Location module is available and healthy");
                 return true;
@@ -48,10 +48,10 @@ public sealed class LocationsModuleApi(
             logger.LogWarning("Location module unavailable - basic operations test failed");
             return false;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            logger.LogDebug("Location module availability check was cancelled");
-            throw;
+            logger.LogDebug(ex, "Location module availability check was cancelled");
+            throw new InvalidOperationException("Location module availability check was cancelled", ex);
         }
         catch (Exception ex)
         {

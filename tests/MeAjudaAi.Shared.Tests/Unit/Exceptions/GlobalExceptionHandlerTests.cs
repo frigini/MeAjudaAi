@@ -352,7 +352,7 @@ public class GlobalExceptionHandlerTests
     }
 
     [Fact]
-    public async Task TryHandleAsync_WithArgumentException_ShouldReturn500()
+    public async Task TryHandleAsync_WithArgumentException_ShouldReturn400()
     {
         // Arrange
         var exception = new ArgumentException("Invalid argument");
@@ -361,7 +361,7 @@ public class GlobalExceptionHandlerTests
         await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
 
         // Assert
-        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+        _httpContext.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
     }
 
     #endregion

@@ -1,0 +1,76 @@
+meta {
+  name: Create Allowed City
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/admin/allowed-cities
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cityName": "Muriaé",
+    "stateSigla": "MG",
+    "ibgeCode": "3143906"
+  }
+}
+
+docs {
+  # Create Allowed City
+  
+  Cria uma nova cidade permitida para restrição geográfica.
+  
+  **Autorização**: Requer role `Admin`
+  
+  ## Request Body
+  
+  ```json
+  {
+    "cityName": "string (required, max 100 chars)",
+    "stateSigla": "string (required, 2 chars uppercase)",
+    "ibgeCode": "string (optional, 7 digits)"
+  }
+  ```
+  
+  ### Validações
+  
+  - `cityName`: Obrigatório, máximo 100 caracteres
+  - `stateSigla`: Obrigatório, exatamente 2 caracteres maiúsculos (ex: MG, SP, RJ)
+  - `ibgeCode`: Opcional, 7 dígitos se fornecido
+  - Cidade não pode ser duplicada (mesmo nome + estado)
+  
+  ## Resposta Sucesso (201 Created)
+  
+  ```json
+  {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  }
+  ```
+  
+  Header `Location`: `/api/v1/admin/allowed-cities/{id}`
+  
+  ## Possíveis Erros
+  
+  - `400 Bad Request`: Validação falhou ou cidade duplicada
+    ```json
+    {
+      "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+      "title": "Bad Request",
+      "status": 400,
+      "detail": "Cidade 'Muriaé-MG' já cadastrada"
+    }
+    ```
+  - `401 Unauthorized`: Token inválido ou expirado
+  - `403 Forbidden`: Usuário não possui role Admin
+}

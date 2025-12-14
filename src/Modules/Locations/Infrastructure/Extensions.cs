@@ -1,11 +1,19 @@
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
 using MeAjudaAi.Modules.Locations.Application.Services;
+using MeAjudaAi.Modules.Locations.Domain.Repositories;
+using MeAjudaAi.Modules.Locations.Infrastructure.API.Endpoints;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
+using MeAjudaAi.Modules.Locations.Infrastructure.Filters;
+using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
+using MeAjudaAi.Modules.Locations.Infrastructure.Repositories;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
+using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Queries;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +29,36 @@ public static class Extensions
     /// </summary>
     public static IServiceCollection AddLocationModule(this IServiceCollection services, IConfiguration configuration)
     {
+        // Registrar DbContext para Locations module
+        services.AddDbContext<LocationsDbContext>((serviceProvider, options) =>
+        {
+            var connectionString = configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("DefaultConnection não configurada");
+
+            options.UseNpgsql(connectionString,
+                npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "locations");
+                    npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Locations.Infrastructure");
+                });
+
+            options.EnableDetailedErrors();
+            options.EnableSensitiveDataLogging(configuration.GetValue<bool>("Logging:EnableSensitiveDataLogging"));
+        });
+
+        // Registrar Func<LocationsDbContext> para uso em migrations (design-time)
+        services.AddScoped<Func<LocationsDbContext>>(provider => () =>
+        {
+            var context = provider.GetRequiredService<LocationsDbContext>();
+            return context;
+        });
+
+        // Registrar repositórios
+        services.AddScoped<IAllowedCityRepository, AllowedCityRepository>();
+
+        // Registrar ExceptionHandler para exceções de domínio
+        services.AddExceptionHandler<LocationsExceptionHandler>();
+
         // Registrar HTTP clients para APIs de CEP
         // ServiceDefaults já configura resiliência (retry, circuit breaker, timeout)
         services.AddHttpClient<ViaCepClient>(client =>
@@ -63,7 +101,7 @@ public static class Extensions
             var baseUrl = configuration["Locations:ExternalApis:IBGE:BaseUrl"]
                 ?? "https://servicodados.ibge.gov.br/api/v1/localidades/"; // Fallback para testes
 
-            if (!baseUrl.EndsWith("/"))
+            if (!baseUrl.EndsWith('/'))
             {
                 baseUrl += "/";
             }
@@ -82,17 +120,53 @@ public static class Extensions
         // Registrar Module API
         services.AddScoped<ILocationsModuleApi, LocationsModuleApi>();
 
+        // Registrar Command e Query Handlers automaticamente
+        var applicationAssembly = typeof(Application.Handlers.CreateAllowedCityHandler).Assembly;
+
+        // Registrar todos os ICommandHandler<T> e ICommandHandler<T, TResult>
+        var commandHandlerTypes = applicationAssembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract)
+            .SelectMany(t => t.GetInterfaces()
+                .Where(i => i.IsGenericType &&
+                           (i.GetGenericTypeDefinition() == typeof(ICommandHandler<>) ||
+                            i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>)))
+                .Select(i => new { Interface = i, Implementation = t }))
+            .ToList();
+
+        foreach (var handler in commandHandlerTypes)
+        {
+            services.AddScoped(handler.Interface, handler.Implementation);
+        }
+
+        // Registrar todos os IQueryHandler<T, TResult>
+        var queryHandlerTypes = applicationAssembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract)
+            .SelectMany(t => t.GetInterfaces()
+                .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))
+                .Select(i => new { Interface = i, Implementation = t }))
+            .ToList();
+
+        foreach (var handler in queryHandlerTypes)
+        {
+            services.AddScoped(handler.Interface, handler.Implementation);
+        }
+
         return services;
     }
 
     /// <summary>
-    /// Configura o middleware do módulo Location.
-    /// Location module exposes only internal services, no endpoints or middleware.
-    /// This method exists for consistency with other modules.
+    /// Configura os endpoints do módulo Location.
+    /// Registra endpoints administrativos para gerenciamento de cidades permitidas.
     /// </summary>
     public static WebApplication UseLocationModule(this WebApplication app)
     {
-        // No middleware or endpoints to configure
+        // Registrar endpoints administrativos (Admin only)
+        CreateAllowedCityEndpoint.Map(app);
+        GetAllAllowedCitiesEndpoint.Map(app);
+        GetAllowedCityByIdEndpoint.Map(app);
+        UpdateAllowedCityEndpoint.Map(app);
+        DeleteAllowedCityEndpoint.Map(app);
+
         return app;
     }
 }

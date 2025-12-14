@@ -1,10 +1,12 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Dapper;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace MeAjudaAi.Shared.Database;
 
-public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics metrics) : IDapperConnection
+public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics metrics, ILogger<DapperConnection> logger) : IDapperConnection
 {
     private readonly string _connectionString = GetConnectionString(postgresOptions);
 
@@ -45,8 +47,8 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         catch (Exception ex)
         {
             stopwatch.Stop();
-            metrics.RecordConnectionError("dapper_query_multiple", ex);
-            throw;
+            HandleDapperError(ex, "query_multiple", sql);
+            throw; // Unreachable but required for compiler
         }
     }
 
@@ -74,8 +76,8 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         catch (Exception ex)
         {
             stopwatch.Stop();
-            metrics.RecordConnectionError("dapper_query_single", ex);
-            throw;
+            HandleDapperError(ex, "query_single", sql);
+            throw; // Unreachable but required for compiler
         }
     }
 
@@ -103,8 +105,31 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         catch (Exception ex)
         {
             stopwatch.Stop();
-            metrics.RecordConnectionError("dapper_execute", ex);
-            throw;
+            HandleDapperError(ex, "execute", sql);
+            throw; // Unreachable but required for compiler
         }
+    }
+
+    [DoesNotReturn]
+    private void HandleDapperError(Exception ex, string operationType, string? sql)
+    {
+        metrics.RecordConnectionError($"dapper_{operationType}", ex);
+        // Log SQL preview only when Debug is enabled to reduce prod exposure + avoid preview formatting cost
+        if (logger.IsEnabled(LogLevel.Debug))
+        {
+            var sqlPreview = GetSqlPreview(sql);
+            logger.LogDebug("Dapper operation failed (type: {OperationType}). SQL preview: {SqlPreview}",
+                operationType, sqlPreview);
+        }
+        logger.LogError(ex, "Failed to execute Dapper operation (type: {OperationType})", operationType);
+        throw new InvalidOperationException($"Failed to execute Dapper operation (type: {operationType})", ex);
+    }
+
+    private static string? GetSqlPreview(string? sql)
+    {
+        if (sql is null)
+            return null;
+        
+        return sql.Length > 100 ? sql[..100] + "..." : sql;
     }
 }

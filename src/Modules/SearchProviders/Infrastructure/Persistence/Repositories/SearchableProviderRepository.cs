@@ -30,7 +30,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Repositor
 /// - Resolve limitação do EF Core que não traduz HasConversion para funções espaciais
 /// 
 /// POR QUE HÍBRIDO?
-/// - EF Core não consegue traduzir Location (HasConversion GeoPoint<->NTS.Point) para SQL espacial
+/// - EF Core não consegue traduzir Location (HasConversion GeoPoint to NTS.Point) para SQL espacial
 /// - Remover HasConversion quebraria encapsulamento do domínio
 /// - Dapper para tudo seria overhead desnecessário (sem change tracking, mapeamento manual)
 /// - Solução: use cada ferramenta onde ela brilha
@@ -42,7 +42,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Repositor
 /// - Distâncias calculadas uma única vez no SQL, retornadas com os resultados
 /// 
 /// MAPEAMENTO:
-/// - ProviderSearchResultDto (interno) → SearchableProvider (domínio)
+/// - ProviderSearchResultDto (interno) to SearchableProvider (domínio)
 /// - Usa IDapperConnection do Shared (já configurado com métricas e logging)
 /// - Mantém todas as invariantes e validações do domínio
 /// </summary>

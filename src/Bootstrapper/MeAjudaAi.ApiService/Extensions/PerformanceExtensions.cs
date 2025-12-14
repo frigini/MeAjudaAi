@@ -132,22 +132,20 @@ public static class PerformanceExtensions
         };
 
         // Verifica cookies na requisição
-        foreach (var cookie in request.Cookies)
+        if (request.Cookies.Any(cookie =>
+            sensitiveCookieNames.Any(name =>
+                cookie.Key.Contains(name, StringComparison.OrdinalIgnoreCase))))
         {
-            if (sensitiveCookieNames.Any(name =>
-                cookie.Key.Contains(name, StringComparison.OrdinalIgnoreCase)))
-                return true;
+            return true;
         }
 
         // Verifica cookies sendo definidos na resposta
-        if (response.Headers.TryGetValue("Set-Cookie", out var setCookies))
+        if (response.Headers.TryGetValue("Set-Cookie", out var setCookies) &&
+            setCookies.Any(setCookie =>
+                setCookie != null && sensitiveCookieNames.Any(name =>
+                    setCookie.Contains(name, StringComparison.OrdinalIgnoreCase))))
         {
-            foreach (var setCookie in setCookies)
-            {
-                if (setCookie != null && sensitiveCookieNames.Any(name =>
-                    setCookie.Contains(name, StringComparison.OrdinalIgnoreCase)))
-                    return true;
-            }
+            return true;
         }
 
         return false;
@@ -207,7 +205,7 @@ public class SafeGzipCompressionProvider : ICompressionProvider
         return new GZipStream(outputStream, CompressionLevel.Optimal, leaveOpen: false);
     }
 
-    public bool ShouldCompressResponse(HttpContext context)
+    public static bool ShouldCompressResponse(HttpContext context)
     {
         return PerformanceExtensions.IsSafeForCompression(context);
     }
@@ -226,7 +224,7 @@ public class SafeBrotliCompressionProvider : ICompressionProvider
         return new BrotliStream(outputStream, CompressionLevel.Optimal, leaveOpen: false);
     }
 
-    public bool ShouldCompressResponse(HttpContext context)
+    public static bool ShouldCompressResponse(HttpContext context)
     {
         return PerformanceExtensions.IsSafeForCompression(context);
     }

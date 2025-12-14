@@ -40,7 +40,9 @@ public sealed class ProviderActivatedDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling ProviderActivatedDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to handle ProviderActivatedDomainEvent for provider {domainEvent.AggregateId}",
+                ex);
         }
     }
 }

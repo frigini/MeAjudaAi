@@ -99,10 +99,35 @@ jobs:
           sudo apt-get install -y postgresql-client
 
       - name: 🔧 Restore dependencies
-        run: dotnet restore MeAjudaAi.sln
+        run: dotnet restore MeAjudaAi.slnx
 
       - name: Build solution
-        run: dotnet build MeAjudaAi.sln --configuration Release --no-restore
+        run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
+
+      - name: Check code formatting
+        run: |
+          set -o pipefail
+          echo "🔍 Checking code formatting..."
+          # Only check whitespace and style (not SonarQube analyzer warnings)
+          dotnet format --verify-no-changes \
+            --include whitespace style \
+            --verbosity normal \
+            MeAjudaAi.slnx \
+            2>&1 | tee format-output.txt
+          FORMAT_EXIT_CODE=${PIPESTATUS[0]}
+
+          # Check if any files were actually formatted (not just warnings)
+          if grep -q "Formatted code file" format-output.txt; then
+            echo "⚠️ Code formatting issues found."
+            echo "Run 'dotnet format --include whitespace style' locally to fix."
+            grep "Formatted code file" format-output.txt
+            exit 1
+          elif [ $FORMAT_EXIT_CODE -ne 0 ]; then
+            echo "⚠️ Formatting check failed with exit code $FORMAT_EXIT_CODE"
+            exit $FORMAT_EXIT_CODE
+          else
+            echo "✅ No formatting changes needed"
+          fi
 
       - name: Wait for PostgreSQL to be ready
         env:
@@ -929,7 +954,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln
+        run: dotnet restore MeAjudaAi.slnx
 
       - name: Run Security Audit
         run: dotnet list package --vulnerable --include-transitive

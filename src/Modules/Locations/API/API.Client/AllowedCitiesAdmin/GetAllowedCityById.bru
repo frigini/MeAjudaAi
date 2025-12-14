@@ -1,0 +1,57 @@
+meta {
+  name: Get Allowed City By Id
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/locations/admin/allowed-cities/{{allowedCityId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+vars:pre-request {
+  allowedCityId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+}
+
+docs {
+  # Get Allowed City By Id
+  
+  Busca uma cidade permitida específica por ID.
+  
+  **Autorização**: Requer role `Admin`
+  
+  ## Path Parameters
+  
+  - `id` (guid): ID da cidade permitida
+  
+  ## Resposta Sucesso (200 OK)
+  
+  ```json
+  {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "cityName": "Muriaé",
+    "stateSigla": "MG",
+    "ibgeCode": "3143906",
+    "isActive": true,
+    "createdAt": "2025-12-11T00:00:00Z",
+    "createdBy": "admin@meajudaai.com",
+    "updatedAt": "2025-12-11T12:00:00Z",
+    "updatedBy": "admin@meajudaai.com"
+  }
+  ```
+  
+  ## Possíveis Erros
+  
+  - `401 Unauthorized`: Token inválido ou expirado
+  - `403 Forbidden`: Usuário não possui role Admin
+  - `404 Not Found`: Cidade permitida não encontrada
+}

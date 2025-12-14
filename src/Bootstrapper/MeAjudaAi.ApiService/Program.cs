@@ -9,11 +9,16 @@ using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Logging;
+using MeAjudaAi.Shared.Seeding;
 using Serilog;
 using Serilog.Context;
 
+namespace MeAjudaAi.ApiService;
+
 public partial class Program
 {
+    protected Program() { }
+
     public static async Task Main(string[] args)
     {
         try
@@ -25,10 +30,9 @@ public partial class Program
             // Configurações via ServiceDefaults e Shared (sem duplicar Serilog)
             builder.AddServiceDefaults();
             builder.Services.AddHttpContextAccessor();
-            builder.Services.AddSharedServices(builder.Configuration);
-            builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
-            // Registrar módulos
+            // Registrar módulos ANTES de AddSharedServices
+            // (exception handlers específicos devem ser registrados antes do global)
             builder.Services.AddUsersModule(builder.Configuration);
             builder.Services.AddProvidersModule(builder.Configuration);
             builder.Services.AddDocumentsModule(builder.Configuration);
@@ -36,9 +40,16 @@ public partial class Program
             builder.Services.AddLocationModule(builder.Configuration);
             builder.Services.AddServiceCatalogsModule(builder.Configuration);
 
+            // Shared services por último (GlobalExceptionHandler atua como fallback)
+            builder.Services.AddSharedServices(builder.Configuration);
+            builder.Services.AddApiServices(builder.Configuration, builder.Environment);
+
             var app = builder.Build();
 
             await ConfigureMiddlewareAsync(app);
+
+            // Seed dados de desenvolvimento se necessário
+            await app.SeedDevelopmentDataIfNeededAsync();
 
             LogStartupComplete(app);
 

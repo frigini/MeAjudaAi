@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.E2E.Tests.Integration;
 
@@ -45,7 +46,7 @@ public class UsersModuleTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin(); // UpdateUserProfile requer autorização (SelfOrAdmin policy)
-        var nonExistentId = Guid.CreateVersion7();
+        var nonExistentId = UuidGenerator.NewId();
         var updateRequest = new UpdateUserProfileRequest
         {
             FirstName = "Updated",
@@ -65,7 +66,7 @@ public class UsersModuleTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin(); // DELETE requer autorização Admin
-        var nonExistentId = Guid.CreateVersion7();
+        var nonExistentId = UuidGenerator.NewId();
 
         // Act
         var response = await ApiClient.DeleteAsync($"/api/v1/users/{nonExistentId}");

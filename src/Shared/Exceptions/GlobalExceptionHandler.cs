@@ -95,6 +95,16 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                     ["ruleName"] = businessException.RuleName
                 }),
 
+            ArgumentException argumentException => (
+                StatusCodes.Status400BadRequest,
+                "Bad Request",
+                argumentException.Message,
+                null,
+                new Dictionary<string, object?>
+                {
+                    ["parameterName"] = argumentException.ParamName
+                }),
+
             DomainException domainException => (
                 StatusCodes.Status400BadRequest,
                 "Domain Rule Violation",

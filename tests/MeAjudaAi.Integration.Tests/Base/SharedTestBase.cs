@@ -5,7 +5,6 @@ using Bogus;
 namespace MeAjudaAi.Integration.Tests.Base;
 
 /// <summary>
-/// <summary>
 /// Base class compartilhada para testes de integração com máxima reutilização de recursos
 /// </summary>
 public abstract class SharedTestBase(SharedTestFixture sharedFixture) : IAsyncLifetime, IClassFixture<SharedTestFixture>

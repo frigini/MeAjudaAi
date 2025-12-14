@@ -1,0 +1,43 @@
+meta {
+  name: Validate Services
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{baseUrl}}/api/v1/catalogs/services/validate
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "serviceIds": [
+      "{{serviceId1}}",
+      "{{serviceId2}}"
+    ]
+  }
+}
+
+docs {
+  # Validate Services
+  
+  Valida se os serviços especificados existem e estão ativos.
+  
+  ## Body
+  - `serviceIds`: Array de GUIDs dos serviços
+  
+  ## Resposta
+  - `allValid`: boolean indicando se todos são válidos
+  - `invalidServiceIds`: Array de IDs inválidos
+  
+  ## Status: 200 OK
+}

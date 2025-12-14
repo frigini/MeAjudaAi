@@ -75,9 +75,19 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
             }
 
             // Determina status geral
-            var overallStatus = issues.Any()
-                ? (issues.Count > 2 ? HealthStatus.Unhealthy : HealthStatus.Degraded)
-                : HealthStatus.Healthy;
+            HealthStatus overallStatus;
+            if (!issues.Any())
+            {
+                overallStatus = HealthStatus.Healthy;
+            }
+            else if (issues.Count > 2)
+            {
+                overallStatus = HealthStatus.Unhealthy;
+            }
+            else
+            {
+                overallStatus = HealthStatus.Degraded;
+            }
 
             var description = overallStatus switch
             {
@@ -111,7 +121,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
 
             // Testa resolução de permissões
             var startTime = DateTimeOffset.UtcNow;
-            var permissions = await _permissionService.GetUserPermissionsAsync(testUserId, cancellationToken);
+            _ = await _permissionService.GetUserPermissionsAsync(testUserId, cancellationToken);
             var duration = DateTimeOffset.UtcNow - startTime;
 
             // Verifica se a operação não demorou muito
@@ -121,7 +131,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
             }
 
             // Testa verificação de permissão
-            var hasPermission = await _permissionService.HasPermissionAsync(testUserId, testPermission, cancellationToken);
+            _ = await _permissionService.HasPermissionAsync(testUserId, testPermission, cancellationToken);
 
             // Para health check, não importa se tem ou não a permissão, apenas que a operação funcione
             return new InternalHealthCheckResult(true, "Basic functionality working");
@@ -241,12 +251,12 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
         }
     }
 
-    private record InternalHealthCheckResult(bool IsHealthy, string Issue)
+    private sealed record InternalHealthCheckResult(bool IsHealthy, string Issue)
     {
         public string Status => IsHealthy ? "healthy" : "unhealthy";
     }
 
-    private record PerformanceHealthResult
+    private sealed record PerformanceHealthResult
     {
         public bool IsHealthy { get; init; }
         public string Status { get; init; } = "";
@@ -255,7 +265,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
         public int ActiveChecks { get; init; }
     }
 
-    private record ResolversHealthResult
+    private sealed record ResolversHealthResult
     {
         public bool IsHealthy { get; init; }
         public string Status { get; init; } = "";

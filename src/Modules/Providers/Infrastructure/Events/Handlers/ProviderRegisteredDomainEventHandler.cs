@@ -54,7 +54,9 @@ public sealed class ProviderRegisteredDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling ProviderRegisteredDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to handle ProviderRegisteredDomainEvent for provider {domainEvent.AggregateId}",
+                ex);
         }
     }
 }

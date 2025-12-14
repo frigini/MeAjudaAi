@@ -306,8 +306,10 @@ public class UploadDocumentCommandHandlerTests
             102400);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.Message.Should().Contain("Tipo de documento inválido");
     }
 
     [Fact]

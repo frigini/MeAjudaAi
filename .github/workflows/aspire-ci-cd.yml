@@ -48,10 +48,10 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate
+        run: dotnet restore MeAjudaAi.slnx --force-evaluate
 
       - name: Build solution
-        run: dotnet build MeAjudaAi.sln --no-restore --configuration Release --verbosity minimal
+        run: dotnet build MeAjudaAi.slnx --no-restore --configuration Release --verbosity minimal
 
       - name: Install PostgreSQL client
         run: |
@@ -133,7 +133,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate
+        run: dotnet restore MeAjudaAi.slnx --force-evaluate
 
       - name: Validate Aspire AppHost
         run: |
@@ -168,16 +168,32 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate
+        run: dotnet restore MeAjudaAi.slnx --force-evaluate
 
       - name: Check code formatting
         run: |
-          dotnet format --verify-no-changes --verbosity normal \
-            MeAjudaAi.sln || {
+          echo "🔍 Checking code formatting..."
+          # Only check whitespace and style (not SonarQube analyzer warnings)
+          set -o pipefail
+          dotnet format --verify-no-changes \
+            --include whitespace style \
+            --verbosity normal \
+            MeAjudaAi.slnx \
+            2>&1 | tee format-output.txt
+          FORMAT_EXIT_CODE=${PIPESTATUS[0]}
+          
+          # Check if any files were actually formatted (not just warnings)
+          if grep -q "Formatted code file" format-output.txt; then
             echo "⚠️ Code formatting issues found."
-            echo "Run 'dotnet format' locally to fix."
+            echo "Run 'dotnet format --include whitespace style' locally to fix."
+            grep "Formatted code file" format-output.txt
             exit 1
-          }
+          elif [ $FORMAT_EXIT_CODE -ne 0 ]; then
+            echo "⚠️ Formatting check failed with exit code $FORMAT_EXIT_CODE"
+            exit $FORMAT_EXIT_CODE
+          else
+            echo "✅ No formatting changes needed"
+          fi
 
       - name: Run vulnerability scan
         run: |
@@ -190,7 +206,7 @@ jobs:
           echo "🔍 Running focused code quality checks..."
           # Check for basic C# issues (quiet mode)
           echo "Checking C# syntax..."
-          dotnet build MeAjudaAi.sln --verbosity quiet --no-restore
+          dotnet build MeAjudaAi.slnx --verbosity quiet --no-restore
           echo "✅ Code quality checks passed"
 
   # Build validation for individual services (without publishing)
@@ -214,7 +230,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore MeAjudaAi.sln --force-evaluate
+        run: dotnet restore MeAjudaAi.slnx --force-evaluate
 
       - name: Validate ${{ matrix.service.name }} builds for containerization
         run: |

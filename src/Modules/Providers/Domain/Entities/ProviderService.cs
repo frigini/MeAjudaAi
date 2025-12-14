@@ -26,7 +26,7 @@ public sealed class ProviderService
     /// <summary>
     /// Navigation property para o provider.
     /// </summary>
-    public Provider? Provider { get; private set; }
+    public Provider? Provider { get; }
 
     /// <summary>
     /// Construtor privado para EF Core.

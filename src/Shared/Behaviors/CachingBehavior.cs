@@ -32,11 +32,20 @@ public class CachingBehavior<TRequest, TResponse>(
         logger.LogDebug("Checking cache for key: {CacheKey}", cacheKey);
 
         // Tenta buscar no cache primeiro
-        var cachedResult = await cacheService.GetAsync<TResponse>(cacheKey, cancellationToken);
-        if (cachedResult != null)
+        var (cachedResult, isCached) = await cacheService.GetAsync<TResponse>(cacheKey, cancellationToken);
+        if (isCached)
         {
             logger.LogDebug("Cache hit for key: {CacheKey}", cacheKey);
-            return cachedResult;
+
+            // Policy: we don't cache null results; a null "hit" indicates corruption/out-of-band write.
+            if (cachedResult is null)
+            {
+                logger.LogWarning("Cache hit but null value for key: {CacheKey}. Re-executing query.", cacheKey);
+            }
+            else
+            {
+                return cachedResult;
+            }
         }
 
         logger.LogDebug("Cache miss for key: {CacheKey}. Executing query.", cacheKey);
@@ -44,8 +53,8 @@ public class CachingBehavior<TRequest, TResponse>(
         // Executa a query
         var result = await next();
 
-        // Armazena no cache se o resultado não for nulo
-        if (result != null)
+        // Only cache non-null results to avoid caching failures/misses
+        if (result is not null)
         {
             var options = new HybridCacheEntryOptions
             {
@@ -57,6 +66,10 @@ public class CachingBehavior<TRequest, TResponse>(
 
             logger.LogDebug("Cached result for key: {CacheKey} with expiration: {Expiration}",
                 cacheKey, cacheExpiration);
+        }
+        else
+        {
+            logger.LogDebug("Skipping cache for null result with key: {CacheKey}", cacheKey);
         }
 
         return result;

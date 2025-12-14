@@ -48,7 +48,9 @@ public sealed class ProviderProfileUpdatedDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling ProviderProfileUpdatedDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to handle ProviderProfileUpdatedDomainEvent for provider {domainEvent.AggregateId}",
+                ex);
         }
     }
 }

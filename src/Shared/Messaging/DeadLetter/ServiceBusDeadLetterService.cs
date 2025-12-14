@@ -22,11 +22,18 @@ public sealed class ServiceBusDeadLetterService(
         int attemptCount,
         CancellationToken cancellationToken = default) where TMessage : class
     {
+        string? messageId = null;
+        string? messageType = null;
+        string? deadLetterQueueName = null;
+        int capturedAttemptCount = attemptCount;
+
         try
         {
             var failedMessageInfo = CreateFailedMessageInfo(message, exception, handlerType, sourceQueue, attemptCount);
+            messageId = failedMessageInfo.MessageId;
+            messageType = failedMessageInfo.MessageType;
 
-            var deadLetterQueueName = GetDeadLetterQueueName(sourceQueue);
+            deadLetterQueueName = GetDeadLetterQueueName(sourceQueue);
             var sender = client.CreateSender(deadLetterQueueName);
 
             var serviceBusMessage = new Azure.Messaging.ServiceBus.ServiceBusMessage(failedMessageInfo.ToJson())
@@ -52,13 +59,16 @@ public sealed class ServiceBusDeadLetterService(
 
             if (_options.EnableAdminNotifications)
             {
-                await NotifyAdministratorsAsync(failedMessageInfo, cancellationToken);
+                await NotifyAdministratorsAsync(failedMessageInfo);
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to send message to dead letter queue. Original exception: {OriginalException}", exception.Message);
-            throw;
+            logger.LogError(ex, "Failed to send message to dead letter queue. MessageId: {MessageId}, Type: {MessageType}, Queue: {Queue}, Attempts: {Attempts}",
+                messageId ?? "unknown", messageType ?? typeof(TMessage).Name, deadLetterQueueName ?? "unknown", capturedAttemptCount);
+            throw new InvalidOperationException(
+                $"Failed to send message '{messageId ?? "unknown"}' of type '{messageType ?? typeof(TMessage).Name}' to dead letter queue '{deadLetterQueueName ?? "unknown"}' after {capturedAttemptCount} attempts",
+                ex);
         }
     }
 
@@ -123,7 +133,9 @@ public sealed class ServiceBusDeadLetterService(
         {
             logger.LogError(ex, "Failed to reprocess dead letter message {MessageId} from queue {Queue}",
                 messageId, deadLetterQueueName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to reprocess dead letter message '{messageId}' from queue '{deadLetterQueueName}'",
+                ex);
         }
     }
 
@@ -154,7 +166,9 @@ public sealed class ServiceBusDeadLetterService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to list dead letter messages from queue {Queue}", deadLetterQueueName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to list dead letter messages from queue '{deadLetterQueueName}'",
+                ex);
         }
 
         return messages;
@@ -176,12 +190,21 @@ public sealed class ServiceBusDeadLetterService(
                 logger.LogInformation("Dead letter message {MessageId} purged from queue {Queue}",
                     messageId, deadLetterQueueName);
             }
+            else if (message != null)
+            {
+                // Abandon non-matching message to return it to queue immediately
+                await receiver.AbandonMessageAsync(message, cancellationToken: cancellationToken);
+                logger.LogDebug("Message {ActualId} did not match target {ExpectedId}, abandoned back to queue",
+                    message.MessageId, messageId);
+            }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to purge dead letter message {MessageId} from queue {Queue}",
                 messageId, deadLetterQueueName);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to purge dead letter message '{messageId}' from queue '{deadLetterQueueName}'",
+                ex);
         }
     }
 
@@ -195,14 +218,17 @@ public sealed class ServiceBusDeadLetterService(
             // para obter estatísticas mais detalhadas das filas
             logger.LogInformation("Getting dead letter statistics - basic implementation");
 
-            // TODO: Implementar coleta real de estatísticas usando Service Bus Management API
-            // Por exemplo: ServiceBusAdministrationClient para obter propriedades das filas
+            // TODO(#future): Implement real statistics collection using Azure Service Bus Management Client.
+            // See: https://learn.microsoft.com/en-us/dotnet/api/azure.messaging.servicebus.administration
+            // Required: ServiceBusAdministrationClient + GetQueueRuntimePropertiesAsync for message counts.
 
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get dead letter statistics");
-            throw;
+            throw new InvalidOperationException(
+                "Failed to retrieve dead letter queue statistics from Service Bus",
+                ex);
         }
 
         return statistics;
@@ -242,22 +268,26 @@ public sealed class ServiceBusDeadLetterService(
         return $"{sourceQueue}{_options.ServiceBus.DeadLetterQueueSuffix}";
     }
 
-    private async Task NotifyAdministratorsAsync(FailedMessageInfo failedMessageInfo, CancellationToken cancellationToken)
+    private Task NotifyAdministratorsAsync(FailedMessageInfo failedMessageInfo)
     {
         try
         {
-            // TODO: Implementar notificação para administradores
-            // Isso poderia ser um email, Slack, Teams, etc.
+            // TODO(#247): Implement administrator notifications when dead letter messages exceed threshold.
+            // Strategy: Use IEmailService for critical failures + Application Insights custom events for alerting.
+            // Threshold: Configure via DeadLetterOptions.MaxMessagesBeforeAlert (default: 100).
+            // Could integrate: Email, Slack webhook, Microsoft Teams, or Azure Monitor alerts.
+            // Related: RabbitMqDeadLetterService has similar notification pattern.
             logger.LogWarning(
                 "Admin notification: Message {MessageId} of type {MessageType} failed {AttemptCount} times and was sent to DLQ",
                 failedMessageInfo.MessageId, failedMessageInfo.MessageType, failedMessageInfo.AttemptCount);
 
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to notify administrators about dead letter message {MessageId}",
                 failedMessageInfo.MessageId);
+            return Task.CompletedTask;
         }
     }
 }

@@ -78,9 +78,9 @@ public sealed class ProvidersModuleApi(
             logger.LogDebug("Providers module is available and healthy");
             return true;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            logger.LogDebug("Providers module availability check was cancelled");
+            logger.LogDebug(ex, "Providers module availability check was cancelled");
             throw;
         }
         catch (Exception ex)

@@ -111,10 +111,11 @@ public static class DeadLetterExtensions
     public static Task ValidateDeadLetterConfigurationAsync(this IHost host)
     {
         using var scope = host.Services.CreateScope();
+        IDeadLetterService? deadLetterService = null;
 
         try
         {
-            var deadLetterService = scope.ServiceProvider.GetRequiredService<IDeadLetterService>();
+            deadLetterService = scope.ServiceProvider.GetRequiredService<IDeadLetterService>();
             var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IDeadLetterService>>();
 
             // Teste básico para verificar se o serviço está configurado corretamente
@@ -131,8 +132,10 @@ public static class DeadLetterExtensions
         catch (Exception ex)
         {
             var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<IDeadLetterService>>();
-            logger.LogError(ex, "Failed to validate Dead Letter Queue configuration");
-            throw;
+            logger.LogError(ex, "Failed to validate Dead Letter Queue configuration. Service: {ServiceType}",
+                deadLetterService?.GetType().Name ?? "unknown");
+            throw new InvalidOperationException(
+                $"Dead Letter Queue validation failed for {deadLetterService?.GetType().Name ?? "unknown"}", ex);
         }
     }
 
@@ -168,7 +171,9 @@ public static class DeadLetterExtensions
         {
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<IHostEnvironment>>();
             logger.LogError(ex, "Failed to ensure Dead Letter Queue infrastructure");
-            throw;
+            throw new InvalidOperationException(
+                "Failed to ensure Dead Letter Queue infrastructure (queues, exchanges, and bindings)",
+                ex);
         }
     }
 

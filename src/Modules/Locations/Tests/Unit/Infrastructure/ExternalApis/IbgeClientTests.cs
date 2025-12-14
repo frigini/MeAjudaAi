@@ -83,7 +83,7 @@ public sealed class IbgeClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetMunicipioByNameAsync_WhenApiReturnsError_ShouldThrowHttpRequestException()
+    public async Task GetMunicipioByNameAsync_WhenApiReturnsError_ShouldThrowInvalidOperationException()
     {
         // Arrange
         _mockHandler.SetResponse(HttpStatusCode.NotFound, "");
@@ -92,11 +92,12 @@ public sealed class IbgeClientTests : IDisposable
         var act = async () => await _client.GetMunicipioByNameAsync("Muriaé");
 
         // Assert
-        await act.Should().ThrowAsync<HttpRequestException>();
+        var exception = await act.Should().ThrowAsync<InvalidOperationException>();
+        exception.And.InnerException.Should().BeOfType<HttpRequestException>();
     }
 
     [Fact]
-    public async Task GetMunicipioByNameAsync_WhenApiThrowsException_ShouldPropagateException()
+    public async Task GetMunicipioByNameAsync_WhenApiThrowsException_ShouldThrowInvalidOperationException()
     {
         // Arrange
         _mockHandler.SetException(new HttpRequestException("Network error"));
@@ -105,8 +106,9 @@ public sealed class IbgeClientTests : IDisposable
         var act = async () => await _client.GetMunicipioByNameAsync("Muriaé");
 
         // Assert
-        await act.Should().ThrowAsync<HttpRequestException>()
-            .WithMessage("Network error");
+        var exception = await act.Should().ThrowAsync<InvalidOperationException>();
+        exception.And.InnerException.Should().BeOfType<HttpRequestException>();
+        exception.And.InnerException!.Message.Should().Be("Network error");
     }
 
     [Theory]

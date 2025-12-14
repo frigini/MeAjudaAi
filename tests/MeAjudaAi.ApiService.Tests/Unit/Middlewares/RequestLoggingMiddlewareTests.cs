@@ -175,7 +175,9 @@ public sealed class RequestLoggingMiddlewareTests
         var act = () => middleware.InvokeAsync(context);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Test exception");
+        var ex = await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Test exception");
+        ex.Which.Should().BeSameAs(exception);
 
         _loggerMock.Verify(
             x => x.Log(

@@ -75,149 +75,38 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 
 ---
 
-## 🚧 Swagger ExampleSchemaFilter - Migração para Swashbuckle 10.x
+## ✅ ~~Swagger ExampleSchemaFilter - Migração para Swashbuckle 10.x~~ [REMOVIDO]
 
-**Arquivos**: 
-- `src/Bootstrapper/MeAjudaAi.ApiService/Filters/ExampleSchemaFilter.cs`
-- `src/Bootstrapper/MeAjudaAi.ApiService/Extensions/DocumentationExtensions.cs`
+**Status**: REMOVIDO PERMANENTEMENTE (13 Dez 2025)  
+**Razão**: Código problemático que sempre quebrava, difícil de testar, e não essencial
 
-**Situação**: DESABILITADO TEMPORARIAMENTE  
-**Severidade**: MÉDIA  
-**Issue**: [Criar issue para rastreamento]
+**Decisão**:
+O `ExampleSchemaFilter` foi **removido completamente** do projeto por:
+- Estar desabilitado desde a migração Swashbuckle 10.x (sempre quebrava)
+- Causar erros de compilação frequentes no CI/CD
+- Ser difícil de testar e manter
+- Funcionalidade puramente cosmética (adicionar exemplos automáticos ao Swagger)
+- Swagger funciona perfeitamente sem ele
+- Exemplos podem ser adicionados manualmente via XML comments quando necessário
 
-**Descrição**: 
-O `ExampleSchemaFilter` foi desabilitado temporariamente devido a incompatibilidades com a migração do Swashbuckle para a versão 10.x.
+**Arquivos Removidos**:
+- `src/Bootstrapper/MeAjudaAi.ApiService/Filters/ExampleSchemaFilter.cs` ❌
+- `tests/MeAjudaAi.ApiService.Tests/Unit/Swagger/ExampleSchemaFilterTests.cs` ❌
+- TODO em `DocumentationExtensions.cs` removido
 
-**Problema Identificado**:
-- Swashbuckle 10.x mudou a assinatura de `ISchemaFilter.Apply()` para usar `IOpenApiSchema` (interface)
-- `IOpenApiSchema.Example` é uma propriedade read-only na interface
-- A implementação concreta (tipo interno do Swashbuckle) tem a propriedade Example writable
-- Microsoft.OpenApi 2.3.0 não expõe o namespace `Microsoft.OpenApi.Models` esperado
-- **Solução confirmada**: Usar reflexão para acessar a propriedade Example na implementação concreta
-
-**Funcionalidade Perdida**:
-- Geração automática de exemplos no Swagger UI baseado em `DefaultValueAttribute`
-- Exemplos inteligentes baseados em nomes de propriedades (email, telefone, nome, etc.)
-- Exemplos automáticos para tipos enum
-- Descrições detalhadas de schemas baseadas em `DescriptionAttribute`
-
-**Implementação Atual**:
+**Alternativa**:
+Use **XML documentation comments** para adicionar exemplos quando necessário:
 ```csharp
-// DocumentationExtensions.cs (linha ~118)
-// TODO: Reativar após migração para Swashbuckle 10.x completar
-// options.SchemaFilter<ExampleSchemaFilter>();  // ← COMENTADO
-
-// ExampleSchemaFilter.cs
-// SOLUÇÃO: Usar IOpenApiSchema (assinatura correta) + reflexão para Example
-#pragma warning disable IDE0051, IDE0060
-public class ExampleSchemaFilter : ISchemaFilter
-{
-    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
-    {
-        // Swashbuckle 10.x: IOpenApiSchema.Example é read-only
-        // SOLUÇÃO: Usar reflexão para acessar implementação concreta
-        throw new NotImplementedException("Precisa migração - usar reflexão");
-        
-        // Quando reativar:
-        // var exampleProp = schema.GetType().GetProperty("Example");
-        // if (exampleProp?.CanWrite == true) 
-        //     exampleProp.SetValue(schema, exampleValue, null);
-    }
-}
-#pragma warning restore IDE0051, IDE0060
-```
-
-**Opções de Solução**:
-
-**OPÇÃO 1 (RECOMENDADA - VALIDADA)**: ✅ Usar Reflection para Acessar Propriedade Concreta
-```csharp
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
-
-public class ExampleSchemaFilter : ISchemaFilter
-{
-    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
-    {
-        // Swashbuckle 10.x usa OpenApiSchema (tipo concreto) no ISchemaFilter
-        // Propriedade Example é writable no tipo concreto
-        if (context.Type.GetProperties().Any(p => p.GetCustomAttributes(typeof(DefaultValueAttribute), false).Any()))
-        {
-            var exampleValue = GetExampleFromDefaultValueAttribute(context.Type);
-            schema.Example = exampleValue; // Direto, sem reflexão necessária
-        }
-    }
-}
-```
-- ✅ **Assinatura correta**: `OpenApiSchema` (tipo concreto conforme Swashbuckle 10.x)
-- ✅ **Compila sem erros**: Validado no build
-- ✅ **Funcionalidade preservada**: Mantém lógica original
-- ✅ **Sem reflexão**: Acesso direto à propriedade Example
-- ✅ **Import correto**: `using Microsoft.OpenApi.Models;`
-
-**STATUS**: Código preparado para esta solução, aguardando reativação
-
-**OPÇÃO 2 (FALLBACK - SE OPÇÃO 1 FALHAR)**: Usar Reflection (Versão Anterior)
-```csharp
-public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
-{
-    // Caso tipo concreto não funcione, usar interface + reflexão
-    var exampleProperty = schema.GetType().GetProperty("Example");
-    if (exampleProperty != null && exampleProperty.CanWrite)
-    {
-        exampleProperty.SetValue(schema, exampleValue, null);
-    }
-}
-```
-- ⚠️ **Usa reflexão**: Pequeno overhead de performance
-- ⚠️ **Risco**: Pode quebrar se Swashbuckle mudar implementação interna
-
-**OPÇÃO 3**: Investigar Nova API do Swashbuckle 10.x (ALTERNATIVA)
-- Verificar documentação oficial do Swashbuckle 10.x
-- Pode haver novo mecanismo para definir exemplos (ex: `IExampleProvider` ou attributes)
-- Conferir: <https://github.com/domaindrivendev/Swashbuckle.AspNetCore/releases>
-- ⚠️ **Risco**: Pode não existir API alternativa, forçando uso de reflexão (Opção 1)
-
-**OPÇÃO 3**: Usar Atributos Nativos do OpenAPI 3.x
-```csharp
-[OpenApiExample("exemplo@email.com")]
+/// <summary>
+/// Email do usuário
+/// </summary>
+/// <example>usuario@exemplo.com</example>
 public string Email { get; set; }
 ```
-- Requer migração de todos os models para usar novos atributos
-- Mais verboso, mas type-safe
 
-**OPÇÃO 4**: Aguardar Swashbuckle 10.x Estabilizar
-- Monitorar issues do repositório oficial
-- Pode haver mudanças na API antes da versão estável
+**Commit**: [Adicionar hash após commit]
 
-**Impacto no Sistema**:
-- ✅ Build funciona normalmente
-- ✅ Swagger UI gerado corretamente
-- ❌ Exemplos não aparecem automaticamente na documentação
-- ❌ Desenvolvedores precisam deduzir formato de requests manualmente
-
-**Prioridade**: MÉDIA  
-**Dependências**: Documentação oficial do Swashbuckle 10.x, Microsoft.OpenApi 2.3.0  
-**Prazo**: Antes da release 1.0 (impacta experiência de desenvolvedores)
-
-**Critérios de Aceitação**:
-- [ ] Investigar API correta do Swashbuckle 10.x para definir exemplos
-- [ ] Implementar solução escolhida (Opção 1, 2, 3 ou 4)
-- [ ] Reativar `ExampleSchemaFilter` em `DocumentationExtensions.cs`
-- [ ] Validar que exemplos aparecem corretamente no Swagger UI
-- [ ] Remover `#pragma warning disable` e código comentado
-- [ ] Adicionar testes unitários para o filtro
-- [ ] Documentar solução escolhida para futuras migrações
-
-**Passos de Investigação**:
-1. Ler changelog completo do Swashbuckle 10.x
-2. Verificar se `Microsoft.OpenApi` versão 2.x expõe tipos concretos em outros namespaces
-3. Testar Opção 1 (reflection) em ambiente de dev
-4. Consultar issues/discussions do repositório oficial
-5. Criar POC com cada opção antes de decidir
-
-**Documentação de Referência**:
-- Swashbuckle 10.x Release Notes: <https://github.com/domaindrivendev/Swashbuckle.AspNetCore/releases/tag/v10.0.0>
-- Microsoft.OpenApi Docs: <https://github.com/microsoft/OpenAPI.NET>
+---
 - Original PR/Issue que introduziu IOpenApiSchema: [A investigar]
 
 ---

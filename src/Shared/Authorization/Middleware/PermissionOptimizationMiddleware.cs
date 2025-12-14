@@ -145,7 +145,7 @@ public sealed class PermissionOptimizationMiddleware(
     /// <summary>
     /// Aplica otimizações específicas para operações de leitura.
     /// </summary>
-    private void ApplyReadOnlyOptimizations(HttpContext context)
+    private static void ApplyReadOnlyOptimizations(HttpContext context)
     {
         if (!ReadOnlyMethods.Contains(context.Request.Method))
             return;

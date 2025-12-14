@@ -85,7 +85,9 @@ public sealed class ProviderVerificationStatusUpdatedDomainEventHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling ProviderVerificationStatusUpdatedDomainEvent for provider {ProviderId}", domainEvent.AggregateId);
-            throw;
+            throw new InvalidOperationException(
+                $"Failed to handle ProviderVerificationStatusUpdatedDomainEvent for provider {domainEvent.AggregateId}",
+                ex);
         }
     }
 }

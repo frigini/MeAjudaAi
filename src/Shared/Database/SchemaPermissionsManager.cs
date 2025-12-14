@@ -34,7 +34,9 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
         catch (Exception ex)
         {
             logger.LogError(ex, "❌ Erro ao configurar permissões para módulo Users");
-            throw;
+            throw new InvalidOperationException(
+                "Failed to configure database schema permissions for Users module (roles: users_role, app_role)",
+                ex);
         }
     }
 
@@ -89,7 +91,7 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
         string sql = scriptType switch
         {
             "00-roles" => GetCreateRolesScript(parameters[0], parameters[1]),
-            "01-permissions" => GetGrantPermissionsScript(),
+            "01-permissions" => GrantPermissionsScript,
             _ => throw new ArgumentException($"Script type '{scriptType}' not recognized")
         };
 
@@ -102,7 +104,7 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
         DO $$
         BEGIN
             IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'users_role') THEN
-                CREATE ROLE users_role LOGIN PASSWORD '{usersPassword}';
+                CREATE ROLE users_role LOGIN PASSWORD '{usersPassword.Replace("'", "''")}'; 
             END IF;
         END
         $$;
@@ -111,7 +113,7 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
         DO $$
         BEGIN
             IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'meajudaai_app_role') THEN
-                CREATE ROLE meajudaai_app_role LOGIN PASSWORD '{appPassword}';
+                CREATE ROLE meajudaai_app_role LOGIN PASSWORD '{appPassword.Replace("'", "''")}'; 
             END IF;
         END
         $$;
@@ -120,7 +122,7 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
         GRANT users_role TO meajudaai_app_role;
         """;
 
-    private static string GetGrantPermissionsScript() => """
+    private const string GrantPermissionsScript = """
         -- Grant permissions for users module
         GRANT USAGE ON SCHEMA users TO users_role;
         GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA users TO users_role;

@@ -27,7 +27,6 @@ public sealed class MessageRetryMiddleware<TMessage>(
         CancellationToken cancellationToken = default)
     {
         var attemptCount = 0;
-        Exception? lastException;
 
         while (true)
         {
@@ -55,8 +54,6 @@ public sealed class MessageRetryMiddleware<TMessage>(
             }
             catch (Exception ex)
             {
-                lastException = ex;
-
                 logger.LogWarning(ex,
                     "Failed to process message of type {MessageType} on attempt {AttemptCount}: {ErrorMessage}",
                     typeof(TMessage).Name, attemptCount, ex.Message);

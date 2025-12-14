@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
@@ -143,7 +144,7 @@ public class ProviderRepositoryIntegrationTests : ApiTestBase
             description: _faker.Company.CatchPhrase());
 
         return new Provider(
-            userId: userId ?? Guid.CreateVersion7(),
+            userId: userId ?? UuidGenerator.NewId(),
             name: _faker.Name.FullName(),
             type: EProviderType.Individual,
             businessProfile: businessProfile);
