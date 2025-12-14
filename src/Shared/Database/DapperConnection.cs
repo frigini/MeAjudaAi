@@ -117,11 +117,19 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         // Log SQL preview only when Debug is enabled to reduce prod exposure + avoid preview formatting cost
         if (logger.IsEnabled(LogLevel.Debug))
         {
-            var sqlPreview = sql is null ? null : (sql.Length > 100 ? sql[..100] + "..." : sql);
+            var sqlPreview = GetSqlPreview(sql);
             logger.LogDebug("Dapper operation failed (type: {OperationType}). SQL preview: {SqlPreview}",
                 operationType, sqlPreview);
         }
         logger.LogError(ex, "Failed to execute Dapper operation (type: {OperationType})", operationType);
         throw new InvalidOperationException($"Failed to execute Dapper operation (type: {operationType})", ex);
+    }
+
+    private static string? GetSqlPreview(string? sql)
+    {
+        if (sql is null)
+            return null;
+        
+        return sql.Length > 100 ? sql[..100] + "..." : sql;
     }
 }

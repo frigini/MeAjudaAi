@@ -44,10 +44,10 @@ public sealed class ServiceCatalogsModuleApi(
             logger.LogDebug("ServiceCatalogs module is available and healthy");
             return true;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            logger.LogDebug("ServiceCatalogs module availability check was cancelled");
-            throw;
+            logger.LogDebug(ex, "ServiceCatalogs module availability check was cancelled");
+            throw new InvalidOperationException("ServiceCatalogs module availability check was cancelled", ex);
         }
         catch (Exception ex)
         {

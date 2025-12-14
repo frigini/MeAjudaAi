@@ -91,7 +91,7 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
         string sql = scriptType switch
         {
             "00-roles" => GetCreateRolesScript(parameters[0], parameters[1]),
-            "01-permissions" => GetGrantPermissionsScript(),
+            "01-permissions" => GrantPermissionsScript,
             _ => throw new ArgumentException($"Script type '{scriptType}' not recognized")
         };
 
@@ -122,7 +122,7 @@ internal class SchemaPermissionsManager(ILogger<SchemaPermissionsManager> logger
         GRANT users_role TO meajudaai_app_role;
         """;
 
-    private static string GetGrantPermissionsScript() => """
+    private const string GrantPermissionsScript = """
         -- Grant permissions for users module
         GRANT USAGE ON SCHEMA users TO users_role;
         GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA users TO users_role;

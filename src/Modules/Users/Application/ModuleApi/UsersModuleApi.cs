@@ -71,10 +71,10 @@ public sealed class UsersModuleApi(
             logger.LogDebug("Users module is available and healthy");
             return true;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            logger.LogDebug("Users module availability check was cancelled");
-            throw;
+            logger.LogDebug(ex, "Users module availability check was cancelled");
+            throw new InvalidOperationException("Users module availability check was cancelled", ex);
         }
         catch (Exception ex)
         {

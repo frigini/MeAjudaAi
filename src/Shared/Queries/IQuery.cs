@@ -2,7 +2,7 @@ using MeAjudaAi.Shared.Mediator;
 
 namespace MeAjudaAi.Shared.Queries;
 
-public interface IQuery<TResult> : IRequest<TResult>
+public interface IQuery<out TResult> : IRequest<TResult>
 {
     Guid CorrelationId { get; }
 }

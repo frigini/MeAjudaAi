@@ -17,6 +17,8 @@ namespace MeAjudaAi.ApiService;
 
 public partial class Program
 {
+    protected Program() { }
+
     public static async Task Main(string[] args)
     {
         try

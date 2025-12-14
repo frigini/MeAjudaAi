@@ -22,11 +22,11 @@ public abstract class ValueObject
 
     public static bool operator ==(ValueObject? left, ValueObject? right)
     {
-        return Equals(left, right);
+        return EqualityComparer<ValueObject?>.Default.Equals(left, right);
     }
 
     public static bool operator !=(ValueObject? left, ValueObject? right)
     {
-        return !Equals(left, right);
+        return !EqualityComparer<ValueObject?>.Default.Equals(left, right);
     }
 }

@@ -20,8 +20,6 @@ public class PhoneNumber : ValueObject
         CountryCode = countryCode.Trim();
     }
 
-    public PhoneNumber(string value) : this(value, "BR") { }
-
     public override string ToString() => $"{CountryCode} {Value}";
 
     protected override IEnumerable<object> GetEqualityComponents()

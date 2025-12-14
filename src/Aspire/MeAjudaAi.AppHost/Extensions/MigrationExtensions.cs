@@ -331,7 +331,7 @@ internal class MigrationHostedService : IHostedService
         }
     }
 
-    private string ExtractModuleName(Type contextType)
+    private static string ExtractModuleName(Type contextType)
     {
         // Extrai nome do módulo do namespace (ex: MeAjudaAi.Modules.Users.Infrastructure.Persistence.UsersDbContext -> Users)
         var namespaceParts = contextType.Namespace?.Split('.') ?? Array.Empty<string>();

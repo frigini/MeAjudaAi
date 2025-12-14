@@ -75,10 +75,10 @@ public sealed class DocumentsModuleApi(
             logger.LogDebug("Documents module is available and healthy");
             return true;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            logger.LogDebug("Documents module availability check was cancelled");
-            throw;
+            logger.LogDebug(ex, "Documents module availability check was cancelled");
+            throw new InvalidOperationException("Documents module availability check was cancelled", ex);
         }
         catch (Exception ex)
         {

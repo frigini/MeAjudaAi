@@ -6,6 +6,7 @@ namespace MeAjudaAi.Modules.Users.API.Authorization;
 /// Define as permissões específicas do módulo Users de forma centralizada.
 /// Facilita manutenção e documentação das permissões por módulo.
 /// </summary>
-public static class UsersPermissions
+public interface IUsersPermissions
 {
+    // Permissões serão adicionadas conforme necessário
 }
