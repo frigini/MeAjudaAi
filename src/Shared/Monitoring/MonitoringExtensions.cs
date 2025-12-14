@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -12,13 +13,13 @@ public static class MonitoringExtensions
     /// <summary>
     /// Adiciona monitoramento avançado complementar ao Aspire
     /// </summary>
-    public static IServiceCollection AddAdvancedMonitoring(this IServiceCollection services, IHostEnvironment environment)
+    public static IServiceCollection AddAdvancedMonitoring(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         // Adicionar métricas customizadas de negócio
         services.AddBusinessMetrics();
 
         // Adicionar health checks customizados
-        services.AddMeAjudaAiHealthChecks();
+        services.AddMeAjudaAiHealthChecks(configuration);
 
         // Adicionar coleta periódica de métricas apenas em produção
         if (!environment.IsDevelopment())

@@ -1,9 +1,13 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using HealthChecks.UI.Client;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Authorization.Middleware;
+using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.ApiService.Extensions;
@@ -84,6 +88,24 @@ public static class ServiceCollectionExtensions
         services.AddStaticFilesWithCaching();
         services.AddApiResponseCaching();
 
+        // Health Checks customizados
+        services.AddMeAjudaAiHealthChecks(configuration);
+        
+        // Health Checks UI (apenas em Development)
+        if (environment.IsDevelopment())
+        {
+            var healthChecksUIEnabled = configuration.GetValue<bool>("HealthChecksUI:Enabled");
+            if (healthChecksUIEnabled)
+            {
+                services.AddHealthChecksUI(setup =>
+                {
+                    setup.SetEvaluationTimeInSeconds(configuration.GetValue<int>("HealthChecksUI:EvaluationTimeInSeconds", 10));
+                    setup.SetMinimumSecondsBetweenFailureNotifications(configuration.GetValue<int>("HealthChecksUI:MinimumSecondsBetweenFailureNotifications", 60));
+                })
+                .AddInMemoryStorage();
+            }
+        }
+
         // Serviços específicos por ambiente
         services.AddEnvironmentSpecificServices(configuration, environment);
 
@@ -123,6 +145,23 @@ public static class ServiceCollectionExtensions
         app.UseAuthentication();
         app.UsePermissionOptimization(); // Middleware de otimização após autenticação
         app.UseAuthorization();
+
+        // Health Checks UI (apenas em desenvolvimento)
+        if (environment.IsDevelopment())
+        {
+            var healthChecksUIEnabled = app.ApplicationServices
+                .GetService<IConfiguration>()
+                ?.GetValue<bool>("HealthChecksUI:Enabled") ?? false;
+
+            if (healthChecksUIEnabled)
+            {
+                app.UseHealthChecksUI(options =>
+                {
+                    options.UIPath = "/health-ui";
+                    options.ApiPath = "/health-ui-api";
+                });
+            }
+        }
 
         return app;
     }
