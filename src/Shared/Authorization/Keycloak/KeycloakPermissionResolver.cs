@@ -79,8 +79,8 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
 
         try
         {
-            // Cache key para roles do usuário
-            var cacheKey = $"keycloak_user_roles_{userId}";
+            // Cache key para roles do usuário (hashed to prevent PII in cache infrastructure)
+            var cacheKey = $"keycloak_user_roles_{HashForCacheKey(userId)}";
             var cacheOptions = new HybridCacheEntryOptions
             {
                 Expiration = TimeSpan.FromMinutes(15), // Cache roles por 15 minutos
@@ -112,7 +112,8 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to resolve permissions from Keycloak for user {MaskedUserId}", MaskUserId(userId));
+            _logger.LogError("Failed to resolve permissions from Keycloak for user {MaskedUserId} ({ExceptionType})",
+                MaskUserId(userId), ex.GetType().Name);
             return Array.Empty<EPermission>();
         }
     }
@@ -169,22 +170,19 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     {
         var cacheKey = "keycloak_admin_token";
         const int safetyMarginSeconds = 30;
-        const int minimumTtlSeconds = 10;
         const int defaultExpiresInSeconds = 300;
-
-        // Fetch token and calculate expiration dynamically
-        var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
-        
-        var expiresInSeconds = tokenResponse.ExpiresIn > 0 ? tokenResponse.ExpiresIn : defaultExpiresInSeconds;
-        var safeCacheSeconds = Math.Max(expiresInSeconds - safetyMarginSeconds, minimumTtlSeconds);
 
         return await _cache.GetOrCreateAsync(
             cacheKey,
-            _ => Task.FromResult(tokenResponse.AccessToken),
+            async (ct) =>
+            {
+                var tokenResponse = await RequestAdminTokenAsync(ct);
+                return tokenResponse.AccessToken;
+            },
             new HybridCacheEntryOptions
             {
-                Expiration = TimeSpan.FromSeconds(safeCacheSeconds),
-                LocalCacheExpiration = TimeSpan.FromSeconds(Math.Min(safeCacheSeconds / 2, 120))
+                Expiration = TimeSpan.FromSeconds(defaultExpiresInSeconds - safetyMarginSeconds),
+                LocalCacheExpiration = TimeSpan.FromSeconds(120)
             },
             cancellationToken: cancellationToken);
     }
@@ -226,7 +224,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
             using var directRequest = new HttpRequestMessage(HttpMethod.Get, $"{endpoint}/{encodedUserId}");
             directRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
-            var directResponse = await _httpClient.SendAsync(directRequest, cancellationToken);
+            using var directResponse = await _httpClient.SendAsync(directRequest, cancellationToken);
             if (directResponse.IsSuccessStatusCode)
             {
                 var userJson = await directResponse.Content.ReadAsStringAsync(cancellationToken);
@@ -250,7 +248,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
             using var searchRequest = new HttpRequestMessage(HttpMethod.Get, $"{endpoint}?username={encodedUserId}&exact=true");
             searchRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
-            var searchResponse = await _httpClient.SendAsync(searchRequest, cancellationToken);
+            using var searchResponse = await _httpClient.SendAsync(searchRequest, cancellationToken);
             searchResponse.EnsureSuccessStatusCode();
 
             var usersJson = await searchResponse.Content.ReadAsStringAsync(cancellationToken);
@@ -298,7 +296,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     /// </summary>
     public IEnumerable<EPermission> MapKeycloakRoleToPermissions(string keycloakRole)
     {
-        ArgumentNullException.ThrowIfNull(keycloakRole);
+        ArgumentException.ThrowIfNullOrWhiteSpace(keycloakRole);
 
         return keycloakRole.ToLowerInvariant() switch
         {
@@ -369,6 +367,15 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
             // Role desconhecida
             _ => Array.Empty<EPermission>()
         };
+    }
+
+    /// <summary>
+    /// Hashes a string value for use in cache keys to prevent PII exposure.
+    /// </summary>
+    private static string HashForCacheKey(string input)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
+        return Convert.ToHexString(bytes);
     }
 }
 
