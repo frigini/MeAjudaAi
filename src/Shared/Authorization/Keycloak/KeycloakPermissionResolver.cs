@@ -170,25 +170,17 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     private async Task<string> GetAdminTokenAsync(CancellationToken cancellationToken)
     {
         var cacheKey = "keycloak_admin_token";
-        const int safetyMarginSeconds = 30;
-        const int minimumExpirationSeconds = 10;
-
-        // Busca token para determinar expiração real
-        var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
-        var expiresInSeconds = tokenResponse.ExpiresIn > 0 ? tokenResponse.ExpiresIn : 300;
-        var safeCacheSeconds = Math.Max(expiresInSeconds - safetyMarginSeconds, minimumExpirationSeconds);
 
         return await _cache.GetOrCreateAsync(
             cacheKey,
             async ValueTask<string> (ct) =>
             {
-                // Em caso de cache miss, busca um novo token
-                var freshToken = await RequestAdminTokenAsync(ct);
-                return freshToken.AccessToken;
+                var tokenResponse = await RequestAdminTokenAsync(ct);
+                return tokenResponse.AccessToken;
             },
             new HybridCacheEntryOptions
             {
-                Expiration = TimeSpan.FromSeconds(safeCacheSeconds),
+                Expiration = TimeSpan.FromMinutes(4), // Conservador: token de 5min - margem de 1min
                 LocalCacheExpiration = TimeSpan.FromSeconds(120)
             },
             cancellationToken: cancellationToken);
