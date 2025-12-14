@@ -69,24 +69,6 @@ public class EnvironmentSpecificExtensionsTests
     }
 
     [Fact]
-    public void AddEnvironmentSpecificServices_InStaging_ShouldNotAddSpecificServices()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder().Build();
-        var environment = CreateEnvironment("Staging");
-
-        // Act
-        services.AddEnvironmentSpecificServices(configuration, environment);
-
-        // Assert
-        services.Should().NotBeNull();
-        // No specific services for Staging (fallback behavior)
-        var provider = services.BuildServiceProvider();
-        provider.Should().NotBeNull();
-    }
-
-    [Fact]
     public async Task UseEnvironmentSpecificMiddlewares_InDevelopment_ShouldAddDevelopmentMiddlewares()
     {
         // Arrange

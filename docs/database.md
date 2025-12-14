@@ -370,7 +370,7 @@ else
 |---|---|---|
 | **Desenvolvimento** | `EnableSchemaIsolation: false` | Usa usuário admin padrão |
 | **Teste** | `EnableSchemaIsolation: false` | TestContainers com um único usuário |
-| **Staging** | `EnableSchemaIsolation: true` | Usuário `users_role` dedicado |
+
 | **Produção** | `EnableSchemaIsolation: true` | Máxima segurança para Users |
 
 ### 🛡️ Estrutura de Segurança

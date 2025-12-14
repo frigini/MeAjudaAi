@@ -82,7 +82,6 @@ public sealed class ModuleExtensionsTests
     [Theory]
     [InlineData("Development")]
     [InlineData("Production")]
-    [InlineData("Staging")]
     public void AddSearchProvidersModule_InVariousEnvironments_ShouldRegisterServices(string environmentName)
     {
         // Arrange

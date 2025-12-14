@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
-<!-- Last updated: October 2, 2025 - Workflow syntax fixes applied -->
+<!-- Last updated: December 14, 2025 - Sprint 4 Health Checks + Data Seeding -->
 
 ## 🎯 Visão Geral
 
@@ -87,8 +87,7 @@ O projeto foi organizado para facilitar navegação e manutenção:
 ├── 📁 src/             # Código fonte da aplicação
 ├── 📁 tests/           # Testes automatizados
 └── 📁 tools/           # Ferramentas de desenvolvimento
-    ├── MigrationTool/       # CLI para migrações de banco
-    └── api-collections/     # Gerador de coleções Postman
+    └── api-collections/     # Gerador de coleções Bruno/Postman
 ```
 
 ### Diretórios Principais

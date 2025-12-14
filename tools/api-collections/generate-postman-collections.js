@@ -21,10 +21,6 @@ class PostmanCollectionGenerator {
           baseUrl: 'http://localhost:5000',
           keycloakUrl: 'http://localhost:8080'
         },
-        staging: {
-          baseUrl: 'https://api-staging.meajudaai.com',
-          keycloakUrl: 'https://auth-staging.meajudaai.com'
-        },
         production: {
           baseUrl: 'https://api.meajudaai.com',
           keycloakUrl: 'https://auth.meajudaai.com'
@@ -459,7 +455,7 @@ class PostmanCollectionGenerator {
 ## 📁 Arquivos Gerados
 
 - \`MeAjudaAi-API-Collection.json\` - Collection principal com todos os endpoints
-- \`MeAjudaAi-*-Environment.json\` - Ambientes (development, staging, production)
+- \`MeAjudaAi-*-Environment.json\` - Ambientes (development, production)
 
 ## 🚀 Como Usar
 
@@ -470,7 +466,7 @@ class PostmanCollectionGenerator {
 4. Configure o ambiente desejado
 
 ### 2. Configuração Inicial
-1. Selecione o ambiente (development/staging/production)
+1. Selecione o ambiente (development/production)
 2. Execute "🔧 Setup & Auth > Get Keycloak Token"
 3. Execute "🔧 Setup & Auth > Health Check"
 

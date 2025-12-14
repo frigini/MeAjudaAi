@@ -84,8 +84,8 @@ Scripts PowerShell essenciais para desenvolvimento e operações da aplicação.
 # ou
 .\scripts\seed-dev-data.ps1 -ApiBaseUrl "http://localhost:5545"
 
-# Seed para Staging
-.\scripts\seed-dev-data.ps1 -Environment Staging
+# Seed padrão (Development)
+.\scripts\seed-dev-data.ps1
 ```
 
 **Funcionalidades:**
@@ -99,7 +99,7 @@ Scripts PowerShell essenciais para desenvolvimento e operações da aplicação.
 - Variável `API_BASE_URL`:
   - **Default `http://localhost:5000`** - use quando executar API diretamente via `dotnet run`
   - **Override com `-ApiBaseUrl`** - necessário quando usar Aspire orchestration (portas dinâmicas como `https://localhost:7524` ou `http://localhost:5545`)
-- Suporta ambientes: Development, Staging
+- Apenas para ambiente: Development
 
 ---
 

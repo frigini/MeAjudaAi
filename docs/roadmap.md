@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3-P1 ✅ (11 Dez) | Sprint 3-P2 ✅ (13 Dez - CONCLUÍDO!) | MVP Target: 31/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3-P1 ✅ (11 Dez) | Sprint 3-P2 ✅ (13 Dez) | Sprint 4 🔄 (14 Dez - EM ANDAMENTO) | MVP Target: 31/Março/2026  
 **Cobertura de Testes**: 28.2% → **90.56% ALCANÇADO** (Sprint 2 - META SUPERADA EM 55.56pp!)  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
@@ -17,8 +17,9 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **22 Nov - 2 Dez**: Sprint 1 - Geographic Restriction + Module Integration (CONCLUÍDO e MERGED)
 - ✅ **3 Dez - 10 Dez**: Sprint 2 - Test Coverage 90.56% (CONCLUÍDO - META 35% SUPERADA!)
 - ✅ **10 Dez - 11 Dez**: Sprint 3 Parte 1 - GitHub Pages Migration (CONCLUÍDO - DEPLOYED!)
-- 🔄 **11 Dez - 24 Dez**: Sprint 3 Parte 2 - Admin Endpoints (EM ANDAMENTO - branch criada)
-- ⏳ **Dezembro 2025-Janeiro 2026**: Sprints 4-5 - Frontend Blazor (Web)
+- ✅ **11 Dez - 13 Dez**: Sprint 3 Parte 2 - Admin Endpoints & Tools (CONCLUÍDO - MERGED!)
+- 🔄 **14 Dez - 20 Dez**: Sprint 4 - Health Checks + Data Seeding (EM ANDAMENTO - branch criada)
+- ⏳ **Janeiro 2026**: Sprint 5 - Blazor Admin Portal Setup
 - ⏳ **Fevereiro-Março 2026**: Sprints 6-7 - Frontend Blazor (Web + Mobile)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
@@ -54,11 +55,20 @@ Admin Endpoints & Tools - TODAS AS PARTES FINALIZADAS:
 - ✅ Code Quality: NSubstitute→Moq, UuidGenerator, .slnx, SonarQube warnings
 - ✅ CI/CD: Formatting checks corrigidos, exit code masking resolvido
 
-**⏳ Fase 2: PLANEJADO** (Fevereiro–Março 2026)  
+**🔄 Sprint 4: EM ANDAMENTO** (14 Dez - 20 Dez 2025)  
+Health Checks Robustos + Data Seeding para MVP:
+- 🔄 Health Checks: PostgreSQL, Keycloak, Redis, módulos individuais
+- 🔄 Health Dashboard: UI no /health endpoint com AspNetCore.HealthChecks.UI
+- 🔄 Data Seeding: ServiceCategories/Services padrão, cidades permitidas, providers demo
+- 🔄 Seeding Scripts: SQL inicial + EF Core Data Seeding configurável
+- 🔄 Environment-aware: Seeding apenas em Development
+- ⏳ Testes: Unit tests para health checks + integration tests para seeding
+
+**⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
-- Admin Portal (Sprint 3)
-- Customer App (Sprint 4)
-- Polishing + Hardening (Sprint 5)
+- Sprint 5: Blazor Admin Portal Setup
+- Sprint 6-7: Customer App + Polishing
+- MVP Final: 31 de Março de 2026
 
 ---
 

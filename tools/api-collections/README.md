@@ -6,7 +6,7 @@ Gerador automático de coleções Postman a partir da especificação OpenAPI/Sw
 
 Esta ferramenta Node.js lê a especificação OpenAPI da API em execução e gera:
 - **Coleções Postman** organizadas por módulo
-- **Ambientes** (development, staging, production)
+- **Ambientes** (development, production)
 - **Variáveis** pré-configuradas (baseUrl, tokens, etc.)
 - **Requests** com exemplos e documentação
 
@@ -56,7 +56,7 @@ src/Shared/API.Collections/Generated/
 ├── MeAjudaAi-Complete-Collection.json
 └── environments/
     ├── development.json
-    ├── staging.json
+
     └── production.json
 ```
 
@@ -65,7 +65,7 @@ src/Shared/API.Collections/Generated/
 1. Abra o Postman
 2. **File** → **Import**
 3. Selecione os arquivos `.json` gerados
-4. Configure o ambiente desejado (development/staging/production)
+4. Configure o ambiente desejado (development/production)
 
 ## ⚙️ Configuração
 
@@ -94,10 +94,7 @@ environments: {
     baseUrl: 'http://localhost:5000',
     keycloakUrl: 'http://localhost:8080'
   },
-  staging: {
-    baseUrl: 'https://api-staging.meajudaai.com',
-    keycloakUrl: 'https://auth-staging.meajudaai.com'
-  },
+
   production: {
     baseUrl: 'https://api.meajudaai.com',
     keycloakUrl: 'https://auth.meajudaai.com'

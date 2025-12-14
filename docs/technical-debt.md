@@ -28,9 +28,9 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 
 **Validação Necessária ANTES de Deploy para Produção**:
 - [ ] Todos os testes de integração Hangfire passando no CI/CD
-- [ ] Validação manual em ambiente de staging com carga realística
+- [ ] Validação manual localmente com carga realística
 - [ ] Monitoramento de produção configurado (alertas de taxa de falha >5%)
-- [ ] Procedimento de rollback testado em staging
+- [ ] Procedimento de rollback testado localmente
 - [ ] Plano de comunicação para stakeholders aprovado
 
 **Opções de Implementação**:
@@ -54,7 +54,7 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 - Hangfire.SqlServer (requer infraestrutura SQL Server)
 
 **Prioridade**: CRÍTICA  
-**Dependências**: Testes de integração, validação em staging, monitoramento de produção  
+**Dependências**: Testes de integração, validação local, monitoramento de produção  
 **Prazo**: Antes de qualquer deploy para produção
 
 **Critérios de Aceitação**:
@@ -62,14 +62,14 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 - [x] CI/CD gating configurado para bloquear deploy se testes falharem
 - [x] Documentação de compatibilidade criada
 - [x] Procedimento de rollback documentado e testado
-- [ ] Validação em staging com carga de produção
+- [ ] Validação local com simulação de carga de produção
 - [ ] Monitoramento de produção configurado
 - [ ] Equipe treinada em procedimento de rollback
 - [ ] Stakeholders notificados sobre o risco e plano de mitigação
 
 **Documentação**:
 - Guia completo: Monitoramento via health checks em produção
-- Testes: Removidos - validação via staging e health checks
+- Testes: Removidos - validação via health checks
 - CI/CD: `.github/workflows/pr-validation.yml` (step "CRITICAL - Hangfire Npgsql 10.x Compatibility Tests")
 - Configuração: `Directory.Packages.props` (linhas 45-103)
 

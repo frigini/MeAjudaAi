@@ -12,19 +12,16 @@
     - Providers de exemplo
 
 .PARAMETER Environment
-    Ambiente alvo (Development, Staging). Default: Development
+    Ambiente alvo (Development apenas). Default: Development
 
 .EXAMPLE
     .\seed-dev-data.ps1
-    
-.EXAMPLE
-    .\seed-dev-data.ps1 -Environment Staging
 #>
 
 [CmdletBinding()]
 param(
     [Parameter()]
-    [ValidateSet('Development', 'Staging')]
+    [ValidateSet('Development')]
     [string]$Environment = 'Development',
     
     [Parameter()]

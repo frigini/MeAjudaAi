@@ -182,7 +182,7 @@ O arquivo `infrastructure/keycloak/realms/meajudaai-realm.json` contém:
 
 #### Usuários de Teste (Desenvolvimento Local)
 
-> ⚠️ **AVISO DE SEGURANÇA**: As credenciais abaixo são EXCLUSIVAMENTE para desenvolvimento local. NUNCA utilize essas credenciais em ambientes compartilhados, staging ou produção.
+> ⚠️ **AVISO DE SEGURANÇA**: As credenciais abaixo são EXCLUSIVAMENTE para desenvolvimento local. NUNCA utilize essas credenciais em produção.
 
 - **admin** / admin123 (admin, super-admin) - **DEV ONLY**
 - **customer1** / customer123 (customer) - **DEV ONLY**

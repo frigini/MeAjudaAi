@@ -1335,7 +1335,7 @@ POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
 - [ ] **Matrix strategy**: Testar em Ubuntu + Windows
 - [ ] **Reusable workflows**: Extrair jobs comuns
 - [ ] **Composite actions**: Consolidar setup steps
-- [ ] **GitHub Environments**: Separar dev/staging/prod
+- [ ] **GitHub Environments**: Separar dev/prod
 
 ### Observabilidade
 - [ ] **Badges no README**: Coverage, build status, dependencies
