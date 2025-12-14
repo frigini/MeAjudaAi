@@ -155,7 +155,7 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         }
         catch (Exception ex)
         {
-            _logger.LogError("Error retrieving roles from Keycloak for user {MaskedUserId}: {ErrorMessage}", MaskUserId(userId), ex.Message);
+            _logger.LogError("Error retrieving roles from Keycloak for user {MaskedUserId}: {ExceptionType}", MaskUserId(userId), ex.GetType().Name);
             throw new InvalidOperationException(
                 $"Failed to retrieve user roles from Keycloak for user ID: {MaskUserId(userId)}",
                 ex);
