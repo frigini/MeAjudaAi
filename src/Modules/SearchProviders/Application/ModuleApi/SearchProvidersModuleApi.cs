@@ -64,7 +64,7 @@ public sealed class SearchProvidersModuleApi(
         catch (OperationCanceledException ex)
         {
             logger.LogDebug(ex, "SearchProviders module availability check was cancelled");
-            throw new InvalidOperationException("SearchProviders module availability check was cancelled", ex);
+            throw;
         }
         catch (Exception ex)
         {

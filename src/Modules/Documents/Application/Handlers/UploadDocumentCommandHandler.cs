@@ -131,16 +131,12 @@ public class UploadDocumentCommandHandler(
         catch (UnauthorizedAccessException ex)
         {
             _logger.LogWarning(ex, "Authorization failed while uploading document for provider {ProviderId}", command.ProviderId);
-            throw new InvalidOperationException(
-                $"Authorization failed while uploading document for provider {command.ProviderId}",
-                ex);
+            throw;
         }
         catch (ArgumentException ex)
         {
             _logger.LogWarning(ex, "Validation failed while uploading document: {Message}", ex.Message);
-            throw new InvalidOperationException(
-                $"Validation failed while uploading document: {ex.Message}",
-                ex);
+            throw;
         }
         catch (Exception ex)
         {

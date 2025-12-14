@@ -81,7 +81,7 @@ public sealed class ProvidersModuleApi(
         catch (OperationCanceledException ex)
         {
             logger.LogDebug(ex, "Providers module availability check was cancelled");
-            throw new InvalidOperationException("Providers module availability check was cancelled", ex);
+            throw;
         }
         catch (Exception ex)
         {

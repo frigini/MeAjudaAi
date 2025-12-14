@@ -47,7 +47,7 @@ public sealed class ServiceCatalogsModuleApi(
         catch (OperationCanceledException ex)
         {
             logger.LogDebug(ex, "ServiceCatalogs module availability check was cancelled");
-            throw new InvalidOperationException("ServiceCatalogs module availability check was cancelled", ex);
+            throw;
         }
         catch (Exception ex)
         {
