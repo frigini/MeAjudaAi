@@ -176,9 +176,8 @@ public sealed class RequestLoggingMiddlewareTests
 
         // Assert
         var ex = await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Request POST /api/test failed");
-        ex.Which.InnerException.Should().BeOfType<InvalidOperationException>();
-        ex.Which.InnerException!.Message.Should().Be("Test exception");
+            .WithMessage("Test exception");
+        ex.Which.Should().BeSameAs(exception);
 
         _loggerMock.Verify(
             x => x.Log(
