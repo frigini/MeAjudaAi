@@ -150,12 +150,12 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            _logger.LogWarning(ex, "User {MaskedUserId} not found in Keycloak", MaskUserId(userId));
+            _logger.LogWarning("User {MaskedUserId} not found in Keycloak (HTTP {StatusCode})", MaskUserId(userId), ex.StatusCode);
             return Array.Empty<string>();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving roles from Keycloak for user {MaskedUserId}", MaskUserId(userId));
+            _logger.LogError("Error retrieving roles from Keycloak for user {MaskedUserId}: {ErrorMessage}", MaskUserId(userId), ex.Message);
             throw new InvalidOperationException(
                 $"Failed to retrieve user roles from Keycloak for user ID: {MaskUserId(userId)}",
                 ex);
@@ -168,6 +168,9 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
     private async Task<string> GetAdminTokenAsync(CancellationToken cancellationToken)
     {
         var cacheKey = "keycloak_admin_token";
+        const int safetyMarginSeconds = 30;
+        const int minimumTtlSeconds = 10;
+        const int defaultExpiresInSeconds = 300;
 
         return await _cache.GetOrCreateAsync(
             cacheKey,
@@ -176,42 +179,16 @@ public sealed class KeycloakPermissionResolver : IKeycloakPermissionResolver
                 var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
                 return tokenResponse.AccessToken;
             },
-            await CreateTokenCacheOptionsAsync(cancellationToken),
+            new HybridCacheEntryOptions
+            {
+                // Use reasonable default; token expiry is typically consistent
+                Expiration = TimeSpan.FromSeconds(defaultExpiresInSeconds - safetyMarginSeconds),
+                LocalCacheExpiration = TimeSpan.FromSeconds(120)
+            },
             cancellationToken: cancellationToken);
     }
 
-    private async Task<HybridCacheEntryOptions> CreateTokenCacheOptionsAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            var tokenResponse = await RequestAdminTokenAsync(cancellationToken);
-
-            // Calculate safe cache expiration based on token lifetime
-            const int safetyMarginSeconds = 30;
-            const int minimumTtlSeconds = 10;
-
-            var expiresInSeconds = tokenResponse.ExpiresIn > 0 ? tokenResponse.ExpiresIn : 300; // Default to 5 minutes if missing or invalid
-            var safeCacheSeconds = Math.Max(expiresInSeconds - safetyMarginSeconds, minimumTtlSeconds);
-
-            var cacheExpiration = TimeSpan.FromSeconds(safeCacheSeconds);
-            var localCacheExpiration = TimeSpan.FromSeconds(Math.Min(safeCacheSeconds / 2, 120)); // Max 2 minutes local cache
-
-            return new HybridCacheEntryOptions
-            {
-                Expiration = cacheExpiration,
-                LocalCacheExpiration = localCacheExpiration
-            };
-        }
-        catch
-        {
-            // Fallback to short static TTL if token request fails
-            return new HybridCacheEntryOptions
-            {
-                Expiration = TimeSpan.FromSeconds(30),
-                LocalCacheExpiration = TimeSpan.FromSeconds(10)
-            };
-        }
-    }
+    // Removed CreateTokenCacheOptionsAsync - no longer needed
 
     private async Task<TokenResponse> RequestAdminTokenAsync(CancellationToken cancellationToken)
     {
