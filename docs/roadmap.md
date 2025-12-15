@@ -63,9 +63,10 @@ Health Checks Robustos + Data Seeding para MVP:
 - ✅ Health Dashboard: UI no /health-ui com AspNetCore.HealthChecks.UI 9.0.0
 - ✅ Health Configuration: appsettings.json com 10s evaluation interval
 - ✅ Health Packages: AspNetCore.HealthChecks.UI, .UI.Client, .UI.InMemory.Storage, .Npgsql 9.0.0, .Redis
-- 🔄 Data Seeding: ServiceCategories/Services padrão, cidades permitidas, providers demo
-- 🔄 Seeding Scripts: SQL inicial + EF Core Data Seeding configurável
-- 🔄 Environment-aware: Seeding apenas em Development
+- ✅ Health Endpoints: /health com UIResponseWriter, /health-ui para dashboard visual
+- ⏳ Data Seeding: ServiceCategories/Services padrão, cidades permitidas, providers demo
+- ⏳ Seeding Scripts: SQL inicial + EF Core Data Seeding configurável
+- ⏳ Environment-aware: Seeding apenas em Development
 - ⏳ Testes: Unit tests para health checks + integration tests para seeding
 
 **⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  
@@ -99,8 +100,9 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 2** | 1 semana | 3 Dez - 10 Dez | Test Coverage 90.56% | ✅ CONCLUÍDO (10 Dez - META SUPERADA!) |
 | **Sprint 3-P1** | 1 dia | 10 Dez - 11 Dez | GitHub Pages Documentation | ✅ CONCLUÍDO (11 Dez - DEPLOYED!) |
 | **Sprint 3-P2** | 2 semanas | 11 Dez - 13 Dez | Admin Endpoints & Tools | ✅ CONCLUÍDO (13 Dez - MERGED) |
-| **Sprint 4** | 2 semanas | Jan 2026 | Blazor Admin Portal (Web) - Parte 1 | ⏳ Planejado |
-| **Sprint 5** | 2 semanas | Fev 2026 | Blazor Admin Portal (Web) - Parte 2 | ⏳ Planejado |
+| **Sprint 4** | 1 semana | 14 Dez - 20 Dez | Health Checks + Data Seeding | 🔄 EM ANDAMENTO |
+| **Sprint 5** | 2 semanas | Jan 2026 | Blazor Admin Portal (Web) - Parte 1 | ⏳ Planejado |
+| **Sprint 6** | 2 semanas | Fev 2026 | Blazor Admin Portal (Web) - Parte 2 | ⏳ Planejado |
 | **Sprint 6** | 3 semanas | Mar 2026 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
 | **Sprint 7** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
 
