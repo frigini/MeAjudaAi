@@ -10,7 +10,8 @@
     - Providers de exemplo (futuro)
 
     NOTA: Dados ESSENCIAIS de domínio (ServiceCategories, Services) devem ser 
-    inseridos via SQL script após migrations. Veja: scripts/seed-service-catalogs.sql
+    inseridos via SQL script após migrations. Veja: infrastructure/database/seeds/01-seed-service-catalogs.sql
+    (Executados automaticamente pelo Docker Compose na inicialização)
 
 .PARAMETER Environment
     Ambiente alvo (Development apenas). Default: Development
@@ -93,10 +94,10 @@ $headers = @{
 
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "ℹ️  ServiceCatalogs: Usando seed SQL" -ForegroundColor Yellow
+Write-Host "ℹ️  ServiceCatalogs: Usando seed SQL automático" -ForegroundColor Yellow
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Info "ServiceCategories e Services são criados via SQL após migrations"
-Write-Info "Execute: psql -f scripts/seed-service-catalogs.sql"
+Write-Info "ServiceCategories e Services são criados automaticamente via Docker Compose"
+Write-Info "Localização: infrastructure/database/seeds/01-seed-service-catalogs.sql"
 Write-Host ""
 
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
@@ -142,10 +143,10 @@ Write-Host ""
 Write-Host "📊 Dados de TESTE inseridos:" -ForegroundColor Cyan
 Write-Host "   • Cidades permitidas: $cityCount" -ForegroundColor White
 Write-Host ""
-Write-Host "💡 Dados ESSENCIAIS (via SQL):" -ForegroundColor Cyan
+Write-Host "💡 Dados ESSENCIAIS (via SQL automático no Docker):" -ForegroundColor Cyan
 Write-Host "   • ServiceCategories: 8 categorias" -ForegroundColor White
 Write-Host "   • Services: 12 serviços padrão" -ForegroundColor White
-Write-Host "   • Execute: psql -f scripts/seed-service-catalogs.sql" -ForegroundColor Yellow
+Write-Host "   • Local: infrastructure/database/seeds/01-seed-service-catalogs.sql" -ForegroundColor White
 Write-Host ""
 Write-Host "💡 Próximos passos:" -ForegroundColor Cyan
 Write-Host "   1. Cadastrar providers usando Bruno collections" -ForegroundColor White

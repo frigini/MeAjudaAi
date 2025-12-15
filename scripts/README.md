@@ -74,43 +74,29 @@ Scripts PowerShell essenciais para desenvolvimento e operações da aplicação.
 ### 🌱 Seed de Dados
 
 **Estratégia de Seeding:**
-- **SQL Scripts**: Dados essenciais de domínio (executar após migrations)
-- **PowerShell/API**: Dados de teste/desenvolvimento (executar manualmente quando necessário)
+- **SQL Seeds** (`infrastructure/database/seeds/`): Dados essenciais de domínio (executados automaticamente no Docker Compose)
+- **PowerShell/API** (`scripts/seed-dev-data.ps1`): Dados de teste/desenvolvimento (executar manualmente quando necessário)
+
+**IMPORTANTE:** Seeds SQL estão em `infrastructure/database/seeds/` pois fazem parte da infraestrutura do banco (executados junto com schema/roles/permissions).
 
 ---
 
-#### `seed-service-catalogs.sql` - Seed Dados Essenciais (SQL)
-**Quando executar:** Após migrations, **antes** de iniciar a aplicação pela primeira vez
+#### Data Seeds Essenciais (SQL)
+**Localização:** `infrastructure/database/seeds/` 
 
-**Uso:**
+**Execução automática via Docker Compose:**
+- Ao iniciar container PostgreSQL pela primeira vez
+- Script `01-init-meajudaai.sh` executa seeds após criar schemas
+
+**Execução manual (se necessário):**
 ```powershell
-# Via psql direto
-psql -h localhost -U meajudaai_user -d meajudaai_service_catalogs -f scripts/seed-service-catalogs.sql
-
-# Via Docker Compose
-docker exec -i meajudaai-postgres psql -U meajudaai_user -d meajudaai_service_catalogs < scripts/seed-service-catalogs.sql
-
-# Ou usando ConnectionString do appsettings
-$connectionString = "Host=localhost;Database=meajudaai_service_catalogs;Username=meajudaai_user;Password=your_password"
-psql "$connectionString" -f scripts/seed-service-catalogs.sql
+# Executar todos os seeds em ordem
+Get-ChildItem infrastructure/database/seeds/*.sql | Sort-Object Name | ForEach-Object {
+    psql -h localhost -U meajudaai_user -d meajudaai_service_catalogs -f $_.FullName
+}
 ```
 
-**Funcionalidades:**
-- **Dados ESSENCIAIS** de domínio que devem existir em TODOS os ambientes
-- Insere 8 categorias padrão (Saúde, Educação, Assistência Social, Jurídico, Habitação, Transporte, Alimentação, Trabalho e Renda)
-- Insere 12 serviços essenciais vinculados às categorias
-- **Idempotente**: não insere se dados já existem (verifica antes)
-- **Usa UUIDs fixos** para referências consistentes entre ambientes
-
-**Categorias inseridas:**
-1. **Saúde**: Consulta Médica Geral, Atendimento Psicológico, Fisioterapia
-2. **Educação**: Reforço Escolar, Alfabetização de Adultos
-3. **Assistência Social**: Orientação Social, Apoio a Famílias
-4. **Jurídico**: Orientação Jurídica Gratuita, Mediação de Conflitos
-5. **Habitação**: Reparos Residenciais
-6. **Transporte** (categoria criada, serviços para expansão futura)
-7. **Alimentação** (categoria criada, serviços para expansão futura)
-8. **Trabalho e Renda**: Capacitação Profissional, Intermediação de Emprego
+**Documentação completa:** Ver [infrastructure/database/seeds/README.md](../infrastructure/database/seeds/README.md)
 
 ---
 
@@ -155,7 +141,7 @@ psql "$connectionString" -f scripts/seed-service-catalogs.sql
 Localizados em `infrastructure/` - documentados em [infrastructure/SCRIPTS.md](../infrastructure/SCRIPTS.md)
 
 ### Automation Scripts
-Localizados em `automation/` - documentados em [automation/README.md](../automation/README.md)
+Localizados em `infrastructure/automation/` - documentados em [infrastructure/automation/README.md](../infrastructure/automation/README.md)
 
 ### Build Scripts
 Localizados em `build/` - documentados em [build/README.md](../build/README.md)
@@ -176,5 +162,5 @@ Localizados em `build/` - documentados em [build/README.md](../build/README.md)
 
 **Ordem de Execução:**
 1. `dotnet ef database update` (migrations)
-2. `psql -f seed-service-catalogs.sql` (dados essenciais)
-3. `.\seed-dev-data.ps1` (dados de teste - opcional)
+2. Docker Compose executa automaticamente `infrastructure/database/seeds/*.sql`
+3. `.\seed-dev-data.ps1` (dados de teste - opcional, manual)

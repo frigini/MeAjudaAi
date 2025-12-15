@@ -35,4 +35,18 @@ if [ -f "/docker-entrypoint-initdb.d/views/cross-module-views.sql" ]; then
     execute_sql "/docker-entrypoint-initdb.d/views/cross-module-views.sql"
 fi
 
+# Execute data seeds (essential domain data)
+echo "🌱 Seeding essential domain data..."
+SEEDS_DIR="/docker-entrypoint-initdb.d/seeds"
+if [ -d "${SEEDS_DIR}" ]; then
+    # Execute seeds in alphabetical order (numeric prefix controls order)
+    for seed_file in "${SEEDS_DIR}"/*.sql; do
+        if [ -f "${seed_file}" ]; then
+            execute_sql "${seed_file}"
+        fi
+    done
+else
+    echo "   ⚠️  No seeds directory found - skipping data seeding"
+fi
+
 echo "✅ MeAjudaAi Database initialization completed!"

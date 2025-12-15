@@ -26,8 +26,11 @@ database/
 │   └── catalogs/                 # Service Catalog module (admin-managed)
 │       ├── 00-roles.sql          # Database roles for catalogs module
 │       └── 01-permissions.sql    # Permissions setup for catalogs module
-└── views/                        # Cross-module database views
-    └── cross-module-views.sql    # Views that span multiple modules (includes document status views)
+├── views/                        # Cross-module database views
+│   └── cross-module-views.sql    # Views that span multiple modules (includes document status views)
+└── seeds/                        # Essential domain data (executed after schema setup)
+    ├── README.md                 # Seed documentation
+    └── 01-seed-service-catalogs.sql  # ServiceCategories and Services initial data
 ```
 
 ## Execution Order
@@ -37,10 +40,15 @@ PostgreSQL executes initialization scripts in alphabetical order:
 1. `01-init-meajudaai.sh` - Main orchestrator script that:
    - Sets up each module in proper order
    - Executes role creation before permissions
-   - Sets up cross-module views last
+   - Sets up cross-module views
+   - **Executes data seeds (essential domain data)**
    - Provides logging and error handling
 
-2. Individual SQL files are executed by the shell script in logical order
+2. Individual SQL files are executed by the shell script in logical order:
+   - Module roles (`modules/*/00-roles.sql`)
+   - Module permissions (`modules/*/01-permissions.sql`)
+   - Cross-module views (`views/*.sql`)
+   - **Data seeds (`seeds/*.sql`)** ← Executed last
 
 ## Adding New Modules
 
