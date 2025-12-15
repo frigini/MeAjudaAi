@@ -188,33 +188,39 @@ public class ProvidersApiTests : ApiTestBase
         var response = await Client.GetAsync("/health/ready");
 
         // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable)
-            .And.Subject.Should().NotBe(HttpStatusCode.InternalServerError,
-                "Ready check can return 200 (healthy) or 503 (database unavailable), but not 500");
-        
+        var allowedStatusCodes = new[] { HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable };
+        response.StatusCode.Should().BeOneOf(allowedStatusCodes,
+            because: "ready check can return 200 (healthy) or 503 (database unavailable)");
+        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
+            because: "health check should not crash with 500");
+
         var content = await response.Content.ReadAsStringAsync();
 
         // Analisa como JSON para garantir que está bem formado
         var healthResponse = JsonSerializer.Deserialize<JsonElement>(content);
 
         // Verifica se o status de nível superior existe
-        healthResponse.TryGetProperty("status", out var statusElement).Should().BeTrue("Health response should have status property");
+        healthResponse.TryGetProperty("status", out var statusElement).Should().BeTrue(
+            because: "health response should have status property");
         var status = statusElement.GetString();
-        status.Should().NotBeNullOrEmpty("Health status should be present");
+        status.Should().NotBeNullOrEmpty(because: "health status should be present");
 
         // Verifica se a entrada do health check de database existe
-        if (healthResponse.TryGetProperty("entries", out var entries))
+        if (healthResponse.TryGetProperty("entries", out var entries) && 
+            entries.ValueKind == JsonValueKind.Object)
         {
             var databaseEntry = entries.EnumerateObject()
                 .FirstOrDefault(e => e.Name.Contains("database", StringComparison.OrdinalIgnoreCase) || 
                                      e.Name.Contains("postgres", StringComparison.OrdinalIgnoreCase));
-            databaseEntry.Should().NotBe(default, "/health/ready should include database health check");
+            databaseEntry.Should().NotBe(default,
+                because: "/health/ready should include database health check");
         }
         else
         {
             // Fallback para correspondência de string se a estrutura for diferente
-            content.Should().ContainAny("database", "postgres", "npgsql",
-                "/health/ready should reference database health check");
+            var dbKeywords = new[] { "database", "postgres", "npgsql" };
+            dbKeywords.Should().Contain(keyword => content.Contains(keyword, StringComparison.OrdinalIgnoreCase),
+                because: "/health/ready should reference database health check");
         }
     }
 
