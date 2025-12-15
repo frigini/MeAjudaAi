@@ -206,21 +206,22 @@ public class ProvidersApiTests : ApiTestBase
         status.Should().NotBeNullOrEmpty(because: "health status should be present");
 
         // Verifica se a entrada do health check de database existe
-        if (healthResponse.TryGetProperty("entries", out var entries) && 
+        if (healthResponse.TryGetProperty("entries", out var entries) &&
             entries.ValueKind == JsonValueKind.Object)
         {
             var databaseEntry = entries.EnumerateObject()
-                .FirstOrDefault(e => e.Name.Contains("database", StringComparison.OrdinalIgnoreCase) || 
+                .FirstOrDefault(e => e.Name.Contains("database", StringComparison.OrdinalIgnoreCase) ||
                                      e.Name.Contains("postgres", StringComparison.OrdinalIgnoreCase));
             databaseEntry.Should().NotBe(default,
                 because: "/health/ready should include database health check");
         }
         else
         {
-            // Fallback para correspondência de string se a estrutura for diferente
-            var dbKeywords = new[] { "database", "postgres", "npgsql" };
-            dbKeywords.Should().Contain(keyword => content.Contains(keyword, StringComparison.OrdinalIgnoreCase),
-                because: "/health/ready should reference database health check");
+            // If entries structure is missing/unexpected, fail explicitly to catch breaking changes
+            // This is stricter but helps detect API contract violations early
+            throw new InvalidOperationException(
+                "Health check response missing expected 'entries' structure. " +
+                "This may indicate a breaking change in the health check API.");
         }
     }
 

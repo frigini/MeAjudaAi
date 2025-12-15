@@ -69,7 +69,7 @@ public class ExternalServicesHealthCheck(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error during external services health check");
-            return HealthCheckResult.Unhealthy("Health check falhou com erro inesperado", ex);
+            return HealthCheckResult.Unhealthy("Health check failed with unexpected error", ex);
         }
     }
 

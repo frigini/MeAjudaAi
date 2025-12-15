@@ -104,7 +104,7 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
-- name: Prepare Aspire Integration Tests
+      - name: Prepare Aspire Integration Tests
         run: |
           echo "📦 Preparing .NET Aspire for integration tests..."
           echo "ℹ️  Note: Aspire workload is deprecated in .NET 10 - using NuGet packages instead"
