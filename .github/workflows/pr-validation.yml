@@ -616,12 +616,22 @@ jobs:
         run: |
           echo "📊 Generating aggregated coverage report from ALL tests..."
           
-          # Install ReportGenerator with specific version compatible with .NET 8
-          # Version 5.3.11 is the last version that targets .NET 8 (before .NET 10 requirement)
-          dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.3.11 || dotnet tool update --global dotnet-reportgenerator-globaltool --version 5.3.11
+          # Verify .NET 10 installation
+          echo "🔍 Verifying .NET installation..."
+          dotnet --version
+          dotnet --list-sdks
+          dotnet --list-runtimes
           
-          # Add dotnet tools to PATH
+          # Install ReportGenerator (latest version for .NET 10)
+          echo "📦 Installing ReportGenerator..."
+          dotnet tool install --global dotnet-reportgenerator-globaltool || dotnet tool update --global dotnet-reportgenerator-globaltool
+          
+          # Ensure .NET tools are in PATH
           export PATH="$PATH:$HOME/.dotnet/tools"
+          
+          # Verify ReportGenerator installation
+          echo "✅ Verifying ReportGenerator installation..."
+          dotnet tool list --global | grep reportgenerator
           
           # Pre-flight check: verify all expected coverage files exist
           echo "🔍 Pre-flight check: Verifying coverage files..."
