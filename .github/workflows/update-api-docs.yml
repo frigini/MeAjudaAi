@@ -107,7 +107,7 @@ jobs:
           cat api-stats.md
       
       - name: 💾 Commit Updated Spec
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'docs(api): atualizar api-spec.json automaticamente [skip ci]'
           file_pattern: 'api/api-spec.json'
