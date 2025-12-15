@@ -72,7 +72,8 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         // Assert
         result.Status.Should().Be(HealthStatus.Healthy);
         result.Description.Should().Be("All external services are operational");
-        result.Data.Should().ContainKey("keycloak");        result.Data.Should().ContainKey("ibge_api");        result.Data.Should().ContainKey("ibge_api");
+        result.Data.Should().ContainKey("keycloak");
+        result.Data.Should().ContainKey("ibge_api");
         result.Data.Should().ContainKey("timestamp");
         result.Data.Should().ContainKey("overall_status");
         result.Data["overall_status"].Should().Be("healthy");
@@ -287,8 +288,9 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
 
         // Assert
         result.Data.Should().ContainKey("overall_status");
+        result.Data.Should().ContainKey("ibge_api");
         var status = result.Data["overall_status"] as string;
-        status.Should().BeOneOf("healthy", "degraded");
+        status.Should().Be("healthy");
     }
 
     #endregion
@@ -359,6 +361,11 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         result.Status.Should().Be(HealthStatus.Degraded);
         result.Data.Should().ContainKey("ibge_api");
         result.Data["overall_status"].Should().Be("degraded");
+        
+        var ibgeData = result.Data["ibge_api"];
+        ibgeData.Should().NotBeNull();
+        var ibgeStatus = ibgeData.GetType().GetProperty("status")?.GetValue(ibgeData);
+        ibgeStatus.Should().Be("unhealthy");
     }
 
     [Fact]
@@ -384,6 +391,13 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         // Assert
         result.Status.Should().Be(HealthStatus.Degraded);
         result.Data.Should().ContainKey("ibge_api");
+        
+        var ibgeData = result.Data["ibge_api"];
+        ibgeData.Should().NotBeNull();
+        var ibgeStatus = ibgeData.GetType().GetProperty("status")?.GetValue(ibgeData);
+        ibgeStatus.Should().Be("unhealthy");
+        var error = ibgeData.GetType().GetProperty("error")?.GetValue(ibgeData);
+        error.Should().NotBeNull();
     }
 
     [Fact]
@@ -459,6 +473,16 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         result.Data.Should().ContainKey("keycloak");
         result.Data.Should().ContainKey("ibge_api");
         result.Data["overall_status"].Should().Be("degraded");
+        
+        var keycloakData = result.Data["keycloak"];
+        keycloakData.Should().NotBeNull();
+        var keycloakStatus = keycloakData.GetType().GetProperty("status")?.GetValue(keycloakData);
+        keycloakStatus.Should().Be("healthy");
+        
+        var ibgeData = result.Data["ibge_api"];
+        ibgeData.Should().NotBeNull();
+        var ibgeStatus = ibgeData.GetType().GetProperty("status")?.GetValue(ibgeData);
+        ibgeStatus.Should().Be("unhealthy");
     }
 
     #endregion
