@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3-P1 ✅ (11 Dez) | Sprint 3-P2 ✅ (13 Dez) | Sprint 4 🔄 (14 Dez - EM ANDAMENTO) | MVP Target: 31/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3-P1 ✅ (11 Dez) | Sprint 3-P2 ✅ (13 Dez) | Sprint 4 ✅ (16 Dez - COMPLETO!) | MVP Target: 31/Março/2026  
 **Cobertura de Testes**: 28.2% → **90.56% ALCANÇADO** (Sprint 2 - META SUPERADA EM 55.56pp!)  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
@@ -18,7 +18,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **3 Dez - 10 Dez**: Sprint 2 - Test Coverage 90.56% (CONCLUÍDO - META 35% SUPERADA!)
 - ✅ **10 Dez - 11 Dez**: Sprint 3 Parte 1 - GitHub Pages Migration (CONCLUÍDO - DEPLOYED!)
 - ✅ **11 Dez - 13 Dez**: Sprint 3 Parte 2 - Admin Endpoints & Tools (CONCLUÍDO - MERGED!)
-- 🔄 **14 Dez - 20 Dez**: Sprint 4 - Health Checks + Data Seeding (EM ANDAMENTO - branch criada)
+- ✅ **14 Dez - 16 Dez**: Sprint 4 - Health Checks + Data Seeding (CONCLUÍDO - MERGED!)
 - ⏳ **Janeiro 2026**: Sprint 5 - Blazor Admin Portal Setup
 - ⏳ **Fevereiro-Março 2026**: Sprints 6-7 - Frontend Blazor (Web + Mobile)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
@@ -55,20 +55,24 @@ Admin Endpoints & Tools - TODAS AS PARTES FINALIZADAS:
 - ✅ Code Quality: NSubstitute→Moq, UuidGenerator, .slnx, SonarQube warnings
 - ✅ CI/CD: Formatting checks corrigidos, exit code masking resolvido
 
-**🔄 Sprint 4: EM ANDAMENTO** (14 Dez - 20 Dez 2025)  
-Health Checks Robustos + Data Seeding para MVP:
+**✅ Sprint 4: CONCLUÍDO** (14 Dez - 16 Dez 2025)  
+Health Checks Robustos + Data Seeding para MVP - TODAS AS PARTES FINALIZADAS:
 - ✅ Health Checks: DatabasePerformanceHealthCheck (latência <100ms healthy, <500ms degraded)
-- ✅ Health Checks: ExternalServicesHealthCheck (Keycloak + IBGE API)
+- ✅ Health Checks: ExternalServicesHealthCheck (Keycloak + IBGE API + Redis)
 - ✅ Health Checks: HelpProcessingHealthCheck (sistema de ajuda operacional)
 - ✅ Health Dashboard: UI no /health-ui com AspNetCore.HealthChecks.UI 9.0.0
 - ✅ Health Configuration: appsettings.json com 10s evaluation interval
-- ✅ Health Packages: AspNetCore.HealthChecks.UI, .UI.Client, .UI.InMemory.Storage, .Npgsql 9.0.0, .Redis
+- ✅ Health Packages: AspNetCore.HealthChecks.UI, .UI.Client, .UI.InMemory.Storage, .Npgsql 9.0.0, .Redis 8.0.1
 - ✅ Health Endpoints: /health com UIResponseWriter, /health-ui para dashboard visual
+- ✅ Redis Health Check: Configurado via AddRedis() com tags 'ready', 'cache'
 - ✅ Data Seeding: infrastructure/database/seeds/01-seed-service-catalogs.sql (8 categorias + 12 serviços)
 - ✅ Seed Automation: Docker Compose executa seeds automaticamente na inicialização
 - ✅ Project Structure: Reorganização - automation/ → infrastructure/automation/, seeds em infrastructure/database/seeds/
-- ✅ Documentation: Atualizado README.md, scripts/README.md, infrastructure/database/README.md
-- ⏳ Testes: Unit tests para health checks
+- ✅ Documentation: README.md, scripts/README.md, infrastructure/database/README.md + docs/future-external-services.md
+- ✅ MetricsCollectorService: Implementado com IServiceScopeFactory (4 TODOs resolvidos)
+- ✅ Unit Tests: 14 testes para ExternalServicesHealthCheck (6 novos para IBGE API)
+- ✅ Integration Tests: 9 testes para DataSeeding (categorias, serviços, idempotência)
+- ✅ Future Services Documentation: Documentado OCR, payments, SMS/email (quando implementar)
 
 **⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
@@ -101,7 +105,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 2** | 1 semana | 3 Dez - 10 Dez | Test Coverage 90.56% | ✅ CONCLUÍDO (10 Dez - META SUPERADA!) |
 | **Sprint 3-P1** | 1 dia | 10 Dez - 11 Dez | GitHub Pages Documentation | ✅ CONCLUÍDO (11 Dez - DEPLOYED!) |
 | **Sprint 3-P2** | 2 semanas | 11 Dez - 13 Dez | Admin Endpoints & Tools | ✅ CONCLUÍDO (13 Dez - MERGED) |
-| **Sprint 4** | 1 semana | 14 Dez - 20 Dez | Health Checks + Data Seeding | 🔄 EM ANDAMENTO |
+| **Sprint 4** | 3 dias | 14 Dez - 16 Dez | Health Checks + Data Seeding | ✅ CONCLUÍDO (16 Dez - MERGED!) |
 | **Sprint 5** | 2 semanas | Jan 2026 | Blazor Admin Portal (Web) - Parte 1 | ⏳ Planejado |
 | **Sprint 6** | 2 semanas | Fev 2026 | Blazor Admin Portal (Web) - Parte 2 | ⏳ Planejado |
 | **Sprint 6** | 3 semanas | Mar 2026 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
