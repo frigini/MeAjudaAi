@@ -149,6 +149,8 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture fixture
         var countBeforeExec = (long)(await countBefore.ExecuteScalarAsync() ?? 0L);
 
         // Act - Tentar executar seed novamente (simula idempotência)
+        // TODO: Consider loading and executing actual seed script from infrastructure/database/seeds/01-seed-service-catalogs.sql
+        // For now, validating the idempotency pattern with inline SQL:
         await using var rerunSeed = new NpgsqlCommand(
             @"DO $$
               BEGIN

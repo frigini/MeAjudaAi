@@ -96,7 +96,7 @@ public class ExternalServicesHealthCheck(
 
             var baseUri = baseUrl.TrimEnd('/');
             using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}/health");
-            var response = await httpClient
+            using var response = await httpClient
                 .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
                 .ConfigureAwait(false);
 
