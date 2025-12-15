@@ -39,10 +39,10 @@ Configures complete continuous integration and deployment:
 
 ```powershell
 # For CI-only setup
-.\automation\setup-ci-only.ps1
+.\infrastructure\automation\setup-ci-only.ps1
 
 # For full CI/CD setup
-.\automation\setup-cicd.ps1
+.\infrastructure\automation\setup-cicd.ps1
 ```
 
 ### Parameters

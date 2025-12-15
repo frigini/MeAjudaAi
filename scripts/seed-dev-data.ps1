@@ -117,6 +117,7 @@ $allowedCities = @(
     @{ ibgeCode = "1302603"; cityName = "Manaus"; state = "AM"; isActive = $true }
 )
 
+$cityCount = 0
 foreach ($city in $allowedCities) {
     Write-Info "Adicionando cidade: $($city.cityName)/$($city.state)"
     try {
@@ -126,9 +127,11 @@ foreach ($city in $allowedCities) {
             -Body ($city | ConvertTo-Json -Depth 10)
         
         Write-Success "Cidade '$($city.cityName)/$($city.state)' adicionada"
+        $cityCount++
     } catch {
         if ($_.Exception.Response.StatusCode -eq 409) {
             Write-Warning "Cidade '$($city.cityName)/$($city.state)' já existe"
+            $cityCount++
         } else {
             Write-Error "Erro ao adicionar cidade '$($city.cityName)/$($city.state)': $_"
         }

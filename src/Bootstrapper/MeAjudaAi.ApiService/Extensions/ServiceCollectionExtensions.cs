@@ -92,19 +92,7 @@ public static class ServiceCollectionExtensions
         services.AddMeAjudaAiHealthChecks(configuration);
         
         // Health Checks UI (apenas em Development)
-        if (environment.IsDevelopment())
-        {
-            var healthChecksUIEnabled = configuration.GetValue<bool>("HealthChecksUI:Enabled");
-            if (healthChecksUIEnabled)
-            {
-                services.AddHealthChecksUI(setup =>
-                {
-                    setup.SetEvaluationTimeInSeconds(configuration.GetValue<int>("HealthChecksUI:EvaluationTimeInSeconds", 10));
-                    setup.SetMinimumSecondsBetweenFailureNotifications(configuration.GetValue<int>("HealthChecksUI:MinimumSecondsBetweenFailureNotifications", 60));
-                })
-                .AddInMemoryStorage();
-            }
-        }
+        // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
 
         // Serviços específicos por ambiente
         services.AddEnvironmentSpecificServices(configuration, environment);
@@ -146,22 +134,7 @@ public static class ServiceCollectionExtensions
         app.UsePermissionOptimization(); // Middleware de otimização após autenticação
         app.UseAuthorization();
 
-        // Health Checks UI (apenas em desenvolvimento)
-        if (environment.IsDevelopment())
-        {
-            var healthChecksUIEnabled = app.ApplicationServices
-                .GetService<IConfiguration>()
-                ?.GetValue<bool>("HealthChecksUI:Enabled") ?? false;
-
-            if (healthChecksUIEnabled)
-            {
-                app.UseHealthChecksUI(options =>
-                {
-                    options.UIPath = "/health-ui";
-                    options.ApiPath = "/health-ui-api";
-                });
-            }
-        }
+        // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
 
         return app;
     }

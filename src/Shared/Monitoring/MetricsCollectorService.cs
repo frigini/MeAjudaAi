@@ -80,20 +80,29 @@ internal class MetricsCollectorService(
         try
         {
             using var scope = serviceScopeFactory.CreateScope();
-            var usersDbContext = scope.ServiceProvider.GetService<dynamic>();
             
-            // Se o módulo Users não estiver registrado, retorna 0
-            if (usersDbContext == null)
+            // Tentar obter IUsersModuleApi - retorna 0 se módulo não estiver disponível
+            var moduleTypeName = "MeAjudaAi.Modules.Users.Application.ModuleApi.IUsersModuleApi, MeAjudaAi.Modules.Users.Application";
+            var moduleType = Type.GetType(moduleTypeName);
+            
+            if (moduleType == null)
+            {
+                logger.LogDebug("Users module type not found, returning 0 active users");
+                return 0;
+            }
+            
+            var usersModuleApi = scope.ServiceProvider.GetService(moduleType);
+            
+            if (usersModuleApi == null)
             {
                 logger.LogDebug("Users module not available, returning 0 active users");
                 return 0;
             }
 
-            // Simular consulta - em produção, implementar query real
-            // Exemplo: contar usuários com LastLoginAt > DateTime.UtcNow.AddHours(-24)
+            // Por ora retorna 0 - implementação futura chamará método real do módulo
+            // var count = await usersModuleApi.GetActiveUsersCountAsync(cancellationToken);
             await Task.Delay(1, cancellationToken);
             
-            // Por ora, retorna valor simulado
             return 0;
         }
         catch (OperationCanceledException)
@@ -111,8 +120,6 @@ internal class MetricsCollectorService(
     {
         try
         {
-            using var scope = serviceScopeFactory.CreateScope();
-            
             // Implementação futura: injetar HelpRequestRepository
             // e contar solicitações com status Pending
             await Task.Delay(1, cancellationToken);

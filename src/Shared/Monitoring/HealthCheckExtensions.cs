@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace MeAjudaAi.Shared.Monitoring;
@@ -21,15 +20,19 @@ public static class HealthCheckExtensions
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("DefaultConnection string not found");
 
-        // Registrar HttpClient para ExternalServicesHealthCheck
-        services.AddHttpClient<MeAjudaAiHealthChecks.ExternalServicesHealthCheck>();
+        // Registrar HttpClient para ExternalServicesHealthCheck com timeout
+        services.AddHttpClient<MeAjudaAiHealthChecks.ExternalServicesHealthCheck>()
+            .ConfigureHttpClient(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(5); // Health checks devem ser rápidos
+            });
 
         // Registrar health checks
         var healthChecksBuilder = services.AddHealthChecks();
         
         healthChecksBuilder.AddCheck<MeAjudaAiHealthChecks.HelpProcessingHealthCheck>(
             "help_processing",
-            tags: ["ready", "business"]);
+            tags: new[] { "ready", "business" });
             
         healthChecksBuilder.AddTypeActivatedCheck<MeAjudaAiHealthChecks.DatabasePerformanceHealthCheck>(
             "database_performance",
@@ -39,7 +42,7 @@ public static class HealthCheckExtensions
             
         healthChecksBuilder.AddCheck<MeAjudaAiHealthChecks.ExternalServicesHealthCheck>(
             "external_services",
-            tags: ["ready", "external"]);
+            tags: new[] { "ready", "external" });
 
         // Adicionar Redis health check se configurado
         var redisConnectionString = configuration.GetConnectionString("redis");

@@ -165,11 +165,9 @@
     <PackageVersion Include="Rebus.RabbitMq" Version="10.1.0" />
     <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.0" />
     <!-- Health Checks -->
-    <PackageVersion Include="AspNetCore.HealthChecks.UI" Version="8.0.2" />
-    <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.2" />
-    <PackageVersion Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="8.0.2" />
+    <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.Npgsql" Version="9.0.0" />
-    <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="8.0.1" />
+    <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />
     <!-- Background Jobs -->
     <PackageVersion Include="Hangfire.Core" Version="1.8.22" />
     <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.22" />

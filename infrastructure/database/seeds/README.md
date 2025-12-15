@@ -61,13 +61,13 @@ psql -h localhost -U meajudaai_user -d meajudaai_service_catalogs -f infrastruct
 | Users | ❌ Não | Usuários são cadastrados via Keycloak |
 | Providers | ❌ Não | Prestadores se cadastram via API |
 | Documents | ❌ Não | Documentos são upload de usuários |
-| Locations | ❌ Não | AllowedCities são configuração (não domínio) |
+| Locations | ❌ Não | AllowedCities são configurações (não domínio) |
 
 ### Diferença entre seed SQL e seed PowerShell?
 
 | Tipo | Quando | Propósito |
 |------|--------|-----------|
-| **SQL** (`scripts/database/`) | Após migrations, SEMPRE | Dados essenciais de domínio |
+| **SQL** (`infrastructure/database/seeds/`) | Após migrations, SEMPRE | Dados essenciais de domínio |
 | **PowerShell** (`scripts/seed-dev-data.ps1`) | Manual, OPCIONAL | Dados de teste para desenvolvimento |
 
 ---

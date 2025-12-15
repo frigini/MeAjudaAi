@@ -128,7 +128,7 @@ Este documento lista serviços externos que serão integrados no futuro. Não im
 - Serviço é usado apenas em jobs assíncronos (Hangfire já monitora)
 - Falha do serviço não impacta disponibilidade da aplicação
 
-### Template para Implementação Futura
+### Modelo para Implementação Futura
 
 Quando implementar health check para novo serviço:
 

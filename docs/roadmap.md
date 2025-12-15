@@ -2574,5 +2574,5 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 
 ---
 
-*📅 Última atualização: 11 de Dezembro de 2025*  
+*📅 Última atualização: 15 de Dezembro de 2025*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*

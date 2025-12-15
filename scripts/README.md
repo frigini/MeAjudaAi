@@ -77,7 +77,7 @@ Scripts PowerShell essenciais para desenvolvimento e operações da aplicação.
 - **SQL Seeds** (`infrastructure/database/seeds/`): Dados essenciais de domínio (executados automaticamente no Docker Compose)
 - **PowerShell/API** (`scripts/seed-dev-data.ps1`): Dados de teste/desenvolvimento (executar manualmente quando necessário)
 
-**IMPORTANTE:** Seeds SQL estão em `infrastructure/database/seeds/` pois fazem parte da infraestrutura do banco (executados junto com schema/roles/permissions).
+**IMPORTANTE:** Seeds SQL estão em `infrastructure/database/seeds/`, pois fazem parte da infraestrutura do banco de dados (executados com schema/roles/permissions).
 
 ---
 

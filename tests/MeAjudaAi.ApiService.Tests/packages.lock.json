@@ -90,15 +90,6 @@
           "Microsoft.Extensions.Diagnostics.HealthChecks": "8.0.11"
         }
       },
-      "AspNetCore.HealthChecks.UI.Data": {
-        "type": "Transitive",
-        "resolved": "9.0.0",
-        "contentHash": "bZkXUdiqXOkmhe3XHF+OIgPQKR8OXS8/+iDWegmxSXtbaIYwsT5+B0URT+P4OPvhj5tR2goMMZe5KwJBVHr+1g==",
-        "dependencies": {
-          "AspNetCore.HealthChecks.UI.Core": "9.0.0",
-          "Microsoft.EntityFrameworkCore": "8.0.0"
-        }
-      },
       "Azure.Core": {
         "type": "Transitive",
         "resolved": "1.50.0",
@@ -147,11 +138,6 @@
           "System.Diagnostics.EventLog": "6.0.0"
         }
       },
-      "Fractions": {
-        "type": "Transitive",
-        "resolved": "7.3.0",
-        "contentHash": "2bETFWLBc8b7Ut2SVi+bxhGVwiSpknHYGBh2PADyGWONLkTxT7bKyDRhF8ao+XUv90tq8Fl7GTPxSI5bacIRJw=="
-      },
       "Hangfire.NetCore": {
         "type": "Transitive",
         "resolved": "1.8.22",
@@ -167,31 +153,6 @@
         "type": "Transitive",
         "resolved": "2.14.1",
         "contentHash": "lQKvtaTDOXnoVJ20ibTuSIOf2i0uO0MPbDhd1jm238I+U/2ZnRENj0cktKZhtchBMtCUSRQ5v4xBCUbKNmyVMw=="
-      },
-      "IdentityModel": {
-        "type": "Transitive",
-        "resolved": "5.2.0",
-        "contentHash": "nuhkbaDH9l5QzNJp2MtP3qio57MPtiRneUN8Ocr7od0JvSYaIe3gBj/vxllr11S/Qvu1AG4GZXoyv5469ewYDA=="
-      },
-      "IdentityModel.OidcClient": {
-        "type": "Transitive",
-        "resolved": "5.2.1",
-        "contentHash": "OuPhDNAw/EoJVEmYO6/ChZUBcug4OGoGKTKLUyBCsGhlKegxJk25LYQ0EL7GCBMgkEL+BYNJukNZyaJ+JNaWog==",
-        "dependencies": {
-          "IdentityModel": "5.2.0",
-          "Microsoft.Extensions.Logging": "6.0.0"
-        }
-      },
-      "KubernetesClient": {
-        "type": "Transitive",
-        "resolved": "14.0.2",
-        "contentHash": "Ul7SLe34fLwOahsJKFf2InqcuRTCIBr3mW1PtabXlYeCJeP7yPiYyrGxilLn2+HIq1C5AoMTydhGcdNLbc/f9w==",
-        "dependencies": {
-          "Fractions": "7.3.0",
-          "IdentityModel.OidcClient": "5.2.1",
-          "System.IdentityModel.Tokens.Jwt": "7.1.2",
-          "YamlDotNet": "15.1.0"
-        }
       },
       "Microsoft.ApplicationInsights": {
         "type": "Transitive",
@@ -1076,17 +1037,12 @@
           "xunit.v3.runner.common": "[3.2.1]"
         }
       },
-      "YamlDotNet": {
-        "type": "Transitive",
-        "resolved": "15.1.0",
-        "contentHash": "fXrqmKkzBtXeJiHEsZOPEWkonHweiwk/l0Hqhz4yMIZPh57kZy03Xbj2/e8HV1QIkTw7yeBe9bbphuE3YiI4vQ=="
-      },
       "meajudaai.apiservice": {
         "type": "Project",
         "dependencies": {
-          "AspNetCore.HealthChecks.UI": "[8.0.2, )",
-          "AspNetCore.HealthChecks.UI.Client": "[8.0.2, )",
-          "AspNetCore.HealthChecks.UI.InMemory.Storage": "[8.0.2, )",
+          "AspNetCore.HealthChecks.UI": "(, )",
+          "AspNetCore.HealthChecks.UI.Client": "[9.0.0, )",
+          "AspNetCore.HealthChecks.UI.InMemory.Storage": "(, )",
           "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.API": "[1.0.0, )",
@@ -1326,7 +1282,8 @@
           "Asp.Versioning.Mvc": "[8.1.0, )",
           "Asp.Versioning.Mvc.ApiExplorer": "[8.1.0, )",
           "AspNetCore.HealthChecks.Npgsql": "[9.0.0, )",
-          "AspNetCore.HealthChecks.Redis": "[8.0.1, )",
+          "AspNetCore.HealthChecks.Redis": "[9.0.0, )",
+          "AspNetCore.HealthChecks.UI.Client": "[9.0.0, )",
           "Azure.Messaging.ServiceBus": "[7.20.1, )",
           "Dapper": "[2.1.66, )",
           "FluentValidation": "[12.1.1, )",
@@ -1416,43 +1373,21 @@
       },
       "AspNetCore.HealthChecks.Redis": {
         "type": "CentralTransitive",
-        "requested": "[8.0.1, )",
-        "resolved": "8.0.1",
-        "contentHash": "45jqq4ydvmm7yKpTf0jEpUuYloe2vlytN9dasmqwmQyorpNbjdvWuyvSmjVZM5nBa5e5ryF5MU+F7bXv6Zp2vQ==",
+        "requested": "[9.0.0, )",
+        "resolved": "9.0.0",
+        "contentHash": "yNH0h8GLRbAf+PU5HNVLZ5hNeyq9mDVmRKO9xuZsme/znUYoBJlQvI0gq45gaZNlLncCHkMhR4o90MuT+gxxPw==",
         "dependencies": {
-          "Microsoft.Extensions.Diagnostics.HealthChecks": "8.0.0",
+          "Microsoft.Extensions.Diagnostics.HealthChecks": "8.0.11",
           "StackExchange.Redis": "2.7.4"
-        }
-      },
-      "AspNetCore.HealthChecks.UI": {
-        "type": "CentralTransitive",
-        "requested": "[8.0.2, )",
-        "resolved": "8.0.2",
-        "contentHash": "AkqR7F8jropKO9FQmsjorM7eB00Y6I9P6jObNqVK0M+dNlEvBGjaJyYP2UM16azOxEuikJeUaCP9+XdrgPSyFg==",
-        "dependencies": {
-          "AspNetCore.HealthChecks.UI.Data": "8.0.1",
-          "KubernetesClient": "14.0.2",
-          "Microsoft.EntityFrameworkCore.Design": "8.0.0",
-          "Microsoft.Extensions.Http": "8.0.0"
         }
       },
       "AspNetCore.HealthChecks.UI.Client": {
         "type": "CentralTransitive",
-        "requested": "[8.0.2, )",
+        "requested": "[9.0.0, )",
         "resolved": "9.0.0",
         "contentHash": "1Ub3Wvvbz7CMuFNWgLEc9qqQibiMoovDML/WHrwr5J83RPgtI20giCR92s/ipLgu7IIuqw+W/y7WpIeHqAICxg==",
         "dependencies": {
           "AspNetCore.HealthChecks.UI.Core": "9.0.0"
-        }
-      },
-      "AspNetCore.HealthChecks.UI.InMemory.Storage": {
-        "type": "CentralTransitive",
-        "requested": "[8.0.2, )",
-        "resolved": "9.0.0",
-        "contentHash": "xuq+HBH8Ckz9r5d+yP1pk7cgIbPLBqCGfYu0MxtvbtsxIo7cv5nQoUCJsdgqN5/a4ndVUJZco6GjWFk6r4xN1w==",
-        "dependencies": {
-          "AspNetCore.HealthChecks.UI.Data": "9.0.0",
-          "Microsoft.EntityFrameworkCore.InMemory": "8.0.11"
         }
       },
       "Azure.AI.DocumentIntelligence": {
@@ -1688,17 +1623,6 @@
           "Microsoft.Extensions.Logging": "10.0.1",
           "Mono.TextTemplating": "3.0.0",
           "Newtonsoft.Json": "13.0.3"
-        }
-      },
-      "Microsoft.EntityFrameworkCore.InMemory": {
-        "type": "CentralTransitive",
-        "requested": "[10.0.1, )",
-        "resolved": "10.0.1",
-        "contentHash": "f0HNO4Hp80AJLGkv/gV95q9yrPJ7CPfCjNq5trcLsXH75GurM/62D4m2YyXmkyQfeT4MRFXZSBPdhDBOx1CTQQ==",
-        "dependencies": {
-          "Microsoft.EntityFrameworkCore": "10.0.1",
-          "Microsoft.Extensions.Caching.Memory": "10.0.1",
-          "Microsoft.Extensions.Logging": "10.0.1"
         }
       },
       "Microsoft.EntityFrameworkCore.Relational": {
