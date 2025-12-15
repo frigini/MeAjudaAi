@@ -53,14 +53,10 @@ public class ExternalServicesHealthCheck(
                 return HealthCheckResult.Healthy($"All {totalCount} external services are healthy");
             }
 
-            if (healthyCount == 0)
-            {
-                var errors = string.Join("; ", results.Where(r => !r.IsHealthy).Select(r => $"{r.Service}: {r.Error}"));
-                return HealthCheckResult.Unhealthy($"All external services are down: {errors}");
-            }
-
-            var partialErrors = string.Join("; ", results.Where(r => !r.IsHealthy).Select(r => $"{r.Service}: {r.Error}"));
-            return HealthCheckResult.Degraded($"{healthyCount}/{totalCount} services healthy. Issues: {partialErrors}");
+            // External services down should never make the app unhealthy (only degraded)
+            // Application can continue to function with limited features when external services are unavailable
+            var errors = string.Join("; ", results.Where(r => !r.IsHealthy).Select(r => $"{r.Service}: {r.Error}"));
+            return HealthCheckResult.Degraded($"{healthyCount}/{totalCount} services healthy. Issues: {errors}");
         }
         catch (Exception ex)
         {
