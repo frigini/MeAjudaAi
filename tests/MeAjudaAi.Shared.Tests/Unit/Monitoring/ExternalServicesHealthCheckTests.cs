@@ -169,7 +169,8 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString() == "https://servicodados.ibge.gov.br/api/v1/localidades/estados"),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
@@ -472,7 +473,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.Is<HttpRequestMessage>(req =>
-                    req.RequestUri!.ToString().Contains("ibge.gov.br")),
+                    req.RequestUri!.ToString() == "https://servicodados.ibge.gov.br/api/v1/localidades/estados"),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
 

@@ -123,17 +123,13 @@ public static class Extensions
     {
         if (app.Environment.IsDevelopment() || IsTestingEnvironment())
         {
+            // Health endpoint returns 200 for Healthy/Degraded, 503 for Unhealthy (framework defaults)
+            // Degraded external services (IBGE/Keycloak) don't affect application availability
             app.MapHealthChecks("/health", new HealthCheckOptions
             {
                 Predicate = _ => true,
                 ResponseWriter = WriteHealthCheckResponse,
-                AllowCachingResponses = false,
-                ResultStatusCodes =
-                {
-                    [HealthStatus.Healthy] = StatusCodes.Status200OK,
-                    [HealthStatus.Degraded] = StatusCodes.Status200OK,  // External services degraded is OK
-                    [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
-                }
+                AllowCachingResponses = false
             });
 
             app.MapHealthChecks("/health/live", new HealthCheckOptions

@@ -65,8 +65,15 @@ jobs:
       - name: Install Aspire workload
         run: |
           echo "📦 Installing .NET Aspire workload..."
-          dotnet workload install aspire
+          dotnet workload update
+          dotnet workload install aspire --skip-sign-check
           echo "✅ Aspire workload installed"
+          echo "🔍 Verifying Aspire installation..."
+          dotnet workload list
+          # Verify DCP is available
+          if [ -d "$HOME/.dotnet/sdk-manifests" ]; then
+            find "$HOME/.dotnet" -name "dcp" -o -name "dcpctrl" 2>/dev/null || true
+          fi
 
       - name: Setup PostgreSQL connection
         id: db
