@@ -1173,9 +1173,7 @@
       "meajudaai.apiservice": {
         "type": "Project",
         "dependencies": {
-          "AspNetCore.HealthChecks.UI": "(, )",
           "AspNetCore.HealthChecks.UI.Client": "[9.0.0, )",
-          "AspNetCore.HealthChecks.UI.InMemory.Storage": "(, )",
           "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Locations.Infrastructure": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.API": "[1.0.0, )",
