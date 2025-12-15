@@ -96,12 +96,22 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("keycloak.test")),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.ServiceUnavailable
             });
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("ibge.gov.br")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
         var healthCheck = CreateHealthCheck();
         var context = new HealthCheckContext();
@@ -127,9 +137,19 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("keycloak.test")),
                 ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new HttpRequestException("Connection refused"));
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("ibge.gov.br")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
         var healthCheck = CreateHealthCheck();
         var context = new HealthCheckContext();
@@ -213,13 +233,23 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("keycloak.test")),
                 ItExpr.IsAny<CancellationToken>())
             .Returns(async () =>
             {
                 await Task.Delay(100); // Simulate slow response
                 return new HttpResponseMessage(HttpStatusCode.OK);
             });
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("ibge.gov.br")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
         var healthCheck = CreateHealthCheck();
         var context = new HealthCheckContext();
@@ -272,11 +302,14 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns((string?)null);
         _configurationMock.Setup(c => c["ExternalServices:IbgeApi:BaseUrl"]).Returns((string?)null);
 
+        // Mock both Keycloak and IBGE endpoints to return OK
         _httpMessageHandlerMock
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("keycloak") ||
+                    req.RequestUri!.ToString().Contains("ibge.gov.br")),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 

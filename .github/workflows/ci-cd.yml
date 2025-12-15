@@ -142,9 +142,9 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
-          MEAJUDAAI_DB_PASS: test123
-          MEAJUDAAI_DB_USER: postgres
-          MEAJUDAAI_DB: meajudaai_test
+          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}

@@ -448,9 +448,9 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
-          MEAJUDAAI_DB_PASS: test123
-          MEAJUDAAI_DB_USER: postgres
-          MEAJUDAAI_DB: meajudaai_test
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
@@ -511,6 +511,9 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
