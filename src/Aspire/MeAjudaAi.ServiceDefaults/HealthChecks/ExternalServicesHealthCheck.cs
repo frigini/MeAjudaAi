@@ -80,26 +80,29 @@ public class ExternalServicesHealthCheck(
         }
     }
 
-    private async Task<(bool IsHealthy, string? Error)> CheckKeycloakAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// Common health check logic for external services
+    /// </summary>
+    private async Task<(bool IsHealthy, string? Error)> CheckServiceAsync(
+        string baseUrl, int timeoutSeconds, CancellationToken cancellationToken)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(externalServicesOptions.Keycloak.BaseUrl))
+            if (string.IsNullOrWhiteSpace(baseUrl))
                 return (false, "BaseUrl not configured");
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.Keycloak.TimeoutSeconds));
+            cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
-            var baseUri = externalServicesOptions.Keycloak.BaseUrl.TrimEnd('/');
+            var baseUri = baseUrl.TrimEnd('/');
             using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}/health");
             var response = await httpClient
                 .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
                 .ConfigureAwait(false);
 
-            if (response.IsSuccessStatusCode)
-                return (true, null);
-
-            return (false, $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
+            return response.IsSuccessStatusCode
+                ? (true, null)
+                : (false, $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
@@ -115,75 +118,23 @@ public class ExternalServicesHealthCheck(
         }
     }
 
-    private async Task<(bool IsHealthy, string? Error)> CheckPaymentGatewayAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(externalServicesOptions.PaymentGateway.BaseUrl))
-                return (false, "BaseUrl not configured");
+    private Task<(bool IsHealthy, string? Error)> CheckKeycloakAsync(CancellationToken cancellationToken) =>
+        CheckServiceAsync(
+            externalServicesOptions.Keycloak.BaseUrl,
+            externalServicesOptions.Keycloak.TimeoutSeconds,
+            cancellationToken);
 
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.PaymentGateway.TimeoutSeconds));
+    private Task<(bool IsHealthy, string? Error)> CheckPaymentGatewayAsync(CancellationToken cancellationToken) =>
+        CheckServiceAsync(
+            externalServicesOptions.PaymentGateway.BaseUrl,
+            externalServicesOptions.PaymentGateway.TimeoutSeconds,
+            cancellationToken);
 
-            var baseUri = externalServicesOptions.PaymentGateway.BaseUrl.TrimEnd('/');
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}/health");
-            var response = await httpClient
-                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
-                .ConfigureAwait(false);
-
-            if (response.IsSuccessStatusCode)
-                return (true, null);
-
-            return (false, $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return (false, "Request timeout");
-        }
-        catch (UriFormatException)
-        {
-            return (false, "Invalid URL");
-        }
-        catch (HttpRequestException ex)
-        {
-            return (false, $"Connection failed: {ex.Message}");
-        }
-    }
-
-    private async Task<(bool IsHealthy, string? Error)> CheckGeolocationAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(externalServicesOptions.Geolocation.BaseUrl))
-                return (false, "BaseUrl not configured");
-
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.Geolocation.TimeoutSeconds));
-
-            var baseUri = externalServicesOptions.Geolocation.BaseUrl.TrimEnd('/');
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}/health");
-            var response = await httpClient
-                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
-                .ConfigureAwait(false);
-
-            if (response.IsSuccessStatusCode)
-                return (true, null);
-
-            return (false, $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return (false, "Request timeout");
-        }
-        catch (UriFormatException)
-        {
-            return (false, "Invalid URL");
-        }
-        catch (HttpRequestException ex)
-        {
-            return (false, $"Connection failed: {ex.Message}");
-        }
-    }
+    private Task<(bool IsHealthy, string? Error)> CheckGeolocationAsync(CancellationToken cancellationToken) =>
+        CheckServiceAsync(
+            externalServicesOptions.Geolocation.BaseUrl,
+            externalServicesOptions.Geolocation.TimeoutSeconds,
+            cancellationToken);
 }
 
 /// <summary>

@@ -66,7 +66,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture fixture
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT \"Name\" FROM meajudaai_service_catalogs.\"ServiceCategories\" ORDER BY \"Name\"",
+            "SELECT \"Name\" FROM meajudaai_service_catalogs.\"ServiceCategories\"",
             connection);
         
         await using var reader = await command.ExecuteReaderAsync();
@@ -77,7 +77,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture fixture
             categories.Add(reader.GetString(0));
         }
 
-        // Assert
+        // Assert - using BeEquivalentTo for unordered comparison
         categories.Should().BeEquivalentTo(expectedCategories);
     }
 
@@ -133,6 +133,14 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture fixture
 
         await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync();
+
+        // Garantir estado limpo para o nome usado no teste
+        await using (var cleanupBefore = new NpgsqlCommand(
+            "DELETE FROM meajudaai_service_catalogs.\"ServiceCategories\" WHERE \"Name\" = 'Teste Idempotência'",
+            connection))
+        {
+            await cleanupBefore.ExecuteNonQueryAsync();
+        }
 
         // Contar registros antes
         await using var countBefore = new NpgsqlCommand(
@@ -212,7 +220,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture fixture
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT \"Name\" FROM meajudaai_service_catalogs.\"Services\" ORDER BY \"Name\"",
+            "SELECT \"Name\" FROM meajudaai_service_catalogs.\"Services\"",
             connection);
         
         await using var reader = await command.ExecuteReaderAsync();
@@ -223,7 +231,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture fixture
             services.Add(reader.GetString(0));
         }
 
-        // Assert
+        // Assert - using BeEquivalentTo for unordered comparison
         services.Should().BeEquivalentTo(expectedServices);
     }
 

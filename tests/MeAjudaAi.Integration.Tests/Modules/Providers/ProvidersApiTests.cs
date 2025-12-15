@@ -228,6 +228,15 @@ public class ProvidersApiTests : ApiTestBase
             
             databaseCheck.ValueKind.Should().NotBe(JsonValueKind.Undefined,
                 because: "/health/ready should include database/postgres health check");
+
+            // Optionally verify the database check's status for stronger guarantees
+            if (response.StatusCode == HttpStatusCode.OK &&
+                databaseCheck.TryGetProperty("status", out var dbStatusElement))
+            {
+                var dbStatus = dbStatusElement.GetString();
+                dbStatus.Should().NotBeNullOrEmpty(
+                    because: "database health check should report a status when readiness is OK");
+            }
         }
         else
         {
