@@ -115,13 +115,13 @@ jobs:
 
           # Verify DCP binaries were downloaded (now located in NuGet package cache)
           echo "🔎 Verifying DCP binaries in NuGet cache..."
-          
+
           # DCP binaries come from Aspire.Hosting.Orchestration NuGet package
           DCP_LOCATIONS=(
             "$HOME/.nuget/packages/aspire.hosting.orchestration.*/*/tools/dcp"
             "$HOME/.nuget/packages/aspire.hosting.orchestration.*/*/tools/dcpctrl"
           )
-          
+
           FOUND_DCP=false
           for pattern in "${DCP_LOCATIONS[@]}"; do
             if compgen -G "$pattern" > /dev/null; then

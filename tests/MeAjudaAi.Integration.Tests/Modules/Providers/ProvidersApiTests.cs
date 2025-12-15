@@ -231,10 +231,11 @@ public class ProvidersApiTests : ApiTestBase
         }
         else
         {
-            // If checks structure is missing/unexpected, fail explicitly
-            throw new InvalidOperationException(
-                "Health check response missing expected 'checks' array. " +
-                "This may indicate a breaking change in the health check API.");
+            // If checks structure is missing/unexpected, fail explicitly with full response
+            Assert.Fail(
+                $"Health check response missing expected 'checks' array. " +
+                $"This may indicate a breaking change in the health check API. " +
+                $"Raw response: {content}");
         }
     }
 

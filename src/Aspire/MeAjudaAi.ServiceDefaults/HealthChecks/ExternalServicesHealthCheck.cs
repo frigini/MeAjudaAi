@@ -59,12 +59,19 @@ public class ExternalServicesHealthCheck(
             var message = $"{healthyCount}/{totalCount} services healthy";
             
             // Structure errors by service name for easier monitoring/alerting
-            var data = issues.ToDictionary(
-                r => r.Service,
-                r => (object)(r.Error ?? "Unknown error")
-            );
+            // Use manual dictionary construction to handle potential duplicate service names gracefully
+            var data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            foreach (var issue in issues)
+            {
+                data[issue.Service] = issue.Error ?? "Unknown error";
+            }
             
             return HealthCheckResult.Degraded(message, data: data);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Let the hosting layer handle cancellation semantics instead of treating it as a failure
+            throw;
         }
         catch (Exception ex)
         {

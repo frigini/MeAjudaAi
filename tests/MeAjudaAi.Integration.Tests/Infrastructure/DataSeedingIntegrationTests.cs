@@ -1,6 +1,5 @@
 using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Aspire;
-using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
@@ -274,15 +273,14 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture fixture
 
     private string GetConnectionString()
     {
-        // NOTA: Em ambiente de teste, usando banco de dados externo configurado via connection string
-        // Este não é o ideal (preferível seria usar container isolado), mas funciona para validação inicial
-        var config = _fixture.HttpClient.GetType()
-            .Assembly.GetTypes()
-            .FirstOrDefault(t => t.Name.Contains("Configuration"));
+        // Use environment variables to support CI/CD environments
+        var host = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_HOST") ?? "localhost";
+        var port = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PORT") ?? "5432";
+        var database = Environment.GetEnvironmentVariable("MEAJUDAAI_DB") ?? "meajudaai_tests";
+        var username = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_USER") ?? "postgres";
+        var password = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PASS") ?? "postgres";
 
-        // Por enquanto, usar connection string hardcoded para ambiente de teste local
-        // TODO: Melhorar isolamento dos testes usando container dedicado
-        return "Host=localhost;Port=5432;Database=meajudaai_tests;Username=postgres;Password=postgres";
+        return $"Host={host};Port={port};Database={database};Username={username};Password={password}";
     }
 
     #endregion
