@@ -62,6 +62,12 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
+      - name: Install Aspire workload
+        run: |
+          echo "📦 Installing .NET Aspire workload..."
+          dotnet workload install aspire
+          echo "✅ Aspire workload installed"
+
       - name: Setup PostgreSQL connection
         id: db
         uses: ./.github/actions/setup-postgres-connection

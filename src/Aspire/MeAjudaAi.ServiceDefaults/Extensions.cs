@@ -127,7 +127,13 @@ public static class Extensions
             {
                 Predicate = _ => true,
                 ResponseWriter = WriteHealthCheckResponse,
-                AllowCachingResponses = false
+                AllowCachingResponses = false,
+                ResultStatusCodes =
+                {
+                    [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                    [HealthStatus.Degraded] = StatusCodes.Status200OK,  // External services degraded is OK
+                    [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                }
             });
 
             app.MapHealthChecks("/health/live", new HealthCheckOptions
