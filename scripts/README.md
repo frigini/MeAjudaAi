@@ -153,6 +153,7 @@ Localizados em `build/` - documentados em [build/README.md](../build/README.md)
 - **Filosofia:** Apenas scripts com utilidade clara e automação
 
 ### Estratégia de Seeding
+
 | Tipo | Quando | Propósito | Exemplo |
 |------|--------|-----------|---------|
 | **SQL Scripts** | Após migrations | Dados essenciais de domínio | ServiceCategories, Services |

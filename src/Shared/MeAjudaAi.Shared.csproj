@@ -75,7 +75,6 @@
     <PackageReference Include="Hangfire.PostgreSql" />
     
     <!-- Health Checks -->
-    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
     <PackageReference Include="AspNetCore.HealthChecks.Npgsql" />
     <PackageReference Include="AspNetCore.HealthChecks.Redis" />
     
