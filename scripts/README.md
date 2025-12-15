@@ -73,37 +73,15 @@ Scripts PowerShell essenciais para desenvolvimento e operações da aplicação.
 
 ### 🌱 Seed de Dados
 
-#### `seed-dev-data.ps1` - Seed Dados de Desenvolvimento (API)
-**Uso:**
-```powershell
-# Quando executar API diretamente (dotnet run) - usa default http://localhost:5000
-.\scripts\seed-dev-data.ps1
-
-# Quando usar Aspire orchestration - override para portas Aspire
-.\scripts\seed-dev-data.ps1 -ApiBaseUrl "https://localhost:7524"
-# ou
-.\scripts\seed-dev-data.ps1 -ApiBaseUrl "http://localhost:5545"
-
-# Seed padrão (Development)
-.\scripts\seed-dev-data.ps1
-```
-
-**Funcionalidades:**
-- Popula categorias de serviços via API
-- Cria serviços básicos via API
-- Adiciona cidades permitidas via API
-- Cria usuários de teste
-- Gera providers de exemplo
-
-**Configuração:**
-- Variável `API_BASE_URL`:
-  - **Default `http://localhost:5000`** - use quando executar API diretamente via `dotnet run`
-  - **Override com `-ApiBaseUrl`** - necessário quando usar Aspire orchestration (portas dinâmicas como `https://localhost:7524` ou `http://localhost:5545`)
-- Apenas para ambiente: Development
+**Estratégia de Seeding:**
+- **SQL Scripts**: Dados essenciais de domínio (executar após migrations)
+- **PowerShell/API**: Dados de teste/desenvolvimento (executar manualmente quando necessário)
 
 ---
 
-#### `seed-service-catalogs.sql` - Seed ServiceCatalogs no Banco
+#### `seed-service-catalogs.sql` - Seed Dados Essenciais (SQL)
+**Quando executar:** Após migrations, **antes** de iniciar a aplicação pela primeira vez
+
 **Uso:**
 ```powershell
 # Via psql direto
@@ -118,11 +96,11 @@ psql "$connectionString" -f scripts/seed-service-catalogs.sql
 ```
 
 **Funcionalidades:**
-- Seed SQL direto no PostgreSQL
+- **Dados ESSENCIAIS** de domínio que devem existir em TODOS os ambientes
 - Insere 8 categorias padrão (Saúde, Educação, Assistência Social, Jurídico, Habitação, Transporte, Alimentação, Trabalho e Renda)
 - Insere 12 serviços essenciais vinculados às categorias
-- Idempotente: não insere se dados já existem
-- Usa UUIDs fixos para referências consistentes
+- **Idempotente**: não insere se dados já existem (verifica antes)
+- **Usa UUIDs fixos** para referências consistentes entre ambientes
 
 **Categorias inseridas:**
 1. **Saúde**: Consulta Médica Geral, Atendimento Psicológico, Fisioterapia
@@ -130,9 +108,42 @@ psql "$connectionString" -f scripts/seed-service-catalogs.sql
 3. **Assistência Social**: Orientação Social, Apoio a Famílias
 4. **Jurídico**: Orientação Jurídica Gratuita, Mediação de Conflitos
 5. **Habitação**: Reparos Residenciais
-6. **Transporte** (vazio - para expansão futura)
-7. **Alimentação** (vazio - para expansão futura)
+6. **Transporte** (categoria criada, serviços para expansão futura)
+7. **Alimentação** (categoria criada, serviços para expansão futura)
 8. **Trabalho e Renda**: Capacitação Profissional, Intermediação de Emprego
+
+---
+
+#### `seed-dev-data.ps1` - Seed Dados de TESTE (PowerShell/API)
+**Quando executar:** Manualmente, apenas quando precisar de dados de teste
+
+**Uso:**
+```powershell
+# Quando executar API diretamente (dotnet run) - usa default http://localhost:5000
+.\scripts\seed-dev-data.ps1
+
+# Quando usar Aspire orchestration - override para portas Aspire
+.\scripts\seed-dev-data.ps1 -ApiBaseUrl "https://localhost:7524"
+# ou
+.\scripts\seed-dev-data.ps1 -ApiBaseUrl "http://localhost:5545"
+```
+
+**Funcionalidades:**
+- **Dados de TESTE** via API REST (requer API rodando e autenticação)
+- Adiciona 10 cidades permitidas (capitais brasileiras) para testes
+- Futuramente: usuários demo, providers fake para testes
+- **NÃO** insere ServiceCategories/Services (isso é feito via SQL)
+
+**Pré-requisitos:**
+- API rodando em $ApiBaseUrl
+- Keycloak rodando em http://localhost:8080
+- Credenciais: admin/admin123
+
+**Configuração:**
+- Variável `API_BASE_URL`:
+  - **Default `http://localhost:5000`** - use quando executar API diretamente via `dotnet run`
+  - **Override com `-ApiBaseUrl`** - necessário quando usar Aspire orchestration (portas dinâmicas como `https://localhost:7524` ou `http://localhost:5545`)
+- Apenas para ambiente: Development
   - **Override com `-ApiBaseUrl`** - necessário quando usar Aspire orchestration (portas dinâmicas como `https://localhost:7524` ou `http://localhost:5545`)
 - Apenas para ambiente: Development
 
@@ -156,6 +167,14 @@ Localizados em `build/` - documentados em [build/README.md](../build/README.md)
 - **Total de scripts:** 5 PowerShell + 1 SQL
 - **Foco:** Migrations, seed de dados, export de API
 - **Filosofia:** Apenas scripts com utilidade clara e automação
-- **Seed Estratégias:**
-  - **SQL direto**: Para dados essenciais de domínio (ServiceCatalogs)
-  - **API REST**: Para dados dinâmicos e testes (AllowedCities, Providers)
+
+### Estratégia de Seeding
+| Tipo | Quando | Propósito | Exemplo |
+|------|--------|-----------|---------|
+| **SQL Scripts** | Após migrations | Dados essenciais de domínio | ServiceCategories, Services |
+| **PowerShell/API** | Manualmente (testes) | Dados opcionais de teste | AllowedCities demo, Providers fake |
+
+**Ordem de Execução:**
+1. `dotnet ef database update` (migrations)
+2. `psql -f seed-service-catalogs.sql` (dados essenciais)
+3. `.\seed-dev-data.ps1` (dados de teste - opcional)

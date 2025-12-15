@@ -64,9 +64,9 @@ Health Checks Robustos + Data Seeding para MVP:
 - ✅ Health Configuration: appsettings.json com 10s evaluation interval
 - ✅ Health Packages: AspNetCore.HealthChecks.UI, .UI.Client, .UI.InMemory.Storage, .Npgsql 9.0.0, .Redis
 - ✅ Health Endpoints: /health com UIResponseWriter, /health-ui para dashboard visual
-- ⏳ Data Seeding: ServiceCategories/Services padrão, cidades permitidas, providers demo
-- ⏳ Seeding Scripts: SQL inicial + EF Core Data Seeding configurável
-- ⏳ Environment-aware: Seeding apenas em Development
+- ✅ Data Seeding: seed-service-catalogs.sql com 8 categorias e 12 serviços essenciais
+- ✅ Seeding Documentation: scripts/README.md atualizado com SQL seed usage
+- ⏳ Environment-aware: Configurar seed apenas em Development
 - ⏳ Testes: Unit tests para health checks + integration tests para seeding
 
 **⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  

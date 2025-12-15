@@ -1,21 +1,29 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Seed inicial de dados para ambiente de desenvolvimento
+    Seed de dados de TESTE para ambiente de desenvolvimento
 
 .DESCRIPTION
-    Popula o banco de dados com dados iniciais para desenvolvimento e testes:
-    - Categorias de serviços
-    - Serviços básicos
-    - Cidades permitidas
-    - Usuários de teste
-    - Providers de exemplo
+    Popula o banco de dados com dados de TESTE via API REST:
+    - Cidades permitidas (10 capitais brasileiras)
+    - Usuários de teste (futuro)
+    - Providers de exemplo (futuro)
+
+    NOTA: Dados ESSENCIAIS de domínio (ServiceCategories, Services) devem ser 
+    inseridos via SQL script após migrations. Veja: scripts/seed-service-catalogs.sql
 
 .PARAMETER Environment
     Ambiente alvo (Development apenas). Default: Development
 
+.PARAMETER ApiBaseUrl
+    URL base da API. Default: http://localhost:5000
+    Use portas Aspire quando executar via Aspire orchestration (ex: https://localhost:7524)
+
 .EXAMPLE
     .\seed-dev-data.ps1
+
+.EXAMPLE
+    .\seed-dev-data.ps1 -ApiBaseUrl "https://localhost:7524"
 #>
 
 [CmdletBinding()]
@@ -85,95 +93,12 @@ $headers = @{
 
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "📦 Seeding: ServiceCatalogs" -ForegroundColor Yellow
+Write-Host "ℹ️  ServiceCatalogs: Usando seed SQL" -ForegroundColor Yellow
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-
-# Categorias
-$categories = @(
-    @{ name = "Saúde"; description = "Serviços relacionados à saúde e bem-estar" }
-    @{ name = "Educação"; description = "Serviços educacionais e de capacitação" }
-    @{ name = "Assistência Social"; description = "Programas de assistência e suporte social" }
-    @{ name = "Jurídico"; description = "Serviços jurídicos e advocatícios" }
-    @{ name = "Habitação"; description = "Moradia e programas habitacionais" }
-    @{ name = "Alimentação"; description = "Programas de segurança alimentar" }
-)
-
-$categoryIds = @{}
-
-foreach ($cat in $categories) {
-    Write-Info "Criando categoria: $($cat.name)"
-    try {
-        $response = Invoke-RestMethod -Uri "$ApiBaseUrl/api/v1/catalogs/admin/categories" `
-            -Method Post `
-            -Headers $headers `
-            -Body ($cat | ConvertTo-Json -Depth 10)
-        
-        $categoryIds[$cat.name] = $response.id
-        Write-Success "Categoria '$($cat.name)' criada (ID: $($response.id))"
-    } catch {
-        if ($_.Exception.Response.StatusCode -eq 409) {
-            Write-Warning "Categoria '$($cat.name)' já existe"
-        } else {
-            Write-Error "Erro ao criar categoria '$($cat.name)': $_"
-        }
-    }
-}
-
-# Serviços
-if ($categoryIds.Count -gt 0) {
-    $services = @(
-        @{ 
-            name = "Atendimento Psicológico Gratuito"
-            description = "Atendimento psicológico individual ou em grupo"
-            categoryId = $categoryIds["Saúde"]
-            eligibilityCriteria = "Renda familiar até 3 salários mínimos"
-            requiredDocuments = @("RG", "CPF", "Comprovante de residência", "Comprovante de renda")
-        }
-        @{
-            name = "Curso de Informática Básica"
-            description = "Curso gratuito de informática e inclusão digital"
-            categoryId = $categoryIds["Educação"]
-            eligibilityCriteria = "Jovens de 14 a 29 anos"
-            requiredDocuments = @("RG", "CPF", "Comprovante de escolaridade")
-        }
-        @{
-            name = "Cesta Básica"
-            description = "Distribuição mensal de cestas básicas"
-            categoryId = $categoryIds["Alimentação"]
-            eligibilityCriteria = "Famílias em situação de vulnerabilidade"
-            requiredDocuments = @("Cadastro único", "Comprovante de residência")
-        }
-        @{
-            name = "Orientação Jurídica Gratuita"
-            description = "Atendimento jurídico para questões civis e trabalhistas"
-            categoryId = $categoryIds["Jurídico"]
-            eligibilityCriteria = "Renda familiar até 2 salários mínimos"
-            requiredDocuments = @("RG", "CPF", "Documentos relacionados ao caso")
-        }
-    )
-
-    foreach ($service in $services) {
-        if ($service.categoryId) {
-            Write-Info "Criando serviço: $($service.name)"
-            try {
-                $response = Invoke-RestMethod -Uri "$ApiBaseUrl/api/v1/catalogs/admin/services" `
-                    -Method Post `
-                    -Headers $headers `
-                    -Body ($service | ConvertTo-Json -Depth 10)
-                
-                Write-Success "Serviço '$($service.name)' criado"
-            } catch {
-                if ($_.Exception.Response.StatusCode -eq 409) {
-                    Write-Warning "Serviço '$($service.name)' já existe"
-                } else {
-                    Write-Error "Erro ao criar serviço '$($service.name)': $_"
-                }
-            }
-        }
-    }
-}
-
+Write-Info "ServiceCategories e Services são criados via SQL após migrations"
+Write-Info "Execute: psql -f scripts/seed-service-catalogs.sql"
 Write-Host ""
+
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 Write-Host "📍 Seeding: Locations (AllowedCities)" -ForegroundColor Yellow
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
@@ -211,17 +136,16 @@ foreach ($city in $allowedCities) {
 
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "🎉 Seed Concluído!" -ForegroundColor Green
+Write-Host "🎉 Seed de Dados de Teste Concluído!" -ForegroundColor Green
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "📊 Dados inseridos:" -ForegroundColor Cyan
-# Computar contagens seguras para evitar referência a variáveis indefinidas
-$categoryCount = if ($categories) { $categories.Count } else { 0 }
-$serviceCount = if ($services) { $services.Count } else { 0 }
-$cityCount = if ($allowedCities) { $allowedCities.Count } else { 0 }
-Write-Host "   • Categorias: $categoryCount" -ForegroundColor White
-Write-Host "   • Serviços: $serviceCount" -ForegroundColor White
-Write-Host "   • Cidades: $cityCount" -ForegroundColor White
+Write-Host "📊 Dados de TESTE inseridos:" -ForegroundColor Cyan
+Write-Host "   • Cidades permitidas: $cityCount" -ForegroundColor White
+Write-Host ""
+Write-Host "💡 Dados ESSENCIAIS (via SQL):" -ForegroundColor Cyan
+Write-Host "   • ServiceCategories: 8 categorias" -ForegroundColor White
+Write-Host "   • Services: 12 serviços padrão" -ForegroundColor White
+Write-Host "   • Execute: psql -f scripts/seed-service-catalogs.sql" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "💡 Próximos passos:" -ForegroundColor Cyan
 Write-Host "   1. Cadastrar providers usando Bruno collections" -ForegroundColor White
