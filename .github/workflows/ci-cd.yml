@@ -186,7 +186,7 @@ jobs:
             --configuration Release --no-build --verbosity normal
 
       - name: Install ReportGenerator
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool --version 5.3.11
 
       - name: Generate Code Coverage Report
         run: |
