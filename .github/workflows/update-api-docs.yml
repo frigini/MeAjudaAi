@@ -38,12 +38,12 @@ jobs:
     
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       
       - name: 🔧 Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
           dotnet-quality: 'ga'
@@ -107,7 +107,7 @@ jobs:
           cat api-stats.md
       
       - name: 💾 Commit Updated Spec
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'docs(api): atualizar api-spec.json automaticamente [skip ci]'
           file_pattern: 'api/api-spec.json'
@@ -126,7 +126,7 @@ jobs:
     
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
       
@@ -164,7 +164,7 @@ jobs:
           echo "✅ OpenAPI spec copiado para docs/api/"
       
       - name: 📦 Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
       
       - name: 🔨 Build with Jekyll
         uses: actions/jekyll-build-pages@v1
