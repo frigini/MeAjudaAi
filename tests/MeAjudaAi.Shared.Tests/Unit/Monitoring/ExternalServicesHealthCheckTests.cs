@@ -53,6 +53,16 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
                 Content = new StringContent("{\"realm\":\"meajudaai\"}")
             });
 
+        // Mock IBGE API também
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("ibge.gov.br")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
+
         var healthCheck = CreateHealthCheck();
         var context = new HealthCheckContext();
 
@@ -63,6 +73,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         result.Status.Should().Be(HealthStatus.Healthy);
         result.Description.Should().Be("All external services are operational");
         result.Data.Should().ContainKey("keycloak");
+        result.Data.Should().ContainKey("ibge_api");
         result.Data.Should().ContainKey("timestamp");
         result.Data.Should().ContainKey("overall_status");
         result.Data["overall_status"].Should().Be("healthy");
@@ -137,15 +148,25 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         // Arrange - No Keycloak URL configured
         _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns((string?)null);
 
+        // Mock IBGE API
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
+
         var healthCheck = CreateHealthCheck();
         var context = new HealthCheckContext();
 
         // Act
         var result = await healthCheck.CheckHealthAsync(context);
 
-        // Assert - Should be healthy when service is not configured (optional dependency)
+        // Assert - Should be healthy when Keycloak is not configured
         result.Status.Should().Be(HealthStatus.Healthy);
         result.Data["overall_status"].Should().Be("healthy");
+        result.Data.Should().ContainKey("ibge_api");
     }
 
     #endregion
@@ -257,6 +278,174 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         result.Data.Should().ContainKey("overall_status");
         var status = result.Data["overall_status"] as string;
         status.Should().BeOneOf("healthy", "degraded");
+    }
+
+    #endregion
+
+    #region IBGE API Health Check Tests
+
+    [Fact]
+    public async Task CheckHealthAsync_WithHealthyIbgeApi_ShouldReturnHealthy()
+    {
+        // Arrange
+        _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns((string?)null);
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString() == "https://servicodados.ibge.gov.br/api/v1/localidades/estados/MG"),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent("{\"id\":31,\"sigla\":\"MG\",\"nome\":\"Minas Gerais\"}")
+            });
+
+        var healthCheck = CreateHealthCheck();
+        var context = new HealthCheckContext();
+
+        // Act
+        var result = await healthCheck.CheckHealthAsync(context);
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Healthy);
+        result.Data.Should().ContainKey("ibge_api");
+        result.Data["overall_status"].Should().Be("healthy");
+
+        var ibgeData = result.Data["ibge_api"];
+        ibgeData.Should().NotBeNull();
+        var ibgeStatus = ibgeData.GetType().GetProperty("status")?.GetValue(ibgeData);
+        ibgeStatus.Should().Be("healthy");
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_WithUnhealthyIbgeApi_ShouldReturnDegraded()
+    {
+        // Arrange
+        _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns((string?)null);
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.ServiceUnavailable
+            });
+
+        var healthCheck = CreateHealthCheck();
+        var context = new HealthCheckContext();
+
+        // Act
+        var result = await healthCheck.CheckHealthAsync(context);
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Degraded);
+        result.Data.Should().ContainKey("ibge_api");
+        result.Data["overall_status"].Should().Be("degraded");
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_WhenIbgeApiThrowsException_ShouldReturnDegraded()
+    {
+        // Arrange
+        _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns((string?)null);
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ThrowsAsync(new HttpRequestException("Connection timeout"));
+
+        var healthCheck = CreateHealthCheck();
+        var context = new HealthCheckContext();
+
+        // Act
+        var result = await healthCheck.CheckHealthAsync(context);
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Degraded);
+        result.Data.Should().ContainKey("ibge_api");
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_WithKeycloakAndIbgeHealthy_ShouldReturnHealthy()
+    {
+        // Arrange
+        _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns("https://keycloak.test");
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString() == "https://keycloak.test/realms/meajudaai"),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString() == "https://servicodados.ibge.gov.br/api/v1/localidades/estados/MG"),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
+
+        var healthCheck = CreateHealthCheck();
+        var context = new HealthCheckContext();
+
+        // Act
+        var result = await healthCheck.CheckHealthAsync(context);
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Healthy);
+        result.Data.Should().ContainKey("keycloak");
+        result.Data.Should().ContainKey("ibge_api");
+        result.Data["overall_status"].Should().Be("healthy");
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_WithKeycloakHealthyAndIbgeUnhealthy_ShouldReturnDegraded()
+    {
+        // Arrange
+        _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns("https://keycloak.test");
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString() == "https://keycloak.test/realms/meajudaai"),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("ibge.gov.br")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
+
+        var healthCheck = CreateHealthCheck();
+        var context = new HealthCheckContext();
+
+        // Act
+        var result = await healthCheck.CheckHealthAsync(context);
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Degraded);
+        result.Data.Should().ContainKey("keycloak");
+        result.Data.Should().ContainKey("ibge_api");
+        result.Data["overall_status"].Should().Be("degraded");
     }
 
     #endregion

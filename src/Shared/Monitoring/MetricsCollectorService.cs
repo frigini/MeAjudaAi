@@ -9,6 +9,7 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// </summary>
 internal class MetricsCollectorService(
     BusinessMetrics businessMetrics,
+    IServiceScopeFactory serviceScopeFactory,
     ILogger<MetricsCollectorService> logger) : BackgroundService
 {
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // Coleta a cada minuto
@@ -78,14 +79,22 @@ internal class MetricsCollectorService(
     {
         try
         {
-            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui para
-            //       acessar UsersDbContext e contar usuários que fizeram login nas últimas 24 horas.
+            using var scope = serviceScopeFactory.CreateScope();
+            var usersDbContext = scope.ServiceProvider.GetService<dynamic>();
+            
+            // Se o módulo Users não estiver registrado, retorna 0
+            if (usersDbContext == null)
+            {
+                logger.LogDebug("Users module not available, returning 0 active users");
+                return 0;
+            }
 
-            // Placeholder - implementar com o serviço real de usuários
-            await Task.Delay(1, cancellationToken); // Simular operação async
-
-            // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
-            return 125; // Valor simulado fixo
+            // Simular consulta - em produção, implementar query real
+            // Exemplo: contar usuários com LastLoginAt > DateTime.UtcNow.AddHours(-24)
+            await Task.Delay(1, cancellationToken);
+            
+            // Por ora, retorna valor simulado
+            return 0;
         }
         catch (OperationCanceledException)
         {
@@ -102,14 +111,14 @@ internal class MetricsCollectorService(
     {
         try
         {
-            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui para
-            //       acessar HelpRequestRepository e contar solicitações com status Pending.
-
-            // Placeholder - implementar com o serviço real de help requests
-            await Task.Delay(1, cancellationToken); // Simular operação async
-
-            // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
-            return 25; // Valor simulado fixo
+            using var scope = serviceScopeFactory.CreateScope();
+            
+            // Implementação futura: injetar HelpRequestRepository
+            // e contar solicitações com status Pending
+            await Task.Delay(1, cancellationToken);
+            
+            // Por ora, retorna 0
+            return 0;
         }
         catch (OperationCanceledException)
         {

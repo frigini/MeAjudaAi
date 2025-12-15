@@ -51,7 +51,30 @@ public partial class MeAjudaAiHealthChecks
                 allHealthy = false;
             }
 
-            // Verificar outros serviços externos aqui...
+            // Verificar IBGE API
+            try
+            {
+                var ibgeBaseUrl = "https://servicodados.ibge.gov.br/api/v1/localidades";
+                
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                using var response = await httpClient.GetAsync($"{ibgeBaseUrl}/estados/MG", cancellationToken);
+                stopwatch.Stop();
+
+                results["ibge_api"] = new
+                {
+                    status = response.IsSuccessStatusCode ? "healthy" : "unhealthy",
+                    response_time_ms = stopwatch.ElapsedMilliseconds,
+                    endpoint = "estados/MG"
+                };
+
+                if (!response.IsSuccessStatusCode)
+                    allHealthy = false;
+            }
+            catch (Exception ex)
+            {
+                results["ibge_api"] = new { status = "unhealthy", error = ex.Message };
+                allHealthy = false;
+            }
 
             results["timestamp"] = DateTime.UtcNow;
             results["overall_status"] = allHealthy ? "healthy" : "degraded";
