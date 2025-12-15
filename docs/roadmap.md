@@ -108,8 +108,8 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 4** | 3 dias | 14 Dez - 16 Dez | Health Checks + Data Seeding | ✅ CONCLUÍDO (16 Dez - MERGED!) |
 | **Sprint 5** | 2 semanas | Jan 2026 | Blazor Admin Portal (Web) - Parte 1 | ⏳ Planejado |
 | **Sprint 6** | 2 semanas | Fev 2026 | Blazor Admin Portal (Web) - Parte 2 | ⏳ Planejado |
-| **Sprint 6** | 3 semanas | Mar 2026 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
-| **Sprint 7** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
+| **Sprint 7** | 3 semanas | Mar 2026 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
+| **Sprint 8** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
 
 **MVP Launch Target**: 31 de Março de 2026 🎯
 

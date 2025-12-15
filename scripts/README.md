@@ -122,14 +122,12 @@ Get-ChildItem infrastructure/database/seeds/*.sql | Sort-Object Name | ForEach-O
 
 **Pré-requisitos:**
 - API rodando em $ApiBaseUrl
-- Keycloak rodando em http://localhost:8080
+- Keycloak rodando em <http://localhost:8080>
 - Credenciais: admin/admin123
 
 **Configuração:**
 - Variável `API_BASE_URL`:
   - **Default `http://localhost:5000`** - use quando executar API diretamente via `dotnet run`
-  - **Override com `-ApiBaseUrl`** - necessário quando usar Aspire orchestration (portas dinâmicas como `https://localhost:7524` ou `http://localhost:5545`)
-- Apenas para ambiente: Development
   - **Override com `-ApiBaseUrl`** - necessário quando usar Aspire orchestration (portas dinâmicas como `https://localhost:7524` ou `http://localhost:5545`)
 - Apenas para ambiente: Development
 

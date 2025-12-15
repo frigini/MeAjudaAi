@@ -1,13 +1,10 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using HealthChecks.UI.Client;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.ApiService.Extensions;

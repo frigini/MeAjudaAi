@@ -45,7 +45,7 @@ public static class HealthCheckExtensions
             tags: new[] { "ready", "external" });
 
         // Adicionar Redis health check se configurado
-        var redisConnectionString = configuration.GetConnectionString("redis");
+        var redisConnectionString = configuration["Caching:RedisConnectionString"];
         if (!string.IsNullOrEmpty(redisConnectionString))
         {
             healthChecksBuilder.AddRedis(
