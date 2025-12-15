@@ -64,10 +64,11 @@ Health Checks Robustos + Data Seeding para MVP:
 - ✅ Health Configuration: appsettings.json com 10s evaluation interval
 - ✅ Health Packages: AspNetCore.HealthChecks.UI, .UI.Client, .UI.InMemory.Storage, .Npgsql 9.0.0, .Redis
 - ✅ Health Endpoints: /health com UIResponseWriter, /health-ui para dashboard visual
-- ✅ Data Seeding: seed-service-catalogs.sql com 8 categorias e 12 serviços essenciais
-- ✅ Seeding Documentation: scripts/README.md atualizado com SQL seed usage
-- ⏳ Environment-aware: Configurar seed apenas em Development
-- ⏳ Testes: Unit tests para health checks + integration tests para seeding
+- ✅ Data Seeding: infrastructure/database/seeds/01-seed-service-catalogs.sql (8 categorias + 12 serviços)
+- ✅ Seed Automation: Docker Compose executa seeds automaticamente na inicialização
+- ✅ Project Structure: Reorganização - automation/ → infrastructure/automation/, seeds em infrastructure/database/seeds/
+- ✅ Documentation: Atualizado README.md, scripts/README.md, infrastructure/database/README.md
+- ⏳ Testes: Unit tests para health checks
 
 **⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
