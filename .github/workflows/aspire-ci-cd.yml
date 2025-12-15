@@ -103,28 +103,25 @@ jobs:
         run: |
           echo "📦 Installing .NET Aspire workload for integration tests..."
           
-          # Clean any previous workload state
-          dotnet workload clean
-          
-          # Update workload manifests
-          dotnet workload update --skip-sign-check
-          
-          # Install Aspire workload with additional flags for reliability
+          # Clean, update, and install in one pipeline
+          dotnet workload clean && \
+          dotnet workload update --skip-sign-check && \
           dotnet workload install aspire --skip-sign-check --source https://api.nuget.org/v3/index.json
           
           echo "✅ Aspire workload installed"
-          echo "🔍 Verifying Aspire installation..."
-          dotnet workload list
           
-          # Restore tools to ensure DCP binaries are downloaded
-          echo "📥 Restoring .NET tools and Aspire components..."
+          # Restore AppHost to download DCP binaries
           dotnet restore src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj
           
-          # Verify DCP binaries are available
-          echo "🔎 Searching for DCP binaries..."
-          find "$HOME/.dotnet" -name "dcp" -o -name "dcpctrl" -o -name "Aspire.Hosting.Orchestration" 2>/dev/null || echo "⚠️ DCP binaries not found in expected locations"
+          # Verify DCP binaries exist (critical - fail if not found)
+          echo "🔎 Verifying DCP binaries..."
+          if ! find "$HOME/.dotnet" -type f \( -name "dcp" -o -name "dcpctrl" \) -print -quit | grep -q .; then
+            echo "❌ ERROR: DCP binaries not found - Aspire integration tests will fail"
+            exit 1
+          fi
+          echo "✅ DCP binaries verified"
           
-          # Set DOTNET_ROOT to help with workload discovery
+          # Set DOTNET_ROOT for workload discovery
           echo "DOTNET_ROOT=$HOME/.dotnet" >> $GITHUB_ENV
 
       - name: Run Integration Tests

@@ -55,8 +55,16 @@ public class ExternalServicesHealthCheck(
 
             // External services down should never make the app unhealthy (only degraded)
             // Application can continue to function with limited features when external services are unavailable
-            var errors = string.Join("; ", results.Where(r => !r.IsHealthy).Select(r => $"{r.Service}: {r.Error}"));
-            return HealthCheckResult.Degraded($"{healthyCount}/{totalCount} services healthy. Issues: {errors}");
+            var issues = results.Where(r => !r.IsHealthy).ToArray();
+            var message = $"{healthyCount}/{totalCount} services healthy";
+            
+            // Structure errors by service name for easier monitoring/alerting
+            var data = issues.ToDictionary(
+                r => r.Service,
+                r => (object?)(r.Error ?? "Unknown error")
+            );
+            
+            return HealthCheckResult.Degraded(message, data: data);
         }
         catch (Exception ex)
         {
