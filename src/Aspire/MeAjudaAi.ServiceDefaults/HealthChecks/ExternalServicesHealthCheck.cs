@@ -91,6 +91,9 @@ public class ExternalServicesHealthCheck(
             if (string.IsNullOrWhiteSpace(baseUrl))
                 return (false, "BaseUrl not configured");
 
+            if (timeoutSeconds <= 0)
+                return (false, "Invalid timeout configuration");
+
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 

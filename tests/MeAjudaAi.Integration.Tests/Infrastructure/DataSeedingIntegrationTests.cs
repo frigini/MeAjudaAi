@@ -19,8 +19,6 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture fixture) 
     : IClassFixture<AspireIntegrationFixture>
 {
-    private readonly AspireIntegrationFixture _fixture = fixture;
-
     #region ServiceCatalogs Seeding Tests
 
     [Fact(Skip = "KNOWN ISSUE: Aspire DCP binaries not found - .NET 10 workload deprecation")]
