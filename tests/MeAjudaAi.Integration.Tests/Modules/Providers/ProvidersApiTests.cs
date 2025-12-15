@@ -206,21 +206,34 @@ public class ProvidersApiTests : ApiTestBase
         status.Should().NotBeNullOrEmpty(because: "health status should be present");
 
         // Verifica se a entrada do health check de database existe
-        if (healthResponse.TryGetProperty("entries", out var entries) &&
-            entries.ValueKind == JsonValueKind.Object)
+        // API retorna 'checks' ao invés de 'entries'
+        if (healthResponse.TryGetProperty("checks", out var checks) &&
+            checks.ValueKind == JsonValueKind.Array)
         {
-            var databaseEntry = entries.EnumerateObject()
-                .FirstOrDefault(e => e.Name.Contains("database", StringComparison.OrdinalIgnoreCase) ||
-                                     e.Name.Contains("postgres", StringComparison.OrdinalIgnoreCase));
-            databaseEntry.Should().NotBe(default,
-                because: "/health/ready should include database health check");
+            var checksArray = checks.EnumerateArray().ToArray();
+            checksArray.Should().NotBeEmpty(because: "/health/ready should have health checks");
+            
+            var databaseCheck = checksArray
+                .FirstOrDefault(check =>
+                {
+                    if (check.TryGetProperty("name", out var nameElement))
+                    {
+                        var name = nameElement.GetString() ?? string.Empty;
+                        return name.Contains("database", StringComparison.OrdinalIgnoreCase) ||
+                               name.Contains("postgres", StringComparison.OrdinalIgnoreCase) ||
+                               name.Contains("npgsql", StringComparison.OrdinalIgnoreCase);
+                    }
+                    return false;
+                });
+            
+            databaseCheck.ValueKind.Should().NotBe(JsonValueKind.Undefined,
+                because: "/health/ready should include database/postgres health check");
         }
         else
         {
-            // If entries structure is missing/unexpected, fail explicitly to catch breaking changes
-            // This is stricter but helps detect API contract violations early
+            // If checks structure is missing/unexpected, fail explicitly
             throw new InvalidOperationException(
-                "Health check response missing expected 'entries' structure. " +
+                "Health check response missing expected 'checks' array. " +
                 "This may indicate a breaking change in the health check API.");
         }
     }
