@@ -123,11 +123,12 @@ public static class Extensions
     {
         if (app.Environment.IsDevelopment() || IsTestingEnvironment())
         {
-            // Health endpoint returns 200 for Healthy/Degraded, 503 for Unhealthy (framework defaults)
-            // Degraded external services (IBGE/Keycloak) don't affect application availability
+            // Health endpoint excludes critical infrastructure (database) - only external services
+            // Returns 200 for Healthy/Degraded (external services can be down without affecting app availability)
+            // External services like Keycloak/IBGE degraded don't prevent the API from serving requests
             app.MapHealthChecks("/health", new HealthCheckOptions
             {
-                Predicate = _ => true,
+                Predicate = check => check.Tags.Contains("external"),  // Only external services, not database
                 ResponseWriter = WriteHealthCheckResponse,
                 AllowCachingResponses = false
             });
@@ -141,7 +142,7 @@ public static class Extensions
 
             app.MapHealthChecks("/health/ready", new HealthCheckOptions
             {
-                Predicate = r => r.Tags.Contains("ready"),
+                Predicate = r => r.Tags.Contains("ready"),  // Includes database + external services
                 ResponseWriter = WriteHealthCheckResponse,
                 AllowCachingResponses = false
             });
