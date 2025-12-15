@@ -188,8 +188,9 @@ public class ProvidersApiTests : ApiTestBase
         var response = await Client.GetAsync("/health/ready");
 
         // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable,
-            "Ready check can return 200 (healthy) or 503 (database unavailable)");
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable)
+            .And.Subject.Should().NotBe(HttpStatusCode.InternalServerError,
+                "Ready check can return 200 (healthy) or 503 (database unavailable), but not 500");
         
         var content = await response.Content.ReadAsStringAsync();
 

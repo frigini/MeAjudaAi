@@ -61,7 +61,7 @@ public class ExternalServicesHealthCheck(
             // Structure errors by service name for easier monitoring/alerting
             var data = issues.ToDictionary(
                 r => r.Service,
-                r => (object?)(r.Error ?? "Unknown error")
+                r => (object)(r.Error ?? "Unknown error")
             );
             
             return HealthCheckResult.Degraded(message, data: data);
