@@ -269,6 +269,15 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
     {
         // Arrange
         _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns((string?)null);
+        _configurationMock.Setup(c => c["ExternalServices:IbgeApi:BaseUrl"]).Returns((string?)null);
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
         var healthCheck = CreateHealthCheck();
         var context = new HealthCheckContext();
