@@ -97,7 +97,13 @@ jobs:
           postgres-user: ${{ secrets.POSTGRES_USER || 'postgres' }}
           postgres-password: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
 
-      - name: Run tests
+      - name: Run Architecture Tests
+        run: |
+          echo "🏛️ Running Architecture tests..."
+          dotnet test tests/MeAjudaAi.Architecture.Tests/ --no-build --configuration Release
+          echo "✅ Architecture tests passed"
+
+      - name: Run Integration Tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           # Database configuration for tests that need it
@@ -112,12 +118,15 @@ jobs:
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
-          echo "🧪 Running core test suite (excluding E2E)..."
-          # Run only Architecture and Integration tests - skip E2E tests for Aspire validation
-          dotnet test tests/MeAjudaAi.Architecture.Tests/ --no-build --configuration Release
+          echo "🔗 Running Integration tests..."
           dotnet test tests/MeAjudaAi.Integration.Tests/ --no-build --configuration Release
+          echo "✅ Integration tests passed"
+
+      - name: Run Module Unit Tests
+        run: |
+          echo "📦 Running module unit tests..."
           dotnet test src/Modules/Users/Tests/ --no-build --configuration Release
-          echo "✅ Core tests passed successfully"
+          echo "✅ Module tests passed"
 
   # Validate Aspire configuration
   aspire-validation:

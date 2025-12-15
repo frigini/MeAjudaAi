@@ -53,7 +53,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
                 Content = new StringContent("{\"realm\":\"meajudaai\"}")
             });
 
-        // Mock IBGE API também
+        // Mock IBGE API as well
         _httpMessageHandlerMock
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -302,13 +302,12 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns((string?)null);
         _configurationMock.Setup(c => c["ExternalServices:IbgeApi:BaseUrl"]).Returns((string?)null);
 
-        // Mock both Keycloak and IBGE endpoints to return OK
+        // Mock IBGE API endpoint (Keycloak is null, so no Keycloak call is made)
         _httpMessageHandlerMock
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.Is<HttpRequestMessage>(req =>
-                    req.RequestUri!.ToString().Contains("keycloak") ||
                     req.RequestUri!.ToString().Contains("ibge.gov.br")),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
@@ -377,7 +376,8 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("ibge.gov.br")),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage
             {
@@ -411,7 +411,8 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.RequestUri!.ToString().Contains("ibge.gov.br")),
                 ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new HttpRequestException("Connection timeout"));
 
