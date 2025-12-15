@@ -128,6 +128,12 @@ jobs:
           dotnet test src/Modules/Users/Tests/ --no-build --configuration Release
           echo "✅ Module tests passed"
 
+      - name: Run Shared Unit Tests
+        run: |
+          echo "🔧 Running shared unit tests..."
+          dotnet test tests/MeAjudaAi.Shared.Tests/ --no-build --configuration Release
+          echo "✅ Shared tests passed"
+
   # Validate Aspire configuration
   aspire-validation:
     runs-on: ubuntu-latest
