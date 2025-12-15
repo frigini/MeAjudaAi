@@ -289,18 +289,19 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
     {
         // Arrange
         _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns((string?)null);
+        _configurationMock.Setup(c => c["ExternalServices:IbgeApi:BaseUrl"]).Returns((string?)null);
 
         _httpMessageHandlerMock
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.Is<HttpRequestMessage>(req =>
-                    req.RequestUri!.ToString() == "https://servicodados.ibge.gov.br/api/v1/localidades/estados/MG"),
+                    req.RequestUri!.ToString() == "https://servicodados.ibge.gov.br/api/v1/localidades/estados"),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("{\"id\":31,\"sigla\":\"MG\",\"nome\":\"Minas Gerais\"}")
+                Content = new StringContent("[{\"id\":31,\"sigla\":\"MG\",\"nome\":\"Minas Gerais\"}]")
             });
 
         var healthCheck = CreateHealthCheck();
@@ -379,6 +380,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
     {
         // Arrange
         _configurationMock.Setup(c => c["Keycloak:BaseUrl"]).Returns("https://keycloak.test");
+        _configurationMock.Setup(c => c["ExternalServices:IbgeApi:BaseUrl"]).Returns((string?)null);
 
         _httpMessageHandlerMock
             .Protected()
@@ -394,7 +396,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.Is<HttpRequestMessage>(req =>
-                    req.RequestUri!.ToString() == "https://servicodados.ibge.gov.br/api/v1/localidades/estados/MG"),
+                    req.RequestUri!.ToString() == "https://servicodados.ibge.gov.br/api/v1/localidades/estados"),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
