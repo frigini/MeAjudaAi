@@ -72,8 +72,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         // Assert
         result.Status.Should().Be(HealthStatus.Healthy);
         result.Description.Should().Be("All external services are operational");
-        result.Data.Should().ContainKey("keycloak");
-        result.Data.Should().ContainKey("ibge_api");
+        result.Data.Should().ContainKey("keycloak");        result.Data.Should().ContainKey("ibge_api");        result.Data.Should().ContainKey("ibge_api");
         result.Data.Should().ContainKey("timestamp");
         result.Data.Should().ContainKey("overall_status");
         result.Data["overall_status"].Should().Be("healthy");
@@ -113,6 +112,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         result.Status.Should().Be(HealthStatus.Degraded);
         result.Description.Should().Be("Some external services are not operational");
         result.Data.Should().ContainKey("keycloak");
+        result.Data.Should().ContainKey("ibge_api");
         result.Data["overall_status"].Should().Be("degraded");
     }
 
@@ -139,6 +139,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         // Assert
         result.Status.Should().Be(HealthStatus.Degraded);
         result.Data.Should().ContainKey("keycloak");
+        result.Data.Should().ContainKey("ibge_api");
         result.Data["keycloak"].Should().NotBeNull();
     }
 
@@ -228,6 +229,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
         // Assert
         result.Should().NotBeNull();
         result.Data.Should().ContainKey("keycloak");
+        result.Data.Should().ContainKey("ibge_api");
     }
 
     #endregion
@@ -477,6 +479,7 @@ public sealed class ExternalServicesHealthCheckTests : IDisposable
 
         // Assert
         result.Data.Should().ContainKey("keycloak");
+        result.Data.Should().ContainKey("ibge_api");
         // When more services are added, verify they're all checked
     }
 
