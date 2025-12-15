@@ -73,7 +73,7 @@ Scripts PowerShell essenciais para desenvolvimento e operações da aplicação.
 
 ### 🌱 Seed de Dados
 
-#### `seed-dev-data.ps1` - Seed Dados de Desenvolvimento
+#### `seed-dev-data.ps1` - Seed Dados de Desenvolvimento (API)
 **Uso:**
 ```powershell
 # Quando executar API diretamente (dotnet run) - usa default http://localhost:5000
@@ -89,15 +89,50 @@ Scripts PowerShell essenciais para desenvolvimento e operações da aplicação.
 ```
 
 **Funcionalidades:**
-- Popula categorias de serviços
-- Cria serviços básicos
-- Adiciona cidades permitidas
+- Popula categorias de serviços via API
+- Cria serviços básicos via API
+- Adiciona cidades permitidas via API
 - Cria usuários de teste
 - Gera providers de exemplo
 
 **Configuração:**
 - Variável `API_BASE_URL`:
   - **Default `http://localhost:5000`** - use quando executar API diretamente via `dotnet run`
+  - **Override com `-ApiBaseUrl`** - necessário quando usar Aspire orchestration (portas dinâmicas como `https://localhost:7524` ou `http://localhost:5545`)
+- Apenas para ambiente: Development
+
+---
+
+#### `seed-service-catalogs.sql` - Seed ServiceCatalogs no Banco
+**Uso:**
+```powershell
+# Via psql direto
+psql -h localhost -U meajudaai_user -d meajudaai_service_catalogs -f scripts/seed-service-catalogs.sql
+
+# Via Docker Compose
+docker exec -i meajudaai-postgres psql -U meajudaai_user -d meajudaai_service_catalogs < scripts/seed-service-catalogs.sql
+
+# Ou usando ConnectionString do appsettings
+$connectionString = "Host=localhost;Database=meajudaai_service_catalogs;Username=meajudaai_user;Password=your_password"
+psql "$connectionString" -f scripts/seed-service-catalogs.sql
+```
+
+**Funcionalidades:**
+- Seed SQL direto no PostgreSQL
+- Insere 8 categorias padrão (Saúde, Educação, Assistência Social, Jurídico, Habitação, Transporte, Alimentação, Trabalho e Renda)
+- Insere 12 serviços essenciais vinculados às categorias
+- Idempotente: não insere se dados já existem
+- Usa UUIDs fixos para referências consistentes
+
+**Categorias inseridas:**
+1. **Saúde**: Consulta Médica Geral, Atendimento Psicológico, Fisioterapia
+2. **Educação**: Reforço Escolar, Alfabetização de Adultos
+3. **Assistência Social**: Orientação Social, Apoio a Famílias
+4. **Jurídico**: Orientação Jurídica Gratuita, Mediação de Conflitos
+5. **Habitação**: Reparos Residenciais
+6. **Transporte** (vazio - para expansão futura)
+7. **Alimentação** (vazio - para expansão futura)
+8. **Trabalho e Renda**: Capacitação Profissional, Intermediação de Emprego
   - **Override com `-ApiBaseUrl`** - necessário quando usar Aspire orchestration (portas dinâmicas como `https://localhost:7524` ou `http://localhost:5545`)
 - Apenas para ambiente: Development
 
@@ -118,6 +153,9 @@ Localizados em `build/` - documentados em [build/README.md](../build/README.md)
 
 ## 📊 Resumo
 
-- **Total de scripts:** 4 PowerShell essenciais
+- **Total de scripts:** 5 PowerShell + 1 SQL
 - **Foco:** Migrations, seed de dados, export de API
 - **Filosofia:** Apenas scripts com utilidade clara e automação
+- **Seed Estratégias:**
+  - **SQL direto**: Para dados essenciais de domínio (ServiceCatalogs)
+  - **API REST**: Para dados dinâmicos e testes (AllowedCities, Providers)
