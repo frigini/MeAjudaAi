@@ -113,13 +113,32 @@ jobs:
           # Restore AppHost to download DCP binaries
           dotnet restore src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj
           
-          # Verify DCP binaries exist (critical - fail if not found)
-          echo "🔎 Verifying DCP binaries..."
-          if ! find "$HOME/.dotnet" -type f \( -name "dcp" -o -name "dcpctrl" \) -print -quit | grep -q .; then
-            echo "❌ ERROR: DCP binaries not found - Aspire integration tests will fail"
+          # Verify DCP binaries exist with detailed output
+          echo "🔎 Verifying DCP binaries in $HOME/.dotnet..."
+          DCP_PATH=$(find "$HOME/.dotnet" -type f -name "dcp" 2>/dev/null | head -n 1)
+          DCPCTRL_PATH=$(find "$HOME/.dotnet" -type f -name "dcpctrl" 2>/dev/null | head -n 1)
+          
+          if [ -n "$DCP_PATH" ]; then
+            echo "✅ Found DCP binary: $DCP_PATH"
+          else
+            echo "❌ ERROR: dcp binary not found"
+          fi
+          
+          if [ -n "$DCPCTRL_PATH" ]; then
+            echo "✅ Found dcpctrl binary: $DCPCTRL_PATH"
+          else
+            echo "❌ ERROR: dcpctrl binary not found"
+          fi
+          
+          # Fail if either binary is missing
+          if [ -z "$DCP_PATH" ] || [ -z "$DCPCTRL_PATH" ]; then
+            echo "❌ FATAL: DCP binaries missing - Aspire integration tests will fail"
+            echo "Searching all .dotnet directories for aspire-related files..."
+            find "$HOME/.dotnet" -type f -iname "*aspire*" -o -iname "*dcp*" 2>/dev/null || echo "No aspire/dcp files found"
             exit 1
           fi
-          echo "✅ DCP binaries verified"
+          
+          echo "✅ All DCP binaries verified"
           
           # Set DOTNET_ROOT for workload discovery
           echo "DOTNET_ROOT=$HOME/.dotnet" >> $GITHUB_ENV
