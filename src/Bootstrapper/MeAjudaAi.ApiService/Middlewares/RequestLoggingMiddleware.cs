@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.ApiService.Middlewares;
@@ -17,7 +18,7 @@ namespace MeAjudaAi.ApiService.Middlewares;
 ///   <item>Tempo de execução (ElapsedMs)</item>
 ///   <item>Status code da resposta</item>
 /// </list>
-/// <para><b>Uso</b>: Registrado automaticamente no pipeline via <see cref="ApiMiddlewaresExtensions.UseApiMiddlewares"/></para>
+/// <para><b>Uso</b>: Registrado automaticamente no pipeline via <see cref="MiddlewareExtensions.UseApiMiddlewares"/></para>
 /// <para><b>Observação</b>: Health checks e arquivos estáticos são ignorados para reduzir ruído nos logs</para>
 /// </remarks>
 public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger)

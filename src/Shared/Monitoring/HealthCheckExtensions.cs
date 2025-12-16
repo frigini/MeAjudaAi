@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System.Linq;
 
 namespace MeAjudaAi.Shared.Monitoring;
 
@@ -21,19 +20,7 @@ public static class HealthCheckExtensions
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("DefaultConnection string not found");
 
-        // Registrar HttpClient para ExternalServicesHealthCheck com timeout APENAS se não existir
-        // Verifica se já existe um HttpClient registrado para ExternalServicesHealthCheck
-        var healthCheckType = typeof(MeAjudaAiHealthChecks.ExternalServicesHealthCheck).FullName;
-        var existingRegistration = services.Any(d => d.ServiceType.FullName == healthCheckType);
-        
-        if (!existingRegistration)
-        {
-            services.AddHttpClient<MeAjudaAiHealthChecks.ExternalServicesHealthCheck>()
-                .ConfigureHttpClient(client =>
-                {
-                    client.Timeout = TimeSpan.FromSeconds(5); // Health checks devem ser rápidos
-                });
-        }
+        // NOTA: ServiceDefaults já registra ExternalServicesHealthCheck, não precisamos registrar novamente aqui
 
         // Registrar health checks
         var healthChecksBuilder = services.AddHealthChecks();
@@ -47,11 +34,9 @@ public static class HealthCheckExtensions
             failureStatus: null,
             tags: new[] { "ready", "database", "performance" },
             args: new object[] { connectionString });
-            
-        healthChecksBuilder.AddCheck<MeAjudaAiHealthChecks.ExternalServicesHealthCheck>(
-            "external_services",
-            tags: new[] { "ready", "external" });
 
+        // NOTA: ExternalServicesHealthCheck é registrado pelo ServiceDefaults, não precisamos registrar aqui
+            
         // Adicionar Hangfire health check
         // Monitora se o sistema de background jobs está operacional
         // CRÍTICO: Validação de compatibilidade Npgsql 10.x (Issue #39)
