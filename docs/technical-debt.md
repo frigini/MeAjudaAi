@@ -75,6 +75,81 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 
 ---
 
+## ⚠️ MÉDIO: Falta de Testes para Infrastructure Extensions
+
+**Arquivos**: 
+- `src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakExtensions.cs`
+- `src/Aspire/MeAjudaAi.AppHost/Extensions/PostgreSqlExtensions.cs`
+- `src/Aspire/MeAjudaAi.AppHost/Extensions/MigrationExtensions.cs`
+
+**Situação**: SEM TESTES  
+**Severidade**: MÉDIA  
+**Issue**: [Criar issue para rastreamento]
+
+**Descrição**: 
+As classes de extensão do AppHost que configuram infraestrutura crítica (Keycloak, PostgreSQL, Migrations) não possuem testes unitários ou de integração. Isso representa risco para:
+- Mudanças em configuração de produção
+- Refatorações futuras
+- Validação de comportamento em diferentes ambientes
+
+**Componentes Sem Testes**:
+1. **KeycloakExtensions** (~170 linhas):
+   - `AddMeAjudaAiKeycloak()` - configuração de desenvolvimento
+   - `AddMeAjudaAiKeycloakProduction()` - configuração de produção com validação de segurança
+
+2. **PostgreSqlExtensions** (~260 linhas):
+   - `AddMeAjudaAiPostgreSQL()` - configuração local/desenvolvimento
+   - `AddMeAjudaAiAzurePostgreSQL()` - configuração Azure com managed identity
+
+3. **MigrationExtensions** (~50 linhas):
+   - `AddMeAjudaAiMigrations()` - registro de MigrationHostedService
+
+**Risco Atual**:
+- **BAIXO a MÉDIO**: Código é relativamente estável e usado em desenvolvimento
+- Refatoração recente (Sprint 4) melhorou estrutura mas não adicionou testes
+- Mudanças futuras podem introduzir regressões sem detecção
+
+**Mitigação Atual**:
+1. ✅ Código bem estruturado com separação clara (Options/Results/Services)
+2. ✅ Comentários em português explicando lógica
+3. ✅ Validações de segurança em produção (KeycloakProduction)
+4. ✅ Logging detalhado de configuração
+5. ⚠️ **SEM** testes automatizados
+
+**Ações Recomendadas**:
+
+**CURTO PRAZO** (antes de próximas mudanças em infraestrutura):
+1. Criar testes de integração para KeycloakExtensions:
+   - Validar que configuração de desenvolvimento funciona
+   - Validar que configuração de produção rejeita senhas fracas
+   - Validar URLs e endpoints gerados corretamente
+
+2. Criar testes de integração para PostgreSqlExtensions:
+   - Validar criação de databases e schemas
+   - Validar connection strings geradas
+   - Validar configuração Azure com managed identity
+
+3. Criar testes unitários para MigrationExtensions:
+   - Validar que MigrationHostedService é registrado
+   - Validar que migrations não rodam em ambiente Testing
+
+**MÉDIO PRAZO** (backlog):
+- Adicionar testes E2E que validam stack completa do AppHost
+- Configurar CI para validar mudanças em extensions
+
+**Prioridade**: MÉDIA  
+**Esforço Estimado**: 4-6 horas para cobertura básica  
+**Dependências**: Nenhuma - pode ser feito incrementalmente
+
+**Critérios de Aceitação**:
+- [ ] Testes de integração para KeycloakExtensions (>70% coverage)
+- [ ] Testes de integração para PostgreSqlExtensions (>70% coverage)
+- [ ] Testes unitários para MigrationExtensions (>80% coverage)
+- [ ] CI configurado para rodar testes de extensions
+- [ ] Documentação de como testar extensions localmente
+
+---
+
 ## ✅ ~~Swagger ExampleSchemaFilter - Migração para Swashbuckle 10.x~~ [REMOVIDO]
 
 **Status**: REMOVIDO PERMANENTEMENTE (13 Dez 2025)  

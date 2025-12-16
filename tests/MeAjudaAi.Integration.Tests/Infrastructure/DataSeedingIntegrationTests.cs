@@ -10,13 +10,22 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 /// Nota: Testes não dependem mais do Aspire DCP - usam conexão direta ao PostgreSQL
 /// via variáveis de ambiente MEAJUDAAI_DB_* configuradas no workflow de CI.
 /// Aspire é usado apenas quando disponível (desenvolvimento local com AppHost).
+/// 
+/// DatabaseMigrationFixture garante que as migrations são executadas antes dos testes.
 /// </summary>
 [Trait("Category", "Integration")]
 [Trait("Area", "Infrastructure")]
 [Trait("Database", "PostgreSQL")]
-public sealed class DataSeedingIntegrationTests
+public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigrationFixture>
 {
     private const string ServiceCatalogsSchema = "meajudaai_service_catalogs";
+
+    // Fixture é injetado para garantir que migrations rodam antes dos testes
+    public DataSeedingIntegrationTests(DatabaseMigrationFixture fixture)
+    {
+        // O xUnit garante que fixture.InitializeAsync() foi chamado antes deste construtor
+        _ = fixture; // Suprime warning de parâmetro não utilizado
+    }
 
     #region ServiceCatalogs Seeding Tests
 

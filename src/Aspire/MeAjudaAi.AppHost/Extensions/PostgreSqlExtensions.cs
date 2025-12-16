@@ -1,50 +1,10 @@
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using MeAjudaAi.AppHost.Helpers;
+using MeAjudaAi.AppHost.Options;
+using MeAjudaAi.AppHost.Results;
 
 namespace MeAjudaAi.AppHost.Extensions;
-
-/// <summary>
-/// Opções de configuração para o setup do PostgreSQL do MeAjudaAi
-/// </summary>
-public sealed class MeAjudaAiPostgreSqlOptions
-{
-    /// <summary>
-    /// Nome do banco de dados principal da aplicação (agora único para todos os módulos)
-    /// </summary>
-    public string MainDatabase { get; set; } = "meajudaai";
-
-    /// <summary>
-    /// Usuário do PostgreSQL
-    /// </summary>
-    public string Username { get; set; } = "postgres";
-
-    /// <summary>
-    /// Senha do PostgreSQL
-    /// </summary>
-    public string Password { get; set; } = "";
-
-    /// <summary>
-    /// Indica se deve habilitar configuração otimizada para testes
-    /// </summary>
-    public bool IsTestEnvironment { get; set; }
-
-    /// <summary>
-    /// Indica se deve incluir PgAdmin para desenvolvimento
-    /// </summary>
-    public bool IncludePgAdmin { get; set; } = true;
-}
-
-/// <summary>
-/// Resultado da configuração do PostgreSQL contendo referências ao banco de dados
-/// </summary>
-public sealed class MeAjudaAiPostgreSqlResult
-{
-    /// <summary>
-    /// Referência ao banco de dados principal da aplicação (único para todos os módulos)
-    /// </summary>
-    public required IResourceBuilder<IResourceWithConnectionString> MainDatabase { get; init; }
-}
 
 /// <summary>
 /// Métodos de extensão para adicionar configuração do PostgreSQL do MeAjudaAi
