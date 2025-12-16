@@ -33,7 +33,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_ShouldHave8Categories()
     {
         // Arrange
-        var connectionString = GetConnectionString();
+        var connectionString = TestConnectionHelper.GetConnectionString();
 
         // Act
         await using var connection = new NpgsqlConnection(connectionString);
@@ -53,7 +53,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_ShouldHaveExpectedCategories()
     {
         // Arrange
-        var connectionString = GetConnectionString();
+        var connectionString = TestConnectionHelper.TestConnectionHelper.GetConnectionString();
 
         var expectedCategories = new[]
         {
@@ -91,7 +91,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_ShouldHave12Services()
     {
         // Arrange
-        var connectionString = GetConnectionString();
+        var connectionString = TestConnectionHelper.GetConnectionString();
 
         // Act
         await using var connection = new NpgsqlConnection(connectionString);
@@ -111,7 +111,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_AllServicesLinkedToCategories()
     {
         // Arrange
-        var connectionString = GetConnectionString();
+        var connectionString = TestConnectionHelper.GetConnectionString();
 
         // Act
         await using var connection = new NpgsqlConnection(connectionString);
@@ -135,7 +135,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_IdempotencyCheck_RunningTwiceShouldNotDuplicate()
     {
         // Arrange
-        var connectionString = GetConnectionString();
+        var connectionString = TestConnectionHelper.GetConnectionString();
         var testGuid = Guid.NewGuid().ToString("N")[..8]; // Use unique ID for parallel test isolation
         var testCategoryName = $"Teste Idempotência {testGuid}";
 
@@ -202,7 +202,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_ShouldHaveSpecificServices()
     {
         // Arrange
-        var connectionString = GetConnectionString();
+        var connectionString = TestConnectionHelper.TestConnectionHelper.GetConnectionString();
 
         var expectedServices = new[]
         {
@@ -244,7 +244,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_AllCategoriesAreActive()
     {
         // Arrange
-        var connectionString = GetConnectionString();
+        var connectionString = TestConnectionHelper.GetConnectionString();
 
         // Act
         await using var connection = new NpgsqlConnection(connectionString);
@@ -264,7 +264,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_AllServicesAreActive()
     {
         // Arrange
-        var connectionString = GetConnectionString();
+        var connectionString = TestConnectionHelper.GetConnectionString();
 
         // Act
         await using var connection = new NpgsqlConnection(connectionString);
@@ -280,14 +280,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
         inactiveCount.Should().Be(0, "todos os serviços do seed devem estar ativos");
     }
 
-    #endregion
+    #endregion}
 
-    #region Helper Methods
 
-    private string GetConnectionString()
-    {
-        return TestConnectionHelper.GetConnectionString();
-    }
 
-    #endregion
-}

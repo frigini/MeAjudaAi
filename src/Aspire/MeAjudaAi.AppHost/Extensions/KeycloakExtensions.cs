@@ -15,8 +15,19 @@ public static class MeAjudaAiKeycloakExtensions
         this IDistributedApplicationBuilder builder,
         Action<MeAjudaAiKeycloakOptions>? configure = null)
     {
-        var options = new MeAjudaAiKeycloakOptions();
+        var options = new MeAjudaAiKeycloakOptions
+        {
+            AdminUsername = string.Empty,
+            AdminPassword = string.Empty
+        };
         configure?.Invoke(options);
+
+        if (string.IsNullOrWhiteSpace(options.AdminUsername) || string.IsNullOrWhiteSpace(options.AdminPassword))
+        {
+            throw new InvalidOperationException(
+                "AdminUsername and AdminPassword must be configured for Keycloak. " +
+                "Set via configuration callback or KEYCLOAK_ADMIN/KEYCLOAK_ADMIN_PASSWORD environment variables.");
+        }
 
         Console.WriteLine($"[Keycloak] Configurando Keycloak para desenvolvimento...");
         Console.WriteLine($"[Keycloak] Database Schema: {options.DatabaseSchema}");
@@ -101,6 +112,7 @@ public static class MeAjudaAiKeycloakExtensions
         var options = new MeAjudaAiKeycloakOptions
         {
             // Configurações seguras para produção - usar valores das variáveis de ambiente validadas
+            AdminUsername = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN") ?? "admin",
             ExposeHttpEndpoint = false,
             AdminPassword = adminPasswordFromEnv,
             DatabasePassword = dbPasswordFromEnv

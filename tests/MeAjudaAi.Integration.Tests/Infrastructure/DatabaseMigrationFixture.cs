@@ -32,6 +32,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
                 npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Users.Infrastructure");
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
             });
+            options.UseSnakeCaseNamingConvention();
         });
 
         services.AddDbContext<ProvidersDbContext>(options =>
@@ -41,6 +42,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
                 npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Providers.Infrastructure");
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
             });
+            options.UseSnakeCaseNamingConvention();
         });
 
         services.AddDbContext<DocumentsDbContext>(options =>
@@ -50,6 +52,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
                 npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Documents.Infrastructure");
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "documents");
             });
+            options.UseSnakeCaseNamingConvention();
         });
 
         services.AddDbContext<ServiceCatalogsDbContext>(options =>
@@ -69,6 +72,7 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
                 npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Locations.Infrastructure");
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "locations");
             });
+            options.UseSnakeCaseNamingConvention();
         });
 
         await using var serviceProvider = services.BuildServiceProvider();
@@ -106,12 +110,32 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
 
     private async Task ExecuteSeedScripts(string connectionString)
     {
-        // Descobre caminho absoluto para os scripts de seed
-        var seedsPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), SeedsDirectory));
-        
-        if (!Directory.Exists(seedsPath))
+        // Descobre caminho absoluto para os scripts de seed com fallbacks
+        var currentDir = Directory.GetCurrentDirectory();
+        var searchPaths = new[]
         {
-            Console.WriteLine($"[MIGRATION-FIXTURE] Diretório de seeds não encontrado: {seedsPath}");
+            Path.Combine(currentDir, SeedsDirectory),
+            Path.Combine(currentDir, "../../../infrastructure/database/seeds"),
+            Path.Combine(AppContext.BaseDirectory, SeedsDirectory)
+        };
+        
+        var seedsPath = searchPaths.Select(Path.GetFullPath)
+            .FirstOrDefault(Directory.Exists);
+        
+        if (seedsPath == null)
+        {
+            var isCI = Environment.GetEnvironmentVariable("CI")?.ToLowerInvariant() is "true" or "1";
+            var attemptedPaths = string.Join(", ", searchPaths.Select(Path.GetFullPath));
+            
+            Console.Error.WriteLine($"[MIGRATION-FIXTURE] Diretório de seeds não encontrado. Tentativas: {attemptedPaths}");
+            
+            if (isCI)
+            {
+                throw new DirectoryNotFoundException(
+                    $"Seeds directory not found in CI environment. Attempted paths: {attemptedPaths}");
+            }
+            
+            Console.WriteLine("[MIGRATION-FIXTURE] Continuando sem seeds (ambiente de desenvolvimento local)");
             return;
         }
 

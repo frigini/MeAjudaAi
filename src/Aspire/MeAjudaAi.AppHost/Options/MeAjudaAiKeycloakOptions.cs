@@ -7,15 +7,15 @@ public sealed class MeAjudaAiKeycloakOptions
 {
     /// <summary>
     /// Nome de usuário do administrador do Keycloak
-    /// SEGURANÇA: Configurar via KEYCLOAK_ADMIN ou Configuration. Evitar defaults em produção.
+    /// OBRIGATÓRIO: Configurar via KEYCLOAK_ADMIN ou Configuration.
     /// </summary>
-    public string AdminUsername { get; set; } = string.Empty;
+    public required string AdminUsername { get; set; }
 
     /// <summary>
     /// Senha do administrador do Keycloak
-    /// SEGURANÇA: Configurar via KEYCLOAK_ADMIN_PASSWORD ou Configuration. Evitar defaults em produção.
+    /// OBRIGATÓRIO: Configurar via KEYCLOAK_ADMIN_PASSWORD ou Configuration.
     /// </summary>
-    public string AdminPassword { get; set; } = string.Empty;
+    public required string AdminPassword { get; set; }
 
     /// <summary>
     /// Host do banco de dados PostgreSQL

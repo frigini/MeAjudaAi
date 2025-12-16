@@ -56,13 +56,30 @@ public static class PostgreSqlExtensions
         this IDistributedApplicationBuilder builder,
         Action<MeAjudaAiPostgreSqlOptions>? configure = null)
     {
-        var options = new MeAjudaAiPostgreSqlOptions();
+        var options = new MeAjudaAiPostgreSqlOptions
+        {
+            Username = string.Empty,
+            Password = string.Empty
+        };
 
         // Aplica sobrescritas de variáveis de ambiente primeiro (consistente com o caminho local/test)
         ApplyEnvironmentVariables(options);
 
         // Depois aplica configuração do usuário (pode sobrescrever variáveis de ambiente)
         configure?.Invoke(options);
+
+        // Validação de credenciais para Azure PostgreSQL
+        if (string.IsNullOrWhiteSpace(options.Username))
+        {
+            throw new InvalidOperationException(
+                "Azure PostgreSQL username is required. Configure via options.");
+        }
+
+        if (string.IsNullOrWhiteSpace(options.Password))
+        {
+            throw new InvalidOperationException(
+                "Azure PostgreSQL password is required. Configure via options or use managed identity.");
+        }
 
         var postgresUserParam = builder.AddParameter("PostgresUser", options.Username);
         var postgresPasswordParam = builder.AddParameter("PostgresPassword", options.Password, secret: true);
@@ -84,6 +101,9 @@ public static class PostgreSqlExtensions
         IDistributedApplicationBuilder builder,
         MeAjudaAiPostgreSqlOptions options)
     {
+        if (string.IsNullOrWhiteSpace(options.Username))
+            throw new InvalidOperationException("PostgreSQL username cannot be empty. Configure via options or environment variables.");
+
         if (string.IsNullOrWhiteSpace(options.Password))
             throw new InvalidOperationException("POSTGRES_PASSWORD must be provided via env var or options for testing.");
 
@@ -134,6 +154,9 @@ public static class PostgreSqlExtensions
         IDistributedApplicationBuilder builder,
         MeAjudaAiPostgreSqlOptions options)
     {
+        if (string.IsNullOrWhiteSpace(options.Username))
+            throw new InvalidOperationException("PostgreSQL username is required. Configure via options or environment variables.");
+
         if (string.IsNullOrWhiteSpace(options.Password))
             throw new InvalidOperationException("POSTGRES_PASSWORD must be provided via env var or options for development.");
 
