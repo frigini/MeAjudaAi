@@ -288,14 +288,17 @@ public sealed class DataSeedingIntegrationTests
 
         // Fallback: Use environment variables (CI or local development)
         // In CI, workflow sets MEAJUDAAI_DB_* vars pointing to PostgreSQL service
-        // CI workflow sets MEAJUDAAI_DB_* vars; local dev can use defaults or override
-        var host = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_HOST") ?? "localhost";
-        var port = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PORT") ?? "5432";
-        var database = Environment.GetEnvironmentVariable("MEAJUDAAI_DB") ?? "meajudaai_tests";
-        var username = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_USER") ?? "postgres";
-        var password = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PASS") ?? "postgres";
+        // Use NpgsqlConnectionStringBuilder to properly handle special characters in passwords
+        var builder = new Npgsql.NpgsqlConnectionStringBuilder
+        {
+            Host = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_HOST") ?? "localhost",
+            Port = int.TryParse(Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PORT"), out var port) ? port : 5432,
+            Database = Environment.GetEnvironmentVariable("MEAJUDAAI_DB") ?? "meajudaai_tests",
+            Username = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_USER") ?? "postgres",
+            Password = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PASS") ?? "postgres"
+        };
 
-        return $"Host={host};Port={port};Database={database};Username={username};Password={password}";
+        return builder.ConnectionString;
     }
 
     #endregion
