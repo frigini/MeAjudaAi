@@ -160,21 +160,26 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
 
         // Act - Tentar executar seed novamente (simula idempotência)
         // Validating the idempotency pattern: should check if exists before inserting
-        // Note: Using string interpolation for testCategoryName since DO blocks don't support parameters
-        // testCategoryName is a controlled GUID-based string, not user input - no SQL injection risk
+        // Using EXECUTE ... USING for parameterized DO block to avoid SQL injection
         var idempotentSql = $@"DO $$
+              DECLARE
+                  category_name TEXT := $1;
               BEGIN
                   -- Script idempotente: deve verificar se já existe antes de inserir
-                  IF NOT EXISTS (SELECT 1 FROM {ServiceCatalogsSchema}.""ServiceCategories"" WHERE ""Name"" = '{testCategoryName}') THEN
-                      INSERT INTO {ServiceCatalogsSchema}.""ServiceCategories"" (""Id"", ""Name"", ""Description"", ""Icon"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"")
-                      VALUES (gen_random_uuid(), '{testCategoryName}', 'Test', 'test', true, NOW(), NOW());
-                  END IF;
+                  EXECUTE format(
+                      'INSERT INTO %I.%I (""Id"", ""Name"", ""Description"", ""Icon"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"") ' ||
+                      'SELECT gen_random_uuid(), $1, ''Test'', ''test'', true, NOW(), NOW() ' ||
+                      'WHERE NOT EXISTS (SELECT 1 FROM %I.%I WHERE ""Name"" = $1)',
+                      '{ServiceCatalogsSchema}', 'ServiceCategories',
+                      '{ServiceCatalogsSchema}', 'ServiceCategories'
+                  ) USING category_name;
               END $$;";
 
         // Execute twice to verify idempotency - should only insert once
         for (int i = 0; i < 2; i++)
         {
             await using var rerunSeed = new NpgsqlCommand(idempotentSql, connection);
+            rerunSeed.Parameters.AddWithValue(testCategoryName);
             await rerunSeed.ExecuteNonQueryAsync();
         }
 
@@ -294,6 +299,14 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         if (!string.IsNullOrWhiteSpace(aspireConnectionString))
         {
             return aspireConnectionString;
+        }
+
+        // In CI, fail fast if Aspire orchestration is unavailable
+        if (Environment.GetEnvironmentVariable("CI") == "true")
+        {
+            throw new InvalidOperationException(
+                "Aspire-injected connection string 'ConnectionStrings__postgresdb' not found in CI environment. " +
+                "Ensure Aspire orchestration is properly configured and AppHost is running.");
         }
 
         // Fallback: Use CI/local environment variables
