@@ -19,6 +19,8 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _) 
     : IClassFixture<AspireIntegrationFixture>
 {
+    private const string ServiceCatalogsSchema = "meajudaai_service_catalogs";
+
     #region ServiceCatalogs Seeding Tests
 
     [Fact(Skip = "KNOWN ISSUE: Aspire DCP binaries not found - .NET 10 workload deprecation")]
@@ -64,7 +66,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT \"Name\" FROM meajudaai_service_catalogs.\"ServiceCategories\"",
+            $"SELECT \"Name\" FROM {ServiceCatalogsSchema}.\"ServiceCategories\"",
             connection);
         
         await using var reader = await command.ExecuteReaderAsync();
@@ -90,7 +92,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"Services\"",
+            $"SELECT COUNT(*) FROM {ServiceCatalogsSchema}.\"Services\"",
             connection);
         
         var count = (long)(await command.ExecuteScalarAsync() ?? 0L);
@@ -111,9 +113,9 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         
         // Verificar que todos os serviços têm categoria válida
         await using var command = new NpgsqlCommand(
-            @"SELECT COUNT(*) 
-              FROM meajudaai_service_catalogs.""Services"" s
-              LEFT JOIN meajudaai_service_catalogs.""ServiceCategories"" sc ON s.""CategoryId"" = sc.""Id""
+            $@"SELECT COUNT(*) 
+              FROM {ServiceCatalogsSchema}.""Services"" s
+              LEFT JOIN {ServiceCatalogsSchema}.""ServiceCategories"" sc ON s.""CategoryId"" = sc.""Id""
               WHERE sc.""Id"" IS NULL",
             connection);
         
@@ -133,8 +135,9 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         await connection.OpenAsync();
 
         // Garantir estado limpo para o nome usado no teste
+        // TODO: Consider using Guid.NewGuid() suffix for test isolation in parallel execution
         await using (var cleanupBefore = new NpgsqlCommand(
-            "DELETE FROM meajudaai_service_catalogs.\"ServiceCategories\" WHERE \"Name\" = 'Teste Idempotência'",
+            $"DELETE FROM {ServiceCatalogsSchema}.\"ServiceCategories\" WHERE \"Name\" = 'Teste Idempotência'",
             connection))
         {
             await cleanupBefore.ExecuteNonQueryAsync();
@@ -142,19 +145,19 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
 
         // Contar registros antes
         await using var countBefore = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"ServiceCategories\"",
+            $"SELECT COUNT(*) FROM {ServiceCatalogsSchema}.\"ServiceCategories\"",
             connection);
         var countBeforeExec = (long)(await countBefore.ExecuteScalarAsync() ?? 0L);
 
         // Act - Tentar executar seed novamente (simula idempotência)
         // TODO: Consider loading and executing actual seed script from infrastructure/database/seeds/01-seed-service-catalogs.sql
-        // For now, validating the idempotency pattern with inline SQL:
+        // for more accurate validation. For now, validating the idempotency pattern with inline SQL:
         await using var rerunSeed = new NpgsqlCommand(
-            @"DO $$
+            $@"DO $$
               BEGIN
                   -- Script idempotente: deve verificar se já existe antes de inserir
-                  IF NOT EXISTS (SELECT 1 FROM meajudaai_service_catalogs.""ServiceCategories"" WHERE ""Name"" = 'Teste Idempotência') THEN
-                      INSERT INTO meajudaai_service_catalogs.""ServiceCategories"" (""Id"", ""Name"", ""Description"", ""Icon"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"")
+                  IF NOT EXISTS (SELECT 1 FROM {ServiceCatalogsSchema}.""ServiceCategories"" WHERE ""Name"" = 'Teste Idempotência') THEN
+                      INSERT INTO {ServiceCatalogsSchema}.""ServiceCategories"" (""Id"", ""Name"", ""Description"", ""Icon"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"")
                       VALUES (gen_random_uuid(), 'Teste Idempotência', 'Test', 'test', true, NOW(), NOW());
                   END IF;
               END $$;",
@@ -163,10 +166,10 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
 
         // Executar novamente - não deve duplicar
         await using var rerunSeed2 = new NpgsqlCommand(
-            @"DO $$
+            $@"DO $$
               BEGIN
-                  IF NOT EXISTS (SELECT 1 FROM meajudaai_service_catalogs.""ServiceCategories"" WHERE ""Name"" = 'Teste Idempotência') THEN
-                      INSERT INTO meajudaai_service_catalogs.""ServiceCategories"" (""Id"", ""Name"", ""Description"", ""Icon"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"")
+                  IF NOT EXISTS (SELECT 1 FROM {ServiceCatalogsSchema}.""ServiceCategories"" WHERE ""Name"" = 'Teste Idempotência') THEN
+                      INSERT INTO {ServiceCatalogsSchema}.""ServiceCategories"" (""Id"", ""Name"", ""Description"", ""Icon"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"")
                       VALUES (gen_random_uuid(), 'Teste Idempotência', 'Test', 'test', true, NOW(), NOW());
                   END IF;
               END $$;",
@@ -174,7 +177,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         await rerunSeed2.ExecuteNonQueryAsync();
 
         await using var countAfter = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"ServiceCategories\"",
+            $"SELECT COUNT(*) FROM {ServiceCatalogsSchema}.\"ServiceCategories\"",
             connection);
         var countAfterExec = (long)(await countAfter.ExecuteScalarAsync() ?? 0L);
 
@@ -187,7 +190,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         {
             // Cleanup
             await using var cleanup = new NpgsqlCommand(
-                "DELETE FROM meajudaai_service_catalogs.\"ServiceCategories\" WHERE \"Name\" = 'Teste Idempotência'",
+                $"DELETE FROM {ServiceCatalogsSchema}.\"ServiceCategories\" WHERE \"Name\" = 'Teste Idempotência'",
                 connection);
             await cleanup.ExecuteNonQueryAsync();
         }
@@ -220,7 +223,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT \"Name\" FROM meajudaai_service_catalogs.\"Services\"",
+            $"SELECT \"Name\" FROM {ServiceCatalogsSchema}.\"Services\"",
             connection);
         
         await using var reader = await command.ExecuteReaderAsync();
@@ -246,7 +249,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"ServiceCategories\" WHERE \"IsActive\" = false",
+            $"SELECT COUNT(*) FROM {ServiceCatalogsSchema}.\"ServiceCategories\" WHERE \"IsActive\" = false",
             connection);
         
         var inactiveCount = (long)(await command.ExecuteScalarAsync() ?? 0L);
@@ -266,7 +269,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"Services\" WHERE \"IsActive\" = false",
+            $"SELECT COUNT(*) FROM {ServiceCatalogsSchema}.\"Services\" WHERE \"IsActive\" = false",
             connection);
         
         var inactiveCount = (long)(await command.ExecuteScalarAsync() ?? 0L);
@@ -281,7 +284,15 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
 
     private string GetConnectionString()
     {
-        // Use environment variables to support CI/CD environments
+        // Prefer Aspire-injected connection string from orchestrated services
+        // (e.g., "ConnectionStrings__postgresdb" when using WithReference in AppHost)
+        var aspireConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__postgresdb");
+        if (!string.IsNullOrWhiteSpace(aspireConnectionString))
+        {
+            return aspireConnectionString;
+        }
+
+        // Fallback to custom environment variables for CI/CD or local testing without Aspire
         var host = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_HOST") ?? "localhost";
         var port = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PORT") ?? "5432";
         var database = Environment.GetEnvironmentVariable("MEAJUDAAI_DB") ?? "meajudaai_tests";

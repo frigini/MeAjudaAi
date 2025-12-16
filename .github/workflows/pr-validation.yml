@@ -626,19 +626,25 @@ jobs:
           dotnet --list-sdks
           dotnet --list-runtimes
           
-          # Detect DOTNET_ROOT dynamically with fallback to system installation
-          # Note: The Aspire preparation step (line 144) exports DOTNET_ROOT, but may not
-          # persist reliably to later jobs. Re-detecting here ensures ReportGenerator finds runtime.
-          if [ -z "$DOTNET_ROOT" ] || [ ! -d "$DOTNET_ROOT" ]; then
-            if command -v dotnet >/dev/null 2>&1; then
-              DOTNET_PATH=$(which dotnet)
-              DOTNET_RESOLVED=$(readlink -f "$DOTNET_PATH")
-              export DOTNET_ROOT=$(dirname "$(dirname "$DOTNET_RESOLVED")")
-              echo "✅ Detected DOTNET_ROOT: $DOTNET_ROOT"
-            else
-              export DOTNET_ROOT=/usr/share/dotnet
-              echo "⚠️  Using fallback DOTNET_ROOT: $DOTNET_ROOT"
-            fi
+          # Set DOTNET_ROOT to system installation before installing ReportGenerator
+          # ReportGenerator is a .NET 10 tool that requires the .NET 10 runtime.
+          # The Aspire prep step sets DOTNET_ROOT=$HOME/.dotnet for workload isolation,
+          # but ReportGenerator needs the full SDK in /usr/share/dotnet.
+          if command -v dotnet >/dev/null 2>&1; then
+            DOTNET_PATH=$(which dotnet)
+            DOTNET_RESOLVED=$(readlink -f "$DOTNET_PATH")
+            export DOTNET_ROOT=$(dirname "$(dirname "$DOTNET_RESOLVED")")
+            echo "✅ Detected DOTNET_ROOT: $DOTNET_ROOT"
+          else
+            export DOTNET_ROOT=/usr/share/dotnet
+            echo "⚠️  Using fallback DOTNET_ROOT: $DOTNET_ROOT"
+          fi
+          
+          # Verify .NET 10 runtime is available before proceeding
+          if ! dotnet --list-runtimes | grep -q "Microsoft.NETCore.App 10\.0"; then
+            echo "❌ ERROR: .NET 10 runtime not found. ReportGenerator requires .NET 10."
+            dotnet --list-runtimes
+            exit 1
           fi
           
           # Install ReportGenerator (latest version for .NET 10)

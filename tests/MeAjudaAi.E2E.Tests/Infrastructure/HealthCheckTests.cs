@@ -31,7 +31,7 @@ public class HealthCheckTests : TestContainerTestBase
     }
 
     [Fact]
-    public async Task ReadinessCheck_ShouldReturnOkOrDegraded()
+    public async Task ReadinessCheck_ShouldReturnOkOrServiceUnavailable()
     {
         // Act & Assert - Permite tempo para serviços ficarem prontos
         var maxAttempts = 30;
@@ -60,9 +60,12 @@ public class HealthCheckTests : TestContainerTestBase
             Console.WriteLine($"Unexpected health check status {finalResponse.StatusCode}. Response: {content}");
         }
 
-        // In E2E tests, it's acceptable for some services to be degraded (503)
-        // as long as the app is running and responding to health checks
-        // Verificação de prontidão deve retornar OK ou ServiceUnavailable (503) em testes E2E
+        // ASP.NET Core health check status mapping:
+        // - Healthy/Degraded → 200 OK (with status in JSON body)
+        // - Unhealthy → 503 ServiceUnavailable
+        // In E2E tests, we accept both OK (healthy/degraded) and 503 (unhealthy)
+        // as long as the app is running and responding to health checks.
+        // Verificação de prontidão: OK (saudável/degradado) ou 503 (não saudável) são aceitáveis em E2E
         finalResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.ServiceUnavailable);
