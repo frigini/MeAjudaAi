@@ -16,6 +16,9 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 [Trait("Area", "Infrastructure")]
 [Trait("Category", "Aspire")]
 [Trait("Issue", "AspireDCP")]
+// Note: AspireIntegrationFixture is required to ensure Aspire AppHost orchestration is active
+// and database services are available, even though tests create their own NpgsqlConnection.
+// The fixture manages the lifecycle of orchestrated services (PostgreSQL via Aspire WithReference).
 public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _) 
     : IClassFixture<AspireIntegrationFixture>
 {
