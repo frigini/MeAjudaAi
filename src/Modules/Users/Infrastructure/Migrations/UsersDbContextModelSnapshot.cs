@@ -18,7 +18,7 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("meajudaai_users")
-                .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -70,12 +70,6 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Migrations
                     b.Property<DateTime?>("LastUsernameChangeAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_username_change_at");
-
-                    b.Property<uint>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")

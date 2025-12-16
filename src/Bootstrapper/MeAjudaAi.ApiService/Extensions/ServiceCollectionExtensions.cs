@@ -5,6 +5,7 @@ using MeAjudaAi.ApiService.Services.Authentication;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.ApiService.Extensions;
@@ -66,7 +67,13 @@ public static class ServiceCollectionExtensions
             services.AddEnvironmentAuthentication(configuration, environment);
             services.AddSingleton<IClaimsTransformation, NoOpClaimsTransformation>();
         }
-        // Para testing environment, a autenticação é configurada pelo WebApplicationFactory nos testes
+        else
+        {
+            // Para testing environment, registra um esquema de autenticação mínimo
+            // O WebApplicationFactory nos testes substituirá isso com o esquema de teste real
+            services.AddAuthentication("Bearer")
+                .AddJwtBearer("Bearer", _ => { }); // Esquema vazio, será substituído pelo WebApplicationFactory
+        }
 
         // Adiciona serviços de autorização
         services.AddAuthorizationPolicies();

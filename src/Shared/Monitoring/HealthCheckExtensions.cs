@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Linq;
 
 namespace MeAjudaAi.Shared.Monitoring;
 
@@ -20,12 +21,19 @@ public static class HealthCheckExtensions
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("DefaultConnection string not found");
 
-        // Registrar HttpClient para ExternalServicesHealthCheck com timeout
-        services.AddHttpClient<MeAjudaAiHealthChecks.ExternalServicesHealthCheck>()
-            .ConfigureHttpClient(client =>
-            {
-                client.Timeout = TimeSpan.FromSeconds(5); // Health checks devem ser rápidos
-            });
+        // Registrar HttpClient para ExternalServicesHealthCheck com timeout APENAS se não existir
+        // Verifica se já existe um HttpClient registrado para ExternalServicesHealthCheck
+        var healthCheckType = typeof(MeAjudaAiHealthChecks.ExternalServicesHealthCheck).FullName;
+        var existingRegistration = services.Any(d => d.ServiceType.FullName == healthCheckType);
+        
+        if (!existingRegistration)
+        {
+            services.AddHttpClient<MeAjudaAiHealthChecks.ExternalServicesHealthCheck>()
+                .ConfigureHttpClient(client =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(5); // Health checks devem ser rápidos
+                });
+        }
 
         // Registrar health checks
         var healthChecksBuilder = services.AddHealthChecks();
