@@ -34,6 +34,7 @@ jobs:
   code-quality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 60  # Prevent jobs from hanging indefinitely
 
     services:
       postgres:
@@ -622,6 +623,11 @@ jobs:
           dotnet --list-sdks
           dotnet --list-runtimes
           
+          # Fix DOTNET_ROOT to point to system installation where runtime is located
+          export DOTNET_ROOT=/usr/share/dotnet
+          export PATH="$DOTNET_ROOT:$PATH"
+          echo "DOTNET_ROOT set to: $DOTNET_ROOT"
+          
           # Install ReportGenerator (latest version for .NET 10)
           echo "📦 Installing ReportGenerator..."
           dotnet tool install --global dotnet-reportgenerator-globaltool || dotnet tool update --global dotnet-reportgenerator-globaltool
@@ -996,6 +1002,7 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Security scans shouldn't take more than 30 minutes
 
     steps:
       - name: Checkout code
@@ -1147,6 +1154,7 @@ jobs:
   markdown-link-check:
     name: Validate Markdown Links
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # Link validation should be quick
 
     steps:
       - name: Checkout code
@@ -1187,6 +1195,7 @@ jobs:
   yaml-validation:
     name: YAML Syntax Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # YAML validation is quick
 
     steps:
       - name: Checkout code
