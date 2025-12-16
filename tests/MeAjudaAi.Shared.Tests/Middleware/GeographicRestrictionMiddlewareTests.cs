@@ -389,7 +389,7 @@ public class GeographicRestrictionMiddlewareTests
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Erro ao validar com IBGE")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error validating with IBGE")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
