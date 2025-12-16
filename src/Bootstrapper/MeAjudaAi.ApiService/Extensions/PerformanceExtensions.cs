@@ -13,10 +13,10 @@ public static class PerformanceExtensions
     {
         services.AddResponseCompression(options =>
         {
-            // Permite compressão HTTPS - proteção contra CRIME/BREACH via provedores customizados
-            options.EnableForHttps = true; // Habilitado - provedores customizados fazem verificação de segurança
+            // Permite compressão HTTPS - proteção contra CRIME/BREACH via middleware de segurança
+            options.EnableForHttps = true;
 
-            // Usa provedores personalizados com verificação de segurança
+            // Usa provedores personalizados
             options.Providers.Add<SafeGzipCompressionProvider>();
             options.Providers.Add<SafeBrotliCompressionProvider>();
 

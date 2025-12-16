@@ -13,11 +13,7 @@ public class SafeBrotliCompressionProvider : ICompressionProvider
 
     public Stream CreateStream(Stream outputStream)
     {
+        ArgumentNullException.ThrowIfNull(outputStream);
         return new BrotliStream(outputStream, CompressionLevel.Optimal, leaveOpen: false);
-    }
-
-    public static bool ShouldCompressResponse(HttpContext context)
-    {
-        return Extensions.PerformanceExtensions.IsSafeForCompression(context);
     }
 }

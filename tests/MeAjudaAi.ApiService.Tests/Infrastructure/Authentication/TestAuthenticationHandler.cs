@@ -23,8 +23,8 @@ public class TestAuthenticationHandler : AuthenticationHandler<TestAuthenticatio
         // Para testes, sempre autenticamos com um usuário padrão
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
-            new Claim(ClaimTypes.Name, "test-user"),
+            new Claim(ClaimTypes.NameIdentifier, Options.DefaultUserId),
+            new Claim(ClaimTypes.Name, Options.DefaultUserName),
             new Claim(ClaimTypes.Role, "user")
         };
 

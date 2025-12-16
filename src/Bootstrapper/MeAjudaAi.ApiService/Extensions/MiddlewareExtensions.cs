@@ -9,6 +9,9 @@ public static class MiddlewareExtensions
         // Cabeçalhos de segurança (no início do pipeline)
         app.UseMiddleware<SecurityHeadersMiddleware>();
 
+        // Verificação de segurança de compressão (previne CRIME/BREACH)
+        app.UseMiddleware<CompressionSecurityMiddleware>();
+
         // Compressão de resposta
         app.UseResponseCompression();
 
