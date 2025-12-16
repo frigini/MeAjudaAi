@@ -28,7 +28,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
 
     #region ServiceCatalogs Seeding Tests
 
-    [Fact(Skip = "KNOWN ISSUE: Aspire DCP binaries not found - .NET 10 workload deprecation")]
+    [Fact]
     public async Task ServiceCatalogs_ShouldHave8Categories()
     {
         // Arrange
@@ -50,7 +50,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         count.Should().Be(8, "deve haver 8 categorias de serviço no seed");
     }
 
-    [Fact(Skip = "KNOWN ISSUE: Aspire DCP binaries not found - .NET 10 workload deprecation")]
+    [Fact]
     public async Task ServiceCatalogs_ShouldHaveExpectedCategories()
     {
         // Arrange
@@ -88,7 +88,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         categories.Should().BeEquivalentTo(expectedCategories);
     }
 
-    [Fact(Skip = "KNOWN ISSUE: Aspire DCP binaries not found - .NET 10 workload deprecation")]
+    [Fact]
     public async Task ServiceCatalogs_ShouldHave12Services()
     {
         // Arrange
@@ -108,7 +108,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         count.Should().Be(12, "deve haver 12 serviços no seed");
     }
 
-    [Fact(Skip = "KNOWN ISSUE: Aspire DCP binaries not found - .NET 10 workload deprecation")]
+    [Fact]
     public async Task ServiceCatalogs_AllServicesLinkedToCategories()
     {
         // Arrange
@@ -132,21 +132,23 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         orphanCount.Should().Be(0, "todos os serviços devem estar vinculados a categorias válidas");
     }
 
-    [Fact(Skip = "KNOWN ISSUE: Aspire DCP binaries not found - .NET 10 workload deprecation")]
+    [Fact]
     public async Task ServiceCatalogs_IdempotencyCheck_RunningTwiceShouldNotDuplicate()
     {
         // Arrange
         var connectionString = GetConnectionString();
+        var testGuid = Guid.NewGuid().ToString("N")[..8]; // Use unique ID for parallel test isolation
+        var testCategoryName = $"Teste Idempotência {testGuid}";
 
         await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync();
 
         // Garantir estado limpo para o nome usado no teste
-        // TODO: Consider using Guid.NewGuid() suffix for test isolation in parallel execution
         await using (var cleanupBefore = new NpgsqlCommand(
-            $"DELETE FROM {ServiceCatalogsSchema}.\"ServiceCategories\" WHERE \"Name\" = 'Teste Idempotência'",
+            $"DELETE FROM {ServiceCatalogsSchema}.\"ServiceCategories\" WHERE \"Name\" = @name",
             connection))
         {
+            cleanupBefore.Parameters.AddWithValue("name", testCategoryName);
             await cleanupBefore.ExecuteNonQueryAsync();
         }
 
@@ -157,14 +159,15 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         var countBeforeExec = (long)(await countBefore.ExecuteScalarAsync() ?? 0L);
 
         // Act - Tentar executar seed novamente (simula idempotência)
-        // TODO: Consider loading and executing actual seed script from infrastructure/database/seeds/01-seed-service-catalogs.sql
-        // for more accurate validation. For now, validating the idempotency pattern with inline SQL:
+        // Validating the idempotency pattern: should check if exists before inserting
+        // Note: Using string interpolation for testCategoryName since DO blocks don't support parameters
+        // testCategoryName is a controlled GUID-based string, not user input - no SQL injection risk
         var idempotentSql = $@"DO $$
               BEGIN
                   -- Script idempotente: deve verificar se já existe antes de inserir
-                  IF NOT EXISTS (SELECT 1 FROM {ServiceCatalogsSchema}.""ServiceCategories"" WHERE ""Name"" = 'Teste Idempotência') THEN
+                  IF NOT EXISTS (SELECT 1 FROM {ServiceCatalogsSchema}.""ServiceCategories"" WHERE ""Name"" = '{testCategoryName}') THEN
                       INSERT INTO {ServiceCatalogsSchema}.""ServiceCategories"" (""Id"", ""Name"", ""Description"", ""Icon"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"")
-                      VALUES (gen_random_uuid(), 'Teste Idempotência', 'Test', 'test', true, NOW(), NOW());
+                      VALUES (gen_random_uuid(), '{testCategoryName}', 'Test', 'test', true, NOW(), NOW());
                   END IF;
               END $$;";
 
@@ -189,13 +192,14 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         {
             // Cleanup
             await using var cleanup = new NpgsqlCommand(
-                $"DELETE FROM {ServiceCatalogsSchema}.\"ServiceCategories\" WHERE \"Name\" = 'Teste Idempotência'",
+                $"DELETE FROM {ServiceCatalogsSchema}.\"ServiceCategories\" WHERE \"Name\" = @name",
                 connection);
+            cleanup.Parameters.AddWithValue("name", testCategoryName);
             await cleanup.ExecuteNonQueryAsync();
         }
     }
 
-    [Fact(Skip = "KNOWN ISSUE: Aspire DCP binaries not found - .NET 10 workload deprecation")]
+    [Fact]
     public async Task ServiceCatalogs_ShouldHaveSpecificServices()
     {
         // Arrange
@@ -237,7 +241,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         services.Should().BeEquivalentTo(expectedServices);
     }
 
-    [Fact(Skip = "KNOWN ISSUE: Aspire DCP binaries not found - .NET 10 workload deprecation")]
+    [Fact]
     public async Task ServiceCatalogs_AllCategoriesAreActive()
     {
         // Arrange
@@ -257,7 +261,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         inactiveCount.Should().Be(0, "todas as categorias do seed devem estar ativas");
     }
 
-    [Fact(Skip = "KNOWN ISSUE: Aspire DCP binaries not found - .NET 10 workload deprecation")]
+    [Fact]
     public async Task ServiceCatalogs_AllServicesAreActive()
     {
         // Arrange
@@ -287,26 +291,13 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         // (e.g., "ConnectionStrings__postgresdb" when using WithReference in AppHost)
         var aspireConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__postgresdb");
         
-        // In CI, fail fast if Aspire orchestration is missing
-        if (Environment.GetEnvironmentVariable("CI") == "true")
-        {
-            if (string.IsNullOrWhiteSpace(aspireConnectionString))
-            {
-                throw new InvalidOperationException(
-                    "CRITICAL: Aspire orchestration is missing in CI environment. " +
-                    "Expected environment variable 'ConnectionStrings__postgresdb' is null or empty. " +
-                    "Ensure Aspire AppHost is properly configured and running before tests execute.");
-            }
-            return aspireConnectionString;
-        }
-
-        // For local development, fallback to custom environment variables if Aspire isn't active
         if (!string.IsNullOrWhiteSpace(aspireConnectionString))
         {
             return aspireConnectionString;
         }
 
-        // NOTE: Using fallback connection string - Aspire orchestration may not be active (local dev only)
+        // Fallback: Use CI/local environment variables
+        // CI workflow sets MEAJUDAAI_DB_* vars; local dev can use defaults or override
         var host = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_HOST") ?? "localhost";
         var port = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PORT") ?? "5432";
         var database = Environment.GetEnvironmentVariable("MEAJUDAAI_DB") ?? "meajudaai_tests";
