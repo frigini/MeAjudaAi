@@ -1,5 +1,4 @@
 using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Aspire;
 using Npgsql;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
@@ -8,21 +7,14 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 /// Testes de integração para validar data seeding via SQL scripts.
 /// Valida que os seeds em infrastructure/database/seeds/ são executados corretamente.
 /// 
-/// KNOWN ISSUE: Aspire DCP binaries não encontrados no CI (.NET 10)
-/// Workload deprecado - binários devem vir de NuGet packages mas path não está configurado.
-/// Tracked in: https://github.com/dotnet/aspire/issues
+/// Nota: Testes não dependem mais do Aspire DCP - usam conexão direta ao PostgreSQL
+/// via variáveis de ambiente MEAJUDAAI_DB_* configuradas no workflow de CI.
+/// Aspire é usado apenas quando disponível (desenvolvimento local com AppHost).
 /// </summary>
 [Trait("Category", "Integration")]
 [Trait("Area", "Infrastructure")]
-[Trait("Category", "Aspire")]
-[Trait("Issue", "AspireDCP")]
-// Note: AspireIntegrationFixture is required to ensure Aspire AppHost orchestration is active
-// and database services are available, even though tests create their own NpgsqlConnection.
-// The fixture manages the lifecycle of orchestrated services (PostgreSQL via Aspire WithReference).
-#pragma warning disable CS9113 // Parameter is unread but required for IClassFixture<> lifecycle
-public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _) 
-    : IClassFixture<AspireIntegrationFixture>
-#pragma warning restore CS9113
+[Trait("Database", "PostgreSQL")]
+public sealed class DataSeedingIntegrationTests
 {
     private const string ServiceCatalogsSchema = "meajudaai_service_catalogs";
 
