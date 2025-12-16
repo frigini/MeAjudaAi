@@ -2,7 +2,6 @@ using System.Security.Claims;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.Authentication;
-using MeAjudaAi.ApiService.Testing;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
@@ -65,14 +64,9 @@ public static class ServiceCollectionExtensions
         {
             // Usa a extensão segura do Keycloak com validação completa de tokens
             services.AddEnvironmentAuthentication(configuration, environment);
-        }
-        else
-        {
-            // Para testing environment, adiciona authentication handler customizado
-            services.AddAuthentication("Test")
-                .AddScheme<TestAuthenticationSchemeOptions, TestAuthenticationHandler>("Test", options => { });
             services.AddSingleton<IClaimsTransformation, NoOpClaimsTransformation>();
         }
+        // Para testing environment, a autenticação é configurada pelo WebApplicationFactory nos testes
 
         // Adiciona serviços de autorização
         services.AddAuthorizationPolicies();

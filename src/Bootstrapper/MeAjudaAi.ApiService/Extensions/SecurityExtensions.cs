@@ -1,8 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using MeAjudaAi.ApiService.Handlers;
-using MeAjudaAi.ApiService.HostedServices;
 using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.ApiService.Services.HostedServices;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using MeAjudaAi.Shared.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
