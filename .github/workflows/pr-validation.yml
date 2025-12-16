@@ -15,14 +15,10 @@ permissions:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  # CRITICAL: Set STRICT_COVERAGE: true before merging to main
-  # This enforces 80% minimum coverage threshold (lines 785, 810)
-  # Current bypass is TEMPORARY for development only
-  # TODO: Enable STRICT_COVERAGE when overall coverage ≥ 90% (Sprint 2 milestone)
-  #       Tracking: https://github.com/frigini/MeAjudaAi/issues/33
-  #       References: docs/testing/code-coverage-guide.md#L297-L313
-  # Re-enable when overall coverage reaches 90% (Sprint 2 milestone)
-  STRICT_COVERAGE: false
+  # STRICT_COVERAGE enabled after reaching 90.10% coverage (Sprint 2 milestone achieved)
+  # Enforces 90% minimum coverage threshold to prevent regression
+  # Enabled: 2025-12-16 (Issue #33 - https://github.com/frigini/MeAjudaAi/issues/33)
+  STRICT_COVERAGE: true
   # PostgreSQL configuration (DRY principle - single source of truth)
   # Fallback credentials: Only used in fork/local dev; main repo requires secrets
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
