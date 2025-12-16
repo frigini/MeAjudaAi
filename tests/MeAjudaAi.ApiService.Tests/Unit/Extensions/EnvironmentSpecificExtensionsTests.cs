@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.ApiService.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -154,3 +155,4 @@ public class EnvironmentSpecificExtensionsTests
         return mock.Object;
     }
 }
+

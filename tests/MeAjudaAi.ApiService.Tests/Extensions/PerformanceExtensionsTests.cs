@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.ApiService.Providers.Compression;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -687,3 +688,4 @@ public class PerformanceExtensionsTests
 
     #endregion
 }
+

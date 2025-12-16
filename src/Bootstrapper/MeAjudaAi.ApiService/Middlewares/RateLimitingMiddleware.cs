@@ -7,8 +7,27 @@ using Microsoft.Extensions.Options;
 namespace MeAjudaAi.ApiService.Middlewares;
 
 /// <summary>
-/// Middleware de Rate Limiting com suporte a usuários autenticados
+/// Middleware de Rate Limiting com suporte a usuários autenticados.
+/// Implementa limitação de taxa de requisições com base em IP, usuário autenticado, role e endpoint.
 /// </summary>
+/// <remarks>
+/// <para><b>Configuração</b>: Seção "AdvancedRateLimit" no appsettings.json</para>
+/// <para><b>Limites Padrão</b>:</para>
+/// <list type="bullet">
+///   <item>Anônimos: 30 req/min, 300 req/hora, 1000 req/dia</item>
+///   <item>Autenticados: 120 req/min, 2000 req/hora, 10000 req/dia</item>
+///   <item>Por Role: Configurável via RoleLimits (ex: Admin com limites maiores)</item>
+///   <item>Por Endpoint: Configurável via EndpointLimits (ex: /api/auth/* com limite menor)</item>
+/// </list>
+/// <para><b>Whitelist de IPs</b>: Configurável para bypass (ex: load balancers, health checks)</para>
+/// <para><b>Resposta ao Exceder Limite</b>:</para>
+/// <list type="bullet">
+///   <item>Status Code: 429 Too Many Requests</item>
+///   <item>Header Retry-After: tempo em segundos até liberação</item>
+///   <item>Body JSON com mensagem de erro e detalhes</item>
+/// </list>
+/// <para><b>Thread-Safety</b>: Usa Interlocked.Increment para incremento atômico de contadores</para>
+/// </remarks>
 public class RateLimitingMiddleware(
     RequestDelegate next,
     IMemoryCache cache,
@@ -28,6 +47,7 @@ public class RateLimitingMiddleware(
         public int Value;
         public DateTime ExpiresAt;
     }
+    
     public async Task InvokeAsync(HttpContext context)
     {
         var currentOptions = options.CurrentValue;
@@ -80,11 +100,10 @@ public class RateLimitingMiddleware(
         }
 
         // TTL set at creation; no need for redundant cache operation
-
         var warnThreshold = (int)Math.Ceiling(limit * 0.8);
-        if (current >= warnThreshold) // approaching limit (80%)
+        if (current >= warnThreshold) // aproximando do limite (80%)
         {
-            logger.LogInformation("Client {ClientIp} approaching rate limit on path {Path}. Current: {Count}/{Limit}, Window: {Window}s",
+            logger.LogInformation("Cliente {ClientIp} aproximando do limite de taxa no caminho {Path}. Atual: {Count}/{Limit}, Janela: {Window}s",
                 clientIp, context.Request.Path, current, limit, currentOptions.General.WindowInSeconds);
         }
 

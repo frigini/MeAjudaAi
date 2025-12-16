@@ -1,7 +1,8 @@
 using System.Security.Claims;
-using System.Text.Encodings.Web;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.ApiService.Services.Authentication;
+using MeAjudaAi.ApiService.Testing;
 using MeAjudaAi.Shared.Authorization.Middleware;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
@@ -87,8 +88,9 @@ public static class ServiceCollectionExtensions
         // Health Checks customizados
         services.AddMeAjudaAiHealthChecks(configuration);
         
-        // Health Checks UI (apenas em Development)
         // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
+        // A Aspire Dashboard fornece visualização avançada de health checks, métricas, traces e logs
+        // em uma interface unificada e moderna, tornando o Health Checks UI redundante
 
         // Serviços específicos por ambiente
         services.AddEnvironmentSpecificServices(configuration, environment);
@@ -131,18 +133,12 @@ public static class ServiceCollectionExtensions
         app.UseAuthorization();
 
         // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
+        // Para visualizar health checks, acesse o Aspire Dashboard que oferece:
+        // - Visualização em tempo real do status de todos os serviços
+        // - Histórico e tendências de saúde dos componentes
+        // - Integração com logs, traces e métricas
+        // - Interface moderna e responsiva
 
         return app;
-    }
-}
-
-/// <summary>
-/// No-op implementation of IClaimsTransformation for cases where minimal transformation is needed
-/// </summary>
-public class NoOpClaimsTransformation : IClaimsTransformation
-{
-    public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
-    {
-        return Task.FromResult(principal);
     }
 }

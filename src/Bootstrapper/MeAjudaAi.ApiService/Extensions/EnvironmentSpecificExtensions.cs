@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using MeAjudaAi.ApiService.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
@@ -176,59 +177,5 @@ public static class EnvironmentSpecificExtensions
     {
         // Configurações de documentação específicas para desenvolvimento
         return services;
-    }
-}
-
-/// <summary>
-/// Opções de segurança específicas por ambiente
-/// </summary>
-public class SecurityOptions
-{
-    public bool EnforceHttps { get; set; }
-    public bool EnableStrictTransportSecurity { get; set; }
-    public IReadOnlyList<string> AllowedHosts { get; set; } = [];
-}
-
-/// <summary>
-/// Opções para o esquema de autenticação de teste
-/// </summary>
-public class TestAuthenticationSchemeOptions : AuthenticationSchemeOptions
-{
-    /// <summary>
-    /// Usuário padrão para testes
-    /// </summary>
-    public string DefaultUserId { get; set; } = "test-user-id";
-
-    /// <summary>
-    /// Nome do usuário padrão para testes
-    /// </summary>
-    public string DefaultUserName { get; set; } = "test-user";
-}
-
-/// <summary>
-/// Handler de autenticação simplificado para ambiente de teste
-/// </summary>
-public class TestAuthenticationHandler : AuthenticationHandler<TestAuthenticationSchemeOptions>
-{
-    public TestAuthenticationHandler(IOptionsMonitor<TestAuthenticationSchemeOptions> options,
-        ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
-    {
-    }
-
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
-    {
-        // Para testes, sempre autenticamos com um usuário padrão
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
-            new Claim(ClaimTypes.Name, "test-user"),
-            new Claim(ClaimTypes.Role, "user")
-        };
-
-        var identity = new ClaimsIdentity(claims, "Test");
-        var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal, "Test");
-
-        return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 }
