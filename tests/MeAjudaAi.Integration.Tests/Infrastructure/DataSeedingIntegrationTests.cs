@@ -286,28 +286,34 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         // Prefer Aspire-injected connection string from orchestrated services
         // (e.g., "ConnectionStrings__postgresdb" when using WithReference in AppHost)
         var aspireConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__postgresdb");
+        
+        // In CI, fail fast if Aspire orchestration is missing
+        if (Environment.GetEnvironmentVariable("CI") == "true")
+        {
+            if (string.IsNullOrWhiteSpace(aspireConnectionString))
+            {
+                throw new InvalidOperationException(
+                    "CRITICAL: Aspire orchestration is missing in CI environment. " +
+                    "Expected environment variable 'ConnectionStrings__postgresdb' is null or empty. " +
+                    "Ensure Aspire AppHost is properly configured and running before tests execute.");
+            }
+            return aspireConnectionString;
+        }
+
+        // For local development, fallback to custom environment variables if Aspire isn't active
         if (!string.IsNullOrWhiteSpace(aspireConnectionString))
         {
             return aspireConnectionString;
         }
 
-        // NOTE: Using fallback connection string - Aspire orchestration may not be active
-        // Fallback to custom environment variables for CI/CD or local testing without Aspire
+        // NOTE: Using fallback connection string - Aspire orchestration may not be active (local dev only)
         var host = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_HOST") ?? "localhost";
         var port = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PORT") ?? "5432";
         var database = Environment.GetEnvironmentVariable("MEAJUDAAI_DB") ?? "meajudaai_tests";
         var username = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_USER") ?? "postgres";
         var password = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PASS") ?? "postgres";
 
-        var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password}";
-        
-        // Log warning when using fallback in non-local environments
-        if (Environment.GetEnvironmentVariable("CI") == "true" && string.IsNullOrWhiteSpace(aspireConnectionString))
-        {
-            Console.WriteLine("WARNING: Using fallback connection string in CI environment - Aspire orchestration may not be active");
-        }
-        
-        return connectionString;
+        return $"Host={host};Port={port};Database={database};Username={username};Password={password}";
     }
 
     #endregion
