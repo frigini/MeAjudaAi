@@ -14,6 +14,6 @@ public class SafeGzipCompressionProvider : ICompressionProvider
     public Stream CreateStream(Stream outputStream)
     {
         ArgumentNullException.ThrowIfNull(outputStream);
-        return new GZipStream(outputStream, CompressionLevel.Optimal, leaveOpen: false);
+        return new GZipStream(outputStream, CompressionLevel.Optimal, leaveOpen: true);
     }
 }

@@ -14,6 +14,6 @@ public class SafeBrotliCompressionProvider : ICompressionProvider
     public Stream CreateStream(Stream outputStream)
     {
         ArgumentNullException.ThrowIfNull(outputStream);
-        return new BrotliStream(outputStream, CompressionLevel.Optimal, leaveOpen: false);
+        return new BrotliStream(outputStream, CompressionLevel.Optimal, leaveOpen: true);
     }
 }
