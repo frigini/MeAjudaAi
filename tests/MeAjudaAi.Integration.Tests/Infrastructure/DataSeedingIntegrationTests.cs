@@ -295,8 +295,11 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         }
 
         // In CI, fail fast if Aspire orchestration is unavailable
-        // Note: Check for presence of CI variable (some systems use CI=1, CI=yes, or just CI=true)
-        var isCI = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CI"));
+        // Normalize and check against whitelist of truthy values
+        var ciValue = Environment.GetEnvironmentVariable("CI")?.Trim().ToLowerInvariant();
+        var isCI = !string.IsNullOrEmpty(ciValue) && 
+                   (ciValue == "1" || ciValue == "true" || ciValue == "yes" || ciValue == "on");
+        
         if (isCI)
         {
             throw new InvalidOperationException(
