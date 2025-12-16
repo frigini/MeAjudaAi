@@ -222,6 +222,87 @@ O módulo SearchProviders não possui testes E2E (end-to-end), apenas testes de 
 
 ---
 
+## 📦 Microsoft.OpenApi 2.3.0 - Bloqueio de Atualização para 3.x
+
+**Arquivo**: `Directory.Packages.props` (linha ~46)  
+**Situação**: BLOQUEADO - Incompatibilidade com ASP.NET Core Source Generators  
+**Severidade**: BAIXA (não crítico, funciona perfeitamente)  
+**Issue**: [Criar issue para rastreamento]
+
+**Descrição**:
+Microsoft.OpenApi está pinado em versão 2.3.0 porque a versão 3.0.2 é incompatível com os source generators do ASP.NET Core 10.0 (`Microsoft.AspNetCore.OpenApi.SourceGenerators`).
+
+**Problema Identificado**:
+```
+error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned to -- it is read only
+```
+
+**Testes Realizados**:
+- ✅ Testado com SDK 10.0.101 (Dez 2025) - ainda quebra
+- ✅ Testado Microsoft.OpenApi 3.0.2 - incompatível
+- ✅ Confirmado que 2.3.0 funciona perfeitamente
+
+**Causa Raiz**:
+- Microsoft.OpenApi 3.x mudou `IOpenApiMediaType.Example` para read-only (breaking change)
+- ASP.NET Core source generator ainda gera código que tenta escrever nessa propriedade
+- Source generator não foi atualizado para API do OpenApi 3.x
+
+**Dependência**: Swashbuckle.AspNetCore
+- Swashbuckle 10.x depende de Microsoft.OpenApi (transitivo)
+- Projeto usa Swashbuckle para Swagger UI e customizações avançadas
+- Swashbuckle v10 migration guide: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/docs/migrating-to-v10.md
+
+**Opções de Resolução**:
+
+**OPÇÃO 1 (ATUAL - RECOMENDADA)**: Manter Microsoft.OpenApi 2.3.0
+- ✅ Funciona perfeitamente
+- ✅ Zero impacto em funcionalidades
+- ✅ Swagger UI completo e funcional
+- ⚠️ Versão desatualizada (mas estável)
+
+**OPÇÃO 2 (FUTURO)**: Aguardar correção da Microsoft
+- Microsoft atualiza source generator para OpenApi 3.x
+- Timeline: Desconhecida (provavelmente .NET 11 ou patch futuro)
+- Monitorar: https://github.com/dotnet/aspnetcore/issues
+
+**OPÇÃO 3 (COMPLEXA - NÃO RECOMENDADA AGORA)**: Migrar para ASP.NET Core OpenAPI nativo
+- Remove Swashbuckle completamente
+- Usa `Microsoft.AspNetCore.OpenApi` nativo (.NET 9+)
+- **PROBLEMA**: Não inclui Swagger UI por padrão
+  - Precisa adicionar Scalar/SwaggerUI/RapiDoc separadamente
+  - Perde configurações avançadas de UI (InjectStylesheet, DocExpansion, etc)
+- **ESFORÇO**: 5-8 horas de trabalho
+  - Migrar CustomSchemaIds → transformers
+  - Migrar CustomOperationIds → transformers  
+  - Migrar ApiVersionOperationFilter → transformers
+  - Configurar UI externa (Scalar recomendado)
+  - Atualizar 3 arquivos de teste
+- **ROI**: Baixo - funcionalidade atual é completa
+
+**Monitoramento**:
+- [ ] Verificar releases do .NET SDK para correções no source generator
+- [ ] Testar Microsoft.OpenApi 3.x a cada atualização de SDK
+- [ ] Monitorar Swashbuckle releases para melhor suporte OpenApi 3.x
+- [ ] Avaliar migração para OpenAPI nativo quando UI nativo estiver disponível
+
+**Prioridade**: BAIXA (não urgente)  
+**Estimativa**: Aguardar correção oficial (sem ação necessária)  
+**Workaround Atual**: Manter 2.3.0 (100% funcional)
+
+**Critérios para Atualização**:
+- [ ] Microsoft corrigir source generator para OpenApi 3.x, OU
+- [ ] Swashbuckle suportar completamente OpenApi 3.x, OU
+- [ ] Necessidade real de features do OpenApi 3.x (atualmente nenhuma)
+
+**Documentação**:
+- Comentário detalhado em `Directory.Packages.props` (linhas 46-49)
+- Migration guide Swashbuckle: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/docs/migrating-to-v10.md
+- ASP.NET Core OpenAPI docs: https://learn.microsoft.com/aspnet/core/fundamentals/openapi/aspnetcore-openapi
+
+**Nota**: Esta limitação **NÃO afeta** funcionalidade, performance ou segurança. É puramente uma questão de versão de dependência.
+
+---
+
 ## Instruções para Mantenedores
 
 1. **Conversão para Issues do GitHub**: 

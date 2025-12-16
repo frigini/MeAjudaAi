@@ -43,8 +43,9 @@
     <!-- Risk: RC + stable mix may cause TypeLoadException, but tests currently pass -->
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.0-rc.2" />
     <!-- Microsoft.OpenApi: Keep at 2.3.0 for compatibility with ASP.NET Core OpenApi source generators -->
-    <!-- OpenApi 3.0.2 breaks source generators with CS0200 error (IOpenApiMediaType.Example is read-only) -->
-    <!-- Explicitly defined here to allow test projects to reference it without version conflicts -->
+    <!-- TESTED: OpenApi 3.0.2 still breaks with SDK 10.0.101 (CS0200: IOpenApiMediaType.Example is read-only) -->
+    <!-- The source generator has not been updated yet to support OpenApi 3.x API changes -->
+    <!-- Monitor: https://github.com/dotnet/aspnetcore/issues for updates -->
     <PackageVersion Include="Microsoft.OpenApi" Version="2.3.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0" />

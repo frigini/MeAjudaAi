@@ -38,8 +38,10 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync();
         
+        // NOTE: String interpolation is safe here - ServiceCatalogsSchema is a compile-time constant
+        // (not user input), so no SQL injection risk. Using interpolation for better readability.
         await using var command = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"ServiceCategories\"",
+            $"SELECT COUNT(*) FROM {ServiceCatalogsSchema}.\"ServiceCategories\"",
             connection);
         
         var count = (long)(await command.ExecuteScalarAsync() ?? 0L);
@@ -297,7 +299,15 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         var username = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_USER") ?? "postgres";
         var password = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PASS") ?? "postgres";
 
-        return $"Host={host};Port={port};Database={database};Username={username};Password={password}";
+        var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password}";
+        
+        // Log warning when using fallback in non-local environments
+        if (Environment.GetEnvironmentVariable("CI") == "true" && string.IsNullOrWhiteSpace(aspireConnectionString))
+        {
+            Console.WriteLine("WARNING: Using fallback connection string in CI environment - Aspire orchestration may not be active");
+        }
+        
+        return connectionString;
     }
 
     #endregion
