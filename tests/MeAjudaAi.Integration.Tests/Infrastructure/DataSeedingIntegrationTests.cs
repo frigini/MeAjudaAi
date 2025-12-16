@@ -110,9 +110,9 @@ public sealed class DataSeedingIntegrationTests
         
         // Verificar que todos os serviços têm categoria válida
         await using var command = new NpgsqlCommand(
-            $@"SELECT COUNT(*) 
-              FROM {ServiceCatalogsSchema}.""Services"" s
-              LEFT JOIN {ServiceCatalogsSchema}.""ServiceCategories"" sc ON s.""CategoryId"" = sc.""Id""
+            @"SELECT COUNT(*) 
+              FROM meajudaai_service_catalogs.""Services"" s
+              LEFT JOIN meajudaai_service_catalogs.""ServiceCategories"" sc ON s.""CategoryId"" = sc.""Id""
               WHERE sc.""Id"" IS NULL",
             connection);
         
@@ -286,20 +286,8 @@ public sealed class DataSeedingIntegrationTests
             return aspireConnectionString;
         }
 
-        // In CI, fail fast if Aspire orchestration is unavailable
-        // Normalize and check against whitelist of truthy values
-        var ciValue = Environment.GetEnvironmentVariable("CI")?.Trim().ToLowerInvariant();
-        var isCI = !string.IsNullOrEmpty(ciValue) && 
-                   (ciValue == "1" || ciValue == "true" || ciValue == "yes" || ciValue == "on");
-        
-        if (isCI)
-        {
-            throw new InvalidOperationException(
-                "Aspire-injected connection string 'ConnectionStrings__postgresdb' not found in CI environment. " +
-                "Ensure Aspire orchestration is properly configured and AppHost is running.");
-        }
-
-        // Fallback: Use CI/local environment variables
+        // Fallback: Use environment variables (CI or local development)
+        // In CI, workflow sets MEAJUDAAI_DB_* vars pointing to PostgreSQL service
         // CI workflow sets MEAJUDAAI_DB_* vars; local dev can use defaults or override
         var host = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_HOST") ?? "localhost";
         var port = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PORT") ?? "5432";
