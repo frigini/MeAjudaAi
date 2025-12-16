@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Tests.Infrastructure;
 
@@ -178,6 +179,86 @@ public class HealthChecksIntegrationTests
         results.Should().HaveCount(4);
         results.Should().OnlyContain(r => r.Status != HealthStatus.Unhealthy);
     }
+
+    #endregion
+
+    #region HangfireHealthCheck Tests
+
+    [Fact]
+    public async Task HangfireHealthCheck_ShouldReturnHealthy()
+    {
+        // Arrange
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        var logger = loggerFactory.CreateLogger<MeAjudaAiHealthChecks.HangfireHealthCheck>();
+        var healthCheck = new MeAjudaAiHealthChecks.HangfireHealthCheck(logger);
+        var context = new HealthCheckContext();
+
+        // Act
+        var result = await healthCheck.CheckHealthAsync(context);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Status.Should().Be(HealthStatus.Healthy);
+        result.Description.Should().Contain("Hangfire is configured and operational");
+    }
+
+    [Fact]
+    public async Task HangfireHealthCheck_ShouldIncludeMetadata()
+    {
+        // Arrange
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        var logger = loggerFactory.CreateLogger<MeAjudaAiHealthChecks.HangfireHealthCheck>();
+        var healthCheck = new MeAjudaAiHealthChecks.HangfireHealthCheck(logger);
+        var context = new HealthCheckContext();
+
+        // Act
+        var result = await healthCheck.CheckHealthAsync(context);
+
+        // Assert
+        result.Data.Should().NotBeNull();
+        result.Data.Should().ContainKey("timestamp");
+        result.Data.Should().ContainKey("component");
+        result.Data.Should().ContainKey("configured");
+        result.Data["component"].Should().Be("hangfire");
+        result.Data["configured"].Should().Be(true);
+    }
+
+    [Fact]
+    public async Task HangfireHealthCheck_MultipleChecks_ShouldBeConsistent()
+    {
+        // Arrange
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        var logger = loggerFactory.CreateLogger<MeAjudaAiHealthChecks.HangfireHealthCheck>();
+        var healthCheck = new MeAjudaAiHealthChecks.HangfireHealthCheck(logger);
+        var context = new HealthCheckContext();
+
+        // Act - Execute multiple times
+        var results = new List<HealthCheckResult>();
+        for (int i = 0; i < 5; i++)
+        {
+            results.Add(await healthCheck.CheckHealthAsync(context));
+        }
+
+        // Assert - All should be healthy and consistent
+        results.Should().HaveCount(5);
+        results.Should().OnlyContain(r => r.Status == HealthStatus.Healthy);
+        results.Should().OnlyContain(r => r.Data.ContainsKey("configured"));
+    }
+
+    [Fact]
+    public async Task HangfireHealthCheck_WithNullLogger_ShouldThrowArgumentNullException()
+    {
+        // Arrange & Act
+        var act = () => new MeAjudaAiHealthChecks.HangfireHealthCheck(null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>()
+            .WithParameterName("logger");
+    }
+
+    #endregion
+
+    #region Load and Stability Tests
 
     [Fact]
     public async Task HealthChecks_UnderLoad_ShouldRemainStable()

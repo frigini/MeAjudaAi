@@ -44,6 +44,14 @@ public static class HealthCheckExtensions
             "external_services",
             tags: new[] { "ready", "external" });
 
+        // Adicionar Hangfire health check
+        // Monitora se o sistema de background jobs está operacional
+        // CRÍTICO: Validação de compatibilidade Npgsql 10.x (Issue #39)
+        healthChecksBuilder.AddCheck<MeAjudaAiHealthChecks.HangfireHealthCheck>(
+            "hangfire",
+            failureStatus: HealthStatus.Degraded, // Degraded em vez de Unhealthy permite app continuar funcionando
+            tags: new[] { "ready", "background_jobs" });
+
         // Adicionar Redis health check se configurado
         var redisConnectionString = configuration["Caching:RedisConnectionString"];
         if (!string.IsNullOrEmpty(redisConnectionString))
