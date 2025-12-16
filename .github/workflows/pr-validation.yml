@@ -672,11 +672,20 @@ jobs:
           
           # Verify ReportGenerator installation
           echo "✅ Verifying ReportGenerator installation..."
-          if ! reportgenerator --version; then
-            echo "❌ ReportGenerator is not functional"
+          if ! dotnet tool list --global | grep -q reportgenerator; then
+            echo "❌ ReportGenerator is not installed"
             dotnet tool list --global
             exit 1
           fi
+          
+          # Verify reportgenerator binary is accessible
+          if ! command -v reportgenerator >/dev/null 2>&1; then
+            echo "❌ reportgenerator command not found in PATH"
+            echo "PATH=$PATH"
+            exit 1
+          fi
+          
+          echo "✅ ReportGenerator is ready"
           
           # Pre-flight check: verify all expected coverage files exist
           echo "🔍 Pre-flight check: Verifying coverage files..."
