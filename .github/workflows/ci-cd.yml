@@ -66,6 +66,10 @@ jobs:
         run: |
           echo "📦 Installing .NET Aspire workload..."
           dotnet workload update
+          # --skip-sign-check is required to install unsigned preview Aspire workloads
+          # in the ephemeral GitHub Actions environment. This flag bypasses signature
+          # verification which is acceptable for CI/CD only. Remove this flag when
+          # moving to signed/stable Aspire releases.
           dotnet workload install aspire --skip-sign-check
           echo "✅ Aspire workload installed"
           echo "🔍 Verifying Aspire installation..."

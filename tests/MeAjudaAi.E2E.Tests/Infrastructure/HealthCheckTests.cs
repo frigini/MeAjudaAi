@@ -41,8 +41,9 @@ public class HealthCheckTests : TestContainerTestBase
         {
             var response = await ApiClient.GetAsync("/health/ready");
 
-            if (response.StatusCode == HttpStatusCode.OK)
-                return; // Teste passou
+            if (response.StatusCode == HttpStatusCode.OK ||
+                response.StatusCode == HttpStatusCode.ServiceUnavailable)
+                return; // Teste passou - serviço está respondendo com status aceitável
 
             if (attempt < maxAttempts - 1)
                 await Task.Delay(delay);
@@ -62,7 +63,8 @@ public class HealthCheckTests : TestContainerTestBase
         // In E2E tests, it's acceptable for some services to be degraded (503)
         // as long as the app is running and responding to health checks
         finalResponse.StatusCode.Should().BeOneOf(
-            new[] { HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable },
-            "Verificação de prontidão deve retornar OK ou ServiceUnavailable (503) em testes E2E");
+            HttpStatusCode.OK,
+            HttpStatusCode.ServiceUnavailable,
+            because: "Verificação de prontidão deve retornar OK ou ServiceUnavailable (503) em testes E2E");
     }
 }

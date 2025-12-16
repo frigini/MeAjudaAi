@@ -84,7 +84,7 @@ public class ExternalServicesHealthCheck(
     /// Common health check logic for external services
     /// </summary>
     private async Task<(bool IsHealthy, string? Error)> CheckServiceAsync(
-        string baseUrl, int timeoutSeconds, CancellationToken cancellationToken)
+        string baseUrl, int timeoutSeconds, string healthEndpointPath, CancellationToken cancellationToken)
     {
         try
         {
@@ -98,7 +98,8 @@ public class ExternalServicesHealthCheck(
             cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
             var baseUri = baseUrl.TrimEnd('/');
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}/health");
+            var path = string.IsNullOrWhiteSpace(healthEndpointPath) ? "/health" : healthEndpointPath;
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}{path}");
             using var response = await httpClient
                 .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
                 .ConfigureAwait(false);
@@ -125,18 +126,21 @@ public class ExternalServicesHealthCheck(
         CheckServiceAsync(
             externalServicesOptions.Keycloak.BaseUrl,
             externalServicesOptions.Keycloak.TimeoutSeconds,
+            externalServicesOptions.Keycloak.HealthEndpointPath,
             cancellationToken);
 
     private Task<(bool IsHealthy, string? Error)> CheckPaymentGatewayAsync(CancellationToken cancellationToken) =>
         CheckServiceAsync(
             externalServicesOptions.PaymentGateway.BaseUrl,
             externalServicesOptions.PaymentGateway.TimeoutSeconds,
+            externalServicesOptions.PaymentGateway.HealthEndpointPath,
             cancellationToken);
 
     private Task<(bool IsHealthy, string? Error)> CheckGeolocationAsync(CancellationToken cancellationToken) =>
         CheckServiceAsync(
             externalServicesOptions.Geolocation.BaseUrl,
             externalServicesOptions.Geolocation.TimeoutSeconds,
+            externalServicesOptions.Geolocation.HealthEndpointPath,
             cancellationToken);
 }
 
@@ -159,6 +163,7 @@ public class KeycloakHealthOptions
 {
     public bool Enabled { get; set; } = true;
     public string BaseUrl { get; set; } = "http://localhost:8080";
+    public string HealthEndpointPath { get; set; } = "/health";
     public int TimeoutSeconds { get; set; } = 5;
 }
 
@@ -169,6 +174,7 @@ public class PaymentGatewayHealthOptions
 {
     public bool Enabled { get; set; } = false;
     public string BaseUrl { get; set; } = string.Empty;
+    public string HealthEndpointPath { get; set; } = "/health";
     public int TimeoutSeconds { get; set; } = 10;
 }
 
@@ -179,5 +185,6 @@ public class GeolocationHealthOptions
 {
     public bool Enabled { get; set; } = false;
     public string BaseUrl { get; set; } = string.Empty;
+    public string HealthEndpointPath { get; set; } = "/health";
     public int TimeoutSeconds { get; set; } = 5;
 }

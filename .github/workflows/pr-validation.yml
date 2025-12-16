@@ -623,10 +623,16 @@ jobs:
           dotnet --list-sdks
           dotnet --list-runtimes
           
-          # Fix DOTNET_ROOT to point to system installation where runtime is located
-          export DOTNET_ROOT=/usr/share/dotnet
-          export PATH="$DOTNET_ROOT:$PATH"
-          echo "DOTNET_ROOT set to: $DOTNET_ROOT"
+          # Detect DOTNET_ROOT dynamically with fallback to system installation
+          if [ -z "$DOTNET_ROOT" ] || [ ! -d "$DOTNET_ROOT" ]; then
+            if command -v dotnet >/dev/null 2>&1; then
+              export DOTNET_ROOT=$(dirname $(dirname $(readlink -f $(which dotnet))))
+              echo "✅ Detected DOTNET_ROOT: $DOTNET_ROOT"
+            else
+              export DOTNET_ROOT=/usr/share/dotnet
+              echo "⚠️  Using fallback DOTNET_ROOT: $DOTNET_ROOT"
+            fi
+          fi
           
           # Install ReportGenerator (latest version for .NET 10)
           echo "📦 Installing ReportGenerator..."
