@@ -139,7 +139,7 @@ public class RateLimitingMiddlewareTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("aproximando do limite de taxa")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("approaching rate limit")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.AtLeastOnce);

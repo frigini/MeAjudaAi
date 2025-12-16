@@ -71,7 +71,7 @@ public partial class Program
         // Configurar Serilog apenas se NÃO for ambiente de Testing
         if (!builder.Environment.IsEnvironment("Testing"))
         {
-            // Bootstrap logger for early startup messages
+            // Logger de inicialização para mensagens de startup precoces
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(builder.Configuration)
                 .Enrich.FromLogContext()
@@ -94,7 +94,7 @@ public partial class Program
         }
         else
         {
-            // For Testing environment, use minimal console logging
+            // Para ambiente de Testing, usa logging mínimo no console
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole();
             builder.Logging.SetMinimumLevel(LogLevel.Warning);
@@ -105,7 +105,7 @@ public partial class Program
     {
         app.MapDefaultEndpoints();
 
-        // Add structured logging middleware (will conditionally add Serilog request logging based on environment)
+        // Adiciona middleware de logging estruturado (condicionalmente adiciona Serilog request logging baseado no ambiente)
         if (!app.Environment.IsEnvironment("Testing"))
         {
             app.UseStructuredLogging();

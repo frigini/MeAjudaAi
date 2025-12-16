@@ -62,7 +62,7 @@ public class GeographicRestrictionMiddleware(
             var template = options.CurrentValue.BlockedMessage ?? "Access from your region is not allowed. Allowed regions: {allowedRegions}.";
             var message = template.Replace("{allowedRegions}", allowedRegions);
 
-            // Convert configured "City|State" entries (or plain city names) to AllowedCity objects
+            // Converte entradas configuradas "City|State" (ou nomes simples de cidade) para objetos AllowedCity
             var allowedCitiesResponse = options.CurrentValue.AllowedCities?
                 .Select(raw =>
                 {
@@ -166,7 +166,7 @@ public class GeographicRestrictionMiddleware(
                     options.CurrentValue.AllowedCities,
                     cancellationToken);
 
-                // IBGE validation tem prioridade (mais precisa)
+                // Validação IBGE tem prioridade (mais precisa)
                 logger.LogInformation(
                     "Validação IBGE para {City}/{State}: {Result} (simples: {SimpleResult})",
                     city, state ?? "N/A", ibgeValidation, simpleValidation);
@@ -175,7 +175,7 @@ public class GeographicRestrictionMiddleware(
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Erro ao validar com IBGE, fallback para validação simples");
+                logger.LogError(ex, "Error validating with IBGE, falling back to simple validation");
                 // Fallback para validação simples em caso de erro
             }
         }
@@ -200,7 +200,7 @@ public class GeographicRestrictionMiddleware(
             if (options.CurrentValue.AllowedCities == null)
             {
                 logger.LogWarning("Geographic restriction enabled but AllowedCities is null - failing open");
-                return true; // Fail-open when misconfigured
+                return true; // Fail-open quando mal configurado
             }
 
             foreach (var allowedCity in options.CurrentValue.AllowedCities)
@@ -231,7 +231,7 @@ public class GeographicRestrictionMiddleware(
                 // Rejeitar entradas onde city ou state estão vazios
                 if (string.IsNullOrEmpty(configCity) || string.IsNullOrEmpty(configState))
                 {
-                    logger.LogWarning("Configuração malformada (valores vazios): {AllowedCity}", allowedCity);
+                    logger.LogWarning("Malformed configuration (empty values): {AllowedCity}", allowedCity);
                     continue;
                 }
 
@@ -256,7 +256,7 @@ public class GeographicRestrictionMiddleware(
             if (options.CurrentValue.AllowedStates == null)
             {
                 logger.LogWarning("Geographic restriction enabled but AllowedStates is null - failing open");
-                return true; // Fail-open when misconfigured
+                return true; // Fail-open quando mal configurado
             }
 
             return options.CurrentValue.AllowedStates.Any(s => s.Equals(state, StringComparison.OrdinalIgnoreCase));

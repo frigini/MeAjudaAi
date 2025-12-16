@@ -38,7 +38,7 @@ public class StaticFilesMiddleware(RequestDelegate next)
                     var headers = context.Response.Headers;
                     headers[HeaderNames.CacheControl] = LongCacheControl;
                     headers[HeaderNames.Expires] = DateTimeOffset.UtcNow.Add(LongCacheDuration).ToString("R");
-                    // Removed manual ETag assignment - let ASP.NET Core static file middleware handle content-aware ETags
+                    // Removido atribuição manual de ETag - deixa middleware de arquivos estáticos do ASP.NET Core lidar com ETags baseados em conteúdo
 
                     return Task.CompletedTask;
                 });

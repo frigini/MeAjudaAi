@@ -52,7 +52,7 @@ public class RateLimitingMiddleware(
     {
         var currentOptions = options.CurrentValue;
 
-        // Bypass rate limiting if explicitly disabled
+        // Ignora rate limiting se explicitamente desabilitado
         if (!currentOptions.General.Enabled)
         {
             await next(context);
@@ -62,7 +62,7 @@ public class RateLimitingMiddleware(
         var clientIp = GetClientIpAddress(context);
         var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
 
-        // Check IP whitelist first - bypass rate limiting if IP is whitelisted
+        // Verifica whitelist de IPs primeiro - ignora rate limiting se IP estiver na whitelist
         if (currentOptions.General.EnableIpWhitelist &&
             currentOptions.General.WhitelistedIps.Contains(clientIp))
         {
@@ -70,14 +70,14 @@ public class RateLimitingMiddleware(
             return;
         }
 
-        // Defensively clamp window to at least 1 second
+        // Garante janela mínima de 1 segundo por segurança
         var windowSeconds = Math.Max(1, currentOptions.General.WindowInSeconds);
         var effectiveWindow = TimeSpan.FromSeconds(windowSeconds);
 
-        // Determine effective limit using priority order
+        // Determina limite efetivo usando ordem de prioridade
         var limit = GetEffectiveLimit(context, currentOptions, isAuthenticated, effectiveWindow);
 
-        // Key by user (when authenticated) and method to reduce false sharing
+        // Chave por usuário (quando autenticado) e método para reduzir false sharing
         var userKey = isAuthenticated
             ? (context.User.FindFirst("sub")?.Value ?? context.User.Identity?.Name ?? clientIp)
             : clientIp;
@@ -87,7 +87,7 @@ public class RateLimitingMiddleware(
         {
             entry.AbsoluteExpirationRelativeToNow = effectiveWindow;
             return new Counter { ExpiresAt = DateTime.UtcNow + effectiveWindow };
-        })!; // GetOrCreate never returns null when factory returns a value
+        })!; // GetOrCreate nunca retorna null quando factory retorna um valor
 
         var current = Interlocked.Increment(ref counter.Value);
 
@@ -99,11 +99,11 @@ public class RateLimitingMiddleware(
             return;
         }
 
-        // TTL set at creation; no need for redundant cache operation
+        // TTL definido na criação; sem necessidade de operação redundante de cache
         var warnThreshold = (int)Math.Ceiling(limit * 0.8);
         if (current >= warnThreshold) // aproximando do limite (80%)
         {
-            logger.LogInformation("Cliente {ClientIp} aproximando do limite de taxa no caminho {Path}. Atual: {Count}/{Limit}, Janela: {Window}s",
+            logger.LogInformation("Client {ClientIp} approaching rate limit on path {Path}. Current: {Count}/{Limit}, Window: {Window}s",
                 clientIp, context.Request.Path, current, limit, currentOptions.General.WindowInSeconds);
         }
 
@@ -114,7 +114,7 @@ public class RateLimitingMiddleware(
     {
         var requestPath = context.Request.Path.Value ?? string.Empty;
 
-        // 1. Check for endpoint-specific limits first
+        // 1. Verifica limites específicos de endpoint primeiro
         var matchingLimit = rateLimitOptions.EndpointLimits
             .FirstOrDefault(endpointLimit =>
                 IsPathMatch(requestPath, endpointLimit.Value.Pattern) &&
@@ -130,7 +130,7 @@ public class RateLimitingMiddleware(
                 window);
         }
 
-        // 2. Check for role-specific limits (only for authenticated users)
+        // 2. Verifica limites específicos de role (apenas para usuários autenticados)
         if (isAuthenticated)
         {
             var userRoles = context.User.FindAll("role")?.Select(c => c.Value) ??
@@ -150,7 +150,7 @@ public class RateLimitingMiddleware(
             }
         }
 
-        // 3. Fall back to default authenticated/anonymous limits
+        // 3. Usa limites padrão de autenticado/anônimo como fallback
         return isAuthenticated
             ? ScaleToWindow(rateLimitOptions.Authenticated.RequestsPerMinute, rateLimitOptions.Authenticated.RequestsPerHour, rateLimitOptions.Authenticated.RequestsPerDay, window)
             : ScaleToWindow(rateLimitOptions.Anonymous.RequestsPerMinute, rateLimitOptions.Anonymous.RequestsPerHour, rateLimitOptions.Anonymous.RequestsPerDay, window);
@@ -172,7 +172,7 @@ public class RateLimitingMiddleware(
         if (string.IsNullOrEmpty(pattern))
             return false;
 
-        // Simple wildcard matching - can be enhanced for more complex patterns
+        // Correspondência simples de wildcard - pode ser melhorado para padrões mais complexos
         if (pattern.Contains('*'))
         {
             var regexPattern = pattern.Replace("*", ".*");
@@ -190,7 +190,7 @@ public class RateLimitingMiddleware(
 
     private static async Task HandleRateLimitExceeded(HttpContext context, Counter counter, string errorMessage, int windowInSeconds)
     {
-        // Calculate remaining TTL from counter expiration
+        // Calcula TTL restante da expiração do contador
         var retryAfterSeconds = Math.Max(0, (int)Math.Ceiling((counter.ExpiresAt - DateTime.UtcNow).TotalSeconds));
 
         context.Response.StatusCode = 429;
