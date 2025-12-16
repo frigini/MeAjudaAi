@@ -53,7 +53,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_ShouldHaveExpectedCategories()
     {
         // Arrange
-        var connectionString = TestConnectionHelper.TestConnectionHelper.GetConnectionString();
+        var connectionString = TestConnectionHelper.GetConnectionString();
 
         var expectedCategories = new[]
         {
@@ -202,7 +202,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_ShouldHaveSpecificServices()
     {
         // Arrange
-        var connectionString = TestConnectionHelper.TestConnectionHelper.GetConnectionString();
+        var connectionString = TestConnectionHelper.GetConnectionString();
 
         var expectedServices = new[]
         {
@@ -280,7 +280,8 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
         inactiveCount.Should().Be(0, "todos os serviços do seed devem estar ativos");
     }
 
-    #endregion}
+    #endregion
+}
 
 
 

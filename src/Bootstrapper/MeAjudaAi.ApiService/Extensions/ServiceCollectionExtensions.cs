@@ -59,7 +59,6 @@ public static class ServiceCollectionExtensions
         services.Configure<GeographicRestrictionOptions>(
             configuration.GetSection("GeographicRestriction"));
 
-        // Adiciona autenticação segura baseada no ambiente
         // Configuração de autenticação baseada no ambiente
         if (!isTestEnvironment)
         {
