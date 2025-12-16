@@ -152,29 +152,21 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
         // Act - Tentar executar seed novamente (simula idempotência)
         // TODO: Consider loading and executing actual seed script from infrastructure/database/seeds/01-seed-service-catalogs.sql
         // for more accurate validation. For now, validating the idempotency pattern with inline SQL:
-        await using var rerunSeed = new NpgsqlCommand(
-            $@"DO $$
+        var idempotentSql = $@"DO $$
               BEGIN
                   -- Script idempotente: deve verificar se já existe antes de inserir
                   IF NOT EXISTS (SELECT 1 FROM {ServiceCatalogsSchema}.""ServiceCategories"" WHERE ""Name"" = 'Teste Idempotência') THEN
                       INSERT INTO {ServiceCatalogsSchema}.""ServiceCategories"" (""Id"", ""Name"", ""Description"", ""Icon"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"")
                       VALUES (gen_random_uuid(), 'Teste Idempotência', 'Test', 'test', true, NOW(), NOW());
                   END IF;
-              END $$;",
-            connection);
-        await rerunSeed.ExecuteNonQueryAsync();
+              END $$;";
 
-        // Executar novamente - não deve duplicar
-        await using var rerunSeed2 = new NpgsqlCommand(
-            $@"DO $$
-              BEGIN
-                  IF NOT EXISTS (SELECT 1 FROM {ServiceCatalogsSchema}.""ServiceCategories"" WHERE ""Name"" = 'Teste Idempotência') THEN
-                      INSERT INTO {ServiceCatalogsSchema}.""ServiceCategories"" (""Id"", ""Name"", ""Description"", ""Icon"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"")
-                      VALUES (gen_random_uuid(), 'Teste Idempotência', 'Test', 'test', true, NOW(), NOW());
-                  END IF;
-              END $$;",
-            connection);
-        await rerunSeed2.ExecuteNonQueryAsync();
+        // Execute twice to verify idempotency - should only insert once
+        for (int i = 0; i < 2; i++)
+        {
+            await using var rerunSeed = new NpgsqlCommand(idempotentSql, connection);
+            await rerunSeed.ExecuteNonQueryAsync();
+        }
 
         await using var countAfter = new NpgsqlCommand(
             $"SELECT COUNT(*) FROM {ServiceCatalogsSchema}.\"ServiceCategories\"",
@@ -292,6 +284,7 @@ public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _)
             return aspireConnectionString;
         }
 
+        // NOTE: Using fallback connection string - Aspire orchestration may not be active
         // Fallback to custom environment variables for CI/CD or local testing without Aspire
         var host = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_HOST") ?? "localhost";
         var port = Environment.GetEnvironmentVariable("MEAJUDAAI_DB_PORT") ?? "5432";

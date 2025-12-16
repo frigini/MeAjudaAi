@@ -112,7 +112,10 @@ jobs:
 
           # Restore AppHost to download Aspire NuGet packages (includes DCP binaries)
           echo "🔄 Restoring AppHost project to download Aspire packages..."
-          dotnet restore src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --verbosity normal
+          if ! dotnet restore src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --verbosity normal; then
+            echo "❌ Failed to restore AppHost project"
+            exit 1
+          fi
 
           # Verify DCP binaries were downloaded (now located in NuGet package cache)
           echo "🔎 Verifying DCP binaries in NuGet cache..."
@@ -633,11 +636,18 @@ jobs:
           if command -v dotnet >/dev/null 2>&1; then
             DOTNET_PATH=$(which dotnet)
             DOTNET_RESOLVED=$(readlink -f "$DOTNET_PATH")
-            export DOTNET_ROOT=$(dirname "$(dirname "$DOTNET_RESOLVED")")
+            # dotnet binary is at /usr/share/dotnet/dotnet, so only one dirname needed
+            export DOTNET_ROOT=$(dirname "$DOTNET_RESOLVED")
             echo "✅ Detected DOTNET_ROOT: $DOTNET_ROOT"
           else
             export DOTNET_ROOT=/usr/share/dotnet
             echo "⚠️  Using fallback DOTNET_ROOT: $DOTNET_ROOT"
+          fi
+          
+          # Verify DOTNET_ROOT is valid
+          if [ ! -d "$DOTNET_ROOT" ]; then
+            echo "❌ ERROR: DOTNET_ROOT directory does not exist: $DOTNET_ROOT"
+            exit 1
           fi
           
           # Verify .NET 10 runtime is available before proceeding
@@ -649,14 +659,24 @@ jobs:
           
           # Install ReportGenerator (latest version for .NET 10)
           echo "📦 Installing ReportGenerator..."
-          dotnet tool install --global dotnet-reportgenerator-globaltool || dotnet tool update --global dotnet-reportgenerator-globaltool
+          if ! dotnet tool install --global dotnet-reportgenerator-globaltool 2>/dev/null; then
+            echo "ℹ️  Tool already installed, attempting update..."
+            if ! dotnet tool update --global dotnet-reportgenerator-globaltool; then
+              echo "❌ Failed to install or update ReportGenerator"
+              exit 1
+            fi
+          fi
           
           # Ensure .NET tools are in PATH
           export PATH="$PATH:$HOME/.dotnet/tools"
           
           # Verify ReportGenerator installation
           echo "✅ Verifying ReportGenerator installation..."
-          dotnet tool list --global | grep reportgenerator
+          if ! reportgenerator --version; then
+            echo "❌ ReportGenerator is not functional"
+            dotnet tool list --global
+            exit 1
+          fi
           
           # Pre-flight check: verify all expected coverage files exist
           echo "🔍 Pre-flight check: Verifying coverage files..."
