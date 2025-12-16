@@ -62,9 +62,9 @@ public class HealthCheckTests : TestContainerTestBase
 
         // In E2E tests, it's acceptable for some services to be degraded (503)
         // as long as the app is running and responding to health checks
+        // Verificação de prontidão deve retornar OK ou ServiceUnavailable (503) em testes E2E
         finalResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.ServiceUnavailable,
-            because: "Verificação de prontidão deve retornar OK ou ServiceUnavailable (503) em testes E2E");
+            HttpStatusCode.ServiceUnavailable);
     }
 }

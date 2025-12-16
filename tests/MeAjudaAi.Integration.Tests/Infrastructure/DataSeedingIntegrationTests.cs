@@ -16,7 +16,7 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 [Trait("Area", "Infrastructure")]
 [Trait("Category", "Aspire")]
 [Trait("Issue", "AspireDCP")]
-public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture fixture) 
+public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _) 
     : IClassFixture<AspireIntegrationFixture>
 {
     #region ServiceCatalogs Seeding Tests

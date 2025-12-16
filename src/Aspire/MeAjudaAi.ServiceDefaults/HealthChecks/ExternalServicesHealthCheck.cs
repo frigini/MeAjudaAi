@@ -98,8 +98,11 @@ public class ExternalServicesHealthCheck(
             cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
             var baseUri = baseUrl.TrimEnd('/');
-            var path = string.IsNullOrWhiteSpace(healthEndpointPath) ? "/health" : healthEndpointPath;
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}{path}");
+            // Normalize path: default to "/health", trim whitespace, ensure single leading '/'
+            var normalizedPath = string.IsNullOrWhiteSpace(healthEndpointPath) 
+                ? "/health" 
+                : "/" + healthEndpointPath.Trim().TrimStart('/');
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}{normalizedPath}");
             using var response = await httpClient
                 .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
                 .ConfigureAwait(false);
@@ -162,8 +165,10 @@ public class ExternalServicesOptions
 public class KeycloakHealthOptions
 {
     public bool Enabled { get; set; } = true;
-    public string BaseUrl { get; set; } = "http://localhost:8080";
-    public string HealthEndpointPath { get; set; } = "/health";
+    // Keycloak v25+ exposes health endpoints on management port 9000 by default
+    public string BaseUrl { get; set; } = "http://localhost:9000";
+    // Use /health/ready for Kubernetes readiness probes; /health/live for liveness
+    public string HealthEndpointPath { get; set; } = "/health/ready";
     public int TimeoutSeconds { get; set; } = 5;
 }
 

@@ -141,6 +141,9 @@ jobs:
           fi
 
           # Set DOTNET_ROOT for SDK discovery
+          # Note: This export to $GITHUB_ENV should persist to later steps, but the
+          # "Generate Aggregated Coverage Report" step re-detects DOTNET_ROOT dynamically
+          # as a fallback in case this export doesn't reliably persist across jobs.
           echo "DOTNET_ROOT=$HOME/.dotnet" >> $GITHUB_ENV
 
       - name: Check code formatting
@@ -624,9 +627,13 @@ jobs:
           dotnet --list-runtimes
           
           # Detect DOTNET_ROOT dynamically with fallback to system installation
+          # Note: The Aspire preparation step (line 144) exports DOTNET_ROOT, but may not
+          # persist reliably to later jobs. Re-detecting here ensures ReportGenerator finds runtime.
           if [ -z "$DOTNET_ROOT" ] || [ ! -d "$DOTNET_ROOT" ]; then
             if command -v dotnet >/dev/null 2>&1; then
-              export DOTNET_ROOT=$(dirname $(dirname $(readlink -f $(which dotnet))))
+              DOTNET_PATH=$(which dotnet)
+              DOTNET_RESOLVED=$(readlink -f "$DOTNET_PATH")
+              export DOTNET_ROOT=$(dirname "$(dirname "$DOTNET_RESOLVED")")
               echo "✅ Detected DOTNET_ROOT: $DOTNET_ROOT"
             else
               export DOTNET_ROOT=/usr/share/dotnet
