@@ -159,7 +159,7 @@ public static class MeAjudaAiKeycloakExtensions
 
         var authUrl = options.ExposeHttpEndpoint
             ? $"https://localhost:{keycloak.GetEndpoint("https").Port}"
-            : $"https://{options.Hostname ?? Environment.GetEnvironmentVariable("KEYCLOAK_HOSTNAME") ?? "change-me.example.com"}";
+            : $"https://{resolvedHostname}";
         var adminUrl = $"{authUrl}/admin";
 
         Console.WriteLine($"[Keycloak] ✅ Keycloak produção configurado:");

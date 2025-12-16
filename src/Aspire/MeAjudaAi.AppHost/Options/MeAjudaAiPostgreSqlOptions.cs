@@ -12,13 +12,15 @@ public sealed class MeAjudaAiPostgreSqlOptions
 
     /// <summary>
     /// Usuário do PostgreSQL
+    /// SEGURANÇA: Configurar via User Secrets, variáveis de ambiente ou configuração segura.
     /// </summary>
-    public string Username { get; set; } = "postgres";
+    public string Username { get; set; } = string.Empty;
 
     /// <summary>
     /// Senha do PostgreSQL
+    /// SEGURANÇA: Configurar via POSTGRES_PASSWORD, User Secrets ou configuração segura.
     /// </summary>
-    public string Password { get; set; } = "";
+    public string Password { get; set; } = string.Empty;
 
     /// <summary>
     /// Indica se deve habilitar configuração otimizada para testes
