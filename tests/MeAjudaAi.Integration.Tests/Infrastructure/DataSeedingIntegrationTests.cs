@@ -19,8 +19,10 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 // Note: AspireIntegrationFixture is required to ensure Aspire AppHost orchestration is active
 // and database services are available, even though tests create their own NpgsqlConnection.
 // The fixture manages the lifecycle of orchestrated services (PostgreSQL via Aspire WithReference).
+#pragma warning disable CS9113 // Parameter is unread but required for IClassFixture<> lifecycle
 public sealed class DataSeedingIntegrationTests(AspireIntegrationFixture _) 
     : IClassFixture<AspireIntegrationFixture>
+#pragma warning restore CS9113
 {
     private const string ServiceCatalogsSchema = "meajudaai_service_catalogs";
 
