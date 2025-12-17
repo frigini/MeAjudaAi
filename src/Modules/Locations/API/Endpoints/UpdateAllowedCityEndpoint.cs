@@ -42,6 +42,6 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
 
         await commandDispatcher.SendAsync(command, cancellationToken);
 
-        return Results.Ok(new Response<string>("Allowed city updated successfully"));
+        return Results.Ok(new Response<string>("Cidade permitida atualizada com sucesso"));
     }
 }
