@@ -117,14 +117,14 @@ public abstract class ApiTestBase : IAsyncLifetime
                         ["FeatureManagement:PushNotifications"] = "false",
                         ["FeatureManagement:StripePayments"] = "false",
                         ["FeatureManagement:MaintenanceMode"] = "false",
-                        // Geographic restriction: Only specific cities allowed, NOT entire states
-                        // This ensures fallback validation properly blocks non-allowed cities in same state
+                        // Geographic restriction: Cities with states in "City|State" format
+                        // This ensures proper validation when both city and state headers are provided
                         ["GeographicRestriction:AllowedStates:0"] = "MG",
                         ["GeographicRestriction:AllowedStates:1"] = "ES",
                         ["GeographicRestriction:AllowedStates:2"] = "RJ",
-                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé",
-                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna",
-                        ["GeographicRestriction:AllowedCities:2"] = "Linhares",
+                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé|MG",
+                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna|RJ",
+                        ["GeographicRestriction:AllowedCities:2"] = "Linhares|ES",
                         ["GeographicRestriction:BlockedMessage"] = "Serviço indisponível na sua região. Disponível apenas em: {allowedRegions}"
                     });
                 });
@@ -210,10 +210,15 @@ public abstract class ApiTestBase : IAsyncLifetime
                     // IBGE-focused tests can override UseMockGeographicValidation to use real service with WireMock
                     if (UseMockGeographicValidation)
                     {
-                        var geoValidationDescriptor = services.FirstOrDefault(d =>
-                            d.ServiceType == typeof(IGeographicValidationService));
-                        if (geoValidationDescriptor != null)
-                            services.Remove(geoValidationDescriptor);
+                        // Remove ALL instances of IGeographicValidationService
+                        var geoValidationDescriptors = services
+                            .Where(d => d.ServiceType == typeof(IGeographicValidationService))
+                            .ToList();
+                        
+                        foreach (var descriptor in geoValidationDescriptors)
+                        {
+                            services.Remove(descriptor);
+                        }
 
                         // Registra mock com cidades piloto padrão (Scoped para isolamento entre testes)
                         services.AddScoped<IGeographicValidationService, MockGeographicValidationService>();
@@ -279,6 +284,16 @@ public abstract class ApiTestBase : IAsyncLifetime
         {
             try
             {
+                // Check if city already exists to avoid duplicate key errors
+                var exists = await locationsContext.AllowedCities
+                    .AnyAsync(c => c.CityName == city.CityName && c.StateSigla == city.State);
+                
+                if (exists)
+                {
+                    logger?.LogDebug("City {City}/{State} already exists, skipping", city.CityName, city.State);
+                    continue;
+                }
+
                 // Use EF Core entity instead of raw SQL to avoid case sensitivity issues
                 var allowedCity = new MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity(
                     city.CityName,
@@ -288,15 +303,19 @@ public abstract class ApiTestBase : IAsyncLifetime
                 
                 locationsContext.AllowedCities.Add(allowedCity);
                 await locationsContext.SaveChangesAsync();
+                
+                logger?.LogDebug("✅ Seeded city {City}/{State} (IBGE: {IbgeCode})", city.CityName, city.State, city.IbgeCode);
             }
-            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException pgEx && pgEx.SqlState == "23505")
+            catch (Exception ex)
             {
-                // Ignore duplicate key errors - city already exists
-                logger?.LogDebug("City {City}/{State} already exists, skipping", city.CityName, city.State);
+                logger?.LogError(ex, "❌ Failed to seed city {City}/{State}: {Message}", city.CityName, city.State, ex.Message);
+                // Clear the change tracker to recover from errors
+                locationsContext.ChangeTracker.Clear();
             }
         }
 
-        logger?.LogInformation("✅ Seeded {Count} test cities into allowed_cities table", testCities.Length);
+        var totalCount = await locationsContext.AllowedCities.CountAsync();
+        logger?.LogInformation("✅ Seeded test cities. Total cities in database: {Count}", totalCount);
     }
 
     private static async Task ApplyMigrationsAsync(
