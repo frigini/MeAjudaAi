@@ -15,14 +15,14 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
     /// <summary>
     /// Busca um município por nome usando query parameter.
     /// Exemplo: "Muriaé" → "/municipios?nome=muriaé"
-    /// Uses lowercase for consistent API queries and WireMock stub matching.
-    /// Returns null if no exact match found (fail-closed to prevent incorrect city selection).
+    /// Usa lowercase para consultas consistentes à API e matching de stubs WireMock.
+    /// Retorna null se nenhum match exato for encontrado (fail-closed para prevenir seleção incorreta de cidade).
     /// </summary>
     public async Task<Municipio?> GetMunicipioByNameAsync(string cityName, CancellationToken cancellationToken = default)
     {
         try
         {
-            // Trim input but preserve original casing for comparisons
+            // Remove espaços mas preserva capitalização original para comparações
             var trimmedCity = cityName?.Trim();
             if (string.IsNullOrEmpty(trimmedCity))
             {
@@ -30,8 +30,8 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
                 return null;
             }
 
-            // Use lowercase for IBGE API query (consistent with their search behavior)
-            // This also ensures WireMock stubs work consistently
+            // Usa lowercase para consulta à API IBGE (consistente com comportamento de busca)
+            // Isso também garante que stubs WireMock funcionem consistentemente
             var normalizedCity = trimmedCity.ToLowerInvariant();
             var encodedName = Uri.EscapeDataString(normalizedCity);
             var url = $"municipios?nome={encodedName}";
@@ -61,9 +61,9 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
                 return null;
             }
 
-            // Find exact match using case-insensitive comparison with the original trimmed input
-            // This preserves the user's casing intent while allowing case-insensitive matching
-            // Note: This does NOT remove diacritics (e.g., "Muriae" won't match "Muriaé")
+            // Encontra match exato usando comparação case-insensitive com o input original trimmed
+            // Isso preserva a intenção de capitalização do usuário enquanto permite matching case-insensitive
+            // Nota: Isso NÃO remove diacríticos (ex: "Muriae" não fará match com "Muriaé")
             var match = municipios.FirstOrDefault(m =>
                 string.Equals(m.Nome, trimmedCity, StringComparison.OrdinalIgnoreCase));
 
@@ -74,14 +74,14 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
                     "Found results: {Results}",
                     trimmedCity,
                     string.Join(", ", municipios.Select(m => m.Nome)));
-                return null; // Fail-closed to prevent returning incorrect city
+                return null; // Fail-closed para prevenir retorno de cidade incorreta
             }
 
             return match;
         }
         catch (HttpRequestException ex)
         {
-            // Re-throw HTTP exceptions (500, timeout, etc) to enable middleware fallback
+            // Re-lança exceções HTTP (500, timeout, etc) para habilitar fallback do middleware
             logger.LogError(ex, "HTTP error querying IBGE for municipality {CityName}", cityName);
             throw new InvalidOperationException(
                 $"HTTP error querying IBGE API for municipality '{cityName}' (Status: {ex.StatusCode})",
@@ -89,7 +89,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
         }
         catch (TaskCanceledException ex) when (ex != null)
         {
-            // Re-throw timeout exceptions to enable middleware fallback
+            // Re-lança exceções de timeout para habilitar fallback do middleware
             logger.LogError(ex, "Timeout querying IBGE for municipality {CityName}", cityName);
             throw new TimeoutException(
                 $"IBGE API request timed out while querying municipality '{cityName}'",
@@ -97,7 +97,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
         }
         catch (Exception ex)
         {
-            // For other exceptions (JSON parsing, etc), re-throw to enable fallback
+            // Para outras exceções (parsing JSON, etc), re-lança para habilitar fallback
             logger.LogError(ex, "Unexpected error querying IBGE for municipality {CityName}", cityName);
             throw new InvalidOperationException(
                 $"Unexpected error querying IBGE API for municipality '{cityName}' (may be JSON parsing or network issue)",

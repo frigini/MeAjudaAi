@@ -7,7 +7,7 @@ namespace MeAjudaAi.Modules.Locations.Infrastructure.Services;
 /// <summary>
 /// Adapter que implementa IGeographicValidationService delegando para IIbgeService.
 /// Bridge entre Shared (middleware) e módulo Locations (IBGE).
-/// NOTA: O parâmetro allowedCities é ignorado - a validação agora usa o banco de dados (tabela AllowedCities).
+/// A validação é feita contra o banco de dados (tabela AllowedCities).
 /// </summary>
 public sealed class GeographicValidationService(
     IIbgeService ibgeService,
@@ -16,7 +16,6 @@ public sealed class GeographicValidationService(
     public async Task<bool> ValidateCityAsync(
         string cityName,
         string? stateSigla,
-        IReadOnlyCollection<string> allowedCities, // IGNORADO: usar banco de dados
         CancellationToken cancellationToken = default)
     {
         logger.LogDebug(

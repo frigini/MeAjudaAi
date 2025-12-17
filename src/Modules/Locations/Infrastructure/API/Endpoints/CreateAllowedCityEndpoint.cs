@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
@@ -17,8 +18,8 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPost("/api/v1/admin/allowed-cities", CreateAsync)
             .WithName("CreateAllowedCity")
-            .WithSummary("Create new allowed city")
-            .WithDescription("Creates a new allowed city for provider operations (Admin only)")
+            .WithSummary("Criar nova cidade permitida")
+            .WithDescription("Cria uma nova cidade permitida para operações de prestadores (apenas Admin)")
             .Produces<Response<Guid>>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .RequireAdmin();
@@ -39,12 +40,3 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         return Results.Created($"/api/v1/admin/allowed-cities/{cityId}", new Response<Guid>(cityId, 201));
     }
 }
-
-/// <summary>
-/// Request DTO para criação de cidade permitida
-/// </summary>
-public sealed record CreateAllowedCityRequest(
-    string CityName,
-    string StateSigla,
-    int? IbgeCode,
-    bool IsActive = true);

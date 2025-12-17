@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Locations.Application.Commands;
+using MeAjudaAi.Modules.Locations.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts;
@@ -17,8 +18,8 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
     public static void Map(IEndpointRouteBuilder app)
         => app.MapPut("/api/v1/admin/allowed-cities/{id:guid}", UpdateAsync)
             .WithName("UpdateAllowedCity")
-            .WithSummary("Update allowed city")
-            .WithDescription("Updates an existing allowed city")
+            .WithSummary("Atualizar cidade permitida")
+            .WithDescription("Atualiza uma cidade permitida existente")
             .Produces<Response<string>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
@@ -44,12 +45,3 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         return Results.Ok(new Response<string>("Cidade permitida atualizada com sucesso"));
     }
 }
-
-/// <summary>
-/// Request DTO para atualização de cidade permitida
-/// </summary>
-public sealed record UpdateAllowedCityRequest(
-    string CityName,
-    string StateSigla,
-    int? IbgeCode,
-    bool IsActive);

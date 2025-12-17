@@ -18,8 +18,8 @@ public class GetAllowedCityByIdEndpoint : BaseEndpoint, IEndpoint
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/api/v1/admin/allowed-cities/{id:guid}", GetByIdAsync)
             .WithName("GetAllowedCityById")
-            .WithSummary("Get allowed city by ID")
-            .WithDescription("Retrieves a specific allowed city by its ID")
+            .WithSummary("Buscar cidade permitida por ID")
+            .WithDescription("Recupera uma cidade permitida específica pelo seu ID")
             .Produces<Response<AllowedCityDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .RequireAdmin();

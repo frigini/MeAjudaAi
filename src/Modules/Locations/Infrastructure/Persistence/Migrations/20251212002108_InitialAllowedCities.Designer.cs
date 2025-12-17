@@ -3,17 +3,20 @@ using System;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.Locations.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(LocationsDbContext))]
-    partial class LocationsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251212002108_InitialAllowedCities")]
+    partial class InitialAllowedCities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

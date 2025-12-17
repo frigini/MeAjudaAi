@@ -163,7 +163,6 @@ public class GeographicRestrictionMiddleware(
                 var ibgeValidation = await geographicValidationService.ValidateCityAsync(
                     city,
                     state,
-                    options.CurrentValue.AllowedCities,
                     cancellationToken);
 
                 // Validação IBGE tem prioridade (mais precisa)

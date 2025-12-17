@@ -17,8 +17,8 @@ public class DeleteAllowedCityEndpoint : BaseEndpoint, IEndpoint
     public static void Map(IEndpointRouteBuilder app)
         => app.MapDelete("/api/v1/admin/allowed-cities/{id:guid}", DeleteAsync)
             .WithName("DeleteAllowedCity")
-            .WithSummary("Delete allowed city")
-            .WithDescription("Deletes an allowed city")
+            .WithSummary("Deletar cidade permitida")
+            .WithDescription("Deleta uma cidade permitida")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
             .RequireAdmin();

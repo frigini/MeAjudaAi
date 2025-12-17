@@ -18,8 +18,8 @@ public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
     public static void Map(IEndpointRouteBuilder app)
         => app.MapGet("/api/v1/admin/allowed-cities", GetAllAsync)
             .WithName("GetAllAllowedCities")
-            .WithSummary("Get all allowed cities")
-            .WithDescription("Retrieves all allowed cities (optionally only active ones)")
+            .WithSummary("Listar todas as cidades permitidas")
+            .WithDescription("Recupera todas as cidades permitidas (opcionalmente apenas as ativas)")
             .Produces<Response<IReadOnlyList<AllowedCityDto>>>(StatusCodes.Status200OK)
             .RequireAdmin();
 

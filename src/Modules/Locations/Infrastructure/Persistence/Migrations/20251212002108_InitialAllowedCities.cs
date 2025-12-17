@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.Locations.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class InitialAllowedCities : Migration
