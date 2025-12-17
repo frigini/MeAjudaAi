@@ -32,7 +32,7 @@ public sealed class IbgeService(
 
         if (municipio is null)
         {
-            logger.LogWarning("Município {CityName} não encontrado na API IBGE - lançando exceção para fallback", cityName);
+            logger.LogWarning("Municipality {CityName} not found in IBGE API — throwing exception for fallback", cityName);
             throw new MunicipioNotFoundException(cityName, stateSigla);
         }
 

@@ -54,7 +54,7 @@ public sealed class CepLookupService(
 
     private async Task<Address?> LookupFromProvidersAsync(Cep cep, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Iniciando consulta de CEP {Cep}", cep.Value);
+        logger.LogInformation("Starting CEP lookup {Cep}", cep.Value);
 
         foreach (var provider in DefaultProviderOrder)
         {
@@ -68,7 +68,7 @@ public sealed class CepLookupService(
             logger.LogWarning("Provedor {Provider} falhou para CEP {Cep}, tentando próximo", provider, cep.Value);
         }
 
-        logger.LogError("CEP {Cep} não encontrado em nenhum provedor", cep.Value);
+        logger.LogError("CEP {Cep} not found in any provider", cep.Value);
         return null;
     }
 

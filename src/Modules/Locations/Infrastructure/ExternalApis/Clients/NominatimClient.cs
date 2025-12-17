@@ -110,7 +110,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao consultar Nominatim para endereço {Address}", address);
+            logger.LogError(ex, "Error querying Nominatim for address {Address}", address);
             return null;
         }
     }

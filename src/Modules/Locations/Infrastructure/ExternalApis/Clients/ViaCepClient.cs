@@ -30,7 +30,7 @@ public sealed class ViaCepClient(HttpClient httpClient, ILogger<ViaCepClient> lo
 
             if (viaCepResponse is null || viaCepResponse.Erro)
             {
-                logger.LogInformation("CEP {Cep} não encontrado no ViaCEP", cep.Value);
+                logger.LogInformation("CEP {Cep} not found in ViaCEP", cep.Value);
                 return null;
             }
 
@@ -44,7 +44,7 @@ public sealed class ViaCepClient(HttpClient httpClient, ILogger<ViaCepClient> lo
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao consultar ViaCEP para CEP {Cep}", cep.Value);
+            logger.LogError(ex, "Error querying ViaCEP for CEP {Cep}", cep.Value);
             return null;
         }
     }

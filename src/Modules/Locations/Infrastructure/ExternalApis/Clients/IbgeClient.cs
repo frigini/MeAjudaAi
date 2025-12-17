@@ -57,7 +57,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
 
             if (municipios is null || municipios.Count == 0)
             {
-                logger.LogInformation("Município {CityName} não encontrado no IBGE", cityName);
+                logger.LogInformation("Municipality {CityName} not found in IBGE", cityName);
                 return null;
             }
 
@@ -131,7 +131,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao consultar IBGE para UF {UF}", ufSigla);
+            logger.LogError(ex, "Error querying IBGE for state {UF}", ufSigla);
             return [];
         }
     }
@@ -155,7 +155,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao validar cidade {CityName} na UF {UF}", city, state);
+            logger.LogError(ex, "Error validating city {CityName} in state {UF}", city, state);
             return false;
         }
     }
