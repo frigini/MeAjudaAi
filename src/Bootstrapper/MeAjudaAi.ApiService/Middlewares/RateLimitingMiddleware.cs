@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Caching.Memory;
@@ -34,6 +36,8 @@ public class RateLimitingMiddleware(
     IOptionsMonitor<RateLimitOptions> options,
     ILogger<RateLimitingMiddleware> logger)
 {
+    private static readonly ConcurrentDictionary<string, Regex> _patternCache = new();
+
     /// <summary>
     /// Classe contador simples para rate limiting.
     /// <para>
@@ -180,17 +184,15 @@ public class RateLimitingMiddleware(
         if (string.IsNullOrEmpty(pattern))
             return false;
 
-        // TODO: Pre-compilar regex patterns no startup e cachear para melhor performance.
-        // Regex.Escape + Regex.IsMatch por request é custoso.
-        // Considerar usar Dictionary<string, Regex> com RegexOptions.Compiled.
-        // Referência: Code Review - https://github.com/coderabbitai
         // Correspondência simples de wildcard - pode ser melhorado para padrões mais complexos
         if (pattern.Contains('*'))
         {
-            var escapedPattern = System.Text.RegularExpressions.Regex.Escape(pattern);
-            var regexPattern = escapedPattern.Replace(@"\*", ".*");
-            return System.Text.RegularExpressions.Regex.IsMatch(requestPath, regexPattern,
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            var regex = _patternCache.GetOrAdd(pattern, p =>
+            {
+                var escaped = Regex.Escape(p).Replace(@"\*", ".*");
+                return new Regex($"^{escaped}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            });
+            return regex.IsMatch(requestPath);
         }
 
         return string.Equals(requestPath, pattern, StringComparison.OrdinalIgnoreCase);
@@ -198,6 +200,21 @@ public class RateLimitingMiddleware(
 
     private static string GetClientIpAddress(HttpContext context)
     {
+        // Check X-Forwarded-For header (standard proxy header)
+        var xForwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(xForwardedFor))
+        {
+            return xForwardedFor.Split(',')[0].Trim();
+        }
+
+        // Check X-Real-IP header (nginx standard)
+        var xRealIp = context.Request.Headers["X-Real-IP"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(xRealIp))
+        {
+            return xRealIp;
+        }
+
+        // Fallback to direct connection IP
         return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
 

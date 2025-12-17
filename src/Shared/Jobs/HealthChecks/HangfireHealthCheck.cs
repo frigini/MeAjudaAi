@@ -57,6 +57,15 @@ public class HangfireHealthCheck(
             { "job_client_available", jobClient != null }
         };
 
+        // Se o job client não está disponível, o Hangfire pode não estar totalmente operacional
+        if (jobClient == null)
+        {
+            _logger.LogWarning("Hangfire JobStorage is configured but IBackgroundJobClient is not available");
+            return Task.FromResult(HealthCheckResult.Degraded(
+                "Hangfire storage is configured but job client is unavailable",
+                data: data));
+        }
+
         // NOTA: Em produção, considerar estender para:
         // - Monitorar taxa de falha de jobs (via Hangfire.Storage.Monitoring API)
         // - Verificar latência da conexão com storage

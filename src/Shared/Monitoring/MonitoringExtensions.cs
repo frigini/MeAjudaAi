@@ -13,7 +13,7 @@ public static class MonitoringExtensions
     /// <summary>
     /// Adiciona monitoramento avançado complementar ao Aspire
     /// </summary>
-    public static IServiceCollection AddAdvancedMonitoring(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+    public static IServiceCollection AddAdvancedMonitoring(this IServiceCollection services, IHostEnvironment environment)
     {
         // Adicionar métricas customizadas de negócio
         services.AddBusinessMetrics();
