@@ -1,5 +1,4 @@
 using MeAjudaAi.Shared.Jobs.HealthChecks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -14,8 +13,7 @@ public static class HealthCheckExtensions
     /// Adiciona health checks customizados do MeAjudaAi
     /// </summary>
     public static IServiceCollection AddMeAjudaAiHealthChecks(
-        this IServiceCollection services,
-        IConfiguration configuration)
+        this IServiceCollection services)
     {
         // NOTA: ServiceDefaults já registra health checks de infraestrutura:
         // - PostgresHealthCheck (database)

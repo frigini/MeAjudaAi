@@ -1,8 +1,10 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Jobs.HealthChecks;
 using MeAjudaAi.Shared.Monitoring;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MeAjudaAi.Shared.Tests.Infrastructure;
 
@@ -66,51 +68,47 @@ public class HealthChecksIntegrationTests
     #region HangfireHealthCheck Tests
 
     [Fact]
-    public async Task HangfireHealthCheck_ShouldReturnHealthy()
+    public async Task HangfireHealthCheck_ShouldReturnDegradedWhenNotConfigured()
     {
-        // Arrange
-        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-        var logger = loggerFactory.CreateLogger<HangfireHealthCheck>();
-        var healthCheck = new HangfireHealthCheck(logger);
+        // Arrange - ServiceProvider sem Hangfire configurado
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
+        var healthCheck = new HangfireHealthCheck(NullLogger<HangfireHealthCheck>.Instance, serviceProvider);
         var context = new HealthCheckContext();
 
         // Act
         var result = await healthCheck.CheckHealthAsync(context);
 
-        // Assert
+        // Assert - Deve retornar Degraded quando Hangfire não está configurado
         result.Should().NotBeNull();
-        result.Status.Should().Be(HealthStatus.Healthy);
-        result.Description.Should().Contain("Hangfire is configured and operational");
+        result.Status.Should().Be(HealthStatus.Degraded);
+        result.Description.Should().Contain("not operational");
     }
 
     [Fact]
     public async Task HangfireHealthCheck_ShouldIncludeMetadata()
     {
         // Arrange
-        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-        var logger = loggerFactory.CreateLogger<HangfireHealthCheck>();
-        var healthCheck = new HangfireHealthCheck(logger);
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
+        var healthCheck = new HangfireHealthCheck(NullLogger<HangfireHealthCheck>.Instance, serviceProvider);
         var context = new HealthCheckContext();
 
         // Act
         var result = await healthCheck.CheckHealthAsync(context);
 
-        // Assert
+        // Assert - Quando não configurado, deve incluir erro nos metadados
         result.Data.Should().NotBeNull();
         result.Data.Should().ContainKey("timestamp");
         result.Data.Should().ContainKey("component");
-        result.Data.Should().ContainKey("configured");
+        result.Data.Should().ContainKey("error");
         result.Data["component"].Should().Be("hangfire");
-        result.Data["configured"].Should().Be(true);
     }
 
     [Fact]
     public async Task HangfireHealthCheck_MultipleChecks_ShouldBeConsistent()
     {
         // Arrange
-        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-        var logger = loggerFactory.CreateLogger<HangfireHealthCheck>();
-        var healthCheck = new HangfireHealthCheck(logger);
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
+        var healthCheck = new HangfireHealthCheck(NullLogger<HangfireHealthCheck>.Instance, serviceProvider);
         var context = new HealthCheckContext();
 
         // Act - Execute multiple times
@@ -120,17 +118,18 @@ public class HealthChecksIntegrationTests
             results.Add(await healthCheck.CheckHealthAsync(context));
         }
 
-        // Assert - All should be healthy and consistent
+        // Assert - Sem Hangfire configurado, todos devem retornar Degraded consistentemente
         results.Should().HaveCount(5);
-        results.Should().OnlyContain(r => r.Status == HealthStatus.Healthy);
-        results.Should().OnlyContain(r => r.Data.ContainsKey("configured"));
+        results.Should().OnlyContain(r => r.Status == HealthStatus.Degraded);
+        results.Should().OnlyContain(r => r.Data.ContainsKey("error"));
     }
 
     [Fact]
-    public async Task HangfireHealthCheck_WithNullLogger_ShouldThrowArgumentNullException()
+    public void HangfireHealthCheck_WithNullLogger_ShouldThrowArgumentNullException()
     {
         // Arrange & Act
-        var act = () => new HangfireHealthCheck(null!);
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
+        var act = () => new HangfireHealthCheck(null!, serviceProvider);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -162,6 +161,24 @@ public class HealthChecksIntegrationTests
 
         // No results should be unhealthy (validates stability without being environment-dependent)
         results.Count(r => r.Status == HealthStatus.Unhealthy).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task HangfireHealthCheck_UnderLoad_ShouldRemainStable()
+    {
+        // Arrange
+        var serviceProvider = new ServiceCollection().BuildServiceProvider();
+        var healthCheck = new HangfireHealthCheck(NullLogger<HangfireHealthCheck>.Instance, serviceProvider);
+        var context = new HealthCheckContext();
+        var tasks = Enumerable.Range(0, 20)
+            .Select(_ => healthCheck.CheckHealthAsync(context));
+
+        // Act
+        var results = await Task.WhenAll(tasks);
+
+        // Assert - Sem Hangfire configurado, todos devem retornar Degraded (não Unhealthy)
+        results.Should().HaveCount(20);
+        results.Should().OnlyContain(r => r.Status == HealthStatus.Degraded);
     }
 
     #endregion

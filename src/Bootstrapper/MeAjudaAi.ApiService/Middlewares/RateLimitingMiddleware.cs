@@ -81,6 +81,10 @@ public class RateLimitingMiddleware(
         var userKey = isAuthenticated
             ? (context.User.FindFirst("sub")?.Value ?? context.User.Identity?.Name ?? clientIp)
             : clientIp;
+        
+        // TODO: Considerar normalizar paths dinâmicos para route templates (e.g., /api/users/{id})
+        // para prevenir memory pressure com parâmetros únicos em rotas dinâmicas.
+        // Referência: Code Review - https://github.com/coderabbitai
         var key = $"rate_limit:{userKey}:{context.Request.Method}:{context.Request.Path}";
 
         var counter = cache.GetOrCreate(key, entry =>
@@ -137,6 +141,10 @@ public class RateLimitingMiddleware(
                            context.User.FindAll("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Select(c => c.Value) ??
                            [];
 
+            // TODO: Implementar ordenação de roles por prioridade/limite mais permissivo
+            // para garantir comportamento consistente quando usuário tem múltiplas roles.
+            // Atualmente usa primeira role encontrada (order-dependent).
+            // Referência: Code Review - https://github.com/coderabbitai
             foreach (var role in userRoles)
             {
                 if (rateLimitOptions.RoleLimits.TryGetValue(role, out var roleLimit))
@@ -172,6 +180,10 @@ public class RateLimitingMiddleware(
         if (string.IsNullOrEmpty(pattern))
             return false;
 
+        // TODO: Pre-compilar regex patterns no startup e cachear para melhor performance.
+        // Regex.Escape + Regex.IsMatch por request é custoso.
+        // Considerar usar Dictionary<string, Regex> com RegexOptions.Compiled.
+        // Referência: Code Review - https://github.com/coderabbitai
         // Correspondência simples de wildcard - pode ser melhorado para padrões mais complexos
         if (pattern.Contains('*'))
         {

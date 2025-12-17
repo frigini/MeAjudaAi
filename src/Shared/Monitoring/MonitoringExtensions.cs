@@ -19,7 +19,7 @@ public static class MonitoringExtensions
         services.AddBusinessMetrics();
 
         // Adicionar health checks customizados
-        services.AddMeAjudaAiHealthChecks(configuration);
+        services.AddMeAjudaAiHealthChecks();
 
         // Adicionar coleta periódica de métricas apenas em produção
         if (!environment.IsDevelopment())

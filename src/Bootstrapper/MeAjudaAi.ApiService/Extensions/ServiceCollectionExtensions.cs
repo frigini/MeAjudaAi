@@ -87,7 +87,7 @@ public static class ServiceCollectionExtensions
         services.AddApiResponseCaching();
 
         // Health Checks customizados
-        services.AddMeAjudaAiHealthChecks(configuration);
+        services.AddMeAjudaAiHealthChecks();
         
         // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
         // A Aspire Dashboard fornece visualização avançada de health checks, métricas, traces e logs
