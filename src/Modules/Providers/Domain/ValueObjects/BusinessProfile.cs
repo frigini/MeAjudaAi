@@ -32,7 +32,7 @@ public class BusinessProfile : ValueObject
         string? description = null)
     {
         if (string.IsNullOrWhiteSpace(legalName))
-            throw new ArgumentException("Legal name cannot be empty", nameof(legalName));
+            throw new ArgumentException("Razão social não pode ser vazia", nameof(legalName));
 
         LegalName = legalName.Trim();
         FantasyName = fantasyName?.Trim();
