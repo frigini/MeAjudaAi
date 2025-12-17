@@ -13,13 +13,13 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 /// <summary>
-/// Handles document upload commands by generating SAS URLs and persisting document metadata.
+/// Manipula comandos de upload de documentos gerando URLs SAS e persistindo metadados do documento.
 /// </summary>
-/// <param name="documentRepository">Document repository for data access.</param>
-/// <param name="blobStorageService">Service for blob storage operations.</param>
-/// <param name="backgroundJobService">Service for enqueuing background jobs.</param>
-/// <param name="httpContextAccessor">Accessor for HTTP context.</param>
-/// <param name="logger">Logger instance.</param>
+/// <param name="documentRepository">Repositório de documentos para acesso a dados.</param>
+/// <param name="blobStorageService">Serviço para operações de armazenamento de blobs.</param>
+/// <param name="backgroundJobService">Serviço para enfileirar jobs em segundo plano.</param>
+/// <param name="httpContextAccessor">Acessor para o contexto HTTP.</param>
+/// <param name="logger">Instância do logger.</param>
 public class UploadDocumentCommandHandler(
     IDocumentRepository documentRepository,
     IBlobStorageService blobStorageService,
@@ -37,7 +37,7 @@ public class UploadDocumentCommandHandler(
     {
         try
         {
-            // Resource-level authorization: user must match the ProviderId or have admin permissions
+            // Autorização no nível do recurso: o usuário deve corresponder ao ProviderId ou possuir permissões de administrador
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
                 throw new UnauthorizedAccessException("HTTP context not available");
@@ -50,10 +50,10 @@ public class UploadDocumentCommandHandler(
             if (string.IsNullOrEmpty(userId))
                 throw new UnauthorizedAccessException("User ID not found in token");
 
-            // Check if user matches the provider ID (convert userId to Guid)
+            // Verificar se o usuário corresponde ao ID do provedor (converter userId para Guid)
             if (!Guid.TryParse(userId, out var userGuid) || userGuid != command.ProviderId)
             {
-                // Check if user has admin role
+                // Verificar se o usuário possui o papel de administrador
                 var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
                 if (!isAdmin)
                 {
@@ -87,8 +87,8 @@ public class UploadDocumentCommandHandler(
             }
 
             var mediaType = command.ContentType.Split(';')[0].Trim().ToLowerInvariant();
-            // TODO: Consider making file size limit and allowed types configurable via appsettings.json
-            // when different requirements emerge for different deployment environments
+            // TODO: Considerar tornar o limite de tamanho e os tipos permitidos configuráveis via appsettings.json
+            //       quando surgirem requisitos diferentes para ambientes de implantação
             var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/jpg", "application/pdf" };
             if (!allowedContentTypes.Contains(mediaType))
             {

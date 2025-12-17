@@ -44,14 +44,14 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
                 var encodedAddress = HttpUtility.UrlEncode(address);
                 var url = $"search?q={encodedAddress}&format=json&limit=1&countrycodes=br";
 
-                logger.LogInformation("Consultando Nominatim para endereço: {Address}", address);
+                logger.LogInformation("Querying Nominatim for address: {Address}", address);
 
                 _lastRequestTime = dateTimeProvider.CurrentDate();
                 var response = await httpClient.GetAsync(url, cancellationToken);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    logger.LogWarning("Nominatim retornou status {StatusCode} para endereço {Address}",
+                    logger.LogWarning("Nominatim returned status {StatusCode} for address {Address}",
                         response.StatusCode, address);
                     return null;
                 }
@@ -61,7 +61,7 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
 
                 if (results is null || results.Length == 0)
                 {
-                    logger.LogInformation("Nenhuma coordenada encontrada no Nominatim para endereço {Address}", address);
+                    logger.LogInformation("No coordinates found in Nominatim for address {Address}", address);
                     return null;
                 }
 
@@ -69,21 +69,21 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
 
                 if (string.IsNullOrWhiteSpace(firstResult.Lat) || string.IsNullOrWhiteSpace(firstResult.Lon))
                 {
-                    logger.LogWarning("Resultado do Nominatim sem coordenadas para endereço {Address}", address);
+                    logger.LogWarning("Nominatim result without coordinates for address {Address}", address);
                     return null;
                 }
 
                 if (!double.TryParse(firstResult.Lat, System.Globalization.NumberStyles.Float,
                         System.Globalization.CultureInfo.InvariantCulture, out var latitude))
                 {
-                    logger.LogWarning("Latitude inválida retornada pelo Nominatim: {Lat}", firstResult.Lat);
+                    logger.LogWarning("Invalid latitude returned by Nominatim: {Lat}", firstResult.Lat);
                     return null;
                 }
 
                 if (!double.TryParse(firstResult.Lon, System.Globalization.NumberStyles.Float,
                         System.Globalization.CultureInfo.InvariantCulture, out var longitude))
                 {
-                    logger.LogWarning("Longitude inválida retornada pelo Nominatim: {Lon}", firstResult.Lon);
+                    logger.LogWarning("Invalid longitude returned by Nominatim: {Lon}", firstResult.Lon);
                     return null;
                 }
 
@@ -94,11 +94,11 @@ public sealed class NominatimClient(HttpClient httpClient, ILogger<NominatimClie
                 }
                 catch (ArgumentOutOfRangeException ex)
                 {
-                    logger.LogWarning(ex, "Coordenadas fora dos limites válidos: Lat={Lat}, Lon={Lon}", latitude, longitude);
+                    logger.LogWarning(ex, "Coordinates outside valid bounds: Lat={Lat}, Lon={Lon}", latitude, longitude);
                     return null;
                 }
 
-                logger.LogInformation("Coordenadas obtidas do Nominatim para {Address}: {Coordinates}",
+                logger.LogInformation("Coordinates obtained from Nominatim for {Address}: {Coordinates}",
                     address, coordinates);
 
                 return coordinates;

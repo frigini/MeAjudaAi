@@ -21,7 +21,7 @@ public sealed class ViaCepClient(HttpClient httpClient, ILogger<ViaCepClient> lo
 
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("ViaCEP retornou status {StatusCode} para CEP {Cep}", response.StatusCode, cep.Value);
+                logger.LogWarning("ViaCEP returned status {StatusCode} for CEP {Cep}", response.StatusCode, cep.Value);
                 return null;
             }
 

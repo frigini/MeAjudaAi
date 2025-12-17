@@ -52,11 +52,11 @@ public sealed class IbgeService(
 
         if (isAllowed)
         {
-            logger.LogInformation("Município {CityName} ({Id}) está na lista de cidades permitidas", municipio.Nome, municipio.Id);
+            logger.LogInformation("Municipality {CityName} ({Id}) is in the allowed cities list", municipio.Nome, municipio.Id);
         }
         else
         {
-            logger.LogWarning("Município {CityName} ({Id}) NÃO está na lista de cidades permitidas", municipio.Nome, municipio.Id);
+            logger.LogWarning("Municipality {CityName} ({Id}) is NOT in the allowed cities list", municipio.Nome, municipio.Id);
         }
 
         return isAllowed;

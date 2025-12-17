@@ -46,7 +46,7 @@ public sealed class DocumentsModuleApi(
     {
         try
         {
-            logger.LogDebug("Verificando disponibilidade do módulo Documents");
+            logger.LogDebug("Checking Documents module availability");
 
             // Verifica health checks registrados do sistema
             var healthCheckService = serviceProvider.GetService<HealthCheckService>();
@@ -72,12 +72,12 @@ public sealed class DocumentsModuleApi(
                 return false;
             }
 
-            logger.LogDebug("Módulo Documents está disponível e saudável");
+            logger.LogDebug("Documents module is available and healthy");
             return true;
         }
         catch (OperationCanceledException ex)
         {
-            logger.LogDebug(ex, "Verificação de disponibilidade do módulo Documents foi cancelada");
+            logger.LogDebug(ex, "Documents module availability check was cancelled");
             throw;
         }
         catch (Exception ex)

@@ -21,7 +21,7 @@ public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> 
 
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("OpenCEP retornou status {StatusCode} para CEP {Cep}", response.StatusCode, cep.Value);
+                logger.LogWarning("OpenCEP returned status {StatusCode} for CEP {Cep}", response.StatusCode, cep.Value);
                 return null;
             }
 

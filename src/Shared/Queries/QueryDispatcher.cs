@@ -5,31 +5,31 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Shared.Queries;
 
 /// <summary>
-/// Default implementation of <see cref="IQueryDispatcher"/> that resolves query handlers
-/// from the DI container and executes any registered pipeline behaviors.
+/// Implementação padrão de <see cref="IQueryDispatcher"/> que resolve query handlers
+/// do container de DI e executa quaisquer comportamentos de pipeline registrados.
 /// </summary>
 /// <remarks>
-/// This dispatcher follows the mediator pattern, decoupling query senders from handlers.
-/// It automatically applies all registered <see cref="IPipelineBehavior{TRequest,TResponse}"/>
-/// instances (e.g., validation, logging, caching) around the handler execution.
+/// Este dispatcher segue o padrão mediator, desacoplando remetentes de queries dos handlers.
+/// Ele aplica automaticamente todas as instâncias registradas de <see cref="IPipelineBehavior{TRequest,TResponse}"/>
+/// (ex: validação, logging, caching) em torno da execução do handler.
 /// <para>
-/// <strong>Registration:</strong> Should be registered as a singleton in the DI container
+/// <strong>Registro:</strong> Deve ser registrado como singleton no container de DI
 /// via <c>services.AddSingleton&lt;IQueryDispatcher, QueryDispatcher&gt;()</c>.
 /// </para>
 /// </remarks>
 public class QueryDispatcher(IServiceProvider serviceProvider, ILogger<QueryDispatcher> logger) : IQueryDispatcher
 {
     /// <summary>
-    /// Dispatches the specified query to its registered handler, executing all configured
-    /// <see cref="IPipelineBehavior{TRequest,TResponse}"/> instances around it.
+    /// Despacha a query especificada para seu handler registrado, executando todas as instâncias
+    /// configuradas de <see cref="IPipelineBehavior{TRequest,TResponse}"/> ao redor dela.
     /// </summary>
-    /// <typeparam name="TQuery">The query type that implements <see cref="IQuery{TResult}"/>.</typeparam>
-    /// <typeparam name="TResult">The query result type.</typeparam>
-    /// <param name="query">The query instance to dispatch.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The result produced by the query handler.</returns>
+    /// <typeparam name="TQuery">O tipo da query que implementa <see cref="IQuery{TResult}"/>.</typeparam>
+    /// <typeparam name="TResult">O tipo do resultado da query.</typeparam>
+    /// <param name="query">A instância da query a despachar.</param>
+    /// <param name="cancellationToken">Token de cancelamento para a operação.</param>
+    /// <returns>O resultado produzido pelo query handler.</returns>
     /// <exception cref="InvalidOperationException">
-    /// Thrown when no handler is registered for the specified query type.
+    /// Lançado quando nenhum handler está registrado para o tipo de query especificado.
     /// </exception>
     public async Task<TResult> QueryAsync<TQuery, TResult>(TQuery query, CancellationToken cancellationToken = default)
         where TQuery : IQuery<TResult>

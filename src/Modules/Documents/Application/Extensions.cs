@@ -15,7 +15,7 @@ public static class Extensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        // HttpContextAccessor required for authorization checks in handlers
+        // HttpContextAccessor necessário para verificações de autorização nos handlers
         services.AddHttpContextAccessor();
 
         // Command Handlers - registro manual

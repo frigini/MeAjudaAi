@@ -91,10 +91,12 @@ public class RateLimitingMiddleware(
             ? (context.User.FindFirst("sub")?.Value ?? context.User.Identity?.Name ?? clientIp)
             : clientIp;
         
-        // TODO: Considerar normalizar paths dinâmicos para route templates (e.g., /api/users/{id})
-        // para prevenir memory pressure com parâmetros únicos em rotas dinâmicas.
-        // Referência: Code Review - https://github.com/coderabbitai
-        var key = $"rate_limit:{userKey}:{context.Request.Method}:{context.Request.Path}";
+        // Use route template when available to prevent memory pressure from dynamic path parameters
+        var endpoint = context.GetEndpoint();
+        var routeEndpoint = endpoint as RouteEndpoint;
+        var pathKey = routeEndpoint?.RoutePattern.RawText ?? context.Request.Path.ToString();
+        
+        var key = $"rate_limit:{userKey}:{context.Request.Method}:{pathKey}";
 
         var counter = cache.GetOrCreate(key, entry =>
         {
@@ -127,15 +129,11 @@ public class RateLimitingMiddleware(
     {
         var requestPath = context.Request.Path.Value ?? string.Empty;
 
-        // TODO: Consider explicit ordering for overlapping endpoint patterns.
-        // When multiple patterns could match the same request path, FirstOrDefault
-        // returns the first match based on dictionary iteration order, which may be
-        // non-deterministic. Consider sorting EndpointLimits by pattern specificity
-        // (e.g., exact matches before wildcards, longer patterns first) or adding
-        // an explicit Priority property to EndpointLimits.
-        // Reference: Code Review - https://github.com/coderabbitai
-        // 1. Verifica limites específicos de endpoint primeiro
+        // 1. Verifica limites específicos de endpoint primeiro com ordenação determinística
+        // Ordena por: padrões mais longos primeiro (mais específicos), depois exatos antes de wildcards
         var matchingLimit = rateLimitOptions.EndpointLimits
+            .OrderByDescending(e => e.Value.Pattern.Length)
+            .ThenBy(e => e.Value.Pattern.Contains('*') ? 1 : 0)
             .FirstOrDefault(endpointLimit =>
                 IsPathMatch(requestPath, endpointLimit.Value.Pattern) &&
                 ((isAuthenticated && endpointLimit.Value.ApplyToAuthenticated) ||
@@ -157,21 +155,25 @@ public class RateLimitingMiddleware(
                            context.User.FindAll("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Select(c => c.Value) ??
                            [];
 
-            // TODO: Implementar ordenação de roles por prioridade/limite mais permissivo
-            // para garantir comportamento consistente quando usuário tem múltiplas roles.
-            // Atualmente usa primeira role encontrada (order-dependent).
-            // Referência: Code Review - https://github.com/coderabbitai
+            // Usa o limite mais permissivo (maior) entre todas as roles do usuário
+            int? maxRoleLimit = null;
             foreach (var role in userRoles)
             {
                 if (rateLimitOptions.RoleLimits.TryGetValue(role, out var roleLimit))
                 {
-                    return ScaleToWindow(
+                    var limit = ScaleToWindow(
                         roleLimit.RequestsPerMinute,
                         roleLimit.RequestsPerHour,
                         roleLimit.RequestsPerDay,
                         window);
+                    
+                    if (maxRoleLimit == null || limit > maxRoleLimit)
+                        maxRoleLimit = limit;
                 }
             }
+            
+            if (maxRoleLimit.HasValue)
+                return maxRoleLimit.Value;
         }
 
         // 3. Usa limites padrão de autenticado/anônimo como fallback

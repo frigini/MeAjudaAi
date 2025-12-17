@@ -312,7 +312,7 @@ public abstract class ApiTestBase : IAsyncLifetime
             try
             {
                 await usersContext.Database.EnsureDeletedAsync();
-                logger?.LogInformation("🧹 Banco de dados existente limpo (tentativa {Attempt})", attempt);
+                logger?.LogInformation("🧹 Existing database cleaned (attempt {Attempt})", attempt);
                 break; // Sucesso, sai do loop
             }
             catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03") // 57P03 = database starting up
@@ -326,7 +326,7 @@ public abstract class ApiTestBase : IAsyncLifetime
 
                 var delay = baseDelay * attempt; // Linear backoff: 1s, 2s, 3s, etc.
                 logger?.LogWarning(
-                    "⚠️ PostgreSQL iniciando... Tentativa {Attempt}/{MaxRetries}. Aguardando {Delay}s",
+                    "⚠️ PostgreSQL initializing... Attempt {Attempt}/{MaxRetries}. Waiting {Delay}s",
                     attempt, maxRetries, delay.TotalSeconds);
                 await Task.Delay(delay);
             }
@@ -421,12 +421,12 @@ public abstract class ApiTestBase : IAsyncLifetime
         try
         {
             var message = description != null
-                ? $"🔄 Aplicando migrações do módulo {moduleName} ({description})..."
-                : $"🔄 Aplicando migrações do módulo {moduleName}...";
+                ? $"🔄 Applying {moduleName} module migrations ({description})..."
+                : $"🔄 Applying {moduleName} module migrations...";
             logger?.LogInformation(message);
 
             await context.Database.MigrateAsync();
-            logger?.LogInformation("✅ Migrações do banco {Module} completadas com sucesso", moduleName);
+            logger?.LogInformation("✅ {Module} database migrations completed successfully", moduleName);
         }
         catch (Exception ex)
         {
@@ -447,7 +447,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         try
         {
             var count = await countQuery();
-            logger?.LogInformation("Verificação do banco {Module} bem-sucedida - Contagem: {Count}", moduleName, count);
+            logger?.LogInformation("{Module} database verification successful - Count: {Count}", moduleName, count);
         }
         catch (Exception ex)
         {

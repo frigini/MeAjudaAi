@@ -15,10 +15,7 @@ permissions:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  # STRICT_COVERAGE temporarily disabled - investigating coverage drop from 90.10% to 48.26%
-  # Root cause: Coverage report showing only integration tests (48.26%)
-  # TODO: Re-enable after fixing coverage aggregation (Issue #33)
-  STRICT_COVERAGE: false
+  STRICT_COVERAGE: true
   # PostgreSQL configuration (DRY principle - single source of truth)
   # Fallback credentials: Only used in fork/local dev; main repo requires secrets
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
@@ -131,10 +128,11 @@ jobs:
           done
 
           if [ "$FOUND_DCP" = false ]; then
-            echo "⚠️  Warning: DCP binaries not found in expected locations"
+            echo "❌ Error: DCP binaries not found in expected locations"
             echo "Searching NuGet cache for Aspire packages..."
             find "$HOME/.nuget/packages" -type d -iname "*aspire*" -maxdepth 1 2>/dev/null || true
-            echo "ℹ️  Integration tests will attempt to run - DCP may be resolved at runtime"
+            echo "❌ Integration tests require Aspire DCP binaries - failing fast"
+            exit 1
           else
             echo "✅ Aspire DCP binaries verified in NuGet cache"
           fi
@@ -681,11 +679,12 @@ jobs:
             exit 1
           fi
           
-          # Verify reportgenerator is functional
-          if ! reportgenerator --version; then
+          # Verify reportgenerator is functional (check help instead of version)
+          if ! reportgenerator --help > /dev/null 2>&1; then
             echo "❌ ReportGenerator is not functional"
             exit 1
           fi
+          echo "✅ ReportGenerator version: $(reportgenerator --help | head -n 1 || echo 'unknown')"
           
           echo "✅ ReportGenerator is ready"
           

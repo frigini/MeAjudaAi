@@ -11,8 +11,8 @@ using Testcontainers.PostgreSql;
 namespace MeAjudaAi.Modules.Documents.Tests.Integration.Persistence;
 
 /// <summary>
-/// Integration tests for DocumentRepository using Testcontainers PostgreSQL.
-/// Tests validate real database operations and EF Core behavior.
+/// Testes de integração para DocumentRepository usando Testcontainers PostgreSQL.
+/// Testes validam operações reais de banco de dados e comportamento do EF Core.
 /// </summary>
 [Trait("Category", "Integration")]
 [Trait("Module", "Documents")]

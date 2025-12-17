@@ -96,9 +96,9 @@ public sealed class ServiceRepository(ServiceCatalogsDbContext context) : IServi
         return await query.CountAsync(cancellationToken);
     }
 
-    // NOTE: Write methods call SaveChangesAsync directly, treating each operation as a unit of work.
-    // This is appropriate for single-aggregate commands. If multi-aggregate transactions are needed
-    // in the future, consider introducing a shared unit-of-work abstraction.
+    // NOTA: Métodos de escrita chamam SaveChangesAsync diretamente, tratando cada operação como uma unidade de trabalho.
+    // Isso é apropriado para comandos de agregado único. Se transações multi-agregado forem necessárias
+    // no futuro, considere introduzir uma abstração compartilhada de unit-of-work.
 
     public async Task AddAsync(Service service, CancellationToken cancellationToken = default)
     {
@@ -114,7 +114,7 @@ public sealed class ServiceRepository(ServiceCatalogsDbContext context) : IServi
 
     public async Task DeleteAsync(ServiceId id, CancellationToken cancellationToken = default)
     {
-        // Use lightweight lookup without includes for delete
+        // Usa lookup leve sem includes para deleção
         var service = await context.Services
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
@@ -123,6 +123,6 @@ public sealed class ServiceRepository(ServiceCatalogsDbContext context) : IServi
             context.Services.Remove(service);
             await context.SaveChangesAsync(cancellationToken);
         }
-        // Delete is idempotent - no-op if service doesn't exist
+        // Delete é idempotente - no-op se o serviço não existe
     }
 }

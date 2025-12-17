@@ -42,7 +42,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
 
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("IBGE retornou status {StatusCode} para município {CityName}", response.StatusCode, cityName);
+                logger.LogWarning("IBGE returned status {StatusCode} for municipality {CityName}", response.StatusCode, cityName);
 
                 // Throw exception for HTTP errors to enable middleware fallback to simple validation
                 // This ensures fail-open behavior when IBGE service is unavailable
@@ -70,8 +70,8 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             if (match is null)
             {
                 logger.LogWarning(
-                    "Município {CityName} não encontrou match exato no IBGE. Retornando null (fail-closed). " +
-                    "Resultados encontrados: {Results}",
+                    "Municipality {CityName} did not find exact match in IBGE. Returning null (fail-closed). " +
+                    "Found results: {Results}",
                     trimmedCity,
                     string.Join(", ", municipios.Select(m => m.Nome)));
                 return null; // Fail-closed to prevent returning incorrect city

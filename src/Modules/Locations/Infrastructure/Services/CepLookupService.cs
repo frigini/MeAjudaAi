@@ -61,11 +61,11 @@ public sealed class CepLookupService(
             var address = await TryProviderAsync(provider, cep, cancellationToken);
             if (address is not null)
             {
-                logger.LogInformation("CEP {Cep} encontrado no provedor {Provider}", cep.Value, provider);
+                logger.LogInformation("CEP {Cep} found in provider {Provider}", cep.Value, provider);
                 return address;
             }
 
-            logger.LogWarning("Provedor {Provider} falhou para CEP {Cep}, tentando próximo", provider, cep.Value);
+            logger.LogWarning("Provider {Provider} failed for CEP {Cep}, trying next", provider, cep.Value);
         }
 
         logger.LogError("CEP {Cep} not found in any provider", cep.Value);
