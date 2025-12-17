@@ -106,21 +106,21 @@ jobs:
           # In .NET 10, the Aspire orchestration package needs to be explicitly restored
           # The package name varies by platform RID
           echo "🔄 Downloading Aspire DCP orchestration package for linux-x64..."
-          
+
           # Download the orchestration package directly
           # Note: The version should match the Aspire.AppHost.Sdk version (13.0.2)
           dotnet nuget locals all --list
-          
+
           # Force download of the DCP package by adding it temporarily to a dummy project
           TEMP_DIR=$(mktemp -d)
           cd "$TEMP_DIR"
           dotnet new console -n TempDcpDownloader
           cd TempDcpDownloader
-          
+
           # Add the Aspire orchestration package for Linux
           dotnet add package Aspire.Hosting.Orchestration.linux-x64 --version 13.0.2
           dotnet restore
-          
+
           # Return to workspace
           cd "$GITHUB_WORKSPACE"
           rm -rf "$TEMP_DIR"
