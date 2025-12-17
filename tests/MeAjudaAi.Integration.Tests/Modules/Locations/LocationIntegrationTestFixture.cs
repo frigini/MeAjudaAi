@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Locations.API;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Tests.Mocks;
@@ -48,7 +49,7 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
 
         // Adiciona serviços do módulo Locations
         var configuration = new ConfigurationBuilder().Build();
-        MeAjudaAi.Modules.Locations.Infrastructure.Extensions.AddLocationModule(services, configuration);
+        MeAjudaAi.Modules.Locations.API.Extensions.AddLocationsModule(services, configuration);
 
         ServiceProvider = services.BuildServiceProvider();
         await Task.CompletedTask;

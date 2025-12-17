@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Modules.Documents.API;
-using MeAjudaAi.Modules.Locations.Infrastructure;
+using MeAjudaAi.Modules.Locations.API;
 using MeAjudaAi.Modules.Providers.API;
 using MeAjudaAi.Modules.SearchProviders.API;
 using MeAjudaAi.Modules.ServiceCatalogs.API;
@@ -37,7 +37,7 @@ public partial class Program
             builder.Services.AddProvidersModule(builder.Configuration);
             builder.Services.AddDocumentsModule(builder.Configuration);
             builder.Services.AddSearchProvidersModule(builder.Configuration, builder.Environment);
-            builder.Services.AddLocationModule(builder.Configuration);
+            builder.Services.AddLocationsModule(builder.Configuration);
             builder.Services.AddServiceCatalogsModule(builder.Configuration);
 
             // Shared services por último (GlobalExceptionHandler atua como fallback)
@@ -118,7 +118,7 @@ public partial class Program
         app.UseProvidersModule();
         app.UseDocumentsModule();
         app.UseSearchProvidersModule();
-        app.UseLocationModule();
+        app.UseLocationsModule();
         app.UseServiceCatalogsModule();
     }
 

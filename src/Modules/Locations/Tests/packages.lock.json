@@ -1126,7 +1126,7 @@
           "AspNetCore.HealthChecks.Redis": "[9.0.0, )",
           "AspNetCore.HealthChecks.UI.Client": "[9.0.0, )",
           "MeAjudaAi.Modules.Documents.API": "[1.0.0, )",
-          "MeAjudaAi.Modules.Locations.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Locations.API": "[1.0.0, )",
           "MeAjudaAi.Modules.Providers.API": "[1.0.0, )",
           "MeAjudaAi.Modules.SearchProviders.API": "[1.0.0, )",
           "MeAjudaAi.Modules.ServiceCatalogs.API": "[1.0.0, )",
@@ -1175,6 +1175,17 @@
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.1, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )"
+        }
+      },
+      "meajudaai.modules.locations.api": {
+        "type": "Project",
+        "dependencies": {
+          "Asp.Versioning.Http": "[8.1.0, )",
+          "Asp.Versioning.Mvc.ApiExplorer": "[8.1.0, )",
+          "MeAjudaAi.Modules.Locations.Application": "[1.0.0, )",
+          "MeAjudaAi.Modules.Locations.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Shared": "[1.0.0, )",
+          "Microsoft.AspNetCore.OpenApi": "[10.0.1, )"
         }
       },
       "meajudaai.modules.locations.application": {

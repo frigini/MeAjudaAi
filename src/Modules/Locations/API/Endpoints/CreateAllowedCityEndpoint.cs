@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace MeAjudaAi.Modules.Locations.Infrastructure.API.Endpoints;
+namespace MeAjudaAi.Modules.Locations.API.Endpoints;
 
 /// <summary>
 /// Endpoint para criar nova cidade permitida (Admin only)
