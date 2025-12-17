@@ -56,6 +56,21 @@ public static class ServiceCollectionExtensions
         services.AddCorsPolicy(configuration, environment);
         services.AddMemoryCache();
 
+        // Configura ForwardedHeaders para suporte a proxy reverso (load balancers, nginx, etc.)
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
+                                      Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+            
+            // Limpa redes e proxies padrão - será configurado por ambiente
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+
+            // Em produção, configure KnownProxies ou KnownNetworks com os IPs do seu proxy reverso
+            // Exemplo para Docker/Kubernetes:
+            // options.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("10.0.0.0"), 8));
+        });
+
         // Configurar Geographic Restriction
         services.Configure<GeographicRestrictionOptions>(
             configuration.GetSection("GeographicRestriction"));

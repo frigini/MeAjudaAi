@@ -71,19 +71,19 @@ public class UploadDocumentCommandHandler(
             if (!Enum.TryParse<EDocumentType>(command.DocumentType, true, out var documentType) ||
                 !Enum.IsDefined(typeof(EDocumentType), documentType))
             {
-                throw new ArgumentException($"Tipo de documento inválido: {command.DocumentType}");
+                throw new ArgumentException($"Invalid document type: {command.DocumentType}");
             }
 
             // Validação de tamanho de arquivo
             if (command.FileSizeBytes > 10 * 1024 * 1024) // 10MB
             {
-                throw new ArgumentException("Arquivo muito grande. Máximo: 10MB");
+                throw new ArgumentException("File too large. Maximum: 10MB");
             }
 
             // Validação null-safe e tolerante a parâmetros de content-type
             if (string.IsNullOrWhiteSpace(command.ContentType))
             {
-                throw new ArgumentException("Content-Type é obrigatório");
+                throw new ArgumentException("Content-Type is required");
             }
 
             var mediaType = command.ContentType.Split(';')[0].Trim().ToLowerInvariant();
@@ -92,7 +92,7 @@ public class UploadDocumentCommandHandler(
             var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/jpg", "application/pdf" };
             if (!allowedContentTypes.Contains(mediaType))
             {
-                throw new ArgumentException($"Tipo de arquivo não permitido: {mediaType}");
+                throw new ArgumentException($"File type not allowed: {mediaType}");
             }
 
             // Gera nome único do blob
@@ -141,7 +141,7 @@ public class UploadDocumentCommandHandler(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while uploading document for provider {ProviderId}", command.ProviderId);
-            throw new InvalidOperationException("Falha ao fazer upload do documento. Por favor, tente novamente mais tarde.", ex);
+            throw new InvalidOperationException("Failed to upload document. Please try again later.", ex);
         }
     }
 }

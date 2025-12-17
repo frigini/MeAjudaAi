@@ -276,4 +276,37 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
         rejected.RejectionReason.Should().Be("Invalid document format");
         rejected.VerifiedAt.Should().NotBeNull();
     }
+
+    [Fact]
+    public async Task ExistsAsync_WithExistingDocument_ShouldReturnTrue()
+    {
+        // Arrange
+        var document = Document.Create(
+            Guid.NewGuid(),
+            EDocumentType.IdentityDocument,
+            "test.pdf",
+            "docs/test.pdf");
+
+        await _repository!.AddAsync(document);
+        await _repository.SaveChangesAsync();
+
+        // Act
+        var exists = await _repository.ExistsAsync(document.Id.Value);
+
+        // Assert
+        exists.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ExistsAsync_WithNonExistentDocument_ShouldReturnFalse()
+    {
+        // Arrange
+        var nonExistentId = Guid.NewGuid();
+
+        // Act
+        var exists = await _repository!.ExistsAsync(nonExistentId);
+
+        // Assert
+        exists.Should().BeFalse();
+    }
 }

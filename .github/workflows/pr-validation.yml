@@ -113,29 +113,30 @@ jobs:
           # Verify DCP binaries were downloaded (now located in NuGet package cache)
           echo "🔎 Verifying DCP binaries in NuGet cache..."
 
-          # DCP binaries come from Aspire.Hosting.Orchestration NuGet package
-          DCP_LOCATIONS=(
-            "$HOME/.nuget/packages/aspire.hosting.orchestration.*/*/tools/dcp"
-            "$HOME/.nuget/packages/aspire.hosting.orchestration.*/*/tools/dcpctrl"
-          )
-
-          FOUND_DCP=false
-          for pattern in "${DCP_LOCATIONS[@]}"; do
-            if compgen -G "$pattern" > /dev/null; then
-              echo "✅ Found DCP binary: $(echo $pattern)"
-              FOUND_DCP=true
-            fi
-          done
-
-          if [ "$FOUND_DCP" = false ]; then
-            echo "❌ Error: DCP binaries not found in expected locations"
+          # DCP binaries come from Aspire.Hosting.Orchestration.<RID> NuGet package
+          # For linux-x64, the package is aspire.hosting.orchestration.linux-x64
+          DCP_PACKAGE_PATH="$HOME/.nuget/packages/aspire.hosting.orchestration.linux-x64"
+          
+          if [ ! -d "$DCP_PACKAGE_PATH" ]; then
+            echo "❌ Error: Aspire.Hosting.Orchestration.linux-x64 package not found"
             echo "Searching NuGet cache for Aspire packages..."
-            find "$HOME/.nuget/packages" -type d -iname "*aspire*" -maxdepth 1 2>/dev/null || true
+            find "$HOME/.nuget/packages" -type d -iname "*aspire.hosting.orchestration*" -maxdepth 1 2>/dev/null || true
             echo "❌ Integration tests require Aspire DCP binaries - failing fast"
             exit 1
-          else
-            echo "✅ Aspire DCP binaries verified in NuGet cache"
           fi
+
+          # Find DCP binary in the downloaded package
+          DCP_BINARY=$(find "$DCP_PACKAGE_PATH" -type f -name "dcp" 2>/dev/null | head -n 1)
+          
+          if [ -z "$DCP_BINARY" ]; then
+            echo "❌ Error: DCP binary not found in package"
+            echo "Package structure:"
+            ls -la "$DCP_PACKAGE_PATH" || true
+            echo "❌ Integration tests require Aspire DCP binaries - failing fast"
+            exit 1
+          fi
+          
+          echo "✅ Aspire DCP binaries verified: $DCP_BINARY"
 
           # Set DOTNET_ROOT for SDK discovery
           # Note: This export to $GITHUB_ENV should persist to later steps, but the
@@ -1043,8 +1044,11 @@ jobs:
           coverage-directory: './coverage'
           threshold: '90'
           strict-mode: ${{ env.STRICT_COVERAGE }}
+          opencover-output: ${{ steps.coverage_opencover_individual.outputs.line-rate }}
           opencover-outcome: ${{ steps.coverage_opencover_individual.outcome }}
+          cobertura-output: ${{ steps.coverage_cobertura.outputs.line-rate }}
           cobertura-outcome: ${{ steps.coverage_cobertura.outcome }}
+          fallback-output: ${{ steps.coverage_fallback.outputs.line-rate }}
           fallback-outcome: ${{ steps.coverage_fallback.outcome }}
 
   # Job 2: Security Scan (Consolidated)

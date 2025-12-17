@@ -125,7 +125,6 @@ public sealed class ExtensionsTests
         testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
         builder.Services.AddSingleton(testEnvMock.Object);
 
-        builder.Configuration.AddConfiguration(_testConfiguration);
         builder.Services.AddDocumentsModule(_testConfiguration);
 
         var app = builder.Build();
