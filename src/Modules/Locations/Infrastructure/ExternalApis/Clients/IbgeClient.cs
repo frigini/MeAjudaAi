@@ -36,7 +36,7 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
             var encodedName = Uri.EscapeDataString(normalizedCity);
             var url = $"municipios?nome={encodedName}";
 
-            logger.LogDebug("Buscando município {CityName} na API IBGE", trimmedCity);
+            logger.LogDebug("Querying IBGE API for municipality {CityName}", trimmedCity);
 
             var response = await httpClient.GetAsync(url, cancellationToken);
 
@@ -114,13 +114,13 @@ public sealed class IbgeClient(HttpClient httpClient, ILogger<IbgeClient> logger
         {
             var url = $"estados/{ufSigla.ToUpperInvariant()}/municipios";
 
-            logger.LogDebug("Buscando municípios da UF {UF} na API IBGE", ufSigla);
+            logger.LogDebug("Querying IBGE API for municipalities in state {UF}", ufSigla);
 
             var response = await httpClient.GetAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("IBGE retornou status {StatusCode} para UF {UF}", response.StatusCode, ufSigla);
+                logger.LogWarning("IBGE returned status {StatusCode} for state {UF}", response.StatusCode, ufSigla);
                 return [];
             }
 

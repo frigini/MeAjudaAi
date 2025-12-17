@@ -117,7 +117,7 @@ jobs:
           # For linux-x64, the package is aspire.hosting.orchestration.linux-x64
           # NuGet packages are case-sensitive on Linux, so we need to search for the exact case
           DCP_PACKAGE_PATH=$(find "$HOME/.nuget/packages" -maxdepth 1 -type d -iname "aspire.hosting.orchestration.linux-x64" 2>/dev/null | head -n 1)
-          
+
           if [ -z "$DCP_PACKAGE_PATH" ]; then
             echo "❌ Error: aspire.hosting.orchestration.linux-x64 package not found in NuGet cache"
             echo "Searching for all Aspire orchestration packages..."
@@ -130,7 +130,7 @@ jobs:
 
           # Find DCP binary in the downloaded package
           DCP_BINARY=$(find "$DCP_PACKAGE_PATH" -type f -name "dcp" 2>/dev/null | head -n 1)
-          
+
           if [ -z "$DCP_BINARY" ]; then
             echo "❌ Error: DCP binary not found in package"
             echo "Package structure:"
@@ -138,7 +138,7 @@ jobs:
             echo "❌ Integration tests require Aspire DCP binaries - failing fast"
             exit 1
           fi
-          
+
           echo "✅ Aspire DCP binaries verified: $DCP_BINARY"
 
           # Set DOTNET_ROOT for SDK discovery

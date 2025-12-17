@@ -63,12 +63,12 @@ public static class ServiceCollectionExtensions
                                       Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
             
             // Limpa redes e proxies padrão - será configurado por ambiente
-            options.KnownNetworks.Clear();
+            options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
 
-            // Em produção, configure KnownProxies ou KnownNetworks com os IPs do seu proxy reverso
+            // Em produção, configure KnownProxies ou KnownIPNetworks com os IPs do seu proxy reverso
             // Exemplo para Docker/Kubernetes:
-            // options.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("10.0.0.0"), 8));
+            // options.KnownIPNetworks.Add(new IPNetwork(IPAddress.Parse("10.0.0.0"), 8));
         });
 
         // Configurar Geographic Restriction
@@ -120,6 +120,13 @@ public static class ServiceCollectionExtensions
     {
         // Exception handling DEVE estar no início do pipeline
         app.UseExceptionHandler();
+
+        // ForwardedHeaders deve ser o primeiro para popular corretamente RemoteIpAddress para rate limiting
+        // Processa cabeçalhos X-Forwarded-* de proxies reversos (load balancers, nginx, etc.)
+        app.UseForwardedHeaders();
+
+        // Verificação de segurança de compressão (previne CRIME/BREACH)
+        app.UseMiddleware<CompressionSecurityMiddleware>();
 
         // Middlewares de performance devem estar no início do pipeline
         app.UseResponseCompression();

@@ -26,7 +26,7 @@ public sealed class GeographicValidationServiceTests
         // Arrange
         var cityName = "Muriaé";
         var stateSigla = "MG";
-                var cancellationToken = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         _mockIbgeService
             .Setup(x => x.ValidateCityInAllowedRegionsAsync(
@@ -51,7 +51,7 @@ public sealed class GeographicValidationServiceTests
         // Arrange
         var cityName = "São Paulo";
         var stateSigla = "SP";
-                var cancellationToken = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         _mockIbgeService
             .Setup(x => x.ValidateCityInAllowedRegionsAsync(
@@ -76,7 +76,7 @@ public sealed class GeographicValidationServiceTests
         // Arrange
         var cityName = "Muriaé";
         string? stateSigla = null;
-                var cancellationToken = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         _mockIbgeService
             .Setup(x => x.ValidateCityInAllowedRegionsAsync(
@@ -101,7 +101,7 @@ public sealed class GeographicValidationServiceTests
         // Arrange
         var cityName = "Muriaé";
         var stateSigla = "MG";
-                var cancellationToken = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
         var exception = new HttpRequestException("IBGE API unavailable");
 
         _mockIbgeService

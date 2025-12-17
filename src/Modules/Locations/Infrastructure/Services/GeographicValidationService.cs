@@ -19,7 +19,7 @@ public sealed class GeographicValidationService(
         CancellationToken cancellationToken = default)
     {
         logger.LogDebug(
-            "GeographicValidationService: Validando cidade {CityName} (UF: {State}) usando banco de dados",
+            "GeographicValidationService: Validating city {CityName} (State: {State}) using database",
             cityName,
             stateSigla ?? "N/A");
 
