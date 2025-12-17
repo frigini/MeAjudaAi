@@ -103,10 +103,11 @@ jobs:
           echo "📦 Preparing .NET Aspire for integration tests..."
           echo "ℹ️  Note: Aspire workload is deprecated in .NET 10 - using NuGet packages instead"
 
-          # Restore AppHost to download Aspire NuGet packages (includes DCP binaries)
-          echo "🔄 Restoring AppHost project to download Aspire packages..."
-          if ! dotnet restore src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --verbosity normal; then
-            echo "❌ Failed to restore AppHost project"
+          # Build AppHost to download Aspire NuGet packages (includes DCP binaries)
+          # Note: In .NET 10, restore alone doesn't download DCP packages - build is required
+          echo "🔄 Building AppHost project to download Aspire DCP packages..."
+          if ! dotnet build src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --configuration Release --verbosity minimal; then
+            echo "❌ Failed to build AppHost project"
             exit 1
           fi
 
