@@ -5,6 +5,7 @@ using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -16,6 +17,7 @@ public sealed class DocumentVerificationJobTests
     private readonly Mock<IDocumentRepository> _repositoryMock;
     private readonly Mock<IDocumentIntelligenceService> _intelligenceMock;
     private readonly Mock<IBlobStorageService> _blobStorageMock;
+    private readonly IConfiguration _configuration;
     private readonly Mock<ILogger<DocumentVerificationJob>> _loggerMock;
     private readonly DocumentVerificationJob _job;
 
@@ -26,10 +28,19 @@ public sealed class DocumentVerificationJobTests
         _blobStorageMock = new Mock<IBlobStorageService>();
         _loggerMock = new Mock<ILogger<DocumentVerificationJob>>();
 
+        // Usar ConfigurationBuilder real para valores padrão
+        _configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Documents:Verification:MinimumConfidence"] = "0.7"
+            })
+            .Build();
+
         _job = new DocumentVerificationJob(
             _repositoryMock.Object,
             _intelligenceMock.Object,
             _blobStorageMock.Object,
+            _configuration,
             _loggerMock.Object);
     }
 
@@ -41,6 +52,7 @@ public sealed class DocumentVerificationJobTests
             null!,
             _intelligenceMock.Object,
             _blobStorageMock.Object,
+            _configuration,
             _loggerMock.Object);
 
         // Assert
@@ -55,6 +67,7 @@ public sealed class DocumentVerificationJobTests
             _repositoryMock.Object,
             null!,
             _blobStorageMock.Object,
+            _configuration,
             _loggerMock.Object);
 
         // Assert
@@ -69,6 +82,7 @@ public sealed class DocumentVerificationJobTests
             _repositoryMock.Object,
             _intelligenceMock.Object,
             null!,
+            _configuration,
             _loggerMock.Object);
 
         // Assert
@@ -83,6 +97,7 @@ public sealed class DocumentVerificationJobTests
             _repositoryMock.Object,
             _intelligenceMock.Object,
             _blobStorageMock.Object,
+            _configuration,
             null!);
 
         // Assert
@@ -313,6 +328,54 @@ public sealed class DocumentVerificationJobTests
 
         // Assert
         document.Status.Should().Be(EDocumentStatus.Verified);
+    }
+
+    [Fact]
+    public async Task ProcessDocumentAsync_WithCustomMinimumConfidence_ShouldUseConfiguredValue()
+    {
+        // Arrange
+        var customConfig = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Documents:Verification:MinimumConfidence"] = "0.9"
+            })
+            .Build();
+
+        var customJob = new DocumentVerificationJob(
+            _repositoryMock.Object,
+            _intelligenceMock.Object,
+            _blobStorageMock.Object,
+            customConfig,
+            _loggerMock.Object);
+
+        var documentId = Guid.NewGuid();
+        var document = CreateDocument(documentId, EDocumentStatus.PendingVerification);
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(document);
+        _blobStorageMock.Setup(b => b.ExistsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        _blobStorageMock.Setup(b => b.GenerateDownloadUrlAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(("https://fake-url", DateTime.UtcNow.AddHours(1)));
+
+        // Confiança de 0.85 seria aceita com threshold padrão (0.7), mas rejeitada com 0.9
+        _intelligenceMock.Setup(i => i.AnalyzeDocumentAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OcrResult(
+                Success: true,
+                ExtractedData: "{\"name\":\"Test\"}",
+                Fields: new Dictionary<string, string> { { "name", "Test" } },
+                Confidence: 0.85f,
+                ErrorMessage: null));
+
+        // Act
+        await customJob.ProcessDocumentAsync(documentId);
+
+        // Assert - Deve ser rejeitado porque 0.85 < 0.9
+        document.Status.Should().Be(EDocumentStatus.Rejected);
+        document.RejectionReason.Should().Contain("85");
     }
 
     private static Document CreateDocument(Guid id, EDocumentStatus status)

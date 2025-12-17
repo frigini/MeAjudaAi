@@ -2,6 +2,7 @@ using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
@@ -11,20 +12,29 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Jobs;
 /// Este job é enfileirado quando um documento é enviado.
 /// NOTA: Document.FileUrl é usado como blob name (chave) para operações de storage.
 /// </summary>
-public class DocumentVerificationJob(
-    IDocumentRepository documentRepository,
-    IDocumentIntelligenceService documentIntelligenceService,
-    IBlobStorageService blobStorageService,
-    ILogger<DocumentVerificationJob> logger) : IDocumentVerificationService
+public class DocumentVerificationJob : IDocumentVerificationService
 {
-    private readonly IDocumentRepository _documentRepository = documentRepository ?? throw new ArgumentNullException(nameof(documentRepository));
-    private readonly IDocumentIntelligenceService _documentIntelligenceService = documentIntelligenceService ?? throw new ArgumentNullException(nameof(documentIntelligenceService));
-    private readonly IBlobStorageService _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
-    private readonly ILogger<DocumentVerificationJob> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IDocumentRepository _documentRepository;
+    private readonly IDocumentIntelligenceService _documentIntelligenceService;
+    private readonly IBlobStorageService _blobStorageService;
+    private readonly ILogger<DocumentVerificationJob> _logger;
+    private readonly float _minimumConfidence;
 
-    // TODO: Tornar configurável via appsettings.json quando necessário
-    // Para MVP, mantendo valor fixo documentado
-    private const float MinimumConfidence = 0.7f;
+    public DocumentVerificationJob(
+        IDocumentRepository documentRepository,
+        IDocumentIntelligenceService documentIntelligenceService,
+        IBlobStorageService blobStorageService,
+        IConfiguration configuration,
+        ILogger<DocumentVerificationJob> logger)
+    {
+        _documentRepository = documentRepository ?? throw new ArgumentNullException(nameof(documentRepository));
+        _documentIntelligenceService = documentIntelligenceService ?? throw new ArgumentNullException(nameof(documentIntelligenceService));
+        _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        
+        // Configuração com fallback para valor padrão (após validações para evitar NullReferenceException em testes)
+        _minimumConfidence = configuration?.GetValue<float>("Documents:Verification:MinimumConfidence", 0.7f) ?? 0.7f;
+    }
 
     public async Task ProcessDocumentAsync(Guid documentId, CancellationToken cancellationToken = default)
     {
@@ -82,7 +92,7 @@ public class DocumentVerificationJob(
                 document.DocumentType.ToString(),
                 cancellationToken);
 
-            if (ocrResult.Success && ocrResult.Confidence >= MinimumConfidence)
+            if (ocrResult.Success && ocrResult.Confidence >= _minimumConfidence)
             {
                 _logger.LogInformation(
                     "OCR bem-sucedido para documento {DocumentId} (Confiança: {Confidence:P0})",
