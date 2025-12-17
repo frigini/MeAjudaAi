@@ -103,13 +103,27 @@ jobs:
           echo "📦 Preparing .NET Aspire for integration tests..."
           echo "ℹ️  Note: Aspire workload is deprecated in .NET 10 - using NuGet packages instead"
 
-          # Build AppHost to download Aspire NuGet packages (includes DCP binaries)
-          # Note: In .NET 10, restore alone doesn't download DCP packages - build is required
-          echo "🔄 Building AppHost project to download Aspire DCP packages..."
-          if ! dotnet build src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --configuration Release --verbosity minimal; then
-            echo "❌ Failed to build AppHost project"
-            exit 1
-          fi
+          # In .NET 10, the Aspire orchestration package needs to be explicitly restored
+          # The package name varies by platform RID
+          echo "🔄 Downloading Aspire DCP orchestration package for linux-x64..."
+          
+          # Download the orchestration package directly
+          # Note: The version should match the Aspire.AppHost.Sdk version (13.0.2)
+          dotnet nuget locals all --list
+          
+          # Force download of the DCP package by adding it temporarily to a dummy project
+          TEMP_DIR=$(mktemp -d)
+          cd "$TEMP_DIR"
+          dotnet new console -n TempDcpDownloader
+          cd TempDcpDownloader
+          
+          # Add the Aspire orchestration package for Linux
+          dotnet add package Aspire.Hosting.Orchestration.linux-x64 --version 13.0.2
+          dotnet restore
+          
+          # Return to workspace
+          cd "$GITHUB_WORKSPACE"
+          rm -rf "$TEMP_DIR"
 
           # Verify DCP binaries were downloaded (now located in NuGet package cache)
           echo "🔎 Verifying DCP binaries in NuGet cache..."
@@ -123,6 +137,8 @@ jobs:
             echo "❌ Error: aspire.hosting.orchestration.linux-x64 package not found in NuGet cache"
             echo "Searching for all Aspire orchestration packages..."
             find "$HOME/.nuget/packages" -maxdepth 1 -type d -iname "*aspire*orchestration*" 2>/dev/null || echo "No Aspire orchestration packages found"
+            echo "Listing all Aspire packages:"
+            find "$HOME/.nuget/packages" -maxdepth 1 -type d -iname "*aspire*" 2>/dev/null || echo "No Aspire packages found"
             echo "❌ Integration tests require Aspire DCP binaries - failing fast"
             exit 1
           fi
