@@ -35,19 +35,4 @@ public static class Extensions
 
         return app;
     }
-
-    /// <summary>
-    /// Mapeia os endpoints do módulo Locations.
-    /// </summary>
-    private static IEndpointRouteBuilder MapLocationsEndpoints(this IEndpointRouteBuilder app)
-    {
-        // Registrar endpoints administrativos (Admin only)
-        CreateAllowedCityEndpoint.Map(app);
-        GetAllAllowedCitiesEndpoint.Map(app);
-        GetAllowedCityByIdEndpoint.Map(app);
-        UpdateAllowedCityEndpoint.Map(app);
-        DeleteAllowedCityEndpoint.Map(app);
-
-        return app;
-    }
 }

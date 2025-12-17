@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Locations.API.Mappers;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Authorization;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace MeAjudaAi.Modules.Locations.API.Endpoints;
+namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
 /// <summary>
 /// Endpoint para criar nova cidade permitida (Admin only)
@@ -29,11 +30,7 @@ public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
-        var command = new CreateAllowedCityCommand(
-            request.CityName,
-            request.StateSigla,
-            request.IbgeCode,
-            request.IsActive);
+        var command = request.ToCommand();
 
         var cityId = await commandDispatcher.SendAsync<CreateAllowedCityCommand, Guid>(command, cancellationToken);
 

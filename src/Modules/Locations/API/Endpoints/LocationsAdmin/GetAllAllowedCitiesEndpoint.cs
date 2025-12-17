@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace MeAjudaAi.Modules.Locations.API.Endpoints;
+namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
 /// <summary>
 /// Endpoint para listar todas as cidades permitidas (Admin only)

@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Locations.API.Mappers;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Commands;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace MeAjudaAi.Modules.Locations.API.Endpoints;
+namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
 /// <summary>
 /// Endpoint para deletar cidade permitida (Admin only)
@@ -28,7 +29,7 @@ public class DeleteAllowedCityEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
-        var command = new DeleteAllowedCityCommand { Id = id };
+        var command = id.ToDeleteCommand();
 
         await commandDispatcher.SendAsync(command, cancellationToken);
 

@@ -1,3 +1,4 @@
+using MeAjudaAi.Modules.Locations.API.Mappers;
 using MeAjudaAi.Modules.Locations.Application.Commands;
 using MeAjudaAi.Modules.Locations.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Authorization;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace MeAjudaAi.Modules.Locations.API.Endpoints;
+namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 
 /// <summary>
 /// Endpoint para atualizar cidade permitida existente (Admin only)
@@ -31,14 +32,7 @@ public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
         ICommandDispatcher commandDispatcher,
         CancellationToken cancellationToken)
     {
-        var command = new UpdateAllowedCityCommand
-        {
-            Id = id,
-            CityName = request.CityName,
-            StateSigla = request.StateSigla,
-            IbgeCode = request.IbgeCode,
-            IsActive = request.IsActive
-        };
+        var command = request.ToCommand(id);
 
         await commandDispatcher.SendAsync(command, cancellationToken);
 
