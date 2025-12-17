@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Queries;
@@ -14,15 +14,15 @@ public class GetDocumentStatusQueryTests
     [Fact]
     public void GetCacheKey_ShouldGenerateConsistentKey()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         var query = new GetDocumentStatusQuery(documentId);
 
-        // Ação
+        // Act
         var cacheKey1 = query.GetCacheKey();
         var cacheKey2 = query.GetCacheKey();
 
-        // Verificação
+        // Assert
         cacheKey1.Should().Be(cacheKey2);
         cacheKey1.Should().Contain(documentId.ToString());
         cacheKey1.Should().Contain("document");
@@ -32,44 +32,44 @@ public class GetDocumentStatusQueryTests
     [Fact]
     public void GetCacheKey_WithDifferentIds_ShouldGenerateDifferentKeys()
     {
-        // Preparação
+        // Arrange
         var documentId1 = Guid.NewGuid();
         var documentId2 = Guid.NewGuid();
         var query1 = new GetDocumentStatusQuery(documentId1);
         var query2 = new GetDocumentStatusQuery(documentId2);
 
-        // Ação
+        // Act
         var cacheKey1 = query1.GetCacheKey();
         var cacheKey2 = query2.GetCacheKey();
 
-        // Verificação
+        // Assert
         cacheKey1.Should().NotBe(cacheKey2);
     }
 
     [Fact]
     public void GetCacheExpiration_ShouldReturn2Minutes()
     {
-        // Preparação
+        // Arrange
         var query = new GetDocumentStatusQuery(Guid.NewGuid());
 
-        // Ação
+        // Act
         var expiration = query.GetCacheExpiration();
 
-        // Verificação
+        // Assert
         expiration.Should().Be(TimeSpan.FromMinutes(2));
     }
 
     [Fact]
     public void GetCacheTags_ShouldReturnDocumentsTags()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         var query = new GetDocumentStatusQuery(documentId);
 
-        // Ação
+        // Act
         var tags = query.GetCacheTags();
 
-        // Verificação
+        // Assert
         tags.Should().Contain("documents");
         tags.Should().Contain($"document:{documentId}");
     }
@@ -77,11 +77,11 @@ public class GetDocumentStatusQueryTests
     [Fact]
     public void CorrelationId_ShouldBeUniqueForEachInstance()
     {
-        // Preparação & Act
+        // Arrange & Act
         var query1 = new GetDocumentStatusQuery(Guid.NewGuid());
         var query2 = new GetDocumentStatusQuery(Guid.NewGuid());
 
-        // Verificação
+        // Assert
         query1.CorrelationId.Should().NotBe(query2.CorrelationId);
         query1.CorrelationId.Should().NotBeEmpty();
     }

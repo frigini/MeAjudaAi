@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Documents.API;
+﻿using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Contracts.Modules.Documents;
 using Microsoft.AspNetCore.Builder;
@@ -36,13 +36,13 @@ public sealed class ExtensionsTests
     [Fact]
     public void AddDocumentsModule_ShouldRegisterServices()
     {
-        // Preparação
+        // Arrange
         var services = new ServiceCollection();
 
-        // Ação
+        // Act
         var result = services.AddDocumentsModule(_testConfiguration);
 
-        // Verificação
+        // Assert
         Assert.NotNull(result);
         Assert.Same(services, result);
         Assert.True(services.Count > 0);
@@ -51,13 +51,13 @@ public sealed class ExtensionsTests
     [Fact]
     public void AddDocumentsModule_ShouldRegisterIDocumentsModuleApi()
     {
-        // Preparação
+        // Arrange
         var services = new ServiceCollection();
 
-        // Ação
+        // Act
         services.AddDocumentsModule(_testConfiguration);
 
-        // Verificação
+        // Assert
         // Verifica se IDocumentsModuleApi está registrado
         Assert.Contains(services, s => s.ServiceType == typeof(IDocumentsModuleApi));
     }
@@ -65,13 +65,13 @@ public sealed class ExtensionsTests
     [Fact]
     public void AddDocumentsModule_WithValidConfiguration_ShouldRegisterServices()
     {
-        // Preparação
+        // Arrange
         var services = new ServiceCollection();
 
-        // Ação
+        // Act
         var result = services.AddDocumentsModule(_testConfiguration);
 
-        // Verificação
+        // Assert
         Assert.NotNull(result);
         Assert.Same(services, result);
         Assert.True(services.Count > 0);
@@ -80,13 +80,13 @@ public sealed class ExtensionsTests
     [Fact]
     public void AddDocumentsModule_ShouldReturnSameServiceCollectionInstance()
     {
-        // Preparação
+        // Arrange
         var services = new ServiceCollection();
 
-        // Ação
+        // Act
         var result = services.AddDocumentsModule(_testConfiguration);
 
-        // Verificação
+        // Assert
         Assert.Same(services, result);
     }
 
@@ -95,7 +95,7 @@ public sealed class ExtensionsTests
     [InlineData("Host=localhost;Database=docs2;Username=test;Password=test;")]
     public void AddDocumentsModule_WithVariousConfigurations_ShouldRegisterServices(string connectionString)
     {
-        // Preparação
+        // Arrange
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -104,10 +104,10 @@ public sealed class ExtensionsTests
             })
             .Build();
 
-        // Ação
+        // Act
         var result = services.AddDocumentsModule(configuration);
 
-        // Verificação
+        // Assert
         Assert.NotNull(result);
         Assert.Same(services, result);
         Assert.True(services.Count > 0);
@@ -116,7 +116,7 @@ public sealed class ExtensionsTests
     [Fact]
     public void UseDocumentsModule_InTestEnvironment_ShouldSkipMigrations()
     {
-        // Preparação
+        // Arrange
         var builder = WebApplication.CreateBuilder();
         builder.Services.AddLogging();
 
@@ -130,10 +130,10 @@ public sealed class ExtensionsTests
 
         var app = builder.Build();
 
-        // Ação - Não deve lançar exceção em ambiente de teste
+        // Act - Não deve lançar exceção em ambiente de teste
         var result = app.UseDocumentsModule();
 
-        // Verificação
+        // Assert
         Assert.NotNull(result);
         Assert.Same(app, result);
     }
@@ -141,7 +141,7 @@ public sealed class ExtensionsTests
     [Fact]
     public void UseDocumentsModule_InTestingEnvironment_ShouldSkipMigrations()
     {
-        // Preparação
+        // Arrange
         var builder = WebApplication.CreateBuilder();
         builder.Services.AddLogging();
 
@@ -155,10 +155,10 @@ public sealed class ExtensionsTests
 
         var app = builder.Build();
 
-        // Ação
+        // Act
         var result = app.UseDocumentsModule();
 
-        // Verificação
+        // Assert
         Assert.NotNull(result);
         Assert.Same(app, result);
     }
@@ -166,7 +166,7 @@ public sealed class ExtensionsTests
     [Fact]
     public void UseDocumentsModule_WithoutDbContext_ShouldLogWarningAndContinue()
     {
-        // Preparação
+        // Arrange
         var builder = WebApplication.CreateBuilder();
 
         var mockLogger = new Mock<ILogger<DocumentsDbContext>>();
@@ -175,10 +175,10 @@ public sealed class ExtensionsTests
 
         var app = builder.Build();
 
-        // Ação
+        // Act
         var result = app.UseDocumentsModule();
 
-        // Verificação
+        // Assert
         Assert.NotNull(result);
         Assert.Same(app, result);
     }
@@ -186,7 +186,7 @@ public sealed class ExtensionsTests
     [Fact]
     public void UseDocumentsModule_ShouldReturnSameAppInstance()
     {
-        // Preparação
+        // Arrange
         var builder = WebApplication.CreateBuilder();
         builder.Services.AddLogging();
 
@@ -197,10 +197,10 @@ public sealed class ExtensionsTests
 
         var app = builder.Build();
 
-        // Ação
+        // Act
         var result = app.UseDocumentsModule();
 
-        // Verificação
+        // Assert
         Assert.Same(app, result);
     }
 }

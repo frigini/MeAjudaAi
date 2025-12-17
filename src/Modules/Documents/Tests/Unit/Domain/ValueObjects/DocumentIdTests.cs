@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Domain.ValueObjects;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.ValueObjects;
@@ -8,26 +8,26 @@ public sealed class DocumentIdTests
     [Fact]
     public void Constructor_WithValidGuid_ShouldCreateDocumentId()
     {
-        // Preparação
+        // Arrange
         var guid = Guid.NewGuid();
 
-        // Ação
+        // Act
         var documentId = new DocumentId(guid);
 
-        // Verificação
+        // Assert
         documentId.Value.Should().Be(guid);
     }
 
     [Fact]
     public void Constructor_WithEmptyGuid_ShouldThrowArgumentException()
     {
-        // Preparação
+        // Arrange
         var emptyGuid = Guid.Empty;
 
-        // Ação
+        // Act
         var act = () => new DocumentId(emptyGuid);
 
-        // Verificação
+        // Assert
         act.Should().Throw<ArgumentException>()
             .WithMessage("DocumentId cannot be empty*");
     }
@@ -35,22 +35,22 @@ public sealed class DocumentIdTests
     [Fact]
     public void New_ShouldGenerateValidDocumentId()
     {
-        // Ação
+        // Act
         var documentId = DocumentId.New();
 
-        // Verificação
+        // Assert
         documentId.Value.Should().NotBeEmpty();
     }
 
     [Fact]
     public void Equals_WithSameValue_ShouldReturnTrue()
     {
-        // Preparação
+        // Arrange
         var guid = Guid.NewGuid();
         var documentId1 = new DocumentId(guid);
         var documentId2 = new DocumentId(guid);
 
-        // Ação & Assert
+        // Act & Assert
         documentId1.Should().Be(documentId2);
         (documentId1 == documentId2).Should().BeTrue();
     }
@@ -58,11 +58,11 @@ public sealed class DocumentIdTests
     [Fact]
     public void Equals_WithDifferentValue_ShouldReturnFalse()
     {
-        // Preparação
+        // Arrange
         var documentId1 = DocumentId.New();
         var documentId2 = DocumentId.New();
 
-        // Ação & Assert
+        // Act & Assert
         documentId1.Should().NotBe(documentId2);
         (documentId1 != documentId2).Should().BeTrue();
     }
@@ -70,26 +70,26 @@ public sealed class DocumentIdTests
     [Fact]
     public void GetHashCode_WithSameValue_ShouldReturnSameHashCode()
     {
-        // Preparação
+        // Arrange
         var guid = Guid.NewGuid();
         var documentId1 = new DocumentId(guid);
         var documentId2 = new DocumentId(guid);
 
-        // Ação & Assert
+        // Act & Assert
         documentId1.GetHashCode().Should().Be(documentId2.GetHashCode());
     }
 
     [Fact]
     public void ToString_ShouldReturnGuidAsString()
     {
-        // Preparação
+        // Arrange
         var guid = Guid.NewGuid();
         var documentId = new DocumentId(guid);
 
-        // Ação
+        // Act
         var result = documentId.ToString();
 
-        // Verificação
+        // Assert
         result.Should().Contain(guid.ToString());
     }
 }

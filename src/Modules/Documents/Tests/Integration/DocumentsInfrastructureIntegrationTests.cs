@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
@@ -45,7 +45,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task Repository_AddDocument_ShouldPersistToDatabase()
     {
-        // Preparação
+        // Arrange
         var document = Document.Create(
             UuidGenerator.NewId(),
             EDocumentType.IdentityDocument,
@@ -53,11 +53,11 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
             "test-blob-path.pdf"
         );
 
-        // Ação
+        // Act
         await _repository.AddAsync(document);
         await _dbContext.SaveChangesAsync();
 
-        // Verificação
+        // Assert
         var retrieved = await _repository.GetByIdAsync(document.Id);
         retrieved.Should().NotBeNull();
         retrieved!.ProviderId.Should().Be(document.ProviderId);
@@ -69,7 +69,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task Repository_GetByProviderId_ShouldReturnAllDocuments()
     {
-        // Preparação
+        // Arrange
         var providerId = UuidGenerator.NewId();
         var doc1 = Document.Create(providerId, EDocumentType.IdentityDocument, "doc1.pdf", "path1.pdf");
         var doc2 = Document.Create(providerId, EDocumentType.ProofOfResidence, "doc2.pdf", "path2.pdf");
@@ -80,10 +80,10 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
         await _repository.AddAsync(doc3);
         await _dbContext.SaveChangesAsync();
 
-        // Ação
+        // Act
         var documents = await _repository.GetByProviderIdAsync(providerId);
 
-        // Verificação
+        // Assert
         documents.Should().HaveCount(2);
         documents.Should().Contain(d => d.Id == doc1.Id);
         documents.Should().Contain(d => d.Id == doc2.Id);
@@ -93,18 +93,18 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task Repository_UpdateDocument_ShouldPersistChanges()
     {
-        // Preparação
+        // Arrange
         var document = Document.Create(UuidGenerator.NewId(), EDocumentType.IdentityDocument, "test.pdf", "path.pdf");
         await _repository.AddAsync(document);
         await _dbContext.SaveChangesAsync();
 
-        // Ação - Mark as pending verification first
+        // Act - Mark as pending verification first
         document.MarkAsPendingVerification();
         document.MarkAsVerified("{\"documentNumber\":\"12345\"}");
         await _repository.UpdateAsync(document);
         await _dbContext.SaveChangesAsync();
 
-        // Verificação
+        // Assert
         var retrieved = await _repository.GetByIdAsync(document.Id);
         retrieved.Should().NotBeNull();
         retrieved!.Status.Should().Be(EDocumentStatus.Verified);
@@ -119,14 +119,14 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task BlobStorage_GenerateUploadUrl_ShouldReturnValidUrl()
     {
-        // Preparação
+        // Arrange
         var blobName = "test-document.pdf";
         var contentType = "application/pdf";
 
-        // Ação
+        // Act
         var (uploadUrl, expiresAt) = await _blobStorageService.GenerateUploadUrlAsync(blobName, contentType);
 
-        // Verificação
+        // Assert
         uploadUrl.Should().NotBeNullOrEmpty();
         uploadUrl.Should().Contain(blobName);
         expiresAt.Should().BeAfter(DateTime.UtcNow);
@@ -135,13 +135,13 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task BlobStorage_GenerateDownloadUrl_ShouldReturnValidUrl()
     {
-        // Preparação
+        // Arrange
         var blobName = "test-document.pdf";
 
-        // Ação
+        // Act
         var (downloadUrl, expiresAt) = await _blobStorageService.GenerateDownloadUrlAsync(blobName);
 
-        // Verificação
+        // Assert
         downloadUrl.Should().NotBeNullOrEmpty();
         downloadUrl.Should().Contain(blobName);
         expiresAt.Should().BeAfter(DateTime.UtcNow);
@@ -150,28 +150,28 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task BlobStorage_ExistsAsync_AfterUpload_ShouldReturnTrue()
     {
-        // Preparação
+        // Arrange
         var blobName = "existing-document.pdf";
         await _blobStorageService.GenerateUploadUrlAsync(blobName, "application/pdf");
 
-        // Ação
+        // Act
         var exists = await _blobStorageService.ExistsAsync(blobName);
 
-        // Verificação
+        // Assert
         exists.Should().BeTrue();
     }
 
     [Fact]
     public async Task BlobStorage_DeleteAsync_ShouldRemoveBlob()
     {
-        // Preparação
+        // Arrange
         var blobName = "to-delete.pdf";
         await _blobStorageService.GenerateUploadUrlAsync(blobName, "application/pdf");
 
-        // Ação
+        // Act
         await _blobStorageService.DeleteAsync(blobName);
 
-        // Verificação
+        // Assert
         var exists = await _blobStorageService.ExistsAsync(blobName);
         exists.Should().BeFalse();
     }
@@ -183,14 +183,14 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task DocumentIntelligence_AnalyzeDocument_ShouldReturnSuccessResult()
     {
-        // Preparação
+        // Arrange
         var blobUrl = "https://test.blob.core.windows.net/documents/test.pdf";
         var documentType = "identity";
 
-        // Ação
+        // Act
         var result = await _documentIntelligenceService.AnalyzeDocumentAsync(blobUrl, documentType);
 
-        // Verificação
+        // Assert
         result.Should().NotBeNull();
         result.Success.Should().BeTrue();
         result.ExtractedData.Should().NotBeNullOrEmpty();
@@ -201,14 +201,14 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task DocumentIntelligence_AnalyzeDocument_ShouldExtractFields()
     {
-        // Preparação
+        // Arrange
         var blobUrl = "https://test.blob.core.windows.net/documents/identity.pdf";
         var documentType = "identity";
 
-        // Ação
+        // Act
         var result = await _documentIntelligenceService.AnalyzeDocumentAsync(blobUrl, documentType);
 
-        // Verificação
+        // Assert
         result.Fields.Should().NotBeNull();
         result.Fields.Should().ContainKey("documentNumber");
         result.Fields.Should().ContainKey("name");
@@ -221,38 +221,38 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task CompleteWorkflow_UploadToVerification_ShouldWork()
     {
-        // Preparação
+        // Arrange
         var providerId = UuidGenerator.NewId();
         var blobName = $"{providerId}/identity-{UuidGenerator.NewId()}.pdf";
 
-        // Ação 1: Generate upload URL
+        // Act 1: Generate upload URL
         var (uploadUrl, _) = await _blobStorageService.GenerateUploadUrlAsync(blobName, "application/pdf");
         uploadUrl.Should().NotBeNullOrEmpty();
 
-        // Ação 2: Create document entity
+        // Act 2: Create document entity
         var document = Document.Create(providerId, EDocumentType.IdentityDocument, "identity.pdf", blobName);
         await _repository.AddAsync(document);
         await _dbContext.SaveChangesAsync();
 
-        // Ação 3: Verify blob exists
+        // Act 3: Verify blob exists
         var blobExists = await _blobStorageService.ExistsAsync(blobName);
         blobExists.Should().BeTrue();
 
-        // Ação 4: Mark as pending verification
+        // Act 4: Mark as pending verification
         document.MarkAsPendingVerification();
         await _repository.UpdateAsync(document);
         await _dbContext.SaveChangesAsync();
 
-        // Ação 5: Analyze document
+        // Act 5: Analyze document
         var downloadUrl = (await _blobStorageService.GenerateDownloadUrlAsync(blobName)).DownloadUrl;
         var ocrResult = await _documentIntelligenceService.AnalyzeDocumentAsync(downloadUrl, "identity");
 
-        // Ação 6: Mark as verified
+        // Act 6: Mark as verified
         document.MarkAsVerified(ocrResult.ExtractedData);
         await _repository.UpdateAsync(document);
         await _dbContext.SaveChangesAsync();
 
-        // Verificação - Verify complete workflow
+        // Assert - Verify complete workflow
         var finalDocument = await _repository.GetByIdAsync(document.Id);
         finalDocument.Should().NotBeNull();
         finalDocument!.Status.Should().Be(EDocumentStatus.Verified);
@@ -262,7 +262,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task MultipleDocuments_ForSameProvider_ShouldBeManageable()
     {
-        // Preparação
+        // Arrange
         var providerId = UuidGenerator.NewId();
         var documentTypes = new[]
         {
@@ -271,7 +271,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
             EDocumentType.CriminalRecord
         };
 
-        // Ação - Create multiple documents
+        // Act - Create multiple documents
         var documentIds = new List<Guid>();
         foreach (var docType in documentTypes)
         {
@@ -284,7 +284,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
         }
         await _dbContext.SaveChangesAsync();
 
-        // Verificação - All documents retrievable
+        // Assert - All documents retrievable
         var allDocs = await _repository.GetByProviderIdAsync(providerId);
         allDocs.Should().HaveCount(3);
         foreach (var docId in documentIds)
@@ -296,18 +296,18 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task DocumentVerificationFlow_WithRejection_ShouldWork()
     {
-        // Preparação
+        // Arrange
         var document = Document.Create(UuidGenerator.NewId(), EDocumentType.IdentityDocument, "test.pdf", "path.pdf");
         await _repository.AddAsync(document);
         await _dbContext.SaveChangesAsync();
 
-        // Ação - Mark as pending then rejected
+        // Act - Mark as pending then rejected
         document.MarkAsPendingVerification();
         document.MarkAsRejected("Document is blurry");
         await _repository.UpdateAsync(document);
         await _dbContext.SaveChangesAsync();
 
-        // Verificação
+        // Assert
         var retrieved = await _repository.GetByIdAsync(document.Id);
         retrieved.Should().NotBeNull();
         retrieved!.Status.Should().Be(EDocumentStatus.Rejected);
@@ -317,7 +317,7 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task Repository_QueryByStatus_ShouldFilterCorrectly()
     {
-        // Preparação
+        // Arrange
         var uploaded = Document.Create(UuidGenerator.NewId(), EDocumentType.IdentityDocument, "uploaded.pdf", "path1");
 
         var verified = Document.Create(UuidGenerator.NewId(), EDocumentType.ProofOfResidence, "verified.pdf", "path2");
@@ -333,10 +333,10 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
         await _repository.AddAsync(rejected);
         await _dbContext.SaveChangesAsync();
 
-        // Ação
+        // Act
         var allDocs = await _dbContext.Documents.ToListAsync();
 
-        // Verificação
+        // Assert
         allDocs.Should().HaveCount(3);
         allDocs.Count(d => d.Status == EDocumentStatus.Uploaded).Should().Be(1);
         allDocs.Count(d => d.Status == EDocumentStatus.Verified).Should().Be(1);
@@ -346,16 +346,16 @@ public class DocumentsInfrastructureIntegrationTests : IDisposable
     [Fact]
     public async Task DbContext_MultipleSaves_ShouldPersistBoth()
     {
-        // Preparação
+        // Arrange
         var doc1 = Document.Create(UuidGenerator.NewId(), EDocumentType.IdentityDocument, "doc1.pdf", "path1");
         var doc2 = Document.Create(UuidGenerator.NewId(), EDocumentType.ProofOfResidence, "doc2.pdf", "path2");
 
-        // Ação
+        // Act
         await _repository.AddAsync(doc1);
         await _repository.AddAsync(doc2);
         await _dbContext.SaveChangesAsync();
 
-        // Verificação
+        // Assert
         var count = await _dbContext.Documents.CountAsync();
         count.Should().Be(2);
     }

@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Documents.Domain.Entities;
+﻿using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Events;
 
@@ -10,16 +10,16 @@ public class DocumentTests
     [Fact]
     public void Create_WithValidParameters_ShouldCreateDocument()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documentType = EDocumentType.IdentityDocument;
         var fileName = "identity-card.pdf";
         var fileUrl = "https://storage.blob.core.windows.net/documents/identity-card.pdf";
 
-        // Ação
+        // Act
         var document = Document.Create(providerId, documentType, fileName, fileUrl);
 
-        // Verificação
+        // Assert
         document.Should().NotBeNull();
         document.Id.Should().NotBeNull();
         document.Id.Value.Should().NotBeEmpty();
@@ -37,16 +37,16 @@ public class DocumentTests
     [Fact]
     public void Create_ShouldRaiseDocumentUploadedDomainEvent()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documentType = EDocumentType.ProofOfResidence;
         var fileName = "proof-residence.pdf";
         var fileUrl = "https://storage/proof-residence.pdf";
 
-        // Ação
+        // Act
         var document = Document.Create(providerId, documentType, fileName, fileUrl);
 
-        // Verificação
+        // Assert
         document.DomainEvents.Should().HaveCount(1);
         var domainEvent = document.DomainEvents.First().Should().BeOfType<DocumentUploadedDomainEvent>().Subject;
         domainEvent.AggregateId.Should().Be(document.Id);
@@ -57,25 +57,25 @@ public class DocumentTests
     [Fact]
     public void MarkAsPendingVerification_ShouldUpdateStatus()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
 
-        // Ação
+        // Act
         document.MarkAsPendingVerification();
 
-        // Verificação
+        // Assert
         document.Status.Should().Be(EDocumentStatus.PendingVerification);
     }
 
     [Fact]
     public void MarkAsPendingVerification_WhenVerified_ShouldThrowInvalidOperationException()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
         document.MarkAsPendingVerification();
         document.MarkAsVerified("{\"verified\": true}"); // Change to Verified status
 
-        // Ação & Assert
+        // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(() =>
             document.MarkAsPendingVerification());
 
@@ -86,16 +86,16 @@ public class DocumentTests
     [Fact]
     public void MarkAsPendingVerification_WhenFailed_ShouldAllowRetry()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
         document.MarkAsFailed("OCR service unavailable");
         document.Status.Should().Be(EDocumentStatus.Failed);
         document.RejectionReason.Should().Be("OCR service unavailable");
 
-        // Ação - retry should be allowed
+        // Act - retry should be allowed
         document.MarkAsPendingVerification();
 
-        // Verificação
+        // Assert
         document.Status.Should().Be(EDocumentStatus.PendingVerification);
         document.RejectionReason.Should().BeNull(); // Cleared for retry
     }
@@ -103,15 +103,15 @@ public class DocumentTests
     [Fact]
     public void MarkAsVerified_WithOcrData_ShouldUpdateStatusAndData()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
         document.MarkAsPendingVerification(); // Transição para estado permitido
         var ocrData = "{\"documentNumber\": \"123456789\"}";
 
-        // Ação
+        // Act
         document.MarkAsVerified(ocrData);
 
-        // Verificação
+        // Assert
         document.Status.Should().Be(EDocumentStatus.Verified);
         document.VerifiedAt.Should().NotBeNull();
         document.VerifiedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
@@ -122,15 +122,15 @@ public class DocumentTests
     [Fact]
     public void MarkAsVerified_ShouldRaiseDocumentVerifiedDomainEvent()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
         document.MarkAsPendingVerification(); // Transição para estado permitido
         document.ClearDomainEvents(); // Limpar evento de criação
 
-        // Ação
+        // Act
         document.MarkAsVerified("{\"verified\": true}");
 
-        // Verificação
+        // Assert
         document.DomainEvents.Should().HaveCount(1);
         var domainEvent = document.DomainEvents.First().Should().BeOfType<DocumentVerifiedDomainEvent>().Subject;
         domainEvent.AggregateId.Should().Be(document.Id);
@@ -142,11 +142,11 @@ public class DocumentTests
     [Fact]
     public void MarkAsVerified_WhenNotInPendingVerification_ShouldThrowInvalidOperationException()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
         // Status é Uploaded, não PendingVerification
 
-        // Ação & Assert
+        // Act & Assert
         var act = () => document.MarkAsVerified("{\"data\": true}");
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*must be in PendingVerification status*");
@@ -155,15 +155,15 @@ public class DocumentTests
     [Fact]
     public void MarkAsRejected_WithReason_ShouldUpdateStatusAndReason()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
         document.MarkAsPendingVerification(); // Transição para estado permitido
         var rejectionReason = "Document is not legible";
 
-        // Ação
+        // Act
         document.MarkAsRejected(rejectionReason);
 
-        // Verificação
+        // Assert
         document.Status.Should().Be(EDocumentStatus.Rejected);
         document.RejectionReason.Should().Be(rejectionReason);
         document.VerifiedAt.Should().NotBeNull();
@@ -172,15 +172,15 @@ public class DocumentTests
     [Fact]
     public void MarkAsRejected_ShouldRaiseDocumentRejectedDomainEvent()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
         document.MarkAsPendingVerification(); // Transição para estado permitido
         document.ClearDomainEvents(); // Limpar evento de criação
 
-        // Ação
+        // Act
         document.MarkAsRejected("Invalid document");
 
-        // Verificação
+        // Assert
         document.DomainEvents.Should().HaveCount(1);
         var domainEvent = document.DomainEvents.First().Should().BeOfType<DocumentRejectedDomainEvent>().Subject;
         domainEvent.AggregateId.Should().Be(document.Id);
@@ -190,11 +190,11 @@ public class DocumentTests
     [Fact]
     public void MarkAsRejected_WithEmptyReason_ShouldThrowArgumentException()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
         document.MarkAsPendingVerification();
 
-        // Ação & Assert
+        // Act & Assert
         var act = () => document.MarkAsRejected("");
         act.Should().Throw<ArgumentException>()
             .WithMessage("*Rejection reason cannot be empty*");
@@ -203,11 +203,11 @@ public class DocumentTests
     [Fact]
     public void MarkAsRejected_WhenNotInPendingVerification_ShouldThrowInvalidOperationException()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
         // Status é Uploaded, não PendingVerification
 
-        // Ação & Assert
+        // Act & Assert
         var act = () => document.MarkAsRejected("Some reason");
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*must be in PendingVerification status*");
@@ -216,14 +216,14 @@ public class DocumentTests
     [Fact]
     public void MarkAsFailed_WithReason_ShouldUpdateStatusAndReason()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
         var failureReason = "OCR service unavailable";
 
-        // Ação
+        // Act
         document.MarkAsFailed(failureReason);
 
-        // Verificação
+        // Assert
         document.Status.Should().Be(EDocumentStatus.Failed);
         document.RejectionReason.Should().Be(failureReason);
     }
@@ -231,10 +231,10 @@ public class DocumentTests
     [Fact]
     public void MarkAsFailed_WithEmptyReason_ShouldThrowArgumentException()
     {
-        // Preparação
+        // Arrange
         var document = CreateTestDocument();
 
-        // Ação & Assert
+        // Act & Assert
         var act = () => document.MarkAsFailed("");
         act.Should().Throw<ArgumentException>()
             .WithMessage("*Failure reason cannot be empty*");
@@ -247,14 +247,14 @@ public class DocumentTests
     [InlineData(EDocumentType.Other)]
     public void Create_WithDifferentDocumentTypes_ShouldCreateSuccessfully(EDocumentType documentType)
     {
-        // Preparação & Act
+        // Arrange & Act
         var document = Document.Create(
             Guid.NewGuid(),
             documentType,
             "test.pdf",
             "https://storage/test.pdf");
 
-        // Verificação
+        // Assert
         document.DocumentType.Should().Be(documentType);
         document.Status.Should().Be(EDocumentStatus.Uploaded);
     }
@@ -262,7 +262,7 @@ public class DocumentTests
     [Fact]
     public void Create_WithEmptyProviderId_ShouldThrowArgumentException()
     {
-        // Ação & Assert
+        // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() =>
             Document.Create(Guid.Empty, EDocumentType.IdentityDocument, "test.pdf", "blob-key"));
 
@@ -276,7 +276,7 @@ public class DocumentTests
     [InlineData("   ")]
     public void Create_WithInvalidFileName_ShouldThrowArgumentNullException(string fileName)
     {
-        // Ação & Assert
+        // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
             Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, fileName, "blob-key"));
 
@@ -289,7 +289,7 @@ public class DocumentTests
     [InlineData("   ")]
     public void Create_WithInvalidFileUrl_ShouldThrowArgumentNullException(string fileUrl)
     {
-        // Ação & Assert
+        // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() =>
             Document.Create(Guid.NewGuid(), EDocumentType.IdentityDocument, "test.pdf", fileUrl));
 

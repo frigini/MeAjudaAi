@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
@@ -38,7 +38,7 @@ public class RequestVerificationCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithExistingDocument_ShouldMarkAsPendingVerificationAndEnqueueJob()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var document = Document.Create(
@@ -71,10 +71,10 @@ public class RequestVerificationCommandHandlerTests
 
         var command = new RequestVerificationCommand(documentId);
 
-        // Ação
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.PendingVerification);
         _mockRepository.Verify(x => x.UpdateAsync(document, It.IsAny<CancellationToken>()), Times.Once);
@@ -87,7 +87,7 @@ public class RequestVerificationCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithUnauthorizedUser_ShouldReturnUnauthorized()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var differentUserId = Guid.NewGuid();
@@ -113,10 +113,10 @@ public class RequestVerificationCommandHandlerTests
 
         var command = new RequestVerificationCommand(documentId);
 
-        // Ação
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error!.StatusCode.Should().Be(401);
@@ -126,7 +126,7 @@ public class RequestVerificationCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithAdminUser_ShouldAllowVerificationForAnyDocument()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var adminUserId = Guid.NewGuid();
@@ -161,10 +161,10 @@ public class RequestVerificationCommandHandlerTests
 
         var command = new RequestVerificationCommand(documentId);
 
-        // Ação
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.PendingVerification);
     }
@@ -172,17 +172,17 @@ public class RequestVerificationCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithNonExistentDocument_ShouldReturnFailure()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         _mockRepository.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Document?)null);
 
         var command = new RequestVerificationCommand(documentId);
 
-        // Ação
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error!.StatusCode.Should().Be(404);
@@ -193,17 +193,17 @@ public class RequestVerificationCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WhenRepositoryThrows_ShouldReturnFailureResult()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         _mockRepository.Setup(x => x.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         var command = new RequestVerificationCommand(documentId);
 
-        // Ação
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Verificação
+        // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
         result.Error.Message.Should().Be("Failed to request verification. Please try again later.");
@@ -212,7 +212,7 @@ public class RequestVerificationCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithVerifiedDocument_ShouldReturnValidationError()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var document = Document.Create(
@@ -241,10 +241,10 @@ public class RequestVerificationCommandHandlerTests
 
         var command = new RequestVerificationCommand(documentId);
 
-        // Ação
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error!.StatusCode.Should().Be(400);
@@ -255,7 +255,7 @@ public class RequestVerificationCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithPendingVerificationDocument_ShouldReturnValidationError()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var document = Document.Create(
@@ -283,10 +283,10 @@ public class RequestVerificationCommandHandlerTests
 
         var command = new RequestVerificationCommand(documentId);
 
-        // Ação
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error!.StatusCode.Should().Be(400);
@@ -297,7 +297,7 @@ public class RequestVerificationCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithFailedDocument_ShouldAllowRetry()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var document = Document.Create(
@@ -334,10 +334,10 @@ public class RequestVerificationCommandHandlerTests
 
         var command = new RequestVerificationCommand(documentId);
 
-        // Ação
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         document.Status.Should().Be(EDocumentStatus.PendingVerification);
         document.RejectionReason.Should().BeNull("rejection reason should be cleared on retry");

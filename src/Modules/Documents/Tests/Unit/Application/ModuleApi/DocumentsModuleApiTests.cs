@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.ModuleApi;
 using MeAjudaAi.Modules.Documents.Application.Queries;
@@ -42,27 +42,27 @@ public class DocumentsModuleApiTests
     [Fact]
     public void ModuleName_ShouldReturnDocuments()
     {
-        // Ação
+        // Act
         var result = _sut.ModuleName;
 
-        // Verificação
+        // Assert
         result.Should().Be("Documents");
     }
 
     [Fact]
     public void ApiVersion_ShouldReturn1Point0()
     {
-        // Ação
+        // Act
         var result = _sut.ApiVersion;
 
-        // Verificação
+        // Assert
         result.Should().Be("1.0");
     }
 
     [Fact]
     public async Task GetDocumentByIdAsync_WithExistingDocument_ShouldReturnDocument()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         var documentDto = CreateDocumentDto(documentId, EDocumentStatus.Verified);
 
@@ -70,10 +70,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documentDto);
 
-        // Ação
+        // Act
         var result = await _sut.GetDocumentByIdAsync(documentId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Id.Should().Be(documentId);
@@ -83,17 +83,17 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task GetDocumentByIdAsync_WithNonExistentDocument_ShouldReturnNull()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
 
         _getDocumentStatusHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((DocumentDto?)null);
 
-        // Ação
+        // Act
         var result = await _sut.GetDocumentByIdAsync(documentId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeNull();
     }
@@ -101,7 +101,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task GetProviderDocumentsAsync_WithDocuments_ShouldReturnList()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<DocumentDto>
         {
@@ -113,10 +113,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documents);
 
-        // Ação
+        // Act
         var result = await _sut.GetProviderDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
         result.Value.Should().AllSatisfy(d => d.ProviderId.Should().Be(providerId));
@@ -125,7 +125,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasVerifiedDocumentsAsync_WithVerifiedDocuments_ShouldReturnTrue()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<DocumentDto>
         {
@@ -137,10 +137,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documents);
 
-        // Ação
+        // Act
         var result = await _sut.HasVerifiedDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
     }
@@ -148,7 +148,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasVerifiedDocumentsAsync_WithNoVerifiedDocuments_ShouldReturnFalse()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<DocumentDto>
         {
@@ -160,10 +160,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documents);
 
-        // Ação
+        // Act
         var result = await _sut.HasVerifiedDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
     }
@@ -171,7 +171,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasRequiredDocumentsAsync_WithIdentityAndProofOfResidence_ShouldReturnTrue()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<DocumentDto>
         {
@@ -183,10 +183,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documents);
 
-        // Ação
+        // Act
         var result = await _sut.HasRequiredDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
     }
@@ -194,7 +194,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasRequiredDocumentsAsync_WithOnlyIdentity_ShouldReturnFalse()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<DocumentDto>
         {
@@ -205,10 +205,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documents);
 
-        // Ação
+        // Act
         var result = await _sut.HasRequiredDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
     }
@@ -216,7 +216,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task GetDocumentStatusCountAsync_ShouldReturnCorrectCounts()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<DocumentDto>
         {
@@ -231,10 +231,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documents);
 
-        // Ação
+        // Act
         var result = await _sut.GetDocumentStatusCountAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Total.Should().Be(5);
@@ -247,7 +247,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasPendingDocumentsAsync_WithPendingDocuments_ShouldReturnTrue()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<DocumentDto>
         {
@@ -258,10 +258,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documents);
 
-        // Ação
+        // Act
         var result = await _sut.HasPendingDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
     }
@@ -269,7 +269,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasRejectedDocumentsAsync_WithRejectedDocuments_ShouldReturnTrue()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<DocumentDto>
         {
@@ -280,10 +280,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documents);
 
-        // Ação
+        // Act
         var result = await _sut.HasRejectedDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
     }
@@ -291,7 +291,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task IsAvailableAsync_WithoutHealthCheckService_ShouldPerformBasicOperationsTest()
     {
-        // Preparação
+        // Arrange
         _serviceProviderMock
             .Setup(x => x.GetService(typeof(HealthCheckService)))
             .Returns((HealthCheckService?)null);
@@ -300,10 +300,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((DocumentDto?)null);
 
-        // Ação
+        // Act
         var result = await _sut.IsAvailableAsync();
 
-        // Verificação
+        // Assert
         result.Should().BeTrue();
     }
 
@@ -312,16 +312,16 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task GetDocumentByIdAsync_WhenHandlerThrowsException_ShouldReturnFailure()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         _getDocumentStatusHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
-        // Ação
+        // Act
         var result = await _sut.GetDocumentByIdAsync(documentId);
 
-        // Verificação
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("DOCUMENTS_GET_FAILED");
     }
@@ -329,7 +329,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task GetDocumentByIdAsync_WhenOperationCancelled_ShouldThrowOperationCanceledException()
     {
-        // Preparação
+        // Arrange
         var documentId = Guid.NewGuid();
         using var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -338,26 +338,26 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
-        // Ação
+        // Act
         var act = async () => await _sut.GetDocumentByIdAsync(documentId, cts.Token);
 
-        // Verificação
+        // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]
     public async Task GetProviderDocumentsAsync_WhenHandlerThrowsException_ShouldReturnFailure()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         _getProviderDocumentsHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Ação
+        // Act
         var result = await _sut.GetProviderDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
@@ -365,7 +365,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task GetProviderDocumentsAsync_WhenOperationCancelled_ShouldThrowOperationCanceledException()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         using var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -374,26 +374,26 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
-        // Ação
+        // Act
         var act = async () => await _sut.GetProviderDocumentsAsync(providerId, cts.Token);
 
-        // Verificação
+        // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]
     public async Task HasVerifiedDocumentsAsync_WhenGetDocumentsFails_ShouldReturnFailure()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         _getProviderDocumentsHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Ação
+        // Act
         var result = await _sut.HasVerifiedDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
@@ -401,16 +401,16 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasVerifiedDocumentsAsync_WithEmptyDocumentsList_ShouldReturnFalse()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         _getProviderDocumentsHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<DocumentDto>());
 
-        // Ação
+        // Act
         var result = await _sut.HasVerifiedDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
     }
@@ -418,16 +418,16 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasRequiredDocumentsAsync_WhenGetDocumentsFails_ShouldReturnFailure()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         _getProviderDocumentsHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Ação
+        // Act
         var result = await _sut.HasRequiredDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
@@ -435,7 +435,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasRequiredDocumentsAsync_WithVerifiedButWrongTypes_ShouldReturnFalse()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<DocumentDto>
         {
@@ -447,10 +447,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documents);
 
-        // Ação
+        // Act
         var result = await _sut.HasRequiredDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
     }
@@ -458,7 +458,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasRequiredDocumentsAsync_WithRequiredButNotVerified_ShouldReturnFalse()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         var documents = new List<DocumentDto>
         {
@@ -470,10 +470,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(documents);
 
-        // Ação
+        // Act
         var result = await _sut.HasRequiredDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
     }
@@ -481,16 +481,16 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task GetDocumentStatusCountAsync_WhenGetDocumentsFails_ShouldReturnFailure()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         _getProviderDocumentsHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Ação
+        // Act
         var result = await _sut.GetDocumentStatusCountAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
@@ -498,16 +498,16 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task GetDocumentStatusCountAsync_WithNoDocuments_ShouldReturnZeroCounts()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         _getProviderDocumentsHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<DocumentDto>());
 
-        // Ação
+        // Act
         var result = await _sut.GetDocumentStatusCountAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Total.Should().Be(0);
@@ -520,16 +520,16 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasPendingDocumentsAsync_WhenGetDocumentsFails_ShouldReturnFailure()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         _getProviderDocumentsHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Ação
+        // Act
         var result = await _sut.HasPendingDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
@@ -537,16 +537,16 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task HasRejectedDocumentsAsync_WhenGetDocumentsFails_ShouldReturnFailure()
     {
-        // Preparação
+        // Arrange
         var providerId = Guid.NewGuid();
         _getProviderDocumentsHandlerMock
             .Setup(x => x.HandleAsync(It.IsAny<GetProviderDocumentsQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
-        // Ação
+        // Act
         var result = await _sut.HasRejectedDocumentsAsync(providerId);
 
-        // Verificação
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be("DOCUMENTS_PROVIDER_GET_FAILED");
     }
@@ -554,7 +554,7 @@ public class DocumentsModuleApiTests
     [Fact]
     public async Task IsAvailableAsync_WithUnhealthyHealthCheck_ShouldReturnFalse()
     {
-        // Preparação
+        // Arrange
         var healthCheckServiceMock = new Mock<HealthCheckService>(MockBehavior.Strict);
         var unhealthyReport = new HealthReport(
             new Dictionary<string, HealthReportEntry>
@@ -571,17 +571,17 @@ public class DocumentsModuleApiTests
             .Setup(x => x.GetService(typeof(HealthCheckService)))
             .Returns(healthCheckServiceMock.Object);
 
-        // Ação
+        // Act
         var result = await _sut.IsAvailableAsync();
 
-        // Verificação
+        // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
     public async Task IsAvailableAsync_WhenBasicOperationsFail_ShouldReturnFalse()
     {
-        // Preparação
+        // Arrange
         _serviceProviderMock
             .Setup(x => x.GetService(typeof(HealthCheckService)))
             .Returns((HealthCheckService?)null);
@@ -590,32 +590,32 @@ public class DocumentsModuleApiTests
             .Setup(x => x.HandleAsync(It.IsAny<GetDocumentStatusQuery>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database connection failed"));
 
-        // Ação
+        // Act
         var result = await _sut.IsAvailableAsync();
 
-        // Verificação
+        // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
     public async Task IsAvailableAsync_WhenExceptionOccurs_ShouldReturnFalse()
     {
-        // Preparação
+        // Arrange
         _serviceProviderMock
             .Setup(x => x.GetService(typeof(HealthCheckService)))
             .Throws(new NullReferenceException("Unexpected error"));
 
-        // Ação
+        // Act
         var result = await _sut.IsAvailableAsync();
 
-        // Verificação
+        // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
     public async Task IsAvailableAsync_WhenCancelled_ShouldThrowOperationCanceledException()
     {
-        // Preparação
+        // Arrange
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -628,10 +628,10 @@ public class DocumentsModuleApiTests
             .Setup(x => x.GetService(typeof(HealthCheckService)))
             .Returns(healthCheckServiceMock.Object);
 
-        // Ação
+        // Act
         var act = async () => await _sut.IsAvailableAsync(cts.Token);
 
-        // Verificação
+        // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 

@@ -141,7 +141,7 @@ public class UploadDocumentCommandHandler(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro inesperado ao fazer upload de documento para provedor {ProviderId}", command.ProviderId);
-            throw new InvalidOperationException("Failed to upload document. Please try again later.", ex);
+            throw new InvalidOperationException("Falha ao fazer upload do documento. Por favor, tente novamente mais tarde.", ex);
         }
     }
 }

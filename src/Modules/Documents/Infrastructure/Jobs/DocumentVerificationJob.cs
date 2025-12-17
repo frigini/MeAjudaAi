@@ -160,8 +160,11 @@ public class DocumentVerificationJob : IDocumentVerificationService
     /// - Tipos comuns de exceções transitórias (HttpRequestException, TimeoutException)
     /// - Pattern matching em mensagens como fallback para casos não cobertos
     /// </summary>
-    private static bool IsTransientException(Exception ex)
+    private static bool IsTransientException(Exception ex, int depth = 0)
     {
+        const int MaxDepth = 10;
+        if (depth > MaxDepth) return false;
+
         // 1. Exceções do Azure SDK - verificar HTTP status codes transitórios
         if (ex is Azure.RequestFailedException requestFailed)
         {
@@ -178,15 +181,19 @@ public class DocumentVerificationJob : IDocumentVerificationService
         }
 
         // 2. Tipos de exceções transitórias comuns do .NET
-        if (ex is HttpRequestException 
-            || ex is TimeoutException 
-            || ex is OperationCanceledException)
+        if (ex is HttpRequestException || ex is TimeoutException)
         {
             return true;
         }
 
-        // 3. Verificação recursiva de InnerException
-        if (ex.InnerException != null && IsTransientException(ex.InnerException))
+        // Only treat OperationCanceledException as transient if not explicitly cancelled
+        if (ex is OperationCanceledException oce && !oce.CancellationToken.IsCancellationRequested)
+        {
+            return true;
+        }
+
+        // 3. Verificação recursiva de InnerException com proteção contra loops infinitos
+        if (ex.InnerException != null && IsTransientException(ex.InnerException, depth + 1))
         {
             return true;
         }

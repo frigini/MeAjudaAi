@@ -1,11 +1,11 @@
-using Azure.AI.DocumentIntelligence;
+﻿using Azure.AI.DocumentIntelligence;
 using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Constants;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
-using static MeAjudaAi.Modules.Documents.Application.Constants.ModelIds;
+using static MeAjudaAi.Modules.Documents.Application.Constants.DocumentModelConstants.DocumentTypes;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Services;
 
@@ -33,10 +33,10 @@ public class AzureDocumentIntelligenceServiceTests
     [Fact]
     public void Constructor_WhenClientIsNull_ShouldThrowArgumentNullException()
     {
-        // Ação
+        // Act
         var act = () => new AzureDocumentIntelligenceService(null!, _mockLogger.Object);
 
-        // Verificação
+        // Assert
         act.Should().Throw<ArgumentNullException>()
             .WithParameterName("client");
     }
@@ -44,10 +44,10 @@ public class AzureDocumentIntelligenceServiceTests
     [Fact]
     public void Constructor_WhenLoggerIsNull_ShouldThrowArgumentNullException()
     {
-        // Ação
+        // Act
         var act = () => new AzureDocumentIntelligenceService(_mockClient.Object, null!);
 
-        // Verificação
+        // Assert
         act.Should().Throw<ArgumentNullException>()
             .WithParameterName("logger");
     }
@@ -58,13 +58,13 @@ public class AzureDocumentIntelligenceServiceTests
     [InlineData("   ")]
     public async Task AnalyzeDocumentAsync_WhenBlobUrlIsNullOrWhitespace_ShouldThrowArgumentException(string? blobUrl)
     {
-        // Preparação
+        // Arrange
         var documentType = IdentityDocument;
 
-        // Ação
+        // Act
         var act = async () => await _service.AnalyzeDocumentAsync(blobUrl!, documentType);
 
-        // Verificação
+        // Assert
         await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("blobUrl")
             .WithMessage("*cannot be null or empty*");
@@ -76,13 +76,13 @@ public class AzureDocumentIntelligenceServiceTests
     [InlineData("   ")]
     public async Task AnalyzeDocumentAsync_WhenDocumentTypeIsNullOrWhitespace_ShouldThrowArgumentException(string? documentType)
     {
-        // Preparação
+        // Arrange
         var blobUrl = "https://storage.blob.core.windows.net/documents/test.pdf";
 
-        // Ação
+        // Act
         var act = async () => await _service.AnalyzeDocumentAsync(blobUrl, documentType!);
 
-        // Verificação
+        // Assert
         await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("documentType")
             .WithMessage("*cannot be null or empty*");
@@ -93,13 +93,13 @@ public class AzureDocumentIntelligenceServiceTests
     [InlineData("relative/path")]
     public async Task AnalyzeDocumentAsync_WhenBlobUrlFormatIsInvalid_ShouldThrowArgumentException(string invalidUrl)
     {
-        // Preparação
+        // Arrange
         var documentType = IdentityDocument;
 
-        // Ação
+        // Act
         var act = async () => await _service.AnalyzeDocumentAsync(invalidUrl, documentType);
 
-        // Verificação
+        // Assert
         await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("blobUrl")
             .WithMessage("*Invalid blob URL format*");
@@ -112,13 +112,13 @@ public class AzureDocumentIntelligenceServiceTests
     [InlineData("file:///C:/local/path/test.pdf")]
     public async Task AnalyzeDocumentAsync_WhenUrlIsAbsolute_ShouldNotThrowArgumentExceptionForUrl(string absoluteUrl)
     {
-        // Preparação
+        // Arrange
         var documentType = IdentityDocument;
 
-        // Ação
+        // Act
         var act = async () => await _service.AnalyzeDocumentAsync(absoluteUrl, documentType);
 
-        // Verificação
+        // Assert
         // Should not throw ArgumentException for blobUrl (URL validation passes)
         // May throw other exceptions from Azure SDK mock
         try
@@ -138,11 +138,11 @@ public class AzureDocumentIntelligenceServiceTests
     [Fact]
     public async Task AnalyzeDocumentAsync_ShouldLogInformationWhenStarting()
     {
-        // Preparação
+        // Arrange
         var blobUrl = "https://storage.blob.core.windows.net/documents/test.pdf";
         var documentType = IdentityDocument;
 
-        // Ação
+        // Act
         try
         {
             await _service.AnalyzeDocumentAsync(blobUrl, documentType);
@@ -152,7 +152,7 @@ public class AzureDocumentIntelligenceServiceTests
             // Expected - Azure SDK will fail in unit test
         }
 
-        // Verificação
+        // Assert
         _mockLogger.Verify(
             x => x.Log(
                 LogLevel.Information,
@@ -165,15 +165,15 @@ public class AzureDocumentIntelligenceServiceTests
 
     [Theory]
     [InlineData(IdentityDocument)]
-    [InlineData(DocumentModelConstants.DocumentTypes.ProofOfResidence)]
-    [InlineData(DocumentModelConstants.DocumentTypes.CriminalRecord)]
+    [InlineData(ProofOfResidence)]
+    [InlineData(CriminalRecord)]
     [InlineData("unknowntype")]
     public async Task AnalyzeDocumentAsync_ShouldAcceptDifferentDocumentTypes(string documentType)
     {
-        // Preparação
+        // Arrange
         var blobUrl = "https://storage.blob.core.windows.net/documents/test.pdf";
 
-        // Ação
+        // Act
         try
         {
             await _service.AnalyzeDocumentAsync(blobUrl, documentType);
@@ -183,7 +183,7 @@ public class AzureDocumentIntelligenceServiceTests
             // Expected - Azure SDK will fail in unit test
         }
 
-        // Verificação - Should have logged the start (meaning it accepted the document type)
+        // Assert - Should have logged the start (meaning it accepted the document type)
         _mockLogger.Verify(
             x => x.Log(
                 LogLevel.Information,
@@ -197,17 +197,17 @@ public class AzureDocumentIntelligenceServiceTests
     [Fact]
     public async Task AnalyzeDocumentAsync_WhenCancellationRequested_ShouldPassTokenToAzureSdk()
     {
-        // Preparação
+        // Arrange
         var blobUrl = "https://storage.blob.core.windows.net/documents/test.pdf";
         var documentType = IdentityDocument;
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        // Ação
+        // Act
         var exception = await Record.ExceptionAsync(() =>
             _service.AnalyzeDocumentAsync(blobUrl, documentType, cts.Token));
 
-        // Verificação
+        // Assert
         // The service should handle a pre-canceled token without surfacing exceptions here.
         // Real cancellation testing requires integration tests with actual Azure SDK behavior.
         exception.Should().BeNull("the service should not throw synchronously when a canceled token is provided");
