@@ -63,7 +63,7 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task AddAsync_WithValidDocument_ShouldPersistToDatabase()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         var document = Document.Create(
             providerId,
@@ -71,11 +71,11 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
             "test-file.pdf",
             "documents/test-file.pdf");
 
-        // Act
+        // Ação
         await _repository!.AddAsync(document);
         await _repository.SaveChangesAsync();
 
-        // Assert
+        // Verificação
         var retrieved = await _repository.GetByIdAsync(document.Id.Value);
         retrieved.Should().NotBeNull();
         retrieved!.ProviderId.Should().Be(providerId);
@@ -87,20 +87,20 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task GetByIdAsync_WithNonExistentDocument_ShouldReturnNull()
     {
-        // Arrange
+        // Preparação
         var nonExistentId = Guid.NewGuid();
 
-        // Act
+        // Ação
         var result = await _repository!.GetByIdAsync(nonExistentId);
 
-        // Assert
+        // Verificação
         result.Should().BeNull();
     }
 
     [Fact]
     public async Task GetByProviderIdAsync_WithExistingProvider_ShouldReturnAllDocuments()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         var doc1 = Document.Create(providerId, EDocumentType.IdentityDocument, "id.pdf", "docs/id.pdf");
         var doc2 = Document.Create(providerId, EDocumentType.CriminalRecord, "cr.pdf", "docs/cr.pdf");
@@ -109,10 +109,10 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
         await _repository.AddAsync(doc2);
         await _repository.SaveChangesAsync();
 
-        // Act
+        // Ação
         var documents = await _repository.GetByProviderIdAsync(providerId);
 
-        // Assert
+        // Verificação
         documents.Should().HaveCount(2);
         documents.Should().Contain(d => d.DocumentType == EDocumentType.IdentityDocument);
         documents.Should().Contain(d => d.DocumentType == EDocumentType.CriminalRecord);
@@ -121,20 +121,20 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task GetByProviderIdAsync_WithNonExistentProvider_ShouldReturnEmpty()
     {
-        // Arrange
+        // Preparação
         var nonExistentProviderId = Guid.NewGuid();
 
-        // Act
+        // Ação
         var documents = await _repository!.GetByProviderIdAsync(nonExistentProviderId);
 
-        // Assert
+        // Verificação
         documents.Should().BeEmpty();
     }
 
     [Fact]
     public async Task UpdateAsync_ShouldPersistChanges()
     {
-        // Arrange
+        // Preparação
         var document = Document.Create(
             Guid.NewGuid(),
             EDocumentType.ProofOfResidence,
@@ -144,12 +144,12 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
         await _repository!.AddAsync(document);
         await _repository.SaveChangesAsync();
 
-        // Act - Mark as pending verification
+        // Ação - Mark as pending verification
         document.MarkAsPendingVerification();
         await _repository.UpdateAsync(document);
         await _repository.SaveChangesAsync();
 
-        // Assert
+        // Verificação
         var updated = await _repository.GetByIdAsync(document.Id.Value);
         updated.Should().NotBeNull();
         updated!.Status.Should().Be(EDocumentStatus.PendingVerification);
@@ -158,7 +158,7 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task UpdateAsync_WithStatusChange_ShouldReflectInDatabase()
     {
-        // Arrange
+        // Preparação
         var document = Document.Create(
             Guid.NewGuid(),
             EDocumentType.IdentityDocument,
@@ -172,12 +172,12 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
         await _repository.UpdateAsync(document);
         await _repository.SaveChangesAsync();
 
-        // Act - Verify the document
+        // Ação - Verify the document
         document.MarkAsVerified("{\"name\": \"Test User\"}");
         await _repository.UpdateAsync(document);
         await _repository.SaveChangesAsync();
 
-        // Assert
+        // Verificação
         var verified = await _repository.GetByIdAsync(document.Id.Value);
         verified.Should().NotBeNull();
         verified!.Status.Should().Be(EDocumentStatus.Verified);
@@ -188,7 +188,7 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task QueryByStatus_ShouldFilterCorrectly()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         var doc1 = Document.Create(providerId, EDocumentType.IdentityDocument, "id.pdf", "docs/id.pdf");
         var doc2 = Document.Create(providerId, EDocumentType.ProofOfResidence, "proof.pdf", "docs/proof.pdf");
@@ -203,7 +203,7 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
         await _repository.AddAsync(doc3);
         await _repository.SaveChangesAsync();
 
-        // Act
+        // Ação
         var pendingDocs = await _dbContext!.Documents
             .Where(d => d.Status == EDocumentStatus.PendingVerification)
             .ToListAsync();
@@ -216,7 +216,7 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
             .Where(d => d.Status == EDocumentStatus.Verified)
             .ToListAsync();
 
-        // Assert
+        // Verificação
         pendingDocs.Should().HaveCount(1);
         uploadedDocs.Should().HaveCount(1);
         verifiedDocs.Should().HaveCount(1);
@@ -225,19 +225,19 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task AddAsync_WithMultipleDocuments_ShouldMaintainSeparateStates()
     {
-        // Arrange
+        // Preparação
         var provider1 = Guid.NewGuid();
         var provider2 = Guid.NewGuid();
 
         var doc1 = Document.Create(provider1, EDocumentType.IdentityDocument, "id1.pdf", "docs/id1.pdf");
         var doc2 = Document.Create(provider2, EDocumentType.IdentityDocument, "id2.pdf", "docs/id2.pdf");
 
-        // Act
+        // Ação
         await _repository!.AddAsync(doc1);
         await _repository.AddAsync(doc2);
         await _repository.SaveChangesAsync();
 
-        // Assert
+        // Verificação
         var provider1Docs = await _repository.GetByProviderIdAsync(provider1);
         var provider2Docs = await _repository.GetByProviderIdAsync(provider2);
 
@@ -250,7 +250,7 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task UpdateAsync_WithRejection_ShouldPersistReason()
     {
-        // Arrange
+        // Preparação
         var document = Document.Create(
             Guid.NewGuid(),
             EDocumentType.IdentityDocument,
@@ -264,12 +264,12 @@ public sealed class DocumentRepositoryIntegrationTests : IAsyncLifetime
         await _repository.UpdateAsync(document);
         await _repository.SaveChangesAsync();
 
-        // Act
+        // Ação
         document.MarkAsRejected("Invalid document format");
         await _repository.UpdateAsync(document);
         await _repository.SaveChangesAsync();
 
-        // Assert
+        // Verificação
         var rejected = await _repository.GetByIdAsync(document.Id.Value);
         rejected.Should().NotBeNull();
         rejected!.Status.Should().Be(EDocumentStatus.Rejected);

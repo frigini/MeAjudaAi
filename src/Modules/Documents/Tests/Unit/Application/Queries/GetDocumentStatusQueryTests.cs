@@ -14,15 +14,15 @@ public class GetDocumentStatusQueryTests
     [Fact]
     public void GetCacheKey_ShouldGenerateConsistentKey()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var query = new GetDocumentStatusQuery(documentId);
 
-        // Act
+        // Ação
         var cacheKey1 = query.GetCacheKey();
         var cacheKey2 = query.GetCacheKey();
 
-        // Assert
+        // Verificação
         cacheKey1.Should().Be(cacheKey2);
         cacheKey1.Should().Contain(documentId.ToString());
         cacheKey1.Should().Contain("document");
@@ -32,44 +32,44 @@ public class GetDocumentStatusQueryTests
     [Fact]
     public void GetCacheKey_WithDifferentIds_ShouldGenerateDifferentKeys()
     {
-        // Arrange
+        // Preparação
         var documentId1 = Guid.NewGuid();
         var documentId2 = Guid.NewGuid();
         var query1 = new GetDocumentStatusQuery(documentId1);
         var query2 = new GetDocumentStatusQuery(documentId2);
 
-        // Act
+        // Ação
         var cacheKey1 = query1.GetCacheKey();
         var cacheKey2 = query2.GetCacheKey();
 
-        // Assert
+        // Verificação
         cacheKey1.Should().NotBe(cacheKey2);
     }
 
     [Fact]
     public void GetCacheExpiration_ShouldReturn2Minutes()
     {
-        // Arrange
+        // Preparação
         var query = new GetDocumentStatusQuery(Guid.NewGuid());
 
-        // Act
+        // Ação
         var expiration = query.GetCacheExpiration();
 
-        // Assert
+        // Verificação
         expiration.Should().Be(TimeSpan.FromMinutes(2));
     }
 
     [Fact]
     public void GetCacheTags_ShouldReturnDocumentsTags()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var query = new GetDocumentStatusQuery(documentId);
 
-        // Act
+        // Ação
         var tags = query.GetCacheTags();
 
-        // Assert
+        // Verificação
         tags.Should().Contain("documents");
         tags.Should().Contain($"document:{documentId}");
     }
@@ -77,11 +77,11 @@ public class GetDocumentStatusQueryTests
     [Fact]
     public void CorrelationId_ShouldBeUniqueForEachInstance()
     {
-        // Arrange & Act
+        // Preparação & Act
         var query1 = new GetDocumentStatusQuery(Guid.NewGuid());
         var query2 = new GetDocumentStatusQuery(Guid.NewGuid());
 
-        // Assert
+        // Verificação
         query1.CorrelationId.Should().NotBe(query2.CorrelationId);
         query1.CorrelationId.Should().NotBeEmpty();
     }

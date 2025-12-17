@@ -32,10 +32,10 @@ public class AzureDocumentIntelligenceServiceTests
     [Fact]
     public void Constructor_WhenClientIsNull_ShouldThrowArgumentNullException()
     {
-        // Act
+        // Ação
         var act = () => new AzureDocumentIntelligenceService(null!, _mockLogger.Object);
 
-        // Assert
+        // Verificação
         act.Should().Throw<ArgumentNullException>()
             .WithParameterName("client");
     }
@@ -43,10 +43,10 @@ public class AzureDocumentIntelligenceServiceTests
     [Fact]
     public void Constructor_WhenLoggerIsNull_ShouldThrowArgumentNullException()
     {
-        // Act
+        // Ação
         var act = () => new AzureDocumentIntelligenceService(_mockClient.Object, null!);
 
-        // Assert
+        // Verificação
         act.Should().Throw<ArgumentNullException>()
             .WithParameterName("logger");
     }
@@ -57,13 +57,13 @@ public class AzureDocumentIntelligenceServiceTests
     [InlineData("   ")]
     public async Task AnalyzeDocumentAsync_WhenBlobUrlIsNullOrWhitespace_ShouldThrowArgumentException(string? blobUrl)
     {
-        // Arrange
+        // Preparação
         var documentType = DocumentModelConstants.DocumentTypes.IdentityDocument;
 
-        // Act
+        // Ação
         var act = async () => await _service.AnalyzeDocumentAsync(blobUrl!, documentType);
 
-        // Assert
+        // Verificação
         await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("blobUrl")
             .WithMessage("*cannot be null or empty*");
@@ -75,13 +75,13 @@ public class AzureDocumentIntelligenceServiceTests
     [InlineData("   ")]
     public async Task AnalyzeDocumentAsync_WhenDocumentTypeIsNullOrWhitespace_ShouldThrowArgumentException(string? documentType)
     {
-        // Arrange
+        // Preparação
         var blobUrl = "https://storage.blob.core.windows.net/documents/test.pdf";
 
-        // Act
+        // Ação
         var act = async () => await _service.AnalyzeDocumentAsync(blobUrl, documentType!);
 
-        // Assert
+        // Verificação
         await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("documentType")
             .WithMessage("*cannot be null or empty*");
@@ -92,13 +92,13 @@ public class AzureDocumentIntelligenceServiceTests
     [InlineData("relative/path")]
     public async Task AnalyzeDocumentAsync_WhenBlobUrlFormatIsInvalid_ShouldThrowArgumentException(string invalidUrl)
     {
-        // Arrange
+        // Preparação
         var documentType = DocumentModelConstants.DocumentTypes.IdentityDocument;
 
-        // Act
+        // Ação
         var act = async () => await _service.AnalyzeDocumentAsync(invalidUrl, documentType);
 
-        // Assert
+        // Verificação
         await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("blobUrl")
             .WithMessage("*Invalid blob URL format*");
@@ -111,13 +111,13 @@ public class AzureDocumentIntelligenceServiceTests
     [InlineData("file:///C:/local/path/test.pdf")]
     public async Task AnalyzeDocumentAsync_WhenUrlIsAbsolute_ShouldNotThrowArgumentExceptionForUrl(string absoluteUrl)
     {
-        // Arrange
+        // Preparação
         var documentType = DocumentModelConstants.DocumentTypes.IdentityDocument;
 
-        // Act
+        // Ação
         var act = async () => await _service.AnalyzeDocumentAsync(absoluteUrl, documentType);
 
-        // Assert
+        // Verificação
         // Should not throw ArgumentException for blobUrl (URL validation passes)
         // May throw other exceptions from Azure SDK mock
         try
@@ -137,11 +137,11 @@ public class AzureDocumentIntelligenceServiceTests
     [Fact]
     public async Task AnalyzeDocumentAsync_ShouldLogInformationWhenStarting()
     {
-        // Arrange
+        // Preparação
         var blobUrl = "https://storage.blob.core.windows.net/documents/test.pdf";
         var documentType = DocumentModelConstants.DocumentTypes.IdentityDocument;
 
-        // Act
+        // Ação
         try
         {
             await _service.AnalyzeDocumentAsync(blobUrl, documentType);
@@ -151,7 +151,7 @@ public class AzureDocumentIntelligenceServiceTests
             // Expected - Azure SDK will fail in unit test
         }
 
-        // Assert
+        // Verificação
         _mockLogger.Verify(
             x => x.Log(
                 LogLevel.Information,
@@ -169,10 +169,10 @@ public class AzureDocumentIntelligenceServiceTests
     [InlineData("unknowntype")]
     public async Task AnalyzeDocumentAsync_ShouldAcceptDifferentDocumentTypes(string documentType)
     {
-        // Arrange
+        // Preparação
         var blobUrl = "https://storage.blob.core.windows.net/documents/test.pdf";
 
-        // Act
+        // Ação
         try
         {
             await _service.AnalyzeDocumentAsync(blobUrl, documentType);
@@ -182,7 +182,7 @@ public class AzureDocumentIntelligenceServiceTests
             // Expected - Azure SDK will fail in unit test
         }
 
-        // Assert - Should have logged the start (meaning it accepted the document type)
+        // Verificação - Should have logged the start (meaning it accepted the document type)
         _mockLogger.Verify(
             x => x.Log(
                 LogLevel.Information,
@@ -196,17 +196,17 @@ public class AzureDocumentIntelligenceServiceTests
     [Fact]
     public async Task AnalyzeDocumentAsync_WhenCancellationRequested_ShouldPassTokenToAzureSdk()
     {
-        // Arrange
+        // Preparação
         var blobUrl = "https://storage.blob.core.windows.net/documents/test.pdf";
         var documentType = DocumentModelConstants.DocumentTypes.IdentityDocument;
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        // Act
+        // Ação
         var exception = await Record.ExceptionAsync(() =>
             _service.AnalyzeDocumentAsync(blobUrl, documentType, cts.Token));
 
-        // Assert
+        // Verificação
         // The service should handle a pre-canceled token without surfacing exceptions here.
         // Real cancellation testing requires integration tests with actual Azure SDK behavior.
         exception.Should().BeNull("the service should not throw synchronously when a canceled token is provided");

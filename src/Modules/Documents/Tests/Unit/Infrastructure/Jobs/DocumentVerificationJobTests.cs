@@ -47,7 +47,7 @@ public sealed class DocumentVerificationJobTests
     [Fact]
     public void Constructor_WithNullRepository_ShouldThrow()
     {
-        // Act
+        // Ação
         var act = () => new DocumentVerificationJob(
             null!,
             _intelligenceMock.Object,
@@ -55,14 +55,14 @@ public sealed class DocumentVerificationJobTests
             _configuration,
             _loggerMock.Object);
 
-        // Assert
+        // Verificação
         act.Should().Throw<ArgumentNullException>().WithParameterName("documentRepository");
     }
 
     [Fact]
     public void Constructor_WithNullIntelligenceService_ShouldThrow()
     {
-        // Act
+        // Ação
         var act = () => new DocumentVerificationJob(
             _repositoryMock.Object,
             null!,
@@ -70,14 +70,14 @@ public sealed class DocumentVerificationJobTests
             _configuration,
             _loggerMock.Object);
 
-        // Assert
+        // Verificação
         act.Should().Throw<ArgumentNullException>().WithParameterName("documentIntelligenceService");
     }
 
     [Fact]
     public void Constructor_WithNullBlobStorage_ShouldThrow()
     {
-        // Act
+        // Ação
         var act = () => new DocumentVerificationJob(
             _repositoryMock.Object,
             _intelligenceMock.Object,
@@ -85,14 +85,14 @@ public sealed class DocumentVerificationJobTests
             _configuration,
             _loggerMock.Object);
 
-        // Assert
+        // Verificação
         act.Should().Throw<ArgumentNullException>().WithParameterName("blobStorageService");
     }
 
     [Fact]
     public void Constructor_WithNullLogger_ShouldThrow()
     {
-        // Act
+        // Ação
         var act = () => new DocumentVerificationJob(
             _repositoryMock.Object,
             _intelligenceMock.Object,
@@ -100,22 +100,22 @@ public sealed class DocumentVerificationJobTests
             _configuration,
             null!);
 
-        // Assert
+        // Verificação
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
     [Fact]
     public async Task ProcessDocumentAsync_WhenDocumentNotFound_ShouldLogWarning()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         _repositoryMock.Setup(r => r.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Document?)null);
 
-        // Act
+        // Ação
         await _job.ProcessDocumentAsync(documentId);
 
-        // Assert
+        // Verificação
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Warning,
@@ -131,17 +131,17 @@ public sealed class DocumentVerificationJobTests
     [InlineData(EDocumentStatus.Rejected)]
     public async Task ProcessDocumentAsync_WhenDocumentAlreadyProcessed_ShouldSkip(EDocumentStatus status)
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var document = CreateDocument(documentId, status);
 
         _repositoryMock.Setup(r => r.GetByIdAsync(documentId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(document);
 
-        // Act
+        // Ação
         await _job.ProcessDocumentAsync(documentId);
 
-        // Assert
+        // Verificação
         _blobStorageMock.Verify(b => b.ExistsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         _intelligenceMock.Verify(i => i.AnalyzeDocumentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -149,7 +149,7 @@ public sealed class DocumentVerificationJobTests
     [Fact]
     public async Task ProcessDocumentAsync_WhenBlobNotFound_ShouldMarkAsFailed()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var document = CreateDocument(documentId, EDocumentStatus.Uploaded);
 
@@ -158,10 +158,10 @@ public sealed class DocumentVerificationJobTests
         _blobStorageMock.Setup(b => b.ExistsAsync(document.FileUrl, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        // Act
+        // Ação
         await _job.ProcessDocumentAsync(documentId);
 
-        // Assert
+        // Verificação
         document.Status.Should().Be(EDocumentStatus.Failed);
         _repositoryMock.Verify(r => r.UpdateAsync(document, It.IsAny<CancellationToken>()), Times.Once);
         _repositoryMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -170,7 +170,7 @@ public sealed class DocumentVerificationJobTests
     [Fact]
     public async Task ProcessDocumentAsync_WithSuccessfulOcr_ShouldMarkAsVerified()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var document = CreateDocument(documentId, EDocumentStatus.Uploaded);
         var extractedData = new Dictionary<string, string> { ["cpf"] = "12345678900" };
@@ -189,10 +189,10 @@ public sealed class DocumentVerificationJobTests
                 Confidence: 0.95f,
                 ErrorMessage: null));
 
-        // Act
+        // Ação
         await _job.ProcessDocumentAsync(documentId);
 
-        // Assert
+        // Verificação
         document.Status.Should().Be(EDocumentStatus.Verified);
         _repositoryMock.Verify(r => r.UpdateAsync(document, It.IsAny<CancellationToken>()), Times.Once);
         _repositoryMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -201,7 +201,7 @@ public sealed class DocumentVerificationJobTests
     [Fact]
     public async Task ProcessDocumentAsync_WithLowConfidence_ShouldMarkAsRejected()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var document = CreateDocument(documentId, EDocumentStatus.Uploaded);
 
@@ -219,10 +219,10 @@ public sealed class DocumentVerificationJobTests
                 Confidence: 0.5f,
                 ErrorMessage: null));
 
-        // Act
+        // Ação
         await _job.ProcessDocumentAsync(documentId);
 
-        // Assert
+        // Verificação
         document.Status.Should().Be(EDocumentStatus.Rejected);
         _repositoryMock.Verify(r => r.UpdateAsync(document, It.IsAny<CancellationToken>()), Times.Once);
         _repositoryMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -231,7 +231,7 @@ public sealed class DocumentVerificationJobTests
     [Fact]
     public async Task ProcessDocumentAsync_WithOcrFailure_ShouldMarkAsRejected()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var document = CreateDocument(documentId, EDocumentStatus.Uploaded);
 
@@ -249,10 +249,10 @@ public sealed class DocumentVerificationJobTests
                 Confidence: null,
                 ErrorMessage: "OCR failed"));
 
-        // Act
+        // Ação
         await _job.ProcessDocumentAsync(documentId);
 
-        // Assert
+        // Verificação
         document.Status.Should().Be(EDocumentStatus.Rejected);
         _repositoryMock.Verify(r => r.UpdateAsync(document, It.IsAny<CancellationToken>()), Times.Once);
         _repositoryMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -261,7 +261,7 @@ public sealed class DocumentVerificationJobTests
     [Fact]
     public async Task ProcessDocumentAsync_WithTransientException_ShouldRethrow()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var document = CreateDocument(documentId, EDocumentStatus.Uploaded);
 
@@ -270,10 +270,10 @@ public sealed class DocumentVerificationJobTests
         _blobStorageMock.Setup(b => b.ExistsAsync(document.FileUrl, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException("Network error"));
 
-        // Act
+        // Ação
         var act = () => _job.ProcessDocumentAsync(documentId);
 
-        // Assert
+        // Verificação
         await act.Should().ThrowAsync<HttpRequestException>();
         _repositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -281,7 +281,7 @@ public sealed class DocumentVerificationJobTests
     [Fact]
     public async Task ProcessDocumentAsync_WithPermanentException_ShouldMarkAsFailed()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var document = CreateDocument(documentId, EDocumentStatus.Uploaded);
 
@@ -290,10 +290,10 @@ public sealed class DocumentVerificationJobTests
         _blobStorageMock.Setup(b => b.ExistsAsync(document.FileUrl, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Permanent error"));
 
-        // Act
+        // Ação
         await _job.ProcessDocumentAsync(documentId);
 
-        // Assert
+        // Verificação
         document.Status.Should().Be(EDocumentStatus.Failed);
         _repositoryMock.Verify(r => r.UpdateAsync(document, It.IsAny<CancellationToken>()), Times.Once);
         _repositoryMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -305,7 +305,7 @@ public sealed class DocumentVerificationJobTests
     [InlineData(EDocumentStatus.Failed)]
     public async Task ProcessDocumentAsync_ShouldMarkAsVerified_WhenOcrSucceedsWithHighConfidence(EDocumentStatus initialStatus)
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var document = CreateDocument(documentId, initialStatus);
 
@@ -323,17 +323,17 @@ public sealed class DocumentVerificationJobTests
                 Confidence: 0.95f,
                 ErrorMessage: null));
 
-        // Act
+        // Ação
         await _job.ProcessDocumentAsync(documentId);
 
-        // Assert
+        // Verificação
         document.Status.Should().Be(EDocumentStatus.Verified);
     }
 
     [Fact]
     public async Task ProcessDocumentAsync_WithCustomMinimumConfidence_ShouldUseConfiguredValue()
     {
-        // Arrange
+        // Preparação
         var customConfig = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -370,10 +370,10 @@ public sealed class DocumentVerificationJobTests
                 Confidence: 0.85f,
                 ErrorMessage: null));
 
-        // Act
+        // Ação
         await customJob.ProcessDocumentAsync(documentId);
 
-        // Assert - Deve ser rejeitado porque 0.85 < 0.9
+        // Verificação - Deve ser rejeitado porque 0.85 < 0.9
         document.Status.Should().Be(EDocumentStatus.Rejected);
         document.RejectionReason.Should().Contain("85");
     }

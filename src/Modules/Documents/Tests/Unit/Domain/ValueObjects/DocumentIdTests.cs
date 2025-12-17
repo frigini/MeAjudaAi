@@ -8,26 +8,26 @@ public sealed class DocumentIdTests
     [Fact]
     public void Constructor_WithValidGuid_ShouldCreateDocumentId()
     {
-        // Arrange
+        // Preparação
         var guid = Guid.NewGuid();
 
-        // Act
+        // Ação
         var documentId = new DocumentId(guid);
 
-        // Assert
+        // Verificação
         documentId.Value.Should().Be(guid);
     }
 
     [Fact]
     public void Constructor_WithEmptyGuid_ShouldThrowArgumentException()
     {
-        // Arrange
+        // Preparação
         var emptyGuid = Guid.Empty;
 
-        // Act
+        // Ação
         var act = () => new DocumentId(emptyGuid);
 
-        // Assert
+        // Verificação
         act.Should().Throw<ArgumentException>()
             .WithMessage("DocumentId cannot be empty*");
     }
@@ -35,22 +35,22 @@ public sealed class DocumentIdTests
     [Fact]
     public void New_ShouldGenerateValidDocumentId()
     {
-        // Act
+        // Ação
         var documentId = DocumentId.New();
 
-        // Assert
+        // Verificação
         documentId.Value.Should().NotBeEmpty();
     }
 
     [Fact]
     public void Equals_WithSameValue_ShouldReturnTrue()
     {
-        // Arrange
+        // Preparação
         var guid = Guid.NewGuid();
         var documentId1 = new DocumentId(guid);
         var documentId2 = new DocumentId(guid);
 
-        // Act & Assert
+        // Ação & Assert
         documentId1.Should().Be(documentId2);
         (documentId1 == documentId2).Should().BeTrue();
     }
@@ -58,11 +58,11 @@ public sealed class DocumentIdTests
     [Fact]
     public void Equals_WithDifferentValue_ShouldReturnFalse()
     {
-        // Arrange
+        // Preparação
         var documentId1 = DocumentId.New();
         var documentId2 = DocumentId.New();
 
-        // Act & Assert
+        // Ação & Assert
         documentId1.Should().NotBe(documentId2);
         (documentId1 != documentId2).Should().BeTrue();
     }
@@ -70,26 +70,26 @@ public sealed class DocumentIdTests
     [Fact]
     public void GetHashCode_WithSameValue_ShouldReturnSameHashCode()
     {
-        // Arrange
+        // Preparação
         var guid = Guid.NewGuid();
         var documentId1 = new DocumentId(guid);
         var documentId2 = new DocumentId(guid);
 
-        // Act & Assert
+        // Ação & Assert
         documentId1.GetHashCode().Should().Be(documentId2.GetHashCode());
     }
 
     [Fact]
     public void ToString_ShouldReturnGuidAsString()
     {
-        // Arrange
+        // Preparação
         var guid = Guid.NewGuid();
         var documentId = new DocumentId(guid);
 
-        // Act
+        // Ação
         var result = documentId.ToString();
 
-        // Assert
+        // Verificação
         result.Should().Contain(guid.ToString());
     }
 }

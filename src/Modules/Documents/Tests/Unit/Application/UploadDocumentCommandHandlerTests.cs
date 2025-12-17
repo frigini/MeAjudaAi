@@ -63,7 +63,7 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithValidCommand_ShouldCreateDocument()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
         var command = new UploadDocumentCommand(
@@ -88,10 +88,10 @@ public class UploadDocumentCommandHandlerTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        // Act
+        // Ação
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
+        // Verificação
         result.Should().NotBeNull();
         result.DocumentId.Should().NotBeEmpty();
         result.UploadUrl.Should().Be(uploadUrl);
@@ -120,7 +120,7 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithProofOfResidence_ShouldCreateCorrectDocumentType()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
@@ -141,10 +141,10 @@ public class UploadDocumentCommandHandlerTests
 
         _mockRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
-        // Act
+        // Ação
         await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
+        // Verificação
         _mockRepository.Verify(
             x => x.AddAsync(It.Is<Document>(d => d.DocumentType == EDocumentType.ProofOfResidence), It.IsAny<CancellationToken>()),
             Times.Once);
@@ -159,7 +159,7 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldGenerateBlobStorageUrl()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
@@ -184,10 +184,10 @@ public class UploadDocumentCommandHandlerTests
 
         _mockRepository.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
-        // Act
+        // Ação
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
+        // Verificação
         result.Should().NotBeNull();
         result.UploadUrl.Should().Be(uploadUrl);
         result.ExpiresAt.Should().BeCloseTo(expiresAt, TimeSpan.FromSeconds(1));
@@ -209,7 +209,7 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithOversizedFile_ShouldThrowArgumentException()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
@@ -220,7 +220,7 @@ public class UploadDocumentCommandHandlerTests
             "application/pdf",
             11 * 1024 * 1024); // 11MB, excede o limite de 10MB
 
-        // Act & Assert
+        // Ação & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
@@ -233,7 +233,7 @@ public class UploadDocumentCommandHandlerTests
     [InlineData("text/html")]
     public async Task HandleAsync_WithInvalidContentType_ShouldThrowArgumentException(string contentType)
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
@@ -244,7 +244,7 @@ public class UploadDocumentCommandHandlerTests
             contentType,
             102400);
 
-        // Act & Assert
+        // Ação & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
@@ -254,7 +254,7 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithContentTypeParameters_ShouldAcceptMediaType()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
@@ -277,10 +277,10 @@ public class UploadDocumentCommandHandlerTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        // Act
+        // Ação
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert
+        // Verificação
         result.Should().NotBeNull();
         result.UploadUrl.Should().NotBeEmpty();
 
@@ -294,7 +294,7 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithInvalidDocumentType_ShouldThrowArgumentException()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
@@ -305,7 +305,7 @@ public class UploadDocumentCommandHandlerTests
             "application/pdf",
             102400);
 
-        // Act & Assert
+        // Ação & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
@@ -315,7 +315,7 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithUnauthorizedUser_ShouldThrowUnauthorizedAccessException()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         var differentUserId = Guid.NewGuid();
         SetupAuthenticatedUser(differentUserId); // User doesn't match provider
@@ -327,7 +327,7 @@ public class UploadDocumentCommandHandlerTests
             "application/pdf",
             102400);
 
-        // Act & Assert
+        // Ação & Assert
         var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
@@ -347,7 +347,7 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithAdminUser_ShouldAllowUploadForAnyProvider()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         var adminUserId = Guid.NewGuid();
         SetupAuthenticatedUser(adminUserId, "admin"); // Admin user with different ID
@@ -374,10 +374,10 @@ public class UploadDocumentCommandHandlerTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        // Act
+        // Ação
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert - Should succeed even though admin user ID != provider ID
+        // Verificação - Should succeed even though admin user ID != provider ID
         result.Should().NotBeNull();
         result.DocumentId.Should().NotBeEmpty();
         result.UploadUrl.Should().Be(uploadUrl);
@@ -396,7 +396,7 @@ public class UploadDocumentCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithSystemAdminUser_ShouldAllowUploadForAnyProvider()
     {
-        // Arrange
+        // Preparação
         var providerId = Guid.NewGuid();
         var systemAdminUserId = Guid.NewGuid();
         SetupAuthenticatedUser(systemAdminUserId, "system-admin"); // System admin
@@ -423,10 +423,10 @@ public class UploadDocumentCommandHandlerTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        // Act
+        // Ação
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
-        // Assert - Should succeed for system-admin role
+        // Verificação - Should succeed for system-admin role
         result.Should().NotBeNull();
         result.DocumentId.Should().NotBeEmpty();
 

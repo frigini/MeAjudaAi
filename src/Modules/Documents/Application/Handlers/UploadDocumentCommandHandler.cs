@@ -130,17 +130,17 @@ public class UploadDocumentCommandHandler(
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning(ex, "Authorization failed while uploading document for provider {ProviderId}", command.ProviderId);
+            _logger.LogWarning(ex, "Falha de autorização ao fazer upload de documento para provedor {ProviderId}", command.ProviderId);
             throw;
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Validation failed while uploading document: {Message}", ex.Message);
+            _logger.LogWarning(ex, "Falha de validação ao fazer upload de documento: {Message}", ex.Message);
             throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while uploading document for provider {ProviderId}", command.ProviderId);
+            _logger.LogError(ex, "Erro inesperado ao fazer upload de documento para provedor {ProviderId}", command.ProviderId);
             throw new InvalidOperationException("Failed to upload document. Please try again later.", ex);
         }
     }

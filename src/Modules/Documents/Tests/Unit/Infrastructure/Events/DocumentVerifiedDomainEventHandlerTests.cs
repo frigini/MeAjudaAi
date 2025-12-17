@@ -52,7 +52,7 @@ public class DocumentVerifiedDomainEventHandlerTests
     [Fact]
     public async Task HandleAsync_WithValidEvent_ShouldPublishIntegrationEvent()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var documentType = EDocumentType.IdentityDocument;
@@ -66,10 +66,10 @@ public class DocumentVerifiedDomainEventHandlerTests
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        // Act
+        // Ação
         await _handler.HandleAsync(domainEvent);
 
-        // Assert
+        // Verificação
         _messageBusMock.Verify(
             x => x.PublishAsync(
                 It.Is<DocumentVerifiedIntegrationEvent>(e =>
@@ -86,7 +86,7 @@ public class DocumentVerifiedDomainEventHandlerTests
     [Fact]
     public async Task HandleAsync_WithValidEvent_ShouldLogInformation()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var domainEvent = new DocumentVerifiedDomainEvent(documentId, 1, providerId, EDocumentType.ProofOfResidence, false);
@@ -95,10 +95,10 @@ public class DocumentVerifiedDomainEventHandlerTests
             .Setup(x => x.PublishAsync(It.IsAny<DocumentVerifiedIntegrationEvent>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        // Act
+        // Ação
         await _handler.HandleAsync(domainEvent);
 
-        // Assert
+        // Verificação
         VerifyLogMessage(LogLevel.Information, $"Handling DocumentVerifiedDomainEvent for document {documentId}", Times.Once());
         VerifyLogMessage(LogLevel.Information, $"Successfully published DocumentVerified integration event for document {documentId}", Times.Once());
     }
@@ -106,7 +106,7 @@ public class DocumentVerifiedDomainEventHandlerTests
     [Fact]
     public async Task HandleAsync_WhenMessageBusThrows_ShouldLogErrorAndRethrow()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var domainEvent = new DocumentVerifiedDomainEvent(documentId, 1, Guid.NewGuid(), EDocumentType.CriminalRecord, true);
         var exception = new InvalidOperationException("Message bus error");
@@ -115,10 +115,10 @@ public class DocumentVerifiedDomainEventHandlerTests
             .Setup(x => x.PublishAsync(It.IsAny<DocumentVerifiedIntegrationEvent>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
-        // Act
+        // Ação
         var act = async () => await _handler.HandleAsync(domainEvent);
 
-        // Assert
+        // Verificação
         var ex = await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Failed to handle DocumentVerifiedDomainEvent for document {documentId}");
         ex.Which.InnerException.Should().BeOfType<InvalidOperationException>();
@@ -130,7 +130,7 @@ public class DocumentVerifiedDomainEventHandlerTests
     [Fact]
     public async Task HandleAsync_WithOtherDocumentType_ShouldPublishCorrectly()
     {
-        // Arrange
+        // Preparação
         var documentId = Guid.NewGuid();
         var providerId = Guid.NewGuid();
         var domainEvent = new DocumentVerifiedDomainEvent(documentId, 1, providerId, EDocumentType.Other, false);
@@ -139,10 +139,10 @@ public class DocumentVerifiedDomainEventHandlerTests
             .Setup(x => x.PublishAsync(It.IsAny<DocumentVerifiedIntegrationEvent>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        // Act
+        // Ação
         await _handler.HandleAsync(domainEvent);
 
-        // Assert
+        // Verificação
         _messageBusMock.Verify(
             x => x.PublishAsync(
                 It.Is<DocumentVerifiedIntegrationEvent>(e =>
@@ -156,7 +156,7 @@ public class DocumentVerifiedDomainEventHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldSetVerifiedAtToCurrentUtcTime()
     {
-        // Arrange
+        // Preparação
         var referenceTime = DateTime.UtcNow;
         var domainEvent = new DocumentVerifiedDomainEvent(Guid.NewGuid(), 1, Guid.NewGuid(), EDocumentType.IdentityDocument, true);
 
@@ -166,10 +166,10 @@ public class DocumentVerifiedDomainEventHandlerTests
             .Callback<DocumentVerifiedIntegrationEvent, string, CancellationToken>((e, _, _) => capturedEvent = e)
             .Returns(Task.CompletedTask);
 
-        // Act
+        // Ação
         await _handler.HandleAsync(domainEvent);
 
-        // Assert
+        // Verificação
         capturedEvent.Should().NotBeNull();
         capturedEvent!.VerifiedAt.Should().BeCloseTo(referenceTime, TimeSpan.FromSeconds(5));
     }
@@ -177,7 +177,7 @@ public class DocumentVerifiedDomainEventHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldPropagateCancellationToken()
     {
-        // Arrange
+        // Preparação
         var domainEvent = new DocumentVerifiedDomainEvent(Guid.NewGuid(), 1, Guid.NewGuid(), EDocumentType.IdentityDocument, true);
         using var cts = new CancellationTokenSource();
         var token = cts.Token;
@@ -188,10 +188,10 @@ public class DocumentVerifiedDomainEventHandlerTests
             .Callback<DocumentVerifiedIntegrationEvent, string, CancellationToken>((_, _, ct) => capturedToken = ct)
             .Returns(Task.CompletedTask);
 
-        // Act
+        // Ação
         await _handler.HandleAsync(domainEvent, token);
 
-        // Assert
+        // Verificação
         capturedToken.Should().Be(token);
     }
 }

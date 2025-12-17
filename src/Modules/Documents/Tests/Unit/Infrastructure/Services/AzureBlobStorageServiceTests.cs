@@ -38,7 +38,7 @@ public class AzureBlobStorageServiceTests
     [Fact]
     public async Task GenerateUploadUrlAsync_ShouldReturnValidSasUrl()
     {
-        // Arrange
+        // Preparação
         var blobName = "test-document.pdf";
         var contentType = "application/pdf";
         var expectedUrl = new Uri("https://storage.blob.core.windows.net/documents/test-document.pdf?sv=2021-06-08&st=2024-01-01T00%3A00%3A00Z&se=2024-01-01T01%3A00%3A00Z&sr=b&sp=cw&sig=signature");
@@ -51,10 +51,10 @@ public class AzureBlobStorageServiceTests
             .Setup(x => x.GenerateSasUri(It.IsAny<BlobSasBuilder>()))
             .Returns(expectedUrl);
 
-        // Act
+        // Ação
         var (uploadUrl, expiresAt) = await _service.GenerateUploadUrlAsync(blobName, contentType);
 
-        // Assert
+        // Verificação
         uploadUrl.Should().NotBeNullOrEmpty();
         uploadUrl.Should().Be(expectedUrl.ToString());
         expiresAt.Should().BeAfter(DateTime.UtcNow);
@@ -64,7 +64,7 @@ public class AzureBlobStorageServiceTests
     [Fact]
     public async Task GenerateUploadUrlAsync_WhenCannotGenerateSasUri_ShouldThrowInvalidOperationException()
     {
-        // Arrange
+        // Preparação
         var blobName = "test-document.pdf";
         var contentType = "application/pdf";
 
@@ -72,10 +72,10 @@ public class AzureBlobStorageServiceTests
             .Setup(x => x.CanGenerateSasUri)
             .Returns(false);
 
-        // Act
+        // Ação
         var act = () => _service.GenerateUploadUrlAsync(blobName, contentType);
 
-        // Assert
+        // Verificação
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Serviço não configurado para gerar SAS tokens");
     }
@@ -83,7 +83,7 @@ public class AzureBlobStorageServiceTests
     [Fact]
     public async Task GenerateUploadUrlAsync_WhenRequestFails_ShouldThrowInvalidOperationException()
     {
-        // Arrange
+        // Preparação
         var blobName = "test-document.pdf";
         var contentType = "application/pdf";
 
@@ -95,10 +95,10 @@ public class AzureBlobStorageServiceTests
             .Setup(x => x.GenerateSasUri(It.IsAny<BlobSasBuilder>()))
             .Throws(new RequestFailedException("Azure Blob Storage error"));
 
-        // Act
+        // Ação
         var act = () => _service.GenerateUploadUrlAsync(blobName, contentType);
 
-        // Assert
+        // Verificação
         var exception = await act.Should().ThrowAsync<InvalidOperationException>();
         exception.And.InnerException.Should().BeOfType<RequestFailedException>();
     }
@@ -106,7 +106,7 @@ public class AzureBlobStorageServiceTests
     [Fact]
     public async Task GenerateDownloadUrlAsync_ShouldReturnValidSasUrl()
     {
-        // Arrange
+        // Preparação
         var blobName = "test-document.pdf";
         var expectedUrl = new Uri("https://storage.blob.core.windows.net/documents/test-document.pdf?sv=2021-06-08&st=2024-01-01T00%3A00%3A00Z&se=2024-01-02T00%3A00%3A00Z&sr=b&sp=r&sig=signature");
 
@@ -118,10 +118,10 @@ public class AzureBlobStorageServiceTests
             .Setup(x => x.GenerateSasUri(It.IsAny<BlobSasBuilder>()))
             .Returns(expectedUrl);
 
-        // Act
+        // Ação
         var (downloadUrl, expiresAt) = await _service.GenerateDownloadUrlAsync(blobName);
 
-        // Assert
+        // Verificação
         downloadUrl.Should().NotBeNullOrEmpty();
         downloadUrl.Should().Be(expectedUrl.ToString());
         expiresAt.Should().BeAfter(DateTime.UtcNow);
@@ -131,17 +131,17 @@ public class AzureBlobStorageServiceTests
     [Fact]
     public async Task GenerateDownloadUrlAsync_WhenCannotGenerateSasUri_ShouldThrowInvalidOperationException()
     {
-        // Arrange
+        // Preparação
         var blobName = "test-document.pdf";
 
         _mockContainerClient
             .Setup(x => x.CanGenerateSasUri)
             .Returns(false);
 
-        // Act
+        // Ação
         var act = () => _service.GenerateDownloadUrlAsync(blobName);
 
-        // Assert
+        // Verificação
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Serviço não configurado para gerar SAS tokens");
     }
@@ -149,7 +149,7 @@ public class AzureBlobStorageServiceTests
     [Fact]
     public async Task ExistsAsync_WhenBlobExists_ShouldReturnTrue()
     {
-        // Arrange
+        // Preparação
         var blobName = "existing-document.pdf";
         var response = Response.FromValue(true, Mock.Of<Response>());
 
@@ -157,17 +157,17 @@ public class AzureBlobStorageServiceTests
             .Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
-        // Act
+        // Ação
         var result = await _service.ExistsAsync(blobName);
 
-        // Assert
+        // Verificação
         result.Should().BeTrue();
     }
 
     [Fact]
     public async Task ExistsAsync_WhenBlobDoesNotExist_ShouldReturnFalse()
     {
-        // Arrange
+        // Preparação
         var blobName = "non-existent-document.pdf";
         var response = Response.FromValue(false, Mock.Of<Response>());
 
@@ -175,27 +175,27 @@ public class AzureBlobStorageServiceTests
             .Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
-        // Act
+        // Ação
         var result = await _service.ExistsAsync(blobName);
 
-        // Assert
+        // Verificação
         result.Should().BeFalse();
     }
 
     [Fact]
     public async Task ExistsAsync_WhenRequestFails_ShouldThrowInvalidOperationException()
     {
-        // Arrange
+        // Preparação
         var blobName = "test-document.pdf";
 
         _mockBlobClient
             .Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new RequestFailedException("Azure error"));
 
-        // Act
+        // Ação
         var act = () => _service.ExistsAsync(blobName);
 
-        // Assert
+        // Verificação
         var exception = await act.Should().ThrowAsync<InvalidOperationException>();
         exception.And.InnerException.Should().BeOfType<RequestFailedException>();
     }
@@ -203,7 +203,7 @@ public class AzureBlobStorageServiceTests
     [Fact]
     public async Task DeleteAsync_WhenBlobExists_ShouldDeleteSuccessfully()
     {
-        // Arrange
+        // Preparação
         var blobName = "document-to-delete.pdf";
         var response = Response.FromValue(true, Mock.Of<Response>());
 
@@ -214,10 +214,10 @@ public class AzureBlobStorageServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
-        // Act
+        // Ação
         await _service.DeleteAsync(blobName);
 
-        // Assert
+        // Verificação
         _mockBlobClient.Verify(
             x => x.DeleteIfExistsAsync(
                 It.IsAny<DeleteSnapshotsOption>(),
@@ -229,7 +229,7 @@ public class AzureBlobStorageServiceTests
     [Fact]
     public async Task DeleteAsync_WhenRequestFails_ShouldThrowInvalidOperationException()
     {
-        // Arrange
+        // Preparação
         var blobName = "document-to-delete.pdf";
 
         _mockBlobClient
@@ -239,10 +239,10 @@ public class AzureBlobStorageServiceTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new RequestFailedException("Delete failed"));
 
-        // Act
+        // Ação
         var act = () => _service.DeleteAsync(blobName);
 
-        // Assert
+        // Verificação
         var exception = await act.Should().ThrowAsync<InvalidOperationException>();
         exception.And.InnerException.Should().BeOfType<RequestFailedException>();
     }
@@ -250,10 +250,10 @@ public class AzureBlobStorageServiceTests
     [Fact]
     public void Constructor_WhenLoggerIsNull_ShouldThrowArgumentNullException()
     {
-        // Act
+        // Ação
         var act = () => new AzureBlobStorageService(_mockBlobServiceClient.Object, null!);
 
-        // Assert
+        // Verificação
         act.Should().Throw<ArgumentNullException>()
             .WithParameterName("logger");
     }

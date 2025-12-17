@@ -68,7 +68,7 @@ public static class Extensions
         if (context == null)
         {
             var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.DocumentsDbContext>>();
-            logger?.LogWarning("DocumentsDbContext not registered. Skipping migrations.");
+            logger?.LogWarning("DocumentsDbContext não registrado. Pulando migrações.");
             return;
         }
 

@@ -155,21 +155,47 @@ public class DocumentVerificationJob : IDocumentVerificationService
     /// Detecta se uma exceção é transitória (rede, timeout, serviço indisponível)
     /// ou permanente (formato inválido, validação falhou).
     /// 
-    /// Nota: Esta implementação MVP usa pattern matching em mensagens, que pode ser
-    /// fragile para localização. Para hardening futuro, considere:
-    /// - Checar tipos específicos de exceção do Azure (RequestFailedException com error codes)
-    /// - Centralizar detecção de erros transitórios em biblioteca compartilhada de resiliência
+    /// Implementação robusta que verifica:
+    /// - Tipos específicos de exceção do Azure (RequestFailedException com HTTP status transitórios)
+    /// - Tipos comuns de exceções transitórias (HttpRequestException, TimeoutException)
+    /// - Pattern matching em mensagens como fallback para casos não cobertos
     /// </summary>
     private static bool IsTransientException(Exception ex)
     {
-        // Tipos de exceções transitórias comuns
-        return ex is HttpRequestException
-            || ex is TimeoutException
-            || ex is OperationCanceledException
-            || (ex.InnerException != null && IsTransientException(ex.InnerException))
-            || ex.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase)
-            || ex.Message.Contains("network", StringComparison.OrdinalIgnoreCase)
-            || ex.Message.Contains("unavailable", StringComparison.OrdinalIgnoreCase)
-            || ex.Message.Contains("connection", StringComparison.OrdinalIgnoreCase);
+        // 1. Exceções do Azure SDK - verificar HTTP status codes transitórios
+        if (ex is Azure.RequestFailedException requestFailed)
+        {
+            var status = requestFailed.Status;
+            // Status codes transitórios que devem ser retentados:
+            // 408 Request Timeout
+            // 429 Too Many Requests (rate limiting)
+            // 500 Internal Server Error
+            // 502 Bad Gateway
+            // 503 Service Unavailable
+            // 504 Gateway Timeout
+            return status == 408 || status == 429 || status == 500 
+                || status == 502 || status == 503 || status == 504;
+        }
+
+        // 2. Tipos de exceções transitórias comuns do .NET
+        if (ex is HttpRequestException 
+            || ex is TimeoutException 
+            || ex is OperationCanceledException)
+        {
+            return true;
+        }
+
+        // 3. Verificação recursiva de InnerException
+        if (ex.InnerException != null && IsTransientException(ex.InnerException))
+        {
+            return true;
+        }
+
+        // 4. Fallback: pattern matching em mensagens (menos confiável, mas cobre casos não mapeados)
+        var message = ex.Message;
+        return message.Contains("timeout", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("network", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("unavailable", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("connection", StringComparison.OrdinalIgnoreCase);
     }
 }
