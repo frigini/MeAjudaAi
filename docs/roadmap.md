@@ -2104,6 +2104,62 @@ public class GeographicRestrictionMiddleware
 
 ---
 
+## 🔧 Tarefas Técnicas Cross-Module
+
+**Status**: ⏳ PENDENTE
+
+Tarefas técnicas que devem ser aplicadas em todos os módulos para consistência e melhores práticas.
+
+### Migration Control em Produção
+
+**Issue**: Implementar controle `APPLY_MIGRATIONS` nos módulos restantes
+
+**Contexto**: O módulo Documents já implementa controle via variável de ambiente `APPLY_MIGRATIONS` para desabilitar migrations automáticas em produção. Isso é essencial para:
+- Ambientes com múltiplas instâncias (evita race conditions)
+- Deployments controlados via pipeline de CI/CD
+- Blue-green deployments onde migrations devem rodar antes do switch
+
+**Implementação** (padrão estabelecido em `Documents/API/Extensions.cs`):
+
+```csharp
+private static void EnsureDatabaseMigrations(WebApplication app)
+{
+    // Pular em ambientes de teste
+    if (app.Environment.IsEnvironment("Test") || app.Environment.IsEnvironment("Testing"))
+    {
+        return;
+    }
+
+    // Controle via variável de ambiente
+    var applyMigrations = Environment.GetEnvironmentVariable("APPLY_MIGRATIONS");
+    if (!string.IsNullOrEmpty(applyMigrations) && 
+        bool.TryParse(applyMigrations, out var shouldApply) && !shouldApply)
+    {
+        logger?.LogInformation("Migrações automáticas desabilitadas via APPLY_MIGRATIONS=false");
+        return;
+    }
+
+    // Aplicar migrations normalmente
+    context.Database.Migrate();
+}
+```
+
+**Status por Módulo**:
+- ✅ **Documents**: Implementado (Sprint 4 - 16 Dez 2025)
+- ⏳ **Users**: Pendente
+- ⏳ **Providers**: Pendente  
+- ⏳ **ServiceCatalogs**: Pendente
+- ⏳ **Locations**: Pendente
+- ⏳ **SearchProviders**: Pendente
+
+**Esforço Estimado**: 15 minutos por módulo (copiar padrão do Documents)
+
+**Documentação**: Padrão documentado em `docs/database.md` seção "Controle de Migrations em Produção"
+
+**Prioridade**: MÉDIA - Implementar antes do primeiro deployment em produção
+
+---
+
 ### 📅 Sprint 5: Polishing & Hardening (1 semana)
 
 **Status**: ⏳ PLANEJADO

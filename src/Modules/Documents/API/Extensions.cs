@@ -53,6 +53,16 @@ public static class Extensions
             return;
         }
 
+        // Permite desabilitar migrações automáticas via variável de ambiente
+        // Útil para produção onde migrações devem ser executadas via pipeline de deployment
+        var applyMigrations = Environment.GetEnvironmentVariable("APPLY_MIGRATIONS");
+        if (!string.IsNullOrEmpty(applyMigrations) && bool.TryParse(applyMigrations, out var shouldApply) && !shouldApply)
+        {
+            var logger = app.Services.GetService<ILogger<Infrastructure.Persistence.DocumentsDbContext>>();
+            logger?.LogInformation("Migrações automáticas desabilitadas via APPLY_MIGRATIONS=false");
+            return;
+        }
+
         using var scope = app.Services.CreateScope();
         var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.DocumentsDbContext>();
         if (context == null)
@@ -67,8 +77,8 @@ public static class Extensions
         try
         {
             // Em produção, usar migrações normais
-            // Nota: Em ambientes com múltiplas instâncias, considere executar migrações
-            // via pipeline de deployment ao invés de startup automático
+            // Nota: Para ambientes com múltiplas instâncias, defina APPLY_MIGRATIONS=false
+            // e execute migrações via pipeline de deployment
             context.Database.Migrate();
         }
         catch (Exception ex)
