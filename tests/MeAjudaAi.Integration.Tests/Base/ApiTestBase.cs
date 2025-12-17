@@ -279,12 +279,17 @@ public abstract class ApiTestBase : IAsyncLifetime
         {
             try
             {
-                await locationsContext.Database.ExecuteSqlRawAsync(
-                    @"INSERT INTO locations.allowed_cities (""Id"", ""IbgeCode"", ""CityName"", ""StateSigla"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"", ""CreatedBy"", ""UpdatedBy"") 
-                      VALUES (gen_random_uuid(), {0}, {1}, {2}, true, {3}, {4}, 'system', NULL)",
-                    city.IbgeCode, city.CityName, city.State, DateTime.UtcNow, DateTime.UtcNow);
+                // Use EF Core entity instead of raw SQL to avoid case sensitivity issues
+                var allowedCity = new MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity(
+                    city.CityName,
+                    city.State,
+                    "system",
+                    city.IbgeCode);
+                
+                locationsContext.AllowedCities.Add(allowedCity);
+                await locationsContext.SaveChangesAsync();
             }
-            catch (Npgsql.PostgresException ex) when (ex.SqlState == "23505") // 23505 = unique violation
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException pgEx && pgEx.SqlState == "23505")
             {
                 // Ignore duplicate key errors - city already exists
                 logger?.LogDebug("City {City}/{State} already exists, skipping", city.CityName, city.State);
