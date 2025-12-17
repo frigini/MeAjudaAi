@@ -248,7 +248,7 @@ public class UploadDocumentCommandHandlerTests
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
-        exception.Message.Should().Contain("não permitido");
+        exception.Message.Should().Contain("not allowed");
     }
 
     [Fact]
@@ -309,7 +309,7 @@ public class UploadDocumentCommandHandlerTests
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
-        exception.Message.Should().Contain("Tipo de documento inválido");
+        exception.Message.Should().Contain("Invalid document type");
     }
 
     [Fact]
