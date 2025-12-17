@@ -131,7 +131,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "⚠️ Erro ao verificar dados existentes ({ExceptionType}), assumindo banco vazio", ex.GetType().Name);
+            _logger.LogWarning(ex, "⚠️ Error checking existing data ({ExceptionType}), assuming empty database", ex.GetType().Name);
             return false;
         }
     }
@@ -147,7 +147,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Erro durante seed de dados");
+            _logger.LogError(ex, "❌ Error during data seeding");
             throw new InvalidOperationException(
                 "Failed to seed development data (ServiceCatalogs, Users, Providers, Documents, Locations)",
                 ex);
@@ -331,7 +331,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Erro ao obter DbContext para {ModuleName}", moduleName);
+            _logger.LogError(ex, "❌ Error obtaining DbContext for {ModuleName}", moduleName);
             return null;
         }
     }

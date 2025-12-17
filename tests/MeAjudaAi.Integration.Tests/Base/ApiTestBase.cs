@@ -319,7 +319,7 @@ public abstract class ApiTestBase : IAsyncLifetime
             {
                 if (attempt == maxRetries)
                 {
-                    logger?.LogError(ex, "❌ PostgreSQL ainda iniciando após {MaxRetries} tentativas", maxRetries);
+                    logger?.LogError(ex, "❌ PostgreSQL still initializing after {MaxRetries} attempts", maxRetries);
                     var totalWaitTime = maxRetries * (maxRetries + 1) / 2; // Sum: 1+2+3+...+10 = 55 seconds
                     throw new InvalidOperationException($"PostgreSQL não ficou pronto após {maxRetries} tentativas (~{totalWaitTime} segundos)", ex);
                 }
@@ -332,7 +332,7 @@ public abstract class ApiTestBase : IAsyncLifetime
             }
             catch (Exception ex)
             {
-                logger?.LogError(ex, "❌ Falha crítica ao limpar banco existente: {Message}", ex.Message);
+                logger?.LogError(ex, "❌ Critical failure cleaning existing database: {Message}", ex.Message);
                 throw new InvalidOperationException("Não foi possível limpar o banco de dados antes dos testes", ex);
             }
         }
@@ -430,7 +430,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "❌ Falha ao aplicar migrações do {Module}: {Message}", moduleName, ex.Message);
+            logger?.LogError(ex, "❌ Failed to apply {Module} migrations: {Message}", moduleName, ex.Message);
             throw new InvalidOperationException($"Não foi possível aplicar migrações do banco {moduleName}", ex);
         }
     }
@@ -451,7 +451,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "Verificação do banco {Module} falhou", moduleName);
+            logger?.LogError(ex, "{Module} database verification failed", moduleName);
             throw new InvalidOperationException($"Banco {moduleName} não foi inicializado corretamente", ex);
         }
     }

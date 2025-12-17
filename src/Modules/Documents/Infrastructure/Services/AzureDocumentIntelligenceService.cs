@@ -35,7 +35,7 @@ public class AzureDocumentIntelligenceService(DocumentIntelligenceClient client,
 
         try
         {
-            _logger.LogInformation("Iniciando análise OCR para documento tipo {DocumentType}", documentType);
+            _logger.LogInformation("Starting OCR analysis for document type {DocumentType}", documentType);
 
             // Usar constantes centralizadas de IDs de modelo para evitar strings mágicas
             string modelId = documentType.ToLowerInvariant() switch

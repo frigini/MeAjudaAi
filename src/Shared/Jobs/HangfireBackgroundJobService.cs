@@ -52,7 +52,7 @@ public class HangfireBackgroundJobService : IBackgroundJobService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao enfileirar job para {JobType}", typeof(T).Name);
+            _logger.LogError(ex, "Error enqueueing job for {JobType}", typeof(T).Name);
             throw new InvalidOperationException(
                 $"Failed to enqueue background job of type '{typeof(T).Name}' in Hangfire queue",
                 ex);
@@ -83,7 +83,7 @@ public class HangfireBackgroundJobService : IBackgroundJobService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao enfileirar job");
+            _logger.LogError(ex, "Error enqueueing job");
             throw new InvalidOperationException(
                 "Failed to enqueue background job expression in Hangfire queue",
                 ex);
@@ -134,7 +134,7 @@ public class HangfireBackgroundJobService : IBackgroundJobService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao configurar job recorrente {JobId}", jobId);
+            _logger.LogError(ex, "Error configuring recurring job {JobId}", jobId);
             throw new InvalidOperationException(
                 $"Failed to schedule recurring Hangfire job '{jobId}' with cron expression '{cronExpression}'",
                 ex);

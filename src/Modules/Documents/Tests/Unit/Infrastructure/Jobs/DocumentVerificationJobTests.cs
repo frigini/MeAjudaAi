@@ -120,7 +120,7 @@ public sealed class DocumentVerificationJobTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("não encontrado")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("not found")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

@@ -37,7 +37,7 @@ public class RequestVerificationCommandHandler(
             var document = await _repository.GetByIdAsync(command.DocumentId, cancellationToken);
             if (document == null)
             {
-                _logger.LogWarning("Documento {DocumentId} não encontrado para solicitação de verificação", command.DocumentId);
+                _logger.LogWarning("Document {DocumentId} not found for verification request", command.DocumentId);
                 return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found"));
             }
 
@@ -89,13 +89,13 @@ public class RequestVerificationCommandHandler(
             await _backgroundJobService.EnqueueAsync<IDocumentVerificationService>(
                 service => service.ProcessDocumentAsync(command.DocumentId, CancellationToken.None));
 
-            _logger.LogInformation("Documento {DocumentId} marcado para verificação e job enfileirado", command.DocumentId);
+            _logger.LogInformation("Document {DocumentId} marked for verification and job enqueued", command.DocumentId);
 
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro inesperado ao solicitar verificação para documento {DocumentId}", command.DocumentId);
+            _logger.LogError(ex, "Unexpected error requesting verification for document {DocumentId}", command.DocumentId);
             return Result.Failure(Error.Internal("Failed to request verification. Please try again later."));
         }
     }

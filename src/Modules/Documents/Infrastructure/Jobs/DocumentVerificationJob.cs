@@ -38,12 +38,12 @@ public class DocumentVerificationJob : IDocumentVerificationService
 
     public async Task ProcessDocumentAsync(Guid documentId, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Iniciando processamento do documento {DocumentId}", documentId);
+        _logger.LogInformation("Starting document processing for {DocumentId}", documentId);
 
         var document = await _documentRepository.GetByIdAsync(documentId, cancellationToken);
         if (document == null)
         {
-            _logger.LogWarning("Documento {DocumentId} não encontrado", documentId);
+            _logger.LogWarning("Document {DocumentId} not found", documentId);
             return;
         }
 
@@ -71,7 +71,7 @@ public class DocumentVerificationJob : IDocumentVerificationService
             var exists = await _blobStorageService.ExistsAsync(document.FileUrl, cancellationToken);
             if (!exists)
             {
-                _logger.LogWarning("Arquivo não encontrado no blob storage: {BlobName}", document.FileUrl);
+                _logger.LogWarning("File not found in blob storage: {BlobName}", document.FileUrl);
                 document.MarkAsFailed("Arquivo não encontrado no blob storage");
 
                 // Salva status final (Failed) em uma única operação
@@ -86,7 +86,7 @@ public class DocumentVerificationJob : IDocumentVerificationService
                 cancellationToken);
 
             // Executa OCR no documento
-            _logger.LogInformation("Executando OCR no documento {DocumentId}", documentId);
+            _logger.LogInformation("Executing OCR on document {DocumentId}", documentId);
             var ocrResult = await _documentIntelligenceService.AnalyzeDocumentAsync(
                 downloadUrl,
                 document.DocumentType.ToString(),
@@ -95,7 +95,7 @@ public class DocumentVerificationJob : IDocumentVerificationService
             if (ocrResult.Success && ocrResult.Confidence >= _minimumConfidence)
             {
                 _logger.LogInformation(
-                    "OCR bem-sucedido para documento {DocumentId} (Confiança: {Confidence:P0})",
+                    "OCR successful for document {DocumentId} (Confidence: {Confidence:P0})",
                     documentId,
                     ocrResult.Confidence);
 
@@ -104,25 +104,25 @@ public class DocumentVerificationJob : IDocumentVerificationService
             else
             {
                 _logger.LogWarning(
-                    "OCR falhou para documento {DocumentId}: {Error}",
+                    "OCR failed for document {DocumentId}: {Error}",
                     documentId,
-                    ocrResult.ErrorMessage ?? "Confiança baixa");
+                    ocrResult.ErrorMessage ?? "Low confidence");
 
                 document.MarkAsRejected(
-                    ocrResult.ErrorMessage ?? $"Confiança baixa: {ocrResult.Confidence:P0}");
+                    ocrResult.ErrorMessage ?? $"Low confidence: {ocrResult.Confidence:P0}");
             }
 
             await _documentRepository.UpdateAsync(document, cancellationToken);
             await _documentRepository.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Processamento do documento {DocumentId} concluído com status {Status}",
+                "Document {DocumentId} processing completed with status {Status}",
                 documentId,
                 document.Status);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao processar documento {DocumentId}", documentId);
+            _logger.LogError(ex, "Error processing document {DocumentId}", documentId);
 
             // Detectar erros transitórios (network, timeout, OCR indisponível) vs permanentes
             var isTransient = IsTransientException(ex);
@@ -132,7 +132,7 @@ public class DocumentVerificationJob : IDocumentVerificationService
                 // Para erros transitórios, apenas rethrow sem marcar como Failed
                 // para permitir que Hangfire tente novamente
                 _logger.LogWarning(
-                    "Erro transitório ao processar documento {DocumentId}: {Message}. Hangfire tentará novamente.",
+                    "Transient error processing document {DocumentId}: {Message}. Hangfire will retry.",
                     documentId,
                     ex.Message);
                 throw;
@@ -140,7 +140,7 @@ public class DocumentVerificationJob : IDocumentVerificationService
 
             // Para erros permanentes, marcar como Failed para evitar retries desnecessários
             _logger.LogError(
-                "Erro permanente ao processar documento {DocumentId}: {Message}. Marcando como Failed.",
+                "Permanent error processing document {DocumentId}: {Message}. Marking as Failed.",
                 documentId,
                 ex.Message);
             document.MarkAsFailed($"Erro durante processamento: {ex.Message}");

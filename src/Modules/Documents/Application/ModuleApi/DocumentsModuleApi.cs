@@ -58,7 +58,7 @@ public sealed class DocumentsModuleApi(
 
                 if (healthReport.Status == HealthStatus.Unhealthy)
                 {
-                    logger.LogWarning("Módulo Documents indisponível devido a falhas nos health checks: {FailedChecks}",
+                    logger.LogWarning("Documents module unavailable due to health check failures: {FailedChecks}",
                         string.Join(", ", healthReport.Entries.Where(e => e.Value.Status == HealthStatus.Unhealthy).Select(e => e.Key)));
                     return false;
                 }
@@ -68,7 +68,7 @@ public sealed class DocumentsModuleApi(
             var canExecuteBasicOperations = await CanExecuteBasicOperationsAsync(cancellationToken);
             if (!canExecuteBasicOperations)
             {
-                logger.LogWarning("Módulo Documents indisponível - teste de operações básicas falhou");
+                logger.LogWarning("Documents module unavailable - basic operations test failed");
                 return false;
             }
 
@@ -82,7 +82,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao verificar disponibilidade do módulo Documents");
+            logger.LogError(ex, "Error checking Documents module availability");
             return false;
         }
     }
@@ -133,7 +133,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao obter documento {DocumentId}", documentId);
+            logger.LogError(ex, "Error retrieving document {DocumentId}", documentId);
             return Result<ModuleDocumentDto?>.Failure("DOCUMENTS_GET_FAILED");
         }
     }
@@ -156,7 +156,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao obter documentos para provedor {ProviderId}", providerId);
+            logger.LogError(ex, "Error retrieving documents for provider {ProviderId}", providerId);
             return Result<IReadOnlyList<ModuleDocumentDto>>.Failure("DOCUMENTS_PROVIDER_GET_FAILED");
         }
     }
@@ -206,7 +206,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao obter status do documento {DocumentId}", documentId);
+            logger.LogError(ex, "Error retrieving document status {DocumentId}", documentId);
             return Result<ModuleDocumentStatusDto?>.Failure("DOCUMENTS_STATUS_GET_FAILED");
         }
     }
@@ -276,7 +276,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao verificar documentos verificados para provedor {ProviderId}", providerId);
+            logger.LogError(ex, "Error checking verified documents for provider {ProviderId}", providerId);
             return Result<bool>.Failure("DOCUMENTS_VERIFIED_CHECK_FAILED");
         }
     }
@@ -328,7 +328,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao verificar documentos obrigatórios para provedor {ProviderId}", providerId);
+            logger.LogError(ex, "Error checking required documents for provider {ProviderId}", providerId);
             return Result<bool>.Failure("DOCUMENTS_REQUIRED_CHECK_FAILED");
         }
     }
@@ -370,7 +370,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao obter contagem de status de documentos para provedor {ProviderId}", providerId);
+            logger.LogError(ex, "Error retrieving document status count for provider {ProviderId}", providerId);
             return Result<DocumentStatusCountDto>.Failure("DOCUMENTS_STATUS_COUNT_FAILED");
         }
     }
@@ -397,7 +397,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao verificar documentos pendentes para provedor {ProviderId}", providerId);
+            logger.LogError(ex, "Error checking pending documents for provider {ProviderId}", providerId);
             return Result<bool>.Failure("DOCUMENTS_PENDING_CHECK_FAILED");
         }
     }
@@ -424,7 +424,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao verificar documentos rejeitados para provedor {ProviderId}", providerId);
+            logger.LogError(ex, "Error checking rejected documents for provider {ProviderId}", providerId);
             return Result<bool>.Failure("DOCUMENTS_REJECTED_CHECK_FAILED");
         }
     }

@@ -157,7 +157,7 @@ public class AzureDocumentIntelligenceServiceTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Iniciando análise OCR")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Starting OCR analysis")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -188,7 +188,7 @@ public class AzureDocumentIntelligenceServiceTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Iniciando análise OCR")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Starting OCR analysis")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
