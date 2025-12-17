@@ -175,7 +175,8 @@ public class RateLimitingMiddleware(
         // Correspondência simples de wildcard - pode ser melhorado para padrões mais complexos
         if (pattern.Contains('*'))
         {
-            var regexPattern = pattern.Replace("*", ".*");
+            var escapedPattern = System.Text.RegularExpressions.Regex.Escape(pattern);
+            var regexPattern = escapedPattern.Replace(@"\*", ".*");
             return System.Text.RegularExpressions.Regex.IsMatch(requestPath, regexPattern,
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         }

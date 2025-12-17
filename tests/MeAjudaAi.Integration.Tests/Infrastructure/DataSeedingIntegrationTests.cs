@@ -7,11 +7,8 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 /// Testes de integração para validar data seeding via SQL scripts.
 /// Valida que os seeds em infrastructure/database/seeds/ são executados corretamente.
 /// 
-/// Nota: Testes não dependem mais do Aspire DCP - usam conexão direta ao PostgreSQL
-/// via variáveis de ambiente MEAJUDAAI_DB_* configuradas no workflow de CI.
-/// Aspire é usado apenas quando disponível (desenvolvimento local com AppHost).
-/// 
-/// DatabaseMigrationFixture garante que as migrations são executadas antes dos testes.
+/// Usa Testcontainers para criar PostgreSQL container automaticamente.
+/// DatabaseMigrationFixture garante que as migrations e seeds são executados antes dos testes.
 /// </summary>
 [Trait("Category", "Integration")]
 [Trait("Area", "Infrastructure")]
@@ -19,12 +16,11 @@ namespace MeAjudaAi.Integration.Tests.Infrastructure;
 public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigrationFixture>
 {
     private const string ServiceCatalogsSchema = "meajudaai_service_catalogs";
+    private readonly DatabaseMigrationFixture _fixture;
 
-    // Fixture é injetado para garantir que migrations rodam antes dos testes
     public DataSeedingIntegrationTests(DatabaseMigrationFixture fixture)
     {
-        // O xUnit garante que fixture.InitializeAsync() foi chamado antes deste construtor
-        _ = fixture; // Suprime warning de parâmetro não utilizado
+        _fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
     }
 
     #region ServiceCatalogs Seeding Tests
@@ -33,14 +29,14 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_ShouldHave8Categories()
     {
         // Arrange
-        var connectionString = TestConnectionHelper.GetConnectionString();
+        var connectionString = _fixture.ConnectionString!;
 
         // Act
         await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"ServiceCategories\"",
+            "SELECT COUNT(*) FROM meajudaai_service_catalogs.service_categories",
             connection);
         
         var count = (long)(await command.ExecuteScalarAsync() ?? 0L);
@@ -53,7 +49,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_ShouldHaveExpectedCategories()
     {
         // Arrange
-        var connectionString = TestConnectionHelper.GetConnectionString();
+        var connectionString = _fixture.ConnectionString!;
 
         var expectedCategories = new[]
         {
@@ -72,7 +68,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT \"Name\" FROM meajudaai_service_catalogs.\"ServiceCategories\"",
+            "SELECT name FROM meajudaai_service_catalogs.service_categories",
             connection);
         
         await using var reader = await command.ExecuteReaderAsync();
@@ -91,14 +87,14 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_ShouldHave12Services()
     {
         // Arrange
-        var connectionString = TestConnectionHelper.GetConnectionString();
+        var connectionString = _fixture.ConnectionString!;
 
         // Act
         await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"Services\"",
+            "SELECT COUNT(*) FROM meajudaai_service_catalogs.services",
             connection);
         
         var count = (long)(await command.ExecuteScalarAsync() ?? 0L);
@@ -111,7 +107,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_AllServicesLinkedToCategories()
     {
         // Arrange
-        var connectionString = TestConnectionHelper.GetConnectionString();
+        var connectionString = _fixture.ConnectionString!;
 
         // Act
         await using var connection = new NpgsqlConnection(connectionString);
@@ -120,9 +116,9 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
         // Verificar que todos os serviços têm categoria válida
         await using var command = new NpgsqlCommand(
             @"SELECT COUNT(*) 
-              FROM meajudaai_service_catalogs.""Services"" s
-              LEFT JOIN meajudaai_service_catalogs.""ServiceCategories"" sc ON s.""CategoryId"" = sc.""Id""
-              WHERE sc.""Id"" IS NULL",
+              FROM meajudaai_service_catalogs.services s
+              LEFT JOIN meajudaai_service_catalogs.service_categories sc ON s.category_id = sc.id
+             WHERE sc.id IS NULL",
             connection);
         
         var orphanCount = (long)(await command.ExecuteScalarAsync() ?? 0L);
@@ -135,7 +131,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_IdempotencyCheck_RunningTwiceShouldNotDuplicate()
     {
         // Arrange
-        var connectionString = TestConnectionHelper.GetConnectionString();
+        var connectionString = _fixture.ConnectionString!;
         var testGuid = Guid.NewGuid().ToString("N")[..8]; // Use unique ID for parallel test isolation
         var testCategoryName = $"Teste Idempotência {testGuid}";
 
@@ -144,7 +140,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
 
         // Garantir estado limpo para o nome usado no teste
         await using (var cleanupBefore = new NpgsqlCommand(
-            "DELETE FROM meajudaai_service_catalogs.\"ServiceCategories\" WHERE \"Name\" = @name",
+            "DELETE FROM meajudaai_service_catalogs.service_categories WHERE name = @name",
             connection))
         {
             cleanupBefore.Parameters.AddWithValue("name", testCategoryName);
@@ -153,7 +149,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
 
         // Contar registros antes
         await using var countBefore = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"ServiceCategories\"",
+            "SELECT COUNT(*) FROM meajudaai_service_catalogs.service_categories",
             connection);
         var countBeforeExec = (long)(await countBefore.ExecuteScalarAsync() ?? 0L);
 
@@ -161,12 +157,12 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
         // Validating the idempotency pattern: should check if exists before inserting
         // Using parameterized INSERT with WHERE NOT EXISTS for idempotency
         var idempotentSql = @"
-            INSERT INTO meajudaai_service_catalogs.""ServiceCategories"" 
-                (""Id"", ""Name"", ""Description"", ""Icon"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"")
-            SELECT gen_random_uuid(), @name, 'Test', 'test', true, NOW(), NOW()
+            INSERT INTO meajudaai_service_catalogs.service_categories 
+                (id, name, description, is_active, display_order, created_at, updated_at)
+            SELECT gen_random_uuid(), @name, 'Test', true, 999, NOW(), NOW()
             WHERE NOT EXISTS (
-                SELECT 1 FROM meajudaai_service_catalogs.""ServiceCategories"" 
-                WHERE ""Name"" = @name
+                SELECT 1 FROM meajudaai_service_catalogs.service_categories 
+                WHERE name = @name
             )";
 
         // Execute twice to verify idempotency - should only insert once
@@ -178,7 +174,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
         }
 
         await using var countAfter = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"ServiceCategories\"",
+            "SELECT COUNT(*) FROM meajudaai_service_catalogs.service_categories",
             connection);
         var countAfterExec = (long)(await countAfter.ExecuteScalarAsync() ?? 0L);
 
@@ -191,7 +187,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
         {
             // Cleanup
             await using var cleanup = new NpgsqlCommand(
-                "DELETE FROM meajudaai_service_catalogs.\"ServiceCategories\" WHERE \"Name\" = @name",
+                "DELETE FROM meajudaai_service_catalogs.service_categories WHERE name = @name",
                 connection);
             cleanup.Parameters.AddWithValue("name", testCategoryName);
             await cleanup.ExecuteNonQueryAsync();
@@ -202,22 +198,22 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_ShouldHaveSpecificServices()
     {
         // Arrange
-        var connectionString = TestConnectionHelper.GetConnectionString();
+        var connectionString = _fixture.ConnectionString!;
 
         var expectedServices = new[]
         {
             "Consulta Médica Geral",
-            "Atendimento de Urgência e Emergência",
-            "Educação Infantil (Creche)",
-            "Ensino Fundamental",
-            "Auxílio Alimentação (Cesta Básica)",
-            "Restaurante Popular",
+            "Atendimento Psicológico",
+            "Fisioterapia",
+            "Reforço Escolar",
+            "Alfabetização de Adultos",
+            "Orientação Social",
+            "Apoio a Famílias",
             "Orientação Jurídica Gratuita",
-            "Atendimento do Centro de Referência de Assistência Social (CRAS)",
-            "Cadastro Habitacional",
-            "Transporte Público Subsidiado",
-            "Encaminhamento para Vagas de Emprego",
-            "Cursos de Qualificação Profissional"
+            "Mediação de Conflitos",
+            "Reparos Residenciais",
+            "Capacitação Profissional",
+            "Intermediação de Emprego"
         };
 
         // Act
@@ -225,7 +221,7 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT \"Name\" FROM meajudaai_service_catalogs.\"Services\"",
+            "SELECT name FROM meajudaai_service_catalogs.services",
             connection);
         
         await using var reader = await command.ExecuteReaderAsync();
@@ -244,14 +240,14 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_AllCategoriesAreActive()
     {
         // Arrange
-        var connectionString = TestConnectionHelper.GetConnectionString();
+        var connectionString = _fixture.ConnectionString!;
 
         // Act
         await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"ServiceCategories\" WHERE \"IsActive\" = false",
+            "SELECT COUNT(*) FROM meajudaai_service_catalogs.service_categories WHERE is_active = false",
             connection);
         
         var inactiveCount = (long)(await command.ExecuteScalarAsync() ?? 0L);
@@ -264,14 +260,14 @@ public sealed class DataSeedingIntegrationTests : IClassFixture<DatabaseMigratio
     public async Task ServiceCatalogs_AllServicesAreActive()
     {
         // Arrange
-        var connectionString = TestConnectionHelper.GetConnectionString();
+        var connectionString = _fixture.ConnectionString!;
 
         // Act
         await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync();
         
         await using var command = new NpgsqlCommand(
-            "SELECT COUNT(*) FROM meajudaai_service_catalogs.\"Services\" WHERE \"IsActive\" = false",
+            "SELECT COUNT(*) FROM meajudaai_service_catalogs.services WHERE is_active = false",
             connection);
         
         var inactiveCount = (long)(await command.ExecuteScalarAsync() ?? 0L);

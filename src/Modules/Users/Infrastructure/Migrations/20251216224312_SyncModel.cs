@@ -10,23 +10,14 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<uint>(
-                name: "xmin",
-                schema: "meajudaai_users",
-                table: "users",
-                type: "xid",
-                rowVersion: true,
-                nullable: false,
-                defaultValue: 0u);
+            // No migration needed - xmin is a PostgreSQL system column that already exists.
+            // The UserConfiguration maps the RowVersion property to this existing column.
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "xmin",
-                schema: "meajudaai_users",
-                table: "users");
+            // No migration needed - xmin is a PostgreSQL system column.
         }
     }
 }

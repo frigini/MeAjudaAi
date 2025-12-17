@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 namespace MeAjudaAi.ApiService.Providers.Compression;
 
 /// <summary>
-/// Provedor de compressão Gzip seguro que previne CRIME/BREACH
+/// Provedor de compressão Gzip otimizado
 /// </summary>
 public class SafeGzipCompressionProvider : ICompressionProvider
 {

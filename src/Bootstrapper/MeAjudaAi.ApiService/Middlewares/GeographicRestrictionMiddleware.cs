@@ -158,7 +158,7 @@ public class GeographicRestrictionMiddleware(
         {
             try
             {
-                logger.LogDebug("Validando cidade {City} via API IBGE", city);
+                logger.LogDebug("Validating city {City} via IBGE API", city);
 
                 var ibgeValidation = await geographicValidationService.ValidateCityAsync(
                     city,
@@ -168,7 +168,7 @@ public class GeographicRestrictionMiddleware(
 
                 // Validação IBGE tem prioridade (mais precisa)
                 logger.LogInformation(
-                    "Validação IBGE para {City}/{State}: {Result} (simples: {SimpleResult})",
+                    "IBGE validation for {City}/{State}: {Result} (simple: {SimpleResult})",
                     city, state ?? "N/A", ibgeValidation, simpleValidation);
 
                 return ibgeValidation;

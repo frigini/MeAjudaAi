@@ -7,7 +7,7 @@
 -- Check if data already exists
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM meajudaai_service_catalogs."ServiceCategories" LIMIT 1) THEN
+    IF EXISTS (SELECT 1 FROM meajudaai_service_catalogs.service_categories LIMIT 1) THEN
         RAISE NOTICE 'ServiceCategories already seeded. Skipping...';
         RETURN;
     END IF;
@@ -15,7 +15,7 @@ BEGIN
     RAISE NOTICE 'Seeding ServiceCategories and Services...';
 
     -- Insert Service Categories
-    INSERT INTO meajudaai_service_catalogs."ServiceCategories" ("Id", "Name", "Description", "IsActive", "DisplayOrder", "CreatedAt", "UpdatedAt")
+    INSERT INTO meajudaai_service_catalogs.service_categories (id, name, description, is_active, display_order, created_at, updated_at)
     VALUES
         ('10000000-0000-0000-0000-000000000001'::uuid, 'Saúde', 'Serviços de saúde, cuidados médicos e bem-estar', true, 1, NOW(), NOW()),
         ('10000000-0000-0000-0000-000000000002'::uuid, 'Educação', 'Serviços educacionais, reforço escolar e cursos', true, 2, NOW(), NOW()),
@@ -29,7 +29,7 @@ BEGIN
     RAISE NOTICE 'Inserted % service categories', 8;
 
     -- Insert Services
-    INSERT INTO meajudaai_service_catalogs."Services" ("Id", "Name", "Description", "CategoryId", "DisplayOrder", "IsActive", "CreatedAt", "UpdatedAt")
+    INSERT INTO meajudaai_service_catalogs.services (id, name, description, category_id, display_order, is_active, created_at, updated_at)
     VALUES
         -- Saúde
         ('20000000-0000-0000-0000-000000000001'::uuid, 'Consulta Médica Geral', 'Atendimento médico clínico geral', '10000000-0000-0000-0000-000000000001'::uuid, 1, true, NOW(), NOW()),

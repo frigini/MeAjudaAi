@@ -6,20 +6,43 @@ using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using Npgsql;
+using Testcontainers.PostgreSql;
+using DotNet.Testcontainers.Builders;
 
 namespace MeAjudaAi.Integration.Tests.Infrastructure;
 
 /// <summary>
 /// Fixture que garante que migrations sejam executadas antes dos testes de data seeding.
+/// Usa Testcontainers para criar PostgreSQL container automaticamente.
 /// Aplica migrations para todos os módulos e executa scripts de seed SQL.
 /// </summary>
 public sealed class DatabaseMigrationFixture : IAsyncLifetime
 {
     private const string SeedsDirectory = "../../../../infrastructure/database/seeds";
+    private PostgreSqlContainer? _postgresContainer;
+
+    public string? ConnectionString => _postgresContainer?.GetConnectionString();
 
     public async ValueTask InitializeAsync()
     {
-        var connectionString = TestConnectionHelper.GetConnectionString();
+        // Cria container PostgreSQL com Testcontainers
+        _postgresContainer = new PostgreSqlBuilder()
+            .WithImage("postgres:15-alpine")
+            .WithDatabase("meajudaai_test")
+            .WithUsername("postgres")
+            .WithPassword("test123")
+            .WithPortBinding(0, 5432)
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(5432))
+            .WithStartupCallback((container, ct) =>
+            {
+                Console.WriteLine($"[SEED-FIXTURE] Started PostgreSQL container {container.Id[..12]} on port {container.GetMappedPublicPort(5432)}");
+                return Task.CompletedTask;
+            })
+            .Build();
+
+        await _postgresContainer.StartAsync();
+
+        var connectionString = _postgresContainer.GetConnectionString();
         
         // Cria service provider para ter acesso aos DbContexts
         var services = new ServiceCollection();
@@ -33,6 +56,10 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "users");
             });
             options.UseSnakeCaseNamingConvention();
+            
+            // Suppress warning about xmin - it's a PostgreSQL system column that doesn't need migration
+            options.ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
 
         services.AddDbContext<ProvidersDbContext>(options =>
@@ -43,6 +70,8 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "providers");
             });
             options.UseSnakeCaseNamingConvention();
+            options.ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
 
         services.AddDbContext<DocumentsDbContext>(options =>
@@ -53,6 +82,8 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "documents");
             });
             options.UseSnakeCaseNamingConvention();
+            options.ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
 
         services.AddDbContext<ServiceCatalogsDbContext>(options =>
@@ -63,6 +94,8 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "service_catalogs");
             });
             options.UseSnakeCaseNamingConvention();
+            options.ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
 
         services.AddDbContext<LocationsDbContext>(options =>
@@ -73,6 +106,8 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
                 npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "locations");
             });
             options.UseSnakeCaseNamingConvention();
+            options.ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         });
 
         await using var serviceProvider = services.BuildServiceProvider();
@@ -102,21 +137,27 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
         Console.WriteLine("[MIGRATION-FIXTURE] Migrations e seeds executados com sucesso");
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
-        // Não há recursos para liberar
-        return ValueTask.CompletedTask;
+        if (_postgresContainer != null)
+        {
+            Console.WriteLine($"[SEED-FIXTURE] Stopping PostgreSQL container {_postgresContainer.Id[..12]}");
+            await _postgresContainer.StopAsync();
+            await _postgresContainer.DisposeAsync();
+        }
     }
 
     private async Task ExecuteSeedScripts(string connectionString)
     {
         // Descobre caminho absoluto para os scripts de seed com fallbacks
-        var currentDir = Directory.GetCurrentDirectory();
+        var testProjectDir = AppContext.BaseDirectory; // bin/Debug/net10.0
+        var workspaceRoot = Path.GetFullPath(Path.Combine(testProjectDir, "../../../../../"));
+        
         var searchPaths = new[]
         {
-            Path.Combine(currentDir, SeedsDirectory),
-            Path.Combine(currentDir, "../../../infrastructure/database/seeds"),
-            Path.Combine(AppContext.BaseDirectory, SeedsDirectory)
+            Path.Combine(workspaceRoot, "infrastructure/database/seeds"),
+            Path.Combine(Directory.GetCurrentDirectory(), "infrastructure/database/seeds"),
+            Path.Combine(testProjectDir, SeedsDirectory)
         };
         
         var seedsPath = searchPaths.Select(Path.GetFullPath)
