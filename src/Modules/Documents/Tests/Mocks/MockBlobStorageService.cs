@@ -64,8 +64,8 @@ public sealed class MockBlobStorageService : IBlobStorageService
 
     public Task<bool> ExistsAsync(string blobName, CancellationToken cancellationToken = default)
     {
-        // Se não foi explicitamente configurado, assume que existe (comportamento padrão para happy path)
-        return Task.FromResult(_existingBlobs.Count == 0 || _existingBlobs.Contains(blobName));
+        // Retorna true apenas se o blob foi explicitamente adicionado à coleção
+        return Task.FromResult(_existingBlobs.Contains(blobName));
     }
 
     public Task DeleteAsync(string blobName, CancellationToken cancellationToken = default)

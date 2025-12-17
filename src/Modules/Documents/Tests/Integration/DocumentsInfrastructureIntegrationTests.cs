@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Repositories;
-using MeAjudaAi.Modules.Documents.Tests.Integration.Mocks;
+using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Shared.Time;
 using Microsoft.EntityFrameworkCore;
 

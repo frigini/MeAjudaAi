@@ -37,13 +37,13 @@ public class AzureDocumentIntelligenceService(DocumentIntelligenceClient client,
         {
             _logger.LogInformation("Iniciando análise OCR para documento tipo {DocumentType}", documentType);
 
-            // Use centralized constants for model IDs to avoid magic strings
+            // Usar constantes centralizadas de IDs de modelo para evitar strings mágicas
             string modelId = documentType.ToLowerInvariant() switch
             {
-                DocumentModelConstants.DocumentTypes.IdentityDocument => DocumentModelConstants.ModelIds.IdentityDocument,
-                DocumentModelConstants.DocumentTypes.ProofOfResidence => DocumentModelConstants.ModelIds.GenericDocument,
-                DocumentModelConstants.DocumentTypes.CriminalRecord => DocumentModelConstants.ModelIds.GenericDocument,
-                _ => DocumentModelConstants.ModelIds.GenericDocument
+                DocumentTypes.IdentityDocument => ModelIds.IdentityDocument,
+                DocumentTypes.ProofOfResidence => ModelIds.GenericDocument,
+                DocumentTypes.CriminalRecord => ModelIds.GenericDocument,
+                _ => ModelIds.GenericDocument
             };
 
             // Usar AnalyzeDocumentAsync da nova API Azure.AI.DocumentIntelligence

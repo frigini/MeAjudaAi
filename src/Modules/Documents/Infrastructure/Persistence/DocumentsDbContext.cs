@@ -46,7 +46,7 @@ public class DocumentsDbContext : BaseDbContext
 
     protected override async Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
     {
-        // Nota: Se mais agregados com eventos de domínio forem adicionados a este contexto,
+        // Se mais agregados com eventos de domínio forem adicionados a este contexto,
         // considere generalizar esta query usando um tipo base comum (ex: IAggregateRoot)
         // para capturar eventos de todas as entidades automaticamente
         var domainEvents = ChangeTracker
