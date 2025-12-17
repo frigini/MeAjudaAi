@@ -36,6 +36,11 @@ public class RateLimitingMiddleware(
     IOptionsMonitor<RateLimitOptions> options,
     ILogger<RateLimitingMiddleware> logger)
 {
+    // TODO: Consider adding bounded size or periodic cleanup for _patternCache
+    // if endpoint patterns can change at runtime (e.g., hot-reload configuration).
+    // Currently acceptable for static configurations where patterns are finite,
+    // but unbounded growth could occur if patterns are added dynamically.
+    // Reference: Code Review - https://github.com/coderabbitai
     private static readonly ConcurrentDictionary<string, Regex> _patternCache = new();
 
     /// <summary>
@@ -122,6 +127,13 @@ public class RateLimitingMiddleware(
     {
         var requestPath = context.Request.Path.Value ?? string.Empty;
 
+        // TODO: Consider explicit ordering for overlapping endpoint patterns.
+        // When multiple patterns could match the same request path, FirstOrDefault
+        // returns the first match based on dictionary iteration order, which may be
+        // non-deterministic. Consider sorting EndpointLimits by pattern specificity
+        // (e.g., exact matches before wildcards, longer patterns first) or adding
+        // an explicit Priority property to EndpointLimits.
+        // Reference: Code Review - https://github.com/coderabbitai
         // 1. Verifica limites específicos de endpoint primeiro
         var matchingLimit = rateLimitOptions.EndpointLimits
             .FirstOrDefault(endpointLimit =>
@@ -200,21 +212,12 @@ public class RateLimitingMiddleware(
 
     private static string GetClientIpAddress(HttpContext context)
     {
-        // Check X-Forwarded-For header (standard proxy header)
-        var xForwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        if (!string.IsNullOrEmpty(xForwardedFor))
-        {
-            return xForwardedFor.Split(',')[0].Trim();
-        }
-
-        // Check X-Real-IP header (nginx standard)
-        var xRealIp = context.Request.Headers["X-Real-IP"].FirstOrDefault();
-        if (!string.IsNullOrEmpty(xRealIp))
-        {
-            return xRealIp;
-        }
-
-        // Fallback to direct connection IP
+        // Use the IP already resolved by ForwardedHeadersMiddleware
+        // which validates trusted proxies via KnownProxies/KnownNetworks.
+        // This prevents malicious clients from spoofing whitelisted IPs or
+        // rotating fake IPs to evade per-IP rate limits.
+        // ForwardedHeadersMiddleware must be configured in the pipeline before
+        // this middleware with appropriate KnownProxies/KnownNetworks settings.
         return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
 

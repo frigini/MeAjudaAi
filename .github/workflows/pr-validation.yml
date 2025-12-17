@@ -681,6 +681,12 @@ jobs:
             exit 1
           fi
           
+          # Verify reportgenerator is functional
+          if ! reportgenerator --version; then
+            echo "❌ ReportGenerator is not functional"
+            exit 1
+          fi
+          
           echo "✅ ReportGenerator is ready"
           
           # Pre-flight check: verify all expected coverage files exist

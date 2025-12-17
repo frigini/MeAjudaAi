@@ -65,7 +65,7 @@ public class UploadDocumentCommandHandler(
                 }
             }
 
-            _logger.LogInformation("Gerando URL de upload para documento do provedor {ProviderId}", command.ProviderId);
+            _logger.LogInformation("Generating upload URL for provider {ProviderId} document", command.ProviderId);
 
             // Validação de tipo de documento com enum definido
             if (!Enum.TryParse<EDocumentType>(command.DocumentType, true, out var documentType) ||
@@ -115,7 +115,7 @@ public class UploadDocumentCommandHandler(
             await _documentRepository.AddAsync(document, cancellationToken);
             await _documentRepository.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Documento {DocumentId} criado para provedor {ProviderId}",
+            _logger.LogInformation("Document {DocumentId} created for provider {ProviderId}",
                 document.Id, command.ProviderId);
 
             // Enfileira job de verificação do documento
@@ -130,17 +130,17 @@ public class UploadDocumentCommandHandler(
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning(ex, "Falha de autorização ao fazer upload de documento para provedor {ProviderId}", command.ProviderId);
+            _logger.LogWarning(ex, "Authorization failed while uploading document for provider {ProviderId}", command.ProviderId);
             throw;
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Falha de validação ao fazer upload de documento: {Message}", ex.Message);
+            _logger.LogWarning(ex, "Validation failed while uploading document: {Message}", ex.Message);
             throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro inesperado ao fazer upload de documento para provedor {ProviderId}", command.ProviderId);
+            _logger.LogError(ex, "Unexpected error while uploading document for provider {ProviderId}", command.ProviderId);
             throw new InvalidOperationException("Falha ao fazer upload do documento. Por favor, tente novamente mais tarde.", ex);
         }
     }
