@@ -131,14 +131,17 @@ jobs:
           # DCP binaries come from Aspire.Hosting.Orchestration.<RID> NuGet package
           # For linux-x64, the package is aspire.hosting.orchestration.linux-x64
           # NuGet packages are case-sensitive on Linux, so we need to search for the exact case
-          DCP_PACKAGE_PATH=$(find "$HOME/.nuget/packages" -maxdepth 1 -type d -iname "aspire.hosting.orchestration.linux-x64" 2>/dev/null | head -n 1)
+          DCP_PACKAGE_PATH=$(find "$HOME/.nuget/packages" -maxdepth 1 -type d \
+            -iname "aspire.hosting.orchestration.linux-x64" 2>/dev/null | head -n 1)
 
           if [ -z "$DCP_PACKAGE_PATH" ]; then
             echo "❌ Error: aspire.hosting.orchestration.linux-x64 package not found in NuGet cache"
             echo "Searching for all Aspire orchestration packages..."
-            find "$HOME/.nuget/packages" -maxdepth 1 -type d -iname "*aspire*orchestration*" 2>/dev/null || echo "No Aspire orchestration packages found"
+            find "$HOME/.nuget/packages" -maxdepth 1 -type d \
+              -iname "*aspire*orchestration*" 2>/dev/null || echo "No Aspire orchestration packages found"
             echo "Listing all Aspire packages:"
-            find "$HOME/.nuget/packages" -maxdepth 1 -type d -iname "*aspire*" 2>/dev/null || echo "No Aspire packages found"
+            find "$HOME/.nuget/packages" -maxdepth 1 -type d \
+              -iname "*aspire*" 2>/dev/null || echo "No Aspire packages found"
             echo "❌ Integration tests require Aspire DCP binaries - failing fast"
             exit 1
           fi
@@ -146,7 +149,8 @@ jobs:
           echo "✅ Found Aspire package at: $DCP_PACKAGE_PATH"
 
           # Find DCP binary in the downloaded package
-          DCP_BINARY=$(find "$DCP_PACKAGE_PATH" -type f -name "dcp" 2>/dev/null | head -n 1)
+          DCP_BINARY=$(find "$DCP_PACKAGE_PATH" -type f -name "dcp" \
+            2>/dev/null | head -n 1)
 
           if [ -z "$DCP_BINARY" ]; then
             echo "❌ Error: DCP binary not found in package"

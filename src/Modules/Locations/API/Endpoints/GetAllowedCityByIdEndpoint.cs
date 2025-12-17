@@ -35,6 +35,6 @@ public class GetAllowedCityByIdEndpoint : BaseEndpoint, IEndpoint
 
         return result is not null
             ? Results.Ok(new Response<AllowedCityDto>(result))
-            : Results.NotFound(new Response<AllowedCityDto>(default, 404, "Cidade permitida não encontrada"));
+            : Results.NotFound(new Response<AllowedCityDto>(default, 404, "Allowed city not found"));
     }
 }
