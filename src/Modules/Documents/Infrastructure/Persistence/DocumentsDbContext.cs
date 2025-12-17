@@ -60,7 +60,7 @@ public class DocumentsDbContext : BaseDbContext
 
     protected override void ClearDomainEvents()
     {
-        // Nota: Se mais agregados forem adicionados, generalize para capturar todos
+        // Se mais agregados forem adicionados, generalize para capturar todos
         var entities = ChangeTracker
             .Entries<Document>()
             .Where(entry => entry.Entity.DomainEvents.Count > 0)

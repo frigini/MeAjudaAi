@@ -6,9 +6,18 @@ namespace MeAjudaAi.Modules.Documents.Tests.Mocks;
 /// Mock implementation of IBlobStorageService for testing environments
 /// </summary>
 /// <remarks>
-/// Por padrão, sempre retorna sucesso. Para testar cenários negativos:
-/// - Use SetBlobExists(blobName, false) para simular blob não encontrado
-/// - Acompanhe blobs deletados via DeletedBlobs para verificar comportamento de limpeza
+/// Por padrão, sempre retorna sucesso nas operações (upload/download/delete).
+/// ExistsAsync retorna false por padrão (blobs não existem até serem registrados).
+/// 
+/// Para testar cenários positivos (blob existe):
+/// - Chame GenerateUploadUrlAsync() para registrar o blob automaticamente
+/// - Ou use SetBlobExists(blobName, true) para registrar manualmente
+/// 
+/// Para testar cenários negativos (blob não existe):
+/// - Não registre o blob (comportamento padrão)
+/// - Ou use SetBlobExists(blobName, false) para remover blob previamente registrado
+/// 
+/// Acompanhe blobs deletados via DeletedBlobs para verificar comportamento de limpeza.
 /// </remarks>
 public sealed class MockBlobStorageService : IBlobStorageService
 {

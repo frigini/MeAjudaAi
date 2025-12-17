@@ -53,7 +53,6 @@ public sealed class ExtensionsTests
     {
         // Preparação
         var services = new ServiceCollection();
-        services.AddLogging();
 
         // Ação
         services.AddDocumentsModule(_testConfiguration);
@@ -126,15 +125,8 @@ public sealed class ExtensionsTests
         testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
         builder.Services.AddSingleton(testEnvMock.Object);
 
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test;"
-            })
-            .Build();
-
-        builder.Configuration.AddConfiguration(configuration);
-        builder.Services.AddDocumentsModule(configuration);
+        builder.Configuration.AddConfiguration(_testConfiguration);
+        builder.Services.AddDocumentsModule(_testConfiguration);
 
         var app = builder.Build();
 
@@ -158,15 +150,8 @@ public sealed class ExtensionsTests
         testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
         builder.Services.AddSingleton(testEnvMock.Object);
 
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test;"
-            })
-            .Build();
-
-        builder.Configuration.AddConfiguration(configuration);
-        builder.Services.AddDocumentsModule(configuration);
+        builder.Configuration.AddConfiguration(_testConfiguration);
+        builder.Services.AddDocumentsModule(_testConfiguration);
 
         var app = builder.Build();
 
