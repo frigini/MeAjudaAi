@@ -3,17 +3,20 @@ using System;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ProvidersDbContext))]
-    partial class ProvidersDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251126174955_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,6 +128,10 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
 
                     b.HasIndex("ServiceId")
                         .HasDatabaseName("ix_provider_services_service_id");
+
+                    b.HasIndex("ProviderId", "ServiceId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_provider_services_provider_service");
 
                     b.ToTable("provider_services", "meajudaai_providers");
                 });

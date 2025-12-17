@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ProvidersDbContext))]
-    [Migration("20251126174955_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251128002132_RemoveRedundantProviderServicesIndex")]
+    partial class RemoveRedundantProviderServicesIndex
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -128,10 +128,6 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
 
                     b.HasIndex("ServiceId")
                         .HasDatabaseName("ix_provider_services_service_id");
-
-                    b.HasIndex("ProviderId", "ServiceId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_provider_services_provider_service");
 
                     b.ToTable("provider_services", "meajudaai_providers");
                 });

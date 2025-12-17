@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.Providers.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class RemoveRedundantProviderServicesIndex : Migration
