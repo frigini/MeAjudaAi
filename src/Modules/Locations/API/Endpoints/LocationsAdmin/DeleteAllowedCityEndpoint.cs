@@ -16,7 +16,7 @@ namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 public class DeleteAllowedCityEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapDelete("/api/v1/admin/allowed-cities/{id:guid}", DeleteAsync)
+        => app.MapDelete("{id:guid}", DeleteAsync)
             .WithName("DeleteAllowedCity")
             .WithSummary("Deletar cidade permitida")
             .WithDescription("Deleta uma cidade permitida")

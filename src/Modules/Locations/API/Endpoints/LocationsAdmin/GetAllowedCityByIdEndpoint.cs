@@ -16,7 +16,7 @@ namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 public class GetAllowedCityByIdEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/api/v1/admin/allowed-cities/{id:guid}", GetByIdAsync)
+        => app.MapGet("{id:guid}", GetByIdAsync)
             .WithName("GetAllowedCityById")
             .WithSummary("Buscar cidade permitida por ID")
             .WithDescription("Recupera uma cidade permitida específica pelo seu ID")

@@ -29,7 +29,7 @@ public class GetProvidersByTypeQueryHandlerTests
     {
         // Arrange
         var providerType = EProviderType.Individual;
-        var providers = new List<Domain.Entities.Provider>
+        var providers = new List<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>
         {
             new ProviderBuilder().WithType(providerType).Build(),
             new ProviderBuilder().WithType(providerType).Build()
@@ -42,7 +42,7 @@ public class GetProvidersByTypeQueryHandlerTests
         var query = new GetProvidersByTypeQuery(providerType);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -63,12 +63,12 @@ public class GetProvidersByTypeQueryHandlerTests
 
         _providerRepositoryMock
             .Setup(x => x.GetByTypeAsync(providerType, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Domain.Entities.Provider>());
+            .ReturnsAsync(new List<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>());
 
         var query = new GetProvidersByTypeQuery(providerType);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -93,7 +93,7 @@ public class GetProvidersByTypeQueryHandlerTests
         var query = new GetProvidersByTypeQuery(providerType);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();

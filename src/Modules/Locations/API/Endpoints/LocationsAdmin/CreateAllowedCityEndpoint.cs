@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 public class CreateAllowedCityEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/api/v1/admin/allowed-cities", CreateAsync)
+        => app.MapPost(string.Empty, CreateAsync)
             .WithName("CreateAllowedCity")
             .WithSummary("Criar nova cidade permitida")
             .WithDescription("Cria uma nova cidade permitida para operações de prestadores (apenas Admin)")

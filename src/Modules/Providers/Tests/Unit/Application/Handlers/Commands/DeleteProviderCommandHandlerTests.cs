@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Tests.Builders;
+using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -14,14 +15,16 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Application.Handlers.Commands;
 public class DeleteProviderCommandHandlerTests
 {
     private readonly Mock<IProviderRepository> _providerRepositoryMock;
+    private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
     private readonly Mock<ILogger<DeleteProviderCommandHandler>> _loggerMock;
     private readonly DeleteProviderCommandHandler _handler;
 
     public DeleteProviderCommandHandlerTests()
     {
         _providerRepositoryMock = new Mock<IProviderRepository>();
+        _dateTimeProviderMock = new Mock<IDateTimeProvider>();
         _loggerMock = new Mock<ILogger<DeleteProviderCommandHandler>>();
-        _handler = new DeleteProviderCommandHandler(_providerRepositoryMock.Object, _loggerMock.Object);
+        _handler = new DeleteProviderCommandHandler(_providerRepositoryMock.Object, _dateTimeProviderMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -56,7 +59,7 @@ public class DeleteProviderCommandHandlerTests
 
         _providerRepositoryMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Domain.Entities.Provider?)null);
+            .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
 
         var command = new DeleteProviderCommand(providerId, "admin@test.com");
 
@@ -69,7 +72,7 @@ public class DeleteProviderCommandHandlerTests
         result.Error!.Message.Should().Contain("not found");
 
         _providerRepositoryMock.Verify(
-            x => x.UpdateAsync(It.IsAny<Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),
+            x => x.UpdateAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 }

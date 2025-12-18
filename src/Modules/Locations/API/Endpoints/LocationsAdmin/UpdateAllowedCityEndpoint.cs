@@ -17,7 +17,7 @@ namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 public class UpdateAllowedCityEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPut("/api/v1/admin/allowed-cities/{id:guid}", UpdateAsync)
+        => app.MapPut("{id:guid}", UpdateAsync)
             .WithName("UpdateAllowedCity")
             .WithSummary("Atualizar cidade permitida")
             .WithDescription("Atualiza uma cidade permitida existente")

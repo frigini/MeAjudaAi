@@ -16,7 +16,7 @@ namespace MeAjudaAi.Modules.Locations.API.Endpoints.LocationsAdmin;
 public class GetAllAllowedCitiesEndpoint : BaseEndpoint, IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapGet("/api/v1/admin/allowed-cities", GetAllAsync)
+        => app.MapGet(string.Empty, GetAllAsync)
             .WithName("GetAllAllowedCities")
             .WithSummary("Listar todas as cidades permitidas")
             .WithDescription("Recupera todas as cidades permitidas (opcionalmente apenas as ativas)")

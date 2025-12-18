@@ -2,6 +2,8 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.Builders;
+using MeAjudaAi.Shared.Time;
+using Moq;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Builders;
 
@@ -134,6 +136,28 @@ public class ProviderBuilder : BuilderBase<Provider>
     {
         _type = EProviderType.Company;
         return this;
+    }
+
+    private bool _shouldDelete = false;
+
+    public ProviderBuilder WithDeleted(bool isDeleted = true)
+    {
+        _shouldDelete = isDeleted;
+        return this;
+    }
+
+    public override Provider Build()
+    {
+        var provider = base.Build();
+        
+        if (_shouldDelete)
+        {
+            var mockDateTimeProvider = new Mock<IDateTimeProvider>();
+            mockDateTimeProvider.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
+            provider.Delete(mockDateTimeProvider.Object);
+        }
+        
+        return provider;
     }
 
     private static BusinessProfile CreateDefaultBusinessProfile(Faker faker)

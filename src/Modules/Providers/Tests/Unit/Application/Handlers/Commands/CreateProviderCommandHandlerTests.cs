@@ -1,9 +1,11 @@
 using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Application.Commands;
+using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.Handlers.Commands;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
+using MeAjudaAi.Modules.Providers.Tests.Builders;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -32,21 +34,27 @@ public class CreateProviderCommandHandlerTests
         var command = new CreateProviderCommand(
             UserId: userId,
             Name: "Test Provider",
-            Type: EProviderType.Individual);
+            Type: EProviderType.Individual,
+            BusinessProfile: new BusinessProfileDto(
+                "Test Business",
+                "12345678000100",
+                null,
+                new ContactInfoDto("test@test.com", null, null),
+                new AddressDto("Main St", "100", null, "Downtown", "City", "State", "12345", "Country")));
 
         _providerRepositoryMock
             .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Domain.Entities.Provider?)null);
+            .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeEmpty();
+        result.Value.Should().NotBe(Guid.Empty);
 
         _providerRepositoryMock.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),
+            x => x.AddAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -58,9 +66,19 @@ public class CreateProviderCommandHandlerTests
         var command = new CreateProviderCommand(
             UserId: userId,
             Name: "Test Provider",
-            Type: EProviderType.Individual);
+            Type: EProviderType.Individual,
+            BusinessProfile: new BusinessProfileDto(
+                "Test Business",
+                "12345678000100",
+                null,
+                new ContactInfoDto("test@test.com", null, null),
+                new AddressDto("Main St", "100", null, "Downtown", "City", "State", "12345", "Country")));
 
-        var existingProvider = new Domain.Entities.Provider(userId, "Existing", EProviderType.Individual);
+        var existingProvider = new ProviderBuilder()
+            .WithUserId(userId)
+            .WithName("Existing")
+            .WithType(EProviderType.Individual)
+            .Build();
 
         _providerRepositoryMock
             .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
@@ -75,7 +93,7 @@ public class CreateProviderCommandHandlerTests
         result.Error!.Message.Should().Contain("already exists");
 
         _providerRepositoryMock.Verify(
-            x => x.AddAsync(It.IsAny<Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),
+            x => x.AddAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -87,7 +105,13 @@ public class CreateProviderCommandHandlerTests
         var command = new CreateProviderCommand(
             UserId: userId,
             Name: "Test Provider",
-            Type: EProviderType.Individual);
+            Type: EProviderType.Individual,
+            BusinessProfile: new BusinessProfileDto(
+                "Test Business",
+                "12345678000100",
+                null,
+                new ContactInfoDto("test@test.com", null, null),
+                new AddressDto("Main St", "100", null, "Downtown", "City", "State", "12345", "Country")));
 
         _providerRepositoryMock
             .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))

@@ -107,5 +107,5 @@ public sealed class Document : ValueObject
         yield return IsPrimary;
     }
 
-    public override string ToString() => $"{DocumentType}: {Number}{(IsPrimary ? " (Primário)" : "")}";
+    public override string ToString() => $"{DocumentType}: {Number}{(IsPrimary ? " (Primary)" : "")}";
 }

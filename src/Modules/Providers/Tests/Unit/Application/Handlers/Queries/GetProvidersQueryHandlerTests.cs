@@ -29,13 +29,13 @@ public class GetProvidersQueryHandlerTests
     public async Task HandleAsync_WithValidQuery_ShouldReturnPagedResult()
     {
         // Arrange
-        var providers = new List<Domain.Entities.Provider>
+        var providers = new List<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>
         {
             new ProviderBuilder().Build(),
             new ProviderBuilder().Build()
         };
 
-        var pagedProviders = new PagedResult<Domain.Entities.Provider>(providers, 1, 10, 2);
+        var pagedProviders = new PagedResult<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(providers, 1, 10, 2);
 
         _providerQueryServiceMock
             .Setup(x => x.GetProvidersAsync(
@@ -73,7 +73,7 @@ public class GetProvidersQueryHandlerTests
         var typeFilter = EProviderType.Individual;
         var statusFilter = EVerificationStatus.Verified;
 
-        var providers = new List<Domain.Entities.Provider>
+        var providers = new List<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>
         {
             new ProviderBuilder()
                 .WithName(nameFilter)
@@ -82,7 +82,7 @@ public class GetProvidersQueryHandlerTests
                 .Build()
         };
 
-        var pagedProviders = new PagedResult<Domain.Entities.Provider>(providers, 1, 10, 1);
+        var pagedProviders = new PagedResult<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(providers, 1, 10, 1);
 
         _providerQueryServiceMock
             .Setup(x => x.GetProvidersAsync(
@@ -97,7 +97,7 @@ public class GetProvidersQueryHandlerTests
         var query = new GetProvidersQuery(1, 10, nameFilter, (int)typeFilter, (int)statusFilter);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -113,8 +113,8 @@ public class GetProvidersQueryHandlerTests
     public async Task HandleAsync_WithEmptyResult_ShouldReturnEmptyPagedResult()
     {
         // Arrange
-        var pagedProviders = new PagedResult<Domain.Entities.Provider>(
-            new List<Domain.Entities.Provider>(), 1, 10, 0);
+        var pagedProviders = new PagedResult<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(
+            new List<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(), 1, 10, 0);
 
         _providerQueryServiceMock
             .Setup(x => x.GetProvidersAsync(
@@ -129,7 +129,7 @@ public class GetProvidersQueryHandlerTests
         var query = new GetProvidersQuery(1, 10);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -155,7 +155,7 @@ public class GetProvidersQueryHandlerTests
         var query = new GetProvidersQuery(1, 10);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();

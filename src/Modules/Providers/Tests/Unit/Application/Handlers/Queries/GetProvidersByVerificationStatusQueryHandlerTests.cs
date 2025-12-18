@@ -29,7 +29,7 @@ public class GetProvidersByVerificationStatusQueryHandlerTests
     {
         // Arrange
         var status = EVerificationStatus.Pending;
-        var providers = new List<Domain.Entities.Provider>
+        var providers = new List<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>
         {
             new ProviderBuilder().WithVerificationStatus(status).Build(),
             new ProviderBuilder().WithVerificationStatus(status).Build()
@@ -42,7 +42,7 @@ public class GetProvidersByVerificationStatusQueryHandlerTests
         var query = new GetProvidersByVerificationStatusQuery(status);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -63,12 +63,12 @@ public class GetProvidersByVerificationStatusQueryHandlerTests
 
         _providerRepositoryMock
             .Setup(x => x.GetByVerificationStatusAsync(status, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Domain.Entities.Provider>());
+            .ReturnsAsync(new List<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>());
 
         var query = new GetProvidersByVerificationStatusQuery(status);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -93,7 +93,7 @@ public class GetProvidersByVerificationStatusQueryHandlerTests
         var query = new GetProvidersByVerificationStatusQuery(status);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();

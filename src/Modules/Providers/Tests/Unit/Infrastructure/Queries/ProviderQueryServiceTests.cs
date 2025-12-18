@@ -1,3 +1,4 @@
+using System;
 using FluentAssertions;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
@@ -11,7 +12,7 @@ using Xunit;
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Queries;
 
 [Trait("Category", "Unit")]
-public class ProviderQueryServiceTests
+public class ProviderQueryServiceTests : IDisposable
 {
     private readonly Mock<ILogger<ProviderQueryService>> _loggerMock;
     private readonly ProvidersDbContext _context;
@@ -26,7 +27,7 @@ public class ProviderQueryServiceTests
             .Options;
 
         _context = new ProvidersDbContext(options);
-        _service = new ProviderQueryService(_context, _loggerMock.Object);
+        _service = new ProviderQueryService(_context);
     }
 
     [Fact]
@@ -35,10 +36,7 @@ public class ProviderQueryServiceTests
         // Arrange
         var provider1 = new ProviderBuilder().Build();
         var provider2 = new ProviderBuilder().Build();
-        var deletedProvider = new ProviderBuilder().Build();
-        
-        // Simular soft delete
-        deletedProvider.GetType().GetProperty("IsDeleted")?.SetValue(deletedProvider, true);
+        var deletedProvider = new ProviderBuilder().WithDeleted().Build();
 
         _context.Providers.AddRange(provider1, provider2, deletedProvider);
         await _context.SaveChangesAsync();

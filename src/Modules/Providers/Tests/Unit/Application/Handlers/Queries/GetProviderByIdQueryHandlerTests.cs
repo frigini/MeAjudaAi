@@ -40,7 +40,7 @@ public class GetProviderByIdQueryHandlerTests
         var query = new GetProviderByIdQuery(providerId);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -60,12 +60,12 @@ public class GetProviderByIdQueryHandlerTests
 
         _providerRepositoryMock
             .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Domain.Entities.Provider?)null);
+            .ReturnsAsync((MeAjudaAi.Modules.Providers.Domain.Entities.Provider?)null);
 
         var query = new GetProviderByIdQuery(providerId);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();
@@ -90,7 +90,7 @@ public class GetProviderByIdQueryHandlerTests
         var query = new GetProviderByIdQuery(providerId);
 
         // Act
-        var result = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeFalse();

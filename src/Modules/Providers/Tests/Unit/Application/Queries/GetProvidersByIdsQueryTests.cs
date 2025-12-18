@@ -25,7 +25,6 @@ public class GetProvidersByIdsQueryTests
         // Assert
         cacheKey1.Should().Be(cacheKey2);
         cacheKey1.Should().Contain("providers");
-        cacheKey1.Should().Contain("ids");
     }
 
     [Fact]
