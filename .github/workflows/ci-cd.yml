@@ -189,19 +189,18 @@ jobs:
           dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
             --configuration Release --no-build --verbosity normal
 
-      - name: Install ReportGenerator
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool || dotnet tool update -g dotnet-reportgenerator-globaltool
-
       - name: Generate Code Coverage Report
-        run: |
-          reportgenerator \
-            -reports:"TestResults/Shared/**/coverage.cobertura.xml;TestResults/Architecture/**/coverage.cobertura.xml;TestResults/ApiService/**/coverage.cobertura.xml;TestResults/Users/**/coverage.cobertura.xml;TestResults/Documents/**/coverage.cobertura.xml;TestResults/Providers/**/coverage.cobertura.xml;TestResults/ServiceCatalogs/**/coverage.cobertura.xml;TestResults/Locations/**/coverage.cobertura.xml;TestResults/SearchProviders/**/coverage.cobertura.xml" \
-            -targetdir:"TestResults/Coverage" \
-            -reporttypes:"Html;Cobertura;JsonSummary" \
-            -assemblyfilters:"-*.Tests*;-*Test*;-*.Migrations.*;-*.Database;-*.Contracts" \
-            -classfilters:"-*.Migrations.*;-*.Database.*;-*.Contracts.*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
-          # Note: Only UNIT test coverage is collected (Integration/E2E excluded for deterministic results)
-          # Excluded from coverage: Tests, Migrations, Database, Contracts, Metrics, Health Checks, Jobs, Program, AppHost, Keycloak, Monitoring, NoOp, RabbitMq, ServiceBus, Hangfire, Options, Design-time factories
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.5.1
+        with:
+          reports: 'TestResults/Shared/**/coverage.cobertura.xml;TestResults/Architecture/**/coverage.cobertura.xml;TestResults/ApiService/**/coverage.cobertura.xml;TestResults/Users/**/coverage.cobertura.xml;TestResults/Documents/**/coverage.cobertura.xml;TestResults/Providers/**/coverage.cobertura.xml;TestResults/ServiceCatalogs/**/coverage.cobertura.xml;TestResults/Locations/**/coverage.cobertura.xml;TestResults/SearchProviders/**/coverage.cobertura.xml'
+          targetdir: 'TestResults/Coverage'
+          reporttypes: 'Html;Cobertura;JsonSummary'
+          assemblyfilters: '-*.Tests*;-*Test*;-*.Migrations.*;-*.Database;-*.Contracts'
+          classfilters: '-*.Migrations.*;-*.Database.*;-*.Contracts.*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery'
+          verbosity: 'Info'
+          tag: '${{ github.run_number }}_${{ github.run_id }}'
+        # Note: Only UNIT test coverage is collected (Integration/E2E excluded for deterministic results)
+        # Excluded from coverage: Tests, Migrations, Database, Contracts, Metrics, Health Checks, Jobs, Program, AppHost, Keycloak, Monitoring, NoOp, RabbitMq, ServiceBus, Hangfire, Options, Design-time factories
 
       - name: Upload code coverage
         uses: actions/upload-artifact@v6
