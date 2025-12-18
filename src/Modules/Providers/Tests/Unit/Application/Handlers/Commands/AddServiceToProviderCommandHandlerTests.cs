@@ -39,13 +39,12 @@ public class AddServiceToProviderCommandHandlerTests
     public async Task HandleAsync_WithValidService_ShouldAddServiceToProvider()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
-        var command = new AddServiceToProviderCommand(providerId, serviceId);
         var provider = ProviderBuilder.Create().Build();
+        var command = new AddServiceToProviderCommand(provider.Id.Value, serviceId);
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByIdAsync(new ProviderId(provider.Id.Value), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         var validationResult = new ModuleServiceValidationResultDto(
@@ -62,6 +61,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        provider.Services.Should().ContainSingle(s => s.ServiceId == serviceId);
         _repositoryMock.Verify(x => x.UpdateAsync(provider, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -80,7 +80,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Provider not found");
+        result.Error.Message.Should().Be("Prestador não encontrado");
         _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 

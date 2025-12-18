@@ -33,14 +33,13 @@ public class RemoveServiceFromProviderCommandHandlerTests
     public async Task HandleAsync_WithValidService_ShouldRemoveServiceFromProvider()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
-        var command = new RemoveServiceFromProviderCommand(providerId, serviceId);
         var provider = ProviderBuilder.Create().Build();
         provider.AddService(serviceId);
+        var command = new RemoveServiceFromProviderCommand(provider.Id.Value, serviceId);
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByIdAsync(new ProviderId(provider.Id.Value), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -48,6 +47,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        provider.Services.Should().NotContain(s => s.ServiceId == serviceId);
         _repositoryMock.Verify(x => x.UpdateAsync(provider, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -66,7 +66,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be("Provider not found");
+        result.Error.Message.Should().Be("Prestador não encontrado");
         _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -74,13 +74,12 @@ public class RemoveServiceFromProviderCommandHandlerTests
     public async Task HandleAsync_WhenRemovingNonExistentService_ShouldReturnFailure()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
-        var command = new RemoveServiceFromProviderCommand(providerId, serviceId);
         var provider = ProviderBuilder.Create().Build();
+        var command = new RemoveServiceFromProviderCommand(provider.Id.Value, serviceId);
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByIdAsync(new ProviderId(provider.Id.Value), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         // Act
@@ -88,7 +87,7 @@ public class RemoveServiceFromProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while removing service from provider");
+        result.Error.Message.Should().Contain("Ocorreu um erro ao remover serviço do prestador");
         _repositoryMock.Verify(x => x.UpdateAsync(provider, It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -96,14 +95,13 @@ public class RemoveServiceFromProviderCommandHandlerTests
     public async Task HandleAsync_WhenRepositoryThrows_ShouldReturnFailure()
     {
         // Arrange
-        var providerId = Guid.NewGuid();
         var serviceId = Guid.NewGuid();
-        var command = new RemoveServiceFromProviderCommand(providerId, serviceId);
         var provider = ProviderBuilder.Create().Build();
         provider.AddService(serviceId);
+        var command = new RemoveServiceFromProviderCommand(provider.Id.Value, serviceId);
 
         _repositoryMock
-            .Setup(x => x.GetByIdAsync(It.IsAny<ProviderId>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByIdAsync(new ProviderId(provider.Id.Value), It.IsAny<CancellationToken>()))
             .ReturnsAsync(provider);
 
         _repositoryMock
@@ -115,6 +113,6 @@ public class RemoveServiceFromProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while removing service from provider");
+        result.Error.Message.Should().Contain("Ocorreu um erro ao remover serviço do prestador");
     }
 }

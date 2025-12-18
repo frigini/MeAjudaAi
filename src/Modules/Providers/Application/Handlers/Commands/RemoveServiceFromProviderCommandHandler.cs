@@ -38,7 +38,7 @@ public sealed class RemoveServiceFromProviderCommandHandler(
             if (provider == null)
             {
                 logger.LogWarning("Provider {ProviderId} not found", command.ProviderId);
-                return Result.Failure("Provider not found");
+                return Result.Failure("Prestador não encontrado");
             }
 
             // 2. Remover o serviço do provider (domínio valida se existe)
@@ -62,7 +62,7 @@ public sealed class RemoveServiceFromProviderCommandHandler(
                 command.ServiceId,
                 command.ProviderId);
 
-            return Result.Failure($"An error occurred while removing service from provider: {ex.Message}");
+            return Result.Failure($"Ocorreu um erro ao remover serviço do prestador: {ex.Message}");
         }
     }
 }

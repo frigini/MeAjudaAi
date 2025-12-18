@@ -79,7 +79,7 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
             ? Results.Ok(result.Value)
             : Results.BadRequest(new ProblemDetails
             {
-                Title = "Search Failed",
+                Title = "Busca Falhou",
                 Detail = result.Error.Message,
                 Status = StatusCodes.Status400BadRequest
             });
