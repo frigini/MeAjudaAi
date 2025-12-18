@@ -63,6 +63,7 @@ public sealed class ProviderQueryService : IProviderQueryService
             if (providerName == "Microsoft.EntityFrameworkCore.InMemory")
             {
                 // InMemory: usa ToLower() para compatibilidade com testes unitários
+                // Nota: Contains() não interpreta wildcards LIKE, então não precisa escapar
                 var lowerNameFilter = nameFilter.ToLower();
                 query = query.Where(p => p.Name.ToLower().Contains(lowerNameFilter));
             }
@@ -70,7 +71,13 @@ public sealed class ProviderQueryService : IProviderQueryService
                      providerName?.Contains("Postgres", StringComparison.OrdinalIgnoreCase) == true)
             {
                 // PostgreSQL: usa ILike para melhor performance com índices
-                query = query.Where(p => EF.Functions.ILike(p.Name, $"%{nameFilter}%"));
+                // Escapa caracteres especiais do LIKE (%, _, \) para evitar matches inesperados
+                var escapedFilter = nameFilter
+                    .Replace("\\", "\\\\")  // Escape backslash first
+                    .Replace("%", "\\%")     // Escape percent wildcard
+                    .Replace("_", "\\_");    // Escape underscore wildcard
+                
+                query = query.Where(p => EF.Functions.ILike(p.Name, $"%{escapedFilter}%"));
             }
             else
             {

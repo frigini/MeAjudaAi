@@ -705,8 +705,18 @@ jobs:
           fi
           
           # Verify reportgenerator is functional (check help instead of version)
+          echo "🔍 Testing reportgenerator functionality..."
           if ! reportgenerator --help > /dev/null 2>&1; then
             echo "❌ ReportGenerator is not functional"
+            echo "📋 Diagnostics:"
+            echo "  - reportgenerator location: $(which reportgenerator || echo 'not found')"
+            echo "  - dotnet tools directory: $(ls -la $HOME/.dotnet/tools/ || echo 'directory not found')"
+            echo "  - Attempting to run with explicit path..."
+            if [ -f "$HOME/.dotnet/tools/reportgenerator" ]; then
+              $HOME/.dotnet/tools/reportgenerator --help > /dev/null 2>&1 || echo "  - Explicit path also failed"
+            fi
+            echo "  - .NET SDK info:"
+            dotnet --info | grep -A 5 "SDK"
             exit 1
           fi
           echo "✅ ReportGenerator version: $(reportgenerator --help | head -n 1 || echo 'unknown')"
