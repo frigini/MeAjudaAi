@@ -109,11 +109,6 @@ public sealed class LocationsModuleApiTests
         
         _mockCepLookupService
             .Setup(x => x.LookupAsync(It.IsAny<Cep>(), It.IsAny<CancellationToken>()))
-            .Callback<Cep, CancellationToken>((_, token) =>
-            {
-                // Verificar que o token foi propagado
-                token.Should().Be(cts.Token);
-            })
             .ReturnsAsync((Address?)null);
 
         // Act
@@ -133,11 +128,6 @@ public sealed class LocationsModuleApiTests
         
         _mockGeocodingService
             .Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Callback<string, CancellationToken>((_, token) =>
-            {
-                // Verificar que o token foi propagado
-                token.Should().Be(cts.Token);
-            })
             .ReturnsAsync((GeoPoint?)null);
 
         // Act

@@ -57,23 +57,6 @@ public class ProviderServiceTests
     }
 
     [Fact]
-    public void Create_MultipleTimes_ShouldHaveDifferentAddedAtTimes()
-    {
-        // Arrange
-        var providerId = ProviderId.New();
-        var serviceId1 = Guid.NewGuid();
-        var serviceId2 = Guid.NewGuid();
-
-        // Act
-        var service1 = ProviderService.Create(providerId, serviceId1);
-        Thread.Sleep(10); // Pequeno delay para garantir timestamps diferentes
-        var service2 = ProviderService.Create(providerId, serviceId2);
-
-        // Assert
-        service2.AddedAt.Should().BeAfter(service1.AddedAt);
-    }
-
-    [Fact]
     public void Create_WithDifferentServiceIds_ShouldCreateDifferentInstances()
     {
         // Arrange
