@@ -57,7 +57,7 @@ public class GetProvidersByIdsQueryTests
         var cacheKey1 = query1.GetCacheKey();
         var cacheKey2 = query2.GetCacheKey();
 
-        // Assert - Assuming the implementation sorts IDs for consistent caching
+        // Assert - A implementação ordena os IDs para cache consistente
         cacheKey1.Should().Be(cacheKey2);
     }
 
