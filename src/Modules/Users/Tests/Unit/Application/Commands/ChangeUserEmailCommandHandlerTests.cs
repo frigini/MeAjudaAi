@@ -198,9 +198,7 @@ public class ChangeUserEmailCommandHandlerTests
         // Arrange
         var userId = Guid.NewGuid();
         var command = new ChangeUserEmailCommand(userId, "newemail@test.com");
-#pragma warning disable CA2000 // CancellationTokenSource em teste é descartado ao fim do método
         var cancellationTokenSource = new CancellationTokenSource();
-#pragma warning restore CA2000
         await cancellationTokenSource.CancelAsync();
 
         _userRepositoryMock

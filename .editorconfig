@@ -272,3 +272,13 @@ dotnet_diagnostic.CA5394.severity = none
 dotnet_diagnostic.CA2100.severity = none
 dotnet_diagnostic.CA1031.severity = none
 dotnet_diagnostic.CA2007.severity = none
+
+# =====================================
+# REGRAS ESPECÍFICAS PARA TESTES
+# =====================================
+[**/Tests/**/*.cs]
+
+# CA2000: Dispose objects before losing scope
+# Em testes, objetos como CancellationTokenSource e HttpResponseMessage
+# são gerenciados por using statements ou mock handlers
+dotnet_diagnostic.CA2000.severity = none
