@@ -103,6 +103,71 @@ public class QualificationTests
     }
 
     [Fact]
+    public void IsExpiredAt_WithPastExpirationDate_ShouldReturnTrue()
+    {
+        // Arrange
+        var expirationDate = new DateTime(2023, 12, 31);
+        var referenceDate = new DateTime(2024, 1, 1);
+        var qualification = new Qualification(
+            "Test Qualification",
+            expirationDate: expirationDate);
+
+        // Act
+        var result = qualification.IsExpiredAt(referenceDate);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsExpiredAt_WithFutureExpirationDate_ShouldReturnFalse()
+    {
+        // Arrange
+        var expirationDate = new DateTime(2025, 12, 31);
+        var referenceDate = new DateTime(2024, 1, 1);
+        var qualification = new Qualification(
+            "Test Qualification",
+            expirationDate: expirationDate);
+
+        // Act
+        var result = qualification.IsExpiredAt(referenceDate);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsExpiredAt_WithNoExpirationDate_ShouldReturnFalse()
+    {
+        // Arrange
+        var referenceDate = new DateTime(2024, 1, 1);
+        var qualification = new Qualification("Test Qualification");
+
+        // Act
+        var result = qualification.IsExpiredAt(referenceDate);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsExpiredAt_WithExactExpirationDate_ShouldReturnFalse()
+    {
+        // Arrange
+        var expirationDate = new DateTime(2024, 1, 1);
+        var referenceDate = new DateTime(2024, 1, 1);
+        var qualification = new Qualification(
+            "Test Qualification",
+            expirationDate: expirationDate);
+
+        // Act
+        var result = qualification.IsExpiredAt(referenceDate);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
     public void Equals_WithSameValues_ShouldBeEqual()
     {
         // Arrange
