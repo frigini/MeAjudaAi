@@ -86,6 +86,73 @@ public sealed class LocationsModuleApiTests
     }
 
     [Fact]
+    public async Task IsAvailableAsync_WhenCancelled_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        _mockCepLookupService
+            .Setup(x => x.LookupAsync(It.IsAny<Cep>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        // Act
+        var act = () => _sut.IsAvailableAsync(cts.Token);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*cancelled*");
+    }
+
+    [Fact]
+    public async Task GetAddressFromCepAsync_WhenCancelled_ShouldPropagateToken()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        
+        _mockCepLookupService
+            .Setup(x => x.LookupAsync(It.IsAny<Cep>(), It.IsAny<CancellationToken>()))
+            .Callback<Cep, CancellationToken>((_, token) =>
+            {
+                // Verificar que o token foi propagado
+                token.Should().Be(cts.Token);
+            })
+            .ReturnsAsync((Address?)null);
+
+        // Act
+        await _sut.GetAddressFromCepAsync("01310100", cts.Token);
+
+        // Assert
+        _mockCepLookupService.Verify(
+            x => x.LookupAsync(It.IsAny<Cep>(), cts.Token),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetCoordinatesFromAddressAsync_WhenCancelled_ShouldPropagateToken()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        
+        _mockGeocodingService
+            .Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<string, CancellationToken>((_, token) =>
+            {
+                // Verificar que o token foi propagado
+                token.Should().Be(cts.Token);
+            })
+            .ReturnsAsync((GeoPoint?)null);
+
+        // Act
+        await _sut.GetCoordinatesFromAddressAsync("Test Address", cts.Token);
+
+        // Assert
+        _mockGeocodingService.Verify(
+            x => x.GetCoordinatesAsync(It.IsAny<string>(), cts.Token),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task GetAddressFromCepAsync_WithValidCep_ShouldReturnSuccess()
     {
         // Arrange

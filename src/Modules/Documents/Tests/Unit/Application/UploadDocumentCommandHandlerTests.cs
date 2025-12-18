@@ -436,4 +436,140 @@ public class UploadDocumentCommandHandlerTests
                 It.IsAny<TimeSpan?>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task HandleAsync_WithNullHttpContext_ShouldThrowUnauthorizedAccessException()
+    {
+        // Arrange
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext?)null);
+
+        var command = new UploadDocumentCommand(
+            Guid.NewGuid(),
+            "IdentityDocument",
+            "test.pdf",
+            "application/pdf",
+            102400);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.Message.Should().Contain("HTTP context not available");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithUnauthenticatedUser_ShouldThrowUnauthorizedAccessException()
+    {
+        // Arrange
+        var httpContext = new DefaultHttpContext
+        {
+            User = new ClaimsPrincipal() // Sem identity autenticada
+        };
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+
+        var command = new UploadDocumentCommand(
+            Guid.NewGuid(),
+            "IdentityDocument",
+            "test.pdf",
+            "application/pdf",
+            102400);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.Message.Should().Contain("not authenticated");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithMissingUserIdClaim_ShouldThrowUnauthorizedAccessException()
+    {
+        // Arrange
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.Role, "provider") // Sem claim 'sub' ou 'id'
+        };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var principal = new ClaimsPrincipal(identity);
+        var httpContext = new DefaultHttpContext { User = principal };
+
+        _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
+
+        var command = new UploadDocumentCommand(
+            Guid.NewGuid(),
+            "IdentityDocument",
+            "test.pdf",
+            "application/pdf",
+            102400);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.Message.Should().Contain("User ID not found");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public async Task HandleAsync_WithEmptyContentType_ShouldThrowArgumentException(string? contentType)
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
+        var command = new UploadDocumentCommand(
+            providerId,
+            "IdentityDocument",
+            "test.pdf",
+            contentType!,
+            102400);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.Message.Should().Contain("Content-Type is required");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenRepositoryFails_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
+        var command = new UploadDocumentCommand(
+            providerId,
+            "IdentityDocument",
+            "test.pdf",
+            "application/pdf",
+            102400);
+
+        _mockBlobStorage
+            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
+
+        _mockRepository
+            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.Message.Should().Contain("Failed to upload document");
+        exception.InnerException.Should().NotBeNull();
+        exception.InnerException!.Message.Should().Contain("Database error");
+
+        _mockLogger.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Unexpected error")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
 }

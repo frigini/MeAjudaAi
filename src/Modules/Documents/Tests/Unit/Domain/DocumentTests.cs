@@ -229,6 +229,76 @@ public class DocumentTests
     }
 
     [Fact]
+    public void MarkAsFailed_ShouldRaiseDocumentFailedDomainEvent()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.ClearDomainEvents(); // Limpar evento de criação
+
+        // Act
+        document.MarkAsFailed("Service timeout");
+
+        // Assert
+        document.DomainEvents.Should().HaveCount(1);
+        var domainEvent = document.DomainEvents.First().Should().BeOfType<DocumentFailedDomainEvent>().Subject;
+        domainEvent.AggregateId.Should().Be(document.Id);
+        domainEvent.ProviderId.Should().Be(document.ProviderId);
+        domainEvent.DocumentType.Should().Be(document.DocumentType);
+        domainEvent.FailureReason.Should().Be("Service timeout");
+    }
+
+    [Fact]
+    public void MarkAsVerified_WithoutOcrData_ShouldUpdateStatusWithoutData()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+
+        // Act
+        document.MarkAsVerified(null);
+
+        // Assert
+        document.Status.Should().Be(EDocumentStatus.Verified);
+        document.VerifiedAt.Should().NotBeNull();
+        document.OcrData.Should().BeNull();
+    }
+
+    [Fact]
+    public void MarkAsVerified_WithoutOcrData_ShouldIndicateNoOcrDataInEvent()
+    {
+        // Arrange
+        var document = CreateTestDocument();
+        document.MarkAsPendingVerification();
+        document.ClearDomainEvents();
+
+        // Act
+        document.MarkAsVerified(null);
+
+        // Assert
+        var domainEvent = document.DomainEvents.First().Should().BeOfType<DocumentVerifiedDomainEvent>().Subject;
+        domainEvent.HasOcrData.Should().BeFalse();
+    }
+
+    [Fact]
+    public void MarkAsFailed_FromAnyStatus_ShouldSucceed()
+    {
+        // Arrange - Teste que MarkAsFailed não tem guard de estado (diferente de outros métodos)
+        var documentUploaded = CreateTestDocument();
+        var documentPending = CreateTestDocument();
+        documentPending.MarkAsPendingVerification();
+
+        // Act & Assert - Deve funcionar de qualquer estado
+        var actUploaded = () => documentUploaded.MarkAsFailed("Error from Uploaded");
+        var actPending = () => documentPending.MarkAsFailed("Error from Pending");
+
+        actUploaded.Should().NotThrow();
+        actPending.Should().NotThrow();
+
+        documentUploaded.Status.Should().Be(EDocumentStatus.Failed);
+        documentPending.Status.Should().Be(EDocumentStatus.Failed);
+    }
+
+    [Fact]
     public void MarkAsFailed_WithEmptyReason_ShouldThrowArgumentException()
     {
         // Arrange
