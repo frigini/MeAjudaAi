@@ -6,13 +6,12 @@ using MeAjudaAi.Shared.Time;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 
 /// <summary>
-/// Additional integration tests for ServiceCatalogs API - edge cases, error scenarios, and complex workflows
+/// Testes de integração para IServiceCatalogsModuleApi
 /// </summary>
 [Collection("ServiceCatalogsIntegrationTests")]
 [Trait("Category", "Integration")]
 [Trait("Module", "ServiceCatalogs")]
-[Trait("Component", "API")]
-public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegrationTestBase
+public class ServiceCatalogsModuleApiTests : ServiceCatalogsIntegrationTestBase
 {
     private IServiceCatalogsModuleApi _moduleApi = null!;
 
@@ -22,13 +21,7 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
         _moduleApi = GetService<IServiceCatalogsModuleApi>();
     }
 
-    #region Category Edge Cases
-
-    // Note: Concurrent test removed due to database isolation issues in integration test environment
-
-    #endregion
-
-    #region Service Edge Cases
+    #region Edge Cases
 
     [Fact]
     public async Task GetServicesByCategoryAsync_WithNonExistentCategory_ShouldReturnEmptyList()
@@ -74,7 +67,7 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
 
     #endregion
 
-    #region Validation Edge Cases
+    #region Validation
 
     [Fact]
     public async Task ValidateServicesAsync_WithEmptyList_ShouldReturnAllValid()
@@ -194,7 +187,7 @@ public class ServiceCatalogsApiEdgeCasesIntegrationTests : ServiceCatalogsIntegr
 
     #endregion
 
-    #region Complex Workflow Tests
+    #region Workflows
 
     [Fact]
     public async Task CompleteWorkflow_CreateCategoryAndServices_ThenValidate()
