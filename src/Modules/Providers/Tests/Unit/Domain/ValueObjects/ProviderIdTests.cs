@@ -27,7 +27,7 @@ public class ProviderIdTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("ProviderId cannot be empty");
+            .WithMessage("ProviderId não pode ser vazio");
     }
 
     [Fact]

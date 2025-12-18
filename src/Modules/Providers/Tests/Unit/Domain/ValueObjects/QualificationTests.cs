@@ -63,7 +63,7 @@ public class QualificationTests
         // Act & Assert
         var action = () => new Qualification(invalidName);
         action.Should().Throw<ArgumentException>()
-            .WithMessage("*Qualification name cannot be empty*");
+            .WithMessage("*Nome da qualificação não pode ser vazio*");
     }
 
     [Fact]

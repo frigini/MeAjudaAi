@@ -49,7 +49,9 @@ public sealed class ProviderQueryService : IProviderQueryService
         // Aplica filtro por nome (busca parcial, case-insensitive)
         if (!string.IsNullOrWhiteSpace(nameFilter))
         {
-            query = query.Where(p => EF.Functions.ILike(p.Name, $"%{nameFilter}%"));
+            // Usando ToLower para compatibilidade com InMemory e PostgreSQL
+            var lowerNameFilter = nameFilter.ToLower();
+            query = query.Where(p => p.Name.ToLower().Contains(lowerNameFilter));
         }
 
         // Aplica filtro por tipo

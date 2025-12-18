@@ -51,7 +51,7 @@ public class CreateProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBe(Guid.Empty);
+        result.Value.Id.Should().NotBe(Guid.Empty);
 
         _providerRepositoryMock.Verify(
             x => x.AddAsync(It.IsAny<MeAjudaAi.Modules.Providers.Domain.Entities.Provider>(), It.IsAny<CancellationToken>()),
