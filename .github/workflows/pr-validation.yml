@@ -648,27 +648,6 @@ jobs:
           dotnet --list-sdks
           dotnet --list-runtimes
           
-          # Set DOTNET_ROOT to system installation before installing ReportGenerator
-          # ReportGenerator is a .NET 10 tool that requires the .NET 10 runtime.
-          # The Aspire prep step sets DOTNET_ROOT=$HOME/.dotnet for workload isolation,
-          # but ReportGenerator needs the full SDK in /usr/share/dotnet.
-          if command -v dotnet >/dev/null 2>&1; then
-            DOTNET_PATH=$(which dotnet)
-            DOTNET_RESOLVED=$(readlink -f "$DOTNET_PATH")
-            # dotnet binary is at /usr/share/dotnet/dotnet, so only one dirname needed
-            export DOTNET_ROOT=$(dirname "$DOTNET_RESOLVED")
-            echo "✅ Detected DOTNET_ROOT: $DOTNET_ROOT"
-          else
-            export DOTNET_ROOT=/usr/share/dotnet
-            echo "⚠️  Using fallback DOTNET_ROOT: $DOTNET_ROOT"
-          fi
-          
-          # Verify DOTNET_ROOT is valid
-          if [ ! -d "$DOTNET_ROOT" ]; then
-            echo "❌ ERROR: DOTNET_ROOT directory does not exist: $DOTNET_ROOT"
-            exit 1
-          fi
-          
           # Pre-flight check: verify all expected coverage files exist
           echo "🔍 Pre-flight check: Verifying coverage files..."
           MISSING_FILES=0
