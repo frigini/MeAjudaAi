@@ -102,4 +102,21 @@ public class GetProvidersByIdsQueryTests
         // Assert
         cacheKey.Should().Contain(providerId.ToString());
     }
+
+    [Fact]
+    public void GetCacheTags_ShouldReturnProvidersAndBatchTags()
+    {
+        // Arrange
+        var providerIds = new List<Guid> { Guid.NewGuid() };
+        var query = new GetProvidersByIdsQuery(providerIds);
+
+        // Act
+        var tags = query.GetCacheTags();
+
+        // Assert
+        tags.Should().NotBeNull();
+        tags.Should().Contain("providers");
+        tags.Should().Contain("providers-batch");
+        tags.Should().HaveCount(2);
+    }
 }
