@@ -673,8 +673,27 @@ jobs:
             echo "   ReportGenerator will combine only available modules"
           fi
 
+      - name: Configure DOTNET_ROOT for ReportGenerator
+        run: |
+          # ReportGenerator needs DOTNET_ROOT to find .NET runtime
+          # Set to system installation path where .NET 10 runtime is installed
+          if command -v dotnet >/dev/null 2>&1; then
+            DOTNET_PATH=$(which dotnet)
+            DOTNET_RESOLVED=$(readlink -f "$DOTNET_PATH")
+            export DOTNET_ROOT=$(dirname "$DOTNET_RESOLVED")
+            echo "DOTNET_ROOT=$DOTNET_ROOT" >> $GITHUB_ENV
+            echo "✅ Set DOTNET_ROOT: $DOTNET_ROOT"
+            echo "📋 Available runtimes:"
+            dotnet --list-runtimes
+          else
+            echo "❌ dotnet command not found"
+            exit 1
+          fi
+
       - name: Generate aggregated coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5.5.1
+        env:
+          DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
         with:
           reports: 'coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml'
           targetdir: 'coverage/aggregate'

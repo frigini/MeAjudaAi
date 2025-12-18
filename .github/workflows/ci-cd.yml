@@ -189,8 +189,21 @@ jobs:
           dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
             --configuration Release --no-build --verbosity normal
 
+      - name: Configure DOTNET_ROOT for ReportGenerator
+        run: |
+          # ReportGenerator needs DOTNET_ROOT to find .NET runtime
+          if command -v dotnet >/dev/null 2>&1; then
+            DOTNET_PATH=$(which dotnet)
+            DOTNET_RESOLVED=$(readlink -f "$DOTNET_PATH")
+            export DOTNET_ROOT=$(dirname "$DOTNET_RESOLVED")
+            echo "DOTNET_ROOT=$DOTNET_ROOT" >> $GITHUB_ENV
+            echo "✅ Set DOTNET_ROOT: $DOTNET_ROOT"
+          fi
+
       - name: Generate Code Coverage Report
         uses: danielpalme/ReportGenerator-GitHub-Action@5.5.1
+        env:
+          DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
         with:
           reports: 'TestResults/Shared/**/coverage.cobertura.xml;TestResults/Architecture/**/coverage.cobertura.xml;TestResults/ApiService/**/coverage.cobertura.xml;TestResults/Users/**/coverage.cobertura.xml;TestResults/Documents/**/coverage.cobertura.xml;TestResults/Providers/**/coverage.cobertura.xml;TestResults/ServiceCatalogs/**/coverage.cobertura.xml;TestResults/Locations/**/coverage.cobertura.xml;TestResults/SearchProviders/**/coverage.cobertura.xml'
           targetdir: 'TestResults/Coverage'
