@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Unit.Application.Handlers.Commands;
@@ -85,5 +86,27 @@ public class CreateServiceCategoryCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         result.Error!.Message.Should().Contain("name", "validation error should mention the problematic field");
+    }
+
+    [Fact]
+    public async Task Handle_WhenDomainExceptionThrown_ShouldReturnFailureWithMessage()
+    {
+        // Arrange
+        var command = new CreateServiceCategoryCommand("Valid Name", "Description", 1);
+
+        _repositoryMock
+            .Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _repositoryMock
+            .Setup(x => x.AddAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new CatalogDomainException("Domain rule violation"));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Be("Domain rule violation");
     }
 }

@@ -67,6 +67,58 @@ public class QualificationTests
     }
 
     [Fact]
+    public void Constructor_WithExpirationBeforeIssue_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var issueDate = new DateTime(2024, 6, 1);
+        var expirationDate = new DateTime(2024, 1, 1); // Anterior à emissão
+
+        // Act & Assert
+        var action = () => new Qualification(
+            "Test Qualification",
+            issueDate: issueDate,
+            expirationDate: expirationDate);
+
+        action.Should().Throw<ArgumentException>()
+            .WithMessage("*Data de expiração não pode ser anterior à data de emissão*")
+            .WithParameterName("expirationDate");
+    }
+
+    [Fact]
+    public void Constructor_WithSameIssueDateAndExpiration_ShouldSucceed()
+    {
+        // Arrange
+        var date = new DateTime(2024, 1, 1);
+
+        // Act
+        var qualification = new Qualification(
+            "Test Qualification",
+            issueDate: date,
+            expirationDate: date);
+
+        // Assert
+        qualification.IssueDate.Should().Be(date);
+        qualification.ExpirationDate.Should().Be(date);
+    }
+
+    [Fact]
+    public void Constructor_ShouldTrimWhitespaceFromStringFields()
+    {
+        // Arrange & Act
+        var qualification = new Qualification(
+            "  Name  ",
+            "  Description  ",
+            "  Organization  ",
+            documentNumber: "  DOC123  ");
+
+        // Assert
+        qualification.Name.Should().Be("Name");
+        qualification.Description.Should().Be("Description");
+        qualification.IssuingOrganization.Should().Be("Organization");
+        qualification.DocumentNumber.Should().Be("DOC123");
+    }
+
+    [Fact]
     public void IsExpired_WithPastExpirationDate_ShouldReturnTrue()
     {
         // Arrange
