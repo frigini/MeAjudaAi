@@ -55,7 +55,7 @@ public sealed class AddServiceToProviderCommandHandler(
                     "Failed to validate service {ServiceId}: {Error}",
                     command.ServiceId,
                     validationResult.Error.Message);
-                return Result.Failure($"Failed to validate service: {validationResult.Error.Message}");
+                return Result.Failure($"Falha ao validar serviço: {validationResult.Error.Message}");
             }
 
             // 3. Verificar se o serviço é válido
@@ -65,12 +65,12 @@ public sealed class AddServiceToProviderCommandHandler(
 
                 if (validationResult.Value.InvalidServiceIds.Any())
                 {
-                    reasons.Add($"Service {command.ServiceId} does not exist");
+                    reasons.Add($"Serviço {command.ServiceId} não existe");
                 }
 
                 if (validationResult.Value.InactiveServiceIds.Any())
                 {
-                    reasons.Add($"Service {command.ServiceId} is not active");
+                    reasons.Add($"Serviço {command.ServiceId} não está ativo");
                 }
 
                 var errorMessage = string.Join("; ", reasons);
@@ -103,7 +103,7 @@ public sealed class AddServiceToProviderCommandHandler(
                 command.ServiceId,
                 command.ProviderId);
 
-            return Result.Failure($"An error occurred while adding service to provider: {ex.Message}");
+            return Result.Failure($"Ocorreu um erro ao adicionar serviço ao prestador: {ex.Message}");
         }
     }
 }
