@@ -1,9 +1,11 @@
 using System.Security.Claims;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Authorization;
+namespace MeAjudaAi.Shared.Authorization.Handlers;
 
 /// <summary>
 /// Transforma claims do usuário adicionando permissões baseadas em roles.

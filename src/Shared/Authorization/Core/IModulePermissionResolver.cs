@@ -1,4 +1,6 @@
-namespace MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.ValueObjects;
+
+namespace MeAjudaAi.Shared.Authorization.Core;
 
 /// <summary>
 /// Interface para resolvers de permissões específicos de cada módulo.

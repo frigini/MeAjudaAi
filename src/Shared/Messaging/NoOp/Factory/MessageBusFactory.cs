@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Messaging.Factory;
+namespace MeAjudaAi.Shared.Messaging.NoOp.Factory;
 
 /// <summary>
 /// Factory para criar o MessageBus apropriado baseado no ambiente

@@ -1,6 +1,7 @@
+using MeAjudaAi.Shared.Authorization.Core;
 using Microsoft.AspNetCore.Authorization;
 
-namespace MeAjudaAi.Shared.Authorization;
+namespace MeAjudaAi.Shared.Authorization.Handlers;
 
 /// <summary>
 /// Requirement de autorização que especifica uma permissão necessária.

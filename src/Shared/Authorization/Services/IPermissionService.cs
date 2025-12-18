@@ -1,4 +1,6 @@
-namespace MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
+
+namespace MeAjudaAi.Shared.Authorization.Services;
 
 /// <summary>
 /// Serviço responsável por gerenciar permissões de usuários.

@@ -1,7 +1,7 @@
 using MeAjudaAi.Shared.Domain;
 using MeAjudaAi.Shared.Time;
 
-namespace MeAjudaAi.Shared.Authorization;
+namespace MeAjudaAi.Shared.Authorization.ValueObjects;
 
 /// <summary>
 /// Value object compartilhado para identificadores de usuário.

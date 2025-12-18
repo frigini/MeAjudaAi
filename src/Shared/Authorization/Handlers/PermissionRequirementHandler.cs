@@ -1,9 +1,10 @@
 using System.Security.Claims;
+using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Authorization;
+namespace MeAjudaAi.Shared.Authorization.Handlers;
 
 /// <summary>
 /// Authorization handler que verifica PermissionRequirement.

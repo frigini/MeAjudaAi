@@ -1,10 +1,11 @@
+using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Authorization;
+namespace MeAjudaAi.Shared.Authorization.Services;
 
 /// <summary>
 /// Implementação modular do serviço de permissões que utiliza roles do Keycloak
@@ -17,11 +18,11 @@ public sealed class PermissionService(
     IPermissionMetricsService metrics) : IPermissionService
 {
 
-    // Cache key patterns
+    // Padrões de chave de cache
     private const string UserPermissionsCacheKey = "user_permissions_{0}";
     private const string UserModulePermissionsCacheKey = "user_permissions_{0}_module_{1}";
 
-    // Cache configuration
+    // Configuração de cache
     private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(30);
     private static readonly HybridCacheEntryOptions CacheOptions = new()
     {
@@ -49,7 +50,7 @@ public sealed class PermissionService(
             cacheKey,
             async _ =>
             {
-                cacheHit = false; // Cache miss
+                cacheHit = false; // Cache miss (falha no cache)
                 return await ResolveUserPermissionsAsync(userId, cancellationToken);
             },
             CacheExpiration,
@@ -59,7 +60,7 @@ public sealed class PermissionService(
 
         if (result.Any())
         {
-            cacheHit = true; // Had cached result
+            cacheHit = true; // Resultado do cache obtido
         }
 
         return result;
@@ -67,7 +68,7 @@ public sealed class PermissionService(
 
     public async Task<bool> HasPermissionAsync(string userId, EPermission permission, CancellationToken cancellationToken = default)
     {
-        using var timer = metrics.MeasurePermissionCheck(userId, permission, false); // Will update with actual result
+        using var timer = metrics.MeasurePermissionCheck(userId, permission, false); // Será atualizado com resultado real
 
         var permissions = await GetUserPermissionsAsync(userId, cancellationToken);
         var hasPermission = permissions.Contains(permission);
@@ -84,7 +85,7 @@ public sealed class PermissionService(
     {
         if (!permissions.Any())
         {
-            return true; // Vacuous truth - no permissions to check
+            return true; // Verdade vazia - nenhuma permissão para verificar
         }
 
         using var timer = metrics.MeasureMultiplePermissionCheck(userId, permissions, requireAll);
@@ -146,18 +147,18 @@ public sealed class PermissionService(
             return;
         }
 
-        // Clear all user permission caches
+        // Limpa todos os caches de permissões do usuário
         await cacheService.RemoveByTagAsync($"user:{userId}", cancellationToken);
 
         logger.LogInformation("Invalidated permission cache for user {UserId}", userId);
     }
 
-    // Private implementation methods
+    // Métodos privados de implementação
     private async Task<IReadOnlyList<EPermission>> ResolveUserPermissionsAsync(string userId, CancellationToken cancellationToken)
     {
         var permissions = new List<EPermission>();
 
-        // Get all permission providers from DI
+        // Obtém todos os provedores de permissão da injeção de dependência
         var providers = serviceProvider.GetServices<IPermissionProvider>();
 
         foreach (var provider in providers)
@@ -174,7 +175,7 @@ public sealed class PermissionService(
             }
         }
 
-        // Remove duplicates and return
+        // Remove duplicatas e retorna
         return permissions.Distinct().ToArray();
     }
 
@@ -182,7 +183,7 @@ public sealed class PermissionService(
     {
         var permissions = new List<EPermission>();
 
-        // Get module-specific permission providers
+        // Obtém provedores de permissão específicos do módulo
         var providers = serviceProvider.GetServices<IPermissionProvider>()
             .Where(p => p.ModuleName.Equals(moduleName, StringComparison.OrdinalIgnoreCase));
 

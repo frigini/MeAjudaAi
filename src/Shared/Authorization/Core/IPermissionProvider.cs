@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Authorization;
+namespace MeAjudaAi.Shared.Authorization.Core;
 
 /// <summary>
 /// Interface para provedores de permissões modulares.

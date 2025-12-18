@@ -1,6 +1,7 @@
+using MeAjudaAi.Shared.Authorization.Core;
 using Microsoft.AspNetCore.Authorization;
 
-namespace MeAjudaAi.Shared.Authorization;
+namespace MeAjudaAi.Shared.Authorization.Attributes;
 
 /// <summary>
 /// Atributo de autorização que requer uma permissão específica de forma type-safe.

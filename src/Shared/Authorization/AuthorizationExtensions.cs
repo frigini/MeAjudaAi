@@ -1,8 +1,14 @@
 using System.Security.Claims;
+using MeAjudaAi.Shared.Authorization.Attributes;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Authorization.HealthChecks;
 using MeAjudaAi.Shared.Authorization.Keycloak;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Middleware;
+using MeAjudaAi.Shared.Authorization.Services;
+using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MeAjudaAi.Shared.Authorization;
+namespace MeAjudaAi.Shared.Authorization.Core;
 
 /// <summary>
 /// Compatibility layer for Permission type. 

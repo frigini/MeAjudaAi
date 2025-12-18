@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
 
 namespace MeAjudaAi.Shared.Authorization.Metrics;
 
