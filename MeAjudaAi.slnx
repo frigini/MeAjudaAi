@@ -34,6 +34,9 @@
     <Project Path="src/Modules/Documents/Tests/MeAjudaAi.Modules.Documents.Tests.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Locations/" />
+  <Folder Name="/src/Modules/Locations/API/">
+    <Project Path="src/Modules/Locations/API/MeAjudaAi.Modules.Locations.API.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Locations/Application/">
     <Project Path="src/Modules/Locations/Application/MeAjudaAi.Modules.Locations.Application.csproj" />
   </Folder>

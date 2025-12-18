@@ -139,13 +139,25 @@ public class ProviderBuilder : BuilderBase<Provider>
     }
 
     private bool _shouldDelete = false;
+    private string? _deletedBy;
 
-    public ProviderBuilder WithDeleted(bool isDeleted = true)
+    /// <summary>
+    /// Configura o provider para ser marcado como deletado.
+    /// </summary>
+    /// <param name="isDeleted">Indica se o provider deve ser deletado</param>
+    /// <param name="deletedBy">Identificação de quem deletou o provider</param>
+    /// <returns>A instância atual do builder</returns>
+    public ProviderBuilder WithDeleted(bool isDeleted = true, string? deletedBy = null)
     {
         _shouldDelete = isDeleted;
+        _deletedBy = deletedBy;
         return this;
     }
 
+    /// <summary>
+    /// Constrói a instância do Provider com as configurações definidas.
+    /// </summary>
+    /// <returns>Uma instância configurada de Provider</returns>
     public override Provider Build()
     {
         var provider = base.Build();
@@ -153,8 +165,8 @@ public class ProviderBuilder : BuilderBase<Provider>
         if (_shouldDelete)
         {
             var mockDateTimeProvider = new Mock<IDateTimeProvider>();
-            mockDateTimeProvider.Setup(x => x.CurrentDate()).Returns(DateTime.UtcNow);
-            provider.Delete(mockDateTimeProvider.Object);
+            mockDateTimeProvider.Setup(x => x.CurrentDate()).Returns(new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            provider.Delete(mockDateTimeProvider.Object, _deletedBy);
         }
         
         return provider;
