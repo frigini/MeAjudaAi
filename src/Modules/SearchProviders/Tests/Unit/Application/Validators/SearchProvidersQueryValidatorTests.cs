@@ -244,8 +244,8 @@ public class SearchProvidersQueryValidatorTests
     }
 
     [Theory]
-    [InlineData(-90)] // Min valid latitude
-    [InlineData(90)]  // Max valid latitude
+    [InlineData(-90)] // Latitude mínima válida
+    [InlineData(90)]  // Latitude máxima válida
     public void Validate_WithBoundaryLatitude_ShouldPass(double latitude)
     {
         // Arrange
@@ -262,8 +262,8 @@ public class SearchProvidersQueryValidatorTests
     }
 
     [Theory]
-    [InlineData(-180)] // Min valid longitude
-    [InlineData(180)]  // Max valid longitude
+    [InlineData(-180)] // Longitude mínima válida
+    [InlineData(180)]  // Longitude máxima válida
     public void Validate_WithBoundaryLongitude_ShouldPass(double longitude)
     {
         // Arrange
@@ -313,8 +313,8 @@ public class SearchProvidersQueryValidatorTests
     }
 
     [Theory]
-    [InlineData(0)]   // Min valid rating
-    [InlineData(5)]   // Max valid rating
+    [InlineData(0)]   // Avaliação mínima válida
+    [InlineData(5)]   // Avaliação máxima válida
     public void Validate_WithBoundaryMinRating_ShouldPass(decimal minRating)
     {
         // Arrange
