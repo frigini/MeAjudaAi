@@ -49,9 +49,20 @@ public sealed class ProviderQueryService : IProviderQueryService
         // Aplica filtro por nome (busca parcial, case-insensitive)
         if (!string.IsNullOrWhiteSpace(nameFilter))
         {
-            // Usando ToLower para compatibilidade com InMemory e PostgreSQL
-            var lowerNameFilter = nameFilter.ToLower();
-            query = query.Where(p => p.Name.ToLower().Contains(lowerNameFilter));
+            // Detecta se está usando InMemory ou PostgreSQL
+            var isInMemory = _context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory";
+            
+            if (isInMemory)
+            {
+                // InMemory: usa ToLower() para compatibilidade
+                var lowerNameFilter = nameFilter.ToLower();
+                query = query.Where(p => p.Name.ToLower().Contains(lowerNameFilter));
+            }
+            else
+            {
+                // PostgreSQL: usa ILike para melhor performance
+                query = query.Where(p => EF.Functions.ILike(p.Name, $"%{nameFilter}%"));
+            }
         }
 
         // Aplica filtro por tipo

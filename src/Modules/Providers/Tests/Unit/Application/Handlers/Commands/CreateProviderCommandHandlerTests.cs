@@ -26,6 +26,14 @@ public class CreateProviderCommandHandlerTests
         _handler = new CreateProviderCommandHandler(_providerRepositoryMock.Object, _loggerMock.Object);
     }
 
+    private static BusinessProfileDto CreateTestBusinessProfile() =>
+        new BusinessProfileDto(
+            "Test Business",
+            "12345678000100",
+            null,
+            new ContactInfoDto("test@test.com", null, null),
+            new AddressDto("Main St", "100", null, "Downtown", "City", "State", "12345", "Country"));
+
     [Fact]
     public async Task HandleAsync_WithValidCommand_ShouldCreateProvider()
     {
@@ -35,12 +43,7 @@ public class CreateProviderCommandHandlerTests
             UserId: userId,
             Name: "Test Provider",
             Type: EProviderType.Individual,
-            BusinessProfile: new BusinessProfileDto(
-                "Test Business",
-                "12345678000100",
-                null,
-                new ContactInfoDto("test@test.com", null, null),
-                new AddressDto("Main St", "100", null, "Downtown", "City", "State", "12345", "Country")));
+            BusinessProfile: CreateTestBusinessProfile());
 
         _providerRepositoryMock
             .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
@@ -67,12 +70,7 @@ public class CreateProviderCommandHandlerTests
             UserId: userId,
             Name: "Test Provider",
             Type: EProviderType.Individual,
-            BusinessProfile: new BusinessProfileDto(
-                "Test Business",
-                "12345678000100",
-                null,
-                new ContactInfoDto("test@test.com", null, null),
-                new AddressDto("Main St", "100", null, "Downtown", "City", "State", "12345", "Country")));
+            BusinessProfile: CreateTestBusinessProfile());
 
         var existingProvider = new ProviderBuilder()
             .WithUserId(userId)
@@ -106,12 +104,7 @@ public class CreateProviderCommandHandlerTests
             UserId: userId,
             Name: "Test Provider",
             Type: EProviderType.Individual,
-            BusinessProfile: new BusinessProfileDto(
-                "Test Business",
-                "12345678000100",
-                null,
-                new ContactInfoDto("test@test.com", null, null),
-                new AddressDto("Main St", "100", null, "Downtown", "City", "State", "12345", "Country")));
+            BusinessProfile: CreateTestBusinessProfile());
 
         _providerRepositoryMock
             .Setup(x => x.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
