@@ -4,6 +4,6 @@ using MeAjudaAi.Shared.Functional;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 
 /// <summary>
-/// Command to deactivate a service, removing it from active use.
+/// Comando para desativar um serviço, removendo-o do uso ativo.
 /// </summary>
 public sealed record DeactivateServiceCommand(Guid Id) : Command<Result>;

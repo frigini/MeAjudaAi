@@ -406,4 +406,26 @@ public sealed class ProvidersModuleApi(
     {
         return GetPrimaryDocument(providerDto) ?? providerDto.Documents?.FirstOrDefault();
     }
+
+    /// <summary>
+    /// Verifica se algum provider oferece um serviço específico
+    /// </summary>
+    /// <param name="serviceId">ID do serviço</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>True se existe ao menos um provider oferecendo o serviço</returns>
+    public async Task<Result<bool>> HasProvidersOfferingServiceAsync(Guid serviceId, CancellationToken cancellationToken = default)
+    {
+        logger.LogDebug("Checking if any provider offers service {ServiceId}", serviceId);
+
+        try
+        {
+            var hasProviders = await providerRepository.HasProvidersWithServiceAsync(serviceId, cancellationToken);
+            return Result<bool>.Success(hasProviders);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error checking if providers offer service {ServiceId}", serviceId);
+            return Result<bool>.Failure($"Error checking if providers offer service: {ex.Message}");
+        }
+    }
 }

@@ -138,4 +138,12 @@ public interface IProviderRepository
     Task<(bool Exists, EVerificationStatus? Status)> GetProviderStatusAsync(
         ProviderId id,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Verifica se existem prestadores de serviços que oferecem um serviço específico.
+    /// </summary>
+    /// <param name="serviceId">Identificador do serviço</param>
+    /// <param name="cancellationToken">Token de cancelamento da operação</param>
+    /// <returns>True se existir ao menos um prestador oferecendo o serviço, False caso contrário</returns>
+    Task<bool> HasProvidersWithServiceAsync(Guid serviceId, CancellationToken cancellationToken = default);
 }

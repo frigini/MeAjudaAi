@@ -4,10 +4,10 @@ using MeAjudaAi.Shared.Functional;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 
 /// <summary>
-/// Command to update an existing service category's information.
-/// Note: This command requires all fields for updates (full-update pattern).
-/// Future enhancement: Consider supporting partial updates where clients only send changed fields
-/// using nullable fields or optional wrapper types if API requirements evolve.
+/// Comando para atualizar as informações de uma categoria de serviço existente.
+/// Nota: Este comando requer todos os campos para atualizações (padrão de atualização completa).
+/// Melhoria futura: Considerar suporte a atualizações parciais onde clientes enviam apenas campos alterados
+/// usando campos nullable ou tipos wrapper opcionais se os requisitos da API evoluírem.
 /// </summary>
 public sealed record UpdateServiceCategoryCommand(
     Guid Id,
