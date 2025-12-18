@@ -82,8 +82,8 @@ public sealed class ProviderQueryService : IProviderQueryService
             else
             {
                 throw new NotSupportedException(
-                    $"O provedor de banco de dados '{providerName}' não é suportado. " +
-                    "Apenas InMemory (para testes) e PostgreSQL/Npgsql (para produção) são suportados.");
+                    $"The database provider '{providerName}' is not supported. " +
+                    "Only InMemory (for testing) and PostgreSQL/Npgsql (for production) are supported.");
             }
         }
 
