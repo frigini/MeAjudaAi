@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

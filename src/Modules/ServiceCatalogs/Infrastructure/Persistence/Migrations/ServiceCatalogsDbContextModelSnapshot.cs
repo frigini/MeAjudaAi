@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ServiceCatalogsDbContext))]
     partial class ServiceCatalogsDbContextModelSnapshot : ModelSnapshot

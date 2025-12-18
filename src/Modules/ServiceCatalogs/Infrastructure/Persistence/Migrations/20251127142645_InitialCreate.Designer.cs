@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ServiceCatalogsDbContext))]
     [Migration("20251127142645_InitialCreate")]
