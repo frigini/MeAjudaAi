@@ -8,7 +8,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
 /// Métodos de extensão para mapear entidades de domínio para DTOs.
 /// Centraliza a lógica de mapeamento para evitar duplicação entre handlers.
 /// </summary>
-public static class DtoMappingExtensions
+public static class ServiceCatalogsMappingExtensions
 {
     /// <summary>
     /// Mapeia uma entidade Service para ServiceListDto.
