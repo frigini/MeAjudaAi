@@ -5,13 +5,10 @@ namespace MeAjudaAi.Modules.Locations.Domain.Exceptions;
 /// <summary>
 /// Exceção lançada quando uma cidade permitida não é encontrada.
 /// </summary>
-public sealed class AllowedCityNotFoundException : DomainException
+public sealed class AllowedCityNotFoundException : NotFoundException
 {
-    public Guid CityId { get; }
-
     public AllowedCityNotFoundException(Guid cityId)
-        : base($"Cidade permitida com ID '{cityId}' não encontrada")
+        : base("Cidade permitida", cityId)
     {
-        CityId = cityId;
     }
 }

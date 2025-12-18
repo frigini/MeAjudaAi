@@ -35,7 +35,7 @@ public static class LocationsModuleEndpoints
     {
         // Usa o sistema unificado de versionamento via BaseEndpoint
         // Nota: Cada endpoint individual já aplica .RequireAdmin() conforme necessário
-        var endpoints = BaseEndpoint.CreateVersionedGroup(app, "admin", "Allowed Cities");
+        var endpoints = BaseEndpoint.CreateVersionedGroup(app, "admin/allowed-cities", "Allowed Cities");
 
         // Endpoints de gestão de cidades permitidas (Admin only)
         endpoints.MapEndpoint<CreateAllowedCityEndpoint>()
