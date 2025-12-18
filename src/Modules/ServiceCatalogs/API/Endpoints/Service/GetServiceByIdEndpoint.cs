@@ -16,6 +16,19 @@ public class GetServiceByIdEndpoint : BaseEndpoint, IEndpoint
         => app.MapGet("/{id:guid}", GetByIdAsync)
             .WithName("GetServiceById")
             .WithSummary("Buscar serviço por ID")
+            .WithDescription("""
+                Retorna os detalhes completos de um serviço específico.
+                
+                **Retorno:**
+                - Informações completas do serviço incluindo categoria
+                - Status de ativação
+                - Datas de criação e atualização
+                
+                **Casos de Uso:**
+                - Exibir detalhes do serviço para edição
+                - Visualizar informações completas do serviço
+                - Validar existência do serviço
+                """)
             .Produces<Response<ServiceDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 

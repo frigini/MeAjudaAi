@@ -19,6 +19,17 @@ public class CreateServiceEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/", CreateAsync)
             .WithName("CreateService")
             .WithSummary("Criar serviço")
+            .WithDescription("""
+                Cria um novo serviço no catálogo.
+                
+                **Validações:**
+                - Nome é obrigatório (máximo 150 caracteres)
+                - Descrição opcional (máximo 1000 caracteres)
+                - DisplayOrder deve ser >= 0
+                - Categoria deve existir e estar ativa
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces<Response<ServiceDto>>(StatusCodes.Status201Created)
             .RequireAdmin();
 

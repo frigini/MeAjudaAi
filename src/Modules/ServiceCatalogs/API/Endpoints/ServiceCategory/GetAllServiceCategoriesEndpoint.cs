@@ -19,6 +19,20 @@ public class GetAllServiceCategoriesEndpoint : BaseEndpoint, IEndpoint
         => app.MapGet("/", GetAllAsync)
             .WithName("GetAllServiceCategories")
             .WithSummary("Listar todas as categorias")
+            .WithDescription("""
+                Retorna todas as categorias de serviços do catálogo.
+                
+                **Filtros Opcionais:**
+                - `activeOnly` (bool): Filtra apenas categorias ativas (padrão: false)
+                
+                **Ordenação:**
+                - Categorias são ordenadas por DisplayOrder (crescente)
+                
+                **Casos de Uso:**
+                - Exibir menu de categorias para usuários
+                - Administração do catálogo de categorias
+                - Seleção de categoria ao criar serviço
+                """)
             .Produces<Response<IReadOnlyList<ServiceCategoryDto>>>(StatusCodes.Status200OK);
 
     private static async Task<IResult> GetAllAsync(

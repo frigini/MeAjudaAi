@@ -17,6 +17,18 @@ public class GetServicesByCategoryEndpoint : BaseEndpoint, IEndpoint
         => app.MapGet("/category/{categoryId:guid}", GetByCategoryAsync)
             .WithName("GetServicesByCategory")
             .WithSummary("Listar serviços por categoria")
+            .WithDescription("""
+                Retorna todos os serviços de uma categoria específica.
+                
+                **Parâmetros:**
+                - `categoryId` (route): ID da categoria
+                - `activeOnly` (query, opcional): Filtrar apenas serviços ativos (padrão: false)
+                
+                **Casos de Uso:**
+                - Exibir serviços disponíveis em uma categoria
+                - Listar ofertas por categoria para provedores
+                - Gestão de catálogo segmentado por categoria
+                """)
             .Produces<Response<IReadOnlyList<ServiceListDto>>>(StatusCodes.Status200OK);
 
     private static async Task<IResult> GetByCategoryAsync(
