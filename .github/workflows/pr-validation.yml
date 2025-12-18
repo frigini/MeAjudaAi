@@ -669,60 +669,6 @@ jobs:
             exit 1
           fi
           
-          # Verify .NET 10 runtime is available before proceeding
-          if ! dotnet --list-runtimes | grep -q "Microsoft.NETCore.App 10\.0"; then
-            echo "❌ ERROR: .NET 10 runtime not found. ReportGenerator requires .NET 10."
-            dotnet --list-runtimes
-            exit 1
-          fi
-          
-          # Install ReportGenerator (latest version for .NET 10)
-          echo "📦 Installing ReportGenerator..."
-          if ! dotnet tool install --global dotnet-reportgenerator-globaltool 2>/dev/null; then
-            echo "ℹ️  Tool already installed, attempting update..."
-            if ! dotnet tool update --global dotnet-reportgenerator-globaltool; then
-              echo "❌ Failed to install or update ReportGenerator"
-              exit 1
-            fi
-          fi
-          
-          # Ensure .NET tools are in PATH
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          
-          # Verify ReportGenerator installation
-          echo "✅ Verifying ReportGenerator installation..."
-          if ! dotnet tool list --global | grep -q reportgenerator; then
-            echo "❌ ReportGenerator is not installed"
-            dotnet tool list --global
-            exit 1
-          fi
-          
-          # Verify reportgenerator binary is accessible
-          if ! command -v reportgenerator >/dev/null 2>&1; then
-            echo "❌ reportgenerator command not found in PATH"
-            echo "PATH=$PATH"
-            exit 1
-          fi
-          
-          # Verify reportgenerator is functional (check help instead of version)
-          echo "🔍 Testing reportgenerator functionality..."
-          if ! reportgenerator --help > /dev/null 2>&1; then
-            echo "❌ ReportGenerator is not functional"
-            echo "📋 Diagnostics:"
-            echo "  - reportgenerator location: $(which reportgenerator || echo 'not found')"
-            echo "  - dotnet tools directory: $(ls -la $HOME/.dotnet/tools/ || echo 'directory not found')"
-            echo "  - Attempting to run with explicit path..."
-            if [ -f "$HOME/.dotnet/tools/reportgenerator" ]; then
-              $HOME/.dotnet/tools/reportgenerator --help > /dev/null 2>&1 || echo "  - Explicit path also failed"
-            fi
-            echo "  - .NET SDK info:"
-            dotnet --info | grep -A 5 "SDK"
-            exit 1
-          fi
-          echo "✅ ReportGenerator version: $(reportgenerator --help | head -n 1 || echo 'unknown')"
-          
-          echo "✅ ReportGenerator is ready"
-          
           # Pre-flight check: verify all expected coverage files exist
           echo "🔍 Pre-flight check: Verifying coverage files..."
           MISSING_FILES=0
@@ -747,26 +693,21 @@ jobs:
             echo "⚠️  Warning: $MISSING_FILES module(s) missing coverage files"
             echo "   ReportGenerator will combine only available modules"
           fi
-          
-          # Generate aggregated Cobertura XML combining Unit + Integration + E2E coverage
-          # Note: OpenCover output format requires Pro license, but Cobertura is free
-          # We read OpenCover input files and generate Cobertura output
-          echo "🔗 Combining coverage from Unit + Integration + E2E tests..."
-          
-          # ReportGenerator filter syntax: semicolon-separated, +/- prefix, no brackets
-          # Include main assemblies (use wildcards for all module components)
-          INCLUDE_FILTER="+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*"
-          # CRITICAL: Exclude .Tests assemblies, Migrations, infrastructure classes, Program.cs, DbContextFactory
-          EXCLUDE_FILTER="-*.Tests;-*.Tests.*;-*Test*;-testhost;-xunit*;-*.Migrations.*;-*.Contracts;-*.Database;-*DbContextFactory;-*.Program;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
-          
-          reportgenerator \
-            -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml" \
-            -targetdir:"coverage/aggregate" \
-            -reporttypes:"Cobertura" \
-            -assemblyfilters:"$INCLUDE_FILTER" \
-            -classfilters:"$EXCLUDE_FILTER" \
-            -filefilters:"-*Migrations*"
-          
+
+      - name: Generate aggregated coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.5.1
+        with:
+          reports: 'coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml'
+          targetdir: 'coverage/aggregate'
+          reporttypes: 'Cobertura;JsonSummary'
+          assemblyfilters: '+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*'
+          classfilters: '-*.Tests;-*.Tests.*;-*Test*;-testhost;-xunit*;-*.Migrations.*;-*.Contracts;-*.Database;-*DbContextFactory;-*.Program;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery'
+          filefilters: '-*Migrations*'
+          verbosity: 'Info'
+          tag: '${{ github.run_number }}_${{ github.run_id }}'
+
+      - name: Display coverage summary
+        run: |
           if [ -f "coverage/aggregate/Cobertura.xml" ]; then
             echo "✅ Aggregated coverage report generated: coverage/aggregate/Cobertura.xml"
             # Show summary stats from Cobertura XML
