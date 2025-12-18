@@ -106,7 +106,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("Failed to validate service");
+        result.Error.Message.Should().Contain("Falha ao validar serviço");
         _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -137,7 +137,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("does not exist");
+        result.Error.Message.Should().Contain("não existe");
         _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -168,7 +168,7 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("is not active");
+        result.Error.Message.Should().Contain("não está ativo");
         _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Provider>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -203,6 +203,6 @@ public class AddServiceToProviderCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Contain("An error occurred while adding service to provider");
+        result.Error.Message.Should().Contain("Ocorreu um erro ao adicionar serviço ao prestador");
     }
 }
