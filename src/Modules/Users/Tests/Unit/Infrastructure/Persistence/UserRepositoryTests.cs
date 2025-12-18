@@ -8,10 +8,10 @@ using MeAjudaAi.Shared.Time;
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Persistence;
 
 /// <summary>
-/// Unit tests for IUserRepository interface contract validation.
-/// Note: These tests use mocks to verify interface behavior contracts,
-/// not the concrete UserRepository implementation. Actual repository 
-/// implementation testing should be done in integration tests with real database.
+/// Testes unitários para validação do contrato da interface IUserRepository.
+/// Nota: Estes testes usam mocks para verificar contratos de comportamento da interface,
+/// não a implementação concreta de UserRepository. Testes da implementação real do
+/// repositório devem ser feitos em testes de integração com banco de dados real.
 /// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Users")]
