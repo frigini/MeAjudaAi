@@ -77,7 +77,8 @@ public sealed class ProviderQueryService : IProviderQueryService
                     .Replace("%", "\\%")     // Escape percent wildcard
                     .Replace("_", "\\_");    // Escape underscore wildcard
                 
-                query = query.Where(p => EF.Functions.ILike(p.Name, $"%{escapedFilter}%"));
+                // Especifica '\\' como escape character explicitamente
+                query = query.Where(p => EF.Functions.ILike(p.Name, $"%{escapedFilter}%", "\\"));
             }
             else
             {

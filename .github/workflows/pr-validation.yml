@@ -683,6 +683,13 @@ jobs:
             export DOTNET_ROOT=$(dirname "$DOTNET_RESOLVED")
             echo "DOTNET_ROOT=$DOTNET_ROOT" >> $GITHUB_ENV
             echo "✅ Set DOTNET_ROOT: $DOTNET_ROOT"
+            
+            # Validate DOTNET_ROOT directory
+            if [ ! -d "$DOTNET_ROOT" ]; then
+              echo "❌ ERROR: DOTNET_ROOT directory does not exist: $DOTNET_ROOT"
+              exit 1
+            fi
+            
             echo "📋 Available runtimes:"
             dotnet --list-runtimes
           else
@@ -691,7 +698,7 @@ jobs:
           fi
 
       - name: Generate aggregated coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@5.5.1
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
         env:
           DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
         with:
@@ -1192,7 +1199,7 @@ jobs:
             lychee-${{ runner.os }}-
 
       - name: Check markdown links with lychee
-        uses: lycheeverse/lychee-action@v2
+        uses: lycheeverse/lychee-action@v2.7.0
         with:
           # Use simplified configuration for reliability
           args: >-
