@@ -15,7 +15,7 @@ public sealed class GetServiceByIdQueryHandler(IServiceRepository repository)
         GetServiceByIdQuery request,
         CancellationToken cancellationToken = default)
     {
-        // Treat Guid.Empty as validation error for consistency with command handlers
+        // Trata Guid.Empty como erro de validação para consistência com os command handlers
         if (request.Id == Guid.Empty)
             return Result<ServiceDto?>.Failure("Service ID cannot be empty.");
 

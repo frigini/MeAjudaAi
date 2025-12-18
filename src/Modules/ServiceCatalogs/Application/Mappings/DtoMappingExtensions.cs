@@ -5,13 +5,13 @@ using MeAjudaAi.Shared.Constants;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Mappings;
 
 /// <summary>
-/// Extension methods for mapping domain entities to DTOs.
-/// Centralizes mapping logic to avoid duplication across handlers.
+/// Métodos de extensão para mapear entidades de domínio para DTOs.
+/// Centraliza a lógica de mapeamento para evitar duplicação entre handlers.
 /// </summary>
 public static class DtoMappingExtensions
 {
     /// <summary>
-    /// Maps a Service entity to a ServiceListDto.
+    /// Mapeia uma entidade Service para ServiceListDto.
     /// </summary>
     public static ServiceListDto ToListDto(this Service service)
         => new(
@@ -22,7 +22,7 @@ public static class DtoMappingExtensions
             service.IsActive);
 
     /// <summary>
-    /// Maps a Service entity to a ServiceDto.
+    /// Mapeia uma entidade Service para ServiceDto.
     /// </summary>
     public static ServiceDto ToDto(this Service service)
     {
@@ -41,7 +41,7 @@ public static class DtoMappingExtensions
     }
 
     /// <summary>
-    /// Maps a ServiceCategory entity to a ServiceCategoryDto.
+    /// Mapeia uma entidade ServiceCategory para ServiceCategoryDto.
     /// </summary>
     public static ServiceCategoryDto ToDto(this ServiceCategory category)
         => new(
