@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.Users.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class SyncModel : Migration

@@ -7,14 +7,14 @@ using MeAjudaAi.Shared.Functional;
 namespace MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 
 /// <summary>
-/// Local development implementation of IAuthenticationDomainService for environments where Keycloak is not available.
-/// Provides basic authentication logic for local development scenarios.
-/// Used only for local development when Keycloak is disabled in configuration.
+/// Implementação para desenvolvimento local de IAuthenticationDomainService para ambientes onde o Keycloak não está disponível.
+/// Fornece lógica básica de autenticação para cenários de desenvolvimento local.
+/// Usado apenas para desenvolvimento local quando o Keycloak está desabilitado na configuração.
 /// </summary>
 internal class LocalDevelopmentAuthenticationDomainService : IAuthenticationDomainService
 {
     /// <summary>
-    /// Authenticates users with mock credentials for local development.
+    /// Autentica usuários com credenciais mock para desenvolvimento local.
     /// </summary>
     public Task<Result<AuthenticationResult>> AuthenticateAsync(
         string usernameOrEmail,
@@ -41,7 +41,7 @@ internal class LocalDevelopmentAuthenticationDomainService : IAuthenticationDoma
     }
 
     /// <summary>
-    /// Validates mock tokens for local development.
+    /// Valida tokens mock para desenvolvimento local.
     /// </summary>
     public Task<Result<TokenValidationResult>> ValidateTokenAsync(
         string token,

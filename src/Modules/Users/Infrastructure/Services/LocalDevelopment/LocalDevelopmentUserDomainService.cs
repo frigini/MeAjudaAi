@@ -7,15 +7,15 @@ using MeAjudaAi.Shared.Time;
 namespace MeAjudaAi.Modules.Users.Infrastructure.Services.LocalDevelopment;
 
 /// <summary>
-/// Local development implementation of IUserDomainService for environments where Keycloak is not available.
-/// This service creates users locally without external authentication integration.
-/// Used only for local development when Keycloak is disabled in configuration.
+/// Implementação para desenvolvimento local de IUserDomainService para ambientes onde o Keycloak não está disponível.
+/// Este serviço cria usuários localmente sem integração com autenticação externa.
+/// Usado apenas para desenvolvimento local quando o Keycloak está desabilitado na configuração.
 /// </summary>
 internal class LocalDevelopmentUserDomainService : IUserDomainService
 {
     /// <summary>
-    /// Creates a user locally without Keycloak integration.
-    /// Generates a mock Keycloak ID using UUID v7 for time-based ordering.
+    /// Cria um usuário localmente sem integração com Keycloak.
+    /// Gera um ID mock do Keycloak usando UUID v7 para ordenação baseada em tempo.
     /// </summary>
     public Task<Result<User>> CreateUserAsync(
         Username username,
@@ -33,8 +33,8 @@ internal class LocalDevelopmentUserDomainService : IUserDomainService
     }
 
     /// <summary>
-    /// Simulates synchronization with Keycloak.
-    /// Always returns success for mock implementation.
+    /// Simula sincronização com Keycloak.
+    /// Sempre retorna sucesso para a implementação mock.
     /// </summary>
     public Task<Result> SyncUserWithKeycloakAsync(UserId userId, CancellationToken cancellationToken = default)
     {

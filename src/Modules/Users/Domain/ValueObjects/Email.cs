@@ -26,10 +26,10 @@ public sealed partial record Email
     public static implicit operator Email(string email) => new(email);
 
     /// <summary>
-    /// Validates if the email format is valid without creating an instance.
+    /// Valida se o formato do email é válido sem criar uma instância.
     /// </summary>
-    /// <param name="email">Email string to validate</param>
-    /// <returns>True if email format is valid, false otherwise</returns>
+    /// <param name="email">String de email para validar</param>
+    /// <returns>True se o formato do email é válido, false caso contrário</returns>
     public static bool IsValid(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
