@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.SearchProviders.Application.Handlers;
 
 /// <summary>
-/// Handler for searching providers based on location and criteria.
+/// Handler para buscar prestadores com base em localização e critérios.
 /// </summary>
 public sealed class SearchProvidersQueryHandler(
     ISearchableProviderRepository repository,
@@ -28,7 +28,7 @@ public sealed class SearchProvidersQueryHandler(
             query.Longitude,
             query.RadiusInKm);
 
-        // Create location using GeoPoint (throws on invalid coordinates)
+        // Cria localização usando GeoPoint (lança exceção em coordenadas inválidas)
         GeoPoint location;
         try
         {
@@ -43,10 +43,10 @@ public sealed class SearchProvidersQueryHandler(
             return Result<PagedResult<SearchableProviderDto>>.Failure(ex.Message);
         }
 
-        // Calculate pagination defensively
+        // Calcula paginação de forma defensiva
         var skip = Math.Max(0, (query.Page - 1) * query.PageSize);
 
-        // Execute search
+        // Executa busca
         var searchResult = await repository.SearchAsync(
             location,
             query.RadiusInKm,
@@ -62,8 +62,8 @@ public sealed class SearchProvidersQueryHandler(
             searchResult.Providers.Count,
             searchResult.TotalCount);
 
-        // Map to DTOs using precomputed distances from repository
-        // Distance is calculated once in repository (filter/sort/cache) to avoid redundant calculations
+        // Mapeia para DTOs usando distâncias pré-computadas do repositório
+        // Distância é calculada uma vez no repositório (filter/sort/cache) para evitar cálculos redundantes
         var providerDtos = searchResult.Providers
             .Select((p, index) => new SearchableProviderDto
             {

@@ -26,22 +26,22 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
 
         group.MapGet("/providers", SearchProvidersAsync)
             .WithName("SearchProviders")
-            .WithSummary("Search for service providers")
+            .WithSummary("Buscar prestadores de serviço")
             .WithDescription("""
-                Searches for active service providers based on geolocation and filters.
+                Busca prestadores de serviço ativos com base em geolocalização e filtros.
                 
-                **Search Algorithm:**
-                1. Filter by radius from search location
-                2. Apply optional filters (services, rating, subscription tier)
-                3. Rank results by:
-                   - Subscription tier (Platinum > Gold > Standard > Free)
-                   - Average rating (highest first)
-                   - Distance (closest first)
+                **Algoritmo de Busca:**
+                1. Filtrar por raio a partir da localização de busca
+                2. Aplicar filtros opcionais (serviços, avaliação, nível de assinatura)
+                3. Classificar resultados por:
+                   - Nível de assinatura (Platinum > Gold > Standard > Free)
+                   - Avaliação média (maior primeiro)
+                   - Distância (mais próximo primeiro)
                 
-                **Use Cases:**
-                - Find providers near a specific location
-                - Search for providers offering specific services
-                - Filter by minimum rating or subscription level
+                **Casos de Uso:**
+                - Encontrar prestadores próximos a uma localização específica
+                - Buscar prestadores que oferecem serviços específicos
+                - Filtrar por avaliação mínima ou nível de assinatura
                 """)
             .Produces<PagedResult<SearchableProviderDto>>(StatusCodes.Status200OK)
             .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
@@ -59,8 +59,8 @@ public class SearchProvidersEndpoint : BaseEndpoint, IEndpoint
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        // Note: Input validation is handled automatically by FluentValidation via MediatR pipeline
-        // See SearchProvidersQueryValidator for validation rules
+        // Nota: Validação de entrada é tratada automaticamente por FluentValidation via pipeline do IQueryDispatcher
+        // Veja SearchProvidersQueryValidator para as regras de validação
         var query = new SearchProvidersQuery(
             latitude,
             longitude,
