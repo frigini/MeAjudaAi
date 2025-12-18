@@ -86,18 +86,15 @@ public sealed class LocationsModuleApiTests
     }
 
     [Fact]
-    public async Task IsAvailableAsync_WhenCancelled_ShouldThrowInvalidOperationException()
+    public async Task IsAvailableAsync_WhenOperationCancelled_ShouldWrapInInvalidOperationException()
     {
         // Arrange
-        using var cts = new CancellationTokenSource();
-        cts.Cancel();
-
         _mockCepLookupService
             .Setup(x => x.LookupAsync(It.IsAny<Cep>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
         // Act
-        var act = () => _sut.IsAvailableAsync(cts.Token);
+        var act = () => _sut.IsAvailableAsync();
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
@@ -105,7 +102,7 @@ public sealed class LocationsModuleApiTests
     }
 
     [Fact]
-    public async Task GetAddressFromCepAsync_WhenCancelled_ShouldPropagateToken()
+    public async Task GetAddressFromCepAsync_ShouldPropagateCancellationToken()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -129,7 +126,7 @@ public sealed class LocationsModuleApiTests
     }
 
     [Fact]
-    public async Task GetCoordinatesFromAddressAsync_WhenCancelled_ShouldPropagateToken()
+    public async Task GetCoordinatesFromAddressAsync_ShouldPropagateCancellationToken()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
