@@ -25,11 +25,11 @@ public static class LocationsModuleEndpoints
     /// - Todos os endpoints de administração de cidades permitidas
     /// 
     /// **Endpoints incluídos:**
-    /// - POST /allowed-cities - Criar cidade permitida
-    /// - GET /allowed-cities - Listar todas as cidades permitidas
-    /// - GET /allowed-cities/{id} - Buscar cidade permitida por ID
-    /// - PUT /allowed-cities/{id} - Atualizar cidade permitida
-    /// - DELETE /allowed-cities/{id} - Excluir cidade permitida
+    /// - POST /api/v1/admin/allowed-cities - Criar cidade permitida
+    /// - GET /api/v1/admin/allowed-cities - Listar todas as cidades permitidas
+    /// - GET /api/v1/admin/allowed-cities/{id} - Buscar cidade permitida por ID
+    /// - PUT /api/v1/admin/allowed-cities/{id} - Atualizar cidade permitida
+    /// - DELETE /api/v1/admin/allowed-cities/{id} - Excluir cidade permitida
     /// </remarks>
     public static void MapLocationsEndpoints(this WebApplication app)
     {

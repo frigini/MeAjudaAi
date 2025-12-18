@@ -52,7 +52,7 @@ public class DeleteAllowedCityHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<AllowedCityNotFoundException>()
-            .WithMessage("*não encontrada*");
+            .WithMessage("*not found*");
     }
 
     [Fact]

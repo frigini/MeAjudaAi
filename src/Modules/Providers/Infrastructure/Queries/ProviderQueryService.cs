@@ -26,6 +26,14 @@ public sealed class ProviderQueryService : IProviderQueryService
     /// <summary>
     /// Busca prestadores de serviços com paginação e filtros opcionais.
     /// </summary>
+    /// <remarks>
+    /// <para><b>Provedores de banco de dados suportados:</b></para>
+    /// <list type="bullet">
+    /// <item><description><b>InMemory</b>: Para testes unitários - usa ToLower().Contains() para compatibilidade</description></item>
+    /// <item><description><b>PostgreSQL (Npgsql)</b>: Para produção - usa EF.Functions.ILike() para melhor performance com índices</description></item>
+    /// </list>
+    /// <para>ILike é específico do PostgreSQL e permite buscas case-insensitive otimizadas com suporte a índices.</para>
+    /// </remarks>
     public async Task<PagedResult<Provider>> GetProvidersAsync(
         int page = 1,
         int pageSize = 20,
@@ -49,19 +57,26 @@ public sealed class ProviderQueryService : IProviderQueryService
         // Aplica filtro por nome (busca parcial, case-insensitive)
         if (!string.IsNullOrWhiteSpace(nameFilter))
         {
-            // Detecta se está usando InMemory ou PostgreSQL
-            var isInMemory = _context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory";
+            var providerName = _context.Database.ProviderName;
             
-            if (isInMemory)
+            // Detecta explicitamente o provider de banco de dados
+            if (providerName == "Microsoft.EntityFrameworkCore.InMemory")
             {
-                // InMemory: usa ToLower() para compatibilidade
+                // InMemory: usa ToLower() para compatibilidade com testes unitários
                 var lowerNameFilter = nameFilter.ToLower();
                 query = query.Where(p => p.Name.ToLower().Contains(lowerNameFilter));
             }
+            else if (providerName?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) == true ||
+                     providerName?.Contains("Postgres", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                // PostgreSQL: usa ILike para melhor performance com índices
+                query = query.Where(p => EF.Functions.ILike(p.Name, $"%{nameFilter}%"));
+            }
             else
             {
-                // PostgreSQL: usa ILike para melhor performance
-                query = query.Where(p => EF.Functions.ILike(p.Name, $"%{nameFilter}%"));
+                throw new NotSupportedException(
+                    $"O provedor de banco de dados '{providerName}' não é suportado. " +
+                    "Apenas InMemory (para testes) e PostgreSQL/Npgsql (para produção) são suportados.");
             }
         }
 

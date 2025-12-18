@@ -54,6 +54,7 @@ public class CreateProviderCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
         result.Value.Id.Should().NotBe(Guid.Empty);
 
         _providerRepositoryMock.Verify(
