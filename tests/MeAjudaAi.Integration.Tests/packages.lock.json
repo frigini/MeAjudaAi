@@ -2641,6 +2641,12 @@
           "Aspire.Hosting.Redis": "[13.1.0, )",
           "Aspire.Hosting.Seq": "[13.1.0, )",
           "FluentValidation.DependencyInjectionExtensions": "[12.1.1, )",
+          "MeAjudaAi.Modules.Documents.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Locations.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Providers.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.SearchProviders.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.ServiceCatalogs.Infrastructure": "[1.0.0, )",
+          "MeAjudaAi.Modules.Users.Infrastructure": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.1, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )"
         }

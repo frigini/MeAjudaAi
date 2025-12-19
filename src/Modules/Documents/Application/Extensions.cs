@@ -2,21 +2,26 @@ using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Application.ModuleApi;
+using MeAjudaAi.Modules.Documents.Application.Options;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Contracts.Modules.Documents;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Modules.Documents.Application;
 
 public static class Extensions
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
         // HttpContextAccessor necessário para verificações de autorização nos handlers
         services.AddHttpContextAccessor();
+
+        // Configurações de upload de documentos
+        services.Configure<DocumentUploadOptions>(configuration.GetSection("DocumentUpload"));
 
         // Command Handlers - registro manual
         services.AddScoped<ICommandHandler<UploadDocumentCommand, UploadDocumentResponse>, UploadDocumentCommandHandler>();
