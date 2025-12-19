@@ -8,21 +8,68 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 
 public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogger<AzureBlobStorageService> logger) : IBlobStorageService
 {
-    private readonly BlobContainerClient _containerClient = blobServiceClient.GetBlobContainerClient("documents");
+    private const string ContainerName = "documents";
+    private readonly BlobServiceClient _blobServiceClient = blobServiceClient ?? throw new ArgumentNullException(nameof(blobServiceClient));
     private readonly ILogger<AzureBlobStorageService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly SemaphoreSlim _initializationLock = new(1, 1);
+    private bool _containerInitialized;
 
-    public Task<(string UploadUrl, DateTime ExpiresAt)> GenerateUploadUrlAsync(
+    /// <summary>
+    /// Garante que o container "documents" existe antes de usar.
+    /// Thread-safe e executa apenas uma vez.
+    /// </summary>
+    private async Task EnsureContainerExistsAsync(CancellationToken cancellationToken = default)
+    {
+        if (_containerInitialized)
+            return;
+
+        await _initializationLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_containerInitialized)
+                return;
+
+            var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+            var response = await containerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+            
+            if (response != null)
+            {
+                _logger.LogInformation("Blob container '{ContainerName}' criado com sucesso", ContainerName);
+            }
+            else
+            {
+                _logger.LogDebug("Blob container '{ContainerName}' já existe", ContainerName);
+            }
+
+            _containerInitialized = true;
+        }
+        catch (RequestFailedException ex)
+        {
+            _logger.LogError(ex, "Erro ao criar container '{ContainerName}'", ContainerName);
+            throw new InvalidOperationException($"Failed to ensure blob container '{ContainerName}' exists", ex);
+        }
+        finally
+        {
+            _initializationLock.Release();
+        }
+    }
+
+    public async Task<(string UploadUrl, DateTime ExpiresAt)> GenerateUploadUrlAsync(
         string blobName,
         string contentType,
         CancellationToken cancellationToken = default)
     {
+        await EnsureContainerExistsAsync(cancellationToken);
+        
+        var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+        
         try
         {
-            var blobClient = _containerClient.GetBlobClient(blobName);
+            var blobClient = containerClient.GetBlobClient(blobName);
             var expiresAt = DateTime.UtcNow.AddHours(1); // SAS válido por 1 hora
 
             // Verifica se temos permissões para gerar SAS
-            if (!_containerClient.CanGenerateSasUri)
+            if (!containerClient.CanGenerateSasUri)
             {
                 _logger.LogWarning("BlobContainerClient não pode gerar SAS URIs. Verifique as credenciais.");
                 throw new InvalidOperationException("Serviço não configurado para gerar SAS tokens");
@@ -30,7 +77,7 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
 
             var sasBuilder = new BlobSasBuilder
             {
-                BlobContainerName = _containerClient.Name,
+                BlobContainerName = containerClient.Name,
                 BlobName = blobName,
                 Resource = "b", // blob
                 ExpiresOn = expiresAt
@@ -43,7 +90,7 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
             _logger.LogInformation("SAS token de upload gerado para blob {BlobName}, expira em {ExpiresAt}",
                 blobName, expiresAt);
 
-            return Task.FromResult((sasUri.ToString(), expiresAt));
+            return (sasUri.ToString(), expiresAt);
         }
         catch (RequestFailedException ex)
         {
@@ -54,16 +101,20 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
         }
     }
 
-    public Task<(string DownloadUrl, DateTime ExpiresAt)> GenerateDownloadUrlAsync(
+    public async Task<(string DownloadUrl, DateTime ExpiresAt)> GenerateDownloadUrlAsync(
         string blobName,
         CancellationToken cancellationToken = default)
     {
+        await EnsureContainerExistsAsync(cancellationToken);
+        
+        var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+        
         try
         {
-            var blobClient = _containerClient.GetBlobClient(blobName);
+            var blobClient = containerClient.GetBlobClient(blobName);
             var expiresAt = DateTime.UtcNow.AddHours(24); // Download válido por 24 horas
 
-            if (!_containerClient.CanGenerateSasUri)
+            if (!containerClient.CanGenerateSasUri)
             {
                 _logger.LogWarning("BlobContainerClient não pode gerar SAS URIs.");
                 throw new InvalidOperationException("Serviço não configurado para gerar SAS tokens");
@@ -71,7 +122,7 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
 
             var sasBuilder = new BlobSasBuilder
             {
-                BlobContainerName = _containerClient.Name,
+                BlobContainerName = containerClient.Name,
                 BlobName = blobName,
                 Resource = "b",
                 ExpiresOn = expiresAt
@@ -84,7 +135,7 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
             _logger.LogInformation("SAS token de download gerado para blob {BlobName}, expira em {ExpiresAt}",
                 blobName, expiresAt);
 
-            return Task.FromResult((sasUri.ToString(), expiresAt));
+            return (sasUri.ToString(), expiresAt);
         }
         catch (RequestFailedException ex)
         {
@@ -97,9 +148,13 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
 
     public async Task<bool> ExistsAsync(string blobName, CancellationToken cancellationToken = default)
     {
+        await EnsureContainerExistsAsync(cancellationToken);
+        
+        var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+        
         try
         {
-            var blobClient = _containerClient.GetBlobClient(blobName);
+            var blobClient = containerClient.GetBlobClient(blobName);
             var response = await blobClient.ExistsAsync(cancellationToken);
             return response.Value;
         }
@@ -118,9 +173,13 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
 
     public async Task DeleteAsync(string blobName, CancellationToken cancellationToken = default)
     {
+        await EnsureContainerExistsAsync(cancellationToken);
+        
+        var containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
+        
         try
         {
-            var blobClient = _containerClient.GetBlobClient(blobName);
+            var blobClient = containerClient.GetBlobClient(blobName);
             await blobClient.DeleteIfExistsAsync(cancellationToken: cancellationToken);
             _logger.LogInformation("Blob {BlobName} deletado", blobName);
         }

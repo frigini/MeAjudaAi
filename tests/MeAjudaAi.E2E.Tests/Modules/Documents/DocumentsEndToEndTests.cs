@@ -34,8 +34,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var response = await PostJsonAsync("/api/v1/documents/upload", uploadRequest);
 
         // Assert
-        // TODO: Configure Azurite or mock blob storage in test setup to ensure deterministic behavior
-        // Currently allowing both success and storage-related failures for E2E environment compatibility
+        // Azurite container is automatically created by AzureBlobStorageService.EnsureContainerExistsAsync
         if (response.StatusCode == HttpStatusCode.OK)
         {
             var content = await response.Content.ReadAsStringAsync();
@@ -58,8 +57,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         }
         else
         {
-            // Upload may fail in test environment due to missing blob storage
-            // TODO: Remove this fallback once blob storage mock/Azurite is configured
+            // Upload may fail in test environment if Azurite is not running
             response.StatusCode.Should().BeOneOf(
                 HttpStatusCode.ServiceUnavailable,
                 HttpStatusCode.InternalServerError);
