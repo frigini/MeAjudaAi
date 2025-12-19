@@ -101,6 +101,8 @@ public class PermissionArchitectureTests
             .AreClasses()
             .And()
             .DoNotHaveName("SchemaPermissionsManager")  // Permitir SchemaPermissionsManager no namespace Database
+            .And()
+            .DoNotHaveName("PermissionHealthCheckExtensions")  // Extensions em Shared.Extensions (organização de pasta)
             .Should()
             .ResideInNamespace("MeAjudaAi.Shared.Authorization")
             .GetResult();

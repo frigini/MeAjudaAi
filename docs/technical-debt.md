@@ -313,9 +313,11 @@ error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned
 ```
 
 **Testes Realizados**:
+```text
 - ✅ Testado com SDK 10.0.101 (Dez 2025) - ainda quebra
 - ✅ Testado Microsoft.OpenApi 3.0.2 - incompatível
 - ✅ Confirmado que 2.3.0 funciona perfeitamente
+```
 
 **Causa Raiz**:
 - Microsoft.OpenApi 3.x mudou `IOpenApiMediaType.Example` para read-only (breaking change)
@@ -325,7 +327,7 @@ error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned
 **Dependência**: Swashbuckle.AspNetCore
 - Swashbuckle 10.x depende de Microsoft.OpenApi (transitivo)
 - Projeto usa Swashbuckle para Swagger UI e customizações avançadas
-- Swashbuckle v10 migration guide: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/docs/migrating-to-v10.md
+- Swashbuckle v10 migration guide: [Swashbuckle v10 Migration](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/docs/migrating-to-v10.md)
 
 **Opções de Resolução**:
 
@@ -338,7 +340,7 @@ error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned
 **OPÇÃO 2 (FUTURO)**: Aguardar correção da Microsoft
 - Microsoft atualiza source generator para OpenApi 3.x
 - Timeline: Desconhecida (provavelmente .NET 11 ou patch futuro)
-- Monitorar: https://github.com/dotnet/aspnetcore/issues
+- Monitorar: [ASP.NET Core Issues](https://github.com/dotnet/aspnetcore/issues)
 
 **OPÇÃO 3 (COMPLEXA - NÃO RECOMENDADA AGORA)**: Migrar para ASP.NET Core OpenAPI nativo
 - Remove Swashbuckle completamente
@@ -371,8 +373,8 @@ error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned
 
 **Documentação**:
 - Comentário detalhado em `Directory.Packages.props` (linhas 46-49)
-- Migration guide Swashbuckle: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/docs/migrating-to-v10.md
-- ASP.NET Core OpenAPI docs: https://learn.microsoft.com/aspnet/core/fundamentals/openapi/aspnetcore-openapi
+- Migration guide Swashbuckle: [Swashbuckle v10 Migration](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/docs/migrating-to-v10.md)
+- ASP.NET Core OpenAPI docs: [OpenAPI in ASP.NET Core](https://learn.microsoft.com/aspnet/core/fundamentals/openapi/aspnetcore-openapi)
 
 **Nota**: Esta limitação **NÃO afeta** funcionalidade, performance ou segurança. É puramente uma questão de versão de dependência.
 
@@ -388,14 +390,16 @@ error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned
 **Descrição**: 
 Atualmente existem dois padrões de sintaxe para records no projeto:
 
-**Padrão 1: Positional Records (Sintaxe Concisa)**
+### Padrão 1: Positional Records (Sintaxe Concisa)
+
 ```csharp
 public sealed record ModuleCoordinatesDto(
     double Latitude,
     double Longitude);
 ```
 
-**Padrão 2: Property-based Records (Sintaxe Explícita)**
+### Padrão 2: Property-based Records (Sintaxe Explícita)
+
 ```csharp
 public sealed record ModuleLocationDto
 {

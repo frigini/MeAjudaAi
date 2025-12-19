@@ -91,7 +91,7 @@ public partial class Program
                     "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"),
                 writeToProviders: false, preserveStaticLogger: false);
 
-            Log.Information("🚀 Iniciando MeAjudaAi API Service");
+            Log.Information("🚀 Starting MeAjudaAi API Service");
         }
         else
         {
@@ -128,7 +128,7 @@ public partial class Program
         if (!app.Environment.IsEnvironment("Testing"))
         {
             var environmentName = app.Environment.IsEnvironment("Integration") ? "Integration Test" : app.Environment.EnvironmentName;
-            Log.Information("✅ MeAjudaAi API Service configurado com sucesso - Ambiente: {Environment}", environmentName);
+            Log.Information("✅ MeAjudaAi API Service configured successfully - Environment: {Environment}", environmentName);
         }
     }
 
@@ -136,7 +136,7 @@ public partial class Program
     {
         if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Testing")
         {
-            Log.Fatal(ex, "❌ Falha crítica ao inicializar MeAjudaAi API Service");
+            Log.Fatal(ex, "❌ Critical failure initializing MeAjudaAi API Service");
         }
     }
 
