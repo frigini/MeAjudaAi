@@ -330,6 +330,55 @@ public class RateLimitingMiddlewareTests
         _nextCalled.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task InvokeAsync_PatternCacheSizeLimit_ShouldCompileOnDemandWhenLimitReached()
+    {
+        // Arrange
+        var options = CreateDefaultOptions();
+        options.General.WindowInSeconds = 60;
+        options.Anonymous.RequestsPerMinute = 10;
+        
+        // Create 1001 unique endpoint patterns to exceed MaxPatternCacheSize (1000)
+        var endpointLimits = new Dictionary<string, EndpointLimits>();
+        for (int i = 0; i < 1001; i++)
+        {
+            endpointLimits[$"pattern_{i}"] = new EndpointLimits
+            {
+                Pattern = $"/api/test{i}/*",
+                RequestsPerMinute = 10,
+                RequestsPerHour = 100,
+                ApplyToAnonymous = true,
+                ApplyToAuthenticated = true
+            };
+        }
+        options.EndpointLimits = endpointLimits;
+        _optionsMock.Setup(x => x.CurrentValue).Returns(options);
+
+        var middleware = CreateMiddleware();
+
+        // Act - Request paths that match patterns beyond cache limit
+        // First 1000 patterns should be cached, pattern 1001 should be compiled on-demand
+        var context1000 = CreateHttpContext(path: "/api/test999/data"); // Within cache
+        var context1001 = CreateHttpContext(path: "/api/test1000/data"); // Beyond cache limit
+
+        await middleware.InvokeAsync(context1000);
+        await middleware.InvokeAsync(context1001);
+
+        // Assert - Both should succeed (rate limit applied correctly even without caching)
+        context1000.Response.StatusCode.Should().Be(200);
+        context1001.Response.StatusCode.Should().Be(200);
+
+        // Verify warning was logged when cache limit reached
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Pattern cache size limit reached")),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.AtLeastOnce);
+    }
+
     // Helper methods
 
     private RateLimitingMiddleware CreateMiddleware()
