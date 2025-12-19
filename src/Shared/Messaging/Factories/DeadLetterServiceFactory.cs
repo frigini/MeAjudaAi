@@ -16,9 +16,11 @@ public sealed class DeadLetterServiceFactory(
     IHostEnvironment environment,
     ILogger<DeadLetterServiceFactory> logger) : IDeadLetterServiceFactory
 {
+    private const string TestingEnvironment = "Testing";
+
     public IDeadLetterService CreateDeadLetterService()
     {
-        if (environment.EnvironmentName == "Testing")
+        if (environment.EnvironmentName == TestingEnvironment)
         {
             logger.LogInformation("Creating NoOp Dead Letter Service for Testing environment");
             return serviceProvider.GetRequiredService<NoOpDeadLetterService>();

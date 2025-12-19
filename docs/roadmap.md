@@ -147,7 +147,7 @@ Todas as tarefas planejadas já foram implementadas:
   - ✅ Sintaxe `extension(Type receiver)` validada e funcional no .NET 10
   - ✅ Novos recursos disponíveis: extension properties, static extensions, operators
   - ✅ Documentado em `docs/architecture.md` - seção "C# 14 Features Utilizados"
-  - ⏸️ Implementação ADIADA: Manter padrão atual funciona bem, migração não é crítica
+  - 📋 Planejamento: Agendado como última atividade da Sprint 5.5
   - 📝 Recomendação: Usar Extension Members em NOVOS códigos que se beneficiem de properties
 - [ ] Extrair BusinessMetricsMiddlewareExtensions de BusinessMetricsMiddleware.cs
 - [ ] Consolidar Monitoring folder (MonitoringExtensions.cs único)
@@ -168,6 +168,12 @@ Todas as tarefas planejadas já foram implementadas:
 - [ ] Identificar testes duplicados, obsoletos ou mal estruturados
 - [ ] Validar coverage e identificar gaps
 - [ ] Documentar padrões de teste para novos contribuidores
+
+**8. Migração Extension Members (C# 14) - FINAL SPRINT ACTIVITY** - 3-5h
+- [ ] Migrar Extensions para syntax `extension(Type receiver)`
+- [ ] Priorizar: Extension properties (permission.Value vs permission.GetValue())
+- [ ] Atualizar testes para validar novos extension members
+- [ ] Documentar patterns e guidelines em architecture.md
 
 **8. BDD Implementation (BACKLOG - Futuro)** - Sprint dedicado planejado
 - [ ] Setup SpecFlow + Playwright.NET para acceptance tests
@@ -229,7 +235,7 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 3-P2** | 2 semanas | 11 Dez - 13 Dez | Admin Endpoints & Tools | ✅ CONCLUÍDO (13 Dez - MERGED) |
 | **Sprint 4** | 5 dias | 14 Dez - 18 Dez | Health Checks + Data Seeding | ✅ CONCLUÍDO (18 Dez - MERGED!) |
 | **Sprint 5** | - | Sprints 3-4 | Quality Improvements | ✅ CONCLUÍDO ANTECIPADAMENTE |
-| **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ⏳ EM ANDAMENTO |
+| **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ✅ CONCLUÍDO (19 Dez) |
 | **Sprint 6** | 2 semanas | Jan 6 - 17 | Blazor Admin Portal - Setup & Core | ⏳ Planejado |
 | **Sprint 7** | 3 semanas | Jan 20 - Fev 7 | Blazor Admin Portal - Features | ⏳ Planejado |
 | **Sprint 8** | 3 semanas | Fev 10 - 28 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
@@ -1876,7 +1882,9 @@ gantt
 
 ---
 
-## 🎨 Fase 2: Frontend & Experiência (Em Planejamento - Q1 2026)
+## 🎨 Fase 2: Frontend & Experiência
+
+**Status**: 📋 Em Planejamento - Q1 2026
 
 ### Objetivo
 Desenvolver aplicações frontend usando Blazor WebAssembly (Web) e MAUI Blazor Hybrid (Mobile), aproveitando fullstack .NET para máxima reutilização de código.
@@ -2436,7 +2444,8 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 ### Cenários de Risco Documentados
 
-**Risk Scenario 1: Keycloak Integration Complexity**
+### Risk Scenario 1: Keycloak Integration Complexity
+
 - **Problema Potencial**: OIDC flows em Blazor WASM com refresh tokens podem exigir configuração complexa
 - **Impacto**: +2-3 dias além do planejado no Sprint 6
 - **Mitigação Sprint 9**: 
@@ -2444,7 +2453,8 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - Implementar proper token refresh handling
   - Adicionar fallback mechanisms
 
-**Risk Scenario 2: MudBlazor Learning Curve**
+### Risk Scenario 2: MudBlazor Learning Curve
+
 - **Problema Potencial**: Primeira vez usando MudBlazor; componentes complexos (DataGrid, Forms) podem ter comportamentos inesperados
 - **Impacto**: +3-4 dias além do planejado nos Sprints 6-7
 - **Mitigação Sprint 9**:
@@ -2452,7 +2462,8 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - Implementar componentes reutilizáveis otimizados
   - Documentar patterns e anti-patterns identificados
 
-**Risk Scenario 3: Blazor WASM Performance Issues**
+### Risk Scenario 3: Blazor WASM Performance Issues
+
 - **Problema Potencial**: App bundle size > 5MB, lazy loading não configurado corretamente
 - **Impacto**: UX ruim, +2-3 dias de otimização
 - **Mitigação Sprint 9**:
@@ -2460,7 +2471,8 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - Otimizar bundle size (tree shaking, AOT compilation)
   - Adicionar loading indicators e progressive loading
 
-**Risk Scenario 4: MAUI Hybrid Platform-Specific Issues**
+### Risk Scenario 4: MAUI Hybrid Platform-Specific Issues
+
 - **Problema Potencial**: Diferenças de comportamento iOS vs Android (permissões, geolocation, file access)
 - **Impacto**: +4-5 dias de debugging platform-specific
 - **Mitigação Sprint 9**:
@@ -2468,7 +2480,8 @@ Durante o processo de atualização automática de dependências pelo Dependabot
   - Implementar fallbacks para features não suportadas
   - Testes em devices reais (não apenas emuladores)
 
-**Risk Scenario 5: API Integration Edge Cases**
+### Risk Scenario 5: API Integration Edge Cases
+
 - **Problema Potencial**: Casos de erro não cobertos (timeouts, network failures, concurrent updates)
 - **Impacto**: +2-3 dias de hardening
 - **Mitigação Sprint 9**:
