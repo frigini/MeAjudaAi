@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -28,6 +29,8 @@ internal class BusinessMetricsMiddleware(
     BusinessMetrics businessMetrics,
     ILogger<BusinessMetricsMiddleware> logger)
 {
+    private static readonly Regex IdPattern = new(@"/\d+", RegexOptions.Compiled);
+
     public async Task InvokeAsync(HttpContext context)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -62,14 +65,14 @@ internal class BusinessMetricsMiddleware(
         if (path != null)
         {
             // Registros de usuário
-            if (path.Contains("/users") && method == "POST" && statusCode is >= 200 and < 300)
+            if (path.StartsWith("/api/users") && method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordUserRegistration("api");
                 logger.LogInformation("User registration completed via API");
             }
 
             // Logins
-            if (path.Contains("/auth/login") && method == "POST" && statusCode is >= 200 and < 300)
+            if (path.StartsWith("/api/auth/login") && method == "POST" && statusCode is >= 200 and < 300)
             {
                 var userId = context.User?.FindFirst(AuthConstants.Claims.Subject)?.Value ?? "unknown";
                 businessMetrics.RecordUserLogin(userId, "password");
@@ -77,7 +80,7 @@ internal class BusinessMetricsMiddleware(
             }
 
             // Solicitações de ajuda
-            if (path.Contains("/help-requests") && method == "POST" && statusCode is >= 200 and < 300)
+            if (path.StartsWith("/api/help-requests") && method == "POST" && statusCode is >= 200 and < 300)
             {
                 // Extrair categoria e urgência dos headers ou do corpo da requisição se necessário
                 businessMetrics.RecordHelpRequestCreated("general", "normal");
@@ -85,7 +88,7 @@ internal class BusinessMetricsMiddleware(
             }
 
             // Conclusão de ajuda
-            if (path.Contains("/help-requests") && path.Contains("/complete") && method == "POST" && statusCode is >= 200 and < 300)
+            if (path.StartsWith("/api/help-requests/") && path.EndsWith("/complete") && method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordHelpRequestCompleted("general", elapsed);
                 logger.LogInformation("Help request completed in {ElapsedMs}ms", elapsed.TotalMilliseconds);
@@ -105,8 +108,7 @@ internal class BusinessMetricsMiddleware(
         var path = context.Request.Path.Value ?? "/";
 
         // Substituir IDs numéricos por placeholder
-        var normalizedPath = System.Text.RegularExpressions.Regex.Replace(
-            path, @"/\d+", "/{id}");
+        var normalizedPath = IdPattern.Replace(path, "/{id}");
 
         return normalizedPath;
     }

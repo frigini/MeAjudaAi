@@ -28,7 +28,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
     {
         try
         {
-            _logger.LogInformation("Criando infraestrutura RabbitMQ...");
+            _logger.LogInformation("Creating RabbitMQ infrastructure...");
 
             // Cria fila padrão
             await CreateQueueAsync(_options.DefaultQueueName);
@@ -54,7 +54,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
                     eventType.Name, exchangeName, queueName);
             }
 
-            _logger.LogInformation("Infraestrutura RabbitMQ criada com sucesso");
+            _logger.LogInformation("RabbitMQ infrastructure created successfully");
         }
         catch (Exception ex)
         {

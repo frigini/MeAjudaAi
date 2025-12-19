@@ -2264,49 +2264,85 @@ O projeto utiliza **Extension Members**, um novo recurso do C# 14 que permite de
 - Extensions de configuração DI (IServiceCollection, IApplicationBuilder) - manter padrão tradicional `[FolderName]Extensions.cs`
 - Código legado que funciona bem com sintaxe tradicional
 
-#### Sintaxe
+#### Implementação Atual
 
+**EnumExtensions** - Migrado para Extension Members:
 ```csharp
-// Tradicional (C# 13)
-public static class PermissionExtensions
+public static class EnumExtensions
 {
-    public static string GetValue(this EPermission permission) { ... }
-    public static string GetModule(this EPermission permission) { ... }
-}
-
-// Com Extension Members (C# 14)
-public static class PermissionExtensions
-{
-    extension(EPermission permission)
+    extension<TEnum>(string value) where TEnum : struct, Enum
     {
-        // Extension property (novo!)
-        public string Value => permission.GetType()
-            .GetField(permission.ToString())
-            ?.GetCustomAttribute<DisplayAttribute>()
-            ?.Name ?? permission.ToString();
-        
-        // Extension property computada
-        public string Module => this.Value.Split(':')[0];
-        
-        // Extension property booleana
-        public bool IsAdmin => this.Module.Equals("admin", StringComparison.OrdinalIgnoreCase);
+        public TEnum ToEnum()
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(value));
+
+            if (Enum.TryParse<TEnum>(value, ignoreCase: true, out var result))
+                return result;
+
+            throw new ArgumentException($"Unable to convert '{value}' to enum of type {typeof(TEnum)}.", nameof(value));
+        }
     }
 }
 
-// Uso: permission.Value em vez de permission.GetValue()
-var module = myPermission.Module;  // Propriedade!
-if (myPermission.IsAdmin) { ... }  // Propriedade booleana!
+// Uso
+var status = "Active".ToEnum<EProviderStatus>();
 ```
 
-**Benefícios**:
-- ✅ Sintaxe mais natural (propriedades em vez de métodos Get)
-- ✅ Melhor IntelliSense e auto-complete
-- ✅ Código mais limpo e expressivo
-- ✅ Suporte a operadores customizados como extensões
+**Benefícios Observados**:
+- ✅ 54/54 testes passando (100% compatibilidade)
+- ✅ Sintaxe mais expressiva
+- ✅ Melhor documentação via properties
 
-**Referências**:
-- [C# 14 - Extension Members](https://learn.microsoft.com/pt-br/dotnet/csharp/whats-new/csharp-14#extension-members)
-- [Especificação: Extension Members](https://learn.microsoft.com/pt-br/dotnet/csharp/language-reference/proposals/csharp-14.0/extensions)
+---
+
+## 🔧 Configurações e Opções
+
+### Pattern: IOptions<T>
+
+O projeto utiliza o padrão **IOptions** do ASP.NET Core para configurações fortemente tipadas.
+
+#### DocumentUploadOptions
+
+```csharp
+public class DocumentUploadOptions
+{
+    public long MaxFileSizeBytes { get; set; } = 10 * 1024 * 1024; // 10MB
+    public string[] AllowedContentTypes { get; set; } = 
+    [
+        "image/jpeg",
+        "image/png", 
+        "image/jpg",
+        "application/pdf"
+    ];
+}
+```
+
+**Registro**:
+```csharp
+services.Configure<DocumentUploadOptions>(configuration.GetSection("DocumentUpload"));
+```
+
+**Uso em Handler**:
+```csharp
+public class UploadDocumentCommandHandler(
+    IOptions<DocumentUploadOptions> uploadOptions)
+{
+    private readonly DocumentUploadOptions _options = uploadOptions.Value;
+    
+    public async Task HandleAsync(...)
+    {
+        if (command.FileSizeBytes > _options.MaxFileSizeBytes)
+            throw new ArgumentException($"File too large...");
+    }
+}
+```
+
+**Vantagens**:
+- Configuração por ambiente (dev/staging/prod)
+- Tipagem forte
+- Validação em tempo de compilação
+- Facilita testes unitários (mock de IOptions)
 
 ---
 
