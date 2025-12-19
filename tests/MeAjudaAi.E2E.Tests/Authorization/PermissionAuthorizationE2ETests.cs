@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Tests.Auth;
 
 namespace MeAjudaAi.E2E.Tests.Authorization;
@@ -23,7 +24,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
             userId: "user-read-123",
             userName: "reader",
             email: "reader@test.com",
-            permissions: [Permission.UsersRead.GetValue(), Permission.UsersList.GetValue()]
+            permissions: [EPermission.UsersRead.GetValue(), EPermission.UsersList.GetValue()]
         );
 
         // Act
@@ -44,7 +45,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
             userId: "user-noperm-456",
             userName: "noperm",
             email: "noperm@test.com",
-            permissions: [Permission.UsersRead.GetValue()] // Tem read mas não list
+            permissions: [EPermission.UsersRead.GetValue()] // Tem read mas não list
         );
 
         // Act
@@ -65,7 +66,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
             userId: "user-creator-789",
             userName: "creator",
             email: "creator@test.com",
-            permissions: [Permission.UsersCreate.GetValue()],
+            permissions: [EPermission.UsersCreate.GetValue()],
             isSystemAdmin: false,
             roles: ["admin"] // Necessário para passar pela policy AdminOnly
         );
@@ -96,7 +97,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
             userId: "user-readonly-012",
             userName: "readonly",
             email: "readonly@test.com",
-            permissions: [Permission.UsersRead.GetValue()]
+            permissions: [EPermission.UsersRead.GetValue()]
         );
 
         var newUser = new
@@ -126,9 +127,9 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
             userName: "multi",
             email: "multi@test.com",
             permissions: [
-                Permission.UsersList.GetValue(),
-                Permission.UsersRead.GetValue(),
-                Permission.UsersUpdate.GetValue()
+                EPermission.UsersList.GetValue(),
+                EPermission.UsersRead.GetValue(),
+                EPermission.UsersUpdate.GetValue()
             ],
             isSystemAdmin: false,
             roles: [] // SEM role admin - testa que permissões funcionam mas policies de role também
@@ -159,13 +160,13 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
             userName: "sysadmin",
             email: "sysadmin@test.com",
             permissions: [
-                Permission.AdminSystem.GetValue(),
-                Permission.AdminUsers.GetValue(),
-                Permission.UsersList.GetValue(),
-                Permission.UsersRead.GetValue(),
-                Permission.UsersCreate.GetValue(),
-                Permission.UsersUpdate.GetValue(),
-                Permission.UsersDelete.GetValue()
+                EPermission.AdminSystem.GetValue(),
+                EPermission.AdminUsers.GetValue(),
+                EPermission.UsersList.GetValue(),
+                EPermission.UsersRead.GetValue(),
+                EPermission.UsersCreate.GetValue(),
+                EPermission.UsersUpdate.GetValue(),
+                EPermission.UsersDelete.GetValue()
             ],
             isSystemAdmin: true,
             roles: ["admin"] // Necessário para passar pela policy AdminOnly
@@ -216,7 +217,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
             userId: "user-persist-901",
             userName: "persistent",
             email: "persistent@test.com",
-            permissions: [Permission.UsersList.GetValue(), Permission.UsersRead.GetValue()]
+            permissions: [EPermission.UsersList.GetValue(), EPermission.UsersRead.GetValue()]
         );
 
         // Act - Fazer múltiplas requisições

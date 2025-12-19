@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Tests.Auth;
 using Microsoft.EntityFrameworkCore;
 
@@ -81,8 +82,8 @@ public class UsersLifecycleE2ETests : TestContainerTestBase
             userName: "nodeleteuser",
             email: "nodelete@test.com",
             permissions: [
-                Permission.UsersRead.GetValue(),
-                Permission.UsersList.GetValue()
+                EPermission.UsersRead.GetValue(),
+                EPermission.UsersList.GetValue()
             ],
             isSystemAdmin: false,
             roles: []

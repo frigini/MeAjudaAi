@@ -130,7 +130,7 @@ public static class AuthorizationExtensions
     public static bool HasPermission(this ClaimsPrincipal user, EPermission permission)
     {
         ArgumentNullException.ThrowIfNull(user);
-        return user.HasClaim(CustomClaimTypes.Permission, permission.GetValue());
+        return user.HasClaim(AuthConstants.Claims.Permission, permission.GetValue());
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public static class AuthorizationExtensions
     public static bool IsSystemAdmin(this ClaimsPrincipal user)
     {
         ArgumentNullException.ThrowIfNull(user);
-        return user.HasClaim(CustomClaimTypes.IsSystemAdmin, "true");
+        return user.HasClaim(AuthConstants.Claims.IsSystemAdmin, "true");
     }
 
     /// <summary>
@@ -169,7 +169,7 @@ public static class AuthorizationExtensions
     public static IEnumerable<EPermission> GetPermissions(this ClaimsPrincipal user)
     {
         ArgumentNullException.ThrowIfNull(user);
-        var permissionClaims = user.FindAll(CustomClaimTypes.Permission)
+        var permissionClaims = user.FindAll(AuthConstants.Claims.Permission)
             .Where(c => c.Value != "*") // Exclui o marcador de processamento
             .Select(c => PermissionExtensions.FromValue(c.Value))
             .Where(p => p.HasValue)

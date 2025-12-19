@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using FluentAssertions;
-using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

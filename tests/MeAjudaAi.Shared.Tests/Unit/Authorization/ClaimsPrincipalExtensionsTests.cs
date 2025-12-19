@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 
@@ -14,14 +16,14 @@ public class ClaimsPrincipalExtensionsTests
         // Arrange
         var claims = new[]
         {
-            new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue()),
-            new Claim(CustomClaimTypes.Permission, Permission.UsersProfile.GetValue())
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue()),
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersProfile.GetValue())
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.HasPermission(Permission.UsersRead);
+        var result = principal.HasPermission(EPermission.UsersRead);
 
         // Assert
         Assert.True(result);
@@ -33,7 +35,7 @@ public class ClaimsPrincipalExtensionsTests
         // Arrange
         var claims = new[]
         {
-            new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue())
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue())
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
@@ -52,7 +54,7 @@ public class ClaimsPrincipalExtensionsTests
         var principal = new ClaimsPrincipal(new ClaimsIdentity());
 
         // Act
-        var result = principal.HasPermission(Permission.UsersRead);
+        var result = principal.HasPermission(EPermission.UsersRead);
 
         // Assert
         Assert.False(result);
@@ -64,15 +66,15 @@ public class ClaimsPrincipalExtensionsTests
         // Arrange
         var claims = new[]
         {
-            new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue()),
-            new Claim(CustomClaimTypes.Permission, Permission.UsersCreate.GetValue()),
-            new Claim(CustomClaimTypes.Permission, Permission.UsersProfile.GetValue())
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue()),
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersCreate.GetValue()),
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersProfile.GetValue())
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.HasPermissions(new[] { Permission.UsersRead, Permission.UsersCreate }, requireAll: true);
+        var result = principal.HasPermissions(new[] { EPermission.UsersRead, EPermission.UsersCreate }, requireAll: true);
 
         // Assert
         Assert.True(result);
@@ -84,13 +86,13 @@ public class ClaimsPrincipalExtensionsTests
         // Arrange
         var claims = new[]
         {
-            new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue())
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue())
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.HasPermissions(new[] { Permission.UsersRead, Permission.AdminSystem }, requireAll: true);
+        var result = principal.HasPermissions(new[] { EPermission.UsersRead, Permission.AdminSystem }, requireAll: true);
 
         // Assert
         Assert.False(result);
@@ -102,13 +104,13 @@ public class ClaimsPrincipalExtensionsTests
         // Arrange
         var claims = new[]
         {
-            new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue())
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue())
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.HasPermissions(new[] { Permission.UsersRead, Permission.AdminSystem }, requireAll: false);
+        var result = principal.HasPermissions(new[] { EPermission.UsersRead, Permission.AdminSystem }, requireAll: false);
 
         // Assert
         Assert.True(result);
@@ -120,7 +122,7 @@ public class ClaimsPrincipalExtensionsTests
         // Arrange
         var claims = new[]
         {
-            new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue())
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue())
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
@@ -136,8 +138,8 @@ public class ClaimsPrincipalExtensionsTests
     public void GetPermissions_ShouldReturnAllUserPermissions()
     {
         // Arrange
-        var expectedPermissions = new[] { Permission.UsersRead, Permission.UsersProfile, Permission.UsersList };
-        var claims = expectedPermissions.Select(p => new Claim(CustomClaimTypes.Permission, p.GetValue())).ToArray();
+        var expectedPermissions = new[] { EPermission.UsersRead, EPermission.UsersProfile, EPermission.UsersList };
+        var claims = expectedPermissions.Select(p => new Claim(AuthConstants.Claims.Permission, p.GetValue())).ToArray();
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
 
@@ -168,7 +170,7 @@ public class ClaimsPrincipalExtensionsTests
         // Arrange
         var claims = new[]
         {
-            new Claim(CustomClaimTypes.IsSystemAdmin, "true")
+            new Claim(AuthConstants.Claims.IsSystemAdmin, "true")
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
@@ -186,7 +188,7 @@ public class ClaimsPrincipalExtensionsTests
         // Arrange
         var claims = new[]
         {
-            new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue())
+            new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue())
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
@@ -205,7 +207,7 @@ public class ClaimsPrincipalExtensionsTests
         var expectedTenantId = "tenant-123";
         var claims = new[]
         {
-            new Claim(CustomClaimTypes.TenantId, expectedTenantId)
+            new Claim(AuthConstants.Claims.TenantId, expectedTenantId)
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
@@ -237,7 +239,7 @@ public class ClaimsPrincipalExtensionsTests
         var expectedOrgId = "org-456";
         var claims = new[]
         {
-            new Claim(CustomClaimTypes.Organization, expectedOrgId)
+            new Claim(AuthConstants.Claims.Organization, expectedOrgId)
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
@@ -262,3 +264,5 @@ public class ClaimsPrincipalExtensionsTests
         Assert.Null(result);
     }
 }
+
+

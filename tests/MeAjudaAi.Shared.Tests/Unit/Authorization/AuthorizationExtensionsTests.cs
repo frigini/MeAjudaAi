@@ -1,8 +1,13 @@
 using System.Security.Claims;
 using FluentAssertions;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Authorization.Keycloak;
 using MeAjudaAi.Shared.Authorization.Metrics;
+using MeAjudaAi.Shared.Authorization.Services;
+using MeAjudaAi.Shared.Authorization.ValueObjects;
+using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -226,8 +231,8 @@ public class AuthorizationExtensionsTests
         // Arrange
         var claims = new List<Claim>
         {
-            new(CustomClaimTypes.Permission, "users:read"),
-            new(CustomClaimTypes.Permission, "users:create")
+            new(AuthConstants.Claims.Permission, "users:read"),
+            new(AuthConstants.Claims.Permission, "users:create")
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -245,7 +250,7 @@ public class AuthorizationExtensionsTests
         // Arrange
         var claims = new List<Claim>
         {
-            new(CustomClaimTypes.Permission, "users:read")
+            new(AuthConstants.Claims.Permission, "users:read")
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -274,8 +279,8 @@ public class AuthorizationExtensionsTests
         // Arrange
         var claims = new List<Claim>
         {
-            new(CustomClaimTypes.Permission, "users:read"),
-            new(CustomClaimTypes.Permission, "users:create")
+            new(AuthConstants.Claims.Permission, "users:read"),
+            new(AuthConstants.Claims.Permission, "users:create")
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -293,7 +298,7 @@ public class AuthorizationExtensionsTests
         // Arrange
         var claims = new List<Claim>
         {
-            new(CustomClaimTypes.Permission, "users:read")
+            new(AuthConstants.Claims.Permission, "users:read")
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -311,7 +316,7 @@ public class AuthorizationExtensionsTests
         // Arrange
         var claims = new List<Claim>
         {
-            new(CustomClaimTypes.Permission, "users:read")
+            new(AuthConstants.Claims.Permission, "users:read")
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -329,7 +334,7 @@ public class AuthorizationExtensionsTests
         // Arrange
         var claims = new List<Claim>
         {
-            new(CustomClaimTypes.Permission, "users:read")
+            new(AuthConstants.Claims.Permission, "users:read")
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -347,9 +352,9 @@ public class AuthorizationExtensionsTests
         // Arrange
         var claims = new List<Claim>
         {
-            new(CustomClaimTypes.Permission, "users:read"),
-            new(CustomClaimTypes.Permission, "users:create"),
-            new(CustomClaimTypes.Permission, "users:update")
+            new(AuthConstants.Claims.Permission, "users:read"),
+            new(AuthConstants.Claims.Permission, "users:create"),
+            new(AuthConstants.Claims.Permission, "users:update")
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -384,8 +389,8 @@ public class AuthorizationExtensionsTests
         // Arrange
         var claims = new List<Claim>
         {
-            new(CustomClaimTypes.Permission, "users:read"),
-            new(CustomClaimTypes.Permission, "*") // Processing marker
+            new(AuthConstants.Claims.Permission, "users:read"),
+            new(AuthConstants.Claims.Permission, "*") // Processing marker
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -404,7 +409,7 @@ public class AuthorizationExtensionsTests
         // Arrange
         var claims = new List<Claim>
         {
-            new(CustomClaimTypes.IsSystemAdmin, "true")
+            new(AuthConstants.Claims.IsSystemAdmin, "true")
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -447,3 +452,4 @@ public class AuthorizationExtensionsTests
         }
     }
 }
+

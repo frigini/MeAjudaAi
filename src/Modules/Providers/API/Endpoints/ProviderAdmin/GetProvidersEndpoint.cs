@@ -3,6 +3,8 @@ using MeAjudaAi.Modules.Providers.Application.DTOs;
 using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Providers.Application.Queries;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Attributes;
+using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
@@ -92,7 +94,7 @@ public class GetProvidersEndpoint : BaseEndpoint, IEndpoint
             .Produces<GeographicRestrictionErrorResponse>(451, "application/json") // HTTP 451 - Unavailable For Legal Reasons (RFC 7725)
             .Produces<RateLimitErrorResponse>(StatusCodes.Status429TooManyRequests, "application/json")
             .Produces<InternalServerErrorResponse>(StatusCodes.Status500InternalServerError, "application/json")
-            .RequirePermission(Permission.ProvidersList);
+            .RequirePermission(EPermission.ProvidersList);
 
     /// <summary>
     /// Processa requisição de consulta de prestadores de forma assíncrona.

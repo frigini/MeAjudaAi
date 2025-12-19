@@ -1,5 +1,8 @@
 using System.Reflection;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Services;
+using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Architecture.Tests.Authorization;
 
@@ -229,11 +232,11 @@ public class PermissionArchitectureTests
     }
 
     [Fact]
-    public void CustomClaimTypes_ShouldBeConstantStrings()
+    public void AuthConstants_Claims_ShouldBeConstantStrings()
     {
         // Arrange
-        var customClaimTypesType = typeof(CustomClaimTypes);
-        var fields = customClaimTypesType.GetFields(BindingFlags.Public | BindingFlags.Static);
+        var claimsType = typeof(AuthConstants.Claims);
+        var fields = claimsType.GetFields(BindingFlags.Public | BindingFlags.Static);
 
         // Act & Assert
         foreach (var field in fields)

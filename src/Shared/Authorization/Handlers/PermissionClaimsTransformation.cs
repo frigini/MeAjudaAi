@@ -22,7 +22,7 @@ public sealed class PermissionClaimsTransformation(
             return principal;
 
         // Verifica se já possui claims de permissão (evita processamento duplo)
-        if (principal.HasClaim(CustomClaimTypes.Permission, "*"))
+        if (principal.HasClaim(AuthConstants.Claims.Permission, "*"))
             return principal;
 
         var userId = GetUserId(principal);
@@ -49,17 +49,17 @@ public sealed class PermissionClaimsTransformation(
             // Adiciona claims de permissão
             foreach (var permission in permissions)
             {
-                claimsIdentity.AddClaim(new Claim(CustomClaimTypes.Permission, permission.GetValue()));
-                claimsIdentity.AddClaim(new Claim(CustomClaimTypes.Module, permission.GetModule()));
+                claimsIdentity.AddClaim(new Claim(AuthConstants.Claims.Permission, permission.GetValue()));
+                claimsIdentity.AddClaim(new Claim(AuthConstants.Claims.Module, permission.GetModule()));
             }
 
             // Adiciona flag indicando que permissões foram processadas
-            claimsIdentity.AddClaim(new Claim(CustomClaimTypes.Permission, "*"));
+            claimsIdentity.AddClaim(new Claim(AuthConstants.Claims.Permission, "*"));
 
             // Adiciona flag de admin se aplicável
             if (permissions.Any(p => p.IsAdminPermission()))
             {
-                claimsIdentity.AddClaim(new Claim(CustomClaimTypes.IsSystemAdmin, "true"));
+                claimsIdentity.AddClaim(new Claim(AuthConstants.Claims.IsSystemAdmin, "true"));
             }
 
             logger.LogDebug("Added {PermissionCount} permission claims for user {UserId}",
