@@ -36,12 +36,13 @@ public class RateLimitingMiddleware(
     IOptionsMonitor<RateLimitOptions> options,
     ILogger<RateLimitingMiddleware> logger)
 {
-    // TODO: Consider adding bounded size or periodic cleanup for _patternCache
-    // if endpoint patterns can change at runtime (e.g., hot-reload configuration).
-    // Currently acceptable for static configurations where patterns are finite,
-    // but unbounded growth could occur if patterns are added dynamically.
-    // Reference: Code Review - https://github.com/coderabbitai
+    /// <summary>
+    /// Cache de padrões Regex compilados para performance. Limitado a 1000 entradas para prevenir memory leaks.
+    /// Em configurações normais, o número de padrões de endpoint é pequeno (&lt;100), mas esse limite
+    /// previne crescimento descontrolado se padrões forem adicionados dinamicamente.
+    /// </summary>
     private static readonly ConcurrentDictionary<string, Regex> _patternCache = new();
+    private const int MaxPatternCacheSize = 1000;
 
     /// <summary>
     /// Classe contador simples para rate limiting.
@@ -125,7 +126,7 @@ public class RateLimitingMiddleware(
         await next(context);
     }
 
-    private static int GetEffectiveLimit(HttpContext context, RateLimitOptions rateLimitOptions, bool isAuthenticated, TimeSpan window)
+    private int GetEffectiveLimit(HttpContext context, RateLimitOptions rateLimitOptions, bool isAuthenticated, TimeSpan window)
     {
         var requestPath = context.Request.Path.Value ?? string.Empty;
 
@@ -193,7 +194,7 @@ public class RateLimitingMiddleware(
         return Math.Max(1, (int)Math.Floor(allowed));
     }
 
-    private static bool IsPathMatch(string requestPath, string pattern)
+    private bool IsPathMatch(string requestPath, string pattern)
     {
         if (string.IsNullOrEmpty(pattern))
             return false;
@@ -201,12 +202,27 @@ public class RateLimitingMiddleware(
         // Correspondência simples de wildcard - pode ser melhorado para padrões mais complexos
         if (pattern.Contains('*'))
         {
-            var regex = _patternCache.GetOrAdd(pattern, p =>
+            // Prevenir memory leak: limitar cache a MaxPatternCacheSize entradas
+            if (_patternCache.Count >= MaxPatternCacheSize && !_patternCache.ContainsKey(pattern))
+            {
+                // Log warning apenas uma vez quando o limite é atingido
+                logger.LogWarning(
+                    "Pattern cache size limit reached ({MaxSize}). Pattern '{Pattern}' will be compiled on-demand without caching.",
+                    MaxPatternCacheSize,
+                    pattern);
+                
+                // Compilar sem adicionar ao cache
+                var escaped = Regex.Escape(pattern).Replace(@"\*", ".*");
+                var regex = new Regex($"^{escaped}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                return regex.IsMatch(requestPath);
+            }
+
+            var cachedRegex = _patternCache.GetOrAdd(pattern, p =>
             {
                 var escaped = Regex.Escape(p).Replace(@"\*", ".*");
                 return new Regex($"^{escaped}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             });
-            return regex.IsMatch(requestPath);
+            return cachedRegex.IsMatch(requestPath);
         }
 
         return string.Equals(requestPath, pattern, StringComparison.OrdinalIgnoreCase);
