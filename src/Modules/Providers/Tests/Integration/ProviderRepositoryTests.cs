@@ -4,21 +4,24 @@ using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Time;
+using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Integration;
 
 /// <summary>
-/// Testes de integração para o repositório de prestadores
+/// Testes de integração para o repositório de prestadores.
+/// Valida persistência real com banco de dados PostgreSQL via TestContainers.
 /// </summary>
 /// <remarks>
 /// Verifica operações CRUD do repositório:
 /// - Criação e persistência de providers
 /// - Consultas por diferentes critérios
-/// - Atualizações e soft deletes
+/// - Atualizações e deletes (soft e hard)
 /// - Relacionamentos com value objects
+/// - EF Core mappings e constraints
 /// </remarks>
 [Collection("ProvidersIntegrationTests")]
-public class ProviderRepositoryIntegrationTests : ProvidersIntegrationTestBase
+public class ProviderRepositoryTests : ProvidersIntegrationTestBase
 {
     [Fact]
     public async Task AddAsync_WithValidProvider_ShouldPersistToDatabase()
@@ -291,6 +294,118 @@ public class ProviderRepositoryIntegrationTests : ProvidersIntegrationTestBase
 
         // Assert
         result.Should().BeNull(); // Soft deleted providers should not be returned
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldRemoveProviderFromDatabase()
+    {
+        // Arrange
+        await CleanupDatabase();
+        using var scope = CreateScope();
+        var repository = GetScopedService<IProviderRepository>(scope);
+        var dbContext = GetScopedService<ProvidersDbContext>(scope);
+
+        var provider = CreateTestProvider("To Delete", EProviderType.Individual);
+        await repository.AddAsync(provider);
+
+        // Verify provider exists
+        var providerBeforeDelete = await repository.GetByIdAsync(provider.Id);
+        providerBeforeDelete.Should().NotBeNull();
+
+        // Act
+        await repository.DeleteAsync(provider.Id);
+
+        // Assert - GetByIdAsync should return null after hard delete
+        var deletedProvider = await repository.GetByIdAsync(provider.Id);
+        deletedProvider.Should().BeNull();
+
+        // Verify hard delete in database (provider should not exist at all)
+        var providerInDb = await dbContext.Providers
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.Id == provider.Id);
+
+        providerInDb.Should().BeNull(); // Hard delete - completely removed
+    }
+
+    [Fact]
+    public async Task GetByIdsAsync_WithMultipleIds_ShouldReturnMatchingProviders()
+    {
+        // Arrange
+        await CleanupDatabase();
+        using var scope = CreateScope();
+        var repository = GetScopedService<IProviderRepository>(scope);
+
+        var provider1 = CreateTestProvider("Provider 1", EProviderType.Individual);
+        var provider2 = CreateTestProvider("Provider 2", EProviderType.Company);
+        var provider3 = CreateTestProvider("Provider 3", EProviderType.Individual);
+
+        await repository.AddAsync(provider1);
+        await repository.AddAsync(provider2);
+        await repository.AddAsync(provider3);
+
+        var ids = new List<Guid> { provider1.Id.Value, provider3.Id.Value };
+
+        // Act
+        var result = await repository.GetByIdsAsync(ids);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().Contain(p => p.Id == provider1.Id);
+        result.Should().Contain(p => p.Id == provider3.Id);
+        result.Should().NotContain(p => p.Id == provider2.Id);
+    }
+
+    [Fact]
+    public async Task ExistsByUserIdAsync_WithExistingUser_ShouldReturnTrue()
+    {
+        // Arrange
+        await CleanupDatabase();
+        using var scope = CreateScope();
+        var repository = GetScopedService<IProviderRepository>(scope);
+
+        var userId = Guid.NewGuid();
+        var provider = CreateTestProvider("User Provider", EProviderType.Individual, userId: userId);
+        await repository.AddAsync(provider);
+
+        // Act
+        var exists = await repository.ExistsByUserIdAsync(userId);
+
+        // Assert
+        exists.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ExistsByUserIdAsync_WithNonExistentUser_ShouldReturnFalse()
+    {
+        // Arrange
+        await CleanupDatabase();
+        using var scope = CreateScope();
+        var repository = GetScopedService<IProviderRepository>(scope);
+
+        var nonExistentUserId = Guid.NewGuid();
+
+        // Act
+        var exists = await repository.ExistsByUserIdAsync(nonExistentUserId);
+
+        // Assert
+        exists.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_WithNonExistentUser_ShouldReturnNull()
+    {
+        // Arrange
+        await CleanupDatabase();
+        using var scope = CreateScope();
+        var repository = GetScopedService<IProviderRepository>(scope);
+
+        var nonExistentUserId = Guid.NewGuid();
+
+        // Act
+        var result = await repository.GetByUserIdAsync(nonExistentUserId);
+
+        // Assert
+        result.Should().BeNull();
     }
 
     /// <summary>
