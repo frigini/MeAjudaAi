@@ -15,6 +15,16 @@ public class ActivateServiceEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/{id:guid}/activate", ActivateAsync)
             .WithName("ActivateService")
             .WithSummary("Ativar serviço")
+            .WithDescription("""
+                Ativa um serviço, tornando-o disponível no catálogo.
+                
+                **Efeitos:**
+                - Serviço fica visível em listagens públicas
+                - Provedores podem adicionar este serviço às suas ofertas
+                - Serviço aparece em buscas de serviços ativos
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 

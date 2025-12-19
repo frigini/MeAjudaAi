@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Authorization.Core;
+
 namespace MeAjudaAi.Shared.Authorization.Keycloak;
 
 /// <summary>

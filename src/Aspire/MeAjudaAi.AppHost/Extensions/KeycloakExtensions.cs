@@ -1,92 +1,7 @@
+using MeAjudaAi.AppHost.Options;
+using MeAjudaAi.AppHost.Results;
+
 namespace MeAjudaAi.AppHost.Extensions;
-
-/// <summary>
-/// Opções de configuração para o setup do Keycloak do MeAjudaAi
-/// </summary>
-public sealed class MeAjudaAiKeycloakOptions
-{
-    /// <summary>
-    /// Nome de usuário do administrador do Keycloak
-    /// </summary>
-    public string AdminUsername { get; set; } = "admin";
-
-    /// <summary>
-    /// Senha do administrador do Keycloak
-    /// </summary>
-    public string AdminPassword { get; set; } = "admin123";
-
-    /// <summary>
-    /// Host do banco de dados PostgreSQL
-    /// </summary>
-    public string DatabaseHost { get; set; } = "postgres-local";
-
-    /// <summary>
-    /// Porta do banco de dados PostgreSQL
-    /// </summary>
-    public string DatabasePort { get; set; } = "5432";
-
-    /// <summary>
-    /// Nome do banco de dados
-    /// </summary>
-    public string DatabaseName { get; set; } = "meajudaai";
-
-    /// <summary>
-    /// Schema do banco de dados para o Keycloak (padrão: 'identity')
-    /// </summary>
-    public string DatabaseSchema { get; set; } = "identity";
-
-    /// <summary>
-    /// Nome de usuário do banco de dados
-    /// </summary>
-    public string DatabaseUsername { get; set; } = "postgres";
-
-    /// <summary>
-    /// Senha do banco de dados
-    /// </summary>
-    public string DatabasePassword { get; set; } =
-        Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "dev123";
-
-    /// <summary>
-    /// Hostname para URLs de produção (ex: keycloak.mydomain.com)
-    /// </summary>
-    public string? Hostname { get; set; }
-
-    /// <summary>
-    /// Indica se deve expor endpoint HTTP (padrão: true para desenvolvimento)
-    /// </summary>
-    public bool ExposeHttpEndpoint { get; set; } = true;
-
-    /// <summary>
-    /// Realm a ser importado na inicialização
-    /// </summary>
-    public string? ImportRealm { get; set; } = "/opt/keycloak/data/import/meajudaai-realm.json";
-
-    /// <summary>
-    /// Indica se está em ambiente de teste (configurações otimizadas)
-    /// </summary>
-    public bool IsTestEnvironment { get; set; }
-}
-
-/// <summary>
-/// Resultado da configuração do Keycloak
-/// </summary>
-public sealed class MeAjudaAiKeycloakResult
-{
-    /// <summary>
-    /// Referência ao container do Keycloak
-    /// </summary>
-    public required IResourceBuilder<KeycloakResource> Keycloak { get; init; }
-
-    /// <summary>
-    /// URL base do Keycloak para autenticação
-    /// </summary>
-    public required string AuthUrl { get; init; }
-
-    /// <summary>
-    /// URL de administração do Keycloak
-    /// </summary>
-    public required string AdminUrl { get; init; }
-}
 
 /// <summary>
 /// Extensões para configuração do Keycloak no MeAjudaAi
@@ -100,8 +15,19 @@ public static class MeAjudaAiKeycloakExtensions
         this IDistributedApplicationBuilder builder,
         Action<MeAjudaAiKeycloakOptions>? configure = null)
     {
-        var options = new MeAjudaAiKeycloakOptions();
+        var options = new MeAjudaAiKeycloakOptions
+        {
+            AdminUsername = string.Empty,
+            AdminPassword = string.Empty
+        };
         configure?.Invoke(options);
+
+        if (string.IsNullOrWhiteSpace(options.AdminUsername) || string.IsNullOrWhiteSpace(options.AdminPassword))
+        {
+            throw new InvalidOperationException(
+                "AdminUsername and AdminPassword must be configured for Keycloak. " +
+                "Set via configuration callback or KEYCLOAK_ADMIN/KEYCLOAK_ADMIN_PASSWORD environment variables.");
+        }
 
         Console.WriteLine($"[Keycloak] Configurando Keycloak para desenvolvimento...");
         Console.WriteLine($"[Keycloak] Database Schema: {options.DatabaseSchema}");
@@ -186,6 +112,7 @@ public static class MeAjudaAiKeycloakExtensions
         var options = new MeAjudaAiKeycloakOptions
         {
             // Configurações seguras para produção - usar valores das variáveis de ambiente validadas
+            AdminUsername = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN") ?? "admin",
             ExposeHttpEndpoint = false,
             AdminPassword = adminPasswordFromEnv,
             DatabasePassword = dbPasswordFromEnv
@@ -244,65 +171,12 @@ public static class MeAjudaAiKeycloakExtensions
 
         var authUrl = options.ExposeHttpEndpoint
             ? $"https://localhost:{keycloak.GetEndpoint("https").Port}"
-            : $"https://{options.Hostname ?? Environment.GetEnvironmentVariable("KEYCLOAK_HOSTNAME") ?? "change-me.example.com"}";
+            : $"https://{resolvedHostname}";
         var adminUrl = $"{authUrl}/admin";
 
         Console.WriteLine($"[Keycloak] ✅ Keycloak produção configurado:");
         Console.WriteLine($"[Keycloak]    Auth URL: {authUrl}");
         Console.WriteLine($"[Keycloak]    Admin URL: {adminUrl}");
-        Console.WriteLine($"[Keycloak]    Schema: {options.DatabaseSchema}");
-
-        return new MeAjudaAiKeycloakResult
-        {
-            Keycloak = keycloak,
-            AuthUrl = authUrl,
-            AdminUrl = adminUrl
-        };
-    }
-
-    /// <summary>
-    /// Adiciona configuração simplificada de Keycloak para testes
-    /// </summary>
-    public static MeAjudaAiKeycloakResult AddMeAjudaAiKeycloakTesting(
-        this IDistributedApplicationBuilder builder,
-        Action<MeAjudaAiKeycloakOptions>? configure = null)
-    {
-        var options = new MeAjudaAiKeycloakOptions
-        {
-            IsTestEnvironment = true,
-            DatabaseSchema = "identity_test", // Schema separado para testes
-            AdminPassword = "test123"
-        };
-        configure?.Invoke(options);
-
-        Console.WriteLine($"[Keycloak] Configurando Keycloak para testes...");
-        Console.WriteLine($"[Keycloak] Database Schema: {options.DatabaseSchema}");
-
-        var keycloak = builder.AddKeycloak("keycloak-test")
-            // Configurações otimizadas para teste
-            .WithEnvironment("KC_DB", "postgres")
-            .WithEnvironment("KC_DB_URL", $"jdbc:postgresql://{options.DatabaseHost}:{options.DatabasePort}/{options.DatabaseName}?currentSchema={options.DatabaseSchema}")
-            .WithEnvironment("KC_DB_USERNAME", options.DatabaseUsername)
-            .WithEnvironment("KC_DB_PASSWORD", options.DatabasePassword)
-            .WithEnvironment("KC_DB_SCHEMA", options.DatabaseSchema)
-            // Credenciais do admin
-            .WithEnvironment("KEYCLOAK_ADMIN", options.AdminUsername)
-            .WithEnvironment("KEYCLOAK_ADMIN_PASSWORD", options.AdminPassword)
-            // Configurações simplificadas para velocidade
-            .WithEnvironment("KC_HOSTNAME_STRICT", "false")
-            .WithEnvironment("KC_HTTP_ENABLED", "true")
-            .WithEnvironment("KC_HEALTH_ENABLED", "false")
-            .WithEnvironment("KC_METRICS_ENABLED", "false")
-            .WithEnvironment("KC_LOG_LEVEL", "WARN")
-            .WithArgs("start-dev", "--db=postgres");
-
-        keycloak = keycloak.WithHttpEndpoint(targetPort: 8080, name: "keycloak-test-http");
-
-        var authUrl = $"http://localhost:{keycloak.GetEndpoint("keycloak-test-http").Port}";
-        var adminUrl = $"{authUrl}/admin";
-
-        Console.WriteLine($"[Keycloak] ✅ Keycloak teste configurado:");
-        Console.WriteLine($"[Keycloak]    Auth URL: {authUrl}");
         Console.WriteLine($"[Keycloak]    Schema: {options.DatabaseSchema}");
 
         return new MeAjudaAiKeycloakResult

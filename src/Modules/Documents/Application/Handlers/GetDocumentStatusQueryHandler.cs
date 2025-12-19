@@ -7,6 +7,11 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
+/// <summary>
+/// Handles queries to retrieve the current status of a specific document.
+/// </summary>
+/// <param name="documentRepository">Document repository for data access.</param>
+/// <param name="logger">Logger instance.</param>
 public class GetDocumentStatusQueryHandler(
     IDocumentRepository documentRepository,
     ILogger<GetDocumentStatusQueryHandler> logger) : IQueryHandler<GetDocumentStatusQuery, DocumentDto?>

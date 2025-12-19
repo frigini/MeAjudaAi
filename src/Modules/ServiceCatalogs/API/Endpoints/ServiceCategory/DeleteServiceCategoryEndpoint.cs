@@ -15,6 +15,19 @@ public class DeleteServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         => app.MapDelete("/{id:guid}", DeleteAsync)
             .WithName("DeleteServiceCategory")
             .WithSummary("Deletar categoria de serviço")
+            .WithDescription("""
+                Deleta uma categoria de serviços permanentemente.
+                
+                **Validações:**
+                - ID não pode ser vazio
+                - Categoria deve existir
+                - Categoria não pode ter serviços associados
+                
+                **Importante:** Operação destrutiva. Categorias com serviços não podem
+                ser deletadas. Use desativação ou mova os serviços primeiro.
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 

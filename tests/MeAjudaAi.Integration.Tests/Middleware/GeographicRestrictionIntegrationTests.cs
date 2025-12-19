@@ -6,9 +6,19 @@ using MeAjudaAi.Shared.Models;
 
 namespace MeAjudaAi.Integration.Tests.Middleware;
 
+/// <summary>
+/// Tests for GeographicRestrictionMiddleware.
+/// Uses configuration-based validation (not IBGE mock) for consistency.
+/// </summary>
 [Collection("Integration")]
 public class GeographicRestrictionIntegrationTests : ApiTestBase
 {
+    /// <summary>
+    /// Disable mock geographic validation for these tests.
+    /// These tests validate the middleware's configuration-based (simple) validation logic.
+    /// </summary>
+    protected override bool UseMockGeographicValidation => false;
+
     [Fact]
     public async Task GetProviders_WhenAllowedCity_ShouldReturnOk()
     {

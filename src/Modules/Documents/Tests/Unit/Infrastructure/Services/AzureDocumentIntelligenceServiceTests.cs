@@ -1,10 +1,11 @@
-using Azure.AI.DocumentIntelligence;
+﻿using Azure.AI.DocumentIntelligence;
 using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Constants;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using static MeAjudaAi.Modules.Documents.Application.Constants.DocumentTypes;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Infrastructure.Services;
 
@@ -58,7 +59,7 @@ public class AzureDocumentIntelligenceServiceTests
     public async Task AnalyzeDocumentAsync_WhenBlobUrlIsNullOrWhitespace_ShouldThrowArgumentException(string? blobUrl)
     {
         // Arrange
-        var documentType = DocumentModelConstants.DocumentTypes.IdentityDocument;
+        var documentType = IdentityDocument;
 
         // Act
         var act = async () => await _service.AnalyzeDocumentAsync(blobUrl!, documentType);
@@ -93,7 +94,7 @@ public class AzureDocumentIntelligenceServiceTests
     public async Task AnalyzeDocumentAsync_WhenBlobUrlFormatIsInvalid_ShouldThrowArgumentException(string invalidUrl)
     {
         // Arrange
-        var documentType = DocumentModelConstants.DocumentTypes.IdentityDocument;
+        var documentType = IdentityDocument;
 
         // Act
         var act = async () => await _service.AnalyzeDocumentAsync(invalidUrl, documentType);
@@ -112,7 +113,7 @@ public class AzureDocumentIntelligenceServiceTests
     public async Task AnalyzeDocumentAsync_WhenUrlIsAbsolute_ShouldNotThrowArgumentExceptionForUrl(string absoluteUrl)
     {
         // Arrange
-        var documentType = DocumentModelConstants.DocumentTypes.IdentityDocument;
+        var documentType = IdentityDocument;
 
         // Act
         var act = async () => await _service.AnalyzeDocumentAsync(absoluteUrl, documentType);
@@ -139,7 +140,7 @@ public class AzureDocumentIntelligenceServiceTests
     {
         // Arrange
         var blobUrl = "https://storage.blob.core.windows.net/documents/test.pdf";
-        var documentType = DocumentModelConstants.DocumentTypes.IdentityDocument;
+        var documentType = IdentityDocument;
 
         // Act
         try
@@ -156,16 +157,16 @@ public class AzureDocumentIntelligenceServiceTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Iniciando análise OCR")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Starting OCR analysis")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 
     [Theory]
-    [InlineData(DocumentModelConstants.DocumentTypes.IdentityDocument)]
-    [InlineData(DocumentModelConstants.DocumentTypes.ProofOfResidence)]
-    [InlineData(DocumentModelConstants.DocumentTypes.CriminalRecord)]
+    [InlineData(IdentityDocument)]
+    [InlineData(ProofOfResidence)]
+    [InlineData(CriminalRecord)]
     [InlineData("unknowntype")]
     public async Task AnalyzeDocumentAsync_ShouldAcceptDifferentDocumentTypes(string documentType)
     {
@@ -187,7 +188,7 @@ public class AzureDocumentIntelligenceServiceTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Iniciando análise OCR")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Starting OCR analysis")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -198,7 +199,7 @@ public class AzureDocumentIntelligenceServiceTests
     {
         // Arrange
         var blobUrl = "https://storage.blob.core.windows.net/documents/test.pdf";
-        var documentType = DocumentModelConstants.DocumentTypes.IdentityDocument;
+        var documentType = IdentityDocument;
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 

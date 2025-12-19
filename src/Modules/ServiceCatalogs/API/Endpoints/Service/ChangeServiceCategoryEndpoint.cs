@@ -17,6 +17,21 @@ public class ChangeServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/{id:guid}/change-category", ChangeAsync)
             .WithName("ChangeServiceCategory")
             .WithSummary("Alterar categoria do serviço")
+            .WithDescription("""
+                Move um serviço para uma categoria diferente.
+                
+                **Validações:**
+                - Serviço deve existir
+                - Nova categoria deve existir e estar ativa
+                - Nova categoria não pode ser a mesma que a atual
+                
+                **Casos de Uso:**
+                - Reorganizar catálogo de serviços
+                - Corrigir categorização incorreta
+                - Adaptar estrutura de categorias
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 

@@ -15,14 +15,7 @@ permissions:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  # CRITICAL: Set STRICT_COVERAGE: true before merging to main
-  # This enforces 80% minimum coverage threshold (lines 785, 810)
-  # Current bypass is TEMPORARY for development only
-  # TODO: Enable STRICT_COVERAGE when overall coverage ≥ 90% (Sprint 2 milestone)
-  #       Tracking: https://github.com/frigini/MeAjudaAi/issues/33
-  #       References: docs/testing/code-coverage-guide.md#L297-L313
-  # Re-enable when overall coverage reaches 90% (Sprint 2 milestone)
-  STRICT_COVERAGE: false
+  STRICT_COVERAGE: true
   # PostgreSQL configuration (DRY principle - single source of truth)
   # Fallback credentials: Only used in fork/local dev; main repo requires secrets
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
@@ -34,6 +27,7 @@ jobs:
   code-quality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 60  # Prevent jobs from hanging indefinitely
 
     services:
       postgres:
@@ -103,6 +97,76 @@ jobs:
 
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
+
+      - name: Prepare Aspire Integration Tests
+        run: |
+          echo "📦 Preparing .NET Aspire for integration tests..."
+          echo "ℹ️  Note: Aspire workload is deprecated in .NET 10 - using NuGet packages instead"
+
+          # In .NET 10, the Aspire orchestration package needs to be explicitly restored
+          # The package name varies by platform RID
+          echo "🔄 Downloading Aspire DCP orchestration package for linux-x64..."
+
+          # Download the orchestration package directly
+          # Note: The version should match the Aspire.AppHost.Sdk version (13.0.2)
+          dotnet nuget locals all --list
+
+          # Force download of the DCP package by adding it temporarily to a dummy project
+          TEMP_DIR=$(mktemp -d)
+          cd "$TEMP_DIR"
+          dotnet new console -n TempDcpDownloader
+          cd TempDcpDownloader
+
+          # Add the Aspire orchestration package for Linux
+          dotnet add package Aspire.Hosting.Orchestration.linux-x64 --version 13.0.2
+          dotnet restore
+
+          # Return to workspace
+          cd "$GITHUB_WORKSPACE"
+          rm -rf "$TEMP_DIR"
+
+          # Verify DCP binaries were downloaded (now located in NuGet package cache)
+          echo "🔎 Verifying DCP binaries in NuGet cache..."
+
+          # DCP binaries come from Aspire.Hosting.Orchestration.<RID> NuGet package
+          # For linux-x64, the package is aspire.hosting.orchestration.linux-x64
+          # NuGet packages are case-sensitive on Linux, so we need to search for the exact case
+          DCP_PACKAGE_PATH=$(find "$HOME/.nuget/packages" -maxdepth 1 -type d \
+            -iname "aspire.hosting.orchestration.linux-x64" 2>/dev/null | head -n 1)
+
+          if [ -z "$DCP_PACKAGE_PATH" ]; then
+            echo "❌ Error: aspire.hosting.orchestration.linux-x64 package not found in NuGet cache"
+            echo "Searching for all Aspire orchestration packages..."
+            find "$HOME/.nuget/packages" -maxdepth 1 -type d \
+              -iname "*aspire*orchestration*" 2>/dev/null || echo "No Aspire orchestration packages found"
+            echo "Listing all Aspire packages:"
+            find "$HOME/.nuget/packages" -maxdepth 1 -type d \
+              -iname "*aspire*" 2>/dev/null || echo "No Aspire packages found"
+            echo "❌ Integration tests require Aspire DCP binaries - failing fast"
+            exit 1
+          fi
+
+          echo "✅ Found Aspire package at: $DCP_PACKAGE_PATH"
+
+          # Find DCP binary in the downloaded package
+          DCP_BINARY=$(find "$DCP_PACKAGE_PATH" -type f -name "dcp" \
+            2>/dev/null | head -n 1)
+
+          if [ -z "$DCP_BINARY" ]; then
+            echo "❌ Error: DCP binary not found in package"
+            echo "Package structure:"
+            ls -la "$DCP_PACKAGE_PATH" || true
+            echo "❌ Integration tests require Aspire DCP binaries - failing fast"
+            exit 1
+          fi
+
+          echo "✅ Aspire DCP binaries verified: $DCP_BINARY"
+
+          # Set DOTNET_ROOT for SDK discovery
+          # Note: This export to $GITHUB_ENV should persist to later steps, but the
+          # "Generate Aggregated Coverage Report" step re-detects DOTNET_ROOT dynamically
+          # as a fallback in case this export doesn't reliably persist across jobs.
+          echo "DOTNET_ROOT=$HOME/.dotnet" >> $GITHUB_ENV
 
       - name: Check code formatting
         run: |
@@ -448,6 +512,9 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
@@ -508,6 +575,9 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           INTEGRATION_TESTS: true
+          MEAJUDAAI_DB_PASS: ${{ env.POSTGRES_PASSWORD }}
+          MEAJUDAAI_DB_USER: ${{ env.POSTGRES_USER }}
+          MEAJUDAAI_DB: ${{ env.POSTGRES_DB }}
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
@@ -572,11 +642,11 @@ jobs:
         run: |
           echo "📊 Generating aggregated coverage report from ALL tests..."
           
-          # Install ReportGenerator
-          dotnet tool install --global dotnet-reportgenerator-globaltool || dotnet tool update --global dotnet-reportgenerator-globaltool
-          
-          # Add dotnet tools to PATH
-          export PATH="$PATH:$HOME/.dotnet/tools"
+          # Verify .NET 10 installation
+          echo "🔍 Verifying .NET installation..."
+          dotnet --version
+          dotnet --list-sdks
+          dotnet --list-runtimes
           
           # Pre-flight check: verify all expected coverage files exist
           echo "🔍 Pre-flight check: Verifying coverage files..."
@@ -602,26 +672,47 @@ jobs:
             echo "⚠️  Warning: $MISSING_FILES module(s) missing coverage files"
             echo "   ReportGenerator will combine only available modules"
           fi
-          
-          # Generate aggregated Cobertura XML combining Unit + Integration + E2E coverage
-          # Note: OpenCover output format requires Pro license, but Cobertura is free
-          # We read OpenCover input files and generate Cobertura output
-          echo "🔗 Combining coverage from Unit + Integration + E2E tests..."
-          
-          # ReportGenerator filter syntax: semicolon-separated, +/- prefix, no brackets
-          # Include main assemblies (use wildcards for all module components)
-          INCLUDE_FILTER="+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*"
-          # CRITICAL: Exclude .Tests assemblies, Migrations, infrastructure classes, Program.cs, DbContextFactory
-          EXCLUDE_FILTER="-*.Tests;-*.Tests.*;-*Test*;-testhost;-xunit*;-*.Migrations.*;-*.Contracts;-*.Database;-*DbContextFactory;-*.Program;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
-          
-          reportgenerator \
-            -reports:"coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml" \
-            -targetdir:"coverage/aggregate" \
-            -reporttypes:"Cobertura" \
-            -assemblyfilters:"$INCLUDE_FILTER" \
-            -classfilters:"$EXCLUDE_FILTER" \
-            -filefilters:"-*Migrations*"
-          
+
+      - name: Configure DOTNET_ROOT for ReportGenerator
+        run: |
+          # ReportGenerator needs DOTNET_ROOT to find .NET runtime
+          # Set to system installation path where .NET 10 runtime is installed
+          if command -v dotnet >/dev/null 2>&1; then
+            DOTNET_PATH=$(which dotnet)
+            DOTNET_RESOLVED=$(readlink -f "$DOTNET_PATH")
+            export DOTNET_ROOT=$(dirname "$DOTNET_RESOLVED")
+            echo "DOTNET_ROOT=$DOTNET_ROOT" >> $GITHUB_ENV
+            echo "✅ Set DOTNET_ROOT: $DOTNET_ROOT"
+            
+            # Validate DOTNET_ROOT directory
+            if [ ! -d "$DOTNET_ROOT" ]; then
+              echo "❌ ERROR: DOTNET_ROOT directory does not exist: $DOTNET_ROOT"
+              exit 1
+            fi
+            
+            echo "📋 Available runtimes:"
+            dotnet --list-runtimes
+          else
+            echo "❌ dotnet command not found"
+            exit 1
+          fi
+
+      - name: Generate aggregated coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        env:
+          DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
+        with:
+          reports: 'coverage/users/*.opencover.xml;coverage/providers/*.opencover.xml;coverage/documents/*.opencover.xml;coverage/servicecatalogs/*.opencover.xml;coverage/locations/*.opencover.xml;coverage/searchproviders/*.opencover.xml;coverage/shared/*.opencover.xml;coverage/apiservice/*.opencover.xml;coverage/integration/**/*.xml;coverage/e2e/**/*.xml'
+          targetdir: 'coverage/aggregate'
+          reporttypes: 'Cobertura;JsonSummary'
+          assemblyfilters: '+MeAjudaAi.Modules.Users.*;+MeAjudaAi.Modules.Providers.*;+MeAjudaAi.Modules.Documents.*;+MeAjudaAi.Modules.ServiceCatalogs.*;+MeAjudaAi.Modules.Locations.*;+MeAjudaAi.Modules.SearchProviders.*;+MeAjudaAi.Shared*;+MeAjudaAi.ApiService*'
+          classfilters: '-*.Tests;-*.Tests.*;-*Test*;-testhost;-xunit*;-*.Migrations.*;-*.Contracts;-*.Database;-*DbContextFactory;-*.Program;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery'
+          filefilters: '-*Migrations*'
+          verbosity: 'Info'
+          tag: '${{ github.run_number }}_${{ github.run_id }}'
+
+      - name: Display coverage summary
+        run: |
           if [ -f "coverage/aggregate/Cobertura.xml" ]; then
             echo "✅ Aggregated coverage report generated: coverage/aggregate/Cobertura.xml"
             # Show summary stats from Cobertura XML
@@ -941,6 +1032,7 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Security scans shouldn't take more than 30 minutes
 
     steps:
       - name: Checkout code
@@ -1092,6 +1184,7 @@ jobs:
   markdown-link-check:
     name: Validate Markdown Links
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # Link validation should be quick
 
     steps:
       - name: Checkout code
@@ -1132,6 +1225,7 @@ jobs:
   yaml-validation:
     name: YAML Syntax Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # YAML validation is quick
 
     steps:
       - name: Checkout code

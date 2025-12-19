@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Modules.Documents.API;
-using MeAjudaAi.Modules.Locations.Infrastructure;
+using MeAjudaAi.Modules.Locations.API;
 using MeAjudaAi.Modules.Providers.API;
 using MeAjudaAi.Modules.SearchProviders.API;
 using MeAjudaAi.Modules.ServiceCatalogs.API;
@@ -9,6 +9,7 @@ using MeAjudaAi.Modules.Users.API;
 using MeAjudaAi.ServiceDefaults;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Logging;
+using MeAjudaAi.Shared.Logging.Extensions;
 using MeAjudaAi.Shared.Seeding;
 using Serilog;
 using Serilog.Context;
@@ -37,7 +38,7 @@ public partial class Program
             builder.Services.AddProvidersModule(builder.Configuration);
             builder.Services.AddDocumentsModule(builder.Configuration);
             builder.Services.AddSearchProvidersModule(builder.Configuration, builder.Environment);
-            builder.Services.AddLocationModule(builder.Configuration);
+            builder.Services.AddLocationsModule(builder.Configuration);
             builder.Services.AddServiceCatalogsModule(builder.Configuration);
 
             // Shared services por último (GlobalExceptionHandler atua como fallback)
@@ -71,7 +72,7 @@ public partial class Program
         // Configurar Serilog apenas se NÃO for ambiente de Testing
         if (!builder.Environment.IsEnvironment("Testing"))
         {
-            // Bootstrap logger for early startup messages
+            // Logger de inicialização para mensagens de startup precoces
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(builder.Configuration)
                 .Enrich.FromLogContext()
@@ -90,11 +91,11 @@ public partial class Program
                     "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"),
                 writeToProviders: false, preserveStaticLogger: false);
 
-            Log.Information("🚀 Iniciando MeAjudaAi API Service");
+            Log.Information("🚀 Starting MeAjudaAi API Service");
         }
         else
         {
-            // For Testing environment, use minimal console logging
+            // Para ambiente de Testing, usa logging mínimo no console
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole();
             builder.Logging.SetMinimumLevel(LogLevel.Warning);
@@ -105,7 +106,7 @@ public partial class Program
     {
         app.MapDefaultEndpoints();
 
-        // Add structured logging middleware (will conditionally add Serilog request logging based on environment)
+        // Adiciona middleware de logging estruturado (condicionalmente adiciona Serilog request logging baseado no ambiente)
         if (!app.Environment.IsEnvironment("Testing"))
         {
             app.UseStructuredLogging();
@@ -118,7 +119,7 @@ public partial class Program
         app.UseProvidersModule();
         app.UseDocumentsModule();
         app.UseSearchProvidersModule();
-        app.UseLocationModule();
+        app.UseLocationsModule();
         app.UseServiceCatalogsModule();
     }
 
@@ -127,7 +128,7 @@ public partial class Program
         if (!app.Environment.IsEnvironment("Testing"))
         {
             var environmentName = app.Environment.IsEnvironment("Integration") ? "Integration Test" : app.Environment.EnvironmentName;
-            Log.Information("✅ MeAjudaAi API Service configurado com sucesso - Ambiente: {Environment}", environmentName);
+            Log.Information("✅ MeAjudaAi API Service configured successfully - Environment: {Environment}", environmentName);
         }
     }
 
@@ -135,7 +136,7 @@ public partial class Program
     {
         if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Testing")
         {
-            Log.Fatal(ex, "❌ Falha crítica ao inicializar MeAjudaAi API Service");
+            Log.Fatal(ex, "❌ Critical failure initializing MeAjudaAi API Service");
         }
     }
 

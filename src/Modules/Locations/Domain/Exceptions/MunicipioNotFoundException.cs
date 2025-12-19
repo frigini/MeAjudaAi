@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Exceptions;
+
 namespace MeAjudaAi.Modules.Locations.Domain.Exceptions;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace MeAjudaAi.Modules.Locations.Domain.Exceptions;
 /// Indica que a cidade pode não existir OU a API do IBGE não possui dados sobre ela.
 /// Middleware deve fazer fallback para validação simples (string matching).
 /// </summary>
-public sealed class MunicipioNotFoundException : Exception
+public sealed class MunicipioNotFoundException : DomainException
 {
     public string CityName { get; }
     public string? StateSigla { get; }

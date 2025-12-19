@@ -1,7 +1,6 @@
 using MeAjudaAi.Modules.Locations.Application.ModuleApi;
 using MeAjudaAi.Modules.Locations.Application.Services;
 using MeAjudaAi.Modules.Locations.Domain.Repositories;
-using MeAjudaAi.Modules.Locations.Infrastructure.API.Endpoints;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients.Interfaces;
 using MeAjudaAi.Modules.Locations.Infrastructure.Filters;
@@ -20,14 +19,14 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Modules.Locations.Infrastructure;
 
 /// <summary>
-/// Métodos de extensão para registrar serviços do módulo Locations.
+/// Métodos de extensão para registrar serviços de infraestrutura do módulo Locations.
 /// </summary>
 public static class Extensions
 {
     /// <summary>
-    /// Registra todos os serviços do módulo Locations.
+    /// Registra todos os serviços de infraestrutura do módulo Locations.
     /// </summary>
-    public static IServiceCollection AddLocationModule(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // Registrar DbContext para Locations module
         services.AddDbContext<LocationsDbContext>((serviceProvider, options) =>
@@ -152,21 +151,5 @@ public static class Extensions
         }
 
         return services;
-    }
-
-    /// <summary>
-    /// Configura os endpoints do módulo Location.
-    /// Registra endpoints administrativos para gerenciamento de cidades permitidas.
-    /// </summary>
-    public static WebApplication UseLocationModule(this WebApplication app)
-    {
-        // Registrar endpoints administrativos (Admin only)
-        CreateAllowedCityEndpoint.Map(app);
-        GetAllAllowedCitiesEndpoint.Map(app);
-        GetAllowedCityByIdEndpoint.Map(app);
-        UpdateAllowedCityEndpoint.Map(app);
-        DeleteAllowedCityEndpoint.Map(app);
-
-        return app;
     }
 }

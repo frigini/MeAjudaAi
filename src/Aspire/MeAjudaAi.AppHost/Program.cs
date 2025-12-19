@@ -119,9 +119,11 @@ internal static class Program
 
         var keycloak = builder.AddMeAjudaAiKeycloak(options =>
         {
+            // OBRIGATÓRIO: AdminUsername e AdminPassword
             options.AdminUsername = builder.Configuration["Keycloak:AdminUsername"]
                                    ?? Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_USERNAME")
-                                   ?? "admin";
+                                   ?? "admin"; // Fallback apenas para desenvolvimento local
+            
             var adminPassword = builder.Configuration["Keycloak:AdminPassword"]
                                 ?? Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD");
             var isKeycloakCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
@@ -133,7 +135,7 @@ internal static class Program
                     Console.Error.WriteLine("Please set KEYCLOAK_ADMIN_PASSWORD to the Keycloak admin password in your CI environment.");
                     Environment.Exit(1);
                 }
-                adminPassword = "admin123";
+                adminPassword = "admin123"; // Fallback apenas para desenvolvimento local
             }
             options.AdminPassword = adminPassword;
             options.DatabaseHost = builder.Configuration["Keycloak:DatabaseHost"]

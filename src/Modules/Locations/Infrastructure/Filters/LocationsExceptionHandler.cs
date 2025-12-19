@@ -1,4 +1,5 @@
 using MeAjudaAi.Modules.Locations.Domain.Exceptions;
+using MeAjudaAi.Shared.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,7 @@ public sealed class LocationsExceptionHandler(ILogger<LocationsExceptionHandler>
     {
         ProblemDetails? problemDetails = exception switch
         {
-            NotFoundException notFoundEx => HandleNotFoundException(notFoundEx),
+            Shared.Exceptions.NotFoundException notFoundEx => HandleNotFoundException(notFoundEx),
             BadRequestException badRequestEx => HandleBadRequestException(badRequestEx),
             _ => null
         };
@@ -33,7 +34,7 @@ public sealed class LocationsExceptionHandler(ILogger<LocationsExceptionHandler>
         return true;
     }
 
-    private ProblemDetails HandleNotFoundException(NotFoundException exception)
+    private ProblemDetails HandleNotFoundException(Shared.Exceptions.NotFoundException exception)
     {
         logger.LogWarning(exception, "Resource not found: {Message}", exception.Message);
         return new ProblemDetails

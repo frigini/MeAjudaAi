@@ -17,6 +17,20 @@ public class UpdateServiceEndpoint : BaseEndpoint, IEndpoint
         => app.MapPut("/{id:guid}", UpdateAsync)
             .WithName("UpdateService")
             .WithSummary("Atualizar serviço")
+            .WithDescription("""
+                Atualiza as informações de um serviço existente.
+                
+                **Validações:**
+                - ID não pode ser vazio
+                - Serviço deve existir
+                - Nome é obrigatório (máximo 150 caracteres)
+                - Descrição opcional (máximo 1000 caracteres)
+                - DisplayOrder deve ser >= 0
+                
+                **Nota:** Não altera a categoria do serviço. Use ChangeServiceCategory para isso.
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 

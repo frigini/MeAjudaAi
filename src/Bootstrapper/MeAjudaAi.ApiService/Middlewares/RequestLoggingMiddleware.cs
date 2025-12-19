@@ -1,8 +1,26 @@
 using System.Diagnostics;
+using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.ApiService.Middlewares;
 
+/// <summary>
+/// Middleware para logging estruturado de requisições HTTP.
+/// Registra início/fim de cada request com métricas de performance, IP do cliente e contexto do usuário.
+/// </summary>
+/// <remarks>
+/// <para><b>Propósito</b>: Rastreabilidade completa de requisições para auditoria e debugging</para>
+/// <para><b>Informações Registradas</b>:</para>
+/// <list type="bullet">
+///   <item>RequestId único (correlação entre logs)</item>
+///   <item>IP do cliente e User-Agent</item>
+///   <item>UserId (se autenticado)</item>
+///   <item>Tempo de execução (ElapsedMs)</item>
+///   <item>Status code da resposta</item>
+/// </list>
+/// <para><b>Uso</b>: Registrado automaticamente no pipeline via <see cref="MiddlewareExtensions.UseApiMiddlewares"/></para>
+/// <para><b>Observação</b>: Health checks e arquivos estáticos são ignorados para reduzir ruído nos logs</para>
+/// </remarks>
 public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger)
 {
     private readonly RequestDelegate _next = next;

@@ -2,6 +2,8 @@ using MeAjudaAi.Modules.Providers.Domain.Entities;
 using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.Builders;
+using MeAjudaAi.Shared.Time;
+using Moq;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Builders;
 
@@ -134,6 +136,40 @@ public class ProviderBuilder : BuilderBase<Provider>
     {
         _type = EProviderType.Company;
         return this;
+    }
+
+    private bool _shouldDelete = false;
+    private string? _deletedBy;
+
+    /// <summary>
+    /// Configura o provider para ser marcado como deletado.
+    /// </summary>
+    /// <param name="isDeleted">Indica se o provider deve ser deletado</param>
+    /// <param name="deletedBy">Identificação de quem deletou o provider</param>
+    /// <returns>A instância atual do builder</returns>
+    public ProviderBuilder WithDeleted(bool isDeleted = true, string? deletedBy = null)
+    {
+        _shouldDelete = isDeleted;
+        _deletedBy = deletedBy;
+        return this;
+    }
+
+    /// <summary>
+    /// Constrói a instância do Provider com as configurações definidas.
+    /// </summary>
+    /// <returns>Uma instância configurada de Provider</returns>
+    public override Provider Build()
+    {
+        var provider = base.Build();
+        
+        if (_shouldDelete)
+        {
+            var mockDateTimeProvider = new Mock<IDateTimeProvider>();
+            mockDateTimeProvider.Setup(x => x.CurrentDate()).Returns(new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            provider.Delete(mockDateTimeProvider.Object, _deletedBy);
+        }
+        
+        return provider;
     }
 
     private static BusinessProfile CreateDefaultBusinessProfile(Faker faker)

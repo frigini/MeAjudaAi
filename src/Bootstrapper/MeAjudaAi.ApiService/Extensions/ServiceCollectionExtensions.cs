@@ -1,9 +1,11 @@
 using System.Security.Claims;
-using System.Text.Encodings.Web;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.ApiService.Services.Authentication;
 using MeAjudaAi.Shared.Authorization.Middleware;
+using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.ApiService.Extensions;
@@ -54,23 +56,38 @@ public static class ServiceCollectionExtensions
         services.AddCorsPolicy(configuration, environment);
         services.AddMemoryCache();
 
+        // Configura ForwardedHeaders para suporte a proxy reverso (load balancers, nginx, etc.)
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
+                                      Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+            
+            // Limpa redes e proxies padrão - será configurado por ambiente
+            options.KnownIPNetworks.Clear();
+            options.KnownProxies.Clear();
+
+            // Em produção, configure KnownProxies ou KnownIPNetworks com os IPs do seu proxy reverso
+            // Exemplo para Docker/Kubernetes:
+            // options.KnownIPNetworks.Add(new IPNetwork(IPAddress.Parse("10.0.0.0"), 8));
+        });
+
         // Configurar Geographic Restriction
         services.Configure<GeographicRestrictionOptions>(
             configuration.GetSection("GeographicRestriction"));
 
-        // Adiciona autenticação segura baseada no ambiente
         // Configuração de autenticação baseada no ambiente
         if (!isTestEnvironment)
         {
             // Usa a extensão segura do Keycloak com validação completa de tokens
             services.AddEnvironmentAuthentication(configuration, environment);
+            services.AddSingleton<IClaimsTransformation, NoOpClaimsTransformation>();
         }
         else
         {
-            // Para testing environment, adiciona authentication handler customizado
-            services.AddAuthentication("Test")
-                .AddScheme<TestAuthenticationSchemeOptions, TestAuthenticationHandler>("Test", options => { });
-            services.AddSingleton<IClaimsTransformation, NoOpClaimsTransformation>();
+            // Para testing environment, registra um esquema de autenticação mínimo
+            // O WebApplicationFactory nos testes substituirá isso com o esquema de teste real
+            services.AddAuthentication("Bearer")
+                .AddJwtBearer("Bearer", _ => { }); // Esquema vazio, será substituído pelo WebApplicationFactory
         }
 
         // Adiciona serviços de autorização
@@ -84,6 +101,13 @@ public static class ServiceCollectionExtensions
         services.AddStaticFilesWithCaching();
         services.AddApiResponseCaching();
 
+        // Health Checks customizados
+        services.AddMeAjudaAiHealthChecks();
+        
+        // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
+        // A Aspire Dashboard fornece visualização avançada de health checks, métricas, traces e logs
+        // em uma interface unificada e moderna, tornando o Health Checks UI redundante
+
         // Serviços específicos por ambiente
         services.AddEnvironmentSpecificServices(configuration, environment);
 
@@ -96,6 +120,13 @@ public static class ServiceCollectionExtensions
     {
         // Exception handling DEVE estar no início do pipeline
         app.UseExceptionHandler();
+
+        // ForwardedHeaders deve ser o primeiro para popular corretamente RemoteIpAddress para rate limiting
+        // Processa cabeçalhos X-Forwarded-* de proxies reversos (load balancers, nginx, etc.)
+        app.UseForwardedHeaders();
+
+        // Verificação de segurança de compressão (previne CRIME/BREACH)
+        app.UseMiddleware<CompressionSecurityMiddleware>();
 
         // Middlewares de performance devem estar no início do pipeline
         app.UseResponseCompression();
@@ -124,17 +155,13 @@ public static class ServiceCollectionExtensions
         app.UsePermissionOptimization(); // Middleware de otimização após autenticação
         app.UseAuthorization();
 
-        return app;
-    }
-}
+        // Health Checks UI removido - usar Aspire Dashboard (http://localhost:15888)
+        // Para visualizar health checks, acesse o Aspire Dashboard que oferece:
+        // - Visualização em tempo real do status de todos os serviços
+        // - Histórico e tendências de saúde dos componentes
+        // - Integração com logs, traces e métricas
+        // - Interface moderna e responsiva
 
-/// <summary>
-/// No-op implementation of IClaimsTransformation for cases where minimal transformation is needed
-/// </summary>
-public class NoOpClaimsTransformation : IClaimsTransformation
-{
-    public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
-    {
-        return Task.FromResult(principal);
+        return app;
     }
 }

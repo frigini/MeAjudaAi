@@ -1,4 +1,7 @@
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.ValueObjects;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Authorization.Keycloak;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

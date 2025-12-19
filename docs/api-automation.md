@@ -139,7 +139,7 @@ cd tools/api-collections
 - ✅ Aguarda API ficar pronta
 - ✅ Gera `api-spec.json`
 - ✅ Gera Postman Collections
-- ✅ Cria Environments (dev/staging/prod)
+- ✅ Cria Environments (dev/prod)
 - ✅ Para a API
 
 ### Opção 2: Node.js apenas (só spec + collections)
@@ -158,7 +158,7 @@ node generate-postman-collections.js
 **Vantagens:**
 - ✅ Gera api-spec.json
 - ✅ Gera Postman Collections
-- ✅ Cria environments (dev/staging/prod)
+- ✅ Cria environments (dev/prod)
 - ✅ Testes automáticos incluídos
 
 ## 🔧 Configuração Inicial

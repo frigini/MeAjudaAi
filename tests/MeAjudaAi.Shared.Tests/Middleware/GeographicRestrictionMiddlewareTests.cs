@@ -305,10 +305,7 @@ public class GeographicRestrictionMiddlewareTests
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
-                "Muriaé",
-                "MG",
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
+                "Muriaé", "MG", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
@@ -323,7 +320,7 @@ public class GeographicRestrictionMiddlewareTests
         // Assert
         _nextMock.Verify(next => next(_httpContext), Times.Once);
         geographicValidationMock.Verify(
-            x => x.ValidateCityAsync("Muriaé", "MG", It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateCityAsync("Muriaé", "MG", It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -336,10 +333,7 @@ public class GeographicRestrictionMiddlewareTests
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
-                "São Paulo",
-                "SP",
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
+                "São Paulo", "SP", It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
@@ -355,7 +349,7 @@ public class GeographicRestrictionMiddlewareTests
         _nextMock.Verify(next => next(_httpContext), Times.Never);
         _httpContext.Response.StatusCode.Should().Be(451);
         geographicValidationMock.Verify(
-            x => x.ValidateCityAsync("São Paulo", "SP", It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateCityAsync("São Paulo", "SP", It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -368,10 +362,7 @@ public class GeographicRestrictionMiddlewareTests
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException("IBGE API down"));
 
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
@@ -389,7 +380,7 @@ public class GeographicRestrictionMiddlewareTests
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Erro ao validar com IBGE")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error validating with IBGE")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -430,9 +421,7 @@ public class GeographicRestrictionMiddlewareTests
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
                 "muriaé", // lowercase
-                "mg",
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
+                "mg", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
@@ -447,7 +436,7 @@ public class GeographicRestrictionMiddlewareTests
         // Assert
         _nextMock.Verify(next => next(_httpContext), Times.Once);
         geographicValidationMock.Verify(
-            x => x.ValidateCityAsync("muriaé", "mg", It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateCityAsync("muriaé", "mg", It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -460,10 +449,7 @@ public class GeographicRestrictionMiddlewareTests
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
-                "Muriaé",
-                null,
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
+                "Muriaé", null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
@@ -478,7 +464,7 @@ public class GeographicRestrictionMiddlewareTests
         // Assert
         _nextMock.Verify(next => next(_httpContext), Times.Once);
         geographicValidationMock.Verify(
-            x => x.ValidateCityAsync("Muriaé", null, It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateCityAsync("Muriaé", null, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -491,10 +477,7 @@ public class GeographicRestrictionMiddlewareTests
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
@@ -511,7 +494,7 @@ public class GeographicRestrictionMiddlewareTests
             x => x.Log(
                 It.Is<LogLevel>(l => l == LogLevel.Debug || l == LogLevel.Information),
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Validando cidade") || v.ToString()!.Contains("Validação IBGE")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Validating city") || v.ToString()!.Contains("IBGE validation")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.AtLeastOnce);
@@ -526,10 +509,7 @@ public class GeographicRestrictionMiddlewareTests
         var geographicValidationMock = new Mock<IGeographicValidationService>();
         geographicValidationMock
             .Setup(x => x.ValidateCityAsync(
-                "Itaperuna",
-                "RJ",
-                It.IsAny<IReadOnlyCollection<string>>(),
-                It.IsAny<CancellationToken>()))
+                "Itaperuna", "RJ", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var middleware = new GeographicRestrictionMiddleware(_nextMock.Object, _loggerMock.Object, options, _featureManagerMock.Object, geographicValidationMock.Object);
@@ -544,7 +524,7 @@ public class GeographicRestrictionMiddlewareTests
         // Assert (both IBGE and simple validation should agree - Itaperuna is in AllowedCities)
         _nextMock.Verify(next => next(_httpContext), Times.Once);
         geographicValidationMock.Verify(
-            x => x.ValidateCityAsync("Itaperuna", "RJ", It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()),
+            x => x.ValidateCityAsync("Itaperuna", "RJ", It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -561,4 +541,5 @@ public class GeographicRestrictionMiddlewareTests
 
     #endregion
 }
+
 

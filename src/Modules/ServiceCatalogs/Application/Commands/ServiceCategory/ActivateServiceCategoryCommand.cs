@@ -4,6 +4,6 @@ using MeAjudaAi.Shared.Functional;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 
 /// <summary>
-/// Command to activate a service category.
+/// Comando para ativar uma categoria de serviço.
 /// </summary>
 public sealed record ActivateServiceCategoryCommand(Guid Id) : Command<Result>;

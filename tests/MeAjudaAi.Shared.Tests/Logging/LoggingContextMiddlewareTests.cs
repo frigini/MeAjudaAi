@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Logging;
+using MeAjudaAi.Shared.Logging.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

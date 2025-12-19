@@ -112,7 +112,7 @@ public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         if (request is null)
-            return Results.BadRequest("Request body is required");
+            return Results.BadRequest("Corpo da requisição é obrigatório");
 
         // Extrai a identidade do usuário autenticado do contexto HTTP
         var requestedBy = httpContext.User.Identity?.Name

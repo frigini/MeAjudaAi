@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.Modules.Locations.Infrastructure.Repositories;
 
 /// <summary>
-/// Repository implementation for AllowedCity entity
+/// Implementação do repositório para a entidade AllowedCity
 /// </summary>
 public sealed class AllowedCityRepository(LocationsDbContext context) : IAllowedCityRepository
 {

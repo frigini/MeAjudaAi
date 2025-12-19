@@ -7,11 +7,7 @@ name: MeAjudaAi CI Pipeline
     paths:
       - 'src/Aspire/**'
       - '.github/workflows/aspire-ci-cd.yml'
-  pull_request:
-    branches: [master, develop]
-    paths:
-      - 'src/Aspire/**'
-      - '.github/workflows/aspire-ci-cd.yml'
+  # pull_request removed - pr-validation.yml handles PR validation to avoid duplication
 
 permissions:
   contents: read
@@ -97,7 +93,51 @@ jobs:
           postgres-user: ${{ secrets.POSTGRES_USER || 'postgres' }}
           postgres-password: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
 
-      - name: Run tests
+      - name: Run Architecture Tests
+        run: |
+          echo "🏛️ Running Architecture tests..."
+          dotnet test tests/MeAjudaAi.Architecture.Tests/ --no-build --configuration Release
+          echo "✅ Architecture tests passed"
+
+      - name: Prepare Aspire Integration Tests
+        run: |
+          echo "📦 Preparing .NET Aspire for integration tests..."
+          echo "ℹ️  Note: Aspire workload is deprecated in .NET 10 - using NuGet packages instead"
+
+          # Restore AppHost to download Aspire NuGet packages (includes DCP binaries)
+          echo "🔄 Restoring AppHost project to download Aspire packages..."
+          dotnet restore src/Aspire/MeAjudaAi.AppHost/MeAjudaAi.AppHost.csproj --verbosity normal
+
+          # Verify DCP binaries were downloaded (now located in NuGet package cache)
+          echo "🔎 Verifying DCP binaries in NuGet cache..."
+
+          # DCP binaries come from Aspire.Hosting.Orchestration NuGet package
+          DCP_LOCATIONS=(
+            "$HOME/.nuget/packages/aspire.hosting.orchestration.*/*/tools/dcp"
+            "$HOME/.nuget/packages/aspire.hosting.orchestration.*/*/tools/dcpctrl"
+          )
+
+          FOUND_DCP=false
+          for pattern in "${DCP_LOCATIONS[@]}"; do
+            if compgen -G "$pattern" > /dev/null; then
+              echo "✅ Found DCP binary: $(echo $pattern)"
+              FOUND_DCP=true
+            fi
+          done
+
+          if [ "$FOUND_DCP" = false ]; then
+            echo "⚠️  Warning: DCP binaries not found in expected locations"
+            echo "Searching NuGet cache for Aspire packages..."
+            find "$HOME/.nuget/packages" -type d -iname "*aspire*" -maxdepth 1 2>/dev/null || true
+            echo "ℹ️  Integration tests will attempt to run - DCP may be resolved at runtime"
+          else
+            echo "✅ Aspire DCP binaries verified in NuGet cache"
+          fi
+
+          # Set DOTNET_ROOT for SDK discovery
+          echo "DOTNET_ROOT=$HOME/.dotnet" >> $GITHUB_ENV
+
+      - name: Run Integration Tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
           # Database configuration for tests that need it
@@ -112,12 +152,21 @@ jobs:
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__meajudaai-db: ${{ steps.db.outputs.connection-string }}
         run: |
-          echo "🧪 Running core test suite (excluding E2E)..."
-          # Run only Architecture and Integration tests - skip E2E tests for Aspire validation
-          dotnet test tests/MeAjudaAi.Architecture.Tests/ --no-build --configuration Release
+          echo "🔗 Running Integration tests..."
           dotnet test tests/MeAjudaAi.Integration.Tests/ --no-build --configuration Release
+          echo "✅ Integration tests passed"
+
+      - name: Run Module Unit Tests
+        run: |
+          echo "📦 Running module unit tests..."
           dotnet test src/Modules/Users/Tests/ --no-build --configuration Release
-          echo "✅ Core tests passed successfully"
+          echo "✅ Module tests passed"
+
+      - name: Run Shared Unit Tests
+        run: |
+          echo "🔧 Running shared unit tests..."
+          dotnet test tests/MeAjudaAi.Shared.Tests/ --no-build --configuration Release
+          echo "✅ Shared tests passed"
 
   # Validate Aspire configuration
   aspire-validation:

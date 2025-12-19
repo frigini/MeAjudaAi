@@ -16,6 +16,20 @@ public class GetServiceCategoryByIdEndpoint : BaseEndpoint, IEndpoint
         => app.MapGet("/{id:guid}", GetByIdAsync)
             .WithName("GetServiceCategoryById")
             .WithSummary("Buscar categoria por ID")
+            .WithDescription("""
+                Retorna os detalhes completos de uma categoria específica.
+                
+                **Retorno:**
+                - Informações completas da categoria
+                - Status de ativação
+                - DisplayOrder para ordenação
+                - Datas de criação e atualização
+                
+                **Casos de Uso:**
+                - Exibir detalhes da categoria para edição
+                - Validar existência de categoria
+                - Visualizar informações completas
+                """)
             .Produces<Response<ServiceCategoryDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 

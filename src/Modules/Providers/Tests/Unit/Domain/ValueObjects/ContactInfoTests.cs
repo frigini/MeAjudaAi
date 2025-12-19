@@ -49,7 +49,7 @@ public class ContactInfoTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*Email cannot be empty*")
+            .WithMessage("*E-mail não pode ser vazio*")
             .And.ParamName.Should().Be("email");
     }
 
@@ -66,7 +66,7 @@ public class ContactInfoTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*Invalid email format*")
+            .WithMessage("*Formato de e-mail inválido*")
             .And.ParamName.Should().Be("email");
     }
 

@@ -21,9 +21,9 @@
     <!-- ASP.NET Core -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.0" />
     <!-- API Versioning -->
     <PackageVersion Include="Asp.Versioning.Http" Version="8.1.0" />
@@ -42,9 +42,11 @@
     <!-- Monitoring: See .github/ISSUE_TEMPLATE/efcore-naming-conventions-stable-monitoring.md -->
     <!-- Risk: RC + stable mix may cause TypeLoadException, but tests currently pass -->
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.0-rc.2" />
-    <!-- Microsoft.OpenApi version is controlled by Swashbuckle.AspNetCore transitive dependency (currently 2.3.0) -->
-    <!-- Explicitly defined here to allow test projects to reference it without version conflicts -->
-    <PackageVersion Include="Microsoft.OpenApi" Version="2.3.12" />
+    <!-- Microsoft.OpenApi: Keep at 2.3.0 for compatibility with ASP.NET Core OpenApi source generators -->
+    <!-- TESTED: OpenApi 3.0.2 still breaks with SDK 10.0.101 (CS0200: IOpenApiMediaType.Example is read-only) -->
+    <!-- The source generator has not been updated yet to support OpenApi 3.x API changes -->
+    <!-- Monitor: https://github.com/dotnet/aspnetcore/issues for updates -->
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.3.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0" />
     <!-- ========================================================================== -->
@@ -141,11 +143,11 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
     <!-- Logging -->
     <PackageVersion Include="Serilog" Version="4.3.0" />
-    <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageVersion Include="Serilog.Enrichers.Process" Version="3.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Thread" Version="4.0.0" />
-    <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="10.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
     <!-- Documentation -->
@@ -164,12 +166,16 @@
     <PackageVersion Include="Rebus.AzureServiceBus" Version="10.5.1" />
     <PackageVersion Include="Rebus.RabbitMq" Version="10.1.0" />
     <PackageVersion Include="Rebus.ServiceProvider" Version="10.7.0" />
+    <!-- Health Checks -->
+    <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />
     <!-- Background Jobs -->
     <PackageVersion Include="Hangfire.Core" Version="1.8.22" />
     <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.22" />
     <PackageVersion Include="Hangfire.PostgreSql" Version="1.20.13" />
     <!-- Dependency Injection -->
-    <PackageVersion Include="Scrutor" Version="6.1.0" />
+    <PackageVersion Include="Scrutor" Version="7.0.0" />
     <!-- System -->
     <PackageVersion Include="Azure.Storage.Common" Version="12.25.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.0.1" />
@@ -181,7 +187,7 @@
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
     <!-- Testing Framework -->
     <!-- Using xUnit v3 only -->
-    <PackageVersion Include="WireMock.Net" Version="1.16.0" />
+    <PackageVersion Include="WireMock.Net" Version="1.19.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
@@ -193,10 +199,10 @@
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="AutoFixture.AutoMoq" Version="4.18.1" />
     <!-- Test Containers -->
-    <PackageVersion Include="Testcontainers.Azurite" Version="4.7.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.7.0" />
-    <PackageVersion Include="Testcontainers.Redis" Version="4.7.0" />
-    <PackageVersion Include="Respawn" Version="6.2.1" />
+    <PackageVersion Include="Testcontainers.Azurite" Version="4.9.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.9.0" />
+    <PackageVersion Include="Testcontainers.Redis" Version="4.9.0" />
+    <PackageVersion Include="Respawn" Version="7.0.0" />
     <!-- Aspire - 13.0.0 stable + preview (Keycloak/Testing) -->
     <!-- Aspire.Hosting.AppHost removido - incluído implicitamente pelo Aspire.AppHost.Sdk 13.0 -->
     <!-- DECISION: Aspire.Npgsql.EntityFrameworkCore.PostgreSQL NOT NEEDED -->
@@ -207,16 +213,21 @@
     <PackageVersion Include="Aspire.Hosting.Azure.PostgreSQL" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Azure.ServiceBus" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.0.2" />
-    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="13.0.0-preview.1.25560.3" />
+    <!-- Aspire.Hosting.Keycloak: NO STABLE VERSION EXISTS - using latest preview -->
+    <!-- ERROR NU1102: Unable to find package Aspire.Hosting.Keycloak with version >= 13.0.2 -->
+    <!-- Nearest available: 13.0.2-preview.1.25603.5 (updated from 13.0.0-preview.1.25560.3) -->
+    <!-- MONITORING: Check https://www.nuget.org/packages/Aspire.Hosting.Keycloak for stable release -->
+    <!-- DECISION: Package will remain in preview until Keycloak integration stabilizes in Aspire -->
+    <PackageVersion Include="Aspire.Hosting.Keycloak" Version="13.0.2-preview.1.25603.5" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Redis" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Seq" Version="13.0.2" />
     <PackageVersion Include="Aspire.Npgsql" Version="13.0.2" />
-    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.0.0" />
+    <PackageVersion Include="Aspire.StackExchange.Redis" Version="13.0.2" />
     <!-- Architecture Testing -->
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
     <!-- Code Analysis -->
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.15.0.120848" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.16.1.129956" />
   </ItemGroup>
 </Project>

@@ -20,6 +20,21 @@ public class CreateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/", CreateAsync)
             .WithName("CreateServiceCategory")
             .WithSummary("Criar categoria de serviço")
+            .WithDescription("""
+                Cria uma nova categoria de serviços no catálogo.
+                
+                **Validações:**
+                - Nome é obrigatório (máximo 100 caracteres)
+                - Descrição opcional (máximo 500 caracteres)
+                - DisplayOrder deve ser >= 0
+                - Nome deve ser único no sistema
+                
+                **Efeitos:**
+                - Categoria criada como ativa por padrão
+                - Pode receber serviços imediatamente
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces<Response<ServiceCategoryDto>>(StatusCodes.Status201Created)
             .RequireAdmin();
 

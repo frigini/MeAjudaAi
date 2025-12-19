@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using MeAjudaAi.ApiService.Providers.Compression;
 using Microsoft.AspNetCore.ResponseCompression;
 
 namespace MeAjudaAi.ApiService.Extensions;
@@ -12,10 +13,10 @@ public static class PerformanceExtensions
     {
         services.AddResponseCompression(options =>
         {
-            // Permite compressão HTTPS - proteção contra CRIME/BREACH via provedores customizados
-            options.EnableForHttps = true; // Habilitado - provedores customizados fazem verificação de segurança
+            // Permite compressão HTTPS - proteção contra CRIME/BREACH via middleware de segurança
+            options.EnableForHttps = true;
 
-            // Usa provedores personalizados com verificação de segurança
+            // Usa provedores personalizados
             options.Providers.Add<SafeGzipCompressionProvider>();
             options.Providers.Add<SafeBrotliCompressionProvider>();
 
@@ -189,43 +190,5 @@ public static class PerformanceExtensions
         });
 
         return services;
-    }
-}
-
-/// <summary>
-/// Provedor de compressão Gzip seguro que previne CRIME/BREACH
-/// </summary>
-public class SafeGzipCompressionProvider : ICompressionProvider
-{
-    public string EncodingName => "gzip";
-    public bool SupportsFlush => true;
-
-    public Stream CreateStream(Stream outputStream)
-    {
-        return new GZipStream(outputStream, CompressionLevel.Optimal, leaveOpen: false);
-    }
-
-    public static bool ShouldCompressResponse(HttpContext context)
-    {
-        return PerformanceExtensions.IsSafeForCompression(context);
-    }
-}
-
-/// <summary>
-/// Provedor de compressão Brotli seguro que previne CRIME/BREACH
-/// </summary>
-public class SafeBrotliCompressionProvider : ICompressionProvider
-{
-    public string EncodingName => "br";
-    public bool SupportsFlush => true;
-
-    public Stream CreateStream(Stream outputStream)
-    {
-        return new BrotliStream(outputStream, CompressionLevel.Optimal, leaveOpen: false);
-    }
-
-    public static bool ShouldCompressResponse(HttpContext context)
-    {
-        return PerformanceExtensions.IsSafeForCompression(context);
     }
 }

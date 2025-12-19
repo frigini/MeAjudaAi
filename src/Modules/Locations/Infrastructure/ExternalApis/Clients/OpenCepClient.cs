@@ -21,7 +21,7 @@ public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> 
 
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("OpenCEP retornou status {StatusCode} para CEP {Cep}", response.StatusCode, cep.Value);
+                logger.LogWarning("OpenCEP returned status {StatusCode} for CEP {Cep}", response.StatusCode, cep.Value);
                 return null;
             }
 
@@ -30,7 +30,7 @@ public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> 
 
             if (openCepResponse is null)
             {
-                logger.LogInformation("CEP {Cep} não encontrado no OpenCEP", cep.Value);
+                logger.LogInformation("CEP {Cep} not found in OpenCEP", cep.Value);
                 return null;
             }
 
@@ -44,7 +44,7 @@ public sealed class OpenCepClient(HttpClient httpClient, ILogger<OpenCepClient> 
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao consultar OpenCEP para CEP {Cep}", cep.Value);
+            logger.LogError(ex, "Error querying OpenCEP for CEP {Cep}", cep.Value);
             return null;
         }
     }

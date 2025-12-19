@@ -7,29 +7,29 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 
 /// <summary>
-/// Entity Framework Core database context for the Users module.
-/// Manages user entities and applies module-specific database configurations.
+/// Contexto de banco de dados Entity Framework Core para o módulo Users.
+/// Gerencia entidades de usuário e aplica configurações específicas do módulo.
 /// </summary>
 public class UsersDbContext : BaseDbContext
 {
     /// <summary>
-    /// Gets the Users entity set for querying and saving User entities.
+    /// Obtém o conjunto de entidades Users para consulta e persistência de entidades User.
     /// </summary>
     public DbSet<User> Users => Set<User>();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UsersDbContext"/> class for design-time operations (migrations).
+    /// Inicializa uma nova instância da classe <see cref="UsersDbContext"/> para operações de design-time (migrations).
     /// </summary>
-    /// <param name="options">The options to be used by the DbContext.</param>
+    /// <param name="options">As opções a serem usadas pelo DbContext.</param>
     public UsersDbContext(DbContextOptions<UsersDbContext> options) : base(options)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UsersDbContext"/> class for runtime with dependency injection.
+    /// Inicializa uma nova instância da classe <see cref="UsersDbContext"/> para runtime com injeção de dependência.
     /// </summary>
-    /// <param name="options">The options to be used by the DbContext.</param>
-    /// <param name="domainEventProcessor">The domain event processor for handling domain events.</param>
+    /// <param name="options">As opções a serem usadas pelo DbContext.</param>
+    /// <param name="domainEventProcessor">O processador de eventos de domínio para manipulação de eventos de domínio.</param>
     public UsersDbContext(DbContextOptions<UsersDbContext> options, IDomainEventProcessor domainEventProcessor) : base(options, domainEventProcessor)
     {
     }

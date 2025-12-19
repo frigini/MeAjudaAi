@@ -48,7 +48,7 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             HandleDapperError(ex, "query_multiple", sql);
-            throw; // Unreachable but required for compiler
+            throw; // Inalcançável mas necessário para o compilador
         }
     }
 
@@ -77,7 +77,7 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             HandleDapperError(ex, "query_single", sql);
-            throw; // Unreachable but required for compiler
+            throw; // Inalcançável mas necessário para o compilador
         }
     }
 
@@ -106,7 +106,7 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             HandleDapperError(ex, "execute", sql);
-            throw; // Unreachable but required for compiler
+            throw; // Inalcançável mas necessário para o compilador
         }
     }
 
@@ -114,15 +114,15 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
     private void HandleDapperError(Exception ex, string operationType, string? sql)
     {
         metrics.RecordConnectionError($"dapper_{operationType}", ex);
-        // Log SQL preview only when Debug is enabled to reduce prod exposure + avoid preview formatting cost
+        // Registra preview do SQL apenas quando Debug está habilitado para reduzir exposição em prod + evitar custo de formatação
         if (logger.IsEnabled(LogLevel.Debug))
         {
             var sqlPreview = GetSqlPreview(sql);
-            logger.LogDebug("Dapper operation failed (type: {OperationType}). SQL preview: {SqlPreview}",
+            logger.LogDebug("Operação Dapper falhou (tipo: {OperationType}). Preview do SQL: {SqlPreview}",
                 operationType, sqlPreview);
         }
-        logger.LogError(ex, "Failed to execute Dapper operation (type: {OperationType})", operationType);
-        throw new InvalidOperationException($"Failed to execute Dapper operation (type: {operationType})", ex);
+        logger.LogError(ex, "Falha ao executar operação Dapper (tipo: {OperationType})", operationType);
+        throw new InvalidOperationException($"Falha ao executar operação Dapper (tipo: {operationType})", ex);
     }
 
     private static string? GetSqlPreview(string? sql)

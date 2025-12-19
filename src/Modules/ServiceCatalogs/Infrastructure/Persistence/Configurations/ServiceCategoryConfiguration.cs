@@ -43,7 +43,7 @@ internal sealed class ServiceCategoryConfiguration : IEntityTypeConfiguration<Se
         builder.Property(c => c.UpdatedAt)
             .HasColumnName("updated_at");
 
-        // Indexes
+        // Índices
         builder.HasIndex(c => c.Name)
             .IsUnique()
             .HasDatabaseName("ix_service_categories_name");
@@ -54,7 +54,7 @@ internal sealed class ServiceCategoryConfiguration : IEntityTypeConfiguration<Se
         builder.HasIndex(c => c.DisplayOrder)
             .HasDatabaseName("ix_service_categories_display_order");
 
-        // Ignore navigation properties
+        // Ignora propriedades de navegação
         builder.Ignore(c => c.DomainEvents);
     }
 }

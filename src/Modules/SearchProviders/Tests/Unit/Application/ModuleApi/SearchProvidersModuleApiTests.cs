@@ -9,6 +9,7 @@ using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
+using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.Enums;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;
@@ -185,13 +186,13 @@ public class SearchProvidersModuleApiTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
 
-        // Verify ModulePagedSearchResultDto properties
+        // Verifica propriedades de ModulePagedSearchResultDto
         result.Value!.TotalCount.Should().Be(1);
         result.Value.PageNumber.Should().Be(1);
         result.Value.PageSize.Should().Be(20);
         result.Value.Items.Should().HaveCount(1);
 
-        // Verify ModuleSearchableProviderDto properties
+        // Verifica propriedades de ModuleSearchableProviderDto
         var provider = result.Value.Items[0];
         provider.ProviderId.Should().Be(providerId);
         provider.Name.Should().Be("Provider 1");
@@ -204,7 +205,7 @@ public class SearchProvidersModuleApiTests
         provider.City.Should().Be("São Paulo");
         provider.State.Should().Be("SP");
 
-        // Verify ModuleLocationDto properties
+        // Verifica propriedades de ModuleLocationDto
         provider.Location.Should().NotBeNull();
         provider.Location!.Latitude.Should().Be(-23.5);
         provider.Location.Longitude.Should().Be(-46.6);

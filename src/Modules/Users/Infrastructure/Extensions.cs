@@ -18,11 +18,11 @@ namespace MeAjudaAi.Modules.Users.Infrastructure;
 public static class Extensions
 {
     /// <summary>
-    /// Registers Users module infrastructure services including persistence, Keycloak integration, domain services, and event handlers.
+    /// Registra serviços de infraestrutura do módulo Users incluindo persistência, integração com Keycloak, serviços de domínio e manipuladores de eventos.
     /// </summary>
-    /// <param name="services">The service collection to configure.</param>
-    /// <param name="configuration">The application configuration containing database and Keycloak settings.</param>
-    /// <returns>The configured service collection for fluent chaining.</returns>
+    /// <param name="services">A coleção de serviços a ser configurada.</param>
+    /// <param name="configuration">A configuração da aplicação contendo configurações de banco de dados e Keycloak.</param>
+    /// <returns>A coleção de serviços configurada para encadeamento fluente.</returns>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddPersistence(configuration);
@@ -34,8 +34,8 @@ public static class Extensions
     }
 
     /// <summary>
-    /// Determines whether mock Keycloak services should be used based on configuration.
-    /// Checks if Keycloak is explicitly disabled or if required configuration is missing.
+    /// Determina se serviços mock do Keycloak devem ser usados com base na configuração.
+    /// Verifica se o Keycloak está explicitamente desabilitado ou se a configuração necessária está faltando.
     /// </summary>
     private static bool ShouldUseMockKeycloakServices(IConfiguration configuration)
     {

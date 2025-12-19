@@ -15,9 +15,9 @@ public class UserProfile : ValueObject
     public UserProfile(string firstName, string lastName, PhoneNumber? phoneNumber = null)
     {
         if (string.IsNullOrWhiteSpace(firstName))
-            throw new ArgumentException("First name cannot be empty or whitespace");
+            throw new ArgumentException("Primeiro nome não pode ser vazio ou conter apenas espaços");
         if (string.IsNullOrWhiteSpace(lastName))
-            throw new ArgumentException("Last name cannot be empty or whitespace");
+            throw new ArgumentException("Último nome não pode ser vazio ou conter apenas espaços");
         FirstName = firstName.Trim();
         LastName = lastName.Trim();
         PhoneNumber = phoneNumber;

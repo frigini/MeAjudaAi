@@ -8,6 +8,11 @@ using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Domain.Entities;
 
+/// <summary>
+/// Testes completos para Provider Entity incluindo casos padrão e edge cases.
+/// Consolidado de ProviderTests e ProviderEdgeCasesTests para evitar duplicação.
+/// Coverage: Construção, validações, transições de estado, eventos de domínio, serviços, qualificações e documentos.
+/// </summary>
 [Trait("Category", "Unit")]
 public class ProviderTests
 {

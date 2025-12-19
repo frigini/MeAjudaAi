@@ -32,7 +32,7 @@ public sealed class IbgeService(
 
         if (municipio is null)
         {
-            logger.LogWarning("Município {CityName} não encontrado na API IBGE - lançando exceção para fallback", cityName);
+            logger.LogWarning("Municipality {CityName} not found in IBGE API — throwing exception for fallback", cityName);
             throw new MunicipioNotFoundException(cityName, stateSigla);
         }
 
@@ -52,11 +52,11 @@ public sealed class IbgeService(
 
         if (isAllowed)
         {
-            logger.LogInformation("Município {CityName} ({Id}) está na lista de cidades permitidas", municipio.Nome, municipio.Id);
+            logger.LogInformation("Municipality {CityName} ({Id}) is in the allowed cities list", municipio.Nome, municipio.Id);
         }
         else
         {
-            logger.LogWarning("Município {CityName} ({Id}) NÃO está na lista de cidades permitidas", municipio.Nome, municipio.Id);
+            logger.LogWarning("Municipality {CityName} ({Id}) is NOT in the allowed cities list", municipio.Nome, municipio.Id);
         }
 
         return isAllowed;

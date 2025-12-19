@@ -74,6 +74,10 @@
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Hangfire.PostgreSql" />
     
+    <!-- Health Checks -->
+    <PackageReference Include="AspNetCore.HealthChecks.Npgsql" />
+    <PackageReference Include="AspNetCore.HealthChecks.Redis" />
+    
     <!-- System -->
     <!-- Removed: Microsoft.CSharp - transitive from .NET runtime -->
     <!-- Removed: System.Text.Json - transitive from Microsoft.AspNetCore.App -->

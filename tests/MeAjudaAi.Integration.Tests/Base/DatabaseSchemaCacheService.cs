@@ -217,7 +217,7 @@ public class DatabaseInitializer
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[OptimizedInit] Falha na inicialização do schema para {Module}", moduleName);
+            _logger.LogError(ex, "[OptimizedInit] Schema initialization failed for {Module}", moduleName);
 
             // Invalidar cache em caso de erro
             DatabaseSchemaCacheService.InvalidateCache(connectionString, moduleName);

@@ -6,7 +6,7 @@ internal static class Extensions
     public static IServiceCollection AddQueries(this IServiceCollection services)
     {
         services.AddScoped<IQueryDispatcher, QueryDispatcher>();
-        // Note: Query handlers are registered manually in each module's AddApplication() method
+        // Nota: Query handlers são registrados manualmente no método AddApplication() de cada módulo
         return services;
     }
 }

@@ -1,5 +1,7 @@
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Metrics;
+using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Caching;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;

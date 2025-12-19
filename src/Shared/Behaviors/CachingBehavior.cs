@@ -29,18 +29,18 @@ public class CachingBehavior<TRequest, TResponse>(
         var cacheExpiration = cacheableQuery.GetCacheExpiration();
         var cacheTags = cacheableQuery.GetCacheTags();
 
-        logger.LogDebug("Checking cache for key: {CacheKey}", cacheKey);
+        logger.LogDebug("Verificando cache para chave: {CacheKey}", cacheKey);
 
         // Tenta buscar no cache primeiro
         var (cachedResult, isCached) = await cacheService.GetAsync<TResponse>(cacheKey, cancellationToken);
         if (isCached)
         {
-            logger.LogDebug("Cache hit for key: {CacheKey}", cacheKey);
+            logger.LogDebug("Cache encontrado para chave: {CacheKey}", cacheKey);
 
-            // Policy: we don't cache null results; a null "hit" indicates corruption/out-of-band write.
+            // Política: não armazenamos resultados nulos; um "hit" nulo indica corrupção/escrita fora de banda.
             if (cachedResult is null)
             {
-                logger.LogWarning("Cache hit but null value for key: {CacheKey}. Re-executing query.", cacheKey);
+                logger.LogWarning("Cache encontrado mas valor nulo para chave: {CacheKey}. Reexecutando query.", cacheKey);
             }
             else
             {
@@ -48,12 +48,12 @@ public class CachingBehavior<TRequest, TResponse>(
             }
         }
 
-        logger.LogDebug("Cache miss for key: {CacheKey}. Executing query.", cacheKey);
+        logger.LogDebug("Cache não encontrado para chave: {CacheKey}. Executando query.", cacheKey);
 
         // Executa a query
         var result = await next();
 
-        // Only cache non-null results to avoid caching failures/misses
+        // Armazena apenas resultados não-nulos para evitar cachear falhas/misses
         if (result is not null)
         {
             var options = new HybridCacheEntryOptions
@@ -64,12 +64,12 @@ public class CachingBehavior<TRequest, TResponse>(
 
             await cacheService.SetAsync(cacheKey, result, cacheExpiration, options, cacheTags, cancellationToken);
 
-            logger.LogDebug("Cached result for key: {CacheKey} with expiration: {Expiration}",
+            logger.LogDebug("Resultado armazenado em cache para chave: {CacheKey} com expiração: {Expiration}",
                 cacheKey, cacheExpiration);
         }
         else
         {
-            logger.LogDebug("Skipping cache for null result with key: {CacheKey}", cacheKey);
+            logger.LogDebug("Ignorando cache para resultado nulo com chave: {CacheKey}", cacheKey);
         }
 
         return result;

@@ -5,9 +5,9 @@ using MeAjudaAi.Shared.Functional;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 
 /// <summary>
-/// Command to update an existing service's details.
-/// Validation limits must match ValidationConstants.CatalogLimits.
-/// Note: Guid.Empty validation is handled by the command handler to provide domain-specific error messages.
+/// Comando para atualizar os detalhes de um serviço existente.
+/// Os limites de validação devem corresponder a ValidationConstants.CatalogLimits.
+/// Nota: Validação de Guid.Empty é tratada pelo command handler para fornecer mensagens de erro específicas do domínio.
 /// </summary>
 public sealed record UpdateServiceCommand(
     Guid Id,

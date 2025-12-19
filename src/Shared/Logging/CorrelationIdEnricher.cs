@@ -75,15 +75,19 @@ public class CorrelationIdEnricher : ILogEventEnricher
 }
 
 /// <summary>
-/// Extension methods para registrar o enricher
+/// Extensões para configuração do CorrelationIdEnricher no Serilog
 /// </summary>
 public static class CorrelationIdEnricherExtensions
 {
     /// <summary>
-    /// Adiciona o enricher de correlation ID
+    /// Adiciona o enricher de Correlation ID à configuração do Serilog
     /// </summary>
-    public static LoggerConfiguration WithCorrelationIdEnricher(this LoggerEnrichmentConfiguration enrichConfiguration)
+    public static LoggerConfiguration WithCorrelationIdEnricher(
+        this LoggerEnrichmentConfiguration enrichmentConfiguration)
     {
-        return enrichConfiguration.With<CorrelationIdEnricher>();
+        if (enrichmentConfiguration == null)
+            throw new ArgumentNullException(nameof(enrichmentConfiguration));
+
+        return enrichmentConfiguration.With<CorrelationIdEnricher>();
     }
 }

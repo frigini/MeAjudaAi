@@ -35,17 +35,17 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
 
         if (hasData)
         {
-            _logger.LogInformation("🔍 Banco de dados já possui dados, pulando seed");
+            _logger.LogInformation("🔍 Database already has data, skipping seed");
             return;
         }
 
-        _logger.LogInformation("🌱 Banco vazio detectado, iniciando seed de dados de desenvolvimento...");
+        _logger.LogInformation("🌱 Empty database detected, starting development data seed...");
         await ExecuteSeedAsync(cancellationToken);
     }
 
     public async Task ForceSeedAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogWarning("🔄 Executando seed de dados (garante dados mínimos)...");
+        _logger.LogWarning("🔄 Running data seed (ensuring minimum data)...");
         await ExecuteSeedAsync(cancellationToken);
     }
 
@@ -131,7 +131,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "⚠️ Erro ao verificar dados existentes ({ExceptionType}), assumindo banco vazio", ex.GetType().Name);
+            _logger.LogWarning(ex, "⚠️ Error checking existing data ({ExceptionType}), assuming empty database", ex.GetType().Name);
             return false;
         }
     }
@@ -143,11 +143,11 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             await SeedServiceCatalogsAsync(cancellationToken);
             await SeedLocationsAsync(cancellationToken);
 
-            _logger.LogInformation("✅ Seed de dados concluído com sucesso!");
+            _logger.LogInformation("✅ Data seed completed successfully!");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Erro durante seed de dados");
+            _logger.LogError(ex, "❌ Error during data seeding");
             throw new InvalidOperationException(
                 "Failed to seed development data (ServiceCatalogs, Users, Providers, Documents, Locations)",
                 ex);
@@ -161,7 +161,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         var context = GetDbContext("ServiceCatalogs");
         if (context == null)
         {
-            _logger.LogWarning("⚠️ ServiceCatalogsDbContext não encontrado, pulando seed");
+            _logger.LogWarning("⚠️ ServiceCatalogsDbContext not found, skipping seed");
             return;
         }
 
@@ -210,7 +210,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
             }
         }
 
-        _logger.LogInformation("✅ ServiceCatalogs: {Count} categorias inseridas/atualizadas", categories.Length);
+        _logger.LogInformation("✅ ServiceCatalogs: {Count} categories inserted/updated", categories.Length);
 
         // Services usando IDs reais das categorias do idMap
         var services = new[]
@@ -263,7 +263,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 cancellationToken);
         }
 
-        _logger.LogInformation("✅ ServiceCatalogs: {Count} serviços processados (novos inseridos, existentes ignorados)", services.Length);
+        _logger.LogInformation("✅ ServiceCatalogs: {Count} services processed (new inserted, existing ignored)", services.Length);
     }
 
     private async Task SeedLocationsAsync(CancellationToken cancellationToken)
@@ -273,7 +273,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
         var context = GetDbContext("Locations");
         if (context == null)
         {
-            _logger.LogWarning("⚠️ LocationsDbContext não encontrado, pulando seed");
+            _logger.LogWarning("⚠️ LocationsDbContext not found, skipping seed");
             return;
         }
 
@@ -302,7 +302,7 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 cancellationToken);
         }
 
-        _logger.LogInformation("✅ Locations: {Count} cidades inseridas", cities.Length);
+        _logger.LogInformation("✅ Locations: {Count} cities inserted", cities.Length);
     }
 
     /// <summary>
@@ -326,12 +326,12 @@ public class DevelopmentDataSeeder : IDevelopmentDataSeeder
                 }
             }
 
-            _logger.LogWarning("⚠️ DbContext não encontrado para módulo {ModuleName}", moduleName);
+            _logger.LogWarning("⚠️ DbContext not found for module {ModuleName}", moduleName);
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Erro ao obter DbContext para {ModuleName}", moduleName);
+            _logger.LogError(ex, "❌ Error obtaining DbContext for {ModuleName}", moduleName);
             return null;
         }
     }

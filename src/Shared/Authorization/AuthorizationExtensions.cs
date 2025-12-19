@@ -1,9 +1,14 @@
 using System.Security.Claims;
+using MeAjudaAi.Shared.Authorization.Attributes;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Handlers;
 using MeAjudaAi.Shared.Authorization.HealthChecks;
 using MeAjudaAi.Shared.Authorization.Keycloak;
 using MeAjudaAi.Shared.Authorization.Metrics;
 using MeAjudaAi.Shared.Authorization.Middleware;
+using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -124,7 +129,7 @@ public static class AuthorizationExtensions
     public static bool HasPermission(this ClaimsPrincipal user, EPermission permission)
     {
         ArgumentNullException.ThrowIfNull(user);
-        return user.HasClaim(CustomClaimTypes.Permission, permission.GetValue());
+        return user.HasClaim(AuthConstants.Claims.Permission, permission.GetValue());
     }
 
     /// <summary>
@@ -152,7 +157,7 @@ public static class AuthorizationExtensions
     public static bool IsSystemAdmin(this ClaimsPrincipal user)
     {
         ArgumentNullException.ThrowIfNull(user);
-        return user.HasClaim(CustomClaimTypes.IsSystemAdmin, "true");
+        return user.HasClaim(AuthConstants.Claims.IsSystemAdmin, "true");
     }
 
     /// <summary>
@@ -163,7 +168,7 @@ public static class AuthorizationExtensions
     public static IEnumerable<EPermission> GetPermissions(this ClaimsPrincipal user)
     {
         ArgumentNullException.ThrowIfNull(user);
-        var permissionClaims = user.FindAll(CustomClaimTypes.Permission)
+        var permissionClaims = user.FindAll(AuthConstants.Claims.Permission)
             .Where(c => c.Value != "*") // Exclui o marcador de processamento
             .Select(c => PermissionExtensions.FromValue(c.Value))
             .Where(p => p.HasValue)

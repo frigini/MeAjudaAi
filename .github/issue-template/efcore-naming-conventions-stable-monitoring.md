@@ -102,7 +102,7 @@ nuget list EFCore.NamingConventions -PreRelease
 1. Atualizar pacote via Dependabot PR
 2. Executar suite completa de testes
 3. Validar migrations existentes
-4. Testar em staging antes de production
+4. Testar localmente antes de production
 
 ## 📝 Notas Adicionais
 

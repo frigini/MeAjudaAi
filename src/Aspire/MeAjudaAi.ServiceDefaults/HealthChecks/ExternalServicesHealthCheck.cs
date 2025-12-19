@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using MeAjudaAi.ServiceDefaults.Options;
 
 namespace MeAjudaAi.ServiceDefaults.HealthChecks;
 
@@ -26,13 +27,6 @@ public class ExternalServicesHealthCheck(
                 results.Add(("Keycloak", IsHealthy, Error));
             }
 
-            // Verifica APIs de pagamento externas (implementação futura)
-            if (externalServicesOptions.PaymentGateway.Enabled)
-            {
-                var (IsHealthy, Error) = await CheckPaymentGatewayAsync(cancellationToken);
-                results.Add(("Payment Gateway", IsHealthy, Error));
-            }
-
             // Verifica serviços de geolocalização (implementação futura)
             if (externalServicesOptions.Geolocation.Enabled)
             {
@@ -45,174 +39,97 @@ public class ExternalServicesHealthCheck(
 
             if (totalCount == 0)
             {
-                return HealthCheckResult.Healthy("No external service configured");
+                return HealthCheckResult.Healthy("Nenhum serviço externo configurado");
             }
 
             if (healthyCount == totalCount)
             {
-                return HealthCheckResult.Healthy($"All {totalCount} external services are healthy");
+                return HealthCheckResult.Healthy($"Todos os {totalCount} serviços externos estão saudáveis");
             }
 
-            if (healthyCount == 0)
+            // Serviços externos inativos nunca devem tornar a aplicação unhealthy (apenas degraded)
+            // A aplicação pode continuar a funcionar com recursos limitados quando serviços externos estão indisponíveis
+            var issues = results.Where(r => !r.IsHealthy).ToArray();
+            var message = $"{healthyCount}/{totalCount} serviços saudáveis";
+            
+            // Estrutura erros por nome do serviço para facilitar monitoramento/alertas
+            // Usa construção manual de dicionário para lidar com possíveis nomes de serviço duplicados
+            var data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            foreach (var issue in issues)
             {
-                var errors = string.Join("; ", results.Where(r => !r.IsHealthy).Select(r => $"{r.Service}: {r.Error}"));
-                return HealthCheckResult.Unhealthy($"All external services are down: {errors}");
+                data[issue.Service] = issue.Error ?? "Erro desconhecido";
             }
-
-            var partialErrors = string.Join("; ", results.Where(r => !r.IsHealthy).Select(r => $"{r.Service}: {r.Error}"));
-            return HealthCheckResult.Degraded($"{healthyCount}/{totalCount} services healthy. Issues: {partialErrors}");
+            
+            return HealthCheckResult.Degraded(message, data: data);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Deixa a camada de hospedagem lidar com semânticas de cancelamento ao invés de tratá-lo como falha
+            throw;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error during external services health check");
-            return HealthCheckResult.Unhealthy("Health check falhou com erro inesperado", ex);
+            logger.LogError(ex, "Erro inesperado durante verificação de saúde dos serviços externos");
+            return HealthCheckResult.Unhealthy("Verificação de saúde falhou com erro inesperado", ex);
         }
     }
 
-    private async Task<(bool IsHealthy, string? Error)> CheckKeycloakAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// Lógica comum de health check para serviços externos
+    /// </summary>
+    private async Task<(bool IsHealthy, string? Error)> CheckServiceAsync(
+        string baseUrl, int timeoutSeconds, string healthEndpointPath, CancellationToken cancellationToken)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(externalServicesOptions.Keycloak.BaseUrl))
-                return (false, "BaseUrl not configured");
+            if (string.IsNullOrWhiteSpace(baseUrl))
+                return (false, "BaseUrl não configurada");
+
+            if (timeoutSeconds <= 0)
+                return (false, "Configuração de timeout inválida");
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.Keycloak.TimeoutSeconds));
+            cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
-            var baseUri = externalServicesOptions.Keycloak.BaseUrl.TrimEnd('/');
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}/health");
-            var response = await httpClient
+            var baseUri = baseUrl.TrimEnd('/');
+            // Normaliza o caminho: padrão para "/health", remove espaços, garante '/' inicial único
+            var normalizedPath = string.IsNullOrWhiteSpace(healthEndpointPath) 
+                ? "/health" 
+                : "/" + healthEndpointPath.Trim().TrimStart('/');
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}{normalizedPath}");
+            using var response = await httpClient
                 .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
                 .ConfigureAwait(false);
 
-            if (response.IsSuccessStatusCode)
-                return (true, null);
-
-            return (false, $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
+            return response.IsSuccessStatusCode
+                ? (true, null)
+                : (false, $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return (false, "Request timeout");
+            return (false, "Timeout da requisição");
         }
         catch (UriFormatException)
         {
-            return (false, "Invalid URL");
+            return (false, "URL inválida");
         }
         catch (HttpRequestException ex)
         {
-            return (false, $"Connection failed: {ex.Message}");
+            return (false, $"Falha na conexão: {ex.Message}");
         }
     }
 
-    private async Task<(bool IsHealthy, string? Error)> CheckPaymentGatewayAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(externalServicesOptions.PaymentGateway.BaseUrl))
-                return (false, "BaseUrl not configured");
+    private Task<(bool IsHealthy, string? Error)> CheckKeycloakAsync(CancellationToken cancellationToken) =>
+        CheckServiceAsync(
+            externalServicesOptions.Keycloak.BaseUrl,
+            externalServicesOptions.Keycloak.TimeoutSeconds,
+            externalServicesOptions.Keycloak.HealthEndpointPath,
+            cancellationToken);
 
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.PaymentGateway.TimeoutSeconds));
-
-            var baseUri = externalServicesOptions.PaymentGateway.BaseUrl.TrimEnd('/');
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}/health");
-            var response = await httpClient
-                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
-                .ConfigureAwait(false);
-
-            if (response.IsSuccessStatusCode)
-                return (true, null);
-
-            return (false, $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return (false, "Request timeout");
-        }
-        catch (UriFormatException)
-        {
-            return (false, "Invalid URL");
-        }
-        catch (HttpRequestException ex)
-        {
-            return (false, $"Connection failed: {ex.Message}");
-        }
-    }
-
-    private async Task<(bool IsHealthy, string? Error)> CheckGeolocationAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(externalServicesOptions.Geolocation.BaseUrl))
-                return (false, "BaseUrl not configured");
-
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(externalServicesOptions.Geolocation.TimeoutSeconds));
-
-            var baseUri = externalServicesOptions.Geolocation.BaseUrl.TrimEnd('/');
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUri}/health");
-            var response = await httpClient
-                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
-                .ConfigureAwait(false);
-
-            if (response.IsSuccessStatusCode)
-                return (true, null);
-
-            return (false, $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return (false, "Request timeout");
-        }
-        catch (UriFormatException)
-        {
-            return (false, "Invalid URL");
-        }
-        catch (HttpRequestException ex)
-        {
-            return (false, $"Connection failed: {ex.Message}");
-        }
-    }
-}
-
-/// <summary>
-/// Opções de configuração para health checks de serviços externos
-/// </summary>
-public class ExternalServicesOptions
-{
-    public const string SectionName = "ExternalServices";
-
-    public KeycloakHealthOptions Keycloak { get; set; } = new();
-    public PaymentGatewayHealthOptions PaymentGateway { get; set; } = new();
-    public GeolocationHealthOptions Geolocation { get; set; } = new();
-}
-
-/// <summary>
-/// Opções de configuração para health check do Keycloak
-/// </summary>
-public class KeycloakHealthOptions
-{
-    public bool Enabled { get; set; } = true;
-    public string BaseUrl { get; set; } = "http://localhost:8080";
-    public int TimeoutSeconds { get; set; } = 5;
-}
-
-/// <summary>
-/// Opções de configuração para health check do gateway de pagamento
-/// </summary>
-public class PaymentGatewayHealthOptions
-{
-    public bool Enabled { get; set; } = false;
-    public string BaseUrl { get; set; } = string.Empty;
-    public int TimeoutSeconds { get; set; } = 10;
-}
-
-/// <summary>
-/// Opções de configuração para health check do serviço de geolocalização
-/// </summary>
-public class GeolocationHealthOptions
-{
-    public bool Enabled { get; set; } = false;
-    public string BaseUrl { get; set; } = string.Empty;
-    public int TimeoutSeconds { get; set; } = 5;
+    private Task<(bool IsHealthy, string? Error)> CheckGeolocationAsync(CancellationToken cancellationToken) =>
+        CheckServiceAsync(
+            externalServicesOptions.Geolocation.BaseUrl,
+            externalServicesOptions.Geolocation.TimeoutSeconds,
+            externalServicesOptions.Geolocation.HealthEndpointPath,
+            cancellationToken);
 }

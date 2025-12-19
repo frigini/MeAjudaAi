@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.ServiceCategory;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
@@ -95,5 +96,70 @@ public class UpdateServiceCategoryCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error!.Message.Should().Contain("already exists");
         _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithEmptyCategoryId_ShouldReturnFailure()
+    {
+        // Arrange
+        var command = new UpdateServiceCategoryCommand(Guid.Empty, "Name", "Description", 1);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Contain("cannot be empty");
+        _repositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Handle_WithEmptyName_ShouldReturnFailure(string? emptyName)
+    {
+        // Arrange
+        var category = new ServiceCategoryBuilder().Build();
+        var command = new UpdateServiceCategoryCommand(category.Id.Value, emptyName!, "Description", 1);
+
+        _repositoryMock
+            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Contain("cannot be empty");
+        _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenDomainExceptionThrown_ShouldReturnFailureWithMessage()
+    {
+        // Arrange
+        var category = new ServiceCategoryBuilder().Build();
+        var command = new UpdateServiceCategoryCommand(category.Id.Value, "Valid Name", "Description", 1);
+
+        _repositoryMock
+            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
+
+        _repositoryMock
+            .Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), It.IsAny<ServiceCategoryId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _repositoryMock
+            .Setup(x => x.UpdateAsync(It.IsAny<ServiceCategory>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new CatalogDomainException("Domain rule violation"));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Be("Domain rule violation");
     }
 }

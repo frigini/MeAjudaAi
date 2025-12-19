@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using FluentAssertions;
-using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.ApiService.Services.Authentication;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Security;
 
@@ -63,3 +63,4 @@ public class NoOpClaimsTransformationTests
         result.Claims.Should().BeEmpty();
     }
 }
+

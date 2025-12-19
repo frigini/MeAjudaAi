@@ -6,8 +6,8 @@ namespace MeAjudaAi.Modules.Documents.Application.Interfaces;
 /// <remarks>
 /// <para>
 /// Para acesso type-safe aos campos extraídos, use as constantes em
-/// <see cref="Constants.DocumentModelConstants.OcrFieldKeys"/>.
-/// Exemplo: result.Fields?[DocumentModelConstants.OcrFieldKeys.Cpf]
+/// <see cref="Constants.OcrFieldKeys"/>.
+/// Exemplo: result.Fields?[OcrFieldKeys.Cpf]
 /// </para>
 /// <para>
 /// <strong>Invariante:</strong> Quando Success == false, ErrorMessage deve ser não-nulo
@@ -30,7 +30,7 @@ public interface IDocumentIntelligenceService
     /// Analisa um documento brasileiro (RG, CPF, CNH) e extrai informações
     /// </summary>
     /// <param name="blobUrl">URL do blob contendo o documento</param>
-    /// <param name="documentType">Tipo de documento esperado. Use constantes de <see cref="Constants.DocumentModelConstants.DocumentTypes"/></param>
+    /// <param name="documentType">Tipo de documento esperado. Use constantes de <see cref="Constants.DocumentTypes"/></param>
     /// <param name="cancellationToken">Token de cancelamento</param>
     /// <returns>Resultado da análise OCR</returns>
     Task<OcrResult> AnalyzeDocumentAsync(

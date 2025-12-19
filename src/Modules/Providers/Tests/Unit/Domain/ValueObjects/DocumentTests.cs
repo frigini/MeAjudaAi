@@ -79,4 +79,70 @@ public class DocumentTests
         // Assert
         result.Should().Be("CPF: 11144477735");
     }
+
+    [Fact]
+    public void ToString_WithPrimaryDocument_ShouldIncludePrimaryIndicator()
+    {
+        // Arrange
+        var document = new Document("11144477735", EDocumentType.CPF, isPrimary: true);
+
+        // Act
+        var result = document.ToString();
+
+        // Assert
+        result.Should().Be("CPF: 11144477735 (Primary)");
+    }
+
+    [Fact]
+    public void WithPrimaryStatus_ShouldCreateNewDocumentWithUpdatedStatus()
+    {
+        // Arrange
+        var document = new Document("11144477735", EDocumentType.CPF, isPrimary: false);
+
+        // Act
+        var primaryDocument = document.WithPrimaryStatus(true);
+
+        // Assert
+        primaryDocument.Should().NotBeSameAs(document);
+        primaryDocument.Number.Should().Be(document.Number);
+        primaryDocument.DocumentType.Should().Be(document.DocumentType);
+        primaryDocument.IsPrimary.Should().BeTrue();
+        document.IsPrimary.Should().BeFalse(); // Original não mudou
+    }
+
+    [Fact]
+    public void WithPrimaryStatus_ChangingToFalse_ShouldCreateNonPrimaryDocument()
+    {
+        // Arrange
+        var document = new Document("11144477735", EDocumentType.CPF, isPrimary: true);
+
+        // Act
+        var nonPrimaryDocument = document.WithPrimaryStatus(false);
+
+        // Assert
+        nonPrimaryDocument.IsPrimary.Should().BeFalse();
+        document.IsPrimary.Should().BeTrue(); // Original não mudou
+    }
+
+    [Fact]
+    public void Constructor_WithIsPrimaryTrue_ShouldCreatePrimaryDocument()
+    {
+        // Act
+        var document = new Document("11144477735", EDocumentType.CPF, isPrimary: true);
+
+        // Assert
+        document.IsPrimary.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Equals_WithDifferentPrimaryStatus_ShouldNotBeEqual()
+    {
+        // Arrange
+        var document1 = new Document("11144477735", EDocumentType.CPF, isPrimary: true);
+        var document2 = new Document("11144477735", EDocumentType.CPF, isPrimary: false);
+
+        // Act & Assert
+        document1.Should().NotBe(document2);
+        document1.GetHashCode().Should().NotBe(document2.GetHashCode());
+    }
 }

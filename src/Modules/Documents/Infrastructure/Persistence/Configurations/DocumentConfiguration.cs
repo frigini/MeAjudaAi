@@ -9,7 +9,7 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
 {
     public void Configure(EntityTypeBuilder<Document> builder)
     {
-        // Explicit schema to ensure correct table location even if default schema changes
+        // Esquema explícito para garantir localização correta da tabela mesmo se o esquema padrão mudar
         builder.ToTable("documents", "documents");
 
         builder.HasKey(d => d.Id);

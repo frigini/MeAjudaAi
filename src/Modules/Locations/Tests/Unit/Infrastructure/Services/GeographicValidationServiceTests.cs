@@ -26,7 +26,6 @@ public sealed class GeographicValidationServiceTests
         // Arrange
         var cityName = "Muriaé";
         var stateSigla = "MG";
-        var allowedCities = new List<string> { "Muriaé", "Itaperuna", "Linhares" };
         var cancellationToken = CancellationToken.None;
 
         _mockIbgeService
@@ -37,7 +36,7 @@ public sealed class GeographicValidationServiceTests
             .ReturnsAsync(true);
 
         // Act
-        var result = await _service.ValidateCityAsync(cityName, stateSigla, allowedCities, cancellationToken);
+        var result = await _service.ValidateCityAsync(cityName, stateSigla, cancellationToken);
 
         // Assert
         result.Should().BeTrue();
@@ -52,7 +51,6 @@ public sealed class GeographicValidationServiceTests
         // Arrange
         var cityName = "São Paulo";
         var stateSigla = "SP";
-        var allowedCities = new List<string> { "Muriaé" };
         var cancellationToken = CancellationToken.None;
 
         _mockIbgeService
@@ -63,7 +61,7 @@ public sealed class GeographicValidationServiceTests
             .ReturnsAsync(false);
 
         // Act
-        var result = await _service.ValidateCityAsync(cityName, stateSigla, allowedCities, cancellationToken);
+        var result = await _service.ValidateCityAsync(cityName, stateSigla, cancellationToken);
 
         // Assert
         result.Should().BeFalse();
@@ -78,7 +76,6 @@ public sealed class GeographicValidationServiceTests
         // Arrange
         var cityName = "Muriaé";
         string? stateSigla = null;
-        var allowedCities = new List<string> { "Muriaé" };
         var cancellationToken = CancellationToken.None;
 
         _mockIbgeService
@@ -89,7 +86,7 @@ public sealed class GeographicValidationServiceTests
             .ReturnsAsync(true);
 
         // Act
-        var result = await _service.ValidateCityAsync(cityName, stateSigla, allowedCities, cancellationToken);
+        var result = await _service.ValidateCityAsync(cityName, stateSigla, cancellationToken);
 
         // Assert
         result.Should().BeTrue();
@@ -104,7 +101,6 @@ public sealed class GeographicValidationServiceTests
         // Arrange
         var cityName = "Muriaé";
         var stateSigla = "MG";
-        var allowedCities = new List<string> { "Muriaé" };
         var cancellationToken = CancellationToken.None;
         var exception = new HttpRequestException("IBGE API unavailable");
 
@@ -116,10 +112,11 @@ public sealed class GeographicValidationServiceTests
             .ThrowsAsync(exception);
 
         // Act
-        Func<Task> act = async () => await _service.ValidateCityAsync(cityName, stateSigla, allowedCities, cancellationToken);
+        Func<Task> act = async () => await _service.ValidateCityAsync(cityName, stateSigla, cancellationToken);
 
         // Assert
         await act.Should().ThrowAsync<HttpRequestException>()
             .WithMessage("IBGE API unavailable");
     }
 }
+

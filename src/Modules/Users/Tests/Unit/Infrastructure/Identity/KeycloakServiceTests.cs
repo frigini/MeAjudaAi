@@ -8,7 +8,6 @@ using Moq.Protected;
 
 namespace MeAjudaAi.Modules.Users.Tests.Unit.Infrastructure.Identity;
 
-#pragma warning disable CA2000 // HttpResponseMessage em testes é gerenciado pelo mock handler
 [Trait("Category", "Unit")]
 [Trait("Layer", "Infrastructure")]
 [Trait("Component", "KeycloakService")]
@@ -488,5 +487,4 @@ public class KeycloakServiceTests : IDisposable
             (_mockHttpMessageHandler?.Object as IDisposable)?.Dispose();
         }
     }
-#pragma warning restore CA2000
 }

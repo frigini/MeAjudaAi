@@ -2153,7 +2153,7 @@ npm run validate
 src/Shared/API.Collections/Generated/
 ├── MeAjudaAi-API-Collection.json           # Collection principal
 ├── MeAjudaAi-development-Environment.json  # Ambiente desenvolvimento
-├── MeAjudaAi-staging-Environment.json      # Ambiente staging
+
 ├── MeAjudaAi-production-Environment.json   # Ambiente produção
 └── README.md                               # Instruções de uso
 ```
@@ -2171,7 +2171,7 @@ options.OperationFilter<ApiVersionOperationFilter>();
 
 - **🔒 Segurança JWT**: Configuração automática de Bearer tokens
 - **📊 Schemas Reutilizáveis**: Componentes comuns (paginação, erros)
-- **🌍 Multi-ambiente**: URLs para dev/staging/production
+- **🌍 Multi-ambiente**: URLs para dev/production
 
 ### **Boas Práticas para Collections**
 
@@ -2211,7 +2211,7 @@ options.OperationFilter<ApiVersionOperationFilter>();
 - ✅ **Funciona offline** (não precisa rodar aplicação)
 - ✅ **Health checks incluídos** (/health, /health/ready, /health/live)  
 - ✅ **Schemas com exemplos** realistas
-- ✅ **Múltiplos ambientes** (dev, staging, production)
+- ✅ **Múltiplos ambientes** (dev, production)
 - ⚠️ **Arquivo não versionado** (incluído no .gitignore)
 
 #### **Importar em Clientes de API**

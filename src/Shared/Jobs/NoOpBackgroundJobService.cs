@@ -3,8 +3,8 @@ using System.Linq.Expressions;
 namespace MeAjudaAi.Shared.Jobs;
 
 /// <summary>
-/// Null object implementation of IBackgroundJobService for test/disabled scenarios.
-/// Returns success without actually queueing jobs.
+/// Implementação Null Object de IBackgroundJobService para cenários de teste/desabilitado.
+/// Retorna sucesso sem realmente enfileirar jobs.
 /// </summary>
 public sealed class NoOpBackgroundJobService : IBackgroundJobService
 {

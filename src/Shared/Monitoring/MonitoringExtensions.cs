@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -20,7 +21,7 @@ public static class MonitoringExtensions
         // Adicionar health checks customizados
         services.AddMeAjudaAiHealthChecks();
 
-        // Adicionar coleta periódica de métricas apenas em produção/staging
+        // Adicionar coleta periódica de métricas apenas em produção
         if (!environment.IsDevelopment())
         {
             services.AddMetricsCollector();

@@ -4,6 +4,7 @@ using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.ApiService.Options.RateLimit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;

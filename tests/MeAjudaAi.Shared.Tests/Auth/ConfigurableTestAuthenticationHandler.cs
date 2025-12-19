@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Encodings.Web;
+using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Time;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
@@ -113,18 +114,18 @@ public class ConfigurableTestAuthenticationHandler(
             // Override permissions only when explicitly provided
             if (config.Permissions is { Length: > 0 })
             {
-                baseClaims.RemoveAll(c => c.Type == Authorization.CustomClaimTypes.Permission);
+                baseClaims.RemoveAll(c => c.Type == AuthConstants.Claims.Permission);
                 foreach (var permission in config.Permissions)
                 {
-                    baseClaims.Add(new System.Security.Claims.Claim(Authorization.CustomClaimTypes.Permission, permission));
+                    baseClaims.Add(new System.Security.Claims.Claim(AuthConstants.Claims.Permission, permission));
                 }
             }
 
             // Always align IsSystemAdmin claim with config when a user config is present
-            baseClaims.RemoveAll(c => c.Type == Authorization.CustomClaimTypes.IsSystemAdmin);
+            baseClaims.RemoveAll(c => c.Type == AuthConstants.Claims.IsSystemAdmin);
             if (config.IsSystemAdmin)
             {
-                baseClaims.Add(new System.Security.Claims.Claim(Authorization.CustomClaimTypes.IsSystemAdmin, "true"));
+                baseClaims.Add(new System.Security.Claims.Claim(AuthConstants.Claims.IsSystemAdmin, "true"));
             }
         }
 

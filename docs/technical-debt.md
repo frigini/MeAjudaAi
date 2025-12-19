@@ -28,9 +28,9 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 
 **Validação Necessária ANTES de Deploy para Produção**:
 - [ ] Todos os testes de integração Hangfire passando no CI/CD
-- [ ] Validação manual em ambiente de staging com carga realística
+- [ ] Validação manual localmente com carga realística
 - [ ] Monitoramento de produção configurado (alertas de taxa de falha >5%)
-- [ ] Procedimento de rollback testado em staging
+- [ ] Procedimento de rollback testado localmente
 - [ ] Plano de comunicação para stakeholders aprovado
 
 **Opções de Implementação**:
@@ -54,7 +54,7 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 - Hangfire.SqlServer (requer infraestrutura SQL Server)
 
 **Prioridade**: CRÍTICA  
-**Dependências**: Testes de integração, validação em staging, monitoramento de produção  
+**Dependências**: Testes de integração, validação local, monitoramento de produção  
 **Prazo**: Antes de qualquer deploy para produção
 
 **Critérios de Aceitação**:
@@ -62,16 +62,91 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 - [x] CI/CD gating configurado para bloquear deploy se testes falharem
 - [x] Documentação de compatibilidade criada
 - [x] Procedimento de rollback documentado e testado
-- [ ] Validação em staging com carga de produção
+- [ ] Validação local com simulação de carga de produção
 - [ ] Monitoramento de produção configurado
 - [ ] Equipe treinada em procedimento de rollback
 - [ ] Stakeholders notificados sobre o risco e plano de mitigação
 
 **Documentação**:
 - Guia completo: Monitoramento via health checks em produção
-- Testes: Removidos - validação via staging e health checks
+- Testes: Removidos - validação via health checks
 - CI/CD: `.github/workflows/pr-validation.yml` (step "CRITICAL - Hangfire Npgsql 10.x Compatibility Tests")
 - Configuração: `Directory.Packages.props` (linhas 45-103)
+
+---
+
+## ⚠️ MÉDIO: Falta de Testes para Infrastructure Extensions
+
+**Arquivos**: 
+- `src/Aspire/MeAjudaAi.AppHost/Extensions/KeycloakExtensions.cs`
+- `src/Aspire/MeAjudaAi.AppHost/Extensions/PostgreSqlExtensions.cs`
+- `src/Aspire/MeAjudaAi.AppHost/Extensions/MigrationExtensions.cs`
+
+**Situação**: SEM TESTES  
+**Severidade**: MÉDIA  
+**Issue**: [Criar issue para rastreamento]
+
+**Descrição**: 
+As classes de extensão do AppHost que configuram infraestrutura crítica (Keycloak, PostgreSQL, Migrations) não possuem testes unitários ou de integração. Isso representa risco para:
+- Mudanças em configuração de produção
+- Refatorações futuras
+- Validação de comportamento em diferentes ambientes
+
+**Componentes Sem Testes**:
+1. **KeycloakExtensions** (~170 linhas):
+   - `AddMeAjudaAiKeycloak()` - configuração de desenvolvimento
+   - `AddMeAjudaAiKeycloakProduction()` - configuração de produção com validação de segurança
+
+2. **PostgreSqlExtensions** (~260 linhas):
+   - `AddMeAjudaAiPostgreSQL()` - configuração local/desenvolvimento
+   - `AddMeAjudaAiAzurePostgreSQL()` - configuração Azure com managed identity
+
+3. **MigrationExtensions** (~50 linhas):
+   - `AddMeAjudaAiMigrations()` - registro de MigrationHostedService
+
+**Risco Atual**:
+- **BAIXO a MÉDIO**: Código é relativamente estável e usado em desenvolvimento
+- Refatoração recente (Sprint 4) melhorou estrutura mas não adicionou testes
+- Mudanças futuras podem introduzir regressões sem detecção
+
+**Mitigação Atual**:
+1. ✅ Código bem estruturado com separação clara (Options/Results/Services)
+2. ✅ Comentários em português explicando lógica
+3. ✅ Validações de segurança em produção (KeycloakProduction)
+4. ✅ Logging detalhado de configuração
+5. ⚠️ **SEM** testes automatizados
+
+**Ações Recomendadas**:
+
+**CURTO PRAZO** (antes de próximas mudanças em infraestrutura):
+1. Criar testes de integração para KeycloakExtensions:
+   - Validar que configuração de desenvolvimento funciona
+   - Validar que configuração de produção rejeita senhas fracas
+   - Validar URLs e endpoints gerados corretamente
+
+2. Criar testes de integração para PostgreSqlExtensions:
+   - Validar criação de databases e schemas
+   - Validar connection strings geradas
+   - Validar configuração Azure com managed identity
+
+3. Criar testes unitários para MigrationExtensions:
+   - Validar que MigrationHostedService é registrado
+   - Validar que migrations não rodam em ambiente Testing
+
+**MÉDIO PRAZO** (backlog):
+- Adicionar testes E2E que validam stack completa do AppHost
+- Configurar CI para validar mudanças em extensions
+
+**Prioridade**: MÉDIA  
+**Esforço Estimado**: 4-6 horas para cobertura básica  
+**Dependências**: Nenhuma - pode ser feito incrementalmente
+
+**Critérios de Aceitação**:
+- [ ] Testes de integração para KeycloakExtensions (>70% coverage)
+- [ ] Testes de integração para PostgreSqlExtensions (>70% coverage)
+- [ ] Testes unitários para MigrationExtensions (>80% coverage)
+- [ ] CI configurado para rodar testes de extensions
+- [ ] Documentação de como testar extensions localmente
 
 ---
 
@@ -222,6 +297,159 @@ O módulo SearchProviders não possui testes E2E (end-to-end), apenas testes de 
 
 ---
 
+## 📦 Microsoft.OpenApi 2.3.0 - Bloqueio de Atualização para 3.x
+
+**Arquivo**: `Directory.Packages.props` (linha ~46)  
+**Situação**: BLOQUEADO - Incompatibilidade com ASP.NET Core Source Generators  
+**Severidade**: BAIXA (não crítico, funciona perfeitamente)  
+**Issue**: [Criar issue para rastreamento]
+
+**Descrição**:
+Microsoft.OpenApi está pinado em versão 2.3.0 porque a versão 3.0.2 é incompatível com os source generators do ASP.NET Core 10.0 (`Microsoft.AspNetCore.OpenApi.SourceGenerators`).
+
+**Problema Identificado**:
+```
+error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned to -- it is read only
+```
+
+**Testes Realizados**:
+```text
+- ✅ Testado com SDK 10.0.101 (Dez 2025) - ainda quebra
+- ✅ Testado Microsoft.OpenApi 3.0.2 - incompatível
+- ✅ Confirmado que 2.3.0 funciona perfeitamente
+```
+
+**Causa Raiz**:
+- Microsoft.OpenApi 3.x mudou `IOpenApiMediaType.Example` para read-only (breaking change)
+- ASP.NET Core source generator ainda gera código que tenta escrever nessa propriedade
+- Source generator não foi atualizado para API do OpenApi 3.x
+
+**Dependência**: Swashbuckle.AspNetCore
+- Swashbuckle 10.x depende de Microsoft.OpenApi (transitivo)
+- Projeto usa Swashbuckle para Swagger UI e customizações avançadas
+- Swashbuckle v10 migration guide: [Swashbuckle v10 Migration](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/docs/migrating-to-v10.md)
+
+**Opções de Resolução**:
+
+**OPÇÃO 1 (ATUAL - RECOMENDADA)**: Manter Microsoft.OpenApi 2.3.0
+- ✅ Funciona perfeitamente
+- ✅ Zero impacto em funcionalidades
+- ✅ Swagger UI completo e funcional
+- ⚠️ Versão desatualizada (mas estável)
+
+**OPÇÃO 2 (FUTURO)**: Aguardar correção da Microsoft
+- Microsoft atualiza source generator para OpenApi 3.x
+- Timeline: Desconhecida (provavelmente .NET 11 ou patch futuro)
+- Monitorar: [ASP.NET Core Issues](https://github.com/dotnet/aspnetcore/issues)
+
+**OPÇÃO 3 (COMPLEXA - NÃO RECOMENDADA AGORA)**: Migrar para ASP.NET Core OpenAPI nativo
+- Remove Swashbuckle completamente
+- Usa `Microsoft.AspNetCore.OpenApi` nativo (.NET 9+)
+- **PROBLEMA**: Não inclui Swagger UI por padrão
+  - Precisa adicionar Scalar/SwaggerUI/RapiDoc separadamente
+  - Perde configurações avançadas de UI (InjectStylesheet, DocExpansion, etc)
+- **ESFORÇO**: 5-8 horas de trabalho
+  - Migrar CustomSchemaIds → transformers
+  - Migrar CustomOperationIds → transformers  
+  - Migrar ApiVersionOperationFilter → transformers
+  - Configurar UI externa (Scalar recomendado)
+  - Atualizar 3 arquivos de teste
+- **ROI**: Baixo - funcionalidade atual é completa
+
+**Monitoramento**:
+- [ ] Verificar releases do .NET SDK para correções no source generator
+- [ ] Testar Microsoft.OpenApi 3.x a cada atualização de SDK
+- [ ] Monitorar Swashbuckle releases para melhor suporte OpenApi 3.x
+- [ ] Avaliar migração para OpenAPI nativo quando UI nativo estiver disponível
+
+**Prioridade**: BAIXA (não urgente)  
+**Estimativa**: Aguardar correção oficial (sem ação necessária)  
+**Workaround Atual**: Manter 2.3.0 (100% funcional)
+
+**Critérios para Atualização**:
+- [ ] Microsoft corrigir source generator para OpenApi 3.x, OU
+- [ ] Swashbuckle suportar completamente OpenApi 3.x, OU
+- [ ] Necessidade real de features do OpenApi 3.x (atualmente nenhuma)
+
+**Documentação**:
+- Comentário detalhado em `Directory.Packages.props` (linhas 46-49)
+- Migration guide Swashbuckle: [Swashbuckle v10 Migration](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/docs/migrating-to-v10.md)
+- ASP.NET Core OpenAPI docs: [OpenAPI in ASP.NET Core](https://learn.microsoft.com/aspnet/core/fundamentals/openapi/aspnetcore-openapi)
+
+**Nota**: Esta limitação **NÃO afeta** funcionalidade, performance ou segurança. É puramente uma questão de versão de dependência.
+
+---
+
+## 📋 Padronização de Records (Para Próxima Sprint)
+
+**Arquivo**: Múltiplos arquivos em `src/Shared/Contracts/**` e `src/Modules/**/Domain/**`  
+**Situação**: INCONSISTÊNCIA - Dois padrões em uso  
+**Severidade**: BAIXA (manutenibilidade)  
+**Issue**: [Criar issue para rastreamento]
+
+**Descrição**: 
+Atualmente existem dois padrões de sintaxe para records no projeto:
+
+### Padrão 1: Positional Records (Sintaxe Concisa)
+
+```csharp
+public sealed record ModuleCoordinatesDto(
+    double Latitude,
+    double Longitude);
+```
+
+### Padrão 2: Property-based Records (Sintaxe Explícita)
+
+```csharp
+public sealed record ModuleLocationDto
+{
+    public required double Latitude { get; init; }
+    public required double Longitude { get; init; }
+}
+```
+
+**Análise**:
+
+*Positional Records:*
+- ✅ Mais conciso
+- ✅ Gera automaticamente construtor, desconstrutor, Equals, GetHashCode
+- ✅ Ideal para DTOs simples e imutáveis
+- ❌ Menos flexível para validação/lógica customizada
+- ❌ Ordem dos parâmetros importa
+
+*Property-based Records:*
+- ✅ Maior flexibilidade (validação, valores padrão complexos)
+- ✅ Permite required e init-only de forma explícita
+- ✅ Ordem não importa
+- ❌ Mais verboso
+- ❌ Não gera desconstrutor automaticamente
+
+**Recomendação**:
+
+*Para DTOs simples* (maioria dos casos em Contracts/Modules): Usar **Positional Records**
+- São mais concisos
+- Comunicação entre módulos não precisa de lógica complexa
+- Imutabilidade garantida por design
+
+*Para Value Objects e Domain Models*: Usar **Property-based Records**
+- Permite validação no construtor
+- Maior controle sobre comportamento
+
+**Ação Sugerida**:
+Na próxima sprint, padronizar todos os records em:
+- `src/Shared/Contracts/**/*.cs` → Positional Records
+- `src/Modules/**/Domain/**/*.cs` → Property-based Records (onde fizer sentido)
+
+**Arquivos para Revisar**:
+- [ ] Todos os DTOs em Contracts/Modules
+- [ ] Value Objects em Domain
+- [ ] Responses/Requests em Shared
+
+**Prioridade**: BAIXA (não urgente, melhoria de consistência)  
+**Estimativa**: 2-3 horas  
+
+---
+
 ## Instruções para Mantenedores
 
 1. **Conversão para Issues do GitHub**: 
@@ -239,3 +467,52 @@ O módulo SearchProviders não possui testes E2E (end-to-end), apenas testes de 
    - Usar tag `[ISSUE]` em comentários TODO para indicar itens rastreados aqui
    - Incluir caminho do arquivo e números de linha para navegação fácil
    - Manter descrições específicas e acionáveis
+---
+
+## ⚠️ BAIXO: Alinhamento de Middleware entre UseSharedServices() e UseSharedServicesAsync()
+
+**Arquivo**: `src/Shared/Extensions/ServiceCollectionExtensions.cs`  
+**Linhas**: 96-100  
+**Situação**: TODO IDENTIFICADO  
+**Severidade**: BAIXA  
+**Issue**: [Criar issue para rastreamento - TODO #249]
+
+**Descrição**: 
+O caminho assíncrono `UseSharedServicesAsync()` não registra serviços de BusinessMetrics da mesma forma que o caminho síncrono `UseSharedServices()`, causando falha no middleware `UseAdvancedMonitoring` em ambientes de desenvolvimento.
+
+**Problema Identificado**:
+- Caminho assíncrono pula registro de BusinessMetrics
+- UseAdvancedMonitoring falha quando invocado após UseSharedServicesAsync
+- Ambientes de desenvolvimento usando caminho assíncrono não têm dashboards de métricas de negócio
+- Inconsistência entre dois pontos de entrada para configuração de middleware
+
+**Impacto**:
+- **Desenvolvimento**: Perda de visibilidade de métricas de negócio em dev/local
+- **Testes**: Potencial para comportamento divergente entre ambientes
+- **Manutenção**: Duplicação de lógica de configuração de middleware
+
+**Solução Proposta** (do TODO):
+1. Extrair registro compartilhado de middleware para método `ConfigureSharedMiddleware()`
+2. Chamar de ambos os caminhos (síncrono e assíncrono)
+3. OU aplicar monitoramento condicionalmente baseado em verificações do IServiceCollection
+
+**Alternativas**:
+- Deprecar um dos caminhos e padronizar em apenas um
+- Criar interface comum para registro de middleware
+- Usar builder pattern para configuração consistente
+
+**Prioridade**: BAIXA (funciona em produção, afeta apenas dev)  
+**Sprint Planejado**: Sprint 5 ou posterior  
+**Dependências**: Nenhuma  
+**Prazo**: Próxima refatoração de middleware
+
+**Critérios de Aceitação**:
+- [ ] Ambos UseSharedServices() e UseSharedServicesAsync() registram BusinessMetrics
+- [ ] UseAdvancedMonitoring funciona corretamente em ambos os caminhos
+- [ ] Testes de integração validam ambos os cenários
+- [ ] Documentação atualizada com padrão escolhido
+- [ ] TODO #249 removido do código
+
+**Documentação**:
+- Código: `src/Shared/Extensions/ServiceCollectionExtensions.cs` (linhas 96-100)
+- Roadmap: Adicionado em "Média Prioridade (6-12 meses - Fase 2)"

@@ -1,4 +1,6 @@
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Handlers;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 

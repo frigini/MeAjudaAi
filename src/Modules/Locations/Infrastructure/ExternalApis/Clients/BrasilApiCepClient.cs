@@ -29,7 +29,7 @@ public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiC
 
             if (brasilApiResponse is null)
             {
-                logger.LogInformation("CEP {Cep} não encontrado no BrasilAPI", cep.Value);
+                logger.LogInformation("CEP {Cep} not found in BrasilAPI", cep.Value);
                 return null;
             }
 
@@ -42,7 +42,7 @@ public sealed class BrasilApiCepClient(HttpClient httpClient, ILogger<BrasilApiC
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao consultar BrasilAPI para CEP {Cep}", cep.Value);
+            logger.LogError(ex, "Error querying BrasilAPI for CEP {Cep}", cep.Value);
             return null;
         }
     }

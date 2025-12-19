@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3-P1 ✅ (11 Dez) | Sprint 3-P2 ✅ (13 Dez - CONCLUÍDO!) | MVP Target: 31/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3-P1 ✅ (11 Dez) | Sprint 3-P2 ✅ (13 Dez) | Sprint 4 ✅ (16 Dez - COMPLETO!) | MVP Target: 31/Março/2026  
 **Cobertura de Testes**: 28.2% → **90.56% ALCANÇADO** (Sprint 2 - META SUPERADA EM 55.56pp!)  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
@@ -17,8 +17,9 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **22 Nov - 2 Dez**: Sprint 1 - Geographic Restriction + Module Integration (CONCLUÍDO e MERGED)
 - ✅ **3 Dez - 10 Dez**: Sprint 2 - Test Coverage 90.56% (CONCLUÍDO - META 35% SUPERADA!)
 - ✅ **10 Dez - 11 Dez**: Sprint 3 Parte 1 - GitHub Pages Migration (CONCLUÍDO - DEPLOYED!)
-- 🔄 **11 Dez - 24 Dez**: Sprint 3 Parte 2 - Admin Endpoints (EM ANDAMENTO - branch criada)
-- ⏳ **Dezembro 2025-Janeiro 2026**: Sprints 4-5 - Frontend Blazor (Web)
+- ✅ **11 Dez - 13 Dez**: Sprint 3 Parte 2 - Admin Endpoints & Tools (CONCLUÍDO - MERGED!)
+- ✅ **14 Dez - 16 Dez**: Sprint 4 - Health Checks + Data Seeding (CONCLUÍDO - MERGED!)
+- ⏳ **Janeiro 2026**: Sprint 5 - Blazor Admin Portal Setup
 - ⏳ **Fevereiro-Março 2026**: Sprints 6-7 - Frontend Blazor (Web + Mobile)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
@@ -54,11 +55,29 @@ Admin Endpoints & Tools - TODAS AS PARTES FINALIZADAS:
 - ✅ Code Quality: NSubstitute→Moq, UuidGenerator, .slnx, SonarQube warnings
 - ✅ CI/CD: Formatting checks corrigidos, exit code masking resolvido
 
-**⏳ Fase 2: PLANEJADO** (Fevereiro–Março 2026)  
+**✅ Sprint 4: CONCLUÍDO** (14 Dez - 16 Dez 2025)  
+Health Checks Robustos + Data Seeding para MVP - TODAS AS PARTES FINALIZADAS:
+- ✅ Health Checks: DatabasePerformanceHealthCheck (latência <100ms healthy, <500ms degraded)
+- ✅ Health Checks: ExternalServicesHealthCheck (Keycloak + IBGE API + Redis)
+- ✅ Health Checks: HelpProcessingHealthCheck (sistema de ajuda operacional)
+- ✅ Health Endpoints: /health, /health/live, /health/ready com JSON responses
+- ✅ Health Dashboard: Dashboard nativo do Aspire (decisão arquitetural - não usar AspNetCore.HealthChecks.UI)
+- ✅ Health Packages: AspNetCore.HealthChecks.Npgsql 9.0.0, .Redis 8.0.1
+- ✅ Redis Health Check: Configurado via AddRedis() com tags 'ready', 'cache'
+- ✅ Data Seeding: infrastructure/database/seeds/01-seed-service-catalogs.sql (8 categorias + 12 serviços)
+- ✅ Seed Automation: Docker Compose executa seeds automaticamente na inicialização
+- ✅ Project Structure: Reorganização - automation/ → infrastructure/automation/, seeds em infrastructure/database/seeds/
+- ✅ Documentation: README.md, scripts/README.md, infrastructure/database/README.md + docs/future-external-services.md
+- ✅ MetricsCollectorService: Implementado com IServiceScopeFactory (4 TODOs resolvidos)
+- ✅ Unit Tests: 14 testes para ExternalServicesHealthCheck (6 novos para IBGE API)
+- ✅ Integration Tests: 9 testes para DataSeeding (categorias, serviços, idempotência)
+- ✅ Future Services Documentation: Documentado OCR, payments, SMS/email (quando implementar)
+
+**⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
-- Admin Portal (Sprint 3)
-- Customer App (Sprint 4)
-- Polishing + Hardening (Sprint 5)
+- Sprint 5: Blazor Admin Portal Setup
+- Sprint 6-7: Customer App + Polishing
+- MVP Final: 31 de Março de 2026
 
 ---
 
@@ -85,10 +104,11 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 2** | 1 semana | 3 Dez - 10 Dez | Test Coverage 90.56% | ✅ CONCLUÍDO (10 Dez - META SUPERADA!) |
 | **Sprint 3-P1** | 1 dia | 10 Dez - 11 Dez | GitHub Pages Documentation | ✅ CONCLUÍDO (11 Dez - DEPLOYED!) |
 | **Sprint 3-P2** | 2 semanas | 11 Dez - 13 Dez | Admin Endpoints & Tools | ✅ CONCLUÍDO (13 Dez - MERGED) |
-| **Sprint 4** | 2 semanas | Jan 2026 | Blazor Admin Portal (Web) - Parte 1 | ⏳ Planejado |
-| **Sprint 5** | 2 semanas | Fev 2026 | Blazor Admin Portal (Web) - Parte 2 | ⏳ Planejado |
-| **Sprint 6** | 3 semanas | Mar 2026 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
-| **Sprint 7** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
+| **Sprint 4** | 3 dias | 14 Dez - 16 Dez | Health Checks + Data Seeding | ✅ CONCLUÍDO (16 Dez - MERGED!) |
+| **Sprint 5** | 2 semanas | Jan 2026 | Blazor Admin Portal (Web) - Parte 1 | ⏳ Planejado |
+| **Sprint 6** | 2 semanas | Fev 2026 | Blazor Admin Portal (Web) - Parte 2 | ⏳ Planejado |
+| **Sprint 7** | 3 semanas | Mar 2026 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
+| **Sprint 8** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
 
 **MVP Launch Target**: 31 de Março de 2026 🎯
 
@@ -1284,7 +1304,6 @@ gantt
 
 **Tarefas Pendentes Identificadas**:
 - 📦 Bruno Collections para módulos restantes (Users, Providers, Documents, ServiceCatalogs)
-- 🏥 Health Checks UI Dashboard (`/health-ui`) - componentes já implementados, falta UI
 - 📖 Design Patterns Documentation (documentar padrões implementados)
 - 🔒 Avaliar migração AspNetCoreRateLimit library
 - 📊 Verificar completude Logging Estruturado (Seq, Domain Events, Performance)
@@ -1419,7 +1438,6 @@ gantt
 - Unificar geração de IDs (usar UuidGenerator em todo código)
 - Migrar para novo formato .slnx (performance e versionamento)
 - Automatizar documentação OpenAPI no GitHub Pages
-- **NOVO**: Adicionar Health Checks UI Dashboard (`/health-ui`)
 - **NOVO**: Documentar Design Patterns implementados
 - **NOVO**: Avaliar migração para AspNetCoreRateLimit library
 - **NOVO**: Verificar completude do Logging Estruturado (Seq, Domain Events, Performance)
@@ -1518,36 +1536,18 @@ gantt
   - UI interativa (try-it-out)
   - Melhor DX para consumidores da API
 
-**5. Health Checks UI Dashboard** 🏥:
-- [x] **Health Checks Core**: ✅ JÁ IMPLEMENTADO
+**5. Health Checks & Monitoring** 🏥:
+- [x] **Health Checks Core**: ✅ IMPLEMENTADO
   - `src/Shared/Monitoring/HealthChecks.cs`: 4 health checks implementados
   - 47 testes, 100% coverage
   - Componentes: ExternalServicesHealthCheck, PerformanceHealthCheck, HelpProcessingHealthCheck, DatabasePerformanceHealthCheck
-  - Endpoint `/health` funcional
-- [ ] **UI Dashboard** ⚠️ PENDENTE:
-  - [ ] Instalar pacote: `AspNetCore.HealthChecks.UI` (v8.0+)
-  - [ ] Configurar endpoint `/health-ui` em `Program.cs`
-  - [ ] Adicionar UI responsiva (Bootstrap theme)
-  - [ ] Configurar polling interval (10 segundos padrão)
-  - [ ] Adicionar página HTML de fallback (caso health checks falhem)
-  - [ ] Documentar acesso em `docs/infrastructure.md`
-  - [ ] Adicionar screenshot da UI na documentação
-  - [ ] **Configuração mínima**:
-    ```csharp
-    builder.Services.AddHealthChecksUI(setup =>
-    {
-        setup.SetEvaluationTimeInSeconds(10);
-        setup.MaximumHistoryEntriesPerEndpoint(50);
-        setup.AddHealthCheckEndpoint("MeAjudaAi API", "/health");
-    }).AddInMemoryStorage();
-    
-    app.MapHealthChecksUI(options => 
-    {
-        options.UIPath = "/health-ui";
-    });
-    ```
-  - [ ] Testes E2E: Acessar `/health-ui` e validar renderização
-- [ ] **Estimativa**: 1-2 dias
+  - Endpoints: `/health`, `/health/live`, `/health/ready`
+- [x] **Dashboard**: ✅ DECISÃO ARQUITETURAL
+  - **Usar dashboard nativo do .NET Aspire** (não AspNetCore.HealthChecks.UI)
+  - Aspire fornece dashboard integrado com telemetria, traces e métricas
+  - Health checks expostos via endpoints JSON consumidos pelo Aspire
+  - Melhor integração com ecossistema .NET 9+ e cloud-native deployments
+  - **Rationale**: Evitar dependência extra, melhor DX, alinhamento com roadmap .NET
 
 **6. Design Patterns Documentation** 📚:
 - [ ] **Branch**: `docs/design-patterns`
@@ -2083,6 +2083,62 @@ public class GeographicRestrictionMiddleware
 
 ---
 
+## 🔧 Tarefas Técnicas Cross-Module
+
+**Status**: ⏳ PENDENTE
+
+Tarefas técnicas que devem ser aplicadas em todos os módulos para consistência e melhores práticas.
+
+### Migration Control em Produção
+
+**Issue**: Implementar controle `APPLY_MIGRATIONS` nos módulos restantes
+
+**Contexto**: O módulo Documents já implementa controle via variável de ambiente `APPLY_MIGRATIONS` para desabilitar migrations automáticas em produção. Isso é essencial para:
+- Ambientes com múltiplas instâncias (evita race conditions)
+- Deployments controlados via pipeline de CI/CD
+- Blue-green deployments onde migrations devem rodar antes do switch
+
+**Implementação** (padrão estabelecido em `Documents/API/Extensions.cs`):
+
+```csharp
+private static void EnsureDatabaseMigrations(WebApplication app)
+{
+    // Pular em ambientes de teste
+    if (app.Environment.IsEnvironment("Test") || app.Environment.IsEnvironment("Testing"))
+    {
+        return;
+    }
+
+    // Controle via variável de ambiente
+    var applyMigrations = Environment.GetEnvironmentVariable("APPLY_MIGRATIONS");
+    if (!string.IsNullOrEmpty(applyMigrations) && 
+        bool.TryParse(applyMigrations, out var shouldApply) && !shouldApply)
+    {
+        logger?.LogInformation("Migrações automáticas desabilitadas via APPLY_MIGRATIONS=false");
+        return;
+    }
+
+    // Aplicar migrations normalmente
+    context.Database.Migrate();
+}
+```
+
+**Status por Módulo**:
+- ✅ **Documents**: Implementado (Sprint 4 - 16 Dez 2025)
+- ⏳ **Users**: Pendente
+- ⏳ **Providers**: Pendente  
+- ⏳ **ServiceCatalogs**: Pendente
+- ⏳ **Locations**: Pendente
+- ⏳ **SearchProviders**: Pendente
+
+**Esforço Estimado**: 15 minutos por módulo (copiar padrão do Documents)
+
+**Documentação**: Padrão documentado em `docs/database.md` seção "Controle de Migrations em Produção"
+
+**Prioridade**: MÉDIA - Implementar antes do primeiro deployment em produção
+
+---
+
 ### 📅 Sprint 5: Polishing & Hardening (1 semana)
 
 **Status**: ⏳ PLANEJADO
@@ -2504,6 +2560,7 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 5. 📊 Analytics - Métricas básicas
 6. 📧 Communications - Email notifications
 7. 🛡️ Dispute Resolution System
+8. 🔧 Alinhamento de middleware entre UseSharedServices() e UseSharedServicesAsync()
 
 ### 🔮 **Baixa Prioridade (12+ meses - Fase 3)**
 1. 📅 Service Requests & Booking
@@ -2553,5 +2610,5 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 
 ---
 
-*📅 Última atualização: 11 de Dezembro de 2025*  
+*📅 Última atualização: 15 de Dezembro de 2025*  
 *🔄 Roadmap em constante evolução baseado em feedback, métricas e aprendizados*

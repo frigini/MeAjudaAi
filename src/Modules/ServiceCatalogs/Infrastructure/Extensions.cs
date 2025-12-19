@@ -30,7 +30,7 @@ public static class Extensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Configure DbContext
+        // Configura DbContext
         services.AddDbContext<ServiceCatalogsDbContext>((serviceProvider, options) =>
         {
             var environment = serviceProvider.GetService<IHostEnvironment>();
@@ -67,11 +67,11 @@ public static class Extensions
             .EnableSensitiveDataLogging(false);
         });
 
-        // Register repositories
+        // Registra repositórios
         services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
         services.AddScoped<IServiceRepository, ServiceRepository>();
 
-        // Register command handlers
+        // Registra command handlers
         services.AddScoped<ICommandHandler<CreateServiceCategoryCommand, Result<ServiceCategoryDto>>, CreateServiceCategoryCommandHandler>();
         services.AddScoped<ICommandHandler<CreateServiceCommand, Result<ServiceDto>>, CreateServiceCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateServiceCategoryCommand, Result>, UpdateServiceCategoryCommandHandler>();
@@ -84,7 +84,7 @@ public static class Extensions
         services.AddScoped<ICommandHandler<DeactivateServiceCommand, Result>, DeactivateServiceCommandHandler>();
         services.AddScoped<ICommandHandler<ChangeServiceCategoryCommand, Result>, ChangeServiceCategoryCommandHandler>();
 
-        // Register query handlers
+        // Registra query handlers
         services.AddScoped<IQueryHandler<GetAllServiceCategoriesQuery, Result<IReadOnlyList<ServiceCategoryDto>>>, GetAllServiceCategoriesQueryHandler>();
         services.AddScoped<IQueryHandler<GetServiceCategoryByIdQuery, Result<ServiceCategoryDto?>>, GetServiceCategoryByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetServiceCategoriesWithCountQuery, Result<IReadOnlyList<ServiceCategoryWithCountDto>>>, GetServiceCategoriesWithCountQueryHandler>();

@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -48,32 +50,32 @@ public abstract class BaseTestAuthenticationHandler(
             if (role.Equals("admin", StringComparison.OrdinalIgnoreCase))
             {
                 // Add all admin permissions for Users
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersList.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersCreate.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersUpdate.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersDelete.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.AdminUsers.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.UsersList.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.UsersCreate.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.UsersUpdate.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.UsersDelete.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.AdminUsers.GetValue()));
 
                 // Add all admin permissions for Providers
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersList.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersRead.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersCreate.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersUpdate.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersDelete.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersApprove.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersList.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersCreate.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersUpdate.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersDelete.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersApprove.GetValue()));
 
-                claims.Add(new Claim(CustomClaimTypes.IsSystemAdmin, "true"));
+                claims.Add(new Claim(AuthConstants.Claims.IsSystemAdmin, "true"));
             }
             else if (role.Equals("user", StringComparison.OrdinalIgnoreCase))
             {
                 // Add basic user permissions
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersProfile.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.UsersRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.UsersProfile.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.UsersRead.GetValue()));
 
                 // Add read access to providers list (public access for customers)
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersList.GetValue()));
-                claims.Add(new Claim(CustomClaimTypes.Permission, Permission.ProvidersRead.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersList.GetValue()));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, EPermission.ProvidersRead.GetValue()));
             }
         }
 

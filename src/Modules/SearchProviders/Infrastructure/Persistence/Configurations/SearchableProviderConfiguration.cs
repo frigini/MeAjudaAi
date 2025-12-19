@@ -17,7 +17,7 @@ internal sealed class SearchableProviderConfiguration : IEntityTypeConfiguration
     {
         builder.ToTable("searchable_providers", "meajudaai_searchproviders");
 
-        // Primary key
+        // Chave primária
         builder.HasKey(p => p.Id);
 
         builder.Property(p => p.Id)
@@ -26,7 +26,7 @@ internal sealed class SearchableProviderConfiguration : IEntityTypeConfiguration
                 value => SearchableProviderId.From(value))
             .ValueGeneratedNever();
 
-        // Provider ID (reference to Providers module)
+        // ID do Provider (referência ao módulo Providers)
         builder.Property(p => p.ProviderId)
             .IsRequired()
             .HasColumnName("provider_id");
@@ -35,7 +35,7 @@ internal sealed class SearchableProviderConfiguration : IEntityTypeConfiguration
             .IsUnique()
             .HasDatabaseName("ix_searchable_providers_provider_id");
 
-        // Basic information
+        // Informações básicas
         builder.Property(p => p.Name)
             .IsRequired()
             .HasMaxLength(200)

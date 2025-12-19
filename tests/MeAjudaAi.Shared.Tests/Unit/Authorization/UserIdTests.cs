@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.ValueObjects;
 
 namespace MeAjudaAi.Shared.Tests.Unit.Authorization;
 

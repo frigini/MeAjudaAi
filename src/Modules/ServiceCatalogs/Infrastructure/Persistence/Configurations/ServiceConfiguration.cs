@@ -50,14 +50,14 @@ internal sealed class ServiceConfiguration : IEntityTypeConfiguration<Service>
         builder.Property(s => s.UpdatedAt)
             .HasColumnName("updated_at");
 
-        // Relationships
+        // Relacionamentos
         builder.HasOne(s => s.Category)
             .WithMany()
             .HasForeignKey(s => s.CategoryId)
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_services_category");
 
-        // Indexes
+        // Índices
         builder.HasIndex(s => s.Name)
             .IsUnique()
             .HasDatabaseName("ix_services_name");
@@ -71,7 +71,7 @@ internal sealed class ServiceConfiguration : IEntityTypeConfiguration<Service>
         builder.HasIndex(s => new { s.CategoryId, s.DisplayOrder })
             .HasDatabaseName("ix_services_category_display_order");
 
-        // Ignore navigation properties
+        // Ignora propriedades de navegação
         builder.Ignore(s => s.DomainEvents);
     }
 }

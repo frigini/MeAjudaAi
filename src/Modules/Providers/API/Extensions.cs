@@ -71,7 +71,7 @@ public static class Extensions
             {
                 using var scope = app.Services.CreateScope();
                 var logger = scope.ServiceProvider.GetService<ILogger<Infrastructure.Persistence.ProvidersDbContext>>();
-                logger?.LogWarning(ex, "Falha ao aplicar migrações do módulo Providers. Usando EnsureCreated como fallback.");
+                logger?.LogWarning(ex, "Failed to apply migrations for Providers module. Using EnsureCreated as fallback.");
 
                 var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.ProvidersDbContext>();
                 if (context != null)

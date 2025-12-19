@@ -1,6 +1,7 @@
-using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.HealthChecks.Models;
 using MeAjudaAi.Shared.Authorization.Metrics;
-using Microsoft.Extensions.DependencyInjection;
+using MeAjudaAi.Shared.Authorization.Services;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 
@@ -224,7 +225,7 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
     /// <summary>
     /// Verifica se os resolvers de módulos estão registrados.
     /// </summary>
-    private ResolversHealthResult CheckModuleResolvers()
+    private static ResolversHealthResult CheckModuleResolvers()
     {
         try
         {
@@ -249,49 +250,5 @@ public sealed class PermissionSystemHealthCheck : IHealthCheck
                 ResolverCount = 0
             };
         }
-    }
-
-    private sealed record InternalHealthCheckResult(bool IsHealthy, string Issue)
-    {
-        public string Status => IsHealthy ? "healthy" : "unhealthy";
-    }
-
-    private sealed record PerformanceHealthResult
-    {
-        public bool IsHealthy { get; init; }
-        public string Status { get; init; } = "";
-        public string Issue { get; init; } = "";
-        public double CacheHitRate { get; init; }
-        public int ActiveChecks { get; init; }
-    }
-
-    private sealed record ResolversHealthResult
-    {
-        public bool IsHealthy { get; init; }
-        public string Status { get; init; } = "";
-        public string Issue { get; init; } = "";
-        public int ResolverCount { get; init; }
-    }
-}
-
-/// <summary>
-/// Extensões para facilitar o registro do health check de permissões.
-/// </summary>
-public static class PermissionHealthCheckExtensions
-{
-    /// <summary>
-    /// Adiciona o health check do sistema de permissões.
-    /// </summary>
-    private static readonly string[] HealthCheckTags = ["permissions", "authorization", "security"];
-
-    public static IServiceCollection AddPermissionSystemHealthCheck(this IServiceCollection services)
-    {
-        services.AddHealthChecks()
-            .AddCheck<PermissionSystemHealthCheck>(
-                "permission_system",
-                HealthStatus.Degraded,
-                HealthCheckTags);
-
-        return services;
     }
 }

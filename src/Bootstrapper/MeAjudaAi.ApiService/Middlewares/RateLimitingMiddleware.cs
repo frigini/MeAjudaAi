@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.Shared.Serialization;
 using Microsoft.Extensions.Caching.Memory;
@@ -7,14 +9,40 @@ using Microsoft.Extensions.Options;
 namespace MeAjudaAi.ApiService.Middlewares;
 
 /// <summary>
-/// Middleware de Rate Limiting com suporte a usuários autenticados
+/// Middleware de Rate Limiting com suporte a usuários autenticados.
+/// Implementa limitação de taxa de requisições com base em IP, usuário autenticado, role e endpoint.
 /// </summary>
+/// <remarks>
+/// <para><b>Configuração</b>: Seção "AdvancedRateLimit" no appsettings.json</para>
+/// <para><b>Limites Padrão</b>:</para>
+/// <list type="bullet">
+///   <item>Anônimos: 30 req/min, 300 req/hora, 1000 req/dia</item>
+///   <item>Autenticados: 120 req/min, 2000 req/hora, 10000 req/dia</item>
+///   <item>Por Role: Configurável via RoleLimits (ex: Admin com limites maiores)</item>
+///   <item>Por Endpoint: Configurável via EndpointLimits (ex: /api/auth/* com limite menor)</item>
+/// </list>
+/// <para><b>Whitelist de IPs</b>: Configurável para bypass (ex: load balancers, health checks)</para>
+/// <para><b>Resposta ao Exceder Limite</b>:</para>
+/// <list type="bullet">
+///   <item>Status Code: 429 Too Many Requests</item>
+///   <item>Header Retry-After: tempo em segundos até liberação</item>
+///   <item>Body JSON com mensagem de erro e detalhes</item>
+/// </list>
+/// <para><b>Thread-Safety</b>: Usa Interlocked.Increment para incremento atômico de contadores</para>
+/// </remarks>
 public class RateLimitingMiddleware(
     RequestDelegate next,
     IMemoryCache cache,
     IOptionsMonitor<RateLimitOptions> options,
     ILogger<RateLimitingMiddleware> logger)
 {
+    // TODO: Consider adding bounded size or periodic cleanup for _patternCache
+    // if endpoint patterns can change at runtime (e.g., hot-reload configuration).
+    // Currently acceptable for static configurations where patterns are finite,
+    // but unbounded growth could occur if patterns are added dynamically.
+    // Reference: Code Review - https://github.com/coderabbitai
+    private static readonly ConcurrentDictionary<string, Regex> _patternCache = new();
+
     /// <summary>
     /// Classe contador simples para rate limiting.
     /// <para>
@@ -28,11 +56,12 @@ public class RateLimitingMiddleware(
         public int Value;
         public DateTime ExpiresAt;
     }
+    
     public async Task InvokeAsync(HttpContext context)
     {
         var currentOptions = options.CurrentValue;
 
-        // Bypass rate limiting if explicitly disabled
+        // Ignora rate limiting se explicitamente desabilitado
         if (!currentOptions.General.Enabled)
         {
             await next(context);
@@ -42,7 +71,7 @@ public class RateLimitingMiddleware(
         var clientIp = GetClientIpAddress(context);
         var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
 
-        // Check IP whitelist first - bypass rate limiting if IP is whitelisted
+        // Verifica whitelist de IPs primeiro - ignora rate limiting se IP estiver na whitelist
         if (currentOptions.General.EnableIpWhitelist &&
             currentOptions.General.WhitelistedIps.Contains(clientIp))
         {
@@ -50,24 +79,30 @@ public class RateLimitingMiddleware(
             return;
         }
 
-        // Defensively clamp window to at least 1 second
+        // Garante janela mínima de 1 segundo por segurança
         var windowSeconds = Math.Max(1, currentOptions.General.WindowInSeconds);
         var effectiveWindow = TimeSpan.FromSeconds(windowSeconds);
 
-        // Determine effective limit using priority order
+        // Determina limite efetivo usando ordem de prioridade
         var limit = GetEffectiveLimit(context, currentOptions, isAuthenticated, effectiveWindow);
 
-        // Key by user (when authenticated) and method to reduce false sharing
+        // Chave por usuário (quando autenticado) e método para reduzir false sharing
         var userKey = isAuthenticated
             ? (context.User.FindFirst("sub")?.Value ?? context.User.Identity?.Name ?? clientIp)
             : clientIp;
-        var key = $"rate_limit:{userKey}:{context.Request.Method}:{context.Request.Path}";
+        
+        // Use route template when available to prevent memory pressure from dynamic path parameters
+        var endpoint = context.GetEndpoint();
+        var routeEndpoint = endpoint as RouteEndpoint;
+        var pathKey = routeEndpoint?.RoutePattern.RawText ?? context.Request.Path.ToString();
+        
+        var key = $"rate_limit:{userKey}:{context.Request.Method}:{pathKey}";
 
         var counter = cache.GetOrCreate(key, entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = effectiveWindow;
             return new Counter { ExpiresAt = DateTime.UtcNow + effectiveWindow };
-        })!; // GetOrCreate never returns null when factory returns a value
+        })!; // GetOrCreate nunca retorna null quando factory retorna um valor
 
         var current = Interlocked.Increment(ref counter.Value);
 
@@ -79,10 +114,9 @@ public class RateLimitingMiddleware(
             return;
         }
 
-        // TTL set at creation; no need for redundant cache operation
-
+        // TTL definido na criação; sem necessidade de operação redundante de cache
         var warnThreshold = (int)Math.Ceiling(limit * 0.8);
-        if (current >= warnThreshold) // approaching limit (80%)
+        if (current >= warnThreshold) // aproximando do limite (80%)
         {
             logger.LogInformation("Client {ClientIp} approaching rate limit on path {Path}. Current: {Count}/{Limit}, Window: {Window}s",
                 clientIp, context.Request.Path, current, limit, currentOptions.General.WindowInSeconds);
@@ -95,8 +129,11 @@ public class RateLimitingMiddleware(
     {
         var requestPath = context.Request.Path.Value ?? string.Empty;
 
-        // 1. Check for endpoint-specific limits first
+        // 1. Verifica limites específicos de endpoint primeiro com ordenação determinística
+        // Ordena por: padrões mais longos primeiro (mais específicos), depois exatos antes de wildcards
         var matchingLimit = rateLimitOptions.EndpointLimits
+            .OrderByDescending(e => e.Value.Pattern.Length)
+            .ThenBy(e => e.Value.Pattern.Contains('*') ? 1 : 0)
             .FirstOrDefault(endpointLimit =>
                 IsPathMatch(requestPath, endpointLimit.Value.Pattern) &&
                 ((isAuthenticated && endpointLimit.Value.ApplyToAuthenticated) ||
@@ -111,27 +148,35 @@ public class RateLimitingMiddleware(
                 window);
         }
 
-        // 2. Check for role-specific limits (only for authenticated users)
+        // 2. Verifica limites específicos de role (apenas para usuários autenticados)
         if (isAuthenticated)
         {
             var userRoles = context.User.FindAll("role")?.Select(c => c.Value) ??
                            context.User.FindAll("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Select(c => c.Value) ??
                            [];
 
+            // Usa o limite mais permissivo (maior) entre todas as roles do usuário
+            int? maxRoleLimit = null;
             foreach (var role in userRoles)
             {
                 if (rateLimitOptions.RoleLimits.TryGetValue(role, out var roleLimit))
                 {
-                    return ScaleToWindow(
+                    var limit = ScaleToWindow(
                         roleLimit.RequestsPerMinute,
                         roleLimit.RequestsPerHour,
                         roleLimit.RequestsPerDay,
                         window);
+                    
+                    if (maxRoleLimit == null || limit > maxRoleLimit)
+                        maxRoleLimit = limit;
                 }
             }
+            
+            if (maxRoleLimit.HasValue)
+                return maxRoleLimit.Value;
         }
 
-        // 3. Fall back to default authenticated/anonymous limits
+        // 3. Usa limites padrão de autenticado/anônimo como fallback
         return isAuthenticated
             ? ScaleToWindow(rateLimitOptions.Authenticated.RequestsPerMinute, rateLimitOptions.Authenticated.RequestsPerHour, rateLimitOptions.Authenticated.RequestsPerDay, window)
             : ScaleToWindow(rateLimitOptions.Anonymous.RequestsPerMinute, rateLimitOptions.Anonymous.RequestsPerHour, rateLimitOptions.Anonymous.RequestsPerDay, window);
@@ -153,12 +198,15 @@ public class RateLimitingMiddleware(
         if (string.IsNullOrEmpty(pattern))
             return false;
 
-        // Simple wildcard matching - can be enhanced for more complex patterns
+        // Correspondência simples de wildcard - pode ser melhorado para padrões mais complexos
         if (pattern.Contains('*'))
         {
-            var regexPattern = pattern.Replace("*", ".*");
-            return System.Text.RegularExpressions.Regex.IsMatch(requestPath, regexPattern,
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            var regex = _patternCache.GetOrAdd(pattern, p =>
+            {
+                var escaped = Regex.Escape(p).Replace(@"\*", ".*");
+                return new Regex($"^{escaped}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            });
+            return regex.IsMatch(requestPath);
         }
 
         return string.Equals(requestPath, pattern, StringComparison.OrdinalIgnoreCase);
@@ -166,12 +214,18 @@ public class RateLimitingMiddleware(
 
     private static string GetClientIpAddress(HttpContext context)
     {
+        // Use the IP already resolved by ForwardedHeadersMiddleware
+        // which validates trusted proxies via KnownProxies/KnownNetworks.
+        // This prevents malicious clients from spoofing whitelisted IPs or
+        // rotating fake IPs to evade per-IP rate limits.
+        // ForwardedHeadersMiddleware must be configured in the pipeline before
+        // this middleware with appropriate KnownProxies/KnownNetworks settings.
         return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
 
     private static async Task HandleRateLimitExceeded(HttpContext context, Counter counter, string errorMessage, int windowInSeconds)
     {
-        // Calculate remaining TTL from counter expiration
+        // Calcula TTL restante da expiração do contador
         var retryAfterSeconds = Math.Max(0, (int)Math.Ceiling((counter.ExpiresAt - DateTime.UtcNow).TotalSeconds));
 
         context.Response.StatusCode = 429;

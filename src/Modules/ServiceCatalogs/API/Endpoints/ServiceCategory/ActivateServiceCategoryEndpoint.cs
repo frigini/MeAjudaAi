@@ -15,6 +15,16 @@ public class ActivateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/{id:guid}/activate", ActivateAsync)
             .WithName("ActivateServiceCategory")
             .WithSummary("Ativar categoria de serviço")
+            .WithDescription("""
+                Ativa uma categoria de serviços.
+                
+                **Efeitos:**
+                - Categoria fica visível em listagens públicas
+                - Permite criação de novos serviços nesta categoria
+                - Serviços existentes na categoria voltam a ser acessíveis
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 

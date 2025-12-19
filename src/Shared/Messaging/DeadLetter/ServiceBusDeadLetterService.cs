@@ -192,7 +192,7 @@ public sealed class ServiceBusDeadLetterService(
             }
             else if (message != null)
             {
-                // Abandon non-matching message to return it to queue immediately
+                // Abandona mensagem não correspondente para retorná-la à fila imediatamente
                 await receiver.AbandonMessageAsync(message, cancellationToken: cancellationToken);
                 logger.LogDebug("Message {ActualId} did not match target {ExpectedId}, abandoned back to queue",
                     message.MessageId, messageId);
