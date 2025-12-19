@@ -293,7 +293,7 @@ public class AzureBlobStorageServiceTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Serviço não configurado para gerar SAS tokens");
+            .WithMessage("Service not configured to generate SAS tokens");
     }
 
     [Fact]
@@ -319,6 +319,6 @@ public class AzureBlobStorageServiceTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Serviço não configurado para gerar SAS tokens");
+            .WithMessage("Service not configured to generate SAS tokens");
     }
 }
