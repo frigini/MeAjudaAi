@@ -137,10 +137,19 @@ Todas as tarefas planejadas já foram implementadas:
 - [ ] Reorganização geral da estrutura de pastas em Messaging - BACKLOG
 - [ ] Adicionar testes unitários para classes de messaging - BACKLOG
 
-**4. Refatoração Extensions (MeAjudaAi.Shared)** - 4-6h
+**4. Refatoração Extensions (MeAjudaAi.Shared)** - 6-8h
+- [x] ~~Padronizar Extensions: criar arquivo [FolderName]Extensions.cs por funcionalidade~~ ✅ CONCLUÍDO (19 Dez 2025)
+  - Consolidados: CachingExtensions, CommandsExtensions, DatabaseExtensions, EventsExtensions
+  - ExceptionsExtensions, LoggingExtensions, MessagingExtensions, QueriesExtensions, SerializationExtensions
+  - Removidos 13 arquivos obsoletos (Extensions.cs genéricos + subpastas)
+  - 1245/1245 testes passando
+- [ ] Migração para Extension Blocks (C# 14) - 4-6h
+  - [ ] Avaliar aplicabilidade do novo recurso Extension Blocks do C# 14
+  - [ ] Migrar extension methods de propósito geral (PermissionExtensions, EnumExtensions, etc.)
+  - [ ] Documentar padrão de uso para novos extension methods
+  - [ ] Validar compatibilidade e benefícios (namespacing, organização)
 - [ ] Extrair BusinessMetricsMiddlewareExtensions de BusinessMetricsMiddleware.cs
-- [ ] Padronizar Extensions: criar arquivo Extensions.cs por funcionalidade (e.g., MonitoringExtensions.cs)
-- [ ] Consolidar extensions por pasta em vez de classes individuais
+- [ ] Consolidar Monitoring folder (MonitoringExtensions.cs único)
 - [ ] Revisar padrão de extensões em todas as funcionalidades do Shared
 
 **5. Code Quality & Cleanup (Baixa Prioridade)** - 3-4h
@@ -159,16 +168,29 @@ Todas as tarefas planejadas já foram implementadas:
 - [ ] Validar coverage e identificar gaps
 - [ ] Documentar padrões de teste para novos contribuidores
 
+**8. BDD Implementation (BACKLOG - Futuro)** - Documentado em e2e-architecture-analysis.md
+- [ ] Setup SpecFlow + Playwright.NET para acceptance tests
+- [ ] Implementar 5-10 features críticas em Gherkin (Provider Registration, Document Upload, Service Catalog)
+- [ ] Integrar ao CI/CD pipeline
+- [ ] Criar documentação executável com Gherkin
+- **Referência**: Veja `docs/testing/e2e-architecture-analysis.md` linha 1121+ para roadmap detalhado BDD
+
 **Critérios de Aceitação**:
 - [ ] Todos os 12 TODOs no código resolvidos ou documentados
-- [ ] Mensaging refatorado com estrutura clara de pastas
-- [ ] Extensions consolidadas por funcionalidade
+- [x] ~~Messaging refatorado com estrutura clara de pastas~~ ✅ CONCLUÍDO (19 Dez)
+- [x] ~~Extensions consolidadas por funcionalidade~~ ✅ CONCLUÍDO (19 Dez)
+- [ ] Extension Blocks (C# 14) avaliado e implementado onde aplicável
 - [ ] Testes de infrastructure com >70% coverage
 - [ ] 0 warnings no build
 - [ ] Documentação técnica atualizada
 
-**Estimativa Total**: 35-45 horas de trabalho técnico  
+**Estimativa Total**: 35-45 horas de trabalho técnico (10h já concluídas)  
 **Benefício**: Backend robusto e manutenível para suportar desenvolvimento do frontend Blazor
+
+**📝 Próxima Atividade Recomendada**: Migração para Extension Blocks (C# 14) - 4-6h
+- Avaliar novo recurso de linguagem para melhorar organização de extension methods
+- Migrar métodos de propósito geral (PermissionExtensions, EnumExtensions)
+- Manter padrão atual para DI extensions ([FolderName]Extensions.cs)
 
 **⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
