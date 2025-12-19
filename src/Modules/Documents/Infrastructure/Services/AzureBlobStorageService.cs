@@ -6,13 +6,13 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Infrastructure.Services;
 
-public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogger<AzureBlobStorageService> logger) : IBlobStorageService
+public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogger<AzureBlobStorageService> logger) : IBlobStorageService, IAsyncDisposable
 {
     private const string ContainerName = "documents";
     private readonly BlobServiceClient _blobServiceClient = blobServiceClient ?? throw new ArgumentNullException(nameof(blobServiceClient));
     private readonly ILogger<AzureBlobStorageService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly SemaphoreSlim _initializationLock = new(1, 1);
-    private bool _containerInitialized;
+    private volatile bool _containerInitialized;
 
     /// <summary>
     /// Garante que o container "documents" existe antes de usar.
@@ -34,18 +34,18 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
             
             if (response != null)
             {
-                _logger.LogInformation("Blob container '{ContainerName}' criado com sucesso", ContainerName);
+                _logger.LogInformation("Blob container '{ContainerName}' created successfully", ContainerName);
             }
             else
             {
-                _logger.LogDebug("Blob container '{ContainerName}' já existe", ContainerName);
+                _logger.LogDebug("Blob container '{ContainerName}' already exists", ContainerName);
             }
 
             _containerInitialized = true;
         }
         catch (RequestFailedException ex)
         {
-            _logger.LogError(ex, "Erro ao criar container '{ContainerName}'", ContainerName);
+            _logger.LogError(ex, "Error creating container '{ContainerName}'", ContainerName);
             throw new InvalidOperationException($"Failed to ensure blob container '{ContainerName}' exists", ex);
         }
         finally
@@ -190,5 +190,11 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
                 $"Failed to delete blob '{blobName}' from Azure Blob Storage (Status: {ex.Status})",
                 ex);
         }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _initializationLock.Dispose();
+        await ValueTask.CompletedTask;
     }
 }

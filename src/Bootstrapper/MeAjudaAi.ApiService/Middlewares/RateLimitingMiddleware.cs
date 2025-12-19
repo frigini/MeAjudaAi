@@ -41,8 +41,9 @@ public class RateLimitingMiddleware(
     /// Em configurações normais, o número de padrões de endpoint é pequeno (&lt;100), mas esse limite
     /// previne crescimento descontrolado se padrões forem adicionados dinamicamente.
     /// </summary>
-    private static readonly ConcurrentDictionary<string, Regex> _patternCache = new();
+    private static readonly ConcurrentDictionary<string, Lazy<Regex>> _patternCache = new();
     private const int MaxPatternCacheSize = 1000;
+    private static int _cacheFullWarningLogged;
 
     /// <summary>
     /// Classe contador simples para rate limiting.
@@ -203,26 +204,31 @@ public class RateLimitingMiddleware(
         if (pattern.Contains('*'))
         {
             // Prevenir memory leak: limitar cache a MaxPatternCacheSize entradas
-            if (_patternCache.Count >= MaxPatternCacheSize && !_patternCache.ContainsKey(pattern))
+            if (_patternCache.Count >= MaxPatternCacheSize)
             {
                 // Log warning apenas uma vez quando o limite é atingido
-                logger.LogWarning(
-                    "Pattern cache size limit reached ({MaxSize}). Pattern '{Pattern}' will be compiled on-demand without caching.",
-                    MaxPatternCacheSize,
-                    pattern);
+                if (Interlocked.CompareExchange(ref _cacheFullWarningLogged, 1, 0) == 0)
+                {
+                    logger.LogWarning(
+                        "Pattern cache size limit reached ({MaxSize}). Additional patterns will be compiled on-demand without caching.",
+                        MaxPatternCacheSize);
+                }
                 
-                // Compilar sem adicionar ao cache
+                // Compilar sem adicionar ao cache (sem RegexOptions.Compiled para evitar overhead)
                 var escaped = Regex.Escape(pattern).Replace(@"\*", ".*");
-                var regex = new Regex($"^{escaped}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                var regex = new Regex($"^{escaped}$", RegexOptions.IgnoreCase);
                 return regex.IsMatch(requestPath);
             }
 
             var cachedRegex = _patternCache.GetOrAdd(pattern, p =>
             {
-                var escaped = Regex.Escape(p).Replace(@"\*", ".*");
-                return new Regex($"^{escaped}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                return new Lazy<Regex>(() =>
+                {
+                    var escaped = Regex.Escape(p).Replace(@"\*", ".*");
+                    return new Regex($"^{escaped}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                });
             });
-            return cachedRegex.IsMatch(requestPath);
+            return cachedRegex.Value.IsMatch(requestPath);
         }
 
         return string.Equals(requestPath, pattern, StringComparison.OrdinalIgnoreCase);

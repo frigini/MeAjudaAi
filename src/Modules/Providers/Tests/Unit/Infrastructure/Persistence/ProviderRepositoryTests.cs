@@ -7,17 +7,17 @@ using MeAjudaAi.Modules.Providers.Tests.Builders;
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Persistence;
 
 /// <summary>
-/// Unit tests for IProviderRepository interface contract validation.
-/// Note: These tests use mocks to verify interface behavior contracts,
-/// not the concrete ProviderRepository implementation.
+/// Testes unitários para validação de contrato da interface IProviderRepository.
+/// Nota: Estes testes usam mocks para verificar contratos de comportamento da interface,
+/// não a implementação concreta de ProviderRepository.
 /// 
-/// For real persistence behavior tests, see:
+/// Para testes de comportamento real de persistência, veja:
 /// - tests/MeAjudaAi.Integration.Tests/Modules/Providers/ProviderRepositoryIntegrationTests.cs
 /// 
-/// These unit tests remain useful for:
-/// - Fast execution without database dependencies
-/// - Verifying repository interface contracts
-/// - Testing error handling and edge cases
+/// Estes testes unitários continuam úteis para:
+/// - Execução rápida sem dependências de banco de dados
+/// - Verificação de contratos da interface do repositório
+/// - Teste de tratamento de erros e casos extremos
 /// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Providers")]
