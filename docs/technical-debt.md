@@ -190,31 +190,6 @@ Auditoria completa de todos os arquivos em `tests/` para identificar:
 
 ---
 
-#### 📄 Remover api-reference.md (1h)
-
-**Arquivo**: `docs/api-reference.md`  
-**Situação**: REDUNDANTE  
-**Severidade**: BAIXA  
-**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup)
-
-**Descrição**:
-Documento `api-reference.md` tornou-se redundante após implementação de:
-- ✅ Geração automática de `api-spec.json` via GitHub Actions
-- ✅ Interface ReDoc publicada em GitHub Pages
-- ✅ Swagger UI disponível em desenvolvimento
-
-**Ações**:
-- [ ] Remover arquivo `docs/api-reference.md`
-- [ ] Atualizar referências em outros documentos (se houver)
-- [ ] Atualizar `mkdocs.yml` (se referenciado)
-- [ ] Documentar em `api/README.md` que ReDoc é a fonte oficial
-
-**Prioridade**: BAIXA  
-**Estimativa**: 1 hora  
-**Benefício**: Menos duplicação de documentação
-
----
-
 ## ⚠️ CRÍTICO: Hangfire + Npgsql 10.x Compatibility Risk
 
 **Arquivo**: `Directory.Packages.props`  

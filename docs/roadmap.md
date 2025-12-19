@@ -130,7 +130,7 @@ Todas as tarefas planejadas já foram implementadas:
 **5. Code Quality & Cleanup (Baixa Prioridade)** - 3-4h
 - [ ] Padronização de Records (Positional vs Property-based)
 - [ ] Upload File Size Configuration - Tornar configurável (UploadDocumentCommandHandler.cs:90)
-- [ ] Remover api-reference.md (redundante com ReDoc + api-spec.json)
+- [x] ~~Remover api-reference.md (redundante com ReDoc + api-spec.json)~~ ✅ CONCLUÍDO (19 Dez)
 
 **6. Testes E2E SearchProviders** - 2-3 sprints (BACKLOG)
 - [ ] 15 testes E2E cobrindo cenários principais de busca
