@@ -2581,6 +2581,7 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 5. 📊 Analytics - Métricas básicas
 6. 📧 Communications - Email notifications
 7. 🛡️ Dispute Resolution System
+8. 🔧 Alinhamento de middleware entre UseSharedServices() e UseSharedServicesAsync()
 
 ### 🔮 **Baixa Prioridade (12+ meses - Fase 3)**
 1. 📅 Service Requests & Booking
