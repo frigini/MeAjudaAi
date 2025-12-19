@@ -129,6 +129,6 @@ nav:
       - Cobertura de Código: testing/coverage.md
   - Referência:
       - Roadmap: roadmap.md
-      - API Reference: api-reference.md
       - Débito Técnico: technical-debt.md
       - Vulnerabilidades de Segurança: security-vulnerabilities.md
+      - API Automation: api-automation.md
