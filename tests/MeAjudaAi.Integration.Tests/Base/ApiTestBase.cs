@@ -117,6 +117,8 @@ public abstract class ApiTestBase : IAsyncLifetime
                         ["FeatureManagement:PushNotifications"] = "false",
                         ["FeatureManagement:StripePayments"] = "false",
                         ["FeatureManagement:MaintenanceMode"] = "false",
+                        // Azure Storage using Azurite emulator for deterministic blob storage tests
+                        ["Azure:Storage:ConnectionString"] = _databaseFixture.AzuriteConnectionString,
                         // Geographic restriction: Cities with states in "City|State" format
                         // This ensures proper validation when both city and state headers are provided
                         ["GeographicRestriction:AllowedStates:0"] = "MG",
@@ -204,7 +206,8 @@ public abstract class ApiTestBase : IAsyncLifetime
                     });
 
                     // Adiciona mocks de serviços para testes
-                    services.AddDocumentsTestServices();
+                    // Note: BlobStorageService uses real Azurite container (not mock) for deterministic tests
+                    services.AddDocumentsTestServices(useAzurite: true);
 
                     // Conditionally replace geographic validation with mock
                     // IBGE-focused tests can override UseMockGeographicValidation to use real service with WireMock

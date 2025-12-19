@@ -109,10 +109,10 @@ Todas as tarefas planejadas já foram implementadas:
 - [x] BusinessMetrics - Already extracted (no action needed) ✅
 - [x] Monitoring - Structure already adequate (no action needed) ✅
 - [x] Middleware UseSharedServices Alignment - TODO #249 RESOLVIDO ✅ (19 Dez 2025)
+- [x] Azurite Integration Tests - Configured deterministic blob storage tests ✅ (19 Dez 2025)
 
-**2. Melhorias de Testes (Média Prioridade)** - 12-16h
+**2. Melhorias de Testes (Média Prioridade)** - 10-14h
 - [ ] Testes Infrastructure Extensions - KeycloakExtensions, PostgreSqlExtensions, MigrationExtensions (4-6h)
-- [ ] Azurite/Blob Storage em Testes - Configurar mock determinístico (DocumentsEndToEndTests.cs - 2h)
 - [ ] Provider Repository Migration - Converter testes unitários para integração (2h)
 
 **3. Refatoração MeAjudaAi.Shared.Messaging** - 8-10h

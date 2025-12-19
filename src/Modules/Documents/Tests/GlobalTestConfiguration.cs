@@ -20,12 +20,22 @@ public class DocumentsIntegrationTestCollection : ICollectionFixture<SharedInteg
 public static class TestServicesConfiguration
 {
     /// <summary>
-    /// Registra serviços mock para testes unitários
+    /// Registra serviços para testes
     /// </summary>
-    public static IServiceCollection AddDocumentsTestServices(this IServiceCollection services)
+    /// <param name="services">Service collection</param>
+    /// <param name="useAzurite">Se true, usa AzureBlobStorageService real (requer Azurite container). Se false, usa MockBlobStorageService</param>
+    public static IServiceCollection AddDocumentsTestServices(this IServiceCollection services, bool useAzurite = false)
     {
-        services.AddScoped<IBlobStorageService, MockBlobStorageService>();
+        // BlobStorageService: usa Azurite real ou Mock dependendo do parâmetro
+        if (!useAzurite)
+        {
+            services.AddScoped<IBlobStorageService, MockBlobStorageService>();
+        }
+        // Se useAzurite=true, o serviço real já está registrado via AddDocumentsModule com Azure:Storage:ConnectionString configurado
+
+        // DocumentIntelligenceService sempre usa mock (API externa cara)
         services.AddScoped<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
+        
         return services;
     }
 }
