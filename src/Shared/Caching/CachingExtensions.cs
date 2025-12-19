@@ -4,7 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Caching;
 
-internal static class Extensions
+/// <summary>
+/// Extension methods para configuração de Caching
+/// </summary>
+public static class CachingExtensions
 {
     public static IServiceCollection AddCaching(this IServiceCollection services,
         IConfiguration configuration)

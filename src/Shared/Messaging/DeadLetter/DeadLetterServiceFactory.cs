@@ -1,19 +1,9 @@
+using MeAjudaAi.Shared.Messaging.Factories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Shared.Messaging.DeadLetter;
-
-/// <summary>
-/// Factory para criar o serviço de Dead Letter Queue apropriado baseado no ambiente
-/// </summary>
-public interface IDeadLetterServiceFactory
-{
-    /// <summary>
-    /// Cria o serviço de DLQ apropriado para o ambiente atual
-    /// </summary>
-    IDeadLetterService CreateDeadLetterService();
-}
 
 /// <summary>
 /// Implementação do factory que seleciona o serviço de DLQ baseado no ambiente:

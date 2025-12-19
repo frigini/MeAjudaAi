@@ -2,7 +2,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Events;
 
-internal static class Extensions
+/// <summary>
+/// Extension methods para configuração de Events (Domain Events)
+/// </summary>
+public static class EventsExtensions
 {
     public static IServiceCollection AddEvents(this IServiceCollection services)
     {

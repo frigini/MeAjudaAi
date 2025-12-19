@@ -3,9 +3,9 @@ using Azure.Messaging.ServiceBus.Administration;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Factories;
+using MeAjudaAi.Shared.Messaging.Handlers;
 using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.Options;
-
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging.Strategy;
@@ -14,14 +14,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Rebus.Config;
-using Rebus.Routing;
-using Rebus.Routing.TypeBased;
-using Rebus.Transport;
 
 namespace MeAjudaAi.Shared.Messaging;
 
-internal static class MessagingExtensions
+/// <summary>
+/// Extension methods consolidados para configuração de Messaging, Dead Letter Queue e Message Retry
+/// </summary>
+public static class MessagingExtensions
 {
     public static IServiceCollection AddMessaging(
         this IServiceCollection services,
@@ -144,7 +143,7 @@ internal static class MessagingExtensions
         services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
 
         // Adicionar sistema de Dead Letter Queue
-        DeadLetterExtensions.AddDeadLetterQueue(services, configuration);
+        services.AddDeadLetterQueue(configuration);
 
         // TODO(#248): Re-enable after Rebus v3 migration completes.
         // Blockers: (1) Rebus.ServiceProvider v10+ required for .NET 10 compatibility,
@@ -188,10 +187,10 @@ internal static class MessagingExtensions
         }
 
         // Garantir infraestrutura de Dead Letter Queue
-        await DeadLetterExtensions.EnsureDeadLetterInfrastructureAsync(host);
+        await host.EnsureDeadLetterInfrastructureAsync();
 
         // Validar configuração de Dead Letter Queue
-        await DeadLetterExtensions.ValidateDeadLetterConfigurationAsync(host);
+        await host.ValidateDeadLetterConfigurationAsync();
     }
 
     private static void ConfigureServiceBusOptions(ServiceBusOptions options, IConfiguration configuration)
@@ -230,4 +229,218 @@ internal static class MessagingExtensions
             options.ConnectionString = configuration.GetConnectionString("rabbitmq") ?? options.BuildConnectionString();
         }
     }
+
+    #region Dead Letter Queue Extensions
+
+    /// <summary>
+    /// Adiciona o sistema de Dead Letter Queue ao container de dependências
+    /// </summary>
+    public static IServiceCollection AddDeadLetterQueue(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        Action<DeadLetterOptions>? configureOptions = null)
+    {
+        // Configurar opções
+        services.Configure<DeadLetterOptions>(configuration.GetSection(DeadLetterOptions.SectionName));
+
+        if (configureOptions != null)
+        {
+            services.Configure(configureOptions);
+        }
+
+        // Registrar implementações específicas
+        services.AddScoped<RabbitMqDeadLetterService>();
+        services.AddScoped<ServiceBusDeadLetterService>();
+        services.AddScoped<NoOpDeadLetterService>();
+
+        // Registrar factory
+        services.AddScoped<Factories.IDeadLetterServiceFactory, Factories.DeadLetterServiceFactory>();
+
+        // Registrar serviço principal baseado no ambiente
+        services.AddScoped<IDeadLetterService>(serviceProvider =>
+        {
+            var factory = serviceProvider.GetRequiredService<Factories.IDeadLetterServiceFactory>();
+            return factory.CreateDeadLetterService();
+        });
+
+        // Adicionar middleware de retry
+        services.AddMessageRetryMiddleware();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Configura dead letter queue específico para RabbitMQ
+    /// </summary>
+    public static IServiceCollection AddRabbitMqDeadLetterQueue(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        Action<DeadLetterOptions>? configureOptions = null)
+    {
+        services.Configure<DeadLetterOptions>(configuration.GetSection(DeadLetterOptions.SectionName));
+
+        if (configureOptions != null)
+        {
+            services.Configure(configureOptions);
+        }
+
+        services.AddScoped<IDeadLetterService, RabbitMqDeadLetterService>();
+        services.AddMessageRetryMiddleware();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Configura dead letter queue específico para Azure Service Bus
+    /// </summary>
+    public static IServiceCollection AddServiceBusDeadLetterQueue(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        Action<DeadLetterOptions>? configureOptions = null)
+    {
+        services.Configure<DeadLetterOptions>(configuration.GetSection(DeadLetterOptions.SectionName));
+
+        if (configureOptions != null)
+        {
+            services.Configure(configureOptions);
+        }
+
+        services.AddScoped<IDeadLetterService, ServiceBusDeadLetterService>();
+        services.AddMessageRetryMiddleware();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Valida a configuração do Dead Letter Queue na aplicação
+    /// </summary>
+    public static Task ValidateDeadLetterConfigurationAsync(this IHost host)
+    {
+        using var scope = host.Services.CreateScope();
+        IDeadLetterService? deadLetterService = null;
+
+        try
+        {
+            deadLetterService = scope.ServiceProvider.GetRequiredService<IDeadLetterService>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IDeadLetterService>>();
+
+            // Teste básico para verificar se o serviço está configurado corretamente
+            var testException = new InvalidOperationException("Test exception for DLQ validation");
+            var shouldRetry = deadLetterService.ShouldRetry(testException, 1);
+            var retryDelay = deadLetterService.CalculateRetryDelay(1);
+
+            logger.LogInformation(
+                "Dead Letter Queue validation completed. Service: {ServiceType}, ShouldRetry: {ShouldRetry}, RetryDelay: {RetryDelay}ms",
+                deadLetterService.GetType().Name, shouldRetry, retryDelay.TotalMilliseconds);
+
+            return Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IDeadLetterService>>();
+            logger.LogError(ex, "Failed to validate Dead Letter Queue configuration. Service: {ServiceType}",
+                deadLetterService?.GetType().Name ?? "unknown");
+            throw new InvalidOperationException(
+                $"Dead Letter Queue validation failed for {deadLetterService?.GetType().Name ?? "unknown"}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Garante que a infraestrutura de Dead Letter Queue está criada
+    /// </summary>
+    public static Task EnsureDeadLetterInfrastructureAsync(this IHost host)
+    {
+        using var scope = host.Services.CreateScope();
+
+        try
+        {
+            var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IHostEnvironment>>();
+
+            if (environment.IsDevelopment())
+            {
+                // Para RabbitMQ, a infraestrutura é criada dinamicamente quando necessário
+                logger.LogInformation("Dead Letter infrastructure for RabbitMQ will be created dynamically");
+            }
+            else
+            {
+                // Para Service Bus, a infraestrutura também é criada dinamicamente
+                // mas você poderia verificar se as filas existem aqui
+                logger.LogInformation("Dead Letter infrastructure for Service Bus will be created dynamically");
+            }
+
+            return Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IHostEnvironment>>();
+            logger.LogError(ex, "Failed to ensure Dead Letter Queue infrastructure");
+            throw new InvalidOperationException(
+                "Failed to ensure Dead Letter Queue infrastructure (queues, exchanges, and bindings)",
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// Configuração padrão para desenvolvimento
+    /// </summary>
+    public static void ConfigureForDevelopment(this DeadLetterOptions options)
+    {
+        options.Enabled = true;
+        options.MaxRetryAttempts = 3;
+        options.InitialRetryDelaySeconds = 2;
+        options.BackoffMultiplier = 2.0;
+        options.MaxRetryDelaySeconds = 60;
+        options.DeadLetterTtlHours = 24;
+        options.EnableDetailedLogging = true;
+        options.EnableAdminNotifications = false;
+    }
+
+    /// <summary>
+    /// Configuração padrão para produção
+    /// </summary>
+    public static void ConfigureForProduction(this DeadLetterOptions options)
+    {
+        options.Enabled = true;
+        options.MaxRetryAttempts = 5;
+        options.InitialRetryDelaySeconds = 5;
+        options.BackoffMultiplier = 2.0;
+        options.MaxRetryDelaySeconds = 300;
+        options.DeadLetterTtlHours = 72;
+        options.EnableDetailedLogging = false;
+        options.EnableAdminNotifications = true;
+    }
+
+    #endregion
+
+    #region Message Retry Extensions
+
+    /// <summary>
+    /// Executa um handler de mensagem com retry automático e Dead Letter Queue
+    /// </summary>
+    public static async Task<bool> ExecuteWithRetryAsync<TMessage>(
+        this TMessage message,
+        Func<TMessage, CancellationToken, Task> handler,
+        IServiceProvider serviceProvider,
+        string sourceQueue,
+        CancellationToken cancellationToken = default) where TMessage : class
+    {
+        var middlewareFactory = serviceProvider.GetRequiredService<IMessageRetryMiddlewareFactory>();
+        var handlerType = handler.Method.DeclaringType?.FullName ?? "Unknown";
+
+        var middleware = middlewareFactory.CreateMiddleware<TMessage>(handlerType, sourceQueue);
+
+        return await middleware.ExecuteWithRetryAsync(message, handler, cancellationToken);
+    }
+
+    /// <summary>
+    /// Configura o middleware de retry para handlers de eventos
+    /// </summary>
+    public static IServiceCollection AddMessageRetryMiddleware(this IServiceCollection services)
+    {
+        services.AddScoped<IMessageRetryMiddlewareFactory, MessageRetryMiddlewareFactory>();
+        return services;
+    }
+
+    #endregion
 }

@@ -3,7 +3,7 @@ using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.Factories;
-
+using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging.Strategy;

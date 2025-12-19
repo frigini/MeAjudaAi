@@ -3,7 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Exceptions;
 
-internal static class Extensions
+/// <summary>
+/// Extension methods para configuração de Exception Handling
+/// </summary>
+public static class ExceptionsExtensions
 {
     public static IServiceCollection AddErrorHandling(this IServiceCollection services)
     {

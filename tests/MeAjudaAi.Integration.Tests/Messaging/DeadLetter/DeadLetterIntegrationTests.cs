@@ -1,6 +1,8 @@
 using FluentAssertions;
+using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Factories;
+using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Tests.Base;
 using MeAjudaAi.Shared.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Mocks;
@@ -43,7 +45,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         services.AddSingleton(CreateHostEnvironment("Development"));
 
         // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
-        services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions
+        services.AddSingleton(new RabbitMqOptions
         {
             ConnectionString = "amqp://localhost",
             DefaultQueueName = "test-queue",
@@ -68,7 +70,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         services.AddSingleton(environment);
 
         // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
-        services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions
+        services.AddSingleton(new RabbitMqOptions
         {
             ConnectionString = "amqp://localhost",
             DefaultQueueName = "test-queue",
@@ -81,7 +83,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         });
 
         // Act
-        Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
+        MessagingExtensions.AddDeadLetterQueue(
             services, configuration);
 
         var serviceProvider = services.BuildServiceProvider();
@@ -105,7 +107,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         services.AddSingleton(environment);
 
         // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
-        services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions
+        services.AddSingleton(new RabbitMqOptions
         {
             ConnectionString = "amqp://localhost",
             DefaultQueueName = "test-queue",
@@ -118,7 +120,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         });
 
         // Act
-        Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
+        MessagingExtensions.AddDeadLetterQueue(
             services, configuration);
 
         var serviceProvider = services.BuildServiceProvider();
@@ -142,7 +144,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         services.AddSingleton(environment);
 
         // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
-        services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions
+        services.AddSingleton(new RabbitMqOptions
         {
             ConnectionString = "amqp://localhost",
             DefaultQueueName = "test-queue",
@@ -155,7 +157,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         });
 
         // Act
-        Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
+        MessagingExtensions.AddDeadLetterQueue(
             services, configuration);
 
         var serviceProvider = services.BuildServiceProvider();
@@ -185,7 +187,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         services.AddSingleton(environment);
 
         // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
-        services.AddSingleton(new MeAjudaAi.Shared.Messaging.RabbitMq.RabbitMqOptions
+        services.AddSingleton(new RabbitMqOptions
         {
             ConnectionString = "amqp://localhost",
             DefaultQueueName = "test-queue",
@@ -197,7 +199,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
             DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
         });
 
-        Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(
+        MessagingExtensions.AddDeadLetterQueue(
             services, configuration);
 
         var serviceProvider = services.BuildServiceProvider();
@@ -328,3 +330,6 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         public string Id { get; set; } = string.Empty;
     }
 }
+
+
+

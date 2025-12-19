@@ -2,7 +2,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Commands;
 
-internal static class Extensions
+/// <summary>
+/// Extension methods para configuração de Commands (CQRS)
+/// </summary>
+public static class CommandsExtensions
 {
     public static IServiceCollection AddCommands(this IServiceCollection services)
     {

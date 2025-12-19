@@ -1,6 +1,5 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Logging;
-using MeAjudaAi.Shared.Logging.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Moq;

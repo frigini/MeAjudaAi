@@ -5,8 +5,14 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace MeAjudaAi.Shared.Database;
 
-public static class Extensions
+/// <summary>
+/// Extension methods para configuração de Database e PostgreSQL
+/// </summary>
+public static class DatabaseExtensions
 {
+    /// <summary>
+    /// Adiciona PostgreSQL com configuração completa
+    /// </summary>
     public static IServiceCollection AddPostgres(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -58,6 +64,25 @@ public static class Extensions
     }
 
     /// <summary>
+    /// Adiciona DbContext configurado com PostgreSQL
+    /// </summary>
+    public static IServiceCollection AddPostgresContext<TContext>(this IServiceCollection services)
+        where TContext : DbContext
+    {
+        services.AddDbContext<TContext>(ConfigureWithPostgresOptions);
+        return services;
+    }
+
+    /// <summary>
+    /// Adiciona suporte a Dapper para queries de alta performance
+    /// </summary>
+    public static IServiceCollection AddDapper(this IServiceCollection services)
+    {
+        services.AddScoped<IDapperConnection, DapperConnection>();
+        return services;
+    }
+
+    /// <summary>
     /// Configura permissões de schema para o módulo Users usando scripts existentes.
     /// Use em produção para segurança do módulo.
     /// </summary>
@@ -94,16 +119,17 @@ public static class Extensions
         return services;
     }
 
-    public static IServiceCollection AddPostgresContext<TContext>(this IServiceCollection services)
-        where TContext : DbContext
+    /// <summary>
+    /// Adiciona monitoramento essencial de banco de dados
+    /// </summary>
+    public static IServiceCollection AddDatabaseMonitoring(this IServiceCollection services)
     {
-        services.AddDbContext<TContext>(ConfigureWithPostgresOptions);
-        return services;
-    }
+        // Registra métricas de banco de dados
+        services.AddSingleton<DatabaseMetrics>();
 
-    public static IServiceCollection AddDapper(this IServiceCollection services)
-    {
-        services.AddScoped<IDapperConnection, DapperConnection>();
+        // Registra interceptor para Entity Framework
+        services.AddSingleton<DatabaseMetricsInterceptor>();
+
         return services;
     }
 
@@ -133,19 +159,5 @@ public static class Extensions
     {
         options.EnableSensitiveDataLogging(false);
         options.EnableServiceProviderCaching();
-    }
-
-    /// <summary>
-    /// Adiciona monitoramento essencial de banco de dados
-    /// </summary>
-    public static IServiceCollection AddDatabaseMonitoring(this IServiceCollection services)
-    {
-        // Registra métricas de banco de dados
-        services.AddSingleton<DatabaseMetrics>();
-
-        // Registra interceptor para Entity Framework
-        services.AddSingleton<DatabaseMetricsInterceptor>();
-
-        return services;
     }
 }

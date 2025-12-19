@@ -1,17 +1,21 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Configuration;
+using Serilog.Context;
 using Serilog.Events;
 
-namespace MeAjudaAi.Shared.Logging.Extensions;
+namespace MeAjudaAi.Shared.Logging;
 
 /// <summary>
-/// Extension methods para configuração de logging
+/// Extension methods consolidados para configuração de Logging
 /// </summary>
-public static class LoggingConfigurationExtensions
+public static class LoggingExtensions
 {
     /// <summary>
     /// Adiciona configuração de Serilog
@@ -82,5 +86,57 @@ public static class LoggingConfigurationExtensions
         }
 
         return app;
+    }
+
+    /// <summary>
+    /// Adiciona middleware de contexto de logging
+    /// </summary>
+    public static IApplicationBuilder UseLoggingContext(this IApplicationBuilder app)
+    {
+        return app.UseMiddleware<LoggingContextMiddleware>();
+    }
+
+    /// <summary>
+    /// Adiciona contexto de usuário aos logs
+    /// </summary>
+    public static IDisposable PushUserContext(this Microsoft.Extensions.Logging.ILogger logger, string? userId, string? username = null)
+    {
+        var disposables = new List<IDisposable>();
+
+        if (!string.IsNullOrEmpty(userId))
+            disposables.Add(LogContext.PushProperty("UserId", userId));
+
+        if (!string.IsNullOrEmpty(username))
+            disposables.Add(LogContext.PushProperty("Username", username));
+
+        return new CompositeDisposable(disposables);
+    }
+
+    /// <summary>
+    /// Adiciona contexto de operação aos logs
+    /// </summary>
+    public static IDisposable PushOperationContext(this Microsoft.Extensions.Logging.ILogger logger, string operation, object? parameters = null)
+    {
+        var disposables = new List<IDisposable>
+        {
+            LogContext.PushProperty("Operation", operation)
+        };
+
+        if (parameters != null)
+            disposables.Add(LogContext.PushProperty("OperationParameters", parameters, destructureObjects: true));
+
+        return new CompositeDisposable(disposables);
+    }
+
+    /// <summary>
+    /// Helper para gerenciar múltiplos IDisposable
+    /// </summary>
+    private sealed class CompositeDisposable(List<IDisposable> disposables) : IDisposable
+    {
+        public void Dispose()
+        {
+            foreach (var disposable in disposables)
+                disposable.Dispose();
+        }
     }
 }

@@ -3,7 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.Shared.Serialization;
 
-internal static class Extensions
+/// <summary>
+/// Extension methods para configuração de Serialization (JSON)
+/// </summary>
+public static class SerializationExtensions
 {
     public static IServiceCollection AddCustomSerialization(this IServiceCollection services)
     {

@@ -1,7 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Shared.Queries;
 
-internal static class Extensions
+/// <summary>
+/// Extension methods para configuração de Queries (CQRS)
+/// </summary>
+public static class QueriesExtensions
 {
     public static IServiceCollection AddQueries(this IServiceCollection services)
     {
