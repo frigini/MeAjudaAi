@@ -112,7 +112,10 @@ Todas as tarefas planejadas já foram implementadas:
 - [x] Azurite Integration Tests - Configured deterministic blob storage tests ✅ (19 Dez 2025)
 
 **2. Melhorias de Testes (Média Prioridade)** - 4-6h
-- [ ] Testes Infrastructure Extensions - KeycloakExtensions, PostgreSqlExtensions, MigrationExtensions (4-6h)
+- [x] Testes Infrastructure Extensions - RESOLVIDO: não aplicável ✅ (19 Dez 2025)
+  - Extensions de configuração (Keycloak/PostgreSQL/Migration) validadas implicitamente em E2E/integração
+  - Testes unitários teriam baixo ROI (mockaria apenas chamadas de configuração)
+  - Infraestrutura validada quando AppHost sobe e containers inicializam
 - [x] Provider Repository Tests - Duplicação RESOLVIDA ✅ (19 Dez 2025)
   - Removidos testes unitários com mocks (260 linhas redundantes)
   - Adicionados 5 testes de integração faltantes (DeleteAsync, GetByIdsAsync, ExistsByUserIdAsync)
