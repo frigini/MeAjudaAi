@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3-P1 ✅ (11 Dez) | Sprint 3-P2 ✅ (13 Dez) | Sprint 4 ✅ (16 Dez - COMPLETO!) | MVP Target: 31/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3-P1 ✅ (11 Dez) | Sprint 3-P2 ✅ (13 Dez) | Sprint 4 ✅ (18 Dez - COMPLETO!) | Sprint 5 ⏳ (19 Dez) | MVP Target: 31/Março/2026  
 **Cobertura de Testes**: 28.2% → **90.56% ALCANÇADO** (Sprint 2 - META SUPERADA EM 55.56pp!)  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
@@ -18,7 +18,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **3 Dez - 10 Dez**: Sprint 2 - Test Coverage 90.56% (CONCLUÍDO - META 35% SUPERADA!)
 - ✅ **10 Dez - 11 Dez**: Sprint 3 Parte 1 - GitHub Pages Migration (CONCLUÍDO - DEPLOYED!)
 - ✅ **11 Dez - 13 Dez**: Sprint 3 Parte 2 - Admin Endpoints & Tools (CONCLUÍDO - MERGED!)
-- ✅ **14 Dez - 16 Dez**: Sprint 4 - Health Checks + Data Seeding (CONCLUÍDO - MERGED!)
+- ✅ **14 Dez - 18 Dez**: Sprint 4 - Health Checks + Data Seeding + Code Review (CONCLUÍDO - MERGED!)
 - ⏳ **Janeiro 2026**: Sprint 5 - Blazor Admin Portal Setup
 - ⏳ **Fevereiro-Março 2026**: Sprints 6-7 - Frontend Blazor (Web + Mobile)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
@@ -72,6 +72,9 @@ Health Checks Robustos + Data Seeding para MVP - TODAS AS PARTES FINALIZADAS:
 - ✅ Unit Tests: 14 testes para ExternalServicesHealthCheck (6 novos para IBGE API)
 - ✅ Integration Tests: 9 testes para DataSeeding (categorias, serviços, idempotência)
 - ✅ Future Services Documentation: Documentado OCR, payments, SMS/email (quando implementar)
+- ✅ Code Review: Logs traduzidos para inglês conforme política (Program.cs - 3 mensagens)
+- ✅ Markdown Linting: technical-debt.md corrigido (code blocks, URLs, headings)
+- ✅ Architecture Test: PermissionHealthCheckExtensions exception documentada (namespace vs folder structure)
 
 **⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
@@ -1300,17 +1303,42 @@ gantt
 
 ---
 
-## 🎯 Próximos Passos - Sprint 4 (Jan 2026)
+## 🎯 Próximos Passos - Sprint 5 (19 Dez 2025 - 3 Jan 2026)
 
-**Tarefas Pendentes Identificadas**:
-- 📦 Bruno Collections para módulos restantes (Users, Providers, Documents, ServiceCatalogs)
-- 📖 Design Patterns Documentation (documentar padrões implementados)
+**Branch Sugerida**: `refactor/code-quality-standardization`
+
+**Tarefas Prioritárias**:
+1. **⚠️ CRÍTICO - Substituir NSubstitute por Moq** (1-2 dias):
+   - 3 arquivos usando NSubstitute (ServiceDefaults.Tests, ApiService.Tests)
+   - Padronização com resto do projeto (todos outros testes usam Moq)
+   - Evitar duplicação de dependências de mocking
+
+2. **📋 Unificar geração de IDs com UuidGenerator** (1 dia):
+   - ~26 ocorrências de `Guid.CreateVersion7()` detectadas
+   - Substituir por `UuidGenerator.NewId()` para centralização
+   - Facilitar futura customização (ex: timestamp override para testes)
+
+3. **🚀 Migrar solução para formato .slnx** (1 dia):
+   - Novo formato XML (.NET 9+) - mais rápido e versionável
+   - Benefícios: melhor performance (5x), menos conflitos git
+   - Atualizar 3 workflows CI/CD
+
+4. **📖 Design Patterns Documentation** (2-3 dias):
+   - Documentar Repository, CQRS, Domain Events, Factory, Strategy
+   - Adicionar exemplos reais de código e diagramas Mermaid
+   - Seção de anti-patterns evitados
+
+5. **📦 Bruno Collections restantes** (1 dia):
+   - Users, Providers, Documents (ServiceCatalogs já feito)
+
+**Tarefas Secundárias** (se tempo permitir):
 - 🔒 Avaliar migração AspNetCoreRateLimit library
 - 📊 Verificar completude Logging Estruturado (Seq, Domain Events, Performance)
 - 🔗 Providers ↔ Locations Integration (auto-populate cidade/estado via CEP)
-- 🎨 ServiceCatalogs Admin UI Integration (gestão de categorias/serviços)
 
-**Objetivo Geral**: Realizar uma revisão total e organização do projeto (documentação, scripts, código, integrações pendentes) antes de avançar para novos módulos/features.
+**Objetivo Geral**: Padronização de código, documentação e preparação para desenvolvimento frontend (Blazor Sprint 6).
+
+**Estimativa Total**: 6-9 dias úteis (considerando feriados de fim de ano)
 
 ---
 
