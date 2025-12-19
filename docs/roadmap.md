@@ -7,7 +7,7 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 ## 📊 Sumário Executivo
 
 **Projeto**: MeAjudaAi - Plataforma de Conexão entre Clientes e Prestadores de Serviços  
-**Status Geral**: Fase 1 ✅ | Sprint 0 ✅ (21 Nov) | Sprint 1 ✅ (2 Dez) | Sprint 2 ✅ (10 Dez) | Sprint 3-P1 ✅ (11 Dez) | Sprint 3-P2 ✅ (13 Dez) | Sprint 4 ✅ (18 Dez - COMPLETO!) | Sprint 5 ⏳ (19 Dez) | MVP Target: 31/Março/2026  
+**Status Geral**: Fase 1 ✅ | Sprint 0-4 ✅ | Sprint 5 ✅ (ANTECIPADO) | Sprint 5.5 ⏳ (19-31 Dez) - Refactor & Cleanup | MVP Target: 31/Março/2026  
 **Cobertura de Testes**: 28.2% → **90.56% ALCANÇADO** (Sprint 2 - META SUPERADA EM 55.56pp!)  
 **Stack**: .NET 10 LTS + Aspire 13 + PostgreSQL + Blazor WASM + MAUI Hybrid
 
@@ -19,8 +19,10 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **10 Dez - 11 Dez**: Sprint 3 Parte 1 - GitHub Pages Migration (CONCLUÍDO - DEPLOYED!)
 - ✅ **11 Dez - 13 Dez**: Sprint 3 Parte 2 - Admin Endpoints & Tools (CONCLUÍDO - MERGED!)
 - ✅ **14 Dez - 18 Dez**: Sprint 4 - Health Checks + Data Seeding + Code Review (CONCLUÍDO - MERGED!)
-- ⏳ **Janeiro 2026**: Sprint 5 - Blazor Admin Portal Setup
-- ⏳ **Fevereiro-Março 2026**: Sprints 6-7 - Frontend Blazor (Web + Mobile)
+- ✅ **Sprint 5**: Tarefas completadas antecipadamente (NSubstitute→Moq, .slnx, UuidGenerator, Design Patterns, Bruno)
+- ⏳ **19 Dez - 31 Dez**: Sprint 5.5 - Refactor & Cleanup (Technical Debt Reduction)
+- ⏳ **Janeiro 2026**: Sprint 6 - Blazor Admin Portal Setup
+- ⏳ **Fevereiro-Março 2026**: Sprints 7-8 - Frontend Blazor (Web + Mobile)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
@@ -76,10 +78,79 @@ Health Checks Robustos + Data Seeding para MVP - TODAS AS PARTES FINALIZADAS:
 - ✅ Markdown Linting: technical-debt.md corrigido (code blocks, URLs, headings)
 - ✅ Architecture Test: PermissionHealthCheckExtensions exception documentada (namespace vs folder structure)
 
+**✅ Sprint 5: CONCLUÍDO ANTECIPADAMENTE** (Tarefas completadas nos Sprints 3-4)  
+Todas as tarefas planejadas já foram implementadas:
+- ✅ NSubstitute → Moq migration (Sprint 3)
+- ✅ UuidGenerator unification (commit 0a448106)
+- ✅ .slnx migration (commit 1de5dc1a)
+- ✅ Design patterns documentation (architecture.md)
+- ✅ Bruno collections para todos módulos (Users, Providers, Documents)
+
+**⏳ Sprint 5.5: EM ANDAMENTO** (19 Dez - 31 Dez 2025)  
+**Branch**: `feature/refactor-and-cleanup`  
+**Objetivo**: Refatoração técnica e redução de débito técnico antes do frontend
+
+**Atividades Planejadas** (14 tarefas principais):
+
+**1. Resolução de TODOs Críticos (Alta Prioridade)** - 8-12h
+- [ ] IBGE Middleware Fallback - Fix validation when IBGE fails (3 TODOs em IbgeUnavailabilityTests.cs)
+- [ ] Rate Limiting Cache Cleanup - Memory leak prevention (RateLimitingMiddleware.cs:39)
+- [ ] Email Constraint Database Fix - Schema issue (ProviderRepositoryIntegrationTests.cs:116)
+
+**2. Melhorias de Testes (Média Prioridade)** - 12-16h
+- [ ] Testes Infrastructure Extensions - KeycloakExtensions, PostgreSqlExtensions, MigrationExtensions (4-6h)
+- [ ] Azurite/Blob Storage em Testes - Configurar mock determinístico (DocumentsEndToEndTests.cs - 2h)
+- [ ] Provider Repository Migration - Converter testes unitários para integração (2h)
+- [ ] Middleware UseSharedServices Alignment - Corrigir TODO #249 (ServiceCollectionExtensions.cs - 1-2h)
+
+**3. Refatoração MeAjudaAi.Shared.Messaging** - 8-10h
+- [ ] Separar NoOpDeadLetterService em arquivo próprio
+- [ ] Renomear DeadLetterServiceFactory.cs → EnvironmentBasedDeadLetterServiceFactory.cs (consistência)
+- [ ] Extrair DeadLetterStatistics e FailureRate para arquivos separados
+- [ ] Extrair IMessageRetryMiddlewareFactory, MessageRetryMiddlewareFactory, MessageRetryExtensions
+- [ ] Criar IMessageBusFactory + renomear MessageBusFactory.cs → EnvironmentBasedMessageBusFactory.cs
+- [ ] Extrair IRabbitMqInfrastructureManager para arquivo separado
+- [ ] Adicionar Integration Events faltantes nos módulos (Documents, SearchProviders, ServiceCatalogs?)
+- [ ] Reorganização geral da estrutura de pastas em Messaging
+- [ ] Adicionar testes unitários para classes de messaging
+
+**4. Refatoração Extensions (MeAjudaAi.Shared)** - 4-6h
+- [ ] Extrair BusinessMetricsMiddlewareExtensions de BusinessMetricsMiddleware.cs
+- [ ] Padronizar Extensions: criar arquivo Extensions.cs por funcionalidade (e.g., MonitoringExtensions.cs)
+- [ ] Consolidar extensions por pasta em vez de classes individuais
+- [ ] Revisar padrão de extensões em todas as funcionalidades do Shared
+
+**5. Code Quality & Cleanup (Baixa Prioridade)** - 3-4h
+- [ ] Padronização de Records (Positional vs Property-based)
+- [ ] Upload File Size Configuration - Tornar configurável (UploadDocumentCommandHandler.cs:90)
+- [ ] Remover api-reference.md (redundante com ReDoc + api-spec.json)
+
+**6. Testes E2E SearchProviders** - 2-3 sprints (BACKLOG)
+- [ ] 15 testes E2E cobrindo cenários principais de busca
+- [ ] Validação de integração IBGE API, filtros, paginação
+- [ ] Autenticação/autorização em todos endpoints
+
+**7. Review Completo de Testes** - 6-8h
+- [ ] Auditoria completa de todos os arquivos em tests/
+- [ ] Identificar testes duplicados, obsoletos ou mal estruturados
+- [ ] Validar coverage e identificar gaps
+- [ ] Documentar padrões de teste para novos contribuidores
+
+**Critérios de Aceitação**:
+- [ ] Todos os 12 TODOs no código resolvidos ou documentados
+- [ ] Mensaging refatorado com estrutura clara de pastas
+- [ ] Extensions consolidadas por funcionalidade
+- [ ] Testes de infrastructure com >70% coverage
+- [ ] 0 warnings no build
+- [ ] Documentação técnica atualizada
+
+**Estimativa Total**: 35-45 horas de trabalho técnico  
+**Benefício**: Backend robusto e manutenível para suportar desenvolvimento do frontend Blazor
+
 **⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
-- Sprint 5: Blazor Admin Portal Setup
-- Sprint 6-7: Customer App + Polishing
+- Sprint 6: Blazor Admin Portal Setup (Jan 2026)
+- Sprint 7-8: Customer App + Polishing (Fev-Mar 2026)
 - MVP Final: 31 de Março de 2026
 
 ---
@@ -107,11 +178,13 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 2** | 1 semana | 3 Dez - 10 Dez | Test Coverage 90.56% | ✅ CONCLUÍDO (10 Dez - META SUPERADA!) |
 | **Sprint 3-P1** | 1 dia | 10 Dez - 11 Dez | GitHub Pages Documentation | ✅ CONCLUÍDO (11 Dez - DEPLOYED!) |
 | **Sprint 3-P2** | 2 semanas | 11 Dez - 13 Dez | Admin Endpoints & Tools | ✅ CONCLUÍDO (13 Dez - MERGED) |
-| **Sprint 4** | 3 dias | 14 Dez - 16 Dez | Health Checks + Data Seeding | ✅ CONCLUÍDO (16 Dez - MERGED!) |
-| **Sprint 5** | 2 semanas | Jan 2026 | Blazor Admin Portal (Web) - Parte 1 | ⏳ Planejado |
-| **Sprint 6** | 2 semanas | Fev 2026 | Blazor Admin Portal (Web) - Parte 2 | ⏳ Planejado |
-| **Sprint 7** | 3 semanas | Mar 2026 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
-| **Sprint 8** | 1 semana | Mar 24 - Mar 30 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
+| **Sprint 4** | 5 dias | 14 Dez - 18 Dez | Health Checks + Data Seeding | ✅ CONCLUÍDO (18 Dez - MERGED!) |
+| **Sprint 5** | - | Sprints 3-4 | Quality Improvements | ✅ CONCLUÍDO ANTECIPADAMENTE |
+| **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ⏳ EM ANDAMENTO |
+| **Sprint 6** | 3 semanas | Jan 6 - 24 | Blazor Admin Portal (Web) | ⏳ Planejado |
+| **Sprint 7** | 3 semanas | Jan 27 - Fev 14 | Blazor Admin Portal - Parte 2 | ⏳ Planejado |
+| **Sprint 8** | 3 semanas | Fev 17 - Mar 7 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
+| **Sprint 9** | 3 semanas | Mar 10 - 31 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
 
 **MVP Launch Target**: 31 de Março de 2026 🎯
 

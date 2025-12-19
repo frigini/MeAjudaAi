@@ -2,6 +2,219 @@
 
 Este documento rastreia itens de débito técnico e melhorias planejadas identificadas durante o desenvolvimento que devem ser convertidas em issues do GitHub.
 
+---
+
+## 🔄 Sprint 5.5 - Refactor & Cleanup (19 Dez - 31 Dez 2025)
+
+**Branch**: `feature/refactor-and-cleanup`  
+**Objetivo**: Refatoração técnica e redução de débito técnico antes do desenvolvimento do frontend Blazor
+
+### Itens Planejados para Resolução
+
+Os itens abaixo estão planejados para serem resolvidos na Sprint 5.5. Após implementação, serão removidos deste documento ou movidos para seção "Concluído".
+
+#### 🏗️ Refatoração MeAjudaAi.Shared.Messaging (8-10h)
+
+**Situação**: ESTRUTURA DESORGANIZADA  
+**Severidade**: MÉDIA (manutenibilidade)  
+**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup)
+
+**Problemas Identificados**:
+
+1. **Arquivos com múltiplas classes**:
+   - `DeadLetterServiceFactory.cs` contém: `NoOpDeadLetterService`, `IDeadLetterServiceFactory`, `EnvironmentBasedDeadLetterServiceFactory`
+   - `IDeadLetterService.cs` contém: `DeadLetterStatistics`, `FailureRate`
+   - `MessageRetryMiddleware.cs` contém: `IMessageRetryMiddlewareFactory`, `MessageRetryMiddlewareFactory`, `MessageRetryExtensions`
+   - `MessageBusFactory.cs` contém: `IMessageBusFactory`, `EnvironmentBasedMessageBusFactory`
+   - `RabbitMqInfrastructureManager.cs` não possui interface separada `IRabbitMqInfrastructureManager`
+
+2. **Inconsistência de nomenclatura**:
+   - Arquivo `DeadLetterServiceFactory.cs` mas classe principal é `EnvironmentBasedDeadLetterServiceFactory`
+   - Arquivo `MessageBusFactory.cs` mas classe principal é `EnvironmentBasedMessageBusFactory`
+
+3. **Integration Events ausentes**:
+   - Documents, SearchProviders, ServiceCatalogs não possuem integration events em Messages/
+   - Faltam event handlers para comunicação entre módulos
+
+**Ações de Refatoração**:
+- [ ] Separar `NoOpDeadLetterService` em arquivo próprio: `NoOpDeadLetterService.cs`
+- [ ] Extrair `IDeadLetterServiceFactory` para: `IDeadLetterServiceFactory.cs`
+- [ ] Renomear `DeadLetterServiceFactory.cs` → `EnvironmentBasedDeadLetterServiceFactory.cs`
+- [ ] Extrair `DeadLetterStatistics` para: `DeadLetterStatistics.cs`
+- [ ] Extrair `FailureRate` para: `FailureRate.cs`
+- [ ] Extrair `IMessageRetryMiddlewareFactory` para: `IMessageRetryMiddlewareFactory.cs`
+- [ ] Extrair `MessageRetryMiddlewareFactory` para: `MessageRetryMiddlewareFactory.cs`
+- [ ] Extrair `MessageRetryExtensions` para: `MessageRetryExtensions.cs`
+- [ ] Criar `IMessageBusFactory.cs` separado
+- [ ] Renomear `MessageBusFactory.cs` → `EnvironmentBasedMessageBusFactory.cs`
+- [ ] Extrair `IRabbitMqInfrastructureManager` para arquivo separado
+- [ ] Reorganizar estrutura de pastas em Messaging/ (sugestão abaixo)
+- [ ] Adicionar integration events para módulos faltantes
+- [ ] Criar testes unitários para classes de messaging (>70% coverage)
+
+**Estrutura Proposta** (após refatoração):
+```
+src/Shared/Messaging/
+├── Abstractions/
+│   ├── IMessageBus.cs
+│   ├── IMessageBusFactory.cs
+│   ├── IDeadLetterService.cs
+│   ├── IDeadLetterServiceFactory.cs
+│   ├── IMessageRetryMiddlewareFactory.cs
+│   └── IRabbitMqInfrastructureManager.cs
+├── DeadLetter/
+│   ├── DeadLetterStatistics.cs
+│   ├── FailureRate.cs
+│   ├── DeadLetterOptions.cs
+│   ├── NoOpDeadLetterService.cs
+│   ├── EnvironmentBasedDeadLetterServiceFactory.cs
+│   ├── RabbitMqDeadLetterService.cs
+│   └── ServiceBusDeadLetterService.cs
+├── Handlers/
+│   ├── MessageRetryMiddleware.cs
+│   ├── MessageRetryMiddlewareFactory.cs
+│   └── MessageRetryExtensions.cs
+├── RabbitMq/
+│   ├── RabbitMqMessageBus.cs
+│   ├── RabbitMqInfrastructureManager.cs
+│   └── RabbitMqOptions.cs
+├── ServiceBus/
+│   ├── ServiceBusMessageBus.cs
+│   ├── ServiceBusTopicManager.cs
+│   ├── ServiceBusOptions.cs
+│   └── ServiceBusInitializationService.cs
+├── Messages/
+│   ├── Documents/
+│   │   ├── DocumentUploadedIntegrationEvent.cs
+│   │   └── DocumentVerifiedIntegrationEvent.cs
+│   ├── Providers/
+│   ├── Users/
+│   └── ...
+├── EnvironmentBasedMessageBusFactory.cs
+└── EventTypeRegistry.cs
+```
+
+**Prioridade**: MÉDIA  
+**Estimativa**: 8-10 horas  
+**Benefício**: Código mais organizado, manutenível e testável
+
+---
+
+#### 🔧 Refatoração Extensions (MeAjudaAi.Shared) (4-6h)
+
+**Situação**: INCONSISTÊNCIA DE PADRÃO  
+**Severidade**: BAIXA (manutenibilidade)  
+**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup)
+
+**Problemas Identificados**:
+
+1. **Extensions dentro de classes de implementação**:
+   - `BusinessMetricsMiddlewareExtensions` está dentro de `BusinessMetricsMiddleware.cs`
+   - Outros middlewares/serviços podem ter o mesmo padrão
+
+2. **Falta de consolidação**:
+   - Extensions espalhadas em múltiplos arquivos
+   - Dificulta descoberta de métodos de extensão disponíveis
+   - Falta padrão consistente com os módulos
+
+**Ações de Refatoração**:
+- [ ] Extrair `BusinessMetricsMiddlewareExtensions` para arquivo próprio
+- [ ] Criar arquivo `MonitoringExtensions.cs` consolidando todas extensions de Monitoring
+- [ ] Criar arquivo `CachingExtensions.cs` consolidando todas extensions de Caching
+- [ ] Criar arquivo `MessagingExtensions.cs` consolidando todas extensions de Messaging
+- [ ] Criar arquivo `AuthorizationExtensions.cs` consolidando todas extensions de Authorization
+- [ ] Revisar pasta `Extensions/` - manter apenas extensions gerais/cross-cutting
+- [ ] Documentar padrão: cada funcionalidade tem seu `<Funcionalidade>Extensions.cs`
+- [ ] Aplicar padrão em todas as pastas do Shared
+
+**Estrutura Proposta** (após refatoração):
+```
+src/Shared/
+├── Monitoring/
+│   ├── BusinessMetricsMiddleware.cs
+│   ├── MetricsCollectorService.cs
+│   └── MonitoringExtensions.cs ← NOVO (consolidado)
+├── Caching/
+│   ├── HybridCacheService.cs
+│   └── CachingExtensions.cs ← NOVO (consolidado)
+├── Messaging/
+│   ├── ... (classes de messaging)
+│   └── MessagingExtensions.cs ← NOVO (consolidado)
+├── Authorization/
+│   ├── ... (classes de autorização)
+│   └── AuthorizationExtensions.cs ← NOVO (consolidado)
+└── Extensions/
+    ├── ServiceCollectionExtensions.cs (gerais)
+    ├── ModuleServiceRegistrationExtensions.cs
+    └── ... (apenas extensions cross-cutting)
+```
+
+**Padrão de Nomenclatura**:
+- Arquivo: `<Funcionalidade>Extensions.cs` (e.g., `MonitoringExtensions.cs`)
+- Classe: `public static class <Funcionalidade>Extensions`
+- Namespace: `MeAjudaAi.Shared.<Funcionalidade>`
+
+**Prioridade**: BAIXA  
+**Estimativa**: 4-6 horas  
+**Benefício**: Código mais organizado e consistente com padrão dos módulos
+
+---
+
+#### 🧪 Review Completo de Testes (6-8h)
+
+**Situação**: NÃO AUDITADO  
+**Severidade**: MÉDIA  
+**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup)
+
+**Descrição**:
+Auditoria completa de todos os arquivos em `tests/` para identificar:
+- Testes duplicados ou redundantes
+- Testes obsoletos (funcionalidades removidas)
+- Testes mal estruturados (AAA pattern não seguido)
+- Gaps de cobertura
+- Oportunidades de consolidação
+
+**Ações**:
+- [ ] Revisar todos os arquivos em `tests/MeAjudaAi.Shared.Tests/`
+- [ ] Revisar todos os arquivos em `tests/MeAjudaAi.Integration.Tests/`
+- [ ] Revisar todos os arquivos em `tests/MeAjudaAi.E2E.Tests/`
+- [ ] Revisar testes unitários de cada módulo
+- [ ] Identificar e remover testes duplicados
+- [ ] Atualizar testes desatualizados
+- [ ] Documentar padrões de teste para novos contribuidores
+- [ ] Criar checklist de code review para testes
+
+**Prioridade**: MÉDIA  
+**Estimativa**: 6-8 horas  
+**Benefício**: Suite de testes mais confiável e manutenível
+
+---
+
+#### 📄 Remover api-reference.md (1h)
+
+**Arquivo**: `docs/api-reference.md`  
+**Situação**: REDUNDANTE  
+**Severidade**: BAIXA  
+**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup)
+
+**Descrição**:
+Documento `api-reference.md` tornou-se redundante após implementação de:
+- ✅ Geração automática de `api-spec.json` via GitHub Actions
+- ✅ Interface ReDoc publicada em GitHub Pages
+- ✅ Swagger UI disponível em desenvolvimento
+
+**Ações**:
+- [ ] Remover arquivo `docs/api-reference.md`
+- [ ] Atualizar referências em outros documentos (se houver)
+- [ ] Atualizar `mkdocs.yml` (se referenciado)
+- [ ] Documentar em `api/README.md` que ReDoc é a fonte oficial
+
+**Prioridade**: BAIXA  
+**Estimativa**: 1 hora  
+**Benefício**: Menos duplicação de documentação
+
+---
+
 ## ⚠️ CRÍTICO: Hangfire + Npgsql 10.x Compatibility Risk
 
 **Arquivo**: `Directory.Packages.props`  
@@ -84,7 +297,8 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 
 **Situação**: SEM TESTES  
 **Severidade**: MÉDIA  
-**Issue**: [Criar issue para rastreamento]
+**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup)  
+**Issue**: [Será criado na Sprint 5.5]
 
 **Descrição**: 
 As classes de extensão do AppHost que configuram infraestrutura crítica (Keycloak, PostgreSQL, Migrations) não possuem testes unitários ou de integração. Isso representa risco para:
@@ -192,6 +406,7 @@ public string Email { get; set; }
 **Arquivo**: `tests/MeAjudaAi.Integration.Tests/Providers/ProvidersIntegrationTests.cs`  
 **Linha**: ~172-199  
 **Situação**: Aguardando Implementação de Funcionalidade Base  
+**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup) - TODO resolution  
 
 **Descrição**: 
 O teste `GetProvidersByVerificationStatus_ShouldReturnOnlyPendingProviders` atualmente apenas valida a estrutura da resposta devido à falta de endpoints de gerenciamento de status de verificação.
@@ -229,7 +444,8 @@ O teste `GetProvidersByVerificationStatus_ShouldReturnOnlyPendingProviders` atua
 **Módulo**: `src/Modules/SearchProviders`  
 **Tipo**: Débito de Teste  
 **Severidade**: MÉDIA  
-**Issue**: [Criar issue para rastreamento]
+**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup) - BACKLOG (2-3 sprints)  
+**Issue**: [Será criado na Sprint 5.5]
 
 **Descrição**:
 O módulo SearchProviders não possui testes E2E (end-to-end), apenas testes de integração e unitários. Testes E2E são necessários para validar o fluxo completo de busca de prestadores, incluindo integração com APIs externas (IBGE), filtros, paginação, e respostas HTTP completas.
@@ -302,7 +518,8 @@ O módulo SearchProviders não possui testes E2E (end-to-end), apenas testes de 
 **Arquivo**: `Directory.Packages.props` (linha ~46)  
 **Situação**: BLOQUEADO - Incompatibilidade com ASP.NET Core Source Generators  
 **Severidade**: BAIXA (não crítico, funciona perfeitamente)  
-**Issue**: [Criar issue para rastreamento]
+**Sprint**: N/A - Aguardar correção da Microsoft  
+**Issue**: [Monitoramento contínuo]
 
 **Descrição**:
 Microsoft.OpenApi está pinado em versão 2.3.0 porque a versão 3.0.2 é incompatível com os source generators do ASP.NET Core 10.0 (`Microsoft.AspNetCore.OpenApi.SourceGenerators`).
@@ -385,7 +602,8 @@ error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned
 **Arquivo**: Múltiplos arquivos em `src/Shared/Contracts/**` e `src/Modules/**/Domain/**`  
 **Situação**: INCONSISTÊNCIA - Dois padrões em uso  
 **Severidade**: BAIXA (manutenibilidade)  
-**Issue**: [Criar issue para rastreamento]
+**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup) - Baixa prioridade  
+**Issue**: [Será criado na Sprint 5.5]
 
 **Descrição**: 
 Atualmente existem dois padrões de sintaxe para records no projeto:
@@ -473,9 +691,10 @@ Na próxima sprint, padronizar todos os records em:
 
 **Arquivo**: `src/Shared/Extensions/ServiceCollectionExtensions.cs`  
 **Linhas**: 96-100  
-**Situação**: TODO IDENTIFICADO  
+**Situação**: TODO #249  
 **Severidade**: BAIXA  
-**Issue**: [Criar issue para rastreamento - TODO #249]
+**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup) - Média prioridade  
+**Issue**: [Será criado na Sprint 5.5]
 
 **Descrição**: 
 O caminho assíncrono `UseSharedServicesAsync()` não registra serviços de BusinessMetrics da mesma forma que o caminho síncrono `UseSharedServices()`, causando falha no middleware `UseAdvancedMonitoring` em ambientes de desenvolvimento.
