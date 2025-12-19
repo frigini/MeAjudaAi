@@ -22,9 +22,16 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - ✅ **Sprint 5**: Tarefas completadas antecipadamente (NSubstitute→Moq, .slnx, UuidGenerator, Design Patterns, Bruno)
 - ⏳ **19 Dez - 31 Dez**: Sprint 5.5 - Refactor & Cleanup (Technical Debt Reduction)
 - ⏳ **Janeiro 2026**: Sprint 6 - Blazor Admin Portal Setup
-- ⏳ **Fevereiro-Março 2026**: Sprints 7-8 - Frontend Blazor (Web + Mobile)
+- ⏳ **Fevereiro 2026**: Sprint 7 - Blazor Admin Portal Features
+- ⏳ **Fevereiro-Março 2026**: Sprint 8 - Customer App (Web + Mobile)
+- ⏳ **Março 2026**: Sprint 9 - BUFFER (Polishing, Risk Mitigation, Refactoring)
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
+
+**⚠️ Notas de Risco**:
+- Estimativas assumem velocidade consistente e ausência de bloqueios maiores
+- Primeiro projeto Blazor WASM pode revelar complexidade não prevista
+- Sprint 9 reservado como buffer de contingência (não para novas features)
 
 ---
 
@@ -150,8 +157,11 @@ Todas as tarefas planejadas já foram implementadas:
 **⏳ Fase 2: PLANEJADO** (Janeiro–Março 2026)  
 Frontend Blazor WASM + MAUI Hybrid:
 - Sprint 6: Blazor Admin Portal Setup (Jan 2026)
-- Sprint 7-8: Customer App + Polishing (Fev-Mar 2026)
+- Sprint 7-8: Customer App (Fev-Mar 2026)
+- Sprint 9: Buffer/Polishing (Mar 2026)
 - MVP Final: 31 de Março de 2026
+
+**⚠️ Risk Assessment**: Estimativas assumem velocidade consistente. Primeiro projeto Blazor WASM pode revelar complexidades não previstas (integração Keycloak, curva de aprendizado MudBlazor). Sprint 9 reservado como buffer de contingência.
 
 ---
 
@@ -181,10 +191,11 @@ A implementação segue os princípios arquiteturais definidos em `architecture.
 | **Sprint 4** | 5 dias | 14 Dez - 18 Dez | Health Checks + Data Seeding | ✅ CONCLUÍDO (18 Dez - MERGED!) |
 | **Sprint 5** | - | Sprints 3-4 | Quality Improvements | ✅ CONCLUÍDO ANTECIPADAMENTE |
 | **Sprint 5.5** | 2 semanas | 19 Dez - 31 Dez | Refactor & Cleanup (Technical Debt) | ⏳ EM ANDAMENTO |
-| **Sprint 6** | 3 semanas | Jan 6 - 24 | Blazor Admin Portal (Web) | ⏳ Planejado |
-| **Sprint 7** | 3 semanas | Jan 27 - Fev 14 | Blazor Admin Portal - Parte 2 | ⏳ Planejado |
-| **Sprint 8** | 3 semanas | Fev 17 - Mar 7 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
-| **Sprint 9** | 3 semanas | Mar 10 - 31 | Polishing & Hardening (MVP Final) | ⏳ Planejado |
+| **Sprint 6** | 2 semanas | Jan 6 - 17 | Blazor Admin Portal - Setup & Core | ⏳ Planejado |
+| **Sprint 7** | 3 semanas | Jan 20 - Fev 7 | Blazor Admin Portal - Features | ⏳ Planejado |
+| **Sprint 8** | 3 semanas | Fev 10 - 28 | Blazor Customer App (Web + Mobile) | ⏳ Planejado |
+| **Sprint 9** | 3 semanas | Mar 3 - 24 | **BUFFER: Polishing, Refactoring & Risk Mitigation** | ⏳ Planejado |
+| **MVP Launch** | - | Mar 31 | Final deployment & launch preparation | 🎯 Target |
 
 **MVP Launch Target**: 31 de Março de 2026 🎯
 
@@ -2363,56 +2374,109 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 ---
 
-### 📅 Sprint 5: Polishing & Hardening (1 semana) ⏳ ATUALIZADO
+### 📅 Sprint 9: Buffer - Polishing, Risk Mitigation & Refactoring (3 semanas) 🎯
 
-**Status**: 📋 PLANEJADO PARA Q1 2026  
-**Dependências**: Sprints 3 e 4 completos  
-**Estimativa de início**: Março 2026
+**Status**: 📋 PLANEJADO PARA MARÇO 2026  
+**Duração**: 3 semanas (Mar 3 - 24, 2026)  
+**Dependências**: Sprints 6-8 completos  
+**Natureza**: **BUFFER DE CONTINGÊNCIA** - não alocar novas features
 
-> **Nota Sprint Atual (5.5)**: Esta sprint de "Polishing" é diferente da Sprint 5.5 atual.  
-> Sprint 5.5 (19 Dez 2025) é focada em:
-> - ✅ Correção de package lock files (Microsoft.OpenApi 2.3.12 → 2.3.0)
-> - ✅ Atualização Aspire 13.1.0 (PR #81)
-> - ✅ Atualização FeatureManagement 4.4.0 (PR #82)
-> - ⏳ Aguardando CI/CD verde para merge
+> **⚠️ IMPORTANTE**: Sprint 9 é um buffer de contingência para absorver riscos e complexidades não previstas dos Sprints 6-8 (primeiro projeto Blazor WASM). Não deve ser usado para novas funcionalidades, apenas para:
+> - Completar work-in-progress dos sprints anteriores
+> - Resolver débitos técnicos acumulados
+> - Mitigar riscos identificados durante implementação
+> - Polishing e hardening para MVP
 
 **Objetivos**:
-- Melhorias de UX/UI
-- Rate limiting
-- Logging avançado
-- Documentação final
+- Completar funcionalidades pendentes de Sprints 6-8
+- Resolver débitos técnicos acumulados
+- Melhorias de UX/UI identificadas durante desenvolvimento
+- Rate limiting e segurança adicional
+- Logging e monitoramento avançado
+- Documentação final para MVP
 
-**Tarefas**:
+### Cenários de Risco Documentados
 
-#### 1. UX/UI Improvements
+**Risk Scenario 1: Keycloak Integration Complexity**
+- **Problema Potencial**: OIDC flows em Blazor WASM com refresh tokens podem exigir configuração complexa
+- **Impacto**: +2-3 dias além do planejado no Sprint 6
+- **Mitigação Sprint 9**: 
+  - Usar Sprint 9 para refinar authentication flows
+  - Implementar proper token refresh handling
+  - Adicionar fallback mechanisms
+
+**Risk Scenario 2: MudBlazor Learning Curve**
+- **Problema Potencial**: Primeira vez usando MudBlazor; componentes complexos (DataGrid, Forms) podem ter comportamentos inesperados
+- **Impacto**: +3-4 dias além do planejado nos Sprints 6-7
+- **Mitigação Sprint 9**:
+  - Refatorar componentes para seguir best practices MudBlazor
+  - Implementar componentes reutilizáveis otimizados
+  - Documentar patterns e anti-patterns identificados
+
+**Risk Scenario 3: Blazor WASM Performance Issues**
+- **Problema Potencial**: App bundle size > 5MB, lazy loading não configurado corretamente
+- **Impacto**: UX ruim, +2-3 dias de otimização
+- **Mitigação Sprint 9**:
+  - Implementar lazy loading de assemblies
+  - Otimizar bundle size (tree shaking, AOT compilation)
+  - Adicionar loading indicators e progressive loading
+
+**Risk Scenario 4: MAUI Hybrid Platform-Specific Issues**
+- **Problema Potencial**: Diferenças de comportamento iOS vs Android (permissões, geolocation, file access)
+- **Impacto**: +4-5 dias de debugging platform-specific
+- **Mitigação Sprint 9**:
+  - Criar abstractions para platform-specific APIs
+  - Implementar fallbacks para features não suportadas
+  - Testes em devices reais (não apenas emuladores)
+
+**Risk Scenario 5: API Integration Edge Cases**
+- **Problema Potencial**: Casos de erro não cobertos (timeouts, network failures, concurrent updates)
+- **Impacto**: +2-3 dias de hardening
+- **Mitigação Sprint 9**:
+  - Implementar retry policies com Polly
+  - Adicionar optimistic concurrency handling
+  - Melhorar error messages e user feedback
+
+### Tarefas Sprint 9 (Executar conforme necessário)
+
+#### 1. Work-in-Progress Completion
+- [ ] Completar funcionalidades parciais de Sprints 6-8
+- [ ] Resolver todos os TODOs/FIXMEs adicionados durante implementação
+- [ ] Fechar issues abertas durante desenvolvimento frontend
+
+#### 2. UX/UI Improvements
 - [ ] **Loading States**: Skeletons em todas cargas assíncronas
 - [ ] **Error Handling**: Mensagens friendly para todos erros (não mostrar stack traces)
-- [ ] **Validação Client-Side**: FluentValidation compartilhado entre frontend e backend
-- [ ] **Acessibilidade**: ARIA labels, teclado navigation, screen reader support
-- [ ] **Dark Mode**: Suporte a tema escuro (MudBlazor built-in)
-
-#### 2. Rate Limiting & Security
+#### 3. Security & Performance Hardening
 - [ ] **API Rate Limiting**: Aspire middleware (100 req/min por IP, 1000 req/min para authenticated users)
 - [ ] **CORS**: Configurar origens permitidas (apenas domínios de produção)
 - [ ] **CSRF Protection**: Tokens anti-forgery em forms
 - [ ] **Security Headers**: HSTS, X-Frame-Options, CSP
+- [ ] **Bundle Optimization**: Lazy loading, AOT compilation, tree shaking
+- [ ] **Cache Strategy**: Implementar cache HTTP para assets estáticos
 
-#### 3. Logging & Monitoring
+#### 4. Logging & Monitoring
 - [ ] **Frontend Logging**: Integração com Application Insights (Blazor WASM)
 - [ ] **Error Tracking**: Sentry ou similar para erros em produção
 - [ ] **Analytics**: Google Analytics ou Plausible para usage tracking
+- [ ] **Performance Monitoring**: Web Vitals tracking (LCP, FID, CLS)
 
-#### 4. Documentação
+#### 5. Documentação Final MVP
 - [ ] **API Documentation**: Swagger/OpenAPI atualizado com exemplos
-- [ ] **User Guide**: Guia de uso para Admin Portal
+- [ ] **User Guide**: Guia de uso para Admin Portal e Customer App
 - [ ] **Developer Guide**: Como rodar localmente, como contribuir
 - [ ] **Deployment Guide**: Deploy em Azure Container Apps (ARM templates ou Bicep)
+- [ ] **Lessons Learned**: Documentar decisões de arquitetura e trade-offs
 
-**Resultado Esperado**:
-- ✅ MVP production-ready
-- ✅ Segurança hardened
-- ✅ Documentação completa
-- ✅ Monitoring configurado
+**Resultado Esperado Sprint 9**:
+- ✅ MVP production-ready e polished
+- ✅ Todos os cenários de risco mitigados ou resolvidos
+- ✅ Segurança e performance hardened
+- ✅ Documentação completa para usuários e desenvolvedores
+- ✅ Monitoring e observabilidade configurados
+- 🎯 **PRONTO PARA LAUNCH EM 31 DE MARÇO DE 2026**
+
+> **⚠️ CRITICAL**: Se Sprint 9 não for suficiente para completar todos os itens, considerar delay do MVP launch ou reduzir escopo (mover features não-críticas para post-MVP). A qualidade e estabilidade do MVP são mais importantes que a data de lançamento.
 
 ---
 
