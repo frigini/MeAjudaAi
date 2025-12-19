@@ -295,7 +295,58 @@ public class MeuTeste : TestContainerTestBase
 **Pipeline Status**: ✅ Todos passam na CI/CD (GitHub Actions com Docker nativo)  
 **Local Status**: ❌ Falhando devido a Docker Desktop
 
-Para detalhes completos da arquitetura E2E, consulte: [e2e-architecture-analysis.md](./e2e-architecture-analysis.md)
+## Problemas Comuns e Soluções
+
+### ⚠️ Timeout nos Containers Docker
+
+**Sintoma:**
+```
+System.Threading.Tasks.TaskCanceledException: The operation was canceled.
+  at Docker.DotNet.DockerClient.PrivateMakeRequestAsync(...)
+```
+
+**Causas:**
+- Docker Desktop não está rodando
+- Rede Docker configurada incorretamente
+- Imagens não foram baixadas previamente
+- Timeout padrão muito curto
+
+**Soluções:**
+1. Iniciar Docker Desktop e aguardar ficar pronto
+2. Reiniciar WSL2: `wsl --shutdown`
+3. Aumentar timeout em TestContainerFixture
+4. Pré-baixar imagens: `docker pull postgis/postgis:16-3.4`
+
+### ⚠️ Compartilhamento de Estado Entre Testes
+
+**Problema:** Testes podem compartilhar dados e afetar uns aos outros
+
+**Solução:**
+```csharp
+private async Task CleanupDatabaseAsync()
+{
+    await WithServiceScopeAsync(async services =>
+    {
+        var db = services.GetRequiredService<UsersDbContext>();
+        await db.Database.ExecuteSqlRawAsync(@"
+            TRUNCATE TABLE users CASCADE;
+            TRUNCATE TABLE providers CASCADE;
+        ");
+    });
+}
+```
+
+### ⚠️ Performance Ruim
+
+**Números Típicos:**
+- Sem otimização: ~32 minutos (19 classes × 6s setup cada)
+- Com IClassFixture: ~8-10 minutos
+
+**Otimizações Aplicadas:**
+1. IClassFixture para compartilhar containers por classe
+2. Retry logic para evitar falhas transientes
+3. Timeouts aumentados para ambientes lentos
+4. Connection pooling no PostgreSQL
 
 ## Referências
 

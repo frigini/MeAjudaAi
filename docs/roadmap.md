@@ -168,12 +168,12 @@ Todas as tarefas planejadas já foram implementadas:
 - [ ] Validar coverage e identificar gaps
 - [ ] Documentar padrões de teste para novos contribuidores
 
-**8. BDD Implementation (BACKLOG - Futuro)** - Documentado em e2e-architecture-analysis.md
+**8. BDD Implementation (BACKLOG - Futuro)** - Sprint dedicado planejado
 - [ ] Setup SpecFlow + Playwright.NET para acceptance tests
 - [ ] Implementar 5-10 features críticas em Gherkin (Provider Registration, Document Upload, Service Catalog)
 - [ ] Integrar ao CI/CD pipeline
 - [ ] Criar documentação executável com Gherkin
-- **Referência**: Veja `docs/testing/e2e-architecture-analysis.md` linha 1121+ para roadmap detalhado BDD
+- **Benefício**: Testes de aceitação legíveis para stakeholders e documentação viva do sistema
 
 **Critérios de Aceitação**:
 - [ ] Todos os 12 TODOs no código resolvidos ou documentados
