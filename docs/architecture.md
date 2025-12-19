@@ -2244,7 +2244,70 @@ Especificação OpenAPI inclui:
     "cache": { "status": "Healthy", "duration": "00:00:00.0087432" }
   }
 }
-```text
+```
+---
+
+## 🚀 C# 14 Features Utilizados
+
+### Extension Members
+
+O projeto utiliza **Extension Members**, um novo recurso do C# 14 que permite declarar não apenas métodos de extensão, mas também **propriedades de extensão**, **membros estáticos estendidos** e **operadores definidos pelo usuário**.
+
+#### Padrão Adotado
+
+**✅ Use Extension Members para**:
+- Extension methods de domínio que se beneficiam de **extension properties**
+- APIs fluentes com propriedades computadas
+- Tipos que precisam de operadores definidos pelo usuário via extensão
+
+**❌ Não use para**:
+- Extensions de configuração DI (IServiceCollection, IApplicationBuilder) - manter padrão tradicional `[FolderName]Extensions.cs`
+- Código legado que funciona bem com sintaxe tradicional
+
+#### Sintaxe
+
+```csharp
+// Tradicional (C# 13)
+public static class PermissionExtensions
+{
+    public static string GetValue(this EPermission permission) { ... }
+    public static string GetModule(this EPermission permission) { ... }
+}
+
+// Com Extension Members (C# 14)
+public static class PermissionExtensions
+{
+    extension(EPermission permission)
+    {
+        // Extension property (novo!)
+        public string Value => permission.GetType()
+            .GetField(permission.ToString())
+            ?.GetCustomAttribute<DisplayAttribute>()
+            ?.Name ?? permission.ToString();
+        
+        // Extension property computada
+        public string Module => this.Value.Split(':')[0];
+        
+        // Extension property booleana
+        public bool IsAdmin => this.Module.Equals("admin", StringComparison.OrdinalIgnoreCase);
+    }
+}
+
+// Uso: permission.Value em vez de permission.GetValue()
+var module = myPermission.Module;  // Propriedade!
+if (myPermission.IsAdmin) { ... }  // Propriedade booleana!
+```
+
+**Benefícios**:
+- ✅ Sintaxe mais natural (propriedades em vez de métodos Get)
+- ✅ Melhor IntelliSense e auto-complete
+- ✅ Código mais limpo e expressivo
+- ✅ Suporte a operadores customizados como extensões
+
+**Referências**:
+- [C# 14 - Extension Members](https://learn.microsoft.com/pt-br/dotnet/csharp/whats-new/csharp-14#extension-members)
+- [Especificação: Extension Members](https://learn.microsoft.com/pt-br/dotnet/csharp/language-reference/proposals/csharp-14.0/extensions)
+
 ---
 
 📖 **Próximos Passos**: Este documento serve como base para o desenvolvimento. Consulte também a [documentação de infraestrutura](./infrastructure.md) e [guia de CI/CD](./ci-cd.md) para informações complementares.

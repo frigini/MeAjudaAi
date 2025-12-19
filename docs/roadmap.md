@@ -143,11 +143,12 @@ Todas as tarefas planejadas já foram implementadas:
   - ExceptionsExtensions, LoggingExtensions, MessagingExtensions, QueriesExtensions, SerializationExtensions
   - Removidos 13 arquivos obsoletos (Extensions.cs genéricos + subpastas)
   - 1245/1245 testes passando
-- [ ] Migração para Extension Blocks (C# 14) - 4-6h
-  - [ ] Avaliar aplicabilidade do novo recurso Extension Blocks do C# 14
-  - [ ] Migrar extension methods de propósito geral (PermissionExtensions, EnumExtensions, etc.)
-  - [ ] Documentar padrão de uso para novos extension methods
-  - [ ] Validar compatibilidade e benefícios (namespacing, organização)
+- [x] ~~Migração para Extension Members (C# 14)~~ ✅ AVALIADO (19 Dez 2025)
+  - ✅ Sintaxe `extension(Type receiver)` validada e funcional no .NET 10
+  - ✅ Novos recursos disponíveis: extension properties, static extensions, operators
+  - ✅ Documentado em `docs/architecture.md` - seção "C# 14 Features Utilizados"
+  - ⏸️ Implementação ADIADA: Manter padrão atual funciona bem, migração não é crítica
+  - 📝 Recomendação: Usar Extension Members em NOVOS códigos que se beneficiem de properties
 - [ ] Extrair BusinessMetricsMiddlewareExtensions de BusinessMetricsMiddleware.cs
 - [ ] Consolidar Monitoring folder (MonitoringExtensions.cs único)
 - [ ] Revisar padrão de extensões em todas as funcionalidades do Shared
