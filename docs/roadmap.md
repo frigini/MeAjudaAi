@@ -2326,16 +2326,40 @@ Durante o processo de atualização automática de dependências pelo Dependabot
 
 ### Próximos Passos
 
-1. ⏳ **Aguardar CI/CD verde** nos PRs #81 e #82
-2. ⏳ **Merge PRs** após validação bem-sucedida
-3. 📋 **Iniciar Sprint 6** - GitHub Pages Documentation (Q1 2026)
-4. 📋 **Planejar Sprint 7** - Blazor Admin Portal (Q1 2026)
+1. ✅ **Merge PRs #81 e #82** - Concluído (19 Dez 2025)
+2. ✅ **Atualizar feature branch** - Merge master → feature/refactor-and-cleanup
+3. ✅ **Criar PR #83** - Branch feature/refactor-and-cleanup → master
+4. ⏳ **Aguardar review e merge PR #83**
+5. 📋 **Iniciar Sprint 6** - GitHub Pages Documentation (Q1 2026)
+6. 📋 **Planejar Sprint 7** - Blazor Admin Portal (Q1 2026)
+
+#### ✅ Atualizações de Documentação (19 Dez 2025)
+
+**Roadmap**:
+- ✅ Atualizada seção Sprint 5.5 com todas as ações executadas
+- ✅ Atualizado status de Fase 2 para "Em Planejamento - Q1 2026"
+- ✅ Atualizados Sprints 3-5 com dependências e novas timelines
+- ✅ Atualizada última modificação para 19 de Dezembro de 2025
+
+**Limpeza de Templates**:
+- ✅ Removido `.github/pull-request-template-coverage.md` (template específico de outro PR)
+- ✅ Removida pasta `.github/issue-template/` (issues obsoletas: EFCore.NamingConventions, Npgsql já resolvidas)
+- ✅ Criado `.github/pull_request_template.md` (template genérico para futuros PRs)
+- ✅ Commit: "chore: remove obsolete templates and create proper PR template"
+
+**Pull Request #83**:
+- ✅ PR criado: feature/refactor-and-cleanup → master
+- ✅ Título: "feat: refactoring and cleanup sprint 5.5"
+- ✅ Descrição atualizada refletindo escopo real (documentação + merge PRs #81/#82 + limpeza templates)
+- ⏳ Aguardando review e CI/CD validation
 
 ### Lições Aprendidas
 
 - **Dependabot**: Regenerar lock files manualmente após updates de versões com conflicts
 - **CI/CD**: Validação rigorosa de package locks previne deployments quebrados
 - **Central Package Management**: Manter sincronização entre lock files e Directory.Packages.props
+- **Template Management**: Manter apenas templates genéricos e reutilizáveis em `.github/`
+- **Documentation-First**: Documentar ações executadas imediatamente no roadmap para rastreabilidade
 
 ---
 
