@@ -48,7 +48,7 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             HandleDapperError(ex, "query_multiple", sql);
-            throw; // Unreachable but required for compiler
+            throw; // Inalcançável mas necessário para o compilador
         }
     }
 
@@ -77,7 +77,7 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             HandleDapperError(ex, "query_single", sql);
-            throw; // Unreachable but required for compiler
+            throw; // Inalcançável mas necessário para o compilador
         }
     }
 
@@ -106,7 +106,7 @@ public class DapperConnection(PostgresOptions postgresOptions, DatabaseMetrics m
         {
             stopwatch.Stop();
             HandleDapperError(ex, "execute", sql);
-            throw; // Unreachable but required for compiler
+            throw; // Inalcançável mas necessário para o compilador
         }
     }
 
