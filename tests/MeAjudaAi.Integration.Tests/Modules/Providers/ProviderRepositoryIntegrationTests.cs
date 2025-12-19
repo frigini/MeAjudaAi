@@ -113,7 +113,7 @@ public class ProviderRepositoryIntegrationTests : ApiTestBase
         results.Should().HaveCountGreaterThanOrEqualTo(2);
     }
 
-    // TODO: Fix email constraint issue in database schema
+    // Note: UpdateAsync test not implemented yet - requires investigation of EF Core change tracking
     // [Fact]
     // public async Task UpdateAsync_WithModifiedProvider_ShouldPersistChanges()
 
