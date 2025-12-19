@@ -10,9 +10,14 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Infrastructure.Persistence;
 /// Unit tests for IProviderRepository interface contract validation.
 /// Note: These tests use mocks to verify interface behavior contracts,
 /// not the concrete ProviderRepository implementation.
-/// TODO: Convert to integration tests using real ProviderRepository with in-memory/Testcontainers DB
-/// or create abstract base test class for contract testing against actual implementations.
-/// Current mock-based approach only verifies Moq setup, not real persistence behavior.
+/// 
+/// For real persistence behavior tests, see:
+/// - tests/MeAjudaAi.Integration.Tests/Modules/Providers/ProviderRepositoryIntegrationTests.cs
+/// 
+/// These unit tests remain useful for:
+/// - Fast execution without database dependencies
+/// - Verifying repository interface contracts
+/// - Testing error handling and edge cases
 /// </summary>
 [Trait("Category", "Unit")]
 [Trait("Module", "Providers")]
