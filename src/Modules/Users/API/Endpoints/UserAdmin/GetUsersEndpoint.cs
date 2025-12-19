@@ -69,7 +69,7 @@ public class GetUsersEndpoint : BaseEndpoint, IEndpoint
             .Produces<AuthorizationErrorResponse>(StatusCodes.Status403Forbidden, "application/json")
             .Produces<RateLimitErrorResponse>(StatusCodes.Status429TooManyRequests, "application/json")
             .Produces<InternalServerErrorResponse>(StatusCodes.Status500InternalServerError, "application/json")
-            .RequirePermission(Permission.UsersList);
+            .RequirePermission(EPermission.UsersList);
 
     /// <summary>
     /// Processa requisição de consulta de usuários de forma assíncrona.

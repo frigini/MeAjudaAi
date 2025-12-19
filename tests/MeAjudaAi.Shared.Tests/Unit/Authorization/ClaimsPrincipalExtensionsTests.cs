@@ -41,7 +41,7 @@ public class ClaimsPrincipalExtensionsTests
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.HasPermission(Permission.AdminSystem);
+        var result = principal.HasPermission(EPermission.AdminSystem);
 
         // Assert
         Assert.False(result);
@@ -92,7 +92,7 @@ public class ClaimsPrincipalExtensionsTests
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.HasPermissions(new[] { EPermission.UsersRead, Permission.AdminSystem }, requireAll: true);
+        var result = principal.HasPermissions(new[] { EPermission.UsersRead, EPermission.AdminSystem }, requireAll: true);
 
         // Assert
         Assert.False(result);
@@ -110,7 +110,7 @@ public class ClaimsPrincipalExtensionsTests
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.HasPermissions(new[] { EPermission.UsersRead, Permission.AdminSystem }, requireAll: false);
+        var result = principal.HasPermissions(new[] { EPermission.UsersRead, EPermission.AdminSystem }, requireAll: false);
 
         // Assert
         Assert.True(result);
@@ -128,7 +128,7 @@ public class ClaimsPrincipalExtensionsTests
         var principal = new ClaimsPrincipal(identity);
 
         // Act
-        var result = principal.HasPermissions(new[] { Permission.AdminSystem, Permission.AdminUsers }, requireAll: false);
+        var result = principal.HasPermissions(new[] { EPermission.AdminSystem, EPermission.AdminUsers }, requireAll: false);
 
         // Assert
         Assert.False(result);
