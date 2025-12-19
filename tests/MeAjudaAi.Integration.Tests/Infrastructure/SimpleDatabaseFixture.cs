@@ -53,28 +53,27 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
-        var disposeTasks = new List<Task>();
-
+        // Stop containers sequentially
         if (_postgresContainer != null)
         {
             Console.WriteLine($"[DB-CONTAINER] Stopping PostgreSQL container {_postgresContainer.Id[..12]}");
-            disposeTasks.Add(Task.Run(async () =>
-            {
-                await _postgresContainer.StopAsync();
-                await _postgresContainer.DisposeAsync();
-            }));
+            await _postgresContainer.StopAsync();
         }
 
         if (_azuriteContainer != null)
         {
             Console.WriteLine($"[AZURITE-CONTAINER] Stopping Azurite container {_azuriteContainer.Id[..12]}");
-            disposeTasks.Add(Task.Run(async () =>
-            {
-                await _azuriteContainer.StopAsync();
-                await _azuriteContainer.DisposeAsync();
-            }));
+            await _azuriteContainer.StopAsync();
         }
 
-        await Task.WhenAll(disposeTasks);
+        // Dispose in parallel after stopping
+        var disposeTasks = new List<ValueTask>();
+        if (_postgresContainer != null)
+            disposeTasks.Add(_postgresContainer.DisposeAsync());
+        if (_azuriteContainer != null)
+            disposeTasks.Add(_azuriteContainer.DisposeAsync());
+
+        if (disposeTasks.Count > 0)
+            await ValueTask.WhenAll(disposeTasks);
     }
 }

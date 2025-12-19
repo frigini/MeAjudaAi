@@ -308,23 +308,23 @@ public class ProviderRepositoryTests : ProvidersIntegrationTestBase
         var provider = CreateTestProvider("To Delete", EProviderType.Individual);
         await repository.AddAsync(provider);
 
-        // Verify provider exists
+        // Verificar que o provider existe
         var providerBeforeDelete = await repository.GetByIdAsync(provider.Id);
         providerBeforeDelete.Should().NotBeNull();
 
         // Act
         await repository.DeleteAsync(provider.Id);
 
-        // Assert - GetByIdAsync should return null after hard delete
+        // Assert - GetByIdAsync deve retornar null após hard delete
         var deletedProvider = await repository.GetByIdAsync(provider.Id);
         deletedProvider.Should().BeNull();
 
-        // Verify hard delete in database (provider should not exist at all)
+        // Verificar hard delete no banco de dados (provider não deve existir)
         var providerInDb = await dbContext.Providers
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(p => p.Id == provider.Id);
 
-        providerInDb.Should().BeNull(); // Hard delete - completely removed
+        providerInDb.Should().BeNull(); // Hard delete - completamente removido
     }
 
     [Fact]
