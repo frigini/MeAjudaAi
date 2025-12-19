@@ -71,7 +71,7 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
             // Verifica se temos permissões para gerar SAS
             if (!containerClient.CanGenerateSasUri)
             {
-                _logger.LogWarning("BlobContainerClient não pode gerar SAS URIs. Verifique as credenciais.");
+                _logger.LogWarning("BlobContainerClient cannot generate SAS URIs. Verify credentials.");
                 throw new InvalidOperationException("Serviço não configurado para gerar SAS tokens");
             }
 
@@ -87,14 +87,14 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
 
             var sasUri = blobClient.GenerateSasUri(sasBuilder);
 
-            _logger.LogInformation("SAS token de upload gerado para blob {BlobName}, expira em {ExpiresAt}",
+            _logger.LogInformation("Upload SAS token generated for blob {BlobName}, expires at {ExpiresAt}",
                 blobName, expiresAt);
 
             return (sasUri.ToString(), expiresAt);
         }
         catch (RequestFailedException ex)
         {
-            _logger.LogError(ex, "Erro ao gerar SAS token de upload para blob {BlobName}", blobName);
+            _logger.LogError(ex, "Failed to generate upload SAS token for blob {BlobName}", blobName);
             throw new InvalidOperationException(
                 $"Failed to generate Azure Blob Storage SAS upload token for blob '{blobName}' (Status: {ex.Status})",
                 ex);
@@ -116,7 +116,7 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
 
             if (!containerClient.CanGenerateSasUri)
             {
-                _logger.LogWarning("BlobContainerClient não pode gerar SAS URIs.");
+                _logger.LogWarning("BlobContainerClient cannot generate SAS URIs.");
                 throw new InvalidOperationException("Serviço não configurado para gerar SAS tokens");
             }
 
@@ -132,14 +132,14 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
 
             var sasUri = blobClient.GenerateSasUri(sasBuilder);
 
-            _logger.LogInformation("SAS token de download gerado para blob {BlobName}, expira em {ExpiresAt}",
+            _logger.LogInformation("Download SAS token generated for blob {BlobName}, expires at {ExpiresAt}",
                 blobName, expiresAt);
 
             return (sasUri.ToString(), expiresAt);
         }
         catch (RequestFailedException ex)
         {
-            _logger.LogError(ex, "Erro ao gerar SAS token de download para blob {BlobName}", blobName);
+            _logger.LogError(ex, "Failed to generate download SAS token for blob {BlobName}", blobName);
             throw new InvalidOperationException(
                 $"Failed to generate Azure Blob Storage SAS download token for blob '{blobName}' (Status: {ex.Status})",
                 ex);
@@ -164,7 +164,7 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
         }
         catch (RequestFailedException ex)
         {
-            _logger.LogError(ex, "Erro ao verificar existência do blob {BlobName} (Status: {Status})", blobName, ex.Status);
+            _logger.LogError(ex, "Failed to check existence of blob {BlobName} (Status: {Status})", blobName, ex.Status);
             throw new InvalidOperationException(
                 $"Failed to check existence of blob '{blobName}' (Status: {ex.Status})",
                 ex);
@@ -181,11 +181,11 @@ public class AzureBlobStorageService(BlobServiceClient blobServiceClient, ILogge
         {
             var blobClient = containerClient.GetBlobClient(blobName);
             await blobClient.DeleteIfExistsAsync(cancellationToken: cancellationToken);
-            _logger.LogInformation("Blob {BlobName} deletado", blobName);
+            _logger.LogInformation("Blob {BlobName} deleted", blobName);
         }
         catch (RequestFailedException ex)
         {
-            _logger.LogError(ex, "Erro ao deletar blob {BlobName}", blobName);
+            _logger.LogError(ex, "Failed to delete blob {BlobName}", blobName);
             throw new InvalidOperationException(
                 $"Failed to delete blob '{blobName}' from Azure Blob Storage (Status: {ex.Status})",
                 ex);

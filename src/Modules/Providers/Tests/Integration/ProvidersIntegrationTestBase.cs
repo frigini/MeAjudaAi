@@ -68,7 +68,6 @@ public abstract class ProvidersIntegrationTestBase : IAsyncLifetime
             .WithDatabase(options.Database.DatabaseName)
             .WithUsername(options.Database.Username)
             .WithPassword(options.Database.Password)
-            .WithPortBinding(0, true) // Porta aleatória
             .Build();
 
         await _container.StartAsync();

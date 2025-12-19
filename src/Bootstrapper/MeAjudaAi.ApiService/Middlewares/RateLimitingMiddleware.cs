@@ -203,6 +203,12 @@ public class RateLimitingMiddleware(
         // Correspondência simples de wildcard - pode ser melhorado para padrões mais complexos
         if (pattern.Contains('*'))
         {
+            // Primeiro verifica se o padrão já está no cache
+            if (_patternCache.TryGetValue(pattern, out var existingRegex))
+            {
+                return existingRegex.Value.IsMatch(requestPath);
+            }
+
             // Prevenir memory leak: limitar cache a MaxPatternCacheSize entradas
             if (_patternCache.Count >= MaxPatternCacheSize)
             {

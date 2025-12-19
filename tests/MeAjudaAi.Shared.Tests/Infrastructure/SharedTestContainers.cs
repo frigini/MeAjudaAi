@@ -82,7 +82,6 @@ public static class SharedTestContainers
                 .WithDatabase(_databaseOptions.DatabaseName)
                 .WithUsername(_databaseOptions.Username)
                 .WithPassword(_databaseOptions.Password)
-                .WithPortBinding(0, true) // Porta aleatória para evitar conflitos
                 .Build();
 
             // Azurite (Azure Storage Emulator) para testes de blob storage/documents

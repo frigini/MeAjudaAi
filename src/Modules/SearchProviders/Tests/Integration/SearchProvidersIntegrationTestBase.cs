@@ -38,7 +38,6 @@ public abstract class SearchProvidersIntegrationTestBase : IAsyncLifetime
             .WithDatabase($"search_test_{_testClassId}")
             .WithUsername("test_user")
             .WithPassword("test_password")
-            .WithPortBinding(0, true) // Porta aleatória
             .Build();
 
         await _container.StartAsync();
