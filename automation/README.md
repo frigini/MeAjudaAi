@@ -22,7 +22,7 @@ Configures basic continuous integration:
 ### Full CI/CD Setup (`setup-cicd.ps1`)
 Configures complete continuous integration and deployment:
 - Everything from CI-only setup
-- Automated deployment to staging/production
+- Automated deployment to production
 - Infrastructure provisioning
 - Release management workflows
 

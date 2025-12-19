@@ -13,7 +13,7 @@ public class ProviderId : ValueObject
     public ProviderId(Guid value)
     {
         if (value == Guid.Empty)
-            throw new ArgumentException("ProviderId cannot be empty");
+            throw new ArgumentException("ProviderId não pode ser vazio");
         Value = value;
     }
 

@@ -11,12 +11,12 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
 /// <summary>
-/// Handles requests to initiate document verification.
+/// Manipula solicitações para iniciar a verificação de documentos.
 /// </summary>
-/// <param name="repository">Document repository for data access.</param>
-/// <param name="backgroundJobService">Service for enqueuing background jobs.</param>
-/// <param name="httpContextAccessor">Accessor for HTTP context.</param>
-/// <param name="logger">Logger instance.</param>
+/// <param name="repository">Repositório de documentos para acesso a dados.</param>
+/// <param name="backgroundJobService">Serviço para enfileirar jobs em segundo plano.</param>
+/// <param name="httpContextAccessor">Acessor para o contexto HTTP.</param>
+/// <param name="logger">Instância do logger.</param>
 public class RequestVerificationCommandHandler(
     IDocumentRepository repository,
     IBackgroundJobService backgroundJobService,
@@ -41,7 +41,7 @@ public class RequestVerificationCommandHandler(
                 return Result.Failure(Error.NotFound($"Document with ID {command.DocumentId} not found"));
             }
 
-            // Resource-level authorization: user must match the ProviderId or have admin permissions
+            // Autorização no nível do recurso: o usuário deve corresponder ao ProviderId ou possuir permissões de administrador
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null)
                 return Result.Failure(Error.Unauthorized("HTTP context not available"));
@@ -54,10 +54,10 @@ public class RequestVerificationCommandHandler(
             if (string.IsNullOrEmpty(userId))
                 return Result.Failure(Error.Unauthorized("User ID not found in token"));
 
-            // Check if user matches the provider ID
+            // Verificar se o usuário corresponde ao ID do provedor
             if (!Guid.TryParse(userId, out var userGuid) || userGuid != document.ProviderId)
             {
-                // Check if user has admin role
+                // Verificar se o usuário possui o papel de administrador
                 var isAdmin = user.IsInRole("admin") || user.IsInRole("system-admin");
                 if (!isAdmin)
                 {
@@ -69,7 +69,7 @@ public class RequestVerificationCommandHandler(
                 }
             }
 
-            // Check if the document is in a valid state for verification request
+            // Verificar se o documento está em um estado válido para solicitação de verificação
             if (document.Status != EDocumentStatus.Uploaded &&
                 document.Status != EDocumentStatus.Failed)
             {
@@ -95,7 +95,7 @@ public class RequestVerificationCommandHandler(
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while requesting verification for document {DocumentId}", command.DocumentId);
+            _logger.LogError(ex, "Unexpected error requesting verification for document {DocumentId}", command.DocumentId);
             return Result.Failure(Error.Internal("Failed to request verification. Please try again later."));
         }
     }

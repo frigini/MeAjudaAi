@@ -22,6 +22,10 @@ public sealed class GetServiceCategoriesWithCountQueryHandler(
         // NOTA: Isso executa 2 * N consultas de contagem (uma para total, uma para ativo por categoria).
         // Para catálogos pequenos a médios isso é aceitável. Se isso se tornar um gargalo de performance
         // com muitas categorias, considere otimizar com uma consulta em lote ou agrupamento no repositório.
+        //
+        // DECISÃO (item #4 cleanup): Manter padrão atual.
+        // Otimização prematura seria desnecessária sem evidência de problema de performance.
+        // Implementação futura deve usar GroupBy em consulta única caso número de categorias cresça significativamente.
         foreach (var category in categories)
         {
             var totalCount = await serviceRepository.CountByCategoryAsync(

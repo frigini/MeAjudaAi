@@ -17,6 +17,21 @@ public class ValidateServicesEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("validate", ValidateAsync)
             .WithName("ValidateServices")
             .WithSummary("Validar múltiplos serviços")
+            .WithDescription("""
+                Valida a existência e status de uma lista de serviços.
+                
+                **Funcionalidade:**
+                - Verifica se todos os IDs existem no catálogo
+                - Retorna quais serviços são válidos e quais são inválidos
+                - Indica serviços inativos separadamente
+                
+                **Casos de Uso:**
+                - Validar serviços antes de adicionar a um provedor
+                - Verificação em lote para importação de dados
+                - Garantir integridade referencial entre módulos
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces<Response<ValidateServicesResponse>>(StatusCodes.Status200OK)
             .RequireAdmin();
 

@@ -15,6 +15,18 @@ public class DeactivateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/{id:guid}/deactivate", DeactivateAsync)
             .WithName("DeactivateServiceCategory")
             .WithSummary("Desativar categoria de serviço")
+            .WithDescription("""
+                Desativa uma categoria de serviços.
+                
+                **Efeitos:**
+                - Categoria não aparece em listagens públicas
+                - Impede criação de novos serviços nesta categoria
+                - Serviços existentes permanecem no sistema (soft-delete)
+                
+                **Nota:** Preferível à deleção quando há serviços associados.
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 

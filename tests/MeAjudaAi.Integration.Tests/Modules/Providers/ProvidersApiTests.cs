@@ -184,34 +184,67 @@ public class ProvidersApiTests : ApiTestBase
     [Fact]
     public async Task HealthCheck_ShouldIncludeProvidersDatabase()
     {
-        // Act
-        var response = await Client.GetAsync("/health");
+        // Act - /health/ready includes database checks, /health only has external services
+        var response = await Client.GetAsync("/health/ready");
 
         // Assert
-        if (response.IsSuccessStatusCode)
+        var allowedStatusCodes = new[] { HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable };
+        response.StatusCode.Should().BeOneOf(allowedStatusCodes,
+            because: "ready check can return 200 (healthy) or 503 (database unavailable)");
+        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
+            because: "health check should not crash with 500");
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        // Analisa como JSON para garantir que está bem formado
+        var healthResponse = JsonSerializer.Deserialize<JsonElement>(content);
+
+        // Verifica se o status de nível superior existe
+        healthResponse.TryGetProperty("status", out var statusElement).Should().BeTrue(
+            because: "health response should have status property");
+        var status = statusElement.GetString();
+        status.Should().NotBeNullOrEmpty(because: "health status should be present");
+
+        // Verifica se a entrada do health check de database existe
+        // API retorna 'checks' ao invés de 'entries'
+        if (healthResponse.TryGetProperty("checks", out var checks) &&
+            checks.ValueKind == JsonValueKind.Array)
         {
-            var content = await response.Content.ReadAsStringAsync();
+            var checksArray = checks.EnumerateArray().ToArray();
+            checksArray.Should().NotBeEmpty(because: "/health/ready should have health checks");
+            
+            var databaseCheck = checksArray
+                .FirstOrDefault(check =>
+                {
+                    if (check.TryGetProperty("name", out var nameElement))
+                    {
+                        var name = nameElement.GetString() ?? string.Empty;
+                        return name.Contains("database", StringComparison.OrdinalIgnoreCase) ||
+                               name.Contains("postgres", StringComparison.OrdinalIgnoreCase) ||
+                               name.Contains("npgsql", StringComparison.OrdinalIgnoreCase);
+                    }
+                    return false;
+                });
+            
+            databaseCheck.ValueKind.Should().NotBe(JsonValueKind.Undefined,
+                because: "/health/ready should include database/postgres health check");
 
-            // Analisa como JSON para garantir que está bem formado
-            var healthResponse = JsonSerializer.Deserialize<JsonElement>(content);
-
-            // Verifica se o status de nível superior existe e não está não saudável
-            healthResponse.TryGetProperty("status", out var statusElement).Should().BeTrue("Health response should have status property");
-            var status = statusElement.GetString();
-            status.Should().NotBe("Unhealthy", "Health status should not be Unhealthy");
-
-            // Verifica se a entrada do health check de database existe (providers não tem health check específico)
-            if (healthResponse.TryGetProperty("entries", out var entries))
+            // Optionally verify the database check's status for stronger guarantees
+            if (response.StatusCode == HttpStatusCode.OK &&
+                databaseCheck.TryGetProperty("status", out var dbStatusElement))
             {
-                var databaseEntry = entries.EnumerateObject()
-                    .FirstOrDefault(e => e.Name.Contains("database", StringComparison.OrdinalIgnoreCase));
-                databaseEntry.Should().NotBe(default, "Health check should include database entry");
+                var dbStatus = dbStatusElement.GetString();
+                dbStatus.Should().NotBeNullOrEmpty(
+                    because: "database health check should report a status when readiness is OK");
             }
-            else
-            {
-                // Fallback para correspondência de string se a estrutura de entradas for diferente
-                content.Should().Contain("database", "Health check should include database reference");
-            }
+        }
+        else
+        {
+            // If checks structure is missing/unexpected, fail explicitly with full response
+            Assert.Fail(
+                $"Health check response missing expected 'checks' array. " +
+                $"This may indicate a breaking change in the health check API. " +
+                $"Raw response: {content}");
         }
     }
 

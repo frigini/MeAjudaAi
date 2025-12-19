@@ -67,9 +67,9 @@
 - Keycloak: `keycloak-init-dev.sh`, `keycloak-init-prod.sh`
 - Docker: `setup-secrets.sh`, `verify-resources.sh`
 
-### `/automation/` (2 scripts ativos)
+### `/infrastructure/automation/` (2 scripts ativos)
 
-**Documentação:** [automation/README.md](../automation/README.md)
+**Documentação:** [infrastructure/automation/README.md](../infrastructure/automation/README.md)
 
 - `setup-cicd.ps1` - Setup completo CI/CD com Azure
 - `setup-ci-only.ps1` - Setup apenas CI sem custos

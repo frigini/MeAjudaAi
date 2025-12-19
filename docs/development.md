@@ -459,7 +459,7 @@ public class TestAuthenticationHandler : AuthenticationHandler<TestAuthenticatio
       "SkipPermissionValidation": false,
       "EnableCodeCoverage": true
     },
-    "Staging": {
+    "Production": {
       "UseInMemoryDatabase": false,
       "UseTestAuthentication": false,
       "SkipPermissionValidation": false

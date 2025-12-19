@@ -86,6 +86,60 @@ public sealed class LocationsModuleApiTests
     }
 
     [Fact]
+    public async Task IsAvailableAsync_WhenOperationCancelled_ShouldWrapInInvalidOperationException()
+    {
+        // Arrange
+        _mockCepLookupService
+            .Setup(x => x.LookupAsync(It.IsAny<Cep>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+
+        // Act
+        var act = () => _sut.IsAvailableAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*cancelled*");
+    }
+
+    [Fact]
+    public async Task GetAddressFromCepAsync_ShouldPropagateCancellationToken()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        
+        _mockCepLookupService
+            .Setup(x => x.LookupAsync(It.IsAny<Cep>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Address?)null);
+
+        // Act
+        await _sut.GetAddressFromCepAsync("01310100", cts.Token);
+
+        // Assert
+        _mockCepLookupService.Verify(
+            x => x.LookupAsync(It.IsAny<Cep>(), cts.Token),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetCoordinatesFromAddressAsync_ShouldPropagateCancellationToken()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        
+        _mockGeocodingService
+            .Setup(x => x.GetCoordinatesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((GeoPoint?)null);
+
+        // Act
+        await _sut.GetCoordinatesFromAddressAsync("Test Address", cts.Token);
+
+        // Assert
+        _mockGeocodingService.Verify(
+            x => x.GetCoordinatesAsync(It.IsAny<string>(), cts.Token),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task GetAddressFromCepAsync_WithValidCep_ShouldReturnSuccess()
     {
         // Arrange

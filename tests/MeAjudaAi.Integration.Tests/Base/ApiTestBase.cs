@@ -73,7 +73,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         Environment.SetEnvironmentVariable("Locations__ExternalApis__BrasilApi__BaseUrl", wireMockUrl);
         Environment.SetEnvironmentVariable("Locations__ExternalApis__OpenCep__BaseUrl", wireMockUrl);
         Environment.SetEnvironmentVariable("Locations__ExternalApis__Nominatim__BaseUrl", wireMockUrl);
-        Environment.SetEnvironmentVariable("Locations__ExternalApis__IBGE__BaseUrl", $"{wireMockUrl}/api/v1/localidades/");
+        Environment.SetEnvironmentVariable("Locations__ExternalApis__IBGE__BaseUrl", $"{wireMockUrl}/api/v1/localidades");
 
         _databaseFixture = new SimpleDatabaseFixture();
         await _databaseFixture.InitializeAsync();
@@ -117,14 +117,14 @@ public abstract class ApiTestBase : IAsyncLifetime
                         ["FeatureManagement:PushNotifications"] = "false",
                         ["FeatureManagement:StripePayments"] = "false",
                         ["FeatureManagement:MaintenanceMode"] = "false",
-                        // Geographic restriction: Only specific cities allowed, NOT entire states
-                        // This ensures fallback validation properly blocks non-allowed cities in same state
+                        // Geographic restriction: Cities with states in "City|State" format
+                        // This ensures proper validation when both city and state headers are provided
                         ["GeographicRestriction:AllowedStates:0"] = "MG",
                         ["GeographicRestriction:AllowedStates:1"] = "ES",
                         ["GeographicRestriction:AllowedStates:2"] = "RJ",
-                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé",
-                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna",
-                        ["GeographicRestriction:AllowedCities:2"] = "Linhares",
+                        ["GeographicRestriction:AllowedCities:0"] = "Muriaé|MG",
+                        ["GeographicRestriction:AllowedCities:1"] = "Itaperuna|RJ",
+                        ["GeographicRestriction:AllowedCities:2"] = "Linhares|ES",
                         ["GeographicRestriction:BlockedMessage"] = "Serviço indisponível na sua região. Disponível apenas em: {allowedRegions}"
                     });
                 });
@@ -210,10 +210,15 @@ public abstract class ApiTestBase : IAsyncLifetime
                     // IBGE-focused tests can override UseMockGeographicValidation to use real service with WireMock
                     if (UseMockGeographicValidation)
                     {
-                        var geoValidationDescriptor = services.FirstOrDefault(d =>
-                            d.ServiceType == typeof(IGeographicValidationService));
-                        if (geoValidationDescriptor != null)
-                            services.Remove(geoValidationDescriptor);
+                        // Remove ALL instances of IGeographicValidationService
+                        var geoValidationDescriptors = services
+                            .Where(d => d.ServiceType == typeof(IGeographicValidationService))
+                            .ToList();
+                        
+                        foreach (var descriptor in geoValidationDescriptors)
+                        {
+                            services.Remove(descriptor);
+                        }
 
                         // Registra mock com cidades piloto padrão (Scoped para isolamento entre testes)
                         services.AddScoped<IGeographicValidationService, MockGeographicValidationService>();
@@ -279,19 +284,38 @@ public abstract class ApiTestBase : IAsyncLifetime
         {
             try
             {
-                await locationsContext.Database.ExecuteSqlRawAsync(
-                    @"INSERT INTO locations.allowed_cities (""Id"", ""IbgeCode"", ""CityName"", ""StateSigla"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"", ""CreatedBy"", ""UpdatedBy"") 
-                      VALUES (gen_random_uuid(), {0}, {1}, {2}, true, {3}, {4}, 'system', NULL)",
-                    city.IbgeCode, city.CityName, city.State, DateTime.UtcNow, DateTime.UtcNow);
+                // Check if city already exists to avoid duplicate key errors
+                var exists = await locationsContext.AllowedCities
+                    .AnyAsync(c => c.CityName == city.CityName && c.StateSigla == city.State);
+                
+                if (exists)
+                {
+                    logger?.LogDebug("City {City}/{State} already exists, skipping", city.CityName, city.State);
+                    continue;
+                }
+
+                // Use EF Core entity instead of raw SQL to avoid case sensitivity issues
+                var allowedCity = new MeAjudaAi.Modules.Locations.Domain.Entities.AllowedCity(
+                    city.CityName,
+                    city.State,
+                    "system",
+                    city.IbgeCode);
+                
+                locationsContext.AllowedCities.Add(allowedCity);
+                await locationsContext.SaveChangesAsync();
+                
+                logger?.LogDebug("✅ Seeded city {City}/{State} (IBGE: {IbgeCode})", city.CityName, city.State, city.IbgeCode);
             }
-            catch (Npgsql.PostgresException ex) when (ex.SqlState == "23505") // 23505 = unique violation
+            catch (Exception ex)
             {
-                // Ignore duplicate key errors - city already exists
-                logger?.LogDebug("City {City}/{State} already exists, skipping", city.CityName, city.State);
+                logger?.LogError(ex, "❌ Failed to seed city {City}/{State}: {Message}", city.CityName, city.State, ex.Message);
+                // Clear the change tracker to recover from errors
+                locationsContext.ChangeTracker.Clear();
             }
         }
 
-        logger?.LogInformation("✅ Seeded {Count} test cities into allowed_cities table", testCities.Length);
+        var totalCount = await locationsContext.AllowedCities.CountAsync();
+        logger?.LogInformation("✅ Seeded test cities. Total cities in database: {Count}", totalCount);
     }
 
     private static async Task ApplyMigrationsAsync(
@@ -312,27 +336,27 @@ public abstract class ApiTestBase : IAsyncLifetime
             try
             {
                 await usersContext.Database.EnsureDeletedAsync();
-                logger?.LogInformation("🧹 Banco de dados existente limpo (tentativa {Attempt})", attempt);
+                logger?.LogInformation("🧹 Existing database cleaned (attempt {Attempt})", attempt);
                 break; // Sucesso, sai do loop
             }
             catch (Npgsql.PostgresException ex) when (ex.SqlState == "57P03") // 57P03 = database starting up
             {
                 if (attempt == maxRetries)
                 {
-                    logger?.LogError(ex, "❌ PostgreSQL ainda iniciando após {MaxRetries} tentativas", maxRetries);
+                    logger?.LogError(ex, "❌ PostgreSQL still initializing after {MaxRetries} attempts", maxRetries);
                     var totalWaitTime = maxRetries * (maxRetries + 1) / 2; // Sum: 1+2+3+...+10 = 55 seconds
                     throw new InvalidOperationException($"PostgreSQL não ficou pronto após {maxRetries} tentativas (~{totalWaitTime} segundos)", ex);
                 }
 
                 var delay = baseDelay * attempt; // Linear backoff: 1s, 2s, 3s, etc.
                 logger?.LogWarning(
-                    "⚠️ PostgreSQL iniciando... Tentativa {Attempt}/{MaxRetries}. Aguardando {Delay}s",
+                    "⚠️ PostgreSQL initializing... Attempt {Attempt}/{MaxRetries}. Waiting {Delay}s",
                     attempt, maxRetries, delay.TotalSeconds);
                 await Task.Delay(delay);
             }
             catch (Exception ex)
             {
-                logger?.LogError(ex, "❌ Falha crítica ao limpar banco existente: {Message}", ex.Message);
+                logger?.LogError(ex, "❌ Critical failure cleaning existing database: {Message}", ex.Message);
                 throw new InvalidOperationException("Não foi possível limpar o banco de dados antes dos testes", ex);
             }
         }
@@ -421,16 +445,16 @@ public abstract class ApiTestBase : IAsyncLifetime
         try
         {
             var message = description != null
-                ? $"🔄 Aplicando migrações do módulo {moduleName} ({description})..."
-                : $"🔄 Aplicando migrações do módulo {moduleName}...";
+                ? $"🔄 Applying {moduleName} module migrations ({description})..."
+                : $"🔄 Applying {moduleName} module migrations...";
             logger?.LogInformation(message);
 
             await context.Database.MigrateAsync();
-            logger?.LogInformation("✅ Migrações do banco {Module} completadas com sucesso", moduleName);
+            logger?.LogInformation("✅ {Module} database migrations completed successfully", moduleName);
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "❌ Falha ao aplicar migrações do {Module}: {Message}", moduleName, ex.Message);
+            logger?.LogError(ex, "❌ Failed to apply {Module} migrations: {Message}", moduleName, ex.Message);
             throw new InvalidOperationException($"Não foi possível aplicar migrações do banco {moduleName}", ex);
         }
     }
@@ -447,11 +471,11 @@ public abstract class ApiTestBase : IAsyncLifetime
         try
         {
             var count = await countQuery();
-            logger?.LogInformation("Verificação do banco {Module} bem-sucedida - Contagem: {Count}", moduleName, count);
+            logger?.LogInformation("{Module} database verification successful - Count: {Count}", moduleName, count);
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "Verificação do banco {Module} falhou", moduleName);
+            logger?.LogError(ex, "{Module} database verification failed", moduleName);
             throw new InvalidOperationException($"Banco {moduleName} não foi inicializado corretamente", ex);
         }
     }

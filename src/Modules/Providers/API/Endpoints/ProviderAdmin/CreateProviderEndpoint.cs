@@ -82,7 +82,7 @@ public class CreateProviderEndpoint : BaseEndpoint, IEndpoint
         CancellationToken cancellationToken)
     {
         if (request is null)
-            return Results.BadRequest("Request body is required");
+            return Results.BadRequest("Corpo da requisição é obrigatório");
 
         var command = request.ToCommand();
         var result = await commandDispatcher.SendAsync<CreateProviderCommand, Result<ProviderDto>>(

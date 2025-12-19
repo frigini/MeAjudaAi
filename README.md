@@ -2,7 +2,7 @@
 
 Uma plataforma abrangente de serviços construída com .NET Aspire, projetada para conectar prestadores de serviços com clientes usando arquitetura monólito modular.
 
-<!-- Last updated: October 2, 2025 - Workflow syntax fixes applied -->
+<!-- Last updated: December 14, 2025 - Sprint 4 Health Checks + Data Seeding -->
 
 ## 🎯 Visão Geral
 
@@ -67,7 +67,6 @@ O projeto foi organizado para facilitar navegação e manutenção:
 ```
 📦 MeAjudaAi/
 ├── 📁 api/              # Especificações de API (OpenAPI)
-├── 📁 automation/       # Scripts de automação CI/CD
 ├── 📁 build/           # Scripts de build e Makefile
 ├── 📁 config/          # Configurações de ferramentas
 │   ├── .editorconfig  # Estilo de código
@@ -83,12 +82,15 @@ O projeto foi organizado para facilitar navegação e manutenção:
 │   ├── modules/          # Documentação por módulo
 │   └── testing/          # Guias de testes
 ├── 📁 infrastructure/  # IaC e configurações de infraestrutura
+│   ├── automation/     # Scripts de setup CI/CD
+│   ├── compose/        # Docker Compose configs
+│   ├── database/       # Database init scripts + seeds
+│   └── keycloak/       # Keycloak configuration
 ├── 📁 scripts/         # Scripts de desenvolvimento
 ├── 📁 src/             # Código fonte da aplicação
 ├── 📁 tests/           # Testes automatizados
 └── 📁 tools/           # Ferramentas de desenvolvimento
-    ├── MigrationTool/       # CLI para migrações de banco
-    └── api-collections/     # Gerador de coleções Postman
+    └── api-collections/     # Gerador de coleções Bruno/Postman
 ```
 
 ### Diretórios Principais
@@ -98,11 +100,10 @@ O projeto foi organizado para facilitar navegação e manutenção:
 | `src/` | Código fonte da aplicação | Módulos, APIs, domínios |
 | `tests/` | Testes unitários e integração | xUnit v3, testes por módulo |
 | `docs/` | Documentação técnica | Arquitetura, guias, ADRs |
-| `infrastructure/` | Infraestrutura como código | Bicep, Docker, Kubernetes |
+| `infrastructure/` | Infraestrutura como código | Bicep, Docker, database, CI/CD automation |
 | `scripts/` | Scripts de desenvolvimento | Exportar API, testes, deploy |
 | `build/` | Build e automação | Makefile, scripts de CI |
 | `config/` | Configurações de ferramentas | Linting, segurança, cobertura |
-| `automation/` | Setup de CI/CD | Scripts de configuração |
 
 ## 🚀 Início Rápido
 

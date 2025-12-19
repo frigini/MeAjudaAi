@@ -30,53 +30,20 @@ public class MockGeographicValidationService : IGeographicValidationService
     /// <summary>
     /// Validates if a city is in the allowed list using case-insensitive matching.
     /// Simplified implementation for testing - does not call IBGE API.
-    /// Supports both "City|State" and plain "City" formats in allowed cities list.
     /// </summary>
     /// <param name="cityName">Name of the city to validate.</param>
     /// <param name="stateSigla">Optional state abbreviation (e.g., "MG", "RJ").</param>
-    /// <param name="allowedCities">List of allowed cities. If null, uses instance defaults. If empty, blocks all.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     public Task<bool> ValidateCityAsync(
         string cityName,
         string? stateSigla,
-        IReadOnlyCollection<string> allowedCities,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(cityName))
             return Task.FromResult(false);
 
-        // Use provided allowed cities or fall back to instance list
-        // null = use defaults, empty = block all
-        var citiesToCheck = allowedCities == null ? _allowedCities :
-                           allowedCities.Any() ? allowedCities : [];
-
-        // Check if city is allowed - supports "City|State" and "City" formats
-        var isAllowed = citiesToCheck.Any(allowedEntry =>
-        {
-            // Parse allowed entry (supports "City|State" or "City")
-            var parts = allowedEntry.Split('|');
-            var allowedCity = parts[0].Trim();
-            var allowedState = parts.Length > 1 ? parts[1].Trim() : null;
-
-            // Match city name (case-insensitive)
-            var cityMatches = string.Equals(allowedCity, cityName, StringComparison.OrdinalIgnoreCase);
-
-            if (!cityMatches)
-                return false;
-
-            // If both have state information, validate state match
-            if (!string.IsNullOrEmpty(stateSigla) && !string.IsNullOrEmpty(allowedState))
-            {
-                return string.Equals(allowedState, stateSigla, StringComparison.OrdinalIgnoreCase);
-            }
-
-            // If user provided state but config doesn't have it, accept (city-only match)
-            // If config has state but user didn't provide it, accept (city-only match)
-            // If neither has state, accept (city-only match)
-            return true;
-        });
-
-        return Task.FromResult(isAllowed);
+        // Simple check: city is in allowed list (case-insensitive)
+        return Task.FromResult(_allowedCities.Contains(cityName));
     }
 
     /// <summary>

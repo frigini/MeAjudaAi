@@ -158,9 +158,7 @@ public class GetUserByUsernameQueryHandlerTests
         // Arrange
         var username = "testuser";
         var query = new GetUserByUsernameQuery(username);
-#pragma warning disable CA2000 // CancellationTokenSource em teste é descartado ao fim do método
         var cancellationTokenSource = new CancellationTokenSource();
-#pragma warning restore CA2000
         await cancellationTokenSource.CancelAsync();
 
         _userRepositoryMock

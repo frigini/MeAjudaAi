@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.ApiService.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -64,24 +65,6 @@ public class EnvironmentSpecificExtensionsTests
         // Assert
         services.Should().NotBeNull();
         // Testing services should be minimal (configured by tests themselves)
-        var provider = services.BuildServiceProvider();
-        provider.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void AddEnvironmentSpecificServices_InStaging_ShouldNotAddSpecificServices()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder().Build();
-        var environment = CreateEnvironment("Staging");
-
-        // Act
-        services.AddEnvironmentSpecificServices(configuration, environment);
-
-        // Assert
-        services.Should().NotBeNull();
-        // No specific services for Staging (fallback behavior)
         var provider = services.BuildServiceProvider();
         provider.Should().NotBeNull();
     }
@@ -172,3 +155,4 @@ public class EnvironmentSpecificExtensionsTests
         return mock.Object;
     }
 }
+

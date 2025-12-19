@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 using MeAjudaAi.Modules.Documents.Domain.Entities;

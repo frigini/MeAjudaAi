@@ -28,7 +28,7 @@ public class UserIdTests
         // Act & Assert
         var act = () => new UserId(emptyGuid);
         act.Should().Throw<ArgumentException>()
-            .WithMessage("UserId cannot be empty");
+            .WithMessage("*UserId não pode ser vazio*");
     }
 
     [Fact]

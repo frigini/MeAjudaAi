@@ -4,7 +4,7 @@ using MeAjudaAi.Shared.Functional;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 
 /// <summary>
-/// Command to move a service to a different category.
+/// Comando para mover um serviço para uma categoria diferente.
 /// </summary>
 public sealed record ChangeServiceCategoryCommand(
     Guid ServiceId,

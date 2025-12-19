@@ -3,11 +3,11 @@ using MeAjudaAi.Shared.Domain;
 namespace MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 
 /// <summary>
-/// Provider's qualification or certification.
-/// NOTE: IsExpired uses DateTime.UtcNow directly because:
-/// 1. It's a Value Object - should not have injected dependencies
-/// 2. It's a calculated convenience property, not part of the domain model
-/// 3. For critical business logic, use domain methods that receive the date as a parameter
+/// Qualificação ou certificação do prestador de serviços.
+/// NOTA: IsExpired usa DateTime.UtcNow diretamente porque:
+/// 1. É um Value Object - não deve ter dependências injetadas
+/// 2. É uma propriedade de conveniência calculada, não parte do modelo de domínio
+/// 3. Para lógica de negócio crítica, use métodos de domínio que recebem a data como parâmetro
 /// </summary>
 public class Qualification : ValueObject
 {
@@ -19,7 +19,7 @@ public class Qualification : ValueObject
     public string? DocumentNumber { get; private set; }
 
     /// <summary>
-    /// Private constructor for Entity Framework
+    /// Construtor privado para Entity Framework
     /// </summary>
     private Qualification()
     {
@@ -35,11 +35,11 @@ public class Qualification : ValueObject
         string? documentNumber = null)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Qualification name cannot be empty", nameof(name));
+            throw new ArgumentException("Nome da qualificação não pode ser vazio", nameof(name));
 
         // Valida se a data de expiração não é anterior à data de emissão
         if (issueDate.HasValue && expirationDate.HasValue && expirationDate.Value < issueDate.Value)
-            throw new ArgumentException("Expiration date cannot be before issue date", nameof(expirationDate));
+            throw new ArgumentException("Data de expiração não pode ser anterior à data de emissão", nameof(expirationDate));
 
         Name = name.Trim();
         Description = description?.Trim();
@@ -50,15 +50,15 @@ public class Qualification : ValueObject
     }
 
     /// <summary>
-    /// Checks if the qualification is expired at a specific reference date.
-    /// This method enables deterministic testing of expiration logic.
+    /// Verifica se a qualificação está expirada em uma data de referência específica.
+    /// Este método permite testes determinísticos da lógica de expiração.
     /// </summary>
     public bool IsExpiredAt(DateTime referenceDate) =>
         ExpirationDate.HasValue && ExpirationDate.Value < referenceDate;
 
     /// <summary>
-    /// Checks if the qualification is currently expired.
-    /// Uses DateTime.UtcNow for convenience in production code.
+    /// Verifica se a qualificação está atualmente expirada.
+    /// Usa DateTime.UtcNow por conveniência no código de produção.
     /// </summary>
     public bool IsExpired => ExpirationDate.HasValue && ExpirationDate.Value < DateTime.UtcNow;
 

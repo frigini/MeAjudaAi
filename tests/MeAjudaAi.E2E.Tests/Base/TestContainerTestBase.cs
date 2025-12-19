@@ -98,6 +98,10 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Error",
                         ["RabbitMQ:Enabled"] = "false",
                         ["Keycloak:Enabled"] = "false",
+                        // Disable external services health checks in E2E tests
+                        ["ExternalServices:Keycloak:Enabled"] = "false",
+                        ["ExternalServices:PaymentGateway:Enabled"] = "false",
+                        ["ExternalServices:Geolocation:Enabled"] = "false",
                         ["Cache:Enabled"] = "false", // Disable Redis for now
                         ["Cache:ConnectionString"] = _redisContainer.GetConnectionString(),
                         // Desabilitar completamente Rate Limiting nos testes E2E

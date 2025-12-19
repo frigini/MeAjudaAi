@@ -4,49 +4,49 @@ using MeAjudaAi.Shared.Functional;
 namespace MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
 
 /// <summary>
-/// Public API contract for the ServiceCatalogs module.
-/// Provides access to service categories and services catalog for other modules.
+/// Contrato de API pública para o módulo ServiceCatalogs.
+/// Fornece acesso a categorias de serviços e catálogo de serviços para outros módulos.
 /// </summary>
 public interface IServiceCatalogsModuleApi : IModuleApi
 {
-    // ============ Service Categories ============
+    // ============ Categorias de Serviços ============
 
     /// <summary>
-    /// Retrieves a service category by ID.
+    /// Recupera uma categoria de serviço por ID.
     /// </summary>
     Task<Result<ModuleServiceCategoryDto?>> GetServiceCategoryByIdAsync(
         Guid categoryId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves all service categories.
+    /// Recupera todas as categorias de serviços.
     /// </summary>
-    /// <param name="activeOnly">If true, returns only active categories</param>
+    /// <param name="activeOnly">Se verdadeiro, retorna apenas categorias ativas</param>
     /// <param name="cancellationToken"></param>
     Task<Result<IReadOnlyList<ModuleServiceCategoryDto>>> GetAllServiceCategoriesAsync(
         bool activeOnly = true,
         CancellationToken cancellationToken = default);
 
-    // ============ Services ============
+    // ============ Serviços ============
 
     /// <summary>
-    /// Retrieves a service by ID.
+    /// Recupera um serviço por ID.
     /// </summary>
     Task<Result<ModuleServiceDto?>> GetServiceByIdAsync(
         Guid serviceId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves all services.
+    /// Recupera todos os serviços.
     /// </summary>
-    /// <param name="activeOnly">If true, returns only active services</param>
+    /// <param name="activeOnly">Se verdadeiro, retorna apenas serviços ativos</param>
     /// <param name="cancellationToken"></param>
     Task<Result<IReadOnlyList<ModuleServiceListDto>>> GetAllServicesAsync(
         bool activeOnly = true,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves all services in a specific category.
+    /// Recupera todos os serviços de uma categoria específica.
     /// </summary>
     Task<Result<IReadOnlyList<ModuleServiceDto>>> GetServicesByCategoryAsync(
         Guid categoryId,
@@ -54,16 +54,16 @@ public interface IServiceCatalogsModuleApi : IModuleApi
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Checks if a service exists and is active.
+    /// Verifica se um serviço existe e está ativo.
     /// </summary>
     Task<Result<bool>> IsServiceActiveAsync(
         Guid serviceId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Validates if all provided service IDs exist and are active.
+    /// Valida se todos os IDs de serviços fornecidos existem e estão ativos.
     /// </summary>
-    /// <returns>Result containing validation outcome and list of invalid service IDs</returns>
+    /// <returns>Resultado contendo o resultado da validação e lista de IDs de serviços inválidos</returns>
     Task<Result<ModuleServiceValidationResultDto>> ValidateServicesAsync(
         IReadOnlyCollection<Guid> serviceIds,
         CancellationToken cancellationToken = default);

@@ -7,6 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Documents.Application.Handlers;
 
+/// <summary>
+/// Handles queries to retrieve all documents for a specific provider.
+/// </summary>
+/// <param name="documentRepository">Document repository for data access.</param>
 public class GetProviderDocumentsQueryHandler(
     IDocumentRepository documentRepository) : IQueryHandler<GetProviderDocumentsQuery, IEnumerable<DocumentDto>>
 {

@@ -8,6 +8,7 @@ using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
+using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.Enums;
 using MeAjudaAi.Shared.Extensions;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Queries;
@@ -405,5 +406,27 @@ public sealed class ProvidersModuleApi(
     private static DocumentDto? GetMainDocument(ProviderDto providerDto)
     {
         return GetPrimaryDocument(providerDto) ?? providerDto.Documents?.FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Verifica se algum provider oferece um serviço específico
+    /// </summary>
+    /// <param name="serviceId">ID do serviço</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>True se existe ao menos um provider oferecendo o serviço</returns>
+    public async Task<Result<bool>> HasProvidersOfferingServiceAsync(Guid serviceId, CancellationToken cancellationToken = default)
+    {
+        logger.LogDebug("Checking if any provider offers service {ServiceId}", serviceId);
+
+        try
+        {
+            var hasProviders = await providerRepository.HasProvidersWithServiceAsync(serviceId, cancellationToken);
+            return Result<bool>.Success(hasProviders);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error checking if providers offer service {ServiceId}", serviceId);
+            return Result<bool>.Failure($"Erro ao verificar se os prestadores oferecem o serviço: {ex.Message}");
+        }
     }
 }

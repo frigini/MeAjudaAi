@@ -65,7 +65,7 @@ internal class RabbitMqInfrastructureManager : IRabbitMqInfrastructureManager, I
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Falha ao criar infraestrutura RabbitMQ");
+            _logger.LogError(ex, "Failed to create RabbitMQ infrastructure");
             throw new InvalidOperationException(
                 "Failed to create RabbitMQ infrastructure (exchanges, queues, and bindings for registered event types)",
                 ex);

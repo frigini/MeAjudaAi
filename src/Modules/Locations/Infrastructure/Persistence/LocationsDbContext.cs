@@ -6,36 +6,36 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 
 /// <summary>
-/// Database context for the Locations module.
-/// Manages allowed cities and geographic validation data.
+/// Contexto de banco de dados para o módulo Locations.
+/// Gerencia cidades permitidas e dados de validação geográfica.
 /// </summary>
 public class LocationsDbContext : BaseDbContext
 {
     public DbSet<AllowedCity> AllowedCities => Set<AllowedCity>();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LocationsDbContext"/> class for design-time operations (migrations).
+    /// Inicializa uma nova instância da classe <see cref="LocationsDbContext"/> para operações design-time (migrações).
     /// </summary>
-    /// <param name="options">The options to be used by the DbContext.</param>
+    /// <param name="options">As opções a serem usadas pelo DbContext.</param>
     public LocationsDbContext(DbContextOptions<LocationsDbContext> options) : base(options)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LocationsDbContext"/> class for runtime with dependency injection.
+    /// Inicializa uma nova instância da classe <see cref="LocationsDbContext"/> para runtime com injeção de dependência.
     /// </summary>
-    /// <param name="options">The options to be used by the DbContext.</param>
-    /// <param name="domainEventProcessor">The domain event processor.</param>
+    /// <param name="options">As opções a serem usadas pelo DbContext.</param>
+    /// <param name="domainEventProcessor">O processador de eventos de domínio.</param>
     public LocationsDbContext(DbContextOptions<LocationsDbContext> options, IDomainEventProcessor domainEventProcessor) : base(options, domainEventProcessor)
     {
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Set default schema for this module
+        // Define schema padrão para este módulo
         modelBuilder.HasDefaultSchema("locations");
 
-        // Apply all configurations from current assembly
+        // Aplica todas as configurações do assembly atual
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(LocationsDbContext).Assembly);
 
         base.OnModelCreating(modelBuilder);
@@ -45,8 +45,8 @@ public class LocationsDbContext : BaseDbContext
     {
         base.OnConfiguring(optionsBuilder);
 
-        // Suppress pending model changes warning in test environment
-        // This is needed because test environments may have slightly different configurations
+        // Suprime warning de modelo pendente em ambiente de teste
+        // Isso é necessário porque ambientes de teste podem ter configurações ligeiramente diferentes
         var isTestEnvironment = Environment.GetEnvironmentVariable("INTEGRATION_TESTS") == "true";
         if (isTestEnvironment)
         {
@@ -57,13 +57,13 @@ public class LocationsDbContext : BaseDbContext
 
     protected override Task<List<IDomainEvent>> GetDomainEventsAsync(CancellationToken cancellationToken = default)
     {
-        // Locations module currently has no entities with domain events
-        // AllowedCity is a simple CRUD entity without business events
+        // Módulo Locations atualmente não possui entidades com eventos de domínio
+        // AllowedCity é uma entidade CRUD simples sem eventos de negócio
         return Task.FromResult(new List<IDomainEvent>());
     }
 
     protected override void ClearDomainEvents()
     {
-        // No domain events to clear in Locations module
+        // Nenhum evento de domínio para limpar no módulo Locations
     }
 }

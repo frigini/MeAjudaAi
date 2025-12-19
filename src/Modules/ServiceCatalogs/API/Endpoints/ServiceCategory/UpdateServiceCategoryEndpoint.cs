@@ -18,6 +18,21 @@ public class UpdateServiceCategoryEndpoint : BaseEndpoint, IEndpoint
         => app.MapPut("/{id:guid}", UpdateAsync)
             .WithName("UpdateServiceCategory")
             .WithSummary("Atualizar categoria de serviço")
+            .WithDescription("""
+                Atualiza as informações de uma categoria existente.
+                
+                **Validações:**
+                - ID não pode ser vazio
+                - Categoria deve existir
+                - Nome é obrigatório (máximo 100 caracteres)
+                - Descrição opcional (máximo 500 caracteres)
+                - DisplayOrder deve ser >= 0
+                
+                **Nota:** Requer atualização completa (full-update pattern).
+                Todos os campos devem ser fornecidos.
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 

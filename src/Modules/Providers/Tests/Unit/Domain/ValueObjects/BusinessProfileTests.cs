@@ -61,7 +61,7 @@ public class BusinessProfileTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*Legal name cannot be empty*")
+            .WithMessage("*Razão social não pode ser vazia*")
             .And.ParamName.Should().Be("legalName");
     }
 

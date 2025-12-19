@@ -3,6 +3,8 @@ using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Attributes;
+using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Contracts;

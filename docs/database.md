@@ -185,6 +185,72 @@ dotnet ef database update AddUserProfile --context UsersDbContext
 # Remove last migration for Users module
 dotnet ef migrations remove --context UsersDbContext
 ```
+
+### Controle de Migrations em Produção
+
+Por padrão, cada módulo aplica suas migrations automaticamente no startup. Para ambientes de produção com múltiplas instâncias ou pipelines de deployment controlados, você pode desabilitar migrations automáticas usando a variável de ambiente `APPLY_MIGRATIONS`:
+
+```bash
+# Desabilitar migrations automáticas (recomendado para produção)
+APPLY_MIGRATIONS=false
+
+# Habilitar migrations automáticas (padrão em desenvolvimento)
+APPLY_MIGRATIONS=true
+# ou simplesmente não definir a variável
+```
+
+**Quando usar `APPLY_MIGRATIONS=false`:**
+- ✅ Ambientes de produção com múltiplas instâncias (evita race conditions)
+- ✅ Deployments controlados via pipeline de CI/CD
+- ✅ Blue-green deployments onde migrations devem rodar antes do switch
+- ✅ Ambientes que exigem aprovação manual de mudanças no schema
+
+**Implementação por Módulo:**
+
+Cada módulo implementa o controle em seu arquivo `API/Extensions.cs`:
+
+```csharp
+private static void EnsureDatabaseMigrations(WebApplication app)
+{
+    // Pular em ambientes de teste
+    if (app.Environment.IsEnvironment("Test") || app.Environment.IsEnvironment("Testing"))
+    {
+        return;
+    }
+
+    // Controle via variável de ambiente
+    var applyMigrations = Environment.GetEnvironmentVariable("APPLY_MIGRATIONS");
+    if (!string.IsNullOrEmpty(applyMigrations) && 
+        bool.TryParse(applyMigrations, out var shouldApply) && !shouldApply)
+    {
+        logger?.LogInformation("Migrações automáticas desabilitadas via APPLY_MIGRATIONS=false");
+        return;
+    }
+
+    // Aplicar migrations...
+    context.Database.Migrate();
+}
+```
+
+**Aplicar Migrations via Pipeline:**
+
+```bash
+# No seu pipeline de CI/CD, antes do deployment
+dotnet ef database update --context DocumentsDbContext --connection "$CONNECTION_STRING"
+dotnet ef database update --context UsersDbContext --connection "$CONNECTION_STRING"
+dotnet ef database update --context ProvidersDbContext --connection "$CONNECTION_STRING"
+# ... outros módulos
+
+# Depois fazer o deployment com APPLY_MIGRATIONS=false
+```
+
+**Módulos que implementam este controle:**
+- ✅ Documents
+- ⏳ Users (pendente)
+- ⏳ Providers (pendente)
+- ⏳ ServiceCatalogs (pendente)
+- ⏳ Locations (pendente)
+
 ## 🌐 Cross-Module Access Strategies
 
 ### Option 1: Database Views (Current)
@@ -370,7 +436,7 @@ else
 |---|---|---|
 | **Desenvolvimento** | `EnableSchemaIsolation: false` | Usa usuário admin padrão |
 | **Teste** | `EnableSchemaIsolation: false` | TestContainers com um único usuário |
-| **Staging** | `EnableSchemaIsolation: true` | Usuário `users_role` dedicado |
+
 | **Produção** | `EnableSchemaIsolation: true` | Máxima segurança para Users |
 
 ### 🛡️ Estrutura de Segurança

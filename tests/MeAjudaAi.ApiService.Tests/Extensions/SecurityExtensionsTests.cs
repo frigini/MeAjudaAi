@@ -1,6 +1,8 @@
 using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.ApiService.Options.RateLimit;
+using MeAjudaAi.ApiService.Services.HostedServices;
 using MeAjudaAi.Modules.Users.Infrastructure.Identity.Keycloak;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -776,3 +778,4 @@ public class SecurityExtensionsTests
 
     #endregion
 }
+

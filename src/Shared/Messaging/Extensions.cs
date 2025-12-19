@@ -1,7 +1,7 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using MeAjudaAi.Shared.Constants;
-using MeAjudaAi.Shared.Messaging.Factory;
+using MeAjudaAi.Shared.Messaging.NoOp.Factory;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging.Strategy;

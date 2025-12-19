@@ -210,6 +210,16 @@ public sealed class ProviderRepository(ProvidersDbContext context) : IProviderRe
             : (true, result.VerificationStatus);
     }
 
+    /// <summary>
+    /// Verifica se existem prestadores de serviços que oferecem um serviço específico.
+    /// </summary>
+    public async Task<bool> HasProvidersWithServiceAsync(Guid serviceId, CancellationToken cancellationToken = default)
+    {
+        return await context.Providers
+            .Where(p => !p.IsDeleted)
+            .AnyAsync(p => p.Services.Any(s => s.ServiceId == serviceId), cancellationToken);
+    }
+
     private static void ValidateSearchInput(string input, string paramName)
     {
         if (input.Contains('%') || input.Contains('_'))

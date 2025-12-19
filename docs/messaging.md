@@ -67,7 +67,7 @@ public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
         }
         else
         {
-            // STAGING/OUTROS: NoOp por segurança
+            // OUTROS: NoOp por segurança
             return _serviceProvider.GetRequiredService<NoOpMessageBus>();
         }
     }

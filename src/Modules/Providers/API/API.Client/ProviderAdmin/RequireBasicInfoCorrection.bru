@@ -1,0 +1,116 @@
+meta {
+  name: Require Basic Info Correction
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/api/v1/providers/{{providerId}}/require-basic-info-correction
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "reason": "Informações de contato incompletas. Por favor, adicione telefone comercial e endereço de e-mail profissional."
+  }
+}
+
+docs {
+  # Require Basic Info Correction
+  
+  Retorna um prestador para correção de informações básicas durante o processo de verificação de documentos.
+  
+  ## Autorização
+  - **Política**: AdminOnly
+  - **Requer token**: Sim
+  - **Roles permitidas**: Admin, Verificador
+  
+  ## Parâmetros
+  - **providerId** (path): ID do prestador (GUID)
+  - **reason** (body): Motivo detalhado da correção necessária
+  
+  ## Request Body
+  ```json
+  {
+    "reason": "Motivo detalhado para a correção (obrigatório)"
+  }
+  ```
+  
+  ## Quando Usar
+  - Informações básicas incorretas ou incompletas
+  - Inconsistências identificadas durante verificação de documentos
+  - Dados empresariais que precisam ser atualizados
+  - Informações de contato inválidas
+  
+  ## Efeitos
+  - **Status**: PendingDocumentVerification → PendingBasicInfo
+  - **Auditoria**: RequestedBy extraído do contexto de autenticação
+  - **Notificação**: Prestador notificado com motivo da correção (futuro)
+  
+  ## Fluxo Completo
+  1. Admin/Verificador identifica erro nas informações básicas
+  2. Envia requisição com motivo detalhado
+  3. Sistema retorna prestador para status PendingBasicInfo
+  4. Prestador recebe notificação e atualiza informações
+  5. Prestador conclui informações básicas novamente
+  6. Sistema retorna para verificação de documentos
+  
+  ## Validações
+  - Prestador deve existir
+  - Prestador deve estar em PendingDocumentVerification
+  - Motivo não pode ser vazio
+  - Solicitante deve ter permissão administrativa
+  
+  ## Resposta Esperada
+  
+  **200 OK**
+  ```json
+  {
+    "message": "Correção de informações básicas solicitada com sucesso"
+  }
+  ```
+  
+  **400 Bad Request**
+  ```json
+  {
+    "error": {
+      "code": "VALIDATION_ERROR",
+      "message": "Motivo da correção é obrigatório",
+      "correlationId": "..."
+    }
+  }
+  ```
+  
+  **404 Not Found**
+  ```json
+  {
+    "error": {
+      "code": "PROVIDER_NOT_FOUND",
+      "message": "Prestador não encontrado",
+      "correlationId": "..."
+    }
+  }
+  ```
+  
+  **401 Unauthorized**
+  - Token inválido ou expirado
+  
+  **403 Forbidden**
+  - Usuário sem permissão administrativa
+  
+  ## Observações
+  - Campo `requestedBy` é extraído automaticamente do token JWT (claims: name, sub ou email)
+  - Operação gera auditoria completa
+  - Prestador pode ser retornado múltiplas vezes se necessário
+  - Motivo deve ser claro e específico para facilitar correção
+}

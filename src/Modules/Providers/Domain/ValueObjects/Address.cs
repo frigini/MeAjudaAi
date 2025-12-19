@@ -41,19 +41,19 @@ public class Address : ValueObject
         string? complement = null)
     {
         if (string.IsNullOrWhiteSpace(street))
-            throw new ArgumentException("Street cannot be empty", nameof(street));
+            throw new ArgumentException("Rua não pode ser vazia", nameof(street));
         if (string.IsNullOrWhiteSpace(number))
-            throw new ArgumentException("Number cannot be empty", nameof(number));
+            throw new ArgumentException("Número não pode ser vazio", nameof(number));
         if (string.IsNullOrWhiteSpace(neighborhood))
-            throw new ArgumentException("Neighborhood cannot be empty", nameof(neighborhood));
+            throw new ArgumentException("Bairro não pode ser vazio", nameof(neighborhood));
         if (string.IsNullOrWhiteSpace(city))
-            throw new ArgumentException("City cannot be empty", nameof(city));
+            throw new ArgumentException("Cidade não pode ser vazia", nameof(city));
         if (string.IsNullOrWhiteSpace(state))
-            throw new ArgumentException("State cannot be empty", nameof(state));
+            throw new ArgumentException("Estado não pode ser vazio", nameof(state));
         if (string.IsNullOrWhiteSpace(zipCode))
-            throw new ArgumentException("ZipCode cannot be empty", nameof(zipCode));
+            throw new ArgumentException("CEP não pode ser vazio", nameof(zipCode));
         if (string.IsNullOrWhiteSpace(country))
-            throw new ArgumentException("Country cannot be empty", nameof(country));
+            throw new ArgumentException("País não pode ser vazio", nameof(country));
 
         Street = street.Trim();
         Number = number.Trim();

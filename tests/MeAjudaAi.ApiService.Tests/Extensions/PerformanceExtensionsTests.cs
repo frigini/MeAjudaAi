@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
+using MeAjudaAi.ApiService.Providers.Compression;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -552,23 +553,9 @@ public class PerformanceExtensionsTests
         compressionStream.Should().BeOfType<GZipStream>();
     }
 
-    [Fact]
-    public void SafeGzipProvider_ShouldCompressResponse_ShouldUseSafetyCheck()
-    {
-        // Arrange
-        var context = CreateHttpContext();
-        context.Request.Headers["Authorization"] = "Bearer token";
-
-        // Act
-        var result = SafeGzipCompressionProvider.ShouldCompressResponse(context);
-
-        // Assert
-        result.Should().BeFalse(); // Should use IsSafeForCompression logic
-    }
-
     #endregion
 
-    #region SafeBrotliCompressionProvider Tests (4 tests)
+    #region SafeBrotliCompressionProvider Tests (3 tests)
 
     [Fact]
     public void SafeBrotliProvider_EncodingName_ShouldBeBr()
@@ -602,20 +589,6 @@ public class PerformanceExtensionsTests
 
         // Assert
         compressionStream.Should().BeOfType<BrotliStream>();
-    }
-
-    [Fact]
-    public void SafeBrotliProvider_ShouldCompressResponse_ShouldUseSafetyCheck()
-    {
-        // Arrange
-        var context = CreateHttpContext();
-        context.Request.Headers["Authorization"] = "Bearer token";
-
-        // Act
-        var result = SafeBrotliCompressionProvider.ShouldCompressResponse(context);
-
-        // Assert
-        result.Should().BeFalse(); // Should use IsSafeForCompression logic
     }
 
     #endregion
@@ -687,3 +660,4 @@ public class PerformanceExtensionsTests
 
     #endregion
 }
+

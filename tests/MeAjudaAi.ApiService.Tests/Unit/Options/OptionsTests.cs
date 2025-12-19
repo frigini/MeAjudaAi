@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.ApiService.Options;
+using MeAjudaAi.ApiService.Options.RateLimit;
 
 namespace MeAjudaAi.ApiService.Tests.Unit.Options;
 

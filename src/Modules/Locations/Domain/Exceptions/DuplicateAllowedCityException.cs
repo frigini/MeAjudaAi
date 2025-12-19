@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Exceptions;
+
 namespace MeAjudaAi.Modules.Locations.Domain.Exceptions;
 
 /// <summary>

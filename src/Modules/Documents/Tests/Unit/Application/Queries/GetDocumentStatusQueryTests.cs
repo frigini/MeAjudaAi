@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Queries;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application.Queries;

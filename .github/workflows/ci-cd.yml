@@ -62,6 +62,23 @@ jobs:
       - name: Build solution
         run: dotnet build MeAjudaAi.slnx --configuration Release --no-restore
 
+      - name: Install Aspire workload
+        run: |
+          echo "📦 Installing .NET Aspire workload..."
+          dotnet workload update
+          # --skip-sign-check is required to install unsigned preview Aspire workloads
+          # in the ephemeral GitHub Actions environment. This flag bypasses signature
+          # verification which is acceptable for CI/CD only. Remove this flag when
+          # moving to signed/stable Aspire releases.
+          dotnet workload install aspire --skip-sign-check
+          echo "✅ Aspire workload installed"
+          echo "🔍 Verifying Aspire installation..."
+          dotnet workload list
+          # Verify DCP is available
+          if [ -d "$HOME/.dotnet/sdk-manifests" ]; then
+            find "$HOME/.dotnet" -name "dcp" -o -name "dcpctrl" 2>/dev/null || true
+          fi
+
       - name: Setup PostgreSQL connection
         id: db
         uses: ./.github/actions/setup-postgres-connection
@@ -141,6 +158,10 @@ jobs:
       - name: Run integration tests
         env:
           ASPNETCORE_ENVIRONMENT: Testing
+          INTEGRATION_TESTS: true
+          MEAJUDAAI_DB_PASS: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          MEAJUDAAI_DB_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+          MEAJUDAAI_DB: ${{ secrets.POSTGRES_DB || 'meajudaai_test' }}
           ConnectionStrings__DefaultConnection: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Users: ${{ steps.db.outputs.connection-string }}
           ConnectionStrings__Search: ${{ steps.db.outputs.connection-string }}
@@ -168,19 +189,31 @@ jobs:
           dotnet test tests/MeAjudaAi.E2E.Tests/MeAjudaAi.E2E.Tests.csproj \
             --configuration Release --no-build --verbosity normal
 
-      - name: Install ReportGenerator
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+      - name: Configure DOTNET_ROOT for ReportGenerator
+        run: |
+          # ReportGenerator needs DOTNET_ROOT to find .NET runtime
+          if command -v dotnet >/dev/null 2>&1; then
+            DOTNET_PATH=$(which dotnet)
+            DOTNET_RESOLVED=$(readlink -f "$DOTNET_PATH")
+            export DOTNET_ROOT=$(dirname "$DOTNET_RESOLVED")
+            echo "DOTNET_ROOT=$DOTNET_ROOT" >> $GITHUB_ENV
+            echo "✅ Set DOTNET_ROOT: $DOTNET_ROOT"
+          fi
 
       - name: Generate Code Coverage Report
-        run: |
-          reportgenerator \
-            -reports:"TestResults/Shared/**/coverage.cobertura.xml;TestResults/Architecture/**/coverage.cobertura.xml;TestResults/ApiService/**/coverage.cobertura.xml;TestResults/Users/**/coverage.cobertura.xml;TestResults/Documents/**/coverage.cobertura.xml;TestResults/Providers/**/coverage.cobertura.xml;TestResults/ServiceCatalogs/**/coverage.cobertura.xml;TestResults/Locations/**/coverage.cobertura.xml;TestResults/SearchProviders/**/coverage.cobertura.xml" \
-            -targetdir:"TestResults/Coverage" \
-            -reporttypes:"Html;Cobertura;JsonSummary" \
-            -assemblyfilters:"-*.Tests*;-*Test*;-*.Migrations.*;-*.Database;-*.Contracts" \
-            -classfilters:"-*.Migrations.*;-*.Database.*;-*.Contracts.*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery"
-          # Note: Only UNIT test coverage is collected (Integration/E2E excluded for deterministic results)
-          # Excluded from coverage: Tests, Migrations, Database, Contracts, Metrics, Health Checks, Jobs, Program, AppHost, Keycloak, Monitoring, NoOp, RabbitMq, ServiceBus, Hangfire, Options, Design-time factories
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        env:
+          DOTNET_ROOT: ${{ env.DOTNET_ROOT }}
+        with:
+          reports: 'TestResults/Shared/**/coverage.cobertura.xml;TestResults/Architecture/**/coverage.cobertura.xml;TestResults/ApiService/**/coverage.cobertura.xml;TestResults/Users/**/coverage.cobertura.xml;TestResults/Documents/**/coverage.cobertura.xml;TestResults/Providers/**/coverage.cobertura.xml;TestResults/ServiceCatalogs/**/coverage.cobertura.xml;TestResults/Locations/**/coverage.cobertura.xml;TestResults/SearchProviders/**/coverage.cobertura.xml'
+          targetdir: 'TestResults/Coverage'
+          reporttypes: 'Html;Cobertura;JsonSummary'
+          assemblyfilters: '-*.Tests*;-*Test*;-*.Migrations.*;-*.Database;-*.Contracts'
+          classfilters: '-*.Migrations.*;-*.Database.*;-*.Contracts.*;-*.Metrics.*;-*.HealthChecks.*;-*.Jobs.Hangfire*;-*.Jobs.Configuration*;-*Program*;-*AppHost*;-*.ServiceDefaults*;-*.Keycloak.*;-*.Monitoring.*;-*NoOp*;-*RabbitMq*;-*ServiceBus*;-*Hangfire*;-*.Jobs.*;-*Options;-*BaseDesignTimeDbContextFactory*;-*SchemaPermissionsManager;-*SimpleHostEnvironment;-*CacheWarmupService;-*GeoPointConverter;-*ModuleNames;-*ModuleApiInfo;-*MessagingExtensions;-*ICacheableQuery'
+          verbosity: 'Info'
+          tag: '${{ github.run_number }}_${{ github.run_id }}'
+        # Note: Only UNIT test coverage is collected (Integration/E2E excluded for deterministic results)
+        # Excluded from coverage: Tests, Migrations, Database, Contracts, Metrics, Health Checks, Jobs, Program, AppHost, Keycloak, Monitoring, NoOp, RabbitMq, ServiceBus, Hangfire, Options, Design-time factories
 
       - name: Upload code coverage
         uses: actions/upload-artifact@v6
@@ -212,7 +245,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Check markdown links with lychee
-        uses: lycheeverse/lychee-action@v2.7.0
+        uses: lycheeverse/lychee-action@v2
         with:
           # Check all markdown files in the repository using config file
           args: --config config/lychee.toml --verbose --no-progress "**/*.md"

@@ -75,7 +75,7 @@ public static class Extensions
             // Only fallback to EnsureCreated in Development
             if (app.Environment.IsDevelopment())
             {
-                logger?.LogWarning(ex, "Falha ao aplicar migrações do módulo ServiceCatalogs. Usando EnsureCreated como fallback em Development.");
+                logger?.LogWarning(ex, "Failed to apply migrations for ServiceCatalogs module. Using EnsureCreated as fallback in Development.");
                 try
                 {
                     var context = scope.ServiceProvider.GetService<Infrastructure.Persistence.ServiceCatalogsDbContext>();
@@ -83,14 +83,14 @@ public static class Extensions
                 }
                 catch (Exception fallbackEx)
                 {
-                    logger?.LogError(fallbackEx, "Falha crítica ao inicializar o banco do módulo ServiceCatalogs.");
+                    logger?.LogError(fallbackEx, "Critical failure initializing ServiceCatalogs module database.");
                     throw new InvalidOperationException("Falha crítica ao inicializar o banco de dados do módulo ServiceCatalogs após tentativa de fallback.", fallbackEx);
                 }
             }
             else
             {
                 // Fail fast in non-development environments
-                logger?.LogError(ex, "Falha crítica ao aplicar migrações do módulo ServiceCatalogs em ambiente de produção.");
+                logger?.LogError(ex, "Critical failure applying migrations for ServiceCatalogs module in production environment.");
                 throw new InvalidOperationException("Falha ao aplicar migrações do módulo ServiceCatalogs em ambiente de produção. Verifique a conexão com o banco de dados.", ex);
             }
         }

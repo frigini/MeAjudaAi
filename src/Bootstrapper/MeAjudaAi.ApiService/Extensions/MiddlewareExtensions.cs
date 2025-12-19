@@ -9,9 +9,6 @@ public static class MiddlewareExtensions
         // Cabeçalhos de segurança (no início do pipeline)
         app.UseMiddleware<SecurityHeadersMiddleware>();
 
-        // Compressão de resposta
-        app.UseResponseCompression();
-
         // Arquivos estáticos com cache
         app.UseMiddleware<StaticFilesMiddleware>();
 

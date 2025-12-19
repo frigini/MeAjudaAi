@@ -17,6 +17,17 @@ public class GetAllServicesEndpoint : BaseEndpoint, IEndpoint
         => app.MapGet("/", GetAllAsync)
             .WithName("GetAllServices")
             .WithSummary("Listar todos os serviços")
+            .WithDescription("""
+                Retorna todos os serviços do catálogo.
+                
+                **Filtros Opcionais:**
+                - `activeOnly` (bool): Filtra apenas serviços ativos (padrão: false)
+                
+                **Casos de Uso:**
+                - Listar todo o catálogo de serviços
+                - Obter apenas serviços ativos para exibição pública
+                - Administração do catálogo completo
+                """)
             .Produces<Response<IReadOnlyList<ServiceListDto>>>(StatusCodes.Status200OK);
 
     private static async Task<IResult> GetAllAsync(

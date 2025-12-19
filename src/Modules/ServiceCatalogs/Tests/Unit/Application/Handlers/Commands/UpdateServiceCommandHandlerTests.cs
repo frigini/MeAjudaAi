@@ -1,6 +1,7 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Application.Handlers.Commands.Service;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
+using MeAjudaAi.Modules.ServiceCatalogs.Domain.Exceptions;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Repositories;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
@@ -144,5 +145,32 @@ public class UpdateServiceCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().NotBeNull();
         _repositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenDomainExceptionThrown_ShouldReturnFailureWithMessage()
+    {
+        // Arrange
+        var service = new ServiceBuilder().Build();
+        var command = new UpdateServiceCommand(service.Id.Value, "Valid Name", "Description", 1);
+
+        _repositoryMock
+            .Setup(x => x.GetByIdAsync(It.IsAny<ServiceId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+
+        _repositoryMock
+            .Setup(x => x.ExistsWithNameAsync(It.IsAny<string>(), It.IsAny<ServiceId>(), It.IsAny<ServiceCategoryId?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        _repositoryMock
+            .Setup(x => x.UpdateAsync(It.IsAny<Service>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new CatalogDomainException("Domain rule violation"));
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error!.Message.Should().Be("Domain rule violation");
     }
 }

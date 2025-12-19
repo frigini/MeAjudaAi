@@ -15,6 +15,19 @@ public class DeleteServiceEndpoint : BaseEndpoint, IEndpoint
         => app.MapDelete("/{id:guid}", DeleteAsync)
             .WithName("DeleteService")
             .WithSummary("Deletar serviço")
+            .WithDescription("""
+                Deleta um serviço do catálogo permanentemente.
+                
+                **Validações:**
+                - ID não pode ser vazio
+                - Serviço deve existir
+                - Nenhum provedor pode estar oferecendo este serviço
+                
+                **Importante:** Operação destrutiva. Se provedores oferecem o serviço,
+                use desativação em vez de deleção para preservar dados históricos.
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 

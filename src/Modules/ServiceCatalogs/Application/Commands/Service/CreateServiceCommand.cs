@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Functional;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 
 /// <summary>
-/// Command to create a new service in a specific category.
+/// Comando para criar um novo serviço em uma categoria específica.
 /// </summary>
 public sealed record CreateServiceCommand(
     Guid CategoryId,

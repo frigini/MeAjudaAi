@@ -15,6 +15,18 @@ public class DeactivateServiceEndpoint : BaseEndpoint, IEndpoint
         => app.MapPost("/{id:guid}/deactivate", DeactivateAsync)
             .WithName("DeactivateService")
             .WithSummary("Desativar serviço")
+            .WithDescription("""
+                Desativa um serviço, removendo-o do catálogo ativo.
+                
+                **Efeitos:**
+                - Serviço não aparece em listagens públicas
+                - Provedores não podem adicionar este serviço a novas ofertas
+                - Serviço preserva dados históricos (soft-delete)
+                
+                **Nota:** Preferível à deleção quando provedores já oferecem o serviço.
+                
+                **Permissões:** Requer privilégios de administrador
+                """)
             .Produces(StatusCodes.Status204NoContent)
             .RequireAdmin();
 

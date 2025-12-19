@@ -22,10 +22,10 @@ public class ContactInfo : ValueObject
     public ContactInfo(string email, string? phoneNumber = null, string? website = null)
     {
         if (string.IsNullOrWhiteSpace(email))
-            throw new ArgumentException("Email cannot be empty", nameof(email));
+            throw new ArgumentException("E-mail não pode ser vazio", nameof(email));
 
         if (!IsValidEmail(email))
-            throw new ArgumentException("Invalid email format", nameof(email));
+            throw new ArgumentException("Formato de e-mail inválido", nameof(email));
 
         Email = email.Trim();
         PhoneNumber = phoneNumber?.Trim();

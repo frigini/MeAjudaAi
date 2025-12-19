@@ -4,6 +4,6 @@ using MeAjudaAi.Shared.Functional;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Application.Commands.Service;
 
 /// <summary>
-/// Command to activate a service, making it available for use.
+/// Comando para ativar um serviço, tornando-o disponível para uso.
 /// </summary>
 public sealed record ActivateServiceCommand(Guid Id) : Command<Result>;

@@ -96,7 +96,7 @@ public sealed class AddressTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Street cannot be empty*");
+            .WithMessage("Rua não pode ser vazia*");
     }
 
     [Theory]
@@ -110,7 +110,7 @@ public sealed class AddressTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Number cannot be empty*");
+            .WithMessage("Número não pode ser vazio*");
     }
 
     [Theory]
@@ -124,7 +124,7 @@ public sealed class AddressTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Neighborhood cannot be empty*");
+            .WithMessage("Bairro não pode ser vazio*");
     }
 
     [Theory]
@@ -138,7 +138,7 @@ public sealed class AddressTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("City cannot be empty*");
+            .WithMessage("Cidade não pode ser vazia*");
     }
 
     [Theory]
@@ -152,7 +152,7 @@ public sealed class AddressTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("State cannot be empty*");
+            .WithMessage("Estado não pode ser vazio*");
     }
 
     [Theory]
@@ -166,7 +166,7 @@ public sealed class AddressTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("ZipCode cannot be empty*");
+            .WithMessage("CEP não pode ser vazio*");
     }
 
     [Theory]
@@ -180,7 +180,7 @@ public sealed class AddressTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Country cannot be empty*");
+            .WithMessage("País não pode ser vazio*");
     }
 
     [Fact]

@@ -16,12 +16,12 @@ public class SearchProvidersDbContext : BaseDbContext
 {
     public DbSet<SearchableProvider> SearchableProviders => Set<SearchableProvider>();
 
-    // Constructor for design-time (migrations)
+    // Construtor para design-time (migrations)
     public SearchProvidersDbContext(DbContextOptions<SearchProvidersDbContext> options) : base(options)
     {
     }
 
-    // Constructor for runtime with DI
+    // Construtor para runtime com DI
     public SearchProvidersDbContext(DbContextOptions<SearchProvidersDbContext> options, IDomainEventProcessor domainEventProcessor)
         : base(options, domainEventProcessor)
     {
@@ -31,10 +31,10 @@ public class SearchProvidersDbContext : BaseDbContext
     {
         modelBuilder.HasDefaultSchema("meajudaai_searchproviders");
 
-        // Enable PostGIS extension for geospatial features
+        // Habilita extensão PostGIS para recursos geoespaciais
         modelBuilder.HasPostgresExtension("postgis");
 
-        // Apply configurations from assembly
+        // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         base.OnModelCreating(modelBuilder);

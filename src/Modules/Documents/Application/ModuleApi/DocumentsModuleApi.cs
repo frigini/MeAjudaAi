@@ -58,7 +58,7 @@ public sealed class DocumentsModuleApi(
 
                 if (healthReport.Status == HealthStatus.Unhealthy)
                 {
-                    logger.LogWarning("Documents module unavailable due to failed health checks: {FailedChecks}",
+                    logger.LogWarning("Documents module unavailable due to health check failures: {FailedChecks}",
                         string.Join(", ", healthReport.Entries.Where(e => e.Value.Status == HealthStatus.Unhealthy).Select(e => e.Key)));
                     return false;
                 }
@@ -133,7 +133,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error getting document {DocumentId}", documentId);
+            logger.LogError(ex, "Error retrieving document {DocumentId}", documentId);
             return Result<ModuleDocumentDto?>.Failure("DOCUMENTS_GET_FAILED");
         }
     }
@@ -156,7 +156,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error getting documents for provider {ProviderId}", providerId);
+            logger.LogError(ex, "Error retrieving documents for provider {ProviderId}", providerId);
             return Result<IReadOnlyList<ModuleDocumentDto>>.Failure("DOCUMENTS_PROVIDER_GET_FAILED");
         }
     }
@@ -206,7 +206,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error getting document status {DocumentId}", documentId);
+            logger.LogError(ex, "Error retrieving document status {DocumentId}", documentId);
             return Result<ModuleDocumentStatusDto?>.Failure("DOCUMENTS_STATUS_GET_FAILED");
         }
     }
@@ -370,7 +370,7 @@ public sealed class DocumentsModuleApi(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error getting document status count for provider {ProviderId}", providerId);
+            logger.LogError(ex, "Error retrieving document status count for provider {ProviderId}", providerId);
             return Result<DocumentStatusCountDto>.Failure("DOCUMENTS_STATUS_COUNT_FAILED");
         }
     }

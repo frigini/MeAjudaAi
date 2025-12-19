@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using FluentAssertions;
-using MeAjudaAi.Shared.Authorization;
+using MeAjudaAi.Shared.Authorization.Core;
+using MeAjudaAi.Shared.Authorization.Handlers;
+using MeAjudaAi.Shared.Authorization.Services;
 using MeAjudaAi.Shared.Constants;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -48,7 +50,7 @@ public class PermissionClaimsTransformationTests
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, "user-123"),
-            new(CustomClaimTypes.Permission, "*") // Processing marker
+            new(AuthConstants.Claims.Permission, "*") // Processing marker
         };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -110,9 +112,9 @@ public class PermissionClaimsTransformationTests
 
         // Assert
         result.Should().NotBeSameAs(principal);
-        result.HasClaim(CustomClaimTypes.Permission, "users:read").Should().BeTrue();
-        result.HasClaim(CustomClaimTypes.Permission, "users:create").Should().BeTrue();
-        result.HasClaim(CustomClaimTypes.Permission, "*").Should().BeTrue(); // Processing marker
+        result.HasClaim(AuthConstants.Claims.Permission, "users:read").Should().BeTrue();
+        result.HasClaim(AuthConstants.Claims.Permission, "users:create").Should().BeTrue();
+        result.HasClaim(AuthConstants.Claims.Permission, "*").Should().BeTrue(); // Processing marker
     }
 
     [Fact]
@@ -141,8 +143,8 @@ public class PermissionClaimsTransformationTests
         var result = await _sut.TransformAsync(principal);
 
         // Assert
-        result.HasClaim(CustomClaimTypes.Module, "users").Should().BeTrue();
-        result.HasClaim(CustomClaimTypes.Module, "providers").Should().BeTrue();
+        result.HasClaim(AuthConstants.Claims.Module, "users").Should().BeTrue();
+        result.HasClaim(AuthConstants.Claims.Module, "providers").Should().BeTrue();
     }
 
     [Fact]
@@ -171,7 +173,7 @@ public class PermissionClaimsTransformationTests
         var result = await _sut.TransformAsync(principal);
 
         // Assert
-        result.HasClaim(CustomClaimTypes.IsSystemAdmin, "true").Should().BeTrue();
+        result.HasClaim(AuthConstants.Claims.IsSystemAdmin, "true").Should().BeTrue();
     }
 
     [Fact]
@@ -258,7 +260,7 @@ public class PermissionClaimsTransformationTests
         var result = await _sut.TransformAsync(principal);
 
         // Assert
-        result.HasClaim(CustomClaimTypes.Permission, "users:read").Should().BeTrue();
+        result.HasClaim(AuthConstants.Claims.Permission, "users:read").Should().BeTrue();
         _permissionServiceMock.Verify(s => s.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -283,7 +285,7 @@ public class PermissionClaimsTransformationTests
         var result = await _sut.TransformAsync(principal);
 
         // Assert
-        result.HasClaim(CustomClaimTypes.Permission, "users:read").Should().BeTrue();
+        result.HasClaim(AuthConstants.Claims.Permission, "users:read").Should().BeTrue();
         _permissionServiceMock.Verify(s => s.GetUserPermissionsAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -325,3 +327,4 @@ public class PermissionClaimsTransformationTests
             Times.Once);
     }
 }
+

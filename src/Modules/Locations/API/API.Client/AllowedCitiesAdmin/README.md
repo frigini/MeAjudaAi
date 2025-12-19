@@ -47,10 +47,11 @@ realmName = meajudaai
 accessToken = <seu-token-aqui>
 ```
 
-### Staging/Production
+### Production
+
 ```
-baseUrl = https://api-staging.meajudaai.com
-keycloakUrl = https://auth-staging.meajudaai.com
+baseUrl = https://api.meajudaai.com
+keycloakUrl = https://auth.meajudaai.com
 realmName = meajudaai
 accessToken = <seu-token-aqui>
 ```

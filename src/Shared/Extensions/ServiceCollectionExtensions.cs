@@ -93,11 +93,11 @@ public static class ServiceCollectionExtensions
         app.UseErrorHandling();
         // Nota: UseAdvancedMonitoring requer registro de BusinessMetrics durante a configuração de serviços.
         // O caminho assíncrono atualmente não registra esses serviços da mesma forma que o caminho síncrono.
-        // TODO(#249): Align middleware registration between UseSharedServices() and UseSharedServicesAsync().
-        // Issue: Async path skips BusinessMetrics registration causing UseAdvancedMonitoring to fail.
-        // Solution: Extract shared middleware registration to ConfigureSharedMiddleware() method,
-        // call from both paths, or conditionally apply monitoring based on IServiceCollection checks.
-        // Impact: Development environments using async path lack business metrics dashboards.
+        // TODO(#249): Alinhar registro de middleware entre UseSharedServices() e UseSharedServicesAsync().
+        // Issue: Caminho assíncrono pula registro de BusinessMetrics causando falha em UseAdvancedMonitoring.
+        // Solução: Extrair registro compartilhado de middleware para método ConfigureSharedMiddleware(),
+        // chamar de ambos os caminhos, ou aplicar monitoramento condicionalmente baseado em verificações do IServiceCollection.
+        // Impacto: Ambientes de desenvolvimento usando caminho assíncrono não têm dashboards de métricas de negócio.
 
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
                          Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ??

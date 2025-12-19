@@ -9,6 +9,7 @@ namespace MeAjudaAi.Shared.Monitoring;
 /// </summary>
 internal class MetricsCollectorService(
     BusinessMetrics businessMetrics,
+    IServiceScopeFactory serviceScopeFactory,
     ILogger<MetricsCollectorService> logger) : BackgroundService
 {
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // Coleta a cada minuto
@@ -78,14 +79,31 @@ internal class MetricsCollectorService(
     {
         try
         {
-            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui para
-            //       acessar UsersDbContext e contar usuários que fizeram login nas últimas 24 horas.
+            using var scope = serviceScopeFactory.CreateScope();
+            
+            // Tentar obter IUsersModuleApi - retorna 0 se módulo não estiver disponível
+            var moduleTypeName = "MeAjudaAi.Modules.Users.Application.ModuleApi.IUsersModuleApi, MeAjudaAi.Modules.Users.Application";
+            var moduleType = Type.GetType(moduleTypeName);
+            
+            if (moduleType == null)
+            {
+                logger.LogDebug("Users module type not found, returning 0 active users");
+                return 0;
+            }
+            
+            var usersModuleApi = scope.ServiceProvider.GetService(moduleType);
+            
+            if (usersModuleApi == null)
+            {
+                logger.LogDebug("Users module not available, returning 0 active users");
+                return 0;
+            }
 
-            // Placeholder - implementar com o serviço real de usuários
-            await Task.Delay(1, cancellationToken); // Simular operação async
-
-            // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
-            return 125; // Valor simulado fixo
+            // Por ora retorna 0 - implementação futura chamará método real do módulo
+            // var count = await usersModuleApi.GetActiveUsersCountAsync(cancellationToken);
+            await Task.Delay(1, cancellationToken);
+            
+            return 0;
         }
         catch (OperationCanceledException)
         {
@@ -102,14 +120,12 @@ internal class MetricsCollectorService(
     {
         try
         {
-            // TODO: Para implementar, injetar IServiceScopeFactory no construtor e criar scope aqui para
-            //       acessar HelpRequestRepository e contar solicitações com status Pending.
-
-            // Placeholder - implementar com o serviço real de help requests
-            await Task.Delay(1, cancellationToken); // Simular operação async
-
-            // TODO: Implementar lógica real - por ora retorna valor fixo para evitar Random inseguro
-            return 25; // Valor simulado fixo
+            // Implementação futura: injetar HelpRequestRepository
+            // e contar solicitações com status Pending
+            await Task.Delay(1, cancellationToken);
+            
+            // Por ora, retorna 0
+            return 0;
         }
         catch (OperationCanceledException)
         {

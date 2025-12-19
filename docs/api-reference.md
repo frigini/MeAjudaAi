@@ -8,7 +8,7 @@ A API MeAjudaAi segue os padrões REST e está documentada usando OpenAPI 3.0. T
 
 - **Arquivo versionado**: `api/api-spec.json` (na raiz do repositório)
 - **Swagger UI (Desenvolvimento)**: `http://localhost:5001/swagger`
-- **Swagger UI (Staging)**: `https://meajudaai-staging.azurewebsites.net/swagger`
+
 - **Download runtime**: `/swagger/v1/swagger.json`
 
 ## Endpoints Principais
@@ -127,7 +127,7 @@ X-Correlation-ID: <uuid>  # Opcional mas recomendado para rastreamento
 ## Rate Limiting
 
 - **Desenvolvimento**: Sem limite
-- **Staging**: 100 req/min por IP
+
 - **Production**: 60 req/min por usuário autenticado
 
 Headers de resposta:

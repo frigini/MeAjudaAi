@@ -16,7 +16,7 @@ public class ServiceCatalogsDbContext(DbContextOptions<ServiceCatalogsDbContext>
     {
         modelBuilder.HasDefaultSchema("meajudaai_service_catalogs");
 
-        // Apply configurations from assembly
+        // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         base.OnModelCreating(modelBuilder);

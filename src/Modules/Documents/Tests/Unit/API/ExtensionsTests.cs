@@ -1,4 +1,4 @@
-using MeAjudaAi.Modules.Documents.API;
+﻿using MeAjudaAi.Modules.Documents.API;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Contracts.Modules.Documents;
 using Microsoft.AspNetCore.Builder;
@@ -21,20 +21,26 @@ namespace MeAjudaAi.Modules.Documents.Tests.Unit.API;
 [Trait("Layer", "API")]
 public sealed class ExtensionsTests
 {
-    [Fact]
-    public void AddDocumentsModule_ShouldRegisterServices()
+    private readonly IConfiguration _testConfiguration;
+
+    public ExtensionsTests()
     {
-        // Arrange
-        var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
+        _testConfiguration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test;"
             })
             .Build();
+    }
+
+    [Fact]
+    public void AddDocumentsModule_ShouldRegisterServices()
+    {
+        // Arrange
+        var services = new ServiceCollection();
 
         // Act
-        var result = services.AddDocumentsModule(configuration);
+        var result = services.AddDocumentsModule(_testConfiguration);
 
         // Assert
         Assert.NotNull(result);
@@ -47,16 +53,9 @@ public sealed class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddLogging(); // Required for DbContext
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test;"
-            })
-            .Build();
 
         // Act
-        services.AddDocumentsModule(configuration);
+        services.AddDocumentsModule(_testConfiguration);
 
         // Assert
         // Verifica se IDocumentsModuleApi está registrado
@@ -68,15 +67,9 @@ public sealed class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test;"
-            })
-            .Build();
 
         // Act
-        var result = services.AddDocumentsModule(configuration);
+        var result = services.AddDocumentsModule(_testConfiguration);
 
         // Assert
         Assert.NotNull(result);
@@ -89,15 +82,9 @@ public sealed class ExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test;"
-            })
-            .Build();
 
         // Act
-        var result = services.AddDocumentsModule(configuration);
+        var result = services.AddDocumentsModule(_testConfiguration);
 
         // Assert
         Assert.Same(services, result);
@@ -138,15 +125,7 @@ public sealed class ExtensionsTests
         testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
         builder.Services.AddSingleton(testEnvMock.Object);
 
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test;"
-            })
-            .Build();
-
-        builder.Configuration.AddConfiguration(configuration);
-        builder.Services.AddDocumentsModule(configuration);
+        builder.Services.AddDocumentsModule(_testConfiguration);
 
         var app = builder.Build();
 
@@ -170,15 +149,7 @@ public sealed class ExtensionsTests
         testEnvMock.Setup(e => e.ApplicationName).Returns("TestApp");
         builder.Services.AddSingleton(testEnvMock.Object);
 
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=test;Username=test;Password=test;"
-            })
-            .Build();
-
-        builder.Configuration.AddConfiguration(configuration);
-        builder.Services.AddDocumentsModule(configuration);
+        builder.Services.AddDocumentsModule(_testConfiguration);
 
         var app = builder.Build();
 

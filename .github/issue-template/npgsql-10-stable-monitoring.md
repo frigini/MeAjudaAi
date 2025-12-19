@@ -50,7 +50,7 @@ Quando Npgsql 10.0.0 stable for lançado:
 - [ ] Executar: `dotnet build`
 - [ ] Executar: `dotnet test`
 - [ ] Executar: `dotnet test --filter "Category=HangfireIntegration"`
-- [ ] Validar em staging
+- [ ] Validar localmente
 - [ ] Atualizar documentação: remover TODOs sobre Npgsql
 - [ ] Fechar Issue #42
 
