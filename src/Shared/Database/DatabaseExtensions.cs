@@ -138,6 +138,10 @@ public static class DatabaseExtensions
         var postgresOptions = serviceProvider.GetRequiredService<PostgresOptions>();
         var connectionString = postgresOptions.ConnectionString;
 
+        // Resolve e adiciona o interceptor de métricas do DI
+        var metricsInterceptor = serviceProvider.GetRequiredService<DatabaseMetricsInterceptor>();
+        options.AddInterceptors(metricsInterceptor);
+
         ConfigurePostgresContext(options, connectionString);
     }
 

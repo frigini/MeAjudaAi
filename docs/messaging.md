@@ -653,7 +653,7 @@ MessagingMocks.ServiceBus.ResetToNormalBehavior();
 
 ### 5.1 Arquivos Principais
 
-- `src/Shared/MeAjudaAi.Shared/Messaging/Factory/MessageBusFactory.cs` - Factory Pattern para seleção de MessageBus
+- `src/Shared/Messaging/Factories/MessageBusFactory.cs` - Factory Pattern para seleção de MessageBus
 - `src/Shared/MeAjudaAi.Shared/Messaging/Extensions.cs` - Configuração de DI e transporte
 - `src/Aspire/MeAjudaAi.AppHost/Program.cs` - Configuração de infraestrutura Aspire
 - `tests/MeAjudaAi.Shared.Tests/Mocks/Messaging/` - Implementações de mocks

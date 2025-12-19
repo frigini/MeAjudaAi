@@ -104,7 +104,7 @@ src/Shared/Messaging/
 │   ├── FailureRate.cs
 │   ├── DeadLetterOptions.cs
 │   ├── NoOpDeadLetterService.cs
-│   ├── EnvironmentBasedDeadLetterServiceFactory.cs
+│   ├── DeadLetterServiceFactory.cs
 │   ├── RabbitMqDeadLetterService.cs
 │   └── ServiceBusDeadLetterService.cs
 ├── Handlers/
