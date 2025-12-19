@@ -60,10 +60,9 @@ Health Checks Robustos + Data Seeding para MVP - TODAS AS PARTES FINALIZADAS:
 - ✅ Health Checks: DatabasePerformanceHealthCheck (latência <100ms healthy, <500ms degraded)
 - ✅ Health Checks: ExternalServicesHealthCheck (Keycloak + IBGE API + Redis)
 - ✅ Health Checks: HelpProcessingHealthCheck (sistema de ajuda operacional)
-- ✅ Health Dashboard: UI no /health-ui com AspNetCore.HealthChecks.UI 9.0.0
-- ✅ Health Configuration: appsettings.json com 10s evaluation interval
-- ✅ Health Packages: AspNetCore.HealthChecks.UI, .UI.Client, .UI.InMemory.Storage, .Npgsql 9.0.0, .Redis 8.0.1
-- ✅ Health Endpoints: /health com UIResponseWriter, /health-ui para dashboard visual
+- ✅ Health Endpoints: /health, /health/live, /health/ready com JSON responses
+- ✅ Health Dashboard: Dashboard nativo do Aspire (decisão arquitetural - não usar AspNetCore.HealthChecks.UI)
+- ✅ Health Packages: AspNetCore.HealthChecks.Npgsql 9.0.0, .Redis 8.0.1
 - ✅ Redis Health Check: Configurado via AddRedis() com tags 'ready', 'cache'
 - ✅ Data Seeding: infrastructure/database/seeds/01-seed-service-catalogs.sql (8 categorias + 12 serviços)
 - ✅ Seed Automation: Docker Compose executa seeds automaticamente na inicialização
@@ -1305,7 +1304,6 @@ gantt
 
 **Tarefas Pendentes Identificadas**:
 - 📦 Bruno Collections para módulos restantes (Users, Providers, Documents, ServiceCatalogs)
-- 🏥 Health Checks UI Dashboard (`/health-ui`) - componentes já implementados, falta UI
 - 📖 Design Patterns Documentation (documentar padrões implementados)
 - 🔒 Avaliar migração AspNetCoreRateLimit library
 - 📊 Verificar completude Logging Estruturado (Seq, Domain Events, Performance)
@@ -1440,7 +1438,6 @@ gantt
 - Unificar geração de IDs (usar UuidGenerator em todo código)
 - Migrar para novo formato .slnx (performance e versionamento)
 - Automatizar documentação OpenAPI no GitHub Pages
-- **NOVO**: Adicionar Health Checks UI Dashboard (`/health-ui`)
 - **NOVO**: Documentar Design Patterns implementados
 - **NOVO**: Avaliar migração para AspNetCoreRateLimit library
 - **NOVO**: Verificar completude do Logging Estruturado (Seq, Domain Events, Performance)
@@ -1539,36 +1536,18 @@ gantt
   - UI interativa (try-it-out)
   - Melhor DX para consumidores da API
 
-**5. Health Checks UI Dashboard** 🏥:
-- [x] **Health Checks Core**: ✅ JÁ IMPLEMENTADO
+**5. Health Checks & Monitoring** 🏥:
+- [x] **Health Checks Core**: ✅ IMPLEMENTADO
   - `src/Shared/Monitoring/HealthChecks.cs`: 4 health checks implementados
   - 47 testes, 100% coverage
   - Componentes: ExternalServicesHealthCheck, PerformanceHealthCheck, HelpProcessingHealthCheck, DatabasePerformanceHealthCheck
-  - Endpoint `/health` funcional
-- [ ] **UI Dashboard** ⚠️ PENDENTE:
-  - [ ] Instalar pacote: `AspNetCore.HealthChecks.UI` (v8.0+)
-  - [ ] Configurar endpoint `/health-ui` em `Program.cs`
-  - [ ] Adicionar UI responsiva (Bootstrap theme)
-  - [ ] Configurar polling interval (10 segundos padrão)
-  - [ ] Adicionar página HTML de fallback (caso health checks falhem)
-  - [ ] Documentar acesso em `docs/infrastructure.md`
-  - [ ] Adicionar screenshot da UI na documentação
-  - [ ] **Configuração mínima**:
-    ```csharp
-    builder.Services.AddHealthChecksUI(setup =>
-    {
-        setup.SetEvaluationTimeInSeconds(10);
-        setup.MaximumHistoryEntriesPerEndpoint(50);
-        setup.AddHealthCheckEndpoint("MeAjudaAi API", "/health");
-    }).AddInMemoryStorage();
-    
-    app.MapHealthChecksUI(options => 
-    {
-        options.UIPath = "/health-ui";
-    });
-    ```
-  - [ ] Testes E2E: Acessar `/health-ui` e validar renderização
-- [ ] **Estimativa**: 1-2 dias
+  - Endpoints: `/health`, `/health/live`, `/health/ready`
+- [x] **Dashboard**: ✅ DECISÃO ARQUITETURAL
+  - **Usar dashboard nativo do .NET Aspire** (não AspNetCore.HealthChecks.UI)
+  - Aspire fornece dashboard integrado com telemetria, traces e métricas
+  - Health checks expostos via endpoints JSON consumidos pelo Aspire
+  - Melhor integração com ecossistema .NET 9+ e cloud-native deployments
+  - **Rationale**: Evitar dependência extra, melhor DX, alinhamento com roadmap .NET
 
 **6. Design Patterns Documentation** 📚:
 - [ ] **Branch**: `docs/design-patterns`
