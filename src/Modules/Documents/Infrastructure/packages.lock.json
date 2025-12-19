@@ -281,8 +281,8 @@
       },
       "Microsoft.FeatureManagement": {
         "type": "Transitive",
-        "resolved": "4.3.0",
-        "contentHash": "6FJz8K6xzjuUBG5DZ55gttMU2/MxObqPDTRMXC950EjljJqZPrigMm1EMsPK+HbPR84+T4PCXgjmdlkw+8Piow==",
+        "resolved": "4.4.0",
+        "contentHash": "qxvGAv9WJHYfOpixWywJTa1WNTPy5MbQiv+O+UlE6E/LVofiM1+YRR6m41zsHIbAGm1S0PQ0QFuAsOw9DkoKsg==",
         "dependencies": {
           "Microsoft.Bcl.TimeProvider": "8.0.1",
           "Microsoft.Extensions.Caching.Memory": "8.0.1",
@@ -560,7 +560,7 @@
           "Microsoft.EntityFrameworkCore.Design": "[10.0.1, )",
           "Microsoft.Extensions.Caching.Hybrid": "[10.1.0, )",
           "Microsoft.Extensions.Caching.StackExchangeRedis": "[10.0.1, )",
-          "Microsoft.FeatureManagement.AspNetCore": "[4.3.0, )",
+          "Microsoft.FeatureManagement.AspNetCore": "[4.4.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.0, )",
           "RabbitMQ.Client": "[7.2.0, )",
           "Rebus": "[8.9.0, )",
@@ -908,11 +908,11 @@
       },
       "Microsoft.FeatureManagement.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[4.3.0, )",
-        "resolved": "4.3.0",
-        "contentHash": "QUTCPSMDutLPw8s5z8H2DJ/CIjeXkKpXVi377EmGcLuoUhiAIHZIw+cqcEWWOYbgd09eyxKfFPSM7RCGedb/UQ==",
+        "requested": "[4.4.0, )",
+        "resolved": "4.4.0",
+        "contentHash": "jE5KxeEDUnUsx1w9uOFV5cOfM4E2mg7kf07328xO1x4JdoS0jwkD55nMjTlUPu90ynYX1oCBGC+FHK6ZoqRpxA==",
         "dependencies": {
-          "Microsoft.FeatureManagement": "4.3.0"
+          "Microsoft.FeatureManagement": "4.4.0"
         }
       },
       "Microsoft.NET.StringTools": {
@@ -923,9 +923,9 @@
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[2.3.12, )",
-        "resolved": "2.3.12",
-        "contentHash": "skMV7AUpMXve7Gbdjx3kUsNXLP6AuZ3+dnAqlt17L1qOuH+X+trWpjJg2wA0Z5fgAZTP5aumQ/31znrZ2PadGA=="
+        "requested": "[2.3.0, )",
+        "resolved": "2.3.0",
+        "contentHash": "5RZpjyt0JMmoc/aEgY9c1vE5pusdDGvkPl9qKIy9KFbRiIXD+w7gBJxX+unSjzzOcfgRoYxnO4okZyqDAL2WEw=="
       },
       "RabbitMQ.Client": {
         "type": "CentralTransitive",
