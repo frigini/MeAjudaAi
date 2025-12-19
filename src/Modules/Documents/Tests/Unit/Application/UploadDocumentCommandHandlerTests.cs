@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Documents.Application.Commands;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.Handlers;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
+using MeAjudaAi.Modules.Documents.Application.Options;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 using MeAjudaAi.Modules.Documents.Domain.Repositories;
@@ -11,6 +12,7 @@ using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Unit.Application;
 
@@ -20,6 +22,7 @@ public class UploadDocumentCommandHandlerTests
     private readonly Mock<IBlobStorageService> _mockBlobStorage;
     private readonly Mock<IBackgroundJobService> _mockJobService;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
+    private readonly Mock<IOptions<DocumentUploadOptions>> _mockUploadOptions;
     private readonly Mock<ILogger<UploadDocumentCommandHandler>> _mockLogger;
     private readonly UploadDocumentCommandHandler _handler;
 
@@ -29,7 +32,15 @@ public class UploadDocumentCommandHandlerTests
         _mockBlobStorage = new Mock<IBlobStorageService>();
         _mockJobService = new Mock<IBackgroundJobService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        _mockUploadOptions = new Mock<IOptions<DocumentUploadOptions>>();
         _mockLogger = new Mock<ILogger<UploadDocumentCommandHandler>>();
+
+        // Configure default upload options
+        _mockUploadOptions.Setup(x => x.Value).Returns(new DocumentUploadOptions
+        {
+            MaxFileSizeBytes = 10 * 1024 * 1024, // 10MB
+            AllowedContentTypes = ["image/jpeg", "image/png", "image/jpg", "application/pdf"]
+        });
 
         // Configure default behavior for background job service
         _mockJobService
@@ -43,6 +54,7 @@ public class UploadDocumentCommandHandlerTests
             _mockBlobStorage.Object,
             _mockJobService.Object,
             _mockHttpContextAccessor.Object,
+            _mockUploadOptions.Object,
             _mockLogger.Object);
     }
 
