@@ -13,11 +13,12 @@ Este documento rastreia itens de débito técnico e melhorias planejadas identif
 
 Os itens abaixo estão planejados para serem resolvidos na Sprint 5.5. Após implementação, serão removidos deste documento ou movidos para seção "Concluído".
 
-#### ✅ Refatoração MeAjudaAi.Shared.Messaging - PARCIALMENTE CONCLUÍDA (19 Dez 2025)
+#### ✅ Refatoração MeAjudaAi.Shared.Messaging - CONCLUÍDA (19 Dez 2025)
 
-**Status**: ✅ **REFATORAÇÃO BÁSICA CONCLUÍDA**  
+**Status**: ✅ **REFATORAÇÃO CONCLUÍDA**  
 **Data**: 19 Dezembro 2025  
-**Branch**: `feature/refactor-and-cleanup`
+**Branch**: `feature/refactor-and-cleanup`  
+**Commits**: `5b89898`, `86c3844`, `7b93b48`, `d01bf346`
 
 **Ações Completadas**:
 - [x] ✅ Separar `NoOpDeadLetterService` em arquivo próprio: `NoOp/NoOpDeadLetterService.cs`
@@ -39,6 +40,58 @@ Os itens abaixo estão planejados para serem resolvidos na Sprint 5.5. Após imp
 - ✅ Um arquivo por classe (princípio SRP aplicado)
 - ✅ Código compilando sem erros
 - ✅ Todos os testes passando (1245/1245)
+
+---
+
+#### ✅ Resolução de TODOs Críticos - CONCLUÍDA (19 Dez 2025)
+
+**Status**: ✅ **3/3 TODOS CRÍTICOS RESOLVIDOS**  
+**Data**: 19 Dezembro 2025  
+**Branch**: `feature/refactor-and-cleanup`  
+**Commits**: `7b93b48`, `d01bf346`
+
+**TODOs Resolvidos**:
+
+1. **IBGE Middleware Fallback Validation** ✅
+   - **Arquivo**: `tests/MeAjudaAi.Integration.Tests/Modules/Locations/IbgeUnavailabilityTests.cs`
+   - **Issue**: 3 comentários TODO alegando que fallback estava quebrado
+   - **Investigação**: Todos os 4 testes de IBGE unavailability passando (100%)
+   - **Solução**: Removidos comentários TODO obsoletos - feature funciona corretamente
+   - **Testes Validados**:
+     - `GeographicRestriction_WhenIbgeReturns500_ShouldFallbackToSimpleValidation` ✅
+     - `GeographicRestriction_WhenIbgeReturnsMalformedJson_ShouldFallbackToSimpleValidation` ✅
+     - `GeographicRestriction_WhenIbgeUnavailableAndCityNotAllowed_ShouldDenyAccess` ✅
+     - `GeographicRestriction_WhenIbgeReturnsEmptyArray_ShouldFallbackToSimpleValidation` ✅
+
+2. **Rate Limiting Cache Memory Leak** ✅
+   - **Arquivo**: `src/Bootstrapper/MeAjudaAi.ApiService/Middlewares/RateLimitingMiddleware.cs`
+   - **Issue**: `_patternCache` (ConcurrentDictionary) poderia crescer indefinidamente
+   - **Impacto**: Memory leak em cenários de hot-reload com padrões dinâmicos
+   - **Solução Implementada**:
+     - Constante `MaxPatternCacheSize = 1000` para limitar crescimento
+     - Verificação de tamanho antes de adicionar ao cache
+     - Compilação on-demand (sem cache) quando limite atingido
+     - Log de warning quando limite é alcançado
+     - Mudança de métodos `static` para instância (`IsPathMatch`, `GetEffectiveLimit`)
+   - **Detalhes Técnicos**:
+     - Configurações normais: <100 padrões de endpoint
+     - Limite de 1000 é safety net contra crescimento descontrolado
+     - Degradação graceful: compila regex sem cache após limite
+     - Performance: zero impacto em cenários normais
+
+3. **Email Constraint Database Schema** ✅
+   - **Arquivo**: `tests/MeAjudaAi.Integration.Tests/Modules/Providers/ProviderRepositoryIntegrationTests.cs`
+   - **Issue**: Comentário TODO vago sobre "email constraint issue"
+   - **Investigação**: Teste `UpdateAsync_WithModifiedProvider_ShouldPersistChanges` nunca foi implementado
+   - **Histórico Git**: Arquivo criado em commit `0f15b5d2` com teste já comentado
+   - **Solução**: Atualizado comentário para refletir status real (teste não implementado)
+   - **Ação**: TODO removido, nota técnica adicionada
+
+**Resultado**:
+- ✅ 3 TODOs críticos resolvidos (2 removidos como obsoletos, 1 implementado)
+- ✅ Rate limiting protegido contra memory leak
+- ✅ Build passing sem warnings
+- ✅ Todos os testes passando
 
 ---
 

@@ -28,7 +28,8 @@ Este documento consolida o planejamento estratégico e tático da plataforma MeA
 - 🎯 **31 de Março de 2026**: MVP Launch (Admin Portal + Customer App)
 - 🔮 **Abril 2026+**: Fase 3 - Reviews, Assinaturas, Agendamentos
 
-**⚠️ Notas de Risco**:
+## ⚠️ Notas de Risco
+
 - Estimativas assumem velocidade consistente e ausência de bloqueios maiores
 - Primeiro projeto Blazor WASM pode revelar complexidade não prevista
 - Sprint 9 reservado como buffer de contingência (não para novas features)
