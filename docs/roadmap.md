@@ -141,7 +141,7 @@ Todas as tarefas planejadas já foram implementadas:
   - Classe `EnvironmentBasedMessageBusFactory` renomeada para `MessageBusFactory`
   - Movido de `NoOp/Factory/` para raiz `Messaging/`
   - Um arquivo por classe seguindo SRP
-- [ ] Extrair IRabbitMqInfrastructureManager para arquivo separado - BACKLOG (não crítico)
+- [x] Extrair IRabbitMqInfrastructureManager para arquivo separado ✅ (19 Dez 2025)
 - [ ] Adicionar Integration Events faltantes nos módulos (Documents, SearchProviders, ServiceCatalogs?) - BACKLOG
 - [ ] Reorganização geral da estrutura de pastas em Messaging - BACKLOG
 - [ ] Adicionar testes unitários para classes de messaging - BACKLOG
@@ -161,12 +161,15 @@ Todas as tarefas planejadas já foram implementadas:
   - ✅ Documentado em `docs/architecture.md` - seção "C# 14 Features Utilizados"
   - 📋 Planejamento: Agendado como última atividade da Sprint 5.5
   - 📝 Recomendação: Usar Extension Members em NOVOS códigos que se beneficiem de properties
-- [ ] Extrair BusinessMetricsMiddlewareExtensions de BusinessMetricsMiddleware.cs
-- [ ] Consolidar Monitoring folder (MonitoringExtensions.cs único)
+- [x] Extrair BusinessMetricsMiddlewareExtensions de BusinessMetricsMiddleware.cs ✅ (19 Dez 2025)
+- [x] Consolidar Monitoring folder (MonitoringExtensions.cs único) ✅ (19 Dez 2025)
 - [ ] Revisar padrão de extensões em todas as funcionalidades do Shared
 
 **5. Code Quality & Cleanup (Baixa Prioridade)** - 3-4h
-- [ ] Padronização de Records (Positional vs Property-based)
+- [x] Padronização de Records - Análise concluída ✅ (19 Dez 2025)
+  - Property-based records: DTOs/Requests (mutabilidade com `init`)
+  - Positional records: Domain Events, Query/Command DTOs (imutabilidade)
+  - Pattern adequado ao contexto de uso
 - [ ] Upload File Size Configuration - Tornar configurável (UploadDocumentCommandHandler.cs:90)
 - [x] ~~Remover api-reference.md (redundante com ReDoc + api-spec.json)~~ ✅ CONCLUÍDO (19 Dez)
 
