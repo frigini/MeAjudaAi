@@ -108,12 +108,12 @@ Todas as tarefas planejadas já foram implementadas:
 - [x] Provider Repository Tests - Documentation updated (unit vs integration) ✅
 - [x] BusinessMetrics - Already extracted (no action needed) ✅
 - [x] Monitoring - Structure already adequate (no action needed) ✅
+- [x] Middleware UseSharedServices Alignment - TODO #249 RESOLVIDO ✅ (19 Dez 2025)
 
 **2. Melhorias de Testes (Média Prioridade)** - 12-16h
 - [ ] Testes Infrastructure Extensions - KeycloakExtensions, PostgreSqlExtensions, MigrationExtensions (4-6h)
 - [ ] Azurite/Blob Storage em Testes - Configurar mock determinístico (DocumentsEndToEndTests.cs - 2h)
 - [ ] Provider Repository Migration - Converter testes unitários para integração (2h)
-- [ ] Middleware UseSharedServices Alignment - Corrigir TODO #249 (ServiceCollectionExtensions.cs - 1-2h)
 
 **3. Refatoração MeAjudaAi.Shared.Messaging** - 8-10h
 - [x] ~~Separar NoOpDeadLetterService em arquivo próprio~~ ✅ CONCLUÍDO (19 Dez 2025)
