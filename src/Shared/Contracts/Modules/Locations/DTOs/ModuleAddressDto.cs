@@ -11,10 +11,3 @@ public sealed record ModuleAddressDto(
     string State,
     string? Complement = null,
     ModuleCoordinatesDto? Coordinates = null);
-
-/// <summary>
-/// DTO representando coordenadas geográficas para comunicação entre módulos.
-/// </summary>
-public sealed record ModuleCoordinatesDto(
-    double Latitude,
-    double Longitude);

@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Constants;
-using MeAjudaAi.Shared.Constants;
 
 namespace MeAjudaAi.Shared.Authorization;
 

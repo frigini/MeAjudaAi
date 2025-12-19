@@ -1,3 +1,5 @@
+using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.Enums;
+
 namespace MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
 
 /// <summary>

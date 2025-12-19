@@ -9,6 +9,7 @@ using MeAjudaAi.Shared.Contracts.Modules.Providers;
 using MeAjudaAi.Shared.Contracts.Modules.Providers.DTOs;
 using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
+using MeAjudaAi.Shared.Contracts.Modules.SearchProviders.Enums;
 using MeAjudaAi.Shared.Functional;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Queries;

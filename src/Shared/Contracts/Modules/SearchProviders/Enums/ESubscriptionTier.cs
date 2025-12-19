@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Contracts.Modules.SearchProviders.DTOs;
+namespace MeAjudaAi.Shared.Contracts.Modules.SearchProviders.Enums;
 
 /// <summary>
 /// Enumeração de níveis de assinatura para API do módulo.

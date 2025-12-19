@@ -378,6 +378,74 @@ error CS0200: Property or indexer 'IOpenApiMediaType.Example' cannot be assigned
 
 ---
 
+## 📋 Padronização de Records (Para Próxima Sprint)
+
+**Arquivo**: Múltiplos arquivos em `src/Shared/Contracts/**` e `src/Modules/**/Domain/**`  
+**Situação**: INCONSISTÊNCIA - Dois padrões em uso  
+**Severidade**: BAIXA (manutenibilidade)  
+**Issue**: [Criar issue para rastreamento]
+
+**Descrição**: 
+Atualmente existem dois padrões de sintaxe para records no projeto:
+
+**Padrão 1: Positional Records (Sintaxe Concisa)**
+```csharp
+public sealed record ModuleCoordinatesDto(
+    double Latitude,
+    double Longitude);
+```
+
+**Padrão 2: Property-based Records (Sintaxe Explícita)**
+```csharp
+public sealed record ModuleLocationDto
+{
+    public required double Latitude { get; init; }
+    public required double Longitude { get; init; }
+}
+```
+
+**Análise**:
+
+*Positional Records:*
+- ✅ Mais conciso
+- ✅ Gera automaticamente construtor, desconstrutor, Equals, GetHashCode
+- ✅ Ideal para DTOs simples e imutáveis
+- ❌ Menos flexível para validação/lógica customizada
+- ❌ Ordem dos parâmetros importa
+
+*Property-based Records:*
+- ✅ Maior flexibilidade (validação, valores padrão complexos)
+- ✅ Permite required e init-only de forma explícita
+- ✅ Ordem não importa
+- ❌ Mais verboso
+- ❌ Não gera desconstrutor automaticamente
+
+**Recomendação**:
+
+*Para DTOs simples* (maioria dos casos em Contracts/Modules): Usar **Positional Records**
+- São mais concisos
+- Comunicação entre módulos não precisa de lógica complexa
+- Imutabilidade garantida por design
+
+*Para Value Objects e Domain Models*: Usar **Property-based Records**
+- Permite validação no construtor
+- Maior controle sobre comportamento
+
+**Ação Sugerida**:
+Na próxima sprint, padronizar todos os records em:
+- `src/Shared/Contracts/**/*.cs` → Positional Records
+- `src/Modules/**/Domain/**/*.cs` → Property-based Records (onde fizer sentido)
+
+**Arquivos para Revisar**:
+- [ ] Todos os DTOs em Contracts/Modules
+- [ ] Value Objects em Domain
+- [ ] Responses/Requests em Shared
+
+**Prioridade**: BAIXA (não urgente, melhoria de consistência)  
+**Estimativa**: 2-3 horas  
+
+---
+
 ## Instruções para Mantenedores
 
 1. **Conversão para Issues do GitHub**: 
