@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Messaging.DeadLetter;
+namespace MeAjudaAi.Shared.Messaging.Options;
 
 /// <summary>
 /// Opções de configuração para Dead Letter Queue (DLQ)

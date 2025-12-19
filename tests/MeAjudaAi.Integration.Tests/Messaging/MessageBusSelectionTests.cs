@@ -2,7 +2,8 @@ using FluentAssertions;
 using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Messaging.NoOp.Factory;
+using MeAjudaAi.Shared.Messaging.Factories;
+
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging.Strategy;
@@ -47,7 +48,7 @@ public class MessageBusSelectionTests : ApiTestBase
 
         // Simular ambiente Development
         services.AddSingleton<IHostEnvironment>(new MockHostEnvironment("Development"));
-        services.AddSingleton<ILogger<EnvironmentBasedMessageBusFactory>>(new TestLogger<EnvironmentBasedMessageBusFactory>());
+        services.AddSingleton<ILogger<MessageBusFactory>>(new TestLogger<MessageBusFactory>());
         services.AddSingleton<ILogger<RabbitMqMessageBus>>(new TestLogger<RabbitMqMessageBus>());
         services.AddSingleton<ILogger<ServiceBusMessageBus>>(new TestLogger<ServiceBusMessageBus>());
 
@@ -59,7 +60,7 @@ public class MessageBusSelectionTests : ApiTestBase
         // Registrar implementações
         services.AddSingleton<RabbitMqMessageBus>();
         services.AddSingleton<ServiceBusMessageBus>();
-        services.AddSingleton<IMessageBusFactory, EnvironmentBasedMessageBusFactory>();
+        services.AddSingleton<IMessageBusFactory, MessageBusFactory>();
 
         var serviceProvider = services.BuildServiceProvider();
         var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();
@@ -83,7 +84,7 @@ public class MessageBusSelectionTests : ApiTestBase
 
         // Simular ambiente Production
         services.AddSingleton<IHostEnvironment>(new MockHostEnvironment("Production"));
-        services.AddSingleton<ILogger<EnvironmentBasedMessageBusFactory>>(new TestLogger<EnvironmentBasedMessageBusFactory>());
+        services.AddSingleton<ILogger<MessageBusFactory>>(new TestLogger<MessageBusFactory>());
         services.AddSingleton<ILogger<RabbitMqMessageBus>>(new TestLogger<RabbitMqMessageBus>());
         services.AddSingleton<ILogger<ServiceBusMessageBus>>(new TestLogger<ServiceBusMessageBus>());
 
@@ -108,7 +109,7 @@ public class MessageBusSelectionTests : ApiTestBase
         // Registrar implementações
         services.AddSingleton<RabbitMqMessageBus>();
         services.AddSingleton<ServiceBusMessageBus>();
-        services.AddSingleton<IMessageBusFactory, EnvironmentBasedMessageBusFactory>();
+        services.AddSingleton<IMessageBusFactory, MessageBusFactory>();
 
         var serviceProvider = services.BuildServiceProvider();
         var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();

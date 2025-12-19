@@ -1,7 +1,11 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using MeAjudaAi.Shared.Constants;
-using MeAjudaAi.Shared.Messaging.NoOp.Factory;
+using MeAjudaAi.Shared.Messaging.DeadLetter;
+using MeAjudaAi.Shared.Messaging.Factories;
+using MeAjudaAi.Shared.Messaging.NoOp;
+using MeAjudaAi.Shared.Messaging.Options;
+
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging.Strategy;
@@ -123,7 +127,7 @@ internal static class MessagingExtensions
         }
 
         // Registrar o factory e o IMessageBus baseado no ambiente
-        services.AddSingleton<IMessageBusFactory, EnvironmentBasedMessageBusFactory>();
+        services.AddSingleton<IMessageBusFactory, MessageBusFactory>();
         services.AddSingleton(serviceProvider =>
         {
             var factory = serviceProvider.GetRequiredService<IMessageBusFactory>();
@@ -140,7 +144,7 @@ internal static class MessagingExtensions
         services.AddSingleton<IRabbitMqInfrastructureManager, RabbitMqInfrastructureManager>();
 
         // Adicionar sistema de Dead Letter Queue
-        MeAjudaAi.Shared.Messaging.Extensions.DeadLetterExtensions.AddDeadLetterQueue(services, configuration);
+        DeadLetterExtensions.AddDeadLetterQueue(services, configuration);
 
         // TODO(#248): Re-enable after Rebus v3 migration completes.
         // Blockers: (1) Rebus.ServiceProvider v10+ required for .NET 10 compatibility,
@@ -184,10 +188,10 @@ internal static class MessagingExtensions
         }
 
         // Garantir infraestrutura de Dead Letter Queue
-        await MeAjudaAi.Shared.Messaging.Extensions.DeadLetterExtensions.EnsureDeadLetterInfrastructureAsync(host);
+        await DeadLetterExtensions.EnsureDeadLetterInfrastructureAsync(host);
 
         // Validar configuração de Dead Letter Queue
-        await MeAjudaAi.Shared.Messaging.Extensions.DeadLetterExtensions.ValidateDeadLetterConfigurationAsync(host);
+        await DeadLetterExtensions.ValidateDeadLetterConfigurationAsync(host);
     }
 
     private static void ConfigureServiceBusOptions(ServiceBusOptions options, IConfiguration configuration)

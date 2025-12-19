@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
@@ -6,15 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Messaging.NoOp.Factory;
-
-/// <summary>
-/// Factory para criar o MessageBus apropriado baseado no ambiente
-/// </summary>
-public interface IMessageBusFactory
-{
-    IMessageBus CreateMessageBus();
-}
+namespace MeAjudaAi.Shared.Messaging.Factories;
 
 /// <summary>
 /// Implementação do factory que seleciona o MessageBus baseado no ambiente:
@@ -22,18 +15,18 @@ public interface IMessageBusFactory
 /// - Production: Azure Service Bus
 /// - Fallback: NoOpMessageBus para testes sem RabbitMQ
 /// </summary>
-public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
+public class MessageBusFactory : IMessageBusFactory
 {
     private readonly IHostEnvironment _environment;
     private readonly IServiceProvider _serviceProvider;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<EnvironmentBasedMessageBusFactory> _logger;
+    private readonly ILogger<MessageBusFactory> _logger;
 
-    public EnvironmentBasedMessageBusFactory(
+    public MessageBusFactory(
         IHostEnvironment environment,
         IServiceProvider serviceProvider,
         IConfiguration configuration,
-        ILogger<EnvironmentBasedMessageBusFactory> logger)
+        ILogger<MessageBusFactory> logger)
     {
         _environment = environment;
         _serviceProvider = serviceProvider;

@@ -1,11 +1,11 @@
-using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Handlers;
+using MeAjudaAi.Shared.Messaging.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Messaging.Extensions;
+namespace MeAjudaAi.Shared.Messaging.DeadLetter;
 
 /// <summary>
 /// Extensões para configurar o sistema de Dead Letter Queue
@@ -38,12 +38,12 @@ public static class DeadLetterExtensions
         services.AddScoped<NoOpDeadLetterService>();
 
         // Registrar factory
-        services.AddScoped<IDeadLetterServiceFactory, EnvironmentBasedDeadLetterServiceFactory>();
+        services.AddScoped<Factories.IDeadLetterServiceFactory, Factories.DeadLetterServiceFactory>();
 
         // Registrar serviço principal baseado no ambiente
         services.AddScoped<IDeadLetterService>(serviceProvider =>
         {
-            var factory = serviceProvider.GetRequiredService<IDeadLetterServiceFactory>();
+            var factory = serviceProvider.GetRequiredService<Factories.IDeadLetterServiceFactory>();
             return factory.CreateDeadLetterService();
         });
 

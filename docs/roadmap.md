@@ -111,15 +111,31 @@ Todas as tarefas planejadas já foram implementadas:
 - [ ] Middleware UseSharedServices Alignment - Corrigir TODO #249 (ServiceCollectionExtensions.cs - 1-2h)
 
 **3. Refatoração MeAjudaAi.Shared.Messaging** - 8-10h
-- [ ] Separar NoOpDeadLetterService em arquivo próprio
-- [ ] Renomear DeadLetterServiceFactory.cs → EnvironmentBasedDeadLetterServiceFactory.cs (consistência)
-- [ ] Extrair DeadLetterStatistics e FailureRate para arquivos separados
-- [ ] Extrair IMessageRetryMiddlewareFactory, MessageRetryMiddlewareFactory, MessageRetryExtensions
-- [ ] Criar IMessageBusFactory + renomear MessageBusFactory.cs → EnvironmentBasedMessageBusFactory.cs
-- [ ] Extrair IRabbitMqInfrastructureManager para arquivo separado
-- [ ] Adicionar Integration Events faltantes nos módulos (Documents, SearchProviders, ServiceCatalogs?)
-- [ ] Reorganização geral da estrutura de pastas em Messaging
-- [ ] Adicionar testes unitários para classes de messaging
+- [x] ~~Separar NoOpDeadLetterService em arquivo próprio~~ ✅ CONCLUÍDO (19 Dez 2025)
+- [x] ~~Extrair DeadLetterStatistics e FailureRate para arquivos separados~~ ✅ CONCLUÍDO (19 Dez 2025)
+- [x] ~~Extrair IMessageRetryMiddlewareFactory, MessageRetryMiddlewareFactory, MessageRetryExtensions~~ ✅ CONCLUÍDO (19 Dez 2025)
+- [x] ~~Todos os 1245 testes do Shared passando~~ ✅ CONCLUÍDO (19 Dez 2025)
+- [✓] ~~Organizar Factories em pasta dedicada~~ - ✅ CONCLUÍDO (19 Dez 2025)
+  - Criada pasta `Messaging/Factories/`
+  - `MessageBusFactory` e `DeadLetterServiceFactory` organizados
+  - Interfaces e implementações em arquivos separados
+  - `EnvironmentBasedDeadLetterServiceFactory` → `DeadLetterServiceFactory`
+- [✓] ~~Organizar Services em pasta dedicada~~ - ✅ CONCLUÍDO (19 Dez 2025)
+  - Criada pasta `Messaging/Services/`
+  - `ServiceBusInitializationService` movido para organização
+- [✓] ~~Organizar Options em pasta dedicada~~ - ✅ CONCLUÍDO (19 Dez 2025)
+  - Criada pasta `Messaging/Options/`
+  - 4 arquivos organizados: `ServiceBusOptions`, `MessageBusOptions`, `RabbitMqOptions`, `DeadLetterOptions`
+  - Namespace unificado: `MeAjudaAi.Shared.Messaging.Options`
+- [✓] ~~Criar IMessageBusFactory + renomear MessageBusFactory.cs → EnvironmentBasedMessageBusFactory.cs~~ - ✅ CONCLUÍDO (19 Dez 2025)
+  - Invertido: Criada interface `IMessageBusFactory` em arquivo próprio
+  - Classe `EnvironmentBasedMessageBusFactory` renomeada para `MessageBusFactory`
+  - Movido de `NoOp/Factory/` para raiz `Messaging/`
+  - Um arquivo por classe seguindo SRP
+- [ ] Extrair IRabbitMqInfrastructureManager para arquivo separado - BACKLOG (não crítico)
+- [ ] Adicionar Integration Events faltantes nos módulos (Documents, SearchProviders, ServiceCatalogs?) - BACKLOG
+- [ ] Reorganização geral da estrutura de pastas em Messaging - BACKLOG
+- [ ] Adicionar testes unitários para classes de messaging - BACKLOG
 
 **4. Refatoração Extensions (MeAjudaAi.Shared)** - 4-6h
 - [ ] Extrair BusinessMetricsMiddlewareExtensions de BusinessMetricsMiddleware.cs
@@ -2795,8 +2811,11 @@ LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
 
 #### **Baseline de Desempenho**
 - **Assumindo**: Cache distribuído configurado, índices otimizados
-- **Revisão**: Ajustes trimestrais baseados em métricas reais (P50, P95, P99)
-- **Monitoramento**: OpenTelemetry + Aspire Dashboard
+- **Revisão Trimestral**: Ajustes baseados em métricas reais
+  - **Percentis monitorados**: P50, P95, P99 (latência de queries)
+  - **Frequência**: Análise e ajuste a cada 3 meses
+  - **Processo**: Feedback loop → identificar outliers → otimizar queries lentas
+- **Monitoramento**: OpenTelemetry + Aspire Dashboard + Application Insights
 
 #### **Outros SLOs**
 - **Disponibilidade**: 99.9% uptime

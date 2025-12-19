@@ -13,44 +13,76 @@ Este documento rastreia itens de débito técnico e melhorias planejadas identif
 
 Os itens abaixo estão planejados para serem resolvidos na Sprint 5.5. Após implementação, serão removidos deste documento ou movidos para seção "Concluído".
 
-#### 🏗️ Refatoração MeAjudaAi.Shared.Messaging (8-10h)
+#### ✅ Refatoração MeAjudaAi.Shared.Messaging - PARCIALMENTE CONCLUÍDA (19 Dez 2025)
 
-**Situação**: ESTRUTURA DESORGANIZADA  
-**Severidade**: MÉDIA (manutenibilidade)  
-**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup)
+**Status**: ✅ **REFATORAÇÃO BÁSICA CONCLUÍDA**  
+**Data**: 19 Dezembro 2025  
+**Branch**: `feature/refactor-and-cleanup`
 
-**Problemas Identificados**:
+**Ações Completadas**:
+- [x] ✅ Separar `NoOpDeadLetterService` em arquivo próprio: `NoOp/NoOpDeadLetterService.cs`
+- [x] ✅ Extrair `DeadLetterStatistics` para: `DeadLetter/DeadLetterStatistics.cs`
+- [x] ✅ Extrair `FailureRate` para: `DeadLetter/FailureRate.cs`
+- [x] ✅ Extrair `IMessageRetryMiddlewareFactory` para: `Handlers/IMessageRetryMiddlewareFactory.cs`
+- [x] ✅ Extrair `MessageRetryMiddlewareFactory` para: `Handlers/MessageRetryMiddlewareFactory.cs`
+- [x] ✅ Extrair `MessageRetryExtensions` para: `Handlers/MessageRetryExtensions.cs`
+- [x] ✅ Todos os 1245 testes do Shared passando após refatoração
 
-1. **Arquivos com múltiplas classes**:
-   - `DeadLetterServiceFactory.cs` contém: `NoOpDeadLetterService`, `IDeadLetterServiceFactory`, `EnvironmentBasedDeadLetterServiceFactory`
-   - `IDeadLetterService.cs` contém: `DeadLetterStatistics`, `FailureRate`
-   - `MessageRetryMiddleware.cs` contém: `IMessageRetryMiddlewareFactory`, `MessageRetryMiddlewareFactory`, `MessageRetryExtensions`
-   - `MessageBusFactory.cs` contém: `IMessageBusFactory`, `EnvironmentBasedMessageBusFactory`
-   - `RabbitMqInfrastructureManager.cs` não possui interface separada `IRabbitMqInfrastructureManager`
+**Pendente para Futuro** (não crítico para MVP):
+- [ ] Criar `IMessageBusFactory.cs` separado (se necessário)
+- [ ] Extrair `IRabbitMqInfrastructureManager` para arquivo separado (se necessário)
+- [ ] Adicionar integration events para módulos faltantes (Documents, SearchProviders, ServiceCatalogs)
+- [ ] Criar testes unitários específicos para classes de messaging (>70% coverage)
 
-2. **Inconsistência de nomenclatura**:
-   - Arquivo `DeadLetterServiceFactory.cs` mas classe principal é `EnvironmentBasedDeadLetterServiceFactory`
-   - Arquivo `MessageBusFactory.cs` mas classe principal é `EnvironmentBasedMessageBusFactory`
+**Resultado**:
+- ✅ Estrutura de arquivos mais organizada e manutenível
+- ✅ Um arquivo por classe (princípio SRP aplicado)
+- ✅ Código compilando sem erros
+- ✅ Todos os testes passando (1245/1245)
+
+---
+
+#### 🏗️ Refatoração MeAjudaAi.Shared.Messaging - Restante (BACKLOG)
+
+**Severidade**: BAIXA (manutenibilidade)  
+**Sprint**: BACKLOG (não crítico para MVP)
+
+**Descrição**: Continuar refatoração iniciada em 19/Dez/2025. Itens abaixo são melhorias adicionais, não bloqueiam desenvolvimento do frontend.
+
+**Problemas Remanescentes**:
+
+1. **Arquivos com múltiplas classes** (restantes):
+   - ~~`DeadLetterServiceFactory.cs` contém: `NoOpDeadLetterService`, `IDeadLetterServiceFactory`, `EnvironmentBasedDeadLetterServiceFactory`~~ ✅ **RESOLVIDO** (19 Dez 2025)
+   - ~~`IDeadLetterService.cs` contém: `DeadLetterStatistics`, `FailureRate`~~ ✅ **RESOLVIDO** (19 Dez 2025)
+   - ~~`MessageRetryMiddleware.cs` contém: `IMessageRetryMiddlewareFactory`, `MessageRetryMiddlewareFactory`, `MessageRetryExtensions`~~ ✅ **RESOLVIDO** (19 Dez 2025)
+   - ✅ **Factories organizados em pasta dedicada** (`Messaging/Factories/`)
+   - ✅ `IMessageBusFactory.cs` + `MessageBusFactory.cs` separados
+   - ✅ `IDeadLetterServiceFactory.cs` + `DeadLetterServiceFactory.cs` separados
+   - `RabbitMqInfrastructureManager.cs` não possui interface separada `IRabbitMqInfrastructureManager` (avaliar necessidade)
+
+2. **Inconsistência de nomenclatura** (se aplicável):
+   - ~~Arquivo `DeadLetterServiceFactory.cs` mas classe principal é `EnvironmentBasedDeadLetterServiceFactory`~~ ✅ **RESOLVIDO** (19 Dez 2025)
+   - Arquivo `MessageBusFactory.cs` - verificar se precisa renomear
 
 3. **Integration Events ausentes**:
    - Documents, SearchProviders, ServiceCatalogs não possuem integration events em Messages/
    - Faltam event handlers para comunicação entre módulos
 
-**Ações de Refatoração**:
-- [ ] Separar `NoOpDeadLetterService` em arquivo próprio: `NoOpDeadLetterService.cs`
-- [ ] Extrair `IDeadLetterServiceFactory` para: `IDeadLetterServiceFactory.cs`
-- [ ] Renomear `DeadLetterServiceFactory.cs` → `EnvironmentBasedDeadLetterServiceFactory.cs`
-- [ ] Extrair `DeadLetterStatistics` para: `DeadLetterStatistics.cs`
-- [ ] Extrair `FailureRate` para: `FailureRate.cs`
-- [ ] Extrair `IMessageRetryMiddlewareFactory` para: `IMessageRetryMiddlewareFactory.cs`
-- [ ] Extrair `MessageRetryMiddlewareFactory` para: `MessageRetryMiddlewareFactory.cs`
-- [ ] Extrair `MessageRetryExtensions` para: `MessageRetryExtensions.cs`
-- [ ] Criar `IMessageBusFactory.cs` separado
-- [ ] Renomear `MessageBusFactory.cs` → `EnvironmentBasedMessageBusFactory.cs`
-- [ ] Extrair `IRabbitMqInfrastructureManager` para arquivo separado
-- [ ] Reorganizar estrutura de pastas em Messaging/ (sugestão abaixo)
-- [ ] Adicionar integration events para módulos faltantes
-- [ ] Criar testes unitários para classes de messaging (>70% coverage)
+**Ações de Refatoração** (BACKLOG - não crítico):
+- [x] ~~Separar `NoOpDeadLetterService` em arquivo próprio: `NoOpDeadLetterService.cs`~~ ✅ CONCLUÍDO (19 Dez 2025)
+- [✓] ~~Extrair `IDeadLetterServiceFactory` para arquivo próprio~~ ✅ CONCLUÍDO (19 Dez 2025) - em `Messaging/Factories/IDeadLetterServiceFactory.cs`
+- [✓] ~~Renomear `EnvironmentBasedDeadLetterServiceFactory` → `DeadLetterServiceFactory`~~ ✅ CONCLUÍDO (19 Dez 2025)
+- [x] ~~Extrair `DeadLetterStatistics` para: `DeadLetterStatistics.cs`~~ ✅ CONCLUÍDO (19 Dez 2025)
+- [x] ~~Extrair `FailureRate` para: `FailureRate.cs`~~ ✅ CONCLUÍDO (19 Dez 2025)
+- [x] ~~Extrair `IMessageRetryMiddlewareFactory` para: `IMessageRetryMiddlewareFactory.cs`~~ ✅ CONCLUÍDO (19 Dez 2025)
+- [x] ~~Extrair `MessageRetryMiddlewareFactory` para: `MessageRetryMiddlewareFactory.cs`~~ ✅ CONCLUÍDO (19 Dez 2025)
+- [x] ~~Extrair `MessageRetryExtensions` para: `MessageRetryExtensions.cs`~~ ✅ CONCLUÍDO (19 Dez 2025)
+- [x] ~~Criar `IMessageBusFactory.cs` separado e organizar factories em pasta dedicada~~ ✅ CONCLUÍDO (19 Dez 2025) - pasta `Messaging/Factories/`
+
+- [ ] Avaliar necessidade de extrair `IRabbitMqInfrastructureManager` para arquivo separado
+- [ ] Reorganizar estrutura de pastas em Messaging/ (sugestão abaixo) - se necessário
+- [ ] Adicionar integration events para módulos faltantes - quando houver necessidade de comunicação inter-módulos
+- [ ] Criar testes unitários para classes de messaging (>70% coverage) - se coverage cair abaixo do threshold
 
 **Estrutura Proposta** (após refatoração):
 ```
@@ -62,6 +94,11 @@ src/Shared/Messaging/
 │   ├── IDeadLetterServiceFactory.cs
 │   ├── IMessageRetryMiddlewareFactory.cs
 │   └── IRabbitMqInfrastructureManager.cs
+├── Factories/
+│   ├── IMessageBusFactory.cs
+│   ├── MessageBusFactory.cs
+│   ├── IDeadLetterServiceFactory.cs
+│   ├── DeadLetterServiceFactory.cs
 ├── DeadLetter/
 │   ├── DeadLetterStatistics.cs
 │   ├── FailureRate.cs
@@ -78,11 +115,16 @@ src/Shared/Messaging/
 │   ├── RabbitMqMessageBus.cs
 │   ├── RabbitMqInfrastructureManager.cs
 │   └── RabbitMqOptions.cs
+├── Options/
+│   ├── ServiceBusOptions.cs
+│   ├── MessageBusOptions.cs
+│   ├── RabbitMqOptions.cs
+│   └── DeadLetterOptions.cs
+├── Services/
+│   └── ServiceBusInitializationService.cs
 ├── ServiceBus/
 │   ├── ServiceBusMessageBus.cs
-│   ├── ServiceBusTopicManager.cs
-│   ├── ServiceBusOptions.cs
-│   └── ServiceBusInitializationService.cs
+│   └── ServiceBusTopicManager.cs
 ├── Messages/
 │   ├── Documents/
 │   │   ├── DocumentUploadedIntegrationEvent.cs
@@ -90,7 +132,6 @@ src/Shared/Messaging/
 │   ├── Providers/
 │   ├── Users/
 │   └── ...
-├── EnvironmentBasedMessageBusFactory.cs
 └── EventTypeRegistry.cs
 ```
 

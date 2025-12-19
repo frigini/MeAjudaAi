@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
+using MeAjudaAi.Shared.Messaging.Factories;
 using MeAjudaAi.Shared.Tests.Base;
 using MeAjudaAi.Shared.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Mocks;
@@ -125,7 +126,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         // Assert
         var factory = serviceProvider.GetRequiredService<IDeadLetterServiceFactory>();
         factory.Should().NotBeNull();
-        factory.Should().BeOfType<EnvironmentBasedDeadLetterServiceFactory>();
+        factory.Should().BeOfType<DeadLetterServiceFactory>();
     }
 
     [Fact]

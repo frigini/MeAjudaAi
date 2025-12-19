@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 
-namespace MeAjudaAi.Shared.Messaging;
+namespace MeAjudaAi.Shared.Messaging.NoOp;
 
 /// <summary>
 /// Implementação no-operation do IServiceBusTopicManager para quando messaging está desabilitado

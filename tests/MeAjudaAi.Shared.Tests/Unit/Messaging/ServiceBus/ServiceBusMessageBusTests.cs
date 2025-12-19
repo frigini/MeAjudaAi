@@ -3,6 +3,7 @@ using Azure.Messaging.ServiceBus;
 using FluentAssertions;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging.Strategy;
 using Microsoft.Extensions.Logging;

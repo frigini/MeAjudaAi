@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Messaging.Strategy;
 
-namespace MeAjudaAi.Shared.Messaging.ServiceBus;
+namespace MeAjudaAi.Shared.Messaging.Options;
 
 public sealed class ServiceBusOptions
 {

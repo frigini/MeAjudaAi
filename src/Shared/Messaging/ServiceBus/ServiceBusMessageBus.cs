@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Events;
+using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Messaging.Strategy;
 using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;

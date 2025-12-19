@@ -6,6 +6,7 @@ using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;
 using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Messaging;
+using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Monitoring;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Seeding;

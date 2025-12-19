@@ -222,7 +222,7 @@ builder.AddAzureServiceBus("messaging");
 ### Factory Pattern
 
 ```csharp
-public class EnvironmentBasedMessageBusFactory : IMessageBusFactory
+public class MessageBusFactory : IMessageBusFactory
 {
     public IMessageBus CreateMessageBus()
     {

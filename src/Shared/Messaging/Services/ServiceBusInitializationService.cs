@@ -1,8 +1,9 @@
+using MeAjudaAi.Shared.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Messaging.ServiceBus;
+namespace MeAjudaAi.Shared.Messaging.Services;
 
 internal class ServiceBusInitializationService(
     IServiceProvider serviceProvider,

@@ -1,29 +1,22 @@
+using MeAjudaAi.Shared.Messaging.DeadLetter;
+using MeAjudaAi.Shared.Messaging.NoOp;
+using MeAjudaAi.Shared.Messaging.RabbitMq;
+using MeAjudaAi.Shared.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Messaging.DeadLetter;
-
-/// <summary>
-/// Factory para criar o serviço de Dead Letter Queue apropriado baseado no ambiente
-/// </summary>
-public interface IDeadLetterServiceFactory
-{
-    /// <summary>
-    /// Cria o serviço de DLQ apropriado para o ambiente atual
-    /// </summary>
-    IDeadLetterService CreateDeadLetterService();
-}
+namespace MeAjudaAi.Shared.Messaging.Factories;
 
 /// <summary>
 /// Implementação do factory que seleciona o serviço de DLQ baseado no ambiente:
 /// - Development/Testing: Serviço RabbitMQ Dead Letter
 /// - Production: Serviço Service Bus Dead Letter
 /// </summary>
-public sealed class EnvironmentBasedDeadLetterServiceFactory(
+public sealed class DeadLetterServiceFactory(
     IServiceProvider serviceProvider,
     IHostEnvironment environment,
-    ILogger<EnvironmentBasedDeadLetterServiceFactory> logger) : IDeadLetterServiceFactory
+    ILogger<DeadLetterServiceFactory> logger) : IDeadLetterServiceFactory
 {
     public IDeadLetterService CreateDeadLetterService()
     {
