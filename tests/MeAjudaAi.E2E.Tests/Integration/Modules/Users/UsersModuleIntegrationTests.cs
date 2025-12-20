@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.E2E.Tests.Integration.DTOs.Users;
 using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.E2E.Tests.Integration.Modules.Users;
@@ -79,67 +80,4 @@ public class UsersModuleIntegrationTests : TestContainerTestBase
         var invalidGuidResponse = await ApiClient.GetAsync("/api/v1/users/invalid-guid");
         invalidGuidResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
-}
-
-/// <summary>
-/// Modelo de requisição para criar um novo usuário em testes E2E.
-/// </summary>
-public record CreateUserRequest
-{
-    /// <summary>
-    /// Obtém ou inicializa o nome de usuário.
-    /// </summary>
-    public string Username { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Obtém ou inicializa o endereço de email.
-    /// </summary>
-    public string Email { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Obtém ou inicializa o primeiro nome.
-    /// </summary>
-    public string FirstName { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Obtém ou inicializa o último nome.
-    /// </summary>
-    public string LastName { get; init; } = string.Empty;
-}
-
-/// <summary>
-/// Modelo de resposta para criação de usuário em testes E2E.
-/// </summary>
-public record CreateUserResponse
-{
-    /// <summary>
-    /// Obtém ou inicializa o ID do usuário criado.
-    /// </summary>
-    public Guid UserId { get; init; }
-
-    /// <summary>
-    /// Obtém ou inicializa a mensagem de resposta.
-    /// </summary>
-    public string Message { get; init; } = string.Empty;
-}
-
-/// <summary>
-/// Modelo de requisição para atualizar perfil de usuário em testes E2E.
-/// </summary>
-public record UpdateUserProfileRequest
-{
-    /// <summary>
-    /// Obtém ou inicializa o primeiro nome.
-    /// </summary>
-    public string FirstName { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Obtém ou inicializa o último nome.
-    /// </summary>
-    public string LastName { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Obtém ou inicializa o endereço de email.
-    /// </summary>
-    public string Email { get; init; } = string.Empty;
 }

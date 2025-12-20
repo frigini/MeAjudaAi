@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.E2E.Tests.Integration.DTOs.ServiceCatalogs;
 
 namespace MeAjudaAi.E2E.Tests.Integration.Modules.ServiceCatalogs;
 
@@ -241,36 +242,6 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
     // NOTA: DTOs locais são intencionalmente definidos aqui ao invés de importar de Application.DTOs
     // para garantir que testes E2E validem o contrato real da API independentemente dos DTOs internos.
     // Isso previne que mudanças breaking nos DTOs internos sejam mascaradas em testes de integração.
-
-    private record ServiceCategoryDto(
-        Guid Id,
-        string Name,
-        string? Description,
-        int DisplayOrder,
-        bool IsActive,
-        DateTime CreatedAt,
-        DateTime? UpdatedAt
-    );
-
-    private record ServiceDto(
-        Guid Id,
-        Guid CategoryId,
-        string CategoryName,
-        string Name,
-        string? Description,
-        int DisplayOrder,
-        bool IsActive,
-        DateTime CreatedAt,
-        DateTime? UpdatedAt
-    );
-
-    private record ServiceListDto(
-        Guid Id,
-        Guid CategoryId,
-        string Name,
-        string? Description,
-        bool IsActive
-    );
 
     #endregion
 }
