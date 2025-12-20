@@ -51,15 +51,17 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
 ### Organização por Módulo
 
+#### Estrutura Consolidada (Padrão `{Module}EndToEndTests`)
+
 ```
 tests/MeAjudaAi.E2E.Tests/
 ├── Modules/
-│   ├── Users/UsersLifecycleEndToEndTests.cs
-│   ├── Providers/ProvidersEndToEndTests.cs
-│   ├── Documents/DocumentsEndToEndTests.cs
+│   ├── Users/UsersEndToEndTests.cs               (renomeado)
+│   ├── Providers/ProvidersEndToEndTests.cs       (3→1 consolidado)
+│   ├── Documents/DocumentsEndToEndTests.cs       (2→1 consolidado)
 │   ├── SearchProviders/SearchProvidersEndToEndTests.cs
-│   ├── ServiceCatalogs/ServiceCatalogsEndToEndTests.cs
-│   └── Locations/AllowedCitiesEndToEndTests.cs
+│   ├── ServiceCatalogs/ServiceCatalogsEndToEndTests.cs  (2→1 consolidado)
+│   └── Locations/LocationsEndToEndTests.cs       (renomeado)
 ├── Infrastructure/
 │   ├── MiddlewareEndToEndTests.cs
 │   └── RateLimitingEndToEndTests.cs
@@ -67,6 +69,66 @@ tests/MeAjudaAi.E2E.Tests/
 │   └── ProviderDocumentSearchIntegrationTests.cs
 └── Authorization/
     └── PermissionBasedEndToEndTests.cs
+```
+
+**Consolidações Realizadas:**
+- **Documents**: `DocumentsEndToEndTests.cs` + `DocumentsVerificationEndToEndTests.cs` → `DocumentsEndToEndTests.cs`
+- **ServiceCatalogs**: `ServiceCatalogsEndToEndTests.cs` + `ServiceCatalogsAdvancedEndToEndTests.cs` → `ServiceCatalogsEndToEndTests.cs`
+- **Providers**: `ProvidersEndToEndTests.cs` + `ProvidersLifecycleEndToEndTests.cs` + `ProvidersDocumentsEndToEndTests.cs` → `ProvidersEndToEndTests.cs`
+- **Users**: `UsersLifecycleEndToEndTests.cs` → `UsersEndToEndTests.cs` (renomeado)
+- **Locations**: `AllowedCitiesEndToEndTests.cs` → `LocationsEndToEndTests.cs` (renomeado)
+
+**Redução Total:** 19 arquivos → 15 arquivos (-21%)
+
+#### Organização Interna com #region
+
+Cada módulo consolidado usa `#region` para organizar testes por cenário de negócio:
+
+**Exemplo - DocumentsEndToEndTests.cs (10 testes em 6 regions):**
+```csharp
+#region Helper Methods
+// WaitForProviderAsync, ExtractId helpers
+
+#region Upload and Basic CRUD
+// UploadDocument_WithValidData_Should_Return_Success
+// GetDocument_ByProviderId_Should_Return_Document
+
+#region Provider Documents
+// GetDocumentsByProviderId_Should_Return_ProviderDocuments
+// GetDocumentsByProviderId_NonExistent_Should_Return_NotFound
+
+#region Workflows
+// DocumentApprovalWorkflow_Should_UpdateStatus
+// DocumentRejectionWorkflow_Should_RecordRejectionReason
+
+#region Isolation and Cascading
+// DeleteProvider_Should_CascadeToDocuments
+
+#region Verification Workflows
+// DocumentVerification_ToApproved_Should_Succeed
+// DocumentVerification_WithRejection_Should_RecordReason
+// MultipleDocumentVerifications_Should_MaintainHistory
+```
+
+**Exemplo - ServiceCatalogsEndToEndTests.cs (14 testes em 7 regions):**
+```csharp
+#region Basic CRUD Operations
+#region Category Filtering
+#region Update and Delete Operations
+#region Activation Status Changes
+#region Database Persistence Verification
+#region Advanced Validation Rules
+#region Advanced Category Change Scenarios
+```
+
+**Exemplo - ProvidersEndToEndTests.cs (10 testes em 6 regions):**
+```csharp
+#region Basic CRUD Operations
+#region Update Operations
+#region Delete Operations
+#region Verification Status
+#region Basic Info Correction
+#region Document Operations
 ```
 
 ## Testes de Middleware (Novo!)
@@ -186,7 +248,7 @@ public async Task RateLimiting_ManyRequests_ShouldProcessCorrectly()
 
 ### Users
 
-**Arquivo:** `UsersLifecycleEndToEndTests.cs`
+**Arquivo:** [UsersEndToEndTests.cs](../../tests/MeAjudaAi.E2E.Tests/Modules/Users/UsersEndToEndTests.cs)
 
 **Cobertura:**
 - ✅ DELETE com persistência
@@ -214,6 +276,49 @@ public async Task UpdateUser_CompleteWorkflow_ShouldPersistChanges()
     var user = await getResponse.Content.ReadFromJsonAsync<dynamic>();
     user!.GetProperty("data").GetProperty("username").GetString()
         .Should().Be("updated_name");
+}
+```
+
+### Providers
+
+**Arquivo:** [ProvidersEndToEndTests.cs](../../tests/MeAjudaAi.E2E.Tests/Modules/Providers/ProvidersEndToEndTests.cs) *(consolidado: 3→1 arquivo)*
+
+**Estrutura Interna (10 testes em 6 #regions):**
+- `#region Basic CRUD Operations` - Criação e workflows completos
+- `#region Update Operations` - Atualização com validação de dados
+- `#region Delete Operations` - Exclusão e verificação de cascata
+- `#region Verification Status` - Transições de status de verificação
+- `#region Basic Info Correction` - Workflows de correção
+- `#region Document Operations` - Upload e remoção de documentos
+
+**Cobertura:**
+- ✅ CRUD completo (Create, Update, Delete)
+- ✅ Workflow completo de criação e busca
+- ✅ Atualização de dados válidos e inválidos
+- ✅ Exclusão sem documentos associados
+- ✅ Mudança de status de verificação (Pending → Verified)
+- ✅ Validação de transições inválidas de status
+- ✅ Workflow de correção de informações básicas
+- ✅ Upload de documentos para providers
+- ✅ Exclusão de documentos de providers
+
+**Exemplo:**
+```csharp
+[Fact]
+public async Task UpdateProvider_WithValidData_Should_Return_Success()
+{
+    AuthenticateAsAdmin();
+    var uniqueId = Guid.NewGuid().ToString("N")[..8];
+    
+    // CREATE provider
+    var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest);
+    var providerId = ExtractIdFromLocation(createResponse.Headers.Location);
+    
+    // UPDATE provider
+    var updateRequest = new { Name = $"Updated_{uniqueId}", ... };
+    var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", updateRequest);
+    
+    updateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
 }
 ```
 
@@ -250,12 +355,22 @@ public async Task SearchProviders_CompleteWorkflow_ShouldFindProvidersWithinRadi
 
 ### Documents
 
-**Arquivo:** `DocumentsEndToEndTests.cs`
+**Arquivo:** [DocumentsEndToEndTests.cs](../../tests/MeAjudaAi.E2E.Tests/Modules/Documents/DocumentsEndToEndTests.cs) *(consolidado: 2→1 arquivo)*
+
+**Estrutura Interna (10 testes em 6 #regions):**
+- `#region Helper Methods` - Helpers para providers e extração de IDs
+- `#region Upload and Basic CRUD` - Upload e operações básicas
+- `#region Provider Documents` - Documentos por provider
+- `#region Workflows` - Workflows de aprovação e rejeição
+- `#region Isolation and Cascading` - Exclusão em cascata
+- `#region Verification Workflows` - Múltiplas verificações e histórico
 
 **Cobertura:**
 - ✅ Workflow UPLOAD → VERIFY
 - ✅ Rejeição de documentos com RejectionReason
 - ✅ Histórico de múltiplos documentos por provider
+- ✅ Exclusão em cascata quando provider é removido
+- ✅ Busca de documentos por ProviderId
 
 **Exemplo:**
 ```csharp
@@ -275,6 +390,55 @@ public async Task DocumentLifecycle_UploadAndVerification_ShouldCompleteProperly
         $"/api/v1/documents/{documentId}/verify", verifyRequest);
     
     verifyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+}
+```
+
+### ServiceCatalogs
+
+**Arquivo:** [ServiceCatalogsEndToEndTests.cs](../../tests/MeAjudaAi.E2E.Tests/Modules/ServiceCatalogs/ServiceCatalogsEndToEndTests.cs) *(consolidado: 2→1 arquivo)*
+
+**Estrutura Interna (14 testes em 7 #regions):**
+- `#region Basic CRUD Operations` - Criar, buscar e listar serviços
+- `#region Category Filtering` - Filtros por categoria
+- `#region Update and Delete Operations` - Atualização e exclusão
+- `#region Activation Status Changes` - Ativação/desativação
+- `#region Database Persistence Verification` - Persistência em banco
+- `#region Advanced Validation Rules` - Validação de dados avançada
+- `#region Advanced Category Change Scenarios` - Mudança de categoria
+
+**Cobertura:**
+- ✅ CRUD completo (Create, Read, Update, Delete)
+- ✅ Filtros por categoria (Healthcare, Education, etc.)
+- ✅ Ativação e desativação de serviços
+- ✅ Validação de persistência em banco de dados
+- ✅ Validação de regras de negócio (nome obrigatório, preço positivo)
+- ✅ Mudança de categoria de serviços
+- ✅ Validação de relacionamentos com providers
+
+**Exemplo:**
+```csharp
+[Fact]
+public async Task ServiceCatalog_CompleteLifecycle_ShouldWork()
+{
+    AuthenticateAsAdmin();
+    
+    // CREATE
+    var createRequest = new { Name = "Test Service", Category = 0, Price = 100.00, ... };
+    var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs", createRequest);
+    var serviceId = ExtractIdFromLocation(createResponse.Headers.Location);
+    
+    // UPDATE
+    var updateRequest = new { Name = "Updated Service", IsActive = false };
+    await ApiClient.PutAsJsonAsync($"/api/v1/service-catalogs/{serviceId}", updateRequest);
+    
+    // VERIFY persistence
+    var getResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/{serviceId}");
+    var service = await getResponse.Content.ReadFromJsonAsync<dynamic>();
+    service!.GetProperty("data").GetProperty("isActive").GetBoolean().Should().BeFalse();
+    
+    // DELETE
+    var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/{serviceId}");
+    deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 }
 ```
 
@@ -364,28 +528,41 @@ Requer Docker:
 
 ### Estado Atual (Dez/2024)
 
-**Total de Testes E2E:** 86 testes
+**Total de Testes E2E:** 86 testes em **15 arquivos** (após consolidação: 19→15, -21%)
 - ✅ **Passed:** 74 (86.0%)
 - ❌ **Failed:** 12 (14.0%)
 
 **Cobertura por Módulo:**
-| Módulo | Testes | Status |
-|--------|--------|--------|
-| Users | 10 | 7 passed, 3 failed |
-| Providers | 15 | 15 passed |
-| Documents | 8 | 5 passed, 3 failed |
-| SearchProviders | 8 | 4 passed, 4 failed |
-| ServiceCatalogs | 20 | 20 passed |
-| Locations | 10 | 10 passed |
-| Infrastructure | 15 | 13 passed, 2 failed |
+| Módulo | Arquivo | Testes | Status | Estrutura |
+|--------|---------|--------|--------|-----------|
+| Users | UsersEndToEndTests.cs | 10 | 7 passed, 3 failed | Renomeado |
+| Providers | ProvidersEndToEndTests.cs | 10 | 10 passed | **3→1** (6 regions) |
+| Documents | DocumentsEndToEndTests.cs | 10 | 7 passed, 3 failed | **2→1** (6 regions) |
+| SearchProviders | SearchProvidersEndToEndTests.cs | 8 | 4 passed, 4 failed | - |
+| ServiceCatalogs | ServiceCatalogsEndToEndTests.cs | 14 | 14 passed | **2→1** (7 regions) |
+| Locations | LocationsEndToEndTests.cs | 10 | 10 passed | Renomeado |
+| Infrastructure | Middleware + RateLimiting | 27 | 25 passed, 2 failed | 2 arquivos |
 
-**Middlewares Cobertos (E2E):**
-- ✅ BusinessMetricsMiddleware
-- ✅ LoggingContextMiddleware
-- ✅ SecurityHeadersMiddleware
-- ✅ CompressionSecurityMiddleware
-- ✅ RateLimitingMiddleware
-- ✅ RequestLoggingMiddleware
+**Middlewares Cobertos (E2E + Integration = 43 testes):**
+- ✅ BusinessMetricsMiddleware (2 E2E)
+- ✅ LoggingContextMiddleware (2 E2E)
+- ✅ SecurityHeadersMiddleware (3 E2E + 10 Integration)
+- ✅ CompressionSecurityMiddleware (2 E2E + 6 Integration)
+- ✅ RateLimitingMiddleware (4 E2E)
+- ✅ RequestLoggingMiddleware (3 E2E)
+- ✅ PermissionOptimizationMiddleware (validado)
+- ✅ CorrelationId propagation (validado)
+
+**Consolidações Realizadas (Opção A - 100%):**
+| Consolidação | Antes | Depois | Testes | Regions |
+|--------------|-------|--------|--------|---------|
+| Documents | 2 arquivos | 1 arquivo | 10 testes | 6 #regions |
+| ServiceCatalogs | 2 arquivos | 1 arquivo | 14 testes | 7 #regions |
+| Providers | 3 arquivos | 1 arquivo | 10 testes | 6 #regions |
+| Users | 1 arquivo | 1 arquivo (renomeado) | - | - |
+| Locations | 1 arquivo | 1 arquivo (renomeado) | - | - |
+
+**Padrão de Nomenclatura:** `{Module}EndToEndTests.cs` com organização `#region` por cenário de negócio
 
 **Gaps Conhecidos:**
 - ⚠️ SearchProviders: testes falhando (problema de seed data)
