@@ -23,8 +23,12 @@ public static class TestServicesConfiguration
     /// Registra serviços para testes
     /// </summary>
     /// <param name="services">Service collection</param>
+    /// <param name="azuriteConnectionString">Connection string for Azurite blob storage (only used when useAzurite=true)</param>
     /// <param name="useAzurite">Se true, usa AzureBlobStorageService real (requer Azurite container). Se false, usa MockBlobStorageService</param>
-    public static IServiceCollection AddDocumentsTestServices(this IServiceCollection services, bool useAzurite = false)
+    public static IServiceCollection AddDocumentsTestServices(
+        this IServiceCollection services, 
+        string? azuriteConnectionString = null,
+        bool useAzurite = false)
     {
         // BlobStorageService: usa Azurite real ou Mock dependendo do parâmetro
         if (!useAzurite)
@@ -35,9 +39,7 @@ public static class TestServicesConfiguration
         {
             // Ensure BlobServiceClient and IBlobStorageService are registered for Azurite tests
             // This handles cases where the service might not be registered yet or was conditionally skipped
-            var serviceProvider = services.BuildServiceProvider();
-            var configuration = serviceProvider.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
-            var storageConnectionString = configuration["Azure:Storage:ConnectionString"];
+            var storageConnectionString = azuriteConnectionString;
             
             if (!string.IsNullOrEmpty(storageConnectionString))
             {

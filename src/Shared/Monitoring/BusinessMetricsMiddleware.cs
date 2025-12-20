@@ -65,15 +65,17 @@ internal class BusinessMetricsMiddleware(
         if (path != null)
         {
             // Registros de usuário
-            if (path.StartsWith("/api/users") && method == "POST" && statusCode is >= 200 and < 300)
+            if (path == "/api/users" && method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordUserRegistration("api");
                 logger.LogInformation("User registration completed via API");
             }
 
             // Logins
-            if (path.StartsWith("/api/auth/login") && method == "POST" && statusCode is >= 200 and < 300)
+            if (path == "/api/auth/login" && method == "POST" && statusCode is >= 200 and < 300)
             {
+                // Note: User is unauthenticated at login endpoint, so userId will be "unknown"
+                // To capture actual userId, would need to extract from request body or capture after token generation
                 var userId = context.User?.FindFirst(AuthConstants.Claims.Subject)?.Value ?? "unknown";
                 businessMetrics.RecordUserLogin(userId, "password");
                 logger.LogInformation("User login completed: {UserId}", userId);

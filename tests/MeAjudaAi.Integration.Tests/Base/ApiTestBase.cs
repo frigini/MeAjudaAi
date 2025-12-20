@@ -207,7 +207,7 @@ public abstract class ApiTestBase : IAsyncLifetime
 
                     // Adiciona mocks de serviços para testes
                     // Note: BlobStorageService uses real Azurite container (not mock) for deterministic tests
-                    services.AddDocumentsTestServices(useAzurite: true);
+                    services.AddDocumentsTestServices(_databaseFixture.AzuriteConnectionString, useAzurite: true);
 
                     // Conditionally replace geographic validation with mock
                     // IBGE-focused tests can override UseMockGeographicValidation to use real service with WireMock
