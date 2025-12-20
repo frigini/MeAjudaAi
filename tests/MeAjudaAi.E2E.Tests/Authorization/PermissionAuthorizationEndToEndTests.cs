@@ -4,7 +4,7 @@ using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Tests.Auth;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 
 namespace MeAjudaAi.E2E.Tests.Authorization;
 

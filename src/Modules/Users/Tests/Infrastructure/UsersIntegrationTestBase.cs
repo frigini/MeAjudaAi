@@ -1,7 +1,7 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Tests.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Infrastructure.Options;
 using MeAjudaAi.Shared.Time;

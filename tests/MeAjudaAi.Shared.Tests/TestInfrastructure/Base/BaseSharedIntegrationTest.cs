@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Tests.Extensions;
 
-namespace MeAjudaAi.Shared.Tests.Base;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 
 /// <summary>
 /// 🔗 BASE COMPARTILHADA PARA TESTES DE INTEGRAÇÃO ENTRE MÓDULOS

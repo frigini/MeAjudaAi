@@ -1,7 +1,7 @@
 using MeAjudaAi.Shared.Tests.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Shared.Tests.Base;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 
 /// <summary>
 /// Classe base genérica para testes de integração com containers compartilhados.

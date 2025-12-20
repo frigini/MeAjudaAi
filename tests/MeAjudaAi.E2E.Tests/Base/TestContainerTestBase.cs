@@ -12,7 +12,7 @@ using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Serialization;
-using MeAjudaAi.Shared.Tests.Auth;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

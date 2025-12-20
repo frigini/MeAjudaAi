@@ -14,7 +14,7 @@ using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Geolocation;
 using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Serialization;
-using MeAjudaAi.Shared.Tests.Auth;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.Mocks;
 using Microsoft.AspNetCore.Authentication;

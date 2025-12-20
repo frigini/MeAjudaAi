@@ -1,7 +1,7 @@
 using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Tests.Base;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 
 /// <summary>
 /// Classe base para testes de Event Handlers com mocks comuns e configuração.

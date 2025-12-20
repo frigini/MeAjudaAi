@@ -1,5 +1,5 @@
 using MeAjudaAi.Integration.Tests.Aspire;
-using MeAjudaAi.Shared.Tests.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 
 namespace MeAjudaAi.Integration.Tests.Base;
 

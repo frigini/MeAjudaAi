@@ -6,7 +6,7 @@ using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Providers.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Providers.Domain.Repositories;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
-using MeAjudaAi.Shared.Tests.Auth;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 

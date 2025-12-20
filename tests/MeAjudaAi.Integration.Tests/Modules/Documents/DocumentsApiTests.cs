@@ -6,7 +6,7 @@ using MeAjudaAi.Integration.Tests.Base;
 using MeAjudaAi.Modules.Documents.Application.DTOs;
 using MeAjudaAi.Modules.Documents.Application.DTOs.Requests;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
-using MeAjudaAi.Shared.Tests.Auth;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 
 namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 

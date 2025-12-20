@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Respawn;
 using Testcontainers.PostgreSql;
 
-namespace MeAjudaAi.Shared.Tests.Base;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 
 /// <summary>
 /// Classe base para testes de integração que requerem um banco de dados PostgreSQL.

@@ -3,7 +3,7 @@ using MeAjudaAi.Shared.Messaging;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Factories;
 using MeAjudaAi.Shared.Messaging.Options;
-using MeAjudaAi.Shared.Tests.Base;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.Infrastructure;
 using MeAjudaAi.Shared.Tests.Infrastructure.Options;
 using MeAjudaAi.Shared.Tests.Mocks;
