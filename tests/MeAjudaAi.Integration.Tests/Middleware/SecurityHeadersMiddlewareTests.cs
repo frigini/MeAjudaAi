@@ -1,6 +1,7 @@
 using System.Net;
+using System.Net.Http.Json;
 using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Configuration;
+using MeAjudaAi.Integration.Tests.Base;
 using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Middleware;
@@ -8,16 +9,15 @@ namespace MeAjudaAi.Integration.Tests.Middleware;
 /// <summary>
 /// Testes de integração para SecurityHeadersMiddleware
 /// </summary>
-[Collection(GlobalTestConfiguration.IntegrationTestsCollectionName)]
-public sealed class SecurityHeadersMiddlewareTests(IntegrationTestsFixture fixture)
+public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
 {
-    private readonly HttpClient _client = fixture.CreateClient();
+    private HttpClient HttpClient => Client;
 
     [Fact]
     public async Task SecurityHeaders_ShouldIncludeXContentTypeOptions()
     {
         // Arrange & Act
-        var response = await _client.GetAsync("/health");
+        var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -31,7 +31,7 @@ public sealed class SecurityHeadersMiddlewareTests(IntegrationTestsFixture fixtu
     public async Task SecurityHeaders_ShouldIncludeXFrameOptions()
     {
         // Arrange & Act
-        var response = await _client.GetAsync("/health");
+        var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -45,7 +45,7 @@ public sealed class SecurityHeadersMiddlewareTests(IntegrationTestsFixture fixtu
     public async Task SecurityHeaders_ShouldIncludeStrictTransportSecurity()
     {
         // Arrange & Act
-        var response = await _client.GetAsync("/health");
+        var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -62,7 +62,7 @@ public sealed class SecurityHeadersMiddlewareTests(IntegrationTestsFixture fixtu
     public async Task SecurityHeaders_ShouldIncludeContentSecurityPolicy()
     {
         // Arrange & Act
-        var response = await _client.GetAsync("/health");
+        var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -76,7 +76,7 @@ public sealed class SecurityHeadersMiddlewareTests(IntegrationTestsFixture fixtu
     public async Task SecurityHeaders_Development_ShouldHaveLenientCSP()
     {
         // Arrange & Act
-        var response = await _client.GetAsync("/health");
+        var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -95,7 +95,7 @@ public sealed class SecurityHeadersMiddlewareTests(IntegrationTestsFixture fixtu
     public async Task SecurityHeaders_ShouldIncludeXPermittedCrossDomainPolicies()
     {
         // Arrange & Act
-        var response = await _client.GetAsync("/health");
+        var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -112,7 +112,7 @@ public sealed class SecurityHeadersMiddlewareTests(IntegrationTestsFixture fixtu
     public async Task SecurityHeaders_ShouldIncludeReferrerPolicy()
     {
         // Arrange & Act
-        var response = await _client.GetAsync("/health");
+        var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -138,7 +138,7 @@ public sealed class SecurityHeadersMiddlewareTests(IntegrationTestsFixture fixtu
         // Act
         foreach (var endpoint in endpoints)
         {
-            responses.Add(await _client.GetAsync(endpoint));
+            responses.Add(await HttpClient.GetAsync(endpoint));
         }
 
         // Assert
@@ -163,7 +163,7 @@ public sealed class SecurityHeadersMiddlewareTests(IntegrationTestsFixture fixtu
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/v1/users/register", request);
+        var response = await HttpClient.PostAsJsonAsync("/api/v1/users/register", request);
 
         // Assert
         response.Headers.Should().Contain(h => h.Key == "X-Content-Type-Options",
@@ -174,7 +174,7 @@ public sealed class SecurityHeadersMiddlewareTests(IntegrationTestsFixture fixtu
     public async Task SecurityHeaders_ErrorResponse_ShouldStillHaveHeaders()
     {
         // Arrange & Act
-        var response = await _client.GetAsync("/api/v1/users/99999999-9999-9999-9999-999999999999");
+        var response = await HttpClient.GetAsync("/api/v1/users/99999999-9999-9999-9999-999999999999");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);

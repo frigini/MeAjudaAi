@@ -1,7 +1,7 @@
 using System.Net;
+using System.Net.Http.Json;
 using FluentAssertions;
-using MeAjudaAi.Integration.Tests.Configuration;
-using MeAjudaAi.Modules.Users.Api.Requests;
+using MeAjudaAi.Integration.Tests.Base;
 using Xunit;
 
 namespace MeAjudaAi.Integration.Tests.Middleware;
@@ -9,16 +9,15 @@ namespace MeAjudaAi.Integration.Tests.Middleware;
 /// <summary>
 /// Testes de integração para CompressionSecurityMiddleware
 /// </summary>
-[Collection(GlobalTestConfiguration.IntegrationTestsCollectionName)]
-public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture fixture)
+public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
 {
-    private readonly HttpClient _client = fixture.CreateClient();
+    private HttpClient HttpClient => Client;
 
     [Fact]
     public async Task CompressionSecurity_AuthenticatedUser_ShouldDisableCompression()
     {
         // Arrange
-        var registerRequest = new UserRegistrationRequest
+        var registerRequest = new
         {
             Name = "Compression Test User",
             Email = $"compression.{Guid.NewGuid()}@example.com",
@@ -26,7 +25,7 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             Role = "user"
         };
 
-        await _client.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -34,16 +33,16 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             Password = registerRequest.Password
         };
 
-        var loginResponse = await _client.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
         var loginData = await loginResponse.Content.ReadFromJsonAsync<dynamic>();
         var token = loginData!.GetProperty("data").GetProperty("token").GetString();
 
-        _client.DefaultRequestHeaders.Authorization = 
+        HttpClient.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-        _client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+        HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         // Act
-        var response = await _client.GetAsync("/api/v1/users");
+        var response = await HttpClient.GetAsync("/api/v1/users");
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized);
@@ -58,19 +57,19 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
                 "Brotli deve ser desabilitado para usuários autenticados (proteção BREACH)");
         }
 
-        _client.DefaultRequestHeaders.Authorization = null;
-        _client.DefaultRequestHeaders.Remove("Accept-Encoding");
+        HttpClient.DefaultRequestHeaders.Authorization = null;
+        HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
     }
 
     [Fact]
     public async Task CompressionSecurity_AnonymousUser_ShouldAllowCompression()
     {
         // Arrange
-        _client.DefaultRequestHeaders.Remove("Authorization");
-        _client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+        HttpClient.DefaultRequestHeaders.Remove("Authorization");
+        HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         // Act
-        var response = await _client.GetAsync("/health");
+        var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -80,14 +79,14 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
         // Nota: se o servidor decidir comprimir ou não depende de outros fatores
         // Este teste valida que middleware NÃO bloqueia compressão para anônimos
         
-        _client.DefaultRequestHeaders.Remove("Accept-Encoding");
+        HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
     }
 
     [Fact]
     public async Task CompressionSecurity_AuthenticatedRequest_WithoutAcceptEncoding_ShouldSucceed()
     {
         // Arrange
-        var registerRequest = new UserRegistrationRequest
+        var registerRequest = new
         {
             Name = "No Compression User",
             Email = $"nocomp.{Guid.NewGuid()}@example.com",
@@ -95,7 +94,7 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             Role = "user"
         };
 
-        await _client.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -103,16 +102,16 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             Password = registerRequest.Password
         };
 
-        var loginResponse = await _client.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
         var loginData = await loginResponse.Content.ReadFromJsonAsync<dynamic>();
         var token = loginData!.GetProperty("data").GetProperty("token").GetString();
 
-        _client.DefaultRequestHeaders.Authorization = 
+        HttpClient.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-        _client.DefaultRequestHeaders.Remove("Accept-Encoding");
+        HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
 
         // Act
-        var response = await _client.GetAsync("/api/v1/users");
+        var response = await HttpClient.GetAsync("/api/v1/users");
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized);
@@ -123,14 +122,14 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
                 "Sem Accept-Encoding, não deve haver compressão");
         }
 
-        _client.DefaultRequestHeaders.Authorization = null;
+        HttpClient.DefaultRequestHeaders.Authorization = null;
     }
 
     [Fact]
     public async Task CompressionSecurity_LoginEndpoint_ShouldNotCompress()
     {
         // Arrange
-        var registerRequest = new UserRegistrationRequest
+        var registerRequest = new
         {
             Name = "Login Compression Test",
             Email = $"logincomp.{Guid.NewGuid()}@example.com",
@@ -138,7 +137,7 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             Role = "user"
         };
 
-        await _client.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -146,10 +145,10 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             Password = registerRequest.Password
         };
 
-        _client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+        HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        var response = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -158,14 +157,14 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
         response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
             "Login response não deve ser comprimida (contém token sensível)");
 
-        _client.DefaultRequestHeaders.Remove("Accept-Encoding");
+        HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
     }
 
     [Fact]
     public async Task CompressionSecurity_MultipleAuthenticatedRequests_ShouldConsistentlyDisableCompression()
     {
         // Arrange
-        var registerRequest = new UserRegistrationRequest
+        var registerRequest = new
         {
             Name = "Multiple Requests User",
             Email = $"multiple.{Guid.NewGuid()}@example.com",
@@ -173,7 +172,7 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             Role = "user"
         };
 
-        await _client.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -181,19 +180,19 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             Password = registerRequest.Password
         };
 
-        var loginResponse = await _client.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
         var loginData = await loginResponse.Content.ReadFromJsonAsync<dynamic>();
         var token = loginData!.GetProperty("data").GetProperty("token").GetString();
 
-        _client.DefaultRequestHeaders.Authorization = 
+        HttpClient.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-        _client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+        HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         // Act
         var responses = new List<HttpResponseMessage>();
         for (int i = 0; i < 5; i++)
         {
-            responses.Add(await _client.GetAsync("/api/v1/users"));
+            responses.Add(await HttpClient.GetAsync("/api/v1/users"));
         }
 
         // Assert
@@ -206,15 +205,15 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             }
         });
 
-        _client.DefaultRequestHeaders.Authorization = null;
-        _client.DefaultRequestHeaders.Remove("Accept-Encoding");
+        HttpClient.DefaultRequestHeaders.Authorization = null;
+        HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
     }
 
     [Fact]
     public async Task CompressionSecurity_DifferentEndpoints_ShouldApplyRulesConsistently()
     {
         // Arrange
-        var registerRequest = new UserRegistrationRequest
+        var registerRequest = new
         {
             Name = "Endpoints Test User",
             Email = $"endpoints.{Guid.NewGuid()}@example.com",
@@ -222,7 +221,7 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             Role = "provider"
         };
 
-        await _client.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -230,13 +229,13 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             Password = registerRequest.Password
         };
 
-        var loginResponse = await _client.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
         var loginData = await loginResponse.Content.ReadFromJsonAsync<dynamic>();
         var token = loginData!.GetProperty("data").GetProperty("token").GetString();
 
-        _client.DefaultRequestHeaders.Authorization = 
+        HttpClient.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-        _client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+        HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         var endpoints = new[] { "/api/v1/users", "/api/v1/providers", "/api/v1/service-categories" };
 
@@ -244,7 +243,7 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
         var responses = new List<HttpResponseMessage>();
         foreach (var endpoint in endpoints)
         {
-            responses.Add(await _client.GetAsync(endpoint));
+            responses.Add(await HttpClient.GetAsync(endpoint));
         }
 
         // Assert
@@ -257,7 +256,7 @@ public sealed class CompressionSecurityMiddlewareTests(IntegrationTestsFixture f
             }
         });
 
-        _client.DefaultRequestHeaders.Authorization = null;
-        _client.DefaultRequestHeaders.Remove("Accept-Encoding");
+        HttpClient.DefaultRequestHeaders.Authorization = null;
+        HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
     }
 }
