@@ -3,6 +3,7 @@ using MeAjudaAi.ApiService;
 using MeAjudaAi.Integration.Tests.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -48,20 +49,25 @@ public class ApplicationStartupDiagnosticTests(ITestOutputHelper testOutput) : I
                     builder.UseEnvironment("Testing");
                     testOutput.WriteLine("✅ Environment set to Testing");
 
-                    builder.ConfigureServices(services =>
+                    builder.ConfigureAppConfiguration((context, config) =>
                     {
-                        testOutput.WriteLine("🔧 Configuring test services...");
+                        testOutput.WriteLine("🔧 Configuring test configuration...");
 
                         // Use the test database connection string
                         if (_databaseFixture?.ConnectionString != null)
                         {
                             testOutput.WriteLine($"🔧 Using test database: {_databaseFixture.ConnectionString}");
                             // Override the connection string configuration
-                            services.Configure<Dictionary<string, string>>(config =>
+                            config.AddInMemoryCollection(new Dictionary<string, string?>
                             {
-                                config["ConnectionStrings:DefaultConnection"] = _databaseFixture.ConnectionString;
+                                ["ConnectionStrings:DefaultConnection"] = _databaseFixture.ConnectionString
                             });
                         }
+                    });
+
+                    builder.ConfigureServices(services =>
+                    {
+                        testOutput.WriteLine("🔧 Configuring test services...");
                     });
 
                     builder.ConfigureLogging(logging =>

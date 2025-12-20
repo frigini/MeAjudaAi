@@ -83,7 +83,7 @@ internal class BusinessMetricsMiddleware(
             }
 
             // Solicitações de ajuda (aceita rotas versionadas como /api/v1/help-requests)
-            if ((path == "/api/help-requests" || (path.StartsWith("/api/v") && path.Contains("/help-requests") && !path.Contains("/complete"))) && 
+            if ((path == "/api/help-requests" || (path.StartsWith("/api/v") && path.EndsWith("/help-requests"))) && 
                 method == "POST" && statusCode is >= 200 and < 300)
             {
                 // Extrair categoria e urgência dos headers ou do corpo da requisição se necessário
