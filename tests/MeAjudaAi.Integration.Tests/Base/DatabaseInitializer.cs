@@ -60,7 +60,7 @@ public class DatabaseInitializer
             _logger.LogError(ex, "[OptimizedInit] Schema initialization failed for {Module}", moduleName);
 
             // Invalidar cache em caso de erro
-            await _cacheService.InvalidateCacheAsync(connectionString, moduleName);
+            await DatabaseSchemaCacheService.InvalidateCacheAsync(connectionString, moduleName);
             throw;
         }
         finally

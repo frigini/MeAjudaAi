@@ -714,7 +714,7 @@ Requer Docker:
 
 ### Estado Atual (Dez/2025)
 
-**Total de Testes E2E:** **156 testes** em **20 arquivos consolidados**
+**Total de Testes E2E:** **148 testes** em **17 arquivos consolidados**
 
 **Cobertura por Categoria:**
 
@@ -723,8 +723,8 @@ Requer Docker:
 | Módulos | 75 | 6 | CRUD, workflows, validações por módulo |
 | Infraestrutura | 56 | 9 | Middleware, rate limiting, health checks, versioning |
 | Autorização | 15 | 1 | Policies baseadas em roles e permissões |
-| Cross-Module | 10 | 4 | Workflows integrados entre módulos |
-| **TOTAL** | **156** | **20** | - |
+| Cross-Module | 2 | 1 | Workflows integrados entre módulos |
+| **TOTAL** | **148** | **17** | - |
 
 **Cobertura Detalhada por Módulo:**
 
@@ -751,7 +751,7 @@ Requer Docker:
 | Permission-Based | PermissionAuthorizationEndToEndTests.cs | 15 | ✅ Passed |
 | **CROSS-MODULE (2 testes)** | | | |
 | Provider-Service-Search | ProviderServiceCatalogSearchWorkflowTests.cs | 2 | ✅ Passed |
-| **TOTAL** | **20 arquivos** | **148** | - |
+| **TOTAL** | **17 arquivos** | **148** | - |
 
 **Middlewares Cobertos (E2E + Integration):**
 - ✅ BusinessMetricsMiddleware (E2E)

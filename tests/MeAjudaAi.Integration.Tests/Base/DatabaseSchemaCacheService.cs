@@ -84,19 +84,7 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     /// <summary>
     /// Invalida o cache para forçar recriação (útil para testes específicos)
     /// </summary>
-    public static void InvalidateCache(string connectionString, string moduleName)
-    {
-        ArgumentNullException.ThrowIfNull(connectionString);
-        ArgumentNullException.ThrowIfNull(moduleName);
-
-        var cacheKey = GetCacheKey(connectionString, moduleName);
-        SchemaCache.TryRemove(cacheKey, out _);
-    }
-
-    /// <summary>
-    /// Invalida o cache de forma assíncrona com lock adequado
-    /// </summary>
-    public async Task InvalidateCacheAsync(string connectionString, string moduleName)
+    public static async Task InvalidateCacheAsync(string connectionString, string moduleName)
     {
         ArgumentNullException.ThrowIfNull(connectionString);
         ArgumentNullException.ThrowIfNull(moduleName);
@@ -116,9 +104,17 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     /// <summary>
     /// Limpa todo o cache (útil entre test runs)
     /// </summary>
-    public static void ClearCache()
+    public static async Task ClearCacheAsync()
     {
-        SchemaCache.Clear();
+        await CacheLock.WaitAsync();
+        try
+        {
+            SchemaCache.Clear();
+        }
+        finally
+        {
+            CacheLock.Release();
+        }
     }
 
     private Task<string> CalculateCurrentSchemaHashAsync(string connectionString, string moduleName)

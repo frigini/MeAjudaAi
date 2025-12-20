@@ -30,7 +30,7 @@ public class CompressionSecurityMiddleware
 
     /// <summary>
     /// Verifica se é seguro comprimir esta requisição.
-    /// Similar a PerformanceExtensions.IsSafeForCompression mas executado antes da autenticação.
+    /// Executado antes da autenticação para prevenir ataques CRIME/BREACH.
     /// </summary>
     private static bool IsSafeForCompression(HttpContext context)
     {
