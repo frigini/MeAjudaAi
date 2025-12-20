@@ -12,7 +12,7 @@ namespace MeAjudaAi.E2E.Tests.Authorization;
 /// Testes end-to-end para autorização baseada em permissions.
 /// Valida que o ConfigurableTestAuthenticationHandler funciona corretamente com permissions customizadas.
 /// </summary>
-public class PermissionAuthorizationE2ETests : TestContainerTestBase
+public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
 {
     [Fact]
     public async Task UserWithReadPermission_CanListUsers()

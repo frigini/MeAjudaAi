@@ -272,7 +272,7 @@ public async Task RateLimiting_ManyRequests_ShouldProcessCorrectly()
 
 ## Testes de Autorização (NOVO - Commit 737dab30)
 
-### PermissionAuthorizationE2ETests - Role-Based Policies
+### PermissionAuthorizationEndToEndTests - Role-Based Policies
 
 Valida políticas de autorização baseadas em roles:
 
@@ -746,7 +746,7 @@ Requer Docker:
 | API Versioning | ApiVersioningTests.cs | 3 | ✅ Passed |
 | Module Integration | ModuleIntegrationTests.cs | 2 | ✅ Passed |
 | **AUTORIZAÇÃO (15 testes)** | | | |
-| Permission-Based | PermissionAuthorizationE2ETests.cs | 15 | ✅ Passed |
+| Permission-Based | PermissionAuthorizationEndToEndTests.cs | 15 | ✅ Passed |
 | **CROSS-MODULE (2 testes)** | | | |
 | Provider-Service-Search | ProviderServiceCatalogSearchWorkflowTests.cs | 2 | ✅ Passed |
 | **TOTAL** | **20 arquivos** | **148** | - |

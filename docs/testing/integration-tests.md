@@ -146,7 +146,7 @@ Testes E2E são organizados por **cenário de teste** em vez de simplesmente por
 **Padrão 4: Testes Transversais** (`{Concern}E2ETests.cs`)
 - Foco: Preocupações entre módulos
 - Escopo: Autorização, autenticação, infraestrutura
-- Exemplo: `PermissionAuthorizationE2ETests.cs`
+- Exemplo: `PermissionAuthorizationEndToEndTests.cs`
 
 **Benefícios desta organização:**
 - 🎯 **Intenção Clara**: Propósito do teste é óbvio pelo nome do arquivo

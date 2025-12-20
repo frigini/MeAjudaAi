@@ -367,6 +367,19 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         }, JsonOptions);
         var providerId1 = ExtractIdFromLocation(provider1Response.Headers.Location!.ToString());
 
+        // Associar AMBOS serviços ao Provider1
+        var assoc1Service1 = await ApiClient.PostAsJsonAsync(
+            $"/api/v1/providers/{providerId1}/services",
+            new { ProviderId = providerId1, ServiceId = serviceId1 },
+            JsonOptions);
+        assoc1Service1.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
+        
+        var assoc1Service2 = await ApiClient.PostAsJsonAsync(
+            $"/api/v1/providers/{providerId1}/services",
+            new { ProviderId = providerId1, ServiceId = serviceId2 },
+            JsonOptions);
+        assoc1Service2.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
+
         // ============================================
         // Criar Provider 2: oferece apenas serviço 1
         // ============================================
@@ -402,6 +415,13 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
             }
         }, JsonOptions);
         var providerId2 = ExtractIdFromLocation(provider2Response.Headers.Location!.ToString());
+
+        // Associar apenas serviceId1 ao Provider2
+        var assoc2Service1 = await ApiClient.PostAsJsonAsync(
+            $"/api/v1/providers/{providerId2}/services",
+            new { ProviderId = providerId2, ServiceId = serviceId1 },
+            JsonOptions);
+        assoc2Service1.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
 
         // Aguardar indexação com retry/polling
         await WaitForSearchIndexing(async () =>
