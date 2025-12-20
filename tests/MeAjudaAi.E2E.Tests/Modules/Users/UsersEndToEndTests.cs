@@ -151,17 +151,12 @@ public class UsersEndToEndTests : TestContainerTestBase
         else
         {
             // Se retornou NoContent, tenta buscar o usuário para confirmar as mudanças
-            AuthenticateAsAdmin(); // GET requer autorização
             var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
-
-            // Se o usuário foi encontrado, verifica as mudanças
-            if (getResponse.StatusCode == HttpStatusCode.OK)
-            {
-                var content = await getResponse.Content.ReadAsStringAsync();
-                content.Should().Contain("Updated");
-                content.Should().Contain("Profile");
-            }
-            // Se retornou NotFound, o update ainda foi bem-sucedido (aceitar como válido)
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK, "user should be found after update");
+            
+            var content = await getResponse.Content.ReadAsStringAsync();
+            content.Should().Contain("Updated");
+            content.Should().Contain("Profile");
         }
     }
 
@@ -327,7 +322,10 @@ public class UsersEndToEndTests : TestContainerTestBase
             LastName = "Version",
             Email = $"multi_{uniqueId}@example.com"
         };
-        await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", firstUpdate, JsonOptions);
+        var firstUpdateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", firstUpdate, JsonOptions);
+        
+        // Assert first update succeeded
+        firstUpdateResponse.IsSuccessStatusCode.Should().BeTrue("first profile update should succeed");
 
         // Act - Segunda atualização
         var secondUpdate = new
@@ -513,8 +511,8 @@ public class UsersEndToEndTests : TestContainerTestBase
         var userId = ExtractIdFromLocation(createResponse.Headers.Location!.ToString());
 
         // Act - disparar duas atualizações simultâneas
-        var update1 = new { FirstName = "Update1", LastName = "User" };
-        var update2 = new { FirstName = "Update2", LastName = "User" };
+        var update1 = new { FirstName = "Update1", LastName = "User", Email = "update1.user@example.com" };
+        var update2 = new { FirstName = "Update2", LastName = "User", Email = "update2.user@example.com" };
 
         var task1 = ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update1, JsonOptions);
         var task2 = ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update2, JsonOptions);

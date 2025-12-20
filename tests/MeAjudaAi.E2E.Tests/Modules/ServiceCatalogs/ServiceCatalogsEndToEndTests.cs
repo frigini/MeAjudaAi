@@ -293,7 +293,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     #region Advanced Operations - Service Validation
 
     /// <summary>
-    /// Validates that a service can be successfully validated when it meets all business rules.
+    /// Valida que um serviço pode ser validado com sucesso quando atende todas as regras de negócio.
     /// </summary>
     [Fact]
     public async Task ValidateService_WithBusinessRules_Should_Succeed()
@@ -357,7 +357,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     }
 
     /// <summary>
-    /// Validates that validating a non-existent service returns an appropriate error or validation result.
+    /// Valida que validar um serviço inexistente retorna um erro apropriado ou resultado de validação.
     /// </summary>
     [Fact]
     public async Task ValidateService_WithInvalidService_Should_ReturnErrorOrValidationResult()
@@ -389,7 +389,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     #region Advanced Operations - Category Change
 
     /// <summary>
-    /// Validates that a service category can be successfully changed and the relationship is updated.
+    /// Valida que a categoria de um serviço pode ser alterada com sucesso e o relacionamento é atualizado.
     /// </summary>
     [Fact]
     public async Task ChangeServiceCategory_Should_UpdateRelationship()
@@ -481,7 +481,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     }
 
     /// <summary>
-    /// Validates that attempting to change a service to an inactive category returns a failure.
+    /// Valida que tentar alterar um serviço para uma categoria inativa retorna uma falha.
     /// </summary>
     [Fact]
     public async Task ChangeServiceCategory_ToInactiveCategory_Should_Fail()
@@ -568,7 +568,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     }
 
     /// <summary>
-    /// Validates that attempting to change a service to a non-existent category returns NotFound.
+    /// Valida que tentar alterar um serviço para uma categoria inexistente retorna NotFound.
     /// </summary>
     [Fact]
     public async Task ChangeServiceCategory_ToNonExistentCategory_Should_Return_NotFound()
