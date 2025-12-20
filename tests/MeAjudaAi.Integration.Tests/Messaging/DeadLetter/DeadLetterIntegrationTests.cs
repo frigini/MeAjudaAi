@@ -5,6 +5,7 @@ using MeAjudaAi.Shared.Messaging.Factories;
 using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Tests.Base;
 using MeAjudaAi.Shared.Tests.Infrastructure;
+using MeAjudaAi.Shared.Tests.Infrastructure.Options;
 using MeAjudaAi.Shared.Tests.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -17,7 +18,7 @@ namespace MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter;
 [Trait("Category", "Integration")]
 [Trait("Layer", "Shared")]
 [Trait("Component", "DeadLetterSystem")]
-public class DeadLetterIntegrationTests : IntegrationTestBase
+public class DeadLetterIntegrationTests : BaseIntegrationTest
 {
     protected override TestInfrastructureOptions GetTestOptions()
     {

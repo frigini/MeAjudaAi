@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Tests.Extensions;
+using MeAjudaAi.Shared.Tests.Infrastructure.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;

@@ -1,4 +1,5 @@
 using MeAjudaAi.Shared.Tests.Infrastructure;
+using MeAjudaAi.Shared.Tests.Infrastructure.Options;
 using Microsoft.EntityFrameworkCore;
 using Respawn;
 using Testcontainers.PostgreSql;

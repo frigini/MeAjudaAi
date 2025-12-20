@@ -18,7 +18,7 @@ namespace MeAjudaAi.Shared.Tests.Base;
 /// 
 /// Para testes simples de API, use SharedApiTestBase (mais rápido).
 /// </summary>
-public abstract class SharedIntegrationTestBase(ITestOutputHelper output) : IAsyncLifetime
+public abstract class BaseSharedIntegrationTest(ITestOutputHelper output) : IAsyncLifetime
 {
     protected readonly ITestOutputHelper _output = output;
     protected HttpClient HttpClient { get; set; } = null!;

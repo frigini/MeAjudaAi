@@ -8,16 +8,6 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Shared.Tests.Extensions;
 
 /// <summary>
-/// Estatísticas de mensagens publicadas
-/// </summary>
-public class MessagingStatistics
-{
-    public int ServiceBusMessageCount { get; set; }
-    public int RabbitMqMessageCount { get; set; }
-    public int TotalMessageCount { get; set; }
-}
-
-/// <summary>
 /// Extensions para configurar os mocks de messaging nos testes
 /// </summary>
 public static class MessagingMockExtensions

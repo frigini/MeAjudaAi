@@ -19,7 +19,7 @@ namespace MeAjudaAi.Integration.Tests.Base;
 /// Para testes simples de API, use ApiTestBase (mais rápido).
 /// </summary>
 public abstract class IntegrationTestBase(AspireIntegrationFixture fixture, ITestOutputHelper output)
-    : SharedIntegrationTestBase(output), IClassFixture<AspireIntegrationFixture>
+    : BaseSharedIntegrationTest(output), IClassFixture<AspireIntegrationFixture>
 {
     private readonly AspireIntegrationFixture _fixture = fixture;
 

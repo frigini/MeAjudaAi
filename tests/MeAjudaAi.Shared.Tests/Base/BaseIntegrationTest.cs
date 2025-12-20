@@ -7,7 +7,7 @@ namespace MeAjudaAi.Shared.Tests.Base;
 /// Classe base genérica para testes de integração com containers compartilhados.
 /// Reduz significativamente o tempo de execução dos testes evitando criação/destruição de containers.
 /// </summary>
-public abstract class IntegrationTestBase : IAsyncLifetime
+public abstract class BaseIntegrationTest : IAsyncLifetime
 {
     private ServiceProvider? _serviceProvider;
     private static bool _containersStarted;
@@ -133,24 +133,4 @@ public abstract class IntegrationTestBase : IAsyncLifetime
     /// </summary>
     protected T GetScopedService<T>(IServiceScope scope) where T : notnull =>
         scope.ServiceProvider.GetRequiredService<T>();
-}
-
-/// <summary>
-/// Finalizador estático para parar containers quando todos os testes terminarem
-/// </summary>
-public static class IntegrationTestCleanup
-{
-    static IntegrationTestCleanup()
-    {
-        AppDomain.CurrentDomain.ProcessExit += async (_, _) => await SharedTestContainers.StopAllAsync();
-        AppDomain.CurrentDomain.DomainUnload += async (_, _) => await SharedTestContainers.StopAllAsync();
-    }
-
-    /// <summary>
-    /// Força o cleanup dos containers (útil para executar no final de uma suite de testes)
-    /// </summary>
-    public static async Task ForceCleanupAsync()
-    {
-        await SharedTestContainers.StopAllAsync();
-    }
 }
