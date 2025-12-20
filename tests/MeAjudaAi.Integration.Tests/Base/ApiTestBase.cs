@@ -121,8 +121,6 @@ public abstract class ApiTestBase : IAsyncLifetime
                         ["FeatureManagement:PushNotifications"] = "false",
                         ["FeatureManagement:StripePayments"] = "false",
                         ["FeatureManagement:MaintenanceMode"] = "false",
-                        // Azure Storage using Azurite emulator for deterministic blob storage tests
-                        ["Azure:Storage:ConnectionString"] = _databaseFixture.AzuriteConnectionString,
                         // Geographic restriction: Cities with states in "City|State" format
                         // This ensures proper validation when both city and state headers are provided
                         ["GeographicRestriction:AllowedStates:0"] = "MG",
@@ -223,10 +221,11 @@ public abstract class ApiTestBase : IAsyncLifetime
                     });
 
                     // Adiciona mocks de serviços para testes
-                    // NOTA: Azurite real está causando 500 errors nos testes de upload (problema com CanGenerateSasUri).
-                    // Usando Mock por enquanto. Para investigar: verificar logs do Azurite, testar manualmente criação de container,
-                    // ou verificar se a versão do Azurite (3.33.0) tem algum problema conhecido com SAS tokens.
-                    services.AddDocumentsTestServices(_databaseFixture.AzuriteConnectionString, useAzurite: false);
+                    // TODO: Investigate Azurite SAS token issue and migrate from Mock to Azurite emulator
+                    // Currently using Mock because Azurite throws 500 errors on upload tests (CanGenerateSasUri problem).
+                    // See tracking issue: https://github.com/your-repo/issues/XXX
+                    // Investigation steps: check Azurite logs, test container creation manually, verify Azurite 3.33.0 compatibility with SAS tokens
+                    services.AddDocumentsTestServices(connectionString: string.Empty, useAzurite: false);
 
                     // Mock do BackgroundJobService para evitar execução de jobs em testes
                     services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();
