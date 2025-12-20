@@ -42,4 +42,75 @@ public class UsersApiTests : ApiTestBase
         dataElement.ValueKind.Should().NotBe(JsonValueKind.Null,
             "Data property should contain either an array of users or a paginated response object");
     }
+
+    [Fact]
+    public async Task CreateUser_WithInvalidData_ShouldReturnBadRequest()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var invalidRequest = new
+        {
+            Username = "", // Inválido: username vazio
+            Email = "invalid-email", // Inválido: email mal formatado
+            FirstName = "",
+            LastName = ""
+        };
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/users", invalidRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "Invalid user data should return 400 Bad Request");
+    }
+
+    [Fact]
+    public async Task UpdateUser_WithNonExistentId_ShouldReturnNotFound()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var nonExistentId = Guid.NewGuid();
+        var updateRequest = new
+        {
+            FirstName = "Updated",
+            LastName = "User",
+            Email = $"updated_{Guid.NewGuid():N}@example.com"
+        };
+
+        // Act
+        var response = await Client.PutAsJsonAsync($"/api/v1/users/{nonExistentId}/profile", updateRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "Updating non-existent user should return 404 Not Found");
+    }
+
+    [Fact]
+    public async Task DeleteUser_WithNonExistentId_ShouldReturnNotFound()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+        var nonExistentId = Guid.NewGuid();
+
+        // Act
+        var response = await Client.DeleteAsync($"/api/v1/users/{nonExistentId}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "Deleting non-existent user should return 404 Not Found");
+    }
+
+    [Fact]
+    public async Task UserEndpoints_ShouldHandleInvalidGuids()
+    {
+        // Arrange
+        AuthConfig.ConfigureAdmin();
+
+        // Act
+        var response = await Client.GetAsync("/api/v1/users/invalid-guid");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "Invalid GUID format should result in route not matching, returning 404");
+    }
 }

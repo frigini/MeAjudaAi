@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
 
-namespace MeAjudaAi.E2E.Tests.Integration;
+namespace MeAjudaAi.E2E.Tests.CrossModule;
 
 /// <summary>
 /// Testes de integração para funcionalidades que atravessam múltiplos módulos

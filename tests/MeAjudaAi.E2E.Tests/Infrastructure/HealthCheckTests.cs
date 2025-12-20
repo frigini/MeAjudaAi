@@ -1,6 +1,6 @@
 using MeAjudaAi.E2E.Tests.Base;
 
-namespace MeAjudaAi.E2E.Tests.Integration;
+namespace MeAjudaAi.E2E.Tests.Infrastructure;
 
 /// <summary>
 /// Testes de integração básicos para saúde da aplicação e conectividade

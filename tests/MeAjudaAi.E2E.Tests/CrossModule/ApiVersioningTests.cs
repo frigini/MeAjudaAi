@@ -1,6 +1,6 @@
 using MeAjudaAi.E2E.Tests.Base;
 
-namespace MeAjudaAi.E2E.Tests.Integration;
+namespace MeAjudaAi.E2E.Tests.CrossModule;
 
 /// <summary>
 /// Testes para validar o funcionamento do API Versioning usando segmentos de URL
