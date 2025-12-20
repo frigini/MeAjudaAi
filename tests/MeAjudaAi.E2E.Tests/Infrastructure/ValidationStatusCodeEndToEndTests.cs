@@ -198,7 +198,7 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
             "duplicate email should return 409 Conflict via UniqueConstraintException");
 
         var content = await duplicateResponse.Content.ReadAsStringAsync();
-        content.Should().Contain("already exists", "conflict message should indicate duplication");
+        content.Should().Contain("já está sendo utilizado", "conflict message should indicate duplication in Portuguese");
     }
 
     [Fact]
@@ -251,7 +251,7 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
         var content = await response.Content.ReadAsStringAsync();
         
         // GlobalExceptionHandler deve retornar ProblemDetails
-        content.Should().Contain("Validation Error", "response should have validation error title");
+        content.Should().Contain("Erro de validação", "response should have validation error title in Portuguese");
         
         // Deve conter erros agrupados por campo
         content.Should().Contain("email");
@@ -284,7 +284,7 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
         var content = await duplicateResponse.Content.ReadAsStringAsync();
         
         // GlobalExceptionHandler deve incluir constraintName e columnName
-        content.Should().Contain("already exists");
+        content.Should().Contain("já existe", "conflict message should be in Portuguese");
     }
 
     #endregion

@@ -33,14 +33,14 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
             Password = registerRequest.Password
         };
 
-        var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        using var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
         
         // Login deve funcionar para teste ser válido
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Login deve ser bem-sucedido para testar desabilitação de compressão");
         
-        var loginData = await loginResponse.Content.ReadFromJsonAsync<dynamic>();
-        var token = loginData!.GetProperty("data").GetProperty("token").GetString();
+        var loginData = await loginResponse.Content.ReadFromJsonAsync<LoginResponseDto>();
+        var token = loginData!.Data.Token;
 
         HttpClient.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
@@ -105,21 +105,21 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
             Password = registerRequest.Password
         };
 
-        var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        using var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
         
         // Login deve funcionar para teste ser válido
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Login deve ser bem-sucedido para testar comportamento sem Accept-Encoding");
         
-        var loginData = await loginResponse.Content.ReadFromJsonAsync<dynamic>();
-        var token = loginData!.GetProperty("data").GetProperty("token").GetString();
+        var loginData = await loginResponse.Content.ReadFromJsonAsync<LoginResponseDto>();
+        var token = loginData!.Data.Token;
 
         HttpClient.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
 
         // Act
-        var response = await HttpClient.GetAsync("/api/v1/users");
+        using var response = await HttpClient.GetAsync("/api/v1/users");
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized);
@@ -156,7 +156,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
         HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         // Act
-        var response = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        using var response = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
 
         // Assert - endpoint pode não existir (405) ou retornar OK se existir
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.MethodNotAllowed);
@@ -192,35 +192,29 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
             Password = registerRequest.Password
         };
 
-        var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        using var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
         
         // Login deve funcionar para teste ser válido
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Login deve ser bem-sucedido para testar múltiplas requisições autenticadas");
         
-        var loginData = await loginResponse.Content.ReadFromJsonAsync<dynamic>();
-        var token = loginData!.GetProperty("data").GetProperty("token").GetString();
+        var loginData = await loginResponse.Content.ReadFromJsonAsync<LoginResponseDto>();
+        var token = loginData!.Data.Token;
 
         HttpClient.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
-        // Act
-        var responses = new List<HttpResponseMessage>();
+        // Act & Assert - Dispose responses immediately after use
         for (int i = 0; i < 5; i++)
         {
-            responses.Add(await HttpClient.GetAsync("/api/v1/users"));
-        }
-
-        // Assert
-        responses.Should().AllSatisfy(response =>
-        {
+            using var response = await HttpClient.GetAsync("/api/v1/users");
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
                     "Todas as requisições autenticadas devem ter compressão desabilitada");
             }
-        });
+        }
 
         HttpClient.DefaultRequestHeaders.Authorization = null;
         HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
@@ -246,14 +240,14 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
             Password = registerRequest.Password
         };
 
-        var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        using var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
         
         // Login deve funcionar para teste ser válido
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Login deve ser bem-sucedido para testar comportamento em diferentes endpoints");
         
-        var loginData = await loginResponse.Content.ReadFromJsonAsync<dynamic>();
-        var token = loginData!.GetProperty("data").GetProperty("token").GetString();
+        var loginData = await loginResponse.Content.ReadFromJsonAsync<LoginResponseDto>();
+        var token = loginData!.Data.Token;
 
         HttpClient.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
@@ -261,22 +255,16 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
 
         var endpoints = new[] { "/api/v1/users", "/api/v1/providers", "/api/v1/service-categories" };
 
-        // Act
-        var responses = new List<HttpResponseMessage>();
+        // Act & Assert - Dispose responses immediately after use
         foreach (var endpoint in endpoints)
         {
-            responses.Add(await HttpClient.GetAsync(endpoint));
-        }
-
-        // Assert
-        responses.Should().AllSatisfy(response =>
-        {
+            using var response = await HttpClient.GetAsync(endpoint);
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
-                    $"Endpoint {response.RequestMessage?.RequestUri} não deve comprimir para usuários autenticados");
+                    $"Endpoint {endpoint} não deve comprimir para usuários autenticados");
             }
-        });
+        }
 
         HttpClient.DefaultRequestHeaders.Authorization = null;
         HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");

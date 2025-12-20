@@ -372,6 +372,7 @@ public class UsersEndToEndTests : TestContainerTestBase
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        createResponse.Headers.Location.Should().NotBeNull();
         var userId = ExtractIdFromLocation(createResponse.Headers.Location!.ToString());
 
         // Act & Assert - READ

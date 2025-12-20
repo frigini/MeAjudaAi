@@ -425,21 +425,36 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             var allDocs = await dbContext.Documents
                 .Where(d => d.ProviderId == providerId)
                 .OrderBy(d => d.CreatedAt)
+                .ThenBy(d => d.Id)
                 .ToListAsync();
 
             allDocs.Should().HaveCount(3, "all documents should be preserved in history");
             
+            // Locate documents by type and status for deterministic assertions
+            var verifiedIdentity = allDocs.FirstOrDefault(d => 
+                d.DocumentType == EDocumentType.IdentityDocument && 
+                d.Status == EDocumentStatus.Verified);
+            var rejectedIdentity = allDocs.FirstOrDefault(d => 
+                d.DocumentType == EDocumentType.IdentityDocument && 
+                d.Status == EDocumentStatus.Rejected);
+            var uploadedCriminalRecord = allDocs.FirstOrDefault(d => 
+                d.DocumentType == EDocumentType.CriminalRecord && 
+                d.Status == EDocumentStatus.Uploaded);
+
             // First identity document verified
-            allDocs[0].Status.Should().Be(EDocumentStatus.Verified);
-            allDocs[0].DocumentType.Should().Be(EDocumentType.IdentityDocument);
+            verifiedIdentity.Should().NotBeNull();
+            verifiedIdentity!.Status.Should().Be(EDocumentStatus.Verified);
+            verifiedIdentity.DocumentType.Should().Be(EDocumentType.IdentityDocument);
 
             // Second identity document rejected
-            allDocs[1].Status.Should().Be(EDocumentStatus.Rejected);
-            allDocs[1].DocumentType.Should().Be(EDocumentType.IdentityDocument);
+            rejectedIdentity.Should().NotBeNull();
+            rejectedIdentity!.Status.Should().Be(EDocumentStatus.Rejected);
+            rejectedIdentity.DocumentType.Should().Be(EDocumentType.IdentityDocument);
 
             // Third document still uploaded (pending verification)
-            allDocs[2].Status.Should().Be(EDocumentStatus.Uploaded);
-            allDocs[2].DocumentType.Should().Be(EDocumentType.CriminalRecord);
+            uploadedCriminalRecord.Should().NotBeNull();
+            uploadedCriminalRecord!.Status.Should().Be(EDocumentStatus.Uploaded);
+            uploadedCriminalRecord.DocumentType.Should().Be(EDocumentType.CriminalRecord);
         });
     }
 
@@ -724,7 +739,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
                 catch (Exception ex) when (ex.Message.Contains("OCR") || ex.Message.Contains("Azure"))
                 {
                     // Azure real pode falhar em ambiente de teste
-                    // Isso é esperado se Azure Document Intelligence não estiver configurado
+                    Assert.Skip($"Azure Document Intelligence service is not configured in test environment: {ex.Message}");
                 }
             }
         });

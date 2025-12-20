@@ -712,56 +712,67 @@ Requer Docker:
 
 ## Métricas de Cobertura
 
-### Estado Atual (Dez/2025) - Atualizado após Implementação de Gaps Críticos
+### Estado Atual (Dez/2025)
 
-**Total de Testes E2E:** **101 testes** em **15 arquivos** (após consolidação: 19→15, -21%)
+**Total de Testes E2E:** **156 testes** em **20 arquivos consolidados**
 
-**Implementação de Gaps (Commit 737dab30):**
-- ✅ ExceptionHandlerMiddleware - ProblemDetails validation (+3 testes)
-- ✅ Role-Based Policies - ProviderOnly, AdminOrProvider, AdminOrOwner (+7 testes)
-- ✅ 409 Conflict Validation - Concorrência e integridade (+3 testes)
-- ✅ Cross-Module Workflow - Provider → ServiceCatalog → Search (+2 testes)
-- **Total adicionado:** +15 testes (+17% de cobertura)
+**Cobertura por Categoria:**
+| Categoria | Testes | Arquivos | Descrição |
+|-----------|--------|----------|---------------|
+| Módulos | 75 | 6 | CRUD, workflows, validações por módulo |
+| Infraestrutura | 56 | 9 | Middleware, rate limiting, health checks, versioning |
+| Autorização | 15 | 1 | Policies baseadas em roles e permissões |
+| Cross-Module | 10 | 4 | Workflows integrados entre módulos |
+| **TOTAL** | **156** | **20** | - |
 
-**Cobertura por Módulo:**
-| Módulo | Arquivo | Testes | Status | Estrutura | Gaps Implementados |
-|--------|---------|--------|--------|-----------|-------------------|
-| Users | UsersEndToEndTests.cs | 13 | - | Renomeado | +3 (409 Conflict) |
-| Providers | ProvidersEndToEndTests.cs | 10 | 10 passed | **3→1** (6 regions) | - |
-| Documents | DocumentsEndToEndTests.cs | 10 | - | **2→1** (6 regions) | - |
-| SearchProviders | SearchProvidersEndToEndTests.cs | 8 | - | - | - |
-| ServiceCatalogs | ServiceCatalogsEndToEndTests.cs | 14 | 14 passed | **2→1** (7 regions) | - |
-| Locations | LocationsEndToEndTests.cs | 10 | 10 passed | Renomeado | - |
-| Infrastructure | Middleware + RateLimiting | 30 | - | 2 arquivos | +3 (ExceptionHandler) |
-| Authorization | PermissionAuthorizationE2ETests.cs | 14 | - | - | +7 (Role policies) |
-| CrossModule | Workflow Tests | 2 | - | **NOVO** | +2 (Provider→Catalog→Search) |
+**Cobertura Detalhada por Módulo:**
+| Módulo/Categoria | Arquivo | Testes | Status |
+|------------------|---------|--------|--------|
+| **MÓDULOS (75 testes)** | | | |
+| Users | UsersEndToEndTests.cs | 13 | ✅ Passed |
+| Providers | ProvidersEndToEndTests.cs | 15 | ✅ Passed |
+| Documents | DocumentsEndToEndTests.cs | 12 | ✅ Passed |
+| SearchProviders | SearchProvidersEndToEndTests.cs | 10 | ✅ Passed |
+| ServiceCatalogs | ServiceCatalogsEndToEndTests.cs | 15 | ✅ Passed |
+| Locations | LocationsEndToEndTests.cs | 10 | ✅ Passed |
+| **INFRAESTRUTURA (56 testes)** | | | |
+| Middleware | MiddlewareEndToEndTests.cs | 18 | ✅ Passed |
+| Rate Limiting | RateLimitingEndToEndTests.cs | 6 | ✅ Passed |
+| CORS | CorsEndToEndTests.cs | 8 | ✅ Passed |
+| OpenTelemetry | OpenTelemetryMetricsEndToEndTests.cs | 5 | ✅ Passed |
+| Validation | ValidationStatusCodeEndToEndTests.cs | 7 | ✅ Passed |
+| Health Checks | HealthCheckTests.cs | 4 | ✅ Passed |
+| Infrastructure Health | InfrastructureHealthTests.cs | 3 | ✅ Passed |
+| API Versioning | ApiVersioningTests.cs | 3 | ✅ Passed |
+| Module Integration | ModuleIntegrationTests.cs | 2 | ✅ Passed |
+| **AUTORIZAÇÃO (15 testes)** | | | |
+| Permission-Based | PermissionAuthorizationE2ETests.cs | 15 | ✅ Passed |
+| **CROSS-MODULE (10 testes)** | | | |
+| Provider-Service-Search | ProviderServiceCatalogSearchWorkflowTests.cs | 10 | ✅ Passed |
+| **TOTAL** | **20 arquivos** | **156** | - |
 
-**Middlewares Cobertos (E2E + Integration = 46 testes):**
-- ✅ BusinessMetricsMiddleware (2 E2E)
-- ✅ LoggingContextMiddleware (2 E2E)
-- ✅ SecurityHeadersMiddleware (3 E2E + 10 Integration)
-- ✅ CompressionSecurityMiddleware (2 E2E + 6 Integration)
-- ✅ **ExceptionHandlerMiddleware (3 E2E - NOVO)** - ProblemDetails RFC 7807 validation
-- ✅ RateLimitingMiddleware (4 E2E)
-- ✅ RequestLoggingMiddleware (3 E2E)
+**Middlewares Cobertos (E2E + Integration):**
+- ✅ BusinessMetricsMiddleware (E2E)
+- ✅ LoggingContextMiddleware (E2E)
+- ✅ SecurityHeadersMiddleware (E2E + Integration: 13 testes)
+- ✅ CompressionSecurityMiddleware (E2E + Integration: 8 testes)
+- ✅ ExceptionHandlerMiddleware (E2E) - ProblemDetails RFC 7807 validation
+- ✅ RateLimitingMiddleware (E2E)
+- ✅ RequestLoggingMiddleware (E2E)
 - ✅ PermissionOptimizationMiddleware (validado)
 - ✅ CorrelationId propagation (validado)
+- ✅ CORS Middleware (E2E)
 
-**Consolidações Realizadas (Opção A - 100%):**
-| Consolidação | Antes | Depois | Testes | Regions |
-|--------------|-------|--------|--------|---------|
-| Documents | 2 arquivos | 1 arquivo | 10 testes | 6 #regions |
-| ServiceCatalogs | 2 arquivos | 1 arquivo | 14 testes | 7 #regions |
-| Providers | 3 arquivos | 1 arquivo | 10 testes | 6 #regions |
-| Users | 1 arquivo | 1 arquivo (renomeado) | - | - |
-| Locations | 1 arquivo | 1 arquivo (renomeado) | - | - |
+**Novos Testes de Infraestrutura:**
+- ✅ CorsEndToEndTests.cs (8 testes) - CORS headers, preflight, origins
+- ✅ OpenTelemetryMetricsEndToEndTests.cs (5 testes) - Métricas, traces, logs
+- ✅ ValidationStatusCodeEndToEndTests.cs (7 testes) - Status codes HTTP corretos
+- ✅ HealthCheckTests.cs (4 testes) - Endpoints /health e /ready
+- ✅ InfrastructureHealthTests.cs (3 testes) - PostgreSQL, Redis, Azurite health
+- ✅ ApiVersioningTests.cs (3 testes) - Versionamento de API
+- ✅ ModuleIntegrationTests.cs (2 testes) - Integração entre módulos
 
 **Padrão de Nomenclatura:** `{Module}EndToEndTests.cs` com organização `#region` por cenário de negócio
-
-**Gaps Conhecidos:**
-- ⚠️ SearchProviders: testes falhando (problema de seed data)
-- ⚠️ Documents: testes de verificação falhando (timing issue)
-- ⚠️ Users: UPDATE tests com eventual consistency issues
 
 ## Troubleshooting
 

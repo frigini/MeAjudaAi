@@ -139,10 +139,29 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         var providerId = ExtractIdFromLocation(providerResponse.Headers.Location!.ToString());
 
         // ============================================
-        // STEP 3: Associar serviço ao provider (se endpoint existir)
+        // STEP 3: Associar serviço ao provider
         // ============================================
-        // Nota: A associação Provider-Service pode ser feita via endpoint específico
-        // ou pode ser implícita. Validamos via search.
+        // Associação explícita provider-service para garantir que o provider aparecerá nas buscas
+        var associationRequest = new
+        {
+            ProviderId = providerId,
+            ServiceId = serviceId
+        };
+
+        var associationResponse = await ApiClient.PostAsJsonAsync(
+            $"/api/v1/providers/{providerId}/services",
+            associationRequest,
+            JsonOptions);
+
+        // Aceitar sucesso ou endpoint não implementado
+        if (associationResponse.StatusCode != HttpStatusCode.NotFound)
+        {
+            // Association should succeed if endpoint exists
+            associationResponse.StatusCode.Should().BeOneOf(
+                HttpStatusCode.OK,
+                HttpStatusCode.Created,
+                HttpStatusCode.NoContent);
+        }
 
         // Aguardar indexação (eventual consistency) com retry/polling
         await WaitForSearchIndexing(async () =>

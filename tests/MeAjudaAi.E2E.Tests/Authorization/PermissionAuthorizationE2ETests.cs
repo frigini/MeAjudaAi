@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
@@ -358,10 +359,16 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
             HttpStatusCode.Created,
             HttpStatusCode.OK);
 
+        // Extrair o ID real retornado pela API (ignora o ID enviado na requisição)
+        var createContent = await createResponse.Content.ReadAsStringAsync();
+        var createJson = JsonDocument.Parse(createContent);
+        var actualUserId = Guid.Parse(
+            createJson.RootElement.GetProperty("data").GetProperty("id").GetString()!);
+
         // Agora, autenticar como o próprio usuário (owner)
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         ConfigurableTestAuthenticationHandler.ConfigureUser(
-            userId: ownerId,
+            userId: actualUserId.ToString(),
             userName: "resourceowner",
             email: createRequest.Email,
             permissions: [EPermission.UsersRead.GetValue()],
@@ -369,7 +376,7 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
         );
 
         // Act - acessar próprio recurso
-        var response = await ApiClient.GetAsync($"/api/v1/users/{ownerId}");
+        var response = await ApiClient.GetAsync($"/api/v1/users/{actualUserId}");
 
         // Assert - Owner deve poder acessar próprio recurso
         response.StatusCode.Should().Be(HttpStatusCode.OK,
