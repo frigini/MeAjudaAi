@@ -11,12 +11,12 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.E2E.Tests.Modules.Users;
 
 /// <summary>
-/// Testes E2E completos para lifecycle de Users, incluindo DELETE com validação de persistência
-/// Complementa os testes de autorização existentes com validações de negócio
+/// Testes E2E completos para o módulo Users, incluindo CRUD e validações de negócio
+/// Complementa os testes de autorização existentes com validações de lifecycle e persistência
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Users")]
-public class UsersLifecycleEndToEndTests : TestContainerTestBase
+public class UsersEndToEndTests : TestContainerTestBase
 {
     [Fact]
     public async Task DeleteUser_Should_RemoveFromDatabase()

@@ -8,10 +8,12 @@ using Microsoft.EntityFrameworkCore;
 namespace MeAjudaAi.E2E.Tests.Modules.Locations;
 
 /// <summary>
-/// Testes E2E para os endpoints de AllowedCities
+/// Testes E2E para o módulo Locations (AllowedCities e validações geográficas)
 /// Valida fluxo completo de CRUD com autenticação de admin
 /// </summary>
-public class AllowedCitiesEndToEndTests : TestContainerTestBase
+[Trait("Category", "E2E")]
+[Trait("Module", "Locations")]
+public class LocationsEndToEndTests : TestContainerTestBase
 {
     [Fact]
     public async Task CreateAllowedCity_WithValidData_ShouldCreateAndReturnCityId()

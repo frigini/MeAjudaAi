@@ -12,8 +12,44 @@ namespace MeAjudaAi.E2E.Tests.Modules.Documents;
 /// Testes E2E para o módulo Documents
 /// Valida upload de documentos, persistência no banco, e fluxo completo de verificação
 /// </summary>
+[Trait("Category", "E2E")]
+[Trait("Module", "Documents")]
 public class DocumentsEndToEndTests : TestContainerTestBase
 {
+    #region Helper Methods
+
+    private async Task WaitForProviderAsync(Guid providerId, int maxAttempts = 10)
+    {
+        var delay = 100; // Start with 100ms
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                var response = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return;
+                }
+            }
+            catch (Exception) when (attempt < maxAttempts - 1)
+            {
+                // Treat transient network errors as retryable
+            }
+
+            if (attempt < maxAttempts - 1)
+            {
+                await Task.Delay(delay);
+                delay = Math.Min(delay * 2, 2000); // Exponential backoff, max 2s
+            }
+        }
+
+        throw new TimeoutException($"Provider {providerId} was not found after {maxAttempts} attempts");
+    }
+
+    #endregion
+
+    #region Upload and Basic CRUD Tests
+
     [Fact]
     public async Task UploadDocument_Should_CreateDocumentInDatabase()
     {
@@ -102,6 +138,10 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         Guid.Parse(idElement.GetString()!).Should().Be(documentId);
     }
 
+    #endregion
+
+    #region Provider Documents Tests
+
     [Fact]
     public async Task GetProviderDocuments_Should_ReturnAllDocuments()
     {
@@ -135,6 +175,10 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         documents.ValueKind.Should().Be(JsonValueKind.Array);
         documents.GetArrayLength().Should().Be(3);
     }
+
+    #endregion
+
+    #region Document Workflow and Status Transitions
 
     [Fact]
     public async Task DocumentWorkflow_Should_TransitionThroughStatuses()
@@ -179,6 +223,10 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         });
     }
 
+    #endregion
+
+    #region Multiple Providers and Isolation Tests
+
     [Fact]
     public async Task Database_Should_StoreMultipleProvidersDocuments()
     {
@@ -216,6 +264,10 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             provider2Docs.Should().HaveCount(1);
         });
     }
+
+    #endregion
+
+    #region Verification Workflow Tests
 
     [Fact]
     public async Task DocumentLifecycle_UploadAndVerification_ShouldCompleteProperly()
@@ -389,4 +441,184 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             allDocs[2].DocumentType.Should().Be(EDocumentType.CriminalRecord);
         });
     }
+
+    [Fact]
+    public async Task RequestDocumentVerification_Should_UpdateStatus()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+
+        // Create a valid provider first to ensure ProviderId exists
+        var createProviderRequest = new
+        {
+            UserId = Guid.NewGuid().ToString(),
+            Name = "Test Provider for Document Verification",
+            Type = 0, // Individual
+            BusinessProfile = new
+            {
+                LegalName = "Test Company Legal Name",
+                FantasyName = "Test Company",
+                Description = (string?)null,
+                ContactInfo = new
+                {
+                    Email = "test@provider.com",
+                    Phone = "1234567890",
+                    Website = (string?)null
+                },
+                PrimaryAddress = new
+                {
+                    Street = "123 Test St",
+                    Number = "100",
+                    Complement = (string?)null,
+                    Neighborhood = "Centro",
+                    City = "Test City",
+                    State = "SP",
+                    ZipCode = "12345-678",
+                    Country = "Brasil"
+                }
+            }
+        };
+
+        var providerResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createProviderRequest, JsonOptions);
+        providerResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Provider creation should succeed");
+
+        var providerLocation = providerResponse.Headers.Location?.ToString();
+        providerLocation.Should().NotBeNullOrEmpty("Provider creation should return Location header");
+        var providerId = ExtractIdFromLocation(providerLocation!);
+
+        // Wait for provider to be fully persisted (eventual consistency)
+        await WaitForProviderAsync(providerId);
+
+        // Now upload a document with the valid ProviderId
+        var uploadRequest = new
+        {
+            ProviderId = providerId,
+            DocumentType = EDocumentType.IdentityDocument,
+            FileName = "verification_test.pdf",
+            ContentType = "application/pdf",
+            FileSizeBytes = 1024L
+        };
+
+        AuthenticateAsAdmin(); // POST upload requer autorização
+        var uploadResponse = await ApiClient.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest, JsonOptions);
+
+        var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
+        uploadResponse.IsSuccessStatusCode.Should().BeTrue(
+            because: $"Document upload should succeed, but got {uploadResponse.StatusCode}: {uploadContent}");
+
+        uploadResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
+
+        Guid documentId;
+
+        if (uploadResponse.StatusCode == HttpStatusCode.Created)
+        {
+            var locationHeader = uploadResponse.Headers.Location?.ToString();
+            locationHeader.Should().NotBeNullOrEmpty("Created response must include Location header");
+            documentId = ExtractIdFromLocation(locationHeader!);
+        }
+        else
+        {
+            uploadContent.Should().NotBeNullOrEmpty("Response body required for document ID");
+            using var uploadResult = System.Text.Json.JsonDocument.Parse(uploadContent);
+
+            // Response is UploadDocumentResponse directly, not wrapped in "data"
+            uploadResult.RootElement.TryGetProperty("documentId", out var idProperty).Should().BeTrue();
+            documentId = idProperty.GetGuid();
+        }
+
+        // Act - Request verification
+        var verificationRequest = new
+        {
+            VerifierNotes = "Requesting verification for this document",
+            Priority = "Normal"
+        };
+
+        var response = await ApiClient.PostAsJsonAsync(
+            $"/api/v1/documents/{documentId}/verify",
+            verificationRequest,
+            JsonOptions);
+
+        // Assert - Success path only (no BadRequest)
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.OK,
+            HttpStatusCode.Accepted,
+            HttpStatusCode.NoContent);
+
+        // Se a verificação foi aceita, verifica o status do documento
+        AuthenticateAsAdmin(); // GET requer autorização
+        var statusResponse = await ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
+        statusResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Status endpoint should be available after successful verification");
+
+        var statusContent = await statusResponse.Content.ReadAsStringAsync();
+        statusContent.Should().NotBeNullOrEmpty();
+
+        // Parse JSON - DocumentDto é retornado diretamente, não wrapped em "data"
+        using var statusResult = System.Text.Json.JsonDocument.Parse(statusContent);
+
+        statusResult.RootElement.TryGetProperty("status", out var statusProperty)
+            .Should().BeTrue("Response should contain 'status' property");
+
+        // Parse status as enum to avoid string drift
+        var statusString = statusProperty.GetString();
+        statusString.Should().NotBeNullOrEmpty("Status should have a value");
+
+        var statusParsed = Enum.TryParse<EDocumentStatus>(statusString, ignoreCase: true, out var documentStatus);
+        statusParsed.Should().BeTrue($"Status '{statusString}' should be a valid EDocumentStatus");
+
+        // Document should be in uploaded or pending verification status
+        documentStatus.Should().BeOneOf(EDocumentStatus.Uploaded, EDocumentStatus.PendingVerification)
+            .And.Subject.Should().NotBe(EDocumentStatus.Verified, "Document should not be verified immediately after upload");
+    }
+
+    [Fact]
+    public async Task RequestDocumentVerification_WithNonExistentDocument_Should_ReturnNotFound()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var documentId = Guid.NewGuid(); // Non-existent document
+
+        var verificationRequest = new
+        {
+            VerifierNotes = "Attempting to verify non-existent document",
+            Priority = "High"
+        };
+
+        // Act
+        var response = await ApiClient.PostAsJsonAsync(
+            $"/api/v1/documents/{documentId}/verify",
+            verificationRequest,
+            JsonOptions);
+
+        // Assert - Only NotFound is expected for non-existent documents
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task RequestDocumentVerification_WithInvalidData_Should_ReturnBadRequest()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var documentId = Guid.NewGuid();
+
+        var invalidRequest = new
+        {
+            VerifierNotes = new string('a', 2001), // Too long - exceeds validation limit
+            Priority = "InvalidPriority" // Invalid priority value
+        };
+
+        // Act
+        var response = await ApiClient.PostAsJsonAsync(
+            $"/api/v1/documents/{documentId}/verify",
+            invalidRequest,
+            JsonOptions);
+
+        // Assert - Pode retornar BadRequest (validação) ou NotFound (documento não existe)
+        // A ordem de validação pode variar
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.BadRequest,
+            HttpStatusCode.NotFound);
+    }
+
+    #endregion
 }
