@@ -31,7 +31,43 @@ public static class TestServicesConfiguration
         {
             services.AddScoped<IBlobStorageService, MockBlobStorageService>();
         }
-        // Se useAzurite=true, o serviço real já está registrado via AddDocumentsModule com Azure:Storage:ConnectionString configurado
+        else
+        {
+            // Ensure BlobServiceClient and IBlobStorageService are registered for Azurite tests
+            // This handles cases where the service might not be registered yet or was conditionally skipped
+            var serviceProvider = services.BuildServiceProvider();
+            var configuration = serviceProvider.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
+            var storageConnectionString = configuration["Azure:Storage:ConnectionString"];
+            
+            if (!string.IsNullOrEmpty(storageConnectionString))
+            {
+                // Remove any existing IBlobStorageService registrations to avoid conflicts
+                var existingDescriptors = services.Where(d => d.ServiceType == typeof(IBlobStorageService)).ToList();
+                foreach (var descriptor in existingDescriptors)
+                {
+                    services.Remove(descriptor);
+                }
+
+                // Remove any existing BlobServiceClient registrations
+                var existingBlobClientDescriptors = services.Where(d => d.ServiceType == typeof(Azure.Storage.Blobs.BlobServiceClient)).ToList();
+                foreach (var descriptor in existingBlobClientDescriptors)
+                {
+                    services.Remove(descriptor);
+                }
+
+                // Register BlobServiceClient with Azurite connection string
+                services.AddSingleton(sp =>
+                    new Azure.Storage.Blobs.BlobServiceClient(storageConnectionString));
+
+                // Register real AzureBlobStorageService
+                services.AddScoped<IBlobStorageService, MeAjudaAi.Modules.Documents.Infrastructure.Services.AzureBlobStorageService>();
+            }
+            else
+            {
+                // Fallback to mock if connection string is not available
+                services.AddScoped<IBlobStorageService, MockBlobStorageService>();
+            }
+        }
 
         // DocumentIntelligenceService sempre usa mock (API externa cara)
         services.AddScoped<IDocumentIntelligenceService, MockDocumentIntelligenceService>();
