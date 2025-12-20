@@ -13,13 +13,13 @@ public class AuthenticationTests : ApiTestBase
     [Fact]
     public async Task GetUsers_WithoutAuthentication_ShouldReturnUnauthorized()
     {
-        // Clear any authentication configuration and disable unauthenticated access
+        // Limpar qualquer configuração de autenticação e desabilitar acesso não autenticado
         AuthConfig.ClearConfiguration();
         AuthConfig.SetAllowUnauthenticated(false);
 
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
-        // Should return 401 Unauthorized or 403 Forbidden when authentication fails
+        // Deve retornar 401 Unauthorized ou 403 Forbidden quando a autenticação falha
         response.StatusCode.Should().BeOneOf(HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden);
     }
 
@@ -52,15 +52,15 @@ public class AuthenticationTests : ApiTestBase
     [Fact]
     public async Task RateLimiting_EndpointIsReachable_ShouldReturnSuccessOrRateLimited()
     {
-        // Arrange - Configure admin user
+        // Arrange - Configurar usuário admin
         AuthConfig.ConfigureAdmin();
 
-        // Act - Make a single request to verify rate limiting middleware is configured
+        // Act - Fazer uma única requisição para verificar que o middleware de rate limiting está configurado
         var response = await Client.GetAsync("/api/v1/users?PageNumber=1&PageSize=10", TestContext.Current.CancellationToken);
 
-        // Assert - This test documents that rate limiting exists in the pipeline
-        // Actual rate limiting behavior (429 after N requests) should be tested separately with deterministic setup
-        // For now, we verify the endpoint is reachable with rate limiting enabled
+        // Assert - Este teste documenta que rate limiting existe no pipeline
+        // Comportamento real de rate limiting (429 após N requisições) deve ser testado separadamente com setup determinístico
+        // Por enquanto, verificamos que o endpoint é alcançável com rate limiting habilitado
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.TooManyRequests);

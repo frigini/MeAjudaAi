@@ -7,6 +7,7 @@ using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Providers.Infrastructure.Persistence;
+using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Geolocation;
@@ -28,6 +29,7 @@ namespace MeAjudaAi.Integration.Tests.Base;
 /// Classe base unificada para testes de integração com suporte a autenticação baseada em instância.
 /// Elimina condições de corrida e instabilidade causadas por estado estático.
 /// Cria containers individuais para máxima compatibilidade com CI.
+/// Suporte completo a 6 módulos: Users, Providers, Documents, ServiceCatalogs, Locations, SearchProviders.
 /// </summary>
 public abstract class ApiTestBase : IAsyncLifetime
 {
@@ -139,6 +141,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                     RemoveDbContextRegistrations<DocumentsDbContext>(services);
                     RemoveDbContextRegistrations<ServiceCatalogsDbContext>(services);
                     RemoveDbContextRegistrations<LocationsDbContext>(services);
+                    RemoveDbContextRegistrations<SearchProvidersDbContext>(services);
 
                     // Reconfigure CEP provider HttpClients to use WireMock
                     ReconfigureCepProviderClients(services);
@@ -199,6 +202,18 @@ public abstract class ApiTestBase : IAsyncLifetime
                         {
                             npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.Locations.Infrastructure");
                             npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "locations");
+                        });
+                        options.EnableSensitiveDataLogging();
+                        options.ConfigureWarnings(warnings =>
+                            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+                    });
+
+                    services.AddDbContext<SearchProvidersDbContext>(options =>
+                    {
+                        options.UseNpgsql(_databaseFixture.ConnectionString, npgsqlOptions =>
+                        {
+                            npgsqlOptions.MigrationsAssembly("MeAjudaAi.Modules.SearchProviders.Infrastructure");
+                            npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
                         });
                         options.EnableSensitiveDataLogging();
                         options.ConfigureWarnings(warnings =>
