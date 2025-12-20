@@ -19,6 +19,9 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
         // Arrange - Configurar usuário autenticado
         AuthConfig.ConfigureRegularUser();
         
+        // Simula requisição autenticada adicionando header Authorization
+        // O middleware CompressionSecurity verifica este header antes de UseAuthentication() executar
+        HttpClient.DefaultRequestHeaders.Add("Authorization", "Bearer test-token");
         HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         // Act
@@ -35,7 +38,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
         response.Content.Headers.ContentEncoding.Should().NotContain("br",
             "Brotli deve ser desabilitado para usuários autenticados (proteção BREACH)");
 
-        HttpClient.DefaultRequestHeaders.Authorization = null;
+        HttpClient.DefaultRequestHeaders.Remove("Authorization");
         HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
     }
 
@@ -95,6 +98,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
     {
         // Arrange - Configurar usuário autenticado
         AuthConfig.ConfigureRegularUser();
+        HttpClient.DefaultRequestHeaders.Add("Authorization", "Bearer test-token");
         HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         // Act & Assert - Dispose responses immediately after use
@@ -108,6 +112,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
             }
         }
 
+        HttpClient.DefaultRequestHeaders.Remove("Authorization");
         HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
     }
 
@@ -116,6 +121,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
     {
         // Arrange - Configurar usuário autenticado
         AuthConfig.ConfigureRegularUser();
+        HttpClient.DefaultRequestHeaders.Add("Authorization", "Bearer test-token");
         HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         var endpoints = new[] { "/api/v1/providers", "/api/v1/service-categories" };
@@ -131,6 +137,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
             }
         }
 
+        HttpClient.DefaultRequestHeaders.Remove("Authorization");
         HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");
     }
 }

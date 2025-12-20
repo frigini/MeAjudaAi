@@ -129,6 +129,9 @@ public static class ServiceCollectionExtensions
         app.UseMiddleware<RequestLoggingMiddleware>();
 
         // Verificação de segurança de compressão (previne CRIME/BREACH)
+        // DEVE estar ANTES de UseResponseCompression() para poder desabilitar compressão
+        // quando necessário. Usa detecção de headers de autenticação pois executa
+        // antes de UseAuthentication().
         app.UseMiddleware<CompressionSecurityMiddleware>();
 
         // Middlewares de performance devem estar no início do pipeline
