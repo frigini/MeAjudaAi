@@ -52,14 +52,15 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
             })
             .Build();
 
-        // Garante que PostGIS está habilitado (necessário para SearchProviders)
-        await EnsurePostGisExtensionAsync();
-
         // Inicia containers em paralelo para performance
         await Task.WhenAll(
             _postgresContainer.StartAsync(),
             _azuriteContainer.StartAsync()
         );
+
+        // Garante que PostGIS está habilitado (necessário para SearchProviders)
+        // Chamado após startup para permitir conexão válida ao banco
+        await EnsurePostGisExtensionAsync();
     }
 
     public async ValueTask DisposeAsync()
@@ -100,12 +101,13 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
     /// </summary>
     private async Task EnsurePostGisExtensionAsync()
     {
-        if (_postgresContainer == null || ConnectionString == null)
+        if (_postgresContainer == null)
             return;
 
         try
         {
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            var connectionString = $"{_postgresContainer.GetConnectionString()};Include Error Detail=true";
+            await using var conn = new NpgsqlConnection(connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS postgis;", conn);
             await cmd.ExecuteNonQueryAsync();

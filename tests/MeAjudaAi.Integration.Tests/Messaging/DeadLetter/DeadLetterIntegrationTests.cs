@@ -168,11 +168,11 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         var serviceProvider = services.BuildServiceProvider();
         var message = new TestMessage { Id = "integration-test" };
 
-        // TODO: Implement actual end-to-end test logic for MessageRetryMiddleware
-        // This test requires implementing:
-        // 1. Simulating message processing failure
-        // 2. Verifying retry attempts occur
-        // 3. Confirming message moves to dead letter queue after max retries
+        // TODO: Implementar lógica end-to-end real para MessageRetryMiddleware
+        // Este teste requer implementar:
+        // 1. Simular falha no processamento da mensagem
+        // 2. Verificar tentativas de retry
+        // 3. Confirmar que a mensagem vai para a fila de dead letter após o número máximo de tentativas
     }
 
     [Fact]

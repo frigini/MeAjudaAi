@@ -519,7 +519,7 @@ dotnet ef database update --context UsersDbContext
 ## 🧪 Testing Strategy
 
 - **Unit Tests**: Domain logic and business rules
-- **Integration Tests**: API endpoints and database operations
+- **Integration Tests**: API endpoints and database operations with TestContainers
 - **Module Tests**: Cross-boundary communication via events
 - **E2E Tests**: Full user scenarios via API
 
@@ -537,6 +537,16 @@ docker compose -f environments/testing.yml up -d
 ```
 
 **Reproducible Testing**: All service versions are pinned (no `:latest` tags) to ensure consistent test results across different environments and time periods.
+
+**TestContainers**: Integration tests use TestContainers with:
+- **PostgreSQL + PostGIS**: `postgis/postgis:15-3.4` for geographic data support
+- **Redis**: For cache and distributed lock testing
+- **Automatic cleanup**: Containers are disposed after each test class
+
+**Test Organization** (Sprint 5.5 - Dec 2025):
+- `MeAjudaAi.Shared.Tests/TestInfrastructure/`: 8 organized subfolders (Base, Builders, Configuration, Containers, Fixtures, Handlers, Mocks, Options, Services)
+- Module-specific tests moved to individual modules (Documents, Providers, ServiceCatalogs, Users)
+- Comprehensive AAA pattern and translated documentation
 
 ## 📈 Monitoring & Observability
 

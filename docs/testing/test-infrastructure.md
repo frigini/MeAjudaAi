@@ -36,6 +36,17 @@ Classe base que fornece:
   - `Testcontainers.Redis`
   - `Microsoft.AspNetCore.Mvc.Testing`
 
+### Imagens Docker
+
+A infraestrutura utiliza as seguintes imagens:
+
+- **PostgreSQL com PostGIS**: `postgis/postgis:15-3.4`
+  - Inclui extensão PostGIS 3.4 para dados geográficos
+  - Necessária para NetTopologySuite/GeoPoint (módulo SearchProviders)
+  - Automaticamente inicializada com `CREATE EXTENSION IF NOT EXISTS postgis`
+  
+- **Redis**: Conforme configuração padrão do TestContainers
+
 ### Variáveis de Ambiente
 
 A infraestrutura sobrescreve automaticamente as configurações para testes:
@@ -262,7 +273,9 @@ public class MeuTeste : TestContainerTestBase
 - **Performance**: 70% mais rápido (32min → 8-10min quando Docker funciona)
 - **Retry Logic**: 3 tentativas com exponential backoff para falhas transientes do Docker
 - **Timeouts**: Aumentados de 1min → 5min para maior confiabilidade
-- **Containers**: PostgreSQL (postgis/postgis:16-3.4), Redis (7-alpine), Azurite
+- **Containers**: PostgreSQL (postgis/postgis:15-3.4), Redis (7-alpine), Azurite
+- **PostGIS**: Extensão habilitada automaticamente para suporte a dados geográficos
+- **Diagnostics**: Connection strings com `Include Error Detail=true` para CI
 - **Overhead**: Reduzido de 6s por teste para 6s por classe
 
 #### Classes Migradas

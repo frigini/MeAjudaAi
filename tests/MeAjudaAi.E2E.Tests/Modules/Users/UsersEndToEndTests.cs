@@ -541,12 +541,12 @@ public class UsersEndToEndTests : TestContainerTestBase
     /// </summary>
     private static JsonElement GetResponseData(JsonElement response)
     {
-        // If response has a 'data' property, unwrap it
+        // Se a resposta tem uma propriedade 'data', desencapsula ela
         if (response.TryGetProperty("data", out var data))
         {
             return data;
         }
-        // Otherwise return the response itself
+        // Caso contrário, retorna a resposta diretamente
         return response;
     }
 }

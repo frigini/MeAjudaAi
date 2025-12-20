@@ -82,7 +82,6 @@ public class ModuleExtensionsTests
         envMock.Setup(e => e.EnvironmentName).Returns("Testing");
         serviceCollection.AddSingleton(envMock.Object);
 
-        var serviceProvider = serviceCollection.BuildServiceProvider();
         var appBuilder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Testing" });
         foreach (var service in serviceCollection)
         {

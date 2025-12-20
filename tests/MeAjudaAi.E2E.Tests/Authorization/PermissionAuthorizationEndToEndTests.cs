@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
@@ -83,8 +84,12 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         // Act
         var response = await ApiClient.PostAsJsonAsync("/api/v1/users", newUser);
 
-        // Assert - Pode retornar BadRequest por validação, mas não deve ser Forbidden
-        Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
+        // Assert - Deve retornar sucesso ou erro de validação, nunca Forbidden ou 5xx
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.OK,
+            HttpStatusCode.Created,
+            HttpStatusCode.BadRequest,
+            HttpStatusCode.UnprocessableEntity);
     }
 
     [Fact]
@@ -230,6 +235,12 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
 
         // Assert - Todas devem ter sucesso
         Assert.All(responses, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
+
+        // Cleanup
+        foreach (var response in responses)
+        {
+            response.Dispose();
+        }
     }
 
     #region Role-Based Policies
@@ -360,7 +371,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
 
         // Extrair o ID real retornado pela API (ignora o ID enviado na requisição)
         var createContent = await createResponse.Content.ReadAsStringAsync();
-        var createJson = JsonDocument.Parse(createContent);
+        using var createJson = JsonDocument.Parse(createContent);
         var actualUserId = Guid.Parse(
             createJson.RootElement.GetProperty("data").GetProperty("id").GetString()!);
 
@@ -414,7 +425,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
 
         // Extrair ID real da resposta (estrutura: { "data": { "id": "..." } })
         var createContent = await createResponse.Content.ReadAsStringAsync();
-        var createJson = JsonDocument.Parse(createContent);
+        using var createJson = JsonDocument.Parse(createContent);
         var otherUserId = createJson.RootElement.GetProperty("data").GetProperty("id").GetString()!;
 
         // Autenticar como usuário diferente (não-owner)
@@ -467,7 +478,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
 
         // Extrair ID real da resposta (estrutura: { "data": { "id": "..." } })
         var createContent = await createResponse.Content.ReadAsStringAsync();
-        var createJson = JsonDocument.Parse(createContent);
+        using var createJson = JsonDocument.Parse(createContent);
         var anyUserId = createJson.RootElement.GetProperty("data").GetProperty("id").GetString()!;
 
         // Manter autenticação como admin para testar acesso

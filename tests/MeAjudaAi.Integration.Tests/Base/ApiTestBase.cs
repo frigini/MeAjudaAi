@@ -221,10 +221,10 @@ public abstract class ApiTestBase : IAsyncLifetime
                     });
 
                     // Adiciona mocks de serviços para testes
-                    // TODO: Investigate Azurite SAS token issue and migrate from Mock to Azurite emulator
-                    // Currently using Mock because Azurite throws 500 errors on upload tests (CanGenerateSasUri problem).
-                    // See tracking issue: https://github.com/your-repo/issues/XXX
-                    // Investigation steps: check Azurite logs, test container creation manually, verify Azurite 3.33.0 compatibility with SAS tokens
+                    // TODO: Investigar problema de SAS token do Azurite e migrar de Mock para emulador Azurite
+                    // Atualmente usando Mock porque Azurite retorna erros 500 em testes de upload (problema CanGenerateSasUri).
+                    // Ver issue de rastreamento: https://github.com/frigini/MeAjudaAi/issues/1
+                    // Passos de investigação: verificar logs Azurite, testar criação de container manualmente, validar compatibilidade Azurite 3.33.0 com SAS tokens
                     services.AddDocumentsTestServices(useAzurite: false);
 
                     // Mock do BackgroundJobService para evitar execução de jobs em testes
@@ -374,7 +374,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                 {
                     logger?.LogError(ex, "❌ PostgreSQL still initializing after {MaxRetries} attempts", maxRetries);
                     var totalWaitTime = maxRetries * (maxRetries + 1) / 2; // Sum: 1+2+3+...+10 = 55 seconds
-                    throw new InvalidOperationException($"PostgreSQL não ficou pronto após {maxRetries} tentativas (~{totalWaitTime} segundos)", ex);
+                    throw new InvalidOperationException($"PostgreSQL not ready after {maxRetries} attempts (~{totalWaitTime} seconds)", ex);
                 }
 
                 var delay = baseDelay * attempt; // Linear backoff: 1s, 2s, 3s, etc.
@@ -386,7 +386,7 @@ public abstract class ApiTestBase : IAsyncLifetime
             catch (Exception ex)
             {
                 logger?.LogError(ex, "❌ Critical failure cleaning existing database: {Message}", ex.Message);
-                throw new InvalidOperationException("Não foi possível limpar o banco de dados antes dos testes", ex);
+                throw new InvalidOperationException("Failed to clean database before tests", ex);
             }
         }
 
@@ -486,7 +486,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         catch (Exception ex)
         {
             logger?.LogError(ex, "❌ Failed to apply {Module} migrations: {Message}", moduleName, ex.Message);
-            throw new InvalidOperationException($"Não foi possível aplicar migrações do banco {moduleName}", ex);
+            throw new InvalidOperationException($"Failed to apply {moduleName} database migrations", ex);
         }
     }
 
@@ -507,7 +507,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         catch (Exception ex)
         {
             logger?.LogError(ex, "{Module} database verification failed", moduleName);
-            throw new InvalidOperationException($"Banco {moduleName} não foi inicializado corretamente", ex);
+            throw new InvalidOperationException($"{moduleName} database not initialized correctly", ex);
         }
     }
 
