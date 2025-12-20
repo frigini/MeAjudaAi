@@ -15,9 +15,6 @@ namespace MeAjudaAi.E2E.Tests.Integration;
 /// </remarks>
 public class UsersModuleTests : TestContainerTestBase
 {
-    // NOTE: GetUsers_ShouldReturnOkWithPaginatedResult removed - duplicates UsersIntegrationTests.GetUsers_ShouldReturnUsersList
-    // NOTE: CreateUser_WithValidData_ShouldReturnCreatedOrConflict removed - duplicates UsersIntegrationTests.CreateUser_WithValidData_ShouldReturnCreated
-
     [Fact]
     public async Task CreateUser_WithInvalidData_ShouldReturnBadRequest()
     {
@@ -37,9 +34,6 @@ public class UsersModuleTests : TestContainerTestBase
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-
-    // NOTE: GetUserById_WithNonExistentId_ShouldReturnNotFound removed - duplicates UsersIntegrationTests
-    // NOTE: GetUserByEmail_WithNonExistentEmail_ShouldReturnNotFound removed - duplicates UsersIntegrationTests
 
     [Fact]
     public async Task UpdateUser_WithNonExistentId_ShouldReturnNotFound()

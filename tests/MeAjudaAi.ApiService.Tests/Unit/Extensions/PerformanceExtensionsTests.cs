@@ -11,10 +11,10 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-namespace MeAjudaAi.ApiService.Tests.Extensions;
+namespace MeAjudaAi.ApiService.Tests.Unit.Extensions;
 
 /// <summary>
-/// Testes abrangentes para PerformanceExtensions.cs (response compression, caching)
+/// Testes abrangentes para PerformanceExtensions.cs (compressão de resposta, caching)
 /// </summary>
 public class PerformanceExtensionsTests
 {

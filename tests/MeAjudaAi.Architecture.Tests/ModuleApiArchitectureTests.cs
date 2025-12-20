@@ -1,7 +1,9 @@
 using System.Reflection;
 using MeAjudaAi.Shared.Contracts.Modules;
+using MeAjudaAi.Shared.Contracts.Modules.Documents;
 using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Contracts.Modules.Providers;
+using MeAjudaAi.Shared.Contracts.Modules.SearchProviders;
 using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
 using MeAjudaAi.Shared.Contracts.Modules.Users;
 using MeAjudaAi.Shared.Contracts.Modules.Users.DTOs;
@@ -307,6 +309,43 @@ public class ModuleApiArchitectureTests
         methods.Should().Contain("GetServicesByCategoryAsync", because: "Should allow getting services by category");
         methods.Should().Contain("ValidateServicesAsync", because: "Should allow validating services");
         methods.Should().Contain("IsServiceActiveAsync", because: "Should allow checking if service is active");
+    }
+
+    [Fact]
+    public void IDocumentsModuleApi_ShouldHaveAllEssentialMethods()
+    {
+        // Arrange
+        var type = typeof(IDocumentsModuleApi);
+
+        // Act
+        var methods = type.GetMethods()
+            .Where(m => !m.IsSpecialName && m.DeclaringType == type)
+            .Select(m => m.Name)
+            .ToList();
+
+        // Assert
+        methods.Should().Contain("GetDocumentByIdAsync", because: "Should allow getting document by ID");
+        methods.Should().Contain("GetProviderDocumentsAsync", because: "Should allow getting provider documents");
+        methods.Should().Contain("DocumentExistsAsync", because: "Should allow checking if document exists");
+        methods.Should().Contain("GetDocumentStatusAsync", because: "Should allow getting document status");
+    }
+
+    [Fact]
+    public void ISearchProvidersModuleApi_ShouldHaveAllEssentialMethods()
+    {
+        // Arrange
+        var type = typeof(ISearchProvidersModuleApi);
+
+        // Act
+        var methods = type.GetMethods()
+            .Where(m => !m.IsSpecialName && m.DeclaringType == type)
+            .Select(m => m.Name)
+            .ToList();
+
+        // Assert
+        methods.Should().Contain("SearchProvidersAsync", because: "Should allow searching providers");
+        methods.Should().Contain("SearchByCoordinatesAsync", because: "Should allow searching by coordinates");
+        methods.Should().Contain("SearchByServiceAsync", because: "Should allow searching by service");
     }
 
     private static Assembly[] GetModuleAssemblies()
