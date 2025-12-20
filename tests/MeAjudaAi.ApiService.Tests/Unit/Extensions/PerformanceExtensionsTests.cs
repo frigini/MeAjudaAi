@@ -134,7 +134,7 @@ public class PerformanceExtensionsTests
 
     #endregion
 
-    #region SafeGzipCompressionProvider Tests (4 tests)
+    #region SafeGzipCompressionProvider Tests (3 tests)
 
     [Fact]
     public void SafeGzipProvider_EncodingName_ShouldBeGzip()
@@ -210,7 +210,7 @@ public class PerformanceExtensionsTests
 
     #endregion
 
-    #region AddStaticFilesWithCaching Tests (2 tests)
+    #region AddStaticFilesWithCaching Tests (1 test)
 
     [Fact]
     public void AddStaticFilesWithCaching_ShouldBeChainable()
@@ -228,7 +228,7 @@ public class PerformanceExtensionsTests
 
     #endregion
 
-    #region AddApiResponseCaching Tests (4 tests)
+    #region AddApiResponseCaching Tests (1 test)
 
     [Fact]
     public void AddApiResponseCaching_ShouldBeChainable()
@@ -242,37 +242,6 @@ public class PerformanceExtensionsTests
         // Assert
         result.Should().BeSameAs(services);
         // Note: ResponseCachingOptions is internal to ASP.NET Core, so only chainability can be verified
-    }
-
-    #endregion
-
-    #region Helper Methods
-
-    private static HttpContext CreateHttpContext(string path = "/api/test")
-    {
-        var context = new DefaultHttpContext();
-        context.Request.Path = path;
-        context.Request.Headers.Clear();
-        context.Response.Headers.Clear();
-        return context;
-    }
-
-    private class TestRequestCookieCollection : IRequestCookieCollection
-    {
-        private readonly Dictionary<string, string> _cookies;
-
-        public TestRequestCookieCollection(Dictionary<string, string> cookies)
-        {
-            _cookies = cookies;
-        }
-
-        public string? this[string key] => _cookies.TryGetValue(key, out var value) ? value : null;
-        public int Count => _cookies.Count;
-        public ICollection<string> Keys => _cookies.Keys;
-        public bool ContainsKey(string key) => _cookies.ContainsKey(key);
-        public bool TryGetValue(string key, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? value) => _cookies.TryGetValue(key, out value!);
-        public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => _cookies.GetEnumerator();
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => _cookies.GetEnumerator();
     }
 
     #endregion
