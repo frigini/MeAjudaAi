@@ -6,9 +6,9 @@ namespace MeAjudaAi.Shared.Tests.Infrastructure.Options;
 public class TestDatabaseOptions
 {
     /// <summary>
-    /// Imagem Docker do PostgreSQL para testes
+    /// Imagem Docker do PostgreSQL para testes (com suporte PostGIS para dados geográficos)
     /// </summary>
-    public string PostgresImage { get; set; } = "postgres:15-alpine";
+    public string PostgresImage { get; set; } = "postgis/postgis:16-3.4";
 
     /// <summary>
     /// Nome do banco de dados de teste
