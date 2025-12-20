@@ -1,4 +1,5 @@
 using DotNet.Testcontainers.Builders;
+using Npgsql;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 
@@ -13,14 +14,21 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
     private PostgreSqlContainer? _postgresContainer;
     private AzuriteContainer? _azuriteContainer;
 
-    public string? ConnectionString => _postgresContainer?.GetConnectionString();
+    /// <summary>
+    /// Connection string com detalhes de erro habilitados para diagnóstico em CI
+    /// </summary>
+    public string? ConnectionString => _postgresContainer != null 
+        ? $"{_postgresContainer.GetConnectionString()};Include Error Detail=true" 
+        : null;
+    
     public string? AzuriteConnectionString => _azuriteContainer?.GetConnectionString();
 
     public async ValueTask InitializeAsync()
     {
-        // Cria container PostgreSQL otimizado para CI
+        // Cria container PostgreSQL com PostGIS para suporte a dados geográficos
+        // PostGIS é necessário para SearchProviders (NetTopologySuite)
         _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:15-alpine")
+            .WithImage("postgis/postgis:15-3.4")
             .WithDatabase("meajudaai_test")
             .WithUsername("postgres")
             .WithPassword("test123")
@@ -43,6 +51,9 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
                 return Task.CompletedTask;
             })
             .Build();
+
+        // Garante que PostGIS está habilitado (necessário para SearchProviders)
+        await EnsurePostGisExtensionAsync();
 
         // Inicia containers em paralelo para performance
         await Task.WhenAll(
@@ -80,6 +91,31 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
             {
                 Console.WriteLine($"[AZURITE-CONTAINER] Error disposing Azurite: {ex.Message}");
             }
+        }
+    }
+
+    /// <summary>
+    /// Garante que a extensão PostGIS está habilitada no banco de dados.
+    /// Necessária para SearchProviders (NetTopologySuite/dados geográficos).
+    /// </summary>
+    private async Task EnsurePostGisExtensionAsync()
+    {
+        if (_postgresContainer == null || ConnectionString == null)
+            return;
+
+        try
+        {
+            await using var conn = new NpgsqlConnection(ConnectionString);
+            await conn.OpenAsync();
+            await using var cmd = new NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS postgis;", conn);
+            await cmd.ExecuteNonQueryAsync();
+            Console.WriteLine("[DB-CONTAINER] PostGIS extension verified/created");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DB-CONTAINER] Warning: Could not ensure PostGIS extension: {ex.Message}");
+            // Não lança exceção - a imagem postgis/postgis já vem com PostGIS
+            // Apenas logamos caso haja algum problema
         }
     }
 }

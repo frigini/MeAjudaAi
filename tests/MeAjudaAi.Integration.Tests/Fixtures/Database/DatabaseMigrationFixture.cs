@@ -25,9 +25,10 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        // Cria container PostgreSQL com Testcontainers
+        // Cria container PostgreSQL com PostGIS para suporte a dados geográficos
+        // PostGIS é necessário para SearchProviders (NetTopologySuite)
         _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:15-alpine")
+            .WithImage("postgis/postgis:15-3.4")
             .WithDatabase("meajudaai_test")
             .WithUsername("postgres")
             .WithPassword("test123")
@@ -43,6 +44,9 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
         await _postgresContainer.StartAsync();
 
         var connectionString = _postgresContainer.GetConnectionString();
+        
+        // Garante que a extensão PostGIS está habilitada (necessária para SearchProviders)
+        await EnsurePostGisExtensionAsync(connectionString);
         
         // Cria service provider para ter acesso aos DbContexts
         var services = new ServiceCollection();
@@ -201,6 +205,28 @@ public sealed class DatabaseMigrationFixture : IAsyncLifetime
             await command.ExecuteNonQueryAsync();
             
             Console.WriteLine($"[MIGRATION-FIXTURE] Seed executado: {Path.GetFileName(seedFile)}");
+        }
+    }
+
+    /// <summary>
+    /// Garante que a extensão PostGIS está habilitada no banco de dados.
+    /// Necessária para SearchProviders (NetTopologySuite/dados geográficos).
+    /// </summary>
+    private static async Task EnsurePostGisExtensionAsync(string connectionString)
+    {
+        try
+        {
+            await using var conn = new NpgsqlConnection(connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS postgis;", conn);
+            await cmd.ExecuteNonQueryAsync();
+            Console.WriteLine("[MIGRATION-FIXTURE] PostGIS extension verified/created");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[MIGRATION-FIXTURE] Warning: Could not ensure PostGIS extension: {ex.Message}");
+            // Não lança exceção - a imagem postgis/postgis já vem com PostGIS
+            // Apenas logamos caso haja algum problema
         }
     }
 }
