@@ -31,7 +31,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBase
 
         var userData = new
         {
-            username = $"test{Guid.NewGuid():N}"[..20], // Limit to 20 chars
+            username = $"test{Guid.NewGuid():N}"[..20], // Limitar a 20 caracteres
             email = $"test-{Guid.NewGuid():N}@example.com",
             firstName = "Test",
             lastName = "User",
@@ -55,7 +55,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBase
         dataElement.TryGetProperty("username", out var usernameProperty).Should().BeTrue();
         usernameProperty.GetString().Should().Be(userData.username);
 
-        // Cleanup - attempt to delete created user
+        // Cleanup - tentar deletar usuário criado
         var idElement = GetResponseData(responseJson);
         if (idElement.TryGetProperty("id", out var idProperty))
         {
@@ -83,7 +83,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBase
 
         var users = JsonSerializer.Deserialize<JsonElement>(content);
 
-        // Expect a consistent API response format - should be an object with data property
+        // Esperar formato de resposta API consistente - deve ser um objeto com propriedade data
         users.ValueKind.Should().Be(JsonValueKind.Object,
             "API should return a structured response object");
         users.TryGetProperty("data", out var dataElement).Should().BeTrue(
