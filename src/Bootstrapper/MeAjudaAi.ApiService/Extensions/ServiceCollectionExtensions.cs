@@ -125,6 +125,9 @@ public static class ServiceCollectionExtensions
         // Processa cabeçalhos X-Forwarded-* de proxies reversos (load balancers, nginx, etc.)
         app.UseForwardedHeaders();
 
+        // Log de requisições (logo após ForwardedHeaders para capturar IP correto)
+        app.UseMiddleware<RequestLoggingMiddleware>();
+
         // Verificação de segurança de compressão (previne CRIME/BREACH)
         app.UseMiddleware<CompressionSecurityMiddleware>();
 

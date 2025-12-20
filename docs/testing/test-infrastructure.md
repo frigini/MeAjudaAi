@@ -353,3 +353,47 @@ private async Task CleanupDatabaseAsync()
 - [Testcontainers Documentation](https://dotnet.testcontainers.org/)
 - [WebApplicationFactory](https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests)
 - [xUnit Best Practices](https://xunit.net/docs/getting-started)
+
+---
+
+## Testes de Middleware
+
+### Cobertura de Middlewares (Dez/2024)
+
+**E2E Tests** (comportamento completo):
+- ✅ BusinessMetricsMiddleware
+- ✅ LoggingContextMiddleware (CorrelationId)
+- ✅ SecurityHeadersMiddleware
+- ✅ CompressionSecurityMiddleware
+- ✅ RateLimitingMiddleware
+- ✅ RequestLoggingMiddleware
+
+**Integration Tests** (lógica específica):
+- ✅ GeographicRestrictionMiddleware
+- ✅ SecurityHeadersMiddleware (headers específicos)
+- ✅ CompressionSecurityMiddleware (regras BREACH)
+
+**Arquivos:**
+- `tests/MeAjudaAi.E2E.Tests/Infrastructure/MiddlewareEndToEndTests.cs` (23 testes)
+- `tests/MeAjudaAi.E2E.Tests/Infrastructure/RateLimitingEndToEndTests.cs` (4 testes)
+- `tests/MeAjudaAi.Integration.Tests/Middleware/SecurityHeadersMiddlewareTests.cs` (10 testes)
+- `tests/MeAjudaAi.Integration.Tests/Middleware/CompressionSecurityMiddlewareTests.cs` (6 testes)
+
+### Problemas Corrigidos (Dez/2024)
+
+1. **StaticFilesMiddleware duplicado**
+   - ❌ Estava registrado 2x (UseApiServices + UseApiMiddlewares)
+   - ✅ Removido de UseApiMiddlewares
+
+2. **RequestLoggingMiddleware ordem incorreta**
+   - ❌ Estava DEPOIS de Compression (não via response original)
+   - ✅ Movido para logo APÓS ForwardedHeaders
+
+3. **PermissionOptimizationMiddleware não registrado**
+   - ✅ Já estava registrado via UsePermissionOptimization()
+
+4. **CorrelationId não propagado**
+   - ✅ Já estava sendo propagado via LoggingContextMiddleware
+
+Veja detalhes em: [Middleware Testing Strategy](.ai/middleware-testing-strategy.md)
+
