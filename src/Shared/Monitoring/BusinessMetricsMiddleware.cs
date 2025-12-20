@@ -64,21 +64,22 @@ internal class BusinessMetricsMiddleware(
         // Capturar eventos específicos de negócio
         if (path != null)
         {
-            // Registros de usuário
-            if (path == "/api/users" && method == "POST" && statusCode is >= 200 and < 300)
+            // Registros de usuário (aceita rotas versionadas como /api/v1/users)
+            if ((path == "/api/users" || (path.StartsWith("/api/v") && path.EndsWith("/users"))) && 
+                method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordUserRegistration("api");
                 logger.LogInformation("User registration completed via API");
             }
 
-            // Logins
-            if (path == "/api/auth/login" && method == "POST" && statusCode is >= 200 and < 300)
+            // Logins (aceita rotas versionadas como /api/v1/auth/login)
+            if ((path == "/api/auth/login" || (path.StartsWith("/api/v") && path.EndsWith("/auth/login"))) && 
+                method == "POST" && statusCode is >= 200 and < 300)
             {
-                // Note: User is unauthenticated at login endpoint, so userId will be "unknown"
-                // To capture actual userId, would need to extract from request body or capture after token generation
-                var userId = context.User?.FindFirst(AuthConstants.Claims.Subject)?.Value ?? "unknown";
-                businessMetrics.RecordUserLogin(userId, "password");
-                logger.LogInformation("User login completed: {UserId}", userId);
+                // User is unauthenticated at login endpoint, so we record as 'anonymous'
+                // To track actual userId, implement post-authentication metric or extract from request body
+                businessMetrics.RecordUserLogin("anonymous", "password");
+                logger.LogInformation("User login completed");
             }
 
             // Solicitações de ajuda
