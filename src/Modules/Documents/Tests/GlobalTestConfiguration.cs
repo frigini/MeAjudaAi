@@ -3,6 +3,7 @@ using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
 using MeAjudaAi.Shared.Tests;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace MeAjudaAi.Modules.Documents.Tests;
 
