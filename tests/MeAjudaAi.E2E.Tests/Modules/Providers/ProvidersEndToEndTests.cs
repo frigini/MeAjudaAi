@@ -4,17 +4,22 @@ using MeAjudaAi.E2E.Tests.Base;
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 
 /// <summary>
-/// Testes E2E para o módulo de Providers usando TestContainers
-/// Testa cenários completos de uso do módulo Providers
+/// Testes E2E para o módulo Providers usando TestContainers
+/// Cobre CRUD completo, lifecycle, documentos e workflows de verificação
 /// </summary>
+[Trait("Category", "E2E")]
+[Trait("Module", "Providers")]
 public class ProvidersEndToEndTests : TestContainerTestBase
 {
     private readonly ITestOutputHelper _testOutput;
+    private readonly Faker _faker = new();
 
     public ProvidersEndToEndTests(ITestOutputHelper testOutput)
     {
         _testOutput = testOutput;
     }
+
+    #region Basic CRUD Operations
 
     [Fact]
     public async Task CreateProvider_Should_Return_Success()
