@@ -4,7 +4,7 @@ using Bogus;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 
-namespace MeAjudaAi.E2E.Tests.Modules;
+namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 
 /// <summary>
 /// Testes E2E para operações de lifecycle de Providers (Update, Delete, Verification Status)
@@ -12,7 +12,7 @@ namespace MeAjudaAi.E2E.Tests.Modules;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Providers")]
-public class ProvidersLifecycleE2ETests : TestContainerTestBase
+public class ProvidersLifecycleEndToEndTests : TestContainerTestBase
 {
     private readonly Faker _faker = new();
 

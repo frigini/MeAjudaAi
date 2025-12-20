@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 
-namespace MeAjudaAi.E2E.Tests.Modules;
+namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
 /// Testes E2E para operações avançadas de Service Catalogs
@@ -11,7 +11,7 @@ namespace MeAjudaAi.E2E.Tests.Modules;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "ServiceCatalogs")]
-public class ServiceCatalogsAdvancedE2ETests : TestContainerTestBase
+public class ServiceCatalogsAdvancedEndToEndTests : TestContainerTestBase
 {
     /// <summary>
     /// Validates that a service can be successfully validated when it meets all business rules.

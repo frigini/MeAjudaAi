@@ -7,7 +7,7 @@ using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Tests.Auth;
 using Microsoft.EntityFrameworkCore;
 
-namespace MeAjudaAi.E2E.Tests.Modules;
+namespace MeAjudaAi.E2E.Tests.Modules.Users;
 
 /// <summary>
 /// Testes E2E completos para lifecycle de Users, incluindo DELETE com validação de persistência
@@ -15,7 +15,7 @@ namespace MeAjudaAi.E2E.Tests.Modules;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Users")]
-public class UsersLifecycleE2ETests : TestContainerTestBase
+public class UsersLifecycleEndToEndTests : TestContainerTestBase
 {
     [Fact]
     public async Task DeleteUser_Should_RemoveFromDatabase()

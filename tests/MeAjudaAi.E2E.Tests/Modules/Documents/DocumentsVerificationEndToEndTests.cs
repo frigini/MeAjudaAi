@@ -4,7 +4,7 @@ using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
 
-namespace MeAjudaAi.E2E.Tests.Modules;
+namespace MeAjudaAi.E2E.Tests.Modules.Documents;
 
 /// <summary>
 /// Testes E2E para workflow de verificação de documentos
@@ -12,7 +12,7 @@ namespace MeAjudaAi.E2E.Tests.Modules;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Documents")]
-public class DocumentsVerificationE2ETests : TestContainerTestBase
+public class DocumentsVerificationEndToEndTests : TestContainerTestBase
 {
     private async Task WaitForProviderAsync(Guid providerId, int maxAttempts = 10)
     {
