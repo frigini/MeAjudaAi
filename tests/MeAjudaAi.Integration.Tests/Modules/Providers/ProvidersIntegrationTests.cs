@@ -172,32 +172,128 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
     }
 
     [Fact]
-    public async Task GetProvidersByVerificationStatus_ShouldReturnOnlyPendingProviders()
+    public async Task GetProvidersByVerificationStatus_ShouldFilterCorrectly()
     {
         // Arrange
         AuthConfig.ConfigureAdmin();
 
-        // Note: Since we can't directly set verification status during creation,
-        // this test validates response structure and format only
-        // TODO: [ISSUE] Enhance test to verify actual filtering behavior when verification 
-        // status management endpoints are available (update/approve/reject provider verification)
+        // Criar providers diretamente no banco com diferentes status de verificação
+        Guid? pendingProviderId = null;
+        Guid? verifiedProviderId = null;
 
-        // Act - Test filtering by Pending verification status
-        var response = await Client.GetAsync("/api/v1/providers/by-verification-status/Pending");
+        using (var scope = Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<MeAjudaAi.Modules.Providers.Infrastructure.Persistence.ProvidersDbContext>();
 
-        // Assert
-        var content = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK,
-            $"because the endpoint should return OK. Response: {content}");
+            // Criar provider com status Pending
+            var pendingProvider = CreateProviderEntity(Guid.NewGuid(), "Pending Provider", MeAjudaAi.Modules.Providers.Domain.Enums.EVerificationStatus.Pending);
+            context.Providers.Add(pendingProvider);
 
-        var providers = JsonSerializer.Deserialize<JsonElement>(content);
+            // Criar provider com status Verified
+            var verifiedProvider = CreateProviderEntity(Guid.NewGuid(), "Verified Provider", MeAjudaAi.Modules.Providers.Domain.Enums.EVerificationStatus.Verified);
+            context.Providers.Add(verifiedProvider);
 
-        // Accept empty list or proper response structure
-        var isValidResponse = providers.ValueKind == JsonValueKind.Array ||
-                              (providers.ValueKind == JsonValueKind.Object &&
-                                  providers.TryGetProperty("data", out _));
+            await context.SaveChangesAsync();
 
-        isValidResponse.Should().BeTrue($"Invalid response format. Content: {content}");
+            pendingProviderId = pendingProvider.Id.Value;
+            verifiedProviderId = verifiedProvider.Id.Value;
+        }
+
+        try
+        {
+            // Act - Buscar apenas providers Pending
+            var response = await Client.GetAsync("/api/v1/providers/by-verification-status/Pending");
+
+            // Assert
+            var content = await response.Content.ReadAsStringAsync();
+            response.StatusCode.Should().Be(HttpStatusCode.OK,
+                $"porque o endpoint deve retornar OK. Response: {content}");
+
+            var providers = JsonSerializer.Deserialize<JsonElement>(content);
+
+            // Extrair array de providers da resposta
+            var providersArray = providers.ValueKind == JsonValueKind.Array
+                ? providers
+                : providers.GetProperty("data");
+
+            // Verificar que contém o provider Pending
+            var hasPendingProvider = false;
+            var hasVerifiedProvider = false;
+
+            foreach (var provider in providersArray.EnumerateArray())
+            {
+                var providerId = Guid.Parse(provider.GetProperty("id").GetString()!);
+                if (providerId == pendingProviderId) hasPendingProvider = true;
+                if (providerId == verifiedProviderId) hasVerifiedProvider = true;
+            }
+
+            hasPendingProvider.Should().BeTrue("deve conter o provider com status Pending");
+            hasVerifiedProvider.Should().BeFalse("não deve conter o provider com status Verified");
+        }
+        finally
+        {
+            // Cleanup
+            if (pendingProviderId.HasValue) await CleanupProviderById(pendingProviderId.Value);
+            if (verifiedProviderId.HasValue) await CleanupProviderById(verifiedProviderId.Value);
+        }
+    }
+
+    private static MeAjudaAi.Modules.Providers.Domain.Entities.Provider CreateProviderEntity(
+        Guid userId,
+        string name,
+        MeAjudaAi.Modules.Providers.Domain.Enums.EVerificationStatus verificationStatus)
+    {
+        var address = new MeAjudaAi.Modules.Providers.Domain.ValueObjects.Address(
+            street: "Rua Teste",
+            number: "123",
+            neighborhood: "Centro",
+            city: "São Paulo",
+            state: "SP",
+            zipCode: "01234-567",
+            country: "Brasil"
+        );
+
+        var contactInfo = new MeAjudaAi.Modules.Providers.Domain.ValueObjects.ContactInfo(
+            email: $"test{Guid.NewGuid():N}@provider.com",
+            phoneNumber: "+55 11 99999-9999"
+        );
+
+        var businessProfile = new MeAjudaAi.Modules.Providers.Domain.ValueObjects.BusinessProfile(
+            legalName: $"{name} LTDA",
+            contactInfo: contactInfo,
+            primaryAddress: address
+        );
+
+        var provider = new MeAjudaAi.Modules.Providers.Domain.Entities.Provider(
+            userId: userId,
+            name: name,
+            type: MeAjudaAi.Modules.Providers.Domain.Enums.EProviderType.Individual,
+            businessProfile: businessProfile
+        );
+
+        // Atualizar VerificationStatus usando o método público
+        if (verificationStatus != MeAjudaAi.Modules.Providers.Domain.Enums.EVerificationStatus.Pending)
+        {
+            provider.UpdateVerificationStatus(verificationStatus, "test-system");
+        }
+
+        return provider;
+    }
+
+    private async Task CleanupProviderById(Guid providerId)
+    {
+        try
+        {
+            var deleteResponse = await Client.DeleteAsync($"/api/v1/providers/{providerId}");
+            if (!deleteResponse.IsSuccessStatusCode)
+            {
+                testOutput.WriteLine($"Cleanup failed: Could not delete provider {providerId}. Status: {deleteResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            testOutput.WriteLine($"Cleanup error: {ex.Message}");
+        }
     }
 
     [Fact]
