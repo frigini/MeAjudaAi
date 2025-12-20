@@ -27,7 +27,7 @@ public abstract class IntegrationTestBase(AspireIntegrationFixture fixture, ITes
     {
         // Configura HttpClient a partir do fixture Aspire
         HttpClient = _fixture.HttpClient;
-        _output.WriteLine($"🔗 [IntegrationTest] Aspire HttpClient configurado");
+        _output.WriteLine($"🔗 [IntegrationTest] Aspire HttpClient configured");
         await Task.CompletedTask;
     }
 }

@@ -20,6 +20,21 @@ namespace MeAjudaAi.Shared.Tests.Integration.Messaging.DeadLetter;
 [Trait("Component", "DeadLetterSystem")]
 public class DeadLetterIntegrationTests : BaseIntegrationTest
 {
+    private static RabbitMqOptions CreateTestRabbitMqOptions()
+    {
+        return new RabbitMqOptions
+        {
+            ConnectionString = "amqp://localhost",
+            DefaultQueueName = "test-queue",
+            Host = "localhost",
+            Port = 5672,
+            Username = "guest",
+            Password = "guest",
+            VirtualHost = "/",
+            DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
+        };
+    }
+
     protected override TestInfrastructureOptions GetTestOptions()
     {
         return new TestInfrastructureOptions
@@ -45,18 +60,8 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         services.AddSingleton(configuration);
         services.AddSingleton(CreateHostEnvironment("Development"));
 
-        // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
-        services.AddSingleton(new RabbitMqOptions
-        {
-            ConnectionString = "amqp://localhost",
-            DefaultQueueName = "test-queue",
-            Host = "localhost",
-            Port = 5672,
-            Username = "guest",
-            Password = "guest",
-            VirtualHost = "/",
-            DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
-        });
+        // Registra RabbitMqOptions explicitamente para os testes de Dead Letter
+        services.AddSingleton(CreateTestRabbitMqOptions());
     }
 
     [Fact]
@@ -65,7 +70,7 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         // Arrange
         var services = new ServiceCollection();
         var configuration = CreateConfiguration();
-        var environment = CreateHostEnvironment("Testing"); // CORRIGIR: Usar Testing em vez de Development para NoOpService
+        var environment = CreateHostEnvironment("Testing"); // Usa ambiente Testing para NoOpService
 
         services.AddLogging();
         services.AddSingleton(configuration);
@@ -176,7 +181,7 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         shouldRetryPermanent.Should().BeFalse();
     }
 
-    [Fact]
+    [Fact(Skip = "Implementation pending - requires actual retry middleware logic")]
     public void MessageRetryMiddleware_EndToEnd_WorksWithDeadLetterSystem()
     {
         // Arrange
@@ -188,31 +193,17 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         services.AddSingleton(configuration);
         services.AddSingleton(environment);
 
-        services.AddSingleton(new RabbitMqOptions
-        {
-            ConnectionString = "amqp://localhost",
-            DefaultQueueName = "test-queue",
-            Host = "localhost",
-            Port = 5672,
-            Username = "guest",
-            Password = "guest",
-            VirtualHost = "/",
-            DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
-        });
+        services.AddSingleton(CreateTestRabbitMqOptions());
 
         MessagingExtensions.AddDeadLetterQueue(
             services, configuration);
 
         var serviceProvider = services.BuildServiceProvider();
         var message = new TestMessage { Id = "integration-test" };
-        var callCount = 0;
 
-        // Act
-        var result = true; // Simula sucesso para o teste
-
-        // Assert
-        result.Should().BeTrue();
-        callCount.Should().Be(0); // Nenhuma chamada feita ainda
+        // TODO: Implement actual end-to-end test logic for MessageRetryMiddleware
+        // Act & Assert
+        throw new NotImplementedException("Test logic needs to be implemented");
     }
 
     [Fact]
@@ -331,6 +322,3 @@ public class DeadLetterIntegrationTests : BaseIntegrationTest
         public string Id { get; set; } = string.Empty;
     }
 }
-
-
-

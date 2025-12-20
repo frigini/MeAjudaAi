@@ -18,7 +18,7 @@ namespace MeAjudaAi.ApiService.Tests.Unit.Extensions;
 /// </summary>
 public class PerformanceExtensionsTests
 {
-    #region AddResponseCompression Tests (8 tests)
+    #region AddResponseCompression Tests (7 tests)
 
     [Fact]
     public void AddResponseCompression_ShouldRegisterServices()

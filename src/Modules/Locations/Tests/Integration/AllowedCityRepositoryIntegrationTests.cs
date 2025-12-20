@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Locations.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Locations.Infrastructure.Repositories;
 using MeAjudaAi.Shared.Tests.Base;
 using MeAjudaAi.Shared.Tests.Infrastructure;
+using MeAjudaAi.Shared.Tests.Infrastructure.Options;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
