@@ -8,15 +8,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
 /// <summary>
-/// Integration tests for ServiceCategoryRepository with real database (TestContainers).
-/// Tests actual persistence logic, EF mappings, and database constraints.
+/// Testes de integração para ServiceCategoryRepository com banco de dados real (TestContainers).
+/// Testa lógica de persistência, mapeamentos EF e constraints do banco.
 /// </summary>
 public class ServiceCategoryRepositoryIntegrationTests : ApiTestBase
 {
     private readonly Faker _faker = new("pt_BR");
 
     /// <summary>
-    /// Adds a valid ServiceCategory via repository and verifies the category is persisted and retrievable by Id.
+    /// Adiciona uma ServiceCategory válida via repositório e verifica que a categoria é persistida e recuperável por Id.
     /// </summary>
     [Fact]
     public async Task AddAsync_WithValidCategory_ShouldPersistToDatabase()
@@ -60,7 +60,7 @@ public class ServiceCategoryRepositoryIntegrationTests : ApiTestBase
     }
 
     /// <summary>
-    /// Retrieves all categories and verifies the count matches the expected number.
+    /// Recupera todas as categorias e verifica que a contagem corresponde ao número esperado.
     /// </summary>
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllCategories()
@@ -83,7 +83,7 @@ public class ServiceCategoryRepositoryIntegrationTests : ApiTestBase
     }
 
     /// <summary>
-    /// Updates a category and verifies the changes are persisted to the database.
+    /// Atualiza uma categoria e verifica que as mudanças são persistidas no banco de dados.
     /// </summary>
     [Fact]
     public async Task UpdateAsync_WithModifiedCategory_ShouldPersistChanges()
@@ -108,7 +108,7 @@ public class ServiceCategoryRepositoryIntegrationTests : ApiTestBase
     }
 
     /// <summary>
-    /// Checks if a category exists by name and verifies the result is correct.
+    /// Verifica se uma categoria existe por nome e confirma que o resultado está correto.
     /// </summary>
     [Fact]
     public async Task ExistsWithNameAsync_WithExistingName_ShouldReturnTrue()
