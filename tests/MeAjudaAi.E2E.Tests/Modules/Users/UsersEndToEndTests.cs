@@ -509,7 +509,10 @@ public class UsersEndToEndTests : TestContainerTestBase
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
-        var userId = ExtractIdFromLocation(createResponse.Headers.Location!.ToString());
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var location = createResponse.Headers.Location?.ToString();
+        location.Should().NotBeNullOrEmpty();
+        var userId = ExtractIdFromLocation(location!);
 
         // Act - disparar duas atualizações simultâneas
         var update1 = new { FirstName = "Update1", LastName = "User", Email = "update1.user@example.com" };

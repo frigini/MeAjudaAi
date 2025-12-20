@@ -346,7 +346,6 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
 
         var createRequest = new
         {
-            Id = ownerId,
             Name = "Resource Owner",
             Email = $"owner-{Guid.NewGuid()}@test.com",
             Username = $"owner-{Guid.NewGuid().ToString()[..8]}",

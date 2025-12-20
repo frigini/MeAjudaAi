@@ -405,6 +405,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         await VerifyContextAsync(documentsContext, "Documents", () => documentsContext.Documents.CountAsync(), logger);
         await VerifyContextAsync(catalogsContext, "ServiceCatalogs", () => catalogsContext.ServiceCategories.CountAsync(), logger);
         await VerifyContextAsync(locationsContext, "Locations", () => locationsContext.AllowedCities.CountAsync(), logger);
+        await VerifyContextAsync(searchProvidersContext, "SearchProviders", () => searchProvidersContext.SearchableProviders.CountAsync(), logger);
     }
 
     public async ValueTask DisposeAsync()
