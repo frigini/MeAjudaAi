@@ -170,7 +170,7 @@ src/Shared/
 
 #### 🧪 Review Completo de Testes (6-8h)
 
-**Situação**: PARCIALMENTE CONCLUÍDO (E2E consolidados - 20 Dez 2025)  
+**Situação**: PARCIALMENTE CONCLUÍDO (E2E consolidados + gaps críticos - 20-21 Dez 2025)  
 **Severidade**: MÉDIA  
 **Sprint**: Sprint 5.5 (feature/refactor-and-cleanup)
 
@@ -200,6 +200,26 @@ Auditoria completa de todos os arquivos em `tests/` para identificar:
   - **Commits:**
     - 2f72fc8b: "refactor(e2e): consolidar Providers (3 arquivos → 1)"
     - Anteriores: Documents, ServiceCatalogs, renomeações Users/Locations
+
+- [x] **Implementar gaps críticos de cobertura E2E** ✅ CONCLUÍDO (21 Dez 2025)
+  - **Gaps implementados (4 de Priority Alta):**
+    1. ✅ ExceptionHandlerMiddleware - ProblemDetails validation (+3 testes)
+       - NotFound, BadRequest, Unauthorized - RFC 7807 compliance
+    2. ✅ Role-Based Policies (+7 testes)
+       - ProviderOnly (2), AdminOrProvider (2), AdminOrOwner (3)
+    3. ✅ 409 Conflict Validation (+3 testes)
+       - Duplicate email, duplicate username, concurrent updates
+    4. ✅ Cross-Module Workflow (+2 testes)
+       - Provider → ServiceCatalog → SearchProviders integration
+       - Multi-service filtering validation
+  - **Resultados:**
+    - Total adicionado: +15 testes
+    - Coverage: 86 → 101 testes (+17%)
+    - Arquivos modificados: 3
+    - Arquivos criados: 1 (ProviderServiceCatalogSearchWorkflowTests.cs)
+  - **Commit:**
+    - 737dab30: "feat(e2e): implementar 4 gaps críticos de cobertura E2E"
+
 - [ ] Revisar testes unitários de cada módulo
 - [ ] Identificar e remover testes duplicados
 - [ ] Atualizar testes desatualizados
@@ -207,7 +227,7 @@ Auditoria completa de todos os arquivos em `tests/` para identificar:
 - [ ] Criar checklist de code review para testes
 
 **Prioridade**: MÉDIA  
-**Estimativa**: 6-8 horas (2h já investidas em E2E)  
+**Estimativa**: 6-8 horas (4h já investidas: 2h E2E consolidation + 2h gap implementation)  
 **Benefício**: Suite de testes mais confiável e manutenível
 
 ---
