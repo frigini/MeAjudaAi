@@ -80,7 +80,7 @@ internal class BusinessMetricsMiddleware(
             }
 
             // Solicitações de ajuda
-            if (path.StartsWith("/api/help-requests") && method == "POST" && statusCode is >= 200 and < 300)
+            if (path == "/api/help-requests" && method == "POST" && statusCode is >= 200 and < 300)
             {
                 // Extrair categoria e urgência dos headers ou do corpo da requisição se necessário
                 businessMetrics.RecordHelpRequestCreated("general", "normal");

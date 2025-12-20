@@ -200,7 +200,7 @@ Todas as tarefas planejadas já foram implementadas:
 
 **8. Migração Extension Members (C# 14) - FINAL SPRINT ACTIVITY** - ✅ 2h CONCLUÍDO
 - [x] Migrar EnumExtensions para syntax `extension<TEnum>(string value)` ✅
-- [x] 54/54 testes passando (100% compatibilidade) ✅
+- [x] 18/18 testes passando (100% compatibilidade) ✅
 - [x] Documentar patterns e guidelines em architecture.md ✅
 - [x] Avaliado DocumentExtensions (não adequado para extension properties) ✅
 
