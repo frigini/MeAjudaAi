@@ -170,7 +170,7 @@ src/Shared/
 
 #### 🧪 Review Completo de Testes (6-8h)
 
-**Situação**: NÃO AUDITADO  
+**Situação**: PARCIALMENTE CONCLUÍDO (E2E consolidados - 20 Dez 2025)  
 **Severidade**: MÉDIA  
 **Sprint**: Sprint 5.5 (feature/refactor-and-cleanup)
 
@@ -185,7 +185,21 @@ Auditoria completa de todos os arquivos em `tests/` para identificar:
 **Ações**:
 - [ ] Revisar todos os arquivos em `tests/MeAjudaAi.Shared.Tests/`
 - [ ] Revisar todos os arquivos em `tests/MeAjudaAi.Integration.Tests/`
-- [ ] Revisar todos os arquivos em `tests/MeAjudaAi.E2E.Tests/`
+- [x] **Revisar e consolidar testes E2E** ✅ CONCLUÍDO (20 Dez 2025)
+  - **Consolidações realizadas:**
+    - Documents: `DocumentsEndToEndTests.cs` + `DocumentsVerificationEndToEndTests.cs` → `DocumentsEndToEndTests.cs` (10 testes, 6 #regions)
+    - ServiceCatalogs: `ServiceCatalogsEndToEndTests.cs` + `ServiceCatalogsAdvancedEndToEndTests.cs` → `ServiceCatalogsEndToEndTests.cs` (14 testes, 7 #regions)
+    - Providers: 3 arquivos → `ProvidersEndToEndTests.cs` (10 testes, 6 #regions)
+  - **Renomeações para padrão `{Module}EndToEndTests`:**
+    - `UsersLifecycleEndToEndTests.cs` → `UsersEndToEndTests.cs`
+    - `AllowedCitiesEndToEndTests.cs` → `LocationsEndToEndTests.cs`
+  - **Resultados:**
+    - Redução: 19→15 arquivos (-21%)
+    - Organização: `#region` por cenário de negócio
+    - Consistência: Padrão único `{Module}EndToEndTests.cs`
+  - **Commits:**
+    - 2f72fc8b: "refactor(e2e): consolidar Providers (3 arquivos → 1)"
+    - Anteriores: Documents, ServiceCatalogs, renomeações Users/Locations
 - [ ] Revisar testes unitários de cada módulo
 - [ ] Identificar e remover testes duplicados
 - [ ] Atualizar testes desatualizados
@@ -193,7 +207,7 @@ Auditoria completa de todos os arquivos em `tests/` para identificar:
 - [ ] Criar checklist de code review para testes
 
 **Prioridade**: MÉDIA  
-**Estimativa**: 6-8 horas  
+**Estimativa**: 6-8 horas (2h já investidas em E2E)  
 **Benefício**: Suite de testes mais confiável e manutenível
 
 ---
