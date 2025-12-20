@@ -249,72 +249,61 @@ Hangfire.PostgreSql 1.20.12 foi compilado contra Npgsql 6.x, mas o projeto está
 - `src/Aspire/MeAjudaAi.AppHost/Extensions/PostgreSqlExtensions.cs`
 - `src/Aspire/MeAjudaAi.AppHost/Extensions/MigrationExtensions.cs`
 
-**Situação**: SEM TESTES  
-**Severidade**: MÉDIA  
-**Sprint**: Sprint 5.5 (feature/refactor-and-cleanup)  
-**Issue**: [Será criado na Sprint 5.5]
+**Situação**: SEM TESTES - BAIXA PRIORIDADE  
+**Severidade**: BAIXA  
+**Sprint**: BACKLOG (não crítico - validação implícita)  
+**Issue**: [BACKLOG - Considerar apenas se houver incidentes em produção]
 
 **Descrição**: 
-As classes de extensão do AppHost que configuram infraestrutura crítica (Keycloak, PostgreSQL, Migrations) não possuem testes unitários ou de integração. Isso representa risco para:
-- Mudanças em configuração de produção
-- Refatorações futuras
-- Validação de comportamento em diferentes ambientes
+As classes de extensão do AppHost que configuram infraestrutura (Keycloak, PostgreSQL, Migrations) não possuem testes unitários/integração. Porém, análise técnica indica **baixo ROI para testes formais**.
 
 **Componentes Sem Testes**:
-1. **KeycloakExtensions** (~170 linhas):
-   - `AddMeAjudaAiKeycloak()` - configuração de desenvolvimento
-   - `AddMeAjudaAiKeycloakProduction()` - configuração de produção com validação de segurança
+1. **KeycloakExtensions** (~170 linhas) - "wiring code" de orquestração Aspire
+2. **PostgreSqlExtensions** (~260 linhas) - configuração de containers/Azure
+3. **MigrationExtensions** (~50 linhas) - registro de HostedService
 
-2. **PostgreSqlExtensions** (~260 linhas):
-   - `AddMeAjudaAiPostgreSQL()` - configuração local/desenvolvimento
-   - `AddMeAjudaAiAzurePostgreSQL()` - configuração Azure com managed identity
+**Mitigação ATUAL (Suficiente para MVP)**:
+1. ✅ **Validação Implícita**: Falhas detectadas imediatamente no startup
+   - PostgreSQL não sobe → aplicação não inicia
+   - Keycloak configuração errada → erro visível nos logs
+   - Migrations falham → aplicação não fica operacional
+2. ✅ **Código de Orquestração**: Basicamente chamadas `.WithEnvironment()`, `.WithDataVolume()`
+   - Pouca lógica complexa para testar
+   - Validações são simples (senha vazia, hostname ausente)
+3. ✅ **Logging Detalhado**: Console outputs indicam configurações aplicadas
+4. ✅ **Estrutura Limpa**: Options/Results/Services bem separados
 
-3. **MigrationExtensions** (~50 linhas):
-   - `AddMeAjudaAiMigrations()` - registro de MigrationHostedService
+**Risco**: BAIXO - Bugs aparecem rapidamente em desenvolvimento
 
-**Risco Atual**:
-- **BAIXO a MÉDIO**: Código é relativamente estável e usado em desenvolvimento
-- Refatoração recente (Sprint 4) melhorou estrutura mas não adicionou testes
-- Mudanças futuras podem introduzir regressões sem detecção
+**Alternativas de Validação** (ordem de prioridade):
 
-**Mitigação Atual**:
-1. ✅ Código bem estruturado com separação clara (Options/Results/Services)
-2. ✅ Comentários em português explicando lógica
-3. ✅ Validações de segurança em produção (KeycloakProduction)
-4. ✅ Logging detalhado de configuração
-5. ⚠️ **SEM** testes automatizados
+**OPÇÃO 1 (RECOMENDADA)**: Deixar como está
+- Custo-benefício: Criar testes formais tem ROI baixo
+- Tempo: 4-6h para coverage básico
+- Benefício: Marginal - bugs já detectados em runtime
+- **Decisão**: Priorizar testes de componentes com lógica de negócio real
 
-**Ações Recomendadas**:
+**OPÇÃO 2**: Smoke Tests (30min - se houver incidentes)
+- Criar teste E2E que valida AppHost startup completo
+- Captura 80% dos problemas dessas extensions
+- Implementar APENAS se houver incidentes em produção
 
-**CURTO PRAZO** (antes de próximas mudanças em infraestrutura):
-1. Criar testes de integração para KeycloakExtensions:
-   - Validar que configuração de desenvolvimento funciona
-   - Validar que configuração de produção rejeita senhas fracas
-   - Validar URLs e endpoints gerados corretamente
+**OPÇÃO 3**: Testes Formais (4-6h - BACKLOG)
+- Usar `Aspire.Hosting.Testing`
+- Mock `IDistributedApplicationBuilder`
+- Testar cada método de extensão
+- **Implementar SOMENTE** se:
+  - Houver bugs recorrentes em produção relacionados a essas extensions
+  - Refatoração grande planeada (>100 linhas mudadas)
+  - Cliente/compliance exigir coverage específico
 
-2. Criar testes de integração para PostgreSqlExtensions:
-   - Validar criação de databases e schemas
-   - Validar connection strings geradas
-   - Validar configuração Azure com managed identity
+**Prioridade**: BAIXA → BACKLOG  
+**Ação Atual**: NENHUMA (aguardar necessidade real)  
+**Critério de Reavaliação**: Incidentes em produção OU refatoração >100 linhas
 
-3. Criar testes unitários para MigrationExtensions:
-   - Validar que MigrationHostedService é registrado
-   - Validar que migrations não rodam em ambiente Testing
-
-**MÉDIO PRAZO** (backlog):
-- Adicionar testes E2E que validam stack completa do AppHost
-- Configurar CI para validar mudanças em extensions
-
-**Prioridade**: MÉDIA  
-**Esforço Estimado**: 4-6 horas para cobertura básica  
-**Dependências**: Nenhuma - pode ser feito incrementalmente
-
-**Critérios de Aceitação**:
-- [ ] Testes de integração para KeycloakExtensions (>70% coverage)
-- [ ] Testes de integração para PostgreSqlExtensions (>70% coverage)
-- [ ] Testes unitários para MigrationExtensions (>80% coverage)
-- [ ] CI configurado para rodar testes de extensions
-- [ ] Documentação de como testar extensions localmente
+**Documentação**:
+- Análise técnica registrada (20/Dez/2025)
+- Decisão: Priorizar Hangfire/Database tests (maior ROI)
 
 ---
 

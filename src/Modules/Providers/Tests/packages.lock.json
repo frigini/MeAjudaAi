@@ -1436,6 +1436,7 @@
           "Bogus": "[35.6.5, )",
           "Dapper": "[2.1.66, )",
           "FluentAssertions": "[8.8.0, )",
+          "Hangfire.InMemory": "[1.0.0, )",
           "MeAjudaAi.ApiService": "[1.0.0, )",
           "MeAjudaAi.Shared": "[1.0.0, )",
           "Microsoft.AspNetCore.Mvc.Testing": "[10.0.1, )",
@@ -1630,6 +1631,15 @@
         "contentHash": "fjgEtlfkLNnUcX9IB+fp3gTPtt5G7VJ0PCcoKLEWnXJXn5qTm/mvrm/t3/T+Xj35ZePtbWBm+j2PXE0beFwzbA==",
         "dependencies": {
           "Newtonsoft.Json": "11.0.1"
+        }
+      },
+      "Hangfire.InMemory": {
+        "type": "CentralTransitive",
+        "requested": "[1.0.0, )",
+        "resolved": "1.0.0",
+        "contentHash": "56H71lfcqn5sN/8Bjj9hOLGTG5HIERLRuMsRJTFpw0Tsq5ck5OUkNvtUw92s7bwD3PRKOo4PkDGqNs9KugaqoQ==",
+        "dependencies": {
+          "Hangfire.Core": "1.8.0"
         }
       },
       "Hangfire.PostgreSql": {

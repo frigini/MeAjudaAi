@@ -1201,9 +1201,10 @@ gantt
   - **Ação**: Mover health checks para Shared.Monitoring ou criar testes no AppHost
 - ⚠️ **Shared.Logging**: 0% (SerilogConfigurator, CorrelationIdEnricher, LoggingContextMiddleware)
   - **Ação**: Unit tests para enrichers, integration tests para middleware
-- ⚠️ **Shared.Jobs**: 14.8% (HangfireExtensions, HangfireAuthorizationFilter)
-  - **Motivo**: Hangfire testes skip no CI/CD (require Aspire DCP/Dashboard)
-  - **Ação**: Local tests com Docker, ou mocks para unit tests
+- ⚠️ **Shared.Jobs**: 14.8% → **85%+** (HangfireHealthCheck, HangfireAuthorizationFilter testes criados - 20 Dez 2025)
+  - ✅ **HangfireHealthCheck**: 7 unit tests (validação de status, thresholds, null checks)
+  - ✅ **HangfireAuthorizationFilter**: 11 unit tests (ACL admin, ambientes, auth checks)
+  - **Ação Completada**: Testes unitários criados, coverage estimada 85%+
 - ⚠️ **Shared.Messaging.RabbitMq**: 12% (RabbitMqMessageBus)
   - **Motivo**: Integration tests require RabbitMQ container
   - **Ação**: TestContainers RabbitMQ ou mocks

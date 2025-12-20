@@ -85,14 +85,6 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
         HttpClient.DefaultRequestHeaders.Authorization = null;
     }
 
-    [Fact(Skip = "Teste não aplicável - autenticação é mockada em integration tests")]
-    public async Task CompressionSecurity_LoginEndpoint_ShouldNotCompress()
-    {
-        // Este teste não é aplicável em integration tests pois não há endpoint de login
-        // Login é mockado via AuthConfig
-        await Task.CompletedTask;
-    }
-
     [Fact]
     public async Task CompressionSecurity_MultipleAuthenticatedRequests_ShouldConsistentlyDisableCompression()
     {

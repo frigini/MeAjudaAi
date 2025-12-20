@@ -132,7 +132,17 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
 
     #region 422 Unprocessable Entity - Semantic/Business Validation (Future)
 
-    [Fact(Skip = "422 não está implementado - atualmente usa 400 para todas validações")]
+    /// <summary>
+    /// NOTA: 422 Unprocessable Entity não está implementado no MVP.
+    /// Atualmente, todas as validações retornam 400 Bad Request (FluentValidation).
+    /// 
+    /// Feature futura: Distinguir validação sintática (400) de semântica (422).
+    /// Exemplo: formato inválido (400) vs. categoria não existe (422).
+    /// 
+    /// Tracked em: docs/technical-debt.md - Seção "Status Codes HTTP"
+    /// Prioridade: BAIXA - não crítico para MVP
+    /// </summary>
+    [Fact(Skip = "Feature futura: 422 não implementado - atualmente usa 400 para todas validações")]
     public async Task CreateService_WithNonExistentCategory_ShouldReturn422()
     {
         // Arrange
@@ -154,7 +164,7 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
             "semantic validation (non-existent category) should return 422");
     }
 
-    [Fact(Skip = "422 não está implementado - atualmente usa 400 para todas validações")]
+    [Fact(Skip = "Feature futura: 422 não implementado - atualmente usa 400 para todas validações")]
     public async Task ChangeServiceCategory_WithInvalidTransition_ShouldReturn422()
     {
         // Arrange - Criar serviço e tentar mudar para categoria que não existe

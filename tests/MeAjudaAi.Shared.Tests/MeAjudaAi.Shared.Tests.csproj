@@ -50,6 +50,9 @@
     <!-- Testes de Integração -->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     
+    <!-- Hangfire para Testes -->
+    <PackageReference Include="Hangfire.InMemory" />
+    
     <!-- Performance e Fixtures para Otimização -->
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
