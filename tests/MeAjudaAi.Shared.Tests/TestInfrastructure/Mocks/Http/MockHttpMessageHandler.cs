@@ -2,7 +2,7 @@ using System.Net;
 using Moq;
 using Moq.Protected;
 
-namespace MeAjudaAi.Shared.Tests.Mocks.Http;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
 
 /// <summary>
 /// Mock configurável de HttpMessageHandler para simular respostas HTTP em testes.

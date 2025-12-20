@@ -1,7 +1,7 @@
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 
-namespace MeAjudaAi.Shared.Tests.Mocks;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 
 /// <summary>
 /// Mock implementation of IHostEnvironment for testing purposes.

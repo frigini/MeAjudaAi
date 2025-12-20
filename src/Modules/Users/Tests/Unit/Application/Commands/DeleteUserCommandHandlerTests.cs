@@ -7,7 +7,7 @@ using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Modules.Users.Tests.Builders;
 using MeAjudaAi.Shared.Constants;
 using MeAjudaAi.Shared.Functional;
-using MeAjudaAi.Shared.Tests.Mocks;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 

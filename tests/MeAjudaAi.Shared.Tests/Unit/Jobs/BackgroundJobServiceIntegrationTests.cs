@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Jobs;
 
-namespace MeAjudaAi.Shared.Tests.Infrastructure;
+namespace MeAjudaAi.Shared.Tests.Unit.Jobs;
 
 [Trait("Category", "Integration")]
 public class BackgroundJobServiceIntegrationTests

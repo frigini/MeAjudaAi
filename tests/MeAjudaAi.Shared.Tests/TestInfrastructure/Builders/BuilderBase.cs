@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Tests.Builders;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
 
 /// <summary>
 /// Padrão builder base para criar objetos de teste com Bogus

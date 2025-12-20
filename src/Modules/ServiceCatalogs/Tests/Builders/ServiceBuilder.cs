@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities;
 using MeAjudaAi.Modules.ServiceCatalogs.Domain.ValueObjects;
-using MeAjudaAi.Shared.Tests.Builders;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 

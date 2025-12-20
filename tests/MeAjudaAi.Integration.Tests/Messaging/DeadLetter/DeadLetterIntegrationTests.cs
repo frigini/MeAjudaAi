@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Messaging.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
-using MeAjudaAi.Shared.Tests.Mocks;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 

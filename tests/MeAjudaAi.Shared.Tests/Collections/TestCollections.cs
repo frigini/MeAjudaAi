@@ -1,10 +1,12 @@
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Fixtures;
+
 namespace MeAjudaAi.Shared.Tests.Collections;
 
 /// <summary>
 /// Collection para testes que podem ser executados em paralelo
 /// </summary>
 [CollectionDefinition("Parallel")]
-public class ParallelTestCollection : ICollectionFixture<Fixtures.SharedTestFixture>
+public class ParallelTestCollection : ICollectionFixture<SharedTestFixture>
 {
     // Esta classe não precisa de implementação
     // Ela apenas define uma collection que usa SharedTestFixture

@@ -1,7 +1,7 @@
 using System.Reflection;
 using Azure.Messaging.ServiceBus;
 using MeAjudaAi.Shared.Messaging;
-using MeAjudaAi.Shared.Tests.Mocks.Messaging;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

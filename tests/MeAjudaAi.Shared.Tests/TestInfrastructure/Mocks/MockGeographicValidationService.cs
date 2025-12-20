@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Geolocation;
 
-namespace MeAjudaAi.Shared.Tests.Mocks;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 
 /// <summary>
 /// Mock implementation of IGeographicValidationService for integration tests.

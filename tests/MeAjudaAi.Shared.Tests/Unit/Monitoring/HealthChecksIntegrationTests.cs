@@ -6,7 +6,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace MeAjudaAi.Shared.Tests.Infrastructure;
+namespace MeAjudaAi.Shared.Tests.Unit.Monitoring;
 
 [Trait("Category", "Integration")]
 public class HealthChecksIntegrationTests

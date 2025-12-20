@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Time;
 
-namespace MeAjudaAi.Shared.Tests.Mocks;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 
 /// <summary>
 /// Mock implementation of IDateTimeProvider for testing purposes.

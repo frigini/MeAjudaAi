@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using MeAjudaAi.Shared.Jobs;
 
-namespace MeAjudaAi.Shared.Tests.Mocks.Jobs;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Jobs;
 
 /// <summary>
 /// Mock do serviço de background jobs para uso em testes.

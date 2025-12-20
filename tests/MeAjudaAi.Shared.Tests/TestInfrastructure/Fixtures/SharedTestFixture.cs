@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Tests.Fixtures;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Fixtures;
 
 /// <summary>
 /// Fixture compartilhado para otimizar performance dos testes

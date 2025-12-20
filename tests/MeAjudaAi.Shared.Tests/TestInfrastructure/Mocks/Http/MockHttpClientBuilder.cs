@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MeAjudaAi.Shared.Tests.Mocks.Http;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
 
 /// <summary>
 /// Builder fluente para configurar HttpClients com mocks em testes.

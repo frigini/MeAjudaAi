@@ -16,7 +16,7 @@ using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Tests.Mocks;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -225,7 +225,7 @@ public abstract class ApiTestBase : IAsyncLifetime
                     // Currently using Mock because Azurite throws 500 errors on upload tests (CanGenerateSasUri problem).
                     // See tracking issue: https://github.com/your-repo/issues/XXX
                     // Investigation steps: check Azurite logs, test container creation manually, verify Azurite 3.33.0 compatibility with SAS tokens
-                    services.AddDocumentsTestServices(connectionString: string.Empty, useAzurite: false);
+                    services.AddDocumentsTestServices(useAzurite: false);
 
                     // Mock do BackgroundJobService para evitar execução de jobs em testes
                     services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();

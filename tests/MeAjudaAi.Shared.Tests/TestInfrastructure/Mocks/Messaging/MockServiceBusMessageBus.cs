@@ -1,22 +1,21 @@
 using MeAjudaAi.Shared.Messaging;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Tests.Mocks.Messaging;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Messaging;
 
 /// <summary>
-/// Mock para RabbitMQ MessageBus para uso em testes
+/// Mock para Azure Service Bus para uso em testes
 /// </summary>
-public class MockRabbitMqMessageBus : IMessageBus
+public class MockServiceBusMessageBus : IMessageBus
 {
     private readonly Mock<IMessageBus> _mockMessageBus;
-    private readonly ILogger<MockRabbitMqMessageBus> _logger;
-    private readonly List<(object message, string? destination, EMessageType type)> _publishedMessages;
+    private readonly ILogger<MockServiceBusMessageBus> _logger;
+    private readonly List<(object message, string? destination, EMessageType type)> _publishedMessages = [];
 
-    public MockRabbitMqMessageBus(ILogger<MockRabbitMqMessageBus> logger)
+    public MockServiceBusMessageBus(ILogger<MockServiceBusMessageBus> logger)
     {
         _mockMessageBus = new Mock<IMessageBus>();
         _logger = logger;
-        _publishedMessages = [];
 
         SetupMockBehavior();
     }
@@ -37,7 +36,7 @@ public class MockRabbitMqMessageBus : IMessageBus
 
     public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock RabbitMQ: Sending message of type {MessageType} to queue {QueueName}",
+        _logger.LogInformation("Mock Service Bus: Sending message of type {MessageType} to queue {QueueName}",
             typeof(TMessage).Name, queueName);
 
         _publishedMessages.Add((message!, queueName, EMessageType.Send));
@@ -47,7 +46,7 @@ public class MockRabbitMqMessageBus : IMessageBus
 
     public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock RabbitMQ: Publishing event of type {EventType} to topic {TopicName}",
+        _logger.LogInformation("Mock Service Bus: Publishing event of type {EventType} to topic {TopicName}",
             typeof(TMessage).Name, topicName);
 
         _publishedMessages.Add((@event!, topicName, EMessageType.Publish));
@@ -57,7 +56,7 @@ public class MockRabbitMqMessageBus : IMessageBus
 
     public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Mock RabbitMQ: Subscribing to messages of type {MessageType} with subscription {SubscriptionName}",
+        _logger.LogInformation("Mock Service Bus: Subscribing to messages of type {MessageType} with subscription {SubscriptionName}",
             typeof(TMessage).Name, subscriptionName);
 
         return _mockMessageBus.Object.SubscribeAsync(handler, subscriptionName, cancellationToken);
@@ -161,14 +160,6 @@ public class MockRabbitMqMessageBus : IMessageBus
     }
 
     /// <summary>
-    /// Verifica se uma mensagem foi publicada com um destino específico
-    /// </summary>
-    public bool WasMessagePublishedWithDestination(string destination)
-    {
-        return _publishedMessages.Any(x => x.destination == destination);
-    }
-
-    /// <summary>
     /// Simula uma falha no envio de mensagem
     /// </summary>
     public void SimulateSendFailure(Exception exception)
@@ -195,4 +186,14 @@ public class MockRabbitMqMessageBus : IMessageBus
     {
         SetupMockBehavior();
     }
+}
+
+/// <summary>
+/// Tipo de mensagem para tracking
+/// </summary>
+public enum EMessageType
+{
+    None = 0,
+    Send,
+    Publish
 }
