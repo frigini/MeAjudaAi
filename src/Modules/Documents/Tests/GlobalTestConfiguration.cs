@@ -84,6 +84,9 @@ public static class TestServicesConfiguration
             else
             {
                 // Fallback para mock se connection string não estiver disponível
+                // AVISO: useAzurite=true foi solicitado mas sem connection string
+                System.Diagnostics.Debug.WriteLine(
+                    "WARNING: useAzurite=true requested but azuriteConnectionString is null/empty. Falling back to MockBlobStorageService.");
                 services.AddScoped<IBlobStorageService, MockBlobStorageService>();
             }
         }

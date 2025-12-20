@@ -9,26 +9,36 @@ namespace MeAjudaAi.Integration.Tests.Mocks;
 /// </summary>
 public class MockBackgroundJobService : IBackgroundJobService
 {
-    public List<string> EnqueuedJobs { get; } = new();
+    private readonly object _lock = new();
+    private readonly List<string> _enqueuedJobs = [];
+
+    public IReadOnlyList<string> EnqueuedJobs
+    {
+        get { lock (_lock) { return _enqueuedJobs.ToList(); } }
+    }
 
     public Task EnqueueAsync<T>(Expression<Func<T, Task>> methodCall, TimeSpan? delay = null) where T : notnull
     {
+        ArgumentNullException.ThrowIfNull(methodCall);
         var methodName = (methodCall.Body as MethodCallExpression)?.Method.Name ?? "Unknown";
         var jobInfo = $"{typeof(T).Name}.{methodName}";
-        EnqueuedJobs.Add(jobInfo);
+        lock (_lock) { _enqueuedJobs.Add(jobInfo); }
         return Task.CompletedTask;
     }
 
     public Task EnqueueAsync(Expression<Func<Task>> methodCall, TimeSpan? delay = null)
     {
+        ArgumentNullException.ThrowIfNull(methodCall);
         var methodName = (methodCall.Body as MethodCallExpression)?.Method.Name ?? "Unknown";
-        EnqueuedJobs.Add(methodName);
+        lock (_lock) { _enqueuedJobs.Add(methodName); }
         return Task.CompletedTask;
     }
 
     public Task ScheduleRecurringAsync(string jobId, Expression<Func<Task>> methodCall, string cronExpression)
     {
-        EnqueuedJobs.Add($"Recurring:{jobId}");
+        ArgumentNullException.ThrowIfNull(jobId);
+        ArgumentNullException.ThrowIfNull(methodCall);
+        lock (_lock) { _enqueuedJobs.Add($"Recurring:{jobId}"); }
         return Task.CompletedTask;
     }
 }

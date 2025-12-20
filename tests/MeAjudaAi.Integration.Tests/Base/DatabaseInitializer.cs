@@ -38,19 +38,19 @@ public class DatabaseInitializer
             // Verificar se pode reutilizar schema existente
             if (await _cacheService.CanReuseSchemaAsync(connectionString, moduleName))
             {
-                _logger.LogInformation("[OptimizedInit] Schema reutilizado para {Module} em {ElapsedMs}ms",
+                _logger.LogInformation("[OptimizedInit] Schema reused for {Module} in {ElapsedMs}ms",
                     moduleName, stopwatch.ElapsedMilliseconds);
                 return false; // Não precisou inicializar
             }
 
             // Executar inicialização
-            _logger.LogInformation("[OptimizedInit] Inicializando schema para {Module}...", moduleName);
+            _logger.LogInformation("[OptimizedInit] Initializing schema for {Module}...", moduleName);
             await initializationAction();
 
             // Marcar como inicializado no cache
             await _cacheService.MarkSchemaAsInitializedAsync(connectionString, moduleName);
 
-            _logger.LogInformation("[OptimizedInit] Schema inicializado para {Module} em {ElapsedMs}ms",
+            _logger.LogInformation("[OptimizedInit] Schema initialized for {Module} in {ElapsedMs}ms",
                 moduleName, stopwatch.ElapsedMilliseconds);
 
             return true; // Inicializou com sucesso
@@ -60,7 +60,7 @@ public class DatabaseInitializer
             _logger.LogError(ex, "[OptimizedInit] Schema initialization failed for {Module}", moduleName);
 
             // Invalidar cache em caso de erro
-            DatabaseSchemaCacheService.InvalidateCache(connectionString, moduleName);
+            await _cacheService.InvalidateCacheAsync(connectionString, moduleName);
             throw;
         }
         finally

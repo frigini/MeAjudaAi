@@ -67,7 +67,6 @@ public class DependencyInjectionDiagnosticTests(ITestOutputHelper testOutput) : 
 
         // Act - Get all IQueryHandler registrations
         var queryHandlerType = typeof(IQueryHandler<,>);
-        var registeredServices = serviceProvider.GetServices<object>();
 
         // Get all services that implement any IQueryHandler interface
         var allServices = Services.GetType()

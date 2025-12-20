@@ -413,9 +413,10 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
             HttpStatusCode.Created,
             HttpStatusCode.OK);
 
-        // Extrair ID real da resposta
-        var createdUser = await createResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        var otherUserId = createdUser!["id"].ToString()!;
+        // Extrair ID real da resposta (estrutura: { "data": { "id": "..." } })
+        var createContent = await createResponse.Content.ReadAsStringAsync();
+        var createJson = JsonDocument.Parse(createContent);
+        var otherUserId = createJson.RootElement.GetProperty("data").GetProperty("id").GetString()!;
 
         // Autenticar como usuário diferente (não-owner)
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
@@ -465,9 +466,10 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
             HttpStatusCode.Created,
             HttpStatusCode.OK);
 
-        // Extrair ID real da resposta
-        var createdUser = await createResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        var anyUserId = createdUser!["id"].ToString()!;
+        // Extrair ID real da resposta (estrutura: { "data": { "id": "..." } })
+        var createContent = await createResponse.Content.ReadAsStringAsync();
+        var createJson = JsonDocument.Parse(createContent);
+        var anyUserId = createJson.RootElement.GetProperty("data").GetProperty("id").GetString()!;
 
         // Manter autenticação como admin para testar acesso
         // (já está configurado como admin)

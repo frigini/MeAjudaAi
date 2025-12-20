@@ -62,7 +62,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
             .Build();
 
         _azuriteContainer = new AzuriteBuilder()
-            .WithImage("mcr.microsoft.com/azure-storage/azurite:latest")
+            .WithImage("mcr.microsoft.com/azure-storage/azurite:3.33.0")
             .WithCleanUp(true)
             .Build();
 

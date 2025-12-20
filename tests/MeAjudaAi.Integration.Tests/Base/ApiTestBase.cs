@@ -288,10 +288,11 @@ public abstract class ApiTestBase : IAsyncLifetime
         var documentsContext = scope.ServiceProvider.GetRequiredService<DocumentsDbContext>();
         var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
         var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
+        var searchProvidersContext = scope.ServiceProvider.GetRequiredService<SearchProvidersDbContext>();
         var logger = scope.ServiceProvider.GetService<ILogger<ApiTestBase>>();
 
         // Aplica migrações exatamente como nos testes E2E
-        await ApplyMigrationsAsync(usersContext, providersContext, documentsContext, catalogsContext, locationsContext, logger);
+        await ApplyMigrationsAsync(usersContext, providersContext, documentsContext, catalogsContext, locationsContext, searchProvidersContext, logger);
 
         // Seed test data for allowed cities (required for GeographicRestriction tests)
         await SeedTestDataAsync(locationsContext, logger);
@@ -352,6 +353,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         DocumentsDbContext documentsContext,
         ServiceCatalogsDbContext catalogsContext,
         LocationsDbContext locationsContext,
+        SearchProvidersDbContext searchProvidersContext,
         ILogger? logger)
     {
         // Garante estado limpo do banco de dados (como nos testes E2E)
@@ -395,6 +397,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         await ApplyMigrationForContextAsync(documentsContext, "Documents", logger, "DocumentsDbContext (banco já existe, só precisa do schema documents)");
         await ApplyMigrationForContextAsync(catalogsContext, "ServiceCatalogs", logger, "ServiceCatalogsDbContext (banco já existe, só precisa do schema service_catalogs)");
         await ApplyMigrationForContextAsync(locationsContext, "Locations", logger, "LocationsDbContext (banco já existe, só precisa do schema locations)");
+        await ApplyMigrationForContextAsync(searchProvidersContext, "SearchProviders", logger, "SearchProvidersDbContext (banco já existe, só precisa do schema search_providers)");
 
         // Verifica se as tabelas existem
         await VerifyContextAsync(usersContext, "Users", () => usersContext.Users.CountAsync(), logger);

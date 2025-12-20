@@ -717,6 +717,7 @@ Requer Docker:
 **Total de Testes E2E:** **156 testes** em **20 arquivos consolidados**
 
 **Cobertura por Categoria:**
+
 | Categoria | Testes | Arquivos | Descrição |
 |-----------|--------|----------|---------------|
 | Módulos | 75 | 6 | CRUD, workflows, validações por módulo |
@@ -726,6 +727,7 @@ Requer Docker:
 | **TOTAL** | **156** | **20** | - |
 
 **Cobertura Detalhada por Módulo:**
+
 | Módulo/Categoria | Arquivo | Testes | Status |
 |------------------|---------|--------|--------|
 | **MÓDULOS (75 testes)** | | | |
@@ -819,7 +821,7 @@ private async Task WaitForResourceAsync(Guid id, int maxAttempts = 10)
 }
 ```
 
-### Performance Lenta
+### Desempenho Lento
 
 **Sintoma:** Testes E2E levam muito tempo
 

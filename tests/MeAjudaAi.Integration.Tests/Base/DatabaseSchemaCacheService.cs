@@ -94,6 +94,26 @@ public class DatabaseSchemaCacheService(ILogger<DatabaseSchemaCacheService> logg
     }
 
     /// <summary>
+    /// Invalida o cache de forma assíncrona com lock adequado
+    /// </summary>
+    public async Task InvalidateCacheAsync(string connectionString, string moduleName)
+    {
+        ArgumentNullException.ThrowIfNull(connectionString);
+        ArgumentNullException.ThrowIfNull(moduleName);
+
+        await CacheLock.WaitAsync();
+        try
+        {
+            var cacheKey = GetCacheKey(connectionString, moduleName);
+            SchemaCache.TryRemove(cacheKey, out _);
+        }
+        finally
+        {
+            CacheLock.Release();
+        }
+    }
+
+    /// <summary>
     /// Limpa todo o cache (útil entre test runs)
     /// </summary>
     public static void ClearCache()

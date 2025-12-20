@@ -34,7 +34,7 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
             .Build();
 
         // Cria container Azurite para testes determinísticos de blob storage
-        // Pinned to 3.33.0 for stability - matches production CI/CD environment
+        // Fixado na versão 3.33.0 para estabilidade — corresponde ao ambiente de CI/CD de produção
         _azuriteContainer = new AzuriteBuilder()
             .WithImage("mcr.microsoft.com/azure-storage/azurite:3.33.0")
             .WithStartupCallback((container, ct) =>
@@ -53,19 +53,33 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
-        // Stop and dispose containers sequentially
+        // Para e descarta containers sequencialmente
         if (_postgresContainer != null)
         {
             Console.WriteLine($"[DB-CONTAINER] Stopping PostgreSQL container {_postgresContainer.Id[..12]}");
-            await _postgresContainer.StopAsync();
-            await _postgresContainer.DisposeAsync();
+            try
+            {
+                await _postgresContainer.StopAsync();
+                await _postgresContainer.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DB-CONTAINER] Error disposing PostgreSQL: {ex.Message}");
+            }
         }
 
         if (_azuriteContainer != null)
         {
             Console.WriteLine($"[AZURITE-CONTAINER] Stopping Azurite container {_azuriteContainer.Id[..12]}");
-            await _azuriteContainer.StopAsync();
-            await _azuriteContainer.DisposeAsync();
+            try
+            {
+                await _azuriteContainer.StopAsync();
+                await _azuriteContainer.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AZURITE-CONTAINER] Error disposing Azurite: {ex.Message}");
+            }
         }
     }
 }

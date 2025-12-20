@@ -207,14 +207,24 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
             // Assert
             var content = await response.Content.ReadAsStringAsync();
             response.StatusCode.Should().Be(HttpStatusCode.OK,
-                $"porque o endpoint deve retornar OK. Response: {content}");
+                $"because the endpoint should return OK. Response: {content}");
 
             var providers = JsonSerializer.Deserialize<JsonElement>(content);
 
             // Extrair array de providers da resposta
-            var providersArray = providers.ValueKind == JsonValueKind.Array
-                ? providers
-                : providers.GetProperty("data");
+            JsonElement providersArray;
+            if (providers.ValueKind == JsonValueKind.Array)
+            {
+                providersArray = providers;
+            }
+            else if (providers.TryGetProperty("data", out var dataProperty))
+            {
+                providersArray = dataProperty;
+            }
+            else
+            {
+                throw new InvalidOperationException("Response does not contain expected array or data property");
+            }
 
             // Verificar que contém o provider Pending
             var hasPendingProvider = false;
@@ -227,8 +237,8 @@ public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBa
                 if (providerId == verifiedProviderId) hasVerifiedProvider = true;
             }
 
-            hasPendingProvider.Should().BeTrue("deve conter o provider com status Pending");
-            hasVerifiedProvider.Should().BeFalse("não deve conter o provider com status Verified");
+            hasPendingProvider.Should().BeTrue("should contain the provider with Pending status");
+            hasVerifiedProvider.Should().BeFalse("should not contain the provider with Verified status");
         }
         finally
         {
