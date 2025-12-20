@@ -39,26 +39,26 @@ public static class TestServicesConfiguration
         }
         else
         {
-            // Ensure BlobServiceClient and IBlobStorageService are registered for Azurite tests
-            // This handles cases where the service might not be registered yet or was conditionally skipped
+            // Garante que BlobServiceClient e IBlobStorageService estão registrados para testes com Azurite
+            // Trata casos onde o serviço pode não estar registrado ou foi condicionalmente ignorado
             if (!string.IsNullOrEmpty(azuriteConnectionString))
             {
-                // Remove any existing IBlobStorageService registrations to avoid conflicts
+                // Remove registros existentes de IBlobStorageService para evitar conflitos
                 services.RemoveAll<IBlobStorageService>();
 
-                // Remove any existing BlobServiceClient registrations
+                // Remove registros existentes de BlobServiceClient
                 services.RemoveAll<Azure.Storage.Blobs.BlobServiceClient>();
 
-                // Register BlobServiceClient with Azurite connection string
+                // Registra BlobServiceClient com connection string do Azurite
                 services.AddSingleton(sp =>
                     new Azure.Storage.Blobs.BlobServiceClient(azuriteConnectionString));
 
-                // Register real AzureBlobStorageService
+                // Registra AzureBlobStorageService real
                 services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
             }
             else
             {
-                // Fallback to mock if connection string is not available
+                // Fallback para mock se connection string não estiver disponível
                 services.AddScoped<IBlobStorageService, MockBlobStorageService>();
             }
         }

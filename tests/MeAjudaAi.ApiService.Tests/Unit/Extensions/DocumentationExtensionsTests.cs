@@ -1,4 +1,3 @@
-using System.Reflection;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Extensions;
 using MeAjudaAi.ApiService.Filters;
@@ -66,45 +65,5 @@ public sealed class DocumentationExtensionsTests
         result.Should().BeSameAs(app);
 
         serviceProvider.Dispose();
-    }
-
-    // Helper methods
-    private static List<ApiDescription> CreateMinimalApiDescriptions()
-    {
-        return new List<ApiDescription>
-        {
-            new ApiDescription
-            {
-                HttpMethod = "GET",
-                RelativePath = "users",
-                ActionDescriptor = new ControllerActionDescriptor
-                {
-                    ControllerName = "Users",
-                    ActionName = "GetAll",
-                    DisplayName = "GetAll",
-                    RouteValues = new Dictionary<string, string?>
-                    {
-                        ["controller"] = "Users",
-                        ["action"] = "GetAll"
-                    }
-                }
-            },
-            new ApiDescription
-            {
-                HttpMethod = "POST",
-                RelativePath = "users",
-                ActionDescriptor = new ControllerActionDescriptor
-                {
-                    ControllerName = "Users",
-                    ActionName = "Create",
-                    DisplayName = "Create",
-                    RouteValues = new Dictionary<string, string?>
-                    {
-                        ["controller"] = "Users",
-                        ["action"] = "Create"
-                    }
-                }
-            }
-        };
     }
 }

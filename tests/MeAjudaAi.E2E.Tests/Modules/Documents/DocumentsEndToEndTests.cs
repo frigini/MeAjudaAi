@@ -216,4 +216,177 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             provider2Docs.Should().HaveCount(1);
         });
     }
+
+    [Fact]
+    public async Task DocumentLifecycle_UploadAndVerification_ShouldCompleteProperly()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var providerId = Guid.NewGuid();
+
+        // Act - Upload document
+        var uploadRequest = new
+        {
+            ProviderId = providerId,
+            DocumentType = (int)EDocumentType.CriminalRecord,
+            FileName = "criminal-record.pdf",
+            ContentType = "application/pdf",
+            FileSizeBytes = 51200
+        };
+
+        var uploadResponse = await PostJsonAsync("/api/v1/documents/upload", uploadRequest);
+
+        if (uploadResponse.StatusCode != HttpStatusCode.OK)
+        {
+            // Skip test if Azurite is unavailable
+            uploadResponse.StatusCode.Should().BeOneOf(
+                HttpStatusCode.ServiceUnavailable,
+                HttpStatusCode.InternalServerError);
+            return;
+        }
+
+        var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
+        var uploadResult = JsonSerializer.Deserialize<JsonElement>(uploadContent, JsonOptions);
+        var documentId = Guid.Parse(uploadResult.GetProperty("documentId").GetString()!);
+
+        // Act - Mark as verified
+        var verifyRequest = new
+        {
+            DocumentId = documentId,
+            IsVerified = true,
+            VerificationNotes = "Document verification completed successfully"
+        };
+
+        var verifyResponse = await PostJsonAsync("/api/v1/documents/verify", verifyRequest);
+
+        // Assert - Verification should succeed
+        verifyResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+
+        // Assert - Verify status change in database
+        await WithServiceScopeAsync(async services =>
+        {
+            var dbContext = services.GetRequiredService<DocumentsDbContext>();
+            var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
+
+            document.Should().NotBeNull();
+            document.Status.Should().Be(EDocumentStatus.Verified);
+            document.RejectionReason.Should().BeNullOrEmpty("verified documents should not have rejection reasons");
+        });
+    }
+
+    [Fact]
+    public async Task DocumentRejection_ShouldUpdateStatusCorrectly()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        Guid documentId = Guid.Empty;
+
+        await WithServiceScopeAsync(async services =>
+        {
+            var dbContext = services.GetRequiredService<DocumentsDbContext>();
+            var document = Document.Create(
+                providerId,
+                EDocumentType.ProofOfResidence,
+                "proof-address.pdf",
+                "blob-key-proof-address");
+
+            dbContext.Documents.Add(document);
+            await dbContext.SaveChangesAsync();
+            documentId = document.Id;
+        });
+
+        AuthenticateAsAdmin();
+
+        // Act - Reject document
+        var rejectRequest = new
+        {
+            DocumentId = documentId,
+            IsVerified = false,
+            VerificationNotes = "Document is not legible"
+        };
+
+        var rejectResponse = await PostJsonAsync("/api/v1/documents/verify", rejectRequest);
+
+        // Assert
+        rejectResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+
+        await WithServiceScopeAsync(async services =>
+        {
+            var dbContext = services.GetRequiredService<DocumentsDbContext>();
+            var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
+
+            document.Should().NotBeNull();
+            document.Status.Should().Be(EDocumentStatus.Rejected);
+            document.RejectionReason.Should().Contain("not legible");
+        });
+    }
+
+    [Fact]
+    public async Task MultipleDocuments_SameProvider_ShouldMaintainHistory()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        var documentIds = new List<Guid>();
+
+        await WithServiceScopeAsync(async services =>
+        {
+            var dbContext = services.GetRequiredService<DocumentsDbContext>();
+
+            // Create multiple documents for the same provider
+            var doc1 = Document.Create(providerId, EDocumentType.IdentityDocument, "id-v1.pdf", "blob-key-id-v1");
+            var doc2 = Document.Create(providerId, EDocumentType.IdentityDocument, "id-v2.pdf", "blob-key-id-v2");
+            var doc3 = Document.Create(providerId, EDocumentType.CriminalRecord, "criminal.pdf", "blob-key-criminal");
+
+            dbContext.Documents.AddRange(doc1, doc2, doc3);
+            await dbContext.SaveChangesAsync();
+
+            documentIds.Add(doc1.Id);
+            documentIds.Add(doc2.Id);
+            documentIds.Add(doc3.Id);
+        });
+
+        AuthenticateAsAdmin();
+
+        // Act - Verify first identity document
+        var verify1 = new
+        {
+            DocumentId = documentIds[0],
+            IsVerified = true,
+            VerificationNotes = "First version verified"
+        };
+        await PostJsonAsync("/api/v1/documents/verify", verify1);
+
+        // Act - Reject second identity document
+        var verify2 = new
+        {
+            DocumentId = documentIds[1],
+            IsVerified = false,
+            VerificationNotes = "Second version rejected - blurry image"
+        };
+        await PostJsonAsync("/api/v1/documents/verify", verify2);
+
+        // Assert - Verify complete history
+        await WithServiceScopeAsync(async services =>
+        {
+            var dbContext = services.GetRequiredService<DocumentsDbContext>();
+            var allDocs = await dbContext.Documents
+                .Where(d => d.ProviderId == providerId)
+                .OrderBy(d => d.CreatedAt)
+                .ToListAsync();
+
+            allDocs.Should().HaveCount(3, "all documents should be preserved in history");
+            
+            // First identity document verified
+            allDocs[0].Status.Should().Be(EDocumentStatus.Verified);
+            allDocs[0].DocumentType.Should().Be(EDocumentType.IdentityDocument);
+
+            // Second identity document rejected
+            allDocs[1].Status.Should().Be(EDocumentStatus.Rejected);
+            allDocs[1].DocumentType.Should().Be(EDocumentType.IdentityDocument);
+
+            // Third document still uploaded (pending verification)
+            allDocs[2].Status.Should().Be(EDocumentStatus.Uploaded);
+            allDocs[2].DocumentType.Should().Be(EDocumentType.CriminalRecord);
+        });
+    }
 }

@@ -343,9 +343,9 @@ public class ModuleApiArchitectureTests
             .ToList();
 
         // Assert
-        methods.Should().Contain("SearchProvidersAsync", because: "Should allow searching providers");
-        methods.Should().Contain("SearchByCoordinatesAsync", because: "Should allow searching by coordinates");
-        methods.Should().Contain("SearchByServiceAsync", because: "Should allow searching by service");
+        methods.Should().Contain("SearchProvidersAsync", because: "Should allow searching providers with geolocation and filters");
+        methods.Should().Contain("IndexProviderAsync", because: "Should allow indexing providers for search discovery");
+        methods.Should().Contain("RemoveProviderAsync", because: "Should allow removing providers from search index");
     }
 
     private static Assembly[] GetModuleAssemblies()

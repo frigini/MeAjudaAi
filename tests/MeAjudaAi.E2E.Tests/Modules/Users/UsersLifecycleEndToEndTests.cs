@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Authorization;
@@ -123,7 +124,7 @@ public class UsersLifecycleEndToEndTests : TestContainerTestBase
         var locationHeader = createResponse.Headers.Location?.ToString();
         locationHeader.Should().NotBeNullOrEmpty();
 
-        var userId = ExtractIdFromLocation(locationHeader);
+        var userId = ExtractIdFromLocation(locationHeader!);
 
         // Act - Update profile
         var updateRequest = new
@@ -234,4 +235,189 @@ public class UsersLifecycleEndToEndTests : TestContainerTestBase
             HttpStatusCode.Conflict,
             HttpStatusCode.UnprocessableEntity);
     }
+
+    [Fact]
+    public async Task UpdateUser_CompleteWorkflow_ShouldPersistChanges()
+    {
+        // Arrange - Criar usuário
+        AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        var createRequest = new
+        {
+            Username = $"update_test_{uniqueId}",
+            Email = $"update_test_{uniqueId}@example.com",
+            FirstName = "Original",
+            LastName = "Name",
+            Password = "Original@123456"
+        };
+
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var location = createResponse.Headers.Location?.ToString();
+        location.Should().NotBeNullOrEmpty();
+        var userId = ExtractIdFromLocation(location!);
+
+        // Act - Atualizar perfil
+        var updateRequest = new
+        {
+            FirstName = "Updated",
+            LastName = "User",
+            Email = $"updated_{uniqueId}@example.com"
+        };
+
+        var updateResponse = await ApiClient.PutAsJsonAsync(
+            $"/api/v1/users/{userId}/profile",
+            updateRequest,
+            JsonOptions);
+
+        // Assert - Update deve ser bem-sucedido
+        updateResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.OK,
+            HttpStatusCode.NoContent);
+
+        // Assert - Verificar persistência das mudanças via GET
+        var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var content = await getResponse.Content.ReadAsStringAsync();
+        var userData = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
+        
+        var data = GetResponseData(userData);
+        data.TryGetProperty("firstName", out var firstNameProp).Should().BeTrue();
+        data.TryGetProperty("lastName", out var lastNameProp).Should().BeTrue();
+        data.TryGetProperty("email", out var emailProp).Should().BeTrue();
+
+        firstNameProp.GetString().Should().Be("Updated",
+            "First name should be persisted after update");
+        lastNameProp.GetString().Should().Be("User",
+            "Last name should be persisted after update");
+        emailProp.GetString().Should().Be($"updated_{uniqueId}@example.com",
+            "Email should be persisted after update");
+    }
+
+    [Fact]
+    public async Task UpdateUser_MultipleUpdates_ShouldMaintainLatestChanges()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        var createRequest = new
+        {
+            Username = $"multi_update_{uniqueId}",
+            Email = $"multi_{uniqueId}@example.com",
+            FirstName = "First",
+            LastName = "Version",
+            Password = "Multi@123456"
+        };
+
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        
+        var location = createResponse.Headers.Location?.ToString();
+        location.Should().NotBeNullOrEmpty();
+        var userId = ExtractIdFromLocation(location!);
+
+        // Act - Primeira atualização
+        var firstUpdate = new
+        {
+            FirstName = "Second",
+            LastName = "Version",
+            Email = $"multi_{uniqueId}@example.com"
+        };
+        await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", firstUpdate, JsonOptions);
+
+        // Act - Segunda atualização
+        var secondUpdate = new
+        {
+            FirstName = "Third",
+            LastName = "Final",
+            Email = $"final_{uniqueId}@example.com"
+        };
+        var finalUpdateResponse = await ApiClient.PutAsJsonAsync(
+            $"/api/v1/users/{userId}/profile",
+            secondUpdate,
+            JsonOptions);
+
+        // Assert
+        finalUpdateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+
+        // Verificar que apenas a última atualização está persistida
+        var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var content = await getResponse.Content.ReadAsStringAsync();
+        var userData = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
+        var data = GetResponseData(userData);
+
+        data.GetProperty("firstName").GetString().Should().Be("Third");
+        data.GetProperty("lastName").GetString().Should().Be("Final");
+        data.GetProperty("email").GetString().Should().Be($"final_{uniqueId}@example.com");
+    }
+
+    [Fact]
+    public async Task UserWorkflow_CreateUpdateDelete_ShouldCompleteSuccessfully()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        // Act & Assert - CREATE
+        var createRequest = new
+        {
+            Username = $"workflow_{uniqueId}",
+            Email = $"workflow_{uniqueId}@example.com",
+            FirstName = "Workflow",
+            LastName = "Test",
+            Password = "Workflow@123456"
+        };
+
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var userId = ExtractIdFromLocation(createResponse.Headers.Location!.ToString());
+
+        // Act & Assert - READ
+        var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Act & Assert - UPDATE
+        var updateRequest = new
+        {
+            FirstName = "Updated",
+            LastName = "Workflow",
+            Email = $"updated_workflow_{uniqueId}@example.com"
+        };
+        var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, JsonOptions);
+        updateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+
+        // Verify UPDATE persisted
+        var verifyUpdateResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var updateContent = await verifyUpdateResponse.Content.ReadAsStringAsync();
+        var updatedData = JsonSerializer.Deserialize<JsonElement>(updateContent, JsonOptions);
+        var data = GetResponseData(updatedData);
+        data.GetProperty("firstName").GetString().Should().Be("Updated");
+
+        // Act & Assert - DELETE
+        var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/users/{userId}");
+        deleteResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+
+        // Verify DELETE worked
+        var verifyDeleteResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        verifyDeleteResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    /// <summary>
+    /// Helper method to extract data from API response that may be wrapped or unwrapped
+    /// </summary>
+    private static JsonElement GetResponseData(JsonElement response)
+    {
+        // If response has a 'data' property, unwrap it
+        if (response.TryGetProperty("data", out var data))
+        {
+            return data;
+        }
+        // Otherwise return the response itself
+        return response;
+    }
 }
+

@@ -82,16 +82,19 @@ internal class BusinessMetricsMiddleware(
                 logger.LogInformation("User login completed");
             }
 
-            // Solicitações de ajuda
-            if (path == "/api/help-requests" && method == "POST" && statusCode is >= 200 and < 300)
+            // Solicitações de ajuda (aceita rotas versionadas como /api/v1/help-requests)
+            if ((path == "/api/help-requests" || (path.StartsWith("/api/v") && path.Contains("/help-requests") && !path.Contains("/complete"))) && 
+                method == "POST" && statusCode is >= 200 and < 300)
             {
                 // Extrair categoria e urgência dos headers ou do corpo da requisição se necessário
                 businessMetrics.RecordHelpRequestCreated("general", "normal");
                 logger.LogInformation("Help request created");
             }
 
-            // Conclusão de ajuda
-            if (path.StartsWith("/api/help-requests/") && path.EndsWith("/complete") && method == "POST" && statusCode is >= 200 and < 300)
+            // Conclusão de ajuda (aceita rotas versionadas como /api/v1/help-requests/{id}/complete)
+            if (((path.StartsWith("/api/help-requests/") && path.EndsWith("/complete")) || 
+                 (path.StartsWith("/api/v") && path.Contains("/help-requests/") && path.EndsWith("/complete"))) && 
+                method == "POST" && statusCode is >= 200 and < 300)
             {
                 businessMetrics.RecordHelpRequestCompleted("general", elapsed);
                 logger.LogInformation("Help request completed in {ElapsedMs}ms", elapsed.TotalMilliseconds);
