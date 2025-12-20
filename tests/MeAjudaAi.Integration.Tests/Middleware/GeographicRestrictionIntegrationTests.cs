@@ -7,15 +7,15 @@ using MeAjudaAi.Shared.Models;
 namespace MeAjudaAi.Integration.Tests.Middleware;
 
 /// <summary>
-/// Tests for GeographicRestrictionMiddleware.
-/// Uses configuration-based validation (not IBGE mock) for consistency.
+/// Testes para GeographicRestrictionMiddleware.
+/// Usa validação baseada em configuração (não mock IBGE) para consistência.
 /// </summary>
 [Collection("Integration")]
 public class GeographicRestrictionIntegrationTests : ApiTestBase
 {
     /// <summary>
-    /// Disable mock geographic validation for these tests.
-    /// These tests validate the middleware's configuration-based (simple) validation logic.
+    /// Desabilita validação geográfica mock para estes testes.
+    /// Estes testes validam a lógica de validação baseada em configuração (simples) do middleware.
     /// </summary>
     protected override bool UseMockGeographicValidation => false;
 
@@ -199,8 +199,8 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
     }
 
     /// <summary>
-    /// Edge case tests for malformed location headers.
-    /// These should trigger fail-open behavior (allow access) since location cannot be reliably determined.
+    /// Testes de casos extremos para cabeçalhos de localização malformados.
+    /// Devem acionar comportamento fail-open (permitir acesso) já que a localização não pode ser determinada confiavelmente.
     /// </summary>
     [Theory]
     [InlineData("Muriaé|")] // City without state
@@ -220,8 +220,8 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
             // Act
             var response = await Client.GetAsync("/api/v1/providers");
 
-            // Assert - malformed entries should be treated as no location (fail-open)
-            // Since we can't determine location, middleware allows access
+            // Assert - entradas malformadas devem ser tratadas como sem localização (fail-open)
+            // Como não conseguimos determinar a localização, middleware permite acesso
             response.StatusCode.Should().Be(HttpStatusCode.OK,
                 $"Malformed location '{malformedLocation}' should be ignored and fail-open");
         }
@@ -250,7 +250,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
             // Act
             var response = await Client.GetAsync("/api/v1/providers");
 
-            // Assert - empty city should fail-open (can't determine location)
+            // Assert - cidade vazia deve fazer fail-open (não consegue determinar localização)
             response.StatusCode.Should().Be(HttpStatusCode.OK,
                 "Empty city should be treated as undetermined location (fail-open)");
         }
@@ -279,7 +279,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
             // Act
             var response = await Client.GetAsync("/api/v1/providers");
 
-            // Assert - should validate against city list (Muriaé is allowed)
+            // Assert - deve validar contra lista de cidades (Muriaé é permitida)
             response.StatusCode.Should().Be(HttpStatusCode.OK,
                 "Valid city with empty state should validate against city list");
         }
@@ -300,7 +300,7 @@ public class GeographicRestrictionIntegrationTests : ApiTestBase
         // Act
         var response = await Client.GetAsync("/api/v1/providers");
 
-        // Assert - no location should fail-open (allow access)
+        // Assert - sem localização deve fazer fail-open (permitir acesso)
         response.StatusCode.Should().Be(HttpStatusCode.OK,
             "Missing location headers should allow access (fail-open)");
     }
