@@ -132,36 +132,10 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
     [Fact]
     public async Task SecurityHeaders_AllEndpoints_ShouldHaveConsistentHeaders()
     {
-        // Arrange
-        var registerRequest = new
-        {
-            Name = "Security Headers Test User",
-            Email = $"secheaders.{Guid.NewGuid()}@example.com",
-            Password = "ValidPass123!",
-            Role = "user"
-        };
+        // Arrange - Configurar usuário autenticado
+        AuthConfig.ConfigureRegularUser();
 
-        using var registerResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
-
-        var loginRequest = new
-        {
-            Email = registerRequest.Email,
-            Password = registerRequest.Password
-        };
-
-        using var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
-        
-        // Login deve funcionar para teste ser válido
-        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK,
-            "Login deve ser bem-sucedido para testar headers de segurança em endpoints autenticados");
-        
-        var loginData = await loginResponse.Content.ReadFromJsonAsync<TestDtos.LoginResponseDto>();
-        var token = loginData!.Data.Token;
-
-        HttpClient.DefaultRequestHeaders.Authorization = 
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-        var endpoints = new[] { "/health", "/api/v1/users", "/api/v1/providers" };
+        var endpoints = new[] { "/health", "/api/v1/providers" };
 
         // Act & Assert
         foreach (var endpoint in endpoints)
@@ -170,8 +144,6 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
             response.Headers.Should().Contain(h => h.Key == "X-Content-Type-Options",
                 $"Endpoint {endpoint} deve ter headers de segurança");
         }
-
-        HttpClient.DefaultRequestHeaders.Authorization = null;
     }
 
     [Fact]

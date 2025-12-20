@@ -26,10 +26,10 @@ public class DocumentsIntegrationTests : ApiTestBase
     }
 
     [Fact]
-    public void BlobStorageService_ShouldBeRegisteredInDI()
+    public async Task BlobStorageService_ShouldBeRegisteredInDI()
     {
         // Arrange & Act
-        using var scope = Services.CreateScope();
+        await using var scope = Services.CreateAsyncScope();
         var blobService = scope.ServiceProvider.GetService<IBlobStorageService>();
 
         // Assert
@@ -159,7 +159,7 @@ public class DocumentsIntegrationTests : ApiTestBase
     public async Task BlobStorageService_GenerateUploadUrl_ShouldReturnValidUrlAndExpiry()
     {
         // Arrange
-        using var scope = Services.CreateScope();
+        await using var scope = Services.CreateAsyncScope();
         var blobService = scope.ServiceProvider.GetRequiredService<IBlobStorageService>();
 
         var blobName = $"test-{Guid.NewGuid()}.pdf";
@@ -177,7 +177,7 @@ public class DocumentsIntegrationTests : ApiTestBase
     public async Task BlobStorageService_GenerateDownloadUrl_ShouldReturnValidUrl()
     {
         // Arrange
-        using var scope = Services.CreateScope();
+        await using var scope = Services.CreateAsyncScope();
         var blobService = scope.ServiceProvider.GetRequiredService<IBlobStorageService>();
 
         var blobName = $"test-download-{Guid.NewGuid()}.pdf";
@@ -194,7 +194,7 @@ public class DocumentsIntegrationTests : ApiTestBase
     public async Task DocumentsModule_ShouldSupportCompleteWorkflow()
     {
         // Arrange
-        using var scope = Services.CreateScope();
+        await using var scope = Services.CreateAsyncScope();
         var repository = scope.ServiceProvider.GetRequiredService<IDocumentRepository>();
         var blobService = scope.ServiceProvider.GetRequiredService<IBlobStorageService>();
 
