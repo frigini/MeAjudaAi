@@ -47,13 +47,14 @@ public class ApiVersioningTests : TestContainerTestBase
         // Arrange - Configure authentication for API access
         AuthenticateAsAdmin();
 
-        // Act - Test that versioning works for different module patterns
+        // Act - Testa que o versionamento funciona para diferentes padrões de módulos
         var responses = new[]
         {
             await ApiClient.GetAsync("/api/v1/users"),
-            // Adicione mais módulos quando existirem
-            // await HttpClient.GetAsync("/api/v1/services"),
-            // await HttpClient.GetAsync("/api/v1/orders"),
+            await ApiClient.GetAsync("/api/v1/providers"),
+            await ApiClient.GetAsync("/api/v1/service-catalogs/services"),
+            await ApiClient.GetAsync("/api/v1/service-catalogs/categories"),
+            await ApiClient.GetAsync("/api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=10"),
         };
 
         // Assert
