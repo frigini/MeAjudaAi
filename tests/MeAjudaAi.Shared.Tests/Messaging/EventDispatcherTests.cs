@@ -210,11 +210,4 @@ public class EventDispatcherTests
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
-
-    public class TestEvent : IEvent
-    {
-        public string EventType => "TestEvent";
-        public Guid Id { get; } = Guid.NewGuid();
-        public DateTime OccurredAt { get; } = DateTime.UtcNow;
-    }
 }
