@@ -157,8 +157,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         associationResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.Created,
-            HttpStatusCode.NoContent,
-            "association endpoint should return success status codes");
+            HttpStatusCode.NoContent);
 
         // Aguardar indexação (eventual consistency) com retry/polling
         await WaitForSearchIndexing(async () =>
