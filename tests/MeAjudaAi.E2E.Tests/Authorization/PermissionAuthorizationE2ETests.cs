@@ -331,11 +331,39 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
         // Arrange
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         
-        var ownerId = "owner-789";
+        var ownerId = Guid.NewGuid().ToString();
+        
+        // Primeiro, criar o usuário como admin
+        ConfigurableTestAuthenticationHandler.ConfigureUser(
+            userId: "admin-creator",
+            userName: "admin",
+            email: "admin@test.com",
+            permissions: [EPermission.UsersCreate.GetValue(), EPermission.UsersRead.GetValue()],
+            roles: ["Admin"],
+            isSystemAdmin: true
+        );
+
+        var createRequest = new
+        {
+            Id = ownerId,
+            Name = "Resource Owner",
+            Email = $"owner-{Guid.NewGuid()}@test.com",
+            Username = $"owner-{Guid.NewGuid().ToString()[..8]}",
+            Password = "Test@123456789"
+        };
+
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest);
+        // Criação do usuário deve ser bem-sucedida
+        createResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Created,
+            HttpStatusCode.OK);
+
+        // Agora, autenticar como o próprio usuário (owner)
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: ownerId,
             userName: "resourceowner",
-            email: "owner@test.com",
+            email: createRequest.Email,
             permissions: [EPermission.UsersRead.GetValue()],
             roles: ["User"]
         );
@@ -344,10 +372,8 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
         var response = await ApiClient.GetAsync($"/api/v1/users/{ownerId}");
 
         // Assert - Owner deve poder acessar próprio recurso
-        Assert.True(
-            response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NotFound,
-            $"Owner deveria acessar próprio recurso. Status: {response.StatusCode}"
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Owner deve poder acessar próprio recurso");
     }
 
     [Fact]
@@ -356,6 +382,34 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
         // Arrange
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         
+        // Criar outro usuário como admin
+        ConfigurableTestAuthenticationHandler.ConfigureUser(
+            userId: "admin-creator",
+            userName: "admin",
+            email: "admin@test.com",
+            permissions: [EPermission.UsersCreate.GetValue()],
+            roles: ["Admin"],
+            isSystemAdmin: true
+        );
+
+        var otherUserId = Guid.NewGuid().ToString();
+        var createRequest = new
+        {
+            Id = otherUserId,
+            Name = "Other User",
+            Email = $"other-{Guid.NewGuid()}@test.com",
+            Username = $"other-{Guid.NewGuid().ToString()[..8]}",
+            Password = "Test@123456789"
+        };
+
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest);
+        // Criação do usuário deve ser bem-sucedida
+        createResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Created,
+            HttpStatusCode.OK);
+
+        // Autenticar como usuário diferente (não-owner)
+        ConfigurableTestAuthenticationHandler.ClearConfiguration();
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "user-999",
             userName: "notowner",
@@ -364,16 +418,12 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
             roles: ["User"]
         );
 
-        var otherUserId = "other-user-888";
-
         // Act - tentar acessar recurso de outro usuário
         var response = await ApiClient.GetAsync($"/api/v1/users/{otherUserId}");
 
         // Assert - Não-owner sem admin deve ser negado
-        Assert.True(
-            response.StatusCode == HttpStatusCode.Forbidden || response.StatusCode == HttpStatusCode.NotFound,
-            $"Não-owner sem admin deveria ser negado. Status: {response.StatusCode}"
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
+            "Não-owner sem admin deve ser negado");
     }
 
     [Fact]
@@ -382,25 +432,41 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
         // Arrange
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         
+        // Criar um usuário qualquer como admin
         ConfigurableTestAuthenticationHandler.ConfigureUser(
-            userId: "admin-777",
-            userName: "sysadmin",
-            email: "sysadmin@test.com",
-            permissions: [],
+            userId: "admin-creator",
+            userName: "admin",
+            email: "admin@test.com",
+            permissions: [EPermission.UsersCreate.GetValue(), EPermission.UsersRead.GetValue()],
             roles: ["Admin"],
             isSystemAdmin: true
         );
 
         var anyUserId = Guid.NewGuid().ToString();
+        var createRequest = new
+        {
+            Id = anyUserId,
+            Name = "Any User",
+            Email = $"any-{Guid.NewGuid()}@test.com",
+            Username = $"any-{Guid.NewGuid().ToString()[..8]}",
+            Password = "Test@123456789"
+        };
+
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest);
+        // Criação do usuário deve ser bem-sucedida
+        createResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Created,
+            HttpStatusCode.OK);
+
+        // Manter autenticação como admin para testar acesso
+        // (já está configurado como admin)
 
         // Act - admin acessando qualquer recurso
         var response = await ApiClient.GetAsync($"/api/v1/users/{anyUserId}");
 
         // Assert - Admin deve poder acessar qualquer recurso
-        Assert.True(
-            response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NotFound,
-            $"Admin deveria acessar qualquer recurso. Status: {response.StatusCode}"
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Admin deve poder acessar qualquer recurso");
     }
 
     #endregion

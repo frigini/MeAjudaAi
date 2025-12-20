@@ -408,11 +408,8 @@ public class ProvidersEndToEndTests : TestContainerTestBase
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
 
-        if (createResponse.StatusCode != HttpStatusCode.Created)
-        {
-            // Skip test if provider creation fails
-            return;
-        }
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "provider must be created successfully as a prerequisite for verification status test");
 
         var locationHeader = createResponse.Headers.Location?.ToString();
         var providerId = ExtractIdFromLocation(locationHeader!);
@@ -496,11 +493,8 @@ public class ProvidersEndToEndTests : TestContainerTestBase
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
 
-        if (createResponse.StatusCode != HttpStatusCode.Created)
-        {
-            // Skip test if provider creation fails
-            return;
-        }
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "provider must be created successfully as a prerequisite for correction request test");
 
         var locationHeader = createResponse.Headers.Location?.ToString();
         var providerId = ExtractIdFromLocation(locationHeader!);
@@ -626,11 +620,8 @@ public class ProvidersEndToEndTests : TestContainerTestBase
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
 
-        if (createResponse.StatusCode != HttpStatusCode.Created)
-        {
-            // Skip test if provider creation fails
-            return;
-        }
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "provider must be created successfully as a prerequisite for document deletion test");
 
         var locationHeader = createResponse.Headers.Location?.ToString();
         var providerId = ExtractIdFromLocation(locationHeader!);

@@ -197,7 +197,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         // ============================================
         if (itemsArray.Count > 1)
         {
-            // Verificar que resultados estão ordenados
+            // Verificar que resultados estão ordenados corretamente
             for (int i = 0; i < itemsArray.Count - 1; i++)
             {
                 var current = itemsArray[i];
@@ -207,6 +207,34 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
                 current.TryGetProperty("subscriptionTier", out _).Should().BeTrue();
                 current.TryGetProperty("rating", out _).Should().BeTrue();
                 current.TryGetProperty("distance", out _).Should().BeTrue();
+
+                // Validar ordenação: SubscriptionTier desc, depois Rating desc, depois Distance asc
+                var currentTier = current.GetProperty("subscriptionTier").GetInt32();
+                var nextTier = next.GetProperty("subscriptionTier").GetInt32();
+
+                if (currentTier == nextTier)
+                {
+                    var currentRating = current.GetProperty("rating").GetDouble();
+                    var nextRating = next.GetProperty("rating").GetDouble();
+
+                    if (Math.Abs(currentRating - nextRating) < 0.01)
+                    {
+                        var currentDistance = current.GetProperty("distance").GetDouble();
+                        var nextDistance = next.GetProperty("distance").GetDouble();
+                        currentDistance.Should().BeLessThanOrEqualTo(nextDistance,
+                            "Dentro do mesmo tier e rating, itens devem estar ordenados por distância ascendente");
+                    }
+                    else
+                    {
+                        currentRating.Should().BeGreaterThanOrEqualTo(nextRating,
+                            "Dentro do mesmo tier, itens devem estar ordenados por rating descendente");
+                    }
+                }
+                else
+                {
+                    currentTier.Should().BeGreaterThanOrEqualTo(nextTier,
+                        "Itens devem estar ordenados por subscription tier descendente");
+                }
             }
         }
 
