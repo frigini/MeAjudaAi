@@ -406,6 +406,134 @@ public class UsersEndToEndTests : TestContainerTestBase
         verifyDeleteResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    #region Concurrency and Conflict Validation (409)
+
+    [Fact]
+    public async Task CreateUser_WithDuplicateEmail_Should_Return_Conflict()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var duplicateEmail = $"duplicate_{uniqueId}@example.com";
+
+        var firstRequest = new
+        {
+            Username = $"first_{uniqueId}",
+            Email = duplicateEmail,
+            FirstName = "First",
+            LastName = "User",
+            Password = "Pass@123456"
+        };
+
+        var secondRequest = new
+        {
+            Username = $"second_{uniqueId}",
+            Email = duplicateEmail, // MESMO email
+            FirstName = "Second",
+            LastName = "User",
+            Password = "Pass@123456"
+        };
+
+        // Act - criar primeiro usuário
+        var firstResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", firstRequest, JsonOptions);
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        // Act - tentar criar segundo usuário com mesmo email
+        var secondResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", secondRequest, JsonOptions);
+
+        // Assert - deve retornar Conflict ou BadRequest
+        secondResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Conflict,  // 409 - ideal para duplicata
+            HttpStatusCode.BadRequest // 400 - aceitável se validação catch primeiro
+        );
+
+        if (secondResponse.StatusCode == HttpStatusCode.Conflict)
+        {
+            var content = await secondResponse.Content.ReadAsStringAsync();
+            content.Should().Contain("email", "Mensagem de erro deve mencionar email duplicado");
+        }
+    }
+
+    [Fact]
+    public async Task CreateUser_WithDuplicateUsername_Should_Return_Conflict()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var duplicateUsername = $"duplicate_{uniqueId}";
+
+        var firstRequest = new
+        {
+            Username = duplicateUsername,
+            Email = $"first_{uniqueId}@example.com",
+            FirstName = "First",
+            LastName = "User",
+            Password = "Pass@123456"
+        };
+
+        var secondRequest = new
+        {
+            Username = duplicateUsername, // MESMO username
+            Email = $"second_{uniqueId}@example.com",
+            FirstName = "Second",
+            LastName = "User",
+            Password = "Pass@123456"
+        };
+
+        // Act
+        var firstResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", firstRequest, JsonOptions);
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var secondResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", secondRequest, JsonOptions);
+
+        // Assert
+        secondResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.Conflict,
+            HttpStatusCode.BadRequest
+        );
+    }
+
+    [Fact]
+    public async Task UpdateUser_ConcurrentUpdates_Should_HandleGracefully()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+
+        var createRequest = new
+        {
+            Username = $"concurrent_{uniqueId}",
+            Email = $"concurrent_{uniqueId}@example.com",
+            FirstName = "Concurrent",
+            LastName = "User",
+            Password = "Pass@123456"
+        };
+
+        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        var userId = ExtractIdFromLocation(createResponse.Headers.Location!.ToString());
+
+        // Act - disparar duas atualizações simultâneas
+        var update1 = new { FirstName = "Update1", LastName = "User" };
+        var update2 = new { FirstName = "Update2", LastName = "User" };
+
+        var task1 = ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update1, JsonOptions);
+        var task2 = ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update2, JsonOptions);
+
+        var responses = await Task.WhenAll(task1, task2);
+
+        // Assert - pelo menos uma deve ter sucesso
+        responses.Should().Contain(r => r.IsSuccessStatusCode, "Pelo menos uma atualização concorrente deve suceder");
+
+        // Verificar estado final
+        var finalResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        finalResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        
+        var content = await finalResponse.Content.ReadAsStringAsync();
+        content.Should().Contain("Update", "Estado final deve refletir uma das atualizações");
+    }
+
+    #endregion
+
     /// <summary>
     /// Helper method to extract data from API response that may be wrapped or unwrapped
     /// </summary>

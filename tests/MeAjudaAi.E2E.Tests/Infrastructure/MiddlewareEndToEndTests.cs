@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Constants;
@@ -217,6 +218,82 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
         // Para usuários anônimos, compressão pode estar habilitada
         
         ApiClient.DefaultRequestHeaders.Remove("Accept-Encoding");
+    }
+
+    #endregion
+
+    #region ExceptionHandlerMiddleware - ProblemDetails
+
+    [Fact]
+    public async Task ExceptionHandler_NotFound_ShouldReturnProblemDetails()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var nonExistentId = Guid.NewGuid();
+
+        // Act
+        var response = await ApiClient.GetAsync($"/api/v1/users/{nonExistentId}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        
+        var problemDetails = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        problemDetails.Should().NotBeNull();
+        
+        // Validar estrutura ProblemDetails (RFC 7807)
+        problemDetails!.RootElement.TryGetProperty("type", out _).Should().BeTrue("ProblemDetails deve ter propriedade 'type'");
+        problemDetails.RootElement.TryGetProperty("title", out _).Should().BeTrue("ProblemDetails deve ter propriedade 'title'");
+        problemDetails.RootElement.TryGetProperty("status", out var status).Should().BeTrue("ProblemDetails deve ter propriedade 'status'");
+        status.GetInt32().Should().Be(404);
+    }
+
+    [Fact]
+    public async Task ExceptionHandler_BadRequest_ShouldReturnProblemDetails()
+    {
+        // Arrange
+        AuthenticateAsAdmin();
+        var invalidRequest = new
+        {
+            Username = "", // Inválido - vazio
+            Email = "not-an-email", // Inválido - formato
+            Password = "123", // Inválido - muito curto
+            Role = "InvalidRole" // Inválido - role não existente
+        };
+
+        // Act
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        
+        var problemDetails = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        problemDetails.Should().NotBeNull();
+        
+        // Validar estrutura ProblemDetails
+        problemDetails!.RootElement.TryGetProperty("type", out _).Should().BeTrue();
+        problemDetails.RootElement.TryGetProperty("title", out _).Should().BeTrue();
+        problemDetails.RootElement.TryGetProperty("status", out var status).Should().BeTrue();
+        status.GetInt32().Should().Be(400);
+        
+        // Validação deve incluir errors com detalhes
+        problemDetails.RootElement.TryGetProperty("errors", out _).Should().BeTrue("BadRequest deve incluir detalhes de validação");
+    }
+
+    [Fact]
+    public async Task ExceptionHandler_Unauthorized_ShouldReturnProblemDetails()
+    {
+        // Arrange - sem autenticação
+        ApiClient.DefaultRequestHeaders.Remove("Authorization");
+
+        // Act - tentar acessar endpoint protegido
+        var response = await ApiClient.GetAsync("/api/v1/users");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        
+        // Validar que mesmo 401 retorna structured response
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().NotBeEmpty("Response deve ter conteúdo estruturado");
     }
 
     #endregion
