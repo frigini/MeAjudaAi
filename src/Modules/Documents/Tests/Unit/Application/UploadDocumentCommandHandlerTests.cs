@@ -236,7 +236,7 @@ public class UploadDocumentCommandHandlerTests
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
-        exception.Message.Should().Contain("10MB");
+        exception.Message.Should().Contain("10.0MB");
     }
 
     [Theory]
