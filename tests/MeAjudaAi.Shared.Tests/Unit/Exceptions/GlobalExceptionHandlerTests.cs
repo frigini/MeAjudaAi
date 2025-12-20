@@ -311,7 +311,7 @@ public class GlobalExceptionHandlerTests
     [Fact]
     public async Task TryHandleAsync_WithDbUpdateException_ShouldProcessAndReturnAppropriateStatus()
     {
-        // Arrange - Create a DbUpdateException without inner exception
+        // Arrange - Cria um DbUpdateException sem exceção interna
         var exception = new DbUpdateException("Database update failed");
 
         // Act
@@ -530,7 +530,7 @@ public class GlobalExceptionHandlerTests
         cts.Cancel();
 
         // Act & Assert
-        // TaskCanceledException is a subclass of OperationCanceledException
+        // TaskCanceledException é uma subclasse de OperationCanceledException
         var ex = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             await _handler.TryHandleAsync(_httpContext, exception, cts.Token));
         ex.Should().NotBeNull();

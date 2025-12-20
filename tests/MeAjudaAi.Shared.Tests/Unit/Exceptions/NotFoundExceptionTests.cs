@@ -130,14 +130,14 @@ public class NotFoundExceptionTests
         exception.EntityName.Should().NotBeNull();
         exception.EntityId.Should().NotBeNull();
 
-        // Properties should not have public setters (allows private/init)
+        // Propriedades não devem ter setters públicos (permite private/init)
         var entityNameProperty = typeof(NotFoundException).GetProperty(nameof(NotFoundException.EntityName));
         var entityIdProperty = typeof(NotFoundException).GetProperty(nameof(NotFoundException.EntityId));
 
         entityNameProperty.Should().NotBeNull();
         entityIdProperty.Should().NotBeNull();
 
-        // Check that setter is either null or not public
+        // Verifica que o setter é nulo ou não é público
         (entityNameProperty!.SetMethod == null || !entityNameProperty.SetMethod.IsPublic).Should().BeTrue();
         (entityIdProperty!.SetMethod == null || !entityIdProperty.SetMethod.IsPublic).Should().BeTrue();
     }
@@ -174,7 +174,7 @@ public class NotFoundExceptionTests
 #pragma warning restore CS8600, CS8604
 
         // Assert
-        // Note: This documents that EntityId can be null at runtime despite non-nullable signature
+        // Nota: Isto documenta que EntityId pode ser nulo em tempo de execução apesar da assinatura não anulável
         exception.EntityId.Should().BeNull();
     }
 

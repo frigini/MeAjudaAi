@@ -35,7 +35,7 @@ public class DateTimeProviderTests
         var second = _sut.CurrentDate();
 
         // Assert
-        // Time might be equal if calls are fast enough, but should never go backwards
+        // O tempo pode ser igual se as chamadas forem rápidas o suficiente, mas nunca deve voltar atrás
         second.Should().BeOnOrAfter(first);
     }
 

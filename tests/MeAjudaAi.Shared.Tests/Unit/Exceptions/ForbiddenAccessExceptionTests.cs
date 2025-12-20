@@ -66,7 +66,7 @@ public class ForbiddenAccessExceptionTests
 #pragma warning restore CS8625
 
         // Assert
-        // When null is passed to base Exception constructor, it uses a default message
+        // Quando nulo é passado para o construtor base Exception, ele usa uma mensagem padrão
         exception.Message.Should().NotBeNullOrEmpty();
         exception.Message.Should().StartWith("Exception of type");
     }

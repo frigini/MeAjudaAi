@@ -71,7 +71,7 @@ public class UuidGeneratorTests
 
         // Assert
         id.Should().Contain("-");
-        id.Length.Should().Be(36); // Standard GUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        id.Length.Should().Be(36); // Formato GUID padrão: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class UuidGeneratorTests
 
         // Assert
         id.Should().NotContain("-");
-        id.Length.Should().Be(32); // Compact GUID format: 32 hex characters
+        id.Length.Should().Be(32); // Formato GUID compacto: 32 caracteres hexadecimais
     }
 
     [Fact]
@@ -207,7 +207,7 @@ public class UuidGeneratorTests
         var standardId = UuidGenerator.NewIdString();
         var compactId = UuidGenerator.NewIdStringCompact();
 
-        // Parse both to verify they're valid GUIDs
+        // Faz parse de ambos para verificar que são GUIDs válidos
         var standardGuid = Guid.Parse(standardId);
         var compactGuid = Guid.ParseExact(compactId, "N");
 
