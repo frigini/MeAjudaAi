@@ -15,7 +15,6 @@ namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 public class ProvidersEndToEndTests : TestContainerTestBase
 {
     private readonly ITestOutputHelper _testOutput;
-    private readonly Faker _faker = new();
 
     public ProvidersEndToEndTests(ITestOutputHelper testOutput)
     {
@@ -207,24 +206,24 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             Type = 0, // Individual
             BusinessProfile = new
             {
-                LegalName = _faker.Company.CompanyName(),
-                FantasyName = $"Trading_{uniqueId}",
-                Description = "Original description",
+                LegalName = Faker.Company.CompanyName(),
+                FantasyName = $"MultiService_{uniqueId}",
+                Description = "Healthcare provider",
                 ContactInfo = new
                 {
-                    Email = $"provider_{uniqueId}@example.com",
-                    Phone = _faker.Phone.PhoneNumber("(##) #####-####"),
+                    Email = $"multiservice_{uniqueId}@example.com",
+                    Phone = Faker.Phone.PhoneNumber("(##) #####-####"),
                     Website = (string?)null
                 },
                 PrimaryAddress = new
                 {
-                    Street = _faker.Address.StreetName(),
-                    Number = _faker.Random.Number(1, 9999).ToString(),
+                    Street = Faker.Address.StreetName(),
+                    Number = Faker.Random.Number(1, 9999).ToString(),
                     Complement = (string?)null,
-                    Neighborhood = _faker.Address.County(),
-                    City = _faker.Address.City(),
-                    State = _faker.Address.StateAbbr(),
-                    ZipCode = _faker.Random.Replace("#####-###"),
+                    Neighborhood = Faker.Address.County(),
+                    City = Faker.Address.City(),
+                    State = Faker.Address.StateAbbr(),
+                    ZipCode = Faker.Random.Replace("#####-###"),
                     Country = "Brasil"
                 }
             }
@@ -243,13 +242,13 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             Name = $"Updated_{uniqueId}",
             BusinessProfile = new
             {
-                LegalName = _faker.Company.CompanyName(),
+                LegalName = Faker.Company.CompanyName(),
                 FantasyName = $"UpdatedTrading_{uniqueId}",
                 Description = "Updated description",
                 ContactInfo = new
                 {
                     Email = $"updated_{uniqueId}@example.com",
-                    Phone = _faker.Phone.PhoneNumber("(##) #####-####"),
+                    Phone = Faker.Phone.PhoneNumber("(##) #####-####"),
                     Website = (string?)null
                 },
                 PrimaryAddress = new
@@ -335,19 +334,19 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             Type = 0, // Individual
             CompanyName = $"ToDelete_{uniqueId}",
             TradingName = $"ToDeleteTrading_{uniqueId}",
-            TaxId = _faker.Random.Replace("###########"),
+            TaxId = Faker.Random.Replace("###########"),
             Email = $"todelete_{uniqueId}@example.com",
-            Phone = _faker.Phone.PhoneNumber("(##) #####-####"),
+            Phone = Faker.Phone.PhoneNumber("(##) #####-####"),
             Description = "Provider to be deleted",
             Address = new
             {
-                Street = _faker.Address.StreetName(),
-                Number = _faker.Random.Number(1, 9999).ToString(),
-                City = _faker.Address.City(),
-                State = _faker.Address.StateAbbr(),
-                ZipCode = _faker.Random.Replace("#####-###"),
-                Latitude = _faker.Address.Latitude(),
-                Longitude = _faker.Address.Longitude()
+                Street = Faker.Address.StreetName(),
+                Number = Faker.Random.Number(1, 9999).ToString(),
+                City = Faker.Address.City(),
+                State = Faker.Address.StateAbbr(),
+                ZipCode = Faker.Random.Replace("#####-###"),
+                Latitude = Faker.Address.Latitude(),
+                Longitude = Faker.Address.Longitude()
             }
         };
 
@@ -396,19 +395,19 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             Type = 0, // Individual
             CompanyName = $"ToVerify_{uniqueId}",
             TradingName = $"ToVerifyTrading_{uniqueId}",
-            TaxId = _faker.Random.Replace("###########"),
+            TaxId = Faker.Random.Replace("###########"),
             Email = $"toverify_{uniqueId}@example.com",
-            Phone = _faker.Phone.PhoneNumber("(##) #####-####"),
+            Phone = Faker.Phone.PhoneNumber("(##) #####-####"),
             Description = "Provider to be verified",
             Address = new
             {
-                Street = _faker.Address.StreetName(),
-                Number = _faker.Random.Number(1, 9999).ToString(),
-                City = _faker.Address.City(),
-                State = _faker.Address.StateAbbr(),
-                ZipCode = _faker.Random.Replace("#####-###"),
-                Latitude = _faker.Address.Latitude(),
-                Longitude = _faker.Address.Longitude()
+                Street = Faker.Address.StreetName(),
+                Number = Faker.Random.Number(1, 9999).ToString(),
+                City = Faker.Address.City(),
+                State = Faker.Address.StateAbbr(),
+                ZipCode = Faker.Random.Replace("#####-###"),
+                Latitude = Faker.Address.Latitude(),
+                Longitude = Faker.Address.Longitude()
             }
         };
 
@@ -484,19 +483,19 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             Type = 0, // Individual
             CompanyName = $"ToCorrect_{uniqueId}",
             TradingName = $"ToCorrectTrading_{uniqueId}",
-            TaxId = _faker.Random.Replace("###########"),
+            TaxId = Faker.Random.Replace("###########"),
             Email = $"tocorrect_{uniqueId}@example.com",
-            Phone = _faker.Phone.PhoneNumber("(##) #####-####"),
+            Phone = Faker.Phone.PhoneNumber("(##) #####-####"),
             Description = "Provider requiring correction",
             Address = new
             {
-                Street = _faker.Address.StreetName(),
-                Number = _faker.Random.Number(1, 9999).ToString(),
-                City = _faker.Address.City(),
-                State = _faker.Address.StateAbbr(),
-                ZipCode = _faker.Random.Replace("#####-###"),
-                Latitude = _faker.Address.Latitude(),
-                Longitude = _faker.Address.Longitude()
+                Street = Faker.Address.StreetName(),
+                Number = Faker.Random.Number(1, 9999).ToString(),
+                City = Faker.Address.City(),
+                State = Faker.Address.StateAbbr(),
+                ZipCode = Faker.Random.Replace("#####-###"),
+                Latitude = Faker.Address.Latitude(),
+                Longitude = Faker.Address.Longitude()
             }
         };
 
@@ -549,19 +548,19 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             Type = 0, // Individual
             CompanyName = $"DocProvider_{uniqueId}",
             TradingName = $"DocTrading_{uniqueId}",
-            TaxId = _faker.Random.Replace("###########"),
-            Email = $"docprovider_{uniqueId}@example.com",
-            Phone = _faker.Phone.PhoneNumber("(##) #####-####"),
-            Description = "Provider for document upload",
+            TaxId = Faker.Random.Replace("###########"),
+            Email = $"doctest1_{uniqueId}@example.com",
+            Phone = Faker.Phone.PhoneNumber("(##) #####-####"),
+            Description = "Provider with documents",
             Address = new
             {
-                Street = _faker.Address.StreetName(),
-                Number = _faker.Random.Number(1, 9999).ToString(),
-                City = _faker.Address.City(),
-                State = _faker.Address.StateAbbr(),
-                ZipCode = _faker.Random.Replace("#####-###"),
-                Latitude = _faker.Address.Latitude(),
-                Longitude = _faker.Address.Longitude()
+                Street = Faker.Address.StreetName(),
+                Number = Faker.Random.Number(1, 9999).ToString(),
+                City = Faker.Address.City(),
+                State = Faker.Address.StateAbbr(),
+                ZipCode = Faker.Random.Replace("#####-###"),
+                Latitude = Faker.Address.Latitude(),
+                Longitude = Faker.Address.Longitude()
             }
         };
 
@@ -619,19 +618,19 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             Type = 0, // Individual
             CompanyName = $"DelDocProvider_{uniqueId}",
             TradingName = $"DelDocTrading_{uniqueId}",
-            TaxId = _faker.Random.Replace("###########"),
+            TaxId = Faker.Random.Replace("###########"),
             Email = $"deldocprovider_{uniqueId}@example.com",
-            Phone = _faker.Phone.PhoneNumber("(##) #####-####"),
+            Phone = Faker.Phone.PhoneNumber("(##) #####-####"),
             Description = "Provider for document deletion",
             Address = new
             {
-                Street = _faker.Address.StreetName(),
-                Number = _faker.Random.Number(1, 9999).ToString(),
-                City = _faker.Address.City(),
-                State = _faker.Address.StateAbbr(),
-                ZipCode = _faker.Random.Replace("#####-###"),
-                Latitude = _faker.Address.Latitude(),
-                Longitude = _faker.Address.Longitude()
+                Street = Faker.Address.StreetName(),
+                Number = Faker.Random.Number(1, 9999).ToString(),
+                City = Faker.Address.City(),
+                State = Faker.Address.StateAbbr(),
+                ZipCode = Faker.Random.Replace("#####-###"),
+                Latitude = Faker.Address.Latitude(),
+                Longitude = Faker.Address.Longitude()
             }
         };
 

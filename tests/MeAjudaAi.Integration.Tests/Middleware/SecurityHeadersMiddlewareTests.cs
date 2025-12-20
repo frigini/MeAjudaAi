@@ -38,7 +38,8 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
         response.Headers.Should().Contain(h => h.Key == "X-Frame-Options");
         
         var headerValue = response.Headers.GetValues("X-Frame-Options").First();
-        headerValue.Should().BeOneOf("DENY", "SAMEORIGIN", "Deve prevenir clickjacking");
+        // Deve prevenir clickjacking
+        headerValue.Should().BeOneOf("DENY", "SAMEORIGIN");
     }
 
     [Fact]
@@ -120,11 +121,11 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
         if (response.Headers.Contains("Referrer-Policy"))
         {
             var headerValue = response.Headers.GetValues("Referrer-Policy").First();
+            // Deve ter política de referrer segura
             headerValue.Should().BeOneOf(
                 "no-referrer",
                 "strict-origin-when-cross-origin",
-                "same-origin",
-                "Deve ter política de referrer segura");
+                "same-origin");
         }
     }
 
@@ -132,6 +133,29 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
     public async Task SecurityHeaders_AllEndpoints_ShouldHaveConsistentHeaders()
     {
         // Arrange
+        var registerRequest = new
+        {
+            Name = "Security Headers Test User",
+            Email = $"secheaders.{Guid.NewGuid()}@example.com",
+            Password = "ValidPass123!",
+            Role = "user"
+        };
+
+        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+
+        var loginRequest = new
+        {
+            Email = registerRequest.Email,
+            Password = registerRequest.Password
+        };
+
+        var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        var loginData = await loginResponse.Content.ReadFromJsonAsync<dynamic>();
+        var token = loginData!.GetProperty("data").GetProperty("token").GetString();
+
+        HttpClient.DefaultRequestHeaders.Authorization = 
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
         var endpoints = new[] { "/health", "/api/v1/users", "/api/v1/providers" };
         var responses = new List<HttpResponseMessage>();
 
@@ -148,6 +172,8 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
             response.Headers.Should().Contain(h => h.Key == "X-Content-Type-Options",
                 $"Endpoint {response.RequestMessage?.RequestUri} deve ter headers de segurança");
         });
+
+        HttpClient.DefaultRequestHeaders.Authorization = null;
     }
 
     [Fact]

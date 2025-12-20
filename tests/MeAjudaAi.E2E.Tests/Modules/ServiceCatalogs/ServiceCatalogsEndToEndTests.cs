@@ -575,9 +575,30 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        var serviceId = Guid.NewGuid();
-        var nonExistentCategoryId = Guid.NewGuid();
+        
+        // Create a valid category and service first
+        var categoryRequest = new
+        {
+            Name = $"Category_{Guid.NewGuid()}",
+            Description = "Test category",
+            IsActive = true
+        };
+        var categoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, JsonOptions);
+        var categoryId = ExtractIdFromLocation(categoryResponse.Headers.Location!.ToString());
 
+        var serviceRequest = new
+        {
+            Name = $"Service_{Guid.NewGuid()}",
+            Description = "Test service",
+            CategoryId = categoryId,
+            BasePrice = 100.00m,
+            IsActive = true
+        };
+        var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
+        var serviceId = ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
+
+        // Now try to change to a non-existent category
+        var nonExistentCategoryId = Guid.NewGuid();
         var changeCategoryRequest = new
         {
             NewCategoryId = nonExistentCategoryId
@@ -590,9 +611,8 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             JsonOptions);
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.NotFound,
-            HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
+            "changing to a non-existent category should return NotFound");
     }
 
     #endregion

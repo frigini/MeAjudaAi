@@ -326,7 +326,7 @@ public class ModuleApiArchitectureTests
         // Assert
         methods.Should().Contain("GetDocumentByIdAsync", because: "Should allow getting document by ID");
         methods.Should().Contain("GetProviderDocumentsAsync", because: "Should allow getting provider documents");
-        methods.Should().Contain("DocumentExistsAsync", because: "Should allow checking if document exists");
+        methods.Should().Contain("HasVerifiedDocumentsAsync", because: "Should allow checking if provider has verified documents");
         methods.Should().Contain("GetDocumentStatusAsync", because: "Should allow getting document status");
     }
 

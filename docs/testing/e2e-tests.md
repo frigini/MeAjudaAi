@@ -712,7 +712,7 @@ Requer Docker:
 
 ## Métricas de Cobertura
 
-### Estado Atual (Dez/2024) - Atualizado após Implementação de Gaps Críticos
+### Estado Atual (Dez/2025) - Atualizado após Implementação de Gaps Críticos
 
 **Total de Testes E2E:** **101 testes** em **15 arquivos** (após consolidação: 19→15, -21%)
 
