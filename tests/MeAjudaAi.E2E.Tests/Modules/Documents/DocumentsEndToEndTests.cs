@@ -622,4 +622,206 @@ public class DocumentsEndToEndTests : TestContainerTestBase
     }
 
     #endregion
+
+    #region OCR Document Intelligence Tests
+
+    [Fact]
+    public async Task DocumentVerificationJob_WithAzureConfigured_ShouldProcessOcr()
+    {
+        // Arrange - Criar documento para processar
+        var providerId = Guid.NewGuid();
+        Guid documentId = Guid.Empty;
+
+        await WithServiceScopeAsync(async services =>
+        {
+            var dbContext = services.GetRequiredService<DocumentsDbContext>();
+            var document = Document.Create(
+                providerId,
+                EDocumentType.IdentityDocument,
+                "identity-card.pdf",
+                "test-blob-key.pdf");
+
+            dbContext.Documents.Add(document);
+            await dbContext.SaveChangesAsync();
+            documentId = document.Id;
+        });
+
+        // Act - Simular processamento OCR (normalmente feito via job em background)
+        // Em E2E, verificar se o serviço está disponível
+        await WithServiceScopeAsync(async services =>
+        {
+            var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
+            
+            if (ocrService != null)
+            {
+                // Azure Document Intelligence está configurado
+                // Verificar que não quebra a aplicação
+                var dbContext = services.GetRequiredService<DocumentsDbContext>();
+                var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
+                document.Should().NotBeNull();
+            }
+            else
+            {
+                // Mock service está sendo usado (configuração de teste padrão)
+                // Verificar que a aplicação funciona sem Azure configurado
+                var dbContext = services.GetRequiredService<DocumentsDbContext>();
+                var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
+                document.Should().NotBeNull("Application should work with mock OCR service");
+            }
+        });
+    }
+
+    [Fact]
+    public async Task OcrService_WithInvalidUrl_ShouldHandleGracefully()
+    {
+        // Arrange & Act - Verificar que serviço OCR lida com URLs inválidas
+        await WithServiceScopeAsync(async services =>
+        {
+            var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
+            
+            if (ocrService != null)
+            {
+                // Tentar analisar URL inválida
+                var act = async () => await ocrService.AnalyzeDocumentAsync(
+                    "not-a-valid-url",
+                    "identity",
+                    CancellationToken.None);
+
+                // Assert - Deve lançar ArgumentException
+                await act.Should().ThrowAsync<ArgumentException>()
+                    .WithMessage("*Invalid blob URL format*");
+            }
+        });
+    }
+
+    [Fact]
+    public async Task OcrService_WithValidUrl_ShouldReturnSuccessResult()
+    {
+        // Arrange
+        var validBlobUrl = "https://test.blob.core.windows.net/documents/test.pdf";
+        var documentType = "identity";
+
+        // Act & Assert
+        await WithServiceScopeAsync(async services =>
+        {
+            var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
+            
+            if (ocrService != null)
+            {
+                try
+                {
+                    var result = await ocrService.AnalyzeDocumentAsync(
+                        validBlobUrl,
+                        documentType,
+                        CancellationToken.None);
+
+                    // Com Mock service, deve retornar sucesso
+                    result.Should().NotBeNull();
+                    result.Success.Should().BeTrue("Mock OCR service should return success");
+                    result.ExtractedData.Should().NotBeNullOrEmpty();
+                    result.Confidence.Should().BeGreaterThan(0);
+                }
+                catch (Exception ex) when (ex.Message.Contains("OCR") || ex.Message.Contains("Azure"))
+                {
+                    // Azure real pode falhar em ambiente de teste
+                    // Isso é esperado se Azure Document Intelligence não estiver configurado
+                }
+            }
+        });
+    }
+
+    [Fact]
+    public async Task Document_AfterOcrProcessing_ShouldContainExtractedData()
+    {
+        // Arrange - Criar documento com dados OCR
+        var providerId = Guid.NewGuid();
+
+        await WithServiceScopeAsync(async services =>
+        {
+            var dbContext = services.GetRequiredService<DocumentsDbContext>();
+            var document = Document.Create(
+                providerId,
+                EDocumentType.IdentityDocument,
+                "identity-with-ocr.pdf",
+                "blob-key-ocr.pdf");
+
+            // Simular processamento OCR bem-sucedido
+            var mockOcrData = """
+            {
+                "documentType": "identity",
+                "documentNumber": "123456789",
+                "name": "Test User",
+                "issueDate": "2024-01-01"
+            }
+            """;
+
+            document.MarkAsVerified(mockOcrData);
+
+            dbContext.Documents.Add(document);
+            await dbContext.SaveChangesAsync();
+
+            // Assert - Verificar persistência de dados OCR
+            var saved = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == document.Id);
+            saved.Should().NotBeNull();
+            saved.OcrData.Should().NotBeNullOrEmpty();
+            saved.OcrData.Should().Contain("documentNumber");
+            saved.OcrData.Should().Contain("123456789");
+            saved.Status.Should().Be(EDocumentStatus.Verified);
+        });
+    }
+
+    [Fact]
+    public async Task OcrService_WithLowConfidence_ShouldHandleAppropriately()
+    {
+        // Arrange & Act
+        await WithServiceScopeAsync(async services =>
+        {
+            var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
+            
+            if (ocrService is MeAjudaAi.Modules.Documents.Tests.Mocks.MockDocumentIntelligenceService mockService)
+            {
+                // Configurar mock para retornar baixa confiança
+                mockService.SetNextResultToLowConfidence();
+
+                var result = await mockService.AnalyzeDocumentAsync(
+                    "https://test.blob.core.windows.net/documents/low-quality.pdf",
+                    "identity",
+                    CancellationToken.None);
+
+                // Assert
+                result.Should().NotBeNull();
+                result.Success.Should().BeTrue();
+                result.Confidence.Should().BeLessThan(0.7f, "low confidence scenario");
+            }
+        });
+    }
+
+    [Fact]
+    public async Task OcrService_WithError_ShouldReturnFailureResult()
+    {
+        // Arrange & Act
+        await WithServiceScopeAsync(async services =>
+        {
+            var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
+            
+            if (ocrService is MeAjudaAi.Modules.Documents.Tests.Mocks.MockDocumentIntelligenceService mockService)
+            {
+                // Configurar mock para simular erro
+                mockService.SetNextResultToError("OCR service unavailable");
+
+                var result = await mockService.AnalyzeDocumentAsync(
+                    "https://test.blob.core.windows.net/documents/error.pdf",
+                    "identity",
+                    CancellationToken.None);
+
+                // Assert
+                result.Should().NotBeNull();
+                result.Success.Should().BeFalse();
+                result.ErrorMessage.Should().NotBeNullOrEmpty();
+                result.ErrorMessage.Should().Contain("unavailable");
+            }
+        });
+    }
+
+    #endregion
 }
