@@ -82,64 +82,64 @@ public class UsersModuleTests : TestContainerTestBase
 }
 
 /// <summary>
-/// Request model for creating a new user in E2E tests.
+/// Modelo de requisição para criar um novo usuário em testes E2E.
 /// </summary>
 public record CreateUserRequest
 {
     /// <summary>
-    /// Gets or initializes the username.
+    /// Obtém ou inicializa o nome de usuário.
     /// </summary>
     public string Username { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or initializes the email address.
+    /// Obtém ou inicializa o endereço de email.
     /// </summary>
     public string Email { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or initializes the first name.
+    /// Obtém ou inicializa o primeiro nome.
     /// </summary>
     public string FirstName { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or initializes the last name.
+    /// Obtém ou inicializa o último nome.
     /// </summary>
     public string LastName { get; init; } = string.Empty;
 }
 
 /// <summary>
-/// Response model for user creation in E2E tests.
+/// Modelo de resposta para criação de usuário em testes E2E.
 /// </summary>
 public record CreateUserResponse
 {
     /// <summary>
-    /// Gets or initializes the created user's ID.
+    /// Obtém ou inicializa o ID do usuário criado.
     /// </summary>
     public Guid UserId { get; init; }
 
     /// <summary>
-    /// Gets or initializes the response message.
+    /// Obtém ou inicializa a mensagem de resposta.
     /// </summary>
     public string Message { get; init; } = string.Empty;
 }
 
 /// <summary>
-/// Request model for updating a user profile in E2E tests.
+/// Modelo de requisição para atualizar perfil de usuário em testes E2E.
 /// </summary>
 public record UpdateUserProfileRequest
 {
     /// <summary>
-    /// Gets or initializes the first name.
+    /// Obtém ou inicializa o primeiro nome.
     /// </summary>
     public string FirstName { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or initializes the last name.
+    /// Obtém ou inicializa o último nome.
     /// </summary>
     public string LastName { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or initializes the email address.
+    /// Obtém ou inicializa o endereço de email.
     /// </summary>
     public string Email { get; init; } = string.Empty;
 }

@@ -40,7 +40,7 @@ public class TestContainerFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        // Retry logic com exponential backoff para lidar com transient Docker failures
+        // Lógica de retry com exponential backoff para lidar com falhas transitórias do Docker
         const int maxRetries = 3;
         const int baseDelayMs = 2000;
 
@@ -50,7 +50,7 @@ public class TestContainerFixture : IAsyncLifetime
             {
                 await InitializeContainersAsync();
                 await InitializeFactoryAsync();
-                return; // Success
+                return; // Sucesso
             }
             catch (Exception ex) when (attempt < maxRetries)
             {

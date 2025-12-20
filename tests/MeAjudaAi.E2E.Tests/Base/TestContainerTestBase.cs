@@ -41,9 +41,9 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
     protected static System.Text.Json.JsonSerializerOptions JsonOptions => SerializationDefaults.Api;
 
-    // Note: Removed static constructor with SetAllowUnauthenticated(true)
-    // Tests must now explicitly configure authentication via AuthenticateAsAdmin(), AuthenticateAsUser(), etc.
-    // This prevents race conditions where tests expect specific permissions but get admin access instead
+    // Nota: Removido construtor estático com SetAllowUnauthenticated(true)
+    // Testes agora devem configurar explicitamente autenticação via AuthenticateAsAdmin(), AuthenticateAsUser(), etc.
+    // Isso previne race conditions onde testes esperam permissões específicas mas recebem acesso admin
 
     public virtual async ValueTask InitializeAsync()
     {
@@ -84,7 +84,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                 {
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
-                        // All modules share the same test database instance
+                        // Todos os módulos compartilham a mesma instância de banco de dados de teste
                         ["ConnectionStrings:DefaultConnection"] = _postgresContainer.GetConnectionString(),
                         ["ConnectionStrings:meajudaai-db"] = _postgresContainer.GetConnectionString(),
                         ["ConnectionStrings:UsersDb"] = _postgresContainer.GetConnectionString(),
@@ -98,11 +98,11 @@ public abstract class TestContainerTestBase : IAsyncLifetime
                         ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Error",
                         ["RabbitMQ:Enabled"] = "false",
                         ["Keycloak:Enabled"] = "false",
-                        // Disable external services health checks in E2E tests
+                        // Desabilitar health checks de serviços externos nos testes E2E
                         ["ExternalServices:Keycloak:Enabled"] = "false",
                         ["ExternalServices:PaymentGateway:Enabled"] = "false",
                         ["ExternalServices:Geolocation:Enabled"] = "false",
-                        ["Cache:Enabled"] = "false", // Disable Redis for now
+                        ["Cache:Enabled"] = "false", // Desabilitar Redis por enquanto
                         ["Cache:ConnectionString"] = _redisContainer.GetConnectionString(),
                         // Desabilitar completamente Rate Limiting nos testes E2E
                         ["AdvancedRateLimit:General:Enabled"] = "false",

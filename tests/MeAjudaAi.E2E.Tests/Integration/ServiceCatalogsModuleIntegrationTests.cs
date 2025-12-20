@@ -238,9 +238,9 @@ public class ServiceCatalogsModuleIntegrationTests : TestContainerTestBase
 
     #region DTOs
 
-    // NOTE: Local DTOs are intentionally defined here instead of importing from Application.DTOs
-    // to ensure E2E tests validate the actual API contract independently from internal DTOs.
-    // This prevents breaking changes in internal DTOs from being masked in integration tests.
+    // NOTA: DTOs locais são intencionalmente definidos aqui ao invés de importar de Application.DTOs
+    // para garantir que testes E2E validem o contrato real da API independentemente dos DTOs internos.
+    // Isso previne que mudanças breaking nos DTOs internos sejam mascaradas em testes de integração.
 
     private record ServiceCategoryDto(
         Guid Id,
