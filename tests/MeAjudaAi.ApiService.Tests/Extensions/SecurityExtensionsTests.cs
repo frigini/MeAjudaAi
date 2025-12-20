@@ -16,7 +16,6 @@ namespace MeAjudaAi.ApiService.Tests.Extensions;
 
 /// <summary>
 /// Testes para SecurityExtensions - configuração de autenticação, autorização e CORS.
-/// Objetivo: Aumentar coverage de 0% → 95%+
 /// </summary>
 [Trait("Category", "Unit")]
 public class SecurityExtensionsTests
