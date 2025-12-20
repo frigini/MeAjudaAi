@@ -22,10 +22,6 @@ public class ServiceCatalogsDbContextTests : ApiTestBase
         dbContext.Should().NotBeNull("ServiceCatalogsDbContext should be registered in DI");
     }
 
-    // NOTE: ServiceCategories_Table_ShouldExist removed - trivial smoke test (just CountAsync >= 0)
-    // NOTE: Services_Table_ShouldExist removed - trivial smoke test (just CountAsync >= 0)
-    // Table existence validated by Database_ShouldAllowBasicOperations and foreign key tests
-
     [Fact]
     public void Services_ShouldHaveForeignKeyToServiceCategories()
     {
@@ -41,8 +37,6 @@ public class ServiceCatalogsDbContextTests : ApiTestBase
         foreignKeys.Should().NotBeNull();
         foreignKeys.Should().NotBeEmpty("Services table should have foreign key constraint to ServiceCategories");
     }
-
-    // NOTE: CatalogsSchema_ShouldExist removed - trivial test, schema validated by all other tests
 
     [Fact]
     public async Task Database_ShouldAllowBasicOperations()

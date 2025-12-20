@@ -7,7 +7,7 @@ using MeAjudaAi.Shared.Serialization;
 
 namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 
-public class ServiceCatalogsResponseDebugTest(ITestOutputHelper testOutput) : ApiTestBase
+public class ServiceCatalogsResponseDebugTests(ITestOutputHelper testOutput) : ApiTestBase
 {
     [Fact(Skip = "Diagnostic test - enable only when debugging response format issues")]
     [Trait("Category", "Debug")]

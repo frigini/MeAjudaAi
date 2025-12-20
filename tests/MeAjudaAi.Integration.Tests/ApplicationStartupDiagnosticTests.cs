@@ -14,7 +14,7 @@ namespace MeAjudaAi.Integration.Tests;
 /// 
 /// Verifica se há problemas durante a inicialização da aplicação
 /// </summary>
-public class ApplicationStartupDiagnosticTest(ITestOutputHelper testOutput) : IAsyncLifetime
+public class ApplicationStartupDiagnosticTests(ITestOutputHelper testOutput) : IAsyncLifetime
 {
     private SimpleDatabaseFixture? _databaseFixture;
 

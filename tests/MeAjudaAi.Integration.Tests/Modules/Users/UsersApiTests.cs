@@ -17,9 +17,6 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// </remarks>
 public class UsersApiTests : ApiTestBase
 {
-    // NOTE: UsersEndpoint_ShouldBeAccessible removed - low value smoke test
-    // Endpoint existence is validated by all other tests
-
     [Fact]
     public async Task UsersEndpoint_WithAuthentication_ShouldReturnValidResponse()
     {
@@ -45,10 +42,4 @@ public class UsersApiTests : ApiTestBase
         dataElement.ValueKind.Should().NotBe(JsonValueKind.Null,
             "Data property should contain either an array of users or a paginated response object");
     }
-
-    // NOTE: GetUserById_WithNonExistentId, GetUserByEmail_WithNonExistentEmail, and CreateUser tests
-    // are covered by UsersIntegrationTests.cs - removed duplicates to reduce test overhead
-
-    // NOTE: UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors removed
-    // - Duplicates UsersIntegrationTests.UsersEndpoints_AdminUser_ShouldNotReturnAuthorizationOrServerErrors
 }

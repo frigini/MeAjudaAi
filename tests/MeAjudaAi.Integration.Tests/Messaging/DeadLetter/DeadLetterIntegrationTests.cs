@@ -57,6 +57,7 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
             DomainQueues = new Dictionary<string, string> { ["Users"] = "users-events-test" }
         });
     }
+
     [Fact]
     public void DeadLetterSystem_WithDevelopmentEnvironment_UsesNoOpService()
     {
@@ -186,7 +187,6 @@ public class DeadLetterIntegrationTests : IntegrationTestBase
         services.AddSingleton(configuration);
         services.AddSingleton(environment);
 
-        // CORRIGIR: Adicionar RabbitMqOptions que está faltando no DI
         services.AddSingleton(new RabbitMqOptions
         {
             ConnectionString = "amqp://localhost",

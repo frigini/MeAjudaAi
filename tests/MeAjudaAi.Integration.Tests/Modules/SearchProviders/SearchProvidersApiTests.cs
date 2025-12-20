@@ -17,9 +17,6 @@ public class SearchProvidersApiTests : ApiTestBase
 {
     private const string SearchEndpoint = "/api/v1/search/providers";
 
-    // NOTE: SearchEndpoint_ShouldBeAccessible removed - low value smoke test
-    // Endpoint mapping is validated by all parameter validation tests below
-
     [Fact]
     public async Task Search_WithValidCoordinates_ShouldNotReturnNotFound()
     {

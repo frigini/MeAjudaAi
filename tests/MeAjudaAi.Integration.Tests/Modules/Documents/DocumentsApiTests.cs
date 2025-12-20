@@ -16,9 +16,6 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 /// </summary>
 public class DocumentsApiTests : ApiTestBase
 {
-    // NOTE: DocumentsUploadEndpoint_ShouldBeAccessible removed - low value smoke test
-    // Coverage: E2E tests (MeAjudaAi.E2E.Tests) validate the complete upload flow with real authentication
-
     [Fact]
     public async Task UploadDocument_WithValidRequest_ShouldReturnUploadUrl()
     {
@@ -77,10 +74,6 @@ public class DocumentsApiTests : ApiTestBase
             "user should not be able to upload documents for a different provider");
     }
 
-    // NOTE: GetDocumentStatus_WithValidId test removed
-    // Reason: HttpContext.User claims not properly populated in Integration test environment
-    // Coverage: E2E tests verify this scenario with real authentication flow
-
     [Fact]
     public async Task GetDocumentStatus_WithNonExistentId_ShouldReturnNotFound()
     {
@@ -95,10 +88,6 @@ public class DocumentsApiTests : ApiTestBase
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,
             "API should return 404 when document ID does not exist");
     }
-
-    // NOTE: GetProviderDocuments_WithValidProviderId test removed
-    // Reason: HttpContext.User claims not properly populated in Integration test environment
-    // Coverage: E2E tests verify this scenario with real authentication flow
 
     [Fact]
     public async Task DocumentsEndpoints_WithoutAuthentication_ShouldReturnUnauthorized()
@@ -137,15 +126,6 @@ public class DocumentsApiTests : ApiTestBase
             code == HttpStatusCode.BadRequest || code == HttpStatusCode.Unauthorized,
             "API should reject invalid request with 400 or 401");
     }
-
-    // NOTE: GetDocumentStatus_ShouldBeAccessible removed - low value smoke test
-    // Coverage: E2E tests validate endpoint accessibility through real workflows
-
-    // NOTE: GetProviderDocuments_ShouldBeAccessible removed - low value smoke test
-    // Coverage: E2E tests validate endpoint accessibility through real workflows
-
-    // NOTE: RequestVerification_ShouldBeAccessible removed - low value smoke test
-    // Coverage: DocumentsVerificationE2ETests validates endpoint through complete workflow
 
     [Theory]
     [InlineData(EDocumentType.IdentityDocument)]

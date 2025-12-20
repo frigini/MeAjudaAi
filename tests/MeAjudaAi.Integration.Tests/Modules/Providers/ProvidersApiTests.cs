@@ -19,8 +19,6 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// </remarks>
 public class ProvidersApiTests : ApiTestBase
 {
-    // NOTE: ProvidersEndpoint_ShouldBeAccessible removed - low value smoke test
-
     [Fact]
     public async Task ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse()
     {
@@ -247,8 +245,6 @@ public class ProvidersApiTests : ApiTestBase
                 $"Raw response: {content}");
         }
     }
-
-    // NOTE: GetProviderById_WithNonExistentId is covered by ProvidersIntegrationTests.cs
 
     [Fact]
     public async Task ProvidersEndpoint_WithPaginationParameters_ShouldAcceptThem()

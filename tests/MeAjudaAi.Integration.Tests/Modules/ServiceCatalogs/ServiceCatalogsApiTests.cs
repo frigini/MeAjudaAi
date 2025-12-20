@@ -15,9 +15,6 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// </remarks>
 public class ServiceCatalogsApiTests : ApiTestBase
 {
-    // NOTE: ServiceCategoriesEndpoint_ShouldBeAccessible and ServicesEndpoint_ShouldBeAccessible removed
-    // - Low value smoke tests; endpoint existence validated by all other tests
-
     [Fact]
     public async Task ServiceCategoriesEndpoint_WithAuthentication_ShouldReturnValidResponse()
     {
@@ -73,9 +70,6 @@ public class ServiceCatalogsApiTests : ApiTestBase
             "Response should contain 'data' property for consistency");
         dataElement.ValueKind.Should().BeOneOf(JsonValueKind.Array, JsonValueKind.Object);
     }
-
-    // NOTE: GetServiceCategoryById_WithNonExistentId and GetServiceById_WithNonExistentId
-    // are covered by ServiceCatalogsIntegrationTests.cs - removed duplicates
 
     [Fact]
     public async Task CreateServiceCategory_WithValidData_ShouldReturnCreated()

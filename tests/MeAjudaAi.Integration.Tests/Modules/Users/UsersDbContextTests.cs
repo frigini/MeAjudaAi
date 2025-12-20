@@ -23,7 +23,4 @@ public class UserDbContextTests : ApiTestBase
         var canConnect = await context.Database.CanConnectAsync();
         canConnect.Should().BeTrue();
     }
-
-    // NOTE: CanSaveAndRetrieveUser removed - duplicates UserRepositoryIntegrationTests.AddAsync_ShouldPersistUser
-    // DbContext tests should focus on schema/configuration, not CRUD operations
 }
