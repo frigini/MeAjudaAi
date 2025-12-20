@@ -1,6 +1,6 @@
-using MeAjudaAi.Shared.Tests.Infrastructure.Options;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 
-namespace MeAjudaAi.Shared.Tests.Infrastructure;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 
 /// <summary>
 /// Configurações específicas para infraestrutura de testes (compartilhada entre módulos)

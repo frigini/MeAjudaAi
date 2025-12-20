@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Tests.Infrastructure.Options;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 
 /// <summary>
 /// Configurações do cache de teste (Redis)

@@ -1,10 +1,10 @@
 using MeAjudaAi.Shared.Tests.Extensions;
-using MeAjudaAi.Shared.Tests.Infrastructure.Options;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 
-namespace MeAjudaAi.Shared.Tests.Infrastructure;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Containers;
 
 /// <summary>
 /// Container compartilhado para testes de integração de todos os módulos.

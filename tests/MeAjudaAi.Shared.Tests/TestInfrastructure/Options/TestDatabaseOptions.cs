@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Tests.Infrastructure.Options;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 
 /// <summary>
 /// Configurações do banco de dados de teste

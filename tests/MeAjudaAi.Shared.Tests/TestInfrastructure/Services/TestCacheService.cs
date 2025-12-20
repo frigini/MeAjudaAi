@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using MeAjudaAi.Shared.Caching;
 
-namespace MeAjudaAi.Shared.Tests.Infrastructure;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 
 /// <summary>
 /// Implementação simples de ICacheService para testes

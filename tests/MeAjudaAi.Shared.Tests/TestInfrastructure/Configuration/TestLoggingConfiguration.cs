@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace MeAjudaAi.Shared.Tests.Infrastructure;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Configuration;
 
 /// <summary>
 /// Configurações de logging otimizadas para testes de todos os módulos.
