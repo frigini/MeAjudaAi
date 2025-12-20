@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Tests.Auth;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 
 /// <summary>
 /// Interface para configuração de autenticação em testes com estado baseado em instância

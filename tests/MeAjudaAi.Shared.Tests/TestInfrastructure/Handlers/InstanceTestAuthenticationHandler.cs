@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace MeAjudaAi.Shared.Tests.Auth;
+namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Handlers;
 
 /// <summary>
 /// Instance-based authentication handler for tests that eliminates static state issues
