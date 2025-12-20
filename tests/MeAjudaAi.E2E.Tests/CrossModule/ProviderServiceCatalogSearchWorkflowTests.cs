@@ -153,15 +153,12 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
             associationRequest,
             JsonOptions);
 
-        // Aceitar sucesso ou endpoint não implementado
-        if (associationResponse.StatusCode != HttpStatusCode.NotFound)
-        {
-            // Association should succeed if endpoint exists
-            associationResponse.StatusCode.Should().BeOneOf(
-                HttpStatusCode.OK,
-                HttpStatusCode.Created,
-                HttpStatusCode.NoContent);
-        }
+        // Association should succeed - NotFound means endpoint not implemented yet
+        associationResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.OK,
+            HttpStatusCode.Created,
+            HttpStatusCode.NoContent,
+            "association endpoint should return success status codes");
 
         // Aguardar indexação (eventual consistency) com retry/polling
         await WaitForSearchIndexing(async () =>

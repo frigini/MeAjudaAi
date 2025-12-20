@@ -399,10 +399,8 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
             isSystemAdmin: true
         );
 
-        var otherUserId = Guid.NewGuid().ToString();
         var createRequest = new
         {
-            Id = otherUserId,
             Name = "Other User",
             Email = $"other-{Guid.NewGuid()}@test.com",
             Username = $"other-{Guid.NewGuid().ToString()[..8]}",
@@ -414,6 +412,10 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
         createResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.Created,
             HttpStatusCode.OK);
+
+        // Extrair ID real da resposta
+        var createdUser = await createResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        var otherUserId = createdUser!["id"].ToString()!;
 
         // Autenticar como usuário diferente (não-owner)
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
@@ -449,10 +451,8 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
             isSystemAdmin: true
         );
 
-        var anyUserId = Guid.NewGuid().ToString();
         var createRequest = new
         {
-            Id = anyUserId,
             Name = "Any User",
             Email = $"any-{Guid.NewGuid()}@test.com",
             Username = $"any-{Guid.NewGuid().ToString()[..8]}",
@@ -464,6 +464,10 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
         createResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.Created,
             HttpStatusCode.OK);
+
+        // Extrair ID real da resposta
+        var createdUser = await createResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        var anyUserId = createdUser!["id"].ToString()!;
 
         // Manter autenticação como admin para testar acesso
         // (já está configurado como admin)

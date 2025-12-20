@@ -747,9 +747,9 @@ Requer Docker:
 | Module Integration | ModuleIntegrationTests.cs | 2 | ✅ Passed |
 | **AUTORIZAÇÃO (15 testes)** | | | |
 | Permission-Based | PermissionAuthorizationE2ETests.cs | 15 | ✅ Passed |
-| **CROSS-MODULE (10 testes)** | | | |
-| Provider-Service-Search | ProviderServiceCatalogSearchWorkflowTests.cs | 10 | ✅ Passed |
-| **TOTAL** | **20 arquivos** | **156** | - |
+| **CROSS-MODULE (2 testes)** | | | |
+| Provider-Service-Search | ProviderServiceCatalogSearchWorkflowTests.cs | 2 | ✅ Passed |
+| **TOTAL** | **20 arquivos** | **148** | - |
 
 **Middlewares Cobertos (E2E + Integration):**
 - ✅ BusinessMetricsMiddleware (E2E)

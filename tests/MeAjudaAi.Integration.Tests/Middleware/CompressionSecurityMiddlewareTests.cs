@@ -25,7 +25,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
             Role = "user"
         };
 
-        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+        using var registerResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -47,7 +47,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
         HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         // Act
-        var response = await HttpClient.GetAsync("/api/v1/users");
+        using var response = await HttpClient.GetAsync("/api/v1/users");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK,
@@ -72,7 +72,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
         HttpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
         // Act
-        var response = await HttpClient.GetAsync("/health");
+        using var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -97,7 +97,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
             Role = "user"
         };
 
-        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+        using var registerResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -145,7 +145,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
             Role = "user"
         };
 
-        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+        using var registerResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -184,7 +184,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
             Role = "user"
         };
 
-        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+        using var registerResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -232,7 +232,7 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
             Role = "provider"
         };
 
-        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+        using var registerResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         var loginRequest = new
         {

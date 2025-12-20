@@ -24,16 +24,15 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task Register_WithInvalidEmail_ShouldReturn400()
     {
         // Arrange - Email format inválido (validação do FluentValidation)
+        var password = Faker.Internet.Password(12, true);
         var request = new
         {
             email = "not-an-email",
-            password = Faker.Internet.Password(12, true),
-            confirmPassword = Faker.Internet.Password(12, true),
+            password = password,
+            confirmPassword = password,
             fullName = Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
-        
-        request = request with { confirmPassword = request.password };
 
         // Act
         var response = await ApiClient.PostAsJsonAsync("/api/users/register", request);
@@ -91,16 +90,15 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task UpdateUser_WithInvalidPhoneFormat_ShouldReturn400()
     {
         // Arrange - Registrar usuário primeiro
+        var password = Faker.Internet.Password(12, true);
         var registerRequest = new
         {
             email = Faker.Internet.Email(),
-            password = Faker.Internet.Password(12, true),
-            confirmPassword = Faker.Internet.Password(12, true),
+            password = password,
+            confirmPassword = password,
             fullName = Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
-        
-        registerRequest = registerRequest with { confirmPassword = registerRequest.password };
         await ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
 
         var loginRequest = new
@@ -177,16 +175,15 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task Register_WithDuplicateEmail_ShouldReturn409()
     {
         // Arrange - Registrar usuário
+        var password = Faker.Internet.Password(12, true);
         var request = new
         {
             email = Faker.Internet.Email(),
-            password = Faker.Internet.Password(12, true),
-            confirmPassword = Faker.Internet.Password(12, true),
+            password = password,
+            confirmPassword = password,
             fullName = Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
-        
-        request = request with { confirmPassword = request.password };
         
         await ApiClient.PostAsJsonAsync("/api/users/register", request);
 
@@ -262,16 +259,15 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task ConflictError_ShouldIncludeConstraintDetails()
     {
         // Arrange - Criar usuário duplicado
+        var password = Faker.Internet.Password(12, true);
         var request = new
         {
             email = Faker.Internet.Email(),
-            password = Faker.Internet.Password(12, true),
-            confirmPassword = Faker.Internet.Password(12, true),
+            password = password,
+            confirmPassword = password,
             fullName = Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
-        
-        request = request with { confirmPassword = request.password };
         
         await ApiClient.PostAsJsonAsync("/api/users/register", request);
 

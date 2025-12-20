@@ -17,7 +17,7 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
     public async Task SecurityHeaders_ShouldIncludeXContentTypeOptions()
     {
         // Arrange & Act
-        var response = await HttpClient.GetAsync("/health");
+        using var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -31,7 +31,7 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
     public async Task SecurityHeaders_ShouldIncludeXFrameOptions()
     {
         // Arrange & Act
-        var response = await HttpClient.GetAsync("/health");
+        using var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -46,7 +46,7 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
     public async Task SecurityHeaders_ShouldIncludeStrictTransportSecurity()
     {
         // Arrange & Act
-        var response = await HttpClient.GetAsync("/health");
+        using var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -63,7 +63,7 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
     public async Task SecurityHeaders_ShouldIncludeContentSecurityPolicy()
     {
         // Arrange & Act
-        var response = await HttpClient.GetAsync("/health");
+        using var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -77,7 +77,7 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
     public async Task SecurityHeaders_Development_ShouldHaveLenientCSP()
     {
         // Arrange & Act
-        var response = await HttpClient.GetAsync("/health");
+        using var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -96,7 +96,7 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
     public async Task SecurityHeaders_ShouldIncludeXPermittedCrossDomainPolicies()
     {
         // Arrange & Act
-        var response = await HttpClient.GetAsync("/health");
+        using var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -113,7 +113,7 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
     public async Task SecurityHeaders_ShouldIncludeReferrerPolicy()
     {
         // Arrange & Act
-        var response = await HttpClient.GetAsync("/health");
+        using var response = await HttpClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -141,7 +141,7 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
             Role = "user"
         };
 
-        await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
+        using var registerResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -149,34 +149,27 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
             Password = registerRequest.Password
         };
 
-        var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        using var loginResponse = await HttpClient.PostAsJsonAsync("/api/v1/users/login", loginRequest);
         
         // Login deve funcionar para teste ser válido
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Login deve ser bem-sucedido para testar headers de segurança em endpoints autenticados");
         
-        var loginData = await loginResponse.Content.ReadFromJsonAsync<dynamic>();
-        var token = loginData!.GetProperty("data").GetProperty("token").GetString();
+        var loginData = await loginResponse.Content.ReadFromJsonAsync<TestDtos.LoginResponseDto>();
+        var token = loginData!.Data.Token;
 
         HttpClient.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         var endpoints = new[] { "/health", "/api/v1/users", "/api/v1/providers" };
-        var responses = new List<HttpResponseMessage>();
 
-        // Act
+        // Act & Assert
         foreach (var endpoint in endpoints)
         {
-            responses.Add(await HttpClient.GetAsync(endpoint));
-        }
-
-        // Assert
-        // Todos os endpoints devem ter X-Content-Type-Options
-        responses.Should().AllSatisfy(response =>
-        {
+            using var response = await HttpClient.GetAsync(endpoint);
             response.Headers.Should().Contain(h => h.Key == "X-Content-Type-Options",
-                $"Endpoint {response.RequestMessage?.RequestUri} deve ter headers de segurança");
-        });
+                $"Endpoint {endpoint} deve ter headers de segurança");
+        }
 
         HttpClient.DefaultRequestHeaders.Authorization = null;
     }
@@ -194,7 +187,7 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
         };
 
         // Act
-        var response = await HttpClient.PostAsJsonAsync("/api/v1/users/register", request);
+        using var response = await HttpClient.PostAsJsonAsync("/api/v1/users/register", request);
 
         // Assert
         response.Headers.Should().Contain(h => h.Key == "X-Content-Type-Options",
@@ -205,7 +198,7 @@ public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
     public async Task SecurityHeaders_ErrorResponse_ShouldStillHaveHeaders()
     {
         // Arrange & Act
-        var response = await HttpClient.GetAsync("/api/v1/users/99999999-9999-9999-9999-999999999999");
+        using var response = await HttpClient.GetAsync("/api/v1/users/99999999-9999-9999-9999-999999999999");
 
         // Assert - endpoint pode retornar Unauthorized se não autenticado ou NotFound se autenticado
         response.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.Unauthorized);
