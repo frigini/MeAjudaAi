@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Integration.Tests.Infrastructure;
+using MeAjudaAi.Integration.Tests.Mocks;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Tests;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
@@ -11,6 +12,7 @@ using MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence;
 using MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Users.Infrastructure.Persistence;
 using MeAjudaAi.Shared.Geolocation;
+using MeAjudaAi.Shared.Jobs;
 using MeAjudaAi.Shared.Serialization;
 using MeAjudaAi.Shared.Tests.Auth;
 using MeAjudaAi.Shared.Tests.Extensions;
@@ -223,6 +225,12 @@ public abstract class ApiTestBase : IAsyncLifetime
                     // Adiciona mocks de serviços para testes
                     // Note: BlobStorageService uses real Azurite container (not mock) for deterministic tests
                     services.AddDocumentsTestServices(_databaseFixture.AzuriteConnectionString, useAzurite: true);
+
+                    // Mock do BackgroundJobService para evitar execução de jobs em testes
+                    services.AddSingleton<IBackgroundJobService, MockBackgroundJobService>();
+
+                    // Adiciona HttpContextAccessor necessário para alguns handlers
+                    services.AddHttpContextAccessor();
 
                     // Conditionally replace geographic validation with mock
                     // IBGE-focused tests can override UseMockGeographicValidation to use real service with WireMock

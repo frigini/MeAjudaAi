@@ -1,3 +1,5 @@
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Infrastructure.Services;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
@@ -47,11 +49,34 @@ public static class TestServicesConfiguration
                 services.RemoveAll<IBlobStorageService>();
 
                 // Remove registros existentes de BlobServiceClient
-                services.RemoveAll<Azure.Storage.Blobs.BlobServiceClient>();
+                services.RemoveAll<BlobServiceClient>();
 
-                // Registra BlobServiceClient com connection string do Azurite
+                // Para Azurite, usa credenciais explícitas para suportar geração de SAS tokens
+                // Connection string padrão do Azurite: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=...;BlobEndpoint=http://..."
+                // Credenciais padrão do Azurite (bem conhecidas, não são secretas)
+                const string azuriteAccountName = "devstoreaccount1";
+                const string azuriteAccountKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==";
+
+                // Registra BlobServiceClient com credenciais explícitas para suportar SAS
                 services.AddSingleton(sp =>
-                    new Azure.Storage.Blobs.BlobServiceClient(azuriteConnectionString));
+                {
+                    var credential = new StorageSharedKeyCredential(azuriteAccountName, azuriteAccountKey);
+                    
+                    // Extrai o Blob Endpoint da connection string do Azurite
+                    // Formato: "BlobEndpoint=http://127.0.0.1:xxxxx/devstoreaccount1"
+                    var blobEndpointMatch = System.Text.RegularExpressions.Regex.Match(
+                        azuriteConnectionString,
+                        @"BlobEndpoint=(https?://[^;]+)");
+                    
+                    if (!blobEndpointMatch.Success)
+                    {
+                        throw new InvalidOperationException(
+                            $"Could not extract BlobEndpoint from Azurite connection string: {azuriteConnectionString}");
+                    }
+                    
+                    var blobEndpoint = new Uri(blobEndpointMatch.Groups[1].Value);
+                    return new BlobServiceClient(blobEndpoint, credential);
+                });
 
                 // Registra AzureBlobStorageService real
                 services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
