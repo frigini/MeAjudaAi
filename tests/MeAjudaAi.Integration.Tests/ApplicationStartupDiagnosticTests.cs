@@ -65,11 +65,6 @@ public class ApplicationStartupDiagnosticTests(ITestOutputHelper testOutput) : I
                         }
                     });
 
-                    builder.ConfigureServices(services =>
-                    {
-                        testOutput.WriteLine("🔧 Configuring test services...");
-                    });
-
                     builder.ConfigureLogging(logging =>
                     {
                         logging.ClearProviders();

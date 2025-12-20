@@ -20,6 +20,41 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
 {
     private readonly Faker _faker = new();
 
+    /// <summary>
+    /// Aguarda indexação de busca com retry/polling pattern
+    /// </summary>
+    private static async Task WaitForSearchIndexing(Func<Task<bool>> condition, int timeoutMs = 5000, int initialDelayMs = 100)
+    {
+        var maxDelay = 2000; // Max delay between attempts
+        var delay = initialDelayMs;
+        var elapsed = 0;
+
+        while (elapsed < timeoutMs)
+        {
+            try
+            {
+                if (await condition())
+                {
+                    return; // Success
+                }
+            }
+            catch
+            {
+                // Continue retrying on exceptions
+            }
+
+            await Task.Delay(delay);
+            elapsed += delay;
+            delay = Math.Min(delay * 2, maxDelay); // Exponential backoff with cap
+        }
+
+        // Final attempt - let exceptions propagate
+        if (!await condition())
+        {
+            throw new TimeoutException($"Search indexing did not complete within {timeoutMs}ms");
+        }
+    }
+
     [Fact]
     public async Task CompleteWorkflow_CreateProviderWithServices_ShouldAppearInSearch()
     {
@@ -109,8 +144,13 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         // Nota: A associação Provider-Service pode ser feita via endpoint específico
         // ou pode ser implícita. Validamos via search.
 
-        // Aguardar indexação (eventual consistency)
-        await Task.Delay(1000);
+        // Aguardar indexação (eventual consistency) com retry/polling
+        await WaitForSearchIndexing(async () =>
+        {
+            var testUrl = $"/api/v1/search/providers?latitude={latitude}&longitude={longitude}&radiusKm=10&serviceIds={serviceId}";
+            var testResponse = await ApiClient.GetAsync(testUrl);
+            return testResponse.IsSuccessStatusCode;
+        }, timeoutMs: 5000);
 
         // ============================================
         // STEP 4: Buscar provider via SearchProviders
@@ -136,31 +176,21 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         // ============================================
         // STEP 5: Validar que provider aparece nos resultados
         // ============================================
-        // Nota: Provider pode não aparecer se associação Service-Provider não foi feita
-        // ou se filtro geográfico/serviço não match
         
-        if (itemsArray.Count > 0)
-        {
-            // Se há resultados, validar que provider criado pode estar lá
-            var providerIds = itemsArray
-                .Where(item => item.TryGetProperty("id", out _))
-                .Select(item => item.GetProperty("id").GetGuid())
-                .ToList();
+        // Validar que provider criado está presente nos resultados
+        var providerInResults = itemsArray.FirstOrDefault(p => 
+            p.TryGetProperty("id", out var id) && 
+            id.GetGuid() == providerId);
 
-            // Validação flexível: se provider aparece, deve ter geolocalização
-            var providerInResults = itemsArray.FirstOrDefault(p => 
-                p.TryGetProperty("id", out var id) && 
-                id.GetGuid() == providerId);
+        providerInResults.ValueKind.Should().NotBe(JsonValueKind.Undefined,
+            $"Provider {providerId} deve aparecer nos resultados da busca");
 
-            if (providerInResults.ValueKind != JsonValueKind.Undefined)
-            {
-                providerInResults.TryGetProperty("location", out _).Should().BeTrue(
-                    "Provider nos resultados deve ter informação de localização");
-                
-                providerInResults.TryGetProperty("services", out _).Should().BeTrue(
-                    "Provider nos resultados deve ter lista de serviços");
-            }
-        }
+        // Validar propriedades obrigatórias do provider
+        providerInResults.TryGetProperty("location", out _).Should().BeTrue(
+            "Provider nos resultados deve ter informação de localização");
+        
+        providerInResults.TryGetProperty("services", out _).Should().BeTrue(
+            "Provider nos resultados deve ter lista de serviços");
 
         // ============================================
         // STEP 6: Validar ordenação (SubscriptionTier > Rating > Distance)
@@ -183,9 +213,25 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         // ============================================
         // CLEANUP: Remover recursos criados
         // ============================================
-        await ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
-        await ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
-        await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
+        try
+        {
+            // Provider deletion should succeed or resource already deleted
+            var deleteProviderResponse = await ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
+            deleteProviderResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+
+            // Service deletion should succeed or resource already deleted
+            var deleteServiceResponse = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
+            deleteServiceResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+
+            // Category deletion should succeed or resource already deleted
+            var deleteCategoryResponse = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
+            deleteCategoryResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+        }
+        catch (Exception ex)
+        {
+            // Log cleanup failures but don't fail the test
+            Console.WriteLine($"Cleanup failed: {ex.Message}");
+        }
     }
 
     [Fact]
@@ -313,7 +359,13 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         }, JsonOptions);
         var providerId2 = ExtractIdFromLocation(provider2Response.Headers.Location!.ToString());
 
-        await Task.Delay(1000); // Aguardar indexação
+        // Aguardar indexação com retry/polling
+        await WaitForSearchIndexing(async () =>
+        {
+            var testUrl = $"/api/v1/search/providers?latitude=-23.550520&longitude=-46.633308&radiusKm=10&serviceIds={serviceId1},{serviceId2}";
+            var testResponse = await ApiClient.GetAsync(testUrl);
+            return testResponse.IsSuccessStatusCode;
+        }, timeoutMs: 5000);
 
         // ============================================
         // Buscar por AMBOS serviços
@@ -333,15 +385,52 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         // Validar que busca funcionou
         searchResult.TryGetProperty("data", out var data).Should().BeTrue();
         data.TryGetProperty("items", out var items).Should().BeTrue();
+        var itemsArray = items.EnumerateArray().ToList();
+
+        // Validar filtro de múltiplos serviços:
+        // Provider1 oferece AMBOS serviços -> deve aparecer
+        // Provider2 oferece apenas 1 serviço -> NÃO deve aparecer
+        var provider1InResults = itemsArray.Any(p =>
+            p.TryGetProperty("id", out var id) &&
+            id.GetGuid() == providerId1);
+
+        var provider2InResults = itemsArray.Any(p =>
+            p.TryGetProperty("id", out var id) &&
+            id.GetGuid() == providerId2);
+
+        provider1InResults.Should().BeTrue(
+            "Provider1 oferece ambos serviços e deve aparecer nos resultados");
+
+        provider2InResults.Should().BeFalse(
+            "Provider2 oferece apenas um serviço e NÃO deve aparecer ao filtrar por ambos");
 
         // ============================================
         // CLEANUP
         // ============================================
-        await ApiClient.DeleteAsync($"/api/v1/providers/{providerId1}");
-        await ApiClient.DeleteAsync($"/api/v1/providers/{providerId2}");
-        await ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId1}");
-        await ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId2}");
-        await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId1}");
-        await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId2}");
+        try
+        {
+            var deleteProvider1Response = await ApiClient.DeleteAsync($"/api/v1/providers/{providerId1}");
+            deleteProvider1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+
+            var deleteProvider2Response = await ApiClient.DeleteAsync($"/api/v1/providers/{providerId2}");
+            deleteProvider2Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+
+            var deleteService1Response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId1}");
+            deleteService1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+
+            var deleteService2Response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId2}");
+            deleteService2Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+
+            var deleteCategory1Response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId1}");
+            deleteCategory1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+
+            var deleteCategory2Response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId2}");
+            deleteCategory2Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
+        }
+        catch (Exception ex)
+        {
+            // Log cleanup failures but don't fail the test
+            Console.WriteLine($"Cleanup failed: {ex.Message}");
+        }
     }
 }

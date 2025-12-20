@@ -533,7 +533,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     #endregion
 
     /// <summary>
-    /// Helper method to extract data from API response that may be wrapped or unwrapped
+    /// Método auxiliar para extrair dados de uma resposta da API que pode estar encapsulada ou não
     /// </summary>
     private static JsonElement GetResponseData(JsonElement response)
     {

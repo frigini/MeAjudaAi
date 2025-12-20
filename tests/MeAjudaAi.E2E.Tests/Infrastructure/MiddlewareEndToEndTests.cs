@@ -65,15 +65,20 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
         var customCorrelationId = Guid.NewGuid().ToString();
         ApiClient.DefaultRequestHeaders.Add(AuthConstants.Headers.CorrelationId, customCorrelationId);
 
-        // Act
-        var response = await ApiClient.GetAsync("/health");
+        try
+        {
+            // Act
+            var response = await ApiClient.GetAsync("/health");
 
-        // Assert
-        response.Headers.Should().ContainKey(AuthConstants.Headers.CorrelationId);
-        var responseCorrelationId = response.Headers.GetValues(AuthConstants.Headers.CorrelationId).First();
-        responseCorrelationId.Should().Be(customCorrelationId);
-        
-        ApiClient.DefaultRequestHeaders.Remove(AuthConstants.Headers.CorrelationId);
+            // Assert
+            response.Headers.Should().ContainKey(AuthConstants.Headers.CorrelationId);
+            var responseCorrelationId = response.Headers.GetValues(AuthConstants.Headers.CorrelationId).First();
+            responseCorrelationId.Should().Be(customCorrelationId);
+        }
+        finally
+        {
+            ApiClient.DefaultRequestHeaders.Remove(AuthConstants.Headers.CorrelationId);
+        }
     }
 
     [Fact]
@@ -130,15 +135,20 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
         // Arrange
         ApiClient.DefaultRequestHeaders.Add("User-Agent", "E2E-Test-Client/1.0");
 
-        // Act
-        var response = await ApiClient.GetAsync("/health");
+        try
+        {
+            // Act
+            var response = await ApiClient.GetAsync("/health");
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
-        // RequestLoggingMiddleware deve capturar User-Agent: E2E-Test-Client/1.0
-        
-        ApiClient.DefaultRequestHeaders.Remove("User-Agent");
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            
+            // RequestLoggingMiddleware deve capturar User-Agent: E2E-Test-Client/1.0
+        }
+        finally
+        {
+            ApiClient.DefaultRequestHeaders.Remove("User-Agent");
+        }
     }
 
     #endregion
@@ -186,20 +196,26 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsUser();
-        ApiClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
-
-        // Act
-        var response = await ApiClient.GetAsync("/api/v1/users");
-
-        // Assert
-        // CompressionSecurityMiddleware deve desabilitar compressão para usuários autenticados
-        // (proteção contra ataques BREACH/CRIME)
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            response.Content.Headers.ContentEncoding.Should().NotContain("gzip");
-        }
         
-        ApiClient.DefaultRequestHeaders.Remove("Accept-Encoding");
+        try
+        {
+            ApiClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+
+            // Act
+            var response = await ApiClient.GetAsync("/api/v1/users");
+
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK, "endpoint should return success");
+            
+            // CompressionSecurityMiddleware deve desabilitar compressão para usuários autenticados
+            // (proteção contra ataques BREACH/CRIME)
+            response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
+                "compression should be disabled for authenticated users");
+        }
+        finally
+        {
+            ApiClient.DefaultRequestHeaders.Remove("Accept-Encoding");
+        }
     }
 
     [Fact]

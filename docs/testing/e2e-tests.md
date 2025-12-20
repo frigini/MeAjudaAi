@@ -8,7 +8,7 @@ Os testes E2E do MeAjudaAi validam o comportamento completo do sistema em um amb
 
 ### TestContainers + Docker
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                     Teste E2E                               │
 │  - HttpClient → ApiService (real)                          │
@@ -53,7 +53,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
 #### Estrutura Consolidada (Padrão `{Module}EndToEndTests`)
 
-```
+```text
 tests/MeAjudaAi.E2E.Tests/
 ├── Modules/
 │   ├── Users/UsersEndToEndTests.cs               (renomeado)

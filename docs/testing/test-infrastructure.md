@@ -300,7 +300,7 @@ public class MeuTeste : TestContainerTestBase
 ### ⚠️ Timeout nos Containers Docker
 
 **Sintoma:**
-```
+```bash
 System.Threading.Tasks.TaskCanceledException: The operation was canceled.
   at Docker.DotNet.DockerClient.PrivateMakeRequestAsync(...)
 ```

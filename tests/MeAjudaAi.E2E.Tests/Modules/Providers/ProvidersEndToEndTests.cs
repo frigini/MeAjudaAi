@@ -76,8 +76,8 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         locationHeader.Should().Contain("/api/v1/providers");
     }
 
-    // NOTE: GetProviders basic test removed - duplicates ProvidersIntegrationTests.GetProviders_ShouldReturnProvidersList
-    // Simple list retrieval is adequately covered in Integration tests
+    // NOTA: Teste básico GetProviders removido - duplica ProvidersIntegrationTests.GetProviders_ShouldReturnProvidersList
+    // Recuperação de lista simples já está adequadamente coberta nos testes de Integração
 
     [Fact]
     public async Task CompleteProviderWorkflow_Should_Work()
@@ -184,8 +184,8 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         }
     }
 
-    // NOTE: ProvidersEndpoints_ShouldNotCrash smoke test removed - low value
-    // Endpoint stability is validated by specific functional tests
+    // NOTA: Teste de smoke ProvidersEndpoints_ShouldNotCrash removido - baixo valor
+    // Estabilidade dos endpoints é validada por testes funcionais específicos
 
     #endregion
 
@@ -265,8 +265,6 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             }
         };
 
-        // Re-authenticate before the update operation
-        AuthenticateAsAdmin();
         var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", updateRequest, JsonOptions);
 
         // Assert
@@ -352,11 +350,8 @@ public class ProvidersEndToEndTests : TestContainerTestBase
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
 
-        if (createResponse.StatusCode != HttpStatusCode.Created)
-        {
-            // Skip test if provider creation fails
-            return;
-        }
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "provider must be created successfully as a prerequisite for update test");
 
         var locationHeader = createResponse.Headers.Location?.ToString();
         var providerId = ExtractIdFromLocation(locationHeader!);
@@ -566,11 +561,8 @@ public class ProvidersEndToEndTests : TestContainerTestBase
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
 
-        if (createResponse.StatusCode != HttpStatusCode.Created)
-        {
-            // Skip test if provider creation fails
-            return;
-        }
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "provider must be created successfully as a prerequisite for document delete test");
 
         var locationHeader = createResponse.Headers.Location?.ToString();
         var providerId = ExtractIdFromLocation(locationHeader!);
@@ -593,9 +585,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         uploadResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.Created,
             HttpStatusCode.OK,
-            HttpStatusCode.Accepted,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.BadRequest); // Múltiplos status dependendo da implementação
+            HttpStatusCode.Accepted);
 
         if (uploadResponse.StatusCode == HttpStatusCode.Created)
         {
@@ -666,9 +656,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         // Assert
         deleteResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
-            HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.BadRequest); // NotFound aceitável se documento não foi criado ou já foi deletado
+            HttpStatusCode.NoContent);
 
         // Se a exclusão foi bem-sucedida, verifica que o documento não existe mais
         if (deleteResponse.IsSuccessStatusCode)

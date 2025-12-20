@@ -28,7 +28,7 @@ Este documento rastreia **apenas débitos técnicos PENDENTES**. Itens resolvido
    - `RabbitMqInfrastructureManager.cs` não possui interface separada `IRabbitMqInfrastructureManager` (avaliar necessidade)
 
 2. **Inconsistência de nomenclatura** (se aplicável):
-   - ~~Arquivo `DeadLetterServiceFactory.cs` mas classe principal é `EnvironmentBasedDeadLetterServiceFactory`~~ ✅ **RESOLVIDO** (19 Dez 2025)
+   - ~~Arquivo `DeadLetterServiceFactory.cs`, mas classe principal é `EnvironmentBasedDeadLetterServiceFactory`~~ ✅ **RESOLVIDO** (19 Dez 2025)
    - Arquivo `MessageBusFactory.cs` - verificar se precisa renomear
 
 3. **Integration Events ausentes**:
@@ -104,6 +104,7 @@ src/Shared/Messaging/
 
 **Prioridade**: MÉDIA  
 **Estimativa**: 8-10 horas  
+**Sprint**: Sprint 5.5 / BACKLOG (baixa prioridade, não crítico para MVP)  
 **Benefício**: Código mais organizado, manutenível e testável
 
 ---

@@ -275,10 +275,8 @@ public class PermissionAuthorizationE2ETests : TestContainerTestBase
         var response = await ApiClient.GetAsync("/api/v1/providers");
 
         // Assert - Deve negar acesso se policy ProviderOnly estiver aplicada
-        Assert.True(
-            response.StatusCode == HttpStatusCode.Forbidden || response.StatusCode == HttpStatusCode.OK,
-            $"Status deve ser Forbidden ou OK dependendo se ProviderOnly está implementado. Status: {response.StatusCode}"
-        );
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
+            "User role without Provider role should be denied access by ProviderOnly policy");
     }
 
     [Fact]

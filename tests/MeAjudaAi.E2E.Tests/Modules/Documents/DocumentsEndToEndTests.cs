@@ -34,7 +34,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             }
             catch (Exception) when (attempt < maxAttempts - 1)
             {
-                // Treat transient network errors as retryable
+                // Trata erros de rede transitórios como retentáveis
             }
 
             if (attempt < maxAttempts - 1)
@@ -71,7 +71,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var response = await PostJsonAsync("/api/v1/documents/upload", uploadRequest);
 
         // Assert
-        // Azurite container is automatically created by AzureBlobStorageService.EnsureContainerExistsAsync
+        // O container Azurite é criado automaticamente por AzureBlobStorageService.EnsureContainerExistsAsync
         if (response.StatusCode == HttpStatusCode.OK)
         {
             var content = await response.Content.ReadAsStringAsync();
@@ -94,7 +94,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         }
         else
         {
-            // Upload may fail in test environment if Azurite is not running
+            // O upload pode falhar no ambiente de teste se o Azurite não estiver em execução
             response.StatusCode.Should().BeOneOf(
                 HttpStatusCode.ServiceUnavailable,
                 HttpStatusCode.InternalServerError);
@@ -291,7 +291,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
 
         if (uploadResponse.StatusCode != HttpStatusCode.OK)
         {
-            // Skip test if Azurite is unavailable
+            // Pula o teste se o Azurite não estiver disponível
             uploadResponse.StatusCode.Should().BeOneOf(
                 HttpStatusCode.ServiceUnavailable,
                 HttpStatusCode.InternalServerError);
@@ -302,7 +302,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var uploadResult = JsonSerializer.Deserialize<JsonElement>(uploadContent, JsonOptions);
         var documentId = Guid.Parse(uploadResult.GetProperty("documentId").GetString()!);
 
-        // Act - Mark as verified
+        // Act - Marca como verificado
         var verifyRequest = new
         {
             DocumentId = documentId,

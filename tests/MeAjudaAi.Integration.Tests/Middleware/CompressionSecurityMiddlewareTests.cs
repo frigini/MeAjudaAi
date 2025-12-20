@@ -45,17 +45,15 @@ public sealed class CompressionSecurityMiddlewareTests : ApiTestBase
         var response = await HttpClient.GetAsync("/api/v1/users");
 
         // Assert
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Unauthorized);
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Token válido deve resultar em requisição autenticada com sucesso");
         
         // CompressionSecurityMiddleware deve desabilitar compressão para usuários autenticados
         // Isso previne ataques BREACH/CRIME que exploram compressão
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
-                "Compressão deve ser desabilitada para usuários autenticados (proteção BREACH)");
-            response.Content.Headers.ContentEncoding.Should().NotContain("br",
-                "Brotli deve ser desabilitado para usuários autenticados (proteção BREACH)");
-        }
+        response.Content.Headers.ContentEncoding.Should().NotContain("gzip",
+            "Compressão deve ser desabilitada para usuários autenticados (proteção BREACH)");
+        response.Content.Headers.ContentEncoding.Should().NotContain("br",
+            "Brotli deve ser desabilitado para usuários autenticados (proteção BREACH)");
 
         HttpClient.DefaultRequestHeaders.Authorization = null;
         HttpClient.DefaultRequestHeaders.Remove("Accept-Encoding");

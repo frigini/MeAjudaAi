@@ -466,7 +466,6 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             "the service category change should succeed in this scenario");
 
         // Verifica que o serviço está na nova categoria
-        AuthenticateAsAdmin(); // Re-autenticar antes do GET
         var getServiceResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{serviceId}");
         getServiceResponse.IsSuccessStatusCode.Should().BeTrue(
             "the updated service should be retrievable after changing category");
