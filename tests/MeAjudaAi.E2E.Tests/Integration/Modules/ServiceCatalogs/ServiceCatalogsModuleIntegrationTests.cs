@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Json;
 using MeAjudaAi.E2E.Tests.Base;
 
-namespace MeAjudaAi.E2E.Tests.Integration;
+namespace MeAjudaAi.E2E.Tests.Integration.Modules.ServiceCatalogs;
 
 /// <summary>
 /// Testes de integração entre o módulo ServiceCatalogs e outros módulos

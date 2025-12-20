@@ -5,14 +5,14 @@ using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Shared.Contracts;
 
-namespace MeAjudaAi.E2E.Tests.Integration;
+namespace MeAjudaAi.E2E.Tests.Integration.Modules.SearchProviders;
 
 /// <summary>
 /// Testes E2E para o endpoint de busca de prestadores
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Search")]
-public class SearchProvidersEndpointTests : TestContainerTestBase
+public class SearchProvidersModuleIntegrationTests : TestContainerTestBase
 {
     [Fact]
     public async Task SearchProviders_WithValidCoordinates_ShouldReturnOk()

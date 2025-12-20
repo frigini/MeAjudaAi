@@ -2,7 +2,7 @@ using System.Net.Http.Json;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Shared.Time;
 
-namespace MeAjudaAi.E2E.Tests.Integration;
+namespace MeAjudaAi.E2E.Tests.Integration.Modules.Users;
 
 /// <summary>
 /// Testes de integração E2E para endpoints do módulo Users
@@ -13,7 +13,7 @@ namespace MeAjudaAi.E2E.Tests.Integration;
 /// CreateUser_WithValidData e GetUsers básico foram removidos pois duplicam UsersIntegrationTests.cs
 /// E2E tests devem focar em workflows complexos e cenários de integração entre módulos.
 /// </remarks>
-public class UsersModuleTests : TestContainerTestBase
+public class UsersModuleIntegrationTests : TestContainerTestBase
 {
     [Fact]
     public async Task CreateUser_WithInvalidData_ShouldReturnBadRequest()
