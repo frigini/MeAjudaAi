@@ -45,6 +45,14 @@ public sealed class User : AggregateRoot<UserId>
     public string LastName { get; private set; } = string.Empty;
 
     /// <summary>
+    /// Número de telefone do usuário (opcional).
+    /// </summary>
+    /// <remarks>
+    /// Implementado como value object com validação de formato.
+    /// </remarks>
+    public PhoneNumber? PhoneNumber { get; private set; }
+
+    /// <summary>
     /// Identificador único do usuário no Keycloak (sistema de autenticação externo).
     /// </summary>
     /// <remarks>
@@ -146,15 +154,30 @@ public sealed class User : AggregateRoot<UserId>
     /// - Nome ou sobrenome são vazios
     /// - Nome ou sobrenome não atendem aos critérios de tamanho (2-100 caracteres)
     /// </exception>
-    public void UpdateProfile(string firstName, string lastName)
+    public void UpdateProfile(string firstName, string lastName, string? email = null, string? phoneNumber = null)
     {
         ValidateProfileUpdate();
 
-        if (FirstName == firstName && LastName == lastName)
-            return;
-
+        var hasChanges = FirstName != firstName || LastName != lastName;
+        
         FirstName = firstName;
         LastName = lastName;
+        
+        if (email != null)
+        {
+            Email = new Email(email);
+            hasChanges = true;
+        }
+        
+        if (phoneNumber != null)
+        {
+            PhoneNumber = new PhoneNumber(phoneNumber);
+            hasChanges = true;
+        }
+        
+        if (!hasChanges)
+            return;
+
         MarkAsUpdated();
 
         AddDomainEvent(new UserProfileUpdatedDomainEvent(Id.Value, 1, firstName, lastName));

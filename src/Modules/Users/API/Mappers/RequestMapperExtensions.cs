@@ -37,8 +37,9 @@ public static class RequestMapperExtensions
         return new UpdateUserProfileCommand(
             UserId: userId,
             FirstName: request.FirstName,
-            LastName: request.LastName
-        // Observação: Email não está incluído conforme design do comando - use comando separado para atualização de email
+            LastName: request.LastName,
+            Email: request.Email,
+            PhoneNumber: request.PhoneNumber
         );
     }
 

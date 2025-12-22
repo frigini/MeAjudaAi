@@ -111,10 +111,10 @@ public sealed class UpdateUserProfileCommandHandler(
     /// </summary>
     private void ApplyProfileUpdate(UpdateUserProfileCommand command, Domain.Entities.User user)
     {
-        logger.LogDebug("Updating profile for user {UserId}: FirstName={FirstName}, LastName={LastName}",
-            command.UserId, command.FirstName, command.LastName);
+        logger.LogDebug("Updating profile for user {UserId}: FirstName={FirstName}, LastName={LastName}, Email={Email}, PhoneNumber={PhoneNumber}",
+            command.UserId, command.FirstName, command.LastName, command.Email, command.PhoneNumber);
 
-        user.UpdateProfile(command.FirstName, command.LastName);
+        user.UpdateProfile(command.FirstName, command.LastName, command.Email, command.PhoneNumber);
     }
 
     /// <summary>

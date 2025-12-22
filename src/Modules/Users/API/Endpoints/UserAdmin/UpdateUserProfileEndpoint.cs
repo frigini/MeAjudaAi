@@ -67,8 +67,8 @@ public class UpdateUserProfileEndpoint : BaseEndpoint, IEndpoint
     /// 2. Cria comando de atualização com dados da requisição
     /// 3. Envia comando através do dispatcher CQRS
     /// 4. Retorna resposta HTTP com dados atualizados
-    /// 
-    /// Dados atualizáveis: FirstName, LastName, Email
+    ///
+    /// Dados atualizáveis: FirstName, LastName, Email, PhoneNumber
     /// </remarks>
     private static async Task<IResult> UpdateUserAsync(
         Guid id,
