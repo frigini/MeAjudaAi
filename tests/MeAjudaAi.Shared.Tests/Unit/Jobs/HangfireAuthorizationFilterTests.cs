@@ -251,7 +251,8 @@ public class HangfireAuthorizationFilterTests
     {
         private readonly HttpContext _httpContext;
 
-        public TestDashboardContext(HttpContext httpContext)
+        public TestDashboardContext(HttpContext httpContext) 
+            : base(new Hangfire.InMemory.InMemoryStorage(), new DashboardOptions())
         {
             _httpContext = httpContext;
         }
