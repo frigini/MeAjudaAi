@@ -17,19 +17,15 @@ namespace MeAjudaAi.Shared.Tests.Unit.Jobs;
 public class HangfireAuthorizationFilterTests
 {
     private readonly HangfireAuthorizationFilter _filter;
-    private readonly Mock<DashboardContext> _dashboardContextMock;
-    private readonly Mock<HttpContext> _httpContextMock;
 
     public HangfireAuthorizationFilterTests()
     {
         _filter = new HangfireAuthorizationFilter();
-        _dashboardContextMock = new Mock<DashboardContext>();
-        _httpContextMock = new Mock<HttpContext>();
+    }
 
-        // Setup padrão - contexto HTTP mockado
-        _dashboardContextMock
-            .Setup(ctx => ctx.GetHttpContext())
-            .Returns(_httpContextMock.Object);
+    private static TestDashboardContext CreateDashboardContext(HttpContext? httpContext = null)
+    {
+        return new TestDashboardContext(httpContext ?? new DefaultHttpContext());
     }
 
     [Theory]
@@ -40,9 +36,10 @@ public class HangfireAuthorizationFilterTests
     {
         // Arrange
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
+        var context = CreateDashboardContext();
 
         // Act
-        var result = _filter.Authorize(_dashboardContextMock.Object);
+        var result = _filter.Authorize(context);
 
         // Assert
         result.Should().BeTrue("Development environment should allow unrestricted access");
@@ -59,9 +56,10 @@ public class HangfireAuthorizationFilterTests
     {
         // Arrange
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", environment);
+        var context = CreateDashboardContext();
 
         // Act
-        var result = _filter.Authorize(_dashboardContextMock.Object);
+        var result = _filter.Authorize(context);
 
         // Assert
         result.Should().BeTrue("Testing environment should allow unrestricted access");
@@ -76,9 +74,10 @@ public class HangfireAuthorizationFilterTests
         // Arrange - Apenas DOTNET_ENVIRONMENT configurado
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Development");
+        var context = CreateDashboardContext();
 
         // Act
-        var result = _filter.Authorize(_dashboardContextMock.Object);
+        var result = _filter.Authorize(context);
 
         // Assert
         result.Should().BeTrue("Should respect DOTNET_ENVIRONMENT when ASPNETCORE_ENVIRONMENT is not set");
@@ -97,10 +96,11 @@ public class HangfireAuthorizationFilterTests
         identity.Setup(i => i.IsAuthenticated).Returns(false);
         
         var principal = new ClaimsPrincipal(identity.Object);
-        _httpContextMock.Setup(ctx => ctx.User).Returns(principal);
+        var httpContext = new DefaultHttpContext { User = principal };
+        var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(_dashboardContextMock.Object);
+        var result = _filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse("Production requires authentication");
@@ -123,11 +123,11 @@ public class HangfireAuthorizationFilterTests
         
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
-        
-        _httpContextMock.Setup(ctx => ctx.User).Returns(principal);
+        var httpContext = new DefaultHttpContext { User = principal };
+        var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(_dashboardContextMock.Object);
+        var result = _filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse("Production requires SystemAdmin role");
@@ -150,11 +150,11 @@ public class HangfireAuthorizationFilterTests
         
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
-        
-        _httpContextMock.Setup(ctx => ctx.User).Returns(principal);
+        var httpContext = new DefaultHttpContext { User = principal };
+        var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(_dashboardContextMock.Object);
+        var result = _filter.Authorize(context);
 
         // Assert
         result.Should().BeTrue("SystemAdmin should have access in production");
@@ -168,13 +168,10 @@ public class HangfireAuthorizationFilterTests
     {
         // Arrange
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
-        
-        _dashboardContextMock
-            .Setup(ctx => ctx.GetHttpContext())
-            .Returns((HttpContext)null!);
+        var context = CreateDashboardContext(null!);
 
         // Act
-        var result = _filter.Authorize(_dashboardContextMock.Object);
+        var result = _filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse("Null HttpContext should deny access in production");
@@ -188,11 +185,11 @@ public class HangfireAuthorizationFilterTests
     {
         // Arrange
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
-        
-        _httpContextMock.Setup(ctx => ctx.User).Returns((ClaimsPrincipal)null!);
+        var httpContext = new DefaultHttpContext { User = null! };
+        var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(_dashboardContextMock.Object);
+        var result = _filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse("Null User should deny access in production");
@@ -211,11 +208,11 @@ public class HangfireAuthorizationFilterTests
         var identity = new Mock<ClaimsIdentity>();
         identity.Setup(i => i.IsAuthenticated).Returns(false);
         var principal = new ClaimsPrincipal(identity.Object);
-        
-        _httpContextMock.Setup(ctx => ctx.User).Returns(principal);
+        var httpContext = new DefaultHttpContext { User = principal };
+        var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(_dashboardContextMock.Object);
+        var result = _filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse("Default environment (Production) should require authentication");
@@ -234,15 +231,31 @@ public class HangfireAuthorizationFilterTests
         identity.Setup(i => i.IsAuthenticated).Returns(false);
         var principal = new ClaimsPrincipal(identity.Object);
         
-        _httpContextMock.Setup(ctx => ctx.User).Returns(principal);
+        var httpContext = new DefaultHttpContext { User = principal };
+        var context = CreateDashboardContext(httpContext);
 
         // Act
-        var result = _filter.Authorize(_dashboardContextMock.Object);
+        var result = _filter.Authorize(context);
 
         // Assert
         result.Should().BeFalse($"{environment} environment should require authentication like Production");
 
         // Cleanup
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
+    }
+
+    /// <summary>
+    /// Test implementation of DashboardContext since Moq cannot mock extension methods
+    /// </summary>
+    private class TestDashboardContext : DashboardContext
+    {
+        private readonly HttpContext _httpContext;
+
+        public TestDashboardContext(HttpContext httpContext)
+        {
+            _httpContext = httpContext;
+        }
+
+        public HttpContext GetHttpContext() => _httpContext;
     }
 }

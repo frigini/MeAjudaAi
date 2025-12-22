@@ -408,5 +408,3 @@ private async Task CleanupDatabaseAsync()
 4. **CorrelationId não propagado**
    - ✅ Já estava sendo propagado via LoggingContextMiddleware
 
-Veja detalhes em: [Middleware Testing Strategy](middleware-testing-strategy.md)
-
