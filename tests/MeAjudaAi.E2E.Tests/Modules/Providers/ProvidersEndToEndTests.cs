@@ -412,14 +412,22 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         // Act - Add document (não é upload de arquivo, apenas registro do documento)
         var documentRequest = new
         {
-            Number = "12345678900", // CPF number
-            DocumentType = 0 // CPF (EDocumentType enum value)
+            Number = "123456789", // RG number
+            DocumentType = 3 // RG (EDocumentType enum value)
         };
 
         var addDocumentResponse = await ApiClient.PostAsJsonAsync(
             $"/api/v1/providers/{providerId}/documents",
             documentRequest,
             JsonOptions);
+
+        // Debug output
+        if (!addDocumentResponse.IsSuccessStatusCode)
+        {
+            var errorContent = await addDocumentResponse.Content.ReadAsStringAsync();
+            _testOutput.WriteLine($"Add document failed: {addDocumentResponse.StatusCode}");
+            _testOutput.WriteLine($"Error content: {errorContent}");
+        }
 
         // Assert
         addDocumentResponse.StatusCode.Should().BeOneOf(
@@ -442,7 +450,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         var documentRequest = new
         {
             Number = "123456789", // RG number
-            DocumentType = 1 // RG (EDocumentType enum value)
+            DocumentType = 3 // RG (EDocumentType enum value)
         };
 
         var addDocumentResponse = await ApiClient.PostAsJsonAsync(
