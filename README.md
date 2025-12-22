@@ -543,7 +543,7 @@ docker compose -f environments/testing.yml up -d
 - **Redis**: For cache and distributed lock testing
 - **Automatic cleanup**: Containers are disposed after each test class
 
-**Test Organization** (Sprint 5.5 - Dec 2025):
+**Test Organization** (Sprint 5.5 - Dec 2025)
 - `MeAjudaAi.Shared.Tests/TestInfrastructure/`: 8 organized subfolders (Base, Builders, Configuration, Containers, Fixtures, Handlers, Mocks, Options, Services)
 - Module-specific tests moved to individual modules (Documents, Providers, ServiceCatalogs, Users)
 - Comprehensive AAA pattern and translated documentation

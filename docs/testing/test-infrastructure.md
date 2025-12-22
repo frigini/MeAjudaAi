@@ -349,7 +349,7 @@ private async Task CleanupDatabaseAsync()
 }
 ```
 
-### ⚠️ Performance Ruim
+### ⚠️ Desempenho Ruim
 
 **Números Típicos:**
 - Sem otimização: ~32 minutos (19 classes × 6s setup cada)
