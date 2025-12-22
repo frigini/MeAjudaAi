@@ -97,7 +97,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
             ArgumentException argumentException => (
                 StatusCodes.Status400BadRequest,
-                "Bad Request",
+                "Erro de validação",
                 argumentException.Message,
                 null,
                 new Dictionary<string, object?>
