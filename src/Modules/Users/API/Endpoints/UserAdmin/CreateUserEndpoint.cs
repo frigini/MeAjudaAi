@@ -75,6 +75,6 @@ public class CreateUserEndpoint : BaseEndpoint, IEndpoint
         var result = await commandDispatcher.SendAsync<CreateUserCommand, Result<UserDto>>(
             command, cancellationToken);
 
-        return Handle(result, "CreateUser", new { id = result.Value?.Id });
+        return Handle(result, "GetUser", new { id = result.Value?.Id });
     }
 }

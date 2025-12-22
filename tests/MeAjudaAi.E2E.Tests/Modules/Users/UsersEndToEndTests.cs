@@ -254,14 +254,17 @@ public class UsersEndToEndTests : TestContainerTestBase
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var location = createResponse.Headers.Location?.ToString();
         location.Should().NotBeNullOrEmpty();
+        location.Should().Contain("/api/v1/users/", "Location should contain the API path");
+        
         var userId = ExtractIdFromLocation(location!);
+        userId.Should().NotBeEmpty("Extracted user ID should be valid");
 
-        // Act - Get user
+        // Act - Get user immediately after creation
         var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
 
         // Assert - Get should succeed
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK, 
-            "GET should work immediately after CREATE without any UPDATE");
+            $"GET should work immediately after CREATE. UserId: {userId}, Location: {location}");
     }
 
     [Fact]
