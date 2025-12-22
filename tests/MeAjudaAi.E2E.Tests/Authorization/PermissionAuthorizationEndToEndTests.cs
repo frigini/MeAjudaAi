@@ -255,7 +255,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
             userId: "provider-123",
             userName: "provider",
             email: "provider@test.com",
-            permissions: [EPermission.ProvidersRead.GetValue()],
+            permissions: [EPermission.ProvidersList.GetValue()],
             roles: ["Provider"]
         );
 
@@ -301,7 +301,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
             userId: "admin-123",
             userName: "admin",
             email: "admin@test.com",
-            permissions: [],
+            permissions: [EPermission.ProvidersList.GetValue()],
             roles: ["Admin"],
             isSystemAdmin: true
         );
@@ -323,7 +323,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
             userId: "provider-456",
             userName: "provider2",
             email: "provider2@test.com",
-            permissions: [EPermission.ProvidersRead.GetValue()],
+            permissions: [EPermission.ProvidersList.GetValue()],
             roles: ["Provider"]
         );
 

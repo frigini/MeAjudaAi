@@ -54,21 +54,35 @@ public sealed class UpdateUserProfileCommandHandler(
         logger.LogInformation("Processing UpdateUserProfileCommand for user {UserId} with correlation {CorrelationId}",
             command.UserId, command.CorrelationId);
 
-        // Buscar e validar usuário
-        var userResult = await GetAndValidateUserAsync(command, cancellationToken);
-        if (userResult.IsFailure)
-            return Result<UserDto>.Failure(userResult.Error);
+        try
+        {
+            // Buscar e validar usuário
+            var userResult = await GetAndValidateUserAsync(command, cancellationToken);
+            if (userResult.IsFailure)
+                return Result<UserDto>.Failure(userResult.Error);
 
-        var user = userResult.Value;
+            var user = userResult.Value;
 
-        // Aplicar atualização do perfil
-        ApplyProfileUpdate(command, user);
+            // Aplicar atualização do perfil
+            ApplyProfileUpdate(command, user);
 
-        // Persistir alterações e invalidar cache
-        await PersistAndInvalidateCacheAsync(command, user, cancellationToken);
+            // Persistir alterações e invalidar cache
+            await PersistAndInvalidateCacheAsync(command, user, cancellationToken);
 
-        logger.LogInformation("User profile updated successfully for user {UserId} - cache invalidated", command.UserId);
-        return Result<UserDto>.Success(user.ToDto());
+            logger.LogInformation("User profile updated successfully for user {UserId} - cache invalidated", command.UserId);
+            return Result<UserDto>.Success(user.ToDto());
+        }
+        catch (ArgumentException)
+        {
+            // Allow ArgumentException (validation errors) to propagate to GlobalExceptionHandler
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Catch infrastructure errors (database, cache, etc.) and return failure result
+            logger.LogError(ex, "Unexpected error updating user profile for {UserId}", command.UserId);
+            return Result<UserDto>.Failure("Failed to update user profile due to an unexpected error");
+        }
     }
 
     /// <summary>
