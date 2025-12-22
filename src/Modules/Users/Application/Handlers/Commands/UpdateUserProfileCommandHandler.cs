@@ -54,29 +54,21 @@ public sealed class UpdateUserProfileCommandHandler(
         logger.LogInformation("Processing UpdateUserProfileCommand for user {UserId} with correlation {CorrelationId}",
             command.UserId, command.CorrelationId);
 
-        try
-        {
-            // Buscar e validar usuário
-            var userResult = await GetAndValidateUserAsync(command, cancellationToken);
-            if (userResult.IsFailure)
-                return Result<UserDto>.Failure(userResult.Error);
+        // Buscar e validar usuário
+        var userResult = await GetAndValidateUserAsync(command, cancellationToken);
+        if (userResult.IsFailure)
+            return Result<UserDto>.Failure(userResult.Error);
 
-            var user = userResult.Value;
+        var user = userResult.Value;
 
-            // Aplicar atualização do perfil
-            ApplyProfileUpdate(command, user);
+        // Aplicar atualização do perfil
+        ApplyProfileUpdate(command, user);
 
-            // Persistir alterações e invalidar cache
-            await PersistAndInvalidateCacheAsync(command, user, cancellationToken);
+        // Persistir alterações e invalidar cache
+        await PersistAndInvalidateCacheAsync(command, user, cancellationToken);
 
-            logger.LogInformation("User profile updated successfully for user {UserId} - cache invalidated", command.UserId);
-            return Result<UserDto>.Success(user.ToDto());
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unexpected error updating user profile for user {UserId}", command.UserId);
-            return Result<UserDto>.Failure($"Failed to update user profile: {ex.Message}");
-        }
+        logger.LogInformation("User profile updated successfully for user {UserId} - cache invalidated", command.UserId);
+        return Result<UserDto>.Success(user.ToDto());
     }
 
     /// <summary>

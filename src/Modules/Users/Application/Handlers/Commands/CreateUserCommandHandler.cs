@@ -62,34 +62,24 @@ internal sealed class CreateUserCommandHandler(
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         logger.LogInformation("Starting user creation process for {Email}", command.Email);
 
-        try
-        {
-            // Verificar duplicidade de email e username
-            var uniquenessResult = await ValidateUniquenessAsync(command, cancellationToken);
-            if (uniquenessResult.IsFailure)
-                return Result<UserDto>.Failure(uniquenessResult.Error);
+        // Verificar duplicidade de email e username
+        var uniquenessResult = await ValidateUniquenessAsync(command, cancellationToken);
+        if (uniquenessResult.IsFailure)
+            return Result<UserDto>.Failure(uniquenessResult.Error);
 
-            // Criar usuário através do serviço de domínio
-            var userResult = await CreateUserAsync(command, stopwatch, cancellationToken);
-            if (userResult.IsFailure)
-                return Result<UserDto>.Failure(userResult.Error);
+        // Criar usuário através do serviço de domínio
+        var userResult = await CreateUserAsync(command, stopwatch, cancellationToken);
+        if (userResult.IsFailure)
+            return Result<UserDto>.Failure(userResult.Error);
 
-            // Persistir usuário no repositório
-            await PersistUserAsync(userResult.Value, stopwatch, cancellationToken);
+        // Persistir usuário no repositório
+        await PersistUserAsync(userResult.Value, stopwatch, cancellationToken);
 
-            stopwatch.Stop();
-            logger.LogInformation("User {UserId} created successfully for email {Email} in {ElapsedMs}ms",
-                userResult.Value.Id, command.Email, stopwatch.ElapsedMilliseconds);
+        stopwatch.Stop();
+        logger.LogInformation("User {UserId} created successfully for email {Email} in {ElapsedMs}ms",
+            userResult.Value.Id, command.Email, stopwatch.ElapsedMilliseconds);
 
-            return Result<UserDto>.Success(userResult.Value.ToDto());
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            logger.LogError(ex, "Unexpected error creating user for email {Email} after {ElapsedMs}ms",
-                command.Email, stopwatch.ElapsedMilliseconds);
-            return Result<UserDto>.Failure("Failed to create user due to an unexpected error");
-        }
+        return Result<UserDto>.Success(userResult.Value.ToDto());
     }
 
     /// <summary>
