@@ -1,7 +1,9 @@
 using FluentAssertions;
+using Hangfire;
 using Hangfire.Dashboard;
 using MeAjudaAi.Shared.Jobs;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System.Security.Claims;
 using Xunit;
@@ -23,9 +25,21 @@ public class HangfireAuthorizationFilterTests
         _filter = new HangfireAuthorizationFilter();
     }
 
-    private static TestDashboardContext CreateDashboardContext(HttpContext? httpContext = null)
+    private static AspNetCoreDashboardContext CreateDashboardContext(HttpContext? httpContext = null)
     {
-        return new TestDashboardContext(httpContext ?? new DefaultHttpContext());
+        var context = httpContext ?? new DefaultHttpContext();
+        
+        // AspNetCoreDashboardContext requires an IServiceProvider
+        if (context.RequestServices == null)
+        {
+            var services = new ServiceCollection();
+            context.RequestServices = services.BuildServiceProvider();
+        }
+        
+        return new AspNetCoreDashboardContext(
+            new Hangfire.InMemory.InMemoryStorage(),
+            new DashboardOptions(),
+            context);
     }
 
     [Theory]
@@ -145,7 +159,7 @@ public class HangfireAuthorizationFilterTests
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, "admin-user"),
-            new Claim(ClaimTypes.Role, "SystemAdmin") // Role de administrador do sistema
+            new Claim("is_system_admin", "true") // Claim que identifica administrador do sistema
         };
         
         var identity = new ClaimsIdentity(claims, "TestAuth");
@@ -244,19 +258,4 @@ public class HangfireAuthorizationFilterTests
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
     }
 
-    /// <summary>
-    /// Test implementation of DashboardContext since Moq cannot mock extension methods
-    /// </summary>
-    private class TestDashboardContext : DashboardContext
-    {
-        private readonly HttpContext _httpContext;
-
-        public TestDashboardContext(HttpContext httpContext) 
-            : base(new Hangfire.InMemory.InMemoryStorage(), new DashboardOptions())
-        {
-            _httpContext = httpContext;
-        }
-
-        public HttpContext GetHttpContext() => _httpContext;
-    }
 }
