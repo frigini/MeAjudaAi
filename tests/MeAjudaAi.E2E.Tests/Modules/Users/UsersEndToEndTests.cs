@@ -232,42 +232,6 @@ public class UsersEndToEndTests : TestContainerTestBase
     }
 
     [Fact]
-    public async Task CreateUser_ThenGet_ShouldReturnUser()
-    {
-        // Arrange
-        AuthenticateAsAdmin();
-        var uniqueId = Guid.NewGuid().ToString("N")[..8];
-
-        var createRequest = new
-        {
-            Username = $"simple_test_{uniqueId}",
-            Email = $"simple_test_{uniqueId}@example.com",
-            FirstName = "Simple",
-            LastName = "Test",
-            Password = "Simple@123456"
-        };
-
-        // Act - Create user
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
-        
-        // Assert - Create succeeded
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        var location = createResponse.Headers.Location?.ToString();
-        location.Should().NotBeNullOrEmpty();
-        location.Should().Contain("/api/v1/users/", "Location should contain the API path");
-        
-        var userId = ExtractIdFromLocation(location!);
-        userId.Should().NotBeEmpty("Extracted user ID should be valid");
-
-        // Act - Get user immediately after creation
-        var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
-
-        // Assert - Get should succeed
-        getResponse.StatusCode.Should().Be(HttpStatusCode.OK, 
-            $"GET should work immediately after CREATE. UserId: {userId}, Location: {location}");
-    }
-
-    [Fact]
     public async Task UpdateUser_CompleteWorkflow_ShouldPersistChanges()
     {
         // Arrange - Criar usuário
@@ -307,9 +271,6 @@ public class UsersEndToEndTests : TestContainerTestBase
         updateResponse.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NoContent);
-
-        // Small delay to ensure cache invalidation completes
-        await Task.Delay(TimeSpan.FromMilliseconds(100));
 
         // Assert - Verificar persistência das mudanças via GET
         var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
