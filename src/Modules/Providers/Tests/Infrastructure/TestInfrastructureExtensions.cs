@@ -6,6 +6,7 @@ using MeAjudaAi.Modules.Providers.Infrastructure.Queries;
 using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
+using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
 using MeAjudaAi.Shared.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,12 +68,4 @@ public static class ProvidersTestInfrastructureExtensions
 
         return services;
     }
-}
-
-/// <summary>
-/// Implementação de IDateTimeProvider para testes
-/// </summary>
-internal class TestDateTimeProvider : IDateTimeProvider
-{
-    public DateTime CurrentDate() => DateTime.UtcNow;
 }

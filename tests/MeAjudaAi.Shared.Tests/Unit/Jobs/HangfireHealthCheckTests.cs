@@ -80,9 +80,9 @@ public class HangfireHealthCheckTests
         // Assert
         result.Status.Should().Be(HealthStatus.Degraded,
             "Hangfire without job client should be degraded");
-        result.Description.Should().Contain("unavailable");
-        result.Data.Should().ContainKey("job_client_available");
-        result.Data["job_client_available"].Should().Be(false);
+        result.Description.Should().Contain("not operational");
+        result.Data.Should().ContainKey("error");
+        result.Data.Should().ContainKey("component");
         
         // Cleanup
         await serviceProvider.DisposeAsync();

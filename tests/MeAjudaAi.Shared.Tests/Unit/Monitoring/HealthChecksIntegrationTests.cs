@@ -82,6 +82,7 @@ public class HealthChecksIntegrationTests
         result.Should().NotBeNull();
         result.Status.Should().Be(HealthStatus.Degraded);
         result.Description.Should().Contain("not operational");
+        result.Data.Should().ContainKey("error");
     }
 
     [Fact]
@@ -101,6 +102,7 @@ public class HealthChecksIntegrationTests
         result.Data.Should().ContainKey("component");
         result.Data.Should().ContainKey("error");
         result.Data["component"].Should().Be("hangfire");
+        result.Status.Should().Be(HealthStatus.Degraded);
     }
 
     [Fact]
@@ -122,6 +124,7 @@ public class HealthChecksIntegrationTests
         results.Should().HaveCount(5);
         results.Should().OnlyContain(r => r.Status == HealthStatus.Degraded);
         results.Should().OnlyContain(r => r.Data.ContainsKey("error"));
+        results.Should().OnlyContain(r => r.Description!.Contains("not operational"));
     }
 
     [Fact]

@@ -111,11 +111,3 @@ public static class UsersTestInfrastructureExtensions
         return services;
     }
 }
-
-/// <summary>
-/// Implementação de IDateTimeProvider para testes
-/// </summary>
-internal class TestDateTimeProvider : IDateTimeProvider
-{
-    public DateTime CurrentDate() => DateTime.UtcNow;
-}
