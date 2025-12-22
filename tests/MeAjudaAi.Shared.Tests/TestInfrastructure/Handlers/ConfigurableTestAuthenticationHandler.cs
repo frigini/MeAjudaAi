@@ -74,7 +74,8 @@ public class ConfigurableTestAuthenticationHandler(
             return headerValue.ToString();
         }
 
-        return null;
+        // Fallback to AsyncLocal context ID if header is not present
+        return _currentTestContextId.Value;
     }
 
     /// <summary>
