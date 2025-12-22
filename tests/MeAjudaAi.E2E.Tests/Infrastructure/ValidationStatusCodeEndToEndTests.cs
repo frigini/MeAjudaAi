@@ -24,18 +24,18 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task Register_WithInvalidEmail_ShouldReturn400()
     {
         // Arrange - Email format inválido (validação do FluentValidation)
-        var password = Faker.Internet.Password(12, true);
+        AuthenticateAsAdmin();
         var request = new
         {
-            email = "not-an-email",
-            password = password,
-            confirmPassword = password,
-            fullName = Faker.Name.FullName(),
-            phoneNumber = "+5511987654321"
+            Username = Faker.Internet.UserName(),
+            Email = "not-an-email", // Invalid email format
+            FirstName = Faker.Name.FirstName(),
+            LastName = Faker.Name.LastName(),
+            Password = Faker.Internet.Password(12, true)
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/users/register", request);
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
@@ -49,17 +49,18 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task Register_WithMissingRequiredField_ShouldReturn400()
     {
         // Arrange - Campo obrigatório faltando
+        AuthenticateAsAdmin();
         var request = new
         {
-            email = Faker.Internet.Email(),
-            password = Faker.Internet.Password(12, true),
-            // confirmPassword ausente (required)
-            fullName = Faker.Name.FullName(),
-            phoneNumber = "+5511987654321"
+            Username = Faker.Internet.UserName(),
+            // Email ausente (required)
+            FirstName = Faker.Name.FirstName(),
+            LastName = Faker.Name.LastName(),
+            Password = Faker.Internet.Password(12, true)
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/users/register", request);
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
@@ -89,37 +90,19 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     [Fact]
     public async Task UpdateUser_WithInvalidPhoneFormat_ShouldReturn400()
     {
-        // Arrange - Registrar usuário primeiro
-        var password = Faker.Internet.Password(12, true);
-        var registerRequest = new
-        {
-            email = Faker.Internet.Email(),
-            password = password,
-            confirmPassword = password,
-            fullName = Faker.Name.FullName(),
-            phoneNumber = "+5511987654321"
-        };
-        await ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
+        // Arrange - Create user first
+        AuthenticateAsAdmin();
+        var userId = await CreateTestUserAsync();
 
-        var loginRequest = new
-        {
-            email = registerRequest.email,
-            password = registerRequest.password
-        };
-        var loginResponse = await ApiClient.PostAsJsonAsync("/api/users/login", loginRequest);
-        var loginResult = await loginResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        var token = loginResult!["token"].ToString();
-
-        ApiClient.DefaultRequestHeaders.Authorization = 
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-        // Act - Update com telefone inválido
+        // Act - Update with invalid phone format
         var updateRequest = new
         {
-            phoneNumber = "invalid-phone" // Formato inválido
+            FirstName = Faker.Name.FirstName(),
+            LastName = Faker.Name.LastName(),
+            PhoneNumber = "invalid-phone" // Invalid format
         };
 
-        var response = await ApiClient.PutAsJsonAsync("/api/v1/users/phone", updateRequest);
+        var response = await PutJsonAsync($"/api/v1/users/{userId}/profile", updateRequest);
 
         // Assert
         // Invalid phone format should trigger validation error
@@ -184,21 +167,30 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     [Fact]
     public async Task Register_WithDuplicateEmail_ShouldReturn409()
     {
-        // Arrange - Registrar usuário
-        var password = Faker.Internet.Password(12, true);
+        // Arrange - Create first user
+        AuthenticateAsAdmin();
+        var uniqueEmail = $"{Faker.Internet.UserName()}@example.com";
         var request = new
         {
-            email = Faker.Internet.Email(),
-            password = password,
-            confirmPassword = password,
-            fullName = Faker.Name.FullName(),
-            phoneNumber = "+5511987654321"
+            Username = Faker.Internet.UserName(),
+            Email = uniqueEmail,
+            FirstName = Faker.Name.FirstName(),
+            LastName = Faker.Name.LastName(),
+            Password = Faker.Internet.Password(12, true)
         };
         
-        await ApiClient.PostAsJsonAsync("/api/users/register", request);
+        await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
 
-        // Act - Tentar registrar novamente com mesmo email
-        var duplicateResponse = await ApiClient.PostAsJsonAsync("/api/users/register", request);
+        // Act - Try to create again with same email
+        var duplicateRequest = new
+        {
+            Username = Faker.Internet.UserName(), // Different username
+            Email = uniqueEmail, // Same email
+            FirstName = Faker.Name.FirstName(),
+            LastName = Faker.Name.LastName(),
+            Password = Faker.Internet.Password(12, true)
+        };
+        var duplicateResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, JsonOptions);
 
         // Assert
         duplicateResponse.StatusCode.Should().Be(HttpStatusCode.Conflict,
@@ -241,16 +233,18 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task ValidationError_ShouldReturnStructuredErrorResponse()
     {
         // Arrange - Request com múltiplos erros de validação
+        AuthenticateAsAdmin();
         var request = new
         {
-            email = "invalid-email",
-            password = "123", // Muito curto
-            fullName = "", // Vazio
-            phoneNumber = "abc" // Formato inválido
+            Username = "", // Empty
+            Email = "invalid-email", // Invalid format
+            FirstName = "", // Empty
+            LastName = "", // Empty
+            Password = "123" // Too short
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/users/register", request);
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -268,21 +262,30 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     [Fact]
     public async Task ConflictError_ShouldIncludeConstraintDetails()
     {
-        // Arrange - Criar usuário duplicado
-        var password = Faker.Internet.Password(12, true);
+        // Arrange - Create duplicate user
+        AuthenticateAsAdmin();
+        var uniqueEmail = $"{Faker.Internet.UserName()}@example.com";
         var request = new
         {
-            email = Faker.Internet.Email(),
-            password = password,
-            confirmPassword = password,
-            fullName = Faker.Name.FullName(),
-            phoneNumber = "+5511987654321"
+            Username = Faker.Internet.UserName(),
+            Email = uniqueEmail,
+            FirstName = Faker.Name.FirstName(),
+            LastName = Faker.Name.LastName(),
+            Password = Faker.Internet.Password(12, true)
         };
         
-        await ApiClient.PostAsJsonAsync("/api/users/register", request);
+        await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
 
-        // Act
-        var duplicateResponse = await ApiClient.PostAsJsonAsync("/api/users/register", request);
+        // Act - Try to create duplicate
+        var duplicateRequest = new
+        {
+            Username = Faker.Internet.UserName(),
+            Email = uniqueEmail, // Same email
+            FirstName = Faker.Name.FirstName(),
+            LastName = Faker.Name.LastName(),
+            Password = Faker.Internet.Password(12, true)
+        };
+        var duplicateResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, JsonOptions);
 
         // Assert
         duplicateResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
