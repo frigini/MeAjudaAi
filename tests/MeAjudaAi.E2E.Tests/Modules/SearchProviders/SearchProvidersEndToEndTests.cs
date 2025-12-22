@@ -309,6 +309,10 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
         // Criar um usuário primeiro
         var userId = await CreateTestUserAsync();
 
+        // NOTA: latitude e longitude são parâmetros mas não podemos usá-los diretamente
+        // pois o sistema geocodifica o endereço automaticamente via Locations API.
+        // Para testes E2E, usamos endereços de São Paulo que resultarão em coordenadas aproximadas.
+        
         var request = new
         {
             UserId = userId.ToString(),
@@ -327,13 +331,13 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
                 },
                 PrimaryAddress = new
                 {
-                    Street = "Rua Teste",
-                    Number = "123",
+                    Street = "Avenida Paulista",
+                    Number = "1578", // Coordenadas aproximadas: -23.5505, -46.6333
                     Complement = (string?)null,
-                    Neighborhood = "Centro",
+                    Neighborhood = "Bela Vista",
                     City = "São Paulo",
                     State = "SP",
-                    ZipCode = "01234-567",
+                    ZipCode = "01310-200",
                     Country = "Brasil"
                 }
             }
@@ -344,8 +348,28 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
 
         var location = response.Headers.Location?.ToString();
         location.Should().NotBeNullOrEmpty();
+        
+        var providerId = ExtractIdFromLocation(location!);
 
-        return ExtractIdFromLocation(location!);
+        // Verificar o provider para que ele seja indexado no SearchProviders
+        var verifyRequest = new
+        {
+            NewStatus = 1, // Verified
+            Reason = "Test verification for search indexing"
+        };
+
+        var verifyResponse = await ApiClient.PutAsJsonAsync(
+            $"/api/v1/providers/{providerId}/verification-status",
+            verifyRequest,
+            JsonOptions);
+
+        // Se falhar a verificação, continue silenciosamente (provider ainda foi criado)
+        verifyResponse.EnsureSuccessStatusCode();
+
+        // Pequeno delay para permitir indexação assíncrona
+        await Task.Delay(500);
+
+        return providerId;
     }
 
     private async Task<Guid> CreateServiceCategoryAsync(string name)
