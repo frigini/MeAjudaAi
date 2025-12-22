@@ -351,7 +351,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
             userName: "admin",
             email: "admin@test.com",
             permissions: [EPermission.UsersCreate.GetValue(), EPermission.UsersRead.GetValue()],
-            roles: ["Admin"],
+            roles: ["admin"],
             isSystemAdmin: true
         );
 
@@ -405,7 +405,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
             userName: "admin",
             email: "admin@test.com",
             permissions: [EPermission.UsersCreate.GetValue()],
-            roles: ["Admin"],
+            roles: ["admin"],
             isSystemAdmin: true
         );
 
@@ -458,7 +458,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
             userName: "admin",
             email: "admin@test.com",
             permissions: [EPermission.UsersCreate.GetValue(), EPermission.UsersRead.GetValue()],
-            roles: ["Admin"],
+            roles: ["admin"],
             isSystemAdmin: true
         );
 
