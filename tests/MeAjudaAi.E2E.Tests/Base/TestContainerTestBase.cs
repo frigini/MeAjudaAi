@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
@@ -491,6 +492,36 @@ public abstract class TestContainerTestBase : IAsyncLifetime
         var segments = locationHeader.Split('/');
         var lastSegment = segments[^1].Split('?')[0];
         return Guid.Parse(lastSegment);
+    }
+
+    /// <summary>
+    /// Cria um usuário de teste e retorna seu ID
+    /// </summary>
+    protected async Task<Guid> CreateTestUserAsync(string? username = null, string? email = null)
+    {
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var createRequest = new
+        {
+            Username = username ?? $"testuser_{uniqueId}",
+            Email = email ?? $"testuser_{uniqueId}@example.com",
+            FirstName = "Test",
+            LastName = "User",
+            Password = "Test@123456"
+        };
+
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        if (response.StatusCode != HttpStatusCode.Created)
+        {
+            throw new InvalidOperationException($"Failed to create test user. Status: {response.StatusCode}");
+        }
+
+        var locationHeader = response.Headers.Location?.ToString();
+        if (string.IsNullOrEmpty(locationHeader))
+        {
+            throw new InvalidOperationException("Location header not found in create user response");
+        }
+
+        return ExtractIdFromLocation(locationHeader);
     }
 
     /// <summary>

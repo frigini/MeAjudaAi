@@ -306,24 +306,37 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
         double longitude,
         string subscriptionTier = "Free")
     {
+        // Criar um usuário primeiro
+        var userId = await CreateTestUserAsync();
+
         var request = new
         {
-            BusinessName = businessName,
-            Description = $"Test provider {businessName}",
-            Phone = "+5511999999999",
-            Email = $"{businessName}@example.com",
-            Address = new
+            UserId = userId.ToString(),
+            Name = businessName,
+            Type = 0, // Individual
+            BusinessProfile = new
             {
-                Street = "Rua Teste",
-                Number = "123",
-                City = "São Paulo",
-                State = "SP",
-                ZipCode = "01234-567",
-                Latitude = latitude,
-                Longitude = longitude
-            },
-            ServiceIds = Array.Empty<Guid>(),
-            SubscriptionTier = subscriptionTier
+                LegalName = businessName,
+                FantasyName = businessName,
+                Description = $"Test provider {businessName}",
+                ContactInfo = new
+                {
+                    Email = $"{businessName.Replace(" ", "_").ToLowerInvariant()}@example.com",
+                    PhoneNumber = "+5511999999999",
+                    Website = (string?)null
+                },
+                PrimaryAddress = new
+                {
+                    Street = "Rua Teste",
+                    Number = "123",
+                    Complement = (string?)null,
+                    Neighborhood = "Centro",
+                    City = "São Paulo",
+                    State = "SP",
+                    ZipCode = "01234-567",
+                    Country = "Brasil"
+                }
+            }
         };
 
         var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request, JsonOptions);

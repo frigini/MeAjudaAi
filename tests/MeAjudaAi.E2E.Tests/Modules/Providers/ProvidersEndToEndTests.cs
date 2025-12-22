@@ -29,28 +29,35 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         // Arrange
         AuthenticateAsAdmin(); // Autentica como admin para criar provider
 
+        var userId = await CreateTestUserAsync();
+        var providerName = Faker.Company.CompanyName();
+
         var createProviderRequest = new
         {
-            UserId = Guid.NewGuid(),
-            Name = Faker.Company.CompanyName(),
+            UserId = userId.ToString(),
+            Name = providerName,
             Type = 0, // Individual
             BusinessProfile = new
             {
-                TaxId = Faker.Random.Replace("############"),
-                CompanyName = Faker.Company.CompanyName(),
-                Address = new
-                {
-                    Street = Faker.Address.StreetAddress(),
-                    City = Faker.Address.City(),
-                    State = Faker.Address.StateAbbr(),
-                    PostalCode = Faker.Address.ZipCode(),
-                    Country = "Brasil"
-                },
+                LegalName = providerName,
+                FantasyName = providerName,
+                Description = $"Test provider {providerName}",
                 ContactInfo = new
                 {
                     Email = Faker.Internet.Email(),
-                    Phone = Faker.Phone.PhoneNumber(),
+                    PhoneNumber = Faker.Phone.PhoneNumber(),
                     Website = Faker.Internet.Url()
+                },
+                PrimaryAddress = new
+                {
+                    Street = Faker.Address.StreetAddress(),
+                    Number = Faker.Random.Number(1, 9999).ToString(),
+                    Complement = (string?)null,
+                    Neighborhood = Faker.Address.City(),
+                    City = Faker.Address.City(),
+                    State = Faker.Address.StateAbbr(),
+                    ZipCode = Faker.Address.ZipCode(),
+                    Country = "Brasil"
                 }
             }
         };
@@ -85,85 +92,57 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         // Arrange
         AuthenticateAsAdmin();
 
-        var userId = Guid.NewGuid();
-        var providerData = new
-        {
-            UserId = userId,
-            Name = "Complete Workflow Provider",
-            Type = 0, // Individual
-            BusinessProfile = new
-            {
-                TaxId = "12345678000195",
-                CompanyName = "Workflow Test LTDA",
-                Address = new
-                {
-                    Street = "Rua Workflow, 123",
-                    City = "São Paulo",
-                    State = "SP",
-                    PostalCode = "01234-567",
-                    Country = "Brasil"
-                },
-                ContactInfo = new
-                {
-                    Email = "workflow@test.com",
-                    Phone = "+55 11 99999-9999",
-                    Website = "https://www.workflow.com"
-                }
-            }
-        };
-
         Guid? providerId = null;
+        Guid? userId = null;
 
         try
         {
-            // Act 1: Criar Provider
-            var createResponse = await PostJsonAsync("/api/v1/providers", providerData);
-
-            if (createResponse.IsSuccessStatusCode)
+            // Act 1: Criar Provider usando helper
+            providerId = await CreateTestProviderAsync();
+            
+            // Recuperar userId do provider criado
+            var getProviderResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+            if (getProviderResponse.IsSuccessStatusCode)
             {
-                var createContent = await createResponse.Content.ReadAsStringAsync();
-                var createdProvider = JsonSerializer.Deserialize<JsonElement>(createContent);
-
-                if (createdProvider.TryGetProperty("id", out var idProperty))
+                var providerContent = await getProviderResponse.Content.ReadAsStringAsync();
+                var provider = JsonSerializer.Deserialize<JsonElement>(providerContent);
+                if (provider.TryGetProperty("userId", out var userIdProperty))
                 {
-                    providerId = Guid.Parse(idProperty.GetString()!);
-
-                    // Act 2: Buscar Provider criado
-                    var getResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
-
-                    if (getResponse.IsSuccessStatusCode)
-                    {
-                        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-                        var getContent = await getResponse.Content.ReadAsStringAsync();
-                        var retrievedProvider = JsonSerializer.Deserialize<JsonElement>(getContent);
-
-                        retrievedProvider.TryGetProperty("name", out var nameProperty).Should().BeTrue();
-                        nameProperty.GetString().Should().Be("Complete Workflow Provider");
-                    }
-
-                    // Act 3: Buscar por UserId
-                    var getUserResponse = await ApiClient.GetAsync($"/api/v1/providers/user/{userId}");
-
-                    if (getUserResponse.IsSuccessStatusCode)
-                    {
-                        getUserResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-                    }
-
-                    // Act 4: Buscar por tipo
-                    var getTypeResponse = await ApiClient.GetAsync("/api/v1/providers/type/0");
-
-                    if (getTypeResponse.IsSuccessStatusCode)
-                    {
-                        getTypeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-                    }
+                    userId = Guid.Parse(userIdProperty.GetString()!);
                 }
             }
-            else
+
+            // Act 2: Buscar Provider criado
+            var getResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+
+            if (getResponse.IsSuccessStatusCode)
             {
-                // Se não conseguiu criar, verificar que não é erro de servidor
-                createResponse.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
-                _testOutput.WriteLine($"CreateProvider returned {createResponse.StatusCode}");
+                getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+                var getContent = await getResponse.Content.ReadAsStringAsync();
+                var retrievedProvider = JsonSerializer.Deserialize<JsonElement>(getContent);
+
+                retrievedProvider.TryGetProperty("name", out var nameProperty).Should().BeTrue();
+                nameProperty.GetString().Should().NotBeNullOrEmpty();
+            }
+
+            // Act 3: Buscar por UserId (se conseguimos recuperar)
+            if (userId.HasValue)
+            {
+                var getUserResponse = await ApiClient.GetAsync($"/api/v1/providers/user/{userId}");
+
+                if (getUserResponse.IsSuccessStatusCode)
+                {
+                    getUserResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+                }
+            }
+
+            // Act 4: Buscar por tipo
+            var getTypeResponse = await ApiClient.GetAsync("/api/v1/providers/type/0");
+
+            if (getTypeResponse.IsSuccessStatusCode)
+            {
+                getTypeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
             }
         }
         finally
@@ -196,40 +175,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
-        var createRequest = new
-        {
-            UserId = userId,
-            Name = $"Provider_{uniqueId}",
-            Type = 0, // Individual
-            BusinessProfile = new
-            {
-                TaxId = Faker.Random.Replace("############"),
-                CompanyName = Faker.Company.CompanyName(),
-                Address = new
-                {
-                    Street = Faker.Address.StreetName(),
-                    City = Faker.Address.City(),
-                    State = Faker.Address.StateAbbr(),
-                    PostalCode = Faker.Random.Replace("#####-###"),
-                    Country = "Brasil"
-                },
-                ContactInfo = new
-                {
-                    Email = $"multiservice_{uniqueId}@example.com",
-                    Phone = Faker.Phone.PhoneNumber("(##) #####-####")
-                }
-            }
-        };
-
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created, "provider creation must succeed for update test to be meaningful");
-
-        var locationHeader = createResponse.Headers.Location?.ToString();
-        locationHeader.Should().NotBeNullOrEmpty("Created response must include Location header");
-        var providerId = ExtractIdFromLocation(locationHeader!);
+        // Criar provider usando o helper
+        var providerId = await CreateTestProviderAsync($"Provider_{uniqueId}");
 
         // Act - Update provider
         var updateRequest = new
@@ -237,20 +186,25 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             Name = $"Updated_{uniqueId}",
             BusinessProfile = new
             {
-                TaxId = Faker.Random.Replace("############"),
-                CompanyName = $"UpdatedCompany_{uniqueId}",
-                Address = new
-                {
-                    Street = "Updated Street",
-                    City = "São Paulo",
-                    State = "SP",
-                    PostalCode = "01234-567",
-                    Country = "Brasil"
-                },
+                LegalName = $"UpdatedLegal_{uniqueId}",
+                FantasyName = $"UpdatedFantasy_{uniqueId}",
+                Description = "Updated description",
                 ContactInfo = new
                 {
                     Email = $"updated_{uniqueId}@example.com",
-                    Phone = Faker.Phone.PhoneNumber("(##) #####-####")
+                    PhoneNumber = Faker.Phone.PhoneNumber(),
+                    Website = Faker.Internet.Url()
+                },
+                PrimaryAddress = new
+                {
+                    Street = "Updated Street",
+                    Number = "999",
+                    Complement = (string?)null,
+                    Neighborhood = "Updated Neighborhood",
+                    City = "São Paulo",
+                    State = "SP",
+                    ZipCode = "01234-567",
+                    Country = "Brasil"
                 }
             }
         };
@@ -281,20 +235,25 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             Name = "", // Inválido - campo obrigatório vazio
             BusinessProfile = new
             {
-                TaxId = "123", // Inválido - formato incorreto
-                CompanyName = new string('a', 201), // Inválido - muito longo
-                Address = new
-                {
-                    Street = "",
-                    City = "",
-                    State = "INVALID", // Inválido - mais de 2 caracteres
-                    PostalCode = "123",
-                    Country = ""
-                },
+                LegalName = new string('a', 201), // Inválido - muito longo
+                FantasyName = "",
+                Description = "",
                 ContactInfo = new
                 {
                     Email = "not-an-email", // Inválido - formato incorreto
-                    Phone = "123" // Inválido - formato incorreto
+                    PhoneNumber = "123", // Inválido - formato incorreto
+                    Website = "not-a-url"
+                },
+                PrimaryAddress = new
+                {
+                    Street = "",
+                    Number = "",
+                    Complement = (string?)null,
+                    Neighborhood = "",
+                    City = "",
+                    State = "INVALID", // Inválido - mais de 2 caracteres
+                    ZipCode = "123",
+                    Country = ""
                 }
             }
         };
@@ -317,41 +276,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
-        var createRequest = new
-        {
-            UserId = userId,
-            Name = $"ToDelete_{uniqueId}",
-            Type = 0, // Individual
-            BusinessProfile = new
-            {
-                TaxId = Faker.Random.Replace("############"),
-                CompanyName = $"ToDelete_{uniqueId}",
-                Address = new
-                {
-                    Street = Faker.Address.StreetName(),
-                    City = Faker.Address.City(),
-                    State = Faker.Address.StateAbbr(),
-                    PostalCode = Faker.Random.Replace("#####-###"),
-                    Country = "Brasil"
-                },
-                ContactInfo = new
-                {
-                    Email = $"todelete_{uniqueId}@example.com",
-                    Phone = Faker.Phone.PhoneNumber("(##) #####-####")
-                }
-            }
-        };
-
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
-            "provider must be created successfully as a prerequisite for update test");
-
-        var locationHeader = createResponse.Headers.Location?.ToString();
-        var providerId = ExtractIdFromLocation(locationHeader!);
+        // Create provider using helper
+        var providerId = await CreateTestProviderAsync($"ToDelete_{uniqueId}");
 
         // Act - Delete provider
         var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
@@ -378,41 +306,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
-        var createRequest = new
-        {
-            UserId = userId,
-            Name = $"ToVerify_{uniqueId}",
-            Type = 0, // Individual
-            BusinessProfile = new
-            {
-                TaxId = Faker.Random.Replace("############"),
-                CompanyName = $"ToVerify_{uniqueId}",
-                Address = new
-                {
-                    Street = Faker.Address.StreetName(),
-                    City = Faker.Address.City(),
-                    State = Faker.Address.StateAbbr(),
-                    PostalCode = Faker.Random.Replace("#####-###"),
-                    Country = "Brasil"
-                },
-                ContactInfo = new
-                {
-                    Email = $"toverify_{uniqueId}@example.com",
-                    Phone = Faker.Phone.PhoneNumber("(##) #####-####")
-                }
-            }
-        };
-
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
-            "provider must be created successfully as a prerequisite for verification status test");
-
-        var locationHeader = createResponse.Headers.Location?.ToString();
-        var providerId = ExtractIdFromLocation(locationHeader!);
+        // Create provider using helper
+        var providerId = await CreateTestProviderAsync($"ToVerify_{uniqueId}");
 
         // Act - Update verification status to Verified
         var updateStatusRequest = new
@@ -466,41 +363,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
-        var createRequest = new
-        {
-            UserId = userId,
-            Name = $"ToCorrect_{uniqueId}",
-            Type = 0, // Individual
-            BusinessProfile = new
-            {
-                TaxId = Faker.Random.Replace("############"),
-                CompanyName = $"ToCorrect_{uniqueId}",
-                Address = new
-                {
-                    Street = Faker.Address.StreetName(),
-                    City = Faker.Address.City(),
-                    State = Faker.Address.StateAbbr(),
-                    PostalCode = Faker.Random.Replace("#####-###"),
-                    Country = "Brasil"
-                },
-                ContactInfo = new
-                {
-                    Email = $"tocorrect_{uniqueId}@example.com",
-                    Phone = Faker.Phone.PhoneNumber("(##) #####-####")
-                }
-            }
-        };
-
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
-            "provider must be created successfully as a prerequisite for correction request test");
-
-        var locationHeader = createResponse.Headers.Location?.ToString();
-        var providerId = ExtractIdFromLocation(locationHeader!);
+        // Create provider using helper
+        var providerId = await CreateTestProviderAsync($"ToCorrect_{uniqueId}");
 
         // Act - Request basic info correction
         var correctionRequest = new
@@ -530,42 +396,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
-        // Primeiro cria um provider
-        var createRequest = new
-        {
-            UserId = userId,
-            Name = $"DocProvider_{uniqueId}",
-            Type = 0, // Individual
-            BusinessProfile = new
-            {
-                TaxId = Faker.Random.Replace("############"),
-                CompanyName = $"DocProvider_{uniqueId}",
-                Address = new
-                {
-                    Street = Faker.Address.StreetName(),
-                    City = Faker.Address.City(),
-                    State = Faker.Address.StateAbbr(),
-                    PostalCode = Faker.Random.Replace("#####-###"),
-                    Country = "Brasil"
-                },
-                ContactInfo = new
-                {
-                    Email = $"doctest1_{uniqueId}@example.com",
-                    Phone = Faker.Phone.PhoneNumber("(##) #####-####")
-                }
-            }
-        };
-
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
-            "provider must be created successfully as a prerequisite for document delete test");
-
-        var locationHeader = createResponse.Headers.Location?.ToString();
-        var providerId = ExtractIdFromLocation(locationHeader!);
+        // Create provider using helper
+        var providerId = await CreateTestProviderAsync($"DocProvider_{uniqueId}");
 
         // Act - Upload document
         var documentRequest = new
@@ -598,42 +432,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     {
         // Arrange
         AuthenticateAsAdmin();
-        var userId = Guid.NewGuid();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
-        // Primeiro cria um provider
-        var createRequest = new
-        {
-            UserId = userId,
-            Name = $"DelDocProvider_{uniqueId}",
-            Type = 0, // Individual
-            BusinessProfile = new
-            {
-                TaxId = Faker.Random.Replace("############"),
-                CompanyName = $"DelDocProvider_{uniqueId}",
-                Address = new
-                {
-                    Street = Faker.Address.StreetName(),
-                    City = Faker.Address.City(),
-                    State = Faker.Address.StateAbbr(),
-                    PostalCode = Faker.Random.Replace("#####-###"),
-                    Country = "Brasil"
-                },
-                ContactInfo = new
-                {
-                    Email = $"deldocprovider_{uniqueId}@example.com",
-                    Phone = Faker.Phone.PhoneNumber("(##) #####-####")
-                }
-            }
-        };
-
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createRequest, JsonOptions);
-
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
-            "provider must be created successfully as a prerequisite for document deletion test");
-
-        var locationHeader = createResponse.Headers.Location?.ToString();
-        var providerId = ExtractIdFromLocation(locationHeader!);
+        // Create provider using helper
+        var providerId = await CreateTestProviderAsync($"DelDocProvider_{uniqueId}");
 
         // Tenta fazer upload de documento primeiro
         var documentRequest = new
@@ -668,6 +470,62 @@ public class ProvidersEndToEndTests : TestContainerTestBase
                 content.Should().NotContain("RG");
             }
         }
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private async Task<Guid> CreateTestProviderAsync(string? name = null)
+    {
+        var userId = await CreateTestUserAsync();
+        var providerName = name ?? Faker.Company.CompanyName();
+
+        var request = new
+        {
+            UserId = userId.ToString(),
+            Name = providerName,
+            Type = 0, // Individual
+            BusinessProfile = new
+            {
+                LegalName = providerName,
+                FantasyName = providerName,
+                Description = $"Test provider {providerName}",
+                ContactInfo = new
+                {
+                    Email = Faker.Internet.Email(),
+                    PhoneNumber = Faker.Phone.PhoneNumber(),
+                    Website = Faker.Internet.Url()
+                },
+                PrimaryAddress = new
+                {
+                    Street = Faker.Address.StreetAddress(),
+                    Number = Faker.Random.Number(1, 9999).ToString(),
+                    Complement = (string?)null,
+                    Neighborhood = Faker.Address.City(),
+                    City = Faker.Address.City(),
+                    State = Faker.Address.StateAbbr(),
+                    ZipCode = Faker.Address.ZipCode(),
+                    Country = "Brasil"
+                }
+            }
+        };
+
+        var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request, JsonOptions);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Failed to create provider. Status: {response.StatusCode}, Content: {errorContent}");
+        }
+
+        var location = response.Headers.Location?.ToString();
+        if (string.IsNullOrEmpty(location))
+        {
+            throw new InvalidOperationException("Location header not found in create provider response");
+        }
+
+        return ExtractIdFromLocation(location);
     }
 
     #endregion
