@@ -13,13 +13,20 @@ namespace MeAjudaAi.E2E.Tests.Modules.SearchProviders;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "SearchProviders")]
-public class SearchProvidersEndToEndTests : TestContainerTestBase
+public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public SearchProvidersEndToEndTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     [Fact]
     public async Task SearchProviders_CompleteWorkflow_ShouldFindProvidersWithinRadius()
     {
         // Arrange - Criar Provider dentro do raio de busca
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         
         // São Paulo coordinates
         var searchLatitude = -23.5505;
@@ -34,13 +41,13 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
         );
 
         // Act
-        var response = await ApiClient.GetAsync(
+        var response = await _fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
         result.Items.Should().Contain(p => p.ProviderId == nearbyProvider);
@@ -50,7 +57,7 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
     public async Task SearchProviders_ShouldExcludeProvidersOutsideRadius()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;
         var searchLongitude = -46.6333;
@@ -64,13 +71,13 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
         );
 
         // Act
-        var response = await ApiClient.GetAsync(
+        var response = await _fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={smallRadius}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         result!.Items.Should().NotContain(p => p.ProviderId == distantProviderId,
             "Provider outside radius should not appear in results");
@@ -80,7 +87,7 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
     public async Task SearchProviders_WithServiceFilter_ShouldReturnOnlyMatchingProviders()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;
         var searchLongitude = -46.6333;
@@ -110,13 +117,13 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
         await AddServiceToProviderAsync(gardenProviderId, gardenServiceId);
 
         // Act - Buscar apenas por serviço de limpeza
-        var response = await ApiClient.GetAsync(
+        var response = await _fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}&serviceIds={cleaningServiceId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         result!.Items.Should().Contain(p => p.ProviderId == cleaningProviderId,
             "Provider with cleaning service should be found");
@@ -128,7 +135,7 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
     public async Task SearchProviders_WithMultipleServiceFilters_ShouldReturnProvidersWithAnyService()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;
         var searchLongitude = -46.6333;
@@ -145,13 +152,13 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
         await AddServiceToProviderAsync(plumberId, plumbingServiceId);
 
         // Act - Buscar por ambos os serviços
-        var response = await ApiClient.GetAsync(
+        var response = await _fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}&serviceIds={electricalServiceId}&serviceIds={plumbingServiceId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         result!.Items.Should().Contain(p => p.ProviderId == electricianId);
         result!.Items.Should().Contain(p => p.ProviderId == plumberId);
@@ -161,7 +168,7 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
     public async Task SearchProviders_ShouldOrderBySubscriptionTier_ThenByRating_ThenByDistance()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;
         var searchLongitude = -46.6333;
@@ -192,13 +199,13 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
         );
 
         // Act
-        var response = await ApiClient.GetAsync(
+        var response = await _fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}&page=1&pageSize=50");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         result!.Items.Should().NotBeEmpty();
 
@@ -217,7 +224,7 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
     public async Task SearchProviders_WithMinRatingFilter_ShouldExcludeLowRatedProviders()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;
         var searchLongitude = -46.6333;
@@ -228,14 +235,14 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
         // Em ambiente de teste, providers novos terão rating 0 ou null
 
         // Act
-        var response = await ApiClient.GetAsync(
+        var response = await _fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}&minRating={minRating}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK,
             "Search with minRating filter should succeed");
         
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
         result.Should().NotBeNull();
         
         // All returned providers should have rating >= minRating
@@ -250,7 +257,7 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
     public async Task SearchProviders_WithPagination_ShouldRespectPageSizeAndNumber()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;
         var searchLongitude = -46.6333;
@@ -268,19 +275,19 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
         }
 
         // Act - Página 1
-        var page1Response = await ApiClient.GetAsync(
+        var page1Response = await _fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}&page=1&pageSize={pageSize}");
 
         // Act - Página 2
-        var page2Response = await ApiClient.GetAsync(
+        var page2Response = await _fixture.ApiClient.GetAsync(
             $"/api/v1/search/providers?latitude={searchLatitude}&longitude={searchLongitude}&radiusInKm={radiusInKm}&page=2&pageSize={pageSize}");
 
         // Assert
         page1Response.StatusCode.Should().Be(HttpStatusCode.OK);
         page2Response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var page1Result = await page1Response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
-        var page2Result = await page2Response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(JsonOptions);
+        var page1Result = await page1Response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
+        var page2Result = await page2Response.Content.ReadFromJsonAsync<PagedResult<SearchableProviderDto>>(TestContainerFixture.JsonOptions);
 
         page1Result.Should().NotBeNull();
         page2Result.Should().NotBeNull();
@@ -307,10 +314,10 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
         string subscriptionTier = "Free")
     {
         // Ensure authenticated as admin to create providers
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         
         // Criar um usuário primeiro
-        var userId = await CreateTestUserAsync();
+        var userId = await _fixture.CreateTestUserAsync();
 
         // NOTA: latitude e longitude são parâmetros mas não podemos usá-los diretamente
         // pois o sistema geocodifica o endereço automaticamente via Locations API.
@@ -346,13 +353,13 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
             }
         };
 
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request, JsonOptions);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var location = response.Headers.Location?.ToString();
         location.Should().NotBeNullOrEmpty();
         
-        var providerId = ExtractIdFromLocation(location!);
+        var providerId = TestContainerFixture.ExtractIdFromLocation(location!);
 
         // Verificar o provider para que ele seja indexado no SearchProviders
         var verifyRequest = new
@@ -361,12 +368,12 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
             Reason = "Test verification for search indexing"
         };
 
-        var verifyResponse = await ApiClient.PutAsJsonAsync(
+        var verifyResponse = await _fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/providers/{providerId}/verification-status",
             verifyRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
-        // Se falhar a verificação, continue silenciosamente (provider ainda foi criado)
+        // Verificação deve ter sucesso para garantir que o provider está no estado correto
         verifyResponse.EnsureSuccessStatusCode();
 
         // Pequeno delay para permitir indexação assíncrona
@@ -384,12 +391,12 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
             DisplayOrder = 1
         };
 
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", request, JsonOptions);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", request, TestContainerFixture.JsonOptions);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var location = response.Headers.Location?.ToString();
         location.Should().NotBeNullOrEmpty();
-        return ExtractIdFromLocation(location!);
+        return TestContainerFixture.ExtractIdFromLocation(location!);
     }
 
     private async Task<Guid> CreateServiceAsync(Guid categoryId, string name)
@@ -402,17 +409,17 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
             DisplayOrder = 1
         };
 
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request, JsonOptions);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", request, TestContainerFixture.JsonOptions);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var location = response.Headers.Location?.ToString();
         location.Should().NotBeNullOrEmpty();
-        return ExtractIdFromLocation(location!);
+        return TestContainerFixture.ExtractIdFromLocation(location!);
     }
 
     private async Task AddServiceToProviderAsync(Guid providerId, Guid serviceId)
     {
-        var response = await ApiClient.PutAsync(
+        var response = await _fixture.ApiClient.PutAsync(
             $"/api/v1/providers/{providerId}/services/{serviceId}",
             null);
         

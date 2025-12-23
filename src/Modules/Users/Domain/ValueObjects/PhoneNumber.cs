@@ -7,8 +7,15 @@ namespace MeAjudaAi.Modules.Users.Domain.ValueObjects;
 /// </summary>
 public class PhoneNumber : ValueObject
 {
-    public string Value { get; }
-    public string CountryCode { get; }
+    public string Value { get; private set; } = string.Empty;
+    public string CountryCode { get; private set; } = "BR";
+
+    // Construtor privado para EF Core
+    #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor
+    private PhoneNumber()
+    {
+    }
+    #pragma warning restore CS8618
 
     public PhoneNumber(string value, string countryCode = "BR")
     {

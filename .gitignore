@@ -147,3 +147,5 @@ legacy-analysis-report.*
 
 # MkDocs build output
 site/
+
+test_debug.txt

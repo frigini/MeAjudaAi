@@ -13,15 +13,22 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Infrastructure")]
-public sealed class MiddlewareEndToEndTests : TestContainerTestBase
+public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public MiddlewareEndToEndTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     #region BusinessMetricsMiddleware - Rotas Versionadas
 
     [Fact]
     public async Task BusinessMetrics_UserCreation_ShouldRecordMetric()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var request = new
         {
@@ -29,11 +36,13 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
             Email = $"metrics.{uniqueId}@example.com",
             Password = "ValidPass123!",
             Role = "User",
-            PhoneNumber = "+5511999999999"
+            PhoneNumber = "+5511999999999",
+            FirstName = "Metrics",
+            LastName = "User"
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", request);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -46,8 +55,8 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task BusinessMetrics_Authentication_ShouldProcess()
     {
         // Arrange & Act
-        AuthenticateAsUser();
-        var response = await ApiClient.GetAsync("/api/v1/users");
+        TestContainerFixture.AuthenticateAsUser();
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Forbidden);
@@ -64,12 +73,12 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     {
         // Arrange
         var customCorrelationId = Guid.NewGuid().ToString();
-        ApiClient.DefaultRequestHeaders.Add(AuthConstants.Headers.CorrelationId, customCorrelationId);
+        _fixture.ApiClient.DefaultRequestHeaders.Add(AuthConstants.Headers.CorrelationId, customCorrelationId);
 
         try
         {
             // Act
-            var response = await ApiClient.GetAsync("/health");
+            var response = await _fixture.ApiClient.GetAsync("/health");
 
             // Assert
             response.Headers.Should().ContainKey(AuthConstants.Headers.CorrelationId);
@@ -78,7 +87,7 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
         }
         finally
         {
-            ApiClient.DefaultRequestHeaders.Remove(AuthConstants.Headers.CorrelationId);
+            _fixture.ApiClient.DefaultRequestHeaders.Remove(AuthConstants.Headers.CorrelationId);
         }
     }
 
@@ -86,10 +95,10 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task LoggingContext_NoCorrelationId_ShouldGenerateNew()
     {
         // Arrange
-        ApiClient.DefaultRequestHeaders.Remove(AuthConstants.Headers.CorrelationId);
+        _fixture.ApiClient.DefaultRequestHeaders.Remove(AuthConstants.Headers.CorrelationId);
 
         // Act
-        var response = await ApiClient.GetAsync("/health");
+        var response = await _fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.Headers.Should().ContainKey(AuthConstants.Headers.CorrelationId);
@@ -106,7 +115,7 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task RequestLogging_ShouldCaptureSuccessfulRequest()
     {
         // Arrange & Act
-        var response = await ApiClient.GetAsync("/health");
+        var response = await _fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -119,10 +128,10 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task RequestLogging_ShouldCaptureFailedRequest()
     {
         // Arrange
-        AuthenticateAsUser();
+        TestContainerFixture.AuthenticateAsUser();
 
         // Act
-        var response = await ApiClient.GetAsync("/api/v1/users/99999999-9999-9999-9999-999999999999");
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/users/99999999-9999-9999-9999-999999999999");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -134,12 +143,12 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task RequestLogging_WithCustomHeaders_ShouldCaptureClientInfo()
     {
         // Arrange
-        ApiClient.DefaultRequestHeaders.Add("User-Agent", "E2E-Test-Client/1.0");
+        _fixture.ApiClient.DefaultRequestHeaders.Add("User-Agent", "E2E-Test-Client/1.0");
 
         try
         {
             // Act
-            var response = await ApiClient.GetAsync("/health");
+            var response = await _fixture.ApiClient.GetAsync("/health");
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -148,7 +157,7 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
         }
         finally
         {
-            ApiClient.DefaultRequestHeaders.Remove("User-Agent");
+            _fixture.ApiClient.DefaultRequestHeaders.Remove("User-Agent");
         }
     }
 
@@ -160,7 +169,7 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task SecurityHeaders_ShouldIncludeXContentTypeOptions()
     {
         // Arrange & Act
-        var response = await ApiClient.GetAsync("/health");
+        var response = await _fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.Headers.Should().Contain(h => h.Key == "X-Content-Type-Options");
@@ -172,7 +181,7 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task SecurityHeaders_ShouldIncludeXFrameOptions()
     {
         // Arrange & Act
-        var response = await ApiClient.GetAsync("/health");
+        var response = await _fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.Headers.Should().Contain(h => h.Key == "X-Frame-Options");
@@ -182,7 +191,7 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task SecurityHeaders_ShouldIncludeContentSecurityPolicy()
     {
         // Arrange & Act
-        var response = await ApiClient.GetAsync("/health");
+        var response = await _fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.Headers.Should().Contain(h => h.Key == "Content-Security-Policy");
@@ -196,14 +205,14 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task CompressionSecurity_AuthenticatedUser_ShouldDisableCompression()
     {
         // Arrange
-        AuthenticateAsUser();
+        TestContainerFixture.AuthenticateAsUser();
         
         try
         {
-            ApiClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+            _fixture.ApiClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
             // Act
-            var response = await ApiClient.GetAsync("/api/v1/users");
+            var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK, "endpoint should return success");
@@ -215,7 +224,7 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
         }
         finally
         {
-            ApiClient.DefaultRequestHeaders.Remove("Accept-Encoding");
+            _fixture.ApiClient.DefaultRequestHeaders.Remove("Accept-Encoding");
         }
     }
 
@@ -223,18 +232,23 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task CompressionSecurity_AnonymousUser_ShouldAllowCompression()
     {
         // Arrange
-        ApiClient.DefaultRequestHeaders.Remove("Authorization");
-        ApiClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+        _fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
+        _fixture.ApiClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 
-        // Act
-        var response = await ApiClient.GetAsync("/health");
+        try
+        {
+            // Act
+            var response = await _fixture.ApiClient.GetAsync("/health");
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
-        // Para usuários anônimos, compressão pode estar habilitada
-        
-        ApiClient.DefaultRequestHeaders.Remove("Accept-Encoding");
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            
+            // Para usuários anônimos, compressão pode estar habilitada
+        }
+        finally
+        {
+            _fixture.ApiClient.DefaultRequestHeaders.Remove("Accept-Encoding");
+        }
     }
 
     #endregion
@@ -245,11 +259,11 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task ExceptionHandler_NotFound_ShouldReturnProblemDetails()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var response = await ApiClient.GetAsync($"/api/v1/users/{nonExistentId}");
+        var response = await _fixture.ApiClient.GetAsync($"/api/v1/users/{nonExistentId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -268,18 +282,20 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task ExceptionHandler_BadRequest_ShouldReturnProblemDetails()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var invalidRequest = new
         {
             Username = "", // Inválido - vazio
             Email = "not-an-email", // Inválido - formato
             Password = "123", // Inválido - muito curto
             Role = "InvalidRole", // Inválido - role não existente
-            PhoneNumber = "+5511999999999"
+            PhoneNumber = "+5511999999999",
+            FirstName = "Test",
+            LastName = "User"
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -301,10 +317,10 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
     public async Task ExceptionHandler_Unauthorized_ShouldReturnProblemDetails()
     {
         // Arrange - sem autenticação
-        ApiClient.DefaultRequestHeaders.Remove("Authorization");
+        _fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
 
         // Act - tentar acessar endpoint protegido
-        var response = await ApiClient.GetAsync("/api/v1/users");
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);

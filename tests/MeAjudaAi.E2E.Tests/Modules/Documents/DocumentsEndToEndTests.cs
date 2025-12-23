@@ -15,8 +15,15 @@ namespace MeAjudaAi.E2E.Tests.Modules.Documents;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Documents")]
-public class DocumentsEndToEndTests : TestContainerTestBase
+public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public DocumentsEndToEndTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     #region Helper Methods
 
     private async Task WaitForProviderAsync(Guid providerId, int maxAttempts = 10)
@@ -26,7 +33,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         {
             try
             {
-                var response = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+                var response = await _fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
                 if (response.IsSuccessStatusCode)
                 {
                     return;
@@ -55,7 +62,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
     public async Task UploadDocument_Should_CreateDocumentInDatabase()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var providerId = Guid.NewGuid();
 
         var uploadRequest = new
@@ -68,20 +75,20 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await PostJsonAsync("/api/v1/documents/upload", uploadRequest);
+        var response = await _fixture.PostJsonAsync("/api/v1/documents/upload", uploadRequest);
 
         // Assert
         // O container Azurite é criado automaticamente por AzureBlobStorageService.EnsureContainerExistsAsync
         if (response.StatusCode == HttpStatusCode.OK)
         {
             var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
+            var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
             result.TryGetProperty("documentId", out var documentIdElement).Should().BeTrue();
             var documentId = Guid.Parse(documentIdElement.GetString()!);
 
             // Verify database persistence
-            await WithServiceScopeAsync(async services =>
+            await _fixture.WithServiceScopeAsync(async services =>
             {
                 var dbContext = services.GetRequiredService<DocumentsDbContext>();
                 var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
@@ -109,7 +116,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         Guid documentId = Guid.Empty;
 
         // Create document directly in database
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
 
@@ -124,16 +131,16 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             documentId = document.Id;
         });
 
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // Act
-        var response = await ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
+        var response = await _fixture.ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
+        var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
         result.TryGetProperty("id", out var idElement).Should().BeTrue();
         Guid.Parse(idElement.GetString()!).Should().Be(documentId);
@@ -150,7 +157,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var providerId = Guid.NewGuid();
 
         // Create multiple documents for provider
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
 
@@ -162,16 +169,16 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             await dbContext.SaveChangesAsync();
         });
 
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // Act
-        var response = await ApiClient.GetAsync($"/api/v1/documents/provider/{providerId}");
+        var response = await _fixture.ApiClient.GetAsync($"/api/v1/documents/provider/{providerId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var content = await response.Content.ReadAsStringAsync();
-        var documents = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
+        var documents = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
 
         documents.ValueKind.Should().Be(JsonValueKind.Array);
         documents.GetArrayLength().Should().Be(3);
@@ -188,7 +195,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var providerId = Guid.NewGuid();
         Guid documentId = Guid.Empty;
 
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
 
@@ -213,7 +220,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         });
 
         // Assert - Verify persisted status
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
             var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
@@ -236,7 +243,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var provider2 = Guid.NewGuid();
 
         // Act - Create documents for different providers
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
 
@@ -249,7 +256,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         });
 
         // Assert - Verify isolation between providers
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
 
@@ -274,7 +281,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
     public async Task DocumentLifecycle_UploadAndVerification_ShouldCompleteProperly()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var providerId = Guid.NewGuid();
 
         // Act - Upload document
@@ -287,7 +294,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             FileSizeBytes = 51200
         };
 
-        var uploadResponse = await PostJsonAsync("/api/v1/documents/upload", uploadRequest);
+        var uploadResponse = await _fixture.PostJsonAsync("/api/v1/documents/upload", uploadRequest);
 
         if (uploadResponse.StatusCode != HttpStatusCode.OK)
         {
@@ -299,7 +306,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         }
 
         var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
-        var uploadResult = JsonSerializer.Deserialize<JsonElement>(uploadContent, JsonOptions);
+        var uploadResult = JsonSerializer.Deserialize<JsonElement>(uploadContent, TestContainerFixture.JsonOptions);
         var documentId = Guid.Parse(uploadResult.GetProperty("documentId").GetString()!);
 
         // Act - Marca como verificado
@@ -310,13 +317,13 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             VerificationNotes = "Document verification completed successfully"
         };
 
-        var verifyResponse = await PostJsonAsync("/api/v1/documents/verify", verifyRequest);
+        var verifyResponse = await _fixture.PostJsonAsync("/api/v1/documents/verify", verifyRequest);
 
         // Assert - Verification should succeed
         verifyResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
 
         // Assert - Verify status change in database
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
             var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
@@ -334,7 +341,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var providerId = Guid.NewGuid();
         Guid documentId = Guid.Empty;
 
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
             var document = Document.Create(
@@ -348,7 +355,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             documentId = document.Id;
         });
 
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // Act - Reject document
         var rejectRequest = new
@@ -358,12 +365,12 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             VerificationNotes = "Document is not legible"
         };
 
-        var rejectResponse = await PostJsonAsync("/api/v1/documents/verify", rejectRequest);
+        var rejectResponse = await _fixture.PostJsonAsync("/api/v1/documents/verify", rejectRequest);
 
         // Assert
         rejectResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
 
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
             var document = await dbContext.Documents.FirstOrDefaultAsync(d => d.Id == documentId);
@@ -381,7 +388,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var providerId = Guid.NewGuid();
         var documentIds = new List<Guid>();
 
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
 
@@ -398,7 +405,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             documentIds.Add(doc3.Id);
         });
 
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // Act - Verify first identity document
         var verify1 = new
@@ -407,7 +414,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             IsVerified = true,
             VerificationNotes = "First version verified"
         };
-        await PostJsonAsync("/api/v1/documents/verify", verify1);
+        await _fixture.PostJsonAsync("/api/v1/documents/verify", verify1);
 
         // Act - Reject second identity document
         var verify2 = new
@@ -416,10 +423,10 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             IsVerified = false,
             VerificationNotes = "Second version rejected - blurry image"
         };
-        await PostJsonAsync("/api/v1/documents/verify", verify2);
+        await _fixture.PostJsonAsync("/api/v1/documents/verify", verify2);
 
         // Assert - Verify complete history
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
             var allDocs = await dbContext.Documents
@@ -462,7 +469,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
     public async Task RequestDocumentVerification_Should_UpdateStatus()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // Create a valid provider first to ensure ProviderId exists
         var createProviderRequest = new
@@ -495,12 +502,12 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             }
         };
 
-        var providerResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", createProviderRequest, JsonOptions);
+        var providerResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", createProviderRequest, TestContainerFixture.JsonOptions);
         providerResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Provider creation should succeed");
 
         var providerLocation = providerResponse.Headers.Location?.ToString();
         providerLocation.Should().NotBeNullOrEmpty("Provider creation should return Location header");
-        var providerId = ExtractIdFromLocation(providerLocation!);
+        var providerId = TestContainerFixture.ExtractIdFromLocation(providerLocation!);
 
         // Wait for provider to be fully persisted (eventual consistency)
         await WaitForProviderAsync(providerId);
@@ -515,8 +522,8 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             FileSizeBytes = 1024L
         };
 
-        AuthenticateAsAdmin(); // POST upload requer autorização
-        var uploadResponse = await ApiClient.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest, JsonOptions);
+        TestContainerFixture.AuthenticateAsAdmin(); // POST upload requer autorização
+        var uploadResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/documents/upload", uploadRequest, TestContainerFixture.JsonOptions);
 
         var uploadContent = await uploadResponse.Content.ReadAsStringAsync();
         uploadResponse.IsSuccessStatusCode.Should().BeTrue(
@@ -530,7 +537,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         {
             var locationHeader = uploadResponse.Headers.Location?.ToString();
             locationHeader.Should().NotBeNullOrEmpty("Created response must include Location header");
-            documentId = ExtractIdFromLocation(locationHeader!);
+            documentId = TestContainerFixture.ExtractIdFromLocation(locationHeader!);
         }
         else
         {
@@ -549,10 +556,10 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             Priority = "Normal"
         };
 
-        var response = await ApiClient.PostAsJsonAsync(
+        var response = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/documents/{documentId}/verify",
             verificationRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert - Success path only (no BadRequest)
         response.StatusCode.Should().BeOneOf(
@@ -561,8 +568,8 @@ public class DocumentsEndToEndTests : TestContainerTestBase
             HttpStatusCode.NoContent);
 
         // Se a verificação foi aceita, verifica o status do documento
-        AuthenticateAsAdmin(); // GET requer autorização
-        var statusResponse = await ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
+        TestContainerFixture.AuthenticateAsAdmin(); // GET requer autorização
+        var statusResponse = await _fixture.ApiClient.GetAsync($"/api/v1/documents/{documentId}/status");
         statusResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Status endpoint should be available after successful verification");
 
@@ -591,7 +598,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
     public async Task RequestDocumentVerification_WithNonExistentDocument_Should_ReturnNotFound()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var documentId = Guid.NewGuid(); // Non-existent document
 
         var verificationRequest = new
@@ -601,10 +608,10 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync(
+        var response = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/documents/{documentId}/verify",
             verificationRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert - Only NotFound is expected for non-existent documents
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -614,7 +621,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
     public async Task RequestDocumentVerification_WithInvalidData_Should_ReturnBadRequest()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var documentId = Guid.NewGuid();
 
         var invalidRequest = new
@@ -624,10 +631,10 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync(
+        var response = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/documents/{documentId}/verify",
             invalidRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert - Pode retornar BadRequest (validação) ou NotFound (documento não existe)
         // A ordem de validação pode variar
@@ -647,7 +654,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var providerId = Guid.NewGuid();
         Guid documentId = Guid.Empty;
 
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
             var document = Document.Create(
@@ -663,7 +670,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
 
         // Act - Simular processamento OCR (normalmente feito via job em background)
         // Em E2E, verificar se o serviço está disponível
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
             
@@ -690,7 +697,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
     public async Task OcrService_WithInvalidUrl_ShouldHandleGracefully()
     {
         // Arrange & Act - Verificar que serviço OCR lida com URLs inválidas
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
             
@@ -717,7 +724,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         var documentType = "identity";
 
         // Act & Assert
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
             
@@ -751,7 +758,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
         // Arrange - Criar documento com dados OCR
         var providerId = Guid.NewGuid();
 
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var dbContext = services.GetRequiredService<DocumentsDbContext>();
             var document = Document.Create(
@@ -789,7 +796,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
     public async Task OcrService_WithLowConfidence_ShouldHandleAppropriately()
     {
         // Arrange & Act
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
             
@@ -815,7 +822,7 @@ public class DocumentsEndToEndTests : TestContainerTestBase
     public async Task OcrService_WithError_ShouldReturnFailureResult()
     {
         // Arrange & Act
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var ocrService = services.GetService<MeAjudaAi.Modules.Documents.Application.Interfaces.IDocumentIntelligenceService>();
             

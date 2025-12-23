@@ -12,8 +12,15 @@ namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Providers")]
-public class ProvidersEndToEndTests : TestContainerTestBase
+public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public ProvidersEndToEndTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     private readonly ITestOutputHelper _testOutput;
 
     public ProvidersEndToEndTests(ITestOutputHelper testOutput)
@@ -27,10 +34,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     public async Task CreateProvider_Should_Return_Success()
     {
         // Arrange
-        AuthenticateAsAdmin(); // Autentica como admin para criar provider
+        TestContainerFixture.AuthenticateAsAdmin(); // Autentica como admin para criar provider
 
-        var userId = await CreateTestUserAsync();
-        var providerName = Faker.Company.CompanyName();
+        var userId = await _fixture.CreateTestUserAsync();
+        var providerName = _fixture.Faker.Company.CompanyName();
 
         var createProviderRequest = new
         {
@@ -44,26 +51,26 @@ public class ProvidersEndToEndTests : TestContainerTestBase
                 Description = $"Test provider {providerName}",
                 ContactInfo = new
                 {
-                    Email = Faker.Internet.Email(),
-                    PhoneNumber = Faker.Phone.PhoneNumber(),
-                    Website = Faker.Internet.Url()
+                    Email = _fixture.Faker.Internet.Email(),
+                    PhoneNumber = _fixture.Faker.Phone.PhoneNumber(),
+                    Website = _fixture.Faker.Internet.Url()
                 },
                 PrimaryAddress = new
                 {
-                    Street = Faker.Address.StreetAddress(),
-                    Number = Faker.Random.Number(1, 9999).ToString(),
+                    Street = _fixture.Faker.Address.StreetAddress(),
+                    Number = _fixture.Faker.Random.Number(1, 9999).ToString(),
                     Complement = (string?)null,
-                    Neighborhood = Faker.Address.City(),
-                    City = Faker.Address.City(),
-                    State = Faker.Address.StateAbbr(),
-                    ZipCode = Faker.Address.ZipCode(),
+                    Neighborhood = _fixture.Faker.Address.City(),
+                    City = _fixture.Faker.Address.City(),
+                    State = _fixture.Faker.Address.StateAbbr(),
+                    ZipCode = _fixture.Faker.Address.ZipCode(),
                     Country = "Brasil"
                 }
             }
         };
 
         // Act
-        var response = await PostJsonAsync("/api/v1/providers", createProviderRequest);
+        var response = await _fixture.PostJsonAsync("/api/v1/providers", createProviderRequest);
 
         // Assert
         if (response.StatusCode != HttpStatusCode.Created)
@@ -90,7 +97,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     public async Task CompleteProviderWorkflow_Should_Work()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         Guid? providerId = null;
         Guid? userId = null;
@@ -101,7 +108,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             providerId = await CreateTestProviderAsync();
             
             // Recuperar userId do provider criado
-            var getProviderResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+            var getProviderResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
             if (getProviderResponse.IsSuccessStatusCode)
             {
                 var providerContent = await getProviderResponse.Content.ReadAsStringAsync();
@@ -113,7 +120,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             }
 
             // Act 2: Buscar Provider criado
-            var getResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+            var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
 
             if (getResponse.IsSuccessStatusCode)
             {
@@ -137,7 +144,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             // Act 3: Buscar por UserId (se conseguimos recuperar)
             if (userId.HasValue)
             {
-                var getUserResponse = await ApiClient.GetAsync($"/api/v1/providers/user/{userId}");
+                var getUserResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/user/{userId}");
 
                 if (getUserResponse.IsSuccessStatusCode)
                 {
@@ -146,7 +153,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             }
 
             // Act 4: Buscar por tipo
-            var getTypeResponse = await ApiClient.GetAsync("/api/v1/providers/type/0");
+            var getTypeResponse = await _fixture.ApiClient.GetAsync("/api/v1/providers/type/0");
 
             if (getTypeResponse.IsSuccessStatusCode)
             {
@@ -160,7 +167,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             {
                 try
                 {
-                    var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
+                    var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
                     _testOutput.WriteLine($"Cleanup delete returned {deleteResponse.StatusCode}");
                 }
                 catch (Exception ex)
@@ -182,7 +189,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     public async Task UpdateProvider_WithValidData_Should_Return_Success()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         // Criar provider usando o helper
@@ -200,8 +207,8 @@ public class ProvidersEndToEndTests : TestContainerTestBase
                 ContactInfo = new
                 {
                     Email = $"updated_{uniqueId}@example.com",
-                    PhoneNumber = Faker.Phone.PhoneNumber(),
-                    Website = Faker.Internet.Url()
+                    PhoneNumber = _fixture.Faker.Phone.PhoneNumber(),
+                    Website = _fixture.Faker.Internet.Url()
                 },
                 PrimaryAddress = new
                 {
@@ -217,7 +224,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             }
         };
 
-        var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", updateRequest, JsonOptions);
+        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", updateRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         updateResponse.StatusCode.Should().BeOneOf(
@@ -235,7 +242,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     public async Task UpdateProvider_WithInvalidData_Should_Return_BadRequest()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var providerId = Guid.NewGuid();
 
         var invalidRequest = new
@@ -267,7 +274,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", invalidRequest, JsonOptions);
+        var response = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", invalidRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().BeOneOf(
@@ -283,14 +290,14 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     public async Task DeleteProvider_WithoutDocuments_Should_Return_Success()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         // Create provider using helper
         var providerId = await CreateTestProviderAsync($"ToDelete_{uniqueId}");
 
         // Act - Delete provider
-        var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
+        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
 
         // Assert
         deleteResponse.StatusCode.Should().BeOneOf(
@@ -300,7 +307,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         // Verify provider is deleted
         if (deleteResponse.IsSuccessStatusCode)
         {
-            var getResponse = await ApiClient.GetAsync($"/api/v1/providers/{providerId}");
+            var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/providers/{providerId}");
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
     }
@@ -313,7 +320,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     public async Task UpdateVerificationStatus_ToVerified_Should_Succeed()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         // Create provider using helper
@@ -326,10 +333,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             Reason = "Verification completed successfully"
         };
 
-        var updateResponse = await ApiClient.PutAsJsonAsync(
+        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/providers/{providerId}/verification-status",
             updateStatusRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert
         updateResponse.StatusCode.Should().BeOneOf(
@@ -341,7 +348,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     public async Task UpdateVerificationStatus_InvalidTransition_Should_Fail()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var providerId = Guid.NewGuid(); // Provider inexistente
 
         var invalidRequest = new
@@ -351,10 +358,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PutAsJsonAsync(
+        var response = await _fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/providers/{providerId}/verification-status",
             invalidRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().BeOneOf(
@@ -370,7 +377,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     public async Task RequestBasicInfoCorrection_Should_TriggerWorkflow()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         // Create provider using helper
@@ -383,10 +390,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             RequestedFields = new[] { "TaxId", "CompanyName" }
         };
 
-        var response = await ApiClient.PostAsJsonAsync(
+        var response = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/providers/{providerId}/require-basic-info-correction",
             correctionRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().BeOneOf(
@@ -403,7 +410,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     public async Task UploadProviderDocument_Should_Return_Success()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         // Create provider using helper
@@ -416,10 +423,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             DocumentType = 3 // RG (EDocumentType enum value)
         };
 
-        var addDocumentResponse = await ApiClient.PostAsJsonAsync(
+        var addDocumentResponse = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/providers/{providerId}/documents",
             documentRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Debug output
         if (!addDocumentResponse.IsSuccessStatusCode)
@@ -440,7 +447,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     public async Task DeleteProviderDocument_Should_Return_Success()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         // Create provider using helper
@@ -453,13 +460,13 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             DocumentType = 3 // RG (EDocumentType enum value)
         };
 
-        var addDocumentResponse = await ApiClient.PostAsJsonAsync(
+        var addDocumentResponse = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/providers/{providerId}/documents",
             documentRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Act - Delete document (usando o DocumentType como identificador)
-        var deleteResponse = await ApiClient.DeleteAsync(
+        var deleteResponse = await _fixture.ApiClient.DeleteAsync(
             $"/api/v1/providers/{providerId}/documents/{documentRequest.DocumentType}");
 
         // Assert
@@ -475,10 +482,10 @@ public class ProvidersEndToEndTests : TestContainerTestBase
     private async Task<Guid> CreateTestProviderAsync(string? name = null)
     {
         // Ensure authenticated as admin to create providers
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         
-        var userId = await CreateTestUserAsync();
-        var providerName = name ?? Faker.Company.CompanyName();
+        var userId = await _fixture.CreateTestUserAsync();
+        var providerName = name ?? _fixture.Faker.Company.CompanyName();
 
         var request = new
         {
@@ -492,25 +499,25 @@ public class ProvidersEndToEndTests : TestContainerTestBase
                 Description = $"Test provider {providerName}",
                 ContactInfo = new
                 {
-                    Email = Faker.Internet.Email(),
-                    PhoneNumber = Faker.Phone.PhoneNumber(),
-                    Website = Faker.Internet.Url()
+                    Email = _fixture.Faker.Internet.Email(),
+                    PhoneNumber = _fixture.Faker.Phone.PhoneNumber(),
+                    Website = _fixture.Faker.Internet.Url()
                 },
                 PrimaryAddress = new
                 {
-                    Street = Faker.Address.StreetAddress(),
-                    Number = Faker.Random.Number(1, 9999).ToString(),
+                    Street = _fixture.Faker.Address.StreetAddress(),
+                    Number = _fixture.Faker.Random.Number(1, 9999).ToString(),
                     Complement = (string?)null,
-                    Neighborhood = Faker.Address.City(),
-                    City = Faker.Address.City(),
-                    State = Faker.Address.StateAbbr(),
-                    ZipCode = Faker.Address.ZipCode(),
+                    Neighborhood = _fixture.Faker.Address.City(),
+                    City = _fixture.Faker.Address.City(),
+                    State = _fixture.Faker.Address.StateAbbr(),
+                    ZipCode = _fixture.Faker.Address.ZipCode(),
                     Country = "Brasil"
                 }
             }
         };
 
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/providers", request, JsonOptions);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", request, TestContainerFixture.JsonOptions);
         
         if (!response.IsSuccessStatusCode)
         {
@@ -524,7 +531,7 @@ public class ProvidersEndToEndTests : TestContainerTestBase
             throw new InvalidOperationException("Location header not found in create provider response");
         }
 
-        return ExtractIdFromLocation(location);
+        return TestContainerFixture.ExtractIdFromLocation(location);
     }
 
     #endregion

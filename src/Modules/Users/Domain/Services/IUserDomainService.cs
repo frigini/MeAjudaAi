@@ -9,6 +9,7 @@ namespace MeAjudaAi.Modules.Users.Domain.Services;
 /// </summary>
 public interface IUserDomainService
 {
+    /// <param name="phoneNumber">Número de telefone opcional do usuário</param>
     Task<Result<User>> CreateUserAsync(
         Username username,
         Email email,

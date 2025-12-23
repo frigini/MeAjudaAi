@@ -16,27 +16,34 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Feature", "Validation")]
-public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
+public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public ValidationStatusCodeEndToEndTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     #region 400 Bad Request - FluentValidation Errors
 
     [Fact]
     public async Task Register_WithInvalidEmail_ShouldReturn400()
     {
         // Arrange - Email format inválido (validação do FluentValidation)
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
-            Username = Faker.Internet.UserName(),
+            Username = _fixture.Faker.Internet.UserName(),
             Email = "not-an-email", // Invalid email format
-            FirstName = Faker.Name.FirstName(),
-            LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true),
+            FirstName = _fixture.Faker.Name.FirstName(),
+            LastName = _fixture.Faker.Name.LastName(),
+            Password = _fixture.Faker.Internet.Password(12, true),
             PhoneNumber = "+5511999999999"
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
@@ -50,19 +57,19 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task Register_WithMissingRequiredField_ShouldReturn400()
     {
         // Arrange - Campo obrigatório faltando
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
-            Username = Faker.Internet.UserName(),
+            Username = _fixture.Faker.Internet.UserName(),
             // Email ausente (required)
-            FirstName = Faker.Name.FirstName(),
-            LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true),
+            FirstName = _fixture.Faker.Name.FirstName(),
+            LastName = _fixture.Faker.Name.LastName(),
+            Password = _fixture.Faker.Internet.Password(12, true),
             PhoneNumber = "+5511999999999"
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
@@ -73,16 +80,16 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task CreateService_WithInvalidData_ShouldReturn400()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
             name = "", // Empty name - FluentValidation error
-            description = Faker.Lorem.Sentence(),
+            description = _fixture.Faker.Lorem.Sentence(),
             categoryId = Guid.NewGuid()
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/services", request);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/services", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
@@ -93,18 +100,18 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task UpdateUser_WithInvalidPhoneFormat_ShouldReturn400()
     {
         // Arrange - Create user first
-        AuthenticateAsAdmin();
-        var userId = await CreateTestUserAsync();
+        TestContainerFixture.AuthenticateAsAdmin();
+        var userId = await _fixture.CreateTestUserAsync();
 
         // Act - Update with invalid phone format
         var updateRequest = new
         {
-            FirstName = Faker.Name.FirstName(),
-            LastName = Faker.Name.LastName(),
+            FirstName = _fixture.Faker.Name.FirstName(),
+            LastName = _fixture.Faker.Name.LastName(),
             PhoneNumber = "invalid-phone" // Invalid format
         };
 
-        var response = await PutJsonAsync($"/api/v1/users/{userId}/profile", updateRequest);
+        var response = await _fixture.PutJsonAsync($"/api/v1/users/{userId}/profile", updateRequest);
 
         // Assert
         // Invalid phone format should trigger validation error
@@ -131,16 +138,16 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task CreateService_WithNonExistentCategory_ShouldReturn422()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
-            name = Faker.Commerce.ProductName(),
-            description = Faker.Lorem.Sentence(),
+            name = _fixture.Faker.Commerce.ProductName(),
+            description = _fixture.Faker.Lorem.Sentence(),
             categoryId = Guid.NewGuid() // Categoria não existe (validação semântica)
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/services", request);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/services", request);
 
         // Assert
         // Atualmente retorna 400, mas idealmente deveria retornar 422
@@ -153,7 +160,7 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task ChangeServiceCategory_WithInvalidTransition_ShouldReturn422()
     {
         // Arrange - Criar serviço e tentar mudar para categoria que não existe
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         
         // Este cenário testaria validação de transição de estado
         // Exemplo: não pode mudar categoria de serviço se houver pedidos ativos
@@ -170,31 +177,31 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task Register_WithDuplicateEmail_ShouldReturn409()
     {
         // Arrange - Create first user
-        AuthenticateAsAdmin();
-        var uniqueEmail = $"{Faker.Internet.UserName()}@example.com";
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueEmail = $"{_fixture.Faker.Internet.UserName()}@example.com";
         var request = new
         {
-            Username = Faker.Internet.UserName(),
+            Username = _fixture.Faker.Internet.UserName(),
             Email = uniqueEmail,
-            FirstName = Faker.Name.FirstName(),
-            LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true),
+            FirstName = _fixture.Faker.Name.FirstName(),
+            LastName = _fixture.Faker.Name.LastName(),
+            Password = _fixture.Faker.Internet.Password(12, true),
             PhoneNumber = "+5511999999999"
         };
         
-        await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
+        await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
 
         // Act - Try to create again with same email
         var duplicateRequest = new
         {
-            Username = Faker.Internet.UserName(), // Different username
+            Username = _fixture.Faker.Internet.UserName(), // Different username
             Email = uniqueEmail, // Same email
-            FirstName = Faker.Name.FirstName(),
-            LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true),
+            FirstName = _fixture.Faker.Name.FirstName(),
+            LastName = _fixture.Faker.Name.LastName(),
+            Password = _fixture.Faker.Internet.Password(12, true),
             PhoneNumber = "+5511999999999"
         };
-        var duplicateResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, JsonOptions);
+        var duplicateResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         duplicateResponse.StatusCode.Should().Be(HttpStatusCode.Conflict,
@@ -208,19 +215,19 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task CreateCategory_WithDuplicateName_ShouldReturn409()
     {
         // Arrange
-        AuthenticateAsAdmin();
-        var categoryName = Faker.Commerce.Department();
+        TestContainerFixture.AuthenticateAsAdmin();
+        var categoryName = _fixture.Faker.Commerce.Department();
 
         var request = new
         {
             name = categoryName,
-            description = Faker.Lorem.Sentence()
+            description = _fixture.Faker.Lorem.Sentence()
         };
 
-        await ApiClient.PostAsJsonAsync("/api/v1/categories", request);
+        await _fixture.ApiClient.PostAsJsonAsync("/api/v1/categories", request);
 
         // Act - Tentar criar categoria com mesmo nome
-        var duplicateResponse = await ApiClient.PostAsJsonAsync("/api/v1/categories", request);
+        var duplicateResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/categories", request);
 
         // Assert
         // Duplicate category name should return conflict or validation error
@@ -239,7 +246,7 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
         // Arrange - Request com erro de validação
         // NOTE: Current architecture throws ArgumentException for first validation error only
         // It doesn't aggregate multiple validation errors due to ValueObject design
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
             Username = "testuser",
@@ -251,7 +258,7 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -269,31 +276,31 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task ConflictError_ShouldIncludeConstraintDetails()
     {
         // Arrange - Create duplicate user
-        AuthenticateAsAdmin();
-        var uniqueEmail = $"{Faker.Internet.UserName()}@example.com";
+        TestContainerFixture.AuthenticateAsAdmin();
+        var uniqueEmail = $"{_fixture.Faker.Internet.UserName()}@example.com";
         var request = new
         {
-            Username = Faker.Internet.UserName(),
+            Username = _fixture.Faker.Internet.UserName(),
             Email = uniqueEmail,
-            FirstName = Faker.Name.FirstName(),
-            LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true),
+            FirstName = _fixture.Faker.Name.FirstName(),
+            LastName = _fixture.Faker.Name.LastName(),
+            Password = _fixture.Faker.Internet.Password(12, true),
             PhoneNumber = "+5511999999999"
         };
         
-        await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
+        await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", request, TestContainerFixture.JsonOptions);
 
         // Act - Try to create duplicate
         var duplicateRequest = new
         {
-            Username = Faker.Internet.UserName(),
+            Username = _fixture.Faker.Internet.UserName(),
             Email = uniqueEmail, // Same email
-            FirstName = Faker.Name.FirstName(),
-            LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true),
+            FirstName = _fixture.Faker.Name.FirstName(),
+            LastName = _fixture.Faker.Name.LastName(),
+            Password = _fixture.Faker.Internet.Password(12, true),
             PhoneNumber = "+5511999999999"
         };
-        var duplicateResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, JsonOptions);
+        var duplicateResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         duplicateResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -312,11 +319,11 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task GetNonExistentResource_ShouldReturn404NotFound()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var response = await ApiClient.GetAsync($"/api/v1/services/{nonExistentId}");
+        var response = await _fixture.ApiClient.GetAsync($"/api/v1/services/{nonExistentId}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,
@@ -327,16 +334,16 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
     public async Task UpdateNonExistentResource_ShouldReturn404()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var nonExistentId = Guid.NewGuid();
         var request = new
         {
-            name = Faker.Commerce.ProductName(),
-            description = Faker.Lorem.Sentence()
+            name = _fixture.Faker.Commerce.ProductName(),
+            description = _fixture.Faker.Lorem.Sentence()
         };
 
         // Act
-        var response = await ApiClient.PutAsJsonAsync($"/api/v1/services/{nonExistentId}", request);
+        var response = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/services/{nonExistentId}", request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,

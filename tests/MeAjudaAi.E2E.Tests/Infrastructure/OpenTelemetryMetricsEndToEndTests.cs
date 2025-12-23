@@ -12,13 +12,20 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Feature", "Telemetry")]
-public class OpenTelemetryMetricsEndToEndTests : TestContainerTestBase
+public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public OpenTelemetryMetricsEndToEndTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     [Fact]
     public async Task Application_ShouldExposeAspNetCoreMetrics()
     {
         // Arrange - Fazer request para gerar métricas
-        var response = await ApiClient.GetAsync("/health");
+        var response = await _fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.Should().NotBeNull();
@@ -31,7 +38,7 @@ public class OpenTelemetryMetricsEndToEndTests : TestContainerTestBase
     public async Task Application_WithMultipleRequests_ShouldIncrementRequestMetrics()
     {
         // Arrange - Fazer múltiplas requisições
-        var requests = Enumerable.Range(0, 5).Select(_ => ApiClient.GetAsync("/alive"));
+        var requests = Enumerable.Range(0, 5).Select(_ => _fixture.ApiClient.GetAsync("/alive"));
 
         // Act
         var responses = await Task.WhenAll(requests);
@@ -47,16 +54,16 @@ public class OpenTelemetryMetricsEndToEndTests : TestContainerTestBase
         // Arrange & Act - Criar usuário (gera HttpClient calls internos)
         var registerRequest = new
         {
-            email = Faker.Internet.Email(),
-            password = Faker.Internet.Password(12, true),
-            confirmPassword = Faker.Internet.Password(12, true),
-            fullName = Faker.Name.FullName(),
+            email = _fixture.Faker.Internet.Email(),
+            password = _fixture.Faker.Internet.Password(12, true),
+            confirmPassword = _fixture.Faker.Internet.Password(12, true),
+            fullName = _fixture.Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
         
         registerRequest = registerRequest with { confirmPassword = registerRequest.password };
 
-        var response = await ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
 
         // Assert
         // HttpClient instrumentation deve capturar chamadas internas
@@ -67,8 +74,8 @@ public class OpenTelemetryMetricsEndToEndTests : TestContainerTestBase
     public async Task Application_ShouldFilterHealthCheckEndpoints()
     {
         // Arrange & Act - Chamar endpoints de health check
-        var healthResponse = await ApiClient.GetAsync("/health");
-        var aliveResponse = await ApiClient.GetAsync("/alive");
+        var healthResponse = await _fixture.ApiClient.GetAsync("/health");
+        var aliveResponse = await _fixture.ApiClient.GetAsync("/alive");
 
         // Assert
         healthResponse.IsSuccessStatusCode.Should().BeTrue();
@@ -81,7 +88,7 @@ public class OpenTelemetryMetricsEndToEndTests : TestContainerTestBase
     public async Task Application_ShouldExposeRuntimeInstrumentation()
     {
         // Arrange & Act - Fazer request qualquer
-        var response = await ApiClient.GetAsync("/alive");
+        var response = await _fixture.ApiClient.GetAsync("/alive");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
@@ -95,17 +102,17 @@ public class OpenTelemetryMetricsEndToEndTests : TestContainerTestBase
         // Arrange - Registrar usuário (operação de database)
         var registerRequest = new
         {
-            email = Faker.Internet.Email(),
-            password = Faker.Internet.Password(12, true),
-            confirmPassword = Faker.Internet.Password(12, true),
-            fullName = Faker.Name.FullName(),
+            email = _fixture.Faker.Internet.Email(),
+            password = _fixture.Faker.Internet.Password(12, true),
+            confirmPassword = _fixture.Faker.Internet.Password(12, true),
+            fullName = _fixture.Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
         
         registerRequest = registerRequest with { confirmPassword = registerRequest.password };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
 
         // Assert
         // EF Core instrumentation deve capturar operações de database
@@ -119,7 +126,7 @@ public class OpenTelemetryMetricsEndToEndTests : TestContainerTestBase
         var invalidRequest = new { };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/users/register", invalidRequest);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/users/register", invalidRequest);
 
         // Assert
         response.IsSuccessStatusCode.Should().BeFalse();
@@ -130,7 +137,7 @@ public class OpenTelemetryMetricsEndToEndTests : TestContainerTestBase
     public async Task Application_ShouldIncludeFormattedMessagesInLogs()
     {
         // Arrange & Act - Fazer request que gera logs
-        var response = await ApiClient.GetAsync("/health");
+        var response = await _fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
@@ -144,16 +151,16 @@ public class OpenTelemetryMetricsEndToEndTests : TestContainerTestBase
         // Arrange - Registrar e fazer login
         var registerRequest = new
         {
-            email = Faker.Internet.Email(),
-            password = Faker.Internet.Password(12, true),
-            confirmPassword = Faker.Internet.Password(12, true),
-            fullName = Faker.Name.FullName(),
+            email = _fixture.Faker.Internet.Email(),
+            password = _fixture.Faker.Internet.Password(12, true),
+            confirmPassword = _fixture.Faker.Internet.Password(12, true),
+            fullName = _fixture.Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
         
         registerRequest = registerRequest with { confirmPassword = registerRequest.password };
         
-        await ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
+        await _fixture.ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -161,14 +168,14 @@ public class OpenTelemetryMetricsEndToEndTests : TestContainerTestBase
             password = registerRequest.password
         };
 
-        var loginResponse = await ApiClient.PostAsJsonAsync("/api/users/login", loginRequest);
+        var loginResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/users/login", loginRequest);
         var loginResult = await loginResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
         var token = loginResult!["token"].ToString();
 
         // Act - Request autenticado
-        ApiClient.DefaultRequestHeaders.Authorization = 
+        _fixture.ApiClient.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-        var response = await ApiClient.GetAsync("/api/v1/users");
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
@@ -179,7 +186,7 @@ public class OpenTelemetryMetricsEndToEndTests : TestContainerTestBase
     public async Task Application_ShouldConfigureServiceName()
     {
         // Arrange & Act
-        var response = await ApiClient.GetAsync("/health");
+        var response = await _fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();

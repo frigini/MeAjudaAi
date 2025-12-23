@@ -22,8 +22,15 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Feature", "CORS")]
-public class CorsEndToEndTests : TestContainerTestBase
+public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public CorsEndToEndTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     #region Preflight Requests (OPTIONS)
 
     [Fact]
@@ -36,7 +43,7 @@ public class CorsEndToEndTests : TestContainerTestBase
         request.Headers.Add("Access-Control-Request-Headers", "content-type");
 
         // Act
-        var response = await ApiClient.SendAsync(request);
+        var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
         // Preflight requests should succeed
@@ -66,7 +73,7 @@ public class CorsEndToEndTests : TestContainerTestBase
         request.Headers.Add("Access-Control-Request-Method", "GET");
 
         // Act
-        var response = await ApiClient.SendAsync(request);
+        var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
         if (response.Headers.Contains("Access-Control-Allow-Methods"))
@@ -88,7 +95,7 @@ public class CorsEndToEndTests : TestContainerTestBase
         request.Headers.Add("Access-Control-Request-Headers", "content-type,authorization");
 
         // Act
-        var response = await ApiClient.SendAsync(request);
+        var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
         if (response.Headers.Contains("Access-Control-Allow-Headers"))
@@ -112,7 +119,7 @@ public class CorsEndToEndTests : TestContainerTestBase
         request.Headers.Add("Origin", "http://localhost:3000");
 
         // Act
-        var response = await ApiClient.SendAsync(request);
+        var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
@@ -131,10 +138,10 @@ public class CorsEndToEndTests : TestContainerTestBase
         // Arrange
         var registerRequest = new
         {
-            email = Faker.Internet.Email(),
-            password = Faker.Internet.Password(12, true),
-            confirmPassword = Faker.Internet.Password(12, true),
-            fullName = Faker.Name.FullName(),
+            email = _fixture.Faker.Internet.Email(),
+            password = _fixture.Faker.Internet.Password(12, true),
+            confirmPassword = _fixture.Faker.Internet.Password(12, true),
+            fullName = _fixture.Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
         
@@ -147,7 +154,7 @@ public class CorsEndToEndTests : TestContainerTestBase
         request.Headers.Add("Origin", "http://localhost:3000");
 
         // Act
-        var response = await ApiClient.SendAsync(request);
+        var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
         // Request deve ser processado normalmente
@@ -178,7 +185,7 @@ public class CorsEndToEndTests : TestContainerTestBase
         request.Headers.Add("Cookie", "session=test-session");
 
         // Act
-        var response = await ApiClient.SendAsync(request);
+        var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue();
@@ -197,16 +204,16 @@ public class CorsEndToEndTests : TestContainerTestBase
         // Arrange - Registrar e fazer login
         var registerRequest = new
         {
-            email = Faker.Internet.Email(),
-            password = Faker.Internet.Password(12, true),
-            confirmPassword = Faker.Internet.Password(12, true),
-            fullName = Faker.Name.FullName(),
+            email = _fixture.Faker.Internet.Email(),
+            password = _fixture.Faker.Internet.Password(12, true),
+            confirmPassword = _fixture.Faker.Internet.Password(12, true),
+            fullName = _fixture.Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
         
         registerRequest = registerRequest with { confirmPassword = registerRequest.password };
         
-        await ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
+        await _fixture.ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
 
         var loginRequest = new
         {
@@ -214,7 +221,7 @@ public class CorsEndToEndTests : TestContainerTestBase
             password = registerRequest.password
         };
 
-        var loginResponse = await ApiClient.PostAsJsonAsync("/api/users/login", loginRequest);
+        var loginResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/users/login", loginRequest);
         var loginResult = await loginResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
         var token = loginResult!["token"].ToString();
 
@@ -223,7 +230,7 @@ public class CorsEndToEndTests : TestContainerTestBase
         request.Headers.Add("Origin", "http://localhost:3000");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await ApiClient.SendAsync(request);
+        var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue(
@@ -248,7 +255,7 @@ public class CorsEndToEndTests : TestContainerTestBase
         request.Headers.Add("Access-Control-Request-Method", "GET");
 
         // Act
-        var response = await ApiClient.SendAsync(request);
+        var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
         // Em desenvolvimento, localhost deve ser permitido
@@ -269,7 +276,7 @@ public class CorsEndToEndTests : TestContainerTestBase
         request.Headers.Add("Access-Control-Request-Method", "POST");
 
         // Act
-        var response = await ApiClient.SendAsync(request);
+        var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
         if (response.Headers.Contains("Access-Control-Max-Age"))
@@ -287,7 +294,7 @@ public class CorsEndToEndTests : TestContainerTestBase
         var request = new HttpRequestMessage(HttpMethod.Get, "/health");
 
         // Act
-        var response = await ApiClient.SendAsync(request);
+        var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue(
@@ -329,7 +336,7 @@ public class CorsEndToEndTests : TestContainerTestBase
             request.Headers.Add("Access-Control-Request-Method", method);
 
             // Act
-            var response = await ApiClient.SendAsync(request);
+            var response = await _fixture.ApiClient.SendAsync(request);
 
             // Assert
             if (response.Headers.Contains("Access-Control-Allow-Methods"))
@@ -360,7 +367,7 @@ public class CorsEndToEndTests : TestContainerTestBase
             request.Headers.Add("Access-Control-Request-Method", "GET");
 
             // Act
-            var response = await ApiClient.SendAsync(request);
+            var response = await _fixture.ApiClient.SendAsync(request);
 
             // Assert - CORS headers devem ser consistentes
             if (response.Headers.Contains("Access-Control-Allow-Origin"))

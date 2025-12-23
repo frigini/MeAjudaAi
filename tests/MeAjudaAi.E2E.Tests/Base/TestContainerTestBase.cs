@@ -413,7 +413,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     /// </summary>
     protected static void AuthenticateAsAdmin()
     {
-        var contextId = ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
     }
 
@@ -422,7 +422,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     /// </summary>
     protected static void AuthenticateAsUser(string userId = "test-user-id", string username = "testuser")
     {
-        var contextId = ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
+        ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
         ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);
     }
 

@@ -4,7 +4,7 @@
   "methodDisplayOptions": "all",
   "parallelizeAssembly": true,
   "parallelizeTestCollections": true,
-  "maxParallelThreads": 0,
+  "maxParallelThreads": 4,
   "preEnumerateTheories": false,
   "shadowCopy": false,
   "stopOnFail": false

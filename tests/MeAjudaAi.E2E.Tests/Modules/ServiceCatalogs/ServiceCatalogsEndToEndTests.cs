@@ -16,27 +16,34 @@ namespace MeAjudaAi.E2E.Tests.Modules.ServiceCatalogs;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "ServiceCatalogs")]
-public class ServiceCatalogsEndToEndTests : TestContainerTestBase
+public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public ServiceCatalogsEndToEndTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     #region Basic CRUD and Validation Tests
 
     [Fact]
     public async Task CreateService_Should_Succeed_With_Valid_Category()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var category = await CreateTestServiceCategoryAsync();
 
         var createServiceRequest = new
         {
             CategoryId = category.Id.Value,
-            Name = Faker.Commerce.ProductName(),
-            Description = Faker.Commerce.ProductDescription(),
-            DisplayOrder = Faker.Random.Int(1, 100)
+            Name = _fixture.Faker.Commerce.ProductName(),
+            Description = _fixture.Faker.Commerce.ProductDescription(),
+            DisplayOrder = _fixture.Faker.Random.Int(1, 100)
         };
 
         // Act
-        var response = await PostJsonAsync("/api/v1/service-catalogs/services", createServiceRequest);
+        var response = await _fixture.PostJsonAsync("/api/v1/service-catalogs/services", createServiceRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -50,19 +57,19 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task CreateService_Should_Reject_Invalid_CategoryId()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var nonExistentCategoryId = Guid.NewGuid();
 
         var createServiceRequest = new
         {
             CategoryId = nonExistentCategoryId,
-            Name = Faker.Commerce.ProductName(),
-            Description = Faker.Commerce.ProductDescription(),
-            DisplayOrder = Faker.Random.Int(1, 100)
+            Name = _fixture.Faker.Commerce.ProductName(),
+            Description = _fixture.Faker.Commerce.ProductDescription(),
+            DisplayOrder = _fixture.Faker.Random.Int(1, 100)
         };
 
         // Act
-        var response = await PostJsonAsync("/api/v1/service-catalogs/services", createServiceRequest);
+        var response = await _fixture.PostJsonAsync("/api/v1/service-catalogs/services", createServiceRequest);
 
         // Assert - Should reject with BadRequest or NotFound
         response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotFound, HttpStatusCode.UnprocessableEntity);
@@ -79,21 +86,21 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task GetServicesByCategory_Should_Return_Filtered_Results()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var category = await CreateTestServiceCategoryAsync();
         await CreateTestServicesAsync(category.Id.Value, 3);
 
         // Act
-        var response = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/category/{category.Id.Value}");
+        var response = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/category/{category.Id.Value}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
+        var result = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
         result.TryGetProperty("data", out var data).Should().BeTrue();
 
-        var services = data.Deserialize<ServiceListDto[]>(JsonOptions);
+        var services = data.Deserialize<ServiceListDto[]>(TestContainerFixture.JsonOptions);
         services.Should().NotBeNull();
         services!.Length.Should().Be(3, "should return exactly 3 services for this category");
         services.Should().OnlyContain(s => s.CategoryId == category.Id.Value, "all services should belong to the specified category");
@@ -107,27 +114,27 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task UpdateServiceCategory_Should_Modify_Existing_Category()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var category = await CreateTestServiceCategoryAsync();
 
         var updateRequest = new
         {
-            Name = "Updated " + Faker.Commerce.Department(),
-            Description = "Updated " + Faker.Lorem.Sentence(),
-            DisplayOrder = Faker.Random.Int(1, 100)
+            Name = "Updated " + _fixture.Faker.Commerce.Department(),
+            Description = "Updated " + _fixture.Faker.Lorem.Sentence(),
+            DisplayOrder = _fixture.Faker.Random.Int(1, 100)
         };
 
         // Act
-        var response = await PutJsonAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}", updateRequest);
+        var response = await _fixture.PutJsonAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}", updateRequest);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify the category was actually updated
-        var getResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
+        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var responseWrapper = await ReadJsonAsync<Response<ServiceCategoryDto>>(getResponse);
+        var responseWrapper = await TestContainerFixture.ReadJsonAsync<Response<ServiceCategoryDto>>(getResponse);
         responseWrapper.Should().NotBeNull();
         responseWrapper!.Data.Should().NotBeNull();
 
@@ -141,18 +148,18 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task DeleteServiceCategory_Should_Fail_If_Has_Services()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var category = await CreateTestServiceCategoryAsync();
         await CreateTestServicesAsync(category.Id.Value, 1);
 
         // Act
-        var response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
+        var response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
         // Category should still exist after failed delete
-        var getResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
+        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -160,17 +167,17 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task DeleteServiceCategory_Should_Succeed_When_No_Services()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var category = await CreateTestServiceCategoryAsync();
 
         // Act
-        var response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
+        var response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify category was deleted
-        var getResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
+        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/categories/{category.Id.Value}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -182,31 +189,31 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task ActivateDeactivate_Service_Should_Work_Correctly()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var category = await CreateTestServiceCategoryAsync();
         var service = await CreateTestServiceAsync(category.Id.Value);
 
         // Act - Deactivate
-        var deactivateResponse = await PostJsonAsync($"/api/v1/service-catalogs/services/{service.Id.Value}/deactivate", new { });
+        var deactivateResponse = await _fixture.PostJsonAsync($"/api/v1/service-catalogs/services/{service.Id.Value}/deactivate", new { });
         deactivateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Assert - Verify service is inactive
-        var getAfterDeactivate = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
+        var getAfterDeactivate = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
         getAfterDeactivate.StatusCode.Should().Be(HttpStatusCode.OK);
-        var deactivatedResponse = await ReadJsonAsync<Response<ServiceDto>>(getAfterDeactivate);
+        var deactivatedResponse = await TestContainerFixture.ReadJsonAsync<Response<ServiceDto>>(getAfterDeactivate);
         deactivatedResponse.Should().NotBeNull();
         deactivatedResponse!.Data.Should().NotBeNull();
         var deactivatedService = deactivatedResponse.Data;
         deactivatedService!.IsActive.Should().BeFalse("service should be inactive after deactivate");
 
         // Act - Activate
-        var activateResponse = await PostJsonAsync($"/api/v1/service-catalogs/services/{service.Id.Value}/activate", new { });
+        var activateResponse = await _fixture.PostJsonAsync($"/api/v1/service-catalogs/services/{service.Id.Value}/activate", new { });
         activateResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Assert - Verify service is active again
-        var getAfterActivate = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
+        var getAfterActivate = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/{service.Id.Value}");
         getAfterActivate.StatusCode.Should().Be(HttpStatusCode.OK);
-        var activatedResponse = await ReadJsonAsync<Response<ServiceDto>>(getAfterActivate);
+        var activatedResponse = await TestContainerFixture.ReadJsonAsync<Response<ServiceDto>>(getAfterActivate);
         activatedResponse.Should().NotBeNull();
         activatedResponse!.Data.Should().NotBeNull();
         var activatedService = activatedResponse.Data;
@@ -221,12 +228,12 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task Database_Should_Persist_ServiceCategories_Correctly()
     {
         // Arrange
-        var name = Faker.Commerce.Department();
-        var description = Faker.Lorem.Sentence();
+        var name = _fixture.Faker.Commerce.Department();
+        var description = _fixture.Faker.Lorem.Sentence();
         ServiceCategoryId? categoryId = null;
 
         // Act - Create category directly in database
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
@@ -238,7 +245,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         });
 
         // Assert - Verify category was persisted by ID for determinism
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
@@ -256,26 +263,26 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     {
         // Arrange
         ServiceCategory? category = null;
-        var serviceName = Faker.Commerce.ProductName();
+        var serviceName = _fixture.Faker.Commerce.ProductName();
         ServiceId? serviceId = null;
 
         // Act - Create category and service
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
-            category = ServiceCategory.Create(Faker.Commerce.Department(), Faker.Lorem.Sentence(), 1);
+            category = ServiceCategory.Create(_fixture.Faker.Commerce.Department(), _fixture.Faker.Lorem.Sentence(), 1);
             context.ServiceCategories.Add(category);
             await context.SaveChangesAsync();
 
-            var service = Service.Create(category.Id, serviceName, Faker.Commerce.ProductDescription(), 1);
+            var service = Service.Create(category.Id, serviceName, _fixture.Faker.Commerce.ProductDescription(), 1);
             serviceId = service.Id;
             context.Services.Add(service);
             await context.SaveChangesAsync();
         });
 
         // Assert - Verify service and category relationship by ID for determinism
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
@@ -299,7 +306,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task ValidateService_WithBusinessRules_Should_Succeed()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // Primeiro cria uma categoria
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
@@ -310,14 +317,14 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             IsActive = true
         };
 
-        var categoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, JsonOptions);
+        var categoryResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, TestContainerFixture.JsonOptions);
 
         categoryResponse.StatusCode.Should().Be(HttpStatusCode.Created,
             "Category creation is a precondition for this test. Response: {0}",
             await categoryResponse.Content.ReadAsStringAsync());
 
         var categoryLocation = categoryResponse.Headers.Location?.ToString();
-        var categoryId = ExtractIdFromLocation(categoryLocation!);
+        var categoryId = TestContainerFixture.ExtractIdFromLocation(categoryLocation!);
 
         // Cria um serviço
         var serviceRequest = new
@@ -330,14 +337,14 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             Duration = 60
         };
 
-        var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
+        var serviceResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, TestContainerFixture.JsonOptions);
 
         serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created,
             "Service creation is a precondition for this test. Response: {0}",
             await serviceResponse.Content.ReadAsStringAsync());
 
         var serviceLocation = serviceResponse.Headers.Location?.ToString();
-        var serviceId = ExtractIdFromLocation(serviceLocation!);
+        var serviceId = TestContainerFixture.ExtractIdFromLocation(serviceLocation!);
 
         // Act - Validate service (API valida múltiplos serviços via array)
         var validateRequest = new
@@ -345,10 +352,10 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             ServiceIds = new[] { serviceId }
         };
 
-        var response = await ApiClient.PostAsJsonAsync(
+        var response = await _fixture.ApiClient.PostAsJsonAsync(
             "/api/v1/service-catalogs/services/validate",
             validateRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert - Apenas status de sucesso (happy path)
         response.StatusCode.Should().BeOneOf(
@@ -363,7 +370,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task ValidateService_WithInvalidService_Should_ReturnErrorOrValidationResult()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var serviceId = Guid.NewGuid(); // Serviço inexistente
 
         var invalidRequest = new
@@ -372,10 +379,10 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         };
 
         // Act - API deve retornar que o serviço é inválido ou OK com indicação de serviços inválidos
-        var response = await ApiClient.PostAsJsonAsync(
+        var response = await _fixture.ApiClient.PostAsJsonAsync(
             "/api/v1/service-catalogs/services/validate",
             invalidRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert - Pode retornar BadRequest, NotFound, ou OK com AllValid=false
         response.StatusCode.Should().BeOneOf(
@@ -395,7 +402,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task ChangeServiceCategory_Should_UpdateRelationship()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         // Cria primeira categoria
@@ -406,13 +413,13 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             IsActive = true
         };
 
-        var category1Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", category1Request, JsonOptions);
+        var category1Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", category1Request, TestContainerFixture.JsonOptions);
 
         category1Response.StatusCode.Should().Be(HttpStatusCode.Created,
             "Category creation is a precondition for this test. Response: {0}",
             await category1Response.Content.ReadAsStringAsync());
 
-        var category1Id = ExtractIdFromLocation(category1Response.Headers.Location!.ToString());
+        var category1Id = TestContainerFixture.ExtractIdFromLocation(category1Response.Headers.Location!.ToString());
 
         // Cria segunda categoria
         var category2Request = new
@@ -422,13 +429,13 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             IsActive = true
         };
 
-        var category2Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", category2Request, JsonOptions);
+        var category2Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", category2Request, TestContainerFixture.JsonOptions);
 
         category2Response.StatusCode.Should().Be(HttpStatusCode.Created,
             "Category creation is a precondition for this test. Response: {0}",
             await category2Response.Content.ReadAsStringAsync());
 
-        var category2Id = ExtractIdFromLocation(category2Response.Headers.Location!.ToString());
+        var category2Id = TestContainerFixture.ExtractIdFromLocation(category2Response.Headers.Location!.ToString());
 
         // Cria um serviço na primeira categoria
         var serviceRequest = new
@@ -441,13 +448,13 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             Duration = 90
         };
 
-        var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
+        var serviceResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, TestContainerFixture.JsonOptions);
 
         serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created,
             "Service creation is a precondition for this test. Response: {0}",
             await serviceResponse.Content.ReadAsStringAsync());
 
-        var serviceId = ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
+        var serviceId = TestContainerFixture.ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
 
         // Act - Change service category
         var changeCategoryRequest = new
@@ -455,10 +462,10 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             NewCategoryId = category2Id
         };
 
-        var response = await ApiClient.PostAsJsonAsync(
+        var response = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/service-catalogs/services/{serviceId}/change-category",
             changeCategoryRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert - Change is expected to succeed in this scenario
         response.StatusCode.Should().BeOneOf(
@@ -466,12 +473,12 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             "the service category change should succeed in this scenario");
 
         // Verifica que o serviço está na nova categoria
-        var getServiceResponse = await ApiClient.GetAsync($"/api/v1/service-catalogs/services/{serviceId}");
+        var getServiceResponse = await _fixture.ApiClient.GetAsync($"/api/v1/service-catalogs/services/{serviceId}");
         getServiceResponse.IsSuccessStatusCode.Should().BeTrue(
             "the updated service should be retrievable after changing category");
 
         var content = await getServiceResponse.Content.ReadAsStringAsync();
-        var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, JsonOptions);
+        var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, TestContainerFixture.JsonOptions);
         result.TryGetProperty("data", out var data).Should().BeTrue("response should contain data property");
         data.TryGetProperty("categoryId", out var categoryIdElement).Should().BeTrue("service should have categoryId property");
         var actualCategoryId = categoryIdElement.GetGuid();
@@ -486,7 +493,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task ChangeServiceCategory_ToInactiveCategory_Should_Fail()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         // Cria categoria ativa
@@ -497,13 +504,13 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             IsActive = true
         };
 
-        var activeCategoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", activeCategoryRequest, JsonOptions);
+        var activeCategoryResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", activeCategoryRequest, TestContainerFixture.JsonOptions);
 
         activeCategoryResponse.StatusCode.Should().Be(HttpStatusCode.Created,
             "Active category creation is a precondition for this test. Response: {0}",
             await activeCategoryResponse.Content.ReadAsStringAsync());
 
-        var activeCategoryId = ExtractIdFromLocation(activeCategoryResponse.Headers.Location!.ToString());
+        var activeCategoryId = TestContainerFixture.ExtractIdFromLocation(activeCategoryResponse.Headers.Location!.ToString());
 
         // Cria outra categoria (sempre criada como ativa) e depois a desativa
         var toBeInactiveCategoryRequest = new
@@ -513,16 +520,16 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             DisplayOrder = 0
         };
 
-        var inactiveCategoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", toBeInactiveCategoryRequest, JsonOptions);
+        var inactiveCategoryResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", toBeInactiveCategoryRequest, TestContainerFixture.JsonOptions);
 
         inactiveCategoryResponse.StatusCode.Should().Be(HttpStatusCode.Created,
             "Category creation is a precondition for this test. Response: {0}",
             await inactiveCategoryResponse.Content.ReadAsStringAsync());
 
-        var inactiveCategoryId = ExtractIdFromLocation(inactiveCategoryResponse.Headers.Location!.ToString());
+        var inactiveCategoryId = TestContainerFixture.ExtractIdFromLocation(inactiveCategoryResponse.Headers.Location!.ToString());
 
         // Desativa a categoria
-        var deactivateResponse = await ApiClient.PostAsync(
+        var deactivateResponse = await _fixture.ApiClient.PostAsync(
             $"/api/v1/service-catalogs/categories/{inactiveCategoryId}/deactivate",
             null);
 
@@ -541,13 +548,13 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             Duration = 120
         };
 
-        var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
+        var serviceResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, TestContainerFixture.JsonOptions);
 
         serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created,
             "Service creation is a precondition for this test. Response: {0}",
             await serviceResponse.Content.ReadAsStringAsync());
 
-        var serviceId = ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
+        var serviceId = TestContainerFixture.ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
 
         // Act - Tenta mudar para categoria inativa
         var changeCategoryRequest = new
@@ -555,10 +562,10 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             NewCategoryId = inactiveCategoryId
         };
 
-        var response = await ApiClient.PostAsJsonAsync(
+        var response = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/service-catalogs/services/{serviceId}/change-category",
             changeCategoryRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert - Must fail when trying to move to inactive category
         response.StatusCode.Should().BeOneOf(
@@ -573,7 +580,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     public async Task ChangeServiceCategory_ToNonExistentCategory_Should_Return_NotFound()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         
         // Create a valid category and service first
         var categoryRequest = new
@@ -582,8 +589,8 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             Description = "Test category",
             IsActive = true
         };
-        var categoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, JsonOptions);
-        var categoryId = ExtractIdFromLocation(categoryResponse.Headers.Location!.ToString());
+        var categoryResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, TestContainerFixture.JsonOptions);
+        var categoryId = TestContainerFixture.ExtractIdFromLocation(categoryResponse.Headers.Location!.ToString());
 
         var serviceRequest = new
         {
@@ -593,8 +600,8 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             BasePrice = 100.00m,
             IsActive = true
         };
-        var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
-        var serviceId = ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
+        var serviceResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, TestContainerFixture.JsonOptions);
+        var serviceId = TestContainerFixture.ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
 
         // Now try to change to a non-existent category
         var nonExistentCategoryId = Guid.NewGuid();
@@ -604,10 +611,10 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync(
+        var response = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/service-catalogs/services/{serviceId}/change-category",
             changeCategoryRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound,
@@ -622,14 +629,14 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     {
         ServiceCategory? category = null;
 
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
             category = ServiceCategory.Create(
-                Faker.Commerce.Department(),
-                Faker.Lorem.Sentence(),
-                Faker.Random.Int(1, 100)
+                _fixture.Faker.Commerce.Department(),
+                _fixture.Faker.Lorem.Sentence(),
+                _fixture.Faker.Random.Int(1, 100)
             );
 
             context.ServiceCategories.Add(category);
@@ -641,15 +648,15 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
 
     private async Task CreateTestServiceCategoriesAsync(int count)
     {
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
             for (int i = 0; i < count; i++)
             {
                 var category = ServiceCategory.Create(
-                    Faker.Commerce.Department() + $" {i}",
-                    Faker.Lorem.Sentence(),
+                    _fixture.Faker.Commerce.Department() + $" {i}",
+                    _fixture.Faker.Lorem.Sentence(),
                     i + 1
                 );
 
@@ -664,15 +671,15 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
     {
         Service? service = null;
 
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
             service = Service.Create(
                 new ServiceCategoryId(categoryId),
-                Faker.Commerce.ProductName(),
-                Faker.Commerce.ProductDescription(),
-                Faker.Random.Int(1, 100)
+                _fixture.Faker.Commerce.ProductName(),
+                _fixture.Faker.Commerce.ProductDescription(),
+                _fixture.Faker.Random.Int(1, 100)
             );
 
             context.Services.Add(service);
@@ -684,7 +691,7 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
 
     private async Task CreateTestServicesAsync(Guid categoryId, int count)
     {
-        await WithServiceScopeAsync(async services =>
+        await _fixture.WithServiceScopeAsync(async services =>
         {
             var context = services.GetRequiredService<ServiceCatalogsDbContext>();
 
@@ -692,8 +699,8 @@ public class ServiceCatalogsEndToEndTests : TestContainerTestBase
             {
                 var service = Service.Create(
                     new ServiceCategoryId(categoryId),
-                    Faker.Commerce.ProductName() + $" {i}",
-                    Faker.Commerce.ProductDescription(),
+                    _fixture.Faker.Commerce.ProductName() + $" {i}",
+                    _fixture.Faker.Commerce.ProductDescription(),
                     i + 1
                 );
 

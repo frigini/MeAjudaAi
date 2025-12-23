@@ -201,14 +201,14 @@ public sealed class User : AggregateRoot<UserId>
 
         MarkAsUpdated();
 
-        // Evento de domínio com todas as mudanças
+        // Evento de domínio com todas as mudanças (usando valores normalizados do agregado)
         AddDomainEvent(new UserProfileUpdatedDomainEvent(
             Id.Value, 
             1, 
             firstName, 
             lastName, 
-            emailChanged ? email : null, 
-            phoneChanged ? phoneNumber : null));
+            emailChanged ? Email.Value : null, 
+            phoneChanged ? PhoneNumber?.Value : null));
     }
 
     /// <summary>

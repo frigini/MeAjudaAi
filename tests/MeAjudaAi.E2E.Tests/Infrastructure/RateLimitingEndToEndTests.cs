@@ -10,20 +10,27 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Infrastructure")]
-public sealed class RateLimitingEndToEndTests : TestContainerTestBase
+public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public RateLimitingEndToEndTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     [Fact]
     public async Task RateLimiting_ManyRequests_ShouldProcessCorrectly()
     {
         // Arrange
-        ApiClient.DefaultRequestHeaders.Remove("Authorization");
+        _fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
         const int requests = 50;
 
         // Act
         var responses = new List<HttpResponseMessage>();
         for (int i = 0; i < requests; i++)
         {
-            responses.Add(await ApiClient.GetAsync("/health"));
+            responses.Add(await _fixture.ApiClient.GetAsync("/health"));
         }
 
         // Assert
@@ -52,7 +59,7 @@ public sealed class RateLimitingEndToEndTests : TestContainerTestBase
     public async Task RateLimiting_DifferentEndpoints_ShouldProcess()
     {
         // Arrange
-        ApiClient.DefaultRequestHeaders.Remove("Authorization");
+        _fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
 
         // Act
         var healthResponses = new List<HttpResponseMessage>();
@@ -60,8 +67,8 @@ public sealed class RateLimitingEndToEndTests : TestContainerTestBase
 
         for (int i = 0; i < 30; i++)
         {
-            healthResponses.Add(await ApiClient.GetAsync("/health"));
-            apiResponses.Add(await ApiClient.GetAsync("/api/v1/service-categories"));
+            healthResponses.Add(await _fixture.ApiClient.GetAsync("/health"));
+            apiResponses.Add(await _fixture.ApiClient.GetAsync("/api/v1/service-categories"));
         }
 
         // Assert
@@ -78,12 +85,12 @@ public sealed class RateLimitingEndToEndTests : TestContainerTestBase
     public async Task RateLimiting_ConcurrentRequests_ShouldHandleCorrectly()
     {
         // Arrange
-        ApiClient.DefaultRequestHeaders.Remove("Authorization");
+        _fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
         const int concurrentRequests = 30;
 
         // Act
         var tasks = Enumerable.Range(0, concurrentRequests)
-            .Select(_ => ApiClient.GetAsync("/health"))
+            .Select(_ => _fixture.ApiClient.GetAsync("/health"))
             .ToArray();
 
         var responses = await Task.WhenAll(tasks);
@@ -106,13 +113,13 @@ public sealed class RateLimitingEndToEndTests : TestContainerTestBase
     public async Task RateLimiting_AuthenticatedUser_ShouldProcess()
     {
         // Arrange
-        AuthenticateAsUser();
+        TestContainerFixture.AuthenticateAsUser();
 
         // Act
         var responses = new List<HttpResponseMessage>();
         for (int i = 0; i < 50; i++)
         {
-            responses.Add(await ApiClient.GetAsync("/api/v1/service-categories"));
+            responses.Add(await _fixture.ApiClient.GetAsync("/api/v1/service-categories"));
         }
 
         // Assert

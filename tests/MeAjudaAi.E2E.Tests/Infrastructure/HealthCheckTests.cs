@@ -5,13 +5,20 @@ namespace MeAjudaAi.E2E.Tests.Infrastructure;
 /// <summary>
 /// Testes de integração básicos para saúde da aplicação e conectividade
 /// </summary>
-public class HealthCheckTests : TestContainerTestBase
+public class HealthCheckTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public HealthCheckTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     [Fact]
     public async Task HealthCheck_ShouldReturnHealthy()
     {
         // Act
-        var response = await ApiClient.GetAsync("/health");
+        var response = await _fixture.ApiClient.GetAsync("/health");
 
         // Assert
         response.StatusCode.Should().BeOneOf(
@@ -24,7 +31,7 @@ public class HealthCheckTests : TestContainerTestBase
     public async Task LivenessCheck_ShouldReturnOk()
     {
         // Act
-        var response = await ApiClient.GetAsync("/health/live");
+        var response = await _fixture.ApiClient.GetAsync("/health/liveness");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -39,7 +46,7 @@ public class HealthCheckTests : TestContainerTestBase
 
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
-            var response = await ApiClient.GetAsync("/health/ready");
+            var response = await _fixture.ApiClient.GetAsync("/health/ready");
 
             if (response.StatusCode == HttpStatusCode.OK ||
                 response.StatusCode == HttpStatusCode.ServiceUnavailable)
@@ -50,7 +57,7 @@ public class HealthCheckTests : TestContainerTestBase
         }
 
         // Tentativa final com diagnóstico detalhado
-        var finalResponse = await ApiClient.GetAsync("/health/ready");
+        var finalResponse = await _fixture.ApiClient.GetAsync("/health/ready");
         
         // Log response for diagnostics only when status is unexpected (not OK or 503)
         if (finalResponse.StatusCode != HttpStatusCode.OK &&

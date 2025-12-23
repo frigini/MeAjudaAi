@@ -16,13 +16,20 @@ namespace MeAjudaAi.E2E.Tests.Modules.Users;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "Users")]
-public class UsersEndToEndTests : TestContainerTestBase
+public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public UsersEndToEndTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     [Fact]
     public async Task DeleteUser_Should_RemoveFromDatabase()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         var createRequest = new
@@ -36,16 +43,16 @@ public class UsersEndToEndTests : TestContainerTestBase
         };
 
         // Create user - must succeed for delete test to be meaningful
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var locationHeader = createResponse.Headers.Location?.ToString();
         locationHeader.Should().NotBeNullOrEmpty();
 
-        var userId = ExtractIdFromLocation(locationHeader);
+        var userId = TestContainerFixture.ExtractIdFromLocation(locationHeader);
 
         // Act - Delete user
-        var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/users/{userId}");
+        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
 
         // Assert - Deletion should return OK or NoContent
         deleteResponse.StatusCode.Should().BeOneOf(
@@ -53,7 +60,7 @@ public class UsersEndToEndTests : TestContainerTestBase
             HttpStatusCode.NoContent);
 
         // Verifica que o usuário não existe mais através da API
-        var getAfterDelete = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var getAfterDelete = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         getAfterDelete.StatusCode.Should().Be(HttpStatusCode.NotFound,
             "User should not exist after deletion");
     }
@@ -62,11 +69,11 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task DeleteUser_NonExistent_Should_Return_NotFound()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/users/{nonExistentId}");
+        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/users/{nonExistentId}");
 
         // Assert
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NotFound,
@@ -95,7 +102,7 @@ public class UsersEndToEndTests : TestContainerTestBase
         var userId = Guid.NewGuid();
 
         // Act - Try to delete without permission
-        var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/users/{userId}");
+        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
 
         // Assert - Should get Forbidden/Unauthorized (authorization is checked before resource existence)
         deleteResponse.StatusCode.Should().BeOneOf(
@@ -107,7 +114,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task UpdateUserProfile_Should_PersistChanges()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         var createRequest = new
@@ -120,13 +127,13 @@ public class UsersEndToEndTests : TestContainerTestBase
             PhoneNumber = "+5511999999999"
         };
 
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var locationHeader = createResponse.Headers.Location?.ToString();
         locationHeader.Should().NotBeNullOrEmpty();
 
-        var userId = ExtractIdFromLocation(locationHeader!);
+        var userId = TestContainerFixture.ExtractIdFromLocation(locationHeader!);
 
         // Act - Update profile (não alterar Email para evitar conflitos)
         var updateRequest = new
@@ -135,7 +142,7 @@ public class UsersEndToEndTests : TestContainerTestBase
             LastName = "Profile"
         };
 
-        var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, JsonOptions);
+        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, TestContainerFixture.JsonOptions);
 
         // Assert - Update should return OK or NoContent
         updateResponse.StatusCode.Should().BeOneOf(
@@ -152,7 +159,7 @@ public class UsersEndToEndTests : TestContainerTestBase
         else
         {
             // Se retornou NoContent, tenta buscar o usuário para confirmar as mudanças
-            var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+            var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK, "user should be found after update");
             
             var content = await getResponse.Content.ReadAsStringAsync();
@@ -165,7 +172,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task GetUserByEmail_Should_ReturnCorrectUser()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var uniqueEmail = $"byemail_{uniqueId}@example.com";
 
@@ -179,11 +186,11 @@ public class UsersEndToEndTests : TestContainerTestBase
             PhoneNumber = "+5511999999999"
         };
 
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Act
-        var getByEmailResponse = await ApiClient.GetAsync($"/api/v1/users/by-email/{Uri.EscapeDataString(uniqueEmail)}");
+        var getByEmailResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/by-email/{Uri.EscapeDataString(uniqueEmail)}");
 
         // Assert
         getByEmailResponse.StatusCode.Should().Be(HttpStatusCode.OK,
@@ -198,7 +205,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task CreateUser_DuplicateEmail_Should_Fail()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var sharedEmail = $"duplicate_{uniqueId}@example.com";
 
@@ -212,7 +219,7 @@ public class UsersEndToEndTests : TestContainerTestBase
             PhoneNumber = "+5511999999999"
         };
 
-        var firstResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", firstUserRequest, JsonOptions);
+        var firstResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", firstUserRequest, TestContainerFixture.JsonOptions);
         firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Act - Tenta criar segundo usuário com mesmo email
@@ -226,7 +233,7 @@ public class UsersEndToEndTests : TestContainerTestBase
             PhoneNumber = "+5511999999999"
         };
 
-        var secondResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", secondUserRequest, JsonOptions);
+        var secondResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", secondUserRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         secondResponse.StatusCode.Should().BeOneOf(
@@ -239,7 +246,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task UpdateUser_CompleteWorkflow_ShouldPersistChanges()
     {
         // Arrange - Criar usuário
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         var createRequest = new
@@ -252,12 +259,12 @@ public class UsersEndToEndTests : TestContainerTestBase
             PhoneNumber = "+5511999999999"
         };
 
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var location = createResponse.Headers.Location?.ToString();
         location.Should().NotBeNullOrEmpty();
-        var userId = ExtractIdFromLocation(location!);
+        var userId = TestContainerFixture.ExtractIdFromLocation(location!);
 
         // Act - Atualizar perfil (não alterar Email para evitar conflitos)
         var updateRequest = new
@@ -266,10 +273,10 @@ public class UsersEndToEndTests : TestContainerTestBase
             LastName = "User"
         };
 
-        var updateResponse = await ApiClient.PutAsJsonAsync(
+        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/users/{userId}/profile",
             updateRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert - Update deve ser bem-sucedido
         updateResponse.StatusCode.Should().BeOneOf(
@@ -277,11 +284,11 @@ public class UsersEndToEndTests : TestContainerTestBase
             HttpStatusCode.NoContent);
 
         // Assert - Verificar persistência das mudanças via GET
-        var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var content = await getResponse.Content.ReadAsStringAsync();
-        var userData = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
+        var userData = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
         
         var data = GetResponseData(userData);
         data.TryGetProperty("firstName", out var firstNameProp).Should().BeTrue();
@@ -300,7 +307,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task UpdateUser_MultipleUpdates_ShouldMaintainLatestChanges()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         var createRequest = new
@@ -313,12 +320,12 @@ public class UsersEndToEndTests : TestContainerTestBase
             PhoneNumber = "+5511999999999"
         };
 
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         
         var location = createResponse.Headers.Location?.ToString();
         location.Should().NotBeNullOrEmpty();
-        var userId = ExtractIdFromLocation(location!);
+        var userId = TestContainerFixture.ExtractIdFromLocation(location!);
 
         // Act - Primeira atualização (não alterar Email)
         var firstUpdate = new
@@ -326,7 +333,7 @@ public class UsersEndToEndTests : TestContainerTestBase
             FirstName = "Second",
             LastName = "Version"
         };
-        var firstUpdateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", firstUpdate, JsonOptions);
+        var firstUpdateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", firstUpdate, TestContainerFixture.JsonOptions);
         
         // Assert first update succeeded
         firstUpdateResponse.IsSuccessStatusCode.Should().BeTrue("first profile update should succeed");
@@ -337,20 +344,20 @@ public class UsersEndToEndTests : TestContainerTestBase
             FirstName = "Third",
             LastName = "Final"
         };
-        var finalUpdateResponse = await ApiClient.PutAsJsonAsync(
+        var finalUpdateResponse = await _fixture.ApiClient.PutAsJsonAsync(
             $"/api/v1/users/{userId}/profile",
             secondUpdate,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Assert
         finalUpdateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
 
         // Verificar que apenas a última atualização está persistida
-        var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should be able to retrieve updated user");
         
         var content = await getResponse.Content.ReadAsStringAsync();
-        var userData = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
+        var userData = JsonSerializer.Deserialize<JsonElement>(content, TestContainerFixture.JsonOptions);
         var data = GetResponseData(userData);
 
         data.GetProperty("firstName").GetString().Should().Be("Third");
@@ -362,7 +369,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task UserWorkflow_CreateUpdateDelete_ShouldCompleteSuccessfully()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         // Act & Assert - CREATE
@@ -376,13 +383,13 @@ public class UsersEndToEndTests : TestContainerTestBase
             PhoneNumber = "+5511999999999"
         };
 
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         createResponse.Headers.Location.Should().NotBeNull();
-        var userId = ExtractIdFromLocation(createResponse.Headers.Location!.ToString());
+        var userId = TestContainerFixture.ExtractIdFromLocation(createResponse.Headers.Location!.ToString());
 
         // Act & Assert - READ
-        var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Act & Assert - UPDATE (não alterar Email)
@@ -391,24 +398,24 @@ public class UsersEndToEndTests : TestContainerTestBase
             FirstName = "Updated",
             LastName = "Workflow"
         };
-        var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, JsonOptions);
+        var updateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, TestContainerFixture.JsonOptions);
         updateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
 
         // Verify UPDATE persisted
-        var verifyUpdateResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var verifyUpdateResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         verifyUpdateResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should retrieve user after update");
         
         var updateContent = await verifyUpdateResponse.Content.ReadAsStringAsync();
-        var updatedData = JsonSerializer.Deserialize<JsonElement>(updateContent, JsonOptions);
+        var updatedData = JsonSerializer.Deserialize<JsonElement>(updateContent, TestContainerFixture.JsonOptions);
         var data = GetResponseData(updatedData);
         data.GetProperty("firstName").GetString().Should().Be("Updated");
 
         // Act & Assert - DELETE
-        var deleteResponse = await ApiClient.DeleteAsync($"/api/v1/users/{userId}");
+        var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/users/{userId}");
         deleteResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
 
         // Verify DELETE worked
-        var verifyDeleteResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        var verifyDeleteResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         verifyDeleteResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -418,7 +425,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task CreateUser_WithDuplicateEmail_Should_Return_Conflict()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var duplicateEmail = $"duplicate_{uniqueId}@example.com";
 
@@ -443,11 +450,11 @@ public class UsersEndToEndTests : TestContainerTestBase
         };
 
         // Act - criar primeiro usuário
-        var firstResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", firstRequest, JsonOptions);
+        var firstResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", firstRequest, TestContainerFixture.JsonOptions);
         firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Act - tentar criar segundo usuário com mesmo email
-        var secondResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", secondRequest, JsonOptions);
+        var secondResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", secondRequest, TestContainerFixture.JsonOptions);
 
         // Assert - deve retornar Conflict ou BadRequest
         secondResponse.StatusCode.Should().BeOneOf(
@@ -466,7 +473,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task CreateUser_WithDuplicateUsername_Should_Return_Conflict()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var duplicateUsername = $"duplicate_{uniqueId}";
 
@@ -491,10 +498,10 @@ public class UsersEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var firstResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", firstRequest, JsonOptions);
+        var firstResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", firstRequest, TestContainerFixture.JsonOptions);
         firstResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var secondResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", secondRequest, JsonOptions);
+        var secondResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", secondRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         secondResponse.StatusCode.Should().BeOneOf(
@@ -507,7 +514,7 @@ public class UsersEndToEndTests : TestContainerTestBase
     public async Task UpdateUser_ConcurrentUpdates_Should_HandleGracefully()
     {
         // Arrange
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         var createRequest = new
@@ -520,18 +527,18 @@ public class UsersEndToEndTests : TestContainerTestBase
             PhoneNumber = "+5511999999999"
         };
 
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, TestContainerFixture.JsonOptions);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var location = createResponse.Headers.Location?.ToString();
         location.Should().NotBeNullOrEmpty();
-        var userId = ExtractIdFromLocation(location!);
+        var userId = TestContainerFixture.ExtractIdFromLocation(location!);
 
         // Act - disparar duas atualizações simultâneas (não alterar Email)
         var update1 = new { FirstName = "Update1", LastName = "User" };
         var update2 = new { FirstName = "Update2", LastName = "User" };
 
-        var task1 = ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update1, JsonOptions);
-        var task2 = ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update2, JsonOptions);
+        var task1 = _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update1, TestContainerFixture.JsonOptions);
+        var task2 = _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update2, TestContainerFixture.JsonOptions);
 
         var responses = await Task.WhenAll(task1, task2);
 
@@ -539,8 +546,8 @@ public class UsersEndToEndTests : TestContainerTestBase
         responses.Should().Contain(r => r.IsSuccessStatusCode, "Pelo menos uma atualização concorrente deve suceder");
 
         // Verificar estado final
-        var finalResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
-        finalResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var finalResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+        finalResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should retrieve user after concurrent updates");
         
         var content = await finalResponse.Content.ReadAsStringAsync();
         content.Should().Contain("Update", "Estado final deve refletir uma das atualizações");

@@ -7,13 +7,20 @@ namespace MeAjudaAi.E2E.Tests.CrossModule;
 /// Testes de integração para funcionalidades que atravessam múltiplos módulos
 /// Inclui pipeline CQRS, manipulação de eventos e comunicação entre módulos
 /// </summary>
-public class ModuleIntegrationTests : TestContainerTestBase
+public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public ModuleIntegrationTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     [Fact]
     public async Task CreateUser_ShouldTriggerDomainEvents()
     {
         // Arrange
-        AuthenticateAsAdmin(); // CreateUser requires admin role
+        TestContainerFixture.AuthenticateAsAdmin(); // CreateUser requires admin role
         var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Mantém sob 30 caracteres
         var createUserRequest = new
         {
@@ -24,7 +31,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, JsonOptions);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         // HttpStatusCode.Conflict pode ocorrer se o usuário já existir em execuções de teste
@@ -39,7 +46,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
             var content = await response.Content.ReadAsStringAsync();
             content.Should().NotBeNullOrEmpty();
 
-            var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, JsonOptions);
+            var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content, TestContainerFixture.JsonOptions);
             result.TryGetProperty("data", out var dataProperty).Should().BeTrue();
             dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
             idProperty.GetGuid().Should().NotBeEmpty();
@@ -50,7 +57,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
     public async Task CreateAndUpdateUser_ShouldMaintainConsistency()
     {
         // Arrange
-        AuthenticateAsAdmin(); // CreateUser requer role admin
+        TestContainerFixture.AuthenticateAsAdmin(); // CreateUser requer role admin
 
         var uniqueId = Guid.NewGuid().ToString("N")[..8]; // 8 hex chars
         var createUserRequest = new
@@ -62,7 +69,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
         };
 
         // Act 1: Create user
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, JsonOptions);
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createUserRequest, TestContainerFixture.JsonOptions);
 
         // Assert 1: Usuário criado com sucesso ou já existente
         createResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.Conflict);
@@ -70,7 +77,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
         if (createResponse.StatusCode == HttpStatusCode.Created)
         {
             var createContent = await createResponse.Content.ReadAsStringAsync();
-            var createResult = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(createContent, JsonOptions);
+            var createResult = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(createContent, TestContainerFixture.JsonOptions);
             createResult.TryGetProperty("data", out var dataProperty).Should().BeTrue();
             dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
             var userId = idProperty.GetGuid();
@@ -82,7 +89,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
                 LastName = "User"
             };
 
-            var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, JsonOptions);
+            var updateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, TestContainerFixture.JsonOptions);
 
             // Assert 2: Atualização deve ter sucesso ou retornar erro apropriado
             updateResponse.StatusCode.Should().BeOneOf(
@@ -92,7 +99,8 @@ public class ModuleIntegrationTests : TestContainerTestBase
             );
 
             // Act 3: Verifica se o usuário pode ser recuperado
-            var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+            var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+            getResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should retrieve user after update");
 
             // Assert 3: Usuário deve ser recuperável
             getResponse.StatusCode.Should().BeOneOf(
@@ -106,13 +114,13 @@ public class ModuleIntegrationTests : TestContainerTestBase
     public async Task QueryUsers_ShouldReturnConsistentPagination()
     {
         // Arrange
-        AuthenticateAsAdmin(); // GET requer autorização
+        TestContainerFixture.AuthenticateAsAdmin(); // GET requer autorização
 
         // Act 1: Obtém a primeira página
-        var page1Response = await ApiClient.GetAsync("/api/v1/users?pageNumber=1&pageSize=5");
+        var page1Response = await _fixture.ApiClient.GetAsync("/api/v1/users?pageNumber=1&pageSize=5");
 
         // Act 2: Obtém a segunda página  
-        var page2Response = await ApiClient.GetAsync("/api/v1/users?pageNumber=2&pageSize=5");
+        var page2Response = await _fixture.ApiClient.GetAsync("/api/v1/users?pageNumber=2&pageSize=5");
 
         // Assert: Ambas as requisições devem ter sucesso ou retornar not found
         page1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotFound);
@@ -134,7 +142,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
     public async Task Command_WithInvalidInput_ShouldReturnValidationErrors()
     {
         // Arrange: Cria requisição com múltiplos erros de validação
-        AuthenticateAsAdmin(); // POST requer autorização
+        TestContainerFixture.AuthenticateAsAdmin(); // POST requer autorização
 
         var invalidRequest = new
         {
@@ -145,7 +153,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest, JsonOptions);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest, TestContainerFixture.JsonOptions);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -162,7 +170,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
     public async Task ConcurrentUserCreation_ShouldHandleGracefully()
     {
         // Arrange - autentica como admin para poder criar usuários
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Mantém sob 30 caracteres
         var userRequest = new
@@ -176,7 +184,7 @@ public class ModuleIntegrationTests : TestContainerTestBase
         // Act: Envia múltiplas requisições concorrentes
         var tasks = Enumerable.Range(0, 3).Select(async i =>
         {
-            return await ApiClient.PostAsJsonAsync("/api/v1/users", userRequest, JsonOptions);
+            return await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", userRequest, TestContainerFixture.JsonOptions);
         });
 
         var responses = await Task.WhenAll(tasks);

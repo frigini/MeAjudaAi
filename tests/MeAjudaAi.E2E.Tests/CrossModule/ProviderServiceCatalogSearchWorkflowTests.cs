@@ -16,8 +16,15 @@ namespace MeAjudaAi.E2E.Tests.CrossModule;
 /// </summary>
 [Trait("Category", "E2E")]
 [Trait("Module", "CrossModule")]
-public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
+public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public ProviderServiceCatalogSearchWorkflowTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     private readonly Faker _faker = new();
 
     /// <summary>
@@ -61,7 +68,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         // ============================================
         // STEP 1: Criar ServiceCategory e Service
         // ============================================
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
@@ -74,10 +81,10 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
             IsActive = true
         };
 
-        var categoryResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, JsonOptions);
+        var categoryResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", categoryRequest, TestContainerFixture.JsonOptions);
         categoryResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Categoria deve ser criada com sucesso");
 
-        var categoryId = ExtractIdFromLocation(categoryResponse.Headers.Location!.ToString());
+        var categoryId = TestContainerFixture.ExtractIdFromLocation(categoryResponse.Headers.Location!.ToString());
 
         // Criar serviço na categoria
         var serviceRequest = new
@@ -90,10 +97,10 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
             IsActive = true
         };
 
-        var serviceResponse = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, JsonOptions);
+        var serviceResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", serviceRequest, TestContainerFixture.JsonOptions);
         serviceResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Serviço deve ser criado com sucesso");
 
-        var serviceId = ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
+        var serviceId = TestContainerFixture.ExtractIdFromLocation(serviceResponse.Headers.Location!.ToString());
 
         // ============================================
         // STEP 2: Criar Provider com geolocalização
@@ -133,10 +140,10 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
             }
         };
 
-        var providerResponse = await ApiClient.PostAsJsonAsync("/api/v1/providers", providerRequest, JsonOptions);
+        var providerResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", providerRequest, TestContainerFixture.JsonOptions);
         providerResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Provider deve ser criado com sucesso");
 
-        var providerId = ExtractIdFromLocation(providerResponse.Headers.Location!.ToString());
+        var providerId = TestContainerFixture.ExtractIdFromLocation(providerResponse.Headers.Location!.ToString());
 
         // ============================================
         // STEP 3: Associar serviço ao provider
@@ -148,10 +155,10 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
             ServiceId = serviceId
         };
 
-        var associationResponse = await ApiClient.PostAsJsonAsync(
+        var associationResponse = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/providers/{providerId}/services",
             associationRequest,
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
 
         // Association should succeed - NotFound means endpoint not implemented yet
         associationResponse.StatusCode.Should().BeOneOf(
@@ -163,7 +170,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         await WaitForSearchIndexing(async () =>
         {
             var testUrl = $"/api/v1/search/providers?latitude={latitude}&longitude={longitude}&radiusKm=10&serviceIds={serviceId}";
-            var testResponse = await ApiClient.GetAsync(testUrl);
+            var testResponse = await _fixture.ApiClient.GetAsync(testUrl);
             return testResponse.IsSuccessStatusCode;
         }, timeoutMs: 5000);
 
@@ -176,11 +183,11 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
                        $"radiusKm=10&" +
                        $"serviceIds={serviceId}";
 
-        var searchResponse = await ApiClient.GetAsync(searchUrl);
+        var searchResponse = await _fixture.ApiClient.GetAsync(searchUrl);
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK, "Busca deve retornar sucesso");
 
         var searchContent = await searchResponse.Content.ReadAsStringAsync();
-        var searchResult = JsonSerializer.Deserialize<JsonElement>(searchContent, JsonOptions);
+        var searchResult = JsonSerializer.Deserialize<JsonElement>(searchContent, TestContainerFixture.JsonOptions);
 
         // Validar estrutura da resposta
         searchResult.TryGetProperty("data", out var data).Should().BeTrue("Response deve ter propriedade 'data'");
@@ -259,15 +266,15 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         try
         {
             // Provider deletion should succeed or resource already deleted
-            var deleteProviderResponse = await ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
+            var deleteProviderResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
             deleteProviderResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
             // Service deletion should succeed or resource already deleted
-            var deleteServiceResponse = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
+            var deleteServiceResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId}");
             deleteServiceResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
             // Category deletion should succeed or resource already deleted
-            var deleteCategoryResponse = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
+            var deleteCategoryResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId}");
             deleteCategoryResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
         }
         catch (Exception ex)
@@ -283,31 +290,31 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         // ============================================
         // SETUP: Criar 2 categorias e 2 serviços diferentes
         // ============================================
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
         // Categoria 1: Healthcare
-        var category1Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new
+        var category1Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new
         {
             Name = $"Healthcare_{uniqueId}",
             Description = "Healthcare services",
             Icon = "medical",
             IsActive = true
-        }, JsonOptions);
-        var categoryId1 = ExtractIdFromLocation(category1Response.Headers.Location!.ToString());
+        }, TestContainerFixture.JsonOptions);
+        var categoryId1 = TestContainerFixture.ExtractIdFromLocation(category1Response.Headers.Location!.ToString());
 
         // Categoria 2: Education
-        var category2Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new
+        var category2Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/categories", new
         {
             Name = $"Education_{uniqueId}",
             Description = "Education services",
             Icon = "education",
             IsActive = true
-        }, JsonOptions);
-        var categoryId2 = ExtractIdFromLocation(category2Response.Headers.Location!.ToString());
+        }, TestContainerFixture.JsonOptions);
+        var categoryId2 = TestContainerFixture.ExtractIdFromLocation(category2Response.Headers.Location!.ToString());
 
         // Serviço 1: Consultation
-        var service1Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new
+        var service1Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new
         {
             Name = $"Consultation_{uniqueId}",
             Description = "Medical consultation",
@@ -315,11 +322,11 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
             BasePrice = 150.00m,
             EstimatedDurationMinutes = 30,
             IsActive = true
-        }, JsonOptions);
-        var serviceId1 = ExtractIdFromLocation(service1Response.Headers.Location!.ToString());
+        }, TestContainerFixture.JsonOptions);
+        var serviceId1 = TestContainerFixture.ExtractIdFromLocation(service1Response.Headers.Location!.ToString());
 
         // Serviço 2: Tutoring
-        var service2Response = await ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new
+        var service2Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/service-catalogs/services", new
         {
             Name = $"Tutoring_{uniqueId}",
             Description = "Private tutoring",
@@ -327,13 +334,13 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
             BasePrice = 80.00m,
             EstimatedDurationMinutes = 60,
             IsActive = true
-        }, JsonOptions);
-        var serviceId2 = ExtractIdFromLocation(service2Response.Headers.Location!.ToString());
+        }, TestContainerFixture.JsonOptions);
+        var serviceId2 = TestContainerFixture.ExtractIdFromLocation(service2Response.Headers.Location!.ToString());
 
         // ============================================
         // Criar Provider 1: oferece AMBOS serviços
         // ============================================
-        var provider1Response = await ApiClient.PostAsJsonAsync("/api/v1/providers", new
+        var provider1Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", new
         {
             UserId = Guid.NewGuid(),
             Name = $"MultiService_{uniqueId}",
@@ -363,26 +370,26 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
                     Longitude = -46.633308
                 }
             }
-        }, JsonOptions);
-        var providerId1 = ExtractIdFromLocation(provider1Response.Headers.Location!.ToString());
+        }, TestContainerFixture.JsonOptions);
+        var providerId1 = TestContainerFixture.ExtractIdFromLocation(provider1Response.Headers.Location!.ToString());
 
         // Associar AMBOS serviços ao Provider1
-        var assoc1Service1 = await ApiClient.PostAsJsonAsync(
+        var assoc1Service1 = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/providers/{providerId1}/services",
             new { ProviderId = providerId1, ServiceId = serviceId1 },
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
         assoc1Service1.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
         
-        var assoc1Service2 = await ApiClient.PostAsJsonAsync(
+        var assoc1Service2 = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/providers/{providerId1}/services",
             new { ProviderId = providerId1, ServiceId = serviceId2 },
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
         assoc1Service2.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
 
         // ============================================
         // Criar Provider 2: oferece apenas serviço 1
         // ============================================
-        var provider2Response = await ApiClient.PostAsJsonAsync("/api/v1/providers", new
+        var provider2Response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/providers", new
         {
             UserId = Guid.NewGuid(),
             Name = $"SingleService_{uniqueId}",
@@ -412,21 +419,21 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
                     Longitude = -46.634000
                 }
             }
-        }, JsonOptions);
-        var providerId2 = ExtractIdFromLocation(provider2Response.Headers.Location!.ToString());
+        }, TestContainerFixture.JsonOptions);
+        var providerId2 = TestContainerFixture.ExtractIdFromLocation(provider2Response.Headers.Location!.ToString());
 
         // Associar apenas serviceId1 ao Provider2
-        var assoc2Service1 = await ApiClient.PostAsJsonAsync(
+        var assoc2Service1 = await _fixture.ApiClient.PostAsJsonAsync(
             $"/api/v1/providers/{providerId2}/services",
             new { ProviderId = providerId2, ServiceId = serviceId1 },
-            JsonOptions);
+            TestContainerFixture.JsonOptions);
         assoc2Service1.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NoContent);
 
         // Aguardar indexação com retry/polling
         await WaitForSearchIndexing(async () =>
         {
             var testUrl = $"/api/v1/search/providers?latitude=-23.550520&longitude=-46.633308&radiusKm=10&serviceIds={serviceId1},{serviceId2}";
-            var testResponse = await ApiClient.GetAsync(testUrl);
+            var testResponse = await _fixture.ApiClient.GetAsync(testUrl);
             return testResponse.IsSuccessStatusCode;
         }, timeoutMs: 5000);
 
@@ -439,11 +446,11 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
                        $"radiusKm=10&" +
                        $"serviceIds={serviceId1},{serviceId2}";
 
-        var searchResponse = await ApiClient.GetAsync(searchUrl);
+        var searchResponse = await _fixture.ApiClient.GetAsync(searchUrl);
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var searchContent = await searchResponse.Content.ReadAsStringAsync();
-        var searchResult = JsonSerializer.Deserialize<JsonElement>(searchContent, JsonOptions);
+        var searchResult = JsonSerializer.Deserialize<JsonElement>(searchContent, TestContainerFixture.JsonOptions);
 
         // Validar que busca funcionou
         searchResult.TryGetProperty("data", out var data).Should().BeTrue();
@@ -472,22 +479,22 @@ public class ProviderServiceCatalogSearchWorkflowTests : TestContainerTestBase
         // ============================================
         try
         {
-            var deleteProvider1Response = await ApiClient.DeleteAsync($"/api/v1/providers/{providerId1}");
+            var deleteProvider1Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId1}");
             deleteProvider1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
-            var deleteProvider2Response = await ApiClient.DeleteAsync($"/api/v1/providers/{providerId2}");
+            var deleteProvider2Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId2}");
             deleteProvider2Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
-            var deleteService1Response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId1}");
+            var deleteService1Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId1}");
             deleteService1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
-            var deleteService2Response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId2}");
+            var deleteService2Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/services/{serviceId2}");
             deleteService2Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
-            var deleteCategory1Response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId1}");
+            var deleteCategory1Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId1}");
             deleteCategory1Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
 
-            var deleteCategory2Response = await ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId2}");
+            var deleteCategory2Response = await _fixture.ApiClient.DeleteAsync($"/api/v1/service-catalogs/categories/{categoryId2}");
             deleteCategory2Response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.NotFound);
         }
         catch (Exception ex)

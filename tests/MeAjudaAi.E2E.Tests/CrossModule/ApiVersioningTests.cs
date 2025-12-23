@@ -7,13 +7,20 @@ namespace MeAjudaAi.E2E.Tests.CrossModule;
 /// Padrão: /api/v{version}/module (ex: /api/v1/users)
 /// Essa abordagem é explícita, clara e evita a complexidade de múltiplos métodos de versionamento
 /// </summary>
-public class ApiVersioningTests : TestContainerTestBase
+public class ApiVersioningTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public ApiVersioningTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     [Fact]
     public async Task ApiVersioning_ShouldWork_ViaUrlSegment()
     {
         // Arrange & Act
-        var response = await ApiClient.GetAsync("/api/v1/users");
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
         // Não deve ser NotFound - indica que o versionamento por URL foi reconhecido e está funcionando
@@ -28,9 +35,9 @@ public class ApiVersioningTests : TestContainerTestBase
         // Arrange & Act - Testa caminhos que NÃO devem funcionar sem versionamento na URL
         var responses = new[]
         {
-            await ApiClient.GetAsync("/api/users"), // Sem versão - deve ser 404
-            await ApiClient.GetAsync("/users"), // Sem prefixo api - deve ser 404
-            await ApiClient.GetAsync("/api/v2/users") // Versão não suportada - deve ser 404 ou 400
+            await _fixture.ApiClient.GetAsync("/api/users"), // Sem versão - deve ser 404
+            await _fixture.ApiClient.GetAsync("/users"), // Sem prefixo api - deve ser 404
+            await _fixture.ApiClient.GetAsync("/api/v2/users") // Versão não suportada - deve ser 404 ou 400
         };
 
         // Assert
@@ -45,16 +52,16 @@ public class ApiVersioningTests : TestContainerTestBase
     public async Task ApiVersioning_ShouldWork_ForDifferentModules()
     {
         // Arrange - Configure authentication for API access
-        AuthenticateAsAdmin();
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // Act - Testa que o versionamento funciona para diferentes padrões de módulos
         var responses = new[]
         {
-            await ApiClient.GetAsync("/api/v1/users"),
-            await ApiClient.GetAsync("/api/v1/providers"),
-            await ApiClient.GetAsync("/api/v1/service-catalogs/services"),
-            await ApiClient.GetAsync("/api/v1/service-catalogs/categories"),
-            await ApiClient.GetAsync("/api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=10"),
+            await _fixture.ApiClient.GetAsync("/api/v1/users"),
+            await _fixture.ApiClient.GetAsync("/api/v1/providers"),
+            await _fixture.ApiClient.GetAsync("/api/v1/service-catalogs/services"),
+            await _fixture.ApiClient.GetAsync("/api/v1/service-catalogs/categories"),
+            await _fixture.ApiClient.GetAsync("/api/v1/search/providers?latitude=-23.5505&longitude=-46.6333&radiusInKm=10"),
         };
 
         // Assert

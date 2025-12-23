@@ -13,8 +13,15 @@ namespace MeAjudaAi.E2E.Tests.Authorization;
 /// Testes end-to-end para autorização baseada em permissions.
 /// Valida que o ConfigurableTestAuthenticationHandler funciona corretamente com permissions customizadas.
 /// </summary>
-public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
+public class PermissionAuthorizationEndToEndTests : IClassFixture<TestContainerFixture>
 {
+    private readonly TestContainerFixture _fixture;
+
+    public PermissionAuthorizationEndToEndTests(TestContainerFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     [Fact]
     public async Task UserWithReadPermission_CanListUsers()
     {
@@ -30,7 +37,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         );
 
         // Act
-        var response = await ApiClient.GetAsync("/api/v1/users");
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -51,7 +58,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         );
 
         // Act
-        var response = await ApiClient.GetAsync("/api/v1/users");
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert - Deve ser Forbidden
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -82,7 +89,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", newUser);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", newUser);
 
         // Assert - Deve retornar sucesso ou erro de validação, nunca Forbidden ou 5xx
         response.StatusCode.Should().BeOneOf(
@@ -115,7 +122,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         };
 
         // Act
-        var response = await ApiClient.PostAsJsonAsync("/api/v1/users", newUser);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", newUser);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -142,11 +149,11 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         );
 
         // Act & Assert - Pode listar
-        var listResponse = await ApiClient.GetAsync("/api/v1/users");
+        var listResponse = await _fixture.ApiClient.GetAsync("/api/v1/users");
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
 
         // Testa criar usuário - DEVE retornar Forbidden pois não tem role admin
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", new
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", new
         {
             Name = "Test",
             Email = $"test-{Guid.NewGuid()}@test.com",
@@ -179,11 +186,11 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         );
 
         // Act & Assert - Pode listar
-        var listResponse = await ApiClient.GetAsync("/api/v1/users");
+        var listResponse = await _fixture.ApiClient.GetAsync("/api/v1/users");
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
 
         // Pode criar (mesmo que dê BadRequest por validação, não deve ser Forbidden)
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", new
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", new
         {
             Name = "Admin Created",
             Email = $"admin-{Guid.NewGuid()}@test.com",
@@ -212,7 +219,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         );
 
         // Act
-        var response = await ApiClient.GetAsync("/api/v1/users");
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert - Não tem permissão UsersList, deve retornar Forbidden
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -234,7 +241,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         var responses = new List<HttpResponseMessage>();
         for (int i = 0; i < 3; i++)
         {
-            responses.Add(await ApiClient.GetAsync("/api/v1/users"));
+            responses.Add(await _fixture.ApiClient.GetAsync("/api/v1/users"));
         }
 
         // Assert - Todas devem ter sucesso
@@ -264,7 +271,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         );
 
         // Act - endpoint que requer ProviderOnly policy
-        var response = await ApiClient.GetAsync("/api/v1/providers");
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/providers");
 
         // Assert
         Assert.True(
@@ -288,7 +295,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         );
 
         // Act
-        var response = await ApiClient.GetAsync("/api/v1/providers");
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/providers");
 
         // Assert - Deve negar acesso se policy ProviderOnly estiver aplicada
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
@@ -311,7 +318,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         );
 
         // Act - endpoint que requer AdminOrProvider
-        var response = await ApiClient.GetAsync("/api/v1/providers");
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/providers");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -332,7 +339,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         );
 
         // Act
-        var response = await ApiClient.GetAsync("/api/v1/providers");
+        var response = await _fixture.ApiClient.GetAsync("/api/v1/providers");
 
         // Assert
         Assert.True(
@@ -361,7 +368,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         );
 
         // Act - acessar próprio recurso
-        var response = await ApiClient.GetAsync($"/api/v1/users/{actualUserId}");
+        var response = await _fixture.ApiClient.GetAsync($"/api/v1/users/{actualUserId}");
 
         // Assert - Owner deve poder acessar próprio recurso
         response.StatusCode.Should().Be(HttpStatusCode.OK,
@@ -388,7 +395,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         );
 
         // Act - tentar acessar recurso de outro usuário
-        var response = await ApiClient.GetAsync($"/api/v1/users/{otherUserId}");
+        var response = await _fixture.ApiClient.GetAsync($"/api/v1/users/{otherUserId}");
 
         // Assert - Não-owner sem admin deve ser negado
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
@@ -408,7 +415,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         // (já está configurado como admin após CreateTestUserAsAdminAsync)
 
         // Act - admin acessando qualquer recurso
-        var response = await ApiClient.GetAsync($"/api/v1/users/{anyUserId}");
+        var response = await _fixture.ApiClient.GetAsync($"/api/v1/users/{anyUserId}");
 
         // Assert - Admin deve poder acessar qualquer recurso
         response.StatusCode.Should().Be(HttpStatusCode.OK,
@@ -441,7 +448,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
             Password = "Test@123456789"
         };
 
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest);
+        var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest);
         createResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
 
         var createContent = await createResponse.Content.ReadAsStringAsync();
