@@ -352,6 +352,7 @@ public class PermissionAuthorizationEndToEndTests : IClassFixture<TestContainerF
     public async Task AdminOrOwnerPolicy_WithOwner_ShouldAllowOwnResource()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         
         // Criar usuário como admin
@@ -379,6 +380,7 @@ public class PermissionAuthorizationEndToEndTests : IClassFixture<TestContainerF
     public async Task AdminOrOwnerPolicy_WithNonOwner_ShouldDenyOtherResource()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         
         // Criar outro usuário como admin

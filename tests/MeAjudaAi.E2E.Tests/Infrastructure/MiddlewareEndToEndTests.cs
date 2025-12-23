@@ -128,6 +128,7 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
     public async Task RequestLogging_ShouldCaptureFailedRequest()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsUser();
 
         // Act
@@ -259,8 +260,7 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
     [Fact]
     public async Task ExceptionHandler_NotFound_ShouldReturnProblemDetails()
     {
-        // Arrange
-        TestContainerFixture.AuthenticateAsAdmin();
+        // Arrange        TestContainerFixture.BeforeEachTest();        TestContainerFixture.AuthenticateAsAdmin();
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -283,6 +283,7 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
     public async Task ExceptionHandler_BadRequest_ShouldReturnProblemDetails()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var invalidRequest = new
         {
