@@ -3,7 +3,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
 
 namespace MeAjudaAi.Modules.Users.Tests.Builders;
 
-public class EmailBuilder : BuilderBase<Email>
+public class EmailBuilder : BaseBuilder<Email>
 {
     public EmailBuilder()
     {

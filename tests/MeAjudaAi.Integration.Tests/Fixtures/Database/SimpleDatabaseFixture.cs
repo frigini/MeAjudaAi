@@ -25,6 +25,11 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
+        // ⚠️ CRÍTICO: Configura Npgsql ANTES de qualquer DbContext ser criado
+        // Correção para compatibilidade DateTime UTC com PostgreSQL timestamp
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        Console.WriteLine("[SimpleDatabaseFixture] Npgsql.EnableLegacyTimestampBehavior = true");
+
         // Cria container PostgreSQL com PostGIS para suporte a dados geográficos
         // PostGIS é necessário para SearchProviders (NetTopologySuite)
         _postgresContainer = new PostgreSqlBuilder()

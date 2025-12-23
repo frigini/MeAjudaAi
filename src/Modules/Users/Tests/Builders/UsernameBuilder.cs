@@ -4,7 +4,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
 
 namespace MeAjudaAi.Modules.Users.Tests.Builders;
 
-public class UsernameBuilder : BuilderBase<Username>
+public class UsernameBuilder : BaseBuilder<Username>
 {
     public UsernameBuilder()
     {

@@ -147,13 +147,12 @@ public class DapperConnectionTests
 }
 
 /// <summary>
-/// Testes de integração para DapperConnection que requerem banco de dados real
-/// Estes testes são executados separadamente e marcados como Integration
+/// Testes de integração para DapperConnection com banco de dados real via TestContainers
 /// </summary>
 [Trait("Category", "Integration")]
 public class DapperConnectionIntegrationTests : BaseDatabaseTest
 {
-    [Fact(Skip = "Requer banco de dados PostgreSQL real - executar como teste de integração separado")]
+    [Fact]
     public async Task QueryAsync_ExecutesQuerySuccessfully()
     {
         // Arrange
@@ -170,7 +169,7 @@ public class DapperConnectionIntegrationTests : BaseDatabaseTest
         result.Should().Contain(1);
     }
 
-    [Fact(Skip = "Requer banco de dados PostgreSQL real - executar como teste de integração separado")]
+    [Fact]
     public async Task QuerySingleOrDefaultAsync_ExecutesQuerySuccessfully()
     {
         // Arrange
@@ -187,7 +186,7 @@ public class DapperConnectionIntegrationTests : BaseDatabaseTest
         result.Should().Be(1);
     }
 
-    [Fact(Skip = "Requer banco de dados PostgreSQL real - executar como teste de integração separado")]
+    [Fact]
     public async Task ExecuteAsync_ExecutesCommandSuccessfully()
     {
         // Arrange
@@ -198,13 +197,14 @@ public class DapperConnectionIntegrationTests : BaseDatabaseTest
         var connection = new DapperConnection(options, metrics, loggerMock.Object);
 
         // Act
-        var result = await connection.ExecuteAsync("SELECT 1");
+        // CREATE TEMP TABLE retorna 0 (sucesso), diferente de SELECT que retorna -1
+        var result = await connection.ExecuteAsync("CREATE TEMP TABLE test_execute (id INT)");
 
         // Assert
-        result.Should().BeGreaterThanOrEqualTo(0);
+        result.Should().Be(0, "CREATE TEMP TABLE should return 0 on success");
     }
 
-    [Fact(Skip = "Requer banco de dados PostgreSQL real - executar como teste de integração separado")]
+    [Fact]
     public async Task QueryAsync_RecordsConnectionError_OnFailure()
     {
         // Arrange
@@ -221,7 +221,7 @@ public class DapperConnectionIntegrationTests : BaseDatabaseTest
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
-    [Fact(Skip = "Requer banco de dados PostgreSQL real - executar como teste de integração separado")]
+    [Fact]
     public async Task QueryAsync_HandlesCancellation_Gracefully()
     {
         // Arrange

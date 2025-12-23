@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Time;
 
 namespace MeAjudaAi.Modules.Users.Tests.Builders;
 
-public class UserBuilder : BuilderBase<User>
+public class UserBuilder : BaseBuilder<User>
 {
     private Username? _username;
     private Email? _email;

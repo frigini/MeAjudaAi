@@ -15,6 +15,11 @@ public class AspireIntegrationFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
+        // ⚠️ CRÍTICO: Configura Npgsql ANTES de qualquer DbContext ser criado
+        // Correção para compatibilidade DateTime UTC com PostgreSQL timestamp
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        Console.WriteLine("[AspireIntegrationFixture] Npgsql.EnableLegacyTimestampBehavior = true");
+
         // Configura ambiente de teste ANTES de criar o AppHost
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
