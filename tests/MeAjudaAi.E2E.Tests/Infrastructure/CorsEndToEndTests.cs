@@ -202,6 +202,8 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task AuthenticatedRequest_WithCors_ShouldWorkCorrectly()
     {
         // Arrange - Registrar e fazer login
+        TestContainerFixture.BeforeEachTest();
+        
         var registerRequest = new
         {
             email = _fixture.Faker.Internet.Email(),

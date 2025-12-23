@@ -13,14 +13,25 @@ public class TestContextAwareHandler : DelegatingHandler
     private static readonly string[] PublicEndpoints =
     [
         "/health",
+        "/alive",
         "/api/users/register",
+        "/api/users/login",
         "/api/v1/users/register",
+        "/api/v1/users/login",
+        "/api/v1/services",
+        "/api/v1/service-categories",
         "/_framework",
         "/_vs"
     ];
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        // Preflight requests (OPTIONS) não requerem autenticação - são parte do protocolo CORS
+        if (request.Method == HttpMethod.Options)
+        {
+            return await base.SendAsync(request, cancellationToken);
+        }
+        
         // Verificar se é um endpoint público que não requer autenticação
         var requestPath = request.RequestUri?.AbsolutePath ?? string.Empty;
         var isPublicEndpoint = PublicEndpoints.Any(endpoint => 
