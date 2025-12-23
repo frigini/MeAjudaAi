@@ -1,3 +1,4 @@
+using FluentValidation;
 using MeAjudaAi.Modules.Users.API.Endpoints;
 using MeAjudaAi.Modules.Users.Application;
 using MeAjudaAi.Modules.Users.Infrastructure;
@@ -17,6 +18,9 @@ public static class Extensions
     {
         services.AddApplication();
         services.AddInfrastructure(configuration);
+        
+        // Registrar validadores FluentValidation do módulo Users
+        services.AddValidatorsFromAssemblyContaining<Application.Validators.CreateUserRequestValidator>();
 
         return services;
     }

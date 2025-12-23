@@ -1,3 +1,4 @@
+using FluentValidation;
 using MeAjudaAi.Modules.Users.API.Mappers;
 using MeAjudaAi.Modules.Users.Application.Commands;
 using MeAjudaAi.Modules.Users.Application.DTOs;
@@ -74,8 +75,23 @@ public class UpdateUserProfileEndpoint : BaseEndpoint, IEndpoint
         Guid id,
         [FromBody] UpdateUserProfileRequest request,
         ICommandDispatcher commandDispatcher,
+        IValidator<UpdateUserProfileRequest> validator,
         CancellationToken cancellationToken)
     {
+        // Validar request
+        var validationResult = await validator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors
+                .GroupBy(e => e.PropertyName)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => e.ErrorMessage).ToArray()
+                );
+            
+            return Results.ValidationProblem(errors);
+        }
+
         var command = request.ToCommand(id);
         var result = await commandDispatcher.SendAsync<UpdateUserProfileCommand, Result<UserDto>>(
             command, cancellationToken);
