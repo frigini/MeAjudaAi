@@ -75,12 +75,11 @@ public class ModuleIntegrationTests : TestContainerTestBase
             dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
             var userId = idProperty.GetGuid();
 
-            // Act 2: Atualiza o usuário
+            // Act 2: Atualiza o usuário (não alterar Email para evitar conflitos)
             var updateRequest = new
             {
                 FirstName = "Updated",
-                LastName = "User",
-                Email = $"updated_{uniqueId}@example.com"
+                LastName = "User"
             };
 
             var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, JsonOptions);

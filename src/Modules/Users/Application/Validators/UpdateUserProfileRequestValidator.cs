@@ -46,5 +46,25 @@ public class UpdateUserProfileRequestValidator : AbstractValidator<UpdateUserPro
             .WithMessage(ValidationMessages.InvalidFormat.Email)
             .MaximumLength(ValidationConstants.UserLimits.EmailMaxLength)
             .WithMessage(ValidationMessages.Length.EmailTooLong);
+
+        // PhoneNumber validation (optional field)
+        RuleFor(x => x.PhoneNumber)
+            .Must(phone => string.IsNullOrWhiteSpace(phone) || IsValidPhoneNumber(phone))
+            .WithMessage("Phone number must be in international format (e.g., +5511999999999)")
+            .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
+    }
+
+    private static bool IsValidPhoneNumber(string phoneNumber)
+    {
+        // Basic validation for international format: +[country code][number]
+        // Must start with + and contain 8-15 digits
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            return false;
+
+        if (!phoneNumber.StartsWith('+'))
+            return false;
+
+        var digitsOnly = phoneNumber[1..].Replace(" ", "").Replace("-", "");
+        return digitsOnly.Length >= 8 && digitsOnly.Length <= 15 && digitsOnly.All(char.IsDigit);
     }
 }

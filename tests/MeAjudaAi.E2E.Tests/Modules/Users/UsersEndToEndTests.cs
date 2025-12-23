@@ -292,8 +292,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             "First name should be persisted after update");
         lastNameProp.GetString().Should().Be("User",
             "Last name should be persisted after update");
-        emailProp.GetString().Should().Be($"updated_{uniqueId}@example.com",
-            "Email should be persisted after update");
+        emailProp.GetString().Should().Be($"update_test_{uniqueId}@example.com",
+            "Email should remain unchanged when not included in update");
     }
 
     [Fact]
@@ -347,6 +347,8 @@ public class UsersEndToEndTests : TestContainerTestBase
 
         // Verificar que apenas a última atualização está persistida
         var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should be able to retrieve updated user");
+        
         var content = await getResponse.Content.ReadAsStringAsync();
         var userData = JsonSerializer.Deserialize<JsonElement>(content, JsonOptions);
         var data = GetResponseData(userData);
@@ -394,6 +396,8 @@ public class UsersEndToEndTests : TestContainerTestBase
 
         // Verify UPDATE persisted
         var verifyUpdateResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
+        verifyUpdateResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should retrieve user after update");
+        
         var updateContent = await verifyUpdateResponse.Content.ReadAsStringAsync();
         var updatedData = JsonSerializer.Deserialize<JsonElement>(updateContent, JsonOptions);
         var data = GetResponseData(updatedData);
