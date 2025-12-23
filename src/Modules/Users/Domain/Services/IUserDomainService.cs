@@ -16,6 +16,7 @@ public interface IUserDomainService
         string lastName,
         string password,
         IEnumerable<string> roles,
+        string? phoneNumber = null,
         CancellationToken cancellationToken = default);
 
     Task<Result> SyncUserWithKeycloakAsync(

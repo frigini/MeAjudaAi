@@ -31,7 +31,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = $"todelete_{uniqueId}@example.com",
             FirstName = "ToDelete",
             LastName = "User",
-            Password = "Delete@123456"
+            Password = "Delete@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         // Create user - must succeed for delete test to be meaningful
@@ -115,7 +116,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = $"toupdate_{uniqueId}@example.com",
             FirstName = "Original",
             LastName = "Name",
-            Password = "Update@123456"
+            Password = "Update@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
@@ -174,7 +176,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = uniqueEmail,
             FirstName = "ByEmail",
             LastName = "Test",
-            Password = "Email@123456"
+            Password = "Email@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
@@ -206,7 +209,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = sharedEmail,
             FirstName = "First",
             LastName = "User",
-            Password = "First@123456"
+            Password = "First@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         var firstResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", firstUserRequest, JsonOptions);
@@ -219,7 +223,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = sharedEmail, // Email duplicado
             FirstName = "Second",
             LastName = "User",
-            Password = "Second@123456"
+            Password = "Second@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         var secondResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", secondUserRequest, JsonOptions);
@@ -244,7 +249,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = $"update_test_{uniqueId}@example.com",
             FirstName = "Original",
             LastName = "Name",
-            Password = "Original@123456"
+            Password = "Original@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
@@ -305,7 +311,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = $"multi_{uniqueId}@example.com",
             FirstName = "First",
             LastName = "Version",
-            Password = "Multi@123456"
+            Password = "Multi@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
@@ -367,7 +374,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = $"workflow_{uniqueId}@example.com",
             FirstName = "Workflow",
             LastName = "Test",
-            Password = "Workflow@123456"
+            Password = "Workflow@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
@@ -421,7 +429,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = duplicateEmail,
             FirstName = "First",
             LastName = "User",
-            Password = "Pass@123456"
+            Password = "Pass@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         var secondRequest = new
@@ -430,7 +439,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = duplicateEmail, // MESMO email
             FirstName = "Second",
             LastName = "User",
-            Password = "Pass@123456"
+            Password = "Pass@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         // Act - criar primeiro usuário
@@ -467,7 +477,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = $"first_{uniqueId}@example.com",
             FirstName = "First",
             LastName = "User",
-            Password = "Pass@123456"
+            Password = "Pass@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         var secondRequest = new
@@ -476,7 +487,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = $"second_{uniqueId}@example.com",
             FirstName = "Second",
             LastName = "User",
-            Password = "Pass@123456"
+            Password = "Pass@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         // Act
@@ -505,7 +517,8 @@ public class UsersEndToEndTests : TestContainerTestBase
             Email = $"concurrent_{uniqueId}@example.com",
             FirstName = "Concurrent",
             LastName = "User",
-            Password = "Pass@123456"
+            Password = "Pass@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);

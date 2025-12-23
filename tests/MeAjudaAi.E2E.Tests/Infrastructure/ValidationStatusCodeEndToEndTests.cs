@@ -31,7 +31,8 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
             Email = "not-an-email", // Invalid email format
             FirstName = Faker.Name.FirstName(),
             LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true)
+            Password = Faker.Internet.Password(12, true),
+            PhoneNumber = "+5511999999999"
         };
 
         // Act
@@ -56,7 +57,8 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
             // Email ausente (required)
             FirstName = Faker.Name.FirstName(),
             LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true)
+            Password = Faker.Internet.Password(12, true),
+            PhoneNumber = "+5511999999999"
         };
 
         // Act
@@ -176,7 +178,8 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
             Email = uniqueEmail,
             FirstName = Faker.Name.FirstName(),
             LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true)
+            Password = Faker.Internet.Password(12, true),
+            PhoneNumber = "+5511999999999"
         };
         
         await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
@@ -188,7 +191,8 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
             Email = uniqueEmail, // Same email
             FirstName = Faker.Name.FirstName(),
             LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true)
+            Password = Faker.Internet.Password(12, true),
+            PhoneNumber = "+5511999999999"
         };
         var duplicateResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, JsonOptions);
 
@@ -242,7 +246,8 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
             Email = "invalid-email", // Invalid format - will be the first error thrown
             FirstName = "Test",
             LastName = "User",
-            Password = "ValidPassword123!"
+            Password = "ValidPassword123!",
+            PhoneNumber = "+5511999999999"
         };
 
         // Act
@@ -272,7 +277,8 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
             Email = uniqueEmail,
             FirstName = Faker.Name.FirstName(),
             LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true)
+            Password = Faker.Internet.Password(12, true),
+            PhoneNumber = "+5511999999999"
         };
         
         await ApiClient.PostAsJsonAsync("/api/v1/users", request, JsonOptions);
@@ -284,7 +290,8 @@ public class ValidationStatusCodeEndToEndTests : TestContainerTestBase
             Email = uniqueEmail, // Same email
             FirstName = Faker.Name.FirstName(),
             LastName = Faker.Name.LastName(),
-            Password = Faker.Internet.Password(12, true)
+            Password = Faker.Internet.Password(12, true),
+            PhoneNumber = "+5511999999999"
         };
         var duplicateResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, JsonOptions);
 

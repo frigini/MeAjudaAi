@@ -88,11 +88,17 @@ internal sealed class CreateUserCommandHandler(
             // Allow ArgumentException (validation errors) to propagate to GlobalExceptionHandler
             throw;
         }
+        catch (MeAjudaAi.Shared.Exceptions.DomainException)
+        {
+            // Allow DomainException (business rule violations) to propagate to GlobalExceptionHandler
+            throw;
+        }
         catch (Exception ex)
         {
-            // Catch infrastructure errors (database, cache, etc.) and return failure result
-            logger.LogError(ex, "Unexpected error creating user with email {Email}", command.Email);
-            return Result<UserDto>.Failure("Failed to create user due to an unexpected error");
+            // Catch infrastructure errors (database, cache, etc.) and log with full details
+            logger.LogError(ex, "Unexpected error creating user with email {Email}. Exception type: {ExceptionType}, Message: {Message}", 
+                command.Email, ex.GetType().Name, ex.Message);
+            return Result<UserDto>.Failure($"Failed to create user: {ex.Message}");
         }
     }
 
@@ -145,6 +151,7 @@ internal sealed class CreateUserCommandHandler(
             command.LastName,
             command.Password,
             command.Roles,
+            command.PhoneNumber,
             cancellationToken);
 
         logger.LogDebug("User domain service completed in {ElapsedMs}ms",

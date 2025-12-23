@@ -65,6 +65,7 @@ public class CreateUserCommandHandlerTests
                 command.LastName,
                 command.Password,
                 command.Roles,
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<User>.Success(user));
 
@@ -95,6 +96,7 @@ public class CreateUserCommandHandlerTests
                 command.LastName,
                 command.Password,
                 command.Roles,
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
         _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -123,6 +125,7 @@ public class CreateUserCommandHandlerTests
                 command.LastName,
                 command.Password,
                 command.Roles,
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<User>.Failure(error));
 
@@ -142,6 +145,7 @@ public class CreateUserCommandHandlerTests
                 command.LastName,
                 command.Password,
                 command.Roles,
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -188,6 +192,7 @@ public class CreateUserCommandHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<IEnumerable<string>>(),
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -237,6 +242,7 @@ public class CreateUserCommandHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<IEnumerable<string>>(),
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -276,6 +282,7 @@ public class CreateUserCommandHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<IEnumerable<string>>(),
+                phoneNumber: null,
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }

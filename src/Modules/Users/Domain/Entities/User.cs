@@ -103,11 +103,12 @@ public sealed class User : AggregateRoot<UserId>
     /// <param name="firstName">Primeiro nome</param>
     /// <param name="lastName">Sobrenome</param>
     /// <param name="keycloakId">ID do usuário no Keycloak</param>
+    /// <param name="phoneNumber">Número de telefone (opcional)</param>
     /// <remarks>
     /// Este construtor dispara automaticamente o evento UserRegisteredDomainEvent.
     /// </remarks>
     /// <exception cref="UserDomainException">Thrown when business rules are violated</exception>
-    public User(Username username, Email email, string firstName, string lastName, string keycloakId)
+    public User(Username username, Email email, string firstName, string lastName, string keycloakId, string? phoneNumber = null)
         : base(UserId.New())
     {
         ArgumentNullException.ThrowIfNull(username);
@@ -121,6 +122,12 @@ public sealed class User : AggregateRoot<UserId>
         FirstName = firstName;
         LastName = lastName;
         KeycloakId = keycloakId;
+        
+        // Define PhoneNumber se fornecido
+        if (!string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            PhoneNumber = new PhoneNumber(phoneNumber);
+        }
 
         AddDomainEvent(new UserRegisteredDomainEvent(Id.Value, 1, email.Value, username.Value, firstName, lastName));
     }
@@ -128,8 +135,10 @@ public sealed class User : AggregateRoot<UserId>
     /// <summary>
     /// Atualiza as informações básicas do perfil do usuário (nome e sobrenome).
     /// </summary>
-    /// <param name="firstName">Novo primeiro nome</param>
-    /// <param name="lastName">Novo sobrenome</param>
+    /// <param name="firstName">Novo primeiro nome do usuário</param>
+    /// <param name="lastName">Novo sobrenome do usuário</param>
+    /// <param name="email">Novo email (opcional). Use null para não alterar. String vazia/whitespace será rejeitada.</param>
+    /// <param name="phoneNumber">Novo número de telefone (opcional). Use null para não alterar. String vazia/whitespace será rejeitada.</param>
     /// <remarks>
     /// ⚠️ OPERAÇÃO ESPECÍFICA: Este método atualiza APENAS o nome e sobrenome.
     /// 
@@ -153,12 +162,22 @@ public sealed class User : AggregateRoot<UserId>
     /// - Usuário está deletado
     /// - Nome ou sobrenome são vazios
     /// - Nome ou sobrenome não atendem aos critérios de tamanho (2-100 caracteres)
+    /// - Email ou PhoneNumber são strings vazias/whitespace (use null para não alterar)
     /// </exception>
     public void UpdateProfile(string firstName, string lastName, string? email = null, string? phoneNumber = null)
     {
         ValidateProfileUpdate();
 
+        // Validação defensiva: rejeita strings vazias/whitespace
+        if (email is not null && string.IsNullOrWhiteSpace(email))
+            throw new UserDomainException("Email cannot be empty or whitespace. Use null to leave unchanged.");
+        
+        if (phoneNumber is not null && string.IsNullOrWhiteSpace(phoneNumber))
+            throw new UserDomainException("PhoneNumber cannot be empty or whitespace. Use null to leave unchanged.");
+
         var hasChanges = FirstName != firstName || LastName != lastName;
+        var emailChanged = false;
+        var phoneChanged = false;
         
         FirstName = firstName;
         LastName = lastName;
@@ -167,12 +186,14 @@ public sealed class User : AggregateRoot<UserId>
         {
             Email = new Email(email);
             hasChanges = true;
+            emailChanged = true;
         }
         
         if (phoneNumber != null)
         {
             PhoneNumber = new PhoneNumber(phoneNumber);
             hasChanges = true;
+            phoneChanged = true;
         }
         
         if (!hasChanges)
@@ -180,7 +201,14 @@ public sealed class User : AggregateRoot<UserId>
 
         MarkAsUpdated();
 
-        AddDomainEvent(new UserProfileUpdatedDomainEvent(Id.Value, 1, firstName, lastName));
+        // Evento de domínio com todas as mudanças
+        AddDomainEvent(new UserProfileUpdatedDomainEvent(
+            Id.Value, 
+            1, 
+            firstName, 
+            lastName, 
+            emailChanged ? email : null, 
+            phoneChanged ? phoneNumber : null));
     }
 
     /// <summary>

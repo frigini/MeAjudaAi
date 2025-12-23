@@ -46,6 +46,24 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(ValidationConstants.UserLimits.EmailMaxLength)
             .IsRequired();
 
+        // PhoneNumber - nullable value object stored as JSON
+        builder.OwnsOne(u => u.PhoneNumber, phone =>
+        {
+            phone.Property(p => p.Value)
+                .HasColumnName("phone_number")
+                .HasMaxLength(20)
+                .IsRequired(false);
+
+            phone.Property(p => p.CountryCode)
+                .HasColumnName("phone_country_code")
+                .HasMaxLength(5)
+                .HasDefaultValue("BR")
+                .IsRequired(false);
+        });
+        
+        // Make the PhoneNumber navigation optional - don't create instance if all properties are null
+        builder.Navigation(u => u.PhoneNumber).IsRequired(false);
+
         // Primitive value object
         builder.Property(u => u.FirstName)
             .HasColumnName("first_name")

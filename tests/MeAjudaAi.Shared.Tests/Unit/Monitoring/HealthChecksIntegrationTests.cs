@@ -70,7 +70,7 @@ public class HealthChecksIntegrationTests
     [Fact]
     public async Task HangfireHealthCheck_ShouldReturnDegradedWhenNotConfigured()
     {
-        // Arrange - ServiceProvider sem Hangfire configurado
+        // Arrange - ServiceProvider sem Hangfire configurado (JobStorage não inicializado)
         var serviceProvider = new ServiceCollection().BuildServiceProvider();
         var healthCheck = new HangfireHealthCheck(NullLogger<HangfireHealthCheck>.Instance, serviceProvider);
         var context = new HealthCheckContext();
@@ -78,7 +78,7 @@ public class HealthChecksIntegrationTests
         // Act
         var result = await healthCheck.CheckHealthAsync(context);
 
-        // Assert - Deve retornar Degraded quando Hangfire não está configurado
+        // Assert - Deve retornar Degraded quando Hangfire não está configurado (JobStorage lança InvalidOperationException)
         result.Should().NotBeNull();
         result.Status.Should().Be(HealthStatus.Degraded);
         result.Description.Should().Contain("not operational");

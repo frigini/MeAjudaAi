@@ -28,7 +28,8 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
             Username = $"metrics_{uniqueId}",
             Email = $"metrics.{uniqueId}@example.com",
             Password = "ValidPass123!",
-            Role = "User"
+            Role = "User",
+            PhoneNumber = "+5511999999999"
         };
 
         // Act
@@ -273,7 +274,8 @@ public sealed class MiddlewareEndToEndTests : TestContainerTestBase
             Username = "", // Inválido - vazio
             Email = "not-an-email", // Inválido - formato
             Password = "123", // Inválido - muito curto
-            Role = "InvalidRole" // Inválido - role não existente
+            Role = "InvalidRole", // Inválido - role não existente
+            PhoneNumber = "+5511999999999"
         };
 
         // Act

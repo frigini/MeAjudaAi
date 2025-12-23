@@ -22,7 +22,8 @@ public static class RequestMapperExtensions
             FirstName: request.FirstName,
             LastName: request.LastName,
             Password: request.Password,
-            Roles: request.Roles ?? Array.Empty<string>()
+            Roles: request.Roles ?? Array.Empty<string>(),
+            PhoneNumber: request.PhoneNumber
         );
     }
 

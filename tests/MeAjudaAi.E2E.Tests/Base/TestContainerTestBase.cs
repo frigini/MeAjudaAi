@@ -173,12 +173,38 @@ public abstract class TestContainerTestBase : IAsyncLifetime
 
                     services.AddScoped<IKeycloakService, MockKeycloakService>();
 
+                    // Substituir IUserDomainService por MockUserDomainService para testes
+                    var userDomainServiceDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService));
+                    if (userDomainServiceDescriptor != null)
+                        services.Remove(userDomainServiceDescriptor);
+
+                    services.AddScoped<MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService, MockUserDomainService>();
+
                     // Substituir IBlobStorageService por MockBlobStorageService para testes
                     var blobStorageDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IBlobStorageService));
                     if (blobStorageDescriptor != null)
                         services.Remove(blobStorageDescriptor);
 
                     services.AddScoped<IBlobStorageService, MockBlobStorageService>();
+
+                    // Substituir IMessageBus por MockMessageBus para testes (RabbitMQ desabilitado)
+                    // Remover TODAS as implementações existentes de IMessageBus e adicionar o mock
+                    var messageBusDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Messaging.IMessageBus)).ToList();
+                    foreach (var descriptor in messageBusDescriptors)
+                    {
+                        services.Remove(descriptor);
+                    }
+                    
+                    // Adicionar como Singleton para garantir que a mesma instância seja usada em todos os lugares
+                    services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>();
+
+                    // Substituir IDomainEventProcessor por um mock que não processa eventos (evitar publicação de eventos de integração em E2E)
+                    var domainEventProcessorDescriptors = services.Where(d => d.ServiceType == typeof(MeAjudaAi.Shared.Events.IDomainEventProcessor)).ToList();
+                    foreach (var descriptor in domainEventProcessorDescriptors)
+                    {
+                        services.Remove(descriptor);
+                    }
+                    services.AddScoped<MeAjudaAi.Shared.Events.IDomainEventProcessor, MockDomainEventProcessor>();
 
                     // Remove todas as configurações de autenticação existentes
                     var authDescriptors = services
@@ -387,6 +413,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     /// </summary>
     protected static void AuthenticateAsAdmin()
     {
+        var contextId = ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
         ConfigurableTestAuthenticationHandler.ConfigureAdmin();
     }
 
@@ -395,6 +422,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
     /// </summary>
     protected static void AuthenticateAsUser(string userId = "test-user-id", string username = "testuser")
     {
+        var contextId = ConfigurableTestAuthenticationHandler.GetOrCreateTestContext();
         ConfigurableTestAuthenticationHandler.ConfigureRegularUser(userId, username);
     }
 
@@ -506,7 +534,8 @@ public abstract class TestContainerTestBase : IAsyncLifetime
             Email = email ?? $"testuser_{uniqueId}@example.com",
             FirstName = "Test",
             LastName = "User",
-            Password = "Test@123456"
+            Password = "Test@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         var response = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest, JsonOptions);
@@ -541,6 +570,72 @@ public abstract class TestContainerTestBase : IAsyncLifetime
             }
 
             return await base.SendAsync(request, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Mock implementation of IMessageBus for E2E tests
+    /// </summary>
+    private class MockMessageBus : MeAjudaAi.Shared.Messaging.IMessageBus
+    {
+        public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
+        {
+            // No-op: messages are not actually sent in E2E tests
+            return Task.CompletedTask;
+        }
+
+        public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
+        {
+            // No-op: events are not actually published in E2E tests
+            return Task.CompletedTask;
+        }
+
+        public Task SubscribeAsync<TMessage>(Func<TMessage, CancellationToken, Task> handler, string? subscriptionName = null, CancellationToken cancellationToken = default)
+        {
+            // No-op: subscriptions are not actually created in E2E tests
+            return Task.CompletedTask;
+        }
+    }
+
+    /// <summary>
+    /// Mock implementation of IDomainEventProcessor for E2E tests
+    /// Does not process domain events to avoid integration event publication
+    /// </summary>
+    private class MockDomainEventProcessor : MeAjudaAi.Shared.Events.IDomainEventProcessor
+    {
+        public Task ProcessDomainEventsAsync(IEnumerable<MeAjudaAi.Shared.Events.IDomainEvent> domainEvents, CancellationToken cancellationToken = default)
+        {
+            // No-op: domain events are not processed in E2E tests to avoid integration event publication
+            return Task.CompletedTask;
+        }
+    }
+
+    /// <summary>
+    /// Mock implementation of IUserDomainService for E2E tests
+    /// </summary>
+    private class MockUserDomainService : MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService
+    {
+        public Task<MeAjudaAi.Shared.Functional.Result<MeAjudaAi.Modules.Users.Domain.Entities.User>> CreateUserAsync(
+            MeAjudaAi.Modules.Users.Domain.ValueObjects.Username username,
+            MeAjudaAi.Modules.Users.Domain.ValueObjects.Email email,
+            string firstName,
+            string lastName,
+            string password,
+            IEnumerable<string> roles,
+            string? phoneNumber = null,
+            CancellationToken cancellationToken = default)
+        {
+            // Para testes, criar usuário mock
+            var user = new MeAjudaAi.Modules.Users.Domain.Entities.User(username, email, firstName, lastName, $"keycloak_{Guid.NewGuid()}", phoneNumber);
+            return Task.FromResult(MeAjudaAi.Shared.Functional.Result<MeAjudaAi.Modules.Users.Domain.Entities.User>.Success(user));
+        }
+
+        public Task<MeAjudaAi.Shared.Functional.Result> SyncUserWithKeycloakAsync(
+            MeAjudaAi.Modules.Users.Domain.ValueObjects.UserId userId, 
+            CancellationToken cancellationToken = default)
+        {
+            // Para testes, simular sincronização bem-sucedida
+            return Task.FromResult(MeAjudaAi.Shared.Functional.Result.Success());
         }
     }
 }

@@ -474,6 +474,9 @@ public class ProvidersEndToEndTests : TestContainerTestBase
 
     private async Task<Guid> CreateTestProviderAsync(string? name = null)
     {
+        // Ensure authenticated as admin to create providers
+        AuthenticateAsAdmin();
+        
         var userId = await CreateTestUserAsync();
         var providerName = name ?? Faker.Company.CompanyName();
 

@@ -306,6 +306,9 @@ public class SearchProvidersEndToEndTests : TestContainerTestBase
         double longitude,
         string subscriptionTier = "Free")
     {
+        // Ensure authenticated as admin to create providers
+        AuthenticateAsAdmin();
+        
         // Criar um usuário primeiro
         var userId = await CreateTestUserAsync();
 

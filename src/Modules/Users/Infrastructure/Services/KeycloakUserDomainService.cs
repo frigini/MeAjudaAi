@@ -47,6 +47,7 @@ internal class KeycloakUserDomainService(IKeycloakService keycloakService) : IUs
         string lastName,
         string password,
         IEnumerable<string> roles,
+        string? phoneNumber = null,
         CancellationToken cancellationToken = default)
     {
         // Cria o usuário no Keycloak primeiro
@@ -57,7 +58,7 @@ internal class KeycloakUserDomainService(IKeycloakService keycloakService) : IUs
             return Result<User>.Failure(keycloakResult.Error);
 
         // Cria a entidade User local com o ID retornado pelo Keycloak
-        var user = new User(username, email, firstName, lastName, keycloakResult.Value);
+        var user = new User(username, email, firstName, lastName, keycloakResult.Value, phoneNumber);
         return Result<User>.Success(user);
     }
 

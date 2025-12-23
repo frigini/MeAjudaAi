@@ -190,7 +190,11 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
             Username = $"admin{Guid.NewGuid().ToString()[..8]}",
             Password = "Admin@123456789"
         });
-        Assert.NotEqual(HttpStatusCode.Forbidden, createResponse.StatusCode);
+        createResponse.StatusCode.Should().BeOneOf(
+            HttpStatusCode.OK,
+            HttpStatusCode.Created,
+            HttpStatusCode.BadRequest,
+            HttpStatusCode.UnprocessableEntity);
     }
 
     [Fact]
@@ -343,44 +347,15 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         // Arrange
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         
-        var ownerId = Guid.NewGuid().ToString();
-        
-        // Primeiro, criar o usuário como admin
-        ConfigurableTestAuthenticationHandler.ConfigureUser(
-            userId: "admin-creator",
-            userName: "admin",
-            email: "admin@test.com",
-            permissions: [EPermission.UsersCreate.GetValue(), EPermission.UsersRead.GetValue()],
-            roles: ["admin"],
-            isSystemAdmin: true
-        );
-
-        var createRequest = new
-        {
-            Name = "Resource Owner",
-            Email = $"owner-{Guid.NewGuid()}@test.com",
-            Username = $"owner-{Guid.NewGuid().ToString()[..8]}",
-            Password = "Test@123456789"
-        };
-
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest);
-        // Criação do usuário deve ser bem-sucedida
-        createResponse.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Created,
-            HttpStatusCode.OK);
-
-        // Extrair o ID real retornado pela API (ignora o ID enviado na requisição)
-        var createContent = await createResponse.Content.ReadAsStringAsync();
-        using var createJson = JsonDocument.Parse(createContent);
-        var actualUserId = Guid.Parse(
-            createJson.RootElement.GetProperty("data").GetProperty("id").GetString()!);
+        // Criar usuário como admin
+        var actualUserId = await CreateTestUserAsAdminAsync("Owner");
 
         // Agora, autenticar como o próprio usuário (owner)
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         ConfigurableTestAuthenticationHandler.ConfigureUser(
-            userId: actualUserId.ToString(),
+            userId: actualUserId,
             userName: "resourceowner",
-            email: createRequest.Email,
+            email: "owner@test.com",
             permissions: [EPermission.UsersRead.GetValue()],
             roles: ["User"]
         );
@@ -400,33 +375,7 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         
         // Criar outro usuário como admin
-        ConfigurableTestAuthenticationHandler.ConfigureUser(
-            userId: "admin-creator",
-            userName: "admin",
-            email: "admin@test.com",
-            permissions: [EPermission.UsersCreate.GetValue()],
-            roles: ["admin"],
-            isSystemAdmin: true
-        );
-
-        var createRequest = new
-        {
-            Name = "Other User",
-            Email = $"other-{Guid.NewGuid()}@test.com",
-            Username = $"other-{Guid.NewGuid().ToString()[..8]}",
-            Password = "Test@123456789"
-        };
-
-        var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest);
-        // Criação do usuário deve ser bem-sucedida
-        createResponse.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Created,
-            HttpStatusCode.OK);
-
-        // Extrair ID real da resposta (estrutura: { "data": { "id": "..." } })
-        var createContent = await createResponse.Content.ReadAsStringAsync();
-        using var createJson = JsonDocument.Parse(createContent);
-        var otherUserId = createJson.RootElement.GetProperty("data").GetProperty("id").GetString()!;
+        var otherUserId = await CreateTestUserAsAdminAsync("Other");
 
         // Autenticar como usuário diferente (não-owner)
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
@@ -453,6 +402,28 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         
         // Criar um usuário qualquer como admin
+        var anyUserId = await CreateTestUserAsAdminAsync("Any");
+
+        // Manter autenticação como admin para testar acesso
+        // (já está configurado como admin após CreateTestUserAsAdminAsync)
+
+        // Act - admin acessando qualquer recurso
+        var response = await ApiClient.GetAsync($"/api/v1/users/{anyUserId}");
+
+        // Assert - Admin deve poder acessar qualquer recurso
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            "Admin deve poder acessar qualquer recurso");
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    /// <summary>
+    /// Cria um usuário de teste como admin e retorna seu ID.
+    /// </summary>
+    private async Task<string> CreateTestUserAsAdminAsync(string namePrefix)
+    {
         ConfigurableTestAuthenticationHandler.ConfigureUser(
             userId: "admin-creator",
             userName: "admin",
@@ -464,32 +435,18 @@ public class PermissionAuthorizationEndToEndTests : TestContainerTestBase
 
         var createRequest = new
         {
-            Name = "Any User",
-            Email = $"any-{Guid.NewGuid()}@test.com",
-            Username = $"any-{Guid.NewGuid().ToString()[..8]}",
+            Name = $"{namePrefix} User",
+            Email = $"{namePrefix.ToLower()}-{Guid.NewGuid()}@test.com",
+            Username = $"{namePrefix.ToLower()}-{Guid.NewGuid().ToString()[..8]}",
             Password = "Test@123456789"
         };
 
         var createResponse = await ApiClient.PostAsJsonAsync("/api/v1/users", createRequest);
-        // Criação do usuário deve ser bem-sucedida
-        createResponse.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Created,
-            HttpStatusCode.OK);
+        createResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.OK);
 
-        // Extrair ID real da resposta (estrutura: { "data": { "id": "..." } })
         var createContent = await createResponse.Content.ReadAsStringAsync();
         using var createJson = JsonDocument.Parse(createContent);
-        var anyUserId = createJson.RootElement.GetProperty("data").GetProperty("id").GetString()!;
-
-        // Manter autenticação como admin para testar acesso
-        // (já está configurado como admin)
-
-        // Act - admin acessando qualquer recurso
-        var response = await ApiClient.GetAsync($"/api/v1/users/{anyUserId}");
-
-        // Assert - Admin deve poder acessar qualquer recurso
-        response.StatusCode.Should().Be(HttpStatusCode.OK,
-            "Admin deve poder acessar qualquer recurso");
+        return createJson.RootElement.GetProperty("data").GetProperty("id").GetString()!;
     }
 
     #endregion

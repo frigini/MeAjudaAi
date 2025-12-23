@@ -14,10 +14,11 @@ internal class MockUserDomainService : IUserDomainService
         string lastName,
         string password,
         IEnumerable<string> roles,
+        string? phoneNumber = null,
         CancellationToken cancellationToken = default)
     {
         // Para testes, criar usuário mock
-        var user = new User(username, email, firstName, lastName, $"keycloak_{Guid.NewGuid()}");
+        var user = new User(username, email, firstName, lastName, $"keycloak_{Guid.NewGuid()}", phoneNumber);
         return Task.FromResult(Result<User>.Success(user));
     }
 
