@@ -210,7 +210,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         duplicateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Conflict, HttpStatusCode.BadRequest);
 
         var content = await duplicateResponse.Content.ReadAsStringAsync();
-        content.Should().Contain("já está sendo utilizado", "conflict message should indicate duplication in Portuguese");
+        content.Should().Contain("já existe", "conflict message should indicate duplication in Portuguese");
     }
 
     [Fact]

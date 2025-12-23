@@ -133,6 +133,14 @@ public static class Extensions
                 AllowCachingResponses = false
             });
 
+            // Alias /alive para /health (compatibilidade com testes)
+            app.MapHealthChecks("/alive", new HealthCheckOptions
+            {
+                Predicate = check => check.Tags.Contains("external"),
+                ResponseWriter = WriteHealthCheckResponse,
+                AllowCachingResponses = false
+            });
+
             app.MapHealthChecks("/health/live", new HealthCheckOptions
             {
                 Predicate = r => r.Tags.Contains("live"),

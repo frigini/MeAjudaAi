@@ -3,6 +3,7 @@ using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
 using MeAjudaAi.ApiService.Services.Authentication;
 using MeAjudaAi.Shared.Authorization.Middleware;
+using MeAjudaAi.Shared.Logging;
 using MeAjudaAi.Shared.Monitoring;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -124,6 +125,9 @@ public static class ServiceCollectionExtensions
         // ForwardedHeaders deve ser o primeiro para popular corretamente RemoteIpAddress para rate limiting
         // Processa cabeçalhos X-Forwarded-* de proxies reversos (load balancers, nginx, etc.)
         app.UseForwardedHeaders();
+
+        // Logging Context Middleware - adiciona correlation ID aos logs e response headers
+        app.UseLoggingContext();
 
         // Log de requisições (logo após ForwardedHeaders para capturar IP correto)
         app.UseMiddleware<RequestLoggingMiddleware>();

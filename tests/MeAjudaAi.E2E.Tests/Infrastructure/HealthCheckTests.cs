@@ -31,7 +31,7 @@ public class HealthCheckTests : IClassFixture<TestContainerFixture>
     public async Task LivenessCheck_ShouldReturnOk()
     {
         // Act
-        var response = await _fixture.ApiClient.GetAsync("/health/liveness");
+        var response = await _fixture.ApiClient.GetAsync("/health/live");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);

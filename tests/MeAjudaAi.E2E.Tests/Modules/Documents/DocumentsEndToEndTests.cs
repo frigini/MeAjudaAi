@@ -313,12 +313,11 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
         // Act - Marca como verificado
         var verifyRequest = new
         {
-            DocumentId = documentId,
             IsVerified = true,
             VerificationNotes = "Document verification completed successfully"
         };
 
-        var verifyResponse = await _fixture.PostJsonAsync("/api/v1/documents/verify", verifyRequest);
+        var verifyResponse = await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/verify", verifyRequest);
 
         // Assert - Verification should succeed
         verifyResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
@@ -362,12 +361,11 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
         // Act - Reject document
         var rejectRequest = new
         {
-            DocumentId = documentId,
             IsVerified = false,
             VerificationNotes = "Document is not legible"
         };
 
-        var rejectResponse = await _fixture.PostJsonAsync("/api/v1/documents/verify", rejectRequest);
+        var rejectResponse = await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/verify", rejectRequest);
 
         // Assert
         rejectResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
@@ -413,20 +411,18 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
         // Act - Verify first identity document
         var verify1 = new
         {
-            DocumentId = documentIds[0],
             IsVerified = true,
             VerificationNotes = "First version verified"
         };
-        await _fixture.PostJsonAsync("/api/v1/documents/verify", verify1);
+        await _fixture.PostJsonAsync($"/api/v1/documents/{documentIds[0]}/verify", verify1);
 
         // Act - Reject second identity document
         var verify2 = new
         {
-            DocumentId = documentIds[1],
             IsVerified = false,
             VerificationNotes = "Second version rejected - blurry image"
         };
-        await _fixture.PostJsonAsync("/api/v1/documents/verify", verify2);
+        await _fixture.PostJsonAsync($"/api/v1/documents/{documentIds[1]}/verify", verify2);
 
         // Assert - Verify complete history
         await _fixture.WithServiceScopeAsync(async services =>

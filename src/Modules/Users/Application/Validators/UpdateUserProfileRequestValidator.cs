@@ -50,8 +50,7 @@ public class UpdateUserProfileRequestValidator : AbstractValidator<UpdateUserPro
         // PhoneNumber validation (optional field)
         RuleFor(x => x.PhoneNumber)
             .Must(phone => string.IsNullOrWhiteSpace(phone) || IsValidPhoneNumber(phone))
-            .WithMessage("O número de telefone deve estar no formato internacional (ex.: +5511999999999)")
-            .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
+            .WithMessage("O número de telefone deve estar no formato internacional (ex.: +5511999999999)");
     }
 
     private static bool IsValidPhoneNumber(string phoneNumber)
