@@ -19,7 +19,11 @@ public class ApiVersioningTests : IClassFixture<TestContainerFixture>
     [Fact]
     public async Task ApiVersioning_ShouldWork_ViaUrlSegment()
     {
-        // Arrange & Act
+        // Arrange
+        TestContainerFixture.BeforeEachTest();
+        TestContainerFixture.AuthenticateAsAdmin();
+        
+        // Act
         var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
@@ -32,7 +36,11 @@ public class ApiVersioningTests : IClassFixture<TestContainerFixture>
     [Fact]
     public async Task ApiVersioning_ShouldReturnNotFound_ForInvalidPaths()
     {
-        // Arrange & Act - Testa caminhos que NÃO devem funcionar sem versionamento na URL
+        // Arrange
+        TestContainerFixture.BeforeEachTest();
+        TestContainerFixture.AuthenticateAsAdmin();
+        
+        // Act - Testa caminhos que NÃO devem funcionar sem versionamento na URL
         var responses = new[]
         {
             await _fixture.ApiClient.GetAsync("/api/users"), // Sem versão - deve ser 404
@@ -52,6 +60,7 @@ public class ApiVersioningTests : IClassFixture<TestContainerFixture>
     public async Task ApiVersioning_ShouldWork_ForDifferentModules()
     {
         // Arrange - Configure authentication for API access
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Act - Testa que o versionamento funciona para diferentes padrões de módulos

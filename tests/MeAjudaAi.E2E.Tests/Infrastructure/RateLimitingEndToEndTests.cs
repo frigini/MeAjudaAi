@@ -59,6 +59,7 @@ public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixtu
     public async Task RateLimiting_DifferentEndpoints_ShouldProcess()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         _fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
 
         // Act
@@ -85,6 +86,7 @@ public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixtu
     public async Task RateLimiting_ConcurrentRequests_ShouldHandleCorrectly()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         _fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
         const int concurrentRequests = 30;
 
@@ -113,6 +115,7 @@ public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixtu
     public async Task RateLimiting_AuthenticatedUser_ShouldProcess()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsUser();
 
         // Act

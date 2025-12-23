@@ -21,13 +21,6 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         _fixture = fixture;
     }
 
-    private readonly ITestOutputHelper _testOutput;
-
-    public ProvidersEndToEndTests(ITestOutputHelper testOutput)
-    {
-        _testOutput = testOutput;
-    }
-
     #region Basic CRUD Operations
 
     [Fact]
@@ -76,8 +69,6 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         if (response.StatusCode != HttpStatusCode.Created)
         {
             var content = await response.Content.ReadAsStringAsync();
-            _testOutput.WriteLine($"Expected 201 Created but got {response.StatusCode}. Response: {content}");
-
             // Se não conseguir criar, pelo menos verificar que não é erro 500
             response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError);
             return;
@@ -127,7 +118,6 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
                 var getContent = await getResponse.Content.ReadAsStringAsync();
-                _testOutput.WriteLine($"Provider JSON: {getContent}");
                 
                 var retrievedProvider = JsonSerializer.Deserialize<JsonElement>(getContent);
 
@@ -168,11 +158,10 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 try
                 {
                     var deleteResponse = await _fixture.ApiClient.DeleteAsync($"/api/v1/providers/{providerId}");
-                    _testOutput.WriteLine($"Cleanup delete returned {deleteResponse.StatusCode}");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    _testOutput.WriteLine($"Cleanup failed: {ex.Message}");
+                    // Cleanup failure is acceptable in this test
                 }
             }
         }
@@ -432,8 +421,6 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         if (!addDocumentResponse.IsSuccessStatusCode)
         {
             var errorContent = await addDocumentResponse.Content.ReadAsStringAsync();
-            _testOutput.WriteLine($"Add document failed: {addDocumentResponse.StatusCode}");
-            _testOutput.WriteLine($"Error content: {errorContent}");
         }
 
         // Assert

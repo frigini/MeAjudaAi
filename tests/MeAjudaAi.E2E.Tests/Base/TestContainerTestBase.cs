@@ -1,3 +1,4 @@
+using System.Net;
 using Bogus;
 using MeAjudaAi.ApiService;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
@@ -63,7 +64,7 @@ public abstract class TestContainerTestBase : IAsyncLifetime
             .Build();
 
         _azuriteContainer = new AzuriteBuilder()
-            .WithImage("mcr.microsoft.com/azure-storage/azurite:3.33.0")
+            .WithImage("mcr.microsoft.com/azure-storage/azurite:3.34.0")
             .WithCleanUp(true)
             .Build();
 

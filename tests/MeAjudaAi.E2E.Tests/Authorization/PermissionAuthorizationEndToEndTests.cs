@@ -406,6 +406,7 @@ public class PermissionAuthorizationEndToEndTests : IClassFixture<TestContainerF
     public async Task AdminOrOwnerPolicy_WithAdmin_ShouldAllowAnyResource()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
         
         // Criar um usuário qualquer como admin
