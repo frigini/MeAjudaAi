@@ -10,7 +10,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// Testes de integração completos para o módulo ServiceCatalogs.
 /// Valida fluxos end-to-end de criação, atualização, consulta e remoção.
 /// </summary>
-public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : ApiTestBase
+public class ServiceCatalogsIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
 {
     [Fact]
     public async Task CreateServiceCategory_WithValidData_ShouldReturnCreated()

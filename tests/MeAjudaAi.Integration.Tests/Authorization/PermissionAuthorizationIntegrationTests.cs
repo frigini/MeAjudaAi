@@ -8,7 +8,7 @@ namespace MeAjudaAi.Integration.Tests.Authorization;
 /// Testes de integração para o sistema de autorização baseado em permissões.
 /// Valida que usuários com diferentes níveis de permissão têm acesso apropriado aos endpoints.
 /// </summary>
-public class PermissionAuthorizationIntegrationTests : ApiTestBase
+public class PermissionAuthorizationIntegrationTests : BaseApiTest
 {
     private readonly ITestOutputHelper _output;
 

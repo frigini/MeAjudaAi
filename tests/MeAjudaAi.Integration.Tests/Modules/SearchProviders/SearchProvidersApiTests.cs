@@ -13,7 +13,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.SearchProviders;
 /// Foca em validações de parâmetros e formato de requisição.
 /// Não testa autenticação/autorização - endpoints de busca são públicos.
 /// </remarks>
-public class SearchProvidersApiTests : ApiTestBase
+public class SearchProvidersApiTests : BaseApiTest
 {
     private const string SearchEndpoint = "/api/v1/search/providers";
 

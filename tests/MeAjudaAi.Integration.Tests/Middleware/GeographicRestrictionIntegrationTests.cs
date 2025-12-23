@@ -11,7 +11,7 @@ namespace MeAjudaAi.Integration.Tests.Middleware;
 /// Usa validação baseada em configuração (não mock IBGE) para consistência.
 /// </summary>
 [Collection("Integration")]
-public class GeographicRestrictionIntegrationTests : ApiTestBase
+public class GeographicRestrictionIntegrationTests : BaseApiTest
 {
     /// <summary>
     /// Desabilita validação geográfica mock para estes testes.

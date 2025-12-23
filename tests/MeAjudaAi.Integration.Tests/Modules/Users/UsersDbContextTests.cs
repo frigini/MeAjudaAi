@@ -10,7 +10,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// <summary>
 /// Testes para verificar se o DbContext está funcionando corretamente
 /// </summary>
-public class UserDbContextTests : ApiTestBase
+public class UserDbContextTests : BaseApiTest
 {
     [Fact]
     public async Task CanConnectToDatabase_ShouldWork()

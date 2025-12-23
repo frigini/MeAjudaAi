@@ -11,7 +11,7 @@ namespace MeAjudaAi.Integration.Tests.Base;
 /// Base class focada em performance para testes de integração críticos
 /// Otimizada para reduzir timeouts e acelerar execução
 /// </summary>
-public abstract class PerformanceTestBase : IAsyncLifetime
+public abstract class BasePerformanceTest : IAsyncLifetime
 {
     private DistributedApplication _app = null!;
 
@@ -198,7 +198,7 @@ public abstract class PerformanceTestBase : IAsyncLifetime
 /// <summary>
 /// Base class básica para testes rápidos que não precisam de toda a infraestrutura
 /// </summary>
-public abstract class BasicTestBase : IAsyncLifetime
+public abstract class BaseBasicTest : IAsyncLifetime
 {
     protected HttpClient ApiClient { get; private set; } = null!;
     protected Faker Faker { get; } = new();

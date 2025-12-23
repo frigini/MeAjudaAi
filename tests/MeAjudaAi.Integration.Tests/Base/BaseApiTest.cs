@@ -33,7 +33,7 @@ namespace MeAjudaAi.Integration.Tests.Base;
 /// Cria containers individuais para máxima compatibilidade com CI.
 /// Suporte completo a 6 módulos: Users, Providers, Documents, ServiceCatalogs, Locations, SearchProviders.
 /// </summary>
-public abstract class ApiTestBase : IAsyncLifetime
+public abstract class BaseApiTest : IAsyncLifetime
 {
     private SimpleDatabaseFixture? _databaseFixture;
     private WireMockFixture? _wireMockFixture;
@@ -288,7 +288,7 @@ public abstract class ApiTestBase : IAsyncLifetime
         var catalogsContext = scope.ServiceProvider.GetRequiredService<ServiceCatalogsDbContext>();
         var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
         var searchProvidersContext = scope.ServiceProvider.GetRequiredService<SearchProvidersDbContext>();
-        var logger = scope.ServiceProvider.GetService<ILogger<ApiTestBase>>();
+        var logger = scope.ServiceProvider.GetService<ILogger<BaseApiTest>>();
 
         // Aplica migrações exatamente como nos testes E2E
         await ApplyMigrationsAsync(usersContext, providersContext, documentsContext, catalogsContext, locationsContext, searchProvidersContext, logger);

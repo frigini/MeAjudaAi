@@ -31,7 +31,7 @@ namespace MeAjudaAi.E2E.Tests.Base;
 /// Base class para testes E2E usando TestContainers
 /// Isolada de Aspire, com infraestrutura própria de teste
 /// </summary>
-public abstract class TestContainerTestBase : IAsyncLifetime
+public abstract class BaseTestContainerTest : IAsyncLifetime
 {
     private PostgreSqlContainer _postgresContainer = null!;
     private RedisContainer _redisContainer = null!;

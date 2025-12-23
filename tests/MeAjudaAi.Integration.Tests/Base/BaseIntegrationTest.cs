@@ -16,9 +16,9 @@ namespace MeAjudaAi.Integration.Tests.Base;
 /// - Fluxos end-to-end completos
 /// - Testes de performance com cache
 /// 
-/// Para testes simples de API, use ApiTestBase (mais rápido).
+/// Para testes simples de API, use BaseApiTest (mais rápido).
 /// </summary>
-public abstract class IntegrationTestBase(AspireIntegrationFixture fixture, ITestOutputHelper output)
+public abstract class BaseIntegrationTest(AspireIntegrationFixture fixture, ITestOutputHelper output)
     : BaseSharedIntegrationTest(output), IClassFixture<AspireIntegrationFixture>
 {
     private readonly AspireIntegrationFixture _fixture = fixture;

@@ -19,7 +19,7 @@ namespace MeAjudaAi.Integration.Tests.Messaging;
 /// Testes para verificar se o MessageBus correto é selecionado baseado no ambiente
 /// </summary>
 [Collection("Integration Tests Collection")]
-public class MessageBusSelectionTests : ApiTestBase
+public class MessageBusSelectionTests : BaseApiTest
 {
     [Fact]
     public void MessageBusFactory_InTestingEnvironment_ShouldReturnMock()

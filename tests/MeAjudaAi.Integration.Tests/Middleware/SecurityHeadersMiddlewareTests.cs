@@ -9,7 +9,7 @@ namespace MeAjudaAi.Integration.Tests.Middleware;
 /// <summary>
 /// Testes de integração para SecurityHeadersMiddleware
 /// </summary>
-public sealed class SecurityHeadersMiddlewareTests : ApiTestBase
+public sealed class SecurityHeadersMiddlewareTests : BaseApiTest
 {
     private HttpClient HttpClient => Client;
 

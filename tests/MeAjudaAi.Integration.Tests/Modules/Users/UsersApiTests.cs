@@ -15,7 +15,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// Foca em validações de formato de resposta que não são cobertas por testes de negócio.
 /// Testes de endpoints, autenticação e CRUD são cobertos por UsersIntegrationTests.cs
 /// </remarks>
-public class UsersApiTests : ApiTestBase
+public class UsersApiTests : BaseApiTest
 {
     [Fact]
     public async Task UsersEndpoint_WithAuthentication_ShouldReturnValidResponse()

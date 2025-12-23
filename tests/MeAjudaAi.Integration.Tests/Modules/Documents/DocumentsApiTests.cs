@@ -14,7 +14,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 /// Testes de integração para a API do módulo Documents.
 /// Valida endpoints de upload, status e listagem de documentos de provedores.
 /// </summary>
-public class DocumentsApiTests : ApiTestBase
+public class DocumentsApiTests : BaseApiTest
 {
     [Fact]
     public async Task UploadDocument_WithValidRequest_ShouldReturnUploadUrl()

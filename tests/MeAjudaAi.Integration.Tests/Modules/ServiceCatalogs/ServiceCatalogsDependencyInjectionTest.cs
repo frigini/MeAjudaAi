@@ -14,7 +14,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// 
 /// Verifica se todos os command handlers do módulo ServiceCatalogs estão registrados
 /// </summary>
-public class ServiceCatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : ApiTestBase
+public class ServiceCatalogsDependencyInjectionTest(ITestOutputHelper testOutput) : BaseApiTest
 {
     [Fact]
     public void Should_Have_CommandDispatcher_Registered()

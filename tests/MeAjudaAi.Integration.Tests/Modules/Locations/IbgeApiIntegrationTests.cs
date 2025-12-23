@@ -12,7 +12,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 /// </summary>
 [Trait("Category", "Integration")]
 [Trait("Module", "Locations")]
-public sealed class IbgeApiIntegrationTests : ApiTestBase
+public sealed class IbgeApiIntegrationTests : BaseApiTest
 {
     private IIbgeClient IbgeClient => Services.GetRequiredService<IIbgeClient>();
 

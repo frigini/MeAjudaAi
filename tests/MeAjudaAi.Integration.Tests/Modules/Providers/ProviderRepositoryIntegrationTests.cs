@@ -14,7 +14,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// Integration tests for ProviderRepository with real database (TestContainers).
 /// Tests actual persistence logic, EF mappings, and database constraints.
 /// </summary>
-public class ProviderRepositoryIntegrationTests : ApiTestBase
+public class ProviderRepositoryIntegrationTests : BaseApiTest
 {
     private readonly Faker _faker = new("pt_BR");
 

@@ -13,7 +13,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// <remarks>
 /// Testes de endpoints, autenticação e CRUD são cobertos por ServiceCatalogsIntegrationTests.cs
 /// </remarks>
-public class ServiceCatalogsApiTests : ApiTestBase
+public class ServiceCatalogsApiTests : BaseApiTest
 {
     [Fact]
     public async Task ServiceCategoriesEndpoint_WithAuthentication_ShouldReturnValidResponse()

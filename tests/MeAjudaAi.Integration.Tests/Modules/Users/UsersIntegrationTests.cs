@@ -21,7 +21,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Users;
 /// - Soft Delete de usuários
 /// - Gerenciamento via Keycloak
 /// </summary>
-public class UsersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBase
+public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
 {
     [Fact]
     public async Task CreateUser_WithValidData_ShouldReturnCreated()

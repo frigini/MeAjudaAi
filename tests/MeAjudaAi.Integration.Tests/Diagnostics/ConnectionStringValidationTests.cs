@@ -14,7 +14,7 @@ namespace MeAjudaAi.Integration.Tests;
 /// Este teste valida especificamente nossa melhoria na configuração
 /// de connection string sem depender de endpoints HTTP.
 /// </summary>
-public class ConnectionStringValidationTests(ITestOutputHelper testOutput) : ApiTestBase
+public class ConnectionStringValidationTests(ITestOutputHelper testOutput) : BaseApiTest
 {
     /// <summary>
     /// ✅ Teste para validar que a estratégia de fallback de connection string funciona

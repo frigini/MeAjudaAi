@@ -12,7 +12,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Documents;
 /// Testes de integração completos para o módulo Documents.
 /// Valida todo o fluxo desde repository até services.
 /// </summary>
-public class DocumentsIntegrationTests : ApiTestBase
+public class DocumentsIntegrationTests : BaseApiTest
 {
     [Fact]
     public void DocumentRepository_ShouldBeRegisteredInDI()

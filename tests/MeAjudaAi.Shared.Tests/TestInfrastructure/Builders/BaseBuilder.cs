@@ -3,12 +3,12 @@ namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
 /// <summary>
 /// Padrão builder base para criar objetos de teste com Bogus
 /// </summary>
-public abstract class BuilderBase<T> where T : class
+public abstract class BaseBuilder<T> where T : class
 {
     protected Faker<T> Faker;
     private readonly List<Action<T>> _customActions = [];
 
-    protected BuilderBase()
+    protected BaseBuilder()
     {
         Faker = new Faker<T>();
     }
@@ -48,7 +48,7 @@ public abstract class BuilderBase<T> where T : class
     /// <summary>
     /// Adiciona uma ação customizada para ser aplicada após a criação do objeto
     /// </summary>
-    protected BuilderBase<T> WithCustomAction(Action<T> action)
+    protected BaseBuilder<T> WithCustomAction(Action<T> action)
     {
         _customActions.Add(action);
         return this;
@@ -57,5 +57,5 @@ public abstract class BuilderBase<T> where T : class
     /// <summary>
     /// Conversão implícita para T por conveniência
     /// </summary>
-    public static implicit operator T(BuilderBase<T> builder) => builder.Build();
+    public static implicit operator T(BaseBuilder<T> builder) => builder.Build();
 }

@@ -12,7 +12,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Locations;
 /// Uses real IGeographicValidationService with WireMock stubs for IBGE API.
 /// </summary>
 [Collection("Integration")]
-public sealed class IbgeUnavailabilityTests : ApiTestBase
+public sealed class IbgeUnavailabilityTests : BaseApiTest
 {
     // Override to use real IBGE service with WireMock stubs instead of mock
     protected override bool UseMockGeographicValidation => false;
@@ -67,7 +67,7 @@ public sealed class IbgeUnavailabilityTests : ApiTestBase
     // INVESTIGATION RESULTS:
     // - Feature flag is correctly configured: FeatureManagement:GeographicRestriction = true
     // - Middleware logic is correct: checks IsEnabledAsync before blocking
-    // - Test configuration in ApiTestBase sets GeographicRestriction = true
+    // - Test configuration in BaseApiTest sets GeographicRestriction = true
     // - CI environment may have different configuration overriding test settings
     // - Possible causes:
     //   1. appsettings.Testing.json not being loaded in CI

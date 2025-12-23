@@ -14,7 +14,7 @@ namespace MeAjudaAi.Integration.Tests;
 /// 
 /// Verifica se todos os serviços necessários estão registrados corretamente
 /// </summary>
-public class DependencyInjectionDiagnosticTests(ITestOutputHelper testOutput) : ApiTestBase
+public class DependencyInjectionDiagnosticTests(ITestOutputHelper testOutput) : BaseApiTest
 {
     [Fact]
     public void Should_Have_QueryDispatcher_Registered()

@@ -11,7 +11,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// Testes de integração para ServiceRepository com banco de dados real (TestContainers).
 /// Testa lógica de persistência, mapeamentos EF e constraints do banco.
 /// </summary>
-public class ServiceRepositoryIntegrationTests : ApiTestBase
+public class ServiceRepositoryIntegrationTests : BaseApiTest
 {
     private readonly Faker _faker = new("pt_BR");
 

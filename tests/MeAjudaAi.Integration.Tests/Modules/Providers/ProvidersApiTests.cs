@@ -17,7 +17,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// <remarks>
 /// Testes de endpoints, autenticação e CRUD são cobertos por ProvidersIntegrationTests.cs
 /// </remarks>
-public class ProvidersApiTests : ApiTestBase
+public class ProvidersApiTests : BaseApiTest
 {
     [Fact]
     public async Task ProvidersEndpoint_WithAuthentication_ShouldReturnValidResponse()

@@ -12,13 +12,13 @@ namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 /// Utiliza Respawn para limpar o banco de dados entre os testes.
 /// Agora genérica para suportar múltiplos módulos/schemas.
 /// </summary>
-public abstract class DatabaseTestBase : IAsyncLifetime
+public abstract class BaseDatabaseTest : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgresContainer;
     private Respawner? _respawner;
     private readonly TestDatabaseOptions _databaseOptions;
 
-    protected DatabaseTestBase(TestDatabaseOptions? databaseOptions = null)
+    protected BaseDatabaseTest(TestDatabaseOptions? databaseOptions = null)
     {
         _databaseOptions = databaseOptions ?? GetDefaultDatabaseOptions();
 

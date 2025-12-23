@@ -7,7 +7,7 @@ namespace MeAjudaAi.Shared.Tests.TestInfrastructure.Base;
 /// Classe base para testes de Event Handlers com mocks comuns e configuração.
 /// Fornece configuração consistente do AutoFixture para testes determinísticos.
 /// </summary>
-public abstract class EventHandlerTestBase<THandler>
+public abstract class BaseEventHandlerTest<THandler>
     where THandler : class
 {
     protected Mock<IMessageBus> MessageBusMock { get; }
@@ -19,7 +19,7 @@ public abstract class EventHandlerTestBase<THandler>
     /// </summary>
     protected DateTime BaseDateTime { get; }
 
-    protected EventHandlerTestBase()
+    protected BaseEventHandlerTest()
     {
         MessageBusMock = new Mock<IMessageBus>();
         LoggerMock = new Mock<ILogger<THandler>>();

@@ -9,7 +9,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.ServiceCatalogs;
 /// Testes de integração para o DbContext do módulo Catalogs.
 /// Valida configurações do EF Core, relacionamentos e constraints.
 /// </summary>
-public class ServiceCatalogsDbContextTests : ApiTestBase
+public class ServiceCatalogsDbContextTests : BaseApiTest
 {
     [Fact]
     public void ServiceCatalogsDbContext_ShouldBeRegistered()

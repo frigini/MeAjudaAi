@@ -7,7 +7,7 @@ namespace MeAjudaAi.Integration.Tests.Base;
 /// <summary>
 /// Base class compartilhada para testes de integração com máxima reutilização de recursos
 /// </summary>
-public abstract class SharedTestBase(SharedTestFixture sharedFixture) : IAsyncLifetime, IClassFixture<SharedTestFixture>
+public abstract class BaseSharedTest(SharedTestFixture sharedFixture) : IAsyncLifetime, IClassFixture<SharedTestFixture>
 {
     protected HttpClient ApiClient { get; private set; } = null!;
     protected Faker Faker { get; } = new();

@@ -17,7 +17,7 @@ namespace MeAjudaAi.Integration.Tests.Modules.Providers;
 /// - Soft Delete de prestadores
 /// - Gerenciamento de documentos e qualificações
 /// </summary>
-public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : ApiTestBase
+public class ProvidersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
 {
     [Fact]
     public async Task CreateProvider_WithValidData_ShouldReturnCreated()
