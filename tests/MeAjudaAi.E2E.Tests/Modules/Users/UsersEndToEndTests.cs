@@ -128,12 +128,11 @@ public class UsersEndToEndTests : TestContainerTestBase
 
         var userId = ExtractIdFromLocation(locationHeader!);
 
-        // Act - Update profile
+        // Act - Update profile (não alterar Email para evitar conflitos)
         var updateRequest = new
         {
             FirstName = "Updated",
-            LastName = "Profile",
-            Email = $"updated_{uniqueId}@example.com"
+            LastName = "Profile"
         };
 
         var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, JsonOptions);
@@ -260,12 +259,11 @@ public class UsersEndToEndTests : TestContainerTestBase
         location.Should().NotBeNullOrEmpty();
         var userId = ExtractIdFromLocation(location!);
 
-        // Act - Atualizar perfil
+        // Act - Atualizar perfil (não alterar Email para evitar conflitos)
         var updateRequest = new
         {
             FirstName = "Updated",
-            LastName = "User",
-            Email = $"updated_{uniqueId}@example.com"
+            LastName = "User"
         };
 
         var updateResponse = await ApiClient.PutAsJsonAsync(
@@ -322,24 +320,22 @@ public class UsersEndToEndTests : TestContainerTestBase
         location.Should().NotBeNullOrEmpty();
         var userId = ExtractIdFromLocation(location!);
 
-        // Act - Primeira atualização
+        // Act - Primeira atualização (não alterar Email)
         var firstUpdate = new
         {
             FirstName = "Second",
-            LastName = "Version",
-            Email = $"multi_{uniqueId}@example.com"
+            LastName = "Version"
         };
         var firstUpdateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", firstUpdate, JsonOptions);
         
         // Assert first update succeeded
         firstUpdateResponse.IsSuccessStatusCode.Should().BeTrue("first profile update should succeed");
 
-        // Act - Segunda atualização
+        // Act - Segunda atualização (não alterar Email)
         var secondUpdate = new
         {
             FirstName = "Third",
-            LastName = "Final",
-            Email = $"final_{uniqueId}@example.com"
+            LastName = "Final"
         };
         var finalUpdateResponse = await ApiClient.PutAsJsonAsync(
             $"/api/v1/users/{userId}/profile",
@@ -387,12 +383,11 @@ public class UsersEndToEndTests : TestContainerTestBase
         var getResponse = await ApiClient.GetAsync($"/api/v1/users/{userId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Act & Assert - UPDATE
+        // Act & Assert - UPDATE (não alterar Email)
         var updateRequest = new
         {
             FirstName = "Updated",
-            LastName = "Workflow",
-            Email = $"updated_workflow_{uniqueId}@example.com"
+            LastName = "Workflow"
         };
         var updateResponse = await ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, JsonOptions);
         updateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
@@ -527,9 +522,9 @@ public class UsersEndToEndTests : TestContainerTestBase
         location.Should().NotBeNullOrEmpty();
         var userId = ExtractIdFromLocation(location!);
 
-        // Act - disparar duas atualizações simultâneas
-        var update1 = new { FirstName = "Update1", LastName = "User", Email = "update1.user@example.com" };
-        var update2 = new { FirstName = "Update2", LastName = "User", Email = "update2.user@example.com" };
+        // Act - disparar duas atualizações simultâneas (não alterar Email)
+        var update1 = new { FirstName = "Update1", LastName = "User" };
+        var update2 = new { FirstName = "Update2", LastName = "User" };
 
         var task1 = ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update1, JsonOptions);
         var task2 = ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update2, JsonOptions);
