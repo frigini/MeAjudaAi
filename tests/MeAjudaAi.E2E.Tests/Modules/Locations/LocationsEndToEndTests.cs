@@ -223,6 +223,7 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task GetAllAllowedCities_ShouldReturnOrderedByStateAndCity()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
 
         // Create cities in different states

@@ -38,6 +38,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     public async Task Application_WithMultipleRequests_ShouldIncrementRequestMetrics()
     {
         // Arrange - Fazer múltiplas requisições
+        TestContainerFixture.BeforeEachTest();
         var requests = Enumerable.Range(0, 5).Select(_ => _fixture.ApiClient.GetAsync("/alive"));
 
         // Act
@@ -88,6 +89,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     public async Task Application_ShouldExposeRuntimeInstrumentation()
     {
         // Arrange & Act - Fazer request qualquer
+        TestContainerFixture.BeforeEachTest();
         var response = await _fixture.ApiClient.GetAsync("/alive");
 
         // Assert
@@ -149,6 +151,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     public async Task Application_WithAuthenticatedRequest_ShouldTraceFullPipeline()
     {
         // Arrange - Registrar e fazer login
+        TestContainerFixture.BeforeEachTest();
         var registerRequest = new
         {
             email = _fixture.Faker.Internet.Email(),

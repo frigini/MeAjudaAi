@@ -580,6 +580,7 @@ public class ServiceCatalogsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task ChangeServiceCategory_ToNonExistentCategory_Should_Return_NotFound()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
         // Create a valid category and service first

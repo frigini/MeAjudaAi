@@ -100,6 +100,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     public async Task UpdateUser_WithInvalidPhoneFormat_ShouldReturn400()
     {
         // Arrange - Create user first
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var userId = await _fixture.CreateTestUserAsync();
 
@@ -177,6 +178,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     public async Task Register_WithDuplicateEmail_ShouldReturn409()
     {
         // Arrange - Create first user
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueEmail = $"{_fixture.Faker.Internet.UserName()}@example.com";
         var request = new
@@ -277,6 +279,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     public async Task ConflictError_ShouldIncludeConstraintDetails()
     {
         // Arrange - Create duplicate user
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueEmail = $"{_fixture.Faker.Internet.UserName()}@example.com";
         var request = new

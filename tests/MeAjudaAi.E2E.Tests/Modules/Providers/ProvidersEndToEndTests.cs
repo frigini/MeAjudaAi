@@ -178,6 +178,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task UpdateProvider_WithValidData_Should_Return_Success()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
@@ -366,6 +367,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task RequestBasicInfoCorrection_Should_TriggerWorkflow()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
@@ -434,6 +436,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task DeleteProviderDocument_Should_Return_Success()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 

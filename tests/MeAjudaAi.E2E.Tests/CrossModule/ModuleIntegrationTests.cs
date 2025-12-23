@@ -57,6 +57,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
     public async Task CreateAndUpdateUser_ShouldMaintainConsistency()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin(); // CreateUser requer role admin
 
         var uniqueId = Guid.NewGuid().ToString("N")[..8]; // 8 hex chars

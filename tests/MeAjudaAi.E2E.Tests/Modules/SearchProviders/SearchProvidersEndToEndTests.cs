@@ -26,6 +26,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task SearchProviders_CompleteWorkflow_ShouldFindProvidersWithinRadius()
     {
         // Arrange - Criar Provider dentro do raio de busca
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
         // São Paulo coordinates
@@ -57,6 +58,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task SearchProviders_ShouldExcludeProvidersOutsideRadius()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;
@@ -87,6 +89,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task SearchProviders_WithServiceFilter_ShouldReturnOnlyMatchingProviders()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;
@@ -135,6 +138,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task SearchProviders_WithMultipleServiceFilters_ShouldReturnProvidersWithAnyService()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;
@@ -168,6 +172,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task SearchProviders_ShouldOrderBySubscriptionTier_ThenByRating_ThenByDistance()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;
@@ -224,6 +229,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task SearchProviders_WithMinRatingFilter_ShouldExcludeLowRatedProviders()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;
@@ -257,6 +263,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task SearchProviders_WithPagination_ShouldRespectPageSizeAndNumber()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
         var searchLatitude = -23.5505;

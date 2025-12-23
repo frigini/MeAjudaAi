@@ -246,6 +246,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task UpdateUser_CompleteWorkflow_ShouldPersistChanges()
     {
         // Arrange - Criar usuário
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
@@ -307,6 +308,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task UpdateUser_MultipleUpdates_ShouldMaintainLatestChanges()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
@@ -362,13 +364,14 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
 
         data.GetProperty("firstName").GetString().Should().Be("Third");
         data.GetProperty("lastName").GetString().Should().Be("Final");
-        data.GetProperty("email").GetString().Should().Be($"final_{uniqueId}@example.com");
+        data.GetProperty("email").GetString().Should().Be($"multi_{uniqueId}@example.com");
     }
 
     [Fact]
     public async Task UserWorkflow_CreateUpdateDelete_ShouldCompleteSuccessfully()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
@@ -514,6 +517,7 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task UpdateUser_ConcurrentUpdates_Should_HandleGracefully()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 

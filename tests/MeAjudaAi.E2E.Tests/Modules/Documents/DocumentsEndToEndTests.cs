@@ -281,6 +281,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task DocumentLifecycle_UploadAndVerification_ShouldCompleteProperly()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var providerId = Guid.NewGuid();
 
@@ -338,6 +339,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task DocumentRejection_ShouldUpdateStatusCorrectly()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         var providerId = Guid.NewGuid();
         Guid documentId = Guid.Empty;
 
@@ -385,6 +387,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task MultipleDocuments_SameProvider_ShouldMaintainHistory()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         var providerId = Guid.NewGuid();
         var documentIds = new List<Guid>();
 
@@ -756,6 +759,7 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task Document_AfterOcrProcessing_ShouldContainExtractedData()
     {
         // Arrange - Criar documento com dados OCR
+        TestContainerFixture.BeforeEachTest();
         var providerId = Guid.NewGuid();
 
         await _fixture.WithServiceScopeAsync(async services =>

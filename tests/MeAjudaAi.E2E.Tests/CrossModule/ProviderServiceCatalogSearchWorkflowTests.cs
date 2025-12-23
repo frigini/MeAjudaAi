@@ -68,6 +68,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         // ============================================
         // STEP 1: Criar ServiceCategory e Service
         // ============================================
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
 
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
@@ -290,6 +291,7 @@ public class ProviderServiceCatalogSearchWorkflowTests : IClassFixture<TestConta
         // ============================================
         // SETUP: Criar 2 categorias e 2 serviços diferentes
         // ============================================
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
 
