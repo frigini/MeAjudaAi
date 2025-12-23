@@ -79,11 +79,13 @@ public class UploadDocumentCommandHandler(
                 throw new ArgumentException($"Invalid document type: {command.DocumentType}");
             }
 
-            // Validação de tamanho de arquivo
-            if (command.FileSizeBytes > _uploadOptions.MaxFileSizeBytes)
+            // Validação de tamanho de arquivo (específico por tipo ou global)
+            var maxFileSize = _uploadOptions.GetMaxFileSizeForDocumentType(command.DocumentType);
+            if (command.FileSizeBytes > maxFileSize)
             {
-                var maxSizeMB = _uploadOptions.MaxFileSizeBytes / (1024.0 * 1024.0);
-                throw new ArgumentException($"File too large. Maximum: {maxSizeMB:F1}MB");
+                var maxSizeMB = maxFileSize / (1024.0 * 1024.0);
+                throw new ArgumentException(
+                    $"File too large for {command.DocumentType}. Maximum: {maxSizeMB:F1}MB");
             }
 
             // Validação null-safe e tolerante a parâmetros de content-type

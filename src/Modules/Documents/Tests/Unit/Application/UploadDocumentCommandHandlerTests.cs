@@ -225,18 +225,20 @@ public class UploadDocumentCommandHandlerTests
         var providerId = Guid.NewGuid();
         SetupAuthenticatedUser(providerId);
 
+        // IdentityDocument tem limite de 15MB, enviando 16MB
         var command = new UploadDocumentCommand(
             providerId,
             "IdentityDocument",
             "large.pdf",
             "application/pdf",
-            11 * 1024 * 1024); // 11MB, excede o limite de 10MB
+            16 * 1024 * 1024); // 16MB, excede o limite específico de 15MB
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _handler.HandleAsync(command, CancellationToken.None));
 
-        exception.Message.Should().Contain("10.0MB");
+        exception.Message.Should().Contain("IdentityDocument");
+        exception.Message.Should().Contain("15.0MB");
     }
 
     [Theory]
@@ -584,4 +586,138 @@ public class UploadDocumentCommandHandlerTests
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task HandleAsync_WithProofOfResidence_ExceedsSpecificLimit_ShouldReject()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
+        // ProofOfResidence tem limite de 5MB, mas estamos enviando 6MB
+        var command = new UploadDocumentCommand(
+            providerId,
+            "ProofOfResidence",
+            "large-proof.pdf",
+            "application/pdf",
+            6 * 1024 * 1024); // 6MB
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.Message.Should().Contain("ProofOfResidence");
+        exception.Message.Should().Contain("5.0MB");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithIdentityDocument_LargerThanGlobal_ShouldAccept()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
+        // IdentityDocument tem limite de 15MB (maior que global de 10MB)
+        var command = new UploadDocumentCommand(
+            providerId,
+            "IdentityDocument",
+            "high-quality-id.jpg",
+            "image/jpeg",
+            12 * 1024 * 1024); // 12MB - OK para IdentityDocument, excederia global
+
+        _mockBlobStorage
+            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
+
+        _mockRepository
+            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _mockRepository
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.DocumentId.Should().NotBeEmpty();
+        
+        _mockRepository.Verify(
+            x => x.AddAsync(It.Is<Document>(d => 
+                d.DocumentType == EDocumentType.IdentityDocument), 
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithOther_UsesGlobalLimit_ShouldAccept()
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
+        // "Other" não tem limite específico, usa global de 10MB
+        var command = new UploadDocumentCommand(
+            providerId,
+            "Other",
+            "document.pdf",
+            "application/pdf",
+            9 * 1024 * 1024); // 9MB - OK para limite global
+
+        _mockBlobStorage
+            .Setup(x => x.GenerateUploadUrlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(("url", DateTime.UtcNow.AddHours(1)));
+
+        _mockRepository
+            .Setup(x => x.AddAsync(It.IsAny<Document>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _mockRepository
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        
+        _mockRepository.Verify(
+            x => x.AddAsync(It.Is<Document>(d => 
+                d.DocumentType == EDocumentType.Other), 
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Theory]
+    [InlineData("IdentityDocument", 16 * 1024 * 1024, "15.0MB")]  // Excede limite específico de 15MB
+    [InlineData("ProofOfResidence", 6 * 1024 * 1024, "5.0MB")]    // Excede limite específico de 5MB
+    [InlineData("CriminalRecord", 9 * 1024 * 1024, "8.0MB")]      // Excede limite específico de 8MB
+    [InlineData("Other", 11 * 1024 * 1024, "10.0MB")]             // Excede limite global de 10MB
+    public async Task HandleAsync_WithVariousDocumentTypes_ExceedsLimit_ShouldReject(
+        string documentType, 
+        long fileSizeBytes, 
+        string expectedLimit)
+    {
+        // Arrange
+        var providerId = Guid.NewGuid();
+        SetupAuthenticatedUser(providerId);
+
+        var command = new UploadDocumentCommand(
+            providerId,
+            documentType,
+            "oversized.pdf",
+            "application/pdf",
+            fileSizeBytes);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _handler.HandleAsync(command, CancellationToken.None));
+
+        exception.Message.Should().Contain(documentType);
+        exception.Message.Should().Contain(expectedLimit);
+    }
 }
+
