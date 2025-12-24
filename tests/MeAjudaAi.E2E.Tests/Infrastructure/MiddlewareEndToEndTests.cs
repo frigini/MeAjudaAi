@@ -36,9 +36,9 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
             Email = $"metrics.{uniqueId}@example.com",
             Password = "ValidPass123!",
             Role = "User",
-            PhoneNumber = "+5511999999999",
             FirstName = "Metrics",
-            LastName = "User"
+            LastName = "User",
+            PhoneNumber = "+5511999999999"
         };
 
         // Act

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Bogus;
 using MeAjudaAi.E2E.Tests.Base;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.E2E.Tests.Modules.Providers;
 
@@ -382,7 +383,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         };
 
         var response = await _fixture.ApiClient.PostAsJsonAsync(
-            $"/api/v1/providers/{providerId}/require-basic-info-correction",
+            $"/api/v1/providers{ApiEndpoints.Providers.RequireBasicInfoCorrection.Replace("{id:guid}", providerId.ToString())}",
             correctionRequest,
             TestContainerFixture.JsonOptions);
 
