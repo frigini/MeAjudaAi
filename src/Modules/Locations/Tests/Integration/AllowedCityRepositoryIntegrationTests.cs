@@ -39,6 +39,8 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
         var options = new DbContextOptionsBuilder<LocationsDbContext>()
             .UseNpgsql(_postgresContainer.GetConnectionString())
             .UseSnakeCaseNamingConvention()
+            .ConfigureWarnings(warnings =>
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         _context = new LocationsDbContext(options);

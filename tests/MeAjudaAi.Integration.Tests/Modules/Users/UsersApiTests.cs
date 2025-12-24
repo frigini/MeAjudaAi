@@ -52,6 +52,8 @@ public class UsersApiTests : BaseApiTest
         {
             Username = "", // Inválido: username vazio
             Email = "invalid-email", // Inválido: email mal formatado
+            Password = "123", // Inválido: senha muito curta
+            Role = "InvalidRole", // Inválido: role não existe
             FirstName = "",
             LastName = ""
         };

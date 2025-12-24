@@ -136,6 +136,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task PostRequest_WithOriginHeader_ShouldAllowCrossOrigin()
     {
         // Arrange
+        TestContainerFixture.AuthenticateAsAdmin();
         var password = _fixture.Faker.Internet.Password(12, true);
         var registerRequest = new
         {
@@ -201,6 +202,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task AuthenticatedRequest_WithCors_ShouldWorkCorrectly()
     {
         // Arrange - Registrar e fazer login
+        TestContainerFixture.AuthenticateAsAdmin();
         TestContainerFixture.BeforeEachTest();
         
         var password = _fixture.Faker.Internet.Password(12, true);

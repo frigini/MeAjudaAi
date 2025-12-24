@@ -1,4 +1,6 @@
 using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Configurations;
+using DotNet.Testcontainers.Containers;
 using Npgsql;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
@@ -38,7 +40,9 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
             .WithUsername("postgres")
             .WithPassword("test123")
             .WithPortBinding(0, 5432)
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(5432))
+            .WithWaitStrategy(Wait.ForUnixContainer()
+                .UntilPortIsAvailable(5432)
+                .AddCustomWaitStrategy(new WaitUntilDatabaseIsReady()))
             .WithStartupCallback((container, ct) =>
             {
                 Console.WriteLine($"[DB-CONTAINER] Started PostgreSQL container {container.Id[..12]} on port {container.GetMappedPublicPort(5432)}");
@@ -123,6 +127,29 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
             Console.WriteLine($"[DB-CONTAINER] Warning: Could not ensure PostGIS extension: {ex.Message}");
             // Não lança exceção - a imagem postgis/postgis já vem com PostGIS
             // Apenas logamos caso haja algum problema
+        }
+    }
+}
+
+/// <summary>
+/// Estratégia de espera customizada para garantir que o PostgreSQL está realmente pronto para aceitar conexões
+/// </summary>
+internal sealed class WaitUntilDatabaseIsReady : IWaitUntil
+{
+    public async Task<bool> UntilAsync(IContainer container)
+    {
+        try
+        {
+            var connectionString = $"Host=localhost;Port={container.GetMappedPublicPort(5432)};Database=meajudaai_test;Username=postgres;Password=test123;Timeout=5";
+            await using var conn = new NpgsqlConnection(connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new NpgsqlCommand("SELECT 1", conn);
+            await cmd.ExecuteScalarAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 }
