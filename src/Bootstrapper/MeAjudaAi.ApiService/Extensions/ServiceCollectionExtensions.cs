@@ -129,9 +129,6 @@ public static class ServiceCollectionExtensions
         // Logging Context Middleware - adiciona correlation ID aos logs e response headers
         app.UseLoggingContext();
 
-        // Log de requisições (logo após ForwardedHeaders para capturar IP correto)
-        app.UseMiddleware<RequestLoggingMiddleware>();
-
         // Verificação de segurança de compressão (previne CRIME/BREACH)
         // DEVE estar ANTES de UseResponseCompression() para poder desabilitar compressão
         // quando necessário. Usa detecção de headers de autenticação pois executa
@@ -162,6 +159,10 @@ public static class ServiceCollectionExtensions
 
         app.UseCors("DefaultPolicy");
         app.UseAuthentication();
+        
+        // Log de requisições (após autenticação para capturar userId dos claims)
+        app.UseMiddleware<RequestLoggingMiddleware>();
+        
         app.UsePermissionOptimization(); // Middleware de otimização após autenticação
         app.UseAuthorization();
 

@@ -31,6 +31,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     public async Task Register_WithInvalidEmail_ShouldReturn400()
     {
         // Arrange - Email format inválido (validação do FluentValidation)
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
@@ -57,6 +58,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     public async Task Register_WithMissingRequiredField_ShouldReturn400()
     {
         // Arrange - Campo obrigatório faltando
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
@@ -80,6 +82,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     public async Task CreateService_WithInvalidData_ShouldReturn400()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {

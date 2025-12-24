@@ -95,10 +95,10 @@ internal sealed class CreateUserCommandHandler(
         }
         catch (Exception ex)
         {
-            // Catch infrastructure errors (database, cache, etc.) and log with full details
-            logger.LogError(ex, "Unexpected error creating user with email {Email}. Exception type: {ExceptionType}, Message: {Message}", 
+            // Capturar erros de infraestrutura (database, cache, etc.) e logar com detalhes completos
+            logger.LogError(ex, "Erro inesperado ao criar usuário com email {Email}. Tipo: {ExceptionType}, Mensagem: {Message}", 
                 command.Email, ex.GetType().Name, ex.Message);
-            return Result<UserDto>.Failure($"Failed to create user: {ex.Message}");
+            return Result<UserDto>.Failure("Falha ao criar usuário. Tente novamente mais tarde.");
         }
     }
 

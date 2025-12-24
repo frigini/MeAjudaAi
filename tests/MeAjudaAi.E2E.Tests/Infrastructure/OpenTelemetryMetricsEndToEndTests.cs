@@ -50,9 +50,12 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     }
 
     [Fact]
-    public async Task Application_ShouldConfigureHttpClientInstrumentation()
+    public async Task Smoke_Application_ShouldConfigureHttpClientInstrumentation()
     {
-        // Arrange & Act - Criar usuário (gera HttpClient calls internos)
+        // Arrange & Act
+        TestContainerFixture.BeforeEachTest();
+        TestContainerFixture.AuthenticateAsAdmin();
+        
         var registerRequest = new
         {
             email = _fixture.Faker.Internet.Email(),
@@ -64,7 +67,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         
         registerRequest = registerRequest with { confirmPassword = registerRequest.password };
 
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", registerRequest);
 
         // Assert
         // HttpClient instrumentation deve capturar chamadas internas
@@ -72,9 +75,10 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     }
 
     [Fact]
-    public async Task Application_ShouldFilterHealthCheckEndpoints()
+    public async Task Smoke_Application_ShouldFilterHealthCheckEndpoints()
     {
-        // Arrange & Act - Chamar endpoints de health check
+        // Arrange & Act
+        TestContainerFixture.BeforeEachTest();
         var healthResponse = await _fixture.ApiClient.GetAsync("/health");
         var aliveResponse = await _fixture.ApiClient.GetAsync("/alive");
 
@@ -86,7 +90,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     }
 
     [Fact]
-    public async Task Application_ShouldExposeRuntimeInstrumentation()
+    public async Task Smoke_Application_ShouldExposeRuntimeInstrumentation()
     {
         // Arrange & Act - Fazer request qualquer
         TestContainerFixture.BeforeEachTest();
@@ -99,22 +103,24 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     }
 
     [Fact]
-    public async Task Application_WithDatabaseOperations_ShouldExposeEfCoreMetrics()
+    public async Task Smoke_Application_WithDatabaseOperations_ShouldRespondSuccessfully()
     {
-        // Arrange - Registrar usuário (operação de database)
+        // Arrange
+        TestContainerFixture.BeforeEachTest();
+        TestContainerFixture.AuthenticateAsAdmin();
+        
         var registerRequest = new
         {
-            email = _fixture.Faker.Internet.Email(),
-            password = _fixture.Faker.Internet.Password(12, true),
-            confirmPassword = _fixture.Faker.Internet.Password(12, true),
-            fullName = _fixture.Faker.Name.FullName(),
-            phoneNumber = "+5511987654321"
+            Username = _fixture.Faker.Internet.UserName(),
+            Email = _fixture.Faker.Internet.Email(),
+            FirstName = _fixture.Faker.Name.FirstName(),
+            LastName = _fixture.Faker.Name.LastName(),
+            Password = _fixture.Faker.Internet.Password(12, true),
+            PhoneNumber = "+5511987654321"
         };
-        
-        registerRequest = registerRequest with { confirmPassword = registerRequest.password };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", registerRequest);
 
         // Assert
         // EF Core instrumentation deve capturar operações de database
@@ -122,13 +128,15 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     }
 
     [Fact]
-    public async Task Application_ShouldConfigureTracingWithExceptions()
+    public async Task Smoke_Application_ShouldConfigureTracingWithExceptions()
     {
-        // Arrange - Tentar fazer request inválido para gerar exception
+        // Arrange
+        TestContainerFixture.BeforeEachTest();
+        TestContainerFixture.AuthenticateAsAdmin();
         var invalidRequest = new { };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/users/register", invalidRequest);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", invalidRequest);
 
         // Assert
         response.IsSuccessStatusCode.Should().BeFalse();
@@ -136,9 +144,10 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     }
 
     [Fact]
-    public async Task Application_ShouldIncludeFormattedMessagesInLogs()
+    public async Task Smoke_Application_ShouldIncludeFormattedMessagesInLogs()
     {
-        // Arrange & Act - Fazer request que gera logs
+        // Arrange & Act
+        TestContainerFixture.BeforeEachTest();
         var response = await _fixture.ApiClient.GetAsync("/health");
 
         // Assert
@@ -148,47 +157,25 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     }
 
     [Fact]
-    public async Task Application_WithAuthenticatedRequest_ShouldTraceFullPipeline()
+    public async Task Smoke_Application_WithAuthenticatedRequest_ShouldTraceFullPipeline()
     {
-        // Arrange - Registrar e fazer login
+        // Arrange
         TestContainerFixture.BeforeEachTest();
-        var registerRequest = new
-        {
-            email = _fixture.Faker.Internet.Email(),
-            password = _fixture.Faker.Internet.Password(12, true),
-            confirmPassword = _fixture.Faker.Internet.Password(12, true),
-            fullName = _fixture.Faker.Name.FullName(),
-            phoneNumber = "+5511987654321"
-        };
+        TestContainerFixture.AuthenticateAsAdmin();
         
-        registerRequest = registerRequest with { confirmPassword = registerRequest.password };
-        
-        await _fixture.ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
-
-        var loginRequest = new
-        {
-            email = registerRequest.email,
-            password = registerRequest.password
-        };
-
-        var loginResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/users/login", loginRequest);
-        var loginResult = await loginResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        var token = loginResult!["token"].ToString();
-
-        // Act - Request autenticado
-        _fixture.ApiClient.DefaultRequestHeaders.Authorization = 
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        // Act - Request autenticado (usando token do admin via fixture)
         var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 
         // Assert
-        response.IsSuccessStatusCode.Should().BeTrue();
-        // Tracing deve capturar todo o pipeline incluindo autenticação
+        response.IsSuccessStatusCode.Should().BeTrue(
+            "tracing should capture full pipeline including authentication");
     }
 
     [Fact]
-    public async Task Application_ShouldConfigureServiceName()
+    public async Task Smoke_Application_ShouldConfigureServiceName()
     {
         // Arrange & Act
+        TestContainerFixture.BeforeEachTest();
         var response = await _fixture.ApiClient.GetAsync("/health");
 
         // Assert

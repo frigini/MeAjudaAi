@@ -18,8 +18,8 @@ public class TestContextAwareHandler : DelegatingHandler
         "/api/users/login",
         "/api/v1/users/register",
         "/api/v1/users/login",
-        "/api/v1/services",
-        "/api/v1/service-categories",
+        "/api/v1/service-catalogs/services",
+        "/api/v1/service-catalogs/categories",
         "/_framework",
         "/_vs"
     ];
@@ -35,7 +35,8 @@ public class TestContextAwareHandler : DelegatingHandler
         // Verificar se é um endpoint público que não requer autenticação
         var requestPath = request.RequestUri?.AbsolutePath ?? string.Empty;
         var isPublicEndpoint = PublicEndpoints.Any(endpoint => 
-            requestPath.StartsWith(endpoint, StringComparison.OrdinalIgnoreCase));
+            requestPath.Equals(endpoint, StringComparison.OrdinalIgnoreCase) ||
+            requestPath.StartsWith(endpoint + "/", StringComparison.OrdinalIgnoreCase));
 
         // Obter contexto AsyncLocal IMEDIATAMENTE antes do envio (ainda no contexto do teste)
         var contextId = ConfigurableTestAuthenticationHandler.GetCurrentTestContextId();

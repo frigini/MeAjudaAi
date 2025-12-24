@@ -4,7 +4,7 @@ using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Builders;
 
-public class ServiceBuilder : BuilderBase<Service>
+public class ServiceBuilder : BaseBuilder<Service>
 {
     private ServiceCategoryId? _categoryId;
     private string? _name;

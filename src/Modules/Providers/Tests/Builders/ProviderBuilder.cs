@@ -7,7 +7,7 @@ using Moq;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Builders;
 
-public class ProviderBuilder : BuilderBase<Provider>
+public class ProviderBuilder : BaseBuilder<Provider>
 {
     private Guid? _userId;
     private string? _name;

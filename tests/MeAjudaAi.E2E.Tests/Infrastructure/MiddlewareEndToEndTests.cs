@@ -260,7 +260,9 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
     [Fact]
     public async Task ExceptionHandler_NotFound_ShouldReturnProblemDetails()
     {
-        // Arrange        TestContainerFixture.BeforeEachTest();        TestContainerFixture.AuthenticateAsAdmin();
+        // Arrange
+        TestContainerFixture.BeforeEachTest();
+        TestContainerFixture.AuthenticateAsAdmin();
         var nonExistentId = Guid.NewGuid();
 
         // Act
