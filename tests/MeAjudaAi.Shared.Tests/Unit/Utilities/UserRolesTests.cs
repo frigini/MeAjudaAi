@@ -2,7 +2,7 @@ using FluentAssertions;
 using MeAjudaAi.Shared.Utilities;
 using Xunit;
 
-namespace MeAjudaAi.Shared.Tests.Unit.Security;
+namespace MeAjudaAi.Shared.Tests.Unit.Utilities;
 
 public class UserRolesTests
 {

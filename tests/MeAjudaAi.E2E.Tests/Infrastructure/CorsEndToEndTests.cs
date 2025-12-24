@@ -315,20 +315,6 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     #region Configuration Validation
 
     [Fact]
-    public void CorsOptions_ShouldRejectWildcardInProduction()
-    {
-        // Este teste valida a lógica em SecurityExtensions.AddCorsPolicy
-        // Wildcard (*) só deve ser permitido em Development
-        
-        // Em ambiente de teste/produção, wildcard deve lançar exceção
-        // Validado em SecurityExtensions.cs linha ~195
-        
-        // Nota: Teste é implícito - se a aplicação inicia sem exceção,
-        // significa que não está usando wildcard em produção
-        true.Should().BeTrue("implicit test - app started without CORS configuration errors");
-    }
-
-    [Fact]
     public async Task CorsPolicy_ShouldAllowCommonHttpMethods()
     {
         // Arrange - Testar métodos HTTP comuns

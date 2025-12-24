@@ -1,7 +1,7 @@
 using FluentAssertions;
 using MeAjudaAi.Shared.Utilities;
 
-namespace MeAjudaAi.Shared.Tests.Unit.Time;
+namespace MeAjudaAi.Shared.Tests.Unit.Utilities;
 
 public class UuidGeneratorTests
 {
