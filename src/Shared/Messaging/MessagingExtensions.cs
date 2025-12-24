@@ -445,7 +445,7 @@ public static class MessagingExtensions
     /// </summary>
     public static IServiceCollection AddMessageRetryMiddleware(this IServiceCollection services)
     {
-        services.AddScoped<IMessageRetryMiddlewareFactory, MessageRetryMiddlewareFactory>();
+        services.TryAddScoped<IMessageRetryMiddlewareFactory, MessageRetryMiddlewareFactory>();
         return services;
     }
 

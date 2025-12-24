@@ -187,6 +187,8 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
 
         // Assert
         response.Headers.Should().Contain(h => h.Key == "X-Frame-Options");
+        var headerValue = response.Headers.GetValues("X-Frame-Options").First();
+        headerValue.Should().BeOneOf("DENY", "SAMEORIGIN");
     }
 
     [Fact]
@@ -197,6 +199,8 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
 
         // Assert
         response.Headers.Should().Contain(h => h.Key == "Content-Security-Policy");
+        var headerValue = response.Headers.GetValues("Content-Security-Policy").First();
+        headerValue.Should().NotBeNullOrEmpty();
     }
 
     #endregion
@@ -247,6 +251,13 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             
             // Para usuários anônimos, compressão pode estar habilitada
+            // Note: Compression may or may not be applied depending on response size and server config
+            // Verificar que o middleware não bloqueia compressão para usuários anônimos
+            if (response.Content.Headers.ContentEncoding.Any())
+            {
+                response.Content.Headers.ContentEncoding.Should().Contain("gzip",
+                    "compression should be allowed for anonymous users when server applies it");
+            }
         }
         finally
         {
@@ -331,9 +342,14 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         
-        // Validar que mesmo 401 retorna structured response
-        var content = await response.Content.ReadAsStringAsync();
-        content.Should().NotBeEmpty("Response deve ter conteúdo estruturado");
+        using var problemDetails = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        problemDetails.Should().NotBeNull();
+        
+        // Validar estrutura ProblemDetails
+        problemDetails!.RootElement.TryGetProperty("type", out _).Should().BeTrue();
+        problemDetails.RootElement.TryGetProperty("title", out _).Should().BeTrue();
+        problemDetails.RootElement.TryGetProperty("status", out var status).Should().BeTrue();
+        status.GetInt32().Should().Be(401);
     }
 
     #endregion

@@ -22,11 +22,11 @@ public class AllowedCityRepositoryIntegrationTests : IAsyncLifetime
             DatabaseName = "locations_test",
             Username = "test_user",
             Password = "test_password",
-            Schema = "meajudaai_locations"
+            Schema = "locations"
         };
 
         _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgres:17.5")
+            .WithImage("postgis/postgis:16-3.4")
             .WithDatabase(options.DatabaseName)
             .WithUsername(options.Username)
             .WithPassword(options.Password)

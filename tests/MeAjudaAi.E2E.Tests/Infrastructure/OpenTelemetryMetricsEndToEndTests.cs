@@ -21,7 +21,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     }
 
     [Fact]
-    public async Task Application_ShouldExposeAspNetCoreMetrics()
+    public async Task Smoke_Application_ShouldExposeAspNetCoreMetrics()
     {
         // Arrange
         TestContainerFixture.BeforeEachTest();
@@ -37,7 +37,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     }
 
     [Fact]
-    public async Task Application_WithMultipleRequests_ShouldIncrementRequestMetrics()
+    public async Task Smoke_Application_WithMultipleRequests_ShouldIncrementRequestMetrics()
     {
         // Arrange - Fazer múltiplas requisições
         TestContainerFixture.BeforeEachTest();
