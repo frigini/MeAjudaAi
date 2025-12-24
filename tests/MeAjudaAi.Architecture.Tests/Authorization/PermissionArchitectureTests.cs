@@ -2,7 +2,7 @@ using System.Reflection;
 using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Authorization.Services;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Architecture.Tests.Authorization;
 

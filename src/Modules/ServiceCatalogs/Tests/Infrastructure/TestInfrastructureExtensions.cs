@@ -6,7 +6,6 @@ using MeAjudaAi.Shared.Tests.Extensions;
 using MeAjudaAi.Shared.Tests.TestInfrastructure;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Options;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Services;
-using MeAjudaAi.Shared.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
@@ -38,7 +37,7 @@ public static class TestInfrastructureExtensions
         services.AddSingleton(options);
 
         // Adicionar serviços compartilhados essenciais
-        services.AddSingleton<IDateTimeProvider, TestDateTimeProvider>();
+        services.AddSingleton(TimeProvider.System);
 
         // Usar extensões compartilhadas
         services.AddTestLogging();

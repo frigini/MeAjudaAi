@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Constants;
+namespace MeAjudaAi.Shared.Utilities.Constants;
 
 /// <summary>
 /// Constantes para nomes de feature flags.

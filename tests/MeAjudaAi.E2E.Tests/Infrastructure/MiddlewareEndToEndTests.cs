@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Xunit;
 
 namespace MeAjudaAi.E2E.Tests.Infrastructure;

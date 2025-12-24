@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Constants;
+namespace MeAjudaAi.Shared.Utilities.Constants;
 
 /// <summary>
 /// Constantes de validação baseadas nas constraints reais do banco de dados

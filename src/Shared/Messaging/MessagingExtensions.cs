@@ -1,6 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Messaging.DeadLetter;
 using MeAjudaAi.Shared.Messaging.Factories;
 using MeAjudaAi.Shared.Messaging.Handlers;

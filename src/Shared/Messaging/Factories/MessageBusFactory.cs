@@ -1,4 +1,4 @@
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Messaging.NoOp;
 using MeAjudaAi.Shared.Messaging.RabbitMq;
 using MeAjudaAi.Shared.Messaging.ServiceBus;

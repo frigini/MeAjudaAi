@@ -2,7 +2,7 @@ using MeAjudaAi.Modules.Users.Domain.Events;
 using MeAjudaAi.Modules.Users.Domain.Exceptions;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Modules.Users.Domain.Entities;
 
@@ -220,15 +220,15 @@ public sealed class User : AggregateRoot<UserId>
     /// Dispara o evento UserDeletedDomainEvent quando a exclusão é realizada.
     /// Se o usuário já estiver excluído, o método retorna sem fazer alterações.
     /// </remarks>
-    public void MarkAsDeleted(IDateTimeProvider dateTimeProvider)
+    public void MarkAsDeleted(TimeProvider timeProvider)
     {
-        ArgumentNullException.ThrowIfNull(dateTimeProvider);
+        ArgumentNullException.ThrowIfNull(timeProvider);
 
         if (IsDeleted)
             return;
 
         IsDeleted = true;
-        DeletedAt = dateTimeProvider.CurrentDate();
+        DeletedAt = timeProvider.GetUtcNow().UtcDateTime;
         MarkAsUpdated();
 
         AddDomainEvent(new UserDeletedDomainEvent(Id.Value, 1));
@@ -299,9 +299,9 @@ public sealed class User : AggregateRoot<UserId>
     /// Este método deve ser usado com cuidado, pois requer sincronização com o Keycloak.
     /// Mudanças de username podem afetar a autenticação e devem ser validadas quanto à unicidade.
     /// </remarks>
-    public void ChangeUsername(string newUsername, IDateTimeProvider dateTimeProvider)
+    public void ChangeUsername(string newUsername, TimeProvider timeProvider)
     {
-        ArgumentNullException.ThrowIfNull(dateTimeProvider);
+        ArgumentNullException.ThrowIfNull(timeProvider);
 
         if (IsDeleted)
             throw UserDomainException.ForInvalidOperation("ChangeUsername", "user is deleted");
@@ -311,7 +311,7 @@ public sealed class User : AggregateRoot<UserId>
 
         var oldUsername = Username;
         Username = newUsername;
-        LastUsernameChangeAt = dateTimeProvider.CurrentDate();
+        LastUsernameChangeAt = timeProvider.GetUtcNow().UtcDateTime;
         MarkAsUpdated();
 
         // Adiciona evento de domínio para sincronização com sistemas externos
@@ -321,17 +321,17 @@ public sealed class User : AggregateRoot<UserId>
     /// <summary>
     /// Verifica se o usuário pode alterar o username baseado em rate limiting.
     /// </summary>
-    /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
+    /// <param name="timeProvider">Provedor de data/hora para testabilidade</param>
     /// <param name="minimumDaysBetweenChanges">Número mínimo de dias entre mudanças de username</param>
     /// <returns>True se pode alterar, False se deve aguardar</returns>
-    public bool CanChangeUsername(IDateTimeProvider dateTimeProvider, int minimumDaysBetweenChanges = 30)
+    public bool CanChangeUsername(TimeProvider timeProvider, int minimumDaysBetweenChanges = 30)
     {
-        ArgumentNullException.ThrowIfNull(dateTimeProvider);
+        ArgumentNullException.ThrowIfNull(timeProvider);
 
         if (LastUsernameChangeAt == null)
             return true;
 
-        var daysSinceLastChange = (dateTimeProvider.CurrentDate() - LastUsernameChangeAt.Value).TotalDays;
+        var daysSinceLastChange = (timeProvider.GetUtcNow().UtcDateTime - LastUsernameChangeAt.Value).TotalDays;
         return daysSinceLastChange >= minimumDaysBetweenChanges;
     }
 }

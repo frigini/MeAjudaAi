@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using MeAjudaAi.Modules.Documents.Application.Interfaces;
 using MeAjudaAi.Modules.Documents.Domain.Entities;
 using MeAjudaAi.Modules.Documents.Domain.Enums;
@@ -6,7 +6,7 @@ using MeAjudaAi.Modules.Documents.Domain.Repositories;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence;
 using MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Repositories;
 using MeAjudaAi.Modules.Documents.Tests.Mocks;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace MeAjudaAi.Modules.Documents.Tests.Integration;

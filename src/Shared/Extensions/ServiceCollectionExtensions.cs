@@ -1,6 +1,6 @@
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Database;
 using MeAjudaAi.Shared.Events;
 using MeAjudaAi.Shared.Exceptions;
@@ -11,7 +11,6 @@ using MeAjudaAi.Shared.Monitoring;
 using MeAjudaAi.Shared.Queries;
 using MeAjudaAi.Shared.Seeding;
 using MeAjudaAi.Shared.Serialization;
-using MeAjudaAi.Shared.Time;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -31,7 +30,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddSingleton(TimeProvider.System);
         services.AddCustomSerialization();
         // Serilog configurado no Program.cs do ApiService
 

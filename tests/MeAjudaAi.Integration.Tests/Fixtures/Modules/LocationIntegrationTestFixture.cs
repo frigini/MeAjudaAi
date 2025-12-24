@@ -1,9 +1,9 @@
 using MeAjudaAi.Modules.Locations.API;
 using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Shared.Caching;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
+using Microsoft.Extensions.Time.Testing;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
-using MeAjudaAi.Shared.Time;
+
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +28,7 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Warning));
 
         // Adiciona provedor de data/hora
-        services.AddSingleton<IDateTimeProvider>(new MockDateTimeProvider());
+        services.AddSingleton<IDateTimeProvider>(new FakeTimeProvider(DateTimeOffset.UtcNow));
 
         // Adiciona cache em memória para testes
         services.AddMemoryCache();

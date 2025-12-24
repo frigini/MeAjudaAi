@@ -3,8 +3,7 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
-using MeAjudaAi.Shared.Time;
+using Microsoft.Extensions.Time.Testing;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Unit.Domain.Entities;
 
@@ -17,11 +16,11 @@ namespace MeAjudaAi.Modules.Providers.Tests.Unit.Domain.Entities;
 public class ProviderTests
 {
     // Cria um mock do provedor de data/hora
-    private static IDateTimeProvider CreateMockDateTimeProvider(DateTime? fixedDate = null)
+    private static FakeTimeProvider CreateMockDateTimeProvider(DateTime? fixedDate = null)
     {
         return fixedDate.HasValue
-            ? new MockDateTimeProvider(fixedDate.Value)
-            : new MockDateTimeProvider();
+            ? new FakeTimeProvider(new DateTimeOffset(fixedDate.Value, TimeSpan.Zero))
+            : new FakeTimeProvider(DateTimeOffset.UtcNow);
     }
 
     private static BusinessProfile CreateValidBusinessProfile()

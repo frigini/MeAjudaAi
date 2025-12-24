@@ -3,9 +3,9 @@ using MeAjudaAi.Modules.Locations.Infrastructure.ExternalApis.Clients;
 using MeAjudaAi.Modules.Locations.Infrastructure.Services;
 using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Geolocation;
-using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -16,15 +16,14 @@ public sealed class GeocodingServiceTests
     private readonly Mock<ICacheService> _cacheMock;
     private readonly Mock<ILogger<GeocodingService>> _loggerMock;
     private readonly Mock<ILogger<NominatimClient>> _nominatimLoggerMock;
-    private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
+    private readonly FakeTimeProvider _timeProvider;
 
     public GeocodingServiceTests()
     {
         _cacheMock = new Mock<ICacheService>();
         _loggerMock = new Mock<ILogger<GeocodingService>>();
         _nominatimLoggerMock = new Mock<ILogger<NominatimClient>>();
-        _dateTimeProviderMock = new Mock<IDateTimeProvider>();
-        _dateTimeProviderMock.Setup(d => d.CurrentDate()).Returns(DateTime.UtcNow);
+        _timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -32,7 +31,7 @@ public sealed class GeocodingServiceTests
     {
         // Arrange
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _dateTimeProviderMock.Object);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act
@@ -47,7 +46,7 @@ public sealed class GeocodingServiceTests
     {
         // Arrange
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _dateTimeProviderMock.Object);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act
@@ -74,7 +73,7 @@ public sealed class GeocodingServiceTests
             .ReturnsAsync(cachedPoint);
 
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _dateTimeProviderMock.Object);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act
@@ -104,7 +103,7 @@ public sealed class GeocodingServiceTests
             .ReturnsAsync(geoPoint);
 
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _dateTimeProviderMock.Object);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act
@@ -134,7 +133,7 @@ public sealed class GeocodingServiceTests
             .ReturnsAsync(geoPoint);
 
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _dateTimeProviderMock.Object);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act
@@ -164,7 +163,7 @@ public sealed class GeocodingServiceTests
             .ReturnsAsync(geoPoint);
 
         var httpClient = new HttpClient();
-        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _dateTimeProviderMock.Object);
+        var nominatimClient = new NominatimClient(httpClient, _nominatimLoggerMock.Object, _timeProvider);
         var service = new GeocodingService(nominatimClient, _cacheMock.Object, _loggerMock.Object);
 
         // Act

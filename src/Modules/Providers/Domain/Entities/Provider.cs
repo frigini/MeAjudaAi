@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Providers.Domain.Events;
 using MeAjudaAi.Modules.Providers.Domain.Exceptions;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Domain;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Modules.Providers.Domain.Entities;
 
@@ -618,13 +618,13 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// Dispara o evento ProviderDeletedDomainEvent quando a exclusão é realizada.
     /// Se o prestador já estiver excluído, o método retorna sem fazer alterações.
     /// </remarks>
-    public void Delete(IDateTimeProvider dateTimeProvider, string? deletedBy = null)
+    public void Delete(TimeProvider timeProvider, string? deletedBy = null)
     {
         if (IsDeleted)
             return;
 
         IsDeleted = true;
-        DeletedAt = dateTimeProvider.CurrentDate();
+        DeletedAt = timeProvider.GetUtcNow().UtcDateTime;
         MarkAsUpdated();
 
         AddDomainEvent(new ProviderDeletedDomainEvent(

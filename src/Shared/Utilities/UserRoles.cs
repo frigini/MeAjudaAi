@@ -1,4 +1,4 @@
-namespace MeAjudaAi.Shared.Security;
+namespace MeAjudaAi.Shared.Utilities;
 
 /// <summary>
 /// Papéis do sistema para autorização e controle de acesso

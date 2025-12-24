@@ -2,7 +2,7 @@ using System.Text.Json;
 using FluentAssertions;
 using MeAjudaAi.ApiService.Middlewares;
 using MeAjudaAi.ApiService.Options;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Geolocation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

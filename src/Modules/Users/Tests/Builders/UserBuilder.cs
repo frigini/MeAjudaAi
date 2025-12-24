@@ -1,8 +1,8 @@
 using MeAjudaAi.Modules.Users.Domain.Entities;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
-using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
-using MeAjudaAi.Shared.Time;
+using Microsoft.Extensions.Time.Testing;
+
 
 namespace MeAjudaAi.Modules.Users.Tests.Builders;
 
@@ -101,7 +101,7 @@ public class UserBuilder : BaseBuilder<User>
     /// </summary>
     public UserBuilder AsDeleted()
     {
-        var dateTimeProvider = new MockDateTimeProvider();
+        var dateTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         WithCustomAction(user => user.MarkAsDeleted(dateTimeProvider));
         return this;
     }

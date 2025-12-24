@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace MeAjudaAi.Shared.Time;
+namespace MeAjudaAi.Shared.Utilities;
 
 /// <summary>
 /// Gerador centralizado de identificadores únicos

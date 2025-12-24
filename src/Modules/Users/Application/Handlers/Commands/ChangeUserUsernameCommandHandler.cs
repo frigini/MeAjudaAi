@@ -5,7 +5,6 @@ using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Functional;
-using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -37,7 +36,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 /// <param name="logger">Logger estruturado para auditoria detalhada</param>
 public sealed class ChangeUserUsernameCommandHandler(
     IUserRepository userRepository,
-    IDateTimeProvider dateTimeProvider,
+    TimeProvider dateTimeProvider,
     ILogger<ChangeUserUsernameCommandHandler> logger
 ) : ICommandHandler<ChangeUserUsernameCommand, Result<UserDto>>
 {

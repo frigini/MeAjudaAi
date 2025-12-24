@@ -3,9 +3,8 @@ using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.Services;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Functional;
-using MeAjudaAi.Shared.Time;
 using Microsoft.Extensions.Logging;
 
 namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
@@ -25,7 +24,7 @@ namespace MeAjudaAi.Modules.Users.Application.Handlers.Commands;
 internal sealed class DeleteUserCommandHandler(
     IUserRepository userRepository,
     IUserDomainService userDomainService,
-    IDateTimeProvider dateTimeProvider,
+    TimeProvider dateTimeProvider,
     ILogger<DeleteUserCommandHandler> logger
 ) : ICommandHandler<DeleteUserCommand, Result>
 {

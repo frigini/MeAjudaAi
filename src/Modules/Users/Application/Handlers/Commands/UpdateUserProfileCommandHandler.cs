@@ -5,7 +5,7 @@ using MeAjudaAi.Modules.Users.Application.Services.Interfaces;
 using MeAjudaAi.Modules.Users.Domain.Repositories;
 using MeAjudaAi.Modules.Users.Domain.ValueObjects;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Functional;
 using Microsoft.Extensions.Logging;
 

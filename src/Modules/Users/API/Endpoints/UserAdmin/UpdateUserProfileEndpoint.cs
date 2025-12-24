@@ -7,7 +7,7 @@ using MeAjudaAi.Shared.Authorization;
 using MeAjudaAi.Shared.Authorization.Attributes;
 using MeAjudaAi.Shared.Authorization.Core;
 using MeAjudaAi.Shared.Commands;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 using MeAjudaAi.Shared.Contracts;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;

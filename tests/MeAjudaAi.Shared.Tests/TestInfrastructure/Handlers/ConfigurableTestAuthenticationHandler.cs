@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.Encodings.Web;
-using MeAjudaAi.Shared.Constants;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities.Constants;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

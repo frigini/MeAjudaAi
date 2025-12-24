@@ -1,6 +1,6 @@
 using MeAjudaAi.Modules.ServiceCatalogs.Tests.Infrastructure;
 using MeAjudaAi.Shared.Contracts.Modules.ServiceCatalogs;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 
 namespace MeAjudaAi.Modules.ServiceCatalogs.Tests.Integration;
 

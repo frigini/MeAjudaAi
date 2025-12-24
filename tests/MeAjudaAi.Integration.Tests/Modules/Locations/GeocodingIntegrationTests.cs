@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Caching;
 using MeAjudaAi.Shared.Contracts.Modules.Locations;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Mocks.Http;
-using MeAjudaAi.Shared.Time;
+using MeAjudaAi.Shared.Utilities;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

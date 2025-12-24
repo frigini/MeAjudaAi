@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Security.Claims;
 using MeAjudaAi.Shared.Authorization.Core;
-using MeAjudaAi.Shared.Constants;
+using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Shared.Authorization;
 
