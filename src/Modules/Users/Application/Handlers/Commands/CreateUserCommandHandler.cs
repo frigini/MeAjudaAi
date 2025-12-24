@@ -88,6 +88,11 @@ internal sealed class CreateUserCommandHandler(
             // Allow ArgumentException (validation errors) to propagate to GlobalExceptionHandler
             throw;
         }
+        catch (MeAjudaAi.Shared.Exceptions.ValidationException)
+        {
+            // Allow ValidationException to propagate to GlobalExceptionHandler
+            throw;
+        }
         catch (MeAjudaAi.Shared.Exceptions.DomainException)
         {
             // Allow DomainException (business rule violations) to propagate to GlobalExceptionHandler

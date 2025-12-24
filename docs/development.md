@@ -598,11 +598,11 @@ public abstract class IntegrationTestBase : IDisposable
 #### Testing Architectural Rules
 ```csharp
 [Test]
-public void Controllers_Should_OnlyDependOnMediatR()
+public void Endpoints_Should_OnlyDependOnSharedAbstractions()
 {
     var result = Types.InCurrentDomain()
-        .That().ResideInNamespace("MeAjudaAi.*.Controllers")
-        .Should().OnlyDependOn("MediatR", "Microsoft.AspNetCore", "MeAjudaAi.Shared")
+        .That().ResideInNamespace("MeAjudaAi.*.Endpoints")
+        .Should().OnlyDependOn("MeAjudaAi.Shared", "Microsoft.AspNetCore")
         .GetResult();
 
     result.IsSuccessful.Should().BeTrue();
@@ -850,7 +850,6 @@ Após adicionar um novo módulo:
 ### **Documentação Externa**
 - [.NET 10 Documentation](https://docs.microsoft.com/dotnet/)
 - [Entity Framework Core](https://docs.microsoft.com/ef/core/)
-- [MediatR](https://github.com/jbogard/MediatR)
 - [FluentValidation](https://docs.fluentvalidation.net/)
 - [Aspire](https://learn.microsoft.com/dotnet/aspire/)
 

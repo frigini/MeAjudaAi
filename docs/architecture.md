@@ -1170,9 +1170,8 @@ public static class UsersModuleServiceCollectionExtensions
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddScoped<IUserValidationService, UserValidationService>();
 
-        // Handlers CQRS
-        services.AddMediatR(cfg => 
-            cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommandHandler).Assembly));
+        // Handlers CQRS (registrados via Scrutor em cada módulo)
+        // Consulte ModuleExtensions.AddApplicationModule() para detalhes
 
         // Validators
         services.AddValidatorsFromAssembly(typeof(RegisterUserCommandValidator).Assembly);
@@ -1275,15 +1274,15 @@ public interface IEventBus
 }
 
 /// <summary>
-/// Implementação do Event Bus usando MediatR
+/// Implementação do Event Bus usando sistema próprio de eventos
 /// </summary>
-public sealed class MediatREventBus : IEventBus
+public sealed class DomainEventBus : IEventBus
 {
-    private readonly IMediator _mediator;
+    private readonly IServiceProvider _serviceProvider;
 
-    public MediatREventBus(IMediator mediator)
+    public DomainEventBus(IServiceProvider serviceProvider)
     {
-        _mediator = mediator;
+        _serviceProvider = serviceProvider;
     }
 
     public async Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) 

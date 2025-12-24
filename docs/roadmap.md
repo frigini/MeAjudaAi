@@ -1779,7 +1779,7 @@ gantt
   - [ ] Atualizar `docs/architecture.md` com seção "Design Patterns Implementados":
     - **Repository Pattern**: `I*Repository` interfaces + implementações Dapper
     - **Unit of Work**: Transaction management nos repositories
-    - **CQRS**: Separação de Commands e Queries (MediatR)
+    - **CQRS**: Separação de Commands e Queries (implementação própria com CommandDispatcher/QueryDispatcher)
     - **Domain Events**: `IDomainEvent` + handlers
     - **Factory Pattern**: `UuidGenerator`, `SerilogConfigurator`
     - **Middleware Pipeline**: ASP.NET Core middlewares customizados

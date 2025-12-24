@@ -543,10 +543,7 @@ public static class UsersModuleServiceCollectionExtensions
         // Domain Services
         services.AddScoped<IKeycloakUserDomainService, KeycloakUserDomainService>();
 
-        // Handlers CQRS
-        services.AddMediatR(cfg => 
-            cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommandHandler).Assembly));
-
+        // Handlers CQRS (registrados via Scrutor em ModuleExtensions)
         // Validators
         services.AddValidatorsFromAssembly(typeof(RegisterUserCommandValidator).Assembly);
 

@@ -77,6 +77,16 @@ public sealed class UpdateUserProfileCommandHandler(
             // Allow ArgumentException (validation errors) to propagate to GlobalExceptionHandler
             throw;
         }
+        catch (MeAjudaAi.Shared.Exceptions.ValidationException)
+        {
+            // Allow ValidationException to propagate to GlobalExceptionHandler
+            throw;
+        }
+        catch (MeAjudaAi.Shared.Exceptions.DomainException)
+        {
+            // Allow DomainException (business rule violations) to propagate to GlobalExceptionHandler
+            throw;
+        }
         catch (Exception ex)
         {
             // Catch infrastructure errors (database, cache, etc.) and return failure result

@@ -99,6 +99,21 @@ public sealed class ChangeUserEmailCommandHandler(
 
             return Result<UserDto>.Success(user.ToDto());
         }
+        catch (ArgumentException)
+        {
+            // Allow ArgumentException (validation errors) to propagate to GlobalExceptionHandler
+            throw;
+        }
+        catch (MeAjudaAi.Shared.Exceptions.ValidationException)
+        {
+            // Allow ValidationException to propagate to GlobalExceptionHandler
+            throw;
+        }
+        catch (MeAjudaAi.Shared.Exceptions.DomainException)
+        {
+            // Allow DomainException (business rule violations) to propagate to GlobalExceptionHandler
+            throw;
+        }
         catch (Exception ex)
         {
             stopwatch.Stop();

@@ -55,13 +55,13 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
         var headers = response.Headers;
         
         // Em ambiente de desenvolvimento, deve permitir a origem
-        if (headers.Contains("Access-Control-Allow-Origin"))
-        {
-            var allowedOrigins = headers.GetValues("Access-Control-Allow-Origin");
-            allowedOrigins.Should().Contain(o => 
-                o == "http://localhost:3000" || o == "*",
-                "CORS should allow localhost origin in development");
-        }
+        headers.Should().ContainKey("Access-Control-Allow-Origin",
+            "preflight response must include Access-Control-Allow-Origin header");
+        
+        var allowedOrigins = headers.GetValues("Access-Control-Allow-Origin");
+        allowedOrigins.Should().Contain(o => 
+            o == "http://localhost:3000" || o == "*",
+            "CORS should allow localhost origin in development");
     }
 
     [Fact]
@@ -76,13 +76,14 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
-        if (response.Headers.Contains("Access-Control-Allow-Methods"))
-        {
-            var allowedMethods = string.Join(",", response.Headers.GetValues("Access-Control-Allow-Methods"));
-            
-            // Deve permitir métodos configurados (GET, POST, PUT, DELETE, etc.)
-            allowedMethods.Should().Contain("GET");
-        }
+        response.Headers.Should().ContainKey("Access-Control-Allow-Methods",
+            "preflight response must include Access-Control-Allow-Methods header");
+        
+        var allowedMethods = string.Join(",", response.Headers.GetValues("Access-Control-Allow-Methods"));
+        
+        // Deve permitir métodos configurados (GET, POST, PUT, DELETE, etc.)
+        allowedMethods.Should().Contain("GET",
+            "GET method should be allowed in CORS policy");
     }
 
     [Fact]
@@ -98,13 +99,14 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
-        if (response.Headers.Contains("Access-Control-Allow-Headers"))
-        {
-            var allowedHeaders = string.Join(",", response.Headers.GetValues("Access-Control-Allow-Headers")).ToLowerInvariant();
-            
-            // Deve permitir content-type e authorization
-            allowedHeaders.Should().Contain("content-type");
-        }
+        response.Headers.Should().ContainKey("Access-Control-Allow-Headers",
+            "preflight response must include Access-Control-Allow-Headers header");
+        
+        var allowedHeaders = string.Join(",", response.Headers.GetValues("Access-Control-Allow-Headers")).ToLowerInvariant();
+        
+        // Deve permitir content-type e authorization
+        allowedHeaders.Should().Contain("content-type",
+            "content-type header should be allowed in CORS policy");
     }
 
     #endregion
@@ -125,11 +127,11 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
         response.IsSuccessStatusCode.Should().BeTrue();
 
         // Verificar header Access-Control-Allow-Origin na resposta
-        if (response.Headers.Contains("Access-Control-Allow-Origin"))
-        {
-            var allowedOrigins = response.Headers.GetValues("Access-Control-Allow-Origin");
-            allowedOrigins.Should().NotBeEmpty("CORS headers should be present");
-        }
+        response.Headers.Should().ContainKey("Access-Control-Allow-Origin",
+            "response to request with Origin header must include Access-Control-Allow-Origin");
+        
+        var allowedOrigins = response.Headers.GetValues("Access-Control-Allow-Origin");
+        allowedOrigins.Should().NotBeEmpty("CORS headers should be present");
     }
 
     [Fact]
@@ -165,11 +167,12 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
             HttpStatusCode.BadRequest); // Pode falhar por validação, mas não por CORS
 
         // Verificar que CORS headers estão presentes
-        if (response.Headers.Contains("Access-Control-Allow-Origin"))
-        {
-            var allowedOrigins = response.Headers.GetValues("Access-Control-Allow-Origin");
-            allowedOrigins.Should().NotBeEmpty();
-        }
+        response.Headers.Should().ContainKey("Access-Control-Allow-Origin",
+            "response to cross-origin POST must include Access-Control-Allow-Origin header");
+        
+        var allowedOrigins = response.Headers.GetValues("Access-Control-Allow-Origin");
+        allowedOrigins.Should().NotBeEmpty(
+            "Access-Control-Allow-Origin header must have at least one value");
     }
 
     #endregion
@@ -177,7 +180,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     #region Credentials Support
 
     [Fact]
-    public async Task Request_WithCredentials_ShouldIncludeAllowCredentialsHeader()
+    public async Task Request_WithCredentials_ShouldNotBlockCorsWhenCredentialsNotConfigured()
     {
         // Arrange - Request com credenciais
         var request = new HttpRequestMessage(HttpMethod.Get, "/health");
@@ -188,13 +191,20 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.ApiClient.SendAsync(request);
 
         // Assert
-        response.IsSuccessStatusCode.Should().BeTrue();
+        response.IsSuccessStatusCode.Should().BeTrue(
+            "request with credentials should succeed even if AllowCredentials is not configured");
 
-        // Se AllowCredentials está habilitado, deve incluir o header
+        // CORS origin header deve estar presente
+        response.Headers.Should().ContainKey("Access-Control-Allow-Origin",
+            "response should include CORS origin header");
+        
+        // Se AllowCredentials está habilitado na configuração, o header deve estar presente
+        // Caso contrário, o servidor pode optar por não incluí-lo (comportamento válido)
         if (response.Headers.Contains("Access-Control-Allow-Credentials"))
         {
             var allowCredentials = response.Headers.GetValues("Access-Control-Allow-Credentials").First();
-            allowCredentials.Should().Be("true");
+            allowCredentials.Should().Be("true",
+                "if Access-Control-Allow-Credentials is present, it must be 'true'");
         }
     }
 
@@ -202,8 +212,8 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task AuthenticatedRequest_WithCors_ShouldWorkCorrectly()
     {
         // Arrange - Registrar e fazer login
-        TestContainerFixture.AuthenticateAsAdmin();
         TestContainerFixture.BeforeEachTest();
+        TestContainerFixture.AuthenticateAsAdmin();
         
         var password = _fixture.Faker.Internet.Password(12, true);
         var registerRequest = new

@@ -501,10 +501,7 @@ public static class ProvidersModuleServiceCollectionExtensions
         // Repositórios
         services.AddScoped<IProvidersRepository, ProvidersRepository>();
 
-        // Handlers CQRS
-        services.AddMediatR(cfg => 
-            cfg.RegisterServicesFromAssembly(typeof(CreateProviderCommandHandler).Assembly));
-
+        // Handlers CQRS (registrados via Scrutor em ModuleExtensions)
         // Validators
         services.AddValidatorsFromAssembly(typeof(CreateProviderCommandValidator).Assembly);
 

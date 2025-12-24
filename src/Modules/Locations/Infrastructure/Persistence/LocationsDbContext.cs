@@ -43,7 +43,7 @@ public class LocationsDbContext : BaseDbContext
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        // Usa snake_case para nomes de colunas
+        // Define tamanho máximo de 256 caracteres para todas as propriedades string
         configurationBuilder.Properties<string>().HaveMaxLength(256);
         
         base.ConfigureConventions(configurationBuilder);

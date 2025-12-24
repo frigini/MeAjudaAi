@@ -14,12 +14,19 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         Exception exception,
         CancellationToken cancellationToken)
     {
+        // Se InvalidOperationException tiver ValidationException como inner, desencapsular
+        if (exception is InvalidOperationException && exception.InnerException is ValidationException innerValidationException)
+        {
+            exception = innerValidationException;
+        }
+        
         var (statusCode, title, detail, errors, extensions) = exception switch
         {
+            // Nossa ValidationException customizada
             ValidationException validationException => (
                 StatusCodes.Status400BadRequest,
-                "Validation Error",
-                "One or more validation errors occurred",
+                "Erro de validação",
+                "Um ou mais erros de validação ocorreram",
                 validationException.Errors.GroupBy(e => e.PropertyName)
                     .ToDictionary(
                         g => g.Key,
@@ -28,8 +35,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
             UniqueConstraintException uniqueException => (
                 StatusCodes.Status409Conflict,
-                "Duplicate Value",
-                $"The value for {uniqueException.ColumnName ?? "this field"} already exists",
+                "Valor Duplicado",
+                $"O valor para {uniqueException.ColumnName ?? "este campo"} já existe",
                 null,
                 new Dictionary<string, object?>
                 {

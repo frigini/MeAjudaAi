@@ -75,6 +75,21 @@ internal sealed class DeleteUserCommandHandler(
             logger.LogInformation("User {UserId} marked as deleted successfully", command.UserId);
             return Result.Success();
         }
+        catch (ArgumentException)
+        {
+            // Allow ArgumentException (validation errors) to propagate to GlobalExceptionHandler
+            throw;
+        }
+        catch (MeAjudaAi.Shared.Exceptions.ValidationException)
+        {
+            // Allow ValidationException to propagate to GlobalExceptionHandler
+            throw;
+        }
+        catch (MeAjudaAi.Shared.Exceptions.DomainException)
+        {
+            // Allow DomainException (business rule violations) to propagate to GlobalExceptionHandler
+            throw;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error deleting user {UserId}", command.UserId);

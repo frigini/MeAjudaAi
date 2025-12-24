@@ -35,30 +35,18 @@ public sealed class SimpleDatabaseFixture : IAsyncLifetime
         // Cria container PostgreSQL com PostGIS para suporte a dados geográficos
         // PostGIS é necessário para SearchProviders (NetTopologySuite)
         _postgresContainer = new PostgreSqlBuilder()
-            .WithImage("postgis/postgis:15-3.4")
+            .WithImage("postgis/postgis:16-3.4")
             .WithDatabase("meajudaai_test")
             .WithUsername("postgres")
             .WithPassword("test123")
-            .WithPortBinding(0, 5432)
-            .WithWaitStrategy(Wait.ForUnixContainer()
-                .UntilPortIsAvailable(5432)
-                .AddCustomWaitStrategy(new WaitUntilDatabaseIsReady()))
-            .WithStartupCallback((container, ct) =>
-            {
-                Console.WriteLine($"[DB-CONTAINER] Started PostgreSQL container {container.Id[..12]} on port {container.GetMappedPublicPort(5432)}");
-                return Task.CompletedTask;
-            })
+            .WithCleanUp(true)
             .Build();
 
         // Cria container Azurite para testes determinísticos de blob storage
         // Fixado na versão 3.33.0 para estabilidade — corresponde ao ambiente de CI/CD de produção
         _azuriteContainer = new AzuriteBuilder()
             .WithImage("mcr.microsoft.com/azure-storage/azurite:3.33.0")
-            .WithStartupCallback((container, ct) =>
-            {
-                Console.WriteLine($"[AZURITE-CONTAINER] Started Azurite container {container.Id[..12]}");
-                return Task.CompletedTask;
-            })
+            .WithCleanUp(true)
             .Build();
 
         // Inicia containers em paralelo para performance
