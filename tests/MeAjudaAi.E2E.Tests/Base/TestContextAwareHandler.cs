@@ -14,10 +14,6 @@ public class TestContextAwareHandler : DelegatingHandler
     [
         "/health",
         "/alive",
-        "/api/users/register",
-        "/api/users/login",
-        "/api/v1/users/register",
-        "/api/v1/users/login",
         "/api/v1/service-catalogs/services",
         "/api/v1/service-catalogs/categories",
         "/_framework",

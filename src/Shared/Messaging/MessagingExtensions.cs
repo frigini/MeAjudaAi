@@ -186,8 +186,8 @@ public static class MessagingExtensions
             await host.EnsureServiceBusTopicsAsync();
         }
 
-        // Garantir infraestrutura de Dead Letter Queue
-        await host.EnsureDeadLetterInfrastructureAsync();
+        // Registrar informações sobre infraestrutura de Dead Letter Queue
+        await host.LogDeadLetterInfrastructureInfo();
 
         // Validar configuração de Dead Letter Queue
         await host.ValidateDeadLetterConfigurationAsync();
@@ -322,7 +322,7 @@ public static class MessagingExtensions
         try
         {
             deadLetterService = scope.ServiceProvider.GetRequiredService<IDeadLetterService>();
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IDeadLetterService>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingExtensions>>();
 
             // Teste básico para verificar se o serviço está configurado corretamente
             var testException = new InvalidOperationException("Test exception for DLQ validation");
@@ -337,7 +337,7 @@ public static class MessagingExtensions
         }
         catch (Exception ex)
         {
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IDeadLetterService>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingExtensions>>();
             logger.LogError(ex, "Failed to validate Dead Letter Queue configuration. Service: {ServiceType}",
                 deadLetterService?.GetType().Name ?? "unknown");
             throw new InvalidOperationException(
@@ -346,16 +346,16 @@ public static class MessagingExtensions
     }
 
     /// <summary>
-    /// Garante que a infraestrutura de Dead Letter Queue está criada
+    /// Registra informações sobre a infraestrutura de Dead Letter Queue
     /// </summary>
-    public static Task EnsureDeadLetterInfrastructureAsync(this IHost host)
+    public static Task LogDeadLetterInfrastructureInfo(this IHost host)
     {
         using var scope = host.Services.CreateScope();
 
         try
         {
             var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IHostEnvironment>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingExtensions>>();
 
             if (environment.IsDevelopment())
             {
@@ -373,7 +373,7 @@ public static class MessagingExtensions
         }
         catch (Exception ex)
         {
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<IHostEnvironment>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingExtensions>>();
             logger.LogError(ex, "Failed to ensure Dead Letter Queue infrastructure");
             throw new InvalidOperationException(
                 "Failed to ensure Dead Letter Queue infrastructure (queues, exchanges, and bindings)",

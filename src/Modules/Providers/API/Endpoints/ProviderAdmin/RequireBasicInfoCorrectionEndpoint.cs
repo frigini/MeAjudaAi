@@ -4,6 +4,7 @@ using MeAjudaAi.Modules.Providers.Application.DTOs.Requests;
 using MeAjudaAi.Shared.Commands;
 using MeAjudaAi.Shared.Endpoints;
 using MeAjudaAi.Shared.Functional;
+using MeAjudaAi.Shared.Utilities.Constants;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,7 @@ public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
     /// - Nome único para referência
     /// </remarks>
     public static void Map(IEndpointRouteBuilder app)
-        => app.MapPost("/{id:guid}/require-basic-info-correction", RequireBasicInfoCorrectionAsync)
+        => app.MapPost(ApiEndpoints.Providers.RequireBasicInfoCorrection, RequireBasicInfoCorrectionAsync)
             .WithName("RequireBasicInfoCorrection")
             .WithSummary("Solicitar correção de informações básicas")
             .WithDescription("""

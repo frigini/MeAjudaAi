@@ -55,6 +55,7 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
     public async Task BusinessMetrics_Authentication_ShouldProcess()
     {
         // Arrange & Act
+        await TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsUser();
         var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 

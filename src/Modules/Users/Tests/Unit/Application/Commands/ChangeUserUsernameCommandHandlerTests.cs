@@ -16,7 +16,7 @@ namespace MeAjudaAi.Modules.Users.Tests.Unit.Application.Commands;
 public class ChangeUserUsernameCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
-    private readonly MockDateTimeProvider _dateTimeProvider;
+    private readonly FakeTimeProvider _dateTimeProvider;
     private readonly Mock<ILogger<ChangeUserUsernameCommandHandler>> _loggerMock;
     private readonly ChangeUserUsernameCommandHandler _handler;
 

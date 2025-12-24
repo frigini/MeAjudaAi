@@ -611,7 +611,7 @@ public sealed class Provider : AggregateRoot<ProviderId>
     /// <summary>
     /// Exclui logicamente o prestador de serviços do sistema.
     /// </summary>
-    /// <param name="dateTimeProvider">Provedor de data/hora para auditoria</param>
+    /// <param name="timeProvider">Provedor de data/hora para auditoria</param>
     /// <param name="deletedBy">Quem está fazendo a exclusão</param>
     /// <remarks>
     /// Implementa exclusão lógica (soft delete) em vez de remoção física dos dados.

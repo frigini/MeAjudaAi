@@ -81,7 +81,7 @@ public sealed class UpdateUserProfileCommandHandler(
         {
             // Catch infrastructure errors (database, cache, etc.) and return failure result
             logger.LogError(ex, "Unexpected error updating user profile for {UserId}", command.UserId);
-            return Result<UserDto>.Failure("Failed to update user profile due to an unexpected error");
+            return Result<UserDto>.Failure("Falha ao atualizar o perfil do usuário devido a um erro inesperado");
         }
     }
 

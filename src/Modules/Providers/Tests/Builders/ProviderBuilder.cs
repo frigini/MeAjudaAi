@@ -3,7 +3,7 @@ using MeAjudaAi.Modules.Providers.Domain.Enums;
 using MeAjudaAi.Modules.Providers.Domain.ValueObjects;
 using MeAjudaAi.Shared.Tests.TestInfrastructure.Builders;
 using MeAjudaAi.Shared.Utilities;
-using Moq;
+using Microsoft.Extensions.Time.Testing;
 
 namespace MeAjudaAi.Modules.Providers.Tests.Builders;
 
@@ -164,9 +164,8 @@ public class ProviderBuilder : BaseBuilder<Provider>
         
         if (_shouldDelete)
         {
-            var mockDateTimeProvider = new Mock<IDateTimeProvider>();
-            mockDateTimeProvider.Setup(x => x.CurrentDate()).Returns(new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            provider.Delete(mockDateTimeProvider.Object, _deletedBy);
+            var fakeTimeProvider = new FakeTimeProvider(new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero));
+            provider.Delete(fakeTimeProvider, _deletedBy);
         }
         
         return provider;

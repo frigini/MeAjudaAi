@@ -293,7 +293,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             }
         }
 
-        throw new InvalidOperationException($"API não ficou saudável após {maxAttempts} tentativas");
+        throw new InvalidOperationException($"API did not become healthy after {maxAttempts} attempts");
     }
 
     private async Task ApplyMigrationsAsync()

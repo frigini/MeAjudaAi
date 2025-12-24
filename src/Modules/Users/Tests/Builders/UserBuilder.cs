@@ -112,7 +112,7 @@ public class UserBuilder : BaseBuilder<User>
     /// </summary>
     public UserBuilder AsDeleted(DateTime deletedAt)
     {
-        var dateTimeProvider = new MockDateTimeProvider(deletedAt);
+        var dateTimeProvider = new FakeTimeProvider(new DateTimeOffset(deletedAt, TimeSpan.Zero));
         WithCustomAction(user => user.MarkAsDeleted(dateTimeProvider));
         return this;
     }

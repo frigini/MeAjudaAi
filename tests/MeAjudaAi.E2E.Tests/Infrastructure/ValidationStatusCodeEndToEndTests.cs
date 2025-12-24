@@ -142,6 +142,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     public async Task CreateService_WithNonExistentCategory_ShouldReturn422()
     {
         // Arrange
+        await TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
@@ -164,6 +165,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     public async Task ChangeServiceCategory_WithInvalidTransition_ShouldReturn422()
     {
         // Arrange - Criar serviço e tentar mudar para categoria que não existe
+        await TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
         // Este cenário testaria validação de transição de estado
@@ -220,6 +222,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     public async Task CreateCategory_WithDuplicateName_ShouldReturn409()
     {
         // Arrange
+        await TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var categoryName = _fixture.Faker.Commerce.Department();
 
@@ -252,6 +255,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
         // Arrange - Request com erro de validação
         // NOTE: Current architecture throws ArgumentException for first validation error only
         // It doesn't aggregate multiple validation errors due to ValueObject design
+        await TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var request = new
         {
@@ -327,6 +331,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     public async Task GetNonExistentResource_ShouldReturn404NotFound()
     {
         // Arrange
+        await TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var nonExistentId = Guid.NewGuid();
 
