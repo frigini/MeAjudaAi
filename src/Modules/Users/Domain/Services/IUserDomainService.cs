@@ -9,7 +9,18 @@ namespace MeAjudaAi.Modules.Users.Domain.Services;
 /// </summary>
 public interface IUserDomainService
 {
+    /// <summary>
+    /// Cria um novo usuário no sistema.
+    /// </summary>
+    /// <param name="username">Nome de usuário único</param>
+    /// <param name="email">Endereço de email único</param>
+    /// <param name="firstName">Primeiro nome</param>
+    /// <param name="lastName">Sobrenome</param>
+    /// <param name="password">Senha</param>
+    /// <param name="roles">Papéis/roles do usuário</param>
     /// <param name="phoneNumber">Número de telefone opcional do usuário</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    /// <returns>Resultado com o usuário criado ou erro</returns>
     Task<Result<User>> CreateUserAsync(
         Username username,
         Email email,

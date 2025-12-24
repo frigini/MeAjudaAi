@@ -20,6 +20,8 @@ namespace MeAjudaAi.Shared.Messaging;
 /// <summary>
 /// Classe interna para categorização de logs de messaging
 /// </summary>
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2094:Classes should not be empty", 
+    Justification = "Classe de categorização de logs - mantida para uso futuro")]
 internal sealed class MessagingConfiguration
 {
 }
@@ -425,6 +427,8 @@ public static class MessagingExtensions
     /// <summary>
     /// Marker interface para mensagens que suportam retry automático
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2094:Classes should not be empty", 
+        Justification = "Marker interface intencional para type constraints")]
     public interface IMessage
     {
         // Marker interface - não requer implementação

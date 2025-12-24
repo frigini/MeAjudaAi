@@ -40,6 +40,7 @@ internal class KeycloakUserDomainService(IKeycloakService keycloakService) : IUs
     /// 3. Cria entidade User local com ID sincronizado
     /// 4. Retorna usuário pronto para persistência
     /// </remarks>
+    /// <param name="phoneNumber">Número de telefone opcional do usuário</param>
     public async Task<Result<User>> CreateUserAsync(
         Username username,
         Email email,

@@ -51,8 +51,8 @@ public class DatabaseMetricsInterceptorTests
         // 1. Usar reflexão (não recomendado - testa implementação, não comportamento)
         // 2. Testar comportamento através do método público (testar através de DatabaseMetrics)
         
-        // Aqui apenas documentamos o comportamento esperado
-        // Os testes de integração validarão o comportamento completo
+        // Valida que commandText não é nulo/vazio e expectedType é válido
+        commandText.Should().NotBeNullOrWhiteSpace();
         expectedType.Should().BeOneOf("SELECT", "INSERT", "UPDATE", "DELETE", "OTHER");
     }
 

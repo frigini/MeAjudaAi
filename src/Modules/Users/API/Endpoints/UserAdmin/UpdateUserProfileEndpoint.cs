@@ -71,6 +71,7 @@ public class UpdateUserProfileEndpoint : BaseEndpoint, IEndpoint
     ///
     /// Dados atualizáveis: FirstName, LastName, Email, PhoneNumber
     /// </remarks>
+    /// <param name="validator">Validador de requisição</param>
     private static async Task<IResult> UpdateUserAsync(
         Guid id,
         [FromBody] UpdateUserProfileRequest request,

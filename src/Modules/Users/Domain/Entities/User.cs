@@ -214,7 +214,7 @@ public sealed class User : AggregateRoot<UserId>
     /// <summary>
     /// Marca o usuário como excluído logicamente do sistema.
     /// </summary>
-    /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
+    /// <param name="timeProvider">Provedor de data/hora para testabilidade</param>
     /// <remarks>
     /// Implementa exclusão lógica (soft delete) em vez de remoção física dos dados.
     /// Dispara o evento UserDeletedDomainEvent quando a exclusão é realizada.
@@ -293,7 +293,7 @@ public sealed class User : AggregateRoot<UserId>
     /// Altera o nome de usuário (username)
     /// </summary>
     /// <param name="newUsername">Novo nome de usuário</param>
-    /// <param name="dateTimeProvider">Provedor de data/hora para testabilidade</param>
+    /// <param name="timeProvider">Provedor de data/hora para testabilidade</param>
     /// <exception cref="UserDomainException">Lançada quando o usuário está deletado</exception>
     /// <remarks>
     /// Este método deve ser usado com cuidado, pois requer sincronização com o Keycloak.
