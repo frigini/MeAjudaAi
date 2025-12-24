@@ -285,8 +285,8 @@ public class ProviderRepositoryTests : ProvidersIntegrationTestBase
         await repository.AddAsync(provider);
 
         // Soft delete
-        var dateTimeProvider = GetService<IDateTimeProvider>();
-        provider.Delete(dateTimeProvider);
+        var timeProvider = TimeProvider.System;
+        provider.Delete(timeProvider);
         await repository.UpdateAsync(provider);
 
         // Act

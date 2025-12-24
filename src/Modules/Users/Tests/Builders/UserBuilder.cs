@@ -96,8 +96,8 @@ public class UserBuilder : BaseBuilder<User>
     }
 
     /// <summary>
-    /// Marks the user as deleted using current UTC time.
-    /// For tests requiring specific deletion timestamps, use AsDeleted(DateTime).
+    /// Marca o usuário como excluído usando o horário UTC atual.
+    /// Para testes que exigem timestamps de exclusão específicos, use AsDeleted(DateTime).
     /// </summary>
     public UserBuilder AsDeleted()
     {
@@ -107,8 +107,8 @@ public class UserBuilder : BaseBuilder<User>
     }
 
     /// <summary>
-    /// Marks the user as deleted with a specific deletion timestamp.
-    /// Useful for tests that need to assert exact DeletedAt values.
+    /// Marca o usuário como excluído com um timestamp de exclusão específico.
+    /// Útil para testes que precisam validar valores exatos de DeletedAt.
     /// </summary>
     public UserBuilder AsDeleted(DateTime deletedAt)
     {

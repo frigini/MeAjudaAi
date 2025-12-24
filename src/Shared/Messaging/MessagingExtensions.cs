@@ -18,6 +18,13 @@ using Microsoft.Extensions.Logging;
 namespace MeAjudaAi.Shared.Messaging;
 
 /// <summary>
+/// Classe interna para categorização de logs de messaging
+/// </summary>
+internal sealed class MessagingConfiguration
+{
+}
+
+/// <summary>
 /// Extension methods consolidados para configuração de Messaging, Dead Letter Queue e Message Retry
 /// </summary>
 public static class MessagingExtensions
@@ -322,7 +329,7 @@ public static class MessagingExtensions
         try
         {
             deadLetterService = scope.ServiceProvider.GetRequiredService<IDeadLetterService>();
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingExtensions>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
 
             // Teste básico para verificar se o serviço está configurado corretamente
             var testException = new InvalidOperationException("Test exception for DLQ validation");
@@ -337,7 +344,7 @@ public static class MessagingExtensions
         }
         catch (Exception ex)
         {
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingExtensions>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
             logger.LogError(ex, "Failed to validate Dead Letter Queue configuration. Service: {ServiceType}",
                 deadLetterService?.GetType().Name ?? "unknown");
             throw new InvalidOperationException(
@@ -355,7 +362,7 @@ public static class MessagingExtensions
         try
         {
             var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingExtensions>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
 
             if (environment.IsDevelopment())
             {
@@ -373,7 +380,7 @@ public static class MessagingExtensions
         }
         catch (Exception ex)
         {
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingExtensions>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<MessagingConfiguration>>();
             logger.LogError(ex, "Failed to ensure Dead Letter Queue infrastructure");
             throw new InvalidOperationException(
                 "Failed to ensure Dead Letter Queue infrastructure (queues, exchanges, and bindings)",

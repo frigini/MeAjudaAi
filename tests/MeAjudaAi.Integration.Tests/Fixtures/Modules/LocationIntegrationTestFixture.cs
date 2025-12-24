@@ -28,7 +28,7 @@ public abstract class LocationIntegrationTestFixture : IAsyncLifetime
         services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Warning));
 
         // Adiciona provedor de data/hora
-        services.AddSingleton<IDateTimeProvider>(new FakeTimeProvider(DateTimeOffset.UtcNow));
+        services.AddSingleton<TimeProvider>(TimeProvider.System);
 
         // Adiciona cache em memória para testes
         services.AddMemoryCache();

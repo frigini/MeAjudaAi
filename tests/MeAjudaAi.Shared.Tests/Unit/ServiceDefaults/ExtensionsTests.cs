@@ -1,5 +1,21 @@
+using FluentAssertions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
+using Moq;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using System.Net;
 using System.Text.Json;
+using Xunit;
 
 namespace MeAjudaAi.ServiceDefaults.Tests;
 

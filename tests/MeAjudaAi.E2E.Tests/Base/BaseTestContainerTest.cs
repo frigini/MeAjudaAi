@@ -610,33 +610,4 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
             return Task.CompletedTask;
         }
     }
-
-    /// <summary>
-    /// Mock implementation of IUserDomainService for E2E tests
-    /// </summary>
-    private class MockUserDomainService : MeAjudaAi.Modules.Users.Domain.Services.IUserDomainService
-    {
-        public Task<MeAjudaAi.Shared.Functional.Result<MeAjudaAi.Modules.Users.Domain.Entities.User>> CreateUserAsync(
-            MeAjudaAi.Modules.Users.Domain.ValueObjects.Username username,
-            MeAjudaAi.Modules.Users.Domain.ValueObjects.Email email,
-            string firstName,
-            string lastName,
-            string password,
-            IEnumerable<string> roles,
-            string? phoneNumber = null,
-            CancellationToken cancellationToken = default)
-        {
-            // Para testes, criar usuário mock
-            var user = new MeAjudaAi.Modules.Users.Domain.Entities.User(username, email, firstName, lastName, $"keycloak_{Guid.NewGuid()}", phoneNumber);
-            return Task.FromResult(MeAjudaAi.Shared.Functional.Result<MeAjudaAi.Modules.Users.Domain.Entities.User>.Success(user));
-        }
-
-        public Task<MeAjudaAi.Shared.Functional.Result> SyncUserWithKeycloakAsync(
-            MeAjudaAi.Modules.Users.Domain.ValueObjects.UserId userId, 
-            CancellationToken cancellationToken = default)
-        {
-            // Para testes, simular sincronização bem-sucedida
-            return Task.FromResult(MeAjudaAi.Shared.Functional.Result.Success());
-        }
-    }
 }

@@ -27,7 +27,7 @@ public class RequireBasicInfoCorrectionEndpoint : BaseEndpoint, IEndpoint
     /// </summary>
     /// <param name="app">Builder de rotas do endpoint</param>
     /// <remarks>
-    /// Configura endpoint POST em "/{id:guid}/require-basic-info-correction" com:
+    /// Configura endpoint POST definido em ApiEndpoints.Providers.RequireBasicInfoCorrection com:
     /// - Autorização AdminOnly (apenas administradores/verificadores podem solicitar correções)
     /// - Validação automática de GUID para o parâmetro ID
     /// - Documentação OpenAPI automática

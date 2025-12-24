@@ -24,7 +24,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
     public async Task Application_ShouldExposeAspNetCoreMetrics()
     {
         // Arrange
-        await TestContainerFixture.BeforeEachTest();
+        TestContainerFixture.BeforeEachTest();
         
         // Act - Fazer request para gerar métricas
         var response = await _fixture.ApiClient.GetAsync("/health");

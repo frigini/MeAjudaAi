@@ -17,7 +17,7 @@ public class DeleteUserCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IUserDomainService> _userDomainServiceMock;
-    private readonly MockDateTimeProvider _dateTimeProvider;
+    private readonly FakeTimeProvider _dateTimeProvider;
     private readonly Mock<ILogger<DeleteUserCommandHandler>> _loggerMock;
     private readonly DeleteUserCommandHandler _handler;
 

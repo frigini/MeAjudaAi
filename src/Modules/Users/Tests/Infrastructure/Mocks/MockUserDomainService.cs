@@ -5,7 +5,7 @@ using MeAjudaAi.Shared.Functional;
 
 namespace MeAjudaAi.Modules.Users.Tests.Infrastructure.Mocks;
 
-internal class MockUserDomainService : IUserDomainService
+public class MockUserDomainService : IUserDomainService
 {
     public Task<Result<User>> CreateUserAsync(
         Username username,
