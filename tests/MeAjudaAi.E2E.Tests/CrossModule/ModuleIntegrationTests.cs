@@ -101,13 +101,9 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
 
             // Act 3: Verifica se o usuário pode ser recuperado
             var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
+            
+            // Assert 3: Usuário deve ser recuperável após atualização
             getResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should retrieve user after update");
-
-            // Assert 3: Usuário deve ser recuperável
-            getResponse.StatusCode.Should().BeOneOf(
-                HttpStatusCode.OK,
-                HttpStatusCode.NotFound
-            );
         }
     }
 
@@ -134,7 +130,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
             content.Should().NotBeNullOrEmpty();
 
             // Verifica se é um JSON válido com a estrutura esperada
-            var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
+            using var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
             jsonDoc.RootElement.ValueKind.Should().Be(System.Text.Json.JsonValueKind.Object);
         }
     }

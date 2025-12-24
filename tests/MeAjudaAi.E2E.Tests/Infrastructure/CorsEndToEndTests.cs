@@ -136,16 +136,15 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     public async Task PostRequest_WithOriginHeader_ShouldAllowCrossOrigin()
     {
         // Arrange
+        var password = _fixture.Faker.Internet.Password(12, true);
         var registerRequest = new
         {
             email = _fixture.Faker.Internet.Email(),
-            password = _fixture.Faker.Internet.Password(12, true),
-            confirmPassword = _fixture.Faker.Internet.Password(12, true),
+            password = password,
+            confirmPassword = password,
             fullName = _fixture.Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
-        
-        registerRequest = registerRequest with { confirmPassword = registerRequest.password };
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/users/register")
         {
@@ -204,16 +203,15 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
         // Arrange - Registrar e fazer login
         TestContainerFixture.BeforeEachTest();
         
+        var password = _fixture.Faker.Internet.Password(12, true);
         var registerRequest = new
         {
             email = _fixture.Faker.Internet.Email(),
-            password = _fixture.Faker.Internet.Password(12, true),
-            confirmPassword = _fixture.Faker.Internet.Password(12, true),
+            password = password,
+            confirmPassword = password,
             fullName = _fixture.Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
-        
-        registerRequest = registerRequest with { confirmPassword = registerRequest.password };
         
         await _fixture.ApiClient.PostAsJsonAsync("/api/users/register", registerRequest);
 
@@ -224,8 +222,13 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
         };
 
         var loginResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/users/login", loginRequest);
+        loginResponse.IsSuccessStatusCode.Should().BeTrue("login should succeed");
+        
         var loginResult = await loginResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        var token = loginResult!["token"].ToString();
+        loginResult.Should().NotBeNull();
+        loginResult.Should().ContainKey("token");
+        var token = loginResult!["token"]?.ToString();
+        token.Should().NotBeNullOrEmpty("login should return a valid token");
 
         // Act - Request autenticado com CORS headers
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users");

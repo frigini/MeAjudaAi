@@ -340,7 +340,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     protected async Task<HttpResponseMessage> PostJsonAsync<T>(string requestUri, T content)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
-        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
         return await ApiClient.PostAsync(requestUri, stringContent);
     }
 
@@ -354,7 +354,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     protected async Task<HttpResponseMessage> PutJsonAsync<T>(string requestUri, T content)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(content, JsonOptions);
-        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+        var stringContent = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
         return await ApiClient.PutAsync(requestUri, stringContent);
     }
 #pragma warning restore CA2000

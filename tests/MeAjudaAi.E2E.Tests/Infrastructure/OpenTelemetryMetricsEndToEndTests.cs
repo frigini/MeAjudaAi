@@ -1,4 +1,3 @@
-using System.Diagnostics.Metrics;
 using System.Net.Http.Json;
 using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
@@ -56,16 +55,15 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
+        var password = _fixture.Faker.Internet.Password(12, true);
         var registerRequest = new
         {
             email = _fixture.Faker.Internet.Email(),
-            password = _fixture.Faker.Internet.Password(12, true),
-            confirmPassword = _fixture.Faker.Internet.Password(12, true),
+            password = password,
+            confirmPassword = password,
             fullName = _fixture.Faker.Name.FullName(),
             phoneNumber = "+5511987654321"
         };
-        
-        registerRequest = registerRequest with { confirmPassword = registerRequest.password };
 
         var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", registerRequest);
 

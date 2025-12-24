@@ -271,7 +271,7 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         
-        var problemDetails = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        using var problemDetails = await response.Content.ReadFromJsonAsync<JsonDocument>();
         problemDetails.Should().NotBeNull();
         
         // Validar estrutura ProblemDetails (RFC 7807)
@@ -304,7 +304,7 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         
-        var problemDetails = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        using var problemDetails = await response.Content.ReadFromJsonAsync<JsonDocument>();
         problemDetails.Should().NotBeNull();
         
         // Validar estrutura ProblemDetails

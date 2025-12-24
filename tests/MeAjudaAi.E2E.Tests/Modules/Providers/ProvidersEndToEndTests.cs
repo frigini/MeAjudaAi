@@ -233,7 +233,8 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     {
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin();
-        var providerId = Guid.NewGuid();
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var providerId = await CreateTestProviderAsync($"InvalidTest_{uniqueId}");
 
         var invalidRequest = new
         {
@@ -267,9 +268,8 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         var response = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/providers/{providerId}", invalidRequest, TestContainerFixture.JsonOptions);
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.NotFound); // NotFound aceitável se provider não existe
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "validation errors should return BadRequest for existing provider");
     }
 
     #endregion
@@ -339,7 +339,8 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     {
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin();
-        var providerId = Guid.NewGuid(); // Provider inexistente
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var providerId = await CreateTestProviderAsync($"InvalidStatusTest_{uniqueId}");
 
         var invalidRequest = new
         {
@@ -354,9 +355,8 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
             TestContainerFixture.JsonOptions);
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.NotFound);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest,
+            "invalid status value should return BadRequest for existing provider");
     }
 
     #endregion
