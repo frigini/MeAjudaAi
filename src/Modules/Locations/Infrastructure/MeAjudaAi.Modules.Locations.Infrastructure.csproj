@@ -6,6 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Shared\MeAjudaAi.Shared.csproj" />
     <ProjectReference Include="..\Domain\MeAjudaAi.Modules.Locations.Domain.csproj" />
     <ProjectReference Include="..\Application\MeAjudaAi.Modules.Locations.Application.csproj" />

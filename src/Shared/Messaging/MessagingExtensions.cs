@@ -423,6 +423,14 @@ public static class MessagingExtensions
     #region Message Retry Extensions
 
     /// <summary>
+    /// Marker interface para mensagens que suportam retry automático
+    /// </summary>
+    public interface IMessage
+    {
+        // Marker interface - não requer implementação
+    }
+
+    /// <summary>
     /// Executa um handler de mensagem com retry automático e Dead Letter Queue
     /// </summary>
     public static async Task<bool> ExecuteWithRetryAsync<TMessage>(
@@ -430,7 +438,7 @@ public static class MessagingExtensions
         Func<TMessage, CancellationToken, Task> handler,
         IServiceProvider serviceProvider,
         string sourceQueue,
-        CancellationToken cancellationToken = default) where TMessage : class
+        CancellationToken cancellationToken = default) where TMessage : class, IMessage
     {
         var middlewareFactory = serviceProvider.GetRequiredService<IMessageRetryMiddlewareFactory>();
         var handlerType = handler.Method.DeclaringType?.FullName ?? "Unknown";

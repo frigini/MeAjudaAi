@@ -46,7 +46,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(ValidationConstants.UserLimits.EmailMaxLength)
             .IsRequired();
 
-        // PhoneNumber - value object opcional/nulo persistido como owned type em colunas individuais (phone_number, phone_country_code)
+        // PhoneNumber - value object opcional persistido como owned type em colunas individuais
+        // Mapeado para phone_number e phone_country_code (não usa JSON, usa colunas separadas)
         builder.OwnsOne(u => u.PhoneNumber, phone =>
         {
             phone.Property(p => p.Value)

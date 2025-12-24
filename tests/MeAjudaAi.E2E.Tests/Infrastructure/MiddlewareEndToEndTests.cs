@@ -213,11 +213,10 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
         // Arrange
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsUser();
+        _fixture.ApiClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
         
         try
         {
-            _fixture.ApiClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
-
             // Act
             var response = await _fixture.ApiClient.GetAsync("/api/v1/users");
 

@@ -57,22 +57,26 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         // Arrange & Act
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
-        
-        var password = _fixture.Faker.Internet.Password(12, true);
-        var registerRequest = new
-        {
-            email = _fixture.Faker.Internet.Email(),
-            password = password,
-            confirmPassword = password,
-            fullName = _fixture.Faker.Name.FullName(),
-            phoneNumber = "+5511987654321"
-        };
 
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", registerRequest);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", CreateValidUserRequest());
 
         // Assert
         // HttpClient instrumentation deve capturar chamadas internas
         response.Should().NotBeNull();
+    }
+
+    private object CreateValidUserRequest()
+    {
+        var password = _fixture.Faker.Internet.Password(12, true);
+        return new
+        {
+            Username = _fixture.Faker.Internet.UserName(),
+            Email = _fixture.Faker.Internet.Email(),
+            FirstName = _fixture.Faker.Name.FirstName(),
+            LastName = _fixture.Faker.Name.LastName(),
+            Password = password,
+            PhoneNumber = "+5511987654321"
+        };
     }
 
     [Fact]
@@ -109,19 +113,9 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         // Arrange
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
-        
-        var registerRequest = new
-        {
-            Username = _fixture.Faker.Internet.UserName(),
-            Email = _fixture.Faker.Internet.Email(),
-            FirstName = _fixture.Faker.Name.FirstName(),
-            LastName = _fixture.Faker.Name.LastName(),
-            Password = _fixture.Faker.Internet.Password(12, true),
-            PhoneNumber = "+5511987654321"
-        };
 
         // Act
-        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", registerRequest);
+        var response = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", CreateValidUserRequest());
 
         // Assert
         // EF Core instrumentation deve capturar operações de database

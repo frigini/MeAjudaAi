@@ -380,6 +380,9 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
             verifyRequest,
             TestContainerFixture.JsonOptions);
 
+        // Verificação deve ter sucesso para indexar o provider
+        verifyResponse.EnsureSuccessStatusCode();
+        
         // Continue silently if verification fails - the provider may still be searchable
         if (!verifyResponse.IsSuccessStatusCode)
         {

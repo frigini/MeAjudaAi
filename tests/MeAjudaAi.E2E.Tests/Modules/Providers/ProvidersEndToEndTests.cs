@@ -235,6 +235,8 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        
+        // Criar provider válido primeiro para testar validação de update
         var providerId = await CreateTestProviderAsync($"InvalidTest_{uniqueId}");
 
         var invalidRequest = new
@@ -383,7 +385,7 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         };
 
         var response = await _fixture.ApiClient.PostAsJsonAsync(
-            $"/api/v1/providers{ApiEndpoints.Providers.RequireBasicInfoCorrection.Replace("{id:guid}", providerId.ToString())}",
+            $"/api/v1/providers/{providerId}/require-basic-info-correction",
             correctionRequest,
             TestContainerFixture.JsonOptions);
 
