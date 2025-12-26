@@ -129,6 +129,7 @@ public class TestContainerFixture : IAsyncLifetime
                         ["ConnectionStrings:UsersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:ProvidersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:DocumentsDb"] = PostgresConnectionString,
+                        ["ConnectionStrings:SearchProvidersDb"] = PostgresConnectionString,
                         ["ConnectionStrings:Redis"] = RedisConnectionString,
                         ["Azure:Storage:ConnectionString"] = AzuriteConnectionString,
                         ["Hangfire:Enabled"] = "false",
@@ -229,6 +230,7 @@ public class TestContainerFixture : IAsyncLifetime
         ReconfigureDbContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
         ReconfigureDbContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
+        ReconfigureDbContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
 
         // PostgresOptions para SearchProviders (Dapper)
         var postgresOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(PostgresOptions));
@@ -291,6 +293,7 @@ public class TestContainerFixture : IAsyncLifetime
             await ApplyMigrationForContext<MeAjudaAi.Modules.Documents.Infrastructure.Persistence.DocumentsDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.ServiceCatalogsDbContext>(services);
             await ApplyMigrationForContext<MeAjudaAi.Modules.Locations.Infrastructure.Persistence.LocationsDbContext>(services);
+            await ApplyMigrationForContext<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>(services);
 
             Console.WriteLine("✅ Database migrations applied successfully");
         }
