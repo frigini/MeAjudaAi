@@ -358,6 +358,9 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
         // Assert
         finalUpdateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
 
+        // Re-authenticate before GET to ensure context is preserved
+        TestContainerFixture.AuthenticateAsAdmin();
+
         // Verificar que apenas a última atualização está persistida
         var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK, "should be able to retrieve updated user");
@@ -408,6 +411,9 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
         };
         var updateResponse = await _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", updateRequest, TestContainerFixture.JsonOptions);
         updateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+
+        // Re-authenticate before verification GET
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // Verify UPDATE persisted
         var verifyUpdateResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
