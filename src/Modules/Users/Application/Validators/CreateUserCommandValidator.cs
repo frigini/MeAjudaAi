@@ -53,7 +53,7 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
         RuleFor(x => x.Password)
             .NotEmpty()
             .WithMessage(ValidationMessages.Required.Password)
-            .MinimumLength(8)
+            .MinimumLength(ValidationConstants.PasswordLimits.MinLength)
             .WithMessage(ValidationMessages.Length.PasswordTooShort)
             .Matches(ValidationConstants.Patterns.Password)
             .WithMessage(ValidationMessages.InvalidFormat.Password);

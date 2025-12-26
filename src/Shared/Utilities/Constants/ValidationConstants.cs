@@ -35,6 +35,14 @@ public static class ValidationConstants
     }
 
     /// <summary>
+    /// Limites para senha
+    /// </summary>
+    public static class PasswordLimits
+    {
+        public const int MinLength = 8;
+    }
+
+    /// <summary>
     /// Padrões regex utilizados no sistema
     /// </summary>
     public static class Patterns

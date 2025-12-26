@@ -18,8 +18,8 @@ public static class ValidationMessages
         public const string FirstName = "O nome é obrigatório.";
         public const string LastName = "O sobrenome é obrigatório.";
         public const string Id = "O identificador é obrigatório.";
-        public const string Password = "A senha é obrigatória";
-        public const string Role = "O papel não pode estar vazio";
+        public const string Password = "A senha é obrigatória.";
+        public const string Role = "O papel não pode estar vazio.";
     }
 
     /// <summary>
@@ -32,9 +32,9 @@ public static class ValidationMessages
         public const string Username = "Nome de usuário deve conter apenas letras, números, _, - e ..";
         public const string FirstName = "Nome deve conter apenas letras e espaços.";
         public const string LastName = "Sobrenome deve conter apenas letras e espaços.";
-        public const string Password = "A senha deve conter pelo menos uma letra minúscula, uma letra maiúscula e um número";
-        public const string Role = "Papel inválido. Papéis válidos: {0}";
-        public const string PhoneNumber = "O número de telefone deve estar no formato internacional (ex.: +5511999999999)";
+        public const string Password = "A senha deve conter pelo menos uma letra minúscula, uma letra maiúscula e um número.";
+        public const string Role = "Papel inválido. Papéis válidos: {0}.";
+        public const string PhoneNumber = "O número de telefone deve estar no formato internacional (ex.: +5511999999999).";
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public static class ValidationMessages
         public const string FirstNameTooLong = "Nome deve ter no máximo 100 caracteres.";
         public const string LastNameTooShort = "Sobrenome deve ter pelo menos 2 caracteres.";
         public const string LastNameTooLong = "Sobrenome deve ter no máximo 100 caracteres.";
-        public const string PasswordTooShort = "A senha deve ter pelo menos 8 caracteres";
+        public const string PasswordTooShort = "A senha deve ter pelo menos 8 caracteres.";
     }
 
     /// <summary>

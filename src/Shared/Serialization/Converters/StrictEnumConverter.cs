@@ -51,7 +51,7 @@ public class StrictEnumConverter : JsonConverterFactory
                 var enumString = reader.GetString();
                 if (string.IsNullOrWhiteSpace(enumString))
                 {
-                    throw new JsonException($"Empty string is not a valid {typeof(TEnum).Name} value");
+                    throw new JsonException($"String vazia não é um valor válido para {typeof(TEnum).Name}");
                 }
 
                 // Try parse with naming policy
@@ -64,14 +64,14 @@ public class StrictEnumConverter : JsonConverterFactory
                     }
                 }
 
-                throw new JsonException($"'{enumString}' is not a valid {typeof(TEnum).Name} value. Valid values: {string.Join(", ", Enum.GetNames<TEnum>())}");
+                throw new JsonException($"'{enumString}' não é um valor válido para {typeof(TEnum).Name}. Valores válidos: {string.Join(", ", Enum.GetNames<TEnum>())}");
             }
 
             if (reader.TokenType == JsonTokenType.Number)
             {
                 if (!_allowIntegerValues)
                 {
-                    throw new JsonException($"Integer values are not allowed for {typeof(TEnum).Name}. Use string values: {string.Join(", ", Enum.GetNames<TEnum>())}");
+                    throw new JsonException($"Valores inteiros não são permitidos para {typeof(TEnum).Name}. Use valores em string: {string.Join(", ", Enum.GetNames<TEnum>())}");
                 }
 
                 var enumValue = reader.GetInt32();
@@ -80,13 +80,13 @@ public class StrictEnumConverter : JsonConverterFactory
                 // Critical: Validate that the numeric value is actually defined in the enum
                 if (!Enum.IsDefined(typeof(TEnum), result))
                 {
-                    throw new JsonException($"{enumValue} is not a valid {typeof(TEnum).Name} value. Valid values: {string.Join(", ", Enum.GetValues<TEnum>())}");
+                    throw new JsonException($"{enumValue} não é um valor válido para {typeof(TEnum).Name}. Valores válidos: {string.Join(", ", Enum.GetValues<TEnum>())}");
                 }
 
                 return result;
             }
 
-            throw new JsonException($"Unexpected token type {reader.TokenType} for {typeof(TEnum).Name}");
+            throw new JsonException($"Tipo de token inesperado {reader.TokenType} para {typeof(TEnum).Name}");
         }
 
         public override void Write(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options)
