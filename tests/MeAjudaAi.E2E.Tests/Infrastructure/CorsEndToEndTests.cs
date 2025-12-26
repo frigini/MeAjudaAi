@@ -139,7 +139,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
     {
         // Arrange
         TestContainerFixture.AuthenticateAsAdmin();
-        var password = _fixture.Faker.Internet.Password(12, true);
+        var password = "ValidPass123!";
         var registerRequest = new
         {
             email = _fixture.Faker.Internet.Email(),
@@ -215,7 +215,7 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         
-        var password = _fixture.Faker.Internet.Password(12, true);
+        var password = "ValidPass123!";
         var registerRequest = new
         {
             email = _fixture.Faker.Internet.Email(),
@@ -383,4 +383,5 @@ public class CorsEndToEndTests : IClassFixture<TestContainerFixture>
 
     #endregion
 }
+
 

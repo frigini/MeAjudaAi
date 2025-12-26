@@ -67,7 +67,7 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
 
     private object CreateValidUserRequest()
     {
-        var password = _fixture.Faker.Internet.Password(12, true);
+        var password = "ValidPass123!";
         return new
         {
             Username = _fixture.Faker.Internet.UserName(),
@@ -179,5 +179,6 @@ public class OpenTelemetryMetricsEndToEndTests : IClassFixture<TestContainerFixt
         // (verificado em appsettings.json: "ServiceName": "MeAjudaAi-api")
     }
 }
+
 
 

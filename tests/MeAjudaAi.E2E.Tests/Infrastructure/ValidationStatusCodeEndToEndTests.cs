@@ -39,7 +39,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             Email = "not-an-email", // Invalid email format
             FirstName = _fixture.Faker.Name.FirstName(),
             LastName = _fixture.Faker.Name.LastName(),
-            Password = _fixture.Faker.Internet.Password(12, true),
+            Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
 
@@ -66,7 +66,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             // Email ausente (required)
             FirstName = _fixture.Faker.Name.FirstName(),
             LastName = _fixture.Faker.Name.LastName(),
-            Password = _fixture.Faker.Internet.Password(12, true),
+            Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
 
@@ -192,7 +192,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             Email = uniqueEmail,
             FirstName = _fixture.Faker.Name.FirstName(),
             LastName = _fixture.Faker.Name.LastName(),
-            Password = _fixture.Faker.Internet.Password(12, true),
+            Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
         
@@ -205,7 +205,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             Email = uniqueEmail, // Same email
             FirstName = _fixture.Faker.Name.FirstName(),
             LastName = _fixture.Faker.Name.LastName(),
-            Password = _fixture.Faker.Internet.Password(12, true),
+            Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
         var duplicateResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, TestContainerFixture.JsonOptions);
@@ -295,7 +295,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             Email = uniqueEmail,
             FirstName = _fixture.Faker.Name.FirstName(),
             LastName = _fixture.Faker.Name.LastName(),
-            Password = _fixture.Faker.Internet.Password(12, true),
+            Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
         
@@ -308,7 +308,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
             Email = uniqueEmail, // Same email
             FirstName = _fixture.Faker.Name.FirstName(),
             LastName = _fixture.Faker.Name.LastName(),
-            Password = _fixture.Faker.Internet.Password(12, true),
+            Password = "ValidPass123!",
             PhoneNumber = "+5511999999999"
         };
         var duplicateResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", duplicateRequest, TestContainerFixture.JsonOptions);
@@ -365,4 +365,5 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
 
     #endregion
 }
+
 

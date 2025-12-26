@@ -445,10 +445,12 @@ public class PermissionAuthorizationEndToEndTests : IClassFixture<TestContainerF
 
         var createRequest = new
         {
-            Name = $"{namePrefix} User",
-            Email = $"{namePrefix.ToLower()}-{Guid.NewGuid()}@test.com",
             Username = $"{namePrefix.ToLower()}-{Guid.NewGuid().ToString()[..8]}",
-            Password = "Test@123456789"
+            Email = $"{namePrefix.ToLower()}-{Guid.NewGuid()}@test.com",
+            FirstName = $"{namePrefix}",
+            LastName = "User",
+            Password = "ValidPass123!",
+            PhoneNumber = "+5511999999999"
         };
 
         var createResponse = await _fixture.ApiClient.PostAsJsonAsync("/api/v1/users", createRequest);
@@ -461,4 +463,5 @@ public class PermissionAuthorizationEndToEndTests : IClassFixture<TestContainerF
 
     #endregion
 }
+
 
