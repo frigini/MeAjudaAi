@@ -17,8 +17,8 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("meajudaai_providers")
-                .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
+                .HasDefaultSchema("providers")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -104,7 +104,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                     b.HasIndex("VerificationStatus")
                         .HasDatabaseName("ix_providers_verification_status");
 
-                    b.ToTable("providers", "meajudaai_providers");
+                    b.ToTable("providers", "providers");
                 });
 
             modelBuilder.Entity("MeAjudaAi.Modules.Providers.Domain.Entities.ProviderService", b =>
@@ -154,7 +154,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("ProviderId");
 
-                            b1.ToTable("providers", "meajudaai_providers");
+                            b1.ToTable("providers", "providers");
 
                             b1.WithOwner()
                                 .HasForeignKey("ProviderId");
@@ -213,7 +213,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 
                                     b2.HasKey("BusinessProfileProviderId");
 
-                                    b2.ToTable("providers", "meajudaai_providers");
+                                    b2.ToTable("providers", "providers");
 
                                     b2.WithOwner()
                                         .HasForeignKey("BusinessProfileProviderId");
@@ -242,7 +242,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 
                                     b2.HasKey("BusinessProfileProviderId");
 
-                                    b2.ToTable("providers", "meajudaai_providers");
+                                    b2.ToTable("providers", "providers");
 
                                     b2.WithOwner()
                                         .HasForeignKey("BusinessProfileProviderId");

@@ -347,6 +347,7 @@ public class ValidationStatusCodeEndToEndTests : IClassFixture<TestContainerFixt
     public async Task UpdateNonExistentResource_ShouldReturn404()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var nonExistentId = Guid.NewGuid();
         var request = new

@@ -79,19 +79,39 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 
         RuleFor(x => x.Password)
             .NotEmpty()
-            .WithMessage("Password is required")
+            .WithMessage("A senha é obrigatória")
             .MinimumLength(8)
-            .WithMessage("Password must be at least 8 characters long")
+            .WithMessage("A senha deve ter pelo menos 8 caracteres")
             .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)")
-            .WithMessage("Password must contain at least one lowercase letter, one uppercase letter and one number");
+            .WithMessage("A senha deve conter pelo menos uma letra minúscula, uma letra maiúscula e um número");
 
         When(x => x.Roles != null, () =>
         {
             RuleForEach(x => x.Roles)
                 .NotEmpty()
-                .WithMessage("Role cannot be empty")
+                .WithMessage("O papel não pode estar vazio")
                 .Must(role => UserRoles.IsValidRole(role))
-                .WithMessage($"Invalid role. Valid roles: {string.Join(", ", UserRoles.BasicRoles)}");
+                .WithMessage($"Papel inválido. Papéis válidos: {string.Join(", ", UserRoles.BasicRoles)}");
         });
+
+        // PhoneNumber validation (optional field)
+        RuleFor(x => x.PhoneNumber)
+            .Must(phone => string.IsNullOrWhiteSpace(phone) || IsValidPhoneNumber(phone))
+            .WithMessage("O número de telefone deve estar no formato internacional (ex.: +5511999999999)")
+            .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
+    }
+
+    private static bool IsValidPhoneNumber(string phoneNumber)
+    {
+        // Basic validation for international format: +[country code][number]
+        // Must start with + and contain 8-15 digits
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            return false;
+
+        if (!phoneNumber.StartsWith('+'))
+            return false;
+
+        var digitsOnly = phoneNumber[1..].Replace(" ", "").Replace("-", "");
+        return digitsOnly.Length >= 8 && digitsOnly.Length <= 15 && digitsOnly.All(char.IsDigit);
     }
 }

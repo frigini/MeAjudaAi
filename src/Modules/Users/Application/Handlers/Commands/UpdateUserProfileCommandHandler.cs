@@ -74,22 +74,22 @@ public sealed class UpdateUserProfileCommandHandler(
         }
         catch (ArgumentException)
         {
-            // Allow ArgumentException (validation errors) to propagate to GlobalExceptionHandler
+            // Permitir ArgumentException (erros de validação) propagar para o GlobalExceptionHandler
             throw;
         }
         catch (MeAjudaAi.Shared.Exceptions.ValidationException)
         {
-            // Allow ValidationException to propagate to GlobalExceptionHandler
+            // Permitir ValidationException propagar para o GlobalExceptionHandler
             throw;
         }
         catch (MeAjudaAi.Shared.Exceptions.DomainException)
         {
-            // Allow DomainException (business rule violations) to propagate to GlobalExceptionHandler
+            // Permitir DomainException (violações de regras de negócio) propagar para o GlobalExceptionHandler
             throw;
         }
         catch (Exception ex)
         {
-            // Catch infrastructure errors (database, cache, etc.) and return failure result
+            // Captura erros de infraestrutura (banco de dados, cache, etc.) e retorna um resultado de falha
             logger.LogError(ex, "Unexpected error updating user profile for {UserId}", command.UserId);
             return Result<UserDto>.Failure("Falha ao atualizar o perfil do usuário devido a um erro inesperado");
         }

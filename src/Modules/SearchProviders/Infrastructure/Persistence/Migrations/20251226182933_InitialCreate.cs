@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using NetTopologySuite.Geometries;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

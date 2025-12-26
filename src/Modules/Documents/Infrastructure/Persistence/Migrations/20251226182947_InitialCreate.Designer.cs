@@ -9,10 +9,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MeAjudaAi.Modules.Documents.Infrastructure.Migrations
+namespace MeAjudaAi.Modules.Documents.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(DocumentsDbContext))]
-    [Migration("20251126174809_InitialCreate")]
+    [Migration("20251226182947_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,8 +20,8 @@ namespace MeAjudaAi.Modules.Documents.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("meajudaai_documents")
-                .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
+                .HasDefaultSchema("documents")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);

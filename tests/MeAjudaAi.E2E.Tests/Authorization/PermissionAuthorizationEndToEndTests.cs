@@ -281,7 +281,7 @@ public class PermissionAuthorizationEndToEndTests : IClassFixture<TestContainerF
     }
 
     [Fact]
-    public async Task ProviderOnlyPolicy_WithUserRole_ShouldDeny()
+    public async Task ProviderListPermission_WithoutPermission_ShouldDeny()
     {
         // Arrange
         ConfigurableTestAuthenticationHandler.ClearConfiguration();
@@ -290,16 +290,16 @@ public class PermissionAuthorizationEndToEndTests : IClassFixture<TestContainerF
             userId: "user-123",
             userName: "normaluser",
             email: "user@test.com",
-            permissions: [EPermission.ProvidersRead.GetValue()],
-            roles: ["User"] // NÃO é Provider
+            permissions: [EPermission.ProvidersRead.GetValue()], // Falta ProvidersList
+            roles: ["User"]
         );
 
         // Act
         var response = await _fixture.ApiClient.GetAsync("/api/v1/providers");
 
-        // Assert - Deve negar acesso se policy ProviderOnly estiver aplicada
+        // Assert - Deve negar acesso pois falta a permissão ProvidersList
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
-            "User role without Provider role should be denied access by ProviderOnly policy");
+            "User without ProvidersList permission should be denied");
     }
 
     [Fact]

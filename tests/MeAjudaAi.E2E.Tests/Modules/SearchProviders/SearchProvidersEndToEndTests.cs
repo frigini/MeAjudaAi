@@ -4,6 +4,8 @@ using FluentAssertions;
 using MeAjudaAi.E2E.Tests.Base;
 using MeAjudaAi.Modules.SearchProviders.Application.DTOs;
 using MeAjudaAi.Shared.Contracts;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MeAjudaAi.E2E.Tests.Modules.SearchProviders;
 
@@ -22,9 +24,12 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         _fixture = fixture;
     }
 
-    [Fact(Skip = "Requer PostGIS - será corrigido após resolver outros módulos")]
+    [Fact]
     public async Task SearchProviders_CompleteWorkflow_ShouldFindProvidersWithinRadius()
     {
+        // Arrange - Garantir que schema e tabela existem
+        await EnsureSearchProvidersSchemaExistsAsync();
+        
         // Arrange - Criar Provider dentro do raio de busca
         TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
@@ -54,7 +59,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         result.Items.Should().Contain(p => p.ProviderId == nearbyProvider);
     }
 
-    [Fact(Skip = "Requer PostGIS - será corrigido após resolver outros módulos")]
+    [Fact]
     public async Task SearchProviders_ShouldExcludeProvidersOutsideRadius()
     {
         // Arrange
@@ -85,7 +90,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
             "Provider outside radius should not appear in results");
     }
 
-    [Fact(Skip = "Requer PostGIS - será corrigido após resolver outros módulos")]
+    [Fact]
     public async Task SearchProviders_WithServiceFilter_ShouldReturnOnlyMatchingProviders()
     {
         // Arrange
@@ -134,7 +139,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
             "Provider with only garden service should not be found when filtering by cleaning service");
     }
 
-    [Fact(Skip = "Requer PostGIS - será corrigido após resolver outros módulos")]
+    [Fact]
     public async Task SearchProviders_WithMultipleServiceFilters_ShouldReturnProvidersWithAnyService()
     {
         // Arrange
@@ -168,7 +173,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         result!.Items.Should().Contain(p => p.ProviderId == plumberId);
     }
 
-    [Fact(Skip = "Requer PostGIS - será corrigido após resolver outros módulos")]
+    [Fact]
     public async Task SearchProviders_ShouldOrderBySubscriptionTier_ThenByRating_ThenByDistance()
     {
         // Arrange
@@ -225,7 +230,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         }
     }
 
-    [Fact(Skip = "Requer PostGIS - será corrigido após resolver outros módulos")]
+    [Fact]
     public async Task SearchProviders_WithMinRatingFilter_ShouldExcludeLowRatedProviders()
     {
         // Arrange
@@ -259,7 +264,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
         });
     }
 
-    [Fact(Skip = "Requer PostGIS - será corrigido após resolver outros módulos")]
+    [Fact]
     public async Task SearchProviders_WithPagination_ShouldRespectPageSizeAndNumber()
     {
         // Arrange
@@ -393,6 +398,21 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
     }
 
     /// <summary>
+    /// Garante que o schema e tabela do SearchProviders existem.
+    /// Necessário porque as migrations podem não estar sendo aplicadas corretamente.
+    /// </summary>
+    private async Task EnsureSearchProvidersSchemaExistsAsync()
+    {
+        await _fixture.WithServiceScopeAsync(async sp =>
+        {
+            var searchContext = sp.GetRequiredService<MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.SearchProvidersDbContext>();
+            
+            // Forçar aplicação de migrations
+            await searchContext.Database.MigrateAsync();
+        });
+    }
+
+    /// <summary>
     /// Insere um provider diretamente na tabela searchable_providers.
     /// Necessário porque o MockMessageBus não processa eventos de integração.
     /// </summary>
@@ -403,7 +423,7 @@ public class SearchProvidersEndToEndTests : IClassFixture<TestContainerFixture>
             var dapper = sp.GetRequiredService<MeAjudaAi.Shared.Database.IDapperConnection>();
             
             var sql = @"
-                INSERT INTO meajudaai_searchproviders.searchable_providers 
+                INSERT INTO search_providers.searchable_providers 
                 (id, provider_id, name, location, average_rating, total_reviews, subscription_tier, service_ids, is_active, created_at)
                 VALUES 
                 (@Id, @ProviderId, @Name, ST_SetSRID(ST_MakePoint(@Longitude, @Latitude), 4326)::geography, @AvgRating, @TotalReviews, @SubscriptionTier, @ServiceIds, @IsActive, @CreatedAt)

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ServiceCatalogsDbContext))]
-    [Migration("20251127142645_InitialCreate")]
+    [Migration("20251226182955_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,8 +20,8 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migration
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("meajudaai_service_catalogs")
-                .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
+                .HasDefaultSchema("service_catalogs")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -78,7 +78,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migration
                     b.HasIndex("CategoryId", "DisplayOrder")
                         .HasDatabaseName("ix_services_category_display_order");
 
-                    b.ToTable("services", "meajudaai_service_catalogs");
+                    b.ToTable("services", "service_catalogs");
                 });
 
             modelBuilder.Entity("MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.ServiceCategory", b =>
@@ -126,7 +126,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migration
                         .IsUnique()
                         .HasDatabaseName("ix_service_categories_name");
 
-                    b.ToTable("service_categories", "meajudaai_service_catalogs");
+                    b.ToTable("service_categories", "service_catalogs");
                 });
 
             modelBuilder.Entity("MeAjudaAi.Modules.ServiceCatalogs.Domain.Entities.Service", b =>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -15,9 +15,12 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
             migrationBuilder.EnsureSchema(
                 name: "meajudaai_providers");
 
+            migrationBuilder.EnsureSchema(
+                name: "providers");
+
             migrationBuilder.CreateTable(
                 name: "providers",
-                schema: "meajudaai_providers",
+                schema: "providers",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -70,7 +73,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_document_providers_provider_id",
                         column: x => x.provider_id,
-                        principalSchema: "meajudaai_providers",
+                        principalSchema: "providers",
                         principalTable: "providers",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -91,7 +94,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_provider_services_providers_provider_id",
                         column: x => x.provider_id,
-                        principalSchema: "meajudaai_providers",
+                        principalSchema: "providers",
                         principalTable: "providers",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -118,7 +121,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_qualification_providers_provider_id",
                         column: x => x.provider_id,
-                        principalSchema: "meajudaai_providers",
+                        principalSchema: "providers",
                         principalTable: "providers",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -132,13 +135,6 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_provider_services_provider_service",
-                schema: "meajudaai_providers",
-                table: "provider_services",
-                columns: new[] { "provider_id", "service_id" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "ix_provider_services_service_id",
                 schema: "meajudaai_providers",
                 table: "provider_services",
@@ -146,38 +142,38 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "ix_providers_is_deleted",
-                schema: "meajudaai_providers",
+                schema: "providers",
                 table: "providers",
                 column: "is_deleted");
 
             migrationBuilder.CreateIndex(
                 name: "ix_providers_name",
-                schema: "meajudaai_providers",
+                schema: "providers",
                 table: "providers",
                 column: "name");
 
             migrationBuilder.CreateIndex(
                 name: "ix_providers_status",
-                schema: "meajudaai_providers",
+                schema: "providers",
                 table: "providers",
                 column: "status");
 
             migrationBuilder.CreateIndex(
                 name: "ix_providers_type",
-                schema: "meajudaai_providers",
+                schema: "providers",
                 table: "providers",
                 column: "type");
 
             migrationBuilder.CreateIndex(
                 name: "ix_providers_user_id",
-                schema: "meajudaai_providers",
+                schema: "providers",
                 table: "providers",
                 column: "user_id",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_providers_verification_status",
-                schema: "meajudaai_providers",
+                schema: "providers",
                 table: "providers",
                 column: "verification_status");
         }
@@ -199,7 +195,7 @@ namespace MeAjudaAi.Modules.Providers.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "providers",
-                schema: "meajudaai_providers");
+                schema: "providers");
         }
     }
 }

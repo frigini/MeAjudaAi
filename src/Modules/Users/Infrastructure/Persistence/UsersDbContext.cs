@@ -36,7 +36,7 @@ public class UsersDbContext : BaseDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("meajudaai_users");
+        modelBuilder.HasDefaultSchema("users");
 
         // Aplica configurações do assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

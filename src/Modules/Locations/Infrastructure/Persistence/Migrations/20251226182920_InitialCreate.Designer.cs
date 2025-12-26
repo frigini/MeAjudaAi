@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeAjudaAi.Modules.Locations.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(LocationsDbContext))]
-    [Migration("20251224135606_InitialLocationsWithSnakeCase")]
-    partial class InitialLocationsWithSnakeCase
+    [Migration("20251226182920_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

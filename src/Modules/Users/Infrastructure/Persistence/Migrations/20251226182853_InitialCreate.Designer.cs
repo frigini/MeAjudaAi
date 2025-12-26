@@ -12,15 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(UsersDbContext))]
-    [Migration("20251222215855_AddPhoneNumberToUser")]
-    partial class AddPhoneNumberToUser
+    [Migration("20251226182853_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("meajudaai_users")
+                .HasDefaultSchema("users")
                 .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -119,7 +119,7 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_users_deleted_username")
                         .HasFilter("is_deleted = false");
 
-                    b.ToTable("users", "meajudaai_users");
+                    b.ToTable("users", "users");
                 });
 
             modelBuilder.Entity("MeAjudaAi.Modules.Users.Domain.Entities.User", b =>
@@ -143,7 +143,7 @@ namespace MeAjudaAi.Modules.Users.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("UserId");
 
-                            b1.ToTable("users", "meajudaai_users");
+                            b1.ToTable("users", "users");
 
                             b1.WithOwner()
                                 .HasForeignKey("UserId");

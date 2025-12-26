@@ -320,8 +320,21 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         await catalogsContext.Database.MigrateAsync();
 
         // Para SearchProvidersDbContext, só aplicar migrações (o banco já existe, só precisamos do schema search + PostGIS)
-        var searchContext = scope.ServiceProvider.GetRequiredService<SearchProvidersDbContext>();
-        await searchContext.Database.MigrateAsync();
+        try
+        {
+            var searchContext = scope.ServiceProvider.GetService<SearchProvidersDbContext>();
+            if (searchContext == null)
+            {
+                throw new InvalidOperationException("SearchProvidersDbContext NÃO está registrado no DI!");
+            }
+            
+            await searchContext.Database.MigrateAsync();
+        }
+        catch (Exception ex)
+        {
+            // Re-lançar para não mascarar o problema
+            throw new Exception($"Falha ao aplicar migrations do SearchProviders: {ex.Message}", ex);
+        }
 
         // Para LocationsDbContext, só aplicar migrações (o banco já existe, só precisamos do schema locations)
         var locationsContext = scope.ServiceProvider.GetRequiredService<LocationsDbContext>();
@@ -490,7 +503,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                 npgsqlOptions =>
                 {
                     npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_searchproviders");
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search_providers");
                 })
                 .UseSnakeCaseNamingConvention()
                 .EnableSensitiveDataLogging(false)
@@ -574,7 +587,6 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
         }
     }
 
-    /// <summary>
     /// <summary>
     /// Mock implementation of IMessageBus for E2E tests.
     /// Does not process events to avoid deadlocks - tests should use APIs directly.

@@ -371,6 +371,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Assert
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -389,6 +390,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Assert
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health/live");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -407,6 +409,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Assert
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health/ready");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -423,6 +426,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
@@ -444,6 +448,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
@@ -466,6 +471,7 @@ public class ExtensionsTests
         await app.StartAsync();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
@@ -491,6 +497,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
@@ -512,6 +519,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
@@ -535,6 +543,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
@@ -557,6 +566,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
@@ -579,6 +589,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
@@ -601,6 +612,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
@@ -627,6 +639,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
@@ -649,6 +662,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
 
@@ -675,6 +689,7 @@ public class ExtensionsTests
             app.MapDefaultEndpoints();
 
             // Assert
+            await app.StartAsync();
             var client = app.GetTestClient();
             var response = await client.GetAsync("/health");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -702,6 +717,7 @@ public class ExtensionsTests
             app.MapDefaultEndpoints();
 
             // Assert
+            await app.StartAsync();
             var client = app.GetTestClient();
             var response = await client.GetAsync("/health");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -725,6 +741,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Assert
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -769,6 +786,7 @@ public class ExtensionsTests
             app.MapDefaultEndpoints();
 
             // Act
+            await app.StartAsync();
             var client = app.GetTestClient();
             var response = await client.GetAsync("/health");
 
@@ -800,6 +818,7 @@ public class ExtensionsTests
             app.MapDefaultEndpoints();
 
             // Act
+            await app.StartAsync();
             var client = app.GetTestClient();
             var response = await client.GetAsync("/health");
 
@@ -831,6 +850,7 @@ public class ExtensionsTests
             app.MapDefaultEndpoints();
 
             // Act
+            await app.StartAsync();
             var client = app.GetTestClient();
             var response = await client.GetAsync("/health");
 
@@ -860,8 +880,10 @@ public class ExtensionsTests
             builder.Services.AddHealthChecks();
             var app = builder.Build();
             app.MapDefaultEndpoints();
+            await app.StartAsync();
 
             // Act
+            await app.StartAsync();
             var client = app.GetTestClient();
             var response = await client.GetAsync("/health");
 
@@ -893,6 +915,7 @@ public class ExtensionsTests
             app.MapDefaultEndpoints();
 
             // Act
+            await app.StartAsync();
             var client = app.GetTestClient();
             var response = await client.GetAsync("/health");
 
@@ -925,6 +948,7 @@ public class ExtensionsTests
             app.MapDefaultEndpoints();
 
             // Act
+            await app.StartAsync();
             var client = app.GetTestClient();
             var response = await client.GetAsync("/health");
 
@@ -954,6 +978,7 @@ public class ExtensionsTests
             app.MapDefaultEndpoints();
 
             // Act
+            await app.StartAsync();
             var client = app.GetTestClient();
             var response = await client.GetAsync("/health");
 
@@ -987,6 +1012,7 @@ public class ExtensionsTests
             app.MapDefaultEndpoints();
 
             // Act
+            await app.StartAsync();
             var client = app.GetTestClient();
             var response = await client.GetAsync("/health");
 
@@ -1278,6 +1304,7 @@ public class ExtensionsTests
         app.MapDefaultEndpoints();
 
         // Act
+        await app.StartAsync();
         var client = app.GetTestClient();
         var response = await client.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
@@ -1325,7 +1352,7 @@ public class ExtensionsTests
 
     private static WebApplicationBuilder CreateWebApplicationBuilder(string environmentName = "Development")
     {
-        var builder = CreateWebApplicationBuilder();
+        var builder = WebApplication.CreateBuilder();
         builder.Environment.EnvironmentName = environmentName;
         builder.WebHost.UseTestServer();
         return builder;

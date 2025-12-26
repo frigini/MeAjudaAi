@@ -28,6 +28,7 @@ public sealed class MiddlewareEndToEndTests : IClassFixture<TestContainerFixture
     public async Task BusinessMetrics_UserCreation_ShouldRecordMetric()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin();
         var uniqueId = Guid.NewGuid().ToString("N")[..8];
         var request = new

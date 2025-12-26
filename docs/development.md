@@ -829,7 +829,7 @@ Estes tipos de teste são executados, mas NÃO contribuem para o relatório de c
 - `tests/MeAjudaAi.Architecture.Tests/` - Testes de arquitetura
 - `tests/MeAjudaAi.Integration.Tests/` - Testes de integração
 - `tests/MeAjudaAi.Shared.Tests/` - Testes do shared
-- `tests/MeAjudaAi.E2E.Tests/` - Testes end-to-end (103 testes, 100% cobertura de endpoints)
+- `tests/MeAjudaAi.E2E.Tests/` - Testes end-to-end (86 testes em 15 arquivos consolidados, 100% cobertura de endpoints)
 
 #### 6. Validação
 

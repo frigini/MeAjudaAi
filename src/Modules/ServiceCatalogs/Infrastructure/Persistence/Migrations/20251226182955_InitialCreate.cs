@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -12,11 +12,11 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migration
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
-                name: "meajudaai_service_catalogs");
+                name: "service_catalogs");
 
             migrationBuilder.CreateTable(
                 name: "service_categories",
-                schema: "meajudaai_service_catalogs",
+                schema: "service_catalogs",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -34,7 +34,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migration
 
             migrationBuilder.CreateTable(
                 name: "services",
-                schema: "meajudaai_service_catalogs",
+                schema: "service_catalogs",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -52,7 +52,7 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migration
                     table.ForeignKey(
                         name: "fk_services_category",
                         column: x => x.category_id,
-                        principalSchema: "meajudaai_service_catalogs",
+                        principalSchema: "service_catalogs",
                         principalTable: "service_categories",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
@@ -60,44 +60,44 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migration
 
             migrationBuilder.CreateIndex(
                 name: "ix_service_categories_display_order",
-                schema: "meajudaai_service_catalogs",
+                schema: "service_catalogs",
                 table: "service_categories",
                 column: "display_order");
 
             migrationBuilder.CreateIndex(
                 name: "ix_service_categories_is_active",
-                schema: "meajudaai_service_catalogs",
+                schema: "service_catalogs",
                 table: "service_categories",
                 column: "is_active");
 
             migrationBuilder.CreateIndex(
                 name: "ix_service_categories_name",
-                schema: "meajudaai_service_catalogs",
+                schema: "service_catalogs",
                 table: "service_categories",
                 column: "name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_services_category_display_order",
-                schema: "meajudaai_service_catalogs",
+                schema: "service_catalogs",
                 table: "services",
                 columns: new[] { "category_id", "display_order" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_services_category_id",
-                schema: "meajudaai_service_catalogs",
+                schema: "service_catalogs",
                 table: "services",
                 column: "category_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_services_is_active",
-                schema: "meajudaai_service_catalogs",
+                schema: "service_catalogs",
                 table: "services",
                 column: "is_active");
 
             migrationBuilder.CreateIndex(
                 name: "ix_services_name",
-                schema: "meajudaai_service_catalogs",
+                schema: "service_catalogs",
                 table: "services",
                 column: "name",
                 unique: true);
@@ -108,11 +108,11 @@ namespace MeAjudaAi.Modules.ServiceCatalogs.Infrastructure.Persistence.Migration
         {
             migrationBuilder.DropTable(
                 name: "services",
-                schema: "meajudaai_service_catalogs");
+                schema: "service_catalogs");
 
             migrationBuilder.DropTable(
                 name: "service_categories",
-                schema: "meajudaai_service_catalogs");
+                schema: "service_catalogs");
         }
     }
 }
