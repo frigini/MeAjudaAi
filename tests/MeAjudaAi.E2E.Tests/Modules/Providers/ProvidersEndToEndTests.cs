@@ -493,8 +493,8 @@ public class ProvidersEndToEndTests : IClassFixture<TestContainerFixture>
                 ContactInfo = new
                 {
                     Email = _fixture.Faker.Internet.Email(),
-                    PhoneNumber = _fixture.Faker.Phone.PhoneNumber(),
-                    Website = _fixture.Faker.Internet.Url()
+                    PhoneNumber = "+5511999999999",
+                    Website = "https://www.example.com"
                 },
                 PrimaryAddress = new
                 {
