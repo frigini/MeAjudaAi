@@ -231,6 +231,10 @@ public class LocationsEndToEndTests : IClassFixture<TestContainerFixture>
         {
             var dbContext = services.GetRequiredService<LocationsDbContext>();
 
+            // Limpar tabela antes de inserir novos dados
+            dbContext.AllowedCities.RemoveRange(dbContext.AllowedCities);
+            await dbContext.SaveChangesAsync();
+
             var cities = new[]
             {
                 new AllowedCity("Uberlândia", "MG", "system"),

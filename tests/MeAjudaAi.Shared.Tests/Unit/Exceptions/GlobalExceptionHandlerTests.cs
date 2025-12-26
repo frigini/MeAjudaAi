@@ -69,8 +69,8 @@ public class GlobalExceptionHandlerTests
         var problemDetails = await DeserializeProblemDetails();
         problemDetails.Should().NotBeNull();
         problemDetails!.Status.Should().Be(400);
-        problemDetails.Title.Should().Be("Validation Error");
-        problemDetails.Detail.Should().Be("One or more validation errors occurred");
+        problemDetails.Title.Should().Be("Erro de validação");
+        problemDetails.Detail.Should().Be("Um ou mais erros de validação ocorreram");
         problemDetails.Instance.Should().Be("/api/test");
 
         var errors = problemDetails.Extensions["errors"] as JsonElement?;
@@ -119,7 +119,7 @@ public class GlobalExceptionHandlerTests
         var problemDetails = await DeserializeProblemDetails();
         problemDetails.Should().NotBeNull();
         problemDetails!.Status.Should().Be(409);
-        problemDetails.Title.Should().Be("Duplicate Value");
+        problemDetails.Title.Should().Be("Valor Duplicado");
         problemDetails.Detail.Should().Contain("email");
         problemDetails.Extensions.Should().ContainKey("constraintName");
         problemDetails.Extensions.Should().ContainKey("columnName");
@@ -137,7 +137,7 @@ public class GlobalExceptionHandlerTests
 
         // Assert
         var problemDetails = await DeserializeProblemDetails();
-        problemDetails!.Detail.Should().Contain("this field");
+        problemDetails!.Detail.Should().Contain("este campo");
     }
 
     #endregion

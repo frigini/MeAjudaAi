@@ -148,7 +148,7 @@ public class GlobalExceptionHandlerTests
         var responseBody = await reader.ReadToEndAsync();
         var problemDetails = JsonSerializer.Deserialize<JsonElement>(responseBody);
 
-        problemDetails.GetProperty("title").GetString().Should().Be("Validation Error");
+        problemDetails.GetProperty("title").GetString().Should().Be("Erro de validação");
         problemDetails.TryGetProperty("errors", out var errorsElement).Should().BeTrue();
     }
 

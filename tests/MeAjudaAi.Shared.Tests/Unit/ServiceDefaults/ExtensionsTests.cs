@@ -362,7 +362,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_InDevelopment_ShouldMapHealthEndpoint()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks();
         var app = builder.Build();
@@ -380,7 +380,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_InDevelopment_ShouldMapLiveEndpoint()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks().AddCheck("live", () => HealthCheckResult.Healthy(), tags: new[] { "live" });
         var app = builder.Build();
@@ -398,7 +398,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_InDevelopment_ShouldMapReadyEndpoint()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks().AddCheck("ready", () => HealthCheckResult.Healthy(), tags: new[] { "ready" });
         var app = builder.Build();
@@ -416,7 +416,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_ShouldReturnJsonResponse()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks().AddCheck("test", () => HealthCheckResult.Healthy("Test check"));
         var app = builder.Build();
@@ -437,7 +437,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_ShouldIncludeStatusInResponse()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks().AddCheck("test", () => HealthCheckResult.Healthy());
         var app = builder.Build();
@@ -458,7 +458,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_ShouldIncludeTotalDuration()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks().AddCheck("test", () => HealthCheckResult.Healthy());
         await using var app = builder.Build();
@@ -482,7 +482,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_ShouldIncludeChecksArray()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks()
             .AddCheck("check1", () => HealthCheckResult.Healthy("First"))
@@ -505,7 +505,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_CheckDetails_ShouldIncludeName()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks().AddCheck("test-check", () => HealthCheckResult.Healthy());
         var app = builder.Build();
@@ -528,7 +528,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_CheckDetails_ShouldIncludeStatus()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks().AddCheck("test", () => HealthCheckResult.Degraded());
         var app = builder.Build();
@@ -550,7 +550,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_CheckDetails_ShouldIncludeDuration()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks().AddCheck("test", () => HealthCheckResult.Healthy());
         var app = builder.Build();
@@ -572,7 +572,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_WithUnhealthyCheck_ShouldReturnUnhealthyStatus()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks().AddCheck("test", () => HealthCheckResult.Unhealthy("Failed"));
         var app = builder.Build();
@@ -593,7 +593,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_WithException_ShouldIncludeExceptionMessage()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks().AddCheck("test", () => 
             HealthCheckResult.Unhealthy("Error", new InvalidOperationException("Test error")));
@@ -616,7 +616,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_WithData_ShouldIncludeDataProperty()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks().AddCheck("test", () => 
         {
@@ -642,7 +642,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_ShouldSetNoCacheHeaders()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks();
         var app = builder.Build();
@@ -667,7 +667,7 @@ public class ExtensionsTests
         try
         {
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
-            var builder = WebApplication.CreateBuilder();
+            var builder = CreateWebApplicationBuilder();
             builder.Services.AddHealthChecks();
             var app = builder.Build();
 
@@ -694,7 +694,7 @@ public class ExtensionsTests
         try
         {
             Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
-            var builder = WebApplication.CreateBuilder();
+            var builder = CreateWebApplicationBuilder();
             builder.Services.AddHealthChecks();
             var app = builder.Build();
 
@@ -716,7 +716,7 @@ public class ExtensionsTests
     public async Task MapDefaultEndpoints_InProduction_ShouldNotMapEndpoints()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Production";
         builder.Services.AddHealthChecks();
         var app = builder.Build();
@@ -734,7 +734,7 @@ public class ExtensionsTests
     public void MapDefaultEndpoints_ShouldBeChainable()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.Services.AddHealthChecks();
         var app = builder.Build();
@@ -763,7 +763,7 @@ public class ExtensionsTests
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
             
-            var builder = WebApplication.CreateBuilder();
+            var builder = CreateWebApplicationBuilder();
             builder.Services.AddHealthChecks();
             var app = builder.Build();
             app.MapDefaultEndpoints();
@@ -794,7 +794,7 @@ public class ExtensionsTests
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
             
-            var builder = WebApplication.CreateBuilder();
+            var builder = CreateWebApplicationBuilder();
             builder.Services.AddHealthChecks();
             var app = builder.Build();
             app.MapDefaultEndpoints();
@@ -825,7 +825,7 @@ public class ExtensionsTests
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
             
-            var builder = WebApplication.CreateBuilder();
+            var builder = CreateWebApplicationBuilder();
             builder.Services.AddHealthChecks();
             var app = builder.Build();
             app.MapDefaultEndpoints();
@@ -856,7 +856,7 @@ public class ExtensionsTests
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
             Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "true");
             
-            var builder = WebApplication.CreateBuilder();
+            var builder = CreateWebApplicationBuilder();
             builder.Services.AddHealthChecks();
             var app = builder.Build();
             app.MapDefaultEndpoints();
@@ -887,7 +887,7 @@ public class ExtensionsTests
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
             Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "1");
             
-            var builder = WebApplication.CreateBuilder();
+            var builder = CreateWebApplicationBuilder();
             builder.Services.AddHealthChecks();
             var app = builder.Build();
             app.MapDefaultEndpoints();
@@ -918,7 +918,7 @@ public class ExtensionsTests
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", null);
             Environment.SetEnvironmentVariable("INTEGRATION_TESTS", "false");
             
-            var builder = WebApplication.CreateBuilder();
+            var builder = CreateWebApplicationBuilder();
             builder.Environment.EnvironmentName = "Production";
             builder.Services.AddHealthChecks();
             var app = builder.Build();
@@ -948,7 +948,7 @@ public class ExtensionsTests
         {
             Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "TeStInG");
             
-            var builder = WebApplication.CreateBuilder();
+            var builder = CreateWebApplicationBuilder();
             builder.Services.AddHealthChecks();
             var app = builder.Build();
             app.MapDefaultEndpoints();
@@ -980,7 +980,7 @@ public class ExtensionsTests
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", null);
             Environment.SetEnvironmentVariable("INTEGRATION_TESTS", null);
             
-            var builder = WebApplication.CreateBuilder();
+            var builder = CreateWebApplicationBuilder();
             builder.Environment.EnvironmentName = "Production";
             builder.Services.AddHealthChecks();
             var app = builder.Build();
@@ -1269,7 +1269,7 @@ public class ExtensionsTests
     public async Task FullStack_WithAllDefaults_ShouldWorkEndToEnd()
     {
         // Arrange
-        var builder = WebApplication.CreateBuilder();
+        var builder = CreateWebApplicationBuilder();
         builder.Environment.EnvironmentName = "Development";
         builder.AddServiceDefaults();
         builder.Services.AddHealthChecks().AddCheck("test", () => HealthCheckResult.Healthy());
@@ -1320,6 +1320,14 @@ public class ExtensionsTests
             builder.Configuration.AddInMemoryCollection(configuration);
         }
 
+        return builder;
+    }
+
+    private static WebApplicationBuilder CreateWebApplicationBuilder(string environmentName = "Development")
+    {
+        var builder = CreateWebApplicationBuilder();
+        builder.Environment.EnvironmentName = environmentName;
+        builder.WebHost.UseTestServer();
         return builder;
     }
 

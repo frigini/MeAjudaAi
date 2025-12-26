@@ -20,6 +20,18 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             exception = innerValidationException;
         }
         
+        // Se InvalidOperationException tiver NotFoundException como inner, desencapsular
+        if (exception is InvalidOperationException && exception.InnerException is NotFoundException innerNotFoundException)
+        {
+            exception = innerNotFoundException;
+        }
+        
+        // Se InvalidOperationException tiver BadRequestException como inner, desencapsular
+        if (exception is InvalidOperationException && exception.InnerException is BadRequestException innerBadRequestException)
+        {
+            exception = innerBadRequestException;
+        }
+        
         var (statusCode, title, detail, errors, extensions) = exception switch
         {
             // Nossa ValidationException customizada
@@ -116,6 +128,13 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
                 StatusCodes.Status400BadRequest,
                 "Domain Rule Violation",
                 domainException.Message,
+                null,
+                []),
+
+            BadRequestException badRequestException => (
+                StatusCodes.Status400BadRequest,
+                "Erro de validação",
+                badRequestException.Message,
                 null,
                 []),
 
