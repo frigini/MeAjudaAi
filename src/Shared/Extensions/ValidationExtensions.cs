@@ -31,15 +31,15 @@ public static class Extensions
             }
             catch (FileNotFoundException)
             {
-                // Expected in partial-test scenarios - assembly not loaded
+                // Esperado em cenários de teste parcial - assembly não carregado
                 Console.WriteLine($"Validator assembly not found: {assemblyName}");
             }
             catch (BadImageFormatException ex)
             {
-                // Expected for platform-specific assemblies
+                // Esperado para assemblies específicos de plataforma
                 Console.WriteLine($"Invalid assembly format: {assemblyName} - {ex.Message}");
             }
-            // Any other exception (security, permissions, etc.) should bubble up
+            // Qualquer outra exceção (segurança, permissões, etc.) deve propagar
         }
 
         services.AddValidatorsFromAssemblies(assembliesToScan);

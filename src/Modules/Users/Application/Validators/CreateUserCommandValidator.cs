@@ -6,7 +6,7 @@ using MeAjudaAi.Shared.Utilities;
 namespace MeAjudaAi.Modules.Users.Application.Validators;
 
 /// <summary>
-/// Validator for CreateUserCommand
+/// Validador para CreateUserCommand
 /// </summary>
 public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 {
@@ -94,7 +94,7 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
                 .WithMessage($"Papel inválido. Papéis válidos: {string.Join(", ", UserRoles.BasicRoles)}");
         });
 
-        // PhoneNumber validation (optional field)
+        // Validação de PhoneNumber (campo opcional)
         RuleFor(x => x.PhoneNumber)
             .Must(phone => string.IsNullOrWhiteSpace(phone) || IsValidPhoneNumber(phone))
             .WithMessage("O número de telefone deve estar no formato internacional (ex.: +5511999999999)")
@@ -103,8 +103,8 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 
     private static bool IsValidPhoneNumber(string phoneNumber)
     {
-        // Basic validation for international format: +[country code][number]
-        // Must start with + and contain 8-15 digits
+        // Validação básica para formato internacional: +[código país][número]
+        // Deve começar com + e conter 8-15 dígitos
         if (string.IsNullOrWhiteSpace(phoneNumber))
             return false;
 

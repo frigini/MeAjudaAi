@@ -326,7 +326,7 @@ O MeAjudaAi segue uma estratégia abrangente de testes baseada na pirâmide de t
         /______________________\
 ```
 
-**Cobertura de Testes E2E**: 86 testes em **15 arquivos consolidados** (redução de 21%)
+**Cobertura de Testes E2E**: 81 testes em **15 arquivos consolidados** (redução de 21%)
 - ✅ Providers: 10 testes (consolidado: 3→1 arquivo, 6 #regions)
 - ✅ ServiceCatalogs: 14 testes (consolidado: 2→1 arquivo, 7 #regions)
 - ✅ Documents: 10 testes (consolidado: 2→1 arquivo, 6 #regions)
@@ -829,7 +829,7 @@ Estes tipos de teste são executados, mas NÃO contribuem para o relatório de c
 - `tests/MeAjudaAi.Architecture.Tests/` - Testes de arquitetura
 - `tests/MeAjudaAi.Integration.Tests/` - Testes de integração
 - `tests/MeAjudaAi.Shared.Tests/` - Testes do shared
-- `tests/MeAjudaAi.E2E.Tests/` - Testes end-to-end (86 testes em 15 arquivos consolidados, 100% cobertura de endpoints)
+- `tests/MeAjudaAi.E2E.Tests/` - Testes end-to-end (81 testes em 15 arquivos consolidados, 100% cobertura de endpoints)
 
 #### 6. Validação
 

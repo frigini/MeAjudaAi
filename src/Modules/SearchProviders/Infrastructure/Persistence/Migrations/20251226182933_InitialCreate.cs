@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using NetTopologySuite.Geometries;
 
@@ -13,14 +13,14 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migration
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
-                name: "meajudaai_searchproviders");
+                name: "search_providers");
 
             migrationBuilder.AlterDatabase()
                 .Annotation("Npgsql:PostgresExtension:postgis", ",,");
 
             migrationBuilder.CreateTable(
                 name: "searchable_providers",
-                schema: "meajudaai_searchproviders",
+                schema: "search_providers",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -45,40 +45,40 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migration
 
             migrationBuilder.CreateIndex(
                 name: "ix_searchable_providers_is_active",
-                schema: "meajudaai_searchproviders",
+                schema: "search_providers",
                 table: "searchable_providers",
                 column: "is_active");
 
             migrationBuilder.CreateIndex(
                 name: "ix_searchable_providers_location",
-                schema: "meajudaai_searchproviders",
+                schema: "search_providers",
                 table: "searchable_providers",
                 column: "location")
                 .Annotation("Npgsql:IndexMethod", "gist");
 
             migrationBuilder.CreateIndex(
                 name: "ix_searchable_providers_provider_id",
-                schema: "meajudaai_searchproviders",
+                schema: "search_providers",
                 table: "searchable_providers",
                 column: "provider_id",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_searchable_providers_search_ranking",
-                schema: "meajudaai_searchproviders",
+                schema: "search_providers",
                 table: "searchable_providers",
                 columns: new[] { "is_active", "subscription_tier", "average_rating" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_searchable_providers_service_ids",
-                schema: "meajudaai_searchproviders",
+                schema: "search_providers",
                 table: "searchable_providers",
                 column: "service_ids")
                 .Annotation("Npgsql:IndexMethod", "gin");
 
             migrationBuilder.CreateIndex(
                 name: "ix_searchable_providers_subscription_tier",
-                schema: "meajudaai_searchproviders",
+                schema: "search_providers",
                 table: "searchable_providers",
                 column: "subscription_tier");
         }
@@ -88,7 +88,7 @@ namespace MeAjudaAi.Modules.SearchProviders.Infrastructure.Persistence.Migration
         {
             migrationBuilder.DropTable(
                 name: "searchable_providers",
-                schema: "meajudaai_searchproviders");
+                schema: "search_providers");
         }
     }
 }
