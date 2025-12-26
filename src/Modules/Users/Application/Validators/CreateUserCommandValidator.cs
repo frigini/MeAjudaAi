@@ -14,22 +14,13 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
     {
         RuleFor(x => x.Username)
             .NotEmpty()
-            .WithMessage(ValidationMessages.Required.Username);
-
-        RuleFor(x => x.Username)
+            .WithMessage(ValidationMessages.Required.Username)
             .MinimumLength(ValidationConstants.UserLimits.UsernameMinLength)
             .WithMessage(ValidationMessages.Length.UsernameTooShort)
-            .When(x => !string.IsNullOrWhiteSpace(x.Username));
-
-        RuleFor(x => x.Username)
             .MaximumLength(ValidationConstants.UserLimits.UsernameMaxLength)
             .WithMessage(ValidationMessages.Length.UsernameTooLong)
-            .When(x => !string.IsNullOrWhiteSpace(x.Username));
-
-        RuleFor(x => x.Username)
             .Matches(ValidationConstants.Patterns.Username)
-            .WithMessage(ValidationMessages.InvalidFormat.Username)
-            .When(x => !string.IsNullOrWhiteSpace(x.Username));
+            .WithMessage(ValidationMessages.InvalidFormat.Username);
 
         RuleFor(x => x.Email)
             .NotEmpty()
@@ -41,41 +32,23 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 
         RuleFor(x => x.FirstName)
             .NotEmpty()
-            .WithMessage(ValidationMessages.Required.FirstName);
-
-        RuleFor(x => x.FirstName)
+            .WithMessage(ValidationMessages.Required.FirstName)
             .MinimumLength(ValidationConstants.UserLimits.FirstNameMinLength)
             .WithMessage(ValidationMessages.Length.FirstNameTooShort)
-            .When(x => !string.IsNullOrWhiteSpace(x.FirstName));
-
-        RuleFor(x => x.FirstName)
             .MaximumLength(ValidationConstants.UserLimits.FirstNameMaxLength)
             .WithMessage(ValidationMessages.Length.FirstNameTooLong)
-            .When(x => !string.IsNullOrWhiteSpace(x.FirstName));
-
-        RuleFor(x => x.FirstName)
             .Matches(ValidationConstants.Patterns.Name)
-            .WithMessage(ValidationMessages.InvalidFormat.FirstName)
-            .When(x => !string.IsNullOrWhiteSpace(x.FirstName));
+            .WithMessage(ValidationMessages.InvalidFormat.FirstName);
 
         RuleFor(x => x.LastName)
             .NotEmpty()
-            .WithMessage(ValidationMessages.Required.LastName);
-
-        RuleFor(x => x.LastName)
+            .WithMessage(ValidationMessages.Required.LastName)
             .MinimumLength(ValidationConstants.UserLimits.LastNameMinLength)
             .WithMessage(ValidationMessages.Length.LastNameTooShort)
-            .When(x => !string.IsNullOrWhiteSpace(x.LastName));
-
-        RuleFor(x => x.LastName)
             .MaximumLength(ValidationConstants.UserLimits.LastNameMaxLength)
             .WithMessage(ValidationMessages.Length.LastNameTooLong)
-            .When(x => !string.IsNullOrWhiteSpace(x.LastName));
-
-        RuleFor(x => x.LastName)
             .Matches(ValidationConstants.Patterns.Name)
-            .WithMessage(ValidationMessages.InvalidFormat.LastName)
-            .When(x => !string.IsNullOrWhiteSpace(x.LastName));
+            .WithMessage(ValidationMessages.InvalidFormat.LastName);
 
         RuleFor(x => x.Password)
             .NotEmpty()
@@ -97,8 +70,7 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
         // Validação de PhoneNumber (campo opcional)
         RuleFor(x => x.PhoneNumber)
             .Must(phone => string.IsNullOrWhiteSpace(phone) || IsValidPhoneNumber(phone))
-            .WithMessage("O número de telefone deve estar no formato internacional (ex.: +5511999999999)")
-            .When(x => !string.IsNullOrWhiteSpace(x.PhoneNumber));
+            .WithMessage("O número de telefone deve estar no formato internacional (ex.: +5511999999999)");
     }
 
     private static bool IsValidPhoneNumber(string phoneNumber)
