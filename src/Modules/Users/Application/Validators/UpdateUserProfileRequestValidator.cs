@@ -40,13 +40,21 @@ public class UpdateUserProfileRequestValidator : AbstractValidator<UpdateUserPro
             .WithMessage(ValidationMessages.InvalidFormat.LastName)
             .When(x => !string.IsNullOrWhiteSpace(x.LastName));
 
+        // Email validation:
+        // - null is allowed (means "don't change")
+        // - empty/whitespace is rejected (can't clear email to empty)
+        // - non-empty must be valid email format
         RuleFor(x => x.Email)
             .NotEmpty()
             .WithMessage(ValidationMessages.Required.Email)
+            .When(x => x.Email is not null);
+
+        RuleFor(x => x.Email)
             .EmailAddress()
             .WithMessage(ValidationMessages.InvalidFormat.Email)
             .MaximumLength(ValidationConstants.UserLimits.EmailMaxLength)
-            .WithMessage(ValidationMessages.Length.EmailTooLong);
+            .WithMessage(ValidationMessages.Length.EmailTooLong)
+            .When(x => !string.IsNullOrWhiteSpace(x.Email));
 
         // PhoneNumber validation (optional field)
         RuleFor(x => x.PhoneNumber)
