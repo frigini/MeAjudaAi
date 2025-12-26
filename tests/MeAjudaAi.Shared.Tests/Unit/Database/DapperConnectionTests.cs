@@ -197,11 +197,12 @@ public class DapperConnectionIntegrationTests : BaseDatabaseTest
         var connection = new DapperConnection(options, metrics, loggerMock.Object);
 
         // Act
-        // CREATE TEMP TABLE retorna 0 (sucesso), diferente de SELECT que retorna -1
+        // PostgreSQL retorna -1 para comandos DDL (CREATE, DROP, ALTER)
+        // Apenas comandos DML (INSERT, UPDATE, DELETE) retornam número de linhas afetadas
         var result = await connection.ExecuteAsync("CREATE TEMP TABLE test_execute (id INT)");
 
         // Assert
-        result.Should().Be(0, "CREATE TEMP TABLE should return 0 on success");
+        result.Should().Be(-1, "CREATE TEMP TABLE returns -1 for DDL commands in PostgreSQL");
     }
 
     [Fact]

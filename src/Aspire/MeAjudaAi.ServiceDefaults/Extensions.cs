@@ -130,7 +130,13 @@ public static class Extensions
             {
                 Predicate = check => check.Tags.Contains("external"),  // Only external services, not database
                 ResponseWriter = WriteHealthCheckResponse,
-                AllowCachingResponses = false
+                AllowCachingResponses = false,
+                ResultStatusCodes =
+                {
+                    [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                    [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                    [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                }
             });
 
             // Alias /alive para /health (compatibilidade com testes)

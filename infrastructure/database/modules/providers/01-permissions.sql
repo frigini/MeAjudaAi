@@ -27,6 +27,9 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA providers TO meajudaai_app_role;
 ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
 ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
 
+-- Set default privileges for catalogs_role on future tables (cross-module read access)
+ALTER DEFAULT PRIVILEGES FOR ROLE providers_owner IN SCHEMA providers GRANT SELECT ON TABLES TO catalogs_role;
+
 -- Grant limited permissions on public schema (read-only)
 GRANT USAGE ON SCHEMA public TO providers_role;
 GRANT USAGE ON SCHEMA public TO meajudaai_app_role;

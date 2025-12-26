@@ -212,9 +212,11 @@ public class ExtensionsTests
         builder.ConfigureOpenTelemetry();
 
         // Assert
+        // OpenTelemetry tracing is configured via WithTracing() which registers TracerProvider
         var hasTracing = builder.Services.Any(s => 
-            s.ServiceType.FullName != null && s.ServiceType.FullName.Contains("Tracing"));
-        hasTracing.Should().BeTrue();
+            s.ServiceType.FullName != null && 
+            (s.ServiceType.FullName.Contains("Tracing") || s.ServiceType.FullName.Contains("TracerProvider")));
+        hasTracing.Should().BeTrue("OpenTelemetry tracing should be configured");
     }
 
     [Fact]
@@ -527,6 +529,7 @@ public class ExtensionsTests
 
         // Assert
         var checks = json.RootElement.GetProperty("checks");
+        checks.GetArrayLength().Should().BeGreaterThan(0, "health checks should be registered");
         var firstCheck = checks[0];
         firstCheck.TryGetProperty("name", out var name).Should().BeTrue();
         name.GetString().Should().Be("test-check");
@@ -574,6 +577,7 @@ public class ExtensionsTests
 
         // Assert
         var checks = json.RootElement.GetProperty("checks");
+        checks.GetArrayLength().Should().BeGreaterThan(0, "health checks should be registered");
         checks[0].TryGetProperty("duration", out var duration).Should().BeTrue();
         duration.GetDouble().Should().BeGreaterThanOrEqualTo(0);
     }
@@ -647,6 +651,7 @@ public class ExtensionsTests
 
         // Assert
         var checks = json.RootElement.GetProperty("checks");
+        checks.GetArrayLength().Should().BeGreaterThan(0, "health checks should be registered");
         checks[0].TryGetProperty("data", out var data).Should().BeTrue();
         data.ValueKind.Should().Be(JsonValueKind.Object);
     }
