@@ -74,10 +74,12 @@ public class StrictEnumConverter : JsonConverterFactory
                     throw new JsonException($"Valores inteiros não são permitidos para {typeof(TEnum).Name}. Use valores em string: {string.Join(", ", Enum.GetNames<TEnum>())}");
                 }
 
-                var enumValue = reader.GetInt32();
+                // Use GetInt64 to support enums with long/ulong underlying types
+                var enumValue = reader.GetInt64();
                 var result = (TEnum)Enum.ToObject(typeof(TEnum), enumValue);
 
                 // Critical: Validate that the numeric value is actually defined in the enum
+                // Note: Enum.IsDefined returns false for valid [Flags] combinations
                 if (!Enum.IsDefined(typeof(TEnum), result))
                 {
                     throw new JsonException($"{enumValue} não é um valor válido para {typeof(TEnum).Name}. Valores válidos: {string.Join(", ", Enum.GetValues<TEnum>())}");
