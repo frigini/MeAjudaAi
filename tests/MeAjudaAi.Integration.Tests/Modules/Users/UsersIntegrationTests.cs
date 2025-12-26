@@ -35,6 +35,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
             email = $"test-{Guid.NewGuid():N}@example.com",
             firstName = "Test",
             lastName = "User",
+            password = "Test1234",
             keycloakId = $"keycloak-{Guid.NewGuid()}"
         };
 
@@ -163,6 +164,7 @@ public class UsersIntegrationTests(ITestOutputHelper testOutput) : BaseApiTest
             email = $"test-{uniqueId}@example.com",
             firstName = "Test",
             lastName = "User",
+            password = "Test1234",
             keycloakId = $"keycloak-{Guid.NewGuid()}"
         };
 
