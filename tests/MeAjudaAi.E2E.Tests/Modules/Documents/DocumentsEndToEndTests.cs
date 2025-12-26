@@ -319,8 +319,8 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var verifyResponse = await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/verify", verifyRequest);
 
-        // Assert - Verification should succeed
-        verifyResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+        // Assert - Verification should succeed (202 Accepted for async operations)
+        verifyResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.Accepted);
 
         // Assert - Verify status change in database
         await _fixture.WithServiceScopeAsync(async services =>
@@ -367,8 +367,8 @@ public class DocumentsEndToEndTests : IClassFixture<TestContainerFixture>
 
         var rejectResponse = await _fixture.PostJsonAsync($"/api/v1/documents/{documentId}/verify", rejectRequest);
 
-        // Assert
-        rejectResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent);
+        // Assert (202 Accepted for async operations)
+        rejectResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.Accepted);
 
         await _fixture.WithServiceScopeAsync(async services =>
         {
