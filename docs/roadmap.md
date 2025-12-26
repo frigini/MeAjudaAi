@@ -2796,7 +2796,7 @@ SELECT
     s.subscription_tier,
     pr.average_rating,
     pr.total_reviews
-FROM meajudaai_providers.providers p
+FROM providers.providers p
 LEFT JOIN meajudaai_billing.subscriptions s ON p.provider_id = s.provider_id
 LEFT JOIN meajudaai_reviews.provider_ratings pr ON p.provider_id = pr.provider_id;
 
@@ -2823,8 +2823,8 @@ SELECT
     al.entity_id,
     al.details_json
 FROM meajudaai_analytics.audit_log al
-LEFT JOIN meajudaai_users.users u ON al.actor_id = u.user_id
-LEFT JOIN meajudaai_providers.providers p ON al.actor_id = p.provider_id;
+LEFT JOIN users.users u ON al.actor_id = u.user_id
+LEFT JOIN providers.providers p ON al.actor_id = p.provider_id;
 ```
 
 #### **Implementação**
