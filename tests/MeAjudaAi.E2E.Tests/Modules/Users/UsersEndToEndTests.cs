@@ -135,9 +135,10 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
 
         var userId = TestContainerFixture.ExtractIdFromLocation(locationHeader!);
 
-        // Act - Update profile (não alterar Email para evitar conflitos)
+        // Act - Update profile
         var updateRequest = new
         {
+            Email = $"updated_{uniqueId}@example.com", // Email é obrigatório
             FirstName = "Updated",
             LastName = "Profile"
         };
@@ -329,9 +330,10 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
         location.Should().NotBeNullOrEmpty();
         var userId = TestContainerFixture.ExtractIdFromLocation(location!);
 
-        // Act - Primeira atualização (não alterar Email)
+        // Act - Primeira atualização
         var firstUpdate = new
         {
+            Email = $"multi_{uniqueId}@example.com",
             FirstName = "Second",
             LastName = "Version"
         };
@@ -340,9 +342,10 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
         // Assert first update succeeded
         firstUpdateResponse.IsSuccessStatusCode.Should().BeTrue("first profile update should succeed");
 
-        // Act - Segunda atualização (não alterar Email)
+        // Act - Segunda atualização
         var secondUpdate = new
         {
+            Email = $"multi_{uniqueId}@example.com",
             FirstName = "Third",
             LastName = "Final"
         };
@@ -395,9 +398,10 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
         var getResponse = await _fixture.ApiClient.GetAsync($"/api/v1/users/{userId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Act & Assert - UPDATE (não alterar Email)
+        // Act & Assert - UPDATE
         var updateRequest = new
         {
+            Email = $"workflow_{uniqueId}@example.com",
             FirstName = "Updated",
             LastName = "Workflow"
         };
@@ -537,9 +541,9 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
         location.Should().NotBeNullOrEmpty();
         var userId = TestContainerFixture.ExtractIdFromLocation(location!);
 
-        // Act - disparar duas atualizações simultâneas (não alterar Email)
-        var update1 = new { FirstName = "Update1", LastName = "User" };
-        var update2 = new { FirstName = "Update2", LastName = "User" };
+        // Act - disparar duas atualizações simultâneas
+        var update1 = new { Email = $"concurrent_{uniqueId}@example.com", FirstName = "Update1", LastName = "User" };
+        var update2 = new { Email = $"concurrent_{uniqueId}_v2@example.com", FirstName = "Update2", LastName = "User" };
 
         var task1 = _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update1, TestContainerFixture.JsonOptions);
         var task2 = _fixture.ApiClient.PutAsJsonAsync($"/api/v1/users/{userId}/profile", update2, TestContainerFixture.JsonOptions);

@@ -196,7 +196,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                         services.Remove(descriptor);
                     }
                     
-                    // Adicionar como Singleton para garantir que a mesma instância seja usada em todos os lugares
+                    // Adicionar como Singleton com factory para injetar IServiceProvider
                     services.AddSingleton<MeAjudaAi.Shared.Messaging.IMessageBus, MockMessageBus>();
 
                     // Substituir IDomainEventProcessor por um mock que não processa eventos (evitar publicação de eventos de integração em E2E)
@@ -490,7 +490,7 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
                 npgsqlOptions =>
                 {
                     npgsqlOptions.UseNetTopologySuite(); // Habilitar suporte PostGIS
-                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "search");
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "meajudaai_searchproviders");
                 })
                 .UseSnakeCaseNamingConvention()
                 .EnableSensitiveDataLogging(false)
@@ -575,19 +575,20 @@ public abstract class BaseTestContainerTest : IAsyncLifetime
     }
 
     /// <summary>
-    /// Mock implementation of IMessageBus for E2E tests
+    /// <summary>
+    /// Mock implementation of IMessageBus for E2E tests.
+    /// Does not process events to avoid deadlocks - tests should use APIs directly.
     /// </summary>
     private class MockMessageBus : MeAjudaAi.Shared.Messaging.IMessageBus
     {
         public Task SendAsync<TMessage>(TMessage message, string? queueName = null, CancellationToken cancellationToken = default)
         {
-            // No-op: messages are not actually sent in E2E tests
             return Task.CompletedTask;
         }
 
         public Task PublishAsync<TMessage>(TMessage @event, string? topicName = null, CancellationToken cancellationToken = default)
         {
-            // No-op: events are not actually published in E2E tests
+            // No-op: E2E tests should trigger actions via HTTP APIs, not via events
             return Task.CompletedTask;
         }
 

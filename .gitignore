@@ -9,6 +9,8 @@ nupkg/
 # Test results and auxiliary files
 test_results.txt
 test_results_*.txt
+test_*.txt
+*.txt
 
 # Visual Studio Code
 .vscode
