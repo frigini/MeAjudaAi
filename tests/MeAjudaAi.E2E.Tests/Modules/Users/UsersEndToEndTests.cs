@@ -272,7 +272,8 @@ public class UsersEndToEndTests : IClassFixture<TestContainerFixture>
         var updateRequest = new
         {
             FirstName = "Updated",
-            LastName = "User"
+            LastName = "User",
+            Email = $"update_test_{uniqueId}@example.com" // Manter o mesmo email
         };
 
         var updateResponse = await _fixture.ApiClient.PutAsJsonAsync(

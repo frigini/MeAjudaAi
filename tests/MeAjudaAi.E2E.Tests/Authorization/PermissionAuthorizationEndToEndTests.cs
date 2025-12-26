@@ -415,7 +415,7 @@ public class PermissionAuthorizationEndToEndTests : IClassFixture<TestContainerF
         var anyUserId = await CreateTestUserAsAdminAsync("Any");
 
         // Manter autenticação como admin para testar acesso
-        // (já está configurado como admin após CreateTestUserAsAdminAsync)
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // Act - admin acessando qualquer recurso
         var response = await _fixture.ApiClient.GetAsync($"/api/v1/users/{anyUserId}");

@@ -60,7 +60,7 @@ public sealed class RateLimitingEndToEndTests : IClassFixture<TestContainerFixtu
     {
         // Arrange
         TestContainerFixture.BeforeEachTest();
-        _fixture.ApiClient.DefaultRequestHeaders.Remove("Authorization");
+        TestContainerFixture.AuthenticateAsAdmin();
 
         // Act
         var healthResponses = new List<HttpResponseMessage>();
