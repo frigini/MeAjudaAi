@@ -4,8 +4,8 @@ using System.Text.Json.Serialization;
 namespace MeAjudaAi.Shared.Serialization.Converters;
 
 /// <summary>
-/// Strict enum converter that rejects undefined/invalid enum values during deserialization.
-/// Unlike JsonStringEnumConverter, this throws when receiving invalid numeric values.
+/// Conversor de enum estrito que rejeita valores indefinidos/inválidos durante a desserialização.
+/// Diferente do JsonStringEnumConverter, este lança exceção ao receber valores numéricos inválidos.
 /// </summary>
 public class StrictEnumConverter : JsonConverterFactory
 {

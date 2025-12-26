@@ -50,6 +50,9 @@ public static class ValidationConstants
 
         // GUID/UUID padrão
         public const string Guid = @"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
+
+        // Password: pelo menos uma minúscula, uma maiúscula e um número
+        public const string Password = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)";
     }
 
     /// <summary>

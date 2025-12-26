@@ -35,8 +35,13 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA search_providers TO meajudaai_app
 ALTER DEFAULT PRIVILEGES FOR ROLE search_owner IN SCHEMA search_providers GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO meajudaai_app_role;
 ALTER DEFAULT PRIVILEGES FOR ROLE search_owner IN SCHEMA search_providers GRANT USAGE, SELECT ON SEQUENCES TO meajudaai_app_role;
 
+-- Grant read-only access to existing tables for catalogs_role (cross-module read access)
+GRANT SELECT ON ALL TABLES IN SCHEMA search_providers TO catalogs_role;
+GRANT SELECT ON ALL SEQUENCES IN SCHEMA search_providers TO catalogs_role;
+
 -- Set default privileges for catalogs_role on future tables (cross-module read access)
 ALTER DEFAULT PRIVILEGES FOR ROLE search_owner IN SCHEMA search_providers GRANT SELECT ON TABLES TO catalogs_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE search_owner IN SCHEMA search_providers GRANT SELECT ON SEQUENCES TO catalogs_role;
 
 -- Grant read-only access to providers schema (for denormalization sync)
 GRANT USAGE ON SCHEMA providers TO search_role;

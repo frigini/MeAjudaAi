@@ -1,5 +1,6 @@
 using FluentValidation;
 using MeAjudaAi.Modules.Users.Application.DTOs.Requests;
+using MeAjudaAi.Shared.Utilities;
 using MeAjudaAi.Shared.Utilities.Constants;
 
 namespace MeAjudaAi.Modules.Users.Application.Validators;
@@ -49,21 +50,7 @@ public class UpdateUserProfileRequestValidator : AbstractValidator<UpdateUserPro
 
         // PhoneNumber validation (optional field)
         RuleFor(x => x.PhoneNumber)
-            .Must(phone => string.IsNullOrWhiteSpace(phone) || IsValidPhoneNumber(phone))
-            .WithMessage("O número de telefone deve estar no formato internacional (ex.: +5511999999999)");
-    }
-
-    private static bool IsValidPhoneNumber(string phoneNumber)
-    {
-        // Basic validation for international format: +[country code][number]
-        // Must start with + and contain 8-15 digits
-        if (string.IsNullOrWhiteSpace(phoneNumber))
-            return false;
-
-        if (!phoneNumber.StartsWith('+'))
-            return false;
-
-        var digitsOnly = phoneNumber[1..].Replace(" ", "").Replace("-", "");
-        return digitsOnly.Length >= 8 && digitsOnly.Length <= 15 && digitsOnly.All(char.IsDigit);
+            .Must(phone => string.IsNullOrWhiteSpace(phone) || PhoneNumberValidator.IsValidInternationalFormat(phone))
+            .WithMessage(ValidationMessages.InvalidFormat.PhoneNumber);
     }
 }
