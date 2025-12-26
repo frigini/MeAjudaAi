@@ -20,6 +20,7 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
     public async Task CreateUser_ShouldTriggerDomainEvents()
     {
         // Arrange
+        TestContainerFixture.BeforeEachTest();
         TestContainerFixture.AuthenticateAsAdmin(); // CreateUser requires admin role
         var uniqueId = Guid.NewGuid().ToString("N")[..8]; // Mantém sob 30 caracteres
         var createUserRequest = new
@@ -27,7 +28,9 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
             Username = $"test_{uniqueId}", // test_12345678 = 13 chars
             Email = $"eventtest_{uniqueId}@example.com",
             FirstName = "Event",
-            LastName = "Test"
+            LastName = "Test",
+            Password = "EventTest@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         // Act
@@ -66,7 +69,9 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
             Username = $"test_{uniqueId}", // test_12345678 = 13 chars
             Email = $"consistencytest_{uniqueId}@example.com",
             FirstName = "Consistency",
-            LastName = "Test"
+            LastName = "Test",
+            Password = "ConsistencyTest@123456",
+            PhoneNumber = "+5511999999999"
         };
 
         // Act 1: Create user
@@ -83,9 +88,10 @@ public class ModuleIntegrationTests : IClassFixture<TestContainerFixture>
             dataProperty.TryGetProperty("id", out var idProperty).Should().BeTrue();
             var userId = idProperty.GetGuid();
 
-            // Act 2: Atualiza o usuário (não alterar Email para evitar conflitos)
+            // Act 2: Atualiza o usuário (manter o mesmo email)
             var updateRequest = new
             {
+                Email = $"consistencytest_{uniqueId}@example.com",
                 FirstName = "Updated",
                 LastName = "User"
             };
